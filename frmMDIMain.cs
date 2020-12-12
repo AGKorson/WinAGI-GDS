@@ -30,20 +30,50 @@ namespace WinAGI_GDS
             //messageBoxCS.AppendLine();
             //MessageBox.Show(messageBoxCS.ToString(), "ItemClicked Event");
 
-            switch (e.ClickedItem.Name)
+        }
+
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //add a new window
+            frmLogicEdit FormNew = new frmLogicEdit
             {
-                case "newToolStripButton":
-                    MessageBox.Show("you clicked New", "Toolbar Click");
-                    //frmLogicEdit
+                MdiParent = this
+            };
+            FormNew.Show();
+        }
 
-                    frmLogicEdit FormNew = new frmLogicEdit();
-                    FormNew.MdiParent = this;
-                    FormNew.Show();
+        private void mnuWCascade_Click(object sender, EventArgs e)
+        {
+            LayoutMdi(MdiLayout.Cascade);
+        }
 
-                    break;
-                default:
-                    break;
+        private void mnuWArrange_Click(object sender, EventArgs e)
+        {
+            LayoutMdi(MdiLayout.ArrangeIcons);
+        }
+
+        private void mnuWTileH_Click(object sender, EventArgs e)
+        {
+            LayoutMdi(MdiLayout.TileHorizontal);
+        }
+
+        private void mnuWTileV_Click(object sender, EventArgs e)
+        {
+            LayoutMdi(MdiLayout.TileVertical);
+        }
+
+        private void mnuWMinimize_Click(object sender, EventArgs e)
+        {
+            foreach (Form childForm in MdiChildren)
+            {
+                childForm.WindowState = FormWindowState.Minimized;
             }
+        }
+
+        private void mnuWClose_Click(object sender, EventArgs e)
+        {
+            //only close if window is close-able
+            this.ActiveMdiChild.Close();
         }
     }
 }
