@@ -35,7 +35,7 @@ namespace WinAGI
     internal TDefine[] agGlobal; //dynamic size
     internal int agGlobalCount;
     internal bool agGlobalsSet;
-    internal int agGlobalCRC;
+    internal uint agGlobalCRC;
 
     //warning count value stored in Common file, so it can be used by the IDE as well as the engine
     internal bool[] agNoCompWarn; // WARNCOUNT
@@ -1374,15 +1374,11 @@ Option Compare Text
 
     internal void GetGlobalDefines()
     {
-      //  Dim intFile As Integer, dtFileMod As Date
-      //Dim strLine As String, strSplitLine(] As String
-      //Dim tdNewDefine As TDefine
-      //Dim lngTest As Long, i As Long
       string strLine, strTmp;
       string[] strSplitLine;
       int i, lngTest;
-      TDefine tdNewDefine;
-
+      TDefine tdNewDefine = new TDefine();
+      DateTime dtFileMod;
 
       agGlobalsSet = false;
 
@@ -1393,13 +1389,12 @@ Option Compare Text
       //Debug.Assert agGameLoaded
 
       //look for global file
-      if (!File.Exists(agGameDir + "globals.txt"))
+      if (!File.Exists(AGIGame.agGameDir + "globals.txt"))
         return;
 
       //open file for input
-      using var glbSR = new StringReader(agGameDir + "globals.txt");
+      using var glbSR = new StringReader(AGIGame.agGameDir + "globals.txt");
       {
-
         //read in globals
         while (true)
         {
@@ -1410,7 +1405,7 @@ Option Compare Text
 
 
           //strip off comment
-          strLine = StripComments(strLine, "", false);
+          strLine = AGIGame.StripComments(strLine, "", false);
           //ignore blanks '''and comments(// or ' or Rem)
           if (strLine.Length != 0)
           {
@@ -1442,59 +1437,50 @@ Option Compare Text
                 Array.Resize(ref strSplitLine, 0);
               }
             }
+
+            //if exactly two elements
+            if (strSplitLine.Length == 2)
+            {
+              //strSplitLine(0] has name
+              tdNewDefine.Name = strSplitLine[0].Trim();
+              //strSplitLine(1] has Value
+              tdNewDefine.Value = strSplitLine[1].Trim();
+
+              //validate define name
+              lngTest = AGIGame.ValidateDefName(tdNewDefine.Name);
+
+              if (lngTest == 0 || (lngTest >= 8 && lngTest <= 12))
+              {
+                //Select Case lngTest
+                //Case 0, 8, 9, 10, 11, 12 'name is valid or is overriding a reserved define
+                lngTest = AGIGame.ValidateDefName(tdNewDefine.Name);
+                lngTest = AGIGame.ValidateDefValue(tdNewDefine);
+                if (lngTest == 0 || lngTest == 5 || lngTest == 6)
+                {
+                  //Select Case lngTest
+                  //Case 0, 5, 6 //Value is valid, or is overriding a reserved Value
+                  //increment Count
+                  agGlobalCount++;
+                  //add it
+                  Array.Resize(ref agGlobal, agGlobalCount);
+                  agGlobal[agGlobalCount] = tdNewDefine;
+                }
+              }
+            }
           }
-
-          //if exactly two elements
-          if (strSplitLine.Length = 2)
-          {
-            //strSplitLine(0] has name
-            tdNewDefine.Name = strSplitLine[0].Trim();
-            //strSplitLine(1] has Value
-            tdNewDefine.Value = strSplitLine[1].Trim();
-
-            //validate define name
-            lngTest = ValidateDefName(tdNewDefine.Name);
-
-            if(lngTest == 0 || (lngTest >= 8 && lngTest <=12))
-      //Select Case lngTest
-      //Case 0, 8, 9, 10, 11, 12 'name is valid or is overriding a reserved define
-        lngTest = ValidateDefValue(tdNewDefine);
-
-        Select Case lngTest
-        Case 0, 5, 6 'Value is valid, or is overriding a reserved Value
-          'add it
-          ReDim Preserve agGlobal(agGlobalCount]
-          agGlobal(agGlobalCount] = tdNewDefine
-          'increment Count
-          agGlobalCount = agGlobalCount + 1
-        End Select
-      End Select
-    End If
-  End If
-Loop
         }
 
-        'save crc for this file
-'get datemodified property
-dtFileMod = FileLastMod(agGameDir & "globals.txt"]
-agGlobalCRC = CRC32(StrConv(CStr(dtFileMod], vbFromUnicode]]
+        //save crc for this file
+        //get datemodified property
+        dtFileMod = File.GetLastWriteTime(AGIGame.agGameDir + "globals.txt");
+        agGlobalCRC = AGIGame.CRC32(dtFileMod.ToString().ToCharArray());
+        //ErrHandler:
+        //        '*'Debug.Assert False
 
-Close intFile
-Exit Sub
-
-ErrHandler:
-        '*'Debug.Assert False
-
-'ensure file is closed
-Close intFile
-'return false
+        //'ensure file is closed
+        //Close intFile
+        //'return false
+      }
+    }
+  }
 }
-
-
-
-
-
-
-   */
-  }
-  }
