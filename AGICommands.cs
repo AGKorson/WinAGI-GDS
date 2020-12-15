@@ -3,7 +3,7 @@ using System.IO;
 
 namespace WinAGI
 {
-  public class AGICommands
+  public static class AGICommands
   {
     // agiCommandInfo Class
     //
@@ -11,39 +11,39 @@ namespace WinAGI
     //current game commands
     //test commands are in a separate object class
     //
-    internal string[] agArgTypPref = new string[9]; //8
-    internal string[] agArgTypName = new string[9]; //8
+    static internal string[] agArgTypPref = new string[9]; //8
+    static internal string[] agArgTypName = new string[9]; //8
 
-    internal byte agNumCmds;
+    static internal byte agNumCmds;
 
-    internal CommandStruct[] agCmds = new CommandStruct[181]; //182 
+    static internal CommandStruct[] agCmds = new CommandStruct[181]; //182 
 
     //predefined arguments
-    internal bool agResAsText;  //if true, reserved variables and flags show up as text when decompiling
-                                //not used if agUseRes is FALSE
-    internal bool agUseRes;     //if true, predefined variables and flags are used during compilation
-    internal TDefine[] agResVar = new TDefine[27];    //26 //text name of built in variables
-    internal TDefine[] agResFlag = new TDefine[18];   //17) //text name of built in flags
-    internal TDefine[] agEdgeCodes = new TDefine[5]; //4 //text of edge codes
-    internal TDefine[] agEgoDir = new TDefine[9];    //8 //text of ego direction codes
-    internal TDefine[] agVideoMode = new TDefine[5]; //4 //text of video mode codes
-    internal TDefine[] agCompType = new TDefine[9];  //8 //computer type values
-    internal TDefine[] agResDef = new TDefine[6];    //5 //defines for ego, gamever, gameabout, gameid, invobj Count
-    internal TDefine[] agResColor = new TDefine[16];  //15 //predefined color values
+    static internal bool agResAsText;  //if true, reserved variables and flags show up as text when decompiling
+                                       //not used if agUseRes is FALSE
+    static internal bool agUseRes;     //if true, predefined variables and flags are used during compilation
+    static internal TDefine[] agResVar = new TDefine[27];    //26 //text name of built in variables
+    static internal TDefine[] agResFlag = new TDefine[18];   //17) //text name of built in flags
+    static internal TDefine[] agEdgeCodes = new TDefine[5]; //4 //text of edge codes
+    static internal TDefine[] agEgoDir = new TDefine[9];    //8 //text of ego direction codes
+    static internal TDefine[] agVideoMode = new TDefine[5]; //4 //text of video mode codes
+    static internal TDefine[] agCompType = new TDefine[9];  //8 //computer type values
+    static internal TDefine[] agResDef = new TDefine[6];    //5 //defines for ego, gamever, gameabout, gameid, invobj Count
+    static internal TDefine[] agResColor = new TDefine[16];  //15 //predefined color values
 
     //user defined global arguments
-    internal TDefine[] agGlobal; //dynamic size
-    internal int agGlobalCount;
-    internal bool agGlobalsSet;
-    internal uint agGlobalCRC;
+    static internal TDefine[] agGlobal; //dynamic size
+    static internal int agGlobalCount;
+    static internal bool agGlobalsSet;
+    static internal uint agGlobalCRC;
 
     //warning count value stored in Common file, so it can be used by the IDE as well as the engine
-    internal bool[] agNoCompWarn; // WARNCOUNT
+    static internal bool[] agNoCompWarn; // WARNCOUNT
 
-    internal string strErrSource = "WinAGI.agiCommandInfo";
+    static internal string strErrSource = "WinAGI.agiCommandInfo";
 
 
-    public CommandStruct AGICommand(byte index)
+    static public CommandStruct AGICommand(byte index)
     {
       ////validate index
       //if (Index > agNumCmds)
@@ -53,14 +53,14 @@ namespace WinAGI
       return agCmds[index];
     }
 
-    public byte Count
+    static public byte Count
     { get { return agNumCmds; } private set { } }
 
 
     /*
 Option Compare Text
     */
-    public AGICommands()
+    static AGICommands()
     {
       agNumCmds = 182;   // not counting return()
 
@@ -1057,9 +1057,7 @@ Option Compare Text
       agCmds[182].ArgType[1] = ArgTypeEnum.atNum;
     }
 
-
-
-    internal void AssignReservedDefines()
+    static internal void AssignReservedDefines()
     // predefined variables, flags, and objects
     // Variables v0 - v26
     // Flags f0 - f16, f20 [in version 3.102 and above]
@@ -1327,7 +1325,7 @@ Option Compare Text
       agResDef[5].Default = agResDef[5].Name;
     }
 
-    internal void CorrectCommands(string Version)
+    static internal void CorrectCommands(string Version)
     // This procedure adjusts the logic commands for a given int. version
     {
       double verNum;
@@ -1372,7 +1370,7 @@ Option Compare Text
         agNumCmds = 181;
     }
 
-    internal void GetGlobalDefines()
+    static internal void GetGlobalDefines()
     {
       string strLine, strTmp;
       string[] strSplitLine;

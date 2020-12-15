@@ -213,8 +213,8 @@ namespace WinAGI
 
     // exposed game properties, methods, objects
     static public AGILogicSourceSettings agMainLogSettings = new AGILogicSourceSettings();
-    static public AGICommands agCmdCol = new AGICommands();
-    static public AGITestCommands agTestCmdCol = new AGITestCommands();
+    //static public AGICommands agCmdCol = new AGICommands();
+    //static public AGITestCommands agTestCmdCol = new AGITestCommands();
     static public AGIGameEvents agGameEvents = new AGIGameEvents();
 
     static string[] agGameProps;// As StringList
@@ -2933,7 +2933,7 @@ namespace WinAGI
       CRC32Table[254] = 0x5A05DF1B;
       CRC32Table[255] = 0x2D02EF8D;
 
- //set flag
+      //set flag
       CRC32Loaded = true;
     }
 
@@ -3031,6 +3031,21 @@ namespace WinAGI
       //  '*'Debug.Assert False
       //  Resume Next
       //End Function
+    }
+
+    /// <summary>
+    /// Extension method that works out if a string is numeric or not
+    /// </summary>
+    /// <param name="str">string that may be a number</param>
+    /// <returns>true if numeric, false if not</returns>
+    static internal bool IsNumeric(this String str)
+    {
+      double myNum = 0;
+      if (Double.TryParse(str, out myNum))
+      {
+        return true;
+      }
+      return false;
     }
 
     static internal int ValidateDefName(string DefName)
@@ -3194,203 +3209,138 @@ namespace WinAGI
     }
     static internal int ValidateDefValue(TDefine TestDefine)
     {
-      throw new NotImplementedException();
-      return 0;
-      //'validates that TestDefine.Value is a valid define Value
-      //'
-      //'returns 0 if successful
-      //'
-      //'returns an error code on failure:
-      //'1 = no Value
-      //'2 = Value is an invalid argument marker (not used anymore]
-      //'3 = Value contains an invalid argument Value
-      //'4 = Value is not a string, number or argument marker
-      //'5 = Value is already defined by a reserved name
-      //'6 = Value is already defined by a global name
+      //validates that TestDefine.Value is a valid define Value
+      //
+      //returns 0 if successful
+      //
+      //returns an error code on failure:
+      //1 = no Value
+      //2 = Value is an invalid argument marker (not used anymore]
+      //3 = Value contains an invalid argument Value
+      //4 = Value is not a string, number or argument marker
+      //5 = Value is already defined by a reserved name
+      //6 = Value is already defined by a global name
 
-      //Dim strVal As String
-      //Dim i As Long
+      string strVal;
+      int intVal;
 
       //On Error GoTo ErrHandler
 
-      //if (LenB(TestDefine.Value] = 0)
-      //        ValidateDefValue = 1
-      //  Exit Function
-      //End If
+      if (TestDefine.Value.Length == 0)
+        return 1;
 
-      //'values must be a variable/flag/etc, string, or a number
-      //if (Not IsNumeric(TestDefine.Value])
-      //  'if Value is an argument marker
-      //  Select Case AscW(LCase$(TestDefine.Value]]
-      //  '     v    f    m    o    i    s    w    c
-      //  Case 118, 102, 109, 111, 105, 115, 119, 99
-      //    'if rest of Value is numeric,
-      //    strVal = Right$(TestDefine.Value, Len(TestDefine.Value] - 1]
-      //    'if it is numeric
-      //    if (IsNumeric(strVal])
-      //        'if Value is not between 0-255
-      //      if (Val(strVal] < 0 Or Val(strVal] > 255)
-      //        ValidateDefValue = 3
-      //        Exit Function
-      //      End If
+      //values must be a variable/flag/etc, string, or a number
+      if (!IsNumeric(TestDefine.Value))
+      {
+        //if Value is an argument marker
+        switch ((int)TestDefine.Value.ToLower().ToCharArray()[0])
+        {
+          //     v    f    m    o    i    s    w    c
+          //Case 118, 102, 109, 111, 105, 115, 119, 99
+          case 118:
+          case 102:
+          case 109:
+          case 111:
+          case 105:
+          case 115:
+          case 119:
+          case 99:
+            //if rest of Value is numeric,
+            strVal = TestDefine.Value.Substring(0, TestDefine.Value.Length - 1);
+            if (IsNumeric(strVal))
+            {
+              //if Value is not between 0-255
+              intVal = int.Parse(strVal);
+              if (intVal < 0 || intVal > 255)
+                return 3;
+            }
 
-      //      'verify that the Value is not already assigned
-      //      Select Case AscW(LCase$(TestDefine.Value]]
-      //      Case 118 'variable
-      //        TestDefine.Type = ArgTypeEnum.atVar;
+            //check defined globals
+            for (int i = 0; i <= AGICommands.agGlobalCount - 1; i++)
+            {
+              //if this define has same Value
+              if (AGICommands.agGlobal[i].Value == TestDefine.Value)
+                return 6;
+            }
 
-      //      if (agUseRes)
-      //        'if already defined as a reserved variable
-      //          if (Val(strVal] <= 26)
-      //        ValidateDefValue = 5
-      //            Exit Function
-      //          End If
-      //        End If
+            //verify that the Value is not already assigned
+            switch ((int)TestDefine.Value.ToLower().ToCharArray()[0])
+            {
+              case 102: //flag
+                TestDefine.Type = ArgTypeEnum.atFlag;
+                if (AGICommands.agUseRes)
+                  //if already defined as a reserved flag
+                  if (intVal <= 15)
+                    return 5;
+                break;
 
-      //        'check defined globals
-      //        For i = 0 To agGlobalCount -1
-      //          'if this define has same Value
-      //          if (agGlobal(i].Value = TestDefine.Value)
-      //        ValidateDefValue = 6
-      //            Exit Function
-      //          End If
-      //        Next i
+              case 118: //variable
+                TestDefine.Type = ArgTypeEnum.atVar;
+                if (AGICommands.agUseRes)
+                  //if already defined as a reserved variable
+                  if (intVal <= 26)
+                    return 5;
+                break;
 
-      //      Case 102 'flag
-      //        TestDefine.Type = ArgTypeEnum.atFlag;
+              case 109: //message
+                TestDefine.Type = ArgTypeEnum.atMsg;
+                break;
 
-      //      if (agUseRes)
-      //        'if already defined as a reserved flag
-      //          if (Val(strVal] <= 15)
-      //        ValidateDefValue = 5
-      //            Exit Function
-      //          End If
-      //        End If
+              case 111: //screen object
+                TestDefine.Type = ArgTypeEnum.atSObj;
+                if (AGICommands.agUseRes)
+                  //can't be ego
+                  if (TestDefine.Value == "o0")
+                    return 5;
+                break;
 
-      //        'check defined globals
-      //        For i = 0 To agGlobalCount -1
-      //          'if this define has same Value
-      //          if (agGlobal(i].Value = TestDefine.Value)
-      //        ValidateDefValue = 6
-      //            Exit Function
-      //          End If
-      //        Next i
+              case 105: //inv object
+                TestDefine.Type = ArgTypeEnum.atIObj;
+                break;
 
-      //      Case 109 'message
-      //        TestDefine.Type = ArgTypeEnum.atMsg
+              case 115: //string
+                TestDefine.Type = ArgTypeEnum.atStr;
+                break;
 
-      //        'check defined globals
-      //        For i = 0 To agGlobalCount -1
-      //          'if this define has same Value
-      //          if (agGlobal(i].Value = TestDefine.Value)
-      //        ValidateDefValue = 6
-      //            Exit Function
-      //          End If
-      //        Next i
+              case 119: //word
+                TestDefine.Type = ArgTypeEnum.atWord;
+                break;
 
-      //      Case 111 'screen object
-      //        TestDefine.Type = ArgTypeEnum.atSObj;
+              case 99: //controller
+                       //controllers limited to 0-49
+                if (intVal < 0 || intVal > 255)
+                  return 3;
+                TestDefine.Type = ArgTypeEnum.atCtrl;
+                break;
+            }
+            //Value is ok
+            return 0;
+          default:
+            break;
+        }
 
-      //      if (agUseRes)
-      //        'can't be ego
-      //          if (TestDefine.Value = "o0")
-      //        ValidateDefValue = 5
-      //            Exit Function
-      //          End If
-      //        End If
+        //non-numeric, and most likely a string
+        TestDefine.Type = ArgTypeEnum.atDefStr;
 
-      //        'check defined globals
-      //        For i = 0 To agGlobalCount -1
-      //          'if this define has same Value
-      //          if (agGlobal(i].Value = TestDefine.Value)
-      //        ValidateDefValue = 6
-      //            Exit Function
-      //          End If
-      //        Next i
-
-      //      Case 105 'inv object
-      //        TestDefine.Type = ArgTypeEnum.atIObj
-
-      //        'check defined globals
-      //        For i = 0 To agGlobalCount -1
-      //          'if this define has same Value
-      //          if (agGlobal(i].Value = TestDefine.Value)
-      //        ValidateDefValue = 6
-      //            Exit Function
-      //          End If
-      //        Next i
-
-      //      Case 115 'string
-      //        TestDefine.Type = atStr
-
-      //        'check defined globals
-      //        For i = 0 To agGlobalCount -1
-      //          'if this define has same Value
-      //          if (agGlobal(i].Value = TestDefine.Value)
-      //        ValidateDefValue = 6
-      //            Exit Function
-      //          End If
-      //        Next i
-
-      //      Case 119 'word
-      //        TestDefine.Type = atWord
-
-      //        'check defined globals
-      //        For i = 0 To agGlobalCount -1
-      //          'if this define has same Value
-      //          if (agGlobal(i].Value = TestDefine.Value)
-      //        ValidateDefValue = 6
-      //            Exit Function
-      //          End If
-      //        Next i
-
-      //      Case 99 'controller
-      //        'controllers limited to 0-49
-      //        if (Val(strVal] < 0 Or Val(strVal] > 255)
-      //          ValidateDefValue = 3
-      //          Exit Function
-      //        End If
-
-      //        TestDefine.Type = ArgTypeEnum.atCtrl
-
-      //        'check defined globals
-      //        For i = 0 To agGlobalCount -1
-      //          'if this define has same Value
-      //          if (agGlobal(i].Value = TestDefine.Value)
-      //        ValidateDefValue = 6
-      //            Exit Function
-      //          End If
-      //        Next i
-      //      End Select
-      //      'Value is ok
-      //      Exit Function
-      //    End If
-      //  End Select
-
-      //  'non-numeric, and most likely a string
-      //  TestDefine.Type = atDefStr
-
-      //  'check Value for string delimiters in Value
-      //  if (AscW(TestDefine.Value) <> 34 And AscW(Right$(TestDefine.Value, 1)) <> 34)
-      //    ValidateDefValue = 4
-      //  End If
-      //Else
-
-      //  'must be numeric
-      //  TestDefine.Type = ArgTypeEnum.atNum;
-      //      End If
-
-      //Exit Function
+        //check Value for string delimiters in Value
+        if (TestDefine.Value.Substring(0, 1) != "\"" || TestDefine.Value.Substring(TestDefine.Value.Length - 1, 1) != "\"")
+          return 4;
+        else
+          return 0;
+      }
+      else
+      {
+        // numeric
+        TestDefine.Type = ArgTypeEnum.atNum;
+        return 0;
+      }
 
       //ErrHandler:
-      //      strError = Err.Description
+      //          strError = Err.Description
       //strErrSrc = Err.Source
       //lngError = Err.Number
 
       //On Error GoTo 0: Err.Raise vbObjectError +660, strErrSrc, Replace(LoadResString(660), ARG1, CStr(lngError) & ":" & strError)
-      //End Function
     }
-
   }
-
 }

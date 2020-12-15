@@ -2,13 +2,13 @@
 
 namespace WinAGI
 {
-  public class AGITestCommands
+  static public class AGITestCommands
   {
-    CommandStruct[] agTestCmds = new CommandStruct[20]; //19  //PC version has 18 test commands; Amiga appears to have 19
-    public string strErrSource;
+    static internal CommandStruct[] agTestCmds = new CommandStruct[20]; //19  //PC version has 18 test commands; Amiga appears to have 19
+    static public string strErrSource;
 
-    internal byte agNumTestCmds;
-    public AGITestCommands()
+    static internal byte agNumTestCmds;
+    static AGITestCommands()
     {
       agNumTestCmds = 19; //not counting return.false()
 
@@ -116,7 +116,7 @@ namespace WinAGI
       strErrSource = "WinAGI.agiTestCommands";
     }
 
-    public CommandStruct TestCmd(byte index)
+    static public CommandStruct TestCmd(byte index)
     {
       //validate index
       if (index > agNumTestCmds)
@@ -127,7 +127,7 @@ namespace WinAGI
       return agTestCmds[index];
     }
 
-public byte Count
+    static public byte Count
     { get { return agNumTestCmds; } private set { } }
   }
 }
