@@ -8,11 +8,11 @@ using System.Windows.Forms;
 
 namespace WinAGI_GDS
 {
-    public partial class frmLogicEdit : Form
+  public partial class frmLogicEdit : Form
+  {
+    public frmLogicEdit()
     {
-        public frmLogicEdit()
-        {
-            InitializeComponent();
-        }
+      InitializeComponent();
     }
+  }
 }

@@ -2,9 +2,37 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <RootNamespace>WinAGI_GDS</RootNamespace>
     <UseWindowsForms>true</UseWindowsForms>
+    <StartupObject>WinAGI_GDS.Program</StartupObject>
+    <ApplicationIcon>fWinAGI32.ico</ApplicationIcon>
+    <Authors>Andrew Korson</Authors>
+    <Company />
+    <Copyright>2020</Copyright>
+    <PackageIcon>winagi.jpg</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\OneDrive\AGI Stuff\WinAGI GDS Files\WinAGI v2-1-1\Resources\winagi.jpg">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 
 </Project>
