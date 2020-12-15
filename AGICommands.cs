@@ -1328,9 +1328,8 @@ Option Compare Text
     static internal void CorrectCommands(string Version)
     // This procedure adjusts the logic commands for a given int. version
     {
-      double verNum;
 
-      if (!double.TryParse(Version, out verNum))
+      if (!double.TryParse(Version, out double verNum))
       {
         //error
         throw new NotImplementedException();

@@ -14,10 +14,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AGIGame.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\..\..\OneDrive\AGI Stuff\WinAGI GDS Files\WinAGI v2-1-1\Resources\winagi.jpg">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+    <None Include="AGIGame.cs" />
   </ItemGroup>
 
   <ItemGroup>
