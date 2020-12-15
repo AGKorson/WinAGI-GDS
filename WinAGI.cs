@@ -3253,73 +3253,73 @@ namespace WinAGI
               intVal = int.Parse(strVal);
               if (intVal < 0 || intVal > 255)
                 return 3;
+
+              //check defined globals
+              for (int i = 0; i <= AGICommands.agGlobalCount - 1; i++)
+              {
+                //if this define has same Value
+                if (AGICommands.agGlobal[i].Value == TestDefine.Value)
+                  return 6;
+              }
+
+              //verify that the Value is not already assigned
+              switch ((int)TestDefine.Value.ToLower().ToCharArray()[0])
+              {
+                case 102: //flag
+                  TestDefine.Type = ArgTypeEnum.atFlag;
+                  if (AGICommands.agUseRes)
+                    //if already defined as a reserved flag
+                    if (intVal <= 15)
+                      return 5;
+                  break;
+
+                case 118: //variable
+                  TestDefine.Type = ArgTypeEnum.atVar;
+                  if (AGICommands.agUseRes)
+                    //if already defined as a reserved variable
+                    if (intVal <= 26)
+                      return 5;
+                  break;
+
+                case 109: //message
+                  TestDefine.Type = ArgTypeEnum.atMsg;
+                  break;
+
+                case 111: //screen object
+                  TestDefine.Type = ArgTypeEnum.atSObj;
+                  if (AGICommands.agUseRes)
+                    //can't be ego
+                    if (TestDefine.Value == "o0")
+                      return 5;
+                  break;
+
+                case 105: //inv object
+                  TestDefine.Type = ArgTypeEnum.atIObj;
+                  break;
+
+                case 115: //string
+                  TestDefine.Type = ArgTypeEnum.atStr;
+                  break;
+
+                case 119: //word
+                  TestDefine.Type = ArgTypeEnum.atWord;
+                  break;
+
+                case 99: //controller
+                         //controllers limited to 0-49
+                  if (intVal < 0 || intVal > 255)
+                    return 3;
+                  TestDefine.Type = ArgTypeEnum.atCtrl;
+                  break;
+                  //Value is ok
+                  return 0;
+                default:
+                  break;
+              }
             }
-
-            //check defined globals
-            for (int i = 0; i <= AGICommands.agGlobalCount - 1; i++)
-            {
-              //if this define has same Value
-              if (AGICommands.agGlobal[i].Value == TestDefine.Value)
-                return 6;
-            }
-
-            //verify that the Value is not already assigned
-            switch ((int)TestDefine.Value.ToLower().ToCharArray()[0])
-            {
-              case 102: //flag
-                TestDefine.Type = ArgTypeEnum.atFlag;
-                if (AGICommands.agUseRes)
-                  //if already defined as a reserved flag
-                  if (intVal <= 15)
-                    return 5;
-                break;
-
-              case 118: //variable
-                TestDefine.Type = ArgTypeEnum.atVar;
-                if (AGICommands.agUseRes)
-                  //if already defined as a reserved variable
-                  if (intVal <= 26)
-                    return 5;
-                break;
-
-              case 109: //message
-                TestDefine.Type = ArgTypeEnum.atMsg;
-                break;
-
-              case 111: //screen object
-                TestDefine.Type = ArgTypeEnum.atSObj;
-                if (AGICommands.agUseRes)
-                  //can't be ego
-                  if (TestDefine.Value == "o0")
-                    return 5;
-                break;
-
-              case 105: //inv object
-                TestDefine.Type = ArgTypeEnum.atIObj;
-                break;
-
-              case 115: //string
-                TestDefine.Type = ArgTypeEnum.atStr;
-                break;
-
-              case 119: //word
-                TestDefine.Type = ArgTypeEnum.atWord;
-                break;
-
-              case 99: //controller
-                       //controllers limited to 0-49
-                if (intVal < 0 || intVal > 255)
-                  return 3;
-                TestDefine.Type = ArgTypeEnum.atCtrl;
-                break;
-            }
-            //Value is ok
-            return 0;
-          default:
             break;
         }
-
-        //non-numeric, and most likely a string
+        //non-numeric, non-marker and most likely a string
         TestDefine.Type = ArgTypeEnum.atDefStr;
 
         //check Value for string delimiters in Value
