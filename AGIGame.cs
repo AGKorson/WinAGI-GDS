@@ -1143,103 +1143,97 @@ namespace WinAGI
         //On Error GoTo 0: Err.Raise lngError, strErrSource, strError
       }
 
+    public static string GameID
+    {
+      get
+      {
+        //id is undefined if a game is not loaded
+        if (!agGameLoaded)
+        {
+          throw new Exception("LoadResString(677)");
+        }
+        return agGameID;
+      }
+    set
+      {
+        //limit gameID to 6 characters for v2 games and 5 characters for v3 games
+
+        string NewID = value;
+        string[] strExtension = new string[0];
+
+        //id is undefined if a game is not loaded
+        if (!agGameLoaded)
+        {
+          throw new Exception("LoadResString(677)");
+        }
+        //version 3 games limited to 5 characters
+        if (agIsVersion3)
+        {
+          if (value.Length > 5)
+          {
+            NewID = Left(NewID, 5);
+          }
+        }
+        else
+        {
+          if (NewID.Length > 6)
+          {
+            NewID = Left(NewID, 6);
+          }
+        }
+
+        //if no change
+        if (agGameID == NewID)
+        {
+          return;
+        }
+
+        //if version 3
+        if (agIsVersion3)
+        {
+          //need to rename the dir file
+          File.Move(agGameDir + agGameID + "DIR", agGameDir + NewID + "DIR");
+          //delete old dirfile
+          File.Delete(agGameDir + agGameID + "DIR");
+
+          //and vol files
+          foreach (string strVolFile in Directory.EnumerateFiles(agGameDir, agGameID + "VOL.*"))
+          {
+            //if an archived (OLD) file, skip it
+            if (Right(strVolFile, 4).ToUpper() != ".OLD")
+            {
+              //get extension
+              strExtension = strVolFile.Split(".");
+              //rename
+              File.Move(agGameDir + strVolFile, agGameDir + NewID + "VOL." + strExtension[1]);
+              //TODO: delete the old one
+              File.Delete(agGameDir + strVolFile);
+            }
+          }
+        }
+        //if property file is currently linked to game ID
+        if (agGameFile.ToUpper() == (agGameDir + agGameID + ".wag").ToUpper())
+        {
+          //update gamefile
+          GameFile = agGameDir + NewID + ".wag";
+        }
+
+        //set new id
+        agGameID = NewID.ToUpper();
+
+        //write new property
+        WriteGameSetting("General", "GameID", NewID);
+        //ErrHandler:
+        //  //file renaming or property writing are only sources of error
+        //  strError = Err.Description
+        //  strErrSrc = Err.Source
+        //  lngError = Err.Number
+
+        //  On Error GoTo 0: Err.Raise vbObjectError + 530, strErrSrc, Replace(LoadResString(530), ARG1, CStr(lngError) & ":" & strError)
+      }
+    }
+
       /*
-                     Public Property Let GameID(NewID As String)
-                       //limit gameID to 6 characters for v2 games and 5 characters for v3 games
-
-                       Dim strVolFile As String
-                       Dim strExtension() As String
-
-
-                       On Error GoTo ErrHandler
-
-                       //id is undefined if a game is not loaded
-                       if (!agGameLoaded)
-                         On Error GoTo 0: Err.Raise vbObjectError + 677, strErrSource, LoadResString(677)
-                         Exit Property
-                       }
-
-                       //version 3 games limited to 5 characters
-                       if (agIsVersion3)
-                         if (Len(NewID) > 5)
-                           NewID = Left$(NewID, 5)
-                         }
-                       } else {
-                         if (Len(NewID) > 6)
-                           NewID = Left$(NewID, 6)
-                         }
-                       }
-
-                       //if no change
-                       if (agGameID = NewID)
-                         Exit Property
-                       }
-
-                       //if version 3
-                       if (agIsVersion3)
-                         //need to rename the dir file
-                         Name agGameDir & agGameID & "DIR" As agGameDir & NewID & "DIR"
-                         //and vol files
-                         strVolFile = Dir(agGameDir & agGameID & "VOL.*")
-
-
-                         Do Until LenB(strVolFile) = 0
-                           //if an archived (OLD) file, skip it
-                           if (UCase(Right(strVolFile, 4)) != ".OLD")
-                             //get extension
-                             strExtension = Split(strVolFile, ".")
-                             //rename
-                             Name agGameDir & strVolFile As agGameDir & NewID & "VOL." & strExtension(1)
-                           }
-
-                           //get next
-                           strVolFile = Dir()
-                         Loop
-                       }
-
-                       //if property file is currently linked to game ID
-                       if (StrComp(agGameFile, agGameDir & agGameID & ".wag", vbTextCompare) = 0)
-                         //update gamefile
-                         GameFile = agGameDir & NewID & ".wag"
-                       }
-
-                       //set new id
-                       agGameID = UCase$(NewID)
-
-                       //write new property
-                       WriteGameSetting("General", "GameID", NewID
-
-
-                     Exit Property
-
-                     ErrHandler:
-                       //file renaming or property writing are only sources of error
-                       strError = Err.Description
-                       strErrSrc = Err.Source
-                       lngError = Err.Number
-
-                       On Error GoTo 0: Err.Raise vbObjectError + 530, strErrSrc, Replace(LoadResString(530), ARG1, CStr(lngError) & ":" & strError)
-                     End Property
-                     Public Property Get GameID() As String
-
-                       //id is undefined if a game is not loaded
-                       if (!agGameLoaded)
-                         On Error GoTo 0: Err.Raise vbObjectError + 677, strErrSource, LoadResString(677)
-                         Exit Property
-                       }
-
-
-                       GameID = agGameID
-                     End Property
-
-
-                     Public Property Get GameLoaded() As Boolean
-
-                       //returns state of game load
-                       GameLoaded = agGameLoaded
-                     End Property
-
-
                      Public Property Get LastEdit() As Date
 
                        //if game loaded,
