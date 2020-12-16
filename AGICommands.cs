@@ -11,51 +11,31 @@ namespace WinAGI
     //current game commands
     //test commands are in a separate object class
     //
-    static internal string[] agArgTypPref = new string[9]; //8
-    static internal string[] agArgTypName = new string[9]; //8
+    internal static string[] agArgTypPref = new string[9]; //8
+    internal static string[] agArgTypName = new string[9]; //8
 
-    static internal byte agNumCmds;
+    internal static byte agNumCmds;
 
-    static internal CommandStruct[] agCmds = new CommandStruct[181]; //182 
+    internal static CommandStruct[] agCmds = new CommandStruct[181]; //182 
 
-    //predefined arguments
-    static internal bool agResAsText;  //if true, reserved variables and flags show up as text when decompiling
-                                       //not used if agUseRes is FALSE
-    static internal bool agUseRes;     //if true, predefined variables and flags are used during compilation
-    static internal TDefine[] agResVar = new TDefine[27];    //26 //text name of built in variables
-    static internal TDefine[] agResFlag = new TDefine[18];   //17) //text name of built in flags
-    static internal TDefine[] agEdgeCodes = new TDefine[5]; //4 //text of edge codes
-    static internal TDefine[] agEgoDir = new TDefine[9];    //8 //text of ego direction codes
-    static internal TDefine[] agVideoMode = new TDefine[5]; //4 //text of video mode codes
-    static internal TDefine[] agCompType = new TDefine[9];  //8 //computer type values
-    static internal TDefine[] agResDef = new TDefine[6];    //5 //defines for ego, gamever, gameabout, gameid, invobj Count
-    static internal TDefine[] agResColor = new TDefine[16];  //15 //predefined color values
-
-    //user defined global arguments
-    static internal TDefine[] agGlobal; //dynamic size
-    static internal int agGlobalCount;
-    static internal bool agGlobalsSet;
-    static internal uint agGlobalCRC;
-
-    //warning count value stored in Common file, so it can be used by the IDE as well as the engine
-    static internal bool[] agNoCompWarn; // WARNCOUNT
-
-    static internal string strErrSource = "WinAGI.agiCommandInfo";
+    internal static string strErrSource = "WinAGI.agiCommandInfo";
 
 
-    static public CommandStruct AGICommand(byte index)
-    {
-      ////validate index
-      //if (Index > agNumCmds)
-      //  On Error GoTo 0: Err.Raise 9, strErrSource, "Subscript out of range"
-      //End If
+    //public static CommandStruct AGICommand(byte index)
+    //{
+    //  ////validate index
+    //  //if (Index > agNumCmds)
+    //  //  On Error GoTo 0: Err.Raise 9, strErrSource, "Subscript out of range"
+    //  //End If
 
-      return agCmds[index];
-    }
+    //  return agCmds[index];
+    //}
 
-    static public byte Count
+    public static CommandStruct[] AGICommand
+    { get { return agCmds; } }
+
+    public static byte Count
     { get { return agNumCmds; } private set { } }
-
 
     /*
 Option Compare Text
@@ -1057,283 +1037,15 @@ Option Compare Text
       agCmds[182].ArgType[1] = ArgTypeEnum.atNum;
     }
 
-    static internal void AssignReservedDefines()
-    // predefined variables, flags, and objects
-    // Variables v0 - v26
-    // Flags f0 - f16, f20 [in version 3.102 and above]
-
-    //create default variables, flags and constants
-    //NOTE: object variable, o0, is considered a predefined
-    //variable, as well as game version string, game about string
-    //and inventory object Count
+    internal static void CorrectCommands(string Version)
     {
-      //variables
-      agResVar[0].Name = "currentRoom";
-      agResVar[0].Value = "v0";
-      agResVar[1].Name = "previousRoom";
-      agResVar[1].Value = "v1";
-      agResVar[2].Name = "edgeEgoHit";
-      agResVar[2].Value = "v2";
-      agResVar[3].Name = "currentScore";
-      agResVar[3].Value = "v3";
-      agResVar[4].Name = "objHitEdge";
-      agResVar[4].Value = "v4";
-      agResVar[5].Name = "edgeObjHit";
-      agResVar[5].Value = "v5";
-      agResVar[6].Name = "egoDir";
-      agResVar[6].Value = "v6";
-      agResVar[7].Name = "maxScore";
-      agResVar[7].Value = "v7";
-      agResVar[8].Name = "memoryLeft";
-      agResVar[8].Value = "v8";
-      agResVar[9].Name = "unknownWordNum";
-      agResVar[9].Value = "v9";
-      agResVar[10].Name = "animationInterval";
-      agResVar[10].Value = "v10";
-      agResVar[11].Name = "elapsedSeconds";
-      agResVar[11].Value = "v11";
-      agResVar[12].Name = "elapsedMinutes";
-      agResVar[12].Value = "v12";
-      agResVar[13].Name = "elapsedHours";
-      agResVar[13].Value = "v13";
-      agResVar[14].Name = "elapsedDays";
-      agResVar[14].Value = "v14";
-      agResVar[15].Name = "dblClickDelay";
-      agResVar[15].Value = "v15";
-      agResVar[16].Name = "currentEgoView";
-      agResVar[16].Value = "v16";
-      agResVar[17].Name = "errorNumber";
-      agResVar[17].Value = "v17";
-      agResVar[18].Name = "errorParameter";
-      agResVar[18].Value = "v18";
-      agResVar[19].Name = "lastChar";
-      agResVar[19].Value = "v19";
-      agResVar[20].Name = "machineType";
-      agResVar[20].Value = "v20";
-      agResVar[21].Name = "printTimeout";
-      agResVar[21].Value = "v21";
-      agResVar[22].Name = "numberOfVoices";
-      agResVar[22].Value = "v22";
-      agResVar[23].Name = "attenuation";
-      agResVar[23].Value = "v23";
-      agResVar[24].Name = "inputLength";
-      agResVar[24].Value = "v24";
-      agResVar[25].Name = "selectedItem";
-      agResVar[25].Value = "v25";
-      agResVar[26].Name = "monitorType";
-      agResVar[26].Value = "v26";
-
-      //flags
-      agResFlag[0].Name = "onWater";
-      agResFlag[0].Value = "f0";
-      agResFlag[1].Name = "egoHidden";
-      agResFlag[1].Value = "f1";
-      agResFlag[2].Name = "haveInput";
-      agResFlag[2].Value = "f2";
-      agResFlag[3].Name = "egoHitSpecial";
-      agResFlag[3].Value = "f3";
-      agResFlag[4].Name = "haveMatch";
-      agResFlag[4].Value = "f4";
-      agResFlag[5].Name = "newRoom";
-      agResFlag[5].Value = "f5";
-      agResFlag[6].Name = "gameRestarted";
-      agResFlag[6].Value = "f6";
-      agResFlag[7].Name = "noScript";
-      agResFlag[7].Value = "f7";
-      agResFlag[8].Name = "enableDblClick";
-      agResFlag[8].Value = "f8";
-      agResFlag[9].Name = "soundOn";
-      agResFlag[9].Value = "f9";
-      agResFlag[10].Name = "enableTrace";
-      agResFlag[10].Value = "f10";
-      agResFlag[11].Name = "hasNoiseChannel";
-      agResFlag[11].Value = "f11";
-      agResFlag[12].Name = "gameRestored";
-      agResFlag[12].Value = "f12";
-      agResFlag[13].Name = "enableItemSelect";
-      agResFlag[13].Value = "f13";
-      agResFlag[14].Name = "enableMenu";
-      agResFlag[14].Value = "f14";
-      agResFlag[15].Name = "leaveWindow";
-      agResFlag[15].Value = "f15";
-      agResFlag[16].Name = "noPromptRestart";
-      agResFlag[16].Value = "f16";
-      agResFlag[17].Name = "forceAutoloop";
-      agResFlag[17].Value = "f20";
-
-      //edge codes
-      agEdgeCodes[0].Name = "NOT_HIT";
-      agEdgeCodes[0].Value = "0";
-      agEdgeCodes[1].Name = "TOP_EDGE";
-      agEdgeCodes[1].Value = "1";
-      agEdgeCodes[2].Name = "RIGHT_EDGE";
-      agEdgeCodes[2].Value = "2";
-      agEdgeCodes[3].Name = "BOTTOM_EDGE";
-      agEdgeCodes[3].Value = "3";
-      agEdgeCodes[4].Name = "LEFT_EDGE";
-      agEdgeCodes[4].Value = "4";
-
-      //object direction
-      agEgoDir[0].Name = "STOPPED";
-      agEgoDir[0].Value = "0";
-      agEgoDir[1].Name = "UP";
-      agEgoDir[1].Value = "1";
-      agEgoDir[2].Name = "UP_RIGHT";
-      agEgoDir[2].Value = "2";
-      agEgoDir[3].Name = "RIGHT";
-      agEgoDir[3].Value = "3";
-      agEgoDir[4].Name = "DOWN_RIGHT";
-      agEgoDir[4].Value = "4";
-      agEgoDir[5].Name = "DOWN";
-      agEgoDir[5].Value = "5";
-      agEgoDir[6].Name = "DOWN_LEFT";
-      agEgoDir[6].Value = "6";
-      agEgoDir[7].Name = "LEFT";
-      agEgoDir[7].Value = "7";
-      agEgoDir[8].Name = "UP_LEFT";
-      agEgoDir[8].Value = "8";
-
-      //video modes
-      agVideoMode[0].Name = "CGA";
-      agVideoMode[0].Value = "0";
-      agVideoMode[1].Name = "RGB";
-      agVideoMode[1].Value = "1";
-      agVideoMode[2].Name = "MONO";
-      agVideoMode[2].Value = "2";
-      agVideoMode[3].Name = "EGA";
-      agVideoMode[3].Value = "3";
-      agVideoMode[4].Name = "VGA";
-      agVideoMode[4].Value = "4";
-
-      agCompType[0].Name = "PC";
-      agCompType[0].Value = "0";
-      agCompType[1].Name = "PCJR";
-      agCompType[1].Value = "1";
-      agCompType[2].Name = "TANDY";
-      agCompType[2].Value = "2";
-      agCompType[3].Name = "APPLEII";
-      agCompType[3].Value = "3";
-      agCompType[4].Name = "ATARI";
-      agCompType[4].Value = "4";
-      agCompType[5].Name = "AMIGA";
-      agCompType[5].Value = "5";
-      agCompType[6].Name = "MACINTOSH";
-      agCompType[6].Value = "6";
-      agCompType[7].Name = "CORTLAND";
-      agCompType[7].Value = "7";
-      agCompType[8].Name = "PS2";
-      agCompType[8].Value = "8";
-
-      //colors
-      agResColor[0].Name = "BLACK";
-      agResColor[0].Value = "0";
-      agResColor[1].Name = "BLUE";
-      agResColor[1].Value = "1";
-      agResColor[2].Name = "GREEN";
-      agResColor[2].Value = "2";
-      agResColor[3].Name = "CYAN";
-      agResColor[3].Value = "3";
-      agResColor[4].Name = "RED";
-      agResColor[4].Value = "4";
-      agResColor[5].Name = "MAGENTA";
-      agResColor[5].Value = "5";
-      agResColor[6].Name = "BROWN";
-      agResColor[6].Value = "6";
-      agResColor[7].Name = "LT_GRAY";
-      agResColor[7].Value = "7";
-      agResColor[8].Name = "DK_GRAY";
-      agResColor[8].Value = "8";
-      agResColor[9].Name = "LT_BLUE";
-      agResColor[9].Value = "9";
-      agResColor[10].Name = "LT_GREEN";
-      agResColor[10].Value = "10";
-      agResColor[11].Name = "LT_CYAN";
-      agResColor[11].Value = "11";
-      agResColor[12].Name = "LT_RED";
-      agResColor[12].Value = "12";
-      agResColor[13].Name = "LT_MAGENTA";
-      agResColor[13].Value = "13";
-      agResColor[14].Name = "YELLOW";
-      agResColor[14].Value = "14";
-      agResColor[15].Name = "WHITE";
-      agResColor[15].Value = "15";
-
-      // others
-      agResDef[0].Name = "ego";
-      agResDef[0].Value = "o0";
-      agResDef[1].Name = "gameVersionMsg";
-      //agResDef[1].Value = vbNullString; //will be assigned by compiler
-      agResDef[2].Name = "gameAboutMsg";
-      //agResDef[2].Value = vbNullString; //will be assigned by compiler
-      agResDef[3].Name = "gameID";
-      //agResDef[3].Value = vbNullString; //will be assigned by compiler
-      agResDef[4].Name = "numberOfItems";
-      //agResDef[4].Value = vbNullString; //will be assigned by compiler
-      agResDef[5].Name = "inputPrompt";
-      agResDef[5].Value = "s0";
-
-      //set types and defaults
-      int i;
-      for (i = 0; i <= 26; i++)
-      {
-        agResVar[i].Type = ArgTypeEnum.atVar;
-        agResVar[i].Default = agResVar[i].Name;
-      }
-      for (i = 0; i <= 17; i++)
-      {
-        agResFlag[i].Type = ArgTypeEnum.atFlag;
-        agResFlag[i].Default = agResFlag[i].Name;
-      }
-      for (i = 0; i <= 4; i++)
-      {
-        agEdgeCodes[i].Type = ArgTypeEnum.atNum;
-        agEdgeCodes[i].Default = agEdgeCodes[i].Name;
-      }
-      for (i = 0; i <= 8; i++)
-      {
-        agEgoDir[i].Type = ArgTypeEnum.atNum;
-        agEgoDir[i].Default = agEgoDir[i].Name;
-      }
-      for (i = 0; i <= 4; i++)
-      {
-        agVideoMode[i].Type = ArgTypeEnum.atNum;
-        agVideoMode[i].Default = agVideoMode[i].Name;
-      }
-      for (i = 0; i <= 8; i++)
-      {
-        agCompType[i].Type = ArgTypeEnum.atNum;
-        agCompType[i].Default = agCompType[i].Name;
-      }
-      for (i = 0; i <= 15; i++)
-      {
-        agResColor[i].Type = ArgTypeEnum.atNum;
-        agResColor[i].Default = agResColor[i].Name;
-      }
-
-      // others
-      agResDef[0].Type = ArgTypeEnum.atSObj;
-      agResDef[0].Default = agResDef[0].Name;
-      agResDef[1].Type = ArgTypeEnum.atDefStr;
-      agResDef[1].Default = agResDef[1].Name;
-      agResDef[2].Type = ArgTypeEnum.atDefStr;
-      agResDef[2].Default = agResDef[2].Name;
-      agResDef[3].Type = ArgTypeEnum.atDefStr;
-      agResDef[3].Default = agResDef[3].Name;
-      agResDef[4].Type = ArgTypeEnum.atNum;
-      agResDef[4].Default = agResDef[4].Name;
-      agResDef[5].Type = ArgTypeEnum.atStr;
-      agResDef[5].Default = agResDef[5].Name;
-    }
-
-    static internal void CorrectCommands(string Version)
-    // This procedure adjusts the logic commands for a given int. version
-    {
+      // This procedure adjusts the logic commands for a given int. version
 
       if (!double.TryParse(Version, out double verNum))
       {
         //error
         throw new NotImplementedException();
-        return;
+        //return;
       }
 
       //now adjust for version
@@ -1367,117 +1079,6 @@ Option Compare Text
         agNumCmds = 177;
       else
         agNumCmds = 181;
-    }
-
-    static internal void GetGlobalDefines()
-    {
-      string strLine, strTmp;
-      string[] strSplitLine;
-      int i, lngTest;
-      TDefine tdNewDefine = new TDefine();
-      DateTime dtFileMod;
-
-      agGlobalsSet = false;
-
-      //clear global list
-      agGlobal = new TDefine[0];
-      agGlobalCount = 0;
-
-      //Debug.Assert agGameLoaded
-
-      //look for global file
-      if (!File.Exists(AGIGame.agGameDir + "globals.txt"))
-        return;
-
-      //open file for input
-      using var glbSR = new StringReader(AGIGame.agGameDir + "globals.txt");
-      {
-        //read in globals
-        while (true)
-        {
-          //get next line
-          strLine = glbSR.ReadLine();
-
-          if (strLine == null) break;
-
-
-          //strip off comment
-          strLine = AGIGame.StripComments(strLine, "", false);
-          //ignore blanks '''and comments(// or ' or Rem)
-          if (strLine.Length != 0)
-          {
-            //splitline into name and Value
-            strSplitLine = strLine.Split("\t");//     vbTab
-
-            //if not exactly two elements
-            if (strSplitLine.Length != 1)
-            {
-              //not a valid global.txt; check for defines.txt
-              strTmp = strLine.Substring(0, 8).ToLower();
-              if (strTmp == "#define ")
-                //set up splitline array
-                Array.Resize(ref strSplitLine, 2);
-              //strip off the define statement
-              strLine = strLine.Substring(8, strLine.Length - 8);
-              //extract define name
-              i = strLine.IndexOf(" ");
-              if (i != 0)
-              {
-                strSplitLine[0] = strLine.Substring(0, i - 1);
-                strLine = strLine.Substring(i, strLine.Length - i);
-                strSplitLine[1] = strLine.Trim();
-              }
-              else
-              {
-                //invalid; reset splitline so this line
-                //gets ignored
-                Array.Resize(ref strSplitLine, 0);
-              }
-            }
-
-            //if exactly two elements
-            if (strSplitLine.Length == 2)
-            {
-              //strSplitLine(0] has name
-              tdNewDefine.Name = strSplitLine[0].Trim();
-              //strSplitLine(1] has Value
-              tdNewDefine.Value = strSplitLine[1].Trim();
-
-              //validate define name
-              lngTest = AGIGame.ValidateDefName(tdNewDefine.Name);
-
-              if (lngTest == 0 || (lngTest >= 8 && lngTest <= 12))
-              {
-                //Select Case lngTest
-                //Case 0, 8, 9, 10, 11, 12 'name is valid or is overriding a reserved define
-                lngTest = AGIGame.ValidateDefName(tdNewDefine.Name);
-                lngTest = AGIGame.ValidateDefValue(tdNewDefine);
-                if (lngTest == 0 || lngTest == 5 || lngTest == 6)
-                {
-                  //Select Case lngTest
-                  //Case 0, 5, 6 //Value is valid, or is overriding a reserved Value
-                  //increment Count
-                  agGlobalCount++;
-                  //add it
-                  Array.Resize(ref agGlobal, agGlobalCount);
-                  agGlobal[agGlobalCount] = tdNewDefine;
-                }
-              }
-            }
-          }
-        }
-
-        //save crc for this file
-        //get datemodified property
-        dtFileMod = File.GetLastWriteTime(AGIGame.agGameDir + "globals.txt");
-        agGlobalCRC = AGIGame.CRC32(dtFileMod.ToString().ToCharArray());
-        //ErrHandler:
-        //        '*'Debug.Assert False
-
-        //'ensure file is closed
-        //Close intFile
-        //'return false
-      }
     }
   }
 }

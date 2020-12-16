@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinAGI;
+using static WinAGI.AGIGame;
 
 namespace WinAGI_GDS
 {
@@ -15,6 +17,7 @@ namespace WinAGI_GDS
     public frmMDIMain()
     {
       InitializeComponent();
+      //can I access winagi?
     }
 
     private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -34,12 +37,15 @@ namespace WinAGI_GDS
 
     private void newToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      //add a new window
-      frmLogicEdit FormNew = new frmLogicEdit
+      if (GameLoaded == true)
       {
-        MdiParent = this
-      };
-      FormNew.Show();
+        //add a new window
+        frmLogicEdit FormNew = new frmLogicEdit
+        {
+          MdiParent = this
+        };
+        FormNew.Show();
+      }
     }
 
     private void mnuWCascade_Click(object sender, EventArgs e)

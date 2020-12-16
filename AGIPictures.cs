@@ -2,5 +2,9 @@
 {
   public class AGIPictures
   {
+    public void Clear()
+    {
+      // add code here
+    }
   }
 }
