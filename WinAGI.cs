@@ -209,7 +209,7 @@ namespace WinAGI
     public ArgTypeEnum[] ArgType; //7
   }
 
-  internal static class WinAGI
+  internal static partial class WinAGI
   {
     // this class is for all the global stuff that was previously in separate modules in VB6
     internal static uint[] CRC32Table = new uint[256];
@@ -1188,10 +1188,10 @@ namespace WinAGI
               return 3;
 
             //check defined globals
-            for (int i = 0; i <= WinAGI.agGlobalCount - 1; i++)
+            for (int i = 0; i <= agGlobalCount - 1; i++)
             {
               //if this define has same Value
-              if (WinAGI.agGlobal[i].Value == TestDefine.Value)
+              if (agGlobal[i].Value == TestDefine.Value)
                 return 6;
             }
 

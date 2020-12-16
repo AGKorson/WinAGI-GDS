@@ -1,4 +1,6 @@
-﻿namespace WinAGI
+﻿using System;
+
+namespace WinAGI
 {
   public class AGIInventoryObjects
   {
@@ -12,9 +14,18 @@
       get => mInGame;
       internal set { mInGame = value; }
     }
+
+    public bool IsDirty { get; internal set; }
+    public string ResFile { get; internal set; }
+
     public void Unload()
     {
       // add code here
+    }
+
+    internal void Save()
+    {
+      throw new NotImplementedException();
     }
   }
 

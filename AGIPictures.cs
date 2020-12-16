@@ -6,5 +6,10 @@
     {
       // add code here
     }
+    internal AGIPicture[] Col
+    { get; private set; }
+
+    public byte Max
+    { get; }
   }
 }

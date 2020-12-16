@@ -96,6 +96,9 @@ namespace WinAGI
     internal static string TempFileDir = "";
     public static void CancelCompile()
     {
+      // can be called by parent program during a compile
+      // action to cancel the compile
+
       //if compiling
       if (agCompGame)
       {
@@ -128,7 +131,7 @@ namespace WinAGI
           throw new Exception("Invalid property Value");
 
         // ? space should be OK in a directory!
-        //if (NewDir.IndexOf(" ") <> 0) {
+        //if (NewDir.IndexOf(" ") != 0) {
         //  //On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
         //  throw new Exception("Invalid property Value");
         //}
@@ -482,7 +485,7 @@ namespace WinAGI
 
       if (agInvObjList.Loaded)
         agInvObjList.Unload();
-              
+
       agInvObjList.InGame = false;
       if (agVocabWords.Loaded)
         agVocabWords.Unload();
@@ -531,1768 +534,1887 @@ namespace WinAGI
 
       //On Error GoTo 0: Err.Raise vbObjectError + 644, strErrSrc, Replace(LoadResString(644), ARG1, CStr(lngError) & ":" & strError)
     }
-    /*
-               Public Sub CloseGame()
+    internal static void CompleteCancel(bool NoEvent = false)
+    {
+      //cleans up after a compile game cancel or error
+
+      if (!NoEvent)
+      {
+        agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csCanceled, 0, 0, "");
+      }
+      agCompGame = false;
+      fsDIR.Close();
+      fsDIR.Dispose();
+      fsVOL.Close();
+      fsVOL.Dispose();
+      bwVOL.Close();
+      bwVOL.Dispose();
+      bwDIR.Close();
+      bwDIR.Dispose();
+    }
+
+    public static void CompileGame(bool RebuildOnly, string NewGameDir = "")
+    {
+      //compiles the game into NewGameDir
+
+      //if RebuildOnly is true, the VOL files are
+      //rebuilt without recompiling all logics
+      //and WORDS.TOK and OBJECT are not recompiled
+
+      //WARNING: if NewGameDir is same as current directory
+      //this WILL overwrite current game files
 
 
-               End Sub
+      //only loaded games can be compiled
+      if (!agGameLoaded)
+        return;
 
-               Public Sub CompileGame(ByVal RebuildOnly As Boolean, Optional ByVal NewGameDir As String)
-                 //compiles the game into NewGameDir
-                 //
-                 //if RebuildOnly is true, the VOL files are
-                 //rebuilt without recompiling all logics
-                 //and WORDS.TOK and OBJECT are not recompiled
-                 //
-                 //WARNING: if NewGameDir is same as current directory
-                 //this WILL overwrite current game files
-                 //
+      //AGILogic tmpLogic = new AGILogic { };
+      //AGIPicture tmpPicture = new AGIPicture();
+      //AGISound tmpSound = new AGISound { };
+      //AGIView tmpView = new AGIView { };
+      bool blnReplace, NewIsV3;
+      string strID = "", strFileName = "";
+      int tmpMax = 0, i, j;
 
-                 Dim tmpLogic As AGILogic, tmpPicture As AGIPicture
-                 Dim tmpView As AGIView, tmpSound As AGISound
-                 Dim CurResType As AGIResType, CurResNum As Byte
-                 Dim tmpLoaded As Boolean, tmpSourceLoaded As Boolean
-                 Dim strID As String, tmpMax As Integer
-                 Dim i As Long, j As Long, blnReplace As Boolean
-                 Dim intTmpDir As Integer, lngOffset As Long
-                 Dim NewIsV3 As Boolean, strFileName As String
+      //set compiling flag
+      agCompGame = true;
+      //reset cancel flag
+      agCancelComp = false;
 
-                 On Error Resume Next
+      //if no directory passed,
+      if (NewGameDir.Length == 0)
+        NewGameDir = agGameDir;
 
-                 //only loaded games can be compiled
-                 If Not agGameLoaded Then
-                   Exit Sub
-                 }
+      //validate new directory
+      NewGameDir = cDir(NewGameDir);
+      if (!Directory.Exists(NewGameDir))
+      {
+        //this isn't a directory
+        CompleteCancel(true);
+        throw new Exception("Replace(LoadResString(561), ARG1, NewGameDir)");
+      }
 
-                 //set compiling flag
-                 agCompGame = True
-                 //reset cancel flag
-                 agCancelComp = False
+      //set flag if game is being compiled in its current directory
+      blnReplace = (NewGameDir.ToLower() == agGameDir.ToLower());
 
-                 //if no directory passed,
-                 If LenB(NewGameDir) = 0 Then
-                   NewGameDir = agGameDir
-                 }
+      //save compile dir so rebuild method can access it
+      agCompileDir = NewGameDir;
 
-                 //validate new directory
-                 NewGameDir = cDir(NewGameDir)
-                 If LenB(Dir(NewGameDir, vbDirectory)) = 0 Then
-                   //this isn't a directory
-                   CompleteCancel True
-                   On Error GoTo 0: Err.Raise vbObjectError + 561, Replace(LoadResString(561), ARG1, NewGameDir)
-                   Exit Sub
-                 }
+      //set new game version
+      if (agChangeVersion)
+      {
+        NewIsV3 = !agIsVersion3;
+      }
+      else
+      {
+        NewIsV3 = agIsVersion3;
+      }
 
-                 //set flag if game is being compiled in its current directory
-                 blnReplace = (LCase$(NewGameDir) = LCase$(agGameDir))
+      //ensure switch flag is reset
+      agChangeVersion = false;
 
-                 //save compile dir so rebuild method can access it
-                 agCompileDir = NewGameDir
+      //if version 3
+      if (NewIsV3)
+      {
+        //version 3 ids limited to 5 characters
+        if (agGameID.Length > 5)
+        {
+          //invalid ID; calling function should know better!
+          CompleteCancel(true);
+          throw new Exception("LoadResString(694)");
+        }
+        strID = agGameID;
+      }
+      else
+      {
+        strID = "";
+      }
 
-                 //set new game version
-       If agChangeVersion Then
-                   NewIsV3 = Not agIsVersion3
-                 Else
-                   NewIsV3 = agIsVersion3
-                 }
+      //if not rebuildonly
+      if (!RebuildOnly)
+      {
+        // save/copy words.tok and object files first
 
-                 //ensure switch flag is reset
-                 agChangeVersion = False
+        //set status
+        agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csCompWords, 0, 0, "");
+        //check for cancellation
+        if (!agCompGame)
+        {
+          CompleteCancel();
+          return;
+        }
 
-                 //if version 3
-                 If NewIsV3 Then
-                   //version 3 ids limited to 5 characters
-                   If Len(agGameID) > 5 Then
-                     //invalid ID; calling function should know better!
-                     CompleteCancel True
-                     On Error GoTo 0: Err.Raise vbObjectError + 694, LoadResString(694)
-                     Exit Sub
-                   }
-                   strID = agGameID
-                 Else
-                   strID = ""
-                 }
+        //compile WORDS.TOK if dirty
+        if (agVocabWords.IsDirty)
+        {
+          try
+          {
+            agVocabWords.Save();
+          }
+          catch (Exception ex)
+          {
+            //note it
+            agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csResError, 0, 0, "Error during compilation of WORDS.TOK (" + ex.ToString() + ")");
+            //check for cancellation
+            if (!agCompGame)
+            {
+              CompleteCancel();
+              return;
+            }
+          }
+        }
 
-                 //if not rebuildonly
-                 If Not RebuildOnly Then
-                   //set status
-                   agGameEvents.RaiseEvent_CompileGameStatus csCompWords, 0, 0, ""
-                   //check for cancellation
-                   If Not agCompGame Then
-                     CompleteCancel
-                     Exit Sub
-                   }
+        //if compiling to a different directory
+        if (!blnReplace)
+        {
+          try
+          {
+            // rename then delete existing file, if it exists
+            if (File.Exists(NewGameDir + "WORDS.TOK"))
+            {
+              // delete the 'old' file if it exists
+              if (File.Exists(NewGameDir + "WORDS.OLD"))
+              {
+                File.Delete(NewGameDir + "WORDS.OLD");
+              }
+              File.Move(NewGameDir + "WORDS.TOK", NewGameDir + "WORDS.OLD");
+              File.Delete(NewGameDir + "WORDS.TOK");
+            }
+            // then move the current file to new location
+            File.Move(agVocabWords.ResFile, NewGameDir + "WORDS.TOK");
+          }
+          catch (Exception)
+          {
+            //note error
+            agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csResError, 0, 0, "Error while creating WORDS.TOK file (Err.Description)");
+            //check for cancellation
+            if (!agCompGame)
+            {
+              CompleteCancel();
+              return;
+            }
+          }
+        }
+        // OBJECT file is next
+        //set status
+        agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csCompObjects, 0, 0, "");
+        //check for cancellation
+        if (!agCompGame)
+        {
+          CompleteCancel();
+          return;
+        }
 
-                   //compile WORDS.TOK if dirty
-                   If agVocabWords.IsDirty Then
-                     agVocabWords.Save
-                   }
-                   If Err.Number<> 0 Then
-                     //note it
-                     agGameEvents.RaiseEvent_CompileGameStatus csResError, 0, 0, "Error during compilation of WORDS.TOK (" & Err.Description & ")"
-                     Err.Clear
-                     //check for cancellation
-                     If Not agCompGame Then
-                       CompleteCancel
-                       Exit Sub
-                     }
-                   }
+        //compile OBJECT file if dirty
+        if (agInvObjList.IsDirty)
+        {
+          try
+          {
+            agInvObjList.Save();
+          }
+          catch (Exception ex)
+          {
+            //note it
+            agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csResError, 0, 0, "Error during compilation of OBJECT (" + ex.ToString() + ")");
+          //check for cancellation
+          if (!agCompGame)
+            {
+              CompleteCancel();
+              return;
+            }
+          }
+        }
+        //if compiling to a different directory
+        if (!blnReplace)
+        {
+          try
+          {
+            // rename then delete existing file, if it exists
+            if (File.Exists(NewGameDir + "OBJECT"))
+            {
+              //first, delete the 'old' file if it exists
+              if (File.Exists(NewGameDir + "OBJECT.OLD"))
+              {
+                File.Delete(NewGameDir + "OBJECT.OLD");
+              }
+              File.Move(NewGameDir + "OBJECT", NewGameDir + "OBJECT.OLD");
+              File.Delete(NewGameDir + "OBJECT");
+            }
+            // then move the current file to new location
+            File.Move(agInvObjList.ResFile, NewGameDir + "OBJECT");
+          }
+          catch (Exception ex)
+          {
+            //note error
+            agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csResError, 0, 0, "Error while creating OBJECT file (" + ex.ToString() + ")");
+            //check for cancellation
+            if (!agCompGame)
+            {
+              CompleteCancel();
+              return;
+            }
+          }
+        }
+      }
 
-                   //if compiling to a different directory
-                   If Not blnReplace Then
-                     Kill NewGameDir & "WORDS.OLD"
-                     Err.Clear
-                     Name NewGameDir & "WORDS.TOK" As NewGameDir & "WORDS.OLD"
-                     Err.Clear
-                     //copy into new directory
-                     FileCopy agVocabWords.ResFile, NewGameDir & "WORDS.TOK"
-                     If Err.Number<> 0 Then
-                       //note it
-                       agGameEvents.RaiseEvent_CompileGameStatus csResError, 0, 0, "Error while creating WORDS.TOK file (" & Err.Description & ")"
-                       Err.Clear
-                       //check for cancellation
-                       If Not agCompGame Then
-                         CompleteCancel
-                         Exit Sub
+      //reset game compiler variables
+      lngCurrentVol = 0;
+      lngCurrentLoc = 0;
+      strNewDir = NewGameDir;
+
+      //new strategy with dir files; use arrays during
+      //compiling process; then build the dir files at
+      //the end; initialize the array
+      for (i = 0; i < 4; i++)
+      {
+        for (j = 0; i < 768; i++)
+        {
+          bytDIR[i, j] = 255;
+        }
+      }
+
+      try
+      {
+        //ensure all temp vol files are removed
+        for (int v = 0; v < 15; v++)
+        {
+          if (File.Exists(NewGameDir + "NEW_VOL." + v.ToString()))
+          {
+            File.Delete(NewGameDir + "NEW_VOL." + v.ToString());
+          }
+        }
+      }
+      catch (Exception)
+      {
+        //ignore errors
+      }
+
+      try
+      {
+        //open first new vol file
+        fsVOL = File.Create(NewGameDir + "NEW_VOL.0");
+        bwVOL = new BinaryWriter(fsVOL);
+      }
+      catch (Exception)
+      {
+        CompleteCancel(true);
+        throw new Exception("Replace(LoadResString(503), ARG1, Exception");
+      }
+
+      //add all logic resources
+      try
+      {
+        CompileResCol(agLogs, AGIResType.rtLogic, RebuildOnly, NewIsV3);
+      }
+      catch (Exception ex)
+      {
+        CompleteCancel(true);
+        throw new Exception("err: " + ex.ToString());
+      }
+      //check for cancellation
+      //if a resource error (or user canceled) encountered, just exit
+      if (!agCompGame)
+      {
+        return;
+      }
+
+      //add picture resources
+      try
+      {
+        CompileResCol(agPics, AGIResType.rtPicture, RebuildOnly, NewIsV3);
+      }
+      catch (Exception ex)
+      {
+        CompleteCancel(true);
+        throw new Exception("err: " + ex.ToString());
+      }
+      //check for cancellation
+      //if a resource error (or user canceled) encountered, just exit
+      if (!agCompGame)
+      {
+        return;
+      }
+
+      //add view resources
+      try
+      {
+        CompileResCol(agViews, AGIResType.rtView, RebuildOnly, NewIsV3);
+      }
+      catch (Exception ex)
+      {
+        CompleteCancel(true);
+        throw new Exception("err " + ex.ToString());
+      }
+      //check for cancellation
+      //if a resource error (or user canceled) encountered, just exit
+      if (!agCompGame)
+      {
+        return;
+      }
+
+      //add sound resources
+      try
+      {
+        CompileResCol(agSnds, AGIResType.rtSound, RebuildOnly, NewIsV3);
+      }
+      catch (Exception ex)
+      {
+        CompleteCancel(true);
+        throw new Exception("err: " + ex.ToString());
+      }
+      //check for cancellation
+      //if a resource error (or user canceled) encountered, just exit
+      if (!agCompGame)
+      {
+        return;
+      }
+
+      //remove any existing old dirfiles
+      if (NewIsV3)
+      {
+        if (File.Exists(NewGameDir + agGameID + "DIR.OLD"))
+        {
+          File.Delete(NewGameDir + agGameID + "DIR.OLD");
+        }
+      }
+      else
+      {
+        if (File.Exists(NewGameDir + "LOGDIR.OLD"))
+        {
+          File.Delete(NewGameDir + "LOGDIR.OLD");
+        }
+        if (File.Exists(NewGameDir + "PICDIR.OLD"))
+        {
+          File.Delete(NewGameDir + "PICDIR.OLD");
+        }
+        if (File.Exists(NewGameDir + "VIEWDIR.OLD"))
+        {
+          File.Delete(NewGameDir + "VIEWDIR.OLD");
+        }
+        if (File.Exists(NewGameDir + "SNDDIR.OLD"))
+        {
+          File.Delete(NewGameDir + "SNDDIR.OLD");
+        }
+      }
+
+        //remove any existing old vol files
+        for (i = 0; i < 16; i++)
+        {
+          if (NewIsV3)
+          {
+            if (File.Exists(NewGameDir + agGameID + "VOL." + i.ToString() + ".OLD"))
+            {
+              File.Delete(NewGameDir + agGameID + "VOL." + i.ToString() + ".OLD");
+            }
+          }
+          else
+          {
+            if (File.Exists(NewGameDir + "VOL." + i.ToString() + ".OLD"))
+            {
+              File.Delete(NewGameDir + "VOL." + i.ToString() + ".OLD");
+            }
+          }
+        }
+
+        //rename existing dir and vol files as .OLD
+        if (NewIsV3)
+        {
+          if (File.Exists(NewGameDir + agGameID + "DIR"))
+          {
+            File.Move(NewGameDir + agGameID + "DIR", NewGameDir + agGameID + "DIR.OLD");
+            File.Delete(NewGameDir + agGameID + "DIR");
+          }
+        }
+        else
+        {
+          if (File.Exists(NewGameDir + "LOGDIR"))
+          {
+            File.Move(NewGameDir + "LOGDIR", NewGameDir + "LOGDIR.OLD");
+            File.Delete(NewGameDir + "LOGDIR");
+          }
+          if (File.Exists(NewGameDir + "PICDIR"))
+          {
+            File.Move(NewGameDir + "PICDIR", NewGameDir + "PICDIR.OLD");
+            File.Delete(NewGameDir + "PICDIR");
+          }
+          if (File.Exists(NewGameDir + "VIEWDIR"))
+          {
+            File.Move(NewGameDir + "VIEWDIR", NewGameDir + "VIEWDIR.OLD");
+            File.Delete(NewGameDir + "VIEWDIR");
+          }
+          if (File.Exists(NewGameDir + "SNDDIR"))
+          {
+            File.Move(NewGameDir + "SNDDIR", NewGameDir + "SNDDIR.OLD");
+            File.Delete(NewGameDir + "SNDDIR");
+          }
+        }
+
+        //rename current vol files
+        for (i = 0; i < 16; i++)
+        {
+          if (NewIsV3)
+          {
+            if (File.Exists(NewGameDir + agGameID + "VOL." + i.ToString()))
+            {
+              File.Move(NewGameDir + agGameID + "VOL." + i.ToString(), NewGameDir + agGameID + "VOL." + i.ToString() + ".OLD");
+              File.Delete(NewGameDir + agGameID + "VOL." + i.ToString());
+            }
+          }
+          else
+          {
+            if (File.Exists(NewGameDir + "VOL." + i.ToString()))
+            {
+              File.Move(NewGameDir + "VOL." + i.ToString(), NewGameDir + "VOL." + i.ToString() + ".OLD");
+              File.Delete(NewGameDir + "VOL." + i.ToString());
+            }
+          }
+        }
+
+        //now build the new DIR files
+        if (NewIsV3)
+        { 
+          //one dir file
+          strFileName = NewGameDir + agGameID + "DIR";
+          fsDIR = File.Create(strFileName);
+          bwDIR = new BinaryWriter(fsDIR);
+          //add offsets - logdir offset is always 8
+          bwDIR.Write(Convert.ToInt16(8));
+          //pic offset is 8 + 3*logmax
+          tmpMax = agLogs.Max + 1;
+          if (tmpMax == 0) tmpMax = 1; // always put at least one; even if it//s all FFs
+          bwDIR.Write((short)(8 + 3 * tmpMax));
+          i = 8 + 3 * tmpMax;
+          //view offset is pic offset +3*picmax
+          tmpMax = agPics.Max + 1;
+          if (tmpMax == 0) tmpMax = 1;
+          bwDIR.Write((short)(i + 3 * tmpMax));
+          i += 3 * tmpMax;
+          //sound is view offset + 3*viewmax
+          tmpMax = agViews.Max + 1;
+          if (tmpMax == 0) tmpMax = 1;
+          bwDIR.Write((short)(i + 3 * tmpMax));
+
+          //now add all the dir entries
+          //NOTE: we can't use a for-next loop
+          //because sound and view dirs are swapped in v3 directory
+
+          //logics first
+          tmpMax = agLogs.Max;
+          for (i = 0; i <= tmpMax; i++)
+          {
+            bwDIR.Write(bytDIR[0, 3 * i]);
+            bwDIR.Write(bytDIR[0, 3 * i + 1]);
+            bwDIR.Write(bytDIR[0, 3 * i + 2]);
+          }
+          //next are pictures
+          tmpMax = agPics.Max;
+          for (i = 0; i <= tmpMax; i++)
+          {
+            bwDIR.Write(bytDIR[1, 3 * i]);
+            bwDIR.Write(bytDIR[1, 3 * i + 1]);
+            bwDIR.Write(bytDIR[1, 3 * i + 2]);
+          }
+          //then views
+          tmpMax = agViews.Max;
+          for (i = 0; i <= tmpMax; i++)
+          {
+            bwDIR.Write(bytDIR[3, 3 * i]);
+            bwDIR.Write(bytDIR[3, 3 * i + 1]);
+            bwDIR.Write(bytDIR[3, 3 * i + 2]);
+          }
+          //and finally, sounds
+          tmpMax = agSnds.Max;
+          for (i = 0; i <= tmpMax; i++)
+          {
+            bwDIR.Write(bytDIR[2, 3 * i]);
+            bwDIR.Write(bytDIR[2, 3 * i + 1]);
+            bwDIR.Write(bytDIR[2, 3 * i + 2]);
+          }
+          //done! close the stream and file
+          fsDIR.Close();
+          fsDIR.Dispose();
+          bwDIR.Close();
+          bwDIR.Dispose();
+        }
+        else
+        {
+          //make separate dir files
+          for (j = 0; j < 4; j++)
+          {
+            switch ((AGIResType)j)
+            {
+              case AGIResType.rtLogic:
+                strFileName = NewGameDir + "LOGDIR";
+                tmpMax = agLogs.Max;
+                break;
+              case AGIResType.rtPicture:
+                strFileName = NewGameDir + "PICDIR";
+                tmpMax = agPics.Max;
+                break;
+              case AGIResType.rtSound:
+                strFileName = NewGameDir + "SNDDIR";
+                tmpMax = agSnds.Max;
+                break;
+              case AGIResType.rtView:
+                strFileName = NewGameDir + "VIEWDIR";
+                tmpMax = agViews.Max;
+                break;
+            }
+            //create the dir file
+            fsDIR = File.Create(strFileName);
+            bwDIR = new BinaryWriter(fsDIR);
+            for (i = 0; i <= tmpMax; i++)
+            {
+              bwDIR.Write(bytDIR[j, 3 * i]);
+              bwDIR.Write(bytDIR[j, 3 * i + 1]);
+              bwDIR.Write(bytDIR[j, 3 * i + 2]);
+            }
+            fsDIR.Close();
+            fsDIR.Dispose();
+            bwDIR.Close();
+            bwDIR.Dispose();
+          }
+        }
+
+        // now rename VOL files
+        for (i = 0; i <= lngCurrentVol; i++)
+        {
+          strFileName = strID + "VOL." + i.ToString();
+          File.Move(NewGameDir + "NEW_VOL." + i.ToString(), NewGameDir + strFileName);
+          File.Delete(NewGameDir + "NEW_VOL." + i.ToString());
+        }
+
+
+        //update status to indicate complete
+        agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csCompileComplete, 0, 0, "");
+
+        //if replacing (meaning we are compiling to the current game directory)
+        if (blnReplace)
+        { //then we need to update the vol/loc info for all ingame resources;
+          //this is done here instead of when the logics are compiled because
+          //if there's an error, or the user cancels, we don't want the resources
+          //to point to the wrong place
+          foreach (AGILogic tmpLogic in agLogs.Col)
+          {
+            tmpLogic.Volume = bytDIR[0, tmpLogic.Number * 3] / 0x10;
+            tmpLogic.Loc = (bytDIR[0, tmpLogic.Number * 3] & 0xF) * 0x10000 + bytDIR[0, tmpLogic.Number * 3 + 1] * 0x100 + bytDIR[0, tmpLogic.Number * 3 + 2];
+          }
+          foreach (AGIPicture tmpPicture in agPics.Col)
+          {
+            tmpPicture.Volume = bytDIR[1, tmpPicture.Number * 3] / 0x10;
+            tmpPicture.Loc = (bytDIR[1, tmpPicture.Number * 3] & 0xF) * 0x10000 + bytDIR[1, tmpPicture.Number * 3 + 1] * 0x100 + bytDIR[1, tmpPicture.Number * 3 + 2];
+          }
+          foreach (AGISound tmpSound in agSnds.Col)
+          {
+            tmpSound.Volume = bytDIR[2, tmpSound.Number * 3] / 0x10;
+            tmpSound.Loc = (bytDIR[2, tmpSound.Number * 3] & 0xF) * 0x10000 + bytDIR[2, tmpSound.Number * 3 + 1] * 0x100 + bytDIR[2, tmpSound.Number * 3 + 2];
+          }
+          foreach (AGIView tmpView in agViews.Col)
+          {
+            tmpView.Volume = bytDIR[3, tmpView.Number * 3] / 0x10;
+            tmpView.Loc = (bytDIR[3, tmpView.Number * 3] & 0xF) * 0x10000 + bytDIR[3, tmpView.Number * 3 + 1] * 0x100 + bytDIR[3, tmpView.Number * 3 + 2];
+          }
+        }
+
+        //save the wag file
+        SaveSettingList(agGameProps);
+
+        //reset compiling flag
+        agCompGame = false;
+        return;
+
+        //ErrHandler:
+        ////file error when creating new DIR and VOL files
+        ////pass along any errors
+        //lngError = Err.Number
+        //Select case lngError
+        //case 58 //file already exists
+        //  //this means the previous version of the file we are trying to create
+        //  //wasn't able to be renamed; most likely due to being open
+        //  strError = "Unable to delete existing " & strFileName & ". New " & strFileName & " file was not created."
+        //case  else 
+        //  //some other error - who knows what's going on
+        //  strError = Err.Description
+        //End Select
+
+
+        //CompleteCancel(true);
+        //On Error GoTo 0: Err.Raise lngError, strErrSource, strError
+      }
+
+      /*
+                     Public Property Let GameID(NewID As String)
+                       //limit gameID to 6 characters for v2 games and 5 characters for v3 games
+
+                       Dim strVolFile As String
+                       Dim strExtension() As String
+
+
+                       On Error GoTo ErrHandler
+
+                       //id is undefined if a game is not loaded
+                       if (!agGameLoaded)
+                         On Error GoTo 0: Err.Raise vbObjectError + 677, strErrSource, LoadResString(677)
+                         Exit Property
                        }
-                     }
-                   }
 
-                   //clear errors
-                   Err.Clear
-
-                   //set status
-                   agGameEvents.RaiseEvent_CompileGameStatus csCompObjects, 0, 0, ""
-                   //check for cancellation
-                   If Not agCompGame Then
-                     CompleteCancel
-                     Exit Sub
-                   }
-
-                   //compile OBJECT file if dirty
-                   If agInvObjList.IsDirty Then
-                     agInvObjList.Save
-                   }
-                   If Err.Number<> 0 Then
-                     //note it
-                     agGameEvents.RaiseEvent_CompileGameStatus csResError, 0, 0, "Error during compilation of OBJECT (" & Err.Description & ")"
-                     //check for cancellation
-                     If Not agCompGame Then
-                       CompleteCancel
-                       Exit Sub
-                     }
-                     Err.Clear
-                   }
-
-                   //if compiling to a different directory
-                   If Not blnReplace Then
-                     Kill NewGameDir & "OBJECT.OLD"
-                     Err.Clear
-                     Name NewGameDir & "OBJECT" As NewGameDir & "OBJECT.OLD"
-                     Err.Clear
-                     //copy into new directory
-                     FileCopy agInvObjList.ResFile, NewGameDir & "OBJECT"
-                     If Err.Number<> 0 Then
-                       //note it
-                       agGameEvents.RaiseEvent_CompileGameStatus csResError, 0, 0, "Error while creating OBJECT file (" & Err.Description & ")"
-                       Err.Clear
-                       //check for cancellation
-                       If Not agCompGame Then
-                         CompleteCancel
-                         Exit Sub
-                       }
-                     }
-                   }
-                 }
-
-                 //ensure error object is cleared
-                 Err.Clear
-
-                 //reset game compiler variables
-                 lngCurrentVol = 0
-                 lngCurrentLoc = 0
-                 strNewDir = NewGameDir
-
-                 //new strategy with dir files; use arrays during
-                 //compiling process; then build the dir files at
-                 //the end
-                 For i = 0 To 3
-                   For j = 0 To 767
-                     bytDIR(i, j) = 255
-                   Next j
-                 Next i
-
-                 //ensure temp vol files are removed
-                 Kill NewGameDir & "NEW_VOL.*"
-                 Err.Clear
-
-                 //open first new vol file
-                 intVolFile = FreeFile()
-                 Open NewGameDir & "NEW_VOL.0" For Binary As intVolFile
-                 If Err.Number<> 0 Then
-                   Close intVolFile
-                   strError = Err.Number
-                   strError = Err.Description
-                   strErrSrc = Err.Source
-                   lngError = Err.Number
-                   CompleteCancel True
-
-
-                   On Error GoTo 0: Err.Raise vbObjectError + 503, strErrSrc, Replace(LoadResString(503), ARG1, CStr(lngError) & ":" & strError)
-                   Exit Sub
-                 }
-
-                 //add all logic resources
-                 CompileResCol agLogs, rtLogic, RebuildOnly, NewIsV3
-
-                 //pass along any errors
-                 If Err.Number<> 0 Then
-                   lngError = Err.Number
-                   strError = Err.Description
-                   CompleteCancel True
-                   On Error GoTo 0: Err.Raise lngError, strErrSource, strError
-                   Exit Sub
-                 }
-                 //check for cancellation
-                 //if a resource error (or user canceled) encountered, just exit
-                 If Not agCompGame Then
-                   Exit Sub
-                 }
-
-                 //add picture resources
-                 CompileResCol agPics, rtPicture, RebuildOnly, NewIsV3
-                 //pass along any errors
-                 If Err.Number<> 0 Then
-                   lngError = Err.Number
-                   strError = Err.Description
-                   CompleteCancel True
-                   On Error GoTo 0: Err.Raise lngError, strErrSource, strError
-                   Exit Sub
-                 }
-                 //check for cancellation
-                 //if a resource error (or user canceled) encountered, just exit
-                 If Not agCompGame Then
-                   Exit Sub
-                 }
-
-                 //add view resources
-                 CompileResCol agViews, rtView, RebuildOnly, NewIsV3
-                 //pass along any errors
-                 If Err.Number<> 0 Then
-                   lngError = Err.Number
-                   strError = Err.Description
-                   CompleteCancel True
-                   On Error GoTo 0: Err.Raise lngError, strErrSource, strError
-                   Exit Sub
-                 }
-                 //check for cancellation
-                 //if a resource error (or user canceled) encountered, just exit
-                 If Not agCompGame Then
-                   Exit Sub
-                 }
-
-                 //add sound resources
-                 CompileResCol agSnds, rtSound, RebuildOnly, NewIsV3
-                 //pass along any errors
-                 If Err.Number<> 0 Then
-                   lngError = Err.Number
-                   strError = Err.Description
-                   CompleteCancel True
-                   On Error GoTo 0: Err.Raise lngError, strErrSource, strError
-                   Exit Sub
-                 }
-                 //check for cancellation
-                 //if a resource error (or user canceled) encountered, just exit
-                 If Not agCompGame Then
-                   Exit Sub
-                 }
-
-                 //close the vol file; we are done adding resources
-                 Close intVolFile
-
-                 //update status
-                 agGameEvents.RaiseEvent_CompileGameStatus csDoneAdding, 0, 0, ""
-                 //check for cancellation
-                 If Not agCompGame Then
-                   CompleteCancel
-                   Exit Sub
-                 }
-
-                 //remove any existing old dirfiles
-                 If NewIsV3 Then
-                   Kill NewGameDir & agGameID & "DIR.OLD"
-                   Err.Clear
-                 Else
-                   Kill NewGameDir & "LOGDIR.OLD"
-                   Err.Clear
-                   Kill NewGameDir & "PICDIR.OLD"
-                   Err.Clear
-                   Kill NewGameDir & "SNDDIR.OLD"
-                   Err.Clear
-                   Kill NewGameDir & "VIEWDIR.OLD"
-                   Err.Clear
-                 }
-
-                 //remove any existing old vol files
-                 For i = 0 To 15
-                   If NewIsV3 Then
-                     Kill NewGameDir & agGameID & "VOL." & CStr(i) &".OLD"
-                     Err.Clear
-                   Else
-                     Kill NewGameDir & "VOL." & CStr(i) &".OLD"
-                     Err.Clear
-                   }
-                 Next i
-
-                 //rename existing dir and vol files as .OLD
-                 If NewIsV3 Then
-                   Name NewGameDir & agGameID & "DIR" As NewGameDir & agGameID & "DIR.OLD"
-                 Else
-                   Name NewGameDir & "LOGDIR" As NewGameDir & "LOGDIR.OLD"
-                   Name NewGameDir & "PICDIR" As NewGameDir & "PICDIR.OLD"
-                   Name NewGameDir & "VIEWDIR" As NewGameDir & "VIEWDIR.OLD"
-                   Name NewGameDir & "SNDDIR" As NewGameDir & "SNDDIR.OLD"
-                 }
-                 For i = 0 To 15
-                   //rename current vol files
-                   If NewIsV3 Then
-                     Name NewGameDir & agGameID & "VOL." & CStr(i) As NewGameDir & agGameID & "VOL." & CStr(i) &".OLD"
-                   Else
-                     Name NewGameDir & "VOL." & CStr(i) As NewGameDir & "VOL." & CStr(i) &".OLD"
-                   }
-                 Next i
-                 Err.Clear
-
-                 //use errhandler to identify any issues with creating new files
-                 On Error GoTo ErrHandler
-
-                 //now build the new DIR files
-                 If NewIsV3 Then
-                   //one dir file
-                   strFileName = NewGameDir & agGameID & "DIR"
-                   intDirFile = FreeFile()
-                   //create the dir file
-                   Open strFileName For Binary As intDirFile
-                   //add offsets - logdir offset is always 8
-                   Put intDirFile, 1, CInt(8)
-                   //pic offset is 8 + 3*logmax
-                   tmpMax = agLogs.Max + 1
-                   If tmpMax = 0 Then tmpMax = 1 // always put at least one; even if it//s all FFs
-                   Put intDirFile, , CInt(8 + 3 * tmpMax)
-                   i = 8 + 3 * tmpMax
-                   //view offset is pic offset +3*picmax
-                   tmpMax = agPics.Max + 1
-                   If tmpMax = 0 Then tmpMax = 1
-                   Put intDirFile, , CInt(i + 3 * tmpMax)
-                   i = i + 3 * tmpMax
-                   //sound is view offset + 3*viewmax
-                   tmpMax = agViews.Max + 1
-                   If tmpMax = 0 Then tmpMax = 1
-                   Put intDirFile, , CInt(i + 3 * tmpMax)
-
-                   //now add all the dir entries
-                   //NOTE: we can't use a for-next loop
-                   //because sound and view dirs are swapped in v3 directory
-
-                   //logics first
-                   tmpMax = agLogs.Max
-                   For i = 0 To tmpMax
-                     Put intDirFile, , bytDIR(0, 3 * i)
-                     Put intDirFile, , bytDIR(0, 3 * i + 1)
-                     Put intDirFile, , bytDIR(0, 3 * i + 2)
-                   Next i
-                   //next are pictures
-                   tmpMax = agPics.Max
-                   For i = 0 To tmpMax
-                     Put intDirFile, , bytDIR(1, 3 * i)
-                     Put intDirFile, , bytDIR(1, 3 * i + 1)
-                     Put intDirFile, , bytDIR(1, 3 * i + 2)
-                   Next i
-                   //then views
-                   tmpMax = agViews.Max
-                   For i = 0 To tmpMax
-                     Put intDirFile, , bytDIR(3, 3 * i)
-                     Put intDirFile, , bytDIR(3, 3 * i + 1)
-                     Put intDirFile, , bytDIR(3, 3 * i + 2)
-                   Next i
-                   //and finally, sounds
-                   tmpMax = agSnds.Max
-                   For i = 0 To tmpMax
-                     Put intDirFile, , bytDIR(2, 3 * i)
-                     Put intDirFile, , bytDIR(2, 3 * i + 1)
-                     Put intDirFile, , bytDIR(2, 3 * i + 2)
-                   Next i
-                   //done! close the file
-                   Close intDirFile
-                 Else
-                   //make separate dir files
-                   For j = 0 To 3
-                     Select Case j
-                     Case rtLogic
-                       strFileName = NewGameDir & "LOGDIR"
-                       tmpMax = agLogs.Max
-                     Case rtPicture
-                       strFileName = NewGameDir & "PICDIR"
-                       tmpMax = agPics.Max
-                     Case rtSound
-                       strFileName = NewGameDir & "SNDDIR"
-                       tmpMax = agSnds.Max
-                     Case rtView
-                       strFileName = NewGameDir & "VIEWDIR"
-                       tmpMax = agViews.Max
-                     End Select
-
-                     intDirFile = FreeFile()
-                     //create the dir file
-                     Open strFileName For Binary As intDirFile
-                     For i = 0 To tmpMax
-                       Put intDirFile, , bytDIR(j, 3 * i)
-                       Put intDirFile, , bytDIR(j, 3 * i + 1)
-                       Put intDirFile, , bytDIR(j, 3 * i + 2)
-                     Next i
-                     Close intDirFile
-                   Next j
-                 }
-
-                 Err.Clear
-                 For i = 0 To lngCurrentVol
-                   strFileName = strID & "VOL." & CStr(i)
-                   Name NewGameDir & "NEW_VOL." & CStr(i) As NewGameDir & strFileName
-                 Next i
-
-                 On Error Resume Next
-
-                 //update status to indicate complete
-                 agGameEvents.RaiseEvent_CompileGameStatus csCompileComplete, 0, 0, ""
-
-                 //ensure errors cleared
-                 Err.Clear
-
-                 //if replacing (meaning we are compiling to the current game directory)
-                 If blnReplace Then
-                   //then we need to update the vol/loc info for all ingame resources;
-                   //this is done here instead of when the logics are compiled because
-                   //if there's an error, or the user cancels, we don't want the resources
-                   //to point to the wrong place
-                   For Each tmpLogic In agLogs
-                     tmpLogic.Resource.Volume = bytDIR(0, tmpLogic.Number* 3) \ 0x10
-                    tmpLogic.Resource.Loc = (bytDIR(0, tmpLogic.Number * 3) And 0xF) *0x10000 + bytDIR(0, tmpLogic.Number * 3 + 1) * 0x100 & +bytDIR(0, tmpLogic.Number * 3 + 2)
-                   Next
-                   For Each tmpPicture In agPics
-                     tmpPicture.Resource.Volume = bytDIR(1, tmpPicture.Number* 3) \ 0x10
-                    tmpPicture.Resource.Loc = (bytDIR(1, tmpPicture.Number * 3) And 0xF) *0x10000 + bytDIR(1, tmpPicture.Number * 3 + 1) * 0x100 & +bytDIR(1, tmpPicture.Number * 3 + 2)
-                   Next
-                   For Each tmpSound In agSnds
-                     tmpSound.Resource.Volume = bytDIR(2, tmpSound.Number* 3) \ 0x10
-                    tmpSound.Resource.Loc = (bytDIR(2, tmpSound.Number * 3) And 0xF) *0x10000 + bytDIR(2, tmpSound.Number * 3 + 1) * 0x100 & +bytDIR(2, tmpSound.Number * 3 + 2)
-                   Next
-                   For Each tmpView In agViews
-                     tmpView.Resource.Volume = bytDIR(3, tmpView.Number* 3) \ 0x10
-                    tmpView.Resource.Loc = (bytDIR(3, tmpView.Number * 3) And 0xF) *0x10000 + bytDIR(3, tmpView.Number * 3 + 1) * 0x100 & +bytDIR(3, tmpView.Number * 3 + 2)
-                   Next
-                 }
-
-                 //ensure error object is cleared
-                 Err.Clear
-
-                 //save the wag file
-                 SaveSettingList agGameProps
-
-                 //reset compiling flag
-                 agCompGame = False
-               Exit Sub
-
-               ErrHandler:
-                 //file error when creating new DIR and VOL files
-                 //pass along any errors
-                 lngError = Err.Number
-                 Select Case lngError
-                 Case 58 //file already exists
-                   //this means the previous version of the file we are trying to create
-                   //wasn't able to be renamed; most likely due to being open
-                   strError = "Unable to delete existing " & strFileName & ". New " & strFileName & " file was not created."
-                 Case Else
-                   //some other error - who knows what's going on
-                   strError = Err.Description
-                 End Select
-
-
-                 CompleteCancel True
-                 On Error GoTo 0: Err.Raise lngError, strErrSource, strError
-               End Sub
-
-
-               Public Property Let GameID(NewID As String)
-                 //limit gameID to 6 characters for v2 games and 5 characters for v3 games
-
-                 Dim strVolFile As String
-                 Dim strExtension() As String
-
-
-                 On Error GoTo ErrHandler
-
-                 //id is undefined if a game is not loaded
-                 If Not agGameLoaded Then
-                   On Error GoTo 0: Err.Raise vbObjectError + 677, strErrSource, LoadResString(677)
-                   Exit Property
-                 }
-
-                 //version 3 games limited to 5 characters
-                 If agIsVersion3 Then
-                   If Len(NewID) > 5 Then
-                     NewID = Left$(NewID, 5)
-                   }
-                 Else
-                   If Len(NewID) > 6 Then
-                     NewID = Left$(NewID, 6)
-                   }
-                 }
-
-                 //if no change
-                 If agGameID = NewID Then
-                   Exit Property
-                 }
-
-                 //if version 3
-                 If agIsVersion3 Then
-                   //need to rename the dir file
-                   Name agGameDir & agGameID & "DIR" As agGameDir & NewID & "DIR"
-                   //and vol files
-                   strVolFile = Dir(agGameDir & agGameID & "VOL.*")
-
-
-                   Do Until LenB(strVolFile) = 0
-                     //if an archived (OLD) file, skip it
-                     If UCase(Right(strVolFile, 4)) <> ".OLD" Then
-                       //get extension
-                       strExtension = Split(strVolFile, ".")
-                       //rename
-                       Name agGameDir & strVolFile As agGameDir & NewID & "VOL." & strExtension(1)
-                     }
-
-                     //get next
-                     strVolFile = Dir()
-                   Loop
-                 }
-
-                 //if property file is currently linked to game ID
-                 If StrComp(agGameFile, agGameDir & agGameID & ".wag", vbTextCompare) = 0 Then
-                   //update gamefile
-                   GameFile = agGameDir & NewID & ".wag"
-                 }
-
-                 //set new id
-                 agGameID = UCase$(NewID)
-
-                 //write new property
-                 WriteGameSetting("General", "GameID", NewID
-
-
-               Exit Property
-
-               ErrHandler:
-                 //file renaming or property writing are only sources of error
-                 strError = Err.Description
-                 strErrSrc = Err.Source
-                 lngError = Err.Number
-
-                 On Error GoTo 0: Err.Raise vbObjectError + 530, strErrSrc, Replace(LoadResString(530), ARG1, CStr(lngError) & ":" & strError)
-               End Property
-               Public Property Get GameID() As String
-
-                 //id is undefined if a game is not loaded
-                 If Not agGameLoaded Then
-                   On Error GoTo 0: Err.Raise vbObjectError + 677, strErrSource, LoadResString(677)
-                   Exit Property
-                 }
-
-
-                 GameID = agGameID
-               End Property
-
-
-               Public Property Get GameLoaded() As Boolean
-
-                 //returns state of game load
-                 GameLoaded = agGameLoaded
-               End Property
-
-
-               Public Property Get LastEdit() As Date
-
-                 //if game loaded,
-                 if (agGameLoaded)
-                   LastEdit = agLastEdit
-                 Else
-                   LastEdit = Now()
-                 }
-               End Property
-
-
-               Public Property Set LogicSourceSettings(NewLogSettings As AGILogicSourceSettings)
-
-                 Set agMainLogSettings = NewLogSettings
-
-                 //change date of last edit
-                 agLastEdit = Now()
-               End Property
-
-               Public Property Get LogicSourceSettings() As AGILogicSourceSettings
-
-
-                 Set LogicSourceSettings = agMainLogSettings
-               End Property
-
-
-               Public Property Get MaxVol0Size() As Long
-
-
-                 MaxVol0Size = agMaxVol0
-               End Property
-
-               Public Property Let MaxVol0Size(ByVal NewSize As Long)
-
-                 //validate
-                 If NewSize< 32768 Then
-                   NewSize = 32768
-                 ElseIf NewSize > agMaxVolSize Then
-                   NewSize = agMaxVolSize
-                 }
-
-
-                 agMaxVol0 = NewSize
-               End Property
-
-               Public Property Get Pictures() As AGIPictures
-
-                 Set Pictures = agPics
-               End Property
-
-               Public Property Let InterpreterVersion(NewVersion As String)
-
-                 //attempts to set version to new Value
-
-       Dim i As Long
-                 Dim OldVersion As String
-
-
-                 On Error Resume Next
-
-                 //validate new version
-                 If ValidateVersion(NewVersion) Then
-                   //if in a game, need to adjust resources if necessary
-                   if (agGameLoaded)
-                     //if new version and old version are not same major version:
-                     If Asc(agIntVersion) <> Asc(NewVersion) Then
-                       //set flag to switch version on rebuild
-                       agChangeVersion = True
-
-                       //if new version is V3 (i.e., current version isn't)
-                       If Not agIsVersion3 Then
-                         If Len(GameID) > 5 Then
-                           //truncate the ID
-                           GameID = Left(GameID, 5)
+                       //version 3 games limited to 5 characters
+                       if (agIsVersion3)
+                         if (Len(NewID) > 5)
+                           NewID = Left$(NewID, 5)
+                         }
+                       } else {
+                         if (Len(NewID) > 6)
+                           NewID = Left$(NewID, 6)
                          }
                        }
 
-                       //use compiler to rebuild new vol and dir files
-                       //(it is up to calling program to deal with dirty and invalid resources)
-                       CompileGame True
+                       //if no change
+                       if (agGameID = NewID)
+                         Exit Property
+                       }
 
-                       //check for errors, or cancellation
-                       If Err.Number<> 0 Then
+                       //if version 3
+                       if (agIsVersion3)
+                         //need to rename the dir file
+                         Name agGameDir & agGameID & "DIR" As agGameDir & NewID & "DIR"
+                         //and vol files
+                         strVolFile = Dir(agGameDir & agGameID & "VOL.*")
+
+
+                         Do Until LenB(strVolFile) = 0
+                           //if an archived (OLD) file, skip it
+                           if (UCase(Right(strVolFile, 4)) != ".OLD")
+                             //get extension
+                             strExtension = Split(strVolFile, ".")
+                             //rename
+                             Name agGameDir & strVolFile As agGameDir & NewID & "VOL." & strExtension(1)
+                           }
+
+                           //get next
+                           strVolFile = Dir()
+                         Loop
+                       }
+
+                       //if property file is currently linked to game ID
+                       if (StrComp(agGameFile, agGameDir & agGameID & ".wag", vbTextCompare) = 0)
+                         //update gamefile
+                         GameFile = agGameDir & NewID & ".wag"
+                       }
+
+                       //set new id
+                       agGameID = UCase$(NewID)
+
+                       //write new property
+                       WriteGameSetting("General", "GameID", NewID
+
+
+                     Exit Property
+
+                     ErrHandler:
+                       //file renaming or property writing are only sources of error
+                       strError = Err.Description
+                       strErrSrc = Err.Source
+                       lngError = Err.Number
+
+                       On Error GoTo 0: Err.Raise vbObjectError + 530, strErrSrc, Replace(LoadResString(530), ARG1, CStr(lngError) & ":" & strError)
+                     End Property
+                     Public Property Get GameID() As String
+
+                       //id is undefined if a game is not loaded
+                       if (!agGameLoaded)
+                         On Error GoTo 0: Err.Raise vbObjectError + 677, strErrSource, LoadResString(677)
+                         Exit Property
+                       }
+
+
+                       GameID = agGameID
+                     End Property
+
+
+                     Public Property Get GameLoaded() As Boolean
+
+                       //returns state of game load
+                       GameLoaded = agGameLoaded
+                     End Property
+
+
+                     Public Property Get LastEdit() As Date
+
+                       //if game loaded,
+                       if (agGameLoaded)
+                         LastEdit = agLastEdit
+                       } else {
+                         LastEdit = Now()
+                       }
+                     End Property
+
+
+                     Public Property Set LogicSourceSettings(NewLogSettings As AGILogicSourceSettings)
+
+                       Set agMainLogSettings = NewLogSettings
+
+                       //change date of last edit
+                       agLastEdit = Now()
+                     End Property
+
+                     Public Property Get LogicSourceSettings() As AGILogicSourceSettings
+
+
+                       Set LogicSourceSettings = agMainLogSettings
+                     End Property
+
+
+                     Public Property Get MaxVol0Size() As Long
+
+
+                       MaxVol0Size = agMaxVol0
+                     End Property
+
+                     Public Property Let MaxVol0Size(ByVal NewSize As Long)
+
+                       //validate
+                       if (NewSize< 32768)
+                         NewSize = 32768
+                       } else {if (NewSize > agMaxVolSize)
+                         NewSize = agMaxVolSize
+                       }
+
+
+                       agMaxVol0 = NewSize
+                     End Property
+
+                     Public Property Get Pictures() As AGIPictures
+
+                       Set Pictures = agPics
+                     End Property
+
+                     Public Property Let InterpreterVersion(NewVersion As String)
+
+                       //attempts to set version to new Value
+
+             Dim i As Long
+                       Dim OldVersion As String
+
+
+                       On Error Resume Next
+
+                       //validate new version
+                       if (ValidateVersion(NewVersion))
+                         //if in a game, need to adjust resources if necessary
+                         if (agGameLoaded)
+                           //if new version and old version are not same major version:
+                           if (Asc(agIntVersion) != Asc(NewVersion))
+                             //set flag to switch version on rebuild
+                             agChangeVersion = true
+
+                             //if new version is V3 (i.e., current version isn't)
+                             if (!agIsVersion3)
+                               if (Len(GameID) > 5)
+                                 //truncate the ID
+                                 GameID = Left(GameID, 5)
+                               }
+                             }
+
+                             //use compiler to rebuild new vol and dir files
+                             //(it is up to calling program to deal with dirty and invalid resources)
+                             CompileGame true
+
+                             //check for errors, or cancellation
+                             if (Err.Number<> 0)
+                               strError = Err.Description
+                               strErrSrc = Err.Source
+                               lngError = Err.Number
+
+                               //reset cancel flag
+                               agCancelComp = false
+                               //pass along the error
+                               On Error GoTo 0: Err.Raise vbObjectError + 641, strErrSrc, Replace(LoadResString(641), ARG1, CStr(lngError) & ":" & strError)
+                               Exit Property
+
+                             //if canceled,
+                             } else {if (agCancelComp)
+                               //reset cancel flag
+                               agCancelComp = false
+                               Exit Property
+                             }
+                           }
+                           Err.Clear
+
+                           //change date of last edit
+                           agLastEdit = Now()
+
+                           //write new version to file
+                           WriteGameSetting("General", "Interpreter", NewVersion
+
+                           //and save it
+                           SaveSettingList agGameProps
+
+
+                         }
+
+                         //set new version
+                         agIntVersion = NewVersion
+
+                         //set v3 flag
+                         agIsVersion3 = (Val(agIntVersion) > 3)
+
+                         //adjust commands
+                         CorrectCommands agIntVersion
+                       } else {
+                         if (Val(NewVersion) < 2 Or Val(NewVersion) > 3)
+                           //not a version 2 or 3 game
+                           On Error GoTo 0: Err.Raise vbObjectError + 597, strErrSource, LoadResString(597)
+                         } else {
+                           //unsupported version 2 or 3 game
+                           On Error GoTo 0: Err.Raise vbObjectError + 543, strErrSource, LoadResString(543)
+                         }
+                       }
+
+
+                     End Property
+                     Public Property Get ResDir() As String
+
+                       //if a game is loaded,
+                       if (agGameLoaded)
+                         //use resdir property
+                         ResDir = agResDir
+                       } else {
+                         //use current directory
+                         ResDir = cDir(CurDir$())
+                       }
+                     End Property
+
+
+                     Public Property Get ResDirName() As String
+
+                       ResDirName = agResDirName
+                     End Property
+                     Public Property Let ResDirName(NewResDirName As String)
+
+                       //validate- cant have  \/:*?<>|
+
+                       NewResDirName = Trim$(NewResDirName)
+
+                       if (LenB(NewResDirName) = 0)
+                         On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+                         Exit Property
+                       }
+                       if (InStr(1, NewResDirName, "\") != 0)
+                         On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+                         Exit Property
+                       }
+                       if (InStr(1, NewResDirName, "/") != 0)
+                         On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+                         Exit Property
+                       }
+                       if (InStr(1, NewResDirName, ":") != 0)
+                         On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+                         Exit Property
+                       }
+                       if (InStr(1, NewResDirName, "*") != 0)
+                         On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+                         Exit Property
+                       }
+                       if (InStr(1, NewResDirName, "?") != 0)
+                         On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+                         Exit Property
+                       }
+                       if (InStr(1, NewResDirName, "<") != 0)
+                         On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+                         Exit Property
+                       }
+                       if (InStr(1, NewResDirName, ">") != 0)
+                         On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+                         Exit Property
+                       }
+                       if (InStr(1, NewResDirName, "|") != 0)
+                         On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+                         Exit Property
+                       }
+                       if (InStr(1, NewResDirName, " ") != 0)
+                         On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+                         Exit Property
+                       }
+
+                       //save new resdir name
+                       agResDirName = NewResDirName
+                       //update the actual resdir
+                       agResDir = agGameDir & agResDirName & "\"
+
+                       //save resdirname
+                       WriteGameSetting("General", "ResDir", NewResDirName
+
+                       //change date of last edit
+                       agLastEdit = Now()
+                     End Property
+
+
+                     Public Property Get ResTypeName(ByVal ResType As AGIResType)
+
+                       //returns the resource name
+                       ResTypeName = agResTypeName(ResType)
+                     End Property
+
+                     Public Sub SaveProperties()
+
+                       //this forces WinAGI to save the property file, rather than waiting until
+                       //the game is unloaded
+
+                       //Debug.Assert Not(agGameProps Is Nothing)
+                       if (Not(agGameProps Is Nothing))
+                        SaveSettingList agGameProps
+                      }
+                     End Sub
+
+                     Public Property Let TemplateDir(NewDir As String)
+
+                       //validate gamedir
+                       if (!FileExists(cDir(NewDir), vbDirectory))
+                         //return error
+                         On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, Replace(LoadResString(630), ARG1, NewDir)
+                         Exit Property
+                       }
+
+
+                       agTemplateDir = cDir(NewDir)
+                     End Property
+
+                     Public Property Get TemplateDir() As String
+
+
+                       TemplateDir = agTemplateDir
+                     End Property
+
+
+                     Public Property Get TestCommands() As AGITestCommands
+
+
+                       Set TestCommands = agTestCmdCol
+                     End Property
+
+
+                     Public Property Get Views() As AGIViews
+
+
+                       Set Views = agViews
+                     End Property
+
+
+
+
+                     Public Property Get Sounds() As AGISounds
+
+
+                       Set Sounds = agSnds
+                     End Property
+
+                     Public Property Get Logics() As AGILogics
+
+
+                       Set Logics = agLogs
+                     End Property
+
+                     Public Property Get GameDir() As String
+
+                       //if a game is loaded,
+                       if (agGameLoaded)
+                         //use resdir property
+                         GameDir = agGameDir
+                       } else {
+                         //use current directory
+                         GameDir = cDir(CurDir$())
+                       }
+                     End Property
+                     Public Property Get InventoryObjects() As AGIInventoryObjects
+                       //if nothing,
+                       if (agInvObjList Is Nothing)
+                         Set InventoryObjects = Nothing
+                       } else {
+                         Set InventoryObjects = agInvObjList
+                       }
+                     End Property
+
+                     Public Sub OpenGameDIR(NewGameDir As String)
+                       //creates a new WinAGI game file from Sierra game directory
+
+                       On Error Resume Next
+
+                       //if a game is already open,
+                       if (agGameLoaded)
+                         //can't open a game if one is already open
+                         On Error GoTo 0: Err.Raise vbObjectError + 501, strErrSource, LoadResString(501)
+                         return;
+                       }
+
+                       //Debug.Assert agGameID = ""
+
+                       //set game directory
+                       agGameDir = cDir(NewGameDir)
+
+                       //attempt to extract agGameID, agGameFile and interpreter version
+                       //from Sierra files (i.e. from DIR files and VOL files)
+
+                       //Debug.Assert LenB(agGameID) = 0
+                       //Debug.Assert LenB(agGameFile) = 0
+                       //Debug.Assert LenB(agIntVersion) = 0
+                       //Debug.Assert agGameProps Is Nothing
+
+                       //set status to decompiling game dir files
+                       agGameEvents.RaiseEvent_LoadStatus lsDecompiling, rtNone, 0, ""
+
+                       //check for valid DIR/VOL files
+                       //(which gets gameid, and sets version 3 status flag)
+                       if (!IsValidGameDir(agGameDir))
+                         //save dir as error string
+                         strError = agGameDir
+                         //clear game variables
+                         agGameDir = ""
+                         agGameFile = ""
+                         agGameID = ""
+                         agIntVersion = ""
+                         agIsVersion3 = false
+                         //invalid game directory
+                         On Error GoTo 0: Err.Raise vbObjectError + 541, strErrSource, Replace(LoadResString(541), ARG1, strError)
+                         return;
+                       }
+
+                       //Debug.Assert LenB(agGameID) > 0
+
+                       //create a new wag file
+                       agGameFile = agGameDir & agGameID & ".wag"
+
+                       //rename any existing game file (in case user is re-importing)
+                       Kill agGameFile & ".OLD"
+                       Err.Clear
+                       Name agGameFile As agGameFile & ".OLD"
+                       Err.Clear
+
+                       //create new wag file, but don't save it yet
+                       Set agGameProps = OpenSettingList(agGameFile, false)
+                       agGameProps.Add "# WinAGI Game Property File"
+                       agGameProps.Add "#"
+                       WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION
+                       WriteGameSetting("General", "GameID", agGameID
+
+                       //get version number (version3 flag already set)
+                       agIntVersion = GetIntVersion()
+
+                       //if not valid
+                       if (Len(agIntVersion) = 0)
+                         //clear game variables
+                         agGameDir = ""
+                         agGameFile = ""
+                         agGameID = ""
+                         agIsVersion3 = false
+                         Set agGameProps = Nothing
+                         //invalid number found
+                         On Error GoTo 0: Err.Raise vbObjectError + 543, strErrSource, LoadResString(543)
+                         return;
+                       }
+
+                       //save version
+                       WriteGameSetting("General", "Interpreter", agIntVersion
+
+                       //finish the game load
+                       FinishGameLoad 1
+
+                       //if error, pass it along
+                       if (Err.Number<> 0)
+                         Err.Raise Err.Number, Err.Source, Err.Description
+                       }
+                     End Sub
+
+
+                     Public Sub OpenGameWAG(GameWAG As String)
+                       //opens a WinAGI game file (must be passed as a full length file name)
+
+                       Dim strVer As String
+
+
+                       On Error Resume Next
+
+                       //if a game is already open,
+                       if (agGameLoaded)
+                         //can't open a game if one is already open
+                         On Error GoTo 0: Err.Raise vbObjectError + 501, strErrSource, LoadResString(501)
+                         return;
+                       }
+
+                       //Debug.Assert agGameID = ""
+
+                       //verify the wag file exists
+                       if (!FileExists(GameWAG))
+                         //clear game variables
+                         agGameDir = ""
+                         agGameFile = ""
+                         agGameID = ""
+                         agIntVersion = ""
+                         agIsVersion3 = false
+                         Set agGameProps = Nothing
+
+                         //error - is it the file, or the directory?
+                         if (FileExists(JustPath(GameWAG, true), vbDirectory))
+                           //it's a missing file - return wagfile as error string
+                           strError = JustFileName(GameWAG)
+                           //invalid wag
+                           On Error GoTo 0: Err.Raise vbObjectError + 655, strErrSource, strError
+                         } else {
+                           //it's an invalid or missing directory - return directory as error string
+                           strError = JustPath(GameWAG, true)
+                           //invalid wag
+                           On Error GoTo 0: Err.Raise vbObjectError + 541, strErrSource, JustPath(GameWAG, true)
+                         }
+
+
+                         return;
+                       }
+
+                       //set game file property
+                       agGameFile = GameWAG
+
+                       //set game directory
+                       agGameDir = JustPath(GameWAG)
+
+                       //open the property file (file has to already exist)
+                       Set agGameProps = OpenSettingList(agGameFile, false)
+
+                       //check to see if it's valid
+                       strVer = ReadSettingString(agGameProps, "General", "WinAGIVersion", "")
+                       if (Len(strVer) = 0)
+                         //not a valid file; maybe it's an old binary version
+                         ConvertWag
+                       } else {
+                         Select case strVer
+                         case WINAGI_VERSION
+                           //this is the current version
+
+                     //    case "1.2.2", "1.2.3", "1.2.4", "1.2.5", "1.2.6", "1.2.7", "1.2.8" // need to convert it
+                     //      WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION
+
+
+                         case } else {
+                           //any v1.2.x is ok
+                           if (Left(strVer, 4) = "1.2.")
+                             //ok, but update
+                             WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION
+                           } else {
+                             //if another winagi version is ever released,
+                             //yeah, right; just consider this file invalid
+
+                             //save wagfile as error string
+                             strError = JustFileName(agGameFile)
+                             //clear game variables
+                             agGameDir = ""
+                             agGameFile = ""
+                             agGameID = ""
+                             agIntVersion = ""
+                             agIsVersion3 = false
+                             Set agGameProps = Nothing
+                             //invalid wag
+                             On Error GoTo 0: Err.Raise vbObjectError + 665, strErrSource, strError
+                             return;
+                           }
+                         End Select
+                       }
+
+                       //get gameID
+                       agGameID = ReadSettingString(agGameProps, "General", "GameID", "")
+
+                       //if an id is found, keep going
+                       if (Len(agGameID) > 0)
+                         //got ID; now get interpreter version from propfile
+                         agIntVersion = ReadSettingString(agGameProps, "General", "Interpreter", "")
+
+                         //validate it
+                         if (!ValidateVersion(agIntVersion))
+                           //save wagfile as error string
+                           strError = JustFileName(agGameFile)
+                           //clear propfile
+                           Set agGameProps = Nothing
+                           //clear game variables
+                           agGameDir = ""
+                           agGameFile = ""
+                           agGameID = ""
+                           agIntVersion = ""
+                           agIsVersion3 = false
+                           //invalid int version inside wag file
+                           On Error GoTo 0: Err.Raise vbObjectError + 691, strErrSource, strError
+                           return;
+                         }
+
+
+                       } else {
+                         //missing GameID in wag file - make user address it
+                         //by raising an error
+
+                         //save wagfile name as error string
+                         strError = JustFileName(agGameFile)
+                         //clear propfile
+                         Set agGameProps = Nothing
+                         //clear game variables
+                         agGameDir = ""
+                         agGameFile = ""
+                         agGameID = ""
+                         agIntVersion = ""
+                         agIsVersion3 = false
+                         //invalid wag file
+                         On Error GoTo 0: Err.Raise vbObjectError + 690, strErrSource, strError
+                         return;
+                       }
+
+                       //if a valid wag file was found, we now have agGameID, agGameFile
+                       //and correct interpreter version;
+
+                       //must have a valid gameID, gamefile and intversion
+                       //Debug.Assert LenB(agGameID) > 0
+                       //Debug.Assert LenB(agIntVersion) > 0
+                       //Debug.Assert LenB(agGameFile) > 0
+                       //Debug.Assert Not(agGameProps Is Nothing)
+
+                       //normally, gameID will be the same as the game property
+                       //file name, but it doesn't have to be.So no check is
+                       //made to see if they match
+
+                       //finish the game load
+                       FinishGameLoad 0
+
+                       //if error, pass it along
+                       if (Err.Number<> 0)
+                         Err.Raise Err.Number, Err.Source, Err.Description
+                       }
+                     End Sub
+
+                     Public Sub FinishGameLoad(Optional ByVal Mode As Long = 0)
+                       //finishes game load
+                       //mode determines whether opening by wag file (0) or
+                       //extracting from Sierra game files (1)
+                       //(currently, no difference between them)
+
+                       Dim blnWarnings As Boolean, lngError As Long
+                       Dim strTempDir As String, lngDirCount As Long
+                       Dim strTempFile As String
+
+
+                       On Error Resume Next
+
+                       //set v3 flag
+                       agIsVersion3 = (Val(agIntVersion) >= 3)
+
+                       //if loading from a wag file
+                       if (Mode = 0)
+                         //informs user we are checking property file to set game parameters
+                         agGameEvents.RaiseEvent_LoadStatus lsPropertyFile, rtNone, 0, ""
+
+                         //get resdir before loading resources
+                         agResDirName = ReadSettingString(agGameProps, "General", "ResDir", "")
+                       } else {
+                         //no resdir yet for imported game
+                         agResDirName = ""
+                       }
+
+                       //if none, use default
+                       if (LenB(agResDirName) = 0)
+                         //look for an existing directory
+                         strTempDir = Dir(agGameDir, vbDirectory)
+                         Do Until Len(strTempDir) = 0
+                           if (strTempDir<> "." And strTempDir != "..")
+                             if ((GetAttr(agGameDir & strTempDir) And vbDirectory) = vbDirectory)
+                               lngDirCount = lngDirCount + 1
+                               if (lngDirCount > 1)
+                                 Exit Do
+                               }
+                               strTempFile = strTempDir
+                             }
+                           }
+                           strTempDir = Dir(, vbDirectory)
+                         Loop
+
+                         //is there only one subfolder?
+                         if (lngDirCount = 1)
+                           //assume it is resource directory
+                             agResDirName = strTempFile
+                         } else {
+                           //either no subfolders, or more than one
+                           //so use default
+                           agResDirName = agDefResDir
+                         }
+
+                         WriteGameSetting("General", "ResDir", agResDirName
+                       }
+
+                       //now create full resdir from name
+                       agResDir = agGameDir & agResDirName & "\"
+
+                       //ensure resource directory exists
+                       if (!FileExists(agGameDir & agResDirName, vbDirectory))
+                         MkDir agGameDir & agResDirName
+                         //if can't create the resources directory
+                         if (Err.Number<> 0)
+                           //note the problem in the error log as a warning
+                           RecordLogEvent leWarning, "Can't create " & agResDir
+                           //use game directory
+                           agResDir = agGameDir
+                           //set warning
+                           blnWarnings = true
+                         }
+                       }
+
+                     //  //if loading from a WAG file
+                     //
+                     //  if (Mode = 0)
+                     //    //only resources in the WAG file need to be checked on initial load
+                     //    blnWarnings = LoadResources()
+                     //  } else {
+                     //    //if opening bi directory, extract resources from the VOL
+                     //    //files load resources
+                            blnWarnings = ExtractResources()
+                     //  }
+
+                       //if there was an error
+                       if (Err.Number<> 0)
+                         //can't continue
+                         //save error information
                          strError = Err.Description
-                         strErrSrc = Err.Source
                          lngError = Err.Number
 
-                         //reset cancel flag
-                         agCancelComp = False
-                         //pass along the error
-                         On Error GoTo 0: Err.Raise vbObjectError + 641, strErrSrc, Replace(LoadResString(641), ARG1, CStr(lngError) & ":" & strError)
-                         Exit Property
+                         //clear game variables
+                         agGameDir = ""
+                         agGameFile = ""
+                         agGameID = ""
+                         agIntVersion = ""
+                         agIsVersion3 = false
 
-                       //if canceled,
-                       ElseIf agCancelComp Then
-                         //reset cancel flag
-                         agCancelComp = False
-                         Exit Property
+                         //reset collections & objects
+                         Set agLogs = Nothing
+                         Set agViews = Nothing
+                         Set agPics = Nothing
+                         Set agSnds = Nothing
+                         Set agInvObjList = Nothing
+                         Set agVocabWords = Nothing
+                         Set agLogs = New AGILogics
+                         Set agViews = New AGIViews
+                         Set agPics = New AGIPictures
+                         Set agSnds = New AGISounds
+                         Set agInvObjList = New AGIInventoryObjects
+                         Set agVocabWords = New AGIWordList
+
+                         Set agGameProps = Nothing
+
+                         //raise error
+                         On Error GoTo 0: Err.Raise lngError, strErrSource, strError
                        }
-                     }
-                     Err.Clear
-
-                     //change date of last edit
-                     agLastEdit = Now()
-
-                     //write new version to file
-                     WriteGameSetting("General", "Interpreter", NewVersion
-
-                     //and save it
-                     SaveSettingList agGameProps
-
-
-                   }
-
-                   //set new version
-                   agIntVersion = NewVersion
-
-                   //set v3 flag
-                   agIsVersion3 = (Val(agIntVersion) > 3)
-
-                   //adjust commands
-                   CorrectCommands agIntVersion
-                 Else
-                   If Val(NewVersion) < 2 Or Val(NewVersion) > 3 Then
-                     //not a version 2 or 3 game
-                     On Error GoTo 0: Err.Raise vbObjectError + 597, strErrSource, LoadResString(597)
-                   Else
-                     //unsupported version 2 or 3 game
-                     On Error GoTo 0: Err.Raise vbObjectError + 543, strErrSource, LoadResString(543)
-                   }
-                 }
-
-
-               End Property
-               Public Property Get ResDir() As String
-
-                 //if a game is loaded,
-                 if (agGameLoaded)
-                   //use resdir property
-                   ResDir = agResDir
-                 Else
-                   //use current directory
-                   ResDir = cDir(CurDir$())
-                 }
-               End Property
-
-
-               Public Property Get ResDirName() As String
-
-                 ResDirName = agResDirName
-               End Property
-               Public Property Let ResDirName(NewResDirName As String)
-
-                 //validate- cant have  \/:*?<>|
-
-                 NewResDirName = Trim$(NewResDirName)
-
-                 If LenB(NewResDirName) = 0 Then
-                   On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
-                   Exit Property
-                 }
-                 If InStr(1, NewResDirName, "\") <> 0 Then
-                   On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
-                   Exit Property
-                 }
-                 If InStr(1, NewResDirName, "/") <> 0 Then
-                   On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
-                   Exit Property
-                 }
-                 If InStr(1, NewResDirName, ":") <> 0 Then
-                   On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
-                   Exit Property
-                 }
-                 If InStr(1, NewResDirName, "*") <> 0 Then
-                   On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
-                   Exit Property
-                 }
-                 If InStr(1, NewResDirName, "?") <> 0 Then
-                   On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
-                   Exit Property
-                 }
-                 If InStr(1, NewResDirName, "<") <> 0 Then
-                   On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
-                   Exit Property
-                 }
-                 If InStr(1, NewResDirName, ">") <> 0 Then
-                   On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
-                   Exit Property
-                 }
-                 If InStr(1, NewResDirName, "|") <> 0 Then
-                   On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
-                   Exit Property
-                 }
-                 If InStr(1, NewResDirName, " ") <> 0 Then
-                   On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
-                   Exit Property
-                 }
 
-                 //save new resdir name
-                 agResDirName = NewResDirName
-                 //update the actual resdir
-                 agResDir = agGameDir & agResDirName & "\"
-
-                 //save resdirname
-                 WriteGameSetting("General", "ResDir", NewResDirName
-
-                 //change date of last edit
-                 agLastEdit = Now()
-               End Property
-
-
-               Public Property Get ResTypeName(ByVal ResType As AGIResType)
-
-                 //returns the resource name
-                 ResTypeName = agResTypeName(ResType)
-               End Property
-
-               Public Sub SaveProperties()
-
-                 //this forces WinAGI to save the property file, rather than waiting until
-                 //the game is unloaded
-
-                 //Debug.Assert Not(agGameProps Is Nothing)
-                 If Not(agGameProps Is Nothing) Then
-                  SaveSettingList agGameProps
-                }
-               End Sub
-
-               Public Property Let TemplateDir(NewDir As String)
-
-                 //validate gamedir
-                 If Not FileExists(cDir(NewDir), vbDirectory) Then
-                   //return error
-                   On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, Replace(LoadResString(630), ARG1, NewDir)
-                   Exit Property
-                 }
-
-
-                 agTemplateDir = cDir(NewDir)
-               End Property
-
-               Public Property Get TemplateDir() As String
-
-
-                 TemplateDir = agTemplateDir
-               End Property
-
-
-               Public Property Get TestCommands() As AGITestCommands
-
-
-                 Set TestCommands = agTestCmdCol
-               End Property
-
-
-               Public Property Get Views() As AGIViews
-
-
-                 Set Views = agViews
-               End Property
-
-
-
-
-               Public Property Get Sounds() As AGISounds
-
-
-                 Set Sounds = agSnds
-               End Property
-
-               Public Property Get Logics() As AGILogics
-
-
-                 Set Logics = agLogs
-               End Property
-
-               Public Property Get GameDir() As String
-
-                 //if a game is loaded,
-                 if (agGameLoaded)
-                   //use resdir property
-                   GameDir = agGameDir
-                 Else
-                   //use current directory
-                   GameDir = cDir(CurDir$())
-                 }
-               End Property
-               Public Property Get InventoryObjects() As AGIInventoryObjects
-                 //if nothing,
-                 If agInvObjList Is Nothing Then
-                   Set InventoryObjects = Nothing
-                 Else
-                   Set InventoryObjects = agInvObjList
-                 }
-               End Property
-
-               Public Sub OpenGameDIR(NewGameDir As String)
-                 //creates a new WinAGI game file from Sierra game directory
-
-                 On Error Resume Next
-
-                 //if a game is already open,
-                 if (agGameLoaded)
-                   //can't open a game if one is already open
-                   On Error GoTo 0: Err.Raise vbObjectError + 501, strErrSource, LoadResString(501)
-                   Exit Sub
-                 }
-
-                 //Debug.Assert agGameID = ""
-
-                 //set game directory
-                 agGameDir = cDir(NewGameDir)
-
-                 //attempt to extract agGameID, agGameFile and interpreter version
-                 //from Sierra files (i.e. from DIR files and VOL files)
-
-                 //Debug.Assert LenB(agGameID) = 0
-                 //Debug.Assert LenB(agGameFile) = 0
-                 //Debug.Assert LenB(agIntVersion) = 0
-                 //Debug.Assert agGameProps Is Nothing
-
-                 //set status to decompiling game dir files
-                 agGameEvents.RaiseEvent_LoadStatus lsDecompiling, rtNone, 0, ""
-
-                 //check for valid DIR/VOL files
-                 //(which gets gameid, and sets version 3 status flag)
-                 If Not IsValidGameDir(agGameDir) Then
-                   //save dir as error string
-                   strError = agGameDir
-                   //clear game variables
-                   agGameDir = ""
-                   agGameFile = ""
-                   agGameID = ""
-                   agIntVersion = ""
-                   agIsVersion3 = False
-                   //invalid game directory
-                   On Error GoTo 0: Err.Raise vbObjectError + 541, strErrSource, Replace(LoadResString(541), ARG1, strError)
-                   Exit Sub
-                 }
-
-                 //Debug.Assert LenB(agGameID) > 0
-
-                 //create a new wag file
-                 agGameFile = agGameDir & agGameID & ".wag"
-
-                 //rename any existing game file (in case user is re-importing)
-                 Kill agGameFile & ".OLD"
-                 Err.Clear
-                 Name agGameFile As agGameFile & ".OLD"
-                 Err.Clear
-
-                 //create new wag file, but don't save it yet
-                 Set agGameProps = OpenSettingList(agGameFile, False)
-                 agGameProps.Add "# WinAGI Game Property File"
-                 agGameProps.Add "#"
-                 WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION
-                 WriteGameSetting("General", "GameID", agGameID
-
-                 //get version number (version3 flag already set)
-                 agIntVersion = GetIntVersion()
-
-                 //if not valid
-                 If Len(agIntVersion) = 0 Then
-                   //clear game variables
-                   agGameDir = ""
-                   agGameFile = ""
-                   agGameID = ""
-                   agIsVersion3 = False
-                   Set agGameProps = Nothing
-                   //invalid number found
-                   On Error GoTo 0: Err.Raise vbObjectError + 543, strErrSource, LoadResString(543)
-                   Exit Sub
-                 }
-
-                 //save version
-                 WriteGameSetting("General", "Interpreter", agIntVersion
-
-                 //finish the game load
-                 FinishGameLoad 1
-
-                 //if error, pass it along
-                 If Err.Number<> 0 Then
-                   Err.Raise Err.Number, Err.Source, Err.Description
-                 }
-               End Sub
-
-
-               Public Sub OpenGameWAG(GameWAG As String)
-                 //opens a WinAGI game file (must be passed as a full length file name)
-
-                 Dim strVer As String
-
-
-                 On Error Resume Next
-
-                 //if a game is already open,
-                 if (agGameLoaded)
-                   //can't open a game if one is already open
-                   On Error GoTo 0: Err.Raise vbObjectError + 501, strErrSource, LoadResString(501)
-                   Exit Sub
-                 }
-
-                 //Debug.Assert agGameID = ""
-
-                 //verify the wag file exists
-                 If Not FileExists(GameWAG) Then
-                   //clear game variables
-                   agGameDir = ""
-                   agGameFile = ""
-                   agGameID = ""
-                   agIntVersion = ""
-                   agIsVersion3 = False
-                   Set agGameProps = Nothing
-
-                   //error - is it the file, or the directory?
-                   If FileExists(JustPath(GameWAG, True), vbDirectory) Then
-                     //it's a missing file - return wagfile as error string
-                     strError = JustFileName(GameWAG)
-                     //invalid wag
-                     On Error GoTo 0: Err.Raise vbObjectError + 655, strErrSource, strError
-                   Else
-                     //it's an invalid or missing directory - return directory as error string
-                     strError = JustPath(GameWAG, True)
-                     //invalid wag
-                     On Error GoTo 0: Err.Raise vbObjectError + 541, strErrSource, JustPath(GameWAG, True)
-                   }
-
-
-                   Exit Sub
-                 }
-
-                 //set game file property
-                 agGameFile = GameWAG
-
-                 //set game directory
-                 agGameDir = JustPath(GameWAG)
-
-                 //open the property file (file has to already exist)
-                 Set agGameProps = OpenSettingList(agGameFile, False)
-
-                 //check to see if it's valid
-                 strVer = ReadSettingString(agGameProps, "General", "WinAGIVersion", "")
-                 If Len(strVer) = 0 Then
-                   //not a valid file; maybe it's an old binary version
-                   ConvertWag
-                 Else
-                   Select Case strVer
-                   Case WINAGI_VERSION
-                     //this is the current version
-
-               //    Case "1.2.2", "1.2.3", "1.2.4", "1.2.5", "1.2.6", "1.2.7", "1.2.8" // need to convert it
-               //      WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION
-
-
-                   Case Else
-                     //any v1.2.x is ok
-                     If Left(strVer, 4) = "1.2." Then
-                       //ok, but update
-                       WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION
-                     Else
-                       //if another winagi version is ever released,
-                       //yeah, right; just consider this file invalid
-
-                       //save wagfile as error string
-                       strError = JustFileName(agGameFile)
-                       //clear game variables
-                       agGameDir = ""
-                       agGameFile = ""
-                       agGameID = ""
-                       agIntVersion = ""
-                       agIsVersion3 = False
-                       Set agGameProps = Nothing
-                       //invalid wag
-                       On Error GoTo 0: Err.Raise vbObjectError + 665, strErrSource, strError
-                       Exit Sub
-                     }
-                   End Select
-                 }
-
-                 //get gameID
-                 agGameID = ReadSettingString(agGameProps, "General", "GameID", "")
-
-                 //if an id is found, keep going
-                 If Len(agGameID) > 0 Then
-                   //got ID; now get interpreter version from propfile
-                   agIntVersion = ReadSettingString(agGameProps, "General", "Interpreter", "")
-
-                   //validate it
-                   If Not ValidateVersion(agIntVersion) Then
-                     //save wagfile as error string
-                     strError = JustFileName(agGameFile)
-                     //clear propfile
-                     Set agGameProps = Nothing
-                     //clear game variables
-                     agGameDir = ""
-                     agGameFile = ""
-                     agGameID = ""
-                     agIntVersion = ""
-                     agIsVersion3 = False
-                     //invalid int version inside wag file
-                     On Error GoTo 0: Err.Raise vbObjectError + 691, strErrSource, strError
-                     Exit Sub
-                   }
-
-
-                 Else
-                   //missing GameID in wag file - make user address it
-                   //by raising an error
-
-                   //save wagfile name as error string
-                   strError = JustFileName(agGameFile)
-                   //clear propfile
-                   Set agGameProps = Nothing
-                   //clear game variables
-                   agGameDir = ""
-                   agGameFile = ""
-                   agGameID = ""
-                   agIntVersion = ""
-                   agIsVersion3 = False
-                   //invalid wag file
-                   On Error GoTo 0: Err.Raise vbObjectError + 690, strErrSource, strError
-                   Exit Sub
-                 }
-
-                 //if a valid wag file was found, we now have agGameID, agGameFile
-                 //and correct interpreter version;
-
-                 //must have a valid gameID, gamefile and intversion
-                 //Debug.Assert LenB(agGameID) > 0
-                 //Debug.Assert LenB(agIntVersion) > 0
-                 //Debug.Assert LenB(agGameFile) > 0
-                 //Debug.Assert Not(agGameProps Is Nothing)
-
-                 //normally, gameID will be the same as the game property
-                 //file name, but it doesn't have to be.So no check is
-                 //made to see if they match
-
-                 //finish the game load
-                 FinishGameLoad 0
-
-                 //if error, pass it along
-                 If Err.Number<> 0 Then
-                   Err.Raise Err.Number, Err.Source, Err.Description
-                 }
-               End Sub
-
-               Public Sub FinishGameLoad(Optional ByVal Mode As Long = 0)
-                 //finishes game load
-                 //mode determines whether opening by wag file (0) or
-                 //extracting from Sierra game files (1)
-                 //(currently, no difference between them)
-
-                 Dim blnWarnings As Boolean, lngError As Long
-                 Dim strTempDir As String, lngDirCount As Long
-                 Dim strTempFile As String
-
-
-                 On Error Resume Next
-
-                 //set v3 flag
-                 agIsVersion3 = (Val(agIntVersion) >= 3)
-
-                 //if loading from a wag file
-                 If Mode = 0 Then
-                   //informs user we are checking property file to set game parameters
-                   agGameEvents.RaiseEvent_LoadStatus lsPropertyFile, rtNone, 0, ""
-
-                   //get resdir before loading resources
-                   agResDirName = ReadSettingString(agGameProps, "General", "ResDir", "")
-                 Else
-                   //no resdir yet for imported game
-                   agResDirName = ""
-                 }
-
-                 //if none, use default
-                 If LenB(agResDirName) = 0 Then
-                   //look for an existing directory
-                   strTempDir = Dir(agGameDir, vbDirectory)
-                   Do Until Len(strTempDir) = 0
-                     If strTempDir<> "." And strTempDir <> ".." Then
-                       If (GetAttr(agGameDir & strTempDir) And vbDirectory) = vbDirectory Then
-                         lngDirCount = lngDirCount + 1
-                         If lngDirCount > 1 Then
-                           Exit Do
+                       //load vocabulary word list
+                       agGameEvents.RaiseEvent_LoadStatus lsResources, rtWords, 0, ""
+
+                       Set agVocabWords = New AGIWordList
+                       agVocabWords.Init
+                       agVocabWords.Load agGameDir & "WORDS.TOK"
+                       //if there was an error,
+                       if (Err.Number<> 0)
+                         //note the problem in the error log as a warning
+                         RecordLogEvent leError, "An error occurred while loading WORDS.TOK: " & Err.Description
+                         //reset warning flag
+                         blnWarnings = true
+                       }
+
+                       //load inventory objects list
+                       agGameEvents.RaiseEvent_LoadStatus lsResources, rtObjects, 0, ""
+
+                       Set agInvObjList = New AGIInventoryObjects
+                       agInvObjList.Init
+                       agInvObjList.Load agGameDir & "OBJECT"
+                       //if there was an error,
+                       if (Err.Number<> 0)
+                         //note the problem in the error log as a warning
+                         RecordLogEvent leError, "An error occurred while loading OBJECT: " & Err.Description
+                         //reset warning flag
+                         blnWarnings = true
+                       }
+
+
+                       agGameEvents.RaiseEvent_LoadStatus lsFinalizing, rtNone, 0, ""
+
+                       //assign commands
+                       AssignCommands
+
+                       //and adust commands based on AGI version
+                       CorrectCommands agIntVersion
+
+                       //clear other game properties
+                       agLastEdit = 0
+                       agAuthor = ""
+                       agDescription = ""
+                       agGameVersion = ""
+                       agAbout = ""
+                       agPlatformType = 0
+                       agPlatformFile = ""
+                       agPlatformOpts = ""
+                       agDOSExec = ""
+
+                       //get rest of game properties
+                       //Debug.Assert Not (agGameProps Is Nothing)
+                       GetGameProperties
+
+                       //if errors
+                       if (Err.Number<> 0)
+                         //record event
+                         RecordLogEvent leWarning, "Error while loading WAG file; some properties not loaded. (Error number: " & CStr(Err.Number) & ")"
+                         Err.Clear
+                         blnWarnings = true
+                       }
+
+                       //force id reset
+                       blnSetIDs = false
+
+                       //we've established that the game can be opened
+                       //so set the loaded flag now
+                       agGameLoaded = true
+
+                       //write create date
+                       WriteGameSetting("General", "LastEdit", agLastEdit
+
+                       //and save the wag file
+                       SaveSettingList agGameProps
+
+                       //if errors
+                       if (blnWarnings)
+                         On Error GoTo 0: Err.Raise vbObjectError + 636, strErrSource, LoadResString(636)
+                       }
+                     End Sub
+
+
+
+                     Public Sub NewGame(NewID As String, ByVal NewVersion As String, NewGameDir As String, NewResDir As String, Optional ByVal TemplateDir As String = "")
+
+                       //creates a new game in NewGameDir
+                       //if a template directory is passed,
+                       //use the resources from that template directory
+
+                       Dim strDirData As String, intFile As Integer, strGameWAG As String
+                       Dim i As Long, strTempDir As String, lngDirCount As Long
+                       Dim blnWarnings As Boolean, strTmplResDir As String
+                       Dim stlGlobals As StringList
+
+
+                       On Error Resume Next
+
+                       //if a game is already open,
+                       if (agGameLoaded)
+                         //can't open a game if one is already open
+                         On Error GoTo 0: Err.Raise vbObjectError + 501, strErrSource, LoadResString(501)
+                         return;
+                       }
+
+                       //if not a valid directory
+                       if (!FileExists(NewGameDir, vbDirectory))
+                         //raise error
+                         On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, Replace(LoadResString(630), ARG1, NewGameDir)
+                         return;
+                       }
+
+                       //if a game already exists
+                       if (LenB(Dir(cDir(NewGameDir) &"*.wag")) != 0)
+                        //game file exists;
+                        On Error GoTo 0: Err.Raise vbObjectError + 687, strErrSource, LoadResString(687)
+                         return;
+
+
+                       } else {if (IsValidGameDir(cDir(NewGameDir)))
+                         //game files exist;
+                         agGameDir = ""
+                         agIsVersion3 = false
+                         On Error GoTo 0: Err.Raise vbObjectError + 687, strErrSource, LoadResString(687)
+                         return;
+                       }
+
+                       //set game directory
+                       agGameDir = cDir(NewGameDir)
+
+                       //ensure resdir is valid
+                       if (LenB(NewResDir) = 0)
+                         //if blank use default
+                         NewResDir = agDefResDir
+                       }
+
+                       //if using template
+                       if (LenB(TemplateDir) != 0)
+                         //template should include dir files, vol files, logic
+                         //source, words and objects lists;
+                         //globals lists and layouts
+
+                         //(first, make sure it's formatted as a directory
+                         TemplateDir = cDir(TemplateDir)
+                         //we need to know name of the resource subdir so we can
+                         //rename it later, if needed
+
+                         // get wag file
+                         strGameWAG = Dir(TemplateDir & "*.wag")
+                         //if not a valid directory
+                         if (Len(strGameWAG) = 0)
+                           //raise error
+                           On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, LoadResString(508)
+                           return;
                          }
-                         strTempFile = strTempDir
+
+                         //find first subdir, use that name
+                         strTmplResDir = Dir(TemplateDir, vbDirectory)
+                         Do Until Len(strTmplResDir) = 0
+                           if (strTmplResDir<> "." And strTmplResDir != "..")
+                             if ((GetAttr(TemplateDir & strTmplResDir) And vbDirectory) = vbDirectory)
+                               //this is it
+                               lngDirCount = 1
+                               Exit Do
+                             }
+                           }
+                           strTmplResDir = Dir()
+                         Loop
+
+                         //if no resdir found, reset template resdir name so it gets handled correctly
+                         if (lngDirCount<> 1)
+                           strTmplResDir = ""
+                         }
+
+                         //copy all files from the templatedir into gamedir
+                         if (!CopyFolder(TemplateDir, agGameDir, false))
+                           On Error GoTo 0: Err.Raise vbObjectError + 683, strErrSource, Replace(LoadResString(683), ARG1, Err.Description)
+                           return;
+                         }
+
+                         //open game with template id
+                         OpenGameWAG agGameDir & strGameWAG
+
+                         if (Err.Number<> 0)
+                          On Error GoTo 0: Err.Raise vbObjectError + 684, strErrSource, Replace(LoadResString(684), ARG1, Err.Description)
+                           return;
+                         }
+
+                         //we need to rename the resdir
+                         //(have to do this AFTER load, because loading will keep the current
+                         //resdir that's in the WAG file)
+                         if (NewResDir<> strTmplResDir)
+                           //we need to change it
+                             Name agGameDir & strTmplResDir As agGameDir & NewResDir
+                         }
+                         //then change the resource directory property
+                         agResDirName = NewResDir
+                         //update the actual resdir
+                         agResDir = agGameDir & agResDirName & "\"
+
+                         //change gameid
+                         GameID = NewID
+                         if (Err.Number<> 0)
+                           On Error GoTo 0: Err.Raise vbObjectError + 685, strErrSource, Replace(LoadResString(685), ARG1, Err.Description)
+                           return;
+                         }
+
+                         //update global file header
+                         Set stlGlobals = OpenSettingList(agGameDir & "globals.txt", false)
+                         if (!stlGlobals Is Nothing)
+                           if (stlGlobals.Count > 3)
+                             if (Left(Trim(stlGlobals.StringLine(2)), 1) = "[")
+                               stlGlobals.StringLine(2) = "[ global defines file for " & NewID
+                             }
+                             //save it
+                             SaveSettingList stlGlobals
+                           }
+                           //toss it
+                           Set stlGlobals = Nothing
+                         }
+
+                       //if not using template,
+                       } else {
+                         //validate new version
+                         if (ValidateVersion(NewVersion))
+                           //ok; set version
+                           agIntVersion = NewVersion
+                           //set version3 flag
+                           agIsVersion3 = (Val(NewVersion) > 3)
+                         } else {
+                           if (Val(NewVersion) < 2 Or Val(NewVersion) > 3)
+                             //not a version 2 or 3 game
+                             On Error GoTo 0: Err.Raise vbObjectError + 597, strErrSource, LoadResString(597)
+                           } else {
+                             //unsupported version 2 or 3 game
+                             On Error GoTo 0: Err.Raise vbObjectError + 543, strErrSource, LoadResString(543)
+                           }
+                           return;
+                         }
+
+                         //set game id (limit to 6 characters for v2, and 5 characters for v3
+                         //(don't use the GameID property; gameloaded flag is not set yet
+                         //so using GameID property will cause error)
+                         if (agIsVersion3)
+                           agGameID = UCase$(Left$(NewID, 5))
+                         } else {
+                           agGameID = UCase$(Left$(NewID, 6))
+                         }
+
+                         //create empty property file
+                         agGameFile = agGameDir & agGameID & ".wag"
+                         Kill agGameFile
+                         Err.Clear
+                         Set agGameProps = OpenSettingList(agGameFile)
+                         With agGameProps
+                           .Add "#"
+                           .Add "# WinAGI Game Property File for " & agGameID
+                           .Add "#"
+                           .Add "[General]"
+                           .Add ""
+                           .Add "[Palette]"
+                           .Add ""
+                           .Add "[WORDS.TOK]"
+                           .Add ""
+                           .Add "[OBJECT]"
+                           .Add ""
+                           .Add "[::BEGIN Logics::]"
+                           .Add "[::END Logics::]"
+                           .Add ""
+                           .Add "[::BEGIN Pictures::]"
+                           .Add "[::END Pictures::]"
+                           .Add ""
+                           .Add "[::BEGIN Sounds::]"
+                           .Add "[::END Sounds::]"
+                           .Add ""
+                           .Add "[::BEGIN Views::]"
+                           .Add "[::END Views::]"
+                           .Add ""
+                         End With
+                         //add WinAGI version
+                         WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION
+
+
+                         //set the resource directory name so it can be set up
+                         ResDirName = NewResDir
+
+                         //errors after this cause failure
+                         On Error GoTo ErrHandler
+
+                         //create default resource directories
+                         strDirData = String$(768, 0xFF)
+                         if (agIsVersion3)
+                           intFile = FreeFile()
+                           Open agGameDir & agGameID & "DIR" For Binary As intFile
+                           Put intFile, 1, Chr$(8) &Chr$(0) & Chr$(8) & Chr$(3) & Chr$(8) & Chr$(6) & Chr$(8) & Chr$(9)
+                           Put intFile, , strDirData
+                           Put intFile, , strDirData
+                           Put intFile, , strDirData
+                           Put intFile, , strDirData
+                           Close intFile
+                         } else {
+                           intFile = FreeFile()
+                           Open agGameDir & "LOGDIR" For Binary As intFile
+                           Put intFile, 1, strDirData
+                           Close intFile
+
+
+                           intFile = FreeFile()
+                           Open agGameDir & "PICDIR" For Binary As intFile
+                           Put intFile, 1, strDirData
+                           Close intFile
+
+
+                           intFile = FreeFile()
+                           Open agGameDir & "SNDDIR" For Binary As intFile
+                           Put intFile, 1, strDirData
+                           Close intFile
+
+
+                           intFile = FreeFile()
+                           Open agGameDir & "VIEWDIR" For Binary As intFile
+                           Put intFile, 1, strDirData
+                           Close intFile
+                         }
+
+                         //create default vocabulary word list
+                         Set agVocabWords = New AGIWordList
+                         //use loaded argument to force load of the new wordlist
+                         agVocabWords.Init true
+                         agVocabWords.AddWord "a", 0
+                         agVocabWords.AddWord "anyword", 1
+                         agVocabWords.AddWord "rol", 9999
+                         agVocabWords.Save
+
+                         //create inventory objects list
+                         Set agInvObjList = New AGIInventoryObjects
+                         //use loaded argument to force load of new inventory list
+                         agInvObjList.Init true
+                         agInvObjList.Add "?", 0
+                         agInvObjList.Save
+
+                         //assign and adust commands based on AGI version
+                         AssignCommands
+                         CorrectCommands agIntVersion
+
+                         //add logic zero
+                         agLogs.Add 0
+                         agLogs(0).Clear
+                         agLogs(0).Save
+                         agLogs(0).Unload
+
+                         //force id reset
+                         blnSetIDs = false
+
+                         //set open flag, so properties can be updated
+                         agGameLoaded = true
                        }
-                     }
-                     strTempDir = Dir(, vbDirectory)
-                   Loop
 
-                   //is there only one subfolder?
-                   If lngDirCount = 1 Then
-                     //assume it is resource directory
-                       agResDirName = strTempFile
-                   Else
-                     //either no subfolders, or more than one
-                     //so use default
-                     agResDirName = agDefResDir
-                   }
-
-                   WriteGameSetting("General", "ResDir", agResDirName
-                 }
-
-                 //now create full resdir from name
-                 agResDir = agGameDir & agResDirName & "\"
-
-                 //ensure resource directory exists
-                 If Not FileExists(agGameDir & agResDirName, vbDirectory) Then
-                   MkDir agGameDir & agResDirName
-                   //if can't create the resources directory
-                   If Err.Number<> 0 Then
-                     //note the problem in the error log as a warning
-                     RecordLogEvent leWarning, "Can't create " & agResDir
-                     //use game directory
-                     agResDir = agGameDir
-                     //set warning
-                     blnWarnings = True
-                   }
-                 }
-
-               //  //if loading from a WAG file
-               //
-               //  If Mode = 0 Then
-               //    //only resources in the WAG file need to be checked on initial load
-               //    blnWarnings = LoadResources()
-               //  Else
-               //    //if opening bi directory, extract resources from the VOL
-               //    //files load resources
-                      blnWarnings = ExtractResources()
-               //  }
-
-                 //if there was an error
-                 If Err.Number<> 0 Then
-                   //can't continue
-                   //save error information
-                   strError = Err.Description
-                   lngError = Err.Number
-
-                   //clear game variables
-                   agGameDir = ""
-                   agGameFile = ""
-                   agGameID = ""
-                   agIntVersion = ""
-                   agIsVersion3 = False
-
-                   //reset collections & objects
-                   Set agLogs = Nothing
-                   Set agViews = Nothing
-                   Set agPics = Nothing
-                   Set agSnds = Nothing
-                   Set agInvObjList = Nothing
-                   Set agVocabWords = Nothing
-                   Set agLogs = New AGILogics
-                   Set agViews = New AGIViews
-                   Set agPics = New AGIPictures
-                   Set agSnds = New AGISounds
-                   Set agInvObjList = New AGIInventoryObjects
-                   Set agVocabWords = New AGIWordList
-
-                   Set agGameProps = Nothing
-
-                   //raise error
-                   On Error GoTo 0: Err.Raise lngError, strErrSource, strError
-                 }
-
-                 //load vocabulary word list
-                 agGameEvents.RaiseEvent_LoadStatus lsResources, rtWords, 0, ""
-
-                 Set agVocabWords = New AGIWordList
-                 agVocabWords.Init
-                 agVocabWords.Load agGameDir & "WORDS.TOK"
-                 //if there was an error,
-                 If Err.Number<> 0 Then
-                   //note the problem in the error log as a warning
-                   RecordLogEvent leError, "An error occurred while loading WORDS.TOK: " & Err.Description
-                   //reset warning flag
-                   blnWarnings = True
-                 }
-
-                 //load inventory objects list
-                 agGameEvents.RaiseEvent_LoadStatus lsResources, rtObjects, 0, ""
-
-                 Set agInvObjList = New AGIInventoryObjects
-                 agInvObjList.Init
-                 agInvObjList.Load agGameDir & "OBJECT"
-                 //if there was an error,
-                 If Err.Number<> 0 Then
-                   //note the problem in the error log as a warning
-                   RecordLogEvent leError, "An error occurred while loading OBJECT: " & Err.Description
-                   //reset warning flag
-                   blnWarnings = True
-                 }
+                       //set resource directory
+                       //Debug.Assert LenB(agResDirName) != 0
+                       //Debug.Assert agResDir = agGameDir & agResDirName & "\"
 
 
-                 agGameEvents.RaiseEvent_LoadStatus lsFinalizing, rtNone, 0, ""
-
-                 //assign commands
-                 AssignCommands
-
-                 //and adust commands based on AGI version
-                 CorrectCommands agIntVersion
-
-                 //clear other game properties
-                 agLastEdit = 0
-                 agAuthor = ""
-                 agDescription = ""
-                 agGameVersion = ""
-                 agAbout = ""
-                 agPlatformType = 0
-                 agPlatformFile = ""
-                 agPlatformOpts = ""
-                 agDOSExec = ""
-
-                 //get rest of game properties
-                 //Debug.Assert Not (agGameProps Is Nothing)
-                 GetGameProperties
-
-                 //if errors
-                 If Err.Number<> 0 Then
-                   //record event
-                   RecordLogEvent leWarning, "Error while loading WAG file; some properties not loaded. (Error number: " & CStr(Err.Number) & ")"
-                   Err.Clear
-                   blnWarnings = True
-                 }
-
-                 //force id reset
-                 blnSetIDs = False
-
-                 //we've established that the game can be opened
-                 //so set the loaded flag now
-                 agGameLoaded = True
-
-                 //write create date
-                 WriteGameSetting("General", "LastEdit", agLastEdit
-
-                 //and save the wag file
-                 SaveSettingList agGameProps
-
-                 //if errors
-                 If blnWarnings Then
-                   On Error GoTo 0: Err.Raise vbObjectError + 636, strErrSource, LoadResString(636)
-                 }
-               End Sub
-
-
-
-               Public Sub NewGame(NewID As String, ByVal NewVersion As String, NewGameDir As String, NewResDir As String, Optional ByVal TemplateDir As String = "")
-
-                 //creates a new game in NewGameDir
-                 //if a template directory is passed,
-                 //use the resources from that template directory
-
-                 Dim strDirData As String, intFile As Integer, strGameWAG As String
-                 Dim i As Long, strTempDir As String, lngDirCount As Long
-                 Dim blnWarnings As Boolean, strTmplResDir As String
-                 Dim stlGlobals As StringList
-
-
-                 On Error Resume Next
-
-                 //if a game is already open,
-                 if (agGameLoaded)
-                   //can't open a game if one is already open
-                   On Error GoTo 0: Err.Raise vbObjectError + 501, strErrSource, LoadResString(501)
-                   Exit Sub
-                 }
-
-                 //if not a valid directory
-                 If Not FileExists(NewGameDir, vbDirectory) Then
-                   //raise error
-                   On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, Replace(LoadResString(630), ARG1, NewGameDir)
-                   Exit Sub
-                 }
-
-                 //if a game already exists
-                 If LenB(Dir(cDir(NewGameDir) &"*.wag")) <> 0 Then
-                  //game file exists;
-                  On Error GoTo 0: Err.Raise vbObjectError + 687, strErrSource, LoadResString(687)
-                   Exit Sub
-
-
-                 ElseIf IsValidGameDir(cDir(NewGameDir)) Then
-                   //game files exist;
-                   agGameDir = ""
-                   agIsVersion3 = False
-                   On Error GoTo 0: Err.Raise vbObjectError + 687, strErrSource, LoadResString(687)
-                   Exit Sub
-                 }
-
-                 //set game directory
-                 agGameDir = cDir(NewGameDir)
-
-                 //ensure resdir is valid
-                 If LenB(NewResDir) = 0 Then
-                   //if blank use default
-                   NewResDir = agDefResDir
-                 }
-
-                 //if using template
-                 If LenB(TemplateDir) <> 0 Then
-                   //template should include dir files, vol files, logic
-                   //source, words and objects lists;
-                   //globals lists and layouts
-
-                   //(first, make sure it's formatted as a directory
-                   TemplateDir = cDir(TemplateDir)
-                   //we need to know name of the resource subdir so we can
-                   //rename it later, if needed
-
-                   // get wag file
-                   strGameWAG = Dir(TemplateDir & "*.wag")
-                   //if not a valid directory
-                   If Len(strGameWAG) = 0 Then
-                     //raise error
-                     On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, LoadResString(508)
-                     Exit Sub
-                   }
-
-                   //find first subdir, use that name
-                   strTmplResDir = Dir(TemplateDir, vbDirectory)
-                   Do Until Len(strTmplResDir) = 0
-                     If strTmplResDir<> "." And strTmplResDir <> ".." Then
-                       If (GetAttr(TemplateDir & strTmplResDir) And vbDirectory) = vbDirectory Then
-                         //this is it
-                         lngDirCount = 1
-                         Exit Do
+                       On Error Resume Next
+                       //ensure resource directory exists
+                       if (!FileExists(agGameDir & agResDirName, vbDirectory))
+                         MkDir agGameDir & agResDirName
+                         //if can't create the resources directory
+                         if (Err.Number<> 0)
+                           //note the problem in the error log as a warning
+                           RecordLogEvent leWarning, "Can't create " & agResDir
+                           //use main directory
+                           agResDir = agGameDir
+                           //set warning flag
+                           blnWarnings = true
+                         }
                        }
-                     }
-                     strTmplResDir = Dir()
-                   Loop
 
-                   //if no resdir found, reset template resdir name so it gets handled correctly
-                   If lngDirCount<> 1 Then
-                     strTmplResDir = ""
-                   }
-
-                   //copy all files from the templatedir into gamedir
-                   If Not CopyFolder(TemplateDir, agGameDir, False) Then
-                     On Error GoTo 0: Err.Raise vbObjectError + 683, strErrSource, Replace(LoadResString(683), ARG1, Err.Description)
-                     Exit Sub
-                   }
-
-                   //open game with template id
-                   OpenGameWAG agGameDir & strGameWAG
-
-                   If Err.Number<> 0 Then
-                    On Error GoTo 0: Err.Raise vbObjectError + 684, strErrSource, Replace(LoadResString(684), ARG1, Err.Description)
-                     Exit Sub
-                   }
-
-                   //we need to rename the resdir
-                   //(have to do this AFTER load, because loading will keep the current
-                   //resdir that's in the WAG file)
-                   If NewResDir<> strTmplResDir Then
-                     //we need to change it
-                       Name agGameDir & strTmplResDir As agGameDir & NewResDir
-                   }
-                   //then change the resource directory property
-                   agResDirName = NewResDir
-                   //update the actual resdir
-                   agResDir = agGameDir & agResDirName & "\"
-
-                   //change gameid
-                   GameID = NewID
-                   If Err.Number<> 0 Then
-                     On Error GoTo 0: Err.Raise vbObjectError + 685, strErrSource, Replace(LoadResString(685), ARG1, Err.Description)
-                     Exit Sub
-                   }
-
-                   //update global file header
-                   Set stlGlobals = OpenSettingList(agGameDir & "globals.txt", False)
-                   If Not stlGlobals Is Nothing Then
-                     If stlGlobals.Count > 3 Then
-                       If Left(Trim(stlGlobals.StringLine(2)), 1) = "[" Then
-                         stlGlobals.StringLine(2) = "[ global defines file for " & NewID
+                       //for non-template games, save the source code for logic 0
+                       if (LenB(TemplateDir) = 0)
+                         agLogs(0).SaveSource
                        }
-                       //save it
-                       SaveSettingList stlGlobals
-                     }
-                     //toss it
-                     Set stlGlobals = Nothing
-                   }
 
-                 //if not using template,
-                 Else
-                   //validate new version
-                   If ValidateVersion(NewVersion) Then
-                     //ok; set version
-                     agIntVersion = NewVersion
-                     //set version3 flag
-                     agIsVersion3 = (Val(NewVersion) > 3)
-                   Else
-                     If Val(NewVersion) < 2 Or Val(NewVersion) > 3 Then
-                       //not a version 2 or 3 game
-                       On Error GoTo 0: Err.Raise vbObjectError + 597, strErrSource, LoadResString(597)
-                     Else
-                       //unsupported version 2 or 3 game
-                       On Error GoTo 0: Err.Raise vbObjectError + 543, strErrSource, LoadResString(543)
-                     }
-                     Exit Sub
-                   }
+                       //save gameID, version, directory resource name to the property file;
+                       //rest of properties need to be set by the calling function
+                       WriteGameSetting("General", "GameID", agGameID
+                       WriteGameSetting("General", "Interpreter", agIntVersion
+                       WriteGameSetting("General", "ResDir", agResDirName
 
-                   //set game id (limit to 6 characters for v2, and 5 characters for v3
-                   //(don't use the GameID property; gameloaded flag is not set yet
-                   //so using GameID property will cause error)
-                   If agIsVersion3 Then
-                     agGameID = UCase$(Left$(NewID, 5))
-                   Else
-                     agGameID = UCase$(Left$(NewID, 6))
-                   }
+                       //save palette colors
+                       For i = 0 To 15
+                         WriteGameSetting("Palette", "Color" & CStr(i), "&H" & PadHex(lngEGACol(i), 8)
+                       Next i
 
-                   //create empty property file
-                   agGameFile = agGameDir & agGameID & ".wag"
-                   Kill agGameFile
-                   Err.Clear
-                   Set agGameProps = OpenSettingList(agGameFile)
-                   With agGameProps
-                     .Add "#"
-                     .Add "# WinAGI Game Property File for " & agGameID
-                     .Add "#"
-                     .Add "[General]"
-                     .Add ""
-                     .Add "[Palette]"
-                     .Add ""
-                     .Add "[WORDS.TOK]"
-                     .Add ""
-                     .Add "[OBJECT]"
-                     .Add ""
-                     .Add "[::BEGIN Logics::]"
-                     .Add "[::END Logics::]"
-                     .Add ""
-                     .Add "[::BEGIN Pictures::]"
-                     .Add "[::END Pictures::]"
-                     .Add ""
-                     .Add "[::BEGIN Sounds::]"
-                     .Add "[::END Sounds::]"
-                     .Add ""
-                     .Add "[::BEGIN Views::]"
-                     .Add "[::END Views::]"
-                     .Add ""
-                   End With
-                   //add WinAGI version
-                   WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION
+                       //if errors
+                       if (blnWarnings)
+                         On Error GoTo 0: Err.Raise vbObjectError + 637, strErrSource, LoadResString(637)
+                       }
+
+                       //Debug.Print "logic0: ", Logics(0).Loaded
+                     return;
+
+                     ErrHandler:
+                       strError = Err.Description
+                       strErrSrc = Err.Source
+                       lngError = Err.Number
+
+                       //reset collections & objects
+             Set agLogs = Nothing
+                       Set agViews = Nothing
+                       Set agPics = Nothing
+                       Set agSnds = Nothing
+                       Set agInvObjList = Nothing
+                       Set agVocabWords = Nothing
+                       Set agLogs = New AGILogics
+                       Set agViews = New AGIViews
+                       Set agPics = New AGIPictures
+                       Set agSnds = New AGISounds
+                       Set agInvObjList = New AGIInventoryObjects
+                       Set agVocabWords = New AGIWordList
 
 
-                   //set the resource directory name so it can be set up
-                   ResDirName = NewResDir
+                       On Error GoTo 0: Err.Raise vbObjectError + 631, strErrSrc, Replace(LoadResString(631), ARG1, CStr(lngError) & ":" & strError)
+                     End Sub
 
-                   //errors after this cause failure
-                   On Error GoTo ErrHandler
-
-                   //create default resource directories
-                   strDirData = String$(768, 0xFF)
-                   If agIsVersion3 Then
-                     intFile = FreeFile()
-                     Open agGameDir & agGameID & "DIR" For Binary As intFile
-                     Put intFile, 1, Chr$(8) &Chr$(0) & Chr$(8) & Chr$(3) & Chr$(8) & Chr$(6) & Chr$(8) & Chr$(9)
-                     Put intFile, , strDirData
-                     Put intFile, , strDirData
-                     Put intFile, , strDirData
-                     Put intFile, , strDirData
-                     Close intFile
-                   Else
-                     intFile = FreeFile()
-                     Open agGameDir & "LOGDIR" For Binary As intFile
-                     Put intFile, 1, strDirData
-                     Close intFile
+                     Public Property Get VocabularyWords() As AGIWordList
 
 
-                     intFile = FreeFile()
-                     Open agGameDir & "PICDIR" For Binary As intFile
-                     Put intFile, 1, strDirData
-                     Close intFile
+                       Set VocabularyWords = agVocabWords
+                     End Property
+                     Public Sub WriteProperty(ByVal Section As String, ByVal Key As String, ByVal value As String, Optional Group As String = "", Optional ForceSave As Boolean = false)
+
+                       // this procedure provides calling programs a way to write property
+                       // values to the WAG file
+
+                       // no validation of section or newval is done, so calling function
+                       // needs to be careful
+
+                       On Error GoTo ErrHandler
 
 
-                     intFile = FreeFile()
-                     Open agGameDir & "SNDDIR" For Binary As intFile
-                     Put intFile, 1, strDirData
-                     Close intFile
+                       WriteGameSetting(Section, Key, value, Group
+
+                       // if forcing a save
+                       if (ForceSave)
+                         SaveProperties
+                       }
+                     return;
+
+                     ErrHandler:
+                       //Debug.Assert false
+                       Resume Next
+                     End Sub
+
+                     Private Sub Class_Initialize()
+                       Dim rtn As Long
 
 
-                     intFile = FreeFile()
-                     Open agGameDir & "VIEWDIR" For Binary As intFile
-                     Put intFile, 1, strDirData
-                     Close intFile
-                   }
+                       On Error GoTo ErrHandler
 
-                   //create default vocabulary word list
-                   Set agVocabWords = New AGIWordList
-                   //use loaded argument to force load of the new wordlist
-                   agVocabWords.Init True
-                   agVocabWords.AddWord "a", 0
-                   agVocabWords.AddWord "anyword", 1
-                   agVocabWords.AddWord "rol", 9999
-                   agVocabWords.Save
+                       //save copy of this object to allow internal access
+                       Set agMainGame = Me
 
-                   //create inventory objects list
-                   Set agInvObjList = New AGIInventoryObjects
-                   //use loaded argument to force load of new inventory list
-                   agInvObjList.Init True
-                   agInvObjList.Add "?", 0
-                   agInvObjList.Save
+                       //set events object
+                       Set agGameEvents = New AGIGameEvents
 
-                   //assign and adust commands based on AGI version
-                   AssignCommands
-                   CorrectCommands agIntVersion
+                       //initialize arrays that serve as constants
+                       InitializeAGI
 
-                   //add logic zero
-                   agLogs.Add 0
-                   agLogs(0).Clear
-                   agLogs(0).Save
-                   agLogs(0).Unload
+                       //set collections
+                       Set agLogs = New AGILogics
+                       Set agPics = New AGIPictures
+                       Set agSnds = New AGISounds
+                       Set agViews = New AGIViews
+                       Set agInvObjList = New AGIInventoryObjects
+                       Set agVocabWords = New AGIWordList
 
-                   //force id reset
-                   blnSetIDs = False
+                       //initialize logic source settings object and command info
+                       Set agMainLogSettings = New AGILogicSourceSettings
+                       Set agCmdCol = New AGICommands
+                       Set agTestCmdCol = New AGITestCommands
+                       //assign commands
+                       AssignCommands
 
-                   //set open flag, so properties can be updated
-                   agGameLoaded = True
-                 }
+                       //assign default reserved defines
+                       AssignReservedDefines
 
-                 //set resource directory
-                 //Debug.Assert LenB(agResDirName) <> 0
-                 //Debug.Assert agResDir = agGameDir & agResDirName & "\"
+                       strErrSource = "agiGame"
+                     return;
 
-
-                 On Error Resume Next
-                 //ensure resource directory exists
-                 If Not FileExists(agGameDir & agResDirName, vbDirectory) Then
-                   MkDir agGameDir & agResDirName
-                   //if can't create the resources directory
-                   If Err.Number<> 0 Then
-                     //note the problem in the error log as a warning
-                     RecordLogEvent leWarning, "Can't create " & agResDir
-                     //use main directory
-                     agResDir = agGameDir
-                     //set warning flag
-                     blnWarnings = True
-                   }
-                 }
-
-                 //for non-template games, save the source code for logic 0
-                 If LenB(TemplateDir) = 0 Then
-                   agLogs(0).SaveSource
-                 }
-
-                 //save gameID, version, directory resource name to the property file;
-                 //rest of properties need to be set by the calling function
-                 WriteGameSetting("General", "GameID", agGameID
-                 WriteGameSetting("General", "Interpreter", agIntVersion
-                 WriteGameSetting("General", "ResDir", agResDirName
-
-                 //save palette colors
-                 For i = 0 To 15
-                   WriteGameSetting("Palette", "Color" & CStr(i), "&H" & PadHex(lngEGACol(i), 8)
-                 Next i
-
-                 //if errors
-                 If blnWarnings Then
-                   On Error GoTo 0: Err.Raise vbObjectError + 637, strErrSource, LoadResString(637)
-                 }
-
-                 //Debug.Print "logic0: ", Logics(0).Loaded
-               Exit Sub
-
-               ErrHandler:
-                 strError = Err.Description
-                 strErrSrc = Err.Source
-                 lngError = Err.Number
-
-                 //reset collections & objects
-       Set agLogs = Nothing
-                 Set agViews = Nothing
-                 Set agPics = Nothing
-                 Set agSnds = Nothing
-                 Set agInvObjList = Nothing
-                 Set agVocabWords = Nothing
-                 Set agLogs = New AGILogics
-                 Set agViews = New AGIViews
-                 Set agPics = New AGIPictures
-                 Set agSnds = New AGISounds
-                 Set agInvObjList = New AGIInventoryObjects
-                 Set agVocabWords = New AGIWordList
-
-
-                 On Error GoTo 0: Err.Raise vbObjectError + 631, strErrSrc, Replace(LoadResString(631), ARG1, CStr(lngError) & ":" & strError)
-               End Sub
-
-               Public Property Get VocabularyWords() As AGIWordList
-
-
-                 Set VocabularyWords = agVocabWords
-               End Property
-               Public Sub WriteProperty(ByVal Section As String, ByVal Key As String, ByVal value As String, Optional Group As String = "", Optional ForceSave As Boolean = False)
-
-                 // this procedure provides calling programs a way to write property
-                 // values to the WAG file
-
-                 // no validation of section or newval is done, so calling function
-                 // needs to be careful
-
-                 On Error GoTo ErrHandler
-
-
-                 WriteGameSetting(Section, Key, value, Group
-
-                 // if forcing a save
-                 If ForceSave Then
-                   SaveProperties
-                 }
-               Exit Sub
-
-               ErrHandler:
-                 //Debug.Assert False
-                 Resume Next
-               End Sub
-
-               Private Sub Class_Initialize()
-                 Dim rtn As Long
-
-
-                 On Error GoTo ErrHandler
-
-                 //save copy of this object to allow internal access
-                 Set agMainGame = Me
-
-                 //set events object
-                 Set agGameEvents = New AGIGameEvents
-
-                 //initialize arrays that serve as constants
-                 InitializeAGI
-
-                 //set collections
-                 Set agLogs = New AGILogics
-                 Set agPics = New AGIPictures
-                 Set agSnds = New AGISounds
-                 Set agViews = New AGIViews
-                 Set agInvObjList = New AGIInventoryObjects
-                 Set agVocabWords = New AGIWordList
-
-                 //initialize logic source settings object and command info
-                 Set agMainLogSettings = New AGILogicSourceSettings
-                 Set agCmdCol = New AGICommands
-                 Set agTestCmdCol = New AGITestCommands
-                 //assign commands
-                 AssignCommands
-
-                 //assign default reserved defines
-                 AssignReservedDefines
-
-                 strErrSource = "agiGame"
-               Exit Sub
-
-               ErrHandler:
-                 //Debug.Assert False
-                 Resume Next
-               End Sub
+                     ErrHandler:
+                       //Debug.Assert false
+                       Resume Next
+                     End Sub
 
 
 
-               Private Sub Class_Terminate()
+                     Private Sub Class_Terminate()
 
-                 //release objects
-                 Set agLogs = Nothing
-                 Set agPics = Nothing
-                 Set agSnds = Nothing
-                 Set agViews = Nothing
+                       //release objects
+                       Set agLogs = Nothing
+                       Set agPics = Nothing
+                       Set agSnds = Nothing
+                       Set agViews = Nothing
 
 
-                 Set agInvObjList = Nothing
-                 Set agVocabWords = Nothing
+                       Set agInvObjList = Nothing
+                       Set agVocabWords = Nothing
 
-                 Set agGameEvents = Nothing
-                 Set agMainGame = Nothing
-               End Sub
-               */
+                       Set agGameEvents = Nothing
+                       Set agMainGame = Nothing
+                     End Sub
+                     */
+    }
   }
-}
