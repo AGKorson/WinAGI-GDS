@@ -37,15 +37,12 @@ namespace WinAGI_GDS
 
     private void newToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      if (GameLoaded == true)
-      {
         //add a new window
         frmLogicEdit FormNew = new frmLogicEdit
         {
           MdiParent = this
         };
         FormNew.Show();
-      }
     }
 
     private void mnuWCascade_Click(object sender, EventArgs e)
