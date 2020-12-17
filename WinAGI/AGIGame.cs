@@ -10,13 +10,12 @@ using static WinAGI.AGICommands;
 
 namespace WinAGI
 {
-  public static class AGIGame
+  public static partial class AGIGame
   {
     //AGIGame agMainGame;
 
     // exposed game properties, methods, objects
     public static AGILogicSourceSettings agMainLogSettings = new AGILogicSourceSettings();
-    public static AGIGameEvents agGameEvents = new AGIGameEvents();
 
     internal static List<string> agGameProps = new List<string> { };// As StringList
 
@@ -277,7 +276,7 @@ namespace WinAGI
         else
         {
           //use current directory
-          return cDir(Directory.GetCurrentDirectory());
+          return CDir(Directory.GetCurrentDirectory());
         }
       }
     set
@@ -301,14 +300,14 @@ namespace WinAGI
 
         if (agGameLoaded)
           //validate gamedir
-          if (Directory.Exists(WinAGI.cDir(value))) //, vbDirectory) 
+          if (Directory.Exists(WinAGI.CDir(value))) //, vbDirectory) 
                                                     //return error
                                                     //On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, Replace(LoadResString(630), ARG1, NewDir)
                                                     //Exit Property
             throw new System.NotImplementedException();
 
         //change the directory
-        agGameDir = WinAGI.cDir(value);
+        agGameDir = WinAGI.CDir(value);
 
         //update gamefile name
         agGameFile = agGameDir + WinAGI.JustFileName(agGameFile);
@@ -320,8 +319,6 @@ namespace WinAGI
         agLastEdit = DateTime.Now;
       }
     }
-
-    public static AGIGameEvents GameEvents => agGameEvents;
 
     public static string GameFile
     {
@@ -533,7 +530,7 @@ namespace WinAGI
 
       if (!NoEvent)
       {
-        agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csCanceled, 0, 0, "");
+        Raise_CompileGameEvent(ECStatus.csCanceled, 0, 0, "");
       }
       agCompGame = false;
       fsDIR.Dispose();
@@ -576,7 +573,7 @@ namespace WinAGI
         NewGameDir = agGameDir;
 
       //validate new directory
-      NewGameDir = cDir(NewGameDir);
+      NewGameDir = CDir(NewGameDir);
       if (!Directory.Exists(NewGameDir))
       {
         //this isn't a directory
@@ -626,7 +623,7 @@ namespace WinAGI
         // save/copy words.tok and object files first
 
         //set status
-        agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csCompWords, 0, 0, "");
+        Raise_CompileGameEvent(ECStatus.csCompWords, 0, 0, "");
         //check for cancellation
         if (!agCompGame)
         {
@@ -644,7 +641,7 @@ namespace WinAGI
           catch (Exception ex)
           {
             //note it
-            agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csResError, 0, 0, "Error during compilation of WORDS.TOK (" + ex.ToString() + ")");
+            Raise_CompileGameEvent(ECStatus.csResError, 0, 0, "Error during compilation of WORDS.TOK (" + ex.ToString() + ")");
             //check for cancellation
             if (!agCompGame)
             {
@@ -675,7 +672,7 @@ namespace WinAGI
           catch (Exception)
           {
             //note error
-            agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csResError, 0, 0, "Error while creating WORDS.TOK file (Err.Description)");
+            Raise_CompileGameEvent(ECStatus.csResError, 0, 0, "Error while creating WORDS.TOK file (Err.Description)");
             //check for cancellation
             if (!agCompGame)
             {
@@ -686,7 +683,7 @@ namespace WinAGI
         }
         // OBJECT file is next
         //set status
-        agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csCompObjects, 0, 0, "");
+        Raise_CompileGameEvent(ECStatus.csCompObjects, 0, 0, "");
         //check for cancellation
         if (!agCompGame)
         {
@@ -704,7 +701,7 @@ namespace WinAGI
           catch (Exception ex)
           {
             //note it
-            agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csResError, 0, 0, "Error during compilation of OBJECT (" + ex.ToString() + ")");
+            Raise_CompileGameEvent(ECStatus.csResError, 0, 0, "Error during compilation of OBJECT (" + ex.ToString() + ")");
             //check for cancellation
             if (!agCompGame)
             {
@@ -734,7 +731,7 @@ namespace WinAGI
           catch (Exception ex)
           {
             //note error
-            agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csResError, 0, 0, "Error while creating OBJECT file (" + ex.ToString() + ")");
+            Raise_CompileGameEvent(ECStatus.csResError, 0, 0, "Error while creating OBJECT file (" + ex.ToString() + ")");
             //check for cancellation
             if (!agCompGame)
             {
@@ -1067,7 +1064,7 @@ namespace WinAGI
 
 
       //update status to indicate complete
-      agGameEvents.RaiseEvent_CompileGameStatus(ECStatus.csCompileComplete, 0, 0, "");
+      Raise_CompileGameEvent(ECStatus.csCompileComplete, 0, 0, "");
 
       //if replacing (meaning we are compiling to the current game directory)
       if (blnReplace)
@@ -1375,7 +1372,7 @@ namespace WinAGI
           return agResDir;
         }
         //otherwise use current directory
-        return cDir(System.IO.Directory.GetCurrentDirectory());
+        return CDir(System.IO.Directory.GetCurrentDirectory());
       }
       set
       {
@@ -1433,7 +1430,7 @@ namespace WinAGI
         if (!Directory.Exists(value))
           throw new Exception("Replace(LoadResString(630), ARG1, NewDir)");
 
-        agTemplateDir = cDir(value);
+        agTemplateDir = CDir(value);
       }
     }
 
@@ -1449,13 +1446,13 @@ namespace WinAGI
       }
 
       //set game directory
-      agGameDir = cDir(NewGameDir);
+      agGameDir = CDir(NewGameDir);
 
       //attempt to extract agGameID, agGameFile and interpreter version
       //from Sierra files (i.e. from DIR files and VOL files)
 
       //set status to decompiling game dir files
-      agGameEvents.RaiseEvent_LoadStatus(ELStatus.lsDecompiling, AGIResType.rtNone, 0, "");
+      Raise_LoadGameEvent(ELStatus.lsDecompiling, AGIResType.rtNone, 0, "");
 
       //check for valid DIR/VOL files
       //(which gets gameid, and sets version 3 status flag)
@@ -1707,7 +1704,7 @@ namespace WinAGI
                      //if loading from a wag file
                      if (Mode = 0)
                        //informs user we are checking property file to set game parameters
-                       agGameEvents.RaiseEvent_LoadStatus lsPropertyFile, rtNone, 0, ""
+                       Raise_LoadGameEvent lsPropertyFile, rtNone, 0, ""
 
                        //get resdir before loading resources
                        agResDirName = ReadSettingString(agGameProps, "General", "ResDir", "")
@@ -1809,7 +1806,7 @@ namespace WinAGI
                      }
 
                      //load vocabulary word list
-                     agGameEvents.RaiseEvent_LoadStatus lsResources, rtWords, 0, ""
+                     Raise_LoadGameEvent lsResources, rtWords, 0, ""
 
                      Set agVocabWords = New AGIWordList
                      agVocabWords.Init
@@ -1823,7 +1820,7 @@ namespace WinAGI
                      }
 
                      //load inventory objects list
-                     agGameEvents.RaiseEvent_LoadStatus lsResources, rtObjects, 0, ""
+                     Raise_LoadGameEvent lsResources, rtObjects, 0, ""
 
                      Set agInvObjList = New AGIInventoryObjects
                      agInvObjList.Init
@@ -1837,7 +1834,7 @@ namespace WinAGI
                      }
 
 
-                     agGameEvents.RaiseEvent_LoadStatus lsFinalizing, rtNone, 0, ""
+                     Raise_LoadGameEvent lsFinalizing, rtNone, 0, ""
 
                      //assign commands
                      AssignCommands
@@ -1918,13 +1915,13 @@ namespace WinAGI
                      }
 
                      //if a game already exists
-                     if (LenB(Dir(cDir(NewGameDir) &"*.wag")) != 0)
+                     if (LenB(Dir(CDir(NewGameDir) &"*.wag")) != 0)
                       //game file exists;
                       On Error GoTo 0: Err.Raise vbObjectError + 687, strErrSource, LoadResString(687)
                        return;
 
 
-                     } else {if (IsValidGameDir(cDir(NewGameDir)))
+                     } else {if (IsValidGameDir(CDir(NewGameDir)))
                        //game files exist;
                        agGameDir = ""
                        agIsVersion3 = false
@@ -1933,7 +1930,7 @@ namespace WinAGI
                      }
 
                      //set game directory
-                     agGameDir = cDir(NewGameDir)
+                     agGameDir = CDir(NewGameDir)
 
                      //ensure resdir is valid
                      if (LenB(NewResDir) = 0)
@@ -1948,7 +1945,7 @@ namespace WinAGI
                        //globals lists and layouts
 
                        //(first, make sure it's formatted as a directory
-                       TemplateDir = cDir(TemplateDir)
+                       TemplateDir = CDir(TemplateDir)
                        //we need to know name of the resource subdir so we can
                        //rename it later, if needed
 
@@ -2279,7 +2276,6 @@ namespace WinAGI
                      Set agInvObjList = Nothing
                      Set agVocabWords = Nothing
 
-                     Set agGameEvents = Nothing
                      Set agMainGame = Nothing
                    End Sub
                    */

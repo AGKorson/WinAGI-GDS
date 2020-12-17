@@ -17,7 +17,26 @@ namespace WinAGI_GDS
     public frmMDIMain()
     {
       InitializeComponent();
-      //can I access winagi?
+
+      //attach events
+      CompileGameStatus += GameEvents_CompileGameStatus;
+      CompileLogicStatus += GameEvents_CompileLogicStatus;
+      LoadGameStatus += GameEvents_LoadGameStatus;
+    }
+
+    private void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e)
+    {
+
+    }
+
+    private void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e)
+    {
+      MessageBox.Show("game is loading!\n\n" + e.ResNum);
+    }
+
+    private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e)
+    {
+
     }
 
     private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -27,22 +46,12 @@ namespace WinAGI_GDS
 
     private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
     {
-      // how do you know what was selected???
-      //System.Text.StringBuilder messageBoxCS = new System.Text.StringBuilder();
-      //messageBoxCS.AppendFormat("{0} = {1}", "Clicked Item", e.ClickedItem);
-      //messageBoxCS.AppendLine();
-      //MessageBox.Show(messageBoxCS.ToString(), "ItemClicked Event");
 
     }
 
-    private void newToolStripMenuItem_Click(object sender, EventArgs e)
+    private void btnOpenGame_Click(object sender, EventArgs e)
     {
-        //add a new window
-        frmLogicEdit FormNew = new frmLogicEdit
-        {
-          MdiParent = this
-        };
-        FormNew.Show();
+      GameAbout = "test";
     }
 
     private void mnuWCascade_Click(object sender, EventArgs e)

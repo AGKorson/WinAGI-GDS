@@ -309,15 +309,14 @@ namespace WinAGI
     /// <returns>true if numeric, false if not</returns>
     internal static bool IsNumeric(string str)
     {
-      double myNum = 0;
-      if (Double.TryParse(str, out myNum))
+      if (Double.TryParse(str, out double myNum))
       {
         return true;
       }
       return false;
     }
 
-    internal static string cDir(string strDirIn)
+    internal static string CDir(string strDirIn)
     {
       //this function ensures a trailing "\" is included on strDirIn
       if (strDirIn.Length != 0)
@@ -920,7 +919,7 @@ namespace WinAGI
       agGlobalsSet = false;
 
       //clear global list
-      agGlobal = new TDefine[0];
+      agGlobal = Array.Empty<TDefine>();
       agGlobalCount = 0;
 
       //Debug.Assert agGameLoaded
@@ -985,14 +984,14 @@ namespace WinAGI
               tdNewDefine.Value = strSplitLine[1].Trim();
 
               //validate define name
-              lngTest = WinAGI.ValidateDefName(tdNewDefine.Name);
+              lngTest = ValidateDefName(tdNewDefine.Name);
 
               if (lngTest == 0 || (lngTest >= 8 && lngTest <= 12))
               {
                 //Select Case lngTest
                 //Case 0, 8, 9, 10, 11, 12 'name is valid or is overriding a reserved define
-                lngTest = WinAGI.ValidateDefName(tdNewDefine.Name);
-                lngTest = WinAGI.ValidateDefValue(tdNewDefine);
+                lngTest = ValidateDefName(tdNewDefine.Name);
+                lngTest = ValidateDefValue(tdNewDefine);
                 if (lngTest == 0 || lngTest == 5 || lngTest == 6)
                 {
                   //Select Case lngTest
@@ -1396,406 +1395,488 @@ namespace WinAGI
 
     internal static void WriteAppSetting(List<string> ConfigList, string Section, string Key, string Value, string Group)
     {
-      //      Public Sub WriteAppSetting(ConfigList As StringList, ByVal Section As String, ByVal Key As String, ByVal Value As String, Optional ByVal Group As String = "")
+      //   Public Sub WriteAppSetting(ConfigList As StringList, ByVal Section As String, ByVal Key As String, ByVal Value As String, Optional ByVal Group As String = "")
 
-      //  'elements of a settings file:
-      //  '
-      //  '  #comments begin with hashtag; all characters on line after hashtag are ignored
-      //  '  'comments can be added to end of valid section or key / value line
-      //  '  blank lines are ignored
-      //  '  [::BEGIN group::] marker to indicate a group of sections
-      //  '  [::END group::]   marker to indicate end of a group
-      //  '  [section]         sections indicated by square brackets; anything else on the line gets ignored
-      //  '  key=value         key/value pairs separated by an equal sign; no quotes around values means only
-      //  '                      single word; use quotes for multiword strings
-      //  '  if string is multline, use '\n' control code (and use multiline option)
-
-
-      //  Dim i As Long, strLine As String
-      //  Dim lngPos As Long, strCheck As String
-      //  Dim lngSectionStart As Long, lngSectionEnd As Long
-      //  Dim lenKey As Long, blnFound As Boolean
-      //  Dim lngGrpStart As Long, lngGrpEnd As Long
-      //  Dim lngInsertLine As Long
+      //elements of a settings file:
+      //
+      //  #comments begin with hashtag; all characters on line after hashtag are ignored
+      //  comments can be added to end of valid section or key / value line
+      //  blank lines are ignored
+      //  [::BEGIN group::] marker to indicate a group of sections
+      //  [::END group::]   marker to indicate end of a group
+      //  [section]         sections indicated by square brackets; anything else on the line gets ignored
+      //  key=value         key/value pairs separated by an equal sign; no quotes around values means only
+      //                      single word; use quotes for multiword strings
+      //  if string is multline, use '\n' control code (and use multiline option)
 
 
-      //  On Error GoTo ErrHandler
+      int lngPos, i;
+      string strLine, strCheck;
+      int lngSectionStart = 0, lngSectionEnd = 0;
+      int lenKey; bool blnFound = false;
+      int lngGrpStart, lngGrpEnd, lngInsertLine;
+
+      //if value contains spaces, it must be enclosed in quotes
+      if (Value.IndexOf(" ") > 0)
+      {
+        if (Value[0] != '"')
+        {
+          Value = "\"" + Value;
+
+        }
+        if ((Value[Value.Length - 1] != '"'))
+        {
+          Value += "\"";
+        }
+      }
+
+      //if value contains any carriage returns, replace them with control characters
+      if (Value.Contains("\r\n", StringComparison.CurrentCulture))
+      {
+        Value = Value.Replace("\r\n", "\\n");
+      }
+      if (Value.Contains("\r", StringComparison.CurrentCulture))
+      {
+        Value = Value.Replace("\r", "\\n");
+      }
+      if (Value.Contains("\n", StringComparison.CurrentCulture))
+      {
+        Value = Value.Replace("\n", "\\n");
+      }
 
 
-      //  'if value contains spaces, it must be enclosed in quotes
-      //  if (InStr(1, Value, " ") > 0) {
-      //    if (Asc(Value) <> 34) { Value = QUOTECHAR & Value
-      //    if (Asc(Right(Value, 1)) <> 34) { Value = Value & QUOTECHAR
-      //  End If
-
-      //  'if value contains any carriage returns, replace them with control characters
-      //  if (InStr(1, Value, vbNewLine)) {
-      //    Value = Replace(Value, vbNewLine, "\n")
-      //  End If
-      //  if (InStr(1, Value, vbCr)) {
-      //    Value = Replace(Value, vbCr, "\n")
-      //  End If
-      //  if (InStr(1, Value, vbLf)) {
-      //    Value = Replace(Value, vbLf, "\n")
-      //  End If
+      //if nullstring, include quotes
+      if (Value.Length == 0)
+      {
+        Value = "\"\"";
+      }
 
 
-      //  'if nullstring, include quotes
-      //  if (Len(Value) = 0) {
-      //    Value = QUOTECHAR & QUOTECHAR
-      //  End If
+      //if a group is provided, we will add new items within the group;
+      //existing items, even if within the group, will be left where they are
+      lngGrpStart = -1;
+      lngGrpEnd = -1;
+      lngPos = -1;
+
+      if (Group.Length > 0)
+      {
+        //********** we will have to make adjustments to group start
+        //           and end positions later on as we add lines
+        //           during the key update! don't forget to do that!!
+        for (i = 1; i <= ConfigList.Count - 1; i++)
+        {
+          //skip blanks, and lines starting with a comment
+          strLine = ConfigList[i].Replace("\t", " ").Trim();
+          if (strLine.Length > 0)
+          {
+            //skip empty lines
+            if (strLine[0] != '#')
+            {
+              //skip comments
+              //if not found yet, look for the starting marker
+              if (!blnFound)
+              {
+                //is this the group marker?
+                if (strLine.Equals("[::BEGIN " + Group + "::]", StringComparison.CurrentCultureIgnoreCase))
+                {
+                  lngGrpStart = i;
+                  blnFound = true;
+                  //was the end found earlier? if so, we are done
+                  if (lngGrpEnd >= 0)
+                  {
+                    break;
+                  }
+                }
+              }
+              else
+              {
+                //start is found; make sure we find end before
+                //finding another start
+                if (Left(strLine, 9).Equals("[::BEGIN ", StringComparison.CurrentCultureIgnoreCase))
+                {
+                  //mark position of first new start, so we can move the end marker here
+                  if (lngPos < 0)
+                  {
+                    lngPos = i;
+                  }
+                }
+              }
+              //we check for end marker here even if start not found
+              //just in case they are backwards
+              if (strLine.Equals("[::END " + Group + "::]", StringComparison.CurrentCultureIgnoreCase))
+              {
+                lngGrpEnd = i;
+                //and if we also have a start, we can exit the loop
+                if (blnFound)
+                {
+                  break;
+                }
+              }
+            }
+          }
+        }
+        //possible outcomes:
+        // - start and end both found; start before end
+        //   this is what we want
+        //
+        // - start and end both found, but end before start
+        //   this is backwards; we fix by moving end to
+        //   the line after start
+        //
+        // - start found, but no end; we add end
+        //   to just before next group start, or
+        //   to end of file if no other group start
+        //
+        // - end found, but no start; we fix by putting
+        //   start right in front of end
+
+        if (lngGrpStart >= 0 && lngGrpEnd >= 0)
+        {
+          //if backwards, move end to line after start
+          if (lngGrpEnd < lngGrpStart)
+          {
+            ConfigList.Insert(lngGrpStart + 1, ConfigList[lngGrpEnd]);
+            ConfigList.RemoveAt(lngGrpEnd);
+            lngGrpStart -= 1;
+            lngGrpEnd = lngGrpStart + 1;
+          }
 
 
-      //  'if a group is provided, we will add new items within the group;
-      //  'existing items, even if within the group, will be left where they are
-      //  lngGrpStart = -1
-      //  lngGrpEnd = -1
-      //  lngPos = -1
+        }
+        else if (lngGrpStart >= 0)
+        {
+          //means end not found
+          //if there was another start found, insert end there
+          if (lngPos > 0)
+          {
+            ConfigList.Insert(lngPos, "[::END " + Group + "::]");
+            ConfigList.Insert(lngPos + 1, "");
+            lngGrpEnd = lngPos;
+          }
+          else
+          {
+            //otherwise insert group end at end of file
+            lngGrpEnd = ConfigList.Count;
+            ConfigList.Add("[::END " + Group + "::]");
+          }
+        }
+        else if (lngGrpEnd >= 0)
+        {
+          //means start not found
+          //insert start in front of end
+          lngGrpStart = lngGrpEnd;
+          ConfigList.Insert(lngGrpStart, "[::START " + Group + "::]");
+          lngGrpEnd = lngGrpStart + 1;
+        }
+        else
+        {
+          //means neither found
+          //make sure at least one blank line
+          if (ConfigList[ConfigList.Count - 1].Trim().Length > 0)
+          {
+            ConfigList.Add("");
+          }
+          lngGrpStart = ConfigList.Count;
+            ConfigList.Add("[::BEGIN " + Group + "::]");
+          ConfigList.Add("[::END " + Group + "::]");
+          lngGrpEnd = lngGrpStart + 1;
+        }
+      }
 
 
-      //  if (Len(Group) > 0) {
-      //    '********** we will have to make adjustments to group start
-      //    '           and end positions later on as we add lines
-      //    '           during the key update! don't forget to do that!!
-      //    For i = 1 To ConfigList.Count - 1
-      //      'skip blanks, and lines starting with a comment
-      //      strLine = Trim(Replace(ConfigList.StringLine(i), vbTab, " "))
-      //      if (Len(strLine) > 0) { 'skip empty lines
-      //        if (Asc(strLine) <> 35) { 'skip comments
-      //          'if not found yet, look for the starting marker
-      //          if (Not blnFound) {
-      //            'is this the group marker?
-      //            if (StrComp(strLine, "[::BEGIN " & Group & "::]") = 0) {
-      //              lngGrpStart = i
-      //              blnFound = True
-      //              'was the end found earlier? if so, we are done
-      //              if (lngGrpEnd >= 0) {
-      //                Exit For
-      //              End If
-      //            End If
-      //          Else
-      //            'start is found; make sure we find end before
-      //            'finding another start
-      //            if (StrComp(Left(strLine, 9), "[::BEGIN ") = 0) {
-      //              'mark position of first new start, so we can move the end marker here
-      //              if (lngPos< 0) {
-      //               lngPos = i
-      //              End If
-      //            End If
-      //          End If
-      //          'we check for end marker here even if start not found
-      //          'just in case they are backwards
-      //          if (StrComp(strLine, "[::END " & Group & "::]") = 0) {
-      //            lngGrpEnd = i
-      //            'and if we also have a start, we can exit the loop
-      //            if (blnFound) {
-      //              Exit For
-      //            End If
-      //          End If
-      //        End If
-      //      End If
-      //    Next i
-      //    'possible outcomes:
-      //    ' - start and end both found; start before end
-      //    '   this is what we want
-      //    '
-      //    ' - start and end both found, but end before start
-      //    '   this is backwards; we fix by moving end to
-      //    '   the line after start
-      //    '
-      //    ' - start found, but no end; we add end
-      //    '   to just before next group start, or
-      //    '   to end of file if no other group start
-      //    '
-      //    ' - end found, but no start; we fix by putting
-      //    '   start right in front of end
-
-      //    if (lngGrpStart >= 0 And lngGrpEnd >= 0) {
-      //      'if backwards, move end to line after start
-      //      if (lngGrpEnd<lngGrpStart) {
-      //        ConfigList.Add ConfigList(lngGrpEnd), lngGrpStart +1
-      //        ConfigList.Delete lngGrpEnd
-      //        lngGrpStart = lngGrpStart - 1
-      //        lngGrpEnd = lngGrpStart + 1
-      //      End If
+      //reset the found flag
+      blnFound = false;
 
 
-      //    Elseif (lngGrpStart >= 0) {
-      //      'means end not found
-      //      'if there was another start found, insert end there
-      //      if (lngPos > 0) {
-      //        ConfigList.Add "[::END " & Group & "::]", lngPos
-      //        ConfigList.Add "", lngPos + 1
-      //        lngGrpEnd = lngPos
-      //      Else
-      //        'otherwise insert group end at end of file
-      //        lngGrpEnd = ConfigList.Count
-      //        ConfigList.Add "[::END " & Group & "::]"
-      //      End If
-      //    Elseif (lngGrpEnd >= 0) {
-      //      'means start not found
-      //      'insert start in front of end
-      //      lngGrpStart = lngGrpEnd
-      //      ConfigList.Add "[::START " & Group & "::]", lngGrpStart
-      //      lngGrpEnd = lngGrpStart + 1
-      //    Else
-      //      'means neither found
-      //      'make sure at least one blank line
-      //      if (Len(Trim(ConfigList(ConfigList.Count -1))) >= 0) {
-      //        ConfigList.Add ""
-      //      End If
-      //      lngGrpStart = ConfigList.Count
-      //      ConfigList.Add "[::BEGIN " & Group & "::]"
-      //      ConfigList.Add "[::END " & Group & "::]"
-      //      lngGrpEnd = lngGrpStart + 1
-      //    End If
-      //  End If
+      //find the section we are looking for
+      for (i = 0; i <= ConfigList.Count - 1; i++)
+      {
+        //skip blanks, and lines starting with a comment
+        strLine = ConfigList[i].Replace("\t", " ").Trim();
+        if (strLine.Length > 0)
+        { //skip empty lines
+          if (strLine[0] != '#')
+          { //skip comments
+            //look for a bracket
+            if (strLine[0] == '[')
+            {
+              //find end bracket
+              lngPos = strLine.IndexOf("]", 2);
+              if (lngPos > 0)
+              {
+                strCheck = strLine.Substring(2, lngPos - 2);
+              }
+              else
+              {
+                strCheck = Right(strLine, strLine.Length - 1);
+              }
+              if (strCheck.Equals(Section, StringComparison.CurrentCultureIgnoreCase))
+              {
+                //found it
+                lngSectionStart = i;
+                break;
+              }
+            }
+          }
+        }
+      }
 
 
-      //  'reset the found flag
-      //  blnFound = False
+      //if not found, create it at end of group (if group is provided)
+      //otherwise at end of list
+      if (lngSectionStart == 0)
+      {
+        if (lngGrpStart >= 0)
+        {
+          lngInsertLine = lngGrpEnd;
+        }
+        else
+        {
+          lngInsertLine = ConfigList.Count;
+        }
+        //make sure there is at least one blank line (unless this is first line in list)
+        if (lngInsertLine > 0)
+        {
+          if (ConfigList[lngInsertLine - 1].Trim().Length != 0)
+          {
+            ConfigList.Insert(lngInsertLine, "");
+            lngInsertLine++;
+            lngGrpEnd++;
+          }
+        }
+        ConfigList.Insert(lngInsertLine, "[" + Section + "]");
+        ConfigList.Insert(lngInsertLine + 1, "   " + Key + " = " + Value);
 
 
-      //  'find the section we are looking for
-      //  For i = 0 To ConfigList.Count - 1
-      //    'skip blanks, and lines starting with a comment
-      //    strLine = Trim(Replace(ConfigList.StringLine(i), vbTab, " "))
-      //    if (Len(strLine) > 0) { 'skip empty lines
-      //      if (Asc(strLine) <> 35) { 'skip comments
-      //        'look for a bracket
-      //        if (Asc(strLine) = 91) {
-      //          'find end bracket
-      //          lngPos = InStr(2, strLine, "]")
-      //          if (lngPos > 0) {
-      //            strCheck = Mid(strLine, 2, lngPos - 2)
-      //          Else
-      //            strCheck = Right(strLine, Len(strLine) - 1)
-      //          End If
-      //          if (StrComp(strCheck, Section) = 0) {
-      //            'found it
-      //            lngSectionStart = i
-      //            Exit For
-      //          End If
-      //        End If
-      //      End If
-      //    End If
-      //  Next i
+        //no need to check for location of section within group;
+        //we just added it to the group (if one is needed)
+      }
+      else
+      {
+        //now step through all lines in this section; find matching key
+        lenKey = Key.Length;
+        for (i = lngSectionStart + 1; i <= ConfigList.Count - 1; i++)
+        {
+          //skip blanks, and lines starting with a comment
+          strLine = ConfigList[i].Replace("\t", " ").Trim();
+          if (strLine.Length > 0)
+          {
+            if (strLine[0] != '#')
+            {
+              //if another section is found, stop here
+              if (strLine[0] == '[')
+              {
+                //if part of a group; last line of the section
+                //is line prior to the new section
+                if (lngGrpStart >= 0)
+                {
+                  lngSectionEnd = i - 1;
+                }
+                //if not already added, add it now
+                if (!blnFound)
+                {
+                  //back up until a nonblank line is found
+                  for (lngPos = i - 1; i >= lngSectionStart; i--)
+                  {
+                    if (ConfigList[lngPos].Trim().Length > 0)
+                    {
+                      break;
+                    }
+                  }
+                  //add the key and value at this pos
+                  ConfigList.Insert(lngPos + 1, "   " + Key + " = " + Value);
+                  //this also bumps down the section end
+                  lngSectionEnd++;
+                  //it also may bump down group start/end
+                  if (lngGrpStart >= lngPos + 1)
+                  {
+                    lngGrpStart++;
+                  }
+                  if (lngGrpEnd >= lngPos + 1)
+                  {
+                    lngGrpEnd++;
+                  }
+                }
+                //we are done, but if part of a group
+                //we need to verify the section is in
+                //the group
+                if (lngGrpStart >= 0)
+                {
+                  blnFound = true;
+                  break;
+                }
+                else
+                {
+                  return;
+                }
+              }
 
 
-      //  'if not found, create it at end of group (if group is provided)
-      //  'otherwise at end of list
-      //  if (lngSectionStart = 0) {
-      //    if (lngGrpStart >= 0) {
-      //     lngInsertLine = lngGrpEnd
-      //    Else
-      //      lngInsertLine = ConfigList.Count
-      //    End If
-      //    'make sure there is at least one blank line (unless this is first line in list)
-      //    if (lngInsertLine > 0) {
-      //      if (Len(Trim(ConfigList.StringLine(lngInsertLine - 1))) <> 0) {
-      //        ConfigList.Add "", lngInsertLine
-      //        lngInsertLine = lngInsertLine + 1
-      //        lngGrpEnd = lngGrpEnd + 1
-      //      End If
-      //    End If
-      //    ConfigList.Add "[" & Section & "]", lngInsertLine
-      //    ConfigList.Add "   " & Key & " = " & Value, lngInsertLine + 1
+              //if not already found,  look for 'key'
+              if (!blnFound)
+              {
+                if (Left(strLine, lenKey).Equals(Key, StringComparison.CurrentCultureIgnoreCase) && (strLine.Substring(lenKey + 1, 1) == " " || strLine.Substring(lenKey + 1, 1) == "="))
+                {
+                  //found it- change key value to match new value
+                  //(if there is a comment on the end, save it)
+                  strLine = Right(strLine, strLine.Length - lenKey).Trim();
+                  if (strLine.Length > 0)
+                  {
+                    //expect an equal sign
+                    if (strLine[0] == '=')
+                    {
+                      //remove it
+                      strLine = Right(strLine, strLine.Length - 1).Trim();
+                    }
+                  }
+                  lngPos = 0;
+                  if (strLine.Length > 0)
+                  {
+                    if (strLine[0] == '"')
+                    {
+                      //string delimiter; find ending delimiter
+                      lngPos = strLine.IndexOf('"', 2);
+                    }
+                    else
+                    {
+                      //look for a space as a delimiter
+                      lngPos = strLine.IndexOf(" ", 2);
+                    }
+                    if (lngPos == 0)
+                    {
+                      //could be a case where a comment is at end of text, without a space
+                      //if so we need to keep the delimiter
+                      lngPos = strLine.IndexOf("#", 2) - 1;
+                    }
+                    //no delimiter found; assume entire line
+                    if (lngPos <= 0)
+                    {
+                      //no adjustment; we want to keep delimiter and anything after
+                      lngPos = strLine.Length;
+                    }
+                    //now strip off the old value
+                    strLine = Right(strLine, strLine.Length - lngPos).Trim();
+                  }
 
 
-      //    'no need to check for location of section within group;
-      //    'we just added it to the group (if one is needed)
-      //  Else
-      //    'now step through all lines in this section; find matching key
-      //    lenKey = Len(Key)
-      //    For i = lngSectionStart + 1 To ConfigList.Count - 1
-      //      'skip blanks, and lines starting with a comment
-      //      strLine = Trim(Replace(ConfigList.StringLine(i), vbTab, " "))
-      //      if (Len(strLine) > 0) {
-      //        if (Asc(strLine) <> 35) {
-      //          'if another section is found, stop here
-      //          if (Asc(strLine) = 91) {
-      //            'if part of a group; last line of the section
-      //            'is line prior to the new section
-      //            if (lngGrpStart >= 0) {
-      //              lngSectionEnd = i - 1
-      //            End If
-      //            'if not already added, add it now
-      //            if (Not blnFound) {
-      //              'back up until a nonblank line is found
-      //              For lngPos = i - 1 To lngSectionStart Step - 1
-      //                if (Len(Trim(ConfigList.StringLine(lngPos))) > 0) {
-      //                  Exit For
-      //                End If
-      //              Next lngPos
-      //              'add the key and value at this pos
-      //              ConfigList.Add "   " & Key & " = " & Value, lngPos + 1
-      //              'this also bumps down the section end
-      //              lngSectionEnd = lngSectionEnd + 1
-      //              'it also may bump down group start/end
-      //              if (lngGrpStart >= lngPos + 1) {
-      //                lngGrpStart = lngGrpStart + 1
-      //              End If
-      //              if (lngGrpEnd >= lngPos + 1) {
-      //                lngGrpEnd = lngGrpEnd + 1
-      //              End If
-      //            End If
-      //            'we are done, but if part of a group
-      //            'we need to verify the section is in
-      //            'the group
-      //            if (lngGrpStart >= 0) {
-      //              blnFound = True
-      //              Exit For
-      //            Else
-      //              Exit Sub
-      //            End If
-      //          End If
+                  //if something left, maks sure it's a comment
+                  if (strLine.Length > 0)
+                  {
+                    if (strLine[0] != '#')
+                    {
+                      strLine = "#" + strLine;
+                    }
+                    //make sure it starts with a space
+                    strLine = "   " + strLine;
+                  }
 
 
-      //          'if not already found,  look for 'key'
-      //          if (Not blnFound) {
-      //            if (StrComp(Left(strLine, lenKey), Key, vbTextCompare) = 0 And(Mid(strLine, lenKey + 1, 1) = " " Or Mid(strLine, lenKey + 1, 1) = "=")) {
-      //              'found it- change key value to match new value
-      //              '(if there is a comment on the end, save it)
-      //              strLine = Trim(Right(strLine, Len(strLine) - lenKey))
-      //              if (Len(strLine) > 0) {
-      //                'expect an equal sign
-      //                if (Asc(strLine) = 61) {
-      //                  'remove it
-      //                  strLine = Trim(Right(strLine, Len(strLine) - 1))
-      //                End If
-      //              End If
-      //              lngPos = 0
-      //              if (Len(strLine) > 0) {
-      //                if (Asc(strLine) = 34) {
-      //                  'string delimiter; find ending delimiter
-      //                  lngPos = InStr(2, strLine, QUOTECHAR)
-      //                Else
-      //                  'look for a space as a delimiter
-      //                  lngPos = InStr(2, strLine, " ")
-      //                End If
-      //                if (lngPos = 0) {
-      //                  'could be a case where a comment is at end of text, without a space
-      //                  'if so we need to keep the delimiter
-      //                  lngPos = InStr(2, strLine, "#") - 1
-      //                End If
-      //                'no delimiter found; assume entire line
-      //                if (lngPos <= 0) {
-      //                  'no adjustment; we want to keep delimiter and anything after
-      //                  lngPos = Len(strLine)
-      //                End If
-      //                'now strip off the old value
-      //                strLine = Trim(Right(strLine, Len(strLine) - lngPos))
-      //              End If
+                  strLine = "   " + Key + " = " + Value + strLine;
+                  ConfigList[i] = strLine;
+                  //we are done, but if part of a group
+                  //we need to keep going to find end so
+                  //we can validate section is in the group
+                  if (lngGrpStart >= 0)
+                  {
+                    blnFound = true;
+                  }
+                  else
+                  {
+                    return;
+                  }
+                }
+              }
+            }
+          }
+        }
 
 
-      //              'if something left, maks sure it's a comment
-      //              if (Len(strLine) > 0) {
-      //                if (Asc(strLine) <> 35) {
-      //                  strLine = "#" & strLine
-      //                End If
-      //                'make sure it starts with a space
-      //                strLine = "   " & strLine
-      //              End If
+        //if not found (will only happen if this the last section in the
+        //list, probably NOT in a group, but still possible (if the
+        //section is outside the defined group)
+        if (!blnFound)
+        {
+          //back up until a nonblank line is found
+          for (lngPos = i - 1; i >= lngSectionStart; i--)
+          {
+            if (ConfigList[lngPos].Trim().Length > 0)
+            {
+              break;
+            }
+          }
+          //add the key and value at this pos
+          ConfigList.Insert(lngPos + 1, "   " + Key + " = " + Value);
+          //we SHOULD be done, but just in case this section is
+          //out of position, we still check for the group
+          if (lngGrpStart < 0)
+          {
+            //no group - all done!
+            return;
+          }
+          //note that we don't need to bother adjusting group
+          //start/end, because we only added a line to the
+          //end of the file, and we know that the group
+          //start/end markers MUST be before the start
+          //of this section
+        }
 
 
-      //              strLine = "   " & Key & " = " & Value & strLine
-      //              ConfigList.StringLine(i) = strLine
-      //              'we are done, but if part of a group
-      //              'we need to keep going to find end so
-      //              'we can validate section is in the group
-      //              if (lngGrpStart >= 0) {
-      //                blnFound = True
-      //              Else
-      //                Exit Sub
-      //              End If
-      //            End If
-      //          End If
-      //        End If
-      //      End If
-      //    Next i
+        //found marker ONLY set if part a group so let's verify
+        //the section is in the group, moving it if necessary
+        //*'Debug.Assert lngGrpStart >= 0
 
 
-      //    'if not found (will only happen if this the last section in the
-      //    'list, probably NOT in a group, but still possible (if the
-      //    'section is outside the defined group)
-      //    if (Not blnFound) {
-      //      'back up until a nonblank line is found
-      //      For lngPos = i - 1 To lngSectionStart Step - 1
-      //        if (Len(Trim(ConfigList.StringLine(lngPos))) > 0) {
-      //          Exit For
-      //        End If
-      //      Next lngPos
-      //      'add the key and value at this pos
-      //      ConfigList.Add "   " & Key & " = " & Value, lngPos + 1
-      //      'we SHOULD be done, but just in case this section is
-      //      'out of position, we still check for the group
-      //      if (lngGrpStart< 0) {
-      //        'no group - all done!
-      //        Exit Sub
-      //      End If
-      //      'note that we don't need to bother adjusting group
-      //      'start/end, because we only added a line to the
-      //      'end of the file, and we know that the group
-      //      'start/end markers MUST be before the start
-      //      'of this section
-      //    End If
+        //if this was last section, AND section is NOT in its group
+        //then then section end won't be set yet
+        if (lngSectionEnd <= 0)
+        {
+          lngSectionEnd = ConfigList.Count - 1;
+        }
 
 
-      //    'found marker ONLY set if part a group so let's verify
-      //    'the section is in the group, moving it if necessary
-      //    '*'Debug.Assert lngGrpStart >= 0
+        //if the section is not in the group, then move it
+        //(depends on whether section is BEFORE or AFTER group start)
+        if (lngSectionStart < lngGrpStart)
+        {
+          //make sure at least one blank line above the group end
+          if (ConfigList[lngGrpEnd - 1].Trim().Length > 0)
+          {
+            ConfigList.Insert(lngGrpEnd, "");
+            lngGrpEnd++;
+          }
+          //add the section to end of group
+          for (i = lngSectionStart; i <= lngSectionEnd; i++)
+          {
+            ConfigList.Insert(lngGrpEnd, ConfigList[i]);
+            lngGrpEnd++;
+          }
+          //then delete the section from it's current location
+          for (i = lngSectionStart; i <= lngSectionEnd; i++)
+          {
+            ConfigList.RemoveAt(lngSectionStart);
+          }
 
 
-      //    'if this was last section, AND section is NOT in its group
-      //    'then then section end won't be set yet
-      //    if (lngSectionEnd <= 0) {
-      //      lngSectionEnd = ConfigList.Count - 1
-      //    End If
-
-
-      //    'if the section is not in the group, then move it
-      //    '(depends on whether section is BEFORE or AFTER group start)
-      //    if (lngSectionStart<lngGrpStart) {
-      //      'make sure at least one blank line above the group end
-      //      if (Len(Trim(ConfigList(lngGrpEnd -1))) > 0) {
-      //        ConfigList.Add "", lngGrpEnd
-      //        lngGrpEnd = lngGrpEnd + 1
-      //      End If
-      //      'add the section to end of group
-      //      For i = lngSectionStart To lngSectionEnd
-      //        ConfigList.Add ConfigList(i), lngGrpEnd
-      //        lngGrpEnd = lngGrpEnd + 1
-      //      Next i
-      //      'then delete the section from it's current location
-      //      For i = lngSectionStart To lngSectionEnd
-      //        ConfigList.Delete lngSectionStart
-      //      Next i
-
-
-      //    Elseif (lngSectionStart > lngGrpEnd) {
-      //      'make sure at least one blank line above the group end
-      //      if (Len(Trim(ConfigList(lngGrpEnd -1))) > 0) {
-      //        ConfigList.Add "", lngGrpEnd
-      //        lngGrpEnd = lngGrpEnd + 1
-      //        lngSectionStart = lngSectionStart + 1
-      //        lngSectionEnd = lngSectionEnd + 1
-      //      End If
-      //      'add the section to end of group
-      //      For i = lngSectionEnd To lngSectionStart Step - 1
-      //        ConfigList.Add ConfigList(lngSectionEnd), lngGrpEnd
-      //        'delete the line in current location
-      //        ConfigList.Delete lngSectionEnd +1
-      //      Next i
-      //    End If
-      //  End If
-
-
-      //Exit Sub
-
-      //ErrHandler:
-      //      '*'Debug.Assert False
-      //  Resume Next
-      //End Sub
+        }
+        else if (lngSectionStart > lngGrpEnd)
+        {
+          //make sure at least one blank line above the group end
+          if (ConfigList[lngGrpEnd - 1].Trim().Length > 0)
+          {
+            ConfigList.Insert(lngGrpEnd, "");
+            lngGrpEnd++;
+            lngSectionStart++;
+            lngSectionEnd++;
+          }
+          //add the section to end of group
+          for (i = lngSectionEnd; i >= lngSectionStart; i--)
+          {
+            ConfigList.Insert(lngGrpEnd, ConfigList[lngSectionEnd]);
+            //delete the line in current location
+            ConfigList.RemoveAt(lngSectionEnd + 1);
+          }
+        }
+      }
 
     }
 
@@ -1816,26 +1897,24 @@ namespace WinAGI
 
       try
       {
-        using (StreamWriter cfgSR = new StreamWriter(TempFile))
-        {
+        using StreamWriter cfgSR = new StreamWriter(TempFile);
 
-          //now output the results to the file
-          foreach (string line in ConfigList)
-            cfgSR.WriteLine(line);
+        //now output the results to the file
+        foreach (string line in ConfigList)
+          cfgSR.WriteLine(line);
 
-          // close it
-          cfgSR.Close();
-          //dispose it
-          cfgSR.Dispose();
+        // close it
+        cfgSR.Close();
+        //dispose it
+        cfgSR.Dispose();
 
-          // delete current file
-          File.Delete(strFileName);
-          // now copy new to final destination
-          File.Move(TempFile, strFileName);
+        // delete current file
+        File.Delete(strFileName);
+        // now copy new to final destination
+        File.Move(TempFile, strFileName);
 
-          //add filename back
-          ConfigList.Insert(0, TempFile);
-        }
+        //add filename back
+        ConfigList.Insert(0, TempFile);
       }
       catch (Exception)
       {
@@ -1883,19 +1962,15 @@ namespace WinAGI
     }
     public static bool IsValidGameDir(string strDir)
     {
-      //this function will determine if the strDir is a
-      //valid sierra AGI game directory
-      //it also sets the gameID, if one is found and the version3 flag
-      int dirCount = 0;
-      string strFileName = "";
-      string strChunk = "";
+      string strFile;
       byte[] bChunk = new byte[6];
       FileStream fsCOM;
 
+      //this function will determine if the strDir is a
+      //valid sierra AGI game directory
+      //it also sets the gameID, if one is found and the version3 flag
       //search for 'DIR' files
-      //******  WHY is the extra wild card needed? it works, but I
-      //        don't know why
-      dirCount = Directory.EnumerateFiles(strDir, "*DIR").Count();
+      int dirCount = Directory.EnumerateFiles(strDir, "*DIR").Count();
       if (dirCount > 0)
       {
         //this might be an AGI game directory-
@@ -1917,8 +1992,8 @@ namespace WinAGI
             foreach (string strLoader in Directory.EnumerateFiles(strDir, "*.COM"))
             {
               //open file and get chunk
-              strChunk = new string(' ', 6);
-              using (fsCOM = new FileStream(strDir + strLoader, FileMode.Open))
+              string strChunk = new string(' ', 6);
+              using (fsCOM = new FileStream(strLoader, FileMode.Open))
               {
                 // see if the word 'LOADER' is at position 3 of the file
                 fsCOM.Position = 3;
@@ -1931,10 +2006,11 @@ namespace WinAGI
                 {
                   // determine ID to use
                   //if not SIERRA.COM
-                  if (strFileName != "SIERRA.COM")
+                  strFile = JustFileName(strLoader);
+                  if (strLoader != "SIERRA.COM")
                   {
                     //use this filename as ID
-                    agGameID = Left(strFileName, strFileName.Length - 4).ToUpper();
+                    agGameID = Left(strFile, strFile.Length - 4).ToUpper();
                     return true;
                   }
                 }
@@ -1950,8 +2026,8 @@ namespace WinAGI
         else if (dirCount == 1)
         {
           //if only one, it's probably v3 game
-          strFileName = Directory.GetFiles(strNewDir, "*DIR*")[0].ToUpper();
-          agGameID = Left(strFileName, strFileName.IndexOf("DIR"));
+          strFile = Directory.GetFiles(strNewDir, "*DIR")[0].ToUpper();
+          agGameID = Left(strFile, strFile.IndexOf("DIR"));
 
           // check for matching VOL file;
           if (File.Exists(strDir + agGameID + "VOL.0"))
@@ -1966,10 +2042,6 @@ namespace WinAGI
           return false;
         }
       }
-         else
-       {
-          int i = 1;
-        }
 
       // no valid files/loader found; not an AGI directory
       return false;
@@ -2144,7 +2216,7 @@ namespace WinAGI
 
             //validate this version
             if (IntVersions.Contains(strVersion))
-              //if (ValidateVersion(strVersion))
+            //if (ValidateVersion(strVersion))
             {
               //return it
               return strVersion;

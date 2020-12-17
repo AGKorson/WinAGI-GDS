@@ -222,7 +222,7 @@ namespace WinAGI
       //  For Each tmpGameRes In tmpResCol
       //    CurResNum = tmpGameRes.Number
       //    'update status
-      //    agGameEvents.RaiseEvent_CompileGameStatus csAddResource, ResType, CurResNum, vbNullString
+      //    Raise_CompileGameEvent csAddResource, ResType, CurResNum, vbNullString
       //    'check for cancellation
       //    If Not agCompGame Then
       //      CompleteCancel
@@ -249,7 +249,7 @@ namespace WinAGI
       //          'if error,
       //          If Err.Number<> 0 Then
       //            'note it
-      //            agGameEvents.RaiseEvent_CompileGameStatus csResError, ResType, CurResNum, "Unable to load " & tmpGameRes.ID & " (" & Err.Description & ")"
+      //            Raise_CompileGameEvent csResError, ResType, CurResNum, "Unable to load " & tmpGameRes.ID & " (" & Err.Description & ")"
       //            'check for cancellation
       //            If Not agCompGame Then
       //              CompleteCancel
@@ -344,7 +344,7 @@ namespace WinAGI
       //            'if error (warning not set)
       //            If Not blnWarning Then
       //              'note the error
-      //              agGameEvents.RaiseEvent_CompileGameStatus csResError, ResType, CurResNum, strMsg
+      //              Raise_CompileGameEvent csResError, ResType, CurResNum, strMsg
       //              'check for cancellation
       //              If Not agCompGame Then
       //                CompleteCancel
@@ -359,7 +359,7 @@ namespace WinAGI
       //          'if a warning
       //          If blnWarning Then
       //            'note the warning
-      //            agGameEvents.RaiseEvent_CompileGameStatus csWarning, ResType, CurResNum, "--|" & strMsg & "|--|--"
+      //            Raise_CompileGameEvent csWarning, ResType, CurResNum, "--|" & strMsg & "|--|--"
       //            'check for cancellation
       //            If Not agCompGame Then
       //              CompleteCancel
@@ -378,7 +378,7 @@ namespace WinAGI
       //          Select Case Err.Number
       //          Case vbObjectError + 635 'compile error
       //            'raise compile event
-      //            agGameEvents.RaiseEvent_CompileGameStatus csLogicError, ResType, CurResNum, Err.Description
+      //            Raise_CompileGameEvent csLogicError, ResType, CurResNum, Err.Description
       //            'check for cancellation
       //            If Not agCompGame Then
       //              CompleteCancel
@@ -392,7 +392,7 @@ namespace WinAGI
       //            'no error
       //          Case Else
       //            'note it
-      //            agGameEvents.RaiseEvent_CompileGameStatus csResError, ResType, CurResNum, "Unable to compile Logic (" & Err.Description & ")"
+      //            Raise_CompileGameEvent csResError, ResType, CurResNum, "Unable to compile Logic (" & Err.Description & ")"
       //            'check for cancellation
       //            If Not agCompGame Then
       //              CompleteCancel
@@ -452,7 +452,7 @@ namespace WinAGI
       //      'if error,
       //      If Err.Number<> 0 Then
       //        'note it
-      //        agGameEvents.RaiseEvent_CompileGameStatus csResError, ResType, CurResNum, "Unable to add Logic resource to VOL file (" & Err.Description & ")"
+      //        Raise_CompileGameEvent csResError, ResType, CurResNum, "Unable to add Logic resource to VOL file (" & Err.Description & ")"
       //        'check for cancellation
       //        If Not agCompGame Then
       //          CompleteCancel
@@ -513,7 +513,7 @@ namespace WinAGI
     //  'cleans up after a compile game cancel or error
 
     //  If Not NoEvent Then
-    //    agGameEvents.RaiseEvent_CompileGameStatus csCanceled, 0, 0, vbNullString
+    //    Raise_CompileGameEvent csCanceled, 0, 0, vbNullString
     //  End If
     //  agCompGame = False
 
