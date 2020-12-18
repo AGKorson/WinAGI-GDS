@@ -279,7 +279,7 @@ namespace WinAGI
           return CDir(Directory.GetCurrentDirectory());
         }
       }
-      set
+    set
       {
 
         //changing directory is only allowed if a game
@@ -1567,7 +1567,7 @@ namespace WinAGI
       agGameFile = GameWAG;
 
       //set game directory
-      agGameDir = JustPath(GameWAG, true);
+      agGameDir = JustPath(GameWAG);
 
       //open the property file (file has to already exist)
       try
@@ -1855,7 +1855,9 @@ namespace WinAGI
       //  Dim stlGlobals As StringList
 
 
-      //  On Error Resume Next
+                     //creates a new game in NewGameDir
+                     //if a template directory is passed,
+                     //use the resources from that template directory
 
       //  //if a game is already open,
       //  if (agGameLoaded)
@@ -1863,6 +1865,10 @@ namespace WinAGI
       //    On Error GoTo 0: Err.Raise vbObjectError + 501, strErrSource, LoadResString(501)
       //    return;
       //  }
+                            Dim strDirData As String, intFile As Integer, strGameWAG As String
+                            Dim i As Long, strTempDir As String, lngDirCount As Long
+                            Dim blnWarnings As Boolean, strTmplResDir As String
+                            Dim stlGlobals As StringList
 
       //  //if not a valid directory
       //  if (!FileExists(NewGameDir, vbDirectory))
@@ -1877,6 +1883,12 @@ namespace WinAGI
       //   On Error GoTo 0: Err.Raise vbObjectError + 687, strErrSource, LoadResString(687)
       //    return;
 
+                     //if a game is already open,
+                     if (agGameLoaded)
+                       //can't open a game if one is already open
+                       On Error GoTo 0: Err.Raise vbObjectError + 501, strErrSource, LoadResString(501)
+                       return;
+                     }
 
       //  } else {if (IsValidGameDir(CDir(NewGameDir)))
       //    //game files exist;
