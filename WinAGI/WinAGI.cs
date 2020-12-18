@@ -2005,793 +2005,824 @@ namespace WinAGI
 
       //always add filename as first line
       stlConfig.Insert(0, ConfigFile);
-
       //return the list
       return stlConfig;
     }
 
     internal static string ReadAppSetting(List<string> ConfigList, string Section, string Key, string Default = "")
     {
-      /* 'elements of a settings file:
-       //'
-       //'  #comments begin with hashtag; all characters on line after hashtag are ignored
-       //'  'comments can be added to end of valid section or key/value line
-       //'  blank lines are ignored
-       //'  [::BEGIN group::] marker to indicate a group of sections
-       //'  [::END group::] marker to indicate end of a group
-       //'  [section] sections indicated by square brackets; anything else on the line gets ignored
-       //'  key=value  key/value pairs separated by an equal sign; no quotes around values means only
-       //'    single word; use quotes for multiword strings
-       //'  if string is multline, use '\n' control code (and use multiline option)
+      //elements of a settings file:
+      //
+      //  #comments begin with hashtag; all characters on line after hashtag are ignored
+      //  //comments can be added to end of valid section or key/value line
+      //  blank lines are ignored
+      //  [::BEGIN group::] marker to indicate a group of sections
+      //  [::END group::] marker to indicate end of a group
+      //  [section] sections indicated by square brackets; anything else on the line gets ignored
+      //  key=value  key/value pairs separated by an equal sign; no quotes around values means only
+      //    single word; use quotes for multiword strings
+      //  if string is multline, use '\n' control code (and use multiline option)
 
-       //Dim i As Long, strLine As String
-       //Dim lngPos As Long, strCheck As String
-       //Dim lngSection As Long, lngLast As Long
-       //Dim lenKey As Long
-
-
-       //On Error GoTo ErrHandler
-
-       //'need to make sure there is a list to read from
-       //If ConfigList Is Nothing Then
-       //  'return the default
-       //  ReadAppSetting = Default
-       //  Exit Function
-       //End If
-
-       //'find the section we are looking for (skip 1st line; it's the filename)
-       //For i = 1 To ConfigList.Count - 1
-       //  'skip blanks, and lines starting with a comment
-       //  strLine = Trim(Replace(ConfigList.StringLine(i), vbTab, " "))
-       //  If Len(strLine) > 0 Then
-       //    If Asc(strLine) <> 35 Then
-       //      'look for a bracket
-       //      If Asc(strLine) = 91 Then
-       //        'find end bracket
-       //        lngPos = InStr(2, strLine, "]")
-       //        If lngPos > 0 Then
-       //          strCheck = Mid(strLine, 2, lngPos - 2)
-       //        Else
-       //          strCheck = Right(strLine, Len(strLine) - 1)
-       //        End If
-       //        If StrComp(strCheck, Section, vbTextCompare) = 0 Then
-       //          'found it
-       //          lngSection = i
-       //          Exit For
-       //        End If
-       //      End If
-       //    End If
-       //  End If
-       //Next i
-
-       //'if not found,
-       //If lngSection = 0 Then
-       //  'add the section and the value
-       //  WriteAppSetting ConfigList, Section, Key, Default
-       //  'and return the default value
-       //  ReadAppSetting = Default
-       //  Exit Function
-       //Else
-       //  'step through all lines in this section; find matching key
-       //  lenKey = Len(Key)
-       //  For i = lngSection + 1 To ConfigList.Count - 1
-       //    'skip blanks, and lines starting with a comment
-       //    strLine = Trim(Replace(ConfigList.StringLine(i), vbTab, " "))
-       //    If Len(strLine) > 0 Then
-       //      If Asc(strLine) <> 35 Then 'not a comment
-       //        'if another section is found, stop here
-       //        If Asc(strLine) = 91 Then
-       //          Exit For
-       //        End If
-
-       //        'look for 'key'
-       //        If StrComp(Left(strLine, lenKey), Key, vbTextCompare) = 0 And(Mid(strLine, lenKey + 1, 1) = " " Or Mid(strLine, lenKey + 1, 1) = "=") Then
-       //          'validate that this is an exact match, and not a key that starts with
-       //          'the same letters by verifying next char is either a space, or an equal sign
-
-       //          'found it- extract value (if there is a comment on the end, drop it)
-       //          'strip off key
-       //          strLine = Trim(Right(strLine, Len(strLine) - lenKey))
-       //          'check for nullstring, incase line has ONLY the key and nothing else
-       //          If Len(strLine) > 0 Then
-       //            'expect an equal sign
-       //            If Asc(strLine) = 61 Then
-       //              'remove it
-       //              strLine = Trim(Right(strLine, Len(strLine) - 1))
-       //            End If
+      string strLine = "", strCheck = "";
+      int i = 0, lngPos = 0, lngSection = -1;
+      int lngLast = 0, lenKey = 0;
 
 
-       //            If Asc(strLine) = 34 Then
-       //              'string delimiter; find ending delimiter
-       //              lngPos = InStr(2, strLine, QUOTECHAR)
-       //            Else
-       //              'look for comment marker
-       //              lngPos = InStr(2, strLine, "#")
-       //            End If
-       //            'no delimiter found; assume entire line
-       //            If lngPos = 0 Then
-       //              'adjust by one so last char doesn't get chopped off
-       //              lngPos = Len(strLine) + 1
-       //            End If
-       //            'now strip off anything past value (including delimiter
-       //            strLine = Trim(Left(strLine, lngPos - 1))
-       //            If Len(strLine) > 0 Then
-       //              'if in quotes, remove them
-       //              If Asc(strLine) = 34 Then strLine = Right(strLine, Len(strLine) - 1)
-       //            End If
-       //            'should never have an end quote; it will be caught as the ending delimiter
-       //            If Len(strLine) > 0 Then
-       //              If Asc(Right(strLine, 1)) = 34 Then
-       //                '*'Debug.Assert False
-       //                strLine = Left(strLine, Len(strLine) - 1)
-       //              End If
-       //            End If
-
-
-       //            If InStr(1, strLine, "\n") > 0 Then
-       //              'replace any newline control characters
-       //              strLine = Replace(strLine, "\n", vbNewLine)
-       //            End If
-       //          End If
-       //          ReadAppSetting = strLine
-       //          Exit Function
-       //        End If
-       //      End If
-       //    End If
-       //  Next i
-
-       //  'not found' add it here
-       //  'back up until a nonblank line is found
-       //  For lngPos = i - 1 To lngSection Step -1
-       //    If Len(Trim(ConfigList.StringLine(lngPos))) > 0 Then
-       //      Exit For
-       //    End If
-       //  Next lngPos
-       //  'return the default value
-       //  ReadAppSetting = Default
-
-       //  'add the key and default value at this pos
-       //  'if value contains spaces, it must be enclosed in quotes
-       //  If InStr(1, Default, " ") > 0 Then
-       //    If Asc(Default) <> 34 Then Default = QUOTECHAR & Default
-       //    If Asc(Right(Default, 1)) <> 34 Then Default = Default & QUOTECHAR
-       //  End If
-
-       //  'if Default contains any carriage returns, replace them with control characters
-       //  If InStr(1, Default, vbNewLine) Then
-       //    Default = Replace(Default, vbNewLine, "\n")
-       //  End If
-       //  If InStr(1, Default, vbCr) Then
-       //    Default = Replace(Default, vbCr, "\n")
-       //  End If
-       //  If InStr(1, Default, vbLf) Then
-       //    Default = Replace(Default, vbLf, "\n")
-       //  End If
-       //  If Len(Default) = 0 Then
-       //    Default = QUOTECHAR & QUOTECHAR
-       //  End If
-
-
-       //  ConfigList.Add "   " & Key & " = " & Default, lngPos + 1
-       //End If
-           */
-    }
-    static int ReadSettingLong(List<string> ConfigList, string Section, string Key, int Default = 0)
-    {
-      //get the setting value; if it converts to long value, use it;
-      //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-
-      if (strValue.Length == 0)
+      //need to make sure there is a list to read from
+      if (ConfigList.Count == 0)
       {
+        //return the default
+        return Default;
+      }
+
+      //find the section we are looking for (skip 1st line; it's the filename)
+      for (i = 1; i <= ConfigList.Count - 1; i++)
+      {
+        //skip blanks, and lines starting with a comment
+        strLine = ConfigList[i].Replace("\t", " ").Trim();
+        if (strLine.Length > 0)
+        {
+          if (strLine[0] != '#')
+          {
+            //look for a bracket
+            if (strLine[0] == '[')
+            {
+              //find end bracket
+              lngPos = strLine.IndexOf("]", 1);
+              if (lngPos > 0)
+              {
+                strCheck = Mid(strLine, 2, lngPos - 2);
+              }
+              else
+              {
+                strCheck = Right(strLine, strLine.Length - 1);
+              }
+              if (strCheck.Equals(Section, StringComparison.CurrentCultureIgnoreCase))
+              {
+                //found it
+                lngSection = i;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      //if not found,
+      if (lngSection < 0)
+      {
+        //add the section and the value
+        WriteAppSetting(ConfigList, Section, Key, Default, "");
+        //and return the default value
         return Default;
       }
       else
       {
-
-        if (int.TryParse(strValue, out int iResult))
+        //step through all lines in this section; find matching key
+        lenKey = Key.Length;
+        for (i = lngSection + 1; i <= ConfigList.Count - 1; i++)
         {
-          return iResult;
+          //skip blanks, and lines starting with a comment
+          strLine = ConfigList[i].Replace("\t", " ").Trim();
+          if (strLine.Length > 0)
+          {
+            if (strLine[0] != '#')
+            { //not a comment
+              //if another section is found, stop here
+              if (strLine[0] == '[')
+              {
+                break;
+              }
+
+              //look for 'key'
+              if (Left(strLine, lenKey).Equals(Key, StringComparison.CurrentCultureIgnoreCase) && (strLine.Substring(lenKey, 1) == " " || strLine.Substring(lenKey, 1) == "="))
+              {
+                //validate that this is an exact match, and not a key that starts with
+                //the same letters by verifying next char is either a space, or an equal sign
+
+                //found it- extract value (if there is a comment on the end, drop it)
+                //strip off key
+                strLine = Right(strLine, strLine.Length - lenKey).Trim();
+                //check for nullstring, incase line has ONLY the key and nothing else
+                if (strLine.Length > 0)
+                {
+                  //expect an equal sign
+                  if (strLine[0] == '=')
+                  {
+                    //remove it
+                    strLine = Right(strLine, strLine.Length - 1).Trim();
+                  }
+                  if (strLine[0] == '"')
+                  {
+                    //string delimiter; find ending delimiter
+                    lngPos = strLine.IndexOf("\"", 1);
+                  }
+                  else
+                  {
+                    //look for comment marker
+                    lngPos = strLine.IndexOf("#", 1);
+                  }
+                  //no delimiter found; assume entire line
+                  if (lngPos < 0)
+                  {
+                    //adjust by one so last char doesn't get chopped off
+                    lngPos = strLine.Length + 1;
+                  }
+                  //now strip off anything past value (including delimiter
+                  strLine = Left(strLine, lngPos - 1).Trim();
+                  if (strLine.Length > 0)
+                  {
+                    //if in quotes, remove them
+                    if (strLine[0] == '"')
+                    {
+                      strLine = Right(strLine, strLine.Length - 1);
+                    }
+                  }
+                  //should never have an end quote; it will be caught as the ending delimiter
+                  if (strLine.Length > 0)
+                  {
+                    if (Right(strLine, 0)[0] == '"')
+                    {
+                      //*'Debug.Assert False
+                      strLine = Left(strLine, strLine.Length - 1);
+                    }
+                  }
+
+
+                  if (strLine.IndexOf("\\n", 0) >= 0)
+                  {
+                    //replace any newline control characters
+                    strLine = strLine.Replace("\\n", "\r\n");
+                  }
+                }
+                return strLine;
+              }
+            }
+          }
         }
-        else
+
+        //not found// add it here
+        //back up until a nonblank line is found
+        for (lngPos = i - 1; i >= lngSection; i--)
+        {
+          if (ConfigList[lngPos].Trim().Length > 0)
+          {
+            break;
+          }
+        }
+        //return the default value
+        string sReturn = Default;
+
+        //add the key and default value at this pos
+        //if value contains spaces, it must be enclosed in quotes
+        if (Default.IndexOf(" ", 0) >= 0)
+        {
+          if (Default[0] != '"')
+          {
+            Default = "\"" + Default;
+          }
+          if (Right(Default, 1)[0] != '"')
+          {
+            Default += "\"";
+          }
+        }
+          //if Default contains any carriage returns, replace them with control characters
+          if (Default.IndexOf("\r\n", 0) >= 0)
+          {
+            Default = Default.Replace("\r\n", "\\n");
+          }
+          if (Default.IndexOf("\r", 0) >= 0) {
+            Default = Default.Replace("\r", "\\n");
+          }
+          if (Default.IndexOf("\n", 1) >= 0)
+          {
+            Default = Default.Replace("\n", "\\n");
+          }
+          if (Default.Length == 0)
+          {
+            Default = "\"\"";
+          }
+
+          ConfigList.Insert(lngPos + 1, "   " + Key + " = " + Default);
+          return sReturn;
+        }
+      }
+      static int ReadSettingLong(List<string> ConfigList, string Section, string Key, int Default = 0)
+      {
+        //get the setting value; if it converts to long value, use it;
+        //if any kind of error, return the default value
+        string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
+
+        if (strValue.Length == 0)
         {
           return Default;
         }
-      }
-    }
-
-    static byte ReadSettingByte(List<string> ConfigList, string Section, string Key, byte Default = 0)
-    {
-      //get the setting value; if it converts to byte value, use it;
-      //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-      if (strValue.Length == 0)
-      {
-        return Default;
-      }
-      else
-      {
-        if (byte.TryParse(strValue, out byte bResult))
-        {
-          return bResult;
-        }
         else
+        {
+
+          if (int.TryParse(strValue, out int iResult))
+          {
+            return iResult;
+          }
+          else
+          {
+            return Default;
+          }
+        }
+      }
+
+      static byte ReadSettingByte(List<string> ConfigList, string Section, string Key, byte Default = 0)
+      {
+        //get the setting value; if it converts to byte value, use it;
+        //if any kind of error, return the default value
+        string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
+        if (strValue.Length == 0)
         {
           return Default;
         }
-      }
-    }
-    internal static double ReadSettingSingle(List<string> ConfigList, string Section, string Key, double Default = 0)
-    {
-      //get the setting value; if it converts to single value, use it;
-      //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-
-      if (strValue.Length == 0)
-      {
-        return Default;
-      }
-      else
-      {
-        if (double.TryParse(strValue, out double sResult))
-        {
-          return sResult;
-        }
         else
+        {
+          if (byte.TryParse(strValue, out byte bResult))
+          {
+            return bResult;
+          }
+          else
+          {
+            return Default;
+          }
+        }
+      }
+      internal static double ReadSettingSingle(List<string> ConfigList, string Section, string Key, double Default = 0)
+      {
+        //get the setting value; if it converts to single value, use it;
+        //if any kind of error, return the default value
+        string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
+
+        if (strValue.Length == 0)
         {
           return Default;
         }
-      }
-    }
-    static internal bool ReadSettingBool(List<string> ConfigList, string Section, string Key, bool Default = false)
-    {
-      //get the setting value; if it converts to boolean value, use it;
-      //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-      if (strValue.Length == 0)
-      {
-        return Default;
-      }
-      else
-      {
-        if (bool.TryParse(strValue, out bool bResult))
-        {
-          return bResult;
-        }
         else
+        {
+          if (double.TryParse(strValue, out double sResult))
+          {
+            return sResult;
+          }
+          else
+          {
+            return Default;
+          }
+        }
+      }
+      static internal bool ReadSettingBool(List<string> ConfigList, string Section, string Key, bool Default = false)
+      {
+        //get the setting value; if it converts to boolean value, use it;
+        //if any kind of error, return the default value
+        string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
+        if (strValue.Length == 0)
         {
           return Default;
         }
-      }
-    }
-
-    internal static string ReadSettingString(List<string> ConfigList, string Section, string Key, string Default = "")
-    {
-      //read a string value from the configlist
-
-
-      return ReadAppSetting(ConfigList, Section, Key, Default);
-    }
-
-
-    internal static string GetIntVersion()
-    {
-      byte[] bytBuffer = new byte[] { 0 };
-      FileStream fsVer;
-
-      // version is in OVL file
-      string strFileName = agGameDir + "AGIDATA.OVL";
-      if (File.Exists(strFileName))
-      {
-        try
+        else
         {
-          //open AGIDATA.OVL, copy to buffer, and close
-          fsVer = new FileStream(strFileName, FileMode.Open);
-          // get all the data
-          bytBuffer = new byte[fsVer.Length];
+          if (bool.TryParse(strValue, out bool bResult))
+          {
+            return bResult;
+          }
+          else
+          {
+            return Default;
+          }
+        }
+      }
+
+      internal static string ReadSettingString(List<string> ConfigList, string Section, string Key, string Default = "")
+      {
+        //read a string value from the configlist
+
+
+        return ReadAppSetting(ConfigList, Section, Key, Default);
+      }
+
+
+      internal static string GetIntVersion()
+      {
+        byte[] bytBuffer = new byte[] { 0 };
+        FileStream fsVer;
+
+        // version is in OVL file
+        string strFileName = agGameDir + "AGIDATA.OVL";
+        if (File.Exists(strFileName))
+        {
           try
           {
-            fsVer.Read(bytBuffer, 0, (int)fsVer.Length);
+            //open AGIDATA.OVL, copy to buffer, and close
+            fsVer = new FileStream(strFileName, FileMode.Open);
+            // get all the data
+            bytBuffer = new byte[fsVer.Length];
+            try
+            {
+              fsVer.Read(bytBuffer, 0, (int)fsVer.Length);
+            }
+            catch (Exception)
+            {
+              // ignore, treat as invalid
+            }
+            fsVer.Dispose();
           }
           catch (Exception)
           {
-            // ignore, treat as invalid
+            //invalid - return a default
           }
-          fsVer.Dispose();
         }
-        catch (Exception)
+
+
+        // if no data (either no file, or bad data
+        if (bytBuffer.Length == 0)
         {
-          //invalid - return a default
+          //no agidata.ovl
+          //if version3 is set
+          if (agIsVersion3)
+          {
+            //use default v3
+            return "3.002149"; //most common version 3
+          }
+          else
+          {
+            //use default version  2.917
+            return "2.917";
+          }
         }
-      }
+
+        // now try to extract the version
+        long lngPos = 0;
+        //go until a '2' or '3' is found
+        while (lngPos >= bytBuffer.Length)
+        {
+          //this function gets the version number of a Sierra AGI game
+          //if found, it is validated against list of versions
+          //that WinAGI recognizes
+          //
+          //returns version number for a valid number
+          //returns null string for invalid number
 
 
-      // if no data (either no file, or bad data
-      if (bytBuffer.Length == 0)
-      {
-        //no agidata.ovl
+          string strVersion;
+          int i;
+          //check char
+          switch (bytBuffer[lngPos])
+          {
+            case 50: //2.xxx format
+              strVersion = "2";
+              //get next four chars
+              for (i = 1; i <= 4; i++)
+              {
+                lngPos++;
+                //just in case, check for end of buffer
+                if (lngPos >= bytBuffer.Length)
+                {
+                  break;
+                }
+                //add this char
+                strVersion += bytBuffer[lngPos].ToString();
+              }
+
+              //validate this version
+              if (IntVersions.Contains(strVersion))
+              //if (ValidateVersion(strVersion))
+              {
+                //return it
+                return strVersion;
+              }
+              break;
+
+            case 51: //3.xxx.xxx format (for easier manipulation, the second '.' is
+                     //removed, so result can be converted to a single precision number)
+              strVersion = "3";
+              //get next seven chars
+              for (i = 1; i <= 7; i++)
+              {
+                lngPos++;
+                //just in case, check for end of buffer
+                if (lngPos >= bytBuffer.Length)
+                {
+                  break;
+                }
+
+                //add this char (unless it's the second period)
+                if (lngPos != 4)
+                {
+                  strVersion += bytBuffer[lngPos].ToString();
+                }
+              }
+
+              //validate this version
+              if (IntVersions.Contains(strVersion))
+              //if (ValidateVersion(strVersion))
+              {
+                //return it
+                return strVersion;
+              }
+              break;
+          }
+
+          //increment pointer
+          lngPos++;
+        }
+
+        //if version info not found in AGIDATA.OVL
+
         //if version3 is set
         if (agIsVersion3)
         {
-          //use default v3
-          return "3.002149"; //most common version 3
+          return "3.002149"; //most common version 3?
         }
         else
         {
-          //use default version  2.917
-          return "2.917";
+          return "2.917";  // This is what we use if we can't find the version number.
+                           // Version 2.917 is the most common interpreter and
+                           // the one that all the "new" AGI games should be based on.
         }
       }
-
-      // now try to extract the version
-      long lngPos = 0;
-      //go until a '2' or '3' is found
-      while (lngPos >= bytBuffer.Length)
+      internal static void RestoreDefaultColors()
       {
-        //this function gets the version number of a Sierra AGI game
-        //if found, it is validated against list of versions
-        //that WinAGI recognizes
-        //
-        //returns version number for a valid number
-        //returns null string for invalid number
+        //(note that reverse colors  are in RRGGBB format)
+        lngEGARevCol[0] = 0; //black
+        lngEGARevCol[1] = 0xA0; //blue
+        lngEGARevCol[2] = 0xA000; //green
+        lngEGARevCol[3] = 0xA0A0; //cyan
+        lngEGARevCol[4] = 0xA00000; //red
+        lngEGARevCol[5] = 0x8000A0; //magenta
+        lngEGARevCol[6] = 0xA05000; //brown
+        lngEGARevCol[7] = 0xA0A0A0; //light gray
+        lngEGARevCol[8] = 0x505050; //dark gray
+        lngEGARevCol[9] = 0x5050FF; //light blue
+        lngEGARevCol[10] = 0xFF50; //light green
+        lngEGARevCol[11] = 0x50FFFF; //light cyan
+        lngEGARevCol[12] = 0xFF5050; //light red
+        lngEGARevCol[13] = 0xFF50FF; //light magenta
+        lngEGARevCol[14] = 0xFFFF50; //yellow
+        lngEGARevCol[15] = 0xFFFFFF; //white
+                                     //note regular colors are; //bbggrr' format
+        lngEGACol[0] = 0; //black
+        lngEGACol[1] = 0xA00000; //blue
+        lngEGACol[2] = 0xA000; //green
+        lngEGACol[3] = 0xA0A000; //cyan
+        lngEGACol[4] = 0xA0; //red
+        lngEGACol[5] = 0xA00080; //magenta
+        lngEGACol[6] = 0x50A0; //brown
+        lngEGACol[7] = 0xA0A0A0; //light gray
+        lngEGACol[8] = 0x505050; //dark gray
+        lngEGACol[9] = 0xFF5050; //light blue
+        lngEGACol[10] = 0x50FF00; //light green
+        lngEGACol[11] = 0xFFFF50; //light cyan
+        lngEGACol[12] = 0x5050FF; //light red
+        lngEGACol[13] = 0xFF50FF; //light magenta
+        lngEGACol[14] = 0x50FFFF; //yellow
+        lngEGACol[15] = 0xFFFFFF; //white
+      }
+      public static bool IsValidGameDir(string strDir)
+      {
+        string strFile;
+        byte[] bChunk = new byte[6];
+        FileStream fsCOM;
 
-
-        string strVersion;
-        int i;
-        //check char
-        switch (bytBuffer[lngPos])
+        //this function will determine if the strDir is a
+        //valid sierra AGI game directory
+        //it also sets the gameID, if one is found and the version3 flag
+        //search for 'DIR' files
+        int dirCount = Directory.EnumerateFiles(strDir, "*DIR").Count();
+        if (dirCount > 0)
         {
-          case 50: //2.xxx format
-            strVersion = "2";
-            //get next four chars
-            for (i = 1; i <= 4; i++)
-            {
-              lngPos++;
-              //just in case, check for end of buffer
-              if (lngPos >= bytBuffer.Length)
-              {
-                break;
-              }
-              //add this char
-              strVersion += bytBuffer[lngPos].ToString();
-            }
-
-            //validate this version
-            if (IntVersions.Contains(strVersion))
-            //if (ValidateVersion(strVersion))
-            {
-              //return it
-              return strVersion;
-            }
-            break;
-
-          case 51: //3.xxx.xxx format (for easier manipulation, the second '.' is
-                   //removed, so result can be converted to a single precision number)
-            strVersion = "3";
-            //get next seven chars
-            for (i = 1; i <= 7; i++)
-            {
-              lngPos++;
-              //just in case, check for end of buffer
-              if (lngPos >= bytBuffer.Length)
-              {
-                break;
-              }
-
-              //add this char (unless it's the second period)
-              if (lngPos != 4)
-              {
-                strVersion += bytBuffer[lngPos].ToString();
-              }
-            }
-
-            //validate this version
-            if (IntVersions.Contains(strVersion))
-            //if (ValidateVersion(strVersion))
-            {
-              //return it
-              return strVersion;
-            }
-            break;
-        }
-
-        //increment pointer
-        lngPos++;
-      }
-
-      //if version info not found in AGIDATA.OVL
-
-      //if version3 is set
-      if (agIsVersion3)
-      {
-        return "3.002149"; //most common version 3?
-      }
-      else
-      {
-        return "2.917";  // This is what we use if we can't find the version number.
-                         // Version 2.917 is the most common interpreter and
-                         // the one that all the "new" AGI games should be based on.
-      }
-    }
-    internal static void RestoreDefaultColors()
-    {
-      //(note that reverse colors  are in RRGGBB format)
-      lngEGARevCol[0] = 0; //black
-      lngEGARevCol[1] = 0xA0; //blue
-      lngEGARevCol[2] = 0xA000; //green
-      lngEGARevCol[3] = 0xA0A0; //cyan
-      lngEGARevCol[4] = 0xA00000; //red
-      lngEGARevCol[5] = 0x8000A0; //magenta
-      lngEGARevCol[6] = 0xA05000; //brown
-      lngEGARevCol[7] = 0xA0A0A0; //light gray
-      lngEGARevCol[8] = 0x505050; //dark gray
-      lngEGARevCol[9] = 0x5050FF; //light blue
-      lngEGARevCol[10] = 0xFF50; //light green
-      lngEGARevCol[11] = 0x50FFFF; //light cyan
-      lngEGARevCol[12] = 0xFF5050; //light red
-      lngEGARevCol[13] = 0xFF50FF; //light magenta
-      lngEGARevCol[14] = 0xFFFF50; //yellow
-      lngEGARevCol[15] = 0xFFFFFF; //white
-                                   //note regular colors are; //bbggrr' format
-      lngEGACol[0] = 0; //black
-      lngEGACol[1] = 0xA00000; //blue
-      lngEGACol[2] = 0xA000; //green
-      lngEGACol[3] = 0xA0A000; //cyan
-      lngEGACol[4] = 0xA0; //red
-      lngEGACol[5] = 0xA00080; //magenta
-      lngEGACol[6] = 0x50A0; //brown
-      lngEGACol[7] = 0xA0A0A0; //light gray
-      lngEGACol[8] = 0x505050; //dark gray
-      lngEGACol[9] = 0xFF5050; //light blue
-      lngEGACol[10] = 0x50FF00; //light green
-      lngEGACol[11] = 0xFFFF50; //light cyan
-      lngEGACol[12] = 0x5050FF; //light red
-      lngEGACol[13] = 0xFF50FF; //light magenta
-      lngEGACol[14] = 0x50FFFF; //yellow
-      lngEGACol[15] = 0xFFFFFF; //white
-    }
-    public static bool IsValidGameDir(string strDir)
-    {
-      string strFile;
-      byte[] bChunk = new byte[6];
-      FileStream fsCOM;
-
-      //this function will determine if the strDir is a
-      //valid sierra AGI game directory
-      //it also sets the gameID, if one is found and the version3 flag
-      //search for 'DIR' files
-      int dirCount = Directory.EnumerateFiles(strDir, "*DIR").Count();
-      if (dirCount > 0)
-      {
-        //this might be an AGI game directory-
-        // if exactly four dir files
-        if (dirCount == 4)
-        {
-          // assume it's a v2 game
-
-          // check for at least one VOL file
-          if (File.Exists(strDir + "VOL.0"))
+          //this might be an AGI game directory-
+          // if exactly four dir files
+          if (dirCount == 4)
           {
-            //clear version3 flag
-            agIsVersion3 = false;
+            // assume it's a v2 game
 
-            //clear ID
-            agGameID = "";
-
-            //look for loader file to find ID
-            foreach (string strLoader in Directory.EnumerateFiles(strDir, "*.COM"))
+            // check for at least one VOL file
+            if (File.Exists(strDir + "VOL.0"))
             {
-              //open file and get chunk
-              string strChunk = new string(' ', 6);
-              using (fsCOM = new FileStream(strLoader, FileMode.Open))
-              {
-                // see if the word 'LOADER' is at position 3 of the file
-                fsCOM.Position = 3;
-                fsCOM.Read(bChunk, 0, 6);
-                strChunk = Encoding.UTF8.GetString(bChunk);
-                fsCOM.Dispose();
+              //clear version3 flag
+              agIsVersion3 = false;
 
-                //if this is a Sierra loader
-                if (strChunk == "LOADER")
+              //clear ID
+              agGameID = "";
+
+              //look for loader file to find ID
+              foreach (string strLoader in Directory.EnumerateFiles(strDir, "*.COM"))
+              {
+                //open file and get chunk
+                string strChunk = new string(' ', 6);
+                using (fsCOM = new FileStream(strLoader, FileMode.Open))
                 {
-                  // determine ID to use
-                  //if not SIERRA.COM
-                  strFile = JustFileName(strLoader);
-                  if (strLoader != "SIERRA.COM")
+                  // see if the word 'LOADER' is at position 3 of the file
+                  fsCOM.Position = 3;
+                  fsCOM.Read(bChunk, 0, 6);
+                  strChunk = Encoding.UTF8.GetString(bChunk);
+                  fsCOM.Dispose();
+
+                  //if this is a Sierra loader
+                  if (strChunk == "LOADER")
                   {
-                    //use this filename as ID
-                    agGameID = Left(strFile, strFile.Length - 4).ToUpper();
-                    return true;
+                    // determine ID to use
+                    //if not SIERRA.COM
+                    strFile = JustFileName(strLoader);
+                    if (strLoader != "SIERRA.COM")
+                    {
+                      //use this filename as ID
+                      agGameID = Left(strFile, strFile.Length - 4).ToUpper();
+                      return true;
+                    }
                   }
                 }
               }
+
+              //if no loader file found (looped through all files, no luck)
+              //use default
+              agGameID = "AGI";
+              return true;
+            }
+          }
+          else if (dirCount == 1)
+          {
+            //if only one, it's probably v3 game
+            strFile = Directory.GetFiles(strNewDir, "*DIR")[0].ToUpper();
+            agGameID = Left(strFile, strFile.IndexOf("DIR"));
+
+            // check for matching VOL file;
+            if (File.Exists(strDir + agGameID + "VOL.0"))
+            {
+              //set version3 flag
+              agIsVersion3 = true;
+              return true;
             }
 
-            //if no loader file found (looped through all files, no luck)
-            //use default
-            agGameID = "AGI";
-            return true;
+            //if no vol file, assume not valid
+            agGameID = "";
+            return false;
           }
         }
-        else if (dirCount == 1)
-        {
-          //if only one, it's probably v3 game
-          strFile = Directory.GetFiles(strNewDir, "*DIR")[0].ToUpper();
-          agGameID = Left(strFile, strFile.IndexOf("DIR"));
 
-          // check for matching VOL file;
-          if (File.Exists(strDir + agGameID + "VOL.0"))
-          {
-            //set version3 flag
-            agIsVersion3 = true;
-            return true;
-          }
-
-          //if no vol file, assume not valid
-          agGameID = "";
-          return false;
-        }
+        // no valid files/loader found; not an AGI directory
+        return false;
       }
+      internal static void ConvertWag()
+      {
+        /*  
+        //   'converts a v1.2.1 propfile to current version proplist
 
-      // no valid files/loader found; not an AGI directory
-      return false;
+        //  '1.2.1 properties use the following format for the property file:
+        //  ' CPRLL<data>
+        //  'where C= PropCode, P=PropNum, R=ResNum, LL=length of data (as integer)
+        //  '      <data>= property data
+        //  'last line of file should be version code
+
+        //  Dim intFile As Integer
+        //  Dim bytData() As Byte
+        //  Dim lngCount As Long, lngPos As Long
+        //  Dim strValue As String
+        //  Dim i As Long, lngColor As Long
+        //  Dim ResNum As Byte, PropType As Byte
+        //  Dim PropCode As Byte, PropSize As Long
+        //  Dim blnFoundID As Boolean, blnFoundVer As Boolean
+
+
+        //  On Error GoTo ErrHandler
+
+        //  'remove everything except first line in wag file
+        //  Do Until agGameProps.Count = 1
+        //    agGameProps.Delete agGameProps.Count - 1
+        //  Loop
+        //  agGameProps.Add "#"
+        //  agGameProps.Add "# WinAGI Game Property File"
+        //  agGameProps.Add "# converted from version 1.2.1"
+        //  agGameProps.Add "#"
+        //  agGameProps.Add "[General]"
+        //  agGameProps.Add "   WinAGIVersion = " & WINAGI_VERSION
+
+        //  'open old file
+        //  intFile = FreeFile()
+        //  Open agGameFile For Binary As intFile
+
+        //  'verify version
+        //  strValue = String$(16, 0)
+        //  'adjust position to compensate for length of variable
+        //  '(and fact that get is '1' based): LOF - 16 + 1
+        //  Get intFile, LOF(intFile) - 15, strValue
+
+        //  'if version is incompatible
+        //  Select Case strValue
+        //  Case WINAGI_VERSION_1_2, WINAGI_VERSION_1_0, WINAGI_VERSION_BETA
+        //    'ok
+        //  Case Else
+        //    Close intFile
+        //    'return nothing
+        //    Set agGameProps = Nothing
+        //    Exit Sub
+        //  End Select
+
+        //  'don't copy version line into buffer
+        //  lngCount = LOF(intFile) - 16
+        //  If lngCount > 0 Then
+        //    ReDim bytData(lngCount - 1)
+        //    Get intFile, 1, bytData
+        //  Else
+        //    'set to zero
+        //    lngCount = 0
+        //  End If
+        //  Close intFile
+        //  lngPos = 0
+
+        //  'get codes
+        //  Do Until lngPos >= lngCount
+        //    'reset propval
+        //    strValue = vbNullString
+        //    'get prop code
+        //    PropCode = bytData(lngPos)
+        //    PropType = bytData(lngPos + 1)
+        //    ResNum = bytData(lngPos + 2)
+        //    PropSize = bytData(lngPos + 3) + 256 * bytData(lngPos + 4)
+        //    For i = 1 To PropSize
+        //      strValue = strValue & Chr$(bytData(lngPos + 4 + i))
+        //    Next i
+
+
+        //    Select Case PropCode
+        //    Case Is >= PC_LOGIC
+        //      Select Case PropCode
+        //      Case PC_LOGIC
+        //        Select Case PropType
+        //        Case PT_ID
+        //          WriteGameSetting "Logic" & CStr(ResNum), "ID", strValue, "Logics"
+        //        Case PT_DESC
+        //          WriteGameSetting "Logic" & CStr(ResNum), "Description", strValue, "Logics"
+        //        Case PT_CRC32
+        //          WriteGameSetting "Logic" & CStr(ResNum), "CRC32", "&H" & strValue, "Logics"
+        //        Case PT_COMPCRC32
+        //          WriteGameSetting "Logic" & CStr(ResNum), "CompCRC32", "&H" & strValue, "Logics"
+        //        Case PT_ROOM
+        //          If ResNum = 0 Then
+        //            'force to false
+        //            strValue = "False"
+        //          End If
+        //          WriteGameSetting "Logic" & CStr(ResNum), "IsRoom", strValue, "Logics"
+        //        Case PT_SIZE
+        //          WriteGameSetting "Logic" & CStr(ResNum), "Size", strValue, "Logics"
+
+        //        Case Else
+        //          'unknown code; ignore it
+        //          '*'Debug.Assert False
+        //        End Select
+
+
+        //      Case PC_PICTURE
+        //        Select Case PropType
+        //        Case PT_ID
+        //          WriteGameSetting "Picture" & CStr(ResNum), "ID", strValue, "Pictures"
+        //        Case PT_DESC
+        //          WriteGameSetting "Picture" & CStr(ResNum), "Description", strValue, "Pictures"
+        //        Case PT_SIZE
+        //          WriteGameSetting "Picture" & CStr(ResNum), "Size", strValue, "Pictures"
+        //        Case PT_BKIMG
+        //          WriteGameSetting "Picture" & CStr(ResNum), "BkgdImg", strValue, "Pictures"
+        //        Case PT_BKPOS
+        //          WriteGameSetting "Picture" & CStr(ResNum), "BkgdPosn", strValue, "Pictures"
+        //        Case PT_BKSZ
+        //          WriteGameSetting "Picture" & CStr(ResNum), "BkgdSize", strValue, "Pictures"
+        //        Case PT_BKTRANS
+        //          WriteGameSetting "Picture" & CStr(ResNum), "BkgdTrans", strValue, "Pictures"
+        //        Case Else
+        //          'unknown code; ignore it
+        //          '*'Debug.Assert False
+        //        End Select
+
+
+        //      Case PC_SOUND
+        //        Select Case PropType
+        //        Case PT_ID
+        //          WriteGameSetting "Sound" & CStr(ResNum), "ID", strValue, "Sounds"
+        //        Case PT_DESC
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Description", strValue, "Sounds"
+        //        Case PT_SIZE
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Size", strValue, "Sounds"
+        //        Case PT_KEY
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Key", strValue, "Sounds"
+        //        Case PT_TPQN
+        //          WriteGameSetting "Sound" & CStr(ResNum), "TQPN", strValue, "Sounds"
+        //        Case PT_INST0
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Inst0", strValue, "Sounds"
+        //        Case PT_INST1
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Inst1", strValue, "Sounds"
+        //        Case PT_INST2
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Inst2", strValue, "Sounds"
+        //        Case PT_MUTE0
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Mute0", strValue, "Sounds"
+        //        Case PT_MUTE1
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Mute1", strValue, "Sounds"
+        //        Case PT_MUTE2
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Mute2", strValue, "Sounds"
+        //        Case PT_MUTE3
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Mute3", strValue, "Sounds"
+        //        Case PT_VIS0
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Visible0", strValue, "Sounds"
+        //        Case PT_VIS1
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Visible1", strValue, "Sounds"
+        //        Case PT_VIS2
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Visible2", strValue, "Sounds"
+        //        Case PT_VIS3
+        //          WriteGameSetting "Sound" & CStr(ResNum), "Visible3", strValue, "Sounds"
+        //        Case Else
+        //          'unknown code; ignore it
+        //          '*'Debug.Assert False
+        //        End Select
+
+
+        //      Case PC_VIEW
+        //        Select Case PropType
+        //        Case PT_ID
+        //          WriteGameSetting "View" & CStr(ResNum), "ID", strValue, "Views"
+        //        Case PT_DESC
+        //          WriteGameSetting "View" & CStr(ResNum), "Description", strValue, "Views"
+        //        Case PT_SIZE
+        //          WriteGameSetting "View" & CStr(ResNum), "Size", strValue, "Views"
+        //        Case Else
+        //          'unknown code; ignore it
+        //          '*'Debug.Assert False
+        //        End Select
+        //      End Select
+
+
+        //    Case PC_GAMEDESC
+        //      WriteGameSetting "General", "Description", strValue
+
+        //    Case PC_GAMEAUTHOR
+        //      WriteGameSetting "General", "Author", strValue
+
+
+        //    Case PC_GAMEID
+        //    blnFoundID = Len(strValue) > 0
+        //      WriteGameSetting "General", "GameID", strValue
+
+        //    Case PC_INTVERSION
+        //      WriteGameSetting "General", "Interpreter", strValue
+        //      blnFoundVer = Len(strValue) > 0
+
+        //    Case PC_GAMEABOUT
+        //      WriteGameSetting "General", "About", strValue
+
+        //    Case PC_GAMEVERSION
+        //      WriteGameSetting "General", "GameVersion", strValue
+
+
+        //    Case PC_RESDIR
+        //      WriteGameSetting "General", "ResDir", strValue
+
+        //    Case PC_GAMELAST
+        //      WriteGameSetting "General", "LastEdit", strValue
+
+
+        //    Case PC_INVOBJDESC
+        //      WriteGameSetting "OBJECT", "Description", strValue
+
+        //    Case PC_VOCABWORDDESC
+        //      WriteGameSetting "WORDS.TOK", "Description", strValue
+
+
+        //    Case PC_GAMEEXEC
+        //      '''WriteGameSetting "General", "Exec", strValue
+        //      'Exec property no longer supported
+        //    Case PC_PALETTE
+        //      'convert the color bytes into long values
+        //      For i = 0 To 15
+        //        strValue = PadHex(bytData(lngPos + 5 + 4 * i)) & PadHex(bytData(lngPos + 6 + 4 * i)) & PadHex(bytData(lngPos + 7 + 4 * i)) & PadHex(bytData(lngPos + 8 + 4 * i))
+        //        WriteGameSetting "Palette", "Color" & CStr(i), strValue
+        //      Next i
+
+        //    Case PC_USERESNAMES
+        //      WriteGameSetting "General", "UseResNames", strValue
+
+
+        //    Case Else
+        //      'ignore
+        //    End Select
+
+        //    'add offset to next code (length +5)
+        //    lngPos = lngPos + PropSize + 5
+        //  Loop
+
+        //  'if no id and no intver
+        //  If Not blnFoundID Or Not blnFoundVer Then
+        //    Set agGameProps = Nothing
+        //  End If
+
+        //Exit Sub
+
+        //ErrHandler:
+        //  '*'Debug.Assert False
+        //  Resume Next
+        //  Set agGameProps = Nothing
+              */
+      }
     }
-    internal static void ConvertWag()
-    { 
-/*  
-//   'converts a v1.2.1 propfile to current version proplist
-  
-//  '1.2.1 properties use the following format for the property file:
-//  ' CPRLL<data>
-//  'where C= PropCode, P=PropNum, R=ResNum, LL=length of data (as integer)
-//  '      <data>= property data
-//  'last line of file should be version code
-  
-//  Dim intFile As Integer
-//  Dim bytData() As Byte
-//  Dim lngCount As Long, lngPos As Long
-//  Dim strValue As String
-//  Dim i As Long, lngColor As Long
-//  Dim ResNum As Byte, PropType As Byte
-//  Dim PropCode As Byte, PropSize As Long
-//  Dim blnFoundID As Boolean, blnFoundVer As Boolean
-
-
-//  On Error GoTo ErrHandler
-  
-//  'remove everything except first line in wag file
-//  Do Until agGameProps.Count = 1
-//    agGameProps.Delete agGameProps.Count - 1
-//  Loop
-//  agGameProps.Add "#"
-//  agGameProps.Add "# WinAGI Game Property File"
-//  agGameProps.Add "# converted from version 1.2.1"
-//  agGameProps.Add "#"
-//  agGameProps.Add "[General]"
-//  agGameProps.Add "   WinAGIVersion = " & WINAGI_VERSION
-  
-//  'open old file
-//  intFile = FreeFile()
-//  Open agGameFile For Binary As intFile
-  
-//  'verify version
-//  strValue = String$(16, 0)
-//  'adjust position to compensate for length of variable
-//  '(and fact that get is '1' based): LOF - 16 + 1
-//  Get intFile, LOF(intFile) - 15, strValue
-  
-//  'if version is incompatible
-//  Select Case strValue
-//  Case WINAGI_VERSION_1_2, WINAGI_VERSION_1_0, WINAGI_VERSION_BETA
-//    'ok
-//  Case Else
-//    Close intFile
-//    'return nothing
-//    Set agGameProps = Nothing
-//    Exit Sub
-//  End Select
-  
-//  'don't copy version line into buffer
-//  lngCount = LOF(intFile) - 16
-//  If lngCount > 0 Then
-//    ReDim bytData(lngCount - 1)
-//    Get intFile, 1, bytData
-//  Else
-//    'set to zero
-//    lngCount = 0
-//  End If
-//  Close intFile
-//  lngPos = 0
-   
-//  'get codes
-//  Do Until lngPos >= lngCount
-//    'reset propval
-//    strValue = vbNullString
-//    'get prop code
-//    PropCode = bytData(lngPos)
-//    PropType = bytData(lngPos + 1)
-//    ResNum = bytData(lngPos + 2)
-//    PropSize = bytData(lngPos + 3) + 256 * bytData(lngPos + 4)
-//    For i = 1 To PropSize
-//      strValue = strValue & Chr$(bytData(lngPos + 4 + i))
-//    Next i
-
-
-//    Select Case PropCode
-//    Case Is >= PC_LOGIC
-//      Select Case PropCode
-//      Case PC_LOGIC
-//        Select Case PropType
-//        Case PT_ID
-//          WriteGameSetting "Logic" & CStr(ResNum), "ID", strValue, "Logics"
-//        Case PT_DESC
-//          WriteGameSetting "Logic" & CStr(ResNum), "Description", strValue, "Logics"
-//        Case PT_CRC32
-//          WriteGameSetting "Logic" & CStr(ResNum), "CRC32", "&H" & strValue, "Logics"
-//        Case PT_COMPCRC32
-//          WriteGameSetting "Logic" & CStr(ResNum), "CompCRC32", "&H" & strValue, "Logics"
-//        Case PT_ROOM
-//          If ResNum = 0 Then
-//            'force to false
-//            strValue = "False"
-//          End If
-//          WriteGameSetting "Logic" & CStr(ResNum), "IsRoom", strValue, "Logics"
-//        Case PT_SIZE
-//          WriteGameSetting "Logic" & CStr(ResNum), "Size", strValue, "Logics"
-          
-//        Case Else
-//          'unknown code; ignore it
-//          '*'Debug.Assert False
-//        End Select
-
-
-//      Case PC_PICTURE
-//        Select Case PropType
-//        Case PT_ID
-//          WriteGameSetting "Picture" & CStr(ResNum), "ID", strValue, "Pictures"
-//        Case PT_DESC
-//          WriteGameSetting "Picture" & CStr(ResNum), "Description", strValue, "Pictures"
-//        Case PT_SIZE
-//          WriteGameSetting "Picture" & CStr(ResNum), "Size", strValue, "Pictures"
-//        Case PT_BKIMG
-//          WriteGameSetting "Picture" & CStr(ResNum), "BkgdImg", strValue, "Pictures"
-//        Case PT_BKPOS
-//          WriteGameSetting "Picture" & CStr(ResNum), "BkgdPosn", strValue, "Pictures"
-//        Case PT_BKSZ
-//          WriteGameSetting "Picture" & CStr(ResNum), "BkgdSize", strValue, "Pictures"
-//        Case PT_BKTRANS
-//          WriteGameSetting "Picture" & CStr(ResNum), "BkgdTrans", strValue, "Pictures"
-//        Case Else
-//          'unknown code; ignore it
-//          '*'Debug.Assert False
-//        End Select
-
-
-//      Case PC_SOUND
-//        Select Case PropType
-//        Case PT_ID
-//          WriteGameSetting "Sound" & CStr(ResNum), "ID", strValue, "Sounds"
-//        Case PT_DESC
-//          WriteGameSetting "Sound" & CStr(ResNum), "Description", strValue, "Sounds"
-//        Case PT_SIZE
-//          WriteGameSetting "Sound" & CStr(ResNum), "Size", strValue, "Sounds"
-//        Case PT_KEY
-//          WriteGameSetting "Sound" & CStr(ResNum), "Key", strValue, "Sounds"
-//        Case PT_TPQN
-//          WriteGameSetting "Sound" & CStr(ResNum), "TQPN", strValue, "Sounds"
-//        Case PT_INST0
-//          WriteGameSetting "Sound" & CStr(ResNum), "Inst0", strValue, "Sounds"
-//        Case PT_INST1
-//          WriteGameSetting "Sound" & CStr(ResNum), "Inst1", strValue, "Sounds"
-//        Case PT_INST2
-//          WriteGameSetting "Sound" & CStr(ResNum), "Inst2", strValue, "Sounds"
-//        Case PT_MUTE0
-//          WriteGameSetting "Sound" & CStr(ResNum), "Mute0", strValue, "Sounds"
-//        Case PT_MUTE1
-//          WriteGameSetting "Sound" & CStr(ResNum), "Mute1", strValue, "Sounds"
-//        Case PT_MUTE2
-//          WriteGameSetting "Sound" & CStr(ResNum), "Mute2", strValue, "Sounds"
-//        Case PT_MUTE3
-//          WriteGameSetting "Sound" & CStr(ResNum), "Mute3", strValue, "Sounds"
-//        Case PT_VIS0
-//          WriteGameSetting "Sound" & CStr(ResNum), "Visible0", strValue, "Sounds"
-//        Case PT_VIS1
-//          WriteGameSetting "Sound" & CStr(ResNum), "Visible1", strValue, "Sounds"
-//        Case PT_VIS2
-//          WriteGameSetting "Sound" & CStr(ResNum), "Visible2", strValue, "Sounds"
-//        Case PT_VIS3
-//          WriteGameSetting "Sound" & CStr(ResNum), "Visible3", strValue, "Sounds"
-//        Case Else
-//          'unknown code; ignore it
-//          '*'Debug.Assert False
-//        End Select
-
-
-//      Case PC_VIEW
-//        Select Case PropType
-//        Case PT_ID
-//          WriteGameSetting "View" & CStr(ResNum), "ID", strValue, "Views"
-//        Case PT_DESC
-//          WriteGameSetting "View" & CStr(ResNum), "Description", strValue, "Views"
-//        Case PT_SIZE
-//          WriteGameSetting "View" & CStr(ResNum), "Size", strValue, "Views"
-//        Case Else
-//          'unknown code; ignore it
-//          '*'Debug.Assert False
-//        End Select
-//      End Select
-
-
-//    Case PC_GAMEDESC
-//      WriteGameSetting "General", "Description", strValue
-
-//    Case PC_GAMEAUTHOR
-//      WriteGameSetting "General", "Author", strValue
-
-
-//    Case PC_GAMEID
-//    blnFoundID = Len(strValue) > 0
-//      WriteGameSetting "General", "GameID", strValue
-
-//    Case PC_INTVERSION
-//      WriteGameSetting "General", "Interpreter", strValue
-//      blnFoundVer = Len(strValue) > 0
-      
-//    Case PC_GAMEABOUT
-//      WriteGameSetting "General", "About", strValue
-
-//    Case PC_GAMEVERSION
-//      WriteGameSetting "General", "GameVersion", strValue
-
-
-//    Case PC_RESDIR
-//      WriteGameSetting "General", "ResDir", strValue
-
-//    Case PC_GAMELAST
-//      WriteGameSetting "General", "LastEdit", strValue
-
-
-//    Case PC_INVOBJDESC
-//      WriteGameSetting "OBJECT", "Description", strValue
-
-//    Case PC_VOCABWORDDESC
-//      WriteGameSetting "WORDS.TOK", "Description", strValue
-
-
-//    Case PC_GAMEEXEC
-//      '''WriteGameSetting "General", "Exec", strValue
-//      'Exec property no longer supported
-//    Case PC_PALETTE
-//      'convert the color bytes into long values
-//      For i = 0 To 15
-//        strValue = PadHex(bytData(lngPos + 5 + 4 * i)) & PadHex(bytData(lngPos + 6 + 4 * i)) & PadHex(bytData(lngPos + 7 + 4 * i)) & PadHex(bytData(lngPos + 8 + 4 * i))
-//        WriteGameSetting "Palette", "Color" & CStr(i), strValue
-//      Next i
-
-//    Case PC_USERESNAMES
-//      WriteGameSetting "General", "UseResNames", strValue
-
-
-//    Case Else
-//      'ignore
-//    End Select
-    
-//    'add offset to next code (length +5)
-//    lngPos = lngPos + PropSize + 5
-//  Loop
-  
-//  'if no id and no intver
-//  If Not blnFoundID Or Not blnFoundVer Then
-//    Set agGameProps = Nothing
-//  End If
-
-//Exit Sub
-
-//ErrHandler:
-//  '*'Debug.Assert False
-//  Resume Next
-//  Set agGameProps = Nothing
-      */
-}
-}
-}
+  }
