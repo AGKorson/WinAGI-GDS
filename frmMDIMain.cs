@@ -96,14 +96,14 @@ namespace WinAGI_GDS
 
     private void btnNewRes_DropDownOpening(object sender, EventArgs e)
     {
-      //can we tell difference between clicking on arrow?
-      string sTest = "am123";
-      if ("vfmoisc".Any(sTest.ToLower().StartsWith))
-        MessageBox.Show("sTest is a marker");
-      else
-      {
-        MessageBox.Show("sTest is NOT a marker");
-      }
+      ////can we tell difference between clicking on arrow?
+      //string sTest = "am123";
+      //if ("vfmoisc".Any(sTest.ToLower().StartsWith))
+      //  MessageBox.Show("sTest is a marker");
+      //else
+      //{
+      //  MessageBox.Show("sTest is NOT a marker");
+      //}
     }
 
     private void frmMDIMain_Load(object sender, EventArgs e)

@@ -247,6 +247,56 @@ namespace WinAGI
     internal static readonly string CTRL_CHARS;
 
     internal const string WINAGI_VERSION = "3.0.1";
+    // old versions
+    internal const string WINAGI_VERSION_1_2 = "WINAGI v1.2     ";
+    internal const string WINAGI_VERSION_1_0 = "WINAGI v1.0     ";
+    internal const string WINAGI_VERSION_BETA = "1.0 BETA        ";
+    // old version property constants for loading/saving game & resource properties
+    internal const int SP_SEPARATOR = 128;
+    internal const int PC_GAMEDESC = 129;
+    internal const int PC_GAMEAUTHOR = 130;
+    internal const int PC_GAMEID = 131;
+    internal const int PC_INTVERSION = 132;
+    internal const int PC_GAMELAST = 133;
+    internal const int PC_GAMEVERSION = 134;
+    internal const int PC_GAMEABOUT = 135;
+    internal const int PC_GAMEEXEC = 136;
+    internal const int PC_RESDIR = 137;
+    internal const int PC_DEFSYNTAX = 138; //not used anymore...
+    internal const int PC_INVOBJDESC = 144;
+    internal const int PC_VOCABWORDDESC = 160;
+    internal const int PC_PALETTE = 172;
+    internal const int PC_USERESNAMES = 180;
+    internal const int PC_LOGIC = 192;
+    internal const int PC_PICTURE = 208;
+    internal const int PC_SOUND = 224;
+    internal const int PC_VIEW = 240;
+    internal const int PT_ID = 0;
+    internal const int PT_DESC = 1;
+    internal const int PT_COMPCRC32 = 2;
+    internal const int PT_CRC32 = 3;
+    internal const int PT_KEY = 4;
+    internal const int PT_INST0 = 5;
+    internal const int PT_INST1 = 6;
+    internal const int PT_INST2 = 7;
+    internal const int PT_MUTE0 = 8;
+    internal const int PT_MUTE1 = 9;
+    internal const int PT_MUTE2 = 10;
+    internal const int PT_MUTE3 = 11;
+    internal const int PT_TPQN = 12;
+    internal const int PT_ROOM = 13;
+    internal const int PT_VIS0 = 14;
+    internal const int PT_VIS1 = 15;
+    internal const int PT_VIS2 = 16;
+    internal const int PT_VIS3 = 17;
+    internal const int PT_BKIMG = 18;
+    internal const int PT_BKTRANS = 19;
+    internal const int PT_BKPOS = 20;
+    internal const int PT_BKSZ = 21;
+    internal const int PT_SIZE = 254;
+    internal const int PT_ALL = 255;
+
+
 
     //predefined arguments
     internal static bool agResAsText;  //if true, reserved variables and flags show up as text when decompiling
@@ -275,6 +325,7 @@ namespace WinAGI
       for (int i = 1; i < 32; i++)
         CTRL_CHARS += ((char)i).ToString();
 
+      CRC32Setup();
     }
 
     internal static string Right(string strIn, int length)
@@ -411,263 +462,22 @@ namespace WinAGI
     internal static void CRC32Setup()
     {
       //build the CRC table
-
-      CRC32Table[0] = 0x0;
-      CRC32Table[1] = 0x77073096;
-      CRC32Table[2] = 0xEE0E612C;
-      CRC32Table[3] = 0x990951BA;
-      CRC32Table[4] = 0x76DC419;
-      CRC32Table[5] = 0x706AF48F;
-      CRC32Table[6] = 0xE963A535;
-      CRC32Table[7] = 0x9E6495A3;
-      CRC32Table[8] = 0xEDB8832;
-      CRC32Table[9] = 0x79DCB8A4;
-      CRC32Table[10] = 0xE0D5E91E;
-      CRC32Table[11] = 0x97D2D988;
-      CRC32Table[12] = 0x9B64C2B;
-      CRC32Table[13] = 0x7EB17CBD;
-      CRC32Table[14] = 0xE7B82D07;
-      CRC32Table[15] = 0x90BF1D91;
-      CRC32Table[16] = 0x1DB71064;
-      CRC32Table[17] = 0x6AB020F2;
-      CRC32Table[18] = 0xF3B97148;
-      CRC32Table[19] = 0x84BE41DE;
-      CRC32Table[20] = 0x1ADAD47D;
-      CRC32Table[21] = 0x6DDDE4EB;
-      CRC32Table[22] = 0xF4D4B551;
-      CRC32Table[23] = 0x83D385C7;
-      CRC32Table[24] = 0x136C9856;
-      CRC32Table[25] = 0x646BA8C0;
-      CRC32Table[26] = 0xFD62F97A;
-      CRC32Table[27] = 0x8A65C9EC;
-      CRC32Table[28] = 0x14015C4F;
-      CRC32Table[29] = 0x63066CD9;
-      CRC32Table[30] = 0xFA0F3D63;
-      CRC32Table[31] = 0x8D080DF5;
-      CRC32Table[32] = 0x3B6E20C8;
-      CRC32Table[33] = 0x4C69105E;
-      CRC32Table[34] = 0xD56041E4;
-      CRC32Table[35] = 0xA2677172;
-      CRC32Table[36] = 0x3C03E4D1;
-      CRC32Table[37] = 0x4B04D447;
-      CRC32Table[38] = 0xD20D85FD;
-      CRC32Table[39] = 0xA50AB56B;
-      CRC32Table[40] = 0x35B5A8FA;
-      CRC32Table[41] = 0x42B2986C;
-      CRC32Table[42] = 0xDBBBC9D6;
-      CRC32Table[43] = 0xACBCF940;
-      CRC32Table[44] = 0x32D86CE3;
-      CRC32Table[45] = 0x45DF5C75;
-      CRC32Table[46] = 0xDCD60DCF;
-      CRC32Table[47] = 0xABD13D59;
-      CRC32Table[48] = 0x26D930AC;
-      CRC32Table[49] = 0x51DE003A;
-      CRC32Table[50] = 0xC8D75180;
-      CRC32Table[51] = 0xBFD06116;
-      CRC32Table[52] = 0x21B4F4B5;
-      CRC32Table[53] = 0x56B3C423;
-      CRC32Table[54] = 0xCFBA9599;
-      CRC32Table[55] = 0xB8BDA50F;
-      CRC32Table[56] = 0x2802B89E;
-      CRC32Table[57] = 0x5F058808;
-      CRC32Table[58] = 0xC60CD9B2;
-      CRC32Table[59] = 0xB10BE924;
-      CRC32Table[60] = 0x2F6F7C87;
-      CRC32Table[61] = 0x58684C11;
-      CRC32Table[62] = 0xC1611DAB;
-      CRC32Table[63] = 0xB6662D3D;
-      CRC32Table[64] = 0x76DC4190;
-      CRC32Table[65] = 0x1DB7106;
-      CRC32Table[66] = 0x98D220BC;
-      CRC32Table[67] = 0xEFD5102A;
-      CRC32Table[68] = 0x71B18589;
-      CRC32Table[69] = 0x6B6B51F;
-      CRC32Table[70] = 0x9FBFE4A5;
-      CRC32Table[71] = 0xE8B8D433;
-      CRC32Table[72] = 0x7807C9A2;
-      CRC32Table[73] = 0xF00F934;
-      CRC32Table[74] = 0x9609A88E;
-      CRC32Table[75] = 0xE10E9818;
-      CRC32Table[76] = 0x7F6A0DBB;
-      CRC32Table[77] = 0x86D3D2D;
-      CRC32Table[78] = 0x91646C97;
-      CRC32Table[79] = 0xE6635C01;
-      CRC32Table[80] = 0x6B6B51F4;
-      CRC32Table[81] = 0x1C6C6162;
-      CRC32Table[82] = 0x856530D8;
-      CRC32Table[83] = 0xF262004E;
-      CRC32Table[84] = 0x6C0695ED;
-      CRC32Table[85] = 0x1B01A57B;
-      CRC32Table[86] = 0x8208F4C1;
-      CRC32Table[87] = 0xF50FC457;
-      CRC32Table[88] = 0x65B0D9C6;
-      CRC32Table[89] = 0x12B7E950;
-      CRC32Table[90] = 0x8BBEB8EA;
-      CRC32Table[91] = 0xFCB9887C;
-      CRC32Table[92] = 0x62DD1DDF;
-      CRC32Table[93] = 0x15DA2D49;
-      CRC32Table[94] = 0x8CD37CF3;
-      CRC32Table[95] = 0xFBD44C65;
-      CRC32Table[96] = 0x4DB26158;
-      CRC32Table[97] = 0x3AB551CE;
-      CRC32Table[98] = 0xA3BC0074;
-      CRC32Table[99] = 0xD4BB30E2;
-      CRC32Table[100] = 0x4ADFA541;
-      CRC32Table[101] = 0x3DD895D7;
-      CRC32Table[102] = 0xA4D1C46D;
-      CRC32Table[103] = 0xD3D6F4FB;
-      CRC32Table[104] = 0x4369E96A;
-      CRC32Table[105] = 0x346ED9FC;
-      CRC32Table[106] = 0xAD678846;
-      CRC32Table[107] = 0xDA60B8D0;
-      CRC32Table[108] = 0x44042D73;
-      CRC32Table[109] = 0x33031DE5;
-      CRC32Table[110] = 0xAA0A4C5F;
-      CRC32Table[111] = 0xDD0D7CC9;
-      CRC32Table[112] = 0x5005713C;
-      CRC32Table[113] = 0x270241AA;
-      CRC32Table[114] = 0xBE0B1010;
-      CRC32Table[115] = 0xC90C2086;
-      CRC32Table[116] = 0x5768B525;
-      CRC32Table[117] = 0x206F85B3;
-      CRC32Table[118] = 0xB966D409;
-      CRC32Table[119] = 0xCE61E49F;
-      CRC32Table[120] = 0x5EDEF90E;
-      CRC32Table[121] = 0x29D9C998;
-      CRC32Table[122] = 0xB0D09822;
-      CRC32Table[123] = 0xC7D7A8B4;
-      CRC32Table[124] = 0x59B33D17;
-      CRC32Table[125] = 0x2EB40D81;
-      CRC32Table[126] = 0xB7BD5C3B;
-      CRC32Table[127] = 0xC0BA6CAD;
-      CRC32Table[128] = 0xEDB88320;
-      CRC32Table[129] = 0x9ABFB3B6;
-      CRC32Table[130] = 0x3B6E20C;
-      CRC32Table[131] = 0x74B1D29A;
-      CRC32Table[132] = 0xEAD54739;
-      CRC32Table[133] = 0x9DD277AF;
-      CRC32Table[134] = 0x4DB2615;
-      CRC32Table[135] = 0x73DC1683;
-      CRC32Table[136] = 0xE3630B12;
-      CRC32Table[137] = 0x94643B84;
-      CRC32Table[138] = 0xD6D6A3E;
-      CRC32Table[139] = 0x7A6A5AA8;
-      CRC32Table[140] = 0xE40ECF0B;
-      CRC32Table[141] = 0x9309FF9D;
-      CRC32Table[142] = 0xA00AE27;
-      CRC32Table[143] = 0x7D079EB1;
-      CRC32Table[144] = 0xF00F9344;
-      CRC32Table[145] = 0x8708A3D2;
-      CRC32Table[146] = 0x1E01F268;
-      CRC32Table[147] = 0x6906C2FE;
-      CRC32Table[148] = 0xF762575D;
-      CRC32Table[149] = 0x806567CB;
-      CRC32Table[150] = 0x196C3671;
-      CRC32Table[151] = 0x6E6B06E7;
-      CRC32Table[152] = 0xFED41B76;
-      CRC32Table[153] = 0x89D32BE0;
-      CRC32Table[154] = 0x10DA7A5A;
-      CRC32Table[155] = 0x67DD4ACC;
-      CRC32Table[156] = 0xF9B9DF6F;
-      CRC32Table[157] = 0x8EBEEFF9;
-      CRC32Table[158] = 0x17B7BE43;
-      CRC32Table[159] = 0x60B08ED5;
-      CRC32Table[160] = 0xD6D6A3E8;
-      CRC32Table[161] = 0xA1D1937E;
-      CRC32Table[162] = 0x38D8C2C4;
-      CRC32Table[163] = 0x4FDFF252;
-      CRC32Table[164] = 0xD1BB67F1;
-      CRC32Table[165] = 0xA6BC5767;
-      CRC32Table[166] = 0x3FB506DD;
-      CRC32Table[167] = 0x48B2364B;
-      CRC32Table[168] = 0xD80D2BDA;
-      CRC32Table[169] = 0xAF0A1B4C;
-      CRC32Table[170] = 0x36034AF6;
-      CRC32Table[171] = 0x41047A60;
-      CRC32Table[172] = 0xDF60EFC3;
-      CRC32Table[173] = 0xA867DF55;
-      CRC32Table[174] = 0x316E8EEF;
-      CRC32Table[175] = 0x4669BE79;
-      CRC32Table[176] = 0xCB61B38C;
-      CRC32Table[177] = 0xBC66831A;
-      CRC32Table[178] = 0x256FD2A0;
-      CRC32Table[179] = 0x5268E236;
-      CRC32Table[180] = 0xCC0C7795;
-      CRC32Table[181] = 0xBB0B4703;
-      CRC32Table[182] = 0x220216B9;
-      CRC32Table[183] = 0x5505262F;
-      CRC32Table[184] = 0xC5BA3BBE;
-      CRC32Table[185] = 0xB2BD0B28;
-      CRC32Table[186] = 0x2BB45A92;
-      CRC32Table[187] = 0x5CB36A04;
-      CRC32Table[188] = 0xC2D7FFA7;
-      CRC32Table[189] = 0xB5D0CF31;
-      CRC32Table[190] = 0x2CD99E8B;
-      CRC32Table[191] = 0x5BDEAE1D;
-      CRC32Table[192] = 0x9B64C2B0;
-      CRC32Table[193] = 0xEC63F226;
-      CRC32Table[194] = 0x756AA39C;
-      CRC32Table[195] = 0x26D930A;
-      CRC32Table[196] = 0x9C0906A9;
-      CRC32Table[197] = 0xEB0E363F;
-      CRC32Table[198] = 0x72076785;
-      CRC32Table[199] = 0x5005713;
-      CRC32Table[200] = 0x95BF4A82;
-      CRC32Table[201] = 0xE2B87A14;
-      CRC32Table[202] = 0x7BB12BAE;
-      CRC32Table[203] = 0xCB61B38;
-      CRC32Table[204] = 0x92D28E9B;
-      CRC32Table[205] = 0xE5D5BE0D;
-      CRC32Table[206] = 0x7CDCEFB7;
-      CRC32Table[207] = 0xBDBDF21;
-      CRC32Table[208] = 0x86D3D2D4;
-      CRC32Table[209] = 0xF1D4E242;
-      CRC32Table[210] = 0x68DDB3F8;
-      CRC32Table[211] = 0x1FDA836E;
-      CRC32Table[212] = 0x81BE16CD;
-      CRC32Table[213] = 0xF6B9265B;
-      CRC32Table[214] = 0x6FB077E1;
-      CRC32Table[215] = 0x18B74777;
-      CRC32Table[216] = 0x88085AE6;
-      CRC32Table[217] = 0xFF0F6A70;
-      CRC32Table[218] = 0x66063BCA;
-      CRC32Table[219] = 0x11010B5C;
-      CRC32Table[220] = 0x8F659EFF;
-      CRC32Table[221] = 0xF862AE69;
-      CRC32Table[222] = 0x616BFFD3;
-      CRC32Table[223] = 0x166CCF45;
-      CRC32Table[224] = 0xA00AE278;
-      CRC32Table[225] = 0xD70DD2EE;
-      CRC32Table[226] = 0x4E048354;
-      CRC32Table[227] = 0x3903B3C2;
-      CRC32Table[228] = 0xA7672661;
-      CRC32Table[229] = 0xD06016F7;
-      CRC32Table[230] = 0x4969474D;
-      CRC32Table[231] = 0x3E6E77DB;
-      CRC32Table[232] = 0xAED16A4A;
-      CRC32Table[233] = 0xD9D65ADC;
-      CRC32Table[234] = 0x40DF0B66;
-      CRC32Table[235] = 0x37D83BF0;
-      CRC32Table[236] = 0xA9BCAE53;
-      CRC32Table[237] = 0xDEBB9EC5;
-      CRC32Table[238] = 0x47B2CF7F;
-      CRC32Table[239] = 0x30B5FFE9;
-      CRC32Table[240] = 0xBDBDF21C;
-      CRC32Table[241] = 0xCABAC28A;
-      CRC32Table[242] = 0x53B39330;
-      CRC32Table[243] = 0x24B4A3A6;
-      CRC32Table[244] = 0xBAD03605;
-      CRC32Table[245] = 0xCDD70693;
-      CRC32Table[246] = 0x54DE5729;
-      CRC32Table[247] = 0x23D967BF;
-      CRC32Table[248] = 0xB3667A2E;
-      CRC32Table[249] = 0xC4614AB8;
-      CRC32Table[250] = 0x5D681B02;
-      CRC32Table[251] = 0x2A6F2B94;
-      CRC32Table[252] = 0xB40BBE37;
-      CRC32Table[253] = 0xC30C8EA1;
-      CRC32Table[254] = 0x5A05DF1B;
-      CRC32Table[255] = 0x2D02EF8D;
+      uint index = 0, z;
+      for (index = 0; index < 256; index++)
+      {
+        CRC32Table[index] = index;
+        for (z = 8; z != 0; z--)
+        {
+          if ((CRC32Table[index] & 1) == 1)
+          {
+            CRC32Table[index] = (CRC32Table[index] >> 1) ^ 0xEDB88320;
+          }
+          else
+          {
+            CRC32Table[index] = CRC32Table[index] >> 1;
+          }
+        }
+      }
 
       //set flag
       CRC32Loaded = true;
@@ -2188,643 +1998,723 @@ namespace WinAGI
             Default += "\"";
           }
         }
-          //if Default contains any carriage returns, replace them with control characters
-          if (Default.IndexOf("\r\n", 0) >= 0)
-          {
-            Default = Default.Replace("\r\n", "\\n");
-          }
-          if (Default.IndexOf("\r", 0) >= 0) {
-            Default = Default.Replace("\r", "\\n");
-          }
-          if (Default.IndexOf("\n", 1) >= 0)
-          {
-            Default = Default.Replace("\n", "\\n");
-          }
-          if (Default.Length == 0)
-          {
-            Default = "\"\"";
-          }
-
-          ConfigList.Insert(lngPos + 1, "   " + Key + " = " + Default);
-          return sReturn;
-        }
-      }
-      static int ReadSettingLong(List<string> ConfigList, string Section, string Key, int Default = 0)
-      {
-        //get the setting value; if it converts to long value, use it;
-        //if any kind of error, return the default value
-        string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-
-        if (strValue.Length == 0)
+        //if Default contains any carriage returns, replace them with control characters
+        if (Default.IndexOf("\r\n", 0) >= 0)
         {
-          return Default;
+          Default = Default.Replace("\r\n", "\\n");
+        }
+        if (Default.IndexOf("\r", 0) >= 0)
+        {
+          Default = Default.Replace("\r", "\\n");
+        }
+        if (Default.IndexOf("\n", 1) >= 0)
+        {
+          Default = Default.Replace("\n", "\\n");
+        }
+        if (Default.Length == 0)
+        {
+          Default = "\"\"";
+        }
+
+        ConfigList.Insert(lngPos + 1, "   " + Key + " = " + Default);
+        return sReturn;
+      }
+    }
+    static int ReadSettingLong(List<string> ConfigList, string Section, string Key, int Default = 0)
+    {
+      //get the setting value; if it converts to long value, use it;
+      //if any kind of error, return the default value
+      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
+
+      if (strValue.Length == 0)
+      {
+        return Default;
+      }
+      else
+      {
+
+        if (int.TryParse(strValue, out int iResult))
+        {
+          return iResult;
         }
         else
         {
-
-          if (int.TryParse(strValue, out int iResult))
-          {
-            return iResult;
-          }
-          else
-          {
-            return Default;
-          }
+          return Default;
         }
       }
+    }
 
-      static byte ReadSettingByte(List<string> ConfigList, string Section, string Key, byte Default = 0)
+    static byte ReadSettingByte(List<string> ConfigList, string Section, string Key, byte Default = 0)
+    {
+      //get the setting value; if it converts to byte value, use it;
+      //if any kind of error, return the default value
+      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
+      if (strValue.Length == 0)
       {
-        //get the setting value; if it converts to byte value, use it;
-        //if any kind of error, return the default value
-        string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-        if (strValue.Length == 0)
+        return Default;
+      }
+      else
+      {
+        if (byte.TryParse(strValue, out byte bResult))
         {
-          return Default;
+          return bResult;
         }
         else
         {
-          if (byte.TryParse(strValue, out byte bResult))
-          {
-            return bResult;
-          }
-          else
-          {
-            return Default;
-          }
+          return Default;
         }
       }
-      internal static double ReadSettingSingle(List<string> ConfigList, string Section, string Key, double Default = 0)
-      {
-        //get the setting value; if it converts to single value, use it;
-        //if any kind of error, return the default value
-        string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
+    }
+    internal static double ReadSettingSingle(List<string> ConfigList, string Section, string Key, double Default = 0)
+    {
+      //get the setting value; if it converts to single value, use it;
+      //if any kind of error, return the default value
+      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
 
-        if (strValue.Length == 0)
+      if (strValue.Length == 0)
+      {
+        return Default;
+      }
+      else
+      {
+        if (double.TryParse(strValue, out double sResult))
         {
-          return Default;
+          return sResult;
         }
         else
         {
-          if (double.TryParse(strValue, out double sResult))
-          {
-            return sResult;
-          }
-          else
-          {
-            return Default;
-          }
+          return Default;
         }
       }
-      static internal bool ReadSettingBool(List<string> ConfigList, string Section, string Key, bool Default = false)
+    }
+    static internal bool ReadSettingBool(List<string> ConfigList, string Section, string Key, bool Default = false)
+    {
+      //get the setting value; if it converts to boolean value, use it;
+      //if any kind of error, return the default value
+      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
+      if (strValue.Length == 0)
       {
-        //get the setting value; if it converts to boolean value, use it;
-        //if any kind of error, return the default value
-        string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-        if (strValue.Length == 0)
+        return Default;
+      }
+      else
+      {
+        if (bool.TryParse(strValue, out bool bResult))
         {
-          return Default;
+          return bResult;
         }
         else
         {
-          if (bool.TryParse(strValue, out bool bResult))
-          {
-            return bResult;
-          }
-          else
-          {
-            return Default;
-          }
+          return Default;
         }
       }
+    }
 
-      internal static string ReadSettingString(List<string> ConfigList, string Section, string Key, string Default = "")
+    internal static string ReadSettingString(List<string> ConfigList, string Section, string Key, string Default = "")
+    {
+      //read a string value from the configlist
+
+
+      return ReadAppSetting(ConfigList, Section, Key, Default);
+    }
+
+    public static void WriteProperty(string Section, string Key, string Value, string Group = "", bool ForceSave = false)
+    {
+      // this procedure provides calling programs a way to write property
+      // values to the WAG file
+
+      // no validation of section or newval is done, so calling function
+      // needs to be careful
+
+      try
       {
-        //read a string value from the configlist
+        WriteGameSetting(Section, Key, Value, Group);
 
-
-        return ReadAppSetting(ConfigList, Section, Key, Default);
-      }
-
-
-      internal static string GetIntVersion()
-      {
-        byte[] bytBuffer = new byte[] { 0 };
-        FileStream fsVer;
-
-        // version is in OVL file
-        string strFileName = agGameDir + "AGIDATA.OVL";
-        if (File.Exists(strFileName))
+        // if forcing a save
+        if (ForceSave)
         {
+          SaveProperties();
+        }
+      }
+      catch (Exception)
+      {
+
+        //ignore if error?
+      }
+      return;
+    }
+
+    internal static string GetIntVersion()
+    {
+      byte[] bytBuffer = new byte[] { 0 };
+      FileStream fsVer;
+
+      // version is in OVL file
+      string strFileName = agGameDir + "AGIDATA.OVL";
+      if (File.Exists(strFileName))
+      {
+        try
+        {
+          //open AGIDATA.OVL, copy to buffer, and close
+          fsVer = new FileStream(strFileName, FileMode.Open);
+          // get all the data
+          bytBuffer = new byte[fsVer.Length];
           try
           {
-            //open AGIDATA.OVL, copy to buffer, and close
-            fsVer = new FileStream(strFileName, FileMode.Open);
-            // get all the data
-            bytBuffer = new byte[fsVer.Length];
-            try
-            {
-              fsVer.Read(bytBuffer, 0, (int)fsVer.Length);
-            }
-            catch (Exception)
-            {
-              // ignore, treat as invalid
-            }
-            fsVer.Dispose();
+            fsVer.Read(bytBuffer, 0, (int)fsVer.Length);
           }
           catch (Exception)
           {
-            //invalid - return a default
+            // ignore, treat as invalid
           }
+          fsVer.Dispose();
         }
-
-
-        // if no data (either no file, or bad data
-        if (bytBuffer.Length == 0)
+        catch (Exception)
         {
-          //no agidata.ovl
-          //if version3 is set
-          if (agIsVersion3)
-          {
-            //use default v3
-            return "3.002149"; //most common version 3
-          }
-          else
-          {
-            //use default version  2.917
-            return "2.917";
-          }
+          //invalid - return a default
         }
-
-        // now try to extract the version
-        long lngPos = 0;
-        //go until a '2' or '3' is found
-        while (lngPos >= bytBuffer.Length)
-        {
-          //this function gets the version number of a Sierra AGI game
-          //if found, it is validated against list of versions
-          //that WinAGI recognizes
-          //
-          //returns version number for a valid number
-          //returns null string for invalid number
+      }
 
 
-          string strVersion;
-          int i;
-          //check char
-          switch (bytBuffer[lngPos])
-          {
-            case 50: //2.xxx format
-              strVersion = "2";
-              //get next four chars
-              for (i = 1; i <= 4; i++)
-              {
-                lngPos++;
-                //just in case, check for end of buffer
-                if (lngPos >= bytBuffer.Length)
-                {
-                  break;
-                }
-                //add this char
-                strVersion += bytBuffer[lngPos].ToString();
-              }
-
-              //validate this version
-              if (IntVersions.Contains(strVersion))
-              //if (ValidateVersion(strVersion))
-              {
-                //return it
-                return strVersion;
-              }
-              break;
-
-            case 51: //3.xxx.xxx format (for easier manipulation, the second '.' is
-                     //removed, so result can be converted to a single precision number)
-              strVersion = "3";
-              //get next seven chars
-              for (i = 1; i <= 7; i++)
-              {
-                lngPos++;
-                //just in case, check for end of buffer
-                if (lngPos >= bytBuffer.Length)
-                {
-                  break;
-                }
-
-                //add this char (unless it's the second period)
-                if (lngPos != 4)
-                {
-                  strVersion += bytBuffer[lngPos].ToString();
-                }
-              }
-
-              //validate this version
-              if (IntVersions.Contains(strVersion))
-              //if (ValidateVersion(strVersion))
-              {
-                //return it
-                return strVersion;
-              }
-              break;
-          }
-
-          //increment pointer
-          lngPos++;
-        }
-
-        //if version info not found in AGIDATA.OVL
-
+      // if no data (either no file, or bad data
+      if (bytBuffer.Length == 0)
+      {
+        //no agidata.ovl
         //if version3 is set
         if (agIsVersion3)
         {
-          return "3.002149"; //most common version 3?
+          //use default v3
+          return "3.002149"; //most common version 3
         }
         else
         {
-          return "2.917";  // This is what we use if we can't find the version number.
-                           // Version 2.917 is the most common interpreter and
-                           // the one that all the "new" AGI games should be based on.
+          //use default version  2.917
+          return "2.917";
         }
       }
-      internal static void RestoreDefaultColors()
-      {
-        //(note that reverse colors  are in RRGGBB format)
-        lngEGARevCol[0] = 0; //black
-        lngEGARevCol[1] = 0xA0; //blue
-        lngEGARevCol[2] = 0xA000; //green
-        lngEGARevCol[3] = 0xA0A0; //cyan
-        lngEGARevCol[4] = 0xA00000; //red
-        lngEGARevCol[5] = 0x8000A0; //magenta
-        lngEGARevCol[6] = 0xA05000; //brown
-        lngEGARevCol[7] = 0xA0A0A0; //light gray
-        lngEGARevCol[8] = 0x505050; //dark gray
-        lngEGARevCol[9] = 0x5050FF; //light blue
-        lngEGARevCol[10] = 0xFF50; //light green
-        lngEGARevCol[11] = 0x50FFFF; //light cyan
-        lngEGARevCol[12] = 0xFF5050; //light red
-        lngEGARevCol[13] = 0xFF50FF; //light magenta
-        lngEGARevCol[14] = 0xFFFF50; //yellow
-        lngEGARevCol[15] = 0xFFFFFF; //white
-                                     //note regular colors are; //bbggrr' format
-        lngEGACol[0] = 0; //black
-        lngEGACol[1] = 0xA00000; //blue
-        lngEGACol[2] = 0xA000; //green
-        lngEGACol[3] = 0xA0A000; //cyan
-        lngEGACol[4] = 0xA0; //red
-        lngEGACol[5] = 0xA00080; //magenta
-        lngEGACol[6] = 0x50A0; //brown
-        lngEGACol[7] = 0xA0A0A0; //light gray
-        lngEGACol[8] = 0x505050; //dark gray
-        lngEGACol[9] = 0xFF5050; //light blue
-        lngEGACol[10] = 0x50FF00; //light green
-        lngEGACol[11] = 0xFFFF50; //light cyan
-        lngEGACol[12] = 0x5050FF; //light red
-        lngEGACol[13] = 0xFF50FF; //light magenta
-        lngEGACol[14] = 0x50FFFF; //yellow
-        lngEGACol[15] = 0xFFFFFF; //white
-      }
-      public static bool IsValidGameDir(string strDir)
-      {
-        string strFile;
-        byte[] bChunk = new byte[6];
-        FileStream fsCOM;
 
-        //this function will determine if the strDir is a
-        //valid sierra AGI game directory
-        //it also sets the gameID, if one is found and the version3 flag
-        //search for 'DIR' files
-        int dirCount = Directory.EnumerateFiles(strDir, "*DIR").Count();
-        if (dirCount > 0)
+      // now try to extract the version
+      long lngPos = 0;
+      //go until a '2' or '3' is found
+      while (lngPos >= bytBuffer.Length)
+      {
+        //this function gets the version number of a Sierra AGI game
+        //if found, it is validated against list of versions
+        //that WinAGI recognizes
+        //
+        //returns version number for a valid number
+        //returns null string for invalid number
+
+
+        string strVersion;
+        int i;
+        //check char
+        switch (bytBuffer[lngPos])
         {
-          //this might be an AGI game directory-
-          // if exactly four dir files
-          if (dirCount == 4)
-          {
-            // assume it's a v2 game
-
-            // check for at least one VOL file
-            if (File.Exists(strDir + "VOL.0"))
+          case 50: //2.xxx format
+            strVersion = "2";
+            //get next four chars
+            for (i = 1; i <= 4; i++)
             {
-              //clear version3 flag
-              agIsVersion3 = false;
-
-              //clear ID
-              agGameID = "";
-
-              //look for loader file to find ID
-              foreach (string strLoader in Directory.EnumerateFiles(strDir, "*.COM"))
+              lngPos++;
+              //just in case, check for end of buffer
+              if (lngPos >= bytBuffer.Length)
               {
-                //open file and get chunk
-                string strChunk = new string(' ', 6);
-                using (fsCOM = new FileStream(strLoader, FileMode.Open))
-                {
-                  // see if the word 'LOADER' is at position 3 of the file
-                  fsCOM.Position = 3;
-                  fsCOM.Read(bChunk, 0, 6);
-                  strChunk = Encoding.UTF8.GetString(bChunk);
-                  fsCOM.Dispose();
+                break;
+              }
+              //add this char
+              strVersion += bytBuffer[lngPos].ToString();
+            }
 
-                  //if this is a Sierra loader
-                  if (strChunk == "LOADER")
+            //validate this version
+            if (IntVersions.Contains(strVersion))
+            //if (ValidateVersion(strVersion))
+            {
+              //return it
+              return strVersion;
+            }
+            break;
+
+          case 51: //3.xxx.xxx format (for easier manipulation, the second '.' is
+                   //removed, so result can be converted to a single precision number)
+            strVersion = "3";
+            //get next seven chars
+            for (i = 1; i <= 7; i++)
+            {
+              lngPos++;
+              //just in case, check for end of buffer
+              if (lngPos >= bytBuffer.Length)
+              {
+                break;
+              }
+
+              //add this char (unless it's the second period)
+              if (lngPos != 4)
+              {
+                strVersion += bytBuffer[lngPos].ToString();
+              }
+            }
+
+            //validate this version
+            if (IntVersions.Contains(strVersion))
+            //if (ValidateVersion(strVersion))
+            {
+              //return it
+              return strVersion;
+            }
+            break;
+        }
+
+        //increment pointer
+        lngPos++;
+      }
+
+      //if version info not found in AGIDATA.OVL
+
+      //if version3 is set
+      if (agIsVersion3)
+      {
+        return "3.002149"; //most common version 3?
+      }
+      else
+      {
+        return "2.917";  // This is what we use if we can't find the version number.
+                         // Version 2.917 is the most common interpreter and
+                         // the one that all the "new" AGI games should be based on.
+      }
+    }
+    internal static void RestoreDefaultColors()
+    {
+      //(note that reverse colors  are in RRGGBB format)
+      lngEGARevCol[0] = 0; //black
+      lngEGARevCol[1] = 0xA0; //blue
+      lngEGARevCol[2] = 0xA000; //green
+      lngEGARevCol[3] = 0xA0A0; //cyan
+      lngEGARevCol[4] = 0xA00000; //red
+      lngEGARevCol[5] = 0x8000A0; //magenta
+      lngEGARevCol[6] = 0xA05000; //brown
+      lngEGARevCol[7] = 0xA0A0A0; //light gray
+      lngEGARevCol[8] = 0x505050; //dark gray
+      lngEGARevCol[9] = 0x5050FF; //light blue
+      lngEGARevCol[10] = 0xFF50; //light green
+      lngEGARevCol[11] = 0x50FFFF; //light cyan
+      lngEGARevCol[12] = 0xFF5050; //light red
+      lngEGARevCol[13] = 0xFF50FF; //light magenta
+      lngEGARevCol[14] = 0xFFFF50; //yellow
+      lngEGARevCol[15] = 0xFFFFFF; //white
+                                   //note regular colors are; //bbggrr' format
+      lngEGACol[0] = 0; //black
+      lngEGACol[1] = 0xA00000; //blue
+      lngEGACol[2] = 0xA000; //green
+      lngEGACol[3] = 0xA0A000; //cyan
+      lngEGACol[4] = 0xA0; //red
+      lngEGACol[5] = 0xA00080; //magenta
+      lngEGACol[6] = 0x50A0; //brown
+      lngEGACol[7] = 0xA0A0A0; //light gray
+      lngEGACol[8] = 0x505050; //dark gray
+      lngEGACol[9] = 0xFF5050; //light blue
+      lngEGACol[10] = 0x50FF00; //light green
+      lngEGACol[11] = 0xFFFF50; //light cyan
+      lngEGACol[12] = 0x5050FF; //light red
+      lngEGACol[13] = 0xFF50FF; //light magenta
+      lngEGACol[14] = 0x50FFFF; //yellow
+      lngEGACol[15] = 0xFFFFFF; //white
+    }
+    public static bool IsValidGameDir(string strDir)
+    {
+      string strFile;
+      byte[] bChunk = new byte[6];
+      FileStream fsCOM;
+
+      //this function will determine if the strDir is a
+      //valid sierra AGI game directory
+      //it also sets the gameID, if one is found and the version3 flag
+      //search for 'DIR' files
+      int dirCount = Directory.EnumerateFiles(strDir, "*DIR").Count();
+      if (dirCount > 0)
+      {
+        //this might be an AGI game directory-
+        // if exactly four dir files
+        if (dirCount == 4)
+        {
+          // assume it's a v2 game
+
+          // check for at least one VOL file
+          if (File.Exists(strDir + "VOL.0"))
+          {
+            //clear version3 flag
+            agIsVersion3 = false;
+
+            //clear ID
+            agGameID = "";
+
+            //look for loader file to find ID
+            foreach (string strLoader in Directory.EnumerateFiles(strDir, "*.COM"))
+            {
+              //open file and get chunk
+              string strChunk = new string(' ', 6);
+              using (fsCOM = new FileStream(strLoader, FileMode.Open))
+              {
+                // see if the word 'LOADER' is at position 3 of the file
+                fsCOM.Position = 3;
+                fsCOM.Read(bChunk, 0, 6);
+                strChunk = Encoding.UTF8.GetString(bChunk);
+                fsCOM.Dispose();
+
+                //if this is a Sierra loader
+                if (strChunk == "LOADER")
+                {
+                  // determine ID to use
+                  //if not SIERRA.COM
+                  strFile = JustFileName(strLoader);
+                  if (strLoader != "SIERRA.COM")
                   {
-                    // determine ID to use
-                    //if not SIERRA.COM
-                    strFile = JustFileName(strLoader);
-                    if (strLoader != "SIERRA.COM")
-                    {
-                      //use this filename as ID
-                      agGameID = Left(strFile, strFile.Length - 4).ToUpper();
-                      return true;
-                    }
+                    //use this filename as ID
+                    agGameID = Left(strFile, strFile.Length - 4).ToUpper();
+                    return true;
                   }
                 }
               }
-
-              //if no loader file found (looped through all files, no luck)
-              //use default
-              agGameID = "AGI";
-              return true;
-            }
-          }
-          else if (dirCount == 1)
-          {
-            //if only one, it's probably v3 game
-            strFile = Directory.GetFiles(strNewDir, "*DIR")[0].ToUpper();
-            agGameID = Left(strFile, strFile.IndexOf("DIR"));
-
-            // check for matching VOL file;
-            if (File.Exists(strDir + agGameID + "VOL.0"))
-            {
-              //set version3 flag
-              agIsVersion3 = true;
-              return true;
             }
 
-            //if no vol file, assume not valid
-            agGameID = "";
-            return false;
+            //if no loader file found (looped through all files, no luck)
+            //use default
+            agGameID = "AGI";
+            return true;
           }
         }
+        else if (dirCount == 1)
+        {
+          //if only one, it's probably v3 game
+          strFile = Directory.GetFiles(strNewDir, "*DIR")[0].ToUpper();
+          agGameID = Left(strFile, strFile.IndexOf("DIR"));
 
-        // no valid files/loader found; not an AGI directory
-        return false;
+          // check for matching VOL file;
+          if (File.Exists(strDir + agGameID + "VOL.0"))
+          {
+            //set version3 flag
+            agIsVersion3 = true;
+            return true;
+          }
+
+          //if no vol file, assume not valid
+          agGameID = "";
+          return false;
+        }
       }
-      internal static void ConvertWag()
+
+      // no valid files/loader found; not an AGI directory
+      return false;
+    }
+    internal static void ConvertWag()
+    {
+
+      //converts a v1.2.1 propfile to current version proplist
+      // TODO: should return a bool; true if success, fals if not
+
+      //1.2.1 properties use the following format for the property file:
+      // CPRLL<data>
+      //where C= PropCode, P=PropNum, R=ResNum, LL=length of data (as integer)
+      //      <data>= property data
+      //last line of file should be version code
+
+      byte[] bytData = new byte[0];
+      int lngCount, lngPos;
+      string strValue;
+      int i, PropSize;
+      byte ResNum, PropType;
+      byte PropCode;
+      bool blnFoundID = false, blnFoundVer = false;
+
+
+      //remove everything except first line in wag file
+      if (agGameProps.Count > 1)
       {
-        /*  
-        //   'converts a v1.2.1 propfile to current version proplist
+        agGameProps.RemoveRange(1, agGameProps.Count - 2);
+      }
+      agGameProps.Add("#");
+      agGameProps.Add("# WinAGI Game Property File");
+      agGameProps.Add("# converted from version 1.2.1");
+      agGameProps.Add("#");
+      agGameProps.Add("[General]");
+      agGameProps.Add("   WinAGIVersion = " + WINAGI_VERSION);
 
-        //  '1.2.1 properties use the following format for the property file:
-        //  ' CPRLL<data>
-        //  'where C= PropCode, P=PropNum, R=ResNum, LL=length of data (as integer)
-        //  '      <data>= property data
-        //  'last line of file should be version code
+      //open old file
+      FileStream fsOldWag = new FileStream(agGameFile, FileMode.Open);
+      //verify version
+      bytData = new byte[16];
+      //adjust position to compensate for length of variable
+      //: fsOldWag.Length - 16;
+      fsOldWag.Read(bytData, (int)fsOldWag.Length - 16, 16);
+      strValue = Encoding.UTF8.GetString(bytData);
 
-        //  Dim intFile As Integer
-        //  Dim bytData() As Byte
-        //  Dim lngCount As Long, lngPos As Long
-        //  Dim strValue As String
-        //  Dim i As Long, lngColor As Long
-        //  Dim ResNum As Byte, PropType As Byte
-        //  Dim PropCode As Byte, PropSize As Long
-        //  Dim blnFoundID As Boolean, blnFoundVer As Boolean
+      //if version is incompatible
+      switch (strValue)
+      {
+        case WINAGI_VERSION_1_2:
+        case WINAGI_VERSION_1_0:
+        case WINAGI_VERSION_BETA:
+          break;
+        //ok
+        default:
+          //return nothing
+          fsOldWag.Dispose();
+          agGameProps = new List<string> { };
+          return;
+      }
 
+      //don't copy version line into buffer
+      lngCount = (int)fsOldWag.Length - 16;
+      if (lngCount > 0)
+      {
+        bytData = new byte[lngCount];
+        fsOldWag.Read(bytData, 0, lngCount);
+      }
+      else
+      {
+        //set to zero
+        lngCount = 0;
+      }
+      lngPos = 0;
 
-        //  On Error GoTo ErrHandler
-
-        //  'remove everything except first line in wag file
-        //  Do Until agGameProps.Count = 1
-        //    agGameProps.Delete agGameProps.Count - 1
-        //  Loop
-        //  agGameProps.Add "#"
-        //  agGameProps.Add "# WinAGI Game Property File"
-        //  agGameProps.Add "# converted from version 1.2.1"
-        //  agGameProps.Add "#"
-        //  agGameProps.Add "[General]"
-        //  agGameProps.Add "   WinAGIVersion = " & WINAGI_VERSION
-
-        //  'open old file
-        //  intFile = FreeFile()
-        //  Open agGameFile For Binary As intFile
-
-        //  'verify version
-        //  strValue = String$(16, 0)
-        //  'adjust position to compensate for length of variable
-        //  '(and fact that get is '1' based): LOF - 16 + 1
-        //  Get intFile, LOF(intFile) - 15, strValue
-
-        //  'if version is incompatible
-        //  Select Case strValue
-        //  Case WINAGI_VERSION_1_2, WINAGI_VERSION_1_0, WINAGI_VERSION_BETA
-        //    'ok
-        //  Case Else
-        //    Close intFile
-        //    'return nothing
-        //    Set agGameProps = Nothing
-        //    Exit Sub
-        //  End Select
-
-        //  'don't copy version line into buffer
-        //  lngCount = LOF(intFile) - 16
-        //  If lngCount > 0 Then
-        //    ReDim bytData(lngCount - 1)
-        //    Get intFile, 1, bytData
-        //  Else
-        //    'set to zero
-        //    lngCount = 0
-        //  End If
-        //  Close intFile
-        //  lngPos = 0
-
-        //  'get codes
-        //  Do Until lngPos >= lngCount
-        //    'reset propval
-        //    strValue = vbNullString
-        //    'get prop code
-        //    PropCode = bytData(lngPos)
-        //    PropType = bytData(lngPos + 1)
-        //    ResNum = bytData(lngPos + 2)
-        //    PropSize = bytData(lngPos + 3) + 256 * bytData(lngPos + 4)
-        //    For i = 1 To PropSize
-        //      strValue = strValue & Chr$(bytData(lngPos + 4 + i))
-        //    Next i
+      //get codes
+      while (lngPos < lngCount)
+      {
+        //reset propval
+        strValue = "";
+        //get prop data
+        PropCode = bytData[lngPos];
+        PropType = bytData[lngPos + 1];
+        ResNum = bytData[lngPos + 2];
+        PropSize = bytData[lngPos + 3] + 256 * bytData[lngPos + 4];
+        for (i = 1; i < PropSize; i++)
+        {
+          strValue += (char)bytData[lngPos + 4 + i];
+        }
 
 
-        //    Select Case PropCode
-        //    Case Is >= PC_LOGIC
-        //      Select Case PropCode
-        //      Case PC_LOGIC
-        //        Select Case PropType
-        //        Case PT_ID
-        //          WriteGameSetting "Logic" & CStr(ResNum), "ID", strValue, "Logics"
-        //        Case PT_DESC
-        //          WriteGameSetting "Logic" & CStr(ResNum), "Description", strValue, "Logics"
-        //        Case PT_CRC32
-        //          WriteGameSetting "Logic" & CStr(ResNum), "CRC32", "&H" & strValue, "Logics"
-        //        Case PT_COMPCRC32
-        //          WriteGameSetting "Logic" & CStr(ResNum), "CompCRC32", "&H" & strValue, "Logics"
-        //        Case PT_ROOM
-        //          If ResNum = 0 Then
-        //            'force to false
-        //            strValue = "False"
-        //          End If
-        //          WriteGameSetting "Logic" & CStr(ResNum), "IsRoom", strValue, "Logics"
-        //        Case PT_SIZE
-        //          WriteGameSetting "Logic" & CStr(ResNum), "Size", strValue, "Logics"
+        if (PropCode >= PC_LOGIC)
+        {
+          switch (PropCode)
+          {
+            case PC_LOGIC:
+              switch (PropType)
+              {
+                case PT_ID:
+                  WriteGameSetting("Logic" + ResNum.ToString(), "ID", strValue, "Logics");
+                  break;
+                case PT_DESC:
+                  WriteGameSetting("Logic" + ResNum.ToString(), "Description", strValue, "Logics");
+                  break;
+                case PT_CRC32:
+                  WriteGameSetting("Logic" + ResNum.ToString(), "CRC32", "&H" + strValue, "Logics");
+                  break;
+                case PT_COMPCRC32:
+                  WriteGameSetting("Logic" + ResNum.ToString(), "CompCRC32", "&H" + strValue, "Logics");
+                  break;
+                case PT_ROOM:
+                  if (ResNum == 0)
+                  {
+                    //force to false
+                    strValue = "False";
+                  }
+                  WriteGameSetting("Logic" + ResNum.ToString(), "IsRoom", strValue, "Logics");
+                  break;
+                case PT_SIZE:
+                  WriteGameSetting("Logic" + ResNum.ToString(), "Size", strValue, "Logics");
+                  break;
 
-        //        Case Else
-        //          'unknown code; ignore it
-        //          '*'Debug.Assert False
-        //        End Select
+                default:
+                  //unknown code; ignore it
+                  //*'Debug.Assert False
+                  break;
+              }
+              break;
 
-
-        //      Case PC_PICTURE
-        //        Select Case PropType
-        //        Case PT_ID
-        //          WriteGameSetting "Picture" & CStr(ResNum), "ID", strValue, "Pictures"
-        //        Case PT_DESC
-        //          WriteGameSetting "Picture" & CStr(ResNum), "Description", strValue, "Pictures"
-        //        Case PT_SIZE
-        //          WriteGameSetting "Picture" & CStr(ResNum), "Size", strValue, "Pictures"
-        //        Case PT_BKIMG
-        //          WriteGameSetting "Picture" & CStr(ResNum), "BkgdImg", strValue, "Pictures"
-        //        Case PT_BKPOS
-        //          WriteGameSetting "Picture" & CStr(ResNum), "BkgdPosn", strValue, "Pictures"
-        //        Case PT_BKSZ
-        //          WriteGameSetting "Picture" & CStr(ResNum), "BkgdSize", strValue, "Pictures"
-        //        Case PT_BKTRANS
-        //          WriteGameSetting "Picture" & CStr(ResNum), "BkgdTrans", strValue, "Pictures"
-        //        Case Else
-        //          'unknown code; ignore it
-        //          '*'Debug.Assert False
-        //        End Select
-
-
-        //      Case PC_SOUND
-        //        Select Case PropType
-        //        Case PT_ID
-        //          WriteGameSetting "Sound" & CStr(ResNum), "ID", strValue, "Sounds"
-        //        Case PT_DESC
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Description", strValue, "Sounds"
-        //        Case PT_SIZE
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Size", strValue, "Sounds"
-        //        Case PT_KEY
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Key", strValue, "Sounds"
-        //        Case PT_TPQN
-        //          WriteGameSetting "Sound" & CStr(ResNum), "TQPN", strValue, "Sounds"
-        //        Case PT_INST0
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Inst0", strValue, "Sounds"
-        //        Case PT_INST1
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Inst1", strValue, "Sounds"
-        //        Case PT_INST2
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Inst2", strValue, "Sounds"
-        //        Case PT_MUTE0
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Mute0", strValue, "Sounds"
-        //        Case PT_MUTE1
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Mute1", strValue, "Sounds"
-        //        Case PT_MUTE2
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Mute2", strValue, "Sounds"
-        //        Case PT_MUTE3
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Mute3", strValue, "Sounds"
-        //        Case PT_VIS0
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Visible0", strValue, "Sounds"
-        //        Case PT_VIS1
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Visible1", strValue, "Sounds"
-        //        Case PT_VIS2
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Visible2", strValue, "Sounds"
-        //        Case PT_VIS3
-        //          WriteGameSetting "Sound" & CStr(ResNum), "Visible3", strValue, "Sounds"
-        //        Case Else
-        //          'unknown code; ignore it
-        //          '*'Debug.Assert False
-        //        End Select
+            case PC_PICTURE:
+              switch (PropType)
+              {
+                case PT_ID:
+                  WriteGameSetting("Picture" + ResNum.ToString(), "ID", strValue, "Pictures");
+                  break;
+                case PT_DESC:
+                  WriteGameSetting("Picture" + ResNum.ToString(), "Description", strValue, "Pictures");
+                  break;
+                case PT_SIZE:
+                  WriteGameSetting("Picture" + ResNum.ToString(), "Size", strValue, "Pictures");
+                  break;
+                case PT_BKIMG:
+                  WriteGameSetting("Picture" + ResNum.ToString(), "BkgdImg", strValue, "Pictures");
+                  break;
+                case PT_BKPOS:
+                  WriteGameSetting("Picture" + ResNum.ToString(), "BkgdPosn", strValue, "Pictures");
+                  break;
+                case PT_BKSZ:
+                  WriteGameSetting("Picture" + ResNum.ToString(), "BkgdSize", strValue, "Pictures");
+                  break;
+                case PT_BKTRANS:
+                  WriteGameSetting("Picture" + ResNum.ToString(), "BkgdTrans", strValue, "Pictures");
+                  break;
+                default:
+                  //unknown code; ignore it
+                  //*'Debug.Assert False
+                  break;
+              }
+              break;
 
 
-        //      Case PC_VIEW
-        //        Select Case PropType
-        //        Case PT_ID
-        //          WriteGameSetting "View" & CStr(ResNum), "ID", strValue, "Views"
-        //        Case PT_DESC
-        //          WriteGameSetting "View" & CStr(ResNum), "Description", strValue, "Views"
-        //        Case PT_SIZE
-        //          WriteGameSetting "View" & CStr(ResNum), "Size", strValue, "Views"
-        //        Case Else
-        //          'unknown code; ignore it
-        //          '*'Debug.Assert False
-        //        End Select
-        //      End Select
+            case PC_SOUND:
+              switch (PropType)
+              {
+                case PT_ID:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "ID", strValue, "Sounds");
+                  break;
+                case PT_DESC:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Description", strValue, "Sounds");
+                  break;
+                case PT_SIZE:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Size", strValue, "Sounds");
+                  break;
+                case PT_KEY:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Key", strValue, "Sounds");
+                  break;
+                case PT_TPQN:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "TQPN", strValue, "Sounds");
+                  break;
+                case PT_INST0:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Inst0", strValue, "Sounds");
+                  break;
+                case PT_INST1:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Inst1", strValue, "Sounds");
+                  break;
+                case PT_INST2:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Inst2", strValue, "Sounds");
+                  break;
+                case PT_MUTE0:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Mute0", strValue, "Sounds");
+                  break;
+                case PT_MUTE1:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Mute1", strValue, "Sounds");
+                  break;
+                case PT_MUTE2:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Mute2", strValue, "Sounds");
+                  break;
+                case PT_MUTE3:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Mute3", strValue, "Sounds");
+                  break;
+                case PT_VIS0:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Visible0", strValue, "Sounds");
+                  break;
+                case PT_VIS1:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Visible1", strValue, "Sounds");
+                  break;
+                case PT_VIS2:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Visible2", strValue, "Sounds");
+                  break;
+                case PT_VIS3:
+                  WriteGameSetting("Sound" + ResNum.ToString(), "Visible3", strValue, "Sounds");
+                  break;
+                default:
+                  //unknown code; ignore it
+                  //*'Debug.Assert False
+                  break;
+              }
+              break;
+
+            case PC_VIEW:
+              switch (PropType)
+              {
+                case PT_ID:
+                  WriteGameSetting("View" + ResNum.ToString(), "ID", strValue, "Views");
+                  break;
+                case PT_DESC:
+                  WriteGameSetting("View" + ResNum.ToString(), "Description", strValue, "Views");
+                  break;
+                case PT_SIZE:
+                  WriteGameSetting("View" + ResNum.ToString(), "Size", strValue, "Views");
+                  break;
+                default:
+                  //unknown code; ignore it
+                  //*'Debug.Assert False
+                  break;
+              }
+              break;
+          }
+
+        }
+        else
+        {
+          switch (PropCode)
+          {
+            case PC_GAMEDESC:
+              WriteGameSetting("General", "Description", strValue);
+              break;
+
+            case PC_GAMEAUTHOR:
+              WriteGameSetting("General", "Author", strValue);
+              break;
+            case PC_GAMEID:
+              blnFoundID = strValue.Length > 0;
+              WriteGameSetting("General", "GameID", strValue);
+              break;
+            case PC_INTVERSION:
+              WriteGameSetting("General", "Interpreter", strValue);
+              blnFoundVer = strValue.Length > 0;
+              break;
+            case PC_GAMEABOUT:
+              WriteGameSetting("General", "About", strValue);
+              break;
+            case PC_GAMEVERSION:
+              WriteGameSetting("General", "GameVersion", strValue);
+              break;
+            case PC_RESDIR:
+              WriteGameSetting("General", "ResDir", strValue);
+              break;
+            case PC_GAMELAST:
+              WriteGameSetting("General", "LastEdit", strValue);
+              break;
+            case PC_INVOBJDESC:
+              WriteGameSetting("OBJECT", "Description", strValue);
+              break;
+            case PC_VOCABWORDDESC:
+              WriteGameSetting("WORDS.TOK", "Description", strValue);
+              break;
+            case PC_GAMEEXEC:
+              //////WriteGameSetting("General", "Exec", strValue);
+              //Exec property no longer supported
+              break;
+
+            case PC_PALETTE:  //TODO: all hex strings need to be stored as '0x00', not '&H00'
+                              //convert the color bytes into long values
+              for (i = 0; i < 16; i++)
+              {
+                strValue = "0x";
+                strValue += bytData[lngPos + 5 + 4 * i].ToString("x2") +
+                            bytData[lngPos + 6 + 4 * i].ToString("x2") +
+                            bytData[lngPos + 7 + 4 * i].ToString("x2") +
+                            bytData[lngPos + 8 + 4 * i].ToString("x2");
+                WriteGameSetting("Palette", "Color" + i.ToString(), strValue);
+              }
+              break;
+            case PC_USERESNAMES:
+              WriteGameSetting("General", "UseResNames", strValue);
+              break;
 
 
-        //    Case PC_GAMEDESC
-        //      WriteGameSetting "General", "Description", strValue
+            default:
+              //ignore
+              break;
+          }
+        } //end if propcode>=pclogic
 
-        //    Case PC_GAMEAUTHOR
-        //      WriteGameSetting "General", "Author", strValue
+        //add offset to next code (length +5)
+        lngPos += PropSize + 5;
+      }
 
-
-        //    Case PC_GAMEID
-        //    blnFoundID = Len(strValue) > 0
-        //      WriteGameSetting "General", "GameID", strValue
-
-        //    Case PC_INTVERSION
-        //      WriteGameSetting "General", "Interpreter", strValue
-        //      blnFoundVer = Len(strValue) > 0
-
-        //    Case PC_GAMEABOUT
-        //      WriteGameSetting "General", "About", strValue
-
-        //    Case PC_GAMEVERSION
-        //      WriteGameSetting "General", "GameVersion", strValue
-
-
-        //    Case PC_RESDIR
-        //      WriteGameSetting "General", "ResDir", strValue
-
-        //    Case PC_GAMELAST
-        //      WriteGameSetting "General", "LastEdit", strValue
-
-
-        //    Case PC_INVOBJDESC
-        //      WriteGameSetting "OBJECT", "Description", strValue
-
-        //    Case PC_VOCABWORDDESC
-        //      WriteGameSetting "WORDS.TOK", "Description", strValue
-
-
-        //    Case PC_GAMEEXEC
-        //      '''WriteGameSetting "General", "Exec", strValue
-        //      'Exec property no longer supported
-        //    Case PC_PALETTE
-        //      'convert the color bytes into long values
-        //      For i = 0 To 15
-        //        strValue = PadHex(bytData(lngPos + 5 + 4 * i)) & PadHex(bytData(lngPos + 6 + 4 * i)) & PadHex(bytData(lngPos + 7 + 4 * i)) & PadHex(bytData(lngPos + 8 + 4 * i))
-        //        WriteGameSetting "Palette", "Color" & CStr(i), strValue
-        //      Next i
-
-        //    Case PC_USERESNAMES
-        //      WriteGameSetting "General", "UseResNames", strValue
-
-
-        //    Case Else
-        //      'ignore
-        //    End Select
-
-        //    'add offset to next code (length +5)
-        //    lngPos = lngPos + PropSize + 5
-        //  Loop
-
-        //  'if no id and no intver
-        //  If Not blnFoundID Or Not blnFoundVer Then
-        //    Set agGameProps = Nothing
-        //  End If
-
-        //Exit Sub
-
-        //ErrHandler:
-        //  '*'Debug.Assert False
-        //  Resume Next
-        //  Set agGameProps = Nothing
-              */
+      //if no id and no intver
+      if (!blnFoundID || blnFoundVer)
+      {
+        agGameProps = new List<string> { };
       }
     }
   }
+}

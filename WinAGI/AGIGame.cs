@@ -1501,7 +1501,7 @@ namespace WinAGI
       agGameID = "";
       agIntVersion = "";
       agIsVersion3 = false;
-      agGameProps = new List<string> { "" };
+      agGameProps = new List<string> { };
       agLastEdit = Convert.ToDateTime(0);
 
       // reset directories
@@ -2195,30 +2195,12 @@ namespace WinAGI
 
       */
     }
-    public static void WriteProperty(string Section, string Key, string Value, string Group = "", bool ForceSave = false)
-    {
-      // this procedure provides calling programs a way to write property
-      // values to the WAG file
-
-      // no validation of section or newval is done, so calling function
-      // needs to be careful
-
-      try
-      {
-        WriteGameSetting(Section, Key, Value, Group);
-
-        // if forcing a save
-        if (ForceSave)
-        {
-          SaveProperties();
-        }
-      }
-      catch (Exception)
-      {
-
-        //ignore if error?
-      }
-      return;
-    }
+  static AGIGame()
+  {
+      // hmm, WinAGI class doesn't run on startup; need to initialize it 
+      // but not sure how...
+      // WinAGI.CRC32Setup();
   }
+  }
+
 }
