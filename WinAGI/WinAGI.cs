@@ -309,7 +309,7 @@ namespace WinAGI
     /// <returns>true if numeric, false if not</returns>
     internal static bool IsNumeric(string str)
     {
-      if (Double.TryParse(str, out double myNum))
+      if (Double.TryParse(str, out _))
       {
         return true;
       }
@@ -2011,6 +2011,16 @@ namespace WinAGI
 
     internal static string ReadAppSetting(List<string> ConfigList, string Section, string Key, string Default = "")
     {
+      int lngSection = -1;
+
+
+      //need to make sure there is a list to read from
+      if (ConfigList.Count == 0)
+      {
+        //return the default
+        return Default;
+      }
+
       //elements of a settings file:
       //
       //  #comments begin with hashtag; all characters on line after hashtag are ignored
@@ -2023,18 +2033,9 @@ namespace WinAGI
       //    single word; use quotes for multiword strings
       //  if string is multline, use '\n' control code (and use multiline option)
 
-      string strLine = "", strCheck = "";
-      int i = 0, lngPos = 0, lngSection = -1;
-      int lngLast = 0, lenKey = 0;
-
-
-      //need to make sure there is a list to read from
-      if (ConfigList.Count == 0)
-      {
-        //return the default
-        return Default;
-      }
-
+      string strLine;
+      int i;
+      int lngPos;
       //find the section we are looking for (skip 1st line; it's the filename)
       for (i = 1; i <= ConfigList.Count - 1; i++)
       {
@@ -2049,6 +2050,7 @@ namespace WinAGI
             {
               //find end bracket
               lngPos = strLine.IndexOf("]", 1);
+              string strCheck;
               if (lngPos > 0)
               {
                 strCheck = Mid(strLine, 2, lngPos - 2);
@@ -2079,7 +2081,7 @@ namespace WinAGI
       else
       {
         //step through all lines in this section; find matching key
-        lenKey = Key.Length;
+        int lenKey = Key.Length;
         for (i = lngSection + 1; i <= ConfigList.Count - 1; i++)
         {
           //skip blanks, and lines starting with a comment

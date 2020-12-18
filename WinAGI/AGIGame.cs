@@ -83,11 +83,11 @@ namespace WinAGI
 
     internal static string agSrcExt = "";
 
-    //error number and string to return error values
-    //from various functions/subroutines
-    static int lngError = 0;
-    static string strError = "";
-    static string strErrSrc = "";
+    ////error number and string to return error values
+    ////from various functions/subroutines
+    //static int lngError = 0;
+    //static string strError = "";
+    //static string strErrSrc = "";
 
     //temp file location
     internal static string TempFileDir = "";
@@ -532,7 +532,7 @@ namespace WinAGI
       //AGISound tmpSound = new AGISound { };
       //AGIView tmpView = new AGIView { };
       bool blnReplace, NewIsV3;
-      string strID = "", strFileName = "";
+      string strFileName = "";
       int tmpMax = 0, i, j;
 
       //set compiling flag
@@ -571,7 +571,7 @@ namespace WinAGI
 
       //ensure switch flag is reset
       agChangeVersion = false;
-
+      string strID;
       //if version 3
       if (NewIsV3)
       {
@@ -1109,7 +1109,6 @@ namespace WinAGI
         //limit gameID to 6 characters for v2 games and 5 characters for v3 games
 
         string NewID = value;
-        string[] strExtension = new string[0];
 
         //id is undefined if a game is not loaded
         if (!agGameLoaded)
@@ -1153,7 +1152,7 @@ namespace WinAGI
             if (Right(strVolFile, 4).ToUpper() != ".OLD")
             {
               //get extension
-              strExtension = strVolFile.Split(".");
+              string[] strExtension = strVolFile.Split(".");
               //rename
               File.Move(agGameDir + strVolFile, agGameDir + NewID + "VOL." + strExtension[1]);
               //TODO: delete the old one
@@ -1436,11 +1435,10 @@ namespace WinAGI
       if (!IsValidGameDir(agGameDir))
       {
         //save dir as error string
-        strError = agGameDir;
         //clear game variables
         ClearGameState();
         //invalid game directory
-        throw new Exception("LoadResString(541), ARG1, strError");
+        throw new Exception("LoadResString(541), ARG1, agGameDir");
       }
 
       //create a new wag file name
@@ -1574,7 +1572,7 @@ namespace WinAGI
       {
         agGameProps = OpenSettingList(agGameFile, false);
       }
-      catch (Exception e)
+      catch (Exception)
       {
         // reset game variables
         ClearGameState();
@@ -2215,7 +2213,7 @@ namespace WinAGI
           SaveProperties();
         }
       }
-      catch (Exception e)
+      catch (Exception)
       {
 
         //ignore if error?
