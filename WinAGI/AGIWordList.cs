@@ -28,5 +28,10 @@ namespace WinAGI
     {
       throw new NotImplementedException();
     }
+
+    internal void Load(string v)
+    {
+      throw new NotImplementedException();
+    }
   }
 }

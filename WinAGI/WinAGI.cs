@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -218,8 +219,8 @@ namespace WinAGI
     //arrays which will be treated as constants
     //rev colors have red and blue components switched
     //so api functions using colors work correctly
-    internal static int[] lngEGARevCol = new int[16]; //15
-    internal static int[] lngEGACol = new int[16]; //15;
+    internal static uint[] lngEGARevCol = new uint[16]; //15
+    internal static uint[] lngEGACol = new uint[16]; //15;
     internal static AGIColors[] agColor = new AGIColors[16]; //15;
     internal static byte[] bytEncryptKey = { (byte)'A', (byte)'v', (byte)'i',
                              (byte)'s', (byte)' ', (byte)'D',
@@ -296,8 +297,6 @@ namespace WinAGI
     internal const int PT_SIZE = 254;
     internal const int PT_ALL = 255;
 
-
-
     //predefined arguments
     internal static bool agResAsText;  //if true, reserved variables and flags show up as text when decompiling
                                        //not used if agUseRes is FALSE
@@ -366,7 +365,30 @@ namespace WinAGI
       }
       return false;
     }
+    /// <summary>
+    /// Extension that mimics the VB Val() function; returns 0
+    /// if the string is non-numeric
+    /// </summary>
+    /// <param name="strIn">The string that will be converted to a number</param>
+    /// <returns>Returns a double value of strIn; if strIn can't be converted
+    /// to a double, it returns 0</returns>
+    internal static double Val(string strIn)
+    {
+      if (double.TryParse(strIn, out double dResult))
+      {
+        //return this value
+        return dResult;
+      }
+      // not a valid number; return 0
+      return 0;
+    }
 
+    /// <summary>
+    /// Confirms that a directory has a terminating backslash,
+    /// adding one if necessary
+    /// </summary>
+    /// <param name="strDirIn"></param>
+    /// <returns></returns>
     internal static string CDir(string strDirIn)
     {
       //this function ensures a trailing "\" is included on strDirIn
@@ -462,7 +484,8 @@ namespace WinAGI
     internal static void CRC32Setup()
     {
       //build the CRC table
-      uint index = 0, z;
+      uint z;
+      uint index;
       for (index = 0; index < 256; index++)
       {
         CRC32Table[index] = index;
@@ -2678,7 +2701,7 @@ namespace WinAGI
       //      <data>= property data
       //last line of file should be version code
 
-      byte[] bytData = new byte[0];
+      byte[] bytData = Array.Empty<byte>();
       int lngCount, lngPos;
       string strValue;
       int i, PropSize;
@@ -2977,5 +3000,175 @@ namespace WinAGI
         agGameProps = new List<string> { };
       }
     }
+    internal static void RecordLogEvent(LogEventType leType, string strMessage)
+    {
+      //open the log file and write the message
+      //leType =0 means warning
+      //inttype =1 means error
+      string strType = "";
+
+      //set type of msg
+      strType = leType == LogEventType.leWarning ? "WARNING: " : "ERROR: ";
+      if (leType == LogEventType.leWarning)
+      {
+        strType = "WARNING: ";
+      }
+      else
+      {
+        strType = "ERROR: ";
+      }
+
+      using (FileStream fsErrLog = new FileStream(agGameDir, FileMode.Append))
+      {
+        using (StreamWriter swErrLog = new StreamWriter(fsErrLog))
+        {
+          swErrLog.WriteLine(DateTime.Now.ToString("Medium Date") + ": " + strType + strMessage);
+        }
+      }
+    }
+    internal static void GetGameProperties()
+    {
+      //what's loaded BEFORE we get here:
+      // General:
+      //  GameID
+      //  Interpreter
+      //  ResDir
+
+      //ASSUMES a valid game property file has been loaded
+      //loads only these properties:
+      //
+      //  Palette:
+      //     all colors
+      //
+      //  General:
+      //     description
+      //     author
+      //     about
+      //     game version
+      //     last date
+      //     platform, platform program, platform options, dos executable
+      //     use res names property
+      //     use layout editor
+
+      string strSection, strLine;
+      string[] strColor = new string[15];
+      uint tmpColor;
+
+      //Palette: (make sure AGI defaults set first)
+      RestoreDefaultColors();
+      for (int i = 0; i < 16; i++)
+      {
+        //validate it//s a good number before writing it
+        strLine = ReadSettingString(agGameProps, "Palette", "Color" + i.ToString(), "0x" + lngEGACol[i].ToString("x8")).Trim();
+        switch (Left(strLine, 2))
+        {
+          case "0x":
+            // convert hex to int
+            try
+            {
+              lngEGACol[i] = Convert.ToUInt32(strLine, 16);
+            }
+            catch (Exception)
+            {
+              // keep default
+            }
+            break;
+          case "&H":
+            // strip off '&H' and convert hex to int
+            try
+            {
+              lngEGACol[i] = Convert.ToUInt32(Right(strLine, 8), 16);
+            }
+            catch (Exception)
+            {
+              // maybe it's an old (&H0,&H0,&H0,&H0) format
+              bool bIsOK = false;
+              tmpColor = 0;
+              //split into individual color components
+              strColor = strLine.Split(",");
+              if (strColor.Length == 4)
+              {
+                bIsOK = true;
+                tmpColor = 0;
+                for (int j = 0; j < 4; j++)
+                {
+                  if (Left(strColor[j].Trim(), 2) == "&H")
+                  {
+                    strColor[j] = "0x" + Right(strColor[j].Trim(), 2);
+                    if (IsNumeric(strColor[j]))
+                    {
+                      tmpColor += Convert.ToUInt32(strColor[j], 16) << (8 * (3 - j));
+                    }
+                    else
+                    {
+                      //no good
+                      bIsOK = false;
+                      break;
+                    }
+                  }
+                  else
+                  {
+                    //no good
+                    bIsOK = false;
+                    break;
+                  }
+                }
+              }
+              // if still ok,
+              if (bIsOK)
+              {
+                // keep the temp color
+                lngEGACol[i] = tmpColor;
+              }
+            }
+            // update the file to current format
+            WriteGameSetting("Palette", "Color" + i.ToString(), "0x" + lngEGACol[i].ToString("x8"));
+            break;
+          default:
+            // no good; keep default
+            break;
+        }
+        //invert red and blue components for revcolor
+        lngEGARevCol[i] = (uint)(lngEGACol[i] & 0xFF000000);
+        lngEGARevCol[i] += ((lngEGACol[i] & 0xFF) << 16) + (lngEGACol[i] & 0xFF00) + ((lngEGACol[i] & 0xFF0000) >> 16);
+      }
+      //description
+      agDescription = ReadSettingString(agGameProps, "General", "Description");
+
+      //author
+      agAuthor = ReadSettingString(agGameProps, "General", "Author");
+
+      //about
+      agAbout = ReadSettingString(agGameProps, "General", "About");
+
+      //game version
+      agGameVersion = ReadSettingString(agGameProps, "General", "GameVersion");
+
+
+      if (!DateTime.TryParse(ReadSettingString(agGameProps, "General", "LastEdit", DateTime.Now.ToString()), out agLastEdit))
+      {
+        // default to now
+        agLastEdit = DateTime.Now;
+      }
+
+      //platform
+      agPlatformType = ReadSettingLong(agGameProps, "General", "PlatformType", 0);
+
+      //platform program
+      agPlatformFile = ReadSettingString(agGameProps, "General", "Platform");
+
+      //dos executable
+      agDOSExec = ReadSettingString(agGameProps, "General", "DOSExec");
+
+      //platform options
+      agPlatformOpts = ReadSettingString(agGameProps, "General", "PlatformOpts");
+
+      //use res names property (use current value, if one not found in property file)
+      agUseRes = ReadSettingBool(agGameProps, "General", "UseResNames", agUseRes);
+
+      // use layout editor property
+      agUseLE = ReadSettingBool(agGameProps, "General", "UseLE");
+    }
+
   }
 }

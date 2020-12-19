@@ -1,4 +1,6 @@
-﻿namespace WinAGI
+﻿using System;
+
+namespace WinAGI
 {
   public class AGILogics
   {
@@ -14,6 +16,16 @@
     public void Clear()
     {
       // add code here
+    }
+
+    internal void LoadLogic(agPics.LoadPicture bytResNum, agPics.LoadPicture bytVol, agPics.LoadPicture lngLoc)
+    {
+      throw new NotImplementedException();
+    }
+
+    internal bool Exists(agPics.LoadPicture bytResNum)
+    {
+      throw new NotImplementedException();
     }
   }
 }

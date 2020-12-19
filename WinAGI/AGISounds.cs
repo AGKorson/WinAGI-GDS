@@ -1,4 +1,6 @@
-﻿namespace WinAGI
+﻿using System;
+
+namespace WinAGI
 {
   public class AGISounds
   {
@@ -15,5 +17,15 @@
     {
       // add code here
     }
-}
+
+    internal void LoadSound(agViews.LoadView bytResNum, agViews.LoadView bytVol, agViews.LoadView lngLoc)
+    {
+      throw new NotImplementedException();
+    }
+
+    internal bool Exists(agViews.LoadView bytResNum)
+    {
+      throw new NotImplementedException();
+    }
+  }
 }

@@ -1,4 +1,6 @@
-﻿namespace WinAGI
+﻿using System;
+
+namespace WinAGI
 {
   public class AGIPictures
   {
@@ -14,6 +16,11 @@
     public void Clear()
     {
       // add code here
+    }
+
+    internal void LoadPicture(agSnds.LoadSound bytResNum, agSnds.LoadSound bytVol, agSnds.LoadSound lngLoc)
+    {
+      throw new NotImplementedException();
     }
   }
 }

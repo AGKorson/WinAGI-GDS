@@ -1,4 +1,6 @@
-﻿namespace WinAGI
+﻿using System;
+
+namespace WinAGI
 {
   public class AGIViews
   {
@@ -14,6 +16,16 @@
     public void Clear()
     {
       // add code here
+    }
+
+    internal void LoadView(byte bytResNum, byte bytVol, int lngLoc)
+    {
+      throw new NotImplementedException();
+    }
+
+    internal bool Exists(byte bytResNum)
+    {
+      throw new NotImplementedException();
     }
   }
 }
