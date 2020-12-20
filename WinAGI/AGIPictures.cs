@@ -18,7 +18,12 @@ namespace WinAGI
       // add code here
     }
 
-    internal void LoadPicture(agSnds.LoadSound bytResNum, agSnds.LoadSound bytVol, agSnds.LoadSound lngLoc)
+    internal void LoadPicture(byte bytResNum, byte bytVol, int lngLoc)
+    {
+      throw new NotImplementedException();
+    }
+
+    internal bool Exists(byte bytResNum)
     {
       throw new NotImplementedException();
     }

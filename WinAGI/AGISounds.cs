@@ -18,12 +18,12 @@ namespace WinAGI
       // add code here
     }
 
-    internal void LoadSound(agViews.LoadView bytResNum, agViews.LoadView bytVol, agViews.LoadView lngLoc)
+    internal void LoadSound(byte bytResNum, byte bytVol, int lngLoc)
     {
       throw new NotImplementedException();
     }
 
-    internal bool Exists(agViews.LoadView bytResNum)
+    internal bool Exists(int bytResNum)
     {
       throw new NotImplementedException();
     }

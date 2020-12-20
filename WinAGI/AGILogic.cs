@@ -1,7 +1,30 @@
-﻿namespace WinAGI
+﻿using System.ComponentModel;
+
+namespace WinAGI
 {
   public class AGILogic : AGIResource
   {
     public int Number { get; internal set; }
+    public override void Load()
+    {
+      base.Load();
+    }
+    public override void Unload()
+    {
+      base.Unload();
+    }
+     public AGILogic()
+    {
+      //initialize
+      //attach events
+      base.PropertyChanged += ResPropChange;
+    }
+
+    private void ResPropChange(object sender, AGIResPropChangedEventArgs e)
+    {
+      ////let's do a test
+      //// increment number everytime data changes
+      //Number += 1;
+    }
   }
 }

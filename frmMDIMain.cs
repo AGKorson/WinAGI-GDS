@@ -51,7 +51,24 @@ namespace WinAGI_GDS
 
     private void btnOpenGame_Click(object sender, EventArgs e)
     {
-      GameAbout = "test";
+      AGILogic tst = new AGILogic();
+      
+      try
+      {
+        MessageBox.Show($"Before load, Number is: {tst.Number}");
+        tst.Load();
+        MessageBox.Show($"After load, Number is: {tst.Number}");
+        MessageBox.Show($"First data element is: {tst.Data[0].ToString()}");
+        MessageBox.Show($"After read data, Number is: {tst.Number}");
+        tst.Data[0] = 5;
+        MessageBox.Show($"After write data, Number is: {tst.Number}");
+        tst.Unload();
+      }
+      catch (Exception eL)
+      {
+
+        MessageBox.Show($"Caught an exception: {eL.Message}");
+      }
     }
 
     private void mnuWCascade_Click(object sender, EventArgs e)

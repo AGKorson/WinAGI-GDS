@@ -12,6 +12,7 @@ namespace WinAGI
   {
     internal static int lngCurrentVol, lngCurrentLoc;
     internal static BinaryWriter bwDIR, bwVOL;
+    internal static BinaryReader brDIR, brVOL;
     internal static FileStream fsDIR, fsVOL;
     internal static byte[,] bytDIR = new byte[4, 768]; // (3, 767)
     internal static string strNewDir;

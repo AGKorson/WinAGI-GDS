@@ -18,12 +18,12 @@ namespace WinAGI
       // add code here
     }
 
-    internal void LoadLogic(agPics.LoadPicture bytResNum, agPics.LoadPicture bytVol, agPics.LoadPicture lngLoc)
+    internal void LoadLogic(byte bytResNum, byte bytVol, int lngLoc)
     {
       throw new NotImplementedException();
     }
 
-    internal bool Exists(agPics.LoadPicture bytResNum)
+    internal bool Exists(byte bytResNum)
     {
       throw new NotImplementedException();
     }

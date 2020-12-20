@@ -1046,22 +1046,22 @@ namespace WinAGI
         //to point to the wrong place
         foreach (AGILogic tmpLogic in agLogs.Col)
         {
-          tmpLogic.Volume = bytDIR[0, tmpLogic.Number * 3] / 0x10;
+          tmpLogic.Volume = (sbyte) (bytDIR[0, tmpLogic.Number * 3] >> 4);
           tmpLogic.Loc = (bytDIR[0, tmpLogic.Number * 3] & 0xF) * 0x10000 + bytDIR[0, tmpLogic.Number * 3 + 1] * 0x100 + bytDIR[0, tmpLogic.Number * 3 + 2];
         }
         foreach (AGIPicture tmpPicture in agPics.Col)
         {
-          tmpPicture.Volume = bytDIR[1, tmpPicture.Number * 3] / 0x10;
+          tmpPicture.Volume = (sbyte) (bytDIR[1, tmpPicture.Number * 3] >> 4);
           tmpPicture.Loc = (bytDIR[1, tmpPicture.Number * 3] & 0xF) * 0x10000 + bytDIR[1, tmpPicture.Number * 3 + 1] * 0x100 + bytDIR[1, tmpPicture.Number * 3 + 2];
         }
         foreach (AGISound tmpSound in agSnds.Col)
         {
-          tmpSound.Volume = bytDIR[2, tmpSound.Number * 3] / 0x10;
+          tmpSound.Volume = (sbyte) (bytDIR[2, tmpSound.Number * 3] >> 4);
           tmpSound.Loc = (bytDIR[2, tmpSound.Number * 3] & 0xF) * 0x10000 + bytDIR[2, tmpSound.Number * 3 + 1] * 0x100 + bytDIR[2, tmpSound.Number * 3 + 2];
         }
         foreach (AGIView tmpView in agViews.Col)
         {
-          tmpView.Volume = bytDIR[3, tmpView.Number * 3] / 0x10;
+          tmpView.Volume = (sbyte)(bytDIR[3, tmpView.Number * 3] >> 4);
           tmpView.Loc = (bytDIR[3, tmpView.Number * 3] & 0xF) * 0x10000 + bytDIR[3, tmpView.Number * 3 + 1] * 0x100 + bytDIR[3, tmpView.Number * 3 + 2];
         }
       }
