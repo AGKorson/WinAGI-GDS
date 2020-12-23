@@ -19,6 +19,9 @@ namespace WinAGI
       base.PropertyChanged += ResPropChange;
     }
 
+    public uint CompiledCRC
+    { get; internal set; }
+
     private void ResPropChange(object sender, AGIResPropChangedEventArgs e)
     {
       ////let's do a test

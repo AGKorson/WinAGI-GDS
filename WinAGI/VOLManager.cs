@@ -692,320 +692,344 @@ namespace WinAGI
           break;
       }
     }
-      private static void Tmp()
-    {/*
-public void SetSizeInVol(ThisResource As AGIResource, NewSizeInVol As Long)
-  }
-}
+    private static void UpdateDirFile(AGIResource UpdateResource, bool Remove = false)
+    {
+      //this method updates the DIR file with the volume and location
+      //of a resource
+      //if Remove option passed as true,
+      //the resource is treated as //deleted// and
+      // 0xFFFFFF is written in the resource//s DIR file place holder
 
-public void UpdateDirFile(UpdateResource As AGIResource, Remove As Boolean = false)
-  //this method updates the DIR file with the volume and location
-  //of a resource
-  //if Remove option passed as true,
-  //the resource is treated as //deleted// and
-  // 0xFFFFFF is written in the resource//s DIR file place holder
-
-  //NOTE: directories inside a V3 dir file are in this order: LOGIC, PICTURE, VIEW, SOUND
-  //the ResType enumeration is in this order: LOGIC, PICTURE, SOUND, VIEW
-  //because of the switch between VIEW and SOUND, can//t use a formula to calculate
-  //directory offsets
-
-
-  Dim strDirFile As String, intFile As Integer
-  Dim bytDIR() As Byte, intMax As Integer, intOldMax As Integer
-  Dim DirByte(0 To 2) As Byte
-  Dim lngDirOffset As Long, lngDirEnd As Long
-  Dim i As Long, lngStart As Long, lngStop As Long
-
-
-  On Error goto ErrHandler
-  //strategy:
-  //if deleting--
-  //    is the the dir larger than the new max?
-  //    yes: compress the dir
-  //    no:  insert 0xFFs
-  //
-  //if adding--
-  //    is the dir too small?
-  //    yes: expand the dir
-  //    no:  insert the data
-
-
-  if (Remove) {
-    //resource marked for deletion
-    DirByte(0) = 0xFF
-    DirByte(1) = 0xFF
-    DirByte(2) = 0xFF
-  } else {
-    //calculate directory bytes
-    DirByte(0) = UpdateResource.Volume* 0x10 + UpdateResource.Loc \ 0x10000
-   DirByte(1) = (UpdateResource.Loc Mod 0x10000) \ 0x100
-   DirByte(2) = UpdateResource.Loc Mod 0x100
- }
-
-  //what is current max for this res type?
-  switch ( UpdateResource.ResType) {
-  case rtLogic
-    intMax = agLogs.Max
-  case rtPicture
-    intMax = agPics.Max
-  case rtSound
-    intMax = agSnds.Max
-  case rtView
-    intMax = agViews.Max
-  }
-
-  //open the correct dir file, store in a temp array
-  intFile = FreeFile()
-  //if version3
-  if (agIsVersion3) {
-    strDirFile = agGameDir + agGameID + "DIR"
-  } else {
-    strDirFile = agGameDir + ResTypeAbbrv(UpdateResource.ResType) + "DIR"
-  }
-  Open strDirFile For  As intFile
-  ReDim bytDIR(LOF(intFile) - 1) // correct! bytDIR is 0 based!
-  Get intFile, 1, bytDIR()
-  Close intFile
-
-  //calculate old max and offset (for v3 files)
-  if (agIsVersion3) {
-    //calculate directory offset
-    switch ( UpdateResource.ResType) {
-    case rtLogic
-      lngDirOffset = 8
-      lngDirEnd = bytDIR(3) * 256 + bytDIR(2)
-    case rtPicture
-      lngDirOffset = bytDIR(3) * 256 + bytDIR(2)
-      lngDirEnd = bytDIR(5) * 256 + bytDIR(4)
-    case rtView
-      lngDirOffset = bytDIR(5) * 256 + bytDIR(4)
-      lngDirEnd = bytDIR(7) * 256 + bytDIR(6)
-    case rtSound
-      lngDirOffset = bytDIR(7) * 256 + bytDIR(6)
-      lngDirEnd = UBound(bytDIR()) + 1
-    }
-    intOldMax = (lngDirEnd - lngDirOffset) / 3 - 1
-  } else {
-    lngDirEnd = (UBound(bytDIR()) + 1)
-    intOldMax = lngDirEnd / 3 - 1
-    lngDirOffset = 0
-  }
-
-  //if it fits (doesn//t matter if inserting or deleting)
-  if ((Remove && intMax >= intOldMax) Or(!Remove && intOldMax >= intMax)) {
-    //adjust offset for resnum
-    lngDirOffset = lngDirOffset + 3 * UpdateResource.Number
-
-    //just insert the new data, and save the file
-    intFile = FreeFile()
-    Open strDirFile For  As intFile
-    Put intFile, lngDirOffset + 1, DirByte()
-    Close intFile
-    return;
-  }
-
-  //size has changed!
-  if (Remove) {
-    //must be shrinking
-    //////Debug.Assert intOldMax > intMax
-    //if v2, just redim the array
-    if (!agIsVersion3) {
-      ReDim Preserve bytDIR((intMax + 1) * 3 - 1)
-    } else {
-      //if restype is sound, we also can just truncate the file
-      if (UpdateResource.ResType = rtSound) {
-        ReDim Preserve bytDIR(UBound(bytDIR) - 3 * (intOldMax - intMax))
-      } else {
-        //we need to move data from the current directory//s max
-        //backwards to compress the directory
-        //start with resource just after new max; then move all bytes down
-        lngStart = lngDirOffset + intMax* 3 + 3
-        lngStop = UBound(bytDIR) - 3 * (intOldMax - intMax)
-        for (i = lngStart To lngStop
-          bytDIR(i) = bytDIR(i + 3 * (intOldMax - intMax))
-        } //Next i
-        //now shrink the array
-        ReDim Preserve bytDIR(UBound(bytDIR()) - 3 * (intOldMax - intMax))
-        //lastly, we need to update affected offsets
-        //move snddir offset first
-        lngDirOffset = bytDIR(7) * 256 + bytDIR(6)
-        lngDirOffset = lngDirOffset - 3 * (intOldMax - intMax)
-        bytDIR(7) = lngDirOffset \ 256
-        bytDIR(6) = lngDirOffset Mod 256
-        //if resource is a view, we are done
-        if (UpdateResource.ResType!= rtView) {
-          //move view offset
-          lngDirOffset = bytDIR(5) * 256 + bytDIR(4)
-          lngDirOffset = lngDirOffset - 3 * (intOldMax - intMax)
-          bytDIR(5) = lngDirOffset \ 256
-          bytDIR(4) = lngDirOffset Mod 256
-          //if resource is a pic, we are done
-          if (UpdateResource.ResType!= rtPicture) {
-            //move picture offset
-            lngDirOffset = bytDIR(3) * 256 + bytDIR(2)
-            lngDirOffset = lngDirOffset - 3 * (intOldMax - intMax)
-            bytDIR(3) = lngDirOffset \ 256
-            bytDIR(2) = lngDirOffset Mod 256
-          }
-        }
+      //NOTE: directories inside a V3 dir file are in this order: LOGIC, PICTURE, VIEW, SOUND
+      //the ResType enumeration is in this order: LOGIC, PICTURE, SOUND, VIEW
+      //because of the switch between VIEW and SOUND, can't use a formula to calculate
+      //directory offsets
+      string strDirFile;
+      byte[] bytDIR, DirByte = new byte[2];
+      int intMax = 0, intOldMax;
+      int lngDirOffset = 0, lngDirEnd = 0, i, lngStart, lngStop;
+      //strategy:
+      //if deleting--
+      //    is the the dir larger than the new max?
+      //    yes: compress the dir
+      //    no:  insert 0xFFs
+      //
+      //if adding--
+      //    is the dir too small?
+      //    yes: expand the dir
+      //    no:  insert the data
+      if (Remove)
+      {
+        //resource marked for deletion
+        DirByte[0] = 0xFF;
+        DirByte[1] = 0xFF;
+        DirByte[2] = 0xFF;
       }
-    }
-
-    //delete the existing file
-    Kill strDirFile
-    //now save the file
-    intFile = FreeFile()
-    Open strDirFile For  As intFile
-    Put intFile, 1, bytDIR()
-    Close intFile
-  } else {
-    //must be expanding
-    //////Debug.Assert intMax > intOldMax
-    //////Debug.Assert UpdateResource.Number = intMax
-
-    ReDim Preserve bytDIR(UBound(bytDIR()) + 3 * (intMax - intOldMax))
-
-    //if v2, add ffs to fill gap up to the last entry
-    if (!agIsVersion3) {
-      lngStart = lngDirEnd
-      lngStop = lngDirEnd + 3 * (intMax - intOldMax - 1) - 1
-      for (i = lngStart To lngStop
-        bytDIR(i) = 0xFF
-      } //Next i
-      //add dir data to end
-      bytDIR(lngStop + 1) = DirByte(0)
-      bytDIR(lngStop + 2) = DirByte(1)
-      bytDIR(lngStop + 3) = DirByte(2)
-    } else {
-
-      //if expanding the sound dir, just fill it in with FF//s
-      if (UpdateResource.ResType = rtSound) {
-        lngStart = lngDirEnd
-        lngStop = lngDirEnd + 3 * (intMax - intOldMax - 1) - 1
-        for (i = lngStart To lngStop
-          bytDIR(i) = 0xFF
-        } //Next i
-        //add dir data to end
-        bytDIR(lngStop + 1) = DirByte(0)
-        bytDIR(lngStop + 2) = DirByte(1)
-        bytDIR(lngStop + 3) = DirByte(2)
-      } else {
-        //move data to make room for inserted resource
-        lngStop = UBound(bytDIR())
-        lngStart = lngDirEnd + 3 * (intMax - intOldMax)
-        for (i = lngStop To lngStart Step -1
-          bytDIR(i) = bytDIR(i - 3 * (intMax - intOldMax))
-        } //Next i
-        //insert ffs, up to insert location
-        lngStop = lngStart - 4
-        lngStart = lngStop - 3 * (intMax - intOldMax - 1) + 1
-        for (i = lngStart To lngStop
-          bytDIR(i) = 0xFF
-        } //Next i
-        //add dir data to end
-        bytDIR(lngStop + 1) = DirByte(0)
-        bytDIR(lngStop + 2) = DirByte(1)
-        bytDIR(lngStop + 3) = DirByte(2)
-
-        //last thing is to adjust the offsets
-        //move snddir offset first
-        lngDirOffset = bytDIR(7) * 256 + bytDIR(6)
-        lngDirOffset = lngDirOffset + 3 * (intMax - intOldMax)
-        bytDIR(7) = lngDirOffset \ 256
-        bytDIR(6) = lngDirOffset Mod 256
-        //if resource is a view, we are done
-        if (UpdateResource.ResType!= rtView) {
-          //move view offset
-          lngDirOffset = bytDIR(5) * 256 + bytDIR(4)
-          lngDirOffset = lngDirOffset + 3 * (intMax - intOldMax)
-          bytDIR(5) = lngDirOffset \ 256
-          bytDIR(4) = lngDirOffset Mod 256
-          //if resource is a pic, we are done
-          if (UpdateResource.ResType!= rtPicture) {
-            //move picture offset
-            lngDirOffset = bytDIR(3) * 256 + bytDIR(2)
-            lngDirOffset = lngDirOffset + 3 * (intMax - intOldMax)
-            bytDIR(3) = lngDirOffset \ 256
-            bytDIR(2) = lngDirOffset Mod 256
-          }
-        }
+      else
+      {
+        //calculate directory bytes
+        DirByte[0] = (byte)((UpdateResource.Volume * 0x10) + (UpdateResource.Loc >> 16));
+        DirByte[1] = (byte)((UpdateResource.Loc % 0x10000) / 0x100);
+        DirByte[2] = (byte)(UpdateResource.Loc % 0x100);
       }
-    }
 
-    //now save the file
-    intFile = FreeFile()
-    Open strDirFile For  As intFile
-    Put intFile, 1, bytDIR()
-    Close intFile
-  }
+      //what is current max for this res type?
+      switch (UpdateResource.ResType)
+      {
+        case AGIResType.rtLogic:
+          intMax = agLogs.Max;
+            break;
+        case AGIResType.rtPicture:
+          intMax = agPics.Max;
+          break;
+      case AGIResType.rtSound:
+          intMax = agSnds.Max;
+          break;
+      case AGIResType.rtView:
+          intMax = agViews.Max;
+          break;
+      }
 
+      //open the correct dir file, store in a temp array
+      //if version3
+      if (agIsVersion3)
+      {
+        strDirFile = agGameDir + agGameID + "DIR";
+      }
+      else
+      {
+        strDirFile = agGameDir + ResTypeAbbrv[(int)UpdateResource.ResType] + "DIR";
+      }
+      try
+      {
+        fsDIR = new FileStream(strDirFile, FileMode.Open);
+        bytDIR = new byte[fsDIR.Length];
+        fsDIR.Read(bytDIR, 0, (int)fsDIR.Length);
+      }
+      catch (Exception)
+      {
+        //error? what to do???
+        fsDIR.Dispose();
+        throw new Exception("can't open DIR for updating");
+      }
+      //calculate old max and offset (for v3 files)
+      if (agIsVersion3)
+      {
+        //calculate directory offset
+        switch (UpdateResource.ResType)
+        {
+          case AGIResType.rtLogic:
+            lngDirOffset = 8;
+            lngDirEnd = bytDIR[3] * 256 + bytDIR[2];
+            break;
+        case AGIResType.rtPicture:
+            lngDirOffset = bytDIR[3] * 256 + bytDIR[2];
+            lngDirEnd = bytDIR[5] * 256 + bytDIR[4];
+            break;
+        case AGIResType.rtView:
+            lngDirOffset = bytDIR[5] * 256 + bytDIR[4];
+            lngDirEnd = bytDIR[7] * 256 + bytDIR[6];
+            break;
+        case AGIResType.rtSound:
+            lngDirOffset = bytDIR[7] * 256 + bytDIR[6];
+            lngDirEnd = bytDIR.Length;
+            break;
+        }
+        intOldMax = (lngDirEnd - lngDirOffset) / 3 - 1;
+      }
+      else
+      {
+        lngDirEnd = (bytDIR.Length);
+        intOldMax = lngDirEnd / 3 - 1;
+        lngDirOffset = 0;
+      }
 
-return;
-
-ErrHandler:
-  //////Debug.Assert false
-  Resume Next
-}
-
-public void ValidateVolAndLoc(ResSize As Long)
-  //this method ensures current vol has room for resource with given size
-
-  //if not, it closes current vol file, and opens next one
-
-  //this method is only used by the game compiler when doing a
-  //complete compile or resource rebuild
-
-  Dim i As Long, lngMaxVol As Long
-
-
-  On Error Resume Next
-
-  //verify enough room here
-  if (lngCurrentLoc + ResSize > MAX_VOLSIZE Or(lngCurrentVol = 0 && (lngCurrentLoc + ResSize > agMaxVol0))) {
-
-    //set maxvol count to 4 or 15, depending on version
-    if (agIsVersion3) {
-      lngMaxVol = 15
-    } else {
-      lngMaxVol = 4
-    }
-
-    //close current vol
-    Close intVolFile
-
-    //first check previous vol files, to see if there is room at end of one of those
-    for (i = 0 To lngMaxVol
-      //open this file (if the file doesn//t exist, this will create it
-      //and it will then be set as the next vol, with pos=0
-      intVolFile = FreeFile()
-      Open strNewDir + "NEW_VOL." + CStr(i) For  As intVolFile
-      //check for error
-      if (e.HResult!= 0) {
-        //also, compiler should check for this error, as it is fatal
-        throw new Exception("640, "VolManager.ValidateVolAndLoc", LoadResString(640)");
+      //if it fits (doesn't matter if inserting or deleting)
+      if ((Remove && (intMax >= intOldMax)) || (!Remove && (intOldMax >= intMax))) 
+      {
+        //adjust offset for resnum
+        lngDirOffset += 3 * UpdateResource.Number;
+        //just insert the new data, and save the file
+        try
+        {
+          fsDIR.Seek(lngDirOffset, SeekOrigin.Begin);
+          fsDIR.Write(bytDIR, 0, 3);
+        }
+        catch (Exception)
+        {
+          throw new Exception("unable to update the DIR file...");
+        }
         return;
       }
 
-      //is there room at the end of this file?
-      if ((i > 0 && LOF(intVolFile) + ResSize <= MAX_VOLSIZE) Or((LOF(intVolFile) + ResSize <= agMaxVol0))) {
-        //if so, set pointer to end of the file, and exit
-        lngCurrentVol = i
-        lngCurrentLoc = LOF(intVolFile)
-        return;
-      }
-      //close the file, and try next
-      Close intVolFile
-    } //Next i
+      //size has changed!
+      if (Remove)
+      {
+        //must be shrinking
+        //if v2, just redim the array
+        if (!agIsVersion3)
+        {
+          Array.Resize(ref bytDIR, (intMax + 1) * 3);
+        }
+        else
+        {
+          //if restype is sound, we also can just truncate the file
+          if (UpdateResource.ResType == AGIResType.rtSound)
+          {
+            Array.Resize(ref bytDIR, bytDIR.Length - 3 * (intOldMax - intMax));
+          }
+          else
+          {
+            //we need to move data from the current directory's max
+            //backwards to compress the directory
+            //start with resource just after new max; then move all bytes down
+            lngStart = lngDirOffset + intMax * 3 + 3;
+            lngStop = bytDIR.Length - 3 * (intOldMax - intMax);
+            for (i = lngStart; i < lngStop; i++) 
+            {
+              bytDIR[i] = bytDIR[i + 3 * (intOldMax - intMax)];
+            } //Next i
+              //now shrink the array
+            Array.Resize(ref bytDIR, bytDIR.Length - 3 * (intOldMax - intMax));
+            //then we need to update affected offsets
+            //move snddir offset first
+            lngDirOffset = bytDIR[7] * 0x100 + bytDIR[6];
+            lngDirOffset -= 3 * (intOldMax - intMax);
+            bytDIR[7] = (byte)(lngDirOffset / 0x100);
+            bytDIR[6] = (byte)(lngDirOffset % 0x100);
+            //if resource is a view, we are done
+            if (UpdateResource.ResType != AGIResType.rtView)
+            {
+              //move view offset
+              lngDirOffset = bytDIR[5] * 0x100 + bytDIR[4];
+              lngDirOffset -= 3 * (intOldMax - intMax);
+              bytDIR[5] = (byte)(lngDirOffset / 0x100);
+              bytDIR[4] = (byte)(lngDirOffset % 0x100);
+              //if resource is a pic, we are done
+              if (UpdateResource.ResType != AGIResType.rtPicture)
+              {
+                //move picture offset
+                lngDirOffset = bytDIR[3] * 0x100 + bytDIR[2];
+                lngDirOffset -= 3 * (intOldMax - intMax);
+                bytDIR[3] = (byte)(lngDirOffset / 0x100);
+                bytDIR[2] = (byte)(lngDirOffset % 0x100);
+              }
+            }
+          }
+        }
 
-    //if no volume found, we//ve got a problem...
-    //raise error!
-    //also, compiler should check for this error, as it is fatal
-    throw new Exception("593, "VolManager.ValidateVolAndLoc", LoadResString(593)");
-    return;
-  }
-}
-    */
+        //delete the existing file
+        fsDIR.Dispose();
+        File.Delete(strDirFile);
+        //now save the file
+        fsDIR = new FileStream(strDirFile, FileMode.OpenOrCreate);
+        fsDIR.Write(bytDIR, 0, bytDIR.Length);
+      }
+      else 
+      {
+        //must be expanding
+        Array.Resize(ref bytDIR, bytDIR.Length + 3 * (intMax - intOldMax));
+
+        //if v2, add ffs to fill gap up to the last entry
+        if (!agIsVersion3) {
+          lngStart = lngDirEnd;
+          lngStop = lngDirEnd + 3 * (intMax - intOldMax - 1) - 1;
+          for (i = lngStart; i <= lngStop; i++)
+          {
+            bytDIR[i] = 0xFF;
+          }
+          //add dir data to end
+          bytDIR[lngStop + 1] = DirByte[0];
+          bytDIR[lngStop + 2] = DirByte[1];
+          bytDIR[lngStop + 3] = DirByte[2];
+        } 
+        else
+        {
+          //if expanding the sound dir, just fill it in with FF//s
+          if (UpdateResource.ResType == AGIResType.rtSound)
+          {
+            lngStart = lngDirEnd;
+                lngStop = lngDirEnd + 3 * (intMax - intOldMax - 1) - 1;
+            for (i = lngStart; i <= lngStop; i++)
+            {
+              bytDIR[i] = 0xFF;
+            }
+            //add dir data to end
+            bytDIR[lngStop + 1] = DirByte[0];
+            bytDIR[lngStop + 2] = DirByte[1];
+            bytDIR[lngStop + 3] = DirByte[2];
+            } 
+          else
+          {
+            //move data to make room for inserted resource
+            lngStop = bytDIR.Length - 1;
+            lngStart = lngDirEnd + 3 * (intMax - intOldMax);
+            for (i = lngStop; i > lngStart; i--)
+            {
+              bytDIR[i] = bytDIR[i - 3 * (intMax - intOldMax)];
+            }
+            //insert ffs, up to insert location
+            lngStop = lngStart - 4;
+            lngStart = lngStop - 3 * (intMax - intOldMax - 1);
+            for (i = lngStart; i <= lngStop; i++)
+            {
+              bytDIR[i] = 0xFF;
+            }
+            //add dir data to end
+            bytDIR[lngStop + 1] = DirByte[0];
+            bytDIR[lngStop + 2] = DirByte[1];
+            bytDIR[lngStop + 3] = DirByte[2];
+
+            //then adjust the offsets
+            //move snddir offset first
+            lngDirOffset = bytDIR[7] * 256 + bytDIR[6];
+            lngDirOffset += 3 * (intMax - intOldMax);
+            bytDIR[7] = (byte)(lngDirOffset / 0x100);
+            bytDIR[6] = (byte)(lngDirOffset % 0x100);
+            //if resource is a view, we are done
+            if (UpdateResource.ResType != AGIResType.rtView)
+            {
+              //move view offset
+              lngDirOffset = (byte)(bytDIR[5] * 0x100 + bytDIR[4]);
+              lngDirOffset += 3 * (intMax - intOldMax);
+              bytDIR[5] = (byte)(lngDirOffset / 0x100);
+              bytDIR[4] = (byte)(lngDirOffset % 0x100);
+              //if resource is a pic, we are done
+              if (UpdateResource.ResType != AGIResType.rtPicture)
+                {
+                //move picture offset
+                lngDirOffset = (byte)(bytDIR[3] * 0x100 + bytDIR[2]);
+                lngDirOffset += 3 * (intMax - intOldMax);
+                bytDIR[3] = (byte)(lngDirOffset / 0x100);
+                bytDIR[2] = (byte)(lngDirOffset % 0x100);
+              }
+            }
+          }
+        }
+
+        //now save the file
+        fsDIR.Dispose();
+        fsDIR = new FileStream(strDirFile, FileMode.Open);
+        fsDIR.Write(bytDIR, 0, bytDIR.Length);
+      }
+    }
+    private static void ValidateVolAndLoc(int ResSize)
+    {
+      //this method ensures current vol has room for resource with given size
+      //if not, it closes current vol file, and opens next one
+      //this method is only used by the game compiler when doing a
+      //complete compile or resource rebuild
+
+      int i = 0, lngMaxVol = 0;
+      //this ressource doesn't fit (goes past end, OR if it's vol 0, and it exceeds vol0 size)
+      if (lngCurrentLoc + ResSize > MAX_VOLSIZE || (lngCurrentVol == 0 && (lngCurrentLoc + ResSize > agMaxVol0))) 
+      {
+        //set maxvol count to 4 or 15, depending on version
+        if (agIsVersion3)
+        {
+          lngMaxVol = 15;
+        }
+        else
+        {
+          lngMaxVol = 4;
+        }
+
+        //close current vol
+        fsVOL.Dispose();
+        bwVOL.Dispose();
+
+        //first check previous vol files, to see if there is room at end of one of those
+        for (i = 0; i <= lngMaxVol; i++)
+        {
+          try
+          {
+            //open this file (if the file doesn't exist, this will create it
+            //and it will then be set as the next vol, with pos=0
+            fsVOL = new FileStream(strNewDir + "NEW_VOL." + i, FileMode.OpenOrCreate);
+            bwVOL = new BinaryWriter(fsVOL);
+          }
+          catch (Exception)
+          {
+            fsVOL.Dispose();
+            bwVOL.Dispose();
+            //also, compiler should check for this error, as it is fatal
+            throw new Exception("640, VolManager.ValidateVolAndLoc, LoadResString(640)");
+          }
+          //is there room at the end of this file?
+          if ((i > 0 && (fsVOL.Length + ResSize <= MAX_VOLSIZE)) || (fsVOL.Length + ResSize <= agMaxVol0))
+          {
+            //if so, set pointer to end of the file, and exit
+            lngCurrentVol = (sbyte)i;
+            lngCurrentLoc = (int)fsVOL.Length;
+          return;
+          }
+        } //Next i
+
+      //if no volume found, we//ve got a problem...
+      //raise error!
+      //also, compiler should check for this error, as it is fatal
+      throw new Exception("593, VolManager.ValidateVolAndLoc, LoadResString(593)");
+      }
     }
   }
 }

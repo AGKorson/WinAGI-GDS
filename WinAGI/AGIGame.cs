@@ -1968,7 +1968,7 @@ namespace WinAGI
 
       //    //create empty property file
       //    agGameFile = agGameDir & agGameID & ".wag"
-      //    Kill agGameFile
+      //    File.Delete(agGameFile
       //    Err.Clear
       //    Set agGameProps = OpenSettingList(agGameFile)
       //    With agGameProps
