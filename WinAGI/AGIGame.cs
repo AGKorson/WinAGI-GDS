@@ -22,9 +22,9 @@ namespace WinAGI
     static string strErrSource = "";
 
     //game compile variables
-    static bool agCompGame = false;
-    static bool agCancelComp = false;
-    static bool agChangeVersion = false;
+    internal static bool agCompGame = false;
+    internal static bool agCancelComp = false;
+    internal static bool agChangeVersion = false;
 
     //local variable(s) to hold property Value(s)
     //for game properties which need to be accessible
@@ -82,12 +82,6 @@ namespace WinAGI
     internal static bool agUseLE = false;
 
     internal static string agSrcExt = "";
-
-    ////error number and string to return error values
-    ////from various functions/subroutines
-    //static int lngError = 0;
-    //static string strError = "";
-    //static string strErrSrc = "";
 
     //temp file location
     internal static string TempFileDir = "";
@@ -494,21 +488,6 @@ namespace WinAGI
 
       // clear all game properties
       ClearGameState();
-    }
-
-    internal static void CompleteCancel(bool NoEvent = false)
-    {
-      //cleans up after a compile game cancel or error
-
-      if (!NoEvent)
-      {
-        Raise_CompileGameEvent(ECStatus.csCanceled, 0, 0, "");
-      }
-      agCompGame = false;
-      fsDIR.Dispose();
-      fsVOL.Dispose();
-      bwVOL.Dispose();
-      bwDIR.Dispose();
     }
 
     public static void CompileGame(bool RebuildOnly, string NewGameDir = "")

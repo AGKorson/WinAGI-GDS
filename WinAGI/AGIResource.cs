@@ -6,7 +6,8 @@ using static WinAGI.AGIGame;
 
 namespace WinAGI
 {
-  public abstract class AGIResource
+  //public abstract class AGIResource
+  public class AGIResource
   {
     private string strErrSource = "WINAGI.agiResource";
     private bool mLoaded = false;
@@ -37,8 +38,22 @@ namespace WinAGI
       PropertyChanged?.Invoke(this, new AGIResPropChangedEventArgs(name));
     }
 
-    public sbyte Volume { get { return mVolume; } internal set { mVolume = value; } }
-    public int Loc { get; internal set; }
+    public sbyte Volume 
+    {
+      get 
+      {
+      if (!mInGame)
+      {
+        return -1;
+      }
+      else
+      {
+        return mVolume;
+      }
+      } 
+      internal set { mVolume = value; }
+    }
+    public int Loc { get { if (mInGame) return mLoc; else return -1; } internal set { mLoc = value; } }
     public int Size
     {
       get
@@ -70,11 +85,69 @@ namespace WinAGI
       {
       }
     }
+    public virtual int SizeInVOL
+    {
+      get
+      {
+        //returns the size of the resource on the volume
+        if (mInGame)
+        {
+          //if not established yet
+          if (mSizeInVol == -1)
+          {
+            //get Value
+            mSizeInVol = GetSizeInVOL(mVolume, mLoc);
+            //if valid Value not returned,
+            if (mSizeInVol == -1)
+            {
+              throw new Exception(" 625, strErrSource, LoadResString(625)");
+            }
+          }
+        }
+        else
+        {
+          mSizeInVol = -1;
+        }
+
+        //return Value
+        return mSizeInVol;
+      }
+      set
+      {
+        //only AddToVOL calls this
+        //after saving a resource to a VOL file
+        mSizeInVol = value;
+     }
+    }
     public bool InGame
       { get{ return mInGame; } internal set{ mInGame = value; } }
     public byte Number
     { get { return mResNum; }
       set { mResNum = value; }
+    }
+    public bool Loaded
+    { get { return mLoaded; } internal set { } }
+    public string ResFile
+    { get { if (mInGame) return mResFile; else return ""; } set { mResFile = value; } }
+    internal bool WritePropState { get; set; }
+    public bool IsDirty { get; internal set; }
+    public AGIResType ResType
+    { get { return mResType; } }
+    public string ID { get; internal set; }
+    public int EORes
+    {
+      get
+      {
+
+        //if not loaded
+        if (!mLoaded)
+        {
+          //error
+          throw new Exception("563, strErrSource, LoadResString(563)");
+        }
+        return mRData.Length;
+      }
+      private set { }
     }
     // to allow indexing of data property, a separate class needs to
     // be created
@@ -161,6 +234,49 @@ namespace WinAGI
       {
         // not allowed
       }
+    }
+    internal void Init(byte ResNum, sbyte VOL = -1, int Loc = -1)
+    {
+      //Init method only called when a resource is added to a game
+      //via the Add method of the resource collections (Views, Logics, Pictures, Sounds)
+      //or via the Load<restype> method
+
+      mResNum = ResNum;
+      mVolume = VOL;
+      mLoc = Loc;
+      mInGame = true;
+    }
+    internal void SetRes(AGIResource NewRes)
+    { //TODO: with C#, don't need separate object for Res, so
+      // all these can be moved to setlog, setpic, setsnd, setview
+
+      //called by setview, setlog, setpic and setsnd
+      //copies entire resource structure
+
+      mResNum = NewRes.Number;
+      mResType = NewRes.ResType;
+      mResFile = NewRes.ResFile;
+      //if resource being copied is in a game,
+      if (NewRes.InGame)
+      {
+        //copy vol and loc info
+        mVolume = NewRes.Volume;
+        mLoc = NewRes.Loc;
+      }
+      mLoaded = NewRes.Loaded;
+
+      //ingame property is never copied; only way to
+      //change ingame status is to do so through
+      //appropriate methods for adding/removing
+      //resources to/from game
+
+      //resresource data is copied manually as necessary by calling method
+      //EORes and CurPos are calculated; don't need to copy them
+    }
+    internal void SetType(AGIResType ResType)
+    {
+      //should only be called when a new resource is initialized
+      mResType = ResType;
     }
     public virtual void Load()
     {
@@ -350,22 +466,6 @@ namespace WinAGI
         mRData.PropertyChanged += Raise_DataChange;
       }
     }
-    public virtual void Unload()
-    {
-      mLoaded = false;
-      //throw new NotImplementedException();
-    }
-    internal void Init(byte ResNum, sbyte VOL = -1, int Loc = -1)
-    {
-      //Init method only called when a resource is added to a game
-      //via the Add method of the resource collections (Views, Logics, Pictures, Sounds)
-      //or via the Load<restype> method
-
-      mResNum = ResNum;
-      mVolume = VOL;
-      mLoc = Loc;
-      mInGame = true;
-    }
     public void NewResource(bool Reset = false)
     {
       //clears any data for the resource,and marks it as loaded
@@ -390,21 +490,214 @@ namespace WinAGI
       mVolume = -1;
       mLoc = -1;
     }
-    internal bool WritePropState { get; set; }
-    public bool IsDirty { get; internal set; }
-    public int EORes {
-      get
-      {
+    public virtual void Unload()
+    {
+      mLoaded = false;
+      //reset resource variables
+      mRData.Clear();
+      //don//t mess with sizes though! they remain accessible even when unloaded
+      mblnEORes = true;
+      mlngCurPos = 0;
+    }
+    internal void Save(string SaveFile = "")
+    {
+      //saves a resource into a VOL file if in a game
+      //exports the resource if not in a game
 
-        //if not loaded
-        if (!mLoaded)
-        {
-          //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
-        }
-        return mRData.Length;
+      //if not loaded
+      if (!mLoaded)
+      {
+        //error
+        throw new Exception(" 563, strErrSource, LoadResString(563)");
       }
-      private set { } }
+
+      //if in game,
+      if (mInGame)
+      {
+        try
+        {
+          //add resource to VOL file to save it
+          AddToVol(this, agIsVersion3);
+        }
+        catch (Exception e)
+        {
+          //pass error along
+          throw new Exception($"error: {e.HResult.ToString()}, {e.Message}");
+        }
+
+        //change date of last edit
+        agLastEdit = DateTime.Now;
+      }
+      else
+      {
+        //export it
+        Export(SaveFile);
+      }
+    }
+    public void Export(string ExportFile)
+    {
+      //exports resource to file
+      //doesn't affect the current resource filename
+      //MUST specify a valid export file
+      //if export file already exists, it is overwritten
+      //caller is responsible for verifying overwrite is ok or not
+
+      bool blnUnload = false;
+
+      //if no filename passed
+      if (ExportFile.Length == 0)
+      {
+        throw new Exception(" 599, strErrSource, LoadResString(599)");
+        return;
+      }
+
+      //if not loaded
+      if (!mLoaded)
+      {
+        blnUnload = true;
+        try
+        {
+          Load();
+        }
+        catch (Exception)
+        {
+          throw new Exception(" 601, strErrSource, LoadResString(601)");
+        }
+      }
+      //get temporary file
+      string strTempFile = Path.GetTempFileName();
+
+      FileStream fsExport = null;
+      try
+      {
+        //open file for output
+        fsExport = new FileStream(strTempFile, FileMode.Open);
+        //write data
+        fsExport.Write(mRData.AllData, 0, mRData.Length);
+      }
+      catch (Exception)
+      {
+        fsExport.Dispose();
+        File.Delete(strTempFile);
+        if (blnUnload)
+        {
+          Unload();
+          //return error condition
+        }
+        throw new Exception(" 582, strErrSource, LoadResString(582)");
+      }
+
+      //close file,
+      fsExport.Dispose();
+      //unload if necessary
+      if (blnUnload)
+      {
+        Unload();
+      }
+
+      //if savefile exists
+      if (File.Exists(ExportFile))
+      {
+        //delete it
+        try
+        {
+          File.Delete(ExportFile);
+        }
+        catch (Exception)
+        {
+          //ignore if it can't be deleted; user will just have
+          // to deal with it
+        }
+      }
+      try
+      {
+        //copy tempfile to savefile
+        File.Move(strTempFile, ExportFile);
+      }
+      catch (Exception)
+      {
+        //erase the temp file
+        File.Delete(strTempFile);
+        //return error condition
+        throw new Exception(" 582, strErrSource, LoadResString(582)");
+      }
+
+      //if NOT in a game,
+      if (!mInGame)
+      {
+        //change resfile to match new export filename
+        mResFile = ExportFile;
+      }
+    }
+    public void Import(string ImportFile)
+    {
+      //imports resource from a file, and loads it
+      //if in a game, it also saves the new
+      //resource in a VOL file
+      //
+      //import does not check if the imported
+      //resource is valid or not, nor if it is
+      //of the correct resource type
+      //
+      //the calling program is responsible for
+      //that check
+
+      //if no filename passed
+      if (ImportFile.Length == 0)
+      {
+        //error
+        throw new Exception(" 604, strErrSource, LoadResString(604)");
+      }
+
+      //if file doesn//t exist
+      if (!File.Exists(ImportFile))
+      {
+        //error
+        throw new Exception("LoadResString(524), ImportFile)");
+      }
+
+      //if resource is currently loaded,
+      if (mLoaded)
+      {
+        Unload();
+      }
+
+      //open file for binary
+      FileStream fsImport = null;
+      try
+      {
+        fsImport = new FileStream(ImportFile, FileMode.Open);
+      }
+      catch (Exception)
+      {
+        throw new Exception("LoadResString(605), ImportFile");
+      }
+      // if file is empty
+      if (fsImport.Length == 0)
+      {
+        throw new Exception("LoadResString(605), ImportFile");
+      }
+      //load resource from file
+      fsImport.Read(mRData.AllData, 0,  (int)fsImport.Length);
+      //if in a game
+      if (mInGame)
+      {
+        //save resource
+        Save();
+      }
+      else
+      {
+        //save the resource filename
+        mResFile = ImportFile;
+      }
+      //reset resource markers
+      mlngCurPos = 0;
+      mblnEORes = false;
+      mLoaded = true;
+
+      //raise change event
+      OnPropertyChanged("Data");
+    }
     public void WriteByte(byte InputByte, int Pos = -1)
     {
       bool bNoEvent = false;
@@ -781,7 +1074,55 @@ namespace WinAGI
       //raise change event
       OnPropertyChanged("Data");
     }
-    public virtual void Clear()
+    public void RemoveData(int RemovePos, int RemoveCount = 1)
+    {
+      //removes data from RemovePos; if a Count
+      //is passed, that number of bytes removed; if no
+      //Count is passed, then only one byte removed
+
+      int i, lngResEnd;
+
+      //if not loaded
+      if (!mLoaded)
+      {
+        //error
+        throw new Exception(" 563, strErrSource, LoadResString(563)");
+      }
+
+      lngResEnd = mRData.Length - 1;
+
+      //validate Count
+      if (RemoveCount <= 0)
+      {
+        //force back to 1
+        RemoveCount = 1;
+      }
+
+      //validate removepos
+      if (RemovePos < 0)
+      {
+        //error
+        throw new Exception(" 620, strErrSource, LoadResString(620)");
+      }
+      if (RemovePos >= mRData.Length)
+      {
+        //error
+        throw new Exception(" 620, strErrSource, LoadResString(620)");
+      }
+
+      //remove by moving data backwards
+      for (i = RemovePos; i >= (mRData.Length - RemoveCount - 1); i++)
+      {
+        mRData[i] = mRData[i + RemoveCount];
+      } // for i
+
+      mRData.ReSize(mRData.Length - RemoveCount);
+  
+      //raise change event
+      OnPropertyChanged("Data");
+
+  }
+  public virtual void Clear()
     {
       //if not loaded
       if (!mLoaded)
@@ -796,494 +1137,6 @@ namespace WinAGI
       //mSizeInVol is undefined
       mSizeInVol = -1;
       mblnEORes = false;
-    }
-    private void temp()
-    {
-      /*
-Public Sub RemoveData(ByVal RemovePos As Long, Optional ByVal RemoveCount As Long = 1)
-  //removes data from RemovePos; if a Count
-  //is passed, that number of bytes removed; if no
-  //Count is passed, then only one byte removed
-  
-  Dim i As Long
-  Dim lngResEnd As Long
-  
-  //if not loaded
-  if (!mLoaded) {
-    //error
-    throw new Exception(" 563, strErrSource, LoadResString(563)
-    return;
-  }
-  
-  lngResEnd = mRData.Length - 1
-  
-  //validate Count
-  if (RemoveCount <= 0) {
-    //force back to 1
-    RemoveCount = 1
-  }
-  
-  //validate removepos
-  if (RemovePos < 0) {
-    //error
-    throw new Exception(" 620, strErrSource, LoadResString(620)
-    return;
-  }
-  if (RemovePos >= mRData.Length) {
-    //error
-    throw new Exception(" 620, strErrSource, LoadResString(620)
-    return;
-  }
-  
-  //remove by moving data backwards
-  for (i = RemovePos To mRData.Length - RemoveCount - 1
-    mRData[i) = mRData[i + RemoveCount)
-  } // for i
-  
-  mRData.Length = mRData.Length - RemoveCount
-  ReDim Preserve mRData[mRData.Length - 1)
-  
-  //raise change event
-  OnPropertyChanged("Data");
-End Sub
-
-
-internal Property Let ResFile(ByVal NewFile As String)
-
-  //called by parent resource to set a non-ingame resource file before loading
-  mResFile = NewFile
-End Property
-
-Public Property Get ResType() As AGIResType
-  ResType = mResType
-
-End Property
-
-
-internal Sub Save(Optional SaveFile As String)
-  //saves a resource into a VOL file if in a game
-  //exports the resource if not in a game
-  
-  On Error GoTo ErrHandler
-  
-  //if not loaded
-  if (!mLoaded) {
-    //error
-    throw new Exception(" 563, strErrSource, LoadResString(563)
-    return;
-  }
-  
-  //if in game,
-  if (mInGame) {
-    //add resource to VOL file to save it
-    AddToVol Me, agIsVersion3
-  
-    //change date of last edit
-    agLastEdit = Now()
-    
-    //if error,
-    if (Err.Number <> 0) {
-      //pass error along
-      lngError = Err.Number
-      strError = Err.Description
-      strErrSrc = Err.Source
-      
-      On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-      return;
-    }
-  } else {
-    //export it
-    Export SaveFile
-  }
-return;
-
-ErrHandler:
-  //*'Debug.Assert false
-  Resume Next
-End Sub
-
-internal Sub SetRes(NewRes As AGIResource)
-  //called by setview, setlog, setpic and setsnd
-  //copies entire resource structure
-  
-  With NewRes
-    mResNum = .Number
-    mResType = .ResType
-    mResFile = .ResFile
-    //if resource being copied is in a game,
-    if (NewRes.InGame) {
-      //copy vol and loc info
-      mVolume = .Volume
-      mLoc = .Loc
-    }
-    mLoaded = .Loaded
-    mRData.Length = .Size
-    
-    //ingame property is never copied; only way to
-    //change ingame status is to do so through
-    //appropriate methods for adding/removing
-    //resources to/from game
-    
-    //resresource data is copied manually as necessary by calling method
-    //EORes and CurPos are calculated; don//t need to copy them
-  End With
-End Sub
-
-
-internal Sub SetType(ByVal ResType As AGIResType)
-  //should only be called when a new resource is initialized
-
-  mResType = ResType
-End Sub
-
-
-internal Property Let Size(NewSize As Long)
-
-  //only called during game load
-  mRData.Length = NewSize
-End Property
-
-Public Property Get SizeInVol() As Long
-  //returns the size of the resource on the volume
-  
-  //if in a game
-  if (mInGame) {
-    //if not established yet
-    if (mSizeInVol = -1) {
-      //get Value
-      mSizeInVol = GetSizeInVOL(mVolume, mLoc)
-      //if valid Value not returned,
-      if (mSizeInVol = -1) {
-        throw new Exception(" 625, strErrSource, LoadResString(625)
-        return;
-      }
-    }
-  } else {
-    mSizeInVol = -1
-  }
-  
-  //return Value
-  SizeInVol = mSizeInVol
-End Property
-internal Property Let SizeInVol(ByVal NewSize As Long)
-  //only AddToVOL calls this
-  //after saving a resource to a VOL file
-  mSizeInVol = NewSize
-  
-End Property
-
-
-Public Property Get Volume() As Long
-   
-  //if not in a game
-  if (!mInGame) {
-    Volume = -1
-  } else {
-    Volume = mVolume
-  }
-End Property
-internal Property Let Volume(ByVal NewVOL As Long)
-  
-  mVolume = NewVOL
-End Property
-
-
-Public Property Get ResFile() As String
-  //only applies for resources that are not in a game
-  
-  if (!mInGame) {
-    ResFile = mResFile
-  } else {
-    //return nothing
-    ResFile = vbNullString
-  }
-End Property
-
-Public Property Get Loaded() As Boolean
-  Loaded = mLoaded
-  
-End Property
-
-
-
-Public Property Get Loc() As Long
-  
-  if (!mInGame) {
-    Loc = -1
-  } else {
-    Loc = mLoc
-  }
-End Property
-internal Property Let Loc(ByVal NewLoc As Long)
-  
-  mLoc = NewLoc
-End Property
-
-
-
-internal Sub Unload()
-  mLoaded = false
-  //reset resource variables
-  ReDim mRData[0)
-  //don//t mess with sizes though! they remain accessible even when unloaded
-  mblnEORes = true
-  mlngCurPos = 0
-End Sub
-
-internal Property Let AllData(NewData() As Byte)
-
-  //only called internally when copying a resource for editing
-  //or for creating new compiled resources
-  
-  //whenever data is set this way, load flag is automatically set
-  //to true
-  
-  On Error GoTo ErrHandler
-  
-  //assign data
-  mbytData = NewData
-  mRData.Length = UBound(mbytData) + 1
-  
-  //reset position
-  mlngCurPos = 0
-  //reset end of resource
-  mblnEORes = false
-  //set status as loaded
-  mLoaded = true
-  
-  //raise change event
-  OnPropertyChanged("Data");
-return;
-
-ErrHandler:
-  //*'Debug.Assert false
-  Resume Next
-End Property
-
-Public Sub SetData(NewData() As Byte)
-
-  //allows the entire resource byte array to be replaced
-  
-  On Error GoTo ErrHandler
-  
-  //if not loaded
-  if (!mLoaded) {
-    //error
-    throw new Exception(" 563, strErrSource, LoadResString(563)
-    return;
-  }
-  
-  //assign data
-  mbytData = NewData
-  mRData.Length = UBound(mbytData) + 1
-  
-  //reset position
-  mlngCurPos = 0
-  //reset end of resource
-  mblnEORes = false
-  
-  //raise change event
-  OnPropertyChanged("Data");
-return;
-
-ErrHandler:
-  //*'Debug.Assert false
-  Resume Next
-End Sub
-
-Public Property Get AllData() As Byte()
-  //if not loaded
-  if (!mLoaded) {
-    //error
-    throw new Exception(" 563, strErrSource, LoadResString(563)
-    return;
-  }
-  
-  //return entire array of data
-  AllData = mbytData
-End Property
-
-
-Public Sub Export(ExportFile As String)
-  //exports resource to file
-  //doesn//t affect the current resource filename
-  //MUST specify a valid export file
-  //if export file already exists, it is overwritten
-  //caller is responsible for verifying overwrite is ok or not
-  
-  Dim strTempFile As String
-  Dim intFile As Integer, blnUnload As Boolean
-  
-  //if no filename passed
-  if (LenB(ExportFile) = 0) {
-    throw new Exception(" 599, strErrSource, LoadResString(599)
-    return;
-  }
-
-  On Error Resume Next
-  
-  //if not loaded
-  if (!mLoaded) {
-    blnUnload = true
-    Load
-    //check for error
-    if (Err.Number != 0) {
-      throw new Exception(" 601, strErrSource, LoadResString(601)
-      return;
-    }
-  }
-  
-  //get temporary file
-  strTempFile = TempFileName()
-  
-  //open file for output
-  intFile = FreeFile()
-  Open strTempFile for (Binary As intFile
-  //write data
-  Put intFile, , mbytData
-  
-  //if error,
-  if (Err.Number != 0) {
-    //close file
-    Close intFile
-    //erase the temp file
-    Kill strTempFile
-    //unload if necessary
-    if (blnUnload) {
-      Unload
-    }
-    //return error condition
-    throw new Exception(" 582, strErrSource, LoadResString(582)
-    return;
-  }
-  
-  //close file,
-  Close intFile
-  //unload if necessary
-  if (blnUnload) {
-    Unload
-  }
-  
-  //if savefile exists
-  if (FileExists(ExportFile)) {
-    //delete it
-    Kill ExportFile
-    Err.Clear
-  }
-  
-  //copy tempfile to savefile
-  FileCopy strTempFile, ExportFile
-  
-  //if error,
-  if (Err.Number != 0) {
-    //close file
-    Close intFile
-    //erase the temp file
-    Kill strTempFile
-    //return error condition
-    throw new Exception(" 582, strErrSource, LoadResString(582)
-    return;
-  }
-    
-  //delete temp file
-  Kill strTempFile
-  Err.Clear
-  
-  //if NOT in a game,
-  if (!mInGame) {
-    //change resfile to match new export file
-    mResFile = ExportFile
-  }
-End Sub
-
-
-internal Sub Import(ImportFile As String)
-  //imports resource from a file, and loads it
-  //if in a game, it also saves the new
-  //resource in a VOL file
-  //
-  //import does not check if the imported
-  //resource is valid or not, nor if it is
-  //of the correct resource type
-  //
-  //the calling program is responsible for
-  //that check
-  
-  Dim intFile As Integer
-  
-  On Error GoTo ErrHandler
-  
-  //if no filename passed
-  if (LenB(ImportFile) = 0) {
-    //error
-    throw new Exception(" 604, strErrSource, LoadResString(604)
-    return;
-  }
-  
-  //if file doesn//t exist
-  if (!FileExists(ImportFile)) {
-    //error
-    throw new Exception(" 524, strErrSource, Replace(LoadResString(524), ARG1, ImportFile)
-    return;
-  }
-  
-  //if resource loaded,
-  if (mLoaded) {
-    Unload
-  }
-  
-  On Error Resume Next
-  //open file for binary
-  intFile = FreeFile()
-  Open ImportFile for (Binary As intFile
-  //check for file access error
-  if (Err.Number != 0) {
-    Err.Clear
-    throw new Exception(" 605, strErrSource, Replace(LoadResString(605), ARG1, ImportFile)
-    return;
-  }
-  
-  if (LOF(intFile) = 0) {
-    throw new Exception(" 605, strErrSource, Replace(LoadResString(605), ARG1, ImportFile)
-    return;
-  }
-  
-  On Error GoTo ErrHandler
-  //load resource from file
-  mRData.Length = LOF(intFile)
-  ReDim mRData[mRData.Length - 1)
-  Get intFile, 1, mbytData
-  
-  //close file
-  Close intFile
-  
-  //if in a game
-  if (mInGame) {
-    //save resource
-    Save
-  } else {
-    //save the resource filename
-    mResFile = ImportFile
-  }
-  
-  //reset resource markers
-  mlngCurPos = 0
-  mblnEORes = false
-  mLoaded = true
-  
-  //raise change event
-  OnPropertyChanged("Data");
-return;
-
-ErrHandler:
-  //*'Debug.Assert false
-  Resume Next
-End Sub
-
-Public Function ReadByte(Optional ByVal Pos As Long = MAX_RES_SIZE + 1) As Byte
-
-End Function
-    */
     }
     public AGIResource()
     {

@@ -2,6 +2,6 @@
 {
   public class AGIPicture : AGIResource
   {
-    public int Number { get; internal set; }
+    public int BMPErrLevel { get; internal set; }
   }
 }

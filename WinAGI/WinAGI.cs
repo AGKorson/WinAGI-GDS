@@ -318,7 +318,11 @@ namespace WinAGI
 
     //warning count value stored in Common file, so it can be used by the IDE as well as the engine
     internal static bool[] agNoCompWarn; // WARNCOUNT
-
+    //error number and string to return error values
+    //from various functions/subroutines
+    internal static int lngError = 0;
+    internal static string strError = "";
+    internal static string strErrSrc = "";
     static WinAGI()
     {
       for (int i = 1; i < 32; i++)
@@ -2019,7 +2023,7 @@ namespace WinAGI
 
 
       //open temp file
-      string TempFile = System.IO.Path.GetTempFileName();
+      string TempFile = Path.GetTempFileName();
 
       try
       {
@@ -2426,7 +2430,6 @@ namespace WinAGI
       }
       return;
     }
-
     internal static string GetIntVersion()
     {
       byte[] bytBuffer = new byte[] { 0 };
@@ -3169,6 +3172,21 @@ namespace WinAGI
       // use layout editor property
       agUseLE = ReadSettingBool(agGameProps, "General", "UseLE");
     }
+    internal static void CompleteCancel(bool NoEvent = false)
+    {
+      //cleans up after a compile game cancel or error
+
+      if (!NoEvent)
+      {
+        Raise_CompileGameEvent(ECStatus.csCanceled, 0, 0, "");
+      }
+      agCompGame = false;
+      fsDIR.Dispose();
+      fsVOL.Dispose();
+      bwVOL.Dispose();
+      bwDIR.Dispose();
+    }
+
 
   }
 }
