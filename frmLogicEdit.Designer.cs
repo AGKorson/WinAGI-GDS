@@ -325,6 +325,6 @@
         private System.Windows.Forms.ToolStripSeparator btnSep3;
         private System.Windows.Forms.ToolStripButton btnCompile;
         private System.Windows.Forms.ToolStripButton btnMsgClean;
-        private System.Windows.Forms.RichTextBox rtfLogic;
+        public System.Windows.Forms.RichTextBox rtfLogic;
     }
 }

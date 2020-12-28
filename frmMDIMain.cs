@@ -31,7 +31,7 @@ namespace WinAGI_GDS
 
     private void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e)
     {
-      MessageBox.Show("game is loading!\n\n" + e.ResNum);
+      statusStrip1.Items[0].Text = $"Loading Status: {e.lStatus} - Type: {e.ResType} - Number: {e.ResNum}";
     }
 
     private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e)
@@ -51,24 +51,10 @@ namespace WinAGI_GDS
 
     private void btnOpenGame_Click(object sender, EventArgs e)
     {
-      AGILogic tst = new AGILogic();
-      
-      try
-      {
-        MessageBox.Show($"Before load, Number is: {tst.Number}");
-        tst.Load();
-        MessageBox.Show($"After load, Number is: {tst.Number}");
-        MessageBox.Show($"First data element is: {tst.Data[0].ToString()}");
-        MessageBox.Show($"After read data, Number is: {tst.Number}");
-        tst.Data[0] = 5;
-        MessageBox.Show($"After write data, Number is: {tst.Number}");
-        tst.Unload();
-      }
-      catch (Exception eL)
-      {
-
-        MessageBox.Show($"Caught an exception: {eL.Message}");
-      }
+      //MessageBox.Show("need to fully test Read/Write settings functions; since VB is 1 based, the functions may not be working correctly in all cases, especially for bad format input and edge cases");
+      //ok, let's try to open a game!
+      int retval = OpenGameWAG(@"C:\Users\Andy\OneDrive\AGI Stuff\AGI Test Games\AGItest\test game.wag");
+      MessageBox.Show($"opengame result: {retval.ToString()}");
     }
 
     private void mnuWCascade_Click(object sender, EventArgs e)
@@ -113,19 +99,23 @@ namespace WinAGI_GDS
 
     private void btnNewRes_DropDownOpening(object sender, EventArgs e)
     {
-      ////can we tell difference between clicking on arrow?
-      //string sTest = "am123";
-      //if ("vfmoisc".Any(sTest.ToLower().StartsWith))
-      //  MessageBox.Show("sTest is a marker");
-      //else
-      //{
-      //  MessageBox.Show("sTest is NOT a marker");
-      //}
     }
 
     private void frmMDIMain_Load(object sender, EventArgs e)
     {
 
+    }
+
+    private void btnNewLogic_Click(object sender, EventArgs e)
+    {
+      //lets try to load a logic!
+      Logics[5].Load();
+      MessageBox.Show($"Logic 0 ({Logics[5].ID}) is loaded: {Logics[5].Loaded.ToString()}");
+      // assign it to new logic form!
+      frmLogicEdit frmNew = new frmLogicEdit();
+      frmNew.MdiParent = this;
+      frmNew.rtfLogic.Text = Logics[5].SourceText;
+      frmNew.Show();
     }
   }
 }

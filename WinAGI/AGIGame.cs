@@ -49,7 +49,7 @@ namespace WinAGI
     { get => agInvObjList; set { } }
 
     //status of game load
-    static bool agGameLoaded = false;
+    internal static bool agGameLoaded = false;
     public static bool GameLoaded
     { get => agGameLoaded; set { } }
 
@@ -81,10 +81,10 @@ namespace WinAGI
     internal static string agDOSExec = "";
     internal static bool agUseLE = false;
 
-    internal static string agSrcExt = "";
-
     //temp file location
     internal static string TempFileDir = "";
+    private const int WINAGI_ERR= 0x100000;
+
     public static void CancelCompile()
     {
       // can be called by parent program during a compile
@@ -448,9 +448,8 @@ namespace WinAGI
       get
       {
         DateTime dtFileMod = File.GetLastWriteTime(agGameDir + "globals.txt");
-        if (CRC32(dtFileMod.ToString().ToCharArray()) != agGlobalCRC)
+        if (CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString())) != agGlobalCRC)
           GetGlobalDefines();
-
         return agGlobal;
       }
     }
@@ -532,7 +531,7 @@ namespace WinAGI
       }
 
       //set flag if game is being compiled in its current directory
-      blnReplace = (NewGameDir.ToLower() == agGameDir.ToLower());
+      blnReplace = NewGameDir.Equals(agGameDir,StringComparison.OrdinalIgnoreCase);
 
       //save compile dir so rebuild method can access it
       agCompileDir = NewGameDir;
@@ -876,17 +875,27 @@ namespace WinAGI
         bwDIR.Write(Convert.ToInt16(8));
         //pic offset is 8 + 3*logmax
         tmpMax = agLogs.Max + 1;
-        if (tmpMax == 0) tmpMax = 1; // always put at least one; even if it//s all FFs
+        if (tmpMax == 0)
+        {
+          // always put at least one; even if it//s all FFs
+          tmpMax = 1;
+        }
         bwDIR.Write((short)(8 + 3 * tmpMax));
         i = 8 + 3 * tmpMax;
         //view offset is pic offset +3*picmax
         tmpMax = agPics.Max + 1;
-        if (tmpMax == 0) tmpMax = 1;
+        if (tmpMax == 0)
+        {
+          tmpMax = 1;
+        }
         bwDIR.Write((short)(i + 3 * tmpMax));
         i += 3 * tmpMax;
         //sound is view offset + 3*viewmax
         tmpMax = agViews.Max + 1;
-        if (tmpMax == 0) tmpMax = 1;
+        if (tmpMax == 0)
+        {
+          tmpMax = 1;
+        }
         bwDIR.Write((short)(i + 3 * tmpMax));
 
         //now add all the dir entries
@@ -1023,22 +1032,22 @@ namespace WinAGI
         //this is done here instead of when the logics are compiled because
         //if there's an error, or the user cancels, we don't want the resources
         //to point to the wrong place
-        foreach (AGILogic tmpLogic in agLogs.Col)
+        foreach (AGILogic tmpLogic in agLogs.Col.Values)
         {
           tmpLogic.Volume = (sbyte) (bytDIR[0, tmpLogic.Number * 3] >> 4);
           tmpLogic.Loc = (bytDIR[0, tmpLogic.Number * 3] & 0xF) * 0x10000 + bytDIR[0, tmpLogic.Number * 3 + 1] * 0x100 + bytDIR[0, tmpLogic.Number * 3 + 2];
         }
-        foreach (AGIPicture tmpPicture in agPics.Col)
+        foreach (AGIPicture tmpPicture in agPics.Col.Values)
         {
           tmpPicture.Volume = (sbyte) (bytDIR[1, tmpPicture.Number * 3] >> 4);
           tmpPicture.Loc = (bytDIR[1, tmpPicture.Number * 3] & 0xF) * 0x10000 + bytDIR[1, tmpPicture.Number * 3 + 1] * 0x100 + bytDIR[1, tmpPicture.Number * 3 + 2];
         }
-        foreach (AGISound tmpSound in agSnds.Col)
+        foreach (AGISound tmpSound in agSnds.Col.Values)
         {
           tmpSound.Volume = (sbyte) (bytDIR[2, tmpSound.Number * 3] >> 4);
           tmpSound.Loc = (bytDIR[2, tmpSound.Number * 3] & 0xF) * 0x10000 + bytDIR[2, tmpSound.Number * 3 + 1] * 0x100 + bytDIR[2, tmpSound.Number * 3 + 2];
         }
-        foreach (AGIView tmpView in agViews.Col)
+        foreach (AGIView tmpView in agViews.Col.Values)
         {
           tmpView.Volume = (sbyte)(bytDIR[3, tmpView.Number * 3] >> 4);
           tmpView.Loc = (bytDIR[3, tmpView.Number * 3] & 0xF) * 0x10000 + bytDIR[3, tmpView.Number * 3 + 1] * 0x100 + bytDIR[3, tmpView.Number * 3 + 2];
@@ -1139,7 +1148,7 @@ namespace WinAGI
           }
         }
         //if property file is currently linked to game ID
-        if (agGameFile.ToUpper() == (agGameDir + agGameID + ".wag").ToUpper())
+        if (agGameFile.Equals(agGameDir + agGameID + ".wag", StringComparison.OrdinalIgnoreCase))
         {
           //update gamefile
           GameFile = agGameDir + NewID + ".wag";
@@ -1388,7 +1397,7 @@ namespace WinAGI
       }
     }
 
-    public static void OpenGameDIR(string NewGameDir)
+    public static int OpenGameDIR(string NewGameDir)
     {
       //creates a new WinAGI game file from Sierra game directory
 
@@ -1396,7 +1405,8 @@ namespace WinAGI
       if (agGameLoaded)
       {
         //can't open a game if one is already open
-        throw new Exception("LoadResString(501)");
+        return WINAGI_ERR + 501;
+        //throw new Exception("LoadResString(501)");
       }
 
       //set game directory
@@ -1416,7 +1426,8 @@ namespace WinAGI
         //clear game variables
         ClearGameState();
         //invalid game directory
-        throw new Exception("LoadResString(541), ARG1, agGameDir");
+        return WINAGI_ERR + 541;
+        //throw new Exception("LoadResString(541), ARG1, agGameDir");
       }
 
       //create a new wag file name
@@ -1448,21 +1459,15 @@ namespace WinAGI
         //clear game variables
         ClearGameState();
         //invalid number found
-        throw new Exception("LoadResString(543)");
+        return WINAGI_ERR + 543;
+        //throw new Exception("LoadResString(543)");
       }
 
       //save version
       WriteGameSetting("General", "Interpreter", agIntVersion);
 
-      try
-      {
-        //finish the game load
-        FinishGameLoad(1);
-      }
-      catch (Exception ex)
-      {
-        throw new Exception(ex.Message);
-      }
+      //finish the game load
+      return FinishGameLoad(1);
     }
 
     internal static void ClearGameState()
@@ -1480,7 +1485,7 @@ namespace WinAGI
       agIntVersion = "";
       agIsVersion3 = false;
       agGameProps = new List<string> { };
-      agLastEdit = Convert.ToDateTime(0);
+      agLastEdit = new DateTime();// Convert.ToDateTime("");
 
       // reset directories
       agGameDir = "";
@@ -1502,10 +1507,10 @@ namespace WinAGI
       agDOSExec = "";
     }
 
-    public static void OpenGameWAG(string GameWAG)
+    public static int OpenGameWAG(string GameWAG)
     {
       //TODO: all game manipulation functions (open, new, finish, close, etc
-      // should be bool functions, instead of using error handler
+      // should be bool or int functions, instead of using error handler
 
       //opens a WinAGI game file (must be passed as a full length file name)
 
@@ -1515,7 +1520,7 @@ namespace WinAGI
       if (agGameLoaded)
       {
         //can't open a game if one is already open
-        throw new Exception("501, strErrSource, LoadResString(501)");
+        return WINAGI_ERR + 501;
       }
 
       //verify the wag file exists
@@ -1529,13 +1534,15 @@ namespace WinAGI
         {
           //it's a missing file - return wagfile as error string
           //invalid wag
-          throw new Exception("655, JustFileName(GameWAG)");
+          return WINAGI_ERR + 655;
+          //throw new Exception("655, JustFileName(GameWAG)");
         }
         else
         {
           //it's an invalid or missing directory - return directory as error string
           //invalid wag
-          throw new Exception("541, strErrSource, JustPath(GameWAG, true)");
+          return WINAGI_ERR + 541;
+          //throw new Exception("541, strErrSource, JustPath(GameWAG, true)");
         }
       }
 
@@ -1552,9 +1559,13 @@ namespace WinAGI
       }
       catch (Exception)
       {
-        // reset game variables
-        ClearGameState();
+        //// reset game variables
+        //ClearGameState();
       }
+
+      ////********** testing only
+      //WriteGameSetting("Logic0", "TestKey", "testval", "Logics");
+
       //check to see if it's valid
       strVer = ReadSettingString(agGameProps, "General", "WinAGIVersion", "");
       if (strVer.Length == 0)
@@ -1566,10 +1577,11 @@ namespace WinAGI
       {
         if (strVer != WINAGI_VERSION)
         {
-          if (Left(strVer, 4) == "1.2." || (Left(strVer, 2) == "2.1."))
+          if (Left(strVer, 4) == "1.2." || (Left(strVer, 4) == "2.1."))
           {
             //any v1.2.x or 2.1.x is ok, but update
-            WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION);
+// TODO: after testing, re-enable version updating
+//            WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION);
           }
           else
           {
@@ -1579,7 +1591,8 @@ namespace WinAGI
             //clear game variables
             ClearGameState();
             //invalid wag
-            throw new Exception("665,JustFileName(agGameFile) ");
+            return WINAGI_ERR + 665;
+            //throw new Exception("665,JustFileName(agGameFile) ");
           }
         }
       }
@@ -1600,7 +1613,8 @@ namespace WinAGI
           //clear game variables
           ClearGameState();
           //invalid int version inside wag file
-          throw new Exception("691, JustFileName(agGameFile)");
+          return WINAGI_ERR + 691;
+          //throw new Exception("691, JustFileName(agGameFile)");
         }
       }
       else
@@ -1610,29 +1624,30 @@ namespace WinAGI
         //clear game variables
         ClearGameState();
         //invalid wag file
-        throw new Exception("690, JustFileName(agGameFile)");
+        return WINAGI_ERR + 690;
+        //throw new Exception("690, JustFileName(agGameFile)");
       }
 
       //if a valid wag file was found, we now have agGameID, agGameFile
       //and correct interpreter version;
 
       //finish the game load
-      FinishGameLoad(0);
+      return FinishGameLoad(0);
     }
-    public static void FinishGameLoad(int Mode = 0)
+    public static int FinishGameLoad(int Mode = 0)
     {
      //finishes game load
       //mode determines whether opening by wag file (0) or
       //extracting from Sierra game files (1)
       //(currently, no difference between them)
 
+      //instead of throwing exceptions, errors get psse back as a return value
+
       bool blnWarnings;
-      int lngError, lngDirCount;
-      string strTempDir, strTempFile, strError;
+      string strError;
 
       //set v3 flag
       agIsVersion3 = (Val(agIntVersion) >= 3);
-
       //if loading from a wag file
       if (Mode == 0) {
         //informs user we are checking property file to set game parameters
@@ -1640,7 +1655,9 @@ namespace WinAGI
 
         //get resdir before loading resources
         agResDirName = ReadSettingString(agGameProps, "General", "ResDir", "");
-      } else {
+      } 
+      else 
+      {
         //no resdir yet for imported game
         agResDirName = "";
       }
@@ -1663,14 +1680,16 @@ namespace WinAGI
       agResDir = agGameDir + agResDirName + "\\";
 
       //ensure resource directory exists
-      if (!Directory.Exists(agResDir)) {
-      try
+      if (!Directory.Exists(agResDir)) 
       {
-        Directory.CreateDirectory(agResDir);
-      }
-      catch (Exception) {
-        //if can't create the resources directory
-        //note the problem in the error log as a warning
+        try
+        {
+          Directory.CreateDirectory(agResDir);
+        }
+        catch (Exception) 
+        {
+          //if can't create the resources directory
+          //note the problem in the error log as a warning
           RecordLogEvent(LogEventType.leWarning, "Can't create " + agResDir);
           //use game directory
           agResDir = agGameDir;
@@ -1709,12 +1728,12 @@ namespace WinAGI
         agInvObjList = new AGIInventoryObjects();
         agVocabWords = new AGIWordList();
 
-        agGameProps = new List<string> { }; 
+        agGameProps = new List<string> { };
 
-        //raise error
-        throw new Exception("lngError, strErrSource, strError");
+        return WINAGI_ERR + e.HResult;
+        ////raise error
+        //throw new Exception("lngError, strErrSource, strError");
       }
-
       //load vocabulary word list
       Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtWords, 0, "");
       try {
@@ -1742,15 +1761,10 @@ namespace WinAGI
         //reset warning flag
         blnWarnings = true;
       }
-
-
       Raise_LoadGameEvent(ELStatus.lsFinalizing, AGIResType.rtNone, 0, "");
-
       // adust commands based on AGI version
       CorrectCommands(agIntVersion);
-
       //clear other game properties
-      agLastEdit = Convert.ToDateTime(0);
       agAuthor = "";
       agDescription = "";
       agGameVersion = "";
@@ -1759,7 +1773,7 @@ namespace WinAGI
       agPlatformFile = "";
       agPlatformOpts = "";
       agDOSExec = "";
-
+      agLastEdit = new DateTime();
       try {
       //get rest of game properties
       GetGameProperties();
@@ -1768,23 +1782,23 @@ namespace WinAGI
         RecordLogEvent(LogEventType.leWarning, "Error while loading WAG file; some properties not loaded. (Error number: " + e.Message + ")");
         blnWarnings = true;
       }
-
       //force id reset
       blnSetIDs = false;
-
       //we've established that the game can be opened
       //so set the loaded flag now
       agGameLoaded = true;
-
       //write create date
       WriteGameSetting("General", "LastEdit", agLastEdit.ToString());
-
       //and save the wag file
       SaveSettingList(agGameProps);
-
       //if errors
-      if (blnWarnings) {
-        throw new Exception("LoadResString(636)");
+      if (blnWarnings) 
+      {
+        return WINAGI_ERR + 636;
+      }
+      else
+      {
+        return 0;
       }
     }
 
@@ -1847,7 +1861,7 @@ namespace WinAGI
       //  agGameDir = CDir(NewGameDir)
 
       //  //ensure resdir is valid
-      //  if (LenB(NewResDir) = 0)
+      //  if (LenB(NewResDir) == 0)
       //    //if blank use default
       //    NewResDir = agDefResDir
       //  }
@@ -1866,7 +1880,7 @@ namespace WinAGI
       //    // get wag file
       //    strGameWAG = Dir(TemplateDir & "*.wag")
       //    //if not a valid directory
-      //    if (Len(strGameWAG) = 0)
+      //    if (Len(strGameWAG) == 0)
       //      //raise error
       //      On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, LoadResString(508)
       //      return;
@@ -1876,7 +1890,7 @@ namespace WinAGI
       //    strTmplResDir = Dir(TemplateDir, vbDirectory)
       //    Do Until Len(strTmplResDir) = 0
       //      if (strTmplResDir<> "." And strTmplResDir != "..")
-      //        if ((GetAttr(TemplateDir & strTmplResDir) And vbDirectory) = vbDirectory)
+      //        if ((GetAttr(TemplateDir & strTmplResDir) And vbDirectory) == vbDirectory)
       //          //this is it
       //          lngDirCount = 1
       //          Exit Do
@@ -1927,7 +1941,7 @@ namespace WinAGI
       //    Set stlGlobals = OpenSettingList(agGameDir & "globals.txt", false)
       //    if (!stlGlobals Is Nothing)
       //      if (stlGlobals.Count > 3)
-      //        if (Left(Trim(stlGlobals.StringLine(2)), 1) = "[")
+      //        if (Left(Trim(stlGlobals.StringLine(2)), 1) == "[")
       //          stlGlobals.StringLine(2) = "[ global defines file for " & NewID
       //        }
       //        //save it
@@ -1961,9 +1975,9 @@ namespace WinAGI
       //    //(don't use the GameID property; gameloaded flag is not set yet
       //    //so using GameID property will cause error)
       //    if (agIsVersion3)
-      //      agGameID = UCase$(Left$(NewID, 5))
+      //      agGameID = UCase$(Left(NewID, 5))
       //    } else {
-      //      agGameID = UCase$(Left$(NewID, 6))
+      //      agGameID = UCase$(Left(NewID, 6))
       //    }
 
       //    //create empty property file
@@ -2096,7 +2110,7 @@ namespace WinAGI
       //  }
 
       //  //for non-template games, save the source code for logic 0
-      //  if (LenB(TemplateDir) = 0)
+      //  if (LenB(TemplateDir) == 0)
       //    agLogs(0).SaveSource
       //  }
 
@@ -2148,7 +2162,10 @@ namespace WinAGI
       // hmm, WinAGI class doesn't run on startup; need to initialize it 
       // but not sure how...
       // WinAGI.CRC32Setup();
-  }
+
+      // enable encoding access to codepage 437
+      Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+    }
   }
 
 }

@@ -313,7 +313,7 @@ namespace WinAGI
       }
     }
 
-    internal static void AddToVol(AGIResource AddRes, bool Version3, bool NewVOL  = false, sbyte lngVol = -1, int lngLoc = -1)
+    internal static void AddToVol(AGIResource AddRes, bool Version3, bool NewVOL = false, sbyte lngVol = -1, int lngLoc = -1)
     {
       //this method will add a resource to a VOL file
       //
@@ -420,8 +420,8 @@ namespace WinAGI
         }
         throw new Exception("638 :" + strError);
       }
-      //always update sizeinvol
-      SetSizeInVol(AddRes, AddRes.Size);
+      ////always update sizeinvol
+      //SetSizeInVol(AddRes, AddRes.Size);
 
       //if adding to a new vol file
       if (NewVOL)
@@ -432,7 +432,7 @@ namespace WinAGI
         if (Version3)
         {
           //add two more
-          lngCurrentLoc = lngCurrentLoc + 2;
+          lngCurrentLoc += 2;
         }
       }
       else
@@ -524,13 +524,12 @@ namespace WinAGI
         strID = "";
         lngMaxVol = 4;
       }
-
       //local copy of restype and resnum (for improved speed)
       NewResType = NewResource.ResType;
       NewResNum = NewResource.Number;
       NewResSize = NewResource.Size + lngHeader;
       //build array of all resources, sorted by VOL order (except the one being loaded)
-      foreach (AGILogic tmpRes in agLogs.Col)
+      foreach (AGILogic tmpRes in agLogs.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtLogic || tmpRes.Number != NewResNum)
@@ -539,8 +538,7 @@ namespace WinAGI
           AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
         }
       }
-
-      foreach (AGIPicture tmpRes in agPics.Col)
+      foreach (AGIPicture tmpRes in agPics.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtPicture || tmpRes.Number != NewResNum)
@@ -549,8 +547,7 @@ namespace WinAGI
           AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
         }
       }
-
-      foreach (AGISound tmpRes in agSnds.Col)
+      foreach (AGISound tmpRes in agSnds.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtSound || tmpRes.Number != NewResNum)
@@ -559,8 +556,7 @@ namespace WinAGI
           AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
         }
       }
-
-      foreach (AGIView tmpRes in agViews.Col)
+      foreach (AGIView tmpRes in agViews.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtView || tmpRes.Number != NewResNum)
@@ -569,7 +565,6 @@ namespace WinAGI
           AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
         }
       }
-
       //step through volumes,
       for (sbyte i = 0; i <= lngMaxVol; i++)
       {
@@ -602,9 +597,8 @@ namespace WinAGI
           // not enough room; 
           // adjust start to end of current resource
           lngStart = lngLoc[i, j] + lngSize[i, j];
-        } //Next j
-      } //Next i
-
+        }
+      }
       //if no room in any VOL file, raise an error
       throw new Exception("593,ResourceFunctions.FindFreeVOLSpace, LoadResString(593)");
     }
@@ -667,32 +661,32 @@ namespace WinAGI
       {
         // treat all errors the same
       }
-      // if size not found ,
+      // if size not found,
       //ensure file is closed, and return -1
       fsVOL.Dispose();
       brVOL.Dispose();
       return -1;
     }
-    private static void SetSizeInVol(AGIResource ThisResource, int NewSizeInVol)
-    {
-      //sets the size of the resource
-      switch (ThisResource.ResType)
-      {
-        case AGIResType.rtLogic:
-          agLogs[ThisResource.Number].SizeInVOL = NewSizeInVol;
-          break;
-        case AGIResType.rtPicture:
-          agPics[ThisResource.Number].SizeInVOL = NewSizeInVol;
-          break;
-        case AGIResType.rtSound:
-          agSnds[ThisResource.Number].SizeInVOL = NewSizeInVol;
-          break;
-        case AGIResType.rtView:
-          agViews[ThisResource.Number].SizeInVOL = NewSizeInVol;
-          break;
-      }
-    }
-    private static void UpdateDirFile(AGIResource UpdateResource, bool Remove = false)
+    //private static void SetSizeInVol(AGIResource ThisResource, int NewSizeInVol)
+    //{
+    //  //sets the size of the resource
+    //  switch (ThisResource.ResType)
+    //  {
+    //    case AGIResType.rtLogic:
+    //      agLogs[ThisResource.Number].SizeInVOL = NewSizeInVol;
+    //      break;
+    //    case AGIResType.rtPicture:
+    //      agPics[ThisResource.Number].SizeInVOL = NewSizeInVol;
+    //      break;
+    //    case AGIResType.rtSound:
+    //      agSnds[ThisResource.Number].SizeInVOL = NewSizeInVol;
+    //      break;
+    //    case AGIResType.rtView:
+    //      agViews[ThisResource.Number].SizeInVOL = NewSizeInVol;
+    //      break;
+    //  }
+    //}
+    internal static void UpdateDirFile(AGIResource UpdateResource, bool Remove = false)
     {
       //this method updates the DIR file with the volume and location
       //of a resource

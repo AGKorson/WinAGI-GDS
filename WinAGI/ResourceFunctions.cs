@@ -19,7 +19,7 @@ namespace WinAGI
 
     //variables used in extracting compressed resources
     private static int lngMaxCode;
-    private static short[] intPrefix;
+    private static int[] intPrefix;
     private static byte[] bytAppend;
     private static int lngBitsInBuffer;
     private static int lngBitBuffer;
@@ -38,7 +38,7 @@ namespace WinAGI
     public const int MCI_NOTIFY_SUCCESSFUL = 0x1;
 
     //others
-    private static int lngPos;
+    //private static int lngPos;
     private static byte[] mMIDIData;
 
     internal static bool ExtractResources()
@@ -56,7 +56,7 @@ namespace WinAGI
       byte byte1, byte2, byte3;
       int lngDirOffset = 0;  // offset of this resource//s directory in Dir file (for v3)
       int lngDirSize = 0, intResCount, i;
-      byte bytVol;
+      sbyte bytVol;
       int lngLoc;
       string strVolFile, strID;
       string strResID;
@@ -214,7 +214,7 @@ namespace WinAGI
             if (byte1 != 0xff)
             {
               //extract volume and location
-              bytVol = (byte)(byte1 >> 4);
+              bytVol = (sbyte)(byte1 >> 4);
               strVolFile = agGameDir + strID + "VOL." + bytVol.ToString();
               lngLoc = ((byte1 % 16) << 16) + (byte2 << 8) + byte3;
               strResID = ResTypeName[(int)bytResType] + bytResNum.ToString();
@@ -235,10 +235,11 @@ namespace WinAGI
                   //make sure it was added before attempting to set property state
                   if (agLogs.Exists(bytResNum))
                   {
-                    //when new resources are added, status is set to dirty; for initial load,
-                    //need to reset them to false
-                    agLogs[bytResNum].WritePropState = false;
+                    ////when new resources are added, status is set to dirty; for initial load,
+                    ////need to reset them to false
+                    //agLogs[bytResNum].WritePropState = false;
                     agLogs[bytResNum].IsDirty = false;
+
                   }
                   else
                   {
@@ -357,7 +358,7 @@ namespace WinAGI
                 fsDIR.Dispose();
               }
             }
-            catch (Exception e)
+            catch (Exception)
             {
               //error!
             }
@@ -385,7 +386,7 @@ namespace WinAGI
             fsDIR.Dispose();
           }
         }
-        catch (Exception e)
+        catch (Exception)
         {
           //error!
         }
@@ -394,7 +395,6 @@ namespace WinAGI
       //return any warning codes
       return blnWarnings;
     }
-
     internal static void RecordLoadError(string strResID, Exception eRes)
     {
       // called when error encountered while trying to extract resources
@@ -508,258 +508,346 @@ namespace WinAGI
       return bytExpandedData;
     }
     internal static void ExpandV3ResData(byte[] bytOriginalData, int lngExpandedSize)
-    {/*
-    Public Sub ExpandV3ResData(ByRef bytOriginalData() As Byte, lngExpandedSize As Long)
-
-  Dim intPosIn As Integer, intPosOut As Integer
-  Dim intNextCode As Integer, intNewCode As Integer, intOldCode As Integer
-  Dim intCount  As Integer, i  As Integer
-  Dim strDat As String
-  Dim strChar As String * 1
-  Dim intCodeSize As Integer
-  Dim bytTempData() As Byte
-
-  On Error GoTo ErrHandler
-
-  //initialize variables
-  new intPrefix(TABLE_SIZE) //remember to correct index by 257
-  new bytAppend(TABLE_SIZE) //remember to correct index by 257
-
-  //set temporary data field
-  new bytTempData(lngExpandedSize - 1)
-  //original size is determined by array bounds
-  lngOriginalSize = UBound(bytOriginalData) + 1
-
-  //reset variables used in expansion
-  intPosIn = 0
-  intPosOut = 0
-
-  lngBitBuffer = 0
-  lngBitsInBuffer = 0
-
-  //Set initial Value for code size
-  intCodeSize = NewCodeSize(START_BITS)
-  //first code is 257
-  intNextCode = 257
-  //this seems wrong! first code should be 258, right?
-  //isn//t 257 the //end// code?
-
-  //Read in the first code.
-  intOldCode = InputCode(bytOriginalData, intCodeSize, intPosIn)
-
-  //!!!!why is this set???
-  strChar = Chr$(0)
-
-  //first code for  SIERRA resouces should always be 256
-  //if first code is NOT 256
-  if (intOldCode <> 256) {
-  //error!
-  GoTo ErrHandler
-  }
-
-  //now begin decompressing actual data
-  intNewCode = InputCode(bytOriginalData, intCodeSize, intPosIn)
-
-  //continue extracting data, until all bytes are read (or end code is reached)
-  Do While (intPosIn <= lngOriginalSize) && (intNewCode <> 0x101)
-  //if new code is 0x100,
-  if ((intNewCode = 0x100)) {
-    //Restart LZW process (should tables be flushed?)
-    intNextCode = 258
-    intCodeSize = NewCodeSize(START_BITS)
-    //Read in the first code.
-    intOldCode = InputCode(bytOriginalData, intCodeSize, intPosIn)
-    //the character Value is same as code for beginning
-    strChar = Chr$(intOldCode)
-    //write out the first character
-    bytTempData(intPosOut) = intOldCode
-    intPosOut = intPosOut + 1
-    intCount = intCount + 1
-    //now get next code
-    intNewCode = InputCode(bytOriginalData, intCodeSize, intPosIn)
-  } else {
-    // This code checks for the special STRING+character+STRING+character+STRING
-    // case which generates an undefined code.  It handles it by decoding
-    // the last code, and adding a single Charactor to the end of the decode string.
-    // (new_code will ONLY return a next_code Value if the condition exists;
-    // it should otherwise return a known code, or a ascii Value)
-    if ((intNewCode >= intNextCode)) {
-      //decode the string using old code
-      strDat = DecodeString(intOldCode)
-      //append the character code
-      strDat = strDat & strChar
-    } else {
-      //decode the string using new code
-      strDat = DecodeString(intNewCode)
-    }
-    //retreive the character Value
-    strChar = Left(strDat, 1)
-    //now send out decoded data (it//s backwards in the string, so
-    //start at end and work back to beginning)
-    for (i = 1 To Len(strDat)
-      bytTempData(intPosOut) = Asc(Mid$(strDat, i))
-      intPosOut = intPosOut + 1
-    Next i
-    //if no more room in the current bit-code table,
-    if ((intNextCode > lngMaxCode)) {
-      //get new code size (in number of bits per code)
-      intCodeSize = NewCodeSize(intCodeSize + 1)
-      intCount = intCount + 1
-    }
-
-    //store code in prefix table
-    intPrefix(intNextCode - 257) = intOldCode
-    //store append character in table
-    bytAppend(intNextCode - 257) = Asc(strChar)
-    //increment next code pointer
-    intNextCode = intNextCode + 1
-    intOldCode = intNewCode
-    //clear the decoded data string
-    strDat = vbNullString
-    //get the next code
-    intNewCode = InputCode(bytOriginalData, intCodeSize, intPosIn)
-  }
-  Loop
-
-  //copy array
-  new bytOriginalData(lngExpandedSize - 1)
-  bytOriginalData() = bytTempData()
-  //free arrays
-  new intPrefix(0)
-  new bytAppend(0)
-Exit Sub
-
-  ErrHandler:
-  //all errors invalidate resource
-  new intPrefix(0)
-  new bytAppend(0)
-  On Error GoTo 0: Err.Raise 559, Replace(LoadResString(559), ARG1, CStr(Err.Number))
-  End Sub
-
-      */
-    }
-    private static void tmpResFunc()
     {
-      /*
-Public Function CompressCelData(Cel As AGICel, blnMirror As Boolean) As Byte()
-  //this method compresses cel data
-  //into run-length-encoded data that
-  //can be written to an AGI View resource
+      int intPosIn, intPosOut, intNextCode, intNewCode, intOldCode, i;
+      string strDat;
+      char strChar;
+      int intCodeSize;
+      byte[] bytTempData;
+      //initialize variables
+      intPrefix = new int[TABLE_SIZE]; //remember to correct index by 257
+      bytAppend = new byte[TABLE_SIZE]; //remember to correct index by 257
 
-  //blnMirror is used to ensure mirrored cels include enough room
-  //for the flipped cel
+      //set temporary data field
+      bytTempData = new byte[lngExpandedSize];
+      //original size is determined by array bounds
+      lngOriginalSize = bytOriginalData.Length;
 
-  Dim bytTempRLE() As Byte
-  Dim mHeight As Byte, mWidth As Byte
-  Dim mCelData() As AGIColors, mTransColor As Byte
-  Dim lngByteCount As Long
-  Dim bytChunkColor As AGIColors, bytChunkLen As Byte
-  Dim bytNextColor As AGIColors
-  Dim bytOut As Byte
-  Dim blnFirstChunk As Boolean
-  Dim lngMirrorCount As Long
-  Dim blnErr As Boolean
+      //reset variables used in expansion
+      intPosIn = 0;
+      intPosOut = 0;
 
-  On Error GoTo ErrHandler
+      lngBitBuffer = 0;
+      lngBitsInBuffer = 0;
 
-  Dim i As Integer, j As Integer
+      //Set initial Value for code size
+      intCodeSize = NewCodeSize(START_BITS);
+      //first code is 257
+      intNextCode = 257;
+      //this seems wrong! first code should be 258, right?
+      //isn't 257 the 'end' code?
 
-  //copy cel data locally
-  mHeight = Cel.Height
-  mWidth = Cel.Width
-  mTransColor = Cel.TransColor
-  mCelData = Cel.AllCelData
-
-
-  //assume one byte per pixel to start with
-  //(include one byte for ending zero)
-  new bytTempRLE(CLng(mHeight) * (CLng(mWidth) + 1))
-  //step through each row
-  for (j = 0 To mHeight - 1
-  //get first pixel color
-  bytChunkColor = mCelData(0, j)
-  bytChunkLen = 1
-  blnFirstChunk = true
-
-  //step through rest of pixels in this row
-  for (i = 1 To mWidth - 1
-    //get next pixel color
-    bytNextColor = mCelData(i, j)
-    //if different from current chunk
-    if (bytNextColor <> bytChunkColor || bytChunkLen = 0xF) {
-      //write chunk
-      bytTempRLE(lngByteCount) = bytChunkColor * 0x10 + bytChunkLen
-      //increment Count
-      lngByteCount = lngByteCount + 1
-
-      //if this is NOT first chunk or NOT transparent)
-      if (!blnFirstChunk || (bytChunkColor <> mTransColor)) {
-        //increment lngMirorCount for any chunks
-        //after the first, and also for the first
-        //if it is NOT transparent color
-        lngMirrorCount = lngMirrorCount + 1
+      //!!!!why is this set???
+      strChar = (char)0;
+      //Read in the first code.
+      intOldCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+      //first code for  SIERRA resouces should always be 256
+      //if first code is NOT 256
+      if (intOldCode != 256)
+      {
+        intPrefix = Array.Empty<int>();
+        bytAppend = Array.Empty<byte>();
+        throw new Exception("559, Replace(LoadResString(559), ARG1, CStr(Err.Number))");
       }
 
-      blnFirstChunk = false
-      //set chunk to new color
-      bytChunkColor = bytNextColor
-      //reset length
-      bytChunkLen = 1
-    } else {
-      //increment chunk length
-      bytChunkLen = bytChunkLen + 1
+      //now begin decompressing actual data
+      intNewCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+
+      //continue extracting data, until all bytes are read (or end code is reached)
+      while ((intPosIn <= lngOriginalSize) && (intNewCode != 0x101))
+      {
+        //if new code is 0x100,(256)
+        if (intNewCode == 0x100)
+        {
+          //Restart LZW process (should tables be flushed?)
+          intNextCode = 258;
+          intCodeSize = NewCodeSize(START_BITS);
+          //Read in the first code.
+          intOldCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+          //the character Value is same as code for beginning
+          strChar = (char)intOldCode;
+          //write out the first character
+          bytTempData[intPosOut] = (byte)intOldCode;
+          intPosOut += 1;
+          //now get next code
+          intNewCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+        }
+        else
+        {
+          // This code checks for the special STRING+character+STRING+character+STRING
+          // case which generates an undefined code.  It handles it by decoding
+          // the last code, and adding a single Charactor to the end of the decode string.
+          // (new_code will ONLY return a next_code Value if the condition exists;
+          // it should otherwise return a known code, or a ascii Value)
+          if ((intNewCode >= intNextCode))
+          {
+            //decode the string using old code
+            strDat = DecodeString(intOldCode);
+            //append the character code
+            strDat = strDat + strChar;
+          }
+          else
+          {
+            //decode the string using new code
+            strDat = DecodeString(intNewCode);
+          }
+          //retreive the character Value
+          strChar = strDat[0];
+          //now send out decoded data (it//s backwards in the string, so
+          //start at end and work back to beginning)
+          for (i = 0; i < strDat.Length; i++)
+          {
+            bytTempData[intPosOut] = (byte)strDat[i];
+            intPosOut += 1;
+          }
+          //if no more room in the current bit-code table,
+          if ((intNextCode > lngMaxCode))
+          {
+            //get new code size (in number of bits per code)
+            intCodeSize = NewCodeSize(intCodeSize + 1);
+          }
+          //store code in prefix table
+          intPrefix[intNextCode - 257] = intOldCode;
+          //store append character in table
+          bytAppend[intNextCode - 257] = (byte)strChar;
+          //increment next code pointer
+          intNextCode += 1;
+          intOldCode = intNewCode;
+          //clear the decoded data string
+          strDat = "";
+          //get the next code
+          intNewCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+        }
+      }
+
+      //copy array
+      Array.Resize(ref bytOriginalData, lngExpandedSize);
+      bytOriginalData = bytTempData;
+      //free arrays
+      intPrefix = Array.Empty<int>();
+      bytAppend = Array.Empty<byte>();
+      return;
     }
-  Next i
-  //if last chunk is NOT transparent
-  if (bytChunkColor <> mTransColor) {
-    //add last chunk
-    bytTempRLE(lngByteCount) = bytChunkColor * 0x10 + bytChunkLen
-    //increment Count
-    lngByteCount = lngByteCount + 1
-  }
-  //always Count last chunk for mirror
-  lngMirrorCount = lngMirrorCount + 1
-  //add zero to indicate end of row
-  bytTempRLE(lngByteCount) = 0
-  lngByteCount = lngByteCount + 1
-  lngMirrorCount = lngMirrorCount + 1
-  Next j
+    internal static byte[] CompressedCel(AGICel Cel, bool blnMirror)
+    {
+      //this method compresses cel data
+      //into run-length-encoded data that
+      //can be written to an AGI View resource
+      //blnMirror is used to ensure mirrored cels include enough room
+      //for the flipped cel
+      byte[] bytTempRLE;
+      byte mHeight, mWidth, bytChunkLen;
+      byte[,] mCelData;
+      byte mTransColor;
+      int lngByteCount = 0;
+      byte bytChunkColor, bytNextColor;
+      byte bytOut, blnErr;
+      bool blnFirstChunk;
+      int lngMirrorCount = 0;
+      int i, j;
 
-  //if mirroring
-  if (blnMirror) {
-  //add zeros to make room
-  Do Until lngByteCount >= lngMirrorCount
-    //add a zero
-    bytTempRLE(lngByteCount) = 0
-    lngByteCount = lngByteCount + 1
-  Loop
-  }
+      //copy cel data locally
+      mHeight = Cel.Height;
+      mWidth = Cel.Width;
+      mTransColor = Cel.TransColor;
+      mCelData = Cel.AllCelData;
+      //assume one byte per pixel to start with
+      //(include one byte for ending zero)
+      bytTempRLE = new byte[mHeight * mWidth + 1];
+      //step through each row
+      for (j = 0; j < mHeight; j++)
+      {
+        //get first pixel color
+        bytChunkColor = mCelData[0, j];
+        bytChunkLen = 1;
+        blnFirstChunk = true;
+        //step through rest of pixels in this row
+        for (i = 1; i < mWidth; i++)
+        {
+          //get next pixel color
+          bytNextColor = mCelData[i, j];
+          //if different from current chunk
+          if ((bytNextColor != bytChunkColor) || (bytChunkLen == 0xF))
+          {
+            //write chunk
+            bytTempRLE[lngByteCount] = (byte)((int)bytChunkColor * 0x10 + bytChunkLen);
+            //increment Count
+            lngByteCount += 1;
 
-  //reset size of array
-  Array.Resize(bytTempRLE(lngByteCount - 1)
+            //if this is NOT first chunk or NOT transparent)
+            if (!blnFirstChunk || (bytChunkColor != mTransColor))
+            {
+              //increment lngMirorCount for any chunks
+              //after the first, and also for the first
+              //if it is NOT transparent color
+              lngMirrorCount += 1;
+            }
+            blnFirstChunk = false;
+            //set chunk to new color
+            bytChunkColor = bytNextColor;
+            //reset length
+            bytChunkLen = 1;
+          }
+          else
+          {
+            //increment chunk length
+            bytChunkLen += 1;
+          }
+        }
+        //if last chunk is NOT transparent
+        if (bytChunkColor != mTransColor)
+        {
+          //add last chunk
+          bytTempRLE[lngByteCount] = (byte)(bytChunkColor * 0x10 + bytChunkLen);
+          //increment Count
+          lngByteCount += 1;
+        }
+        //always Count last chunk for mirror
+        lngMirrorCount += 1;
+        //add zero to indicate end of row
+        bytTempRLE[lngByteCount] = 0;
+        lngByteCount += 1;
+        lngMirrorCount += 1;
+        //if mirroring
+      }
+      if (blnMirror)
+      {
+        //add zeros to make room
+        while (lngByteCount < lngMirrorCount)
+        {    //add a zero
+          bytTempRLE[lngByteCount] = 0;
+          lngByteCount = lngByteCount + 1;
+        }
+      }
 
-  //return the compressed data
-  CompressCelData = bytTempRLE
-  Exit Function
+      //reset size of array
+      Array.Resize(ref bytTempRLE, lngByteCount);
 
-  ErrHandler:
-  strError = Err.Description
-  strErrSrc = Err.Source
-  lngError = Err.Number
+      //return the compressed data
+      return bytTempRLE;
+    }
+    internal static string DecodeString(int intCode)
+    {
+      //this function converts a code Value into its original string Value
 
-  //if error was due to insufficient space (subscript out of range)
-  //redimension the array and try again
-  if (Err.Number = 9) {
-  Array.Resize(bytTempRLE(UBound(bytTempRLE()) + 20)
-  Resume
-  }
+      //initialize counter
+      int i = 0;
+      string retval = "";
 
-  //////Debug.Assert false
-  On Error GoTo 0: Err.Raise vbObjectError + 654, strErrSrc, Replace(LoadResString(654), ARG1, CStr(lngError) & ":" & strError)
-End Function
+      while (intCode > 255)
+      {
+        //if code Value exceeds table size,
+        if (intCode > TABLE_SIZE)
+        {
+          //////Debug.Print "FATAL ERROR as  Invalid code (" & CStr(intCode) & ") in DecodeString."
+          return retval;
+        }
+        else
+        {
+          //build string
+          retval = (char)bytAppend[intCode - 257] + retval;
+          intCode = intPrefix[intCode - 257];
+        }
+      }
+      retval = (char)intCode + retval;
+      return retval;
+    }
+    internal static int InputCode(ref byte[] bytData, int intCodeSize, ref int intPosIn)
+    {
+      int lngWord, lngRet;
+      //this routine extracts the next code Value off the input stream
+      //since the number of bits per code can vary between 9 and 12,
+      //can't read in directly from the stream
 
+      //unlike normal LZW, though, the bytes are actually written in so the code boundaries
+      //work from right to left, NOT left to right. for (example,an input stream that needs
+      //to be split on a 9 bit boundary will use eight bits of first byte, plus LOWEST
+      //bit of byte 2. The second code is then the upper seven bits of byte 2 and the lower
+      //2 bits of byte 3 etc:
+      //                          byte boundaries (8 bits per byte)
+      //          byte4           byte3           byte2           byte1           byte0
+      // ...|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0
+      // ... x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x
+      // ... 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0
+      //                   code3             code2             code1             code0
+      //                          code boundaries (9 bits per code)
+      //
+      //the data stream is read into a bit buffer 8 bits at a time (i.e. a single byte)
+      //once the buffer is full of data, the input code is pulled out, and the buffer
+      //is shifted.
+      //the input data from the stream must be shifted to ensure it lines up with data
+      //currently in the buffer.
 
-Public Function BuildMIDI(SoundIn As AGISound) As Byte()
+      //read until the buffer is greater than 24-
+      //this ensures that the eight bits read from the input stream
+      //will fit in the buffer (which is a long integer==4 bytes==32 bits)
+      //also stop reading data if end of data stream is reached)
+      while ((lngBitsInBuffer <= 24) && (intPosIn < lngOriginalSize))
+      {
+        //get next byte
+        lngWord = bytData[intPosIn];
+        intPosIn += 1;
+
+        //shift the data to the left by enough bits so the byte being added will not
+        //overwrite the bits currently in the buffer, and add the bits to the buffer
+        lngBitBuffer |= (lngWord << lngBitsInBuffer);
+
+        //increment Count of how many bits are currently in the buffer
+        lngBitsInBuffer += 8;
+      }// Loop
+
+      //the input code starts at the lowest bit in the buffer
+      //since the buffer has 32 bits total, need to clear out all bits above the desired
+      //number of bits to define the code (i.e. if 9 bits, AND with 0x1FF; 10 bits,
+      //AND with 0x3FF, etc.)
+      lngRet = lngBitBuffer & ((1 << intCodeSize) - 1);
+
+      //now need to shift the buffer to the RIGHT by the number of bits per code
+      lngBitBuffer = lngBitBuffer >> intCodeSize;
+
+      //adjust number of bits currently loaded in buffer
+      lngBitsInBuffer -= intCodeSize;
+
+      //and return code Value
+      return lngRet;
+    }
+    internal static int NewCodeSize(int intVal)
+    {
+      //this function supports the expansion of compressed resources
+      //it sets the size of codes which the LZW routine uses. The size
+      //of the code first starts at 9 bits, then increases as all code
+      //tables are filled. the max code size is 12; if an attempt is
+      //made to set a code size above that, the function does nothing
+
+      //the function also recalculates the maximum number of codes
+      //available to the expand subroutine. This number is used to
+      //determine when to call this function again.
+
+      //max code size is 12 bits
+      const int MAXBITS = 12;
+      int retval;
+
+      if (intVal == MAXBITS)
+      {
+        retval = 11;
+        //this makes no sense!!!!
+        //as written, it means max code size is really 11, not
+        //12; an attempt to set it to 12 keeps it at 11???
+      }
+      else
+      {
+        retval = intVal;
+        lngMaxCode = (1 << retval) - 2;
+      }
+      return retval;
+    }
+    private static void tmpResFunc()
+  {
+      /*
+  Private Function NewCodeSize(intVal As Integer) As Integer
+  End Function
+
+  Public Function BuildMIDI(SoundIn As AGISound) As Byte()
 
   Dim lngWriteTrack As Long
   Dim i As Long, j As Long
@@ -805,7 +893,7 @@ Public Function BuildMIDI(SoundIn As AGISound) As Byte()
                     //mode 1 = multiple tracks, all start at zero
                     //mode 2 = multiple tracks, independent start times
   //if no tracks,
-  if (lngTrackCount = 0) {
+  if (lngTrackCount == 0) {
     //need to build a //null// set of data!!!
 
     Array.Resize(mMIDIData(37)
@@ -953,8 +1041,8 @@ Public Function BuildMIDI(SoundIn As AGISound) As Byte()
     lngWriteTrack = lngWriteTrack + 1
   Next i
 
-//seashore does a good job of imitating the white noise, with frequency adjusted empirically
-//harpsichord does a good job of imitating the tone noise, with frequency adjusted empirically
+  //seashore does a good job of imitating the white noise, with frequency adjusted empirically
+  //harpsichord does a good job of imitating the tone noise, with frequency adjusted empirically
 
   //if adding noise track,
   if (!SoundIn.Track(3).Muted && SoundIn.Track(3).Notes.Count > 0) {
@@ -1035,9 +1123,9 @@ Public Function BuildMIDI(SoundIn As AGISound) As Byte()
         //AGINote contains bits 2-1-0 only
         //
         //if this note matches desired type
-        if ((SoundIn.Track(3).Notes(j).FreqDivisor && 4) = 4 * i) {
+        if ((SoundIn.Track(3).Notes(j).FreqDivisor && 4) == 4 * i) {
           //if using borrow function:
-          if ((SoundIn.Track(3).Notes(j).FreqDivisor && 3) = 3) {
+          if ((SoundIn.Track(3).Notes(j).FreqDivisor && 3) == 3) {
             //get frequency from channel 3
             intFreq = GetTrack3Freq(SoundIn.Track(2), lngTickCount)
           } else {
@@ -1046,7 +1134,7 @@ Public Function BuildMIDI(SoundIn As AGISound) As Byte()
           }
 
           //convert to midi note
-          if ((SoundIn.Track(3).Notes(j).FreqDivisor && 4) = 4) {
+          if ((SoundIn.Track(3).Notes(j).FreqDivisor && 4) == 4) {
             //for white noise, 96 is my best guess to imitate noise
             //BUT... 96 causes some notes to come out negative;
             //80 is max Value that ensures all AGI freq values convert
@@ -1106,15 +1194,15 @@ Public Function BuildMIDI(SoundIn As AGISound) As Byte()
   }
 
   //remove any extra padding from the data array (-1?)
-//////  Array.Resize(mMIDIData(lngPos)
+  //////  Array.Resize(mMIDIData(lngPos)
   Array.Resize(mMIDIData(lngPos - 1)
   //return
   BuildMIDI = mMIDIData()
   //clear any errors
   Err.Clear
-End Function
+  End Function
 
-Public Function BuildIIgsMIDI(SoundIn As AGISound, ByRef Length As Single) As Byte()
+  Public Function BuildIIgsMIDI(SoundIn As AGISound, ByRef Length As Single) As Byte()
 
   Dim i As Long, midiIn() As Byte, lngInPos As Long
   Dim midiOut() As Byte, lngOutPos As Long
@@ -1194,7 +1282,7 @@ Public Function BuildIIgsMIDI(SoundIn As AGISound, ByRef Length As Single) As By
   //null sounds will start with 0xFC in first four bytes
   // (and nothing else), so ANY file starting with 0xFC
   // is considered empty
-  if (midiIn(2) = 0xFC) {
+  if (midiIn(2) == 0xFC) {
     //assume no sound
     Array.Resize(midiOut(25)
     midiOut(21) = 4
@@ -1229,7 +1317,7 @@ Public Function BuildIIgsMIDI(SoundIn As AGISound, ByRef Length As Single) As By
     if (bytIn && 0x80) {
       //treat 0xFC as an end mark, even if found in time position
       //0xF8 also appears to cause an end
-      if (bytIn = 0xFC || bytIn = 0xF8) {
+      if (bytIn == 0xFC || bytIn == 0xF8) {
         //backup one to cancel this byte
         lngOutPos = lngOutPos - 1
         Exit Do
@@ -1242,20 +1330,20 @@ Public Function BuildIIgsMIDI(SoundIn As AGISound, ByRef Length As Single) As By
       lngOutPos = lngOutPos + 1
 
       //ignore //normal// delta time calculations
-//////      lngTime = (lngTime && 0x7F)
-//////      Do
-//////        lngTime = lngTime * 128
-//////        lngInPos = lngInPos + 1
-//////        //err check
-//////        if (lngInPos > UBound(midiIn())) { Exit Do
-//////        bytIn = midiIn(lngInPos)
-//////
-//////        //add it to output
-//////        midiOut(lngOutPos) = bytIn
-//////        lngOutPos = lngOutPos + 1
-//////
-//////        lngTime = lngTime + (bytIn && 0x7F)
-//////      Loop While (bytIn && 0x80) = 0x80
+  //////      lngTime = (lngTime && 0x7F)
+  //////      Do
+  //////        lngTime = lngTime * 128
+  //////        lngInPos = lngInPos + 1
+  //////        //err check
+  //////        if (lngInPos > UBound(midiIn())) { Exit Do
+  //////        bytIn = midiIn(lngInPos)
+  //////
+  //////        //add it to output
+  //////        midiOut(lngOutPos) = bytIn
+  //////        lngOutPos = lngOutPos + 1
+  //////
+  //////        lngTime = lngTime + (bytIn && 0x7F)
+  //////      Loop While (bytIn && 0x80) = 0x80
     }
 
     lngInPos = lngInPos + 1
@@ -1286,7 +1374,7 @@ Public Function BuildIIgsMIDI(SoundIn As AGISound, ByRef Length As Single) As By
       // sounds; so if encountered, immediately stop processing
       // sometimes extra 0xD and 0xB commands follow a 0xFC,
       // but they cause hiccups in modern midi programs
-      if (bytIn = 0xFC) {
+      if (bytIn == 0xFC) {
         //back up so last time value gets overwritten
         lngOutPos = lngOutPos - 1
         Exit Do
@@ -1413,7 +1501,7 @@ Public Function BuildIIgsMIDI(SoundIn As AGISound, ByRef Length As Single) As By
   Loop Until lngInPos > UBound(midiIn())
 
   //resize output array to remove correct size
-  if (lngOutPos + 3 <> UBound(midiOut())) {
+  if (lngOutPos + 3 != UBound(midiOut())) {
     Array.Resize(midiOut(lngOutPos + 3)
   }
 
@@ -1434,14 +1522,14 @@ Public Function BuildIIgsMIDI(SoundIn As AGISound, ByRef Length As Single) As By
   Length = lngTicks / 60
 
   BuildIIgsMIDI = midiOut()
-Exit Function
+  Exit Function
 
-ErrHandler:
+  ErrHandler:
   //////Debug.Assert false
   Resume Next
-End Function
+  End Function
 
-Public Function BuildIIgsPCM(SoundIn As AGISound) As Byte()
+  Public Function BuildIIgsPCM(SoundIn As AGISound) As Byte()
 
   Dim i As Long, bData() As Byte
   Dim lngSize As Long
@@ -1451,21 +1539,21 @@ Public Function BuildIIgsPCM(SoundIn As AGISound) As Byte()
 
   //builds a wav file stream from an apple IIgs PCM sound resource
 
-//Positions Sample Value  Description
-//0 - 3 = "RIFF"  Marks the file as a riff file.
-//4 - 7 = var File size (integer) Size of the overall file
-//8 -11 = "WAVE"  File Type Header. for (our purposes, it always equals "WAVE".
-//12-15 = "fmt "  Format chunk marker. Includes trailing space
-//16-19 = 16  Length of format data as listed above
-//20-21 = 1 Type of format (1 is PCM) - 2 byte integer
-//22-23 = 1 Number of Channels - 2 byte integer
-//24-27 = 8000 Sample Rate - 32 byte integer.
-//28-31 = 8000  (Sample Rate * BitsPerSample * Channels) / 8.
-//32-33 = 1 (BitsPerSample * Channels) / 8. 1 - 8 bit mono; 2 - 8 bit stereo/16 bit mono; 4 - 16 bit stereo
-//34-35 = 8  Bits per sample
-//36-39 "data"  "data" chunk header. Marks the beginning of the data section.
-//40-43 = var  Size of the data section.
-//44+    data
+  //Positions Sample Value  Description
+  //0 - 3 = "RIFF"  Marks the file as a riff file.
+  //4 - 7 = var File size (integer) Size of the overall file
+  //8 -11 = "WAVE"  File Type Header. for (our purposes, it always equals "WAVE".
+  //12-15 = "fmt "  Format chunk marker. Includes trailing space
+  //16-19 = 16  Length of format data as listed above
+  //20-21 = 1 Type of format (1 is PCM) - 2 byte integer
+  //22-23 = 1 Number of Channels - 2 byte integer
+  //24-27 = 8000 Sample Rate - 32 byte integer.
+  //28-31 = 8000  (Sample Rate * BitsPerSample * Channels) / 8.
+  //32-33 = 1 (BitsPerSample * Channels) / 8. 1 - 8 bit mono; 2 - 8 bit stereo/16 bit mono; 4 - 16 bit stereo
+  //34-35 = 8  Bits per sample
+  //36-39 "data"  "data" chunk header. Marks the beginning of the data section.
+  //40-43 = var  Size of the data section.
+  //44+    data
 
   //local copy of data -easier to manipulate
   bData() = SoundIn.Resource.AllData
@@ -1541,33 +1629,14 @@ Public Function BuildIIgsPCM(SoundIn As AGISound) As Byte()
 
   //return
   BuildIIgsPCM = mMIDIData()
-Exit Function
+  Exit Function
 
-ErrHandler:
+  ErrHandler:
   //////Debug.Assert false
   Resume Next
-End Function
+  End Function
 
-
-
-Public Function LoadResources() As Boolean
-  //loads resources from a WAG file;
-  //it WILL verify that the resource exists at a valid location
-  //in the VOL files by loading them and then unloading them
-
-  Dim bytResType As Byte
-
-  On Error Resume Next
-
-  agGameEvents.RaiseEvent_LoadStatus lsResources, rtNone, 0, vbNullString
-
-  for (bytResType = 0 To 3
-
-  Next bytResType
-
-End Function
-
-Private Sub WriteSndDelta(ByVal LongIn As Long)
+  Private Sub WriteSndDelta(ByVal LongIn As Long)
   //writes variable delta times!!
 
   Dim i As Long
@@ -1587,22 +1656,22 @@ Private Sub WriteSndDelta(ByVal LongIn As Long)
   }
 
   WriteSndByte LongIn && 127
-End Sub
+  End Sub
 
-Private Sub WriteSndWord(ByVal IntegerIn As Integer)
+  Private Sub WriteSndWord(ByVal IntegerIn As Integer)
   WriteSndByte IntegerIn \ 256
   WriteSndByte IntegerIn && 0xFF
-End Sub
+  End Sub
 
-Private Sub WriteSndLong(ByVal LongIn As Long)
+  Private Sub WriteSndLong(ByVal LongIn As Long)
 
   WriteSndByte LongIn \ 0x1000000
   WriteSndByte (LongIn \ 0x10000) && 0xFF
   WriteSndByte (LongIn \ 0x100) && 0xFF
   WriteSndByte (LongIn) && 0xFF
-End Sub
+  End Sub
 
-Private Function GetTrack3Freq(Track3 As AGITrack, ByVal lngTarget As Long) As Long
+  Private Function GetTrack3Freq(Track3 As AGITrack, ByVal lngTarget As Long) As Long
   //if noise channel needs the frequency of track 3,
   //must step through track three until the same point in time is found
   //then use that frequency for noise channel
@@ -1623,10 +1692,10 @@ Private Function GetTrack3Freq(Track3 As AGITrack, ByVal lngTarget As Long) As L
 
   //if nothing found, return 0
 
-End Function
+  End Function
 
 
-Private Sub WriteSndByte(ByVal ByteIn As Byte)
+  Private Sub WriteSndByte(ByVal ByteIn As Byte)
   //Put intFile, , ByteIn
   mMIDIData(lngPos) = ByteIn
   lngPos = lngPos + 1
@@ -1635,123 +1704,9 @@ Private Sub WriteSndByte(ByVal ByteIn As Byte)
     //jack it up
     Array.Resize(mMIDIData(lngPos + 256)
   }
-End Sub
+  End Sub
 
-
-Private Function DecodeString(ByVal intCode As Integer) As String
-//this function converts a code Value into its original string Value
-
-Dim i  As Integer
-
-  //initialize counter
-  i = 0
-
-  Do While (intCode > 255)
-    //if code Value exceeds table size,
-    if (intCode > TABLE_SIZE) {
-      //////Debug.Print "FATAL ERROR as  Invalid code (" & CStr(intCode) & ") in DecodeString."
-      Exit Function
-    } else {
-      //build string
-      DecodeString = Chr$(bytAppend(intCode - 257)) & DecodeString
-      intCode = intPrefix(intCode - 257)
-    }
-  Loop
-  DecodeString = Chr$(intCode) & DecodeString
-End Function
-
-Private Function InputCode(ByRef bytData() As Byte, intCodeSize As Integer, ByRef intPosIn As Integer) As Integer
-
-  Dim lngWord As Long, lngRet As Long
-
-  //this routine extracts the next code Value off the input stream
-  //since the number of bits per code can vary between 9 and 12,
-  //can//t read in directly from the stream
-
-  //unlike normal LZW, though, the bytes are actually written in so the code boundaries
-  //work from right to left, NOT left to right. for (example,an input stream that needs
-  //to be split on a 9 bit boundary will use eight bits of first byte, plus LOWEST
-  //bit of byte 2. The second code is then the upper seven bits of byte 2 and the lower
-  //2 bits of byte 3 etc:
-  //                          byte boundaries (8 bits per byte)
-  //          byte4           byte3           byte2           byte1           byte0
-  // ...|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0
-  // ... x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x
-  // ... 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0
-  //                   code3             code2             code1             code0
-  //                          code boundaries (9 bits per code)
-  //
-  //the data stream is read into a bit buffer 8 bits at a time (i.e. a single byte)
-  //once the buffer is full of data, the input code is pulled out, and the buffer
-  //is shifted.
-  //the input data from the stream must be shifted to ensure it lines up with data
-  //currently in the buffer.
-
-  //read until the buffer is greater than 24-
-  //this ensures that the eight bits read from the input stream
-  //will fit in the buffer (which is a long integer==4 bytes==32 bits)
-  //also stop reading data if end of data stream is reached)
-  Do While (lngBitsInBuffer <= 24) && (intPosIn < lngOriginalSize)
-    //get next byte
-    lngWord = CLng(bytData(intPosIn))
-    intPosIn = intPosIn + 1
-
-    //shift the data to the left by enough bits so the byte being added will not
-    //overwrite the bits currently in the buffer, and add the bits to the buffer
-    lngBitBuffer = lngBitBuffer || LngSHL(lngWord, lngBitsInBuffer)
-
-    //increment Count of how many bits are currently in the buffer
-    lngBitsInBuffer = lngBitsInBuffer + 8
-  Loop
-
-  //the input code starts at the lowest bit in the buffer
-  //since the buffer has 32 bits total, need to clear out all bits above the desired
-  //number of bits to define the code (i.e. if 9 bits, AND with 0x1FF; 10 bits,
-  //AND with 0x3FF, etc.)
-  lngRet = lngBitBuffer && (LngSHL(1, intCodeSize) - 1)
-  //why not just use 2^intCodeSize -1 instead of the shift-left function?
-
-  //now need to shift the buffer to the RIGHT by the number of bits per code
-  lngBitBuffer = LngSHR(lngBitBuffer, intCodeSize)
-
-  //adjust number of bits currently loaded in buffer
-  lngBitsInBuffer = lngBitsInBuffer - intCodeSize
-
-  //and return code Value
-  InputCode = lngRet
-End Function
-
-
-
-Private Function NewCodeSize(intVal As Integer) As Integer
-//this function supports the expansion of compressed resources
-//it sets the size of codes which the LZW routine uses. The size
-//of the code first starts at 9 bits, then increases as all code
-//tables are filled. the max code size is 12; if an attempt is
-//made to set a code size above that, the function does nothing
-//the function also recalculates the maximum number of codes
-//available to the expand subroutine. This number is used to
-//determine when to call this function again.
-
-  //max code size is 12 bits
-  Const MAXBITS = 12
-
-  if ((intVal = MAXBITS)) {
-    NewCodeSize = 11
-    //this makes no sense!!!!
-    //as written, it means max code size is really 11, not
-    //12; an attempt to set it to 12 keeps it at 11???
-
-  } else {
-    NewCodeSize = intVal
-    lngMaxCode = LngSHL(1, NewCodeSize) - 2
-    }
-End Function
-
-
-
-
-Public Function SndSubclassProc(ByVal hWnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+  Public Function SndSubclassProc(ByVal hWnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
 
   Dim blnSuccess As Boolean
   Dim rtn As Long
@@ -1785,9 +1740,9 @@ Public Function SndSubclassProc(ByVal hWnd As Long, ByVal uMsg As Long, ByVal wP
 
   //pass back to previous function
   SndSubclassProc = CallWindowProc(PrevSndWndProc, hWnd, uMsg, wParam, lParam)
-End Function
+  End Function
 
-Public Function UniqueResFile(ResType As AGIResType) As String
+  Public Function UniqueResFile(ResType As AGIResType) As String
 
   Dim intNo As Integer
 
@@ -1797,16 +1752,50 @@ Public Function UniqueResFile(ResType As AGIResType) As String
     intNo = intNo + 1
     UniqueResFile = agResDir & "New" & ResTypeName(ResType) & CStr(intNo) & ".ag" & Lcase$(Left(ResTypeName(ResType), 1))
   Loop Until Dir(UniqueResFile) = vbNullString
-Exit Function
+  Exit Function
 
-ErrHandler:
+  ErrHandler:
   //on off chance that user has too many files
   Err.Clear
-  On Error GoTo 0: Err.Raise vbObjectError, "ResourceFunctions.UniqueResFile", "Can//t save- max number of files exceeded in directory. NO WAY YOU HAVE THAT MANY FILES!!!!!"
-End Function
+  throw new Exception("vbObjectError, "ResourceFunctions.UniqueResFile", "Can//t save- max number of files exceeded in directory. NO WAY YOU HAVE THAT MANY FILES!!!!!"
+  End Function
 
 
-*/
+  */
+    }
+    internal static bool IsUniqueResID(string checkID)
+    {
+      // check all resids
+      foreach (AGIResource tmpRes in agLogs.Col.Values)
+      {
+        if (tmpRes.ID.Equals(checkID,StringComparison.OrdinalIgnoreCase))
+        {
+          return false;
+        }
+      }
+      foreach (AGIResource tmpRes in agPics.Col.Values)
+      {
+        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase))
+        {
+          return false;
+        }
+      }
+      foreach (AGIResource tmpRes in agSnds.Col.Values)
+      {
+        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase))
+        {
+          return false;
+        }
+      }
+      foreach (AGIResource tmpRes in agViews.Col.Values)
+      {
+        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase))
+        {
+          return false;
+        }
+      }
+      // not found; must be unique
+      return true;
     }
   }
 }

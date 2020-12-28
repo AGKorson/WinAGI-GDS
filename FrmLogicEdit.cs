@@ -24,15 +24,10 @@ namespace WinAGI_GDS
 
     private void rtfLogic_DoubleClick(object sender, EventArgs e)
     {
-      // try a few functions!
-      if (IsValidGameDir( rtfLogic.Text))
-      {
-        MessageBox.Show("it works");
-      }
-      else
-      {
-        MessageBox.Show("not a valid directory");
-      }
+      // testing logic functions
+      Logics[5].SourceText = rtfLogic.Text;
+      //Logics[5].Save();
+      Logics[5].SaveSource();
     }
   }
 }

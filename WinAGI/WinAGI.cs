@@ -45,7 +45,6 @@ namespace WinAGI
     rtWarnings = 11,
     rtNone = 255
   };
-
   public enum AGIColors
   {
     agBlack,
@@ -66,7 +65,6 @@ namespace WinAGI
     agWhite,
     agNone
   };
-
   public enum ObjDirection
   {
     odStopped,
@@ -79,19 +77,16 @@ namespace WinAGI
     odLeft,
     odUpLeft
   };
-
   public enum EPlotShape
   {
     psCircle,
     psRectangle
   };
-
   public enum EPlotStyle
   {
     psSolid,
     psSplatter
   };
-
   public enum DrawFunction
   {
     dfEnableVis = 0xf0,   //Change picture color and enable picture draw.
@@ -107,7 +102,6 @@ namespace WinAGI
     dfPlotPen = 0xFA,      //Plot with pen.
     dfEnd = 0xFF          //end of drawing
   };
-
   public enum LogicErrorLevel
   {
     leHigh,    //all compile/decompile problems are returned as errors
@@ -117,7 +111,6 @@ namespace WinAGI
     leLow     //only errors that prevent compilation/decompiliation
               //are passed; no warnings are given
   };
-
   public enum ECStatus
   { //used to update editor as components are completed,
     csCompWords,
@@ -130,7 +123,6 @@ namespace WinAGI
     csLogicError,
     csCanceled
   };
-
   public enum ELStatus
   { //used to update editor during a game load
     lsInitialize,
@@ -139,7 +131,6 @@ namespace WinAGI
     lsResources,
     lsFinalizing
   };
-
   public enum SoundFormat
   {
     sfUndefined,
@@ -148,13 +139,11 @@ namespace WinAGI
     sfScript,  //pc only
     sfWAV     //only for IIgs pcm sounds
   };
-
   public enum LogEventType
   {
     leWarning,
     leError
   };
-
   public enum ArgTypeEnum
   {
     atNum = 0,      //i.e. numeric Value
@@ -179,20 +168,17 @@ namespace WinAGI
     public EPlotStyle PlotStyle;
     public int PlotSize;
   }
-
   public struct AGIWord
   {
     public string WordText;
     public int Group;
   }
-
   public struct FreeSpaceInfo
   {
     public byte VOL;
     public int Start;
     public int End;
   }
-
   //type used for defined names
   public struct TDefine
   {
@@ -202,14 +188,11 @@ namespace WinAGI
     public ArgTypeEnum Type;
     public string Comment;
   }
-
   public struct CommandStruct
   {
     public string Name;
-    public byte ArgCount;
     public ArgTypeEnum[] ArgType; //7
   }
-
   public static partial class WinAGI
   {
     // this class is for all the global stuff that was previously in separate modules in VB6
@@ -228,9 +211,14 @@ namespace WinAGI
                              (byte)'a', (byte)'n' }; //10; //' = "Avis Durgan"
 
     // string arrays that are 'enums'
-    public static readonly string[] ResTypeAbbrv = { "LOG", "PIC", "VIEW", "SND" };
-    public static readonly string[] ResTypeName = { "Logic", "Picture", "View", "Sound" };
-    public static readonly string[] IntVersions = new string[16]; //15; // (2.917, etc)
+    public static readonly string[] ResTypeAbbrv = { "LOG", "PIC", "SND", "VIEW" };
+    public static readonly string[] ResTypeName = { "Logic", "Picture", "Sound", "View" };
+    public static readonly string[] IntVersions = new string[16]
+    { //load versions
+      "2.089", "2.272", "2.411", "2.425", "2.426", "2.435", "2.439", "2.440",
+      "2.915", "2.917", "2.936",
+      "3.002086", "3.002098", "3.002102", "3.002107", "3.002149"
+    };
 
     //game constants
     internal const int MAX_RES_SIZE = 65530;
@@ -246,7 +234,8 @@ namespace WinAGI
     //MAX_VOLSIZE = 1047552  '= 1024 * 1023
     internal const string WORD_SEPARATOR = " | ";
     internal static readonly string CTRL_CHARS;
-
+    internal static readonly string NEWLINE = Environment.NewLine;
+    //current version
     internal const string WINAGI_VERSION = "3.0.1";
     // old versions
     internal const string WINAGI_VERSION_1_2 = "WINAGI v1.2     ";
@@ -323,6 +312,7 @@ namespace WinAGI
     internal static int lngError = 0;
     internal static string strError = "";
     internal static string strErrSrc = "";
+
     static WinAGI()
     {
       for (int i = 1; i < 32; i++)
@@ -330,7 +320,6 @@ namespace WinAGI
 
       CRC32Setup();
     }
-
     internal static string Right(string strIn, int length)
     {
       if (length >= strIn.Length)
@@ -338,7 +327,6 @@ namespace WinAGI
       else
         return strIn.Substring(strIn.Length - length);
     }
-
     internal static string Left(string strIn, int length)
     {
       if (length >= strIn.Length)
@@ -346,7 +334,6 @@ namespace WinAGI
       else
         return strIn.Substring(0, length);
     }
-
     internal static string Mid(string strIn, int pos, int length)
     {
       // mimic VB mid function; if length is too long, return
@@ -355,7 +342,6 @@ namespace WinAGI
         return strIn.Substring(pos, strIn.Length - pos);
       return strIn.Substring(pos, length);
     }
-
     /// <summary>
     /// Extension method that works out if a string is numeric or not
     /// </summary>
@@ -386,7 +372,6 @@ namespace WinAGI
       // not a valid number; return 0
       return 0;
     }
-
     /// <summary>
     /// Confirms that a directory has a terminating backslash,
     /// adding one if necessary
@@ -404,7 +389,6 @@ namespace WinAGI
       else
         return strDirIn;
     }
-
     internal static string JustFileName(string strFullPathName)
     {
       //will extract just the file name by removing the path info
@@ -418,7 +402,6 @@ namespace WinAGI
       else
         return strSplitName[strSplitName.Length - 1];
     }
-
     internal static string JustPath(string strFullPathName, bool NoSlash = false)
     {  //will extract just the path name by removing the filename
        //if optional NoSlash is true, the trailing backslash will be dropped
@@ -451,9 +434,22 @@ namespace WinAGI
       }
       //if slash should be added,
     }
-
-    //static internal uint CRC32(byte[] DataIn)
-    internal static uint CRC32(char[] DataIn)
+    internal static string FileNameNoExt(string FileName)
+    {
+      //returns a filename without the extension
+      //if FileName includes a path, the path is also removed
+      string strOut = JustFileName(FileName);
+      int i = strOut.LastIndexOf(".");
+      if (i <= 0)
+      {
+        return strOut;
+      }
+      else
+      {
+        return Left(strOut, i - 1);
+      }
+    }
+    internal static uint CRC32(byte[] DataIn)
     {
 
       //Public Function CRC32(DataIn() As Byte) As Long
@@ -467,7 +463,6 @@ namespace WinAGI
       //
       //initial Value of CRC is &HFFFFFFFF; iterate the equation
       //for each byte of data; then end by XORing final result with &HFFFFFFFF
-
 
       int i;
       //initial Value
@@ -484,7 +479,6 @@ namespace WinAGI
       //xor to create final answer
       return result ^ 0xFFFFFFFF;
     }
-
     internal static void CRC32Setup()
     {
       //build the CRC table
@@ -770,7 +764,6 @@ namespace WinAGI
       //CRC32Table[255] = 0x2D02EF8D;
 
     }
-
     internal static void AssignReservedDefines()
     {
       // predefined variables, flags, and objects
@@ -1038,7 +1031,6 @@ namespace WinAGI
       agResDef[5].Type = ArgTypeEnum.atStr;
       agResDef[5].Default = agResDef[5].Name;
     }
-
     internal static void GetGlobalDefines()
     {
       string strLine, strTmp;
@@ -1046,19 +1038,14 @@ namespace WinAGI
       int i, lngTest;
       TDefine tdNewDefine = new TDefine();
       DateTime dtFileMod;
-
       agGlobalsSet = false;
 
       //clear global list
       agGlobal = Array.Empty<TDefine>();
       agGlobalCount = 0;
-
-      //Debug.Assert agGameLoaded
-
       //look for global file
       if (!File.Exists(AGIGame.agGameDir + "globals.txt"))
         return;
-
       //open file for input
       using var glbSR = new StringReader(AGIGame.agGameDir + "globals.txt");
       {
@@ -1067,10 +1054,8 @@ namespace WinAGI
         {
           //get next line
           strLine = glbSR.ReadLine();
-
-          if (strLine == null) break;
-
-
+          if (strLine == null) 
+            break;
           //strip off comment (need a throwaway string for comment)
           string s = "";
           strLine = WinAGI.StripComments(strLine, ref s, false);
@@ -1079,7 +1064,6 @@ namespace WinAGI
           {
             //splitline into name and Value
             strSplitLine = strLine.Split("\t");//     vbTab
-
             //if not exactly two elements
             if (strSplitLine.Length != 1)
             {
@@ -1105,7 +1089,6 @@ namespace WinAGI
                 Array.Resize(ref strSplitLine, 0);
               }
             }
-
             //if exactly two elements
             if (strSplitLine.Length == 2)
             {
@@ -1113,10 +1096,8 @@ namespace WinAGI
               tdNewDefine.Name = strSplitLine[0].Trim();
               //strSplitLine(1] has Value
               tdNewDefine.Value = strSplitLine[1].Trim();
-
               //validate define name
               lngTest = ValidateDefName(tdNewDefine.Name);
-
               if (lngTest == 0 || (lngTest >= 8 && lngTest <= 12))
               {
                 //Select Case lngTest
@@ -1137,20 +1118,12 @@ namespace WinAGI
             }
           }
         }
-
         //save crc for this file
         //get datemodified property
         dtFileMod = File.GetLastWriteTime(AGIGame.agGameDir + "globals.txt");
-        agGlobalCRC = WinAGI.CRC32(dtFileMod.ToString().ToCharArray());
-        //ErrHandler:
-        //        '*'Debug.Assert False
-
-        //'ensure file is closed
-        //Close intFile
-        //'return false
+        agGlobalCRC = WinAGI.CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString()));
       }
     }
-
     internal static int ValidateDefName(string DefName)
     {
       //Public Function ValidateDefName(DefName As String) As Long
@@ -1172,52 +1145,42 @@ namespace WinAGI
       // 11 = name is reserved object constant
       // 12 = name is reserved message constant
       // 13 = name contains improper character
-
-      //On Error GoTo ErrHandler
-
       int i;
 
       // if no name
       if (DefName.Length == 0)
         return 1;
-
       // name cant be numeric
       if (WinAGI.IsNumeric(DefName))
         return 2;
-
       // check against regular commands
       for (i = 0; i <= AGICommands.agCmds.Length; i++)
       {
         if (DefName == AGICommands.agCmds[i].Name)
           return 3;
       }
-
       // check against test commands
       for (i = 0; i <= AGITestCommands.agTestCmds.Length; i++)
       {
         if (DefName == AGITestCommands.agTestCmds[i].Name)
           return 4;
       }
-
       // check against keywords
       if ((DefName.ToLower() == "if") || (DefName.ToLower() == "else") ||
          (DefName.ToLower() == "goto"))
         return 5;
-
       // use LINQ - if the name starts with any of these letters
       if ("vfmoiswc".Any(DefName.ToLower().StartsWith))
         //if rest of string is numeric
         if (IsNumeric(Right(DefName, DefName.Length - 1)))
           // can't have a name that's a valid marker
           return 6;
-
       // check against current globals
       for (i = 0; i < WinAGI.agGlobalCount; i++)
       {
         if (DefName == agGlobal[i].Name)
           return 7;
       }
-
       // check against reserved defines:
       if (agUseRes)
       {
@@ -1239,38 +1202,29 @@ namespace WinAGI
           if (DefName == agEdgeCodes[i].Name)
             return 10;
         }
-
         for (i = 0; i <= 8; i++)
         {
           if (DefName == agEgoDir[i].Name)
             return 10;
         }
-
         for (i = 0; i <= 4; i++)
         {
           if (DefName == agVideoMode[i].Name)
             return 10;
         }
-
         // check against other reserved defines
         if (DefName == agResDef[4].Name)
           return 10;
-
-
         if (DefName == agResDef[0].Name)
           return 11;
-
         if (DefName == agResDef[5].Name)
           return 11;
-
-
         for (i = 1; i <= 3; i++)
         {
           if (DefName == agResDef[i].Name)
             return 12;
         }
       }
-
       // I am not sure exactly how this works, but it does; uses LINQ?
       // Any seems to apply the test inside to each element of the source
       // so testList.Any(checkItem.Op) returns true if checkItem.Op is true
@@ -1279,11 +1233,9 @@ namespace WinAGI
       if ((CTRL_CHARS + " !\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~").Any(DefName.Contains))
         // bad
         return 13;
-
       // if no error conditions, it's OK
       return 0;
     }
-
     internal static int ValidateDefValue(TDefine TestDefine)
     {
       //validates that TestDefine.Value is a valid define Value
@@ -1301,11 +1253,8 @@ namespace WinAGI
       string strVal;
       int intVal;
 
-      //On Error GoTo ErrHandler
-
       if (TestDefine.Value.Length == 0)
         return 1;
-
       //values must be a variable/flag/etc, string, or a number
       if (!IsNumeric(TestDefine.Value))
       {
@@ -1321,7 +1270,6 @@ namespace WinAGI
             intVal = int.Parse(strVal);
             if (intVal < 0 || intVal > 255)
               return 3;
-
             //check defined globals
             for (int i = 0; i <= agGlobalCount - 1; i++)
             {
@@ -1329,7 +1277,6 @@ namespace WinAGI
               if (agGlobal[i].Value == TestDefine.Value)
                 return 6;
             }
-
             //verify that the Value is not already assigned
             switch ((int)TestDefine.Value.ToLower().ToCharArray()[0])
             {
@@ -1340,7 +1287,6 @@ namespace WinAGI
                   if (intVal <= 15)
                     return 5;
                 break;
-
               case 118: //variable
                 TestDefine.Type = ArgTypeEnum.atVar;
                 if (WinAGI.agUseRes)
@@ -1348,11 +1294,9 @@ namespace WinAGI
                   if (intVal <= 26)
                     return 5;
                 break;
-
               case 109: //message
                 TestDefine.Type = ArgTypeEnum.atMsg;
                 break;
-
               case 111: //screen object
                 TestDefine.Type = ArgTypeEnum.atSObj;
                 if (WinAGI.agUseRes)
@@ -1360,19 +1304,15 @@ namespace WinAGI
                   if (TestDefine.Value == "o0")
                     return 5;
                 break;
-
               case 105: //inv object
                 TestDefine.Type = ArgTypeEnum.atIObj;
                 break;
-
               case 115: //string
                 TestDefine.Type = ArgTypeEnum.atStr;
                 break;
-
               case 119: //word
                 TestDefine.Type = ArgTypeEnum.atWord;
                 break;
-
               case 99: //controller
                        //controllers limited to 0-49
                 if (intVal > 49)
@@ -1386,7 +1326,6 @@ namespace WinAGI
         }
         //non-numeric, non-marker and most likely a string
         TestDefine.Type = ArgTypeEnum.atDefStr;
-
         //check Value for string delimiters in Value
         if (TestDefine.Value.Substring(0, 1) != "\"" || TestDefine.Value.Substring(TestDefine.Value.Length - 1, 1) != "\"")
           return 4;
@@ -1399,15 +1338,7 @@ namespace WinAGI
         TestDefine.Type = ArgTypeEnum.atNum;
         return 0;
       }
-
-      //ErrHandler:
-      //          strError = Err.Description
-      //strErrSrc = Err.Source
-      //lngError = Err.Number
-
-      //On Error GoTo 0: Err.Raise vbObjectError +660, strErrSrc, Replace(LoadResString(660), ARG1, CStr(lngError) & ":" & strError)
     }
-
     internal static string StripComments(string strLine, ref string strComment, bool NoTrim)
     {
       //Public Function StripComments(ByVal strLine As String, ByRef strComment As String, Optional ByVal NoTrim As Boolean = False) As String
@@ -1515,7 +1446,6 @@ namespace WinAGI
       ////*'Debug.Assert False
       //  Resume Next
     }
-
     internal static void WriteGameSetting(string Section, string Key, string Value, string Group = "")
     {
       WriteAppSetting(agGameProps, Section, Key, Value, Group);
@@ -1523,7 +1453,6 @@ namespace WinAGI
       if (Key.ToLower() != "lastedit" && Key.ToLower() != "winagiversion" && Key.ToLower() != "palette")
         agLastEdit = DateTime.Now;
     }
-
     internal static void WriteAppSetting(List<string> ConfigList, string Section, string Key, string Value, string Group)
     {
       //   Public Sub WriteAppSetting(ConfigList As StringList, ByVal Section As String, ByVal Key As String, ByVal Value As String, Optional ByVal Group As String = "")
@@ -1539,11 +1468,9 @@ namespace WinAGI
       //  key=value         key/value pairs separated by an equal sign; no quotes around values means only
       //                      single word; use quotes for multiword strings
       //  if string is multline, use '\n' control code (and use multiline option)
-
-
       int lngPos, i;
       string strLine, strCheck;
-      int lngSectionStart = 0, lngSectionEnd = 0;
+      int lngSectionEnd = 0;
       int lenKey; bool blnFound = false;
       int lngGrpStart, lngGrpEnd, lngInsertLine;
 
@@ -1553,42 +1480,35 @@ namespace WinAGI
         if (Value[0] != '"')
         {
           Value = "\"" + Value;
-
         }
         if ((Value[Value.Length - 1] != '"'))
         {
           Value += "\"";
         }
       }
-
       //if value contains any carriage returns, replace them with control characters
-      if (Value.Contains("\r\n", StringComparison.CurrentCulture))
+      if (Value.Contains("\r\n", StringComparison.OrdinalIgnoreCase))
       {
         Value = Value.Replace("\r\n", "\\n");
       }
-      if (Value.Contains("\r", StringComparison.CurrentCulture))
+      if (Value.Contains("\r", StringComparison.OrdinalIgnoreCase))
       {
         Value = Value.Replace("\r", "\\n");
       }
-      if (Value.Contains("\n", StringComparison.CurrentCulture))
+      if (Value.Contains("\n", StringComparison.OrdinalIgnoreCase))
       {
         Value = Value.Replace("\n", "\\n");
       }
-
-
       //if nullstring, include quotes
       if (Value.Length == 0)
       {
         Value = "\"\"";
       }
-
-
       //if a group is provided, we will add new items within the group;
       //existing items, even if within the group, will be left where they are
       lngGrpStart = -1;
       lngGrpEnd = -1;
       lngPos = -1;
-
       if (Group.Length > 0)
       {
         //********** we will have to make adjustments to group start
@@ -1608,7 +1528,7 @@ namespace WinAGI
               if (!blnFound)
               {
                 //is this the group marker?
-                if (strLine.Equals("[::BEGIN " + Group + "::]", StringComparison.CurrentCultureIgnoreCase))
+                if (strLine.Equals("[::BEGIN " + Group + "::]", StringComparison.OrdinalIgnoreCase))
                 {
                   lngGrpStart = i;
                   blnFound = true;
@@ -1623,7 +1543,7 @@ namespace WinAGI
               {
                 //start is found; make sure we find end before
                 //finding another start
-                if (Left(strLine, 9).Equals("[::BEGIN ", StringComparison.CurrentCultureIgnoreCase))
+                if (Left(strLine, 9).Equals("[::BEGIN ", StringComparison.OrdinalIgnoreCase))
                 {
                   //mark position of first new start, so we can move the end marker here
                   if (lngPos < 0)
@@ -1634,7 +1554,7 @@ namespace WinAGI
               }
               //we check for end marker here even if start not found
               //just in case they are backwards
-              if (strLine.Equals("[::END " + Group + "::]", StringComparison.CurrentCultureIgnoreCase))
+              if (strLine.Equals("[::END " + Group + "::]", StringComparison.OrdinalIgnoreCase))
               {
                 lngGrpEnd = i;
                 //and if we also have a start, we can exit the loop
@@ -1646,6 +1566,7 @@ namespace WinAGI
             }
           }
         }
+
         //possible outcomes:
         // - start and end both found; start before end
         //   this is what we want
@@ -1661,6 +1582,7 @@ namespace WinAGI
         // - end found, but no start; we fix by putting
         //   start right in front of end
 
+        // if both found
         if (lngGrpStart >= 0 && lngGrpEnd >= 0)
         {
           //if backwards, move end to line after start
@@ -1671,9 +1593,8 @@ namespace WinAGI
             lngGrpStart -= 1;
             lngGrpEnd = lngGrpStart + 1;
           }
-
-
         }
+        // if only start found
         else if (lngGrpStart >= 0)
         {
           //means end not found
@@ -1691,6 +1612,7 @@ namespace WinAGI
             ConfigList.Add("[::END " + Group + "::]");
           }
         }
+        // if end found but no start
         else if (lngGrpEnd >= 0)
         {
           //means start not found
@@ -1713,49 +1635,13 @@ namespace WinAGI
           lngGrpEnd = lngGrpStart + 1;
         }
       }
-
-
       //reset the found flag
       blnFound = false;
-
-
       //find the section we are looking for
-      for (i = 0; i <= ConfigList.Count - 1; i++)
-      {
-        //skip blanks, and lines starting with a comment
-        strLine = ConfigList[i].Replace("\t", " ").Trim();
-        if (strLine.Length > 0)
-        { //skip empty lines
-          if (strLine[0] != '#')
-          { //skip comments
-            //look for a bracket
-            if (strLine[0] == '[')
-            {
-              //find end bracket
-              lngPos = strLine.IndexOf("]", 2);
-              if (lngPos > 0)
-              {
-                strCheck = strLine.Substring(2, lngPos - 2);
-              }
-              else
-              {
-                strCheck = Right(strLine, strLine.Length - 1);
-              }
-              if (strCheck.Equals(Section, StringComparison.CurrentCultureIgnoreCase))
-              {
-                //found it
-                lngSectionStart = i;
-                break;
-              }
-            }
-          }
-        }
-      }
-
-
+      int lngSectionStart = FindSettingSection(ConfigList, Section);
       //if not found, create it at end of group (if group is provided)
       //otherwise at end of list
-      if (lngSectionStart == 0)
+      if (lngSectionStart <= 0)
       {
         if (lngGrpStart >= 0)
         {
@@ -1776,8 +1662,6 @@ namespace WinAGI
         }
         ConfigList.Insert(lngInsertLine, "[" + Section + "]");
         ConfigList.Insert(lngInsertLine + 1, "   " + Key + " = " + Value);
-
-
         //no need to check for location of section within group;
         //we just added it to the group (if one is needed)
       }
@@ -1785,7 +1669,7 @@ namespace WinAGI
       {
         //now step through all lines in this section; find matching key
         lenKey = Key.Length;
-        for (i = lngSectionStart + 1; i <= ConfigList.Count - 1; i++)
+        for (i = lngSectionStart + 1; i < ConfigList.Count; i++)
         {
           //skip blanks, and lines starting with a comment
           strLine = ConfigList[i].Replace("\t", " ").Trim();
@@ -1806,7 +1690,7 @@ namespace WinAGI
                 if (!blnFound)
                 {
                   //back up until a nonblank line is found
-                  for (lngPos = i - 1; i >= lngSectionStart; i--)
+                  for (lngPos = i - 1; lngPos >= lngSectionStart; lngPos--)
                   {
                     if (ConfigList[lngPos].Trim().Length > 0)
                     {
@@ -1840,12 +1724,10 @@ namespace WinAGI
                   return;
                 }
               }
-
-
               //if not already found,  look for 'key'
               if (!blnFound)
               {
-                if (Left(strLine, lenKey).Equals(Key, StringComparison.CurrentCultureIgnoreCase) && (strLine.Substring(lenKey + 1, 1) == " " || strLine.Substring(lenKey + 1, 1) == "="))
+                if (Left(strLine, lenKey).Equals(Key, StringComparison.OrdinalIgnoreCase) && (strLine.Substring(lenKey + 1, 1) == " " || strLine.Substring(lenKey + 1, 1) == "="))
                 {
                   //found it- change key value to match new value
                   //(if there is a comment on the end, save it)
@@ -1859,36 +1741,40 @@ namespace WinAGI
                       strLine = Right(strLine, strLine.Length - 1).Trim();
                     }
                   }
-
                   if (strLine.Length > 0)
                   {
                     if (strLine[0] == '"')
                     {
                       //string delimiter; find ending delimiter
-                      lngPos = strLine.IndexOf('"', 2);
+                      lngPos = strLine.IndexOf('"', 1) + 1;
                     }
                     else
                     {
-                      //look for a space as a delimiter
-                      lngPos = strLine.IndexOf(" ", 2);
-                    }
-                    if (lngPos == 0)
-                    {
-                      //could be a case where a comment is at end of text, without a space
-                      //if so we need to keep the delimiter
-                      lngPos = strLine.IndexOf("#", 2) - 1;
+                      //look for comment marker
+                      lngPos = strLine.IndexOf("#", 1);
+                      // if none found, look for space delimiter
+                      if (lngPos == -1)
+                      {
+                        //look for a space as a delimiter
+                        lngPos = strLine.IndexOf(" ", 1);
+                      }
+                      ////look for a space as a delimiter
+                      //lngPos = strLine.IndexOf(" ", 1);
+                      //if (lngPos == -1)
+                      //{
+                      //  //could be a case where a comment is at end of text, without a space
+                      //  //if so we need to keep the delimiter
+                      //  lngPos = strLine.IndexOf("#", 2) - 1;
+                      //}
                     }
                     //no delimiter found; assume entire line
                     if (lngPos <= 0)
                     {
-                      //no adjustment; we want to keep delimiter and anything after
                       lngPos = strLine.Length;
                     }
-                    //now strip off the old value
+                    //now strip off the old value, leaving potential comment
                     strLine = Right(strLine, strLine.Length - lngPos).Trim();
                   }
-
-
                   //if something left, maks sure it's a comment
                   if (strLine.Length > 0)
                   {
@@ -1899,8 +1785,6 @@ namespace WinAGI
                     //make sure it starts with a space
                     strLine = "   " + strLine;
                   }
-
-
                   strLine = "   " + Key + " = " + Value + strLine;
                   ConfigList[i] = strLine;
                   //we are done, but if part of a group
@@ -1919,8 +1803,6 @@ namespace WinAGI
             }
           }
         }
-
-
         //if not found (will only happen if this the last section in the
         //list, probably NOT in a group, but still possible (if the
         //section is outside the defined group)
@@ -1949,12 +1831,8 @@ namespace WinAGI
           //start/end markers MUST be before the start
           //of this section
         }
-
-
         //found marker ONLY set if part a group so let's verify
         //the section is in the group, moving it if necessary
-        //*'Debug.Assert lngGrpStart >= 0
-
 
         //if this was last section, AND section is NOT in its group
         //then then section end won't be set yet
@@ -1962,8 +1840,6 @@ namespace WinAGI
         {
           lngSectionEnd = ConfigList.Count - 1;
         }
-
-
         //if the section is not in the group, then move it
         //(depends on whether section is BEFORE or AFTER group start)
         if (lngSectionStart < lngGrpStart)
@@ -1985,8 +1861,6 @@ namespace WinAGI
           {
             ConfigList.RemoveAt(lngSectionStart);
           }
-
-
         }
         else if (lngSectionStart > lngGrpEnd)
         {
@@ -2007,34 +1881,26 @@ namespace WinAGI
           }
         }
       }
-
     }
-
     internal static void SaveSettingList(List<string> ConfigList)
     {
       //filename is first line
       //Dim strFileName As String
       //Dim intFile As Integer, bytData() As Byte, TempFile As String
 
-
       //get filename (and remove it; we don't need to save that)
       string strFileName = ConfigList[0];
       ConfigList.RemoveAt(0);
-
-
       //open temp file
       string TempFile = Path.GetTempFileName();
-
       try
       {
         using StreamWriter cfgSR = new StreamWriter(TempFile);
-
         //now output the results to the file
         foreach (string line in ConfigList)
           cfgSR.WriteLine(line);
-
-        // close it
-        cfgSR.Close();
+        //// close it
+        //cfgSR.Close();
         //dispose it
         cfgSR.Dispose();
 
@@ -2052,7 +1918,6 @@ namespace WinAGI
         throw;
       }
     }
-
     internal static List<string> OpenSettingList(string ConfigFile, bool CreateNew = true)
     {
       List<string> stlConfig = new List<string> { };
@@ -2063,16 +1928,17 @@ namespace WinAGI
       if (File.Exists(ConfigFile) || CreateNew)
       {
         //open the config file for create/write
-        fsConfig = new FileStream(ConfigFile, FileMode.Create);
+        fsConfig = new FileStream(ConfigFile, FileMode.OpenOrCreate);
         long lngLen = fsConfig.Length;
-        swConfig = new StreamWriter(fsConfig);
         //if this is an empty file (either previously empty or created by this call)
         if (lngLen == 0)
         {
+          swConfig = new StreamWriter(fsConfig);
           //add a single comment to the file
           stlConfig.Add("#");
           // and write it to the file
           swConfig.WriteLine("#");
+          swConfig.Dispose();
         }
         else
         {
@@ -2092,7 +1958,6 @@ namespace WinAGI
           srConfig.Dispose();
         }
         fsConfig.Dispose();
-        swConfig.Dispose();
       }
       else
       {
@@ -2106,19 +1971,14 @@ namespace WinAGI
       //return the list
       return stlConfig;
     }
-
-    internal static string ReadAppSetting(List<string> ConfigList, string Section, string Key, string Default = "")
+    public static string ReadAppSetting(List<string> ConfigList, string Section, string Key, string Default = "")
     {
-      int lngSection = -1;
-
-
       //need to make sure there is a list to read from
       if (ConfigList.Count == 0)
       {
         //return the default
         return Default;
       }
-
       //elements of a settings file:
       //
       //  #comments begin with hashtag; all characters on line after hashtag are ignored
@@ -2130,44 +1990,11 @@ namespace WinAGI
       //  key=value  key/value pairs separated by an equal sign; no quotes around values means only
       //    single word; use quotes for multiword strings
       //  if string is multline, use '\n' control code (and use multiline option)
-
       string strLine;
       int i;
       int lngPos;
       //find the section we are looking for (skip 1st line; it's the filename)
-      for (i = 1; i <= ConfigList.Count - 1; i++)
-      {
-        //skip blanks, and lines starting with a comment
-        strLine = ConfigList[i].Replace("\t", " ").Trim();
-        if (strLine.Length > 0)
-        {
-          if (strLine[0] != '#')
-          {
-            //look for a bracket
-            if (strLine[0] == '[')
-            {
-              //find end bracket
-              lngPos = strLine.IndexOf("]", 1);
-              string strCheck;
-              if (lngPos > 0)
-              {
-                strCheck = Mid(strLine, 2, lngPos - 2);
-              }
-              else
-              {
-                strCheck = Right(strLine, strLine.Length - 1);
-              }
-              if (strCheck.Equals(Section, StringComparison.CurrentCultureIgnoreCase))
-              {
-                //found it
-                lngSection = i;
-                break;
-              }
-            }
-          }
-        }
-      }
-
+      int lngSection = FindSettingSection(ConfigList, Section);
       //if not found,
       if (lngSection < 0)
       {
@@ -2180,7 +2007,7 @@ namespace WinAGI
       {
         //step through all lines in this section; find matching key
         int lenKey = Key.Length;
-        for (i = lngSection + 1; i <= ConfigList.Count - 1; i++)
+        for (i = lngSection + 1; i < ConfigList.Count; i++)
         {
           //skip blanks, and lines starting with a comment
           strLine = ConfigList[i].Replace("\t", " ").Trim();
@@ -2193,13 +2020,11 @@ namespace WinAGI
               {
                 break;
               }
-
               //look for 'key'
-              if (Left(strLine, lenKey).Equals(Key, StringComparison.CurrentCultureIgnoreCase) && (strLine.Substring(lenKey, 1) == " " || strLine.Substring(lenKey, 1) == "="))
+              //validate that this is an exact match, and not a key that starts with
+              //the same letters by verifying next char is either a space, or an equal sign
+              if (Left(strLine, lenKey).Equals(Key, StringComparison.OrdinalIgnoreCase) && (strLine.Substring(lenKey, 1) == " " || strLine.Substring(lenKey, 1) == "="))
               {
-                //validate that this is an exact match, and not a key that starts with
-                //the same letters by verifying next char is either a space, or an equal sign
-
                 //found it- extract value (if there is a comment on the end, drop it)
                 //strip off key
                 strLine = Right(strLine, strLine.Length - lenKey).Trim();
@@ -2212,47 +2037,48 @@ namespace WinAGI
                     //remove it
                     strLine = Right(strLine, strLine.Length - 1).Trim();
                   }
-                  if (strLine[0] == '"')
-                  {
-                    //string delimiter; find ending delimiter
-                    lngPos = strLine.IndexOf("\"", 1);
-                  }
-                  else
-                  {
-                    //look for comment marker
-                    lngPos = strLine.IndexOf("#", 1);
-                  }
-                  //no delimiter found; assume entire line
-                  if (lngPos < 0)
-                  {
-                    //adjust by one so last char doesn't get chopped off
-                    lngPos = strLine.Length + 1;
-                  }
-                  //now strip off anything past value (including delimiter
-                  strLine = Left(strLine, lngPos - 1).Trim();
                   if (strLine.Length > 0)
                   {
-                    //if in quotes, remove them
                     if (strLine[0] == '"')
                     {
-                      strLine = Right(strLine, strLine.Length - 1);
+                      //string delimiter; find ending delimiter
+                      // (don't add 1; we want to drop the ending quote)
+                      lngPos = strLine.IndexOf("\"", 1);
                     }
-                  }
-                  //should never have an end quote; it will be caught as the ending delimiter
-                  if (strLine.Length > 0)
-                  {
-                    if (Right(strLine, 0)[0] == '"')
+                    else
                     {
-                      //*'Debug.Assert False
-                      strLine = Left(strLine, strLine.Length - 1);
+                      //look for comment marker (don't add to result -
+                      // the coment marker gets stripped off)
+                      lngPos = strLine.IndexOf("#", 1);
                     }
-                  }
-
-
-                  if (strLine.IndexOf("\\n", 0) >= 0)
-                  {
-                    //replace any newline control characters
-                    strLine = strLine.Replace("\\n", "\r\n");
+                    //no delimiter found; assume entire line
+                    if (lngPos <= 0)
+                    {
+                      lngPos = strLine.Length;
+                    }
+                    //now strip off anything past value (including quote delimiter)
+                    strLine = Left(strLine, lngPos).Trim();
+                    if (strLine.Length > 0)
+                    {
+                      //if a leading quote, remove it
+                      if (strLine[0] == '"')
+                      {
+                        strLine = Right(strLine, strLine.Length - 1);
+                      }
+                    }
+                    //should never have an end quote; it will be caught as the ending delimiter
+                    if (strLine.Length > 0)
+                    {
+                      if (Right(strLine, 1)[0] == '"')
+                      {
+                        strLine = Left(strLine, strLine.Length - 1);
+                      }
+                    }
+                    if (strLine.IndexOf("\\n", 0) >= 0)
+                    {
+                      //replace any newline control characters
+                      strLine = strLine.Replace("\\n", "\r\n");
+                    }
                   }
                 }
                 return strLine;
@@ -2260,7 +2086,6 @@ namespace WinAGI
             }
           }
         }
-
         //not found// add it here
         //back up until a nonblank line is found
         for (lngPos = i - 1; i >= lngSection; i--)
@@ -2272,7 +2097,6 @@ namespace WinAGI
         }
         //return the default value
         string sReturn = Default;
-
         //add the key and default value at this pos
         //if value contains spaces, it must be enclosed in quotes
         if (Default.IndexOf(" ", 0) >= 0)
@@ -2303,12 +2127,11 @@ namespace WinAGI
         {
           Default = "\"\"";
         }
-
         ConfigList.Insert(lngPos + 1, "   " + Key + " = " + Default);
         return sReturn;
       }
     }
-    static int ReadSettingLong(List<string> ConfigList, string Section, string Key, int Default = 0)
+    public static int ReadSettingLong(List<string> ConfigList, string Section, string Key, int Default = 0)
     {
       //get the setting value; if it converts to long value, use it;
       //if any kind of error, return the default value
@@ -2318,9 +2141,30 @@ namespace WinAGI
       {
         return Default;
       }
+      else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase))
+      {
+        try
+        {
+          return Convert.ToInt32(strValue, 16);
+        }
+        catch (Exception)
+        {
+          return Default;
+        }
+      }
+      else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase))
+      {
+        try
+        {
+          return Convert.ToInt32(Right(strValue, strValue.Length - 2), 16);
+        }
+        catch (Exception)
+        {
+          return Default;
+        }
+      }
       else
       {
-
         if (int.TryParse(strValue, out int iResult))
         {
           return iResult;
@@ -2331,8 +2175,52 @@ namespace WinAGI
         }
       }
     }
+    public static uint ReadSettingUint32(List<string> ConfigList, string Section, string Key, uint Default = 0)
+    {
+      //get the setting value; if it converts to long value, use it;
+      //if any kind of error, return the default value
+      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
 
-    static byte ReadSettingByte(List<string> ConfigList, string Section, string Key, byte Default = 0)
+      if (strValue.Length == 0)
+      {
+        return Default;
+      }
+      else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase))
+      {
+        try
+        {
+          return Convert.ToUInt32(strValue, 16);
+        }
+        catch (Exception)
+        {
+          return Default;
+        }
+      }
+      else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase))
+      {
+        try
+        {
+          return Convert.ToUInt32(Right(strValue, strValue.Length - 2), 16);
+        }
+        catch (Exception)
+        {
+          return Default;
+        }
+      }
+      else
+      {
+
+        if (uint.TryParse(strValue, out uint iResult))
+        {
+          return iResult;
+        }
+        else
+        {
+          return Default;
+        }
+      }
+    }
+    public static byte ReadSettingByte(List<string> ConfigList, string Section, string Key, byte Default = 0)
     {
       //get the setting value; if it converts to byte value, use it;
       //if any kind of error, return the default value
@@ -2353,7 +2241,7 @@ namespace WinAGI
         }
       }
     }
-    internal static double ReadSettingSingle(List<string> ConfigList, string Section, string Key, double Default = 0)
+    public static double ReadSettingSingle(List<string> ConfigList, string Section, string Key, double Default = 0)
     {
       //get the setting value; if it converts to single value, use it;
       //if any kind of error, return the default value
@@ -2375,7 +2263,7 @@ namespace WinAGI
         }
       }
     }
-    static internal bool ReadSettingBool(List<string> ConfigList, string Section, string Key, bool Default = false)
+    public static bool ReadSettingBool(List<string> ConfigList, string Section, string Key, bool Default = false)
     {
       //get the setting value; if it converts to boolean value, use it;
       //if any kind of error, return the default value
@@ -2396,15 +2284,13 @@ namespace WinAGI
         }
       }
     }
-
-    internal static string ReadSettingString(List<string> ConfigList, string Section, string Key, string Default = "")
+    public static string ReadSettingString(List<string> ConfigList, string Section, string Key, string Default = "")
     {
       //read a string value from the configlist
 
 
       return ReadAppSetting(ConfigList, Section, Key, Default);
     }
-
     public static void WriteProperty(string Section, string Key, string Value, string Group = "", bool ForceSave = false)
     {
       // this procedure provides calling programs a way to write property
@@ -2429,6 +2315,174 @@ namespace WinAGI
         //ignore if error?
       }
       return;
+    }
+    public static void DeleteSettingSection(List<string> ConfigList, string Section)
+    {
+      //elements of a settings file:
+      //
+      //  #comments begin with hashtag; all characters on line after hashtag are ignored
+      //  //comments can be added to end of valid section or key/value line
+      //  blank lines are ignored
+      //  [section] sections indicated by square brackets; anything else on the line gets ignored
+      //  key=value  key/value pairs separated by an equal sign; no quotes around values means only
+      //    single word; use quotes for multiword strings
+      //  if string is multline, use '\n' control code (and use multiline option)
+
+      int lngPos, lngSection = 0, i;
+      string strLine, strCheck;
+      //find the section we are looking for (skip 1st line; it's the filename)
+      for (i = 1; i < ConfigList.Count; i++)
+      {
+        //skip blanks, and lines starting with a comment
+        strLine = ConfigList[i].Replace("\t", " ").Trim();
+        if (strLine.Length > 0) 
+        {
+          if (strLine[0] != '#') 
+          {
+            //look for a bracket
+            if (strLine[0] == '[')
+            {
+              //find end bracket
+              lngPos = strLine.IndexOf("]", 1);
+              if (lngPos >= 0) 
+              {
+                strCheck = Mid(strLine, 1, lngPos - 2);
+              } 
+              else
+              {
+                strCheck = Right(strLine, strLine.Length - 1);
+              }
+              if (strCheck.Equals(Section, StringComparison.OrdinalIgnoreCase)) 
+              {
+                //found it
+                lngSection = i;
+                  break;
+                }
+              }
+            }
+          }
+        } //Next i
+
+        //if not found,
+        if (lngSection == 0) {
+          //nothing to delete
+          return;
+        }
+
+      //step through all lines in this section, deleting until another section or end of list is found
+      do
+      {  //delete this line
+        ConfigList.RemoveAt(lngSection);
+
+        //at end?
+        if (lngSection >= ConfigList.Count) {
+          return;
+        }
+
+        //or another section found?
+        strLine = ConfigList[lngSection].Replace('\t', ' ').Trim();
+        if (strLine.Length > 0)
+        {
+          //if another section is found, stop here
+          if (strLine[0] == (char)91)
+          {
+            //nothing to delete
+            return;
+          }
+        }
+      } while (true);
+    }
+    public static void DeleteSettingKey(List<string> ConfigList, string Section, string Key)
+    {
+      //elements of a settings file:
+      //
+      //  #comments begin with hashtag; all characters on line after hashtag are ignored
+      //  //comments can be added to end of valid section or key/value line
+      //  blank lines are ignored
+      //  [section] sections indicated by square brackets; anything else on the line gets ignored
+      //  key=value  key/value pairs separated by an equal sign; no quotes around values means only
+      //    single word; use quotes for multiword strings
+      //  if string is multline, use '\n' control code (and use multiline option)
+
+      int i;
+      string strLine;
+      int lngPos;
+      string strCheck;
+      int lngSection, lenKey;
+      //find the section we are looking for (skip 1st line; it's the filename)
+      lngSection = FindSettingSection(ConfigList, Section);
+      //if not found,
+      if (lngSection <= 0)
+      {
+        //nothing to delete
+        return;
+      }
+      //step through all lines in this section; find matching key
+      lenKey = Key.Length;
+      for (i = lngSection + 1; i < ConfigList.Count; i++)
+      {
+        //skip blanks, and lines starting with a comment
+        strLine = ConfigList[i].Replace("\t", " ").Trim();
+        if (strLine.Length > 0)
+        {
+          if (strLine[0] != '#')
+          { //not a comment
+            //if another section is found, stop here
+            if (strLine[0] == '[')
+            {
+              //nothing to delete
+              return;
+            }
+            //look for key
+            if (Left(strLine, lenKey) == Key)
+            {
+              //found it- delete this line
+              ConfigList.RemoveAt(i);
+              return;
+            }
+          }
+        }
+      }
+      //not found - nothing to delete
+    }
+    private static int FindSettingSection(List<string> ConfigList, string Section)
+    {
+      int i, lngPos;
+      string strLine;
+      //find the section we are looking for (skip 1st line; it's the filename)
+      for (i = 1; i <= ConfigList.Count - 1; i++)
+      {
+        //skip blanks, and lines starting with a comment
+        strLine = ConfigList[i].Replace("\t", " ").Trim();
+        if (strLine.Length > 0)
+        {
+          if (strLine[0] != '#')
+          {
+            //look for a bracket
+            if (strLine[0] == '[')
+            {
+              //find end bracket
+              lngPos = strLine.IndexOf("]", 1);
+              string strCheck;
+              if (lngPos > 0)
+              {
+                strCheck = Mid(strLine, 1, lngPos - 1);
+              }
+              else
+              {
+                strCheck = Right(strLine, strLine.Length - 1);
+              }
+              if (strCheck.Equals(Section, StringComparison.OrdinalIgnoreCase))
+              {
+                //found it
+                return i;
+              }
+            }
+          }
+        }
+      }
+      // not found
+      return -1;
     }
     internal static string GetIntVersion()
     {
@@ -2616,7 +2670,17 @@ namespace WinAGI
       //valid sierra AGI game directory
       //it also sets the gameID, if one is found and the version3 flag
       //search for 'DIR' files
-      int dirCount = Directory.EnumerateFiles(strDir, "*DIR").Count();
+      int dirCount;
+      try
+      {
+        dirCount = Directory.EnumerateFiles(strDir, "*DIR").Count();
+      }
+      catch (Exception)
+      {
+        // if error, assume NOT a directory
+        return false;
+      }
+
       if (dirCount > 0)
       {
         //this might be an AGI game directory-
@@ -3186,7 +3250,5 @@ namespace WinAGI
       bwVOL.Dispose();
       bwDIR.Dispose();
     }
-
-
   }
 }

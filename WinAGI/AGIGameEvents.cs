@@ -52,30 +52,30 @@ namespace WinAGI
     // Declare the delegate.
     internal delegate void CompileGameEventHandler(object sender, CompileGameEventArgs e);
     // Declare the event.
-    static internal event CompileGameEventHandler CompileGameStatus;
+    internal static event CompileGameEventHandler CompileGameStatus;
 
     // Declare the delegate.
     internal delegate void LoadGameEventHandler(object sender, LoadGameEventArgs e);
     // Declare the event.
-    static internal event LoadGameEventHandler LoadGameStatus;
+    internal static event LoadGameEventHandler LoadGameStatus;
 
     // Declare the delegate.
     internal delegate void CompileLogicEventHandler(object sender, CompileLogicEventArgs e);
     // Declare the event.
-    static internal event CompileLogicEventHandler CompileLogicStatus;
+    internal static event CompileLogicEventHandler CompileLogicStatus;
 
-    static internal void Raise_CompileGameEvent(ECStatus cStatus, AGIResType ResType, byte ResNum, string ErrString)
+    internal static void Raise_CompileGameEvent(ECStatus cStatus, AGIResType ResType, byte ResNum, string ErrString)
     {
       // Raise the event in a thread-safe manner using the ?. operator.
       CompileGameStatus?.Invoke(null, new CompileGameEventArgs(cStatus, ResType, ResNum, ErrString));
     }
-    static internal void Raise_LoadGameEvent(ELStatus lStatus, AGIResType ResType, byte ResNum, string ErrString)
+    internal static void Raise_LoadGameEvent(ELStatus lStatus, AGIResType ResType, byte ResNum, string ErrString)
     {
       // Raise the event in a thread-safe manner using the ?. operator.
       LoadGameStatus?.Invoke(null, new LoadGameEventArgs(lStatus, ResType, ResNum, ErrString));
     }
 
-    static internal void Raise_LogicCompileEvent(string strWarning, byte LogicNum)
+    internal static void Raise_LogicCompileEvent(string strWarning, byte LogicNum)
     {
       // Raise the event in a thread-safe manner using the ?. operator.
       CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(strWarning, LogicNum));

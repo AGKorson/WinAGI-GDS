@@ -406,7 +406,6 @@
       this.mnuRNew.Name = "mnuRNew";
       this.mnuRNew.Size = new System.Drawing.Size(610, 44);
       this.mnuRNew.Text = "&New Resource";
-      this.mnuRNew.Click += new System.EventHandler(this.btnOpenGame_Click);
       // 
       // mnuRNLogic
       // 
@@ -979,7 +978,7 @@
       this.Label1.BorderStyle = System.Windows.Forms.Border3DStyle.Etched;
       this.Label1.Name = "Label1";
       this.Label1.Overflow = System.Windows.Forms.ToolStripItemOverflow.Always;
-      this.Label1.Size = new System.Drawing.Size(150, 57);
+      this.Label1.Size = new System.Drawing.Size(750, 57);
       this.Label1.Text = "status line 1";
       this.Label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
       // 
@@ -997,7 +996,7 @@
       // toolStripStatusLabel2
       // 
       this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-      this.toolStripStatusLabel2.Size = new System.Drawing.Size(905, 57);
+      this.toolStripStatusLabel2.Size = new System.Drawing.Size(305, 57);
       this.toolStripStatusLabel2.Spring = true;
       // 
       // statProgress
@@ -1112,6 +1111,7 @@
       this.btnNewLogic.Name = "btnNewLogic";
       this.btnNewLogic.Size = new System.Drawing.Size(275, 44);
       this.btnNewLogic.Text = "New Logic";
+      this.btnNewLogic.Click += new System.EventHandler(this.btnNewLogic_Click);
       // 
       // btnNewPicture
       // 

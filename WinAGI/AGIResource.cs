@@ -9,15 +9,34 @@ namespace WinAGI
   //public abstract class AGIResource
   public class AGIResource
   {
-    private string strErrSource = "WINAGI.agiResource";
-    private bool mLoaded = false;
-    private sbyte mVolume = -1;
-    private int mLoc = -1;
-    private int mSizeInVol = -1;
-    private RData mRData;
-    private bool mInGame;
-    private byte mResNum;
-    private AGIResType mResType;
+    protected string strErrSource = "WINAGI.agiResource";
+    protected bool mLoaded = false;
+    protected string mResID;
+    protected sbyte mVolume = -1;
+    protected int mLoc = -1;
+    protected int mSize = -1; //actual size, if compressed this is different from mSizeInVol
+    protected int mSizeInVol = -1;  //size as stored in VOL
+    /*
+    size- if NOT in a game:
+      - SizeInVol is always -1
+      - if resource loaded,
+        Size = Data.Length
+      - if resource NOT loaded,
+        Size = 0
+
+    size- if IN a game:
+      - SizeInVol - read from wag during initial load;
+                    if not present, get from res Header in vol file
+                  - update in WAG file when resource is saved
+
+
+    */
+    protected RData mRData;
+    protected bool mInGame;
+    protected bool mIsDirty;
+    protected byte mResNum;
+    protected string mDescription;
+    private readonly AGIResType mResType;
     private string mResFile;
     private bool mblnEORes; //flag indicating pointer is at beginning of resource (CurPos=0)
     private int mlngCurPos;  //current position of pointer in resource data
@@ -32,12 +51,10 @@ namespace WinAGI
       }
       public string Name { get; }
     }
-
     protected void OnPropertyChanged(string name)
     {
       PropertyChanged?.Invoke(this, new AGIResPropChangedEventArgs(name));
     }
-
     public sbyte Volume 
     {
       get 
@@ -53,36 +70,60 @@ namespace WinAGI
       } 
       internal set { mVolume = value; }
     }
-    public int Loc { get { if (mInGame) return mLoc; else return -1; } internal set { mLoc = value; } }
+    public int Loc 
+    { 
+      get 
+      {
+        if (mInGame)
+        {
+          return mLoc;
+        }
+        else
+        {
+          return -1;
+        }
+      }
+      internal set
+      { 
+        mLoc = value; 
+      } 
+    }
     public int Size
     {
       get
       {
-        //returns the uncompressed size of the resource
-        //location of resource doesn't matter; should always have a size
+        // returns the uncompressed size of the resource
+        // location of resource doesn't matter; should always have a size
 
-        //if not established yet TODO- how to handle initialization...
-        if (mRData.Length == -1)
+        //
+        if (mInGame)
         {
-          //can't be true if resource is loaded
-          //*'Debug.Assert mLoaded == false
-          //load it to get size
-          Load();
-          //then unload
-          Unload();
+          if (mLoaded)
+          {
+            return mRData.Length;
+          }
+          else
+          {
+            return mSize;
+          }
         }
-
-        //if still -1? not possible unless error encountered in load method
-        if (mRData.Length == -1)
+        else
         {
-          //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+          //not in a game:
+          if (mLoaded)
+          {
+            return mRData.Length;
+          }
+          else
+          {
+            return 0;
+          }
         }
-        //return the size
-        return mRData.Length;
       }
-      set
+      protected set
       {
+        //only subclass can set size, when initializing a new game resource
+        mSize = value;
       }
     }
     public virtual int SizeInVOL
@@ -92,48 +133,171 @@ namespace WinAGI
         //returns the size of the resource on the volume
         if (mInGame)
         {
-          //if not established yet
-          if (mSizeInVol == -1)
-          {
-            //get Value
-            mSizeInVol = GetSizeInVOL(mVolume, mLoc);
-            //if valid Value not returned,
-            if (mSizeInVol == -1)
-            {
-              throw new Exception(" 625, strErrSource, LoadResString(625)");
-            }
-          }
+          // is established during game load, so just return it
+          return mSizeInVol;
+          ////if not established yet
+          //if (mSizeInVol == -1)
+          //{
+          //  //get Value
+          //  mSizeInVol = GetSizeInVOL(mVolume, mLoc);
+          //  //if valid Value not returned,
+          //  if (mSizeInVol == -1)
+          //  {
+          //    throw new Exception(" 625, strErrSource, LoadResString(625)");
+          //  }
+          //}
         }
         else
         {
-          mSizeInVol = -1;
+          return -1;
         }
-
-        //return Value
-        return mSizeInVol;
       }
       set
       {
-        //only AddToVOL calls this
+        //only AddToVOL calls this; either on intial load, or after saving a resource
         //after saving a resource to a VOL file
         mSizeInVol = value;
      }
     }
+    public int V3Compressed
+    { get; internal set; }// 0 = not compressed; 1 = picture compress; 2 = LZW compress
     public bool InGame
       { get{ return mInGame; } internal set{ mInGame = value; } }
     public byte Number
-    { get { return mResNum; }
-      set { mResNum = value; }
+    { get { if (mInGame) return mResNum; return 0; }//TODO: number is meaningless if not in a game
+      internal set { mResNum = value; }
     }
     public bool Loaded
     { get { return mLoaded; } internal set { } }
     public string ResFile
-    { get { if (mInGame) return mResFile; else return ""; } set { mResFile = value; } }
+    { 
+      get 
+      {
+        if (mInGame)
+        {
+          return mResFile;
+        }
+        else
+        {
+          return "";
+        }
+      } 
+      set 
+      { 
+        mResFile = value;
+      }
+    }
     internal bool WritePropState { get; set; }
-    public bool IsDirty { get; internal set; }
+    public virtual bool IsDirty { get { return mIsDirty; } internal set { } }
     public AGIResType ResType
     { get { return mResType; } }
-    public string ID { get; internal set; }
+    public virtual string ID
+    {
+      get { return mResID; }
+      internal set
+      {
+        //sets the ID for a resource;
+        //resource IDs must be unique to each resource type
+        //max length of ID is 64 characters
+        //min of 1 character
+        string NewID = value;
+        //validate length
+        if (NewID.Length == 0)
+        {
+          //error
+          throw new Exception("667, strErrSource, LoadResString(667)");
+        }
+        else if (NewID.Length > 64)
+        {
+          NewID = Left(NewID, 64);
+        }
+
+        //if changing,
+        if (!NewID.Equals(mResID,StringComparison.OrdinalIgnoreCase))
+        {
+          //if in a game,
+          if (InGame)
+          {
+            //step through other resources
+            foreach (AGILogic tmpRes in agLogs.Col.Values)
+            {
+              //if resource IDs are same
+              if (tmpRes.ID == NewID)
+              {
+                //if not the same resource
+                if (tmpRes.Number != Number || tmpRes.ResType != ResType)
+                {
+                  //error
+                  throw new Exception("623, strErrSource, LoadResString(623)");
+                }
+              }
+            }
+            foreach (AGIPicture tmpRes in agPics.Col.Values)
+            {
+              //if resource IDs are same
+              if (tmpRes.ID == NewID)
+              {
+                //if not the same resource
+                if (tmpRes.Number != Number || tmpRes.ResType != ResType)
+                {
+                  //error
+                  throw new Exception("623, strErrSource, LoadResString(623)");
+                }
+              }
+            }
+            foreach (AGISound tmpRes in agSnds.Col.Values)
+            {
+              //if resource IDs are same
+              if (tmpRes.ID == NewID)
+              {
+                //if not the same resource
+                if (tmpRes.Number != Number || tmpRes.ResType != ResType)
+                {
+                  //error
+                  throw new Exception("623, strErrSource, LoadResString(623)");
+                }
+              }
+            }
+            foreach (AGIView tmpRes in agViews.Col.Values)
+            {
+              //if resource IDs are same
+              if (tmpRes.ID == NewID)
+              {
+                //if not the same resource
+                if (tmpRes.Number != Number || tmpRes.ResType != ResType)
+                {
+                  //error
+                  throw new Exception("623, strErrSource, LoadResString(623)");
+                }
+              }
+            }
+          }
+
+          //save ID
+          mResID = NewID;
+          //reset compiler list of ids
+          blnSetIDs = false;
+        }
+      }
+    }
+    public string Description 
+    { 
+      get { return mDescription; } 
+      internal set 
+      {
+        //limit description to 1K
+        string newDesc = Left(value, 1024);
+        if (newDesc !=  mDescription)
+        {
+          mDescription = newDesc;
+
+          if (mInGame)
+          {
+            WriteGameSetting("Logic" + Number, "Description", mDescription, "Logics");
+          }
+        }
+      }
+    }
     public int EORes
     {
       get
@@ -230,31 +394,25 @@ namespace WinAGI
         }
         return mRData;
       }
-      set
+      internal set
       {
-        // not allowed
+        // can only set the data object internally
+        mRData = value;
       }
     }
-    internal void Init(byte ResNum, sbyte VOL = -1, int Loc = -1)
-    {
-      //Init method only called when a resource is added to a game
-      //via the Add method of the resource collections (Views, Logics, Pictures, Sounds)
-      //or via the Load<restype> method
-
-      mResNum = ResNum;
-      mVolume = VOL;
-      mLoc = Loc;
-      mInGame = true;
-    }
     internal void SetRes(AGIResource NewRes)
-    { //TODO: with C#, don't need separate object for Res, so
-      // all these can be moved to setlog, setpic, setsnd, setview
-
+    { 
       //called by setview, setlog, setpic and setsnd
       //copies entire resource structure
 
+      //ingame property is never copied; only way to
+      //change ingame status is to do so through
+      //appropriate methods for adding/removing
+      //resources to/from game
+
+      //resource data are copied manually as necessary by calling method
+      //EORes and CurPos are calculated; don't need to copy them
       mResNum = NewRes.Number;
-      mResType = NewRes.ResType;
       mResFile = NewRes.ResFile;
       //if resource being copied is in a game,
       if (NewRes.InGame)
@@ -264,19 +422,17 @@ namespace WinAGI
         mLoc = NewRes.Loc;
       }
       mLoaded = NewRes.Loaded;
-
-      //ingame property is never copied; only way to
-      //change ingame status is to do so through
-      //appropriate methods for adding/removing
-      //resources to/from game
-
-      //resresource data is copied manually as necessary by calling method
-      //EORes and CurPos are calculated; don't need to copy them
+      mRData.AllData = NewRes.Data.AllData;
     }
-    internal void SetType(AGIResType ResType)
+    protected void InitInGame(byte ResNum, sbyte VOL, int Loc)
     {
-      //should only be called when a new resource is initialized
-      mResType = ResType;
+      //attaches resource to a game
+      mInGame = true;
+      mResNum = ResNum;
+      mVolume = VOL;
+      mLoc = Loc;
+      // ingame resources start unloaded
+      mLoaded = false;
     }
     public virtual void Load()
     {
@@ -288,9 +444,6 @@ namespace WinAGI
       bool blnIsPicture = false;
       int intSize, lngExpandedSize = 0;
       string strLoadResFile;
-
-      //NOTE: because GET is //1// based, need to correct all //GET// statements
-      //by adding one to position
 
       //if already loaded,
       if (mLoaded)
@@ -446,60 +599,45 @@ namespace WinAGI
             }
           }
         }
-
-        //reset resource markers
-        mlngCurPos = 0;
-        mblnEORes = false;
-        mLoaded = true;
-        return;
-
-        //ErrHandler:
-        //if an AGI error, error number and string already set
-        //so only need error info if some other error occurred
-        ////raise the error
-        //throw new Exception("LoadResString(507),JustFileName(strLoadResFile))");
-        //reset resource markers
-        mlngCurPos = 0;
-        mblnEORes = false;
-        mLoaded = false;
-        //attach events
-        mRData.PropertyChanged += Raise_DataChange;
       }
-    }
-    public void NewResource(bool Reset = false)
-    {
-      //clears any data for the resource,and marks it as loaded
-      //this is needed so new resources can be created and edited
-      // when not in a game
-      if (mInGame)
-      {
-        //don't call NewResource if already in a game;
-        //clear it instead
-        throw new Exception(" 510, strErrSource, LoadResString(510)");
-      }
-      //if need to reset
-      if (Reset)
-      {
-        //use unload to force reset
-        Unload();
-      }
-      //mark as loaded
+      //reset resource markers
+      mlngCurPos = 0;
+      mblnEORes = false;
       mLoaded = true;
-
-      //set loc and vol to undefined
-      mVolume = -1;
-      mLoc = -1;
+      //update size property
+      mSize = intSize;
+      //attach events
+      mRData.PropertyChanged += Raise_DataChange;
+      return;
+        ////ErrHandler:
+        ////if an AGI error, error number and string already set
+        ////so only need error info if some other error occurred
+        //////raise the error
+        ////throw new Exception("LoadResString(507),JustFileName(strLoadResFile))");
+        ////reset resource markers
+        //mlngCurPos = 0;
+        //mblnEORes = false;
+        //mLoaded = false;
     }
     public virtual void Unload()
     {
+      // only ingame resources can be unloaded
+      if (!mInGame)
+      {
+        //just exit
+        return;
+      }
+      // reset flag first so size doesn't get cleared for in game resources
       mLoaded = false;
       //reset resource variables
       mRData.Clear();
-      //don//t mess with sizes though! they remain accessible even when unloaded
+      //don't mess with sizes though! they remain accessible even when unloaded
       mblnEORes = true;
       mlngCurPos = 0;
+      //detach events
+      mRData.PropertyChanged -= Raise_DataChange;
     }
-    internal void Save(string SaveFile = "")
+    internal virtual void Save(string SaveFile = "")
     {
       //saves a resource into a VOL file if in a game
       //exports the resource if not in a game
@@ -518,11 +656,16 @@ namespace WinAGI
         {
           //add resource to VOL file to save it
           AddToVol(this, agIsVersion3);
+          // update saved size
+          mSize = mRData.Length;
+          // resource is no longer compressed
+          V3Compressed = 0;
+          mSizeInVol = mSize;
         }
         catch (Exception e)
         {
           //pass error along
-          throw new Exception($"error: {e.HResult.ToString()}, {e.Message}");
+          throw new Exception($"error: {e.HResult}, {e.Message}");
         }
 
         //change date of last edit
@@ -548,7 +691,6 @@ namespace WinAGI
       if (ExportFile.Length == 0)
       {
         throw new Exception(" 599, strErrSource, LoadResString(599)");
-        return;
       }
 
       //if not loaded
@@ -1138,10 +1280,24 @@ namespace WinAGI
       mSizeInVol = -1;
       mblnEORes = false;
     }
-    public AGIResource()
+    protected AGIResource(AGIResType ResType, string ID)
     {
-      //// new data?
-      //mRData = new RData(0);
+      // can ONLY create new resource from within other game logics
+
+      // when first created, a resource MUST have a type assigned
+      mResType = ResType;
+      // New resources start out NOT in game; so vol and loc are undefined
+      mInGame = false;
+      mVolume = -1;
+      mLoc = -1;
+      // and is set with a default ID
+      this.ID = ID;
+      // calling resource constructor is responsible for creating
+      // default data
+
+      //new resources start as loaded by default, and can only be unloaded when
+      // in a game!
+      mLoaded = true;
     }
     internal void Raise_DataChange(object sender, RData.RDataChangedEventArgs e)
     {

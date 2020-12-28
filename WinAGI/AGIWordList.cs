@@ -31,7 +31,7 @@ namespace WinAGI
 
     internal void Load(string v)
     {
-      throw new NotImplementedException();
+     // throw new NotImplementedException();
     }
   }
 }
