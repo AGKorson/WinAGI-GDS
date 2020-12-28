@@ -17,6 +17,7 @@ namespace WinAGI_GDS
       Application.SetHighDpiMode(HighDpiMode.SystemAware);
       Application.EnableVisualStyles();
       Application.SetCompatibleTextRenderingDefault(false);
+      //initialize WinAGI
       Application.Run(new frmMDIMain());
     }
   }

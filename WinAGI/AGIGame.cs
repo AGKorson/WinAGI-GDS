@@ -69,6 +69,7 @@ namespace WinAGI
     internal static string agGameFile = "";
 
     internal static int agMaxVol0 = 0;
+    internal static int agMaxVolSize = 0;
     internal static string agCompileDir = "";
     internal static int agPlatformType = 0;
     // 0 = none
@@ -1073,7 +1074,7 @@ namespace WinAGI
       //case  else 
       //  //some other error - who knows what's going on
       //  strError = Err.Description
-      //End Select
+      //}
 
 
       //CompleteCancel(true);

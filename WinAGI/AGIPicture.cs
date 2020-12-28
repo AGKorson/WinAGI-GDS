@@ -27,8 +27,9 @@ namespace WinAGI
     int mBMPErrLvl; //holds current error level of the BMP build
                     //gets updated everytime bitmaps get built
                     //variables used for low level graphics handling
-    int lngVisDC;
-    int lngPriDC;
+    Bitmap bmpVis;
+    Bitmap bmpPri;
+
     BitmapInfo biVis; 
     BitmapInfo biPri; 
 
@@ -40,15 +41,38 @@ namespace WinAGI
 
     int hOldVisDIB;
     int hOldPriDIB;
-   public AGIPicture() : base(AGIResType.rtPicture, "NewPicture")
+    public AGIPicture() : base(AGIResType.rtPicture, "NewPicture")
     {
       //initialize
       //attach events
       base.PropertyChanged += ResPropChange;
       strErrSource = "WinAGI.Picture";
       //set default resource data
-      Data = new RData(0);// ();
-    }
+      Data = new RData(1);
+      //create default picture with no commands
+      mRData[0] = 0xff;
+      //initialize the DIBSection headers
+      biVis.bmiHeader.biSize = 40;
+      biVis.bmiHeader.biWidth = 160;
+      biVis.bmiHeader.biHeight = -168; //negative cuz bitmaps normally go down to up; we build pics going up to down...
+      biVis.bmiHeader.biPlanes = 1;
+      biVis.bmiHeader.biBitCount = 8;
+      biVis.bmiHeader.biCompression = BI_RGB;
+      biVis.bmiHeader.biSizeImage = 26880;
+      biVis.bmiHeader.biClrUsed = 16; //need to define this because if set to undefined (0), files expect 2^8 entries
+      biPri.bmiHeader.biSize = 40;
+      biPri.bmiHeader.biWidth = 160;
+      biPri.bmiHeader.biHeight = -168;
+      biPri.bmiHeader.biPlanes = 1;
+      biPri.bmiHeader.biBitCount = 8;
+      biPri.bmiHeader.biCompression = BI_RGB;
+      biPri.bmiHeader.biSizeImage = 26880;
+      biPri.bmiHeader.biClrUsed = 16;
+      //default to entire image
+      mDrawPos = -1;
+      //default pribase is 48
+      mPriBase = 48;
+   }
     internal void InGameInit(byte ResNum, sbyte VOL, int Loc)
     {
       //this internal function adds this resource to a game, setting its resource 
@@ -78,9 +102,10 @@ namespace WinAGI
     }
     void ResPropChange(object sender, AGIResPropChangedEventArgs e)
     {
-      ////let's do a test
-      //// increment number everytime data changes
-      //Number += 1;
+      //set flag to indicate picture data does not match picture bmps
+      mPicBMPSet = false;
+      //for picture only, changing resource sets dirty flag
+      mIsDirty = true;
     }
     internal void SetPicture(AGIPicture CopyPicture)
     {
@@ -582,10 +607,9 @@ namespace WinAGI
         }
       }
     }
-    public void Import(string ImportFile)
+    public override void Import(string ImportFile)
     {
       //imports a picture resource
-
       try
       {
         //use base function
@@ -675,11 +699,11 @@ namespace WinAGI
       //clear dirty flag
       mIsDirty = false;
     }
-    public int PriorityBMP
+    public Bitmap VisualBMP
     {
       get
       {
-        int rtn;
+        //returns a device context to the bitmap image of the visual screenoutput
         //if not loaded,
         if (!Loaded)
         {
@@ -689,25 +713,33 @@ namespace WinAGI
         //if pictures not built, or have changed,
         if (!mPicBMPSet)
         {
-          //if an old picture is loaded,
-          if (lngVisDC != 0)
+          try
           {
-            //unload current picture resource
-            rtn = SelectObject(lngVisDC, hOldVisDIB);
-            rtn = SelectObject(lngPriDC, hOldPriDIB);
-            rtn = DeleteDC(lngVisDC);
-            rtn = DeleteDC(lngPriDC);
-            rtn = DeleteObject(hVisDIBSec);
-            rtn = DeleteObject(hPriDIBSec);
-            lngVisDC = 0;
-            lngPriDC = 0;
-            hOldVisDIB = 0;
-            hOldPriDIB = 0;
-            lngVisAddr = 0;
-            lngPriAddr = 0;
-            hVisDIBSec = 0;
-            hPriDIBSec = 0;
+            //load pictures to get correct pictures
+            BuildPictures();
           }
+          catch (Exception)
+          {
+            // pass error along
+            throw;
+          }
+        }
+        return bmpVis;
+      }
+    }
+    public Bitmap PriorityBMP
+    {
+      get
+      {
+        //if not loaded,
+        if (!Loaded)
+        {
+          //raise error
+          throw new Exception("563, strErrSource, LoadResString(563)");
+        }
+        //if pictures not built, or have changed,
+        if (!mPicBMPSet)
+        {
           try
           {
             //load pictures to get correct pictures
@@ -720,7 +752,7 @@ namespace WinAGI
           }
           //if errors,
         }
-        return lngPriDC;
+        return bmpPri;
       }
     }
     public void Save()
@@ -817,11 +849,13 @@ namespace WinAGI
     }
     internal void BuildPictures()
     {
-      int rtn, i;
-
-      //Bitmap bmVis = new Bitmap(160, 168);
-      var bmVis = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
-      ColorPalette ncp = bmVis.Palette;
+      int i;
+      //create new visual picture bitmap
+      bmpVis = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
+      //create new priority picture bitmap
+      bmpPri = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
+      //modify color palette to match current AGI palette
+      ColorPalette ncp = bmpVis.Palette;
       for (i = 0; i < 16; i++)
       {
         ncp.Entries[i] = Color.FromArgb(255,
@@ -830,562 +864,89 @@ namespace WinAGI
         (int)(lngEGARevCol[i] % 0x100)
           );
       }
-      bmVis.Palette = ncp;
+      // both bitmaps use same palette
+      bmpVis.Palette = ncp;
+      bmpPri.Palette = ncp;
+      // set boundary rectangles
       var BoundsRect = new Rectangle(0, 0, 160, 168);
-      BitmapData bmpData = bmVis.LockBits(BoundsRect,
-                                      ImageLockMode.WriteOnly,
-                                      bmVis.PixelFormat);
-      IntPtr ptr = bmpData.Scan0;
-      int bytes = bmpData.Stride * bmVis.Height;
-      var rgbValues = new byte[bytes];
+      // create access points for bitmap data
+      BitmapData bmpVisData = bmpVis.LockBits(BoundsRect, ImageLockMode.WriteOnly, bmpVis.PixelFormat);
+      IntPtr ptrVis = bmpVisData.Scan0;
+      BitmapData bmpPriData = bmpPri.LockBits(BoundsRect, ImageLockMode.WriteOnly, bmpPri.PixelFormat);
+      IntPtr ptrPri = bmpPriData.Scan0;
 
-      // fill in rgbValues, e.g. with a for loop over an input array
-
-      Marshal.Copy(rgbValues, 0, ptr, bytes);
-      bmVis.UnlockBits(bmpData);
-
-
-
-
-
-
-
-
-
-
-
-
-
-      //if picture bmps already exist
-      if (lngVisDC != 0 || lngPriDC != 0) 
-      {
-        //cleanup picture resources
-        rtn = SelectObject(lngVisDC, hOldVisDIB);
-        rtn = SelectObject(lngPriDC, hOldPriDIB);
-        rtn = DeleteObject(hVisDIBSec);
-        rtn = DeleteObject(hPriDIBSec);
-        rtn = DeleteDC(lngVisDC);
-        rtn = DeleteDC(lngPriDC);
-        lngVisDC = 0;
-        lngPriDC = 0;
-        hOldVisDIB = 0;
-        hOldPriDIB = 0;
-        lngVisAddr = 0;
-        lngPriAddr = 0;
-        hVisDIBSec = 0;
-        hPriDIBSec = 0;
-      }
-      //load the colors
-      biVis.bmiColor = new RGBQUAD[16];
-      biPri.bmiColor = new RGBQUAD[16];
-      for (i = 0; i < 16; i++)
-      {
-        biVis.bmiColor[i].rgbBlue = (byte)(lngEGARevCol[i] % 0x100);
-        biVis.bmiColor[i].rgbGreen = (byte)((lngEGARevCol[i] & 0xFF00) / 0x100);
-        biVis.bmiColor[i].rgbRed = (byte)((lngEGARevCol[i] & 0xFF0000) / 0x10000);
-        biPri.bmiColor[i].rgbBlue = (byte)(lngEGARevCol[i] % 0x100);
-        biPri.bmiColor[i].rgbGreen = (byte)((lngEGARevCol[i] & 0xFF00) / 0x100);
-        biPri.bmiColor[i].rgbRed = (byte)((lngEGARevCol[i] & 0xFF0000) / 0x10000);
-      }
+      //now we can create our custom data arrays
+      // array size is determined by stride (bytes per row) and height
+      mVisData = new byte[26880];
+      mPriData = new byte[26880];
       //build arrays of bitmap data
       //Build function returns an error level value
-      mBMPErrLvl = BuildBMPs(mVisData, mPriData, mRData.AllData, mStepDraw ? mDrawPos : -1, mDrawPos);
+      mBMPErrLvl = BuildBMPs(ref mVisData, ref mPriData, mRData.AllData, mStepDraw ? mDrawPos : -1, mDrawPos);
+
+      // copy the picture data to the bitmaps
+      Marshal.Copy(mVisData, 0, ptrVis, 26880);
+      bmpVis.UnlockBits(bmpVisData);
+      Marshal.Copy(mPriData, 0, ptrPri, 26880);
+      bmpPri.UnlockBits(bmpPriData);
+
       //get pen status
       mCurrentPen = GetToolStatus();
-
-      //create compatible DCs to use
-      lngVisDC = CreateCompatibleDC(0);
-      if (lngVisDC == 0)
-      {
-        throw new Exception("610, strErrSource, LoadResString(610)");
-      }
-      //get handles to dibsection (bitmaps)
-      //Do
-      hVisDIBSec = CreateDIBSection(lngVisDC, biVis, DIB_RGB_COLORS, lngVisAddr, 0, 0);
-      if (hVisDIBSec == 0)
-      {
-        rtn = DeleteDC(lngVisDC);
-        throw new Exception("610, strErrSource, LoadResString(610)");
-      }
-
-      //save old DIBsec, and select this object into the bitmaps
-      hOldVisDIB = SelectObject(lngVisDC, hVisDIBSec);
-      if (hOldVisDIB == 0)
-      {
-        rtn = DeleteDC(lngVisDC);
-        rtn = DeleteObject(hVisDIBSec);
-        throw new Exception("610, strErrSource, LoadResString(610)");
-      }
-      //create compatible DCs to use
-      lngPriDC = CreateCompatibleDC(0);
-      if (lngPriDC == 0)
-      {
-        throw new Exception("610, strErrSource, LoadResString(610)");
-      }
-      //get handles to dibsection (bitmaps)
-      hPriDIBSec = CreateDIBSection(lngPriDC, biPri, DIB_RGB_COLORS, lngPriAddr, 0, 0);
-      if (hPriDIBSec == 0)
-      {
-        rtn = DeleteDC(lngPriDC);
-        throw new Exception("610, strErrSource, LoadResString(610)");
-      }
-      //save old dibsec, and select this object into the bitmaps
-      hOldPriDIB = SelectObject(lngPriDC, hPriDIBSec);
-      if (hOldPriDIB == 0)
-      {
-        rtn = DeleteDC(lngPriDC);
-        rtn = DeleteObject(hPriDIBSec);
-        throw new Exception("610, strErrSource, LoadResString(610)");
-      }
-      //set background color for visual image????
-      rtn = SetBkColor(lngVisDC, 0xFFFFFF);
-      //copy data into bitmaps
-      //HandleRef hrVis, hrPri;
-      //hrVis = new HandleRef(lngVisAddr);
-      //CopyMemory(lngVisAddr, mVisData, 26880);
-      //CopyMemory(lngPriAddr, mPriData, 26880);
-
       //set flag
       mPicBMPSet = true;
     }
-    void temp()
+    public bool StepDraw
+    {
+      get
+      {
+        //if not loaded,
+        if (!Loaded) {
+          //raise error
+          throw new Exception("563, strErrSource, LoadResString(563)");
+        }
+        return mStepDraw;
+      }
+      set
+      {
+        if (!mLoaded)
+        {
+          throw new Exception("563, strErrSource, LoadResString(563)");
+        }
+        // if a change
+        if (mStepDraw != value)
+        {
+          mStepDraw = value;
+          //set flag to force redraw
+          mPicBMPSet = false;
+        }
+      }
+    }
+    public override void Unload()
+    {
+      //unload resource
+      base.Unload();
+      //cleanup picture resources
+      bmpVis = null;
+      bmpPri = null; 
+      mPicBMPSet = false;
+    }
+    private void Class_Terminate()
     {
       /*
-Friend Sub BuildPictures()
-End Sub
-
-
-public Property Let StepDraw(ByVal NewValue As Boolean)
-  
-  On Error GoTo ErrHandler
-  
-  //if not loaded,
-  if (!Loaded) {
-    //raise error
-    throw new Exception("563, strErrSource, LoadResString(563)
-    return;
-  }
-  
-  //if a change,
-  if (mStepDraw != NewValue) {
-    //make the change,
-    mStepDraw = NewValue
-    //set flag to force redraw of picture
-    mPicBMPSet = false
-  }
-return;
-
-ErrHandler:
-  //////Debug.Assert false
-  Resume Next
-}
-public Property Get StepDraw() As Boolean
-  
-  On Error Resume Next
-  
-  //if not loaded,
-  if (!Loaded) {
-    //raise error
-    throw new Exception("563, strErrSource, LoadResString(563)
-    Exit Function
-  }
-  
-  StepDraw = mStepDraw
-}
-
-public Sub Unload()
-
-  //unload resource
-  
-  On Error GoTo ErrHandler
-  
-  Unload
-  mIsDirty = false
-  
-  Dim rtn As Long
-  
-  //cleanup picture resources
-  rtn = SelectObject(lngVisDC, hOldVisDIB)
-  rtn = SelectObject(lngPriDC, hOldPriDIB)
-  rtn = DeleteObject(hVisDIBSec)
-  rtn = DeleteObject(hPriDIBSec)
-  rtn = DeleteDC(lngVisDC)
-  rtn = DeleteDC(lngPriDC)
-  
-  lngVisDC = 0
-  lngPriDC = 0
-  hOldVisDIB = 0
-  hOldPriDIB = 0
-  lngVisAddr = 0
-  lngPriAddr = 0
-  hVisDIBSec = 0
-  hPriDIBSec = 0
-  
-  mPicBMPSet = false
-Exit Sub
-
-ErrHandler:
-  //////Debug.Assert false
-  Resume Next
-End Sub
-
-
-public Property Get VisualBMP() As Long
-  //returns a device context to the bitmap image of the visual screenoutput
-  Dim rtn As Long
-  
-  On Error Resume Next
-  
-  //if not loaded,
-  if (!Loaded) {
-    //raise error
-    throw new Exception("563, strErrSource, LoadResString(563)
-    Exit Function
-  }
-    
-  //if pictures not built, or have changed,
-  if (!mPicBMPSet) {
-    //if an old picture is loaded,
-    if (lngVisDC != 0) {
-      //unload current picture resource
-      rtn = SelectObject(lngVisDC, hOldVisDIB)
-      rtn = SelectObject(lngPriDC, hOldPriDIB)
-      rtn = DeleteDC(lngVisDC)
-      rtn = DeleteDC(lngPriDC)
-      rtn = DeleteObject(hVisDIBSec)
-      rtn = DeleteObject(hPriDIBSec)
-      lngVisDC = 0
-      lngPriDC = 0
-      hOldVisDIB = 0
-      hOldPriDIB = 0
-      lngVisAddr = 0
-      lngPriAddr = 0
-      hVisDIBSec = 0
-      hPriDIBSec = 0
-    }
-    //load pictures to get correct pictures
-    BuildPictures
-    //if errors,
-    if (Err.Number != 0) {
-      //pass error along
-      lngError = Err.Number
-      strError = Err.Description
-      strErrSrc = Err.Source
-      
-      On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-      Exit Sub
-    }
-  }
-  
-  VisualBMP = lngVisDC
-}
-
-
-public Property Get Number() As Byte
-  Number = Number
-}
-
-
-
-Property Get AGIResource_AllData() As Byte()
-  AGIResource_AllData = AllData
-}
-Sub AGIResource_Clear()
-  Clear
-End Sub
-
-
-Property Let AGIResource_Data(ByVal Pos As Long, ByVal NewData As Byte)
-
-  Data(Pos) = NewData
-}
-
-Property Get AGIResource_Data(ByVal Pos As Long) As Byte
-  On Error GoTo ErrHandler
-  
-  AGIResource_Data = Data(Pos)
-return;
-
-ErrHandler:
-  //pass error along
-  lngError = Err.Number
-  strError = Err.Description
-  strErrSrc = Err.Source
-  
-  On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-}
-
-Property Get AGIResource_EORes() As Boolean
-
-  AGIResource_EORes = EORes
-}
-
-
-Sub AGIResource_Export(ExportFile As String)
-  Export ExportFile
-End Sub
-
-
-Function AGIResource_GetPos() As Long
-  AGIResource_GetPos = GetPos
-End Function
-
-
-
-Property Get AGIResource_InGame() As Boolean
-  AGIResource_InGame = InGame
-}
-
-Sub AGIResource_InsertData(NewData As Variant, Optional ByVal InsertPos As Long = -1&)
-
-  On Error GoTo ErrHandler
-  
-  InsertData NewData, InsertPos
-Exit Sub
-
-ErrHandler:
-  //pass error along
-  lngError = Err.Number
-  strError = Err.Description
-  strErrSrc = Err.Source
-  
-  On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-End Sub
-
-
-Sub AGIResource_Load()
-  Load
-End Sub
-
-
-Property Get AGIResource_Loaded() As Boolean
-  AGIResource_Loaded = Loaded
-}
-
-
-
-Property Get AGIResource_Loc() As Long
-  AGIResource_Loc = Loc
-}
-
-
-Sub AGIResource_NewResource(Optional ByVal Reset As Boolean = false)
-  On Error GoTo ErrHandler
-  
-  NewResource Reset
-Exit Sub
-
-ErrHandler:
-  //pass error along
-  lngError = Err.Number
-  strError = Err.Description
-  strErrSrc = Err.Source
-  
-  On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-End Sub
-
-Property Get AGIResource_Number() As Byte
-  AGIResource_Number = Number
-}
-
-
-Function AGIResource_ReadByte(Optional ByVal lngPos As Long = 65531) As Byte
-  On Error GoTo ErrHandler
-  
-  AGIResource_ReadByte = ReadByte(lngPos)
-Exit Function
-
-ErrHandler:
-  //pass error along
-  lngError = Err.Number
-  strError = Err.Description
-  strErrSrc = Err.Source
-  
-  On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-End Function
-
-
-
-Function AGIResource_ReadWord(Optional ByVal lngPos As Long = -1&, Optional ByVal blnMSLS As Boolean = false) As Long
-  On Error GoTo ErrHandler
-  
-  AGIResource_ReadWord = ReadWord(lngPos)
-Exit Function
-
-ErrHandler:
-  //pass error along
-  lngError = Err.Number
-  strError = Err.Description
-  strErrSrc = Err.Source
-  
-  On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-End Function
-
-
-Sub AGIResource_RemoveData(ByVal RemovePos As Long, Optional ByVal RemoveCount As Long = 1)
-
-  On Error GoTo ErrHandler
-  
-  RemoveData RemovePos, RemoveCount
-Exit Sub
-
-ErrHandler:
-  //pass error along
-  lngError = Err.Number
-  strError = Err.Description
-  strErrSrc = Err.Source
-  
-  On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-End Sub
-
-
-Property Get AGIResource_ResFile() As String
-  AGIResource_ResFile = ResFile
-}
-
-
-Property Get AGIResource_ResType() As AGIResType
-  AGIResource_ResType = ResType
-}
-
-
-Sub AGIResource_SaveRes(Optional SaveFile As String)
-  
-End Sub
-
-
-
-Sub AGIResource_SetData(NewData() As Byte)
-
-  SetData NewData
-End Sub
-
-Sub AGIResource_SetPos(ByVal lngPos As Long)
-  On Error GoTo ErrHandler
-  
-  SetPos lngPos
-Exit Sub
-
-ErrHandler:
-  //pass error along
-  lngError = Err.Number
-  strError = Err.Description
-  strErrSrc = Err.Source
-  
-  On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-End Sub
-
-
-
-Property Get AGIResource_Size() As Long
-  AGIResource_Size = Size
-}
-
-
-
-Property Get AGIResource_SizeInVOL() As Long
-  AGIResource_SizeInVOL = SizeInVol
-}
-
-
-Sub AGIResource_UnloadRes()
-
-End Sub
-
-
-Property Get AGIResource_Volume() As Long
-  AGIResource_Volume = Volume
-}
-
-Sub agRes_Change()
-  //set flag to indicate picture data does not match picture bmps
-  mPicBMPSet = false
-  //for picture only, changing resource sets dirty flag
-  mIsDirty = true
-End Sub
-
-
-Sub Class_Initialize()
-  Dim i As Integer
-  
-  strErrSource = "WINAGI.agiPicture"
-  Set agRes = New AGIResource
-  SetType rtPicture
-  
-  //create default picture with no commands
-  NewResource
-  Data(0) = 0xFF
-  
-  //initialize the DIBSection headers
-  With biVis.bmiHeader
-    .biSize = 40
-    .biWidth = 160
-    .biHeight = -168 //negative cuz bitmaps normally go down to up; we build pics going up to down...
-    .biPlanes = 1
-    .biBitCount = 8
-    .biCompression = BI_RGB
-    .biSizeImage = 26880
-    .biClrUsed = 16 //need to define this because if set to undefined (0), files expect 2^8 entries
-  End With
-    
-  With biPri.bmiHeader
-    .biSize = 40
-    .biWidth = 160
-    .biHeight = -168
-    .biPlanes = 1
-    .biBitCount = 8
-    .biCompression = BI_RGB
-    .biSizeImage = 26880
-    .biClrUsed = 16
-  End With
-  
-  //default to entire image
-  mDrawPos = -1
-  
-  mResID = "NewPicture"
-  
-  //default pribase is 48
-  mPriBase = 48
-End Sub
-
-
-
-Sub Class_Terminate()
-  //resources should be unloaded,
-  //but just in case,
-  //check in the termination section
-  //to do the unload operation
-  
-  Dim rtn As Long
-  
-  if (Loaded) {
-    //unload it
-    Unload
-  }
-  
-  Set agRes = Nothing
-  
-  //if picture bmps exist
-  if (lngVisDC != 0 Or lngPriDC != 0) {
-    //cleanup picture resources
-    rtn = SelectObject(lngVisDC, hOldVisDIB)
-    rtn = SelectObject(lngPriDC, hOldPriDIB)
-    rtn = DeleteObject(hVisDIBSec)
-    rtn = DeleteObject(hPriDIBSec)
-    rtn = DeleteDC(lngVisDC)
-    rtn = DeleteDC(lngPriDC)
-    
-    lngVisDC = 0
-    lngPriDC = 0
-    hOldVisDIB = 0
-    hOldPriDIB = 0
-    lngVisAddr = 0
-    lngPriAddr = 0
-    hVisDIBSec = 0
-    hPriDIBSec = 0
-  }
-End Sub
-      */
+       
+      what is the C# equivalent of class_terminate????
+       
+       */
+
+      //resources should be unloaded,
+      //but just in case,
+      //check in the termination section
+      //to do the unload operation
+      if (Loaded) {
+        //unload it
+        Unload();
+      }
+      bmpVis = null;
+      bmpPri = null;
     }
   }
 }

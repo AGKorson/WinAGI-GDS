@@ -57,7 +57,6 @@ namespace WinAGI
     public override void Unload()
     {
       base.Unload();
-      mIsDirty = false;
       mSourceDirty = false;
       mSourceText = "";
     }

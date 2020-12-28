@@ -12,17 +12,17 @@ namespace WinAGI
   //types used in building bitmaps
   internal struct BITMAPINFOHEADER  //40 bytes
   {
-    int biSize;
-    int biWidth;
-    int biHeigh;
-    short biPlanes;
-    short biBitCount;
-    int biCompression;
-    int biSizeImage;
-    int biXPelsPerMeter;
-    int biYPelsPerMeter;
-    int biClrUsed;
-    int biClrImportant;
+    internal int biSize;
+    internal int biWidth;
+    internal int biHeight;
+    internal short biPlanes;
+    internal short biBitCount;
+    internal int biCompression;
+    internal int biSizeImage;
+    internal int biXPelsPerMeter;
+    internal int biYPelsPerMeter;
+    internal int biClrUsed;
+    internal int biClrImportant;
   }
   internal struct RGBQUAD
   {
@@ -103,31 +103,44 @@ namespace WinAGI
     internal const int WARNCOUNT = 107;
 
     //api//s for bitmap creation/manipulation
-    [DllImport("kernel32.dll")]
-    //[DllImport("gdi32.dll")]
     //[DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    [DllImport("kernel32.dll")]
     internal static extern int GetTickCount();
+    [DllImport("gdi32.dll")]
     internal static extern int BitBlt(int hDestDC, int X, int Y, int nWidth, int nHeight, int hSrcDC, int xSrc, int ySrc, int dwRop);
+    [DllImport("gdi32.dll")]
     internal static extern int CreateDIBSection(int hDC, BitmapInfo pBitmapInfo, int un, int lplpVoid, int handle, int dw);
+    [DllImport("gdi32.dll")]
     internal static extern int CreateCompatibleDC(int hDC);
+    [DllImport("gdi32.dll")]
     internal static extern int DeleteObject(int hObject);
+    [DllImport("gdi32.dll")]
     internal static extern int DeleteDC(int hDC);
+    [DllImport("gdi32.dll")]
     internal static extern int SelectObject(int hDC, int hObject);
+    [DllImport("gdi32.dll")]
     internal static extern int StretchBlt(int hDC, int X, int Y, int nWidth, int nHeight, int hSrcDC, int xSrc, int ySrc, int nSrWidth, int nSrHeight, int dwRop);
+    [DllImport("gdi32.dll")]
     internal static extern int GetLastError();
+    [DllImport("gdi32.dll")]
     internal static extern int CreateCompatibleBitmap(int hDC, int nWidth, int nHeight);
+    [DllImport("gdi32.dll")]
     internal static extern int SetPixelV(int hDC, int X, int Y, int crColor);
+    [DllImport("gdi32.dll")]
     internal static extern int GetPixel(int hDC, int X, int Y);
+    [DllImport("gdi32.dll")]
     internal static extern int ExtFloodFill(int hDC, int X, int Y, int crColor, int wFillType);
+    [DllImport("gdi32.dll")]
     internal static extern int CreateSolidBrush(int crColor);
+    //[DllImport("kernel32.dll")]
     //internal static extern void CopyMemory(dynamic Destination, dynamic Source, int Length) alias RtlMoveMemory;
-
     [SuppressMessage("Microsoft.Security", "CA2118:ReviewSuppressUnmanagedCodeSecurityUsage")]
     [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
     [ResourceExposure(ResourceScope.None)]
     public static extern void CopyMemory(HandleRef destData, HandleRef srcData, int size);
 
 
+    [DllImport("gdi32.dll")]
     internal static extern int SetBkColor(int hDC, int crColor);
   ////api//s for file stuff
   //internal static extern int GetTempPath Lib "kernel32" Alias "GetTempPathA" (ByVal nBufferLength As Long, ByVal lpBuffer As String) As Long

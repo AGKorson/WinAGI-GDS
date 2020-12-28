@@ -22,6 +22,9 @@ namespace WinAGI_GDS
       CompileGameStatus += GameEvents_CompileGameStatus;
       CompileLogicStatus += GameEvents_CompileLogicStatus;
       LoadGameStatus += GameEvents_LoadGameStatus;
+
+      //
+      WinAGI.WinAGI.InitWinAGI();
     }
 
     private void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e)
@@ -53,7 +56,12 @@ namespace WinAGI_GDS
     {
       //MessageBox.Show("need to fully test Read/Write settings functions; since VB is 1 based, the functions may not be working correctly in all cases, especially for bad format input and edge cases");
       //ok, let's try to open a game!
-      int retval = OpenGameWAG(@"C:\Users\Andy\OneDrive\AGI Stuff\AGI Test Games\AGItest\test game.wag");
+
+      // at home:
+      //int retval = OpenGameWAG(@"C:\Users\Andy\OneDrive\AGI Stuff\AGI Test Games\AGItest\test game.wag");
+
+      // at work:
+      int retval = OpenGameWAG(@"Z:\AGI Test Games\AGItest\test game.wag");
       MessageBox.Show($"opengame result: {retval.ToString()}");
     }
 
@@ -115,6 +123,13 @@ namespace WinAGI_GDS
       frmLogicEdit frmNew = new frmLogicEdit();
       frmNew.MdiParent = this;
       frmNew.rtfLogic.Text = Logics[5].SourceText;
+      frmNew.Show();
+    }
+
+    private void btnNewPicture_Click(object sender, EventArgs e)
+    {
+      frmPicEdit frmNew = new frmPicEdit();
+      frmNew.MdiParent = this;
       frmNew.Show();
     }
   }

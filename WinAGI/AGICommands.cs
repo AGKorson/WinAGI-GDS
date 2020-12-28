@@ -17,16 +17,9 @@ namespace WinAGI
     { "number", "variable", "flag", "message", "object", 
       "inventory item", "string", "word", "controller" };
     internal static string agSrcExt = ".lgc";
-
-
-
     internal static byte agNumCmds;
-
     internal static CommandStruct[] agCmds = new CommandStruct[183]; //182 
-
     internal static string strErrSource = "WinAGI.agiCommandInfo";
-
-
     public static CommandStruct AGICommand(byte index)
     {
       //validate index
@@ -37,13 +30,8 @@ namespace WinAGI
 
       return agCmds[index];
     }
-
     public static byte Count
     { get { return agNumCmds; } private set { } }
-
-    /*
-Option Compare Text
-    */
     static AGICommands()
     {
       agNumCmds = 182;   // not counting return()
@@ -868,7 +856,6 @@ Option Compare Text
       agCmds[182].ArgType[0] = ArgTypeEnum.atNum;
       agCmds[182].ArgType[1] = ArgTypeEnum.atNum;
     }
-
     internal static void CorrectCommands(string Version)
     {
       // This procedure adjusts the logic commands for a given int. version

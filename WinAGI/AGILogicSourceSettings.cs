@@ -70,7 +70,7 @@
 
         On Error GoTo ErrHandler
 
-        Select Case ArgType
+        switch (ArgType
         Case atNum
           'return all numerical reserved defines
           ReDim tmpDefines(44)
@@ -159,7 +159,7 @@
           'none
           ReDim tmpDefines(0)
 
-        End Select
+        }
 
         'return the defines
         ReservedDefines = tmpDefines
@@ -177,7 +177,7 @@
         'can i refer to the arrays? does that copy them or let me directly affect them? hmmm
         On Error GoTo ErrHandler
 
-        Select Case Group
+        switch (Group
         Case 1 'var
           ResDefByGrp = agResVar()
 
@@ -202,11 +202,11 @@
         Case 8 'other
           ResDefByGrp = agResDef()
 
-        Case Else
+        default:
           'raise error
           On Error GoTo 0: Err.Raise 9, strErrSource
           Exit Property
-        End Select
+        }
       Exit Property
 
       ErrHandler:
@@ -223,7 +223,7 @@
         On Error GoTo ErrHandler
 
         'type is a numeric value that maps to the six different types(catgories) of reserved defines
-        Select Case DefType
+        switch (DefType
         Case 1 'variable
           'value must be 0-26
           If DefIndex < 0 Or DefIndex > 27 Then
@@ -306,10 +306,10 @@
           'change the other-resdef name
           agResDef(DefIndex).Name = DefName
 
-        Case Else
+        default:
           'error!
             On Error GoTo 0: Err.Raise 9, strErrSource
-        End Select
+        }
 
       Exit Property
 
@@ -544,14 +544,14 @@
         End If
 
         'check against variable/flag/controller/string/message names
-        Select Case Asc(LCase$(NewDefName))
+        switch (Asc(LCase$(NewDefName))
         '     v    f    m    o    i    s    w    c
         Case 118, 102, 109, 111, 105, 115, 119, 99
           If IsNumeric(Right(NewDefName, Len(NewDefName) - 1)) Then
             ValidateName = False
             Exit Function
           End If
-        End Select
+        }
 
         'check against reserved variables
         tmpDefines = ReservedDefines(atVar)
@@ -606,12 +606,12 @@
 
         'check name against improper character list
         For i = 1 To Len(NewDefName)
-          Select Case Asc(Mid(NewDefName, i, 1))
+          switch (Asc(Mid(NewDefName, i, 1))
           '!"#$%&'()*+,-/:;<=>?@[\]^`{|}~
           Case 32 To 45, 47, 58 To 64, 91 To 94, 96, Is >= 123
             ValidateName = False
             Exit Function
-          End Select
+          }
         Next i
 
         'OK!

@@ -629,6 +629,7 @@ namespace WinAGI
       }
       // reset flag first so size doesn't get cleared for in game resources
       mLoaded = false;
+      mIsDirty = false;
       //reset resource variables
       mRData.Clear();
       //don't mess with sizes though! they remain accessible even when unloaded
@@ -771,7 +772,7 @@ namespace WinAGI
         mResFile = ExportFile;
       }
     }
-    public void Import(string ImportFile)
+    public virtual void Import(string ImportFile)
     {
       //imports resource from a file, and loads it
       //if in a game, it also saves the new

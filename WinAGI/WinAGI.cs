@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using static WinAGI.AGIGame;
+using static WinAGI.AGICommands;
+using static WinAGI.AGITestCommands;
 
 namespace WinAGI
 {
@@ -204,7 +206,7 @@ namespace WinAGI
     //so api functions using colors work correctly
     internal static uint[] lngEGARevCol = new uint[16]; //15
     internal static uint[] lngEGACol = new uint[16]; //15;
-    internal static AGIColors[] agColor = new AGIColors[16]; //15;
+    //internal static AGIColors[] agColor = new AGIColors[16]; //15;
     internal static byte[] bytEncryptKey = { (byte)'A', (byte)'v', (byte)'i',
                              (byte)'s', (byte)' ', (byte)'D',
                              (byte)'u', (byte)'r', (byte)'g',
@@ -312,13 +314,31 @@ namespace WinAGI
     internal static int lngError = 0;
     internal static string strError = "";
     internal static string strErrSrc = "";
+    internal static void InitWinAGI()
+    {
+      // calling this forces the module to load and initialize!
+      //// non-readonly startup stuff goes here
+      //RestoreDefaultColors();
+      //CRC32Setup();
+      ////get max vol size
+      //agMaxVolSize = 1023 * 1024;
 
+      ////set max vol0 size
+      //agMaxVol0 = agMaxVolSize;
+    }
     static WinAGI()
     {
+      // initialize all winagi stuff here
+      RestoreDefaultColors();
+      CRC32Setup();
+      //get max vol size
+      agMaxVolSize = 1023 * 1024;
+
+      //set max vol0 size
+      agMaxVol0 = agMaxVolSize;
+
       for (int i = 1; i < 32; i++)
         CTRL_CHARS += ((char)i).ToString();
-
-      CRC32Setup();
     }
     internal static string Right(string strIn, int length)
     {
@@ -1100,14 +1120,10 @@ namespace WinAGI
               lngTest = ValidateDefName(tdNewDefine.Name);
               if (lngTest == 0 || (lngTest >= 8 && lngTest <= 12))
               {
-                //Select Case lngTest
-                //Case 0, 8, 9, 10, 11, 12 'name is valid or is overriding a reserved define
                 lngTest = ValidateDefName(tdNewDefine.Name);
                 lngTest = ValidateDefValue(tdNewDefine);
                 if (lngTest == 0 || lngTest == 5 || lngTest == 6)
                 {
-                  //Select Case lngTest
-                  //Case 0, 5, 6 //Value is valid, or is overriding a reserved Value
                   //increment Count
                   agGlobalCount++;
                   //add it

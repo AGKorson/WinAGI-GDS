@@ -97,9 +97,9 @@ namespace WinAGI
 
         'add appropriate resdef name
 
-        Select Case ArgType
+        switch (ArgType
         Case atNum
-          Select Case ArgComp
+          switch (ArgComp
           Case 2, 5  'edgecode
             If ArgNum <= 4 Then
               ArgValue = agEdgeCodes(ArgNum).Name
@@ -127,10 +127,10 @@ namespace WinAGI
             Else
               ArgValue = CStr(ArgNum)
             End If
-          Case Else
+          default:
             'use default
             ArgValue = CStr(ArgNum)
-          End Select
+          }
 
         Case atVar
           'if a predefined,
@@ -160,7 +160,7 @@ namespace WinAGI
             ArgValue = stlMsgs(CLng(ArgNum - 1))
           Else
             'message doesn't exist
-            Select Case agMainLogSettings.ErrorLevel
+            switch (agMainLogSettings.ErrorLevel
             Case leHigh
               strError = "Undefined message (" & CStr(ArgNum) & ")  at position " & CStr(lngPos)
               Exit Function
@@ -172,7 +172,7 @@ namespace WinAGI
             Case leLow
               'store as number
               ArgValue = "m" & CStr(ArgNum)
-            End Select
+            }
           End If
           blnMsgUsed(ArgNum) = True
 
@@ -208,7 +208,7 @@ namespace WinAGI
                 End If
               End If
             Else
-              Select Case agMainLogSettings.ErrorLevel
+              switch (agMainLogSettings.ErrorLevel
               Case leHigh
                 strError = ("Unknown inventory item (" & CStr(CLng(ArgNum)) & ")")
                 Exit Function
@@ -220,7 +220,7 @@ namespace WinAGI
               Case leLow
                 'just use the number
                 ArgValue = "i" & CStr(ArgNum)
-              End Select
+              }
             End If
           Else
             'always refer to the object by number
@@ -245,7 +245,7 @@ namespace WinAGI
           'in the agi 'print' commands
           ArgValue = "w" & CStr(ArgNum + 1)
 
-        End Select
+        }
       Exit Function
 
       ErrHandler:
@@ -315,7 +315,7 @@ namespace WinAGI
                 If (bytInput == 0) || (lngPos > UBound(bytData())) Then
                   blnEndOfMsg = True
                 Else
-                  Select Case bytInput
+                  switch (bytInput
                   Case &HA
                     strMessage = strMessage & "\n"
                   Case Is < 32
@@ -328,9 +328,9 @@ namespace WinAGI
                     strMessage = strMessage & "\x7F"
                   Case &HFF
                     strMessage = strMessage & "\xFF"
-                  Case Else
+                  default:
                     strMessage = strMessage & Chr$(bytInput)
-                  End Select
+                  }
                 End If
               Loop Until blnEndOfMsg
 
@@ -471,7 +471,7 @@ namespace WinAGI
                     'if word exists,
                     strLine = strLine & QUOTECHAR & agVocabWords.GroupN(lngWordGroupNum).GroupName & QUOTECHAR
                     If Err.Number <> 0 Then
-                      Select Case agMainLogSettings.ErrorLevel
+                      switch (agMainLogSettings.ErrorLevel
                       Case leHigh
                         'raise error
                         strError = "unknown word group (" & CStr(lngWordGroupNum) & ") at position " & _
@@ -485,7 +485,7 @@ namespace WinAGI
                       Case leLow
                         'add the word by its number
                         strLine = strLine & CStr(lngWordGroupNum)
-                      End Select
+                      }
                     End If
                     'reset error trapping
                     On Error GoTo 0
@@ -587,7 +587,7 @@ namespace WinAGI
             'validate end pos
             Block(bytBlockDepth).EndPos = Block(bytBlockDepth).Length + lngPos
             If Block(bytBlockDepth).EndPos > UBound(bytData()) - 1 Then
-              Select Case agMainLogSettings.ErrorLevel
+              switch (agMainLogSettings.ErrorLevel
               'if error level is high, SkipToEndIf catches this condition
               Case leMedium
                 'adjust to end
@@ -597,7 +597,7 @@ namespace WinAGI
               Case leLow
                 'adjust to end
                 Block(bytBlockDepth).EndPos = UBound(bytData()) - 1
-              End Select
+              }
             End If
             'verify block ends before end of previous block
             '(i.e. it's properly nested)
@@ -719,7 +719,7 @@ namespace WinAGI
               'block is outside the previous block nest;
               '
               'this is an abnormal situation;
-              Select Case agMainLogSettings.ErrorLevel
+              switch (agMainLogSettings.ErrorLevel
               Case leHigh
                 'error
                 strError = "Block end outside of nested block (" & CStr(Block(bytBlockDepth).JumpPos) & ") at position" & CStr(lngPos)
@@ -748,7 +748,7 @@ namespace WinAGI
                   'save this label position
                   lngLabelPos(bytLabelCount) = Block(bytBlockDepth).JumpPos
                 End If
-              End Select
+              }
             End If
             IfFinished = True
           Else
@@ -814,7 +814,7 @@ namespace WinAGI
           bytCurData = bytData(lngPos)
           lngPos = lngPos + 1
 
-          Select Case bytCurData
+          switch (bytCurData
           Case &HFF 'this byte points to start of an IF statement
             'find labels associated with this if statement
             If Not SkipToEndIf(bytData()) Then
@@ -891,7 +891,7 @@ namespace WinAGI
                 lngLabelPos(bytLabelCount) = LabelLoc
               End If
             End If
-          Case Else
+          default:
             'if a command not implemented in this version
             If bytCurData <= 182 Then
               'leave it to actual decompiler to figure out what to do
@@ -904,7 +904,7 @@ namespace WinAGI
                          CStr(lngPos)
               Exit Function
             End If
-          End Select
+          }
         Loop Until (lngPos >= lngMsgSecStart)
 
         'now sort labels, if found
@@ -970,7 +970,7 @@ namespace WinAGI
         bytArg1 = bytData(lngPos)
         lngPos = lngPos + 1
 
-        Select Case bytCmd
+        switch (bytCmd
         Case &H1  ' increment
           AddSpecialCmd = "++" & ArgValue(bytArg1, atVar)
 
@@ -1041,7 +1041,7 @@ namespace WinAGI
           bytArg2 = bytData(lngPos)
           lngPos = lngPos + 1
           AddSpecialCmd = ArgValue(bytArg1, atVar) & " /= " & ArgValue(bytArg2, atVar)
-        End Select
+        }
       End Function
 
 
@@ -1049,7 +1049,7 @@ namespace WinAGI
 
         AddSpecialIf = ArgValue(bytArg1, atVar)
 
-        Select Case bytCmd
+        switch (bytCmd
         Case 1, 2            ' equaln or equalv
           'if NOT in effect,
           If NOTOn Then
@@ -1100,7 +1100,7 @@ namespace WinAGI
             'number string
             AddSpecialIf = AddSpecialIf & ArgValue(bytArg2, atNum, bytArg1)
           End If
-        End Select
+        }
       End Function
 
 
@@ -1239,7 +1239,7 @@ namespace WinAGI
           End If
           bytCurData = bytData(lngPos)
           lngPos = lngPos + 1
-          Select Case bytCurData
+          switch (bytCurData
           Case &HFF 'this byte starts an IF statement
             If Not DecodeIf(bytData(), stlOutput) Then
               GoTo ErrHandler
@@ -1266,20 +1266,20 @@ namespace WinAGI
                 'if showing reserved names and using reserved defines
                 If agResAsText && agUseRes Then
                   'some commands use resources as arguments; substitute as appropriate
-                  Select Case bytCmd
+                  switch (bytCmd
                   Case 122 'add.to.pic,    1st arg (V)
                     If intArg = 0 Then
                       If agViews.Exists(bytCurData) Then
                         strArg = agViews(bytCurData).ID
                       Else
                         'view doesn't exist
-                        Select Case agMainLogSettings.ErrorLevel
+                        switch (agMainLogSettings.ErrorLevel
                         Case leHigh, leMedium
                           'set warning
                           AddDecodeWarning "view " & CStr(bytCurData) & " in add.to.pic() does not exist"
                         Case leLow
                           'do nothing
-                        End Select
+                        }
                       End If
                     End If
 
@@ -1288,91 +1288,91 @@ namespace WinAGI
                       strArg = agLogs(bytCurData).ID
                     Else
                       'logic doesn't exist
-                      Select Case agMainLogSettings.ErrorLevel
+                      switch (agMainLogSettings.ErrorLevel
                       Case leHigh, leMedium
                         'set warning
                         AddDecodeWarning "logic " & CStr(bytCurData) & " in call() does not exist"
                       Case leLow
                         'do nothing
-                      End Select
+                      }
                     End If
                   Case 175 'discard.sound, only arg (S)
                     If agSnds.Exists(bytCurData) Then
                       strArg = agSnds(bytCurData).ID
                     Else
                       'sound doesn't exist
-                      Select Case agMainLogSettings.ErrorLevel
+                      switch (agMainLogSettings.ErrorLevel
                       Case leHigh, leMedium
                         'set warning
                         AddDecodeWarning "sound " & CStr(bytCurData) & " in discard.sound() does not exist"
                       Case leLow
                         'do nothing
-                      End Select
+                      }
                     End If
                   Case 32  'discard.view,  only arg (V)
                     If agViews.Exists(bytCurData) Then
                       strArg = agViews(bytCurData).ID
                     Else
                       'view doesn't exist
-                      Select Case agMainLogSettings.ErrorLevel
+                      switch (agMainLogSettings.ErrorLevel
                       Case leHigh, leMedium
                         'set warning
                         AddDecodeWarning "view " & CStr(bytCurData) & " in discard.view() does not exist"
                       Case leLow
                         'do nothing
-                      End Select
+                      }
                     End If
                   Case 20  'load.logics,   only arg (L)
                     If agLogs.Exists(bytCurData) Then
                       strArg = agLogs(bytCurData).ID
                     Else
                       'logic doesn't exist
-                      Select Case agMainLogSettings.ErrorLevel
+                      switch (agMainLogSettings.ErrorLevel
                       Case leHigh, leMedium
                         'set warning
                         AddDecodeWarning "logic " & CStr(bytCurData) & " in loadlogics() does not exist"
                       Case leLow
                         'do nothing
-                      End Select
+                      }
                     End If
                   Case 98  'load.sound,    only arg (S)
                     If agSnds.Exists(bytCurData) Then
                       strArg = agSnds(bytCurData).ID
                     Else
                       'sound doesn't exist
-                      Select Case agMainLogSettings.ErrorLevel
+                      switch (agMainLogSettings.ErrorLevel
                       Case leHigh, leMedium
                         'set warning
                         AddDecodeWarning "sound " & CStr(bytCurData) & " in load.sound() does not exist"
                       Case leLow
                         'do nothing
-                      End Select
+                      }
                     End If
                   Case 30  'load.view,     only arg (V)
                     If agViews.Exists(bytCurData) Then
                       strArg = agViews(bytCurData).ID
                     Else
                       'view doesn't exist
-                      Select Case agMainLogSettings.ErrorLevel
+                      switch (agMainLogSettings.ErrorLevel
                       Case leHigh, leMedium
                         'set warning
                         AddDecodeWarning "view " & CStr(bytCurData) & " in load.view() does not exist"
                       Case leLow
                         'do nothing
-                      End Select
+                      }
                     End If
                   Case 18  'new.room,      only arg (L)
                     If agLogs.Exists(bytCurData) Then
                       strArg = agLogs(bytCurData).ID
                     Else
                       'logic doesn't exist
-                      Select Case agMainLogSettings.ErrorLevel
+                      switch (agMainLogSettings.ErrorLevel
                       Case leHigh, leMedium
                         'set warning
                         AddDecodeWarning "logic " & CStr(bytCurData) & " in new.room() does not exist"
                       Case leLow
                         'do nothing
-                      End Select
+                      }
                     End If
                   Case 41  'set.view,      2nd arg (V)
                     If intArg = 1 Then
@@ -1380,13 +1380,13 @@ namespace WinAGI
                         strArg = agViews(bytCurData).ID
                       Else
                         'view doesn't exist
-                        Select Case agMainLogSettings.ErrorLevel
+                        switch (agMainLogSettings.ErrorLevel
                         Case leHigh, leMedium
                           'set warning
                           AddDecodeWarning "view " & CStr(bytCurData) & " in set.view() does not exist"
                         Case leLow
                           'do nothing
-                        End Select
+                        }
                       End If
                     End If
                   Case 129 'show.obj,      only arg (V)
@@ -1394,13 +1394,13 @@ namespace WinAGI
                       strArg = agViews(bytCurData).ID
                     Else
                       'view doesn't exist
-                      Select Case agMainLogSettings.ErrorLevel
+                      switch (agMainLogSettings.ErrorLevel
                       Case leHigh, leMedium
                         'set warning
                         AddDecodeWarning "view " & CStr(bytCurData) & " in show.obj() does not exist"
                       Case leLow
                         'do nothing
-                      End Select
+                      }
                     End If
                   Case 99  'sound,         1st arg (S)
                     If intArg = 0 Then
@@ -1408,13 +1408,13 @@ namespace WinAGI
                         strArg = agSnds(bytCurData).ID
                       Else
                         'sound doesn't exist
-                        Select Case agMainLogSettings.ErrorLevel
+                        switch (agMainLogSettings.ErrorLevel
                         Case leHigh, leMedium
                           'set warning
                           AddDecodeWarning "sound " & CStr(bytCurData) & " in sound() does not exist"
                         Case leLow
                           'do nothing
-                        End Select
+                        }
                       End If
                     End If
                   Case 150 'trace.info,    1st arg (L)
@@ -1423,16 +1423,16 @@ namespace WinAGI
                         strArg = agLogs(bytCurData).ID
                       Else
                         'logic doesn't exist
-                        Select Case agMainLogSettings.ErrorLevel
+                        switch (agMainLogSettings.ErrorLevel
                         Case leHigh, leMedium
                           'set warning
                           AddDecodeWarning "logic " & CStr(bytCurData) & " in trace.info() does not exist"
                         Case leLow
                           'do nothing
-                        End Select
+                        }
                       End If
                     End If
-                  End Select
+                  }
                 End If
 
                 'if message error (no string returned)
@@ -1442,7 +1442,7 @@ namespace WinAGI
                 End If
 
                 'check for commands that use colors here
-                Select Case bytCmd
+                switch (bytCmd
                 Case 105 'clear.lines, 3rd arg
                   If intArg = 2 Then
                     If Val(strArg) < 16 Then
@@ -1461,7 +1461,7 @@ namespace WinAGI
                   If Val(strArg) < 16 Then
                     strArg = agResColor(Val(strArg)).Name
                   End If
-                End Select
+                }
 
                 'if message
                 If agCmds(bytCmd).ArgType(intArg) = atMsg Then
@@ -1562,7 +1562,7 @@ namespace WinAGI
               lngLabelLoc = tmpBlockLen + lngPos
               'label already verified in FindLabels; add warning if necessary
               If lngLabelLoc > UBound(bytData()) - 1 Then
-                Select Case agMainLogSettings.ErrorLevel
+                switch (agMainLogSettings.ErrorLevel
                 'Case leHigh - high level handled in FindLabels
                 Case leMedium
                   'set warning
@@ -1573,7 +1573,7 @@ namespace WinAGI
                 Case leLow
                   'adjust it to end of resource
                   lngLabelLoc = UBound(bytData()) - 1
-                End Select
+                }
               End If
 
               For i = 1 To bytLabelCount
@@ -1594,10 +1594,10 @@ namespace WinAGI
                 End If
               Next i
             End If
-          Case Else
+          default:
             'will never get here;
             'FindLabels validates all commands
-          End Select
+          }
         Loop Until (lngPos >= lngMsgSecStart)
 
         AddBlockEnds stlOutput

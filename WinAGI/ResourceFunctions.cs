@@ -1083,7 +1083,7 @@ namespace WinAGI
         WriteSndByte 0xB0 + lngWriteTrack
         WriteSndByte 68
         WriteSndByte 127
-      End Select
+      }
 
       //write a slight delay note with no volume to start
       WriteSndDelta 0
@@ -1493,8 +1493,8 @@ namespace WinAGI
         // but only 0xFC is expected; it gets
         // checked above, though, so it doesn//t
         // get checked here
-      End Select
-    End Select
+      }
+    }
 
     //move to next byte (which should be another time value)
     lngInPos = lngInPos + 1
@@ -1736,7 +1736,7 @@ namespace WinAGI
 
     //release the object
     Set frmSndSubclass.agSndToPlay = Nothing
-  End Select
+  }
 
   //pass back to previous function
   SndSubclassProc = CallWindowProc(PrevSndWndProc, hWnd, uMsg, wParam, lParam)

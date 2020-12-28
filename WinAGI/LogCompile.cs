@@ -306,7 +306,7 @@ namespace WinAGI
             ArgTypeName = "text in quotes"
           case atVocWrd    //vocabulary word; NOT word argument
             ArgTypeName = "vocabulary word"
-          } //End Select
+          } 
         } //End Function
 
         static internal Sub CheckResFlagUse(ArgVal As byte)
@@ -332,7 +332,7 @@ namespace WinAGI
 
           default: //all other reserved variables should be read only
             AddWarning 5025, Replace(LoadResString(5025), ARG1, agResFlag(ArgVal).Name)
-          } //End Select
+          } 
         } //End Sub
         static internal Sub CheckResVarUse(ArgNum As byte, ArgVal As byte)
 
@@ -387,7 +387,7 @@ namespace WinAGI
 
           default: //all other reserved variables should be read only
             AddWarning 5017, Replace(LoadResString(5017), ARG1, agResVar(ArgNum).Name)
-          } //End Select
+          } 
         } //End Sub
 
 
@@ -517,7 +517,7 @@ namespace WinAGI
               //strings are always ok
               ConvertArgument = true
               return  //Exit Function
-            } //End Select
+            } 
 
           case atIObj
             //if first char matches, or is a quote
@@ -534,7 +534,7 @@ namespace WinAGI
               //strings are always ok
               ConvertArgument = true
               return  //Exit Function
-            } //End Select
+            } 
 
           case atVocWrd
             //can be number or string in quotes
@@ -543,7 +543,7 @@ namespace WinAGI
               ConvertArgument = true
               return  //Exit Function
             } //End If
-          } //End Select
+          } 
 
           //arg is not in correct format; must be reserved name, global or local define, or an error
 
@@ -611,7 +611,7 @@ namespace WinAGI
                 case 34
                   strArgIn = tdDefines(i).Value
                   ConvertArgument = true
-                } //End Select
+                } 
 
               case atSObj
                 //o## only
@@ -638,7 +638,7 @@ namespace WinAGI
                 case 34
                   strArgIn = tdDefines(i).Value
                   ConvertArgument = true
-                } //End Select
+                } 
 
               case atStr
                 //s## only
@@ -685,7 +685,7 @@ namespace WinAGI
 
               case atDefStr
                 //call to ConvertArgument is never made with type of atDefStr
-              } //End Select
+              } 
               //exit, regardless of result
               return  //Exit Function
             } //End If
@@ -890,7 +890,7 @@ namespace WinAGI
                 ConvertArgument = true
                 return  //Exit Function
               } //End If
-            } //End Select
+            } 
           } //End If
 
           //if not found or error, return false
@@ -967,7 +967,7 @@ namespace WinAGI
               case leHigh, leMedium
                 //show warning
                 AddWarning 5098
-              } //End Select
+              } 
 
             } //End If
             //convert to number and validate
@@ -1018,7 +1018,7 @@ namespace WinAGI
                 case leMedium
                   //generate warning
                   AddWarning 5060
-                } //End Select
+                } 
               } //End If
             } //End If
 
@@ -1044,7 +1044,7 @@ namespace WinAGI
               case leMedium
                 //generate warning
                 AddWarning 5006, Replace(LoadResString(5006), ARG1, CStr(agInvObj.MaxScreenObjects))
-              } //End Select
+              } 
             } //End If
 
           case atStr //string
@@ -1061,7 +1061,7 @@ namespace WinAGI
                   strErrMsg = Replace(Replace(LoadResString(4079), ARG1, CStr(ArgPos + 1)), ARG2, "11")
                 default:
                   strErrMsg = Replace(Replace(LoadResString(4079), ARG1, CStr(ArgPos + 1)), ARG2, "23")
-                } //End Select
+                } 
 
               Else
                 //use 1-based arg values
@@ -1082,7 +1082,7 @@ namespace WinAGI
                     strErrMsg = Replace(Replace(LoadResString(4079), ARG1, CStr(ArgPos + 1)), ARG2, "11")
                   default:
                     strErrMsg = Replace(Replace(LoadResString(4079), ARG1, CStr(ArgPos + 1)), ARG2, "23")
-                  } //End Select
+                  } 
                   return  //Exit Function
 
                 case leMedium
@@ -1093,8 +1093,8 @@ namespace WinAGI
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "11")
                   default:
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "23")
-                  } //End Select
-                } //End Select
+                  } 
+                } 
               } //End If
             } //End If
 
@@ -1125,7 +1125,7 @@ namespace WinAGI
                 case leMedium
                   //generate warning
                   AddWarning 5008
-                } //End Select
+                } 
               } //End If
             } //End If
 
@@ -1156,7 +1156,7 @@ namespace WinAGI
                   strMsg(lngArg) = ""
                 case leLow
                   //ignore; it will be handled when writing messages
-                } //End Select
+                } 
               } //End If
 
               //verify msg exists
@@ -1174,7 +1174,7 @@ namespace WinAGI
                   strMsg(lngArg) = ""
                 case leLow
                   //ignore; WinAGI adds a null value, so no error will occur
-                } //End Select
+                } 
               } //End If
             case 34
               //concatenate, if applicable
@@ -1202,7 +1202,7 @@ namespace WinAGI
                 return  //Exit Function
               } //End If
 
-            } //End Select
+            } 
 
           case atIObj //inventory object
             //only true restriction is can//t exceed object count, and can//t exceed 255 objects (0-254)
@@ -1278,9 +1278,9 @@ namespace WinAGI
                   AddWarning 5003, Replace(LoadResString(5003), ARG1, CStr(ArgPos + 1))
                 case leLow
                   //no action
-                } //End Select
+                } 
               } //End If
-            } //End Select
+            } 
 
             //if object number exceeds current object Count,
             //if (lngArg >= agInvObj.Count) {
@@ -1297,7 +1297,7 @@ namespace WinAGI
                 AddWarning 5005, Replace(LoadResString(5005), ARG1, CStr(ArgPos + 1))
               case leLow
                 //no action
-              } //End Select
+              } 
             Else
               //if object is a question mark, raise error/warning
               if (agInvObj(lngArg).ItemName == "?") {
@@ -1312,7 +1312,7 @@ namespace WinAGI
                   AddWarning 5004
                 case leLow
                   //no action
-                } //End Select
+                } 
               } //End If
             } //End If
 
@@ -1353,7 +1353,7 @@ namespace WinAGI
                   switch (agMainLogSettings.ErrorLevel
                   case leHigh, leMedium
                     AddWarning 5108, Replace(LoadResString(5108), ARG1, strArg)
-                  } //End Select
+                  } 
                 Else
                   //set error flag
                   blnError = true
@@ -1390,10 +1390,10 @@ namespace WinAGI
               case leMedium
                 AddWarning 5083, Replace(LoadResString(5083), ARG1, strArg)
               case leLow
-              } //End Select
+              } 
             } //End If
 
-          } //End Select
+          } 
 
           //set return Value
           GetNextArg = lngArg
@@ -1503,7 +1503,7 @@ namespace WinAGI
                   NextChar = vbCr
                 default:
                   NextChar = " "
-                } //End Select
+                } 
               } //End If
             } //End If
           Loop Until NextChar != " " && LenB(NextChar) != 0
@@ -1586,7 +1586,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return the two byte cmd
               NextCommand = "=="
-            } //End Select
+            } 
             return  //Exit Function
           case 34 //"
             //special case; quote means start of a string
@@ -1720,7 +1720,7 @@ namespace WinAGI
               NextCommand = "&&"
             } //End If
             return  //Exit Function
-          } //End Select
+          } 
 
           //if not a text string,
           if (!blnInQuotes) {
@@ -1737,7 +1737,7 @@ namespace WinAGI
                 NextCommand = NextCommand & ChrW$(intChar)
                 //incrmeent position
                 lngPos = lngPos + 1
-              } //End Select
+              } 
             Loop
 
           Else
@@ -1770,7 +1770,7 @@ namespace WinAGI
                   blnInQuotes = false
                 case 92 //slash
                   blnSlash = true
-                } //End Select
+                } 
               } //End If
 
               NextCommand = NextCommand & ChrW$(intChar)
@@ -1939,7 +1939,7 @@ namespace WinAGI
                       //generate warning
                       AddWarning 5081
                     case leLow
-                    } //End Select
+                    } 
                   } //End If
 
                   //if said command
@@ -2017,7 +2017,7 @@ namespace WinAGI
                             strErrMsg = Replace(LoadResString(4047), ARG1, CStr(intWordCount + 1))
                           } //End If
                           return  //Exit Function
-                        } //End Select
+                        } 
                       Else
                       //////Debug.Assert false
                       //we should normally never get here, since changing the function to allow
@@ -2109,7 +2109,7 @@ namespace WinAGI
                 } //End If
                 //toggle off need for test command
                 blnNeedNextCmd = false
-              } //End Select
+              } 
             Else //not awaiting a test command
               switch (strTestCmd
               case NOT_TOKEN
@@ -2163,7 +2163,7 @@ namespace WinAGI
                 } //End If
                 blnError = true
                 return  //Exit Function
-              } //End Select
+              } 
             } //End If
           //never leave loop normally; error, end of input, or successful
           //compilation of test commands will all exit loop directly
@@ -2279,7 +2279,7 @@ namespace WinAGI
                 case leLow
                   //add quote
                   strTextContinue = strTextContinue & QUOTECHAR
-                } //End Select
+                } 
               } //End If
 
               //strip off ending quote of current msg
@@ -2370,7 +2370,7 @@ namespace WinAGI
                       blnInQuotes = false
                     case 92 //slash
                       blnSlash = true
-                    } //End Select
+                    } 
                   } //End If
                 } //End If
               Loop
@@ -2467,7 +2467,7 @@ namespace WinAGI
                   } //End If
                   //set warning
                   AddWarning 5028, Replace(LoadResString(5028), ARG1, strIncludeFilename)
-                } //End Select
+                } 
               } //End If
 
               //if quotes,
@@ -2616,14 +2616,14 @@ namespace WinAGI
                   AddWarning 5035, Replace(LoadResString(5035), ARG1, tdNewDefine.Name)
                   //reset return error code
                   rtn = 0
-                } //End Select
+                } 
               case leLow
                 //check for warnings
                 if (rtn >= 7 && rtn <= 12) {
                   //reset return error code
                   rtn = 0
                 } //End If
-              } //End Select
+              } 
 
               //check for errors
               if (rtn<> 0) {
@@ -2655,7 +2655,7 @@ namespace WinAGI
                   strErrMsg = Replace(LoadResString(4015), ARG1, tdNewDefine.Name)
                 case 13 // name contains improper character
                   strErrMsg = LoadResString(4067)
-                } //End Select
+                } 
                 //don//t exit; check for define Value errors first
               } //End If
 
@@ -2690,7 +2690,7 @@ namespace WinAGI
                   AddWarning 5031, Replace(LoadResString(5031), ARG1, tdNewDefine.Value)
                   //reset error code
                   rtn = 0
-                } //End Select
+                } 
               case leLow
                 //if Value error is due to missing quotes
                 switch (rtn
@@ -2707,8 +2707,8 @@ namespace WinAGI
                 case 5, 6
                   //reset return Value
                   rtn = 0
-                } //End Select
-              } //End Select
+                } 
+              } 
 
               //check for errors
               if (rtn != 0) {
@@ -2735,7 +2735,7 @@ namespace WinAGI
                   strErrMsg = strErrMsg & Replace(LoadResString(4041), ARG1, tdNewDefine.Value)
                 case 6 // Value is already defined by a global name
                   strErrMsg = strErrMsg & Replace(LoadResString(4040), ARG1, tdNewDefine.Value)
-                } //End Select
+                } 
               } //End If
 
               //if an error was generated during define validation
@@ -2762,7 +2762,7 @@ namespace WinAGI
                       AddWarning 5033, Replace(Replace(LoadResString(5033), ARG1, tdNewDefine.Value), ARG2, tdDefines(i).Name)
                     case leLow
                       //do nothing
-                    } //End Select
+                    } 
                   } //End If
                 } //End If
               Next i
@@ -2947,7 +2947,7 @@ namespace WinAGI
                     //set warning
                     AddWarning 5002
                   } //End If
-                } //End Select
+                } 
               } //End If
 
               //concatenate, if necessary
@@ -3158,7 +3158,7 @@ namespace WinAGI
                 case leMedium
                   AddWarning 5030
                 case leLow
-                } //End Select
+                } 
               } //End If
             } //End If
 
@@ -3183,7 +3183,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5053
               case leLow
-              } //End Select
+              } 
             } //End If
             //expect no more commands
             blnNewRoom = true
@@ -3204,7 +3204,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5013
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3219,7 +3219,7 @@ namespace WinAGI
                 AddWarning 5010
               case leLow
                 //no action
-              } //End Select
+              } 
             } //End If
 
             //recursive calling is BAD
@@ -3232,7 +3232,7 @@ namespace WinAGI
                 AddWarning 5089
               case leLow
                 //no action
-              } //End Select
+              } 
             } //End If
 
             //validate that logic exists
@@ -3244,7 +3244,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5076
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3258,7 +3258,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5015
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3272,7 +3272,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5024
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3286,7 +3286,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5023
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3297,7 +3297,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3311,7 +3311,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5037
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3325,7 +3325,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3339,7 +3339,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5050
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3351,7 +3351,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3384,7 +3384,7 @@ namespace WinAGI
 
 
             case leLow
-            } //End Select
+            } 
 
 
           case 64, 65, 66 //object.on.water, object.on.land, object.on.anything
@@ -3394,7 +3394,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5082
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3406,7 +3406,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3417,7 +3417,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
-              } //End Select
+              } 
             } //End If
             //check for read only reserved flags
             CheckResFlagUse ArgVal(1)
@@ -3433,7 +3433,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5062
               case leLow
-              } //End Select
+              } 
             } //End If
 
             //check for ego object
@@ -3442,7 +3442,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5045
               case leLow
-              } //End Select
+              } 
             } //End If
 
             //flag arg should not be a reserved Value
@@ -3451,7 +3451,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
-              } //End Select
+              } 
             } //End If
 
             //check for read only reserved flags
@@ -3465,7 +3465,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
-              } //End Select
+              } 
             } //End If
 
             //check for read only reserved flags
@@ -3479,7 +3479,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5102
               case leLow
-              } //End Select
+              } 
             } //End If
 
             //check for ego object
@@ -3488,7 +3488,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5027
               case leLow
-              } //End Select
+              } 
             } //End If
 
             //flag arg should not be a reserved Value
@@ -3497,7 +3497,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
-              } //End Select
+              } 
             } //End If
             //check for read only reserved flags
             CheckResFlagUse ArgVal(2)
@@ -3510,7 +3510,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5026
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3522,7 +3522,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3538,7 +3538,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5020
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3551,7 +3551,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5051
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3566,7 +3566,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5014
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3580,7 +3580,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5084
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3594,7 +3594,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5059
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3608,7 +3608,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5011
               case leLow
-              } //End Select
+              } 
             } //End If
             //color value should be 0 or 15 //(but it doesn//t hurt to be anything else)
             if (ArgVal(2) > 0 && ArgVal(2) != 15) {
@@ -3616,7 +3616,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5100
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3630,7 +3630,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5029
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3643,7 +3643,7 @@ namespace WinAGI
                 strErrMsg = LoadResString(4134)
                 return  //Exit Function
               case leLow
-              } //End Select
+              } 
             ElseIf ArgVal(0) > 15) {
               //could be a palette change?
               if (ArgVal(0) >= 100 && ArgVal(0) <= 109) {
@@ -3652,14 +3652,14 @@ namespace WinAGI
                 case leHigh, leMedium
                   AddWarning 5058
                 case leLow
-                } //End Select
+                } 
               Else
                 //warning
                 switch (agMainLogSettings.ErrorLevel
                 case leHigh, leMedium
                   AddWarning 5057
                 case leLow
-                } //End Select
+                } 
               } //End If
             } //End If
 
@@ -3676,21 +3676,21 @@ namespace WinAGI
               case leMedium
                 AddWarning 5044
               case leLow
-              } //End Select
+              } 
             } //End If
             if (ArgVal(1) > 24 || ArgVal(2) > 24) {
               switch (agMainLogSettings.ErrorLevel
               case leHigh, leMedium
                 AddWarning 5099
               case leLow
-              } //End Select
+              } 
             } //End If
             if (ArgVal(1) == ArgVal(2)) {
               switch (agMainLogSettings.ErrorLevel
               case leHigh, leMedium
                 AddWarning 5048
               case leLow
-              } //End Select
+              } 
             } //End If
             if ((ArgVal(1) >= ArgVal(0) && ArgVal(1) <= CLng(ArgVal(0)) + 20) Or(ArgVal(2) >= ArgVal(0) && ArgVal(2) <= CLng(ArgVal(0)) + 20)) {
              switch (agMainLogSettings.ErrorLevel
@@ -3700,7 +3700,7 @@ namespace WinAGI
 
              case leLow
 
-             } //End Select
+             } 
 
            } //End If
 
@@ -3717,7 +3717,7 @@ namespace WinAGI
 
                case leLow
 
-               } //End Select
+               } 
 
              } //End If
 
@@ -3735,7 +3735,7 @@ namespace WinAGI
 
              case leLow
 
-             } //End Select
+             } 
 
            } //End If
 
@@ -3755,7 +3755,7 @@ namespace WinAGI
 
              case leLow
 
-             } //End Select
+             } 
 
            } //End If
 
@@ -3768,7 +3768,7 @@ namespace WinAGI
 
              case leLow
 
-             } //End Select
+             } 
 
            } //End If
 
@@ -3797,7 +3797,7 @@ namespace WinAGI
 
              case leLow
 
-             } //End Select
+             } 
 
            } //End If
 
@@ -3814,8 +3814,8 @@ namespace WinAGI
                 case leMedium
                   AddWarning 5066
                 case leLow
-                } //End Select
-              } //End Select
+                } 
+              } 
             } //End If
 
             //check for improper KEYCODE assignments
@@ -3830,8 +3830,8 @@ namespace WinAGI
                 case leMedium
                   AddWarning 5066
                 case leLow
-                } //End Select
-              } //End Select
+                } 
+              } 
             } //End If
 
 
@@ -3853,7 +3853,7 @@ namespace WinAGI
                 //dont need to check loops or cels
                 blnWarned = true
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3883,7 +3883,7 @@ namespace WinAGI
                     //dont need to check cel
                     blnWarned = true
                   case leLow
-                  } //End Select
+                  } 
                 } //End If
                 //if loop was valid, check cel
                 if (!blnWarned) {
@@ -3899,7 +3899,7 @@ namespace WinAGI
                     case leMedium
                       AddWarning 5086
                     case leLow
-                    } //End Select
+                    } 
                   } //End If
                 } //End If
               Else
@@ -3923,7 +3923,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5038
               case leLow
-              } //End Select
+              } 
             } //End If
 
             //PRI should be <=15
@@ -3935,7 +3935,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5079
               case leLow
-              } //End Select
+              } 
             } //End If
 
             //PRI should be 0 OR >=4 (but doesn//t raise an error; only a warning)
@@ -3944,7 +3944,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5079
               case leLow
-              } //End Select
+              } 
             } //End If
 
             //MGN values >15 will only use lower nibble
@@ -3953,7 +3953,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5101
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3967,7 +3967,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5061
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -3976,7 +3976,7 @@ namespace WinAGI
             case leHigh, leMedium
               AddWarning 5087, Replace(LoadResString(5087), ARG1, agCmds(CmdNum).Name)
             case leLow
-            } //End Select
+            } 
 
 
           case 175, 179, 180 //discard.sound, fence.mouse, mouse.posn
@@ -3987,7 +3987,7 @@ namespace WinAGI
               case leMedium
               AddWarning 5088, Replace(LoadResString(5088), ARG1, agCmds(CmdNum).Name)
             case leLow
-            } //End Select
+            } 
 
 
           case 130 //random(LOWER,UPPER,vRESULT)
@@ -3999,7 +3999,7 @@ namespace WinAGI
                 return  //Exit Function
               case leMedium
                 AddWarning 5054
-              } //End Select
+              } 
             } //End If
 
             //lower=upper means result=lower=upper
@@ -4008,7 +4008,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5106
               case leLow
-              } //End Select
+              } 
             } //End If
 
             //if lower=upper+1, means div by 0!
@@ -4019,7 +4019,7 @@ namespace WinAGI
                 return  //Exit Function
               case leMedium
                 AddWarning 5107
-              } //End Select
+              } 
             } //End If
 
             //variable arg should not be a reserved Value
@@ -4028,7 +4028,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -4042,7 +4042,7 @@ namespace WinAGI
                 AddWarning 5039
               case leLow
                 //no action
-              } //End Select
+              } 
             } //End If
             //check for absurdly low Value for script size
             if (ArgVal(0) < 10) {
@@ -4050,7 +4050,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5009
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -4064,7 +4064,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5023
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -4082,7 +4082,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5040
               case leLow
-              } //End Select
+              } 
             } //End If
             //validate that height is not too small
             if (ArgVal(2) < 2) {
@@ -4090,7 +4090,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5046
               case leLow
-              } //End Select
+              } 
             } //End If
             //validate size of window
             if (CLng(ArgVal(1)) + CLng(ArgVal(2)) > 23) {
@@ -4101,7 +4101,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5063
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -4120,7 +4120,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5067
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -4130,7 +4130,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5105
               case leLow
-              } //End Select
+              } 
 
 
             case 1 //maxwidth=1 crashes AGI
@@ -4141,7 +4141,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5103
               case leLow
-              } //End Select
+              } 
 
 
             case Is > 36 //maxwidth >36 won//t work
@@ -4152,8 +4152,8 @@ namespace WinAGI
               case leMedium
                 AddWarning 5104
               case leLow
-              } //End Select
-           } //End Select
+              } 
+           } 
 
             //col>2 and col + maxwidth <=39
             if (ArgVal(2) < 2 || CLng(ArgVal(2)) + CLng(ArgVal(3)) > 39) {
@@ -4164,7 +4164,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5068
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -4191,7 +4191,7 @@ namespace WinAGI
                    ArgVal(2) > 24 || ArgVal(3) > 39) {
                   AddWarning 5070
                 } //End If
-              } //End Select
+              } 
             } //End If
 
             //color value should be 0 or 15 //(but it doesn//t hurt to be anything else)
@@ -4200,7 +4200,7 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5100
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -4214,7 +4214,7 @@ namespace WinAGI
                 //set warning
                 AddWarning 5047
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -4225,9 +4225,9 @@ namespace WinAGI
               case leHigh, leMedium
                 AddWarning 5071
               case leLow
-              } //End Select
+              } 
             } //End If
-          } //End Select
+          } 
 
           //success
           ValidateArgs = true
@@ -4268,7 +4268,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5072
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -4281,7 +4281,7 @@ namespace WinAGI
               case leMedium
                 AddWarning 5073
               case leLow
-              } //End Select
+              } 
             } //End If
 
 
@@ -4294,7 +4294,7 @@ namespace WinAGI
           case 14 //said()
           case 15 //compare.strings(sA, sB)
 
-          } //End Select
+          } 
 
           //success
           ValidateIfArgs = true
@@ -4335,7 +4335,7 @@ namespace WinAGI
                   //also included in body of logic
                   intMsgWarn(MsgNum) = intMsgWarn(MsgNum) || 1
                 } //End If
-              } //End Select
+              } 
 
             //extended character
             case Is > 127
@@ -4352,8 +4352,8 @@ namespace WinAGI
                   //also included in body of logic
                   intMsgWarn(MsgNum) = intMsgWarn(MsgNum) || 2
                 } //End If
-              } //End Select
-            } //End Select
+              } 
+            } 
            Next i
 
            //msg is OK
@@ -4537,12 +4537,12 @@ namespace WinAGI
                     default:
                       //if no special char found, the single slash should be dropped
                       blnSkipChar = true
-                    } //End Select
+                    } 
                   Else
                     //if the //\// is the last char, skip it
                     blnSkipChar = true
                   } //End If
-                } //End Select
+                } 
 
                 //write the encrypted byte (need to adjust for previous messages, and current position)
                 if (!blnSkipChar) {
@@ -4672,7 +4672,7 @@ namespace WinAGI
                     strErrMsg = Replace(LoadResString(4031), ARG1, strLabel)
                   case 13
                     strErrMsg = LoadResString(4068)
-                  } //End Select
+                  } 
                   return  //Exit Function
                 } //End If
 
@@ -4787,7 +4787,7 @@ namespace WinAGI
                   AddWarning 5001
                 case leLow
                   //no action
-                } //End Select
+                } 
               } //End If
               //calculate and write block length
               BlockLength(BlockDepth) = tmpLogRes.Size - BlockStartDataLoc(BlockDepth) - 2
@@ -4866,7 +4866,7 @@ namespace WinAGI
                   AddWarning 5095
                 case leLow
                   //no action
-                } //End Select
+                } 
                 blnNewRoom = false
               } //End If
 
@@ -4987,7 +4987,7 @@ namespace WinAGI
                     AddWarning 5095
                   case leLow
                     //no action
-                  } //End Select
+                  } 
                   blnNewRoom = false
                 } //End If
 
@@ -5092,7 +5092,7 @@ namespace WinAGI
                   return  //Exit Function
                 } //End If
               } //End If
-             } //End Select
+             } 
             //get next command
             strPrevCmd = strNextCmd
             strNextCmd = NextCommand()
@@ -5121,7 +5121,7 @@ namespace WinAGI
 
              AddWarning 5016
 
-           } //End Select
+           } 
 
          } //End If
 
@@ -5185,7 +5185,7 @@ namespace WinAGI
               AddWarning 5074
             case leLow
               //allow it
-            } //End Select
+            } 
           } //End If
 
 
@@ -5263,7 +5263,7 @@ namespace WinAGI
                   AddWarning 5075, Replace(LoadResString(5075), ARG1, strCmdName)
                 case leLow
                   //don//t worry about command validity; return the extracted command num
-                } //End Select
+                } 
 
 
                 return  //Exit Function
@@ -5379,7 +5379,7 @@ namespace WinAGI
               blnError = true
               strErrMsg = LoadResString(4078)
               return  //Exit Function
-            } //End Select
+            } 
 
             //before getting second arg, check for NOT symbol in front of a variable
             //can//t have a NOT in front of variable comparisons
@@ -5421,7 +5421,7 @@ namespace WinAGI
             tmpLogRes.Writebyte bytCmdNum
             tmpLogRes.Writebyte Cbyte(intArg1)
             tmpLogRes.Writebyte Cbyte(intArg2)
-          } //End Select
+          } 
 
           //return true
           CompileSpecialIf = true
@@ -5471,7 +5471,7 @@ namespace WinAGI
               blnError = true
               strErrMsg = LoadResString(4105)
               return  //Exit Function
-            } //End Select
+            } 
 
             //get actual first arg
             intArg1 = GetNextArg(atVar, -1)
@@ -5514,7 +5514,7 @@ namespace WinAGI
                     strErrMsg = Replace(Replace(LoadResString(4079), ARG1, "1"), ARG2, "11")
                   case leMedium
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "11")
-                  } //End Select
+                  } 
                 } //End If
 
               //for all other versions, limit is 24 strings
@@ -5525,9 +5525,9 @@ namespace WinAGI
                     strErrMsg = Replace(Replace(LoadResString(4079), ARG1, "1"), ARG2, "23")
                   case leMedium
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "23")
-                  } //End Select
+                  } 
                 } //End If
-              } //End Select
+              } 
             } //End If
 
             //check for equal sign
@@ -5613,7 +5613,7 @@ namespace WinAGI
               blnError = true
               strErrMsg = LoadResString(4034)
               return  //Exit Function
-            } //End Select
+            } 
 
           //check for flag assignment
           ElseIf ConvertArgument(strArg1, atFlag)) {
@@ -5655,7 +5655,7 @@ namespace WinAGI
               strErrMsg = LoadResString(4034)
               //always exit
               return  //Exit Function
-            } //End Select
+            } 
 
 
           Else
@@ -5686,7 +5686,7 @@ namespace WinAGI
                   blnError = true
                   strErrMsg = LoadResString(4105)
                   return  //Exit Function
-                } //End Select
+                } 
 
                 //get actual variable
                 intArg2 = GetNextArg(atVar, -1)
@@ -5721,7 +5721,7 @@ namespace WinAGI
                 case leHigh, leMedium
                   //show warning
                   AddWarning 5098
-                } //End Select
+                } 
               } //End If
 
 
@@ -5760,7 +5760,7 @@ namespace WinAGI
                 } //End If
               } //End If
             } //End if (// not indirection
-          } //End Select //if not inc/dec
+          }  //if not inc/dec
 
           //if command is not known
           if (bytCmd == 0) {
@@ -5785,7 +5785,7 @@ namespace WinAGI
                   AddWarning 5036
                 case leLow
                   //allow it
-                } //End Select
+                } 
                 bytCmd = &H3
               Else
                 //this may be long arithmetic
@@ -5803,7 +5803,7 @@ namespace WinAGI
                   blnError = true
                   strErrMsg = LoadResString(4087)
                   return  //Exit Function
-                } //End Select
+                } 
 
                 //now get actual second argument
                 blnArg2Var = true
@@ -5834,7 +5834,7 @@ namespace WinAGI
               case 2  //rindirect
                 bytCmd = &HA
                 blnArg2Var = false
-              } //End Select
+              } 
               //always reset arg2var flag so
               //command won//t be adjusted later
                 blnArg2Var = false
@@ -5883,7 +5883,7 @@ namespace WinAGI
             ReDim bytArgs(1)
             bytArgs(0) = intArg1
             bytArgs(1) = intArg2
-          } //End Select
+          } 
 
           //validate commands before writing
           if (!ValidateArgs(bytCmd, bytArgs)) {
@@ -5899,7 +5899,7 @@ namespace WinAGI
           case &H1, &H2, &HC, &HD
           default:
             tmpLogRes.Writebyte Cbyte(intArg2)
-          } //End Select
+          } 
         return  //Exit Function
 
         ErrHandler:
