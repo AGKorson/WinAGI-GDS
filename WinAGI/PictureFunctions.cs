@@ -43,8 +43,6 @@ namespace WinAGI
       //  4 = invalid command byte
       //  8 = other error
 
-      short tmpX, tmpY;
-      int i, j;
       //assume ok
       int retval = 0;
       //if plot data not set yet
@@ -79,6 +77,16 @@ namespace WinAGI
       CurrentPen.PlotShape = EPlotShape.psCircle;
       CurrentPen.PlotStyle = EPlotStyle.psSolid;
 
+      //clear the working byte arrays
+      VisBuildData = new byte[26880];
+      PriBuildData = new byte[26880];
+      for (int i = 0; i < 26880; i++)
+      {
+        VisBuildData[i] = 15; //white
+        PriBuildData[i] = 4;  //red
+      }
+
+      //begin at position 1
       lngPos = 0;
 
       //read first command byte
@@ -411,17 +419,17 @@ namespace WinAGI
         }
         for (i = 1; i <= MaxDelta; i++)
         {
-          YC = YC + DY;
+          YC += DY;
           if (YC >= MaxDelta)
           {
-            YC = YC - MaxDelta;
-            yPos = yPos + vDir;
+            YC -= MaxDelta;
+            yPos += vDir;
           }
-          XC = XC + DX;
+          XC += DX;
           if (XC >= MaxDelta)
           {
-            XC = XC - MaxDelta;
-            xPos = xPos + hDir;
+            XC -= MaxDelta;
+            xPos += hDir;
           }
           DrawPixel(xPos, yPos);
         }
@@ -436,11 +444,10 @@ namespace WinAGI
       Y1 = agPicData[lngPos];
       lngPos++;
       //draw first pixel
-      DrawLine(X1, Y1, X1, Y1);
+      DrawPixel(X1, Y1);
       //get next byte
       bytIn = agPicData[lngPos];
       lngPos++;
-
       while (bytIn < 0xF0 && lngPos <= lngEndPos) // Do Until bytIn >= 0xF0 || lngPos > lngEndPos
       {
         if (CurAxis == CornerDirection.cdX)
@@ -458,13 +465,12 @@ namespace WinAGI
           DrawLine(X1, Y1, X2, Y2);
           CurAxis = CornerDirection.cdX;
           Y1 = Y2;
+        }
+        //get next byte
+        bytIn = agPicData[lngPos];
+        lngPos++;
       }
-
-      //get next byte
-      bytIn = agPicData[lngPos];
-      lngPos++;
     }
-  }
     private static void DrawAbsLine()
     {
       byte X1, Y1, X2, Y2;
@@ -475,7 +481,7 @@ namespace WinAGI
       Y1 = agPicData[lngPos];
       lngPos++;
       //draw first pixel
-      DrawLine(X1, Y1, X1, Y1);
+      DrawPixel(X1, Y1);
       //get next potential coordinate
       bytIn = agPicData[lngPos];
       lngPos++;
@@ -496,7 +502,6 @@ namespace WinAGI
     {
       short xdisp, ydisp;
       byte X1, Y1;
-      int rtn;
  
       //read in starting position
       X1 = agPicData[lngPos];
@@ -542,7 +547,7 @@ namespace WinAGI
     private static void BrushPlot()
     {
       int PlotX, PlotY;
-      byte PatternNum;
+      byte PatternNum = 0;
       int rtn;
       int X, Y;
 
@@ -565,7 +570,6 @@ namespace WinAGI
             break;
           }
         }
-
         //store x value
         PlotX = bytIn;
         //get y value
@@ -577,14 +581,13 @@ namespace WinAGI
           break;
         }
         //store y value
-        PlotY = bytIn
-
-      //convert to correct upper/left values to start the plotting
+        PlotY = bytIn;
+        //convert to correct upper/left values to start the plotting
         PlotX -= (CurrentPen.PlotSize + 1) / 2;
         if (PlotX < 0)
         {
           PlotX = 0;
-      }
+        }
         else if (PlotX > 160 - CurrentPen.PlotSize)
         {
           //there is a bug in AGI that uses 160 instead of 159
@@ -612,33 +615,31 @@ namespace WinAGI
             for (X = 0; X <= CurrentPen.PlotSize; X++)
             {
               //if pixel is within circle shape,
-              if (   CircleData[(CurrentPen.PlotSize * CurrentPen.PlotSize) + Y] & 2 >> (7 - X)     )
+              if ((CircleData[(CurrentPen.PlotSize * CurrentPen.PlotSize) + Y] & (1 >> (7 - X)))  == (1 >> (7 - X)))
               {
-                Math.
                 //if style is splatter
                 if (CurrentPen.PlotStyle == EPlotStyle.psSplatter)
                 {
                   //adjust pattern bit using Sierra's algorithm
-                  if ((PatternNum && 1))
+                  if ((PatternNum & 1) == 1)
                   {
-                    PatternNum = PatternNum \ 2 Xor 0xB8
+                    PatternNum = (byte)((PatternNum / 2) ^ 0xB8);
                   }
                   else
                   {
-                    PatternNum = PatternNum \ 2
-                }
-
+                    PatternNum /= 2;
+                  }
                   //only draw if pattern bit is set
-                  if ((PatternNum && 3) == 2)
+                  if ((PatternNum & 3) == 2)
                   {
-                    DrawPixel(X + PlotX, Y + PlotY)
+                    DrawPixel(X + PlotX, Y + PlotY);
                   }
                 }
                 else
-                {  //solid
-                   //set all pixels
-                  DrawPixel(X + PlotX, Y + PlotY)
-              }
+                { //solid
+                  //set all pixels
+                  DrawPixel(X + PlotX, Y + PlotY);
+                }
               }
             } //Next X
           } //Next Y
@@ -653,271 +654,292 @@ namespace WinAGI
               if (CurrentPen.PlotStyle == EPlotStyle.psSplatter)
               {
                 //only draw if pattern bit is set
-                if ((PatternNum && 1))
+                if ((PatternNum & 1) == 1)
                 {
-                  PatternNum = PatternNum \ 2 Xor 0xB8
+                  PatternNum = (byte)((PatternNum / 2) ^ 0xB8);
                 }
                 else
                 {
-                  PatternNum = PatternNum \ 2
+                  PatternNum /= 2;
               }
-                if ((PatternNum && 3) == 2)
+                if ((PatternNum & 3) == 2)
                 {
-                  DrawPixel(X + PlotX, Y + PlotY)
+                  DrawPixel(X + PlotX, Y + PlotY);
                 }
               }
               else
               {  //solid
                  //set all pixels
-                DrawPixel(X + PlotX, Y + PlotY)
-            }
+                DrawPixel(X + PlotX, Y + PlotY);
+              }
             } //Next X
           } //Next Y
         }
-
         //get next byte
         bytIn = agPicData[lngPos];
         lngPos++;
       }
     }
-    static void temp()
+    private static void PicFloodFill()
     {
-
-      /*
-  private Sub PicFloodFill()
-
-    Dim QueueStart As Long, QueueEnd As Long
-    Dim lngOffset As Long
-    Dim X As Byte, Y As Byte
-
-    On Error GoTo ErrHandler
-
-    //get next byte
-    bytIn = agPicData[lngPos];
-    lngPos++;
-
-    Do Until bytIn >= 0xF0 || lngPos > lngEndPos
-      //save x, get Y
-      X = bytIn
-      Y = agPicData[lngPos];
-      lngPos++;
-
-      //if visual OR priority but not both
-      if ((CurrentPen.VisColor < AGIColors.agNone) Xor (CurrentPen.PriColor < AGIColors.agNone)) {
-        //if drawing visual
-        if (CurrentPen.VisColor < AGIColors.agNone) {
-          //if color is not white, and current pixel IS white,
-          if (CurrentPen.VisColor != AGIColors.agWhite && VisBuildData(X + 160 * Y) == AGIColors.agWhite) {
-            //store the starting point in first queue position
-            QueueStart = 0
-            QueueEnd = 1
-            lngOffset = Y * 160 + X
-            Queue(QueueStart) = lngOffset
-            //set first point
-            VisBuildData(lngOffset) = CurrentPen.VisColor
-
-            Do
-              lngOffset = Queue(QueueStart)
-              X = lngOffset % 160
-              Y = lngOffset \ 160
-              QueueStart = QueueStart + 1
-
-              //if pixel above is white,
-              if (Y > 0) {
-                lngOffset = (Y - 1) * 160 + X
-                if (VisBuildData(lngOffset) == AGIColors.agWhite) {
-                  //set it
-                  VisBuildData(lngOffset) = CurrentPen.VisColor
-                  //add to queue
-                  Queue(QueueEnd) = lngOffset
-                  QueueEnd = QueueEnd + 1
-                }
-              }
-              //if pixel to left is white,
-              if (X > 0) {
-                lngOffset = Y * 160 + X - 1
-                if (VisBuildData(lngOffset) == AGIColors.agWhite) {
-                  //set it
-                  VisBuildData(lngOffset) = CurrentPen.VisColor
-                  //add to queue
-                  Queue(QueueEnd) = lngOffset
-                  QueueEnd = QueueEnd + 1
-                }
-              }
-              //if pixel to right is white,
-              if (X < 159) {
-                lngOffset = Y * 160 + X + 1
-                if (VisBuildData(lngOffset) == AGIColors.agWhite) {
-                  //set it
-                  VisBuildData(lngOffset) = CurrentPen.VisColor
-                  //add to queue
-                  Queue(QueueEnd) = lngOffset
-                  QueueEnd = QueueEnd + 1
-                }
-              }
-              //if pixel below is white
-              if (Y < 167) {
-                lngOffset = (Y + 1) * 160 + X
-                if (VisBuildData(lngOffset) == AGIColors.agWhite) {
-                  //set it
-                  VisBuildData(lngOffset) = CurrentPen.VisColor
-                  //add to queue
-                  Queue(QueueEnd) = lngOffset
-                  QueueEnd = QueueEnd + 1
-                }
-              }
-            Loop Until QueueStart = QueueEnd
-          }
-        } else {
-          //if color is not red, and current pixel IS red,
-          if (CurrentPen.PriColor != AGIColors.agRed && PriBuildData(X + 160 * Y) == AGIColors.agRed) {
-            //store the starting point in first queue position
-            QueueStart = 0
-            QueueEnd = 1
-            lngOffset = Y * 160 + X
-            Queue(QueueStart) = lngOffset
-            //set first point
-            PriBuildData(lngOffset) = CurrentPen.PriColor
-
-            Do
-              lngOffset = Queue(QueueStart)
-              X = lngOffset % 160
-              Y = lngOffset \ 160
-              QueueStart = QueueStart + 1
-
-              //if pixel above is red,
-              if (Y > 0) {
-                lngOffset = (Y - 1) * 160 + X
-                if (PriBuildData(lngOffset) == AGIColors.agRed) {
-                  //set it
-                  PriBuildData(lngOffset) = CurrentPen.PriColor
-                  //add to queue
-                  Queue(QueueEnd) = lngOffset
-                  QueueEnd = QueueEnd + 1
-                }
-              }
-              //if pixel to left is red,
-              if (X > 0) {
-                lngOffset = Y * 160 + X - 1
-                if (PriBuildData(lngOffset) == AGIColors.agRed) {
-                  //set it
-                  PriBuildData(lngOffset) = CurrentPen.PriColor
-                  //add to queue
-                  Queue(QueueEnd) = lngOffset
-                  QueueEnd = QueueEnd + 1
-                }
-              }
-              //if pixel to right is red,
-              if (X < 159) {
-                lngOffset = Y * 160 + X + 1
-                if (PriBuildData(lngOffset) == AGIColors.agRed) {
-                  //set it
-                  PriBuildData(lngOffset) = CurrentPen.PriColor
-                  //add to queue
-                  Queue(QueueEnd) = lngOffset
-                  QueueEnd = QueueEnd + 1
-                }
-              }
-              //if pixel below is red
-              if (Y < 167) {
-                lngOffset = (Y + 1) * 160 + X
-                if (PriBuildData(lngOffset) == AGIColors.agRed) {
-                  //set it
-                  PriBuildData(lngOffset) = CurrentPen.PriColor
-                  //add to queue
-                  Queue(QueueEnd) = lngOffset
-                  QueueEnd = QueueEnd + 1
-                }
-              }
-            Loop Until QueueStart = QueueEnd
-          }
-        }
-      //if drawing both
-      } else if ((CurrentPen.VisColor < AGIColors.agNone) && (CurrentPen.VisColor < AGIColors.agNone)) {
-        //if picture draw color is NOT white, and current pixel is white
-        if (CurrentPen.VisColor != AGIColors.agWhite && VisBuildData(X + 160 * Y) == AGIColors.agWhite) {
-          //store the starting point in first queue position
-          QueueStart = 0
-          QueueEnd = 1
-          lngOffset = Y * 160 + X
-          Queue(QueueStart) = lngOffset
-          //set first point
-          VisBuildData(lngOffset) = CurrentPen.VisColor
-          PriBuildData(lngOffset) = CurrentPen.PriColor
-
-          Do
-            lngOffset = Queue(QueueStart)
-            X = lngOffset % 160
-            Y = lngOffset \ 160
-            QueueStart = QueueStart + 1
-
-            //if pixel above is white,
-            if (Y > 0) {
-              lngOffset = (Y - 1) * 160 + X
-              if (VisBuildData(lngOffset) == AGIColors.agWhite) {
-                //set it
-                VisBuildData(lngOffset) = CurrentPen.VisColor
-                PriBuildData(lngOffset) = CurrentPen.PriColor
-                //add to queue
-                Queue(QueueEnd) = lngOffset
-                QueueEnd = QueueEnd + 1
-              }
-            }
-            //if pixel to left is white,
-            if (X > 0) {
-              lngOffset = Y * 160 + X - 1
-              if (VisBuildData(lngOffset) == AGIColors.agWhite) {
-                //set it
-                VisBuildData(lngOffset) = CurrentPen.VisColor
-                PriBuildData(lngOffset) = CurrentPen.PriColor
-                //add to queue
-                Queue(QueueEnd) = lngOffset
-                QueueEnd = QueueEnd + 1
-              }
-            }
-            //if pixel to right is white,
-            if (X < 159) {
-              lngOffset = Y * 160 + X + 1
-              if (VisBuildData(lngOffset) == AGIColors.agWhite) {
-                //set it
-                VisBuildData(lngOffset) = CurrentPen.VisColor
-                PriBuildData(lngOffset) = CurrentPen.PriColor
-                //add to queue
-                Queue(QueueEnd) = lngOffset
-                QueueEnd = QueueEnd + 1
-              }
-            }
-            //if pixel below is white
-            if (Y < 167) {
-              lngOffset = (Y + 1) * 160 + X
-              if (VisBuildData(lngOffset) == AGIColors.agWhite) {
-                //set it
-                VisBuildData(lngOffset) = CurrentPen.VisColor
-                PriBuildData(lngOffset) = CurrentPen.PriColor
-                //add to queue
-                Queue(QueueEnd) = lngOffset
-                QueueEnd = QueueEnd + 1
-              }
-            }
-          Loop Until QueueStart = QueueEnd
-        }
-      }
+      int QueueStart, QueueEnd, lngOffset;
+      byte X, Y;
 
       //get next byte
       bytIn = agPicData[lngPos];
       lngPos++;
-    Loop
-  Exit Sub
+      while (bytIn < 0xF0 && lngPos <= lngEndPos) //Do Until bytIn >= 0xF0 || lngPos > lngEndPos
+      {
+        //save x, get Y
+        X = (byte)bytIn;
+        Y = agPicData[lngPos];
+        lngPos++;
+        //if visual OR priority but not both
+        if ((CurrentPen.VisColor < AGIColors.agNone) ^ (CurrentPen.PriColor < AGIColors.agNone))
+        {
+          //if drawing visual
+          if (CurrentPen.VisColor < AGIColors.agNone)
+          {
+            //if color is not white, and current pixel IS white,
+            if (CurrentPen.VisColor != AGIColors.agWhite && (AGIColors)VisBuildData[X + 160 * Y] == AGIColors.agWhite)
+            {
+              //store the starting point in first queue position
+              QueueStart = 0;
+              QueueEnd = 1;
+              lngOffset = Y * 160 + X;
+              Queue[QueueStart] = lngOffset;
+              //set first point
+              VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
 
-  ErrHandler:
-    //////Debug.Assert false
-    //no way to handle if a bad pixel is encountered; just give up
-    strError = Err.Description
-    strErrSrc = Err.Source
-    lngError = Err.Number
+              do
+              {
+                lngOffset = Queue[QueueStart];
+                X = (byte)(lngOffset % 160);
+                Y = (byte)(lngOffset / 160);
+                QueueStart++;
 
-    On Error GoTo 0: Err.Raise vbObjectError + 662, strErrSrc, Replace(LoadResString(662), ARG1, CStr(lngError) & ":" & strError)
-  }
+                //if pixel above is white,
+                if (Y > 0)
+                {
+                  lngOffset = (Y - 1) * 160 + X;
+                  if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                  {
+                    //set it
+                    VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
+                    //add to queue
+                    Queue[QueueEnd] = lngOffset;
+                    QueueEnd++;
+                  }
+                }
+                //if pixel to left is white,
+                if (X > 0)
+                {
+                  lngOffset = Y * 160 + X - 1;
+                  if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                  {
+                    //set it
+                    VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
+                    //add to queue
+                    Queue[QueueEnd] = lngOffset;
+                    QueueEnd++;
+                  }
+                }
+                //if pixel to right is white,
+                if (X < 159)
+                {
+                  lngOffset = Y * 160 + X + 1;
+                  if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                  {
+                    //set it
+                    VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
+                    //add to queue
+                    Queue[QueueEnd] = lngOffset;
+                    QueueEnd++;
+                  }
+                }
+                //if pixel below is white
+                if (Y < 167)
+                {
+                  lngOffset = (Y + 1) * 160 + X;
+                  if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                  {
+                    //set it
+                    VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
+                    //add to queue
+                    Queue[QueueEnd] = lngOffset;
+                    QueueEnd++;
+                  }
+                }
+              }
+              while (QueueStart != QueueEnd); //Loop Until QueueStart = QueueEnd
+            }
+          }
+          else
+          {
+            //if color is not red, and current pixel IS red,
+            if (CurrentPen.PriColor != AGIColors.agRed && (AGIColors)PriBuildData[X + 160 * Y] == AGIColors.agRed)
+            {
+              //store the starting point in first queue position
+              QueueStart = 0;
+              QueueEnd = 1;
+              lngOffset = Y * 160 + X;
+              Queue[QueueStart] = lngOffset;
+              //set first point
+              PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
+              do
+              {
+                lngOffset = Queue[QueueStart];
+                X = (byte)(lngOffset % 160);
+                Y = (byte)(lngOffset / 160);
+                QueueStart++;
+                //if pixel above is red,
+                if (Y > 0)
+                {
+                  lngOffset = (Y - 1) * 160 + X;
+                  if ((AGIColors)PriBuildData[lngOffset] == AGIColors.agRed)
+                  {
+                    //set it
+                    PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
+                    //add to queue
+                    Queue[QueueEnd] = lngOffset;
+                    QueueEnd++;
+                  }
+                }
+                //if pixel to left is red,
+                if (X > 0)
+                {
+                  lngOffset = Y * 160 + X - 1;
+                  if ((AGIColors)PriBuildData[lngOffset] == AGIColors.agRed)
+                  {
+                    //set it
+                    PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
+                    //add to queue
+                    Queue[QueueEnd] = lngOffset;
+                    QueueEnd++;
+                  }
+                }
+                //if pixel to right is red,
+                if (X < 159)
+                {
+                  lngOffset = Y * 160 + X + 1;
+                  if ((AGIColors)PriBuildData[lngOffset] == AGIColors.agRed)
+                  {
+                    //set it
+                    PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
+                    //add to queue
+                    Queue[QueueEnd] = lngOffset;
+                    QueueEnd++;
+                  }
+                }
+                //if pixel below is red
+                if (Y < 167)
+                {
+                  lngOffset = (Y + 1) * 160 + X;
+                  if ((AGIColors)PriBuildData[lngOffset] == AGIColors.agRed)
+                  {
+                    //set it
+                    PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
+                    //add to queue
+                    Queue[QueueEnd] = lngOffset;
+                    QueueEnd++;
+                  }
+                }
+              }
+              while (QueueStart != QueueEnd); // Loop Until QueueStart = QueueEnd
+            }
+          }
+          //if drawing both
+        }
+        else if ((CurrentPen.VisColor < AGIColors.agNone) && (CurrentPen.VisColor < AGIColors.agNone))
+        {
+          //if picture draw color is NOT white, and current pixel is white
+          if (CurrentPen.VisColor != AGIColors.agWhite && (AGIColors)VisBuildData[X + 160 * Y] == AGIColors.agWhite)
+          {
+            //store the starting point in first queue position
+            QueueStart = 0;
+            QueueEnd = 1;
+            lngOffset = Y * 160 + X;
+            Queue[QueueStart] = lngOffset;
+            //set first point
+            VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
+            PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
+
+            do
+            {
+              lngOffset = Queue[QueueStart];
+              X = (byte)(lngOffset % 160);
+              Y = (byte)(lngOffset / 160);
+              QueueStart++;
+
+              //if pixel above is white,
+              if (Y > 0)
+              {
+                lngOffset = (Y - 1) * 160 + X;
+                if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                {
+                  //set it
+                  VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
+                  PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
+                  //add to queue
+                  Queue[QueueEnd] = lngOffset;
+                  QueueEnd++;
+                }
+              }
+              //if pixel to left is white,
+              if (X > 0)
+              {
+                lngOffset = Y * 160 + X - 1;
+                if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                {
+                  //set it
+                  VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
+                  PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
+                  //add to queue
+                  Queue[QueueEnd] = lngOffset;
+                  QueueEnd++;
+                }
+              }
+              //if pixel to right is white,
+              if (X < 159)
+              {
+                lngOffset = Y * 160 + X + 1;
+                if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                {
+                  //set it
+                  VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
+                  PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
+                  //add to queue
+                  Queue[QueueEnd] = lngOffset;
+                  QueueEnd++;
+                }
+              }
+              //if pixel below is white
+              if (Y < 167)
+              {
+                lngOffset = (Y + 1) * 160 + X;
+                if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                {
+                  //set it
+                  VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
+                  PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
+                  //add to queue
+                  Queue[QueueEnd] = lngOffset;
+                  QueueEnd++;
+                }
+              }
+            }
+            while (QueueStart != QueueEnd); //Loop Until QueueStart = QueueEnd
+          }
+        }
+        //get next byte
+        bytIn = agPicData[lngPos];
+        lngPos++;
+      }//Loop
+    }
+      static void temp()
+    {
+
+      /*
   Public Function GetColVal(lngEGAIn As Long) As Long
     //this one can't really be explained
     //basically it attempts to convert a long color Value

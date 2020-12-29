@@ -29,15 +29,18 @@ namespace WinAGI_GDS
     /// </summary>
     private void InitializeComponent()
     {
+      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPicEdit));
       this.picVisual = new System.Windows.Forms.PictureBox();
       ((System.ComponentModel.ISupportInitialize)(this.picVisual)).BeginInit();
       this.SuspendLayout();
       // 
       // picVisual
       // 
-      this.picVisual.Location = new System.Drawing.Point(56, 72);
+      this.picVisual.Image = ((System.Drawing.Image)(resources.GetObject("picVisual.Image")));
+      this.picVisual.Location = new System.Drawing.Point(12, 12);
       this.picVisual.Name = "picVisual";
-      this.picVisual.Size = new System.Drawing.Size(320, 168);
+      this.picVisual.Size = new System.Drawing.Size(640, 336);
+      this.picVisual.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
       this.picVisual.TabIndex = 0;
       this.picVisual.TabStop = false;
       // 

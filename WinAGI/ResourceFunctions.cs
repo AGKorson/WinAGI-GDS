@@ -495,7 +495,7 @@ namespace WinAGI
             bytExpandedData[lngTempCurPos] = (byte)(bytCurComp >> 4);
             lngTempCurPos += 1;
             //fill buffer
-            bytBuffer = (byte)(bytCurComp >> 4);
+            bytBuffer = (byte)(bytCurComp << 4);
             blnOffset = true;
           }
         }

@@ -61,7 +61,7 @@ namespace WinAGI_GDS
       //int retval = OpenGameWAG(@"C:\Users\Andy\OneDrive\AGI Stuff\AGI Test Games\AGItest\test game.wag");
 
       // at work:
-      int retval = OpenGameWAG(@"Z:\AGI Test Games\AGItest\test game.wag");
+      int retval = OpenGameWAG(@"C:\Users\d3m294\OneDrive - PNNL\Desktop\WinAGI\GR-IIGS\GR.wag");
       MessageBox.Show($"opengame result: {retval.ToString()}");
     }
 
