@@ -29,36 +29,50 @@ namespace WinAGI_GDS
     /// </summary>
     private void InitializeComponent()
     {
-      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPicEdit));
       this.picVisual = new System.Windows.Forms.PictureBox();
+      this.trackBar1 = new System.Windows.Forms.TrackBar();
       ((System.ComponentModel.ISupportInitialize)(this.picVisual)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
       this.SuspendLayout();
       // 
       // picVisual
       // 
-      this.picVisual.Image = ((System.Drawing.Image)(resources.GetObject("picVisual.Image")));
-      this.picVisual.Location = new System.Drawing.Point(12, 12);
+      this.picVisual.Location = new System.Drawing.Point(22, 26);
+      this.picVisual.Margin = new System.Windows.Forms.Padding(6);
       this.picVisual.Name = "picVisual";
-      this.picVisual.Size = new System.Drawing.Size(640, 336);
-      this.picVisual.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+      this.picVisual.Size = new System.Drawing.Size(1189, 717);
       this.picVisual.TabIndex = 0;
       this.picVisual.TabStop = false;
       // 
+      // trackBar1
+      // 
+      this.trackBar1.Location = new System.Drawing.Point(465, 826);
+      this.trackBar1.Name = "trackBar1";
+      this.trackBar1.Size = new System.Drawing.Size(899, 90);
+      this.trackBar1.TabIndex = 2;
+      this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll);
+      // 
       // frmPicEdit
       // 
-      this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+      this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(800, 450);
+      this.ClientSize = new System.Drawing.Size(1486, 960);
+      this.Controls.Add(this.trackBar1);
       this.Controls.Add(this.picVisual);
+      this.Margin = new System.Windows.Forms.Padding(6);
       this.Name = "frmPicEdit";
       this.Text = "frmPicEdit";
+      this.Load += new System.EventHandler(this.frmPicEdit_Load);
       ((System.ComponentModel.ISupportInitialize)(this.picVisual)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
       this.ResumeLayout(false);
+      this.PerformLayout();
 
     }
 
     #endregion
 
     private System.Windows.Forms.PictureBox picVisual;
+    private System.Windows.Forms.TrackBar trackBar1;
   }
 }

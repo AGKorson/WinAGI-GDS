@@ -2135,7 +2135,7 @@ namespace WinAGI
         {
           Default = Default.Replace("\r", "\\n");
         }
-        if (Default.IndexOf("\n", 1) >= 0)
+        if (Default.IndexOf("\n", 0) >= 0)
         {
           Default = Default.Replace("\n", "\\n");
         }

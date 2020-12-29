@@ -54,14 +54,19 @@ namespace WinAGI_GDS
 
     private void btnOpenGame_Click(object sender, EventArgs e)
     {
+      int retval;
       //MessageBox.Show("need to fully test Read/Write settings functions; since VB is 1 based, the functions may not be working correctly in all cases, especially for bad format input and edge cases");
       //ok, let's try to open a game!
-
-      // at home:
-      //int retval = OpenGameWAG(@"C:\Users\Andy\OneDrive\AGI Stuff\AGI Test Games\AGItest\test game.wag");
-
-      // at work:
-      int retval = OpenGameWAG(@"C:\Users\d3m294\OneDrive - PNNL\Desktop\WinAGI\GR-IIGS\GR.wag");
+      if (SystemInformation.UserName == "agkor")
+      {
+        // at home:
+        retval = OpenGameWAG(@"C:\Users\Andy\OneDrive\AGI Stuff\AGI Test Games\GRm\gr.wag");
+      }
+      else
+      {
+        // at work:
+        retval = OpenGameWAG(@"C:\Users\d3m294\OneDrive - PNNL\Desktop\WinAGI\GR-IIGS\GR.wag");
+      }
       MessageBox.Show($"opengame result: {retval.ToString()}");
     }
 
