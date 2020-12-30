@@ -70,7 +70,7 @@ namespace WinAGI
       strBaseID = strID;
       while (!IsUniqueResID(strID))
       {
-        intNextNum += 1;
+        intNextNum++;
         strID = strBaseID + "_" + intNextNum;
       }
       //add it
@@ -144,7 +144,7 @@ namespace WinAGI
         strID = strBaseID = "Logic" + NewLogic;
         while (!IsUniqueResID(strID))
         {
-          intNextNum += 1;
+          intNextNum++;
           strID = strBaseID + "_" + intNextNum;
         }
         try

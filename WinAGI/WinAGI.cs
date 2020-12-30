@@ -301,14 +301,16 @@ namespace WinAGI
     internal static TDefine[] agResDef = new TDefine[6];    //5 //defines for ego, gamever, gameabout, gameid, invobj Count
     internal static TDefine[] agResColor = new TDefine[16];  //15 //predefined color values
 
+    //warning count value stored in Common file, so it can be used by the IDE as well as the engine
+    internal const int WARNCOUNT = 107;
+    internal static bool[] agNoCompWarn = new bool[WARNCOUNT];
+
     //user defined global arguments
     internal static TDefine[] agGlobal; //dynamic size
     internal static int agGlobalCount;
     internal static bool agGlobalsSet;
     internal static uint agGlobalCRC;
 
-    //warning count value stored in Common file, so it can be used by the IDE as well as the engine
-    internal static bool[] agNoCompWarn; // WARNCOUNT
     //error number and string to return error values
     //from various functions/subroutines
     internal static int lngError = 0;
@@ -361,6 +363,13 @@ namespace WinAGI
       if (pos + length > strIn.Length)
         return strIn.Substring(pos, strIn.Length - pos);
       return strIn.Substring(pos, length);
+    }
+    internal static string MultStr(string strIn, int NumCopies)
+    {
+      string retval = "";
+      for (int i = 1; i <= NumCopies; i++)
+        retval += strIn;
+      return retval;
     }
     /// <summary>
     /// Extension method that works out if a string is numeric or not
@@ -1185,7 +1194,7 @@ namespace WinAGI
       if ((DefName.ToLower() == "if") || (DefName.ToLower() == "else") ||
          (DefName.ToLower() == "goto"))
         return 5;
-      // use LINQ - if the name starts with any of these letters
+      // if the name starts with any of these letters
       if ("vfmoiswc".Any(DefName.ToLower().StartsWith))
         //if rest of string is numeric
         if (IsNumeric(Right(DefName, DefName.Length - 1)))
@@ -1387,7 +1396,7 @@ namespace WinAGI
       while (lngPos < strLine.Length - 1)
       {
         //get next character from string
-        lngPos += 1;
+        lngPos++;
         //if NOT inside a quotation,
         if (!blnInQuotes)
         {
@@ -3212,7 +3221,7 @@ namespace WinAGI
             break;
         }
         //invert red and blue components for revcolor
-        lngEGARevCol[i] = (uint)(lngEGACol[i] & 0xFF000000);
+        lngEGARevCol[i] = lngEGACol[i] & 0xFF000000;
         lngEGARevCol[i] += ((lngEGACol[i] & 0xFF) << 16) + (lngEGACol[i] & 0xFF00) + ((lngEGACol[i] & 0xFF0000) >> 16);
       }
       //description

@@ -123,7 +123,7 @@ namespace WinAGI_GDS
     {
       //lets try to load a logic!
       Logics[5].Load();
-      MessageBox.Show($"Logic 0 ({Logics[5].ID}) is loaded: {Logics[5].Loaded.ToString()}");
+      MessageBox.Show($"Logic 0 ({Logics[5].ID}) is loaded: {Logics[5].Loaded}");
       // assign it to new logic form!
       frmLogicEdit frmNew = new frmLogicEdit();
       frmNew.MdiParent = this;

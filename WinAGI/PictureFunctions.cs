@@ -213,26 +213,26 @@ namespace WinAGI
         PriData = PriBuildData;
 
         //depending on error, set warning level
-        switch (e.HResult)
+        if (e is IndexOutOfRangeException)
         {
-          case 9:  //subscript error- caused when a draw function expects
-                   //another byte of data, but end of data is reached
-                   //confirm it
-            if (lngPos > EndPos)
-            {
-              //set warning flag
-              retval |= 1;
-            }
-            else
-            {
-              //something else
-              retval |= 8;
-            }
-            break;
-          default:
-            //any other error- just pass it along
+          //case 9:  //subscript error- caused when a draw function expects
+          //another byte of data, but end of data is reached
+          //confirm it
+          if (lngPos > EndPos)
+          {
+            //set warning flag
+            retval |= 1;
+          }
+          else
+          {
+            //something else
             retval |= 8;
-            break;
+          }
+        }
+        else
+        { 
+          //any other error- just pass it along
+          retval |= 8;
         }
       }
 
@@ -327,18 +327,18 @@ namespace WinAGI
     {
       int lngIndex = xPos + yPos * 160;
 
-    if (lngIndex <= 26879)
+      if (lngIndex <= 26879)
       {
-      if (CurrentPen.VisColor < AGIColors.agNone)
-      {
+        if (CurrentPen.VisColor < AGIColors.agNone)
+        {
           VisBuildData[lngIndex] = (byte)CurrentPen.VisColor;
-      }
-      if (CurrentPen.PriColor < AGIColors.agNone)
-      {
+        }
+        if (CurrentPen.PriColor < AGIColors.agNone)
+        {
           PriBuildData[lngIndex] = (byte)CurrentPen.PriColor;
+        }
       }
     }
-  }
     private static void DrawLine(int X1, int Y1, int X2, int Y2)
     {
       int xPos, yPos;
@@ -502,7 +502,7 @@ namespace WinAGI
     {
       short xdisp, ydisp;
       byte X1, Y1;
- 
+
       //read in starting position
       X1 = agPicData[lngPos];
       lngPos++;
@@ -510,7 +510,7 @@ namespace WinAGI
       lngPos++;
       //set pixel of starting position
       DrawPixel(X1, Y1);
- 
+
       //get next potential command
       bytIn = agPicData[lngPos];
       lngPos++;
@@ -562,7 +562,7 @@ namespace WinAGI
         {
           PatternNum = (byte)(bytIn | 1);
           //next byte will be the Xpos
-        bytIn = agPicData[lngPos];
+          bytIn = agPicData[lngPos];
           lngPos++;
           if (bytIn >= 0xF0)
           {
@@ -615,7 +615,7 @@ namespace WinAGI
             for (X = 0; X <= CurrentPen.PlotSize; X++)
             {
               //if pixel is within circle shape,
-              if ((CircleData[(CurrentPen.PlotSize * CurrentPen.PlotSize) + Y] & (1 >> (7 - X)))  == (1 >> (7 - X)))
+              if ((CircleData[(CurrentPen.PlotSize * CurrentPen.PlotSize) + Y] & (1 >> (7 - X))) == (1 >> (7 - X)))
               {
                 //if style is splatter
                 if (CurrentPen.PlotStyle == EPlotStyle.psSplatter)
@@ -661,7 +661,7 @@ namespace WinAGI
                 else
                 {
                   PatternNum /= 2;
-              }
+                }
                 if ((PatternNum & 3) == 2)
                 {
                   DrawPixel(X + PlotX, Y + PlotY);
@@ -936,89 +936,87 @@ namespace WinAGI
         lngPos++;
       }//Loop
     }
-      static void temp()
+    public static int GetColVal(int lngEGAIn)
     {
+      //basically it attempts to convert a long color Value
+      //into the corresponding AGI color index with the least
+      //amount of calculations
+      //it is an empirically derived algorithm
 
-      /*
-  Public Function GetColVal(lngEGAIn As Long) As Long
-    //this one can't really be explained
-    //basically it attempts to convert a long color Value
-    //into the corresponding AGI color index with the least
-    //amount of calculations
-    //it is an empirically derived algorithm
+      //NOTE: if (this method is called with a color Value
+      //other than the defined EGA color values for AGI, then
+      //I have absolutely no idea what the return Value may
+      //look like.
 
-    //NOTE: if (this method is called with a color Value
-    //other than the defined EGA color values for AGI, then
-    //I have absolutely no idea what the return Value may
-    //look like.
+      int cR, cG, cB, vR, vG, vB;
+      int retval;
 
-    Dim cR As Long, cG As Long, cB As Long
-    Dim vR As Long, vG As Long, vB As Long
-
-    //split the color up
-
-    cR = lngEGAIn % 256
-    cG = (lngEGAIn / 256) % 256
-    cB = (lngEGAIn / 65536) % 256
-
-
-    //convert to component numbers
-    if (cR == 0xFF) {
-      vR = 32
-    } else if (cR == 0) {
-      vR = 0
-    } else {
-      vR = 16
-    }
-
-    if (cG == 0xFF) {
-      vG = 32
-    } else if (cG == 0) {
-      vG = 0
-    } else {
-      vG = 16
-    }
-
-    if (cB == 0xFF) {
-      vB = 32
-    } else if (cB == 0) {
-      vB = 0
-    } else {
-      vB = 16
-    }
-
-    //build composite
-    GetColVal = (vB + vG * 2 + vR * 4) / 16
-
-    //if <5
-    if (GetColVal < 5) {
-      Exit Function
-    }
-
-    //if >9
-    if (GetColVal > 9) {
-      GetColVal = GetColVal + 1
-      Exit Function
-    }
-
-    //if red is >80(0x50)
-    if (cR > 0x50&) {
-      Exit Function
-    }
-
-    //three cases left:
-    //7,8,5 corresponding to 8,9,10
-    if (GetColVal > 6) {
-      GetColVal = GetColVal + 1
-      Exit Function
-    }
-
-    //only one left is light green
-    GetColVal = 10
-  End Function
-
-
-      */
+      //split the color up
+      cR = lngEGAIn % 256;
+      cG = (lngEGAIn / 256) % 256;
+      cB = (lngEGAIn / 65536) % 256;
+      //convert to component numbers
+      if (cR == 0xFF)
+      {
+        vR = 32;
+      }
+      else if (cR == 0)
+      {
+        vR = 0;
+      }
+      else
+      {
+        vR = 16;
+      }
+      if (cG == 0xFF)
+      {
+        vG = 32;
+      }
+      else if (cG == 0)
+      {
+        vG = 0;
+      }
+      else
+      {
+        vG = 16;
+      }
+      if (cB == 0xFF)
+      {
+        vB = 32;
+      }
+      else if (cB == 0)
+      {
+        vB = 0;
+      }
+      else
+      {
+        vB = 16;
+      }
+      //build composite
+      retval = (vB + vG * 2 + vR * 4) / 16;
+      //if <5
+      if (retval < 5)
+      {
+        return retval;
+      }
+      //if >9
+      if (retval > 9)
+      {
+        return retval++;
+      }
+      //if red is >80(0x50)
+      if (cR > 0x50)
+      {
+        return retval;
+      }
+      //three cases left:
+      //7,8,5 corresponding to 8,9,10
+      if (retval > 6)
+      {
+        return retval++;
+      }
+      //only one left is light green
+      return 10;
     }
   }
 }

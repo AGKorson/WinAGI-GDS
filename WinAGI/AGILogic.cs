@@ -44,8 +44,16 @@ namespace WinAGI
         // pass it along
         throw;
       }
-      //load the sourcetext
-      LoadSource();
+      try
+      {
+        //load the sourcetext
+        LoadSource();
+      }
+      catch (Exception)
+      {
+        // pass it along
+        throw;
+      }
 
       //compiledCRC Value should already be set,
       //and source crc gets calculated when source is loaded
@@ -219,7 +227,7 @@ namespace WinAGI
     {
       ////let's do a test
       //// increment number everytime data changes
-      //Number += 1;
+      //Number++;
     }
     private void SaveProps()
     {
@@ -382,7 +390,6 @@ namespace WinAGI
       //loads LoadFile as the source code
       //for not-ingame, calling code must first set sourcefile name
       string strInput, LoadFile;
-      byte[] bytIn;
 
       //if in a game,
       if (mInGame)
@@ -462,7 +469,7 @@ namespace WinAGI
         }
       }
       //set loaded flag and dirty status
-      IsDirty = false;
+      mIsDirty = false;
       mSourceDirty = false;
     }
     public string SourceText

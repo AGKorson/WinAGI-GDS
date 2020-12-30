@@ -25,19 +25,21 @@ namespace WinAGI_GDS
       // load the picture
       Pictures[1].Load();
 
-      // toss current image
-      if (picVisual.Image != null) picVisual.Image.Dispose();
-      //create a new image to draw on, sized to hold the zoom image
-      Bitmap newVis = new Bitmap(640, 336);
-      // graphics object lets us draw the image with correct scaling
-      using (Graphics g = Graphics.FromImage(newVis))
+      //to scale the picture without blurring, need to use NearestNeighbor interpolation
+      // that can't be set directly, so a graphics object is needed to draw the
+      // the picture
+
+      // first, create new image in the picture box that is desired size
+      picVisual.Image = new Bitmap(640, 336);
+      // intialize a graphics object for the image just created
+      using (Graphics g = Graphics.FromImage(picVisual.Image))
       {
-        // this is the trick- interpolation = NearestNeighbor
+        // set correct interpolation mode
         g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-        g.DrawImage(Pictures[1].VisualBMP, 0, 0, 640, 336);// new Rectangle(Point.Empty, new Size(320, 168)));
+        // draw the bitmap, at correct resolution
+        g.DrawImage(Pictures[1].VisualBMP, 0, 0, 640, 336);
       }
-      // now copy the correctly scaled image to our picbox
-      picVisual.Image = newVis;
+
     }
 
     private void frmPicEdit_Load(object sender, EventArgs e)
@@ -48,28 +50,21 @@ namespace WinAGI_GDS
     private void trackBar1_Scroll(object sender, EventArgs e)
     {
 
-      //resize by creating a new bitmap object that we draw the
-      // the image on with correct scaling
-
-      // get rid of existing image
-      if (picVisual.Image != null) picVisual.Image.Dispose();
+      //resize our picture on the fly
 
       // convert trackbar value to a zoom factor
       float zoom = (float)(trackBar1.Value / 2f + 1);
 
-      // create new bitmap to hold zoomed image
-      Bitmap imgZoom = new Bitmap( (int)(320 * zoom), (int)(168 * zoom));
-
-      // use grahics object to draw the image scaled correctly
-      using (Graphics g = Graphics.FromImage(imgZoom))
+      // first, create new image in the picture box that is desired size
+      picVisual.Image = new Bitmap((int)(320 * zoom), (int)(168 * zoom));
+      // intialize a graphics object for the image just created
+      using (Graphics g = Graphics.FromImage(picVisual.Image))
       {
-        // secret is using 'NearestNeighbor mode
+        // set correct interpolation mode
         g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-        //g.DrawImage(bmp, new Rectangle(0, 0, (int)(320 * zoom), (int)(168 * zoom)));
+        // draw the bitmap, at correct resolution
         g.DrawImage(Pictures[1].VisualBMP, 0, 0, 320 * zoom, 168 * zoom);
       }
-      // now copy the new zoomed image to our picturebox
-      picVisual.Image = imgZoom;
     }
   } 
 }

@@ -39,7 +39,7 @@ namespace WinAGI
     internal const string NOTEQUAL_TOKEN = "!=";
     internal const string EQUAL_TOKEN = "==";
     internal const string CONST_TOKEN = "#define ";
-    internal const string MSG_TOKEN = "#message";
+    private const string MSG_TOKEN = "#message";
     internal const string CMT1_TOKEN = "[";
     internal const string CMT2_TOKEN = "//";
     internal static byte bytLogComp;

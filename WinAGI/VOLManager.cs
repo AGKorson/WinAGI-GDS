@@ -722,7 +722,7 @@ namespace WinAGI
       else
       {
         //calculate directory bytes
-        DirByte[0] = (byte)((UpdateResource.Volume * 0x10) + (UpdateResource.Loc >> 16));
+        DirByte[0] = (byte)((UpdateResource.Volume * 0x10) + ((uint)UpdateResource.Loc >> 16));
         DirByte[1] = (byte)((UpdateResource.Loc % 0x10000) / 0x100);
         DirByte[2] = (byte)(UpdateResource.Loc % 0x100);
       }

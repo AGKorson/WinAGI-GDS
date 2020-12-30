@@ -49,7 +49,7 @@ namespace WinAGI
     {
       ////let's do a test
       //// increment number everytime data changes
-      //Number += 1;
+      //Number++;
     }
     internal void SetView(AGIView newView)
     {

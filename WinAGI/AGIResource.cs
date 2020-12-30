@@ -567,7 +567,7 @@ namespace WinAGI
           if (mRData.Length != lngExpandedSize)
           {
             //all other resources use LZW compression
-            ExpandV3ResData(mRData.AllData, lngExpandedSize);
+            mRData.AllData = ExpandV3ResData(mRData.AllData, lngExpandedSize);
             //if expanding a logic
             if (mResType == AGIResType.rtLogic)
             {

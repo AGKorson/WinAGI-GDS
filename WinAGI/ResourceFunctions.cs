@@ -19,10 +19,10 @@ namespace WinAGI
 
     //variables used in extracting compressed resources
     private static int lngMaxCode;
-    private static int[] intPrefix;
+    private static uint[] intPrefix;
     private static byte[] bytAppend;
     private static int lngBitsInBuffer;
-    private static int lngBitBuffer;
+    private static uint lngBitBuffer;
     private static int lngOriginalSize;
 
     //sound subclassing variables, constants, declarations
@@ -453,7 +453,7 @@ namespace WinAGI
       {
         //get current compressed byte
         bytCurComp = bytOriginalData[intPosIn];
-        intPosIn += 1;
+        intPosIn++;
 
         //if currently offset,
         if (blnOffset)
@@ -472,7 +472,7 @@ namespace WinAGI
         }
         //save byte to temp resource
         bytExpandedData[lngTempCurPos] = bytCurUncomp;
-        lngTempCurPos += 1;
+        lngTempCurPos++;
 
         //check if byte sets or restores offset
         if (((bytCurUncomp == 0xF0) || (bytCurUncomp == 0xF2)) && (intPosIn < bytOriginalData.Length))
@@ -482,7 +482,7 @@ namespace WinAGI
           {
             //write rest of buffer byte
             bytExpandedData[lngTempCurPos] = (byte)(bytBuffer >> 4);
-            lngTempCurPos += 1;
+            lngTempCurPos++;
             //restore offset
             blnOffset = false;
           }
@@ -490,10 +490,10 @@ namespace WinAGI
           {
             //get next byte
             bytCurComp = bytOriginalData[intPosIn];
-            intPosIn += 1;
+            intPosIn++;
             //save the byte, after shifting
             bytExpandedData[lngTempCurPos] = (byte)(bytCurComp >> 4);
-            lngTempCurPos += 1;
+            lngTempCurPos++;
             //fill buffer
             bytBuffer = (byte)(bytCurComp << 4);
             blnOffset = true;
@@ -507,15 +507,16 @@ namespace WinAGI
       Array.Resize(ref bytExpandedData, lngTempCurPos - 1);
       return bytExpandedData;
     }
-    internal static void ExpandV3ResData(byte[] bytOriginalData, int lngExpandedSize)
+    internal static byte[] ExpandV3ResData(byte[] bytOriginalData, int lngExpandedSize)
     {
-      int intPosIn, intPosOut, intNextCode, intNewCode, intOldCode, i;
+      int intPosIn, intPosOut, intNextCode, i;
+      uint intOldCode, intNewCode;
       string strDat;
       char strChar;
       int intCodeSize;
       byte[] bytTempData;
       //initialize variables
-      intPrefix = new int[TABLE_SIZE]; //remember to correct index by 257
+      intPrefix = new uint[TABLE_SIZE]; //remember to correct index by 257
       bytAppend = new byte[TABLE_SIZE]; //remember to correct index by 257
 
       //set temporary data field
@@ -537,15 +538,15 @@ namespace WinAGI
       //this seems wrong! first code should be 258, right?
       //isn't 257 the 'end' code?
 
-      //!!!!why is this set???
-      strChar = (char)0;
       //Read in the first code.
       intOldCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+      //!!!!why is this set???
+      strChar = (char)0;
       //first code for  SIERRA resouces should always be 256
       //if first code is NOT 256
       if (intOldCode != 256)
       {
-        intPrefix = Array.Empty<int>();
+        intPrefix = Array.Empty<uint>();
         bytAppend = Array.Empty<byte>();
         throw new Exception("559, Replace(LoadResString(559), ARG1, CStr(Err.Number))");
       }
@@ -568,7 +569,7 @@ namespace WinAGI
           strChar = (char)intOldCode;
           //write out the first character
           bytTempData[intPosOut] = (byte)intOldCode;
-          intPosOut += 1;
+          intPosOut++;
           //now get next code
           intNewCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
         }
@@ -576,7 +577,7 @@ namespace WinAGI
         {
           // This code checks for the special STRING+character+STRING+character+STRING
           // case which generates an undefined code.  It handles it by decoding
-          // the last code, and adding a single Charactor to the end of the decode string.
+          // the last code, and adding a single Character to the end of the decode string.
           // (new_code will ONLY return a next_code Value if the condition exists;
           // it should otherwise return a known code, or a ascii Value)
           if ((intNewCode >= intNextCode))
@@ -584,7 +585,7 @@ namespace WinAGI
             //decode the string using old code
             strDat = DecodeString(intOldCode);
             //append the character code
-            strDat = strDat + strChar;
+            strDat += strChar;
           }
           else
           {
@@ -598,7 +599,7 @@ namespace WinAGI
           for (i = 0; i < strDat.Length; i++)
           {
             bytTempData[intPosOut] = (byte)strDat[i];
-            intPosOut += 1;
+            intPosOut++;
           }
           //if no more room in the current bit-code table,
           if ((intNextCode > lngMaxCode))
@@ -611,22 +612,20 @@ namespace WinAGI
           //store append character in table
           bytAppend[intNextCode - 257] = (byte)strChar;
           //increment next code pointer
-          intNextCode += 1;
+          intNextCode++;
           intOldCode = intNewCode;
-          //clear the decoded data string
-          strDat = "";
           //get the next code
           intNewCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
         }
       }
 
-      //copy array
-      Array.Resize(ref bytOriginalData, lngExpandedSize);
-      bytOriginalData = bytTempData;
-      //free arrays
-      intPrefix = Array.Empty<int>();
+      ////copy array
+      //Array.Resize(ref bytOriginalData, lngExpandedSize);
+      //bytOriginalData = bytTempData;
+      //free lzw arrays
+      intPrefix = Array.Empty<uint>();
       bytAppend = Array.Empty<byte>();
-      return;
+      return bytTempData;
     }
     internal static byte[] CompressedCel(AGICel Cel, bool blnMirror)
     {
@@ -672,7 +671,7 @@ namespace WinAGI
             //write chunk
             bytTempRLE[lngByteCount] = (byte)((int)bytChunkColor * 0x10 + bytChunkLen);
             //increment Count
-            lngByteCount += 1;
+            lngByteCount++;
 
             //if this is NOT first chunk or NOT transparent)
             if (!blnFirstChunk || (bytChunkColor != mTransColor))
@@ -680,7 +679,7 @@ namespace WinAGI
               //increment lngMirorCount for any chunks
               //after the first, and also for the first
               //if it is NOT transparent color
-              lngMirrorCount += 1;
+              lngMirrorCount++;
             }
             blnFirstChunk = false;
             //set chunk to new color
@@ -691,7 +690,7 @@ namespace WinAGI
           else
           {
             //increment chunk length
-            bytChunkLen += 1;
+            bytChunkLen++;
           }
         }
         //if last chunk is NOT transparent
@@ -700,14 +699,14 @@ namespace WinAGI
           //add last chunk
           bytTempRLE[lngByteCount] = (byte)(bytChunkColor * 0x10 + bytChunkLen);
           //increment Count
-          lngByteCount += 1;
+          lngByteCount++;
         }
         //always Count last chunk for mirror
-        lngMirrorCount += 1;
+        lngMirrorCount++;
         //add zero to indicate end of row
         bytTempRLE[lngByteCount] = 0;
-        lngByteCount += 1;
-        lngMirrorCount += 1;
+        lngByteCount++;
+        lngMirrorCount++;
         //if mirroring
       }
       if (blnMirror)
@@ -726,12 +725,10 @@ namespace WinAGI
       //return the compressed data
       return bytTempRLE;
     }
-    internal static string DecodeString(int intCode)
+    internal static string DecodeString(uint intCode)
     {
       //this function converts a code Value into its original string Value
 
-      //initialize counter
-      int i = 0;
       string retval = "";
 
       while (intCode > 255)
@@ -752,9 +749,9 @@ namespace WinAGI
       retval = (char)intCode + retval;
       return retval;
     }
-    internal static int InputCode(ref byte[] bytData, int intCodeSize, ref int intPosIn)
+    internal static uint InputCode(ref byte[] bytData, int intCodeSize, ref int intPosIn)
     {
-      int lngWord, lngRet;
+      uint lngWord, lngRet;
       //this routine extracts the next code Value off the input stream
       //since the number of bits per code can vary between 9 and 12,
       //can't read in directly from the stream
@@ -786,7 +783,7 @@ namespace WinAGI
       {
         //get next byte
         lngWord = bytData[intPosIn];
-        intPosIn += 1;
+        intPosIn++;
 
         //shift the data to the left by enough bits so the byte being added will not
         //overwrite the bits currently in the buffer, and add the bits to the buffer
@@ -800,10 +797,10 @@ namespace WinAGI
       //since the buffer has 32 bits total, need to clear out all bits above the desired
       //number of bits to define the code (i.e. if 9 bits, AND with 0x1FF; 10 bits,
       //AND with 0x3FF, etc.)
-      lngRet = lngBitBuffer & ((1 << intCodeSize) - 1);
+      lngRet = (uint)(lngBitBuffer & ((1 << intCodeSize) - 1));
 
       //now need to shift the buffer to the RIGHT by the number of bits per code
-      lngBitBuffer = lngBitBuffer >> intCodeSize;
+      lngBitBuffer >>= intCodeSize;
 
       //adjust number of bits currently loaded in buffer
       lngBitsInBuffer -= intCodeSize;

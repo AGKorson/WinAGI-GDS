@@ -33,7 +33,7 @@ namespace WinAGI
     internal static AGISounds agSnds = new AGISounds();
     internal static AGIViews agViews = new AGIViews();
     internal static AGIPictures agPics = new AGIPictures();
-    internal static AGIInventoryObjects agInvObjList = new AGIInventoryObjects();
+    internal static AGIInventoryObjects agInvObj = new AGIInventoryObjects();
     static AGIWordList agVocabWords = new AGIWordList();
     public static AGILogics Logics
     { get => agLogs; set { } }
@@ -46,7 +46,7 @@ namespace WinAGI
     public static AGIWordList WordList
     { get => agVocabWords; set { } }
     public static AGIInventoryObjects InvObjects
-    { get => agInvObjList; set { } }
+    { get => agInvObj; set { } }
 
     //status of game load
     internal static bool agGameLoaded = false;
@@ -467,10 +467,10 @@ namespace WinAGI
       agSnds.Clear();
       agViews.Clear();
 
-      if (agInvObjList.Loaded)
-        agInvObjList.Unload();
+      if (agInvObj.Loaded)
+        agInvObj.Unload();
 
-      agInvObjList.InGame = false;
+      agInvObj.InGame = false;
       if (agVocabWords.Loaded)
         agVocabWords.Unload();
 
@@ -642,11 +642,11 @@ namespace WinAGI
         }
 
         //compile OBJECT file if dirty
-        if (agInvObjList.IsDirty)
+        if (agInvObj.IsDirty)
         {
           try
           {
-            agInvObjList.Save();
+            agInvObj.Save();
           }
           catch (Exception ex)
           {
@@ -676,7 +676,7 @@ namespace WinAGI
               File.Move(NewGameDir + "OBJECT", NewGameDir + "OBJECT.OLD");
             }
             // then copy the current file to new location
-            File.Copy(agInvObjList.ResFile, NewGameDir + "OBJECT");
+            File.Copy(agInvObj.ResFile, NewGameDir + "OBJECT");
           }
           catch (Exception ex)
           {
@@ -1726,7 +1726,7 @@ namespace WinAGI
         agViews = new AGIViews();
         agPics = new AGIPictures();
         agSnds = new AGISounds();
-        agInvObjList = new AGIInventoryObjects();
+        agInvObj = new AGIInventoryObjects();
         agVocabWords = new AGIWordList();
 
         agGameProps = new List<string> { };
@@ -1752,9 +1752,9 @@ namespace WinAGI
       //load inventory objects list
       Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtObjects, 0, "");
       try {
-        agInvObjList = new AGIInventoryObjects();
+        agInvObj = new AGIInventoryObjects();
         //agInvObjList.Init
-        agInvObjList.Load(agGameDir + "OBJECT");
+        agInvObj.Load(agGameDir + "OBJECT");
       } catch (Exception e) {
       //if there was an error,
         //note the problem in the error log as a warning

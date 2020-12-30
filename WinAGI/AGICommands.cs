@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
-
+using static WinAGI.WinAGI;
+using static WinAGI.ArgTypeEnum;
 namespace WinAGI
 {
   public static class AGICommands
@@ -20,18 +21,7 @@ namespace WinAGI
     internal static byte agNumCmds;
     internal static CommandStruct[] agCmds = new CommandStruct[183]; //182 
     internal static string strErrSource = "WinAGI.agiCommandInfo";
-    public static CommandStruct AGICommand(byte index)
-    {
-      //validate index
-      if (index > agNumCmds)
-      {
-        throw new IndexOutOfRangeException();
-      }
 
-      return agCmds[index];
-    }
-    public static byte Count
-    { get { return agNumCmds; } private set { } }
     static AGICommands()
     {
       agNumCmds = 182;   // not counting return()
@@ -855,7 +845,21 @@ namespace WinAGI
       agCmds[182].ArgType = new ArgTypeEnum[2];
       agCmds[182].ArgType[0] = ArgTypeEnum.atNum;
       agCmds[182].ArgType[1] = ArgTypeEnum.atNum;
+
+      AssignReservedDefines();
     }
+    public static CommandStruct AGICommand(byte index)
+    {
+      //validate index
+      if (index > agNumCmds)
+      {
+        throw new IndexOutOfRangeException();
+      }
+
+      return agCmds[index];
+    }
+    public static byte Count
+    { get { return agNumCmds; } private set { } }
     internal static void CorrectCommands(string Version)
     {
       // This procedure adjusts the logic commands for a given int. version
