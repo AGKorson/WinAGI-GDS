@@ -210,7 +210,7 @@ namespace WinAGI
     internal static byte[] bytEncryptKey = { (byte)'A', (byte)'v', (byte)'i',
                              (byte)'s', (byte)' ', (byte)'D',
                              (byte)'u', (byte)'r', (byte)'g',
-                             (byte)'a', (byte)'n' }; //10; //' = "Avis Durgan"
+                             (byte)'a', (byte)'n' }; //' = "Avis Durgan"
 
     // string arrays that are 'enums'
     public static readonly string[] ResTypeAbbrv = { "LOG", "PIC", "SND", "VIEW" };
