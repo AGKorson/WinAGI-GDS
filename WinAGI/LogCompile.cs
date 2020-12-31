@@ -678,7 +678,7 @@ namespace WinAGI
                 if (IsNumeric(tdDefines(i).Value)) {
                   strArgIn = tdDefines(i).Value
                   ConvertArgument = true
-                ElseIf AscW(tdDefines(i).Value) = 34) {
+                ElseIf AscW(tdDefines(i).Value) == 34) {
                   strArgIn = tdDefines(i).Value
                   ConvertArgument = true
                 } //End If
@@ -1598,7 +1598,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return shorthand increment
               NextCommand = "++"
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) = "=") {
+            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "=") {
               lngPos = lngPos + 1
               //return shorthand addition
               NextCommand = "+="
@@ -1612,7 +1612,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return shorthand decrement
               NextCommand = "--"
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) = "=") {
+            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "=") {
               lngPos = lngPos + 1
               //return shorthand subtract
               NextCommand = "-="
@@ -1665,7 +1665,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return greater than or equal
               NextCommand = ">="
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) = "<") {
+            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "<") {
               //increment pointer
               lngPos = lngPos + 1
               //return not equal (//><// is same as //<>//)
@@ -1681,7 +1681,7 @@ namespace WinAGI
               NextCommand = "*="
             //since block commands are removed, check for the in order to provide a
             //meaningful error message
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) = "/") {
+            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "/") {
               lngPos = lngPos + 1
               NextCommand = "* /"
             } //End If
@@ -1692,12 +1692,12 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return shorthand division
               NextCommand = "/="
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) = "/") {
+            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "/") {
               lngPos = lngPos + 1
               NextCommand = "//"
             //since block commands are removed, check for the in order to provide a
             //meaningful error message
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) = "*") {
+            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "*") {
               lngPos = lngPos + 1
               NextCommand = "/*"
             } //End If
@@ -1890,7 +1890,7 @@ namespace WinAGI
                 //if a test command is expected, //)// always causes error
                 if (intNumTestCmds == 0) {
                   strErrMsg = LoadResString(4057)
-                ElseIf blnIfBlock && intNumCmdsInBlock = 0) {
+                ElseIf blnIfBlock && intNumCmdsInBlock == 0) {
                   strErrMsg = LoadResString(4044)
                 Else
                   strErrMsg = LoadResString(4056)
@@ -4624,7 +4624,7 @@ namespace WinAGI
               //check for //label://
               if (Right(strLabel, 1) == ":") {
                 strLabel = RTrim(Left(strLabel, Len(strLabel) - 1))
-              ElseIf Left(strLabel, 1) = ":") {
+              ElseIf Left(strLabel, 1) == ":") {
                 strLabel = LTrim(Right(strLabel, Len(strLabel) - 1))
               Else
                 //not a label
@@ -4999,7 +4999,7 @@ namespace WinAGI
                   strErrMsg = Replace(LoadResString(4065), ARG1, strNextCmd)
                   return  //Exit Function
                 //if command not found,
-                ElseIf intCmdNum = 255) {  // not found
+                ElseIf intCmdNum == 255) {  // not found
                   //try to parse special syntax
                   if (CompileSpecial(strNextCmd)) {
                     //check for error

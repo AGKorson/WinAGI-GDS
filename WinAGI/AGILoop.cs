@@ -43,7 +43,7 @@ Friend Property Set Cels(NewCelCol As AGICels)
     'find mirror pair
     For i = 0 To mParent.FriendLoops.Count - 1
       'if sum of mirror pairs is zero
-      If mParent.FriendLoops(CByte(i)).MirrorPair + mMirrorPair = 0 Then
+      If mParent.FriendLoops(CByte(i)).MirrorPair + mMirrorPair == 0 Then
         'is the cels collection already set to this object?
         If mParent.FriendLoops(CByte(i)).Cels Is NewCelCol Then
           'need to exit to avoid recursion
@@ -153,7 +153,7 @@ Public Property Get MirrorLoop() As Byte
   On Error GoTo ErrHandler
   
   'if not mirrored
-  If mMirrorPair = 0 Then
+  If mMirrorPair == 0 Then
     'raise error
     On Error GoTo 0: Err.Raise vbObjectError + 611, strErrSource, LoadResString(611)
     Exit Property
@@ -162,7 +162,7 @@ Public Property Get MirrorLoop() As Byte
   'step through all loops in the loop collection
   For i = 0 To mParent.FriendLoops.Count - 1
     'if mirror pair values equal zero
-    If mParent.FriendLoops(i).MirrorPair + mMirrorPair = 0 Then
+    If mParent.FriendLoops(i).MirrorPair + mMirrorPair == 0 Then
       'this is the loop
       MirrorLoop = i
       Exit Property
@@ -206,7 +206,7 @@ Public Sub UnMirror()
   
   On Error GoTo ErrHandler
   
-  If mMirrorPair = 0 Then
+  If mMirrorPair == 0 Then
     Exit Sub
   End If
   

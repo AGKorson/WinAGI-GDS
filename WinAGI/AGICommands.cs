@@ -21,7 +21,6 @@ namespace WinAGI
     internal static byte agNumCmds;
     internal static CommandStruct[] agCmds = new CommandStruct[183]; //182 
     internal static string strErrSource = "WinAGI.agiCommandInfo";
-
     static AGICommands()
     {
       agNumCmds = 182;   // not counting return()

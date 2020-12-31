@@ -1,37 +1,1232 @@
 ﻿using System;
+using System.Collections.Generic;
+using static WinAGI.WinAGI;
+using static WinAGI.AGIGame;
+using static WinAGI.AGICommands;
+using System.IO;
 
 namespace WinAGI
 {
   public class AGIWordList
   {
-    private bool mLoaded = false;
-    private bool mInGame = false;
+    //collection of words (agiWord objects)
 
-    public bool Loaded
-    { get => mLoaded; }
-
-    public bool InGame
+    SortedList<string, AGIWord> mWordCol;
+    SortedList<int, AGIWordGroup> mGroupCol;
+    string mResFile;
+    string mDescription;
+    bool mInGame;
+    bool mIsDirty;
+    bool mWriteProps;
+    bool mLoaded;
+    readonly string strErrSource = "WinAGI.AGIWordList";
+    string strCurWord;  //for reasons that make no sense, this variable
+                        //has to be declared at module level; if it is
+                        //declared in Compile(), the variable pointer
+                        //fails (it points to random memory) when run in
+                        //Linux under Wine
+    public void NewWords()
     {
-      get => mInGame;
-      internal set { mInGame = value; }
+      //marks the resource as loaded
+      //this is needed so new resources can be created and edited
+      //if already loaded
+      if (mLoaded)
+      {
+        //error
+        throw new Exception("642, strErrSource, LoadResString(642)");
+      }
+
+      //cant call NewResource if already in a game;
+      //clear it instead
+      if (mInGame) {
+        throw new Exception("510, strErrSource, LoadResString(510)");
+      }
+      //mark as loaded
+      mLoaded = true;
+      //clear resname and description
+      mResFile = "";
+      mDescription = "";
+      //use clear method to ensure list is reset
+      Clear();
+
+      //add default groups
+      AddGroup(0);
+      AddWord("a", 0);
+      AddGroup(1);
+      AddWord("anyword", 1);
+      AddGroup(9999);
+      AddWord("rol", 9999);
     }
+    void CompileWinAGI(string CompileFile)
+    {
+      /*
+      //for the text file,
+      //words are saved as one group to a line
+      //in numerical order by group
+      //each line contains the group number, and
+      //the the group//s list of words in alphabetical
+      //order (separated by a tab character)
+      //(empty groups are skipped during the save)
+  
+      //first line is version identifier
+      //file description is saved at end of words
+  
+      string strTempFile ;
+      int intFile
+      AGIWordGroup tmpGroup
+      AGIWord tmpWord
+      int i, j
+      string strOutput
+  
+      //if no name
+      if (CompileFile.Length = 0) {
+        On Error GoTo 0
+        //raise error
+        throw new Exception("615, strErrSource, LoadResString(615)");
+            return;
+      }
+  
+      //get temporary file
+      strTempFile = Path.GetTempFileName();
+    
+      //open file for output
+      intFile = FreeFile()
+      Open strTempFile Output intFile
+  
+      //print version
+      Print #intFile, WINAGI_VERSION
+  
+      //step through all groups
+      for (j = 0; j < GroupCount; j++) {
+        Set tmpGroup = Me.Group(j)
+        //if this group has at least one word
+        if (tmpGroup.WordCount > 0) {
+          //add group number to output line
+          strOutput = CStr(tmpGroup.GroupNum)
+          //step through all words
+          for (i = 0; i < tmpGroup.WordCount; i++) {
+          //foreach (tmpWord in tmpGroup) {
+            //add tab character and this word
+            strOutput = strOutput + vbTab + tmpGroup.Word(i)
+          }
+          } //nxt  i
+          //add this group to output file
+          Print #intFile, strOutput
+        }
+      } //nxt  j
+  
+      //if there is a description
+      if (mDescription.Length <> 0) {
+        //print eof marker
+        Print #intFile, Chr$(255) + Chr$(255)
+        //print description
+        Print #intFile, mDescription
+      }
+  
+      //close file
+      Close intFile
+  
+      //if CompileFile exists
+      if (FileExists(CompileFile)) {
+        //delete it
+        Kill CompileFile
+      }
+  
+      //copy tempfile to CompileFile
+      FileCopy strTempFile, CompileFile
+  
+      //delete temp file
+      Kill strTempFile
+      Err.Clear
+    return;
+  
+    ErrHandler:
+      //close file
+      Close intFile
+      //erase the temp file
+      Kill CompileFile
+      //return error condition
+      throw new Exception("582, strErrSource, LoadResString(582)");
+      */
+    }
+    public void Export(string ExportFile, int FileType, bool ResetDirty = true)
+    {
+      //exports the list of words
+      //  filetype = 0 means AGI WORDS.TOK file
+      //  filetype = 1 means WinAGI word list file
+      //if not loaded
+      if (!mLoaded)
+      {
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
+      }
+      switch (FileType)
+      {
+        case 0: //compile agi WORDS.TOK file
+          Compile(ExportFile);
+          break;
+        case 1:  //create WinAGI word list
+          CompileWinAGI(ExportFile);
+          break;
+      }
+      //if NOT in a game,
+      if (!mInGame)
+      {
+        if (ResetDirty)
+        {
+          //clear dirty flag
+          mIsDirty = false;
+        }
+        //save filename
+        mResFile = ExportFile;
+      }
+      return;
+    }
+    internal AGIWord ItemByIndex(int Index)
+    {  //used by SetWords method to retrieve words one by one
+      //NOTE: no error checking is done, because ONLY
+      //SetWords uses this function, and it ensures
+      //Index is valid
+      return mWordCol.Values[Index];
+    }
+    public bool Loaded
+    {
+      get { return mLoaded; }
+    }
+    bool LoadSierraFile(string LoadFile)
+    {
+      byte bytHigh, bytLow;
+      int lngPos;
+      byte[] bytData = Array.Empty<byte>();
+      string strThisWord;
+      string strPrevWord;
+      byte bytVal;
+      int lngGrpNum;
+      byte bytPrevWordCharCount;
+      FileStream fsWords;
+      StreamReader srWords;
+      try
+      {
+        //open the file
+        fsWords = new FileStream(LoadFile, FileMode.Open);
+        srWords = new StreamReader(fsWords);
+      }
+      catch (Exception)
+      {
+        // no good
+        throw new Exception("bad WORDS.TOK file");
+      }
+      //if no data,
+      if (fsWords.Length == 0)
+      {
+        fsWords.Dispose();
+        srWords.Dispose();
+        return false;
+      }
+      //set load flag
+      mLoaded = true;
+      //read in entire resource
+      Array.Resize(ref bytData, (int)fsWords.Length);
 
-    public bool IsDirty { get; internal set; }
-    public string ResFile { get; internal set; }
+      //start at beginning of words section
+      //note that words.tok file uses MSLS format for two byte-word data)
+      bytHigh = bytData[0];
+      bytLow = bytData[1];
+      lngPos = bytHigh * 256 + bytLow;
+      //for first word, there is no previous word
+      strPrevWord = "";
+      //read character Count for first word
+      bytPrevWordCharCount = bytData[lngPos];
+      lngPos++;
 
+      //continue loading words until end of resource is reached
+      while (lngPos < bytData.Length) // Until lngPos > UBound(bytData)
+      {
+        //initialize word
+        strThisWord = "";
+        //if number of characters to Count from previous word are longer than the previous word,
+        if (bytPrevWordCharCount > strPrevWord.Length)
+        {
+          //should never be??
+          bytPrevWordCharCount = (byte)strPrevWord.Length;
+        }
+        //if some characters should be copied from previous word
+        if (bytPrevWordCharCount > 0)
+        {
+          //copy //em
+          strThisWord = Left(strPrevWord, bytPrevWordCharCount);
+        }
+        //build rest of word
+        do
+        {
+          bytVal = bytData[lngPos];
+          //if bit7 is clear
+          if (bytVal < 0x80)
+          {
+            strThisWord += (char)(bytVal ^ 0x7F);
+          }
+          lngPos++;
+          //continue until last character (indicated by flag) or endofresource is reached
+        }
+        while ((bytVal < 0x80) && (lngPos < bytData.Length)); // Loop Until (bytVal >= 0x80) Or lngPos > UBound(bytData)
+        //if end of file is reached before 0x80,
+        if (lngPos >= bytData.Length)
+        {
+          //invalid words.tok file!
+          throw new Exception("bad WORDS.TOK file");
+        }
+        //add last character (after stripping off flag)
+        strThisWord += (char)(0xFF ^ bytVal);
+        //convert any upper-case characters to lower-case (just in case)
+        strThisWord = strThisWord.ToLower();
+        //get group number
+        lngGrpNum = bytData[lngPos] * 256 + bytData[lngPos + 1];
+        //set pointer to next word
+        lngPos += 2;
+        //if this word different to previous,
+        //(this ensures no duplicates are added)
+        if (strThisWord <> strPrevWord) {
+          //if this word already exists,
+          if (WordExists(strThisWord))
+          {
+            //delete the old one
+            RemoveWord(strThisWord);
+          }
+          //add word
+          AddWord(strThisWord, lngGrpNum);
+          //this word is now the previous word
+          strPrevWord = strThisWord;
+        }
+        bytPrevWordCharCount = bytData[lngPos];
+        lngPos++;
+      }
+      //if no words
+      if (mWordCol.Count == 0)
+      {
+        //add default words
+        AddWord("a", 0);
+        AddWord("anyword", 1);
+        AddWord("rol", 9999);
+      }
+      return true;
+    }
+    public void SetWords(AGIWordList NewWords)
+    {
+      //copies word list from NewWords to
+      //this word list
+      int i, j;
+      int lngGrpNum, lngCount;
+      string strWord;
+      AGIWordGroup tmpGroup;
+      AGIWord tmpWord;
+      //if source wordlist is not loaded
+      if (!NewWords.Loaded)
+      {
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
+      }
+      //first, clear current list
+      Clear();
+      //then add all groups
+      lngCount = NewWords.GroupCount;
+      for (i = 0; i < lngCount; i++)
+      {
+        //create new temp group
+        tmpGroup = new AGIWordGroup;
+        lngGrpNum = NewWords.Group(i).GroupNum;
+        tmpGroup.GroupNum = lngGrpNum;
+        //add group to end of collection
+        mGroupCol.Add(lngGrpNum, tmpGroup);
+      } //nxt  i
+
+      //then add all words
+      lngCount = NewWords.WordCount;
+      //(use one based, because it//s easier,
+      //and no other function uses ItemByIndex
+      for (i = 1; i <= lngCount; i++) {
+        //get word
+        strWord = NewWords.ItemByIndex(i).WordText;
+        lngGrpNum = NewWords.ItemByIndex(i).Group;
+        //create new word item
+        tmpWord.WordText = strWord;
+        tmpWord.Group = lngGrpNum;
+        //add word to wordcol
+        mWordCol.Add(tmpWord);
+        //add word to its groupcol
+        //in order to access internal properties,
+        //need to create a direct reference to the AGIwordgroup class
+        tmpGroup = mGroupCol[lngGrpNum];
+        //add this word to its group
+        tmpGroup.AddWordToGroup(strWord);
+      } //nxt  i
+
+      //copy description
+      mDescription = NewWords.Description;
+      //set dirty flags
+      mIsDirty = NewWords.IsDirty;
+      mWriteProps = NewWords.WriteProps;
+      //copy filename
+      mResFile = NewWords.ResFile;
+      //set loaded flag
+      mLoaded = true;
+    }
+    internal bool WriteProps { get { return mWriteProps; } }
+    public string Description
+    {
+      get
+      {
+        //if not loaded
+        if (!mLoaded)
+        {
+          //error
+          throw new Exception("563, strErrSource, LoadResString(563)");
+        }
+        return mDescription;
+      }
+      set
+      {
+        //if not loaded
+        if (!mLoaded)
+        {
+          //error
+          throw new Exception("563, strErrSource, LoadResString(563)");
+        }
+        //limit description to 1K
+        value = Left(value, 1024);
+        //if changing
+        if (value != mDescription)
+        {
+          mDescription = value;
+          //if in a game
+          if (mInGame)
+          {
+            WriteGameSetting("WORDS.TOK", "Description", mDescription);
+            //change date of last edit
+            agLastEdit = DateTime.Now;
+          }
+        }
+      }
+    }
+    internal bool InGame
+    {
+      get
+      {
+        //only used by setword method
+        return mInGame;
+      }
+      set
+      {
+        mInGame = value;
+      }
+    }
+    internal void Init(bool Loaded = false)
+    {
+      //this function is only called for a vocab word list
+      //that is part of a game
+      //it sets the ingame flag
+      mInGame = true;
+      //if loaded property is passed, set loaded flag as well
+      mLoaded = Loaded;
+      //it also sets the default name to //WORDS.TOK//
+      mResFile = agGameDir + "WORDS.TOK";
+    }
+    public string ResFile
+    {
+      get { return mResFile;
+      }
+      set
+      {
+        //resfile cannot be changed if resource is part of a game
+        if (mInGame)
+        {
+          //error- resfile is readonly for ingame resources
+          throw new Exception("680, strErrSource, LoadResString(680)");
+        }
+        else
+        {
+          mResFile = value;
+        }
+      }
+    }
+    public void Clear()
+    {
+      //clears the word group, and sets up a blank list
+      //if not loaded
+      if (!mLoaded)
+      {
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
+      }
+      //reset group and word collections
+      mGroupCol = new SortedList<int, AGIWordGroup>();
+      mWordCol = new List<AGIWord>();
+      mDescription = "";
+      mIsDirty = true;
+    }
+    public AGIWordGroup GroupN(int GroupNumber)
+    {
+      //returns a group by its group number
+      //if not loaded
+      if (!mLoaded)
+      {
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
+      }
+      //return group with this number
+      return mGroupCol[GroupNumber];
+    }
+    public bool GroupExists(int GroupNumber)
+    {
+      //if this group exists, it returns true
+      return mGroupCol.Keys.Contains(GroupNumber);
+    }
+    public bool IsDirty
+    {
+      get
+      {
+
+      }
+      set
+      {
+        mIsDirty = value;
+      }
+    }
+    public AGIWord this[dynamic vKeyIndex]
+    {
+      get
+      {
+        //access is by word string or index number
+        //if not loaded
+        if (!mLoaded) {
+          //error
+          throw new Exception("563, strErrSource, LoadResString(563)");
+        }
+        //only allow string or integer number
+        if ((vKeyIndex is int) || (vbKeyIndex is byte) || (vbKeyIndex is short))
+        {
+          //retrieve via index
+
+          //validate index
+          if (vKeyIndex < 0 || vKeyIndex > mWordCol.Count - 1)
+          {
+            throw new IndexOutOfRangeException;
+          }
+          return mWordCol[vKeyIndex + 1];
+        }
+        else if (vKeyIndex is string)
+        {
+          //retrieve via string key
+          return mWordCol[vKeyIndex]; //***this is not right
+        }
+        else
+        {
+          throw new Exception("invalid key/index");
+        }
+      }
+      set
+      { mWordCol = value; }
+    }
+    public void Save(string SaveFile = "", int FileType = 0)
+    {
+      //saves wordlist
+      // filetype = 0 means AGI WORDS.TOK file
+      // filetype = 1 means WinAGI word list file
+      //for ingame resources, SaveFile and filetype are ignored
+      //if not loaded
+      if (!mLoaded)
+      {
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
+      }
+      //if in a game,
+      if (mInGame)
+      {
+        //compile the file
+        Compile(mResFile);
+        //change date of last edit
+        agLastEdit = DateTime.Now; ;
+      }
+      else
+      {
+        if (SaveFile.Length == 0)
+        {
+          SaveFile = mResFile;
+        }
+        switch (FileType)
+        {
+          case 0:  //compile agi WORDS.TOK file
+            Compile(SaveFile);
+            break;
+          case 1:  //create WinAGI word list
+            CompileWinAGI(SaveFile);
+            break;
+        }
+        //save filename
+        mResFile = SaveFile;
+      }
+      //mark as clean
+      mIsDirty = false;
+    }
     public void Unload()
     {
-      // add code here
+      //unloads the resource; same as clear, except file marked as not dirty
+      //if not loaded
+      if (!mLoaded)
+      {
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
+      }
+      Clear();
+      mLoaded = false;
+      mWriteProps = false;
+      mIsDirty = false;
+    }
+    public int WordCount
+    {
+      get
+      {
+        //if not loaded
+        if (!mLoaded)
+        {
+          //error
+          throw new Exception("563, strErrSource, LoadResString(563)");
+        }
+        return mWordCol.Count;
+      }
+    }
+    public bool WordExists(string aWord)
+    {
+      //if this word exists, it returns true
+      for (int i = 0; i < mWordCol.Count; i++)
+      {
+        if (mWordCol[i].WordText.Equals(aWord, StringComparison.OrdinalIgnoreCase))
+        {
+          return true;
+        }
+      }
+      // not found
+      return false;
+    }
+    public void AddGroup(int GroupNumber)
+    {
+      int i;
+      AGIWordGroup tmpGroup;
+      //if not loaded
+      if (!mLoaded)
+      {
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
+      }
+      //if group number is invalid
+      if (GroupNumber < 0)
+      {
+        //error
+        throw new Exception("575, strErrSource, LoadResString(575)");
+      }
+      if (GroupNumber > MAX_GROUP_NUM)
+      {
+        //error
+        throw new Exception("575, strErrSource, LoadResString(575)");
+      }
+      //see if group already exists
+      if (mGroupCol.ContainsKey(GroupNumber))
+      {
+        throw new Exception("576, strErrSource, LoadResString(576)");
+      }
+      tmpGroup = new AGIWordGroup
+      {
+        GroupNum = GroupNumber
+      };
+      //add it
+      mGroupCol.Add(GroupNumber, tmpGroup);
+      mIsDirty = true;
+    }
+    void RemoveWord(string aWord)
+    {
+      //deletes aWord
+      //if not loaded
+      if (!mLoaded) 
+      {
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
+      }
+      // if word doesn't exist
+      if (!mWordCol.ContainsKey(aWord))
+      {
+        //word not found
+        throw new Exception("584, strErrSource, LoadResString(584)");
+      }
+      //delete this word from its assigned group
+      GroupN(mWordCol[aWord].Group).DeleteWordFromGroup(aWord);
+      //remove it from the word collection
+      mWordCol.Remove(aWord);
+      //set dirty flag
+      mIsDirty = true;
+    }
+    public int GroupCount
+    {
+      get
+      {
+        //if not loaded
+        if (!mLoaded)
+        {
+          //error
+          throw new Exception("563, strErrSource, LoadResString(563)");
+        }
+
+        return mGroupCol.Count;
+      }
+    }
+    public void RemoveGroup(int GroupNumber)
+    {
+      int i;
+      //if not loaded
+      if (!mLoaded) 
+      {
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
+      }
+      //if group number is invalid
+      if (GroupNumber < 0 || GroupNumber > MAX_GROUP_NUM)
+      {
+        //error
+        throw new Exception("575, strErrSource, LoadResString(575)");
+      }
+      //if group doesn't exist
+      if (!GroupExists(GroupNumber))
+      {
+        //error
+        throw new Exception("583, strErrSource, LoadResString(583)");
+      }
+      //step through all words in main list
+      for (i = mWordCol.Count - 1; i >= 0; i--)
+      {
+        if (mWordCol.Values[i].Group == GroupNumber)
+        {
+          //delete this word from main list
+          mWordCol.RemoveAt(i);
+        }
+      }
+      //delete the group
+      mGroupCol.Remove(GroupNumber);
+      //set dirty flag
+      mIsDirty = true;
+    }
+    public void RenumberGroup(int OldGroupNumber, int NewGroupNumber)
+    {
+      int i;
+      AGIWordGroup tmpGroup;
+      //if not loaded
+      if (!mLoaded)
+      {
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
+      }
+      //if oldgroup number is invalid
+      if (OldGroupNumber < 0 || OldGroupNumber > MAX_GROUP_NUM)
+      {
+        //error
+        throw new Exception("575, strErrSource, LoadResString(575)");
+      }
+      //if new group number is invalid
+      if (NewGroupNumber < 0 || NewGroupNumber > MAX_GROUP_NUM)
+      {
+        //error
+        throw new Exception("575, strErrSource, LoadResString(575)");
+      }
+      //if old group doesn't exist
+      if (!GroupExists(OldGroupNumber)) 
+      {
+        //error
+        throw new Exception("696, strErrSource, LoadResString(696)");
+      }
+      //if new group already exists
+      if (GroupExists(NewGroupNumber))
+      {
+        //error
+        throw new Exception("697, strErrSource, LoadResString(697)");
+      }
+      //make temp copy of old group
+      tmpGroup = mGroupCol[OldGroupNumber];
+      //remove group
+      mGroupCol.Remove(OldGroupNumber);
+      // change group number
+      tmpGroup.GroupNum = NewGroupNumber;
+      //change group number for all words in the group
+      for (i = 0; i < mWordCol.Count; i++)
+      {
+        if (mWordCol.Values[i].Group == OldGroupNumber) 
+        {
+          AGIWord tmpWord = mWordCol.Values[i];
+          tmpWord.Group = NewGroupNumber;
+        }
+      }
+      //then re-add the group
+      mGroupCol.Add(NewGroupNumber, tmpGroup);
+
+      //set dirty flag
+      mIsDirty = true;
     }
 
-    internal void Save()
+    void Compile(string CompileFile)
     {
-      throw new NotImplementedException();
+      //compiles the word list into a Sierra WORDS.TOK file
+      int i;
+      int lngGroup, lngWord;
+      byte CurByte;
+      string strCurWord;
+      string strPrevWord = "";
+      byte intPrevWordCharCount;
+      bool blnWordsMatch;
+      string strFirstLetter;
+      int[] intLetterIndex = new int[26];
+      string strTempFile;
+      //if no filename passed,
+      if (CompileFile.Length == 0)
+      {
+        throw new Exception("616, strErrSource, LoadResString(616)");
+      }
+      //if not dirty AND CompileFile=resfile
+      if (!mIsDirty && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) 
+      {
+        return;
+      }
+      //if there are no word groups to add
+      if (mGroupCol.Count == 0) {
+        throw new Exception("672, strErrSource, Replace(LoadResString(672), ARG1, no word groups to add)");
+      }
+      //if there are no words,
+      if (mWordCol.Count == 0) {
+        //error
+        throw new Exception("672, strErrSource, Replace(LoadResString(672), ARG1, no words to add)");
+      }
+      //create temp file
+      strTempFile = Path.GetTempFileName();
+      //open the file
+      FileStream fsWords;
+      try
+      {
+        fsWords = new FileStream(strTempFile, FileMode.OpenOrCreate);
+        //write letter index
+        for (i = 0; i <= 51; i++) 
+        {
+          fsWords.WriteByte(0);
+        }
+        //index pointer starts with 'a'
+        strFirstLetter = "a";
+        intLetterIndex[1] = 52;
+        //now step through all words in list
+        for (lngWord = 0; lngWord < mWordCol.Count; lngWord++)
+        {
+          //get next word
+          //*********TODO: make sure words are sorted???*******
+          strCurWord = mWordCol.Values[lngWord].WordText;
+          //if first letter is not current first letter, AND it is 'b' through 'z'
+          //(this ensures non letter words (such as numbers) are included in the //a// section)
+          if ((strCurWord[0] != strFirstLetter[0]) && (strCurWord[0] >= 97) && (strCurWord[0] <= 122))
+          {
+            //reset index pointer
+            strFirstLetter = Left(strCurWord, 1);
+            intLetterIndex[(byte)strFirstLetter[0] - 96] = (int)fsWords.Position;
+          }
+          //calculate number of characters that are common to previous word
+          intPrevWordCharCount = 0;
+          i = 1;
+          blnWordsMatch = true;
+          do
+          {
+            //if not at end of word, AND current position is not longer than previous word,
+            if ((i <= strCurWord.Length) && (strPrevWord.Length >= i))
+            {
+              //if characters at this position match,
+              if (strPrevWord[i] == strCurWord[i])
+              {
+                //increment Count
+                intPrevWordCharCount++;
+              }
+              else
+              {
+                blnWordsMatch = false;
+              }
+            }
+            else
+            {
+              blnWordsMatch = false;
+            }
+            i++;
+          }
+          while (!blnWordsMatch);
+          //write number of characters from previous word
+          fsWords.WriteByte(intPrevWordCharCount);
+          //set previous word Value to this word
+          strPrevWord = strCurWord;
+          //strip off characters that are same as previous word
+          strCurWord = Right(strCurWord, strCurWord.Length - intPrevWordCharCount);
+          //if there are two or more characters to write,
+          if (strCurWord.Length > 1)
+          {
+            //write all but last character
+            for (i = 0; i < strCurWord.Length - 1; i++) 
+            {
+              //encrypt character before writing it
+              CurByte = (byte)(0x7F ^ (byte)strCurWord[i]);
+              fsWords.WriteByte(CurByte);
+            }
+          }
+          //encrypt character, and set flag 0x80 for last char
+          CurByte = (byte)(0x80 + (0x7F ^ (byte)strCurWord[strCurWord.Length]));
+          fsWords.WriteByte(CurByte);
+          //write group number (stored as 2-byte word; high byte first)
+          CurByte = (byte)(mWordCol.Values[lngWord].Group / 256);
+          fsWords.WriteByte(CurByte);
+          CurByte = (byte)(mWordCol.Values[lngWord].Group % 256);
+          fsWords.WriteByte(CurByte);
+        }
+        //add null character to end of file
+        fsWords.WriteByte(0);
+        //reset file pointer to start
+        fsWords.Seek(0, SeekOrigin.Begin);
+        //write index values for all 26 letters
+        for (i = 1;  i <= 26; i++) {
+          //(two byte word, high byte first
+          CurByte = (byte)(intLetterIndex[i] / 256);
+          fsWords.WriteByte(CurByte);
+          CurByte = (byte)(intLetterIndex[i] % 256);
+          fsWords.WriteByte(CurByte);
+        }
+        //close file,
+        fsWords.Dispose();
+        //if CompileFile already exists
+        if (File.Exists(CompileFile))
+        {
+          //delete it
+          File.Delete(CompileFile);
+        }
+        //copy tempfile to CompileFile
+        File.Move(strTempFile, CompileFile);
+      }
+      catch (Exception)
+      {
+        //raise the error
+        throw new Exception("672, strErrSrc, Replace(LoadResString(672), ARG1, CStr(lngError) + strError)");
+      }
+    }
+public void Load(string LoadFile = "")
+{
+//this function loads words for the game
+//if loading from a Sierra game, it extracts words
+//from the WORDS.TOK file;
+//if not in a game, LoadFile must be specified
+
+bool blnSuccess
+
+On Error GoTo ErrHandler
+
+//if already loaded,
+if (mLoaded) {
+  //error- resource already loaded
+  throw new Exception("511, strErrSource, LoadResString(511)");
+    return;
+}
+
+if (mInGame) {
+  //use default filename
+  LoadFile = agGameDir + "WORDS.TOK"
+  //attempt to load
+  if (!LoadSierraFile(LoadFile)) {
+    On Error GoTo 0
+    //error
+    throw new Exception("529, strErrSource, LoadResString(529)");
     }
 
-    internal void Load(string v)
+  //get description, if there is one
+  //////Debug.Assert !(agGameProps Is Nothing)
+  ReadSettingString agGameProps, "WORDS.TOK", "Description", ""
+} else {
+  //if not in a game, must have a valid filename
+
+  //if optional filename not passed,
+  if (LoadFile.Length = 0) {
+    //not in game; return error
+    On Error GoTo 0
+    throw new Exception("599, strErrSource, LoadResString(599)");
+      return;
+  }
+
+  //verify file exists
+  if (!FileExists(LoadFile)) {
+    On Error GoTo 0
+    //error
+    throw new Exception("524, strErrSource, Replace(LoadResString(524), ARG1, LoadFile)");
+      return;
+  }
+
+  //if extension is .agw then
+  if (LCase$(Right$(LoadFile, 4)) = ".agw") {
+    //assume winagi format
+    if (!LoadWinAGIFile(LoadFile)) {
+      //try sierra format
+      if (!LoadSierraFile(LoadFile)) {
+        On Error GoTo 0
+        //error
+        throw new Exception("529, strErrSource, LoadResString(529)");
+      return;
+      }
+    }
+  } else {
+    //assume sierra format
+    if (!LoadSierraFile(LoadFile)) {
+      //try winagi format
+      if (!LoadWinAGIFile(LoadFile)) {
+        On Error GoTo 0
+        //error
+        throw new Exception("529, strErrSource, LoadResString(529)");
+      return;
+      }
+    }
+  }
+
+  //save filename
+  mResFile = LoadFile
+}
+
+//reset dirty flag
+mIsDirty = false
+return;
+
+ErrHandler:
+//////Debug.Assert false
+}
+public AGIWordGroup Get Group(int Index)
+{
+//returns a group by its index (NOT the same as group number)
+
+//if not loaded
+if (!mLoaded) {
+  //error
+  throw new Exception("563, strErrSource, LoadResString(563)");
+    return;
+}
+
+
+//if invalid index
+if (Index < 0 Or Index > mGroupCol.Count - 1) {
+  //error
+  throw new Exception("588, strErrSource, LoadResString(588)");
+    return;
+}
+
+//access the group by its index
+Set Group = mGroupCol(Index + 1)
+
+}
+
+
+public bool Get IsDirty()
+{
+//if resource is dirty, or (prop values need writing AND in game)
+IsDirty = (mIsDirty Or (mWriteProps And mInGame))
+}
+
+
+public void AddWord(string WordText, int Group)
+{
+int i
+AGIWord NewWord
+AGIWordGroup tmpGroup
+
+
+//if not loaded
+if (!mLoaded) {
+  //error
+  throw new Exception("563, strErrSource, LoadResString(563)");
+    return;
+}
+
+//convert input to lowercase
+WordText = LCase$(WordText)
+
+//check to see if word is already in collection,
+i = mWordCol(WordText).Group
+if (Err.Number = 0) {
+  throw new Exception("579, strErrSource, LoadResString(579)");
+    return;
+}
+
+Err.Clear
+
+//if group number is invalid (negative, or > max)
+if (Group < 0 Or Group > MAX_GROUP_NUM) {
+  //error
+  throw new Exception("581, strErrSource, LoadResString(581)");
+  return;
+}
+
+//if this group does not yet exist,
+if (!Me.GroupExists(Group)) {
+  //add this group
+  AddGroup Group
+}
+
+//any other error gets trapped
+On Error GoTo ErrHandler
+
+//in order to access internal properties,
+//need to create a direct reference to the AGIwordgroup class
+Set tmpGroup = mGroupCol("g" + CStr(Group))
+
+//add this word to its group
+tmpGroup.AddWordToGroup WordText
+Set tmpGroup = Nothing
+
+//now add it to the main word collection
+NewWord.WordText = WordText
+NewWord.Group = Group
+
+//if this is the first word,
+if (mWordCol.Count = 0) {
+  //add it, using the word itself as the key
+  mWordCol.Add NewWord, WordText
+} else {
+  //find correct position for this word
+  if (NewWord.WordText < mWordCol(1).WordText) {
+    //this word should be first
+    mWordCol.Add NewWord, WordText, 1
+  } else {
+    //step through rest of objects
+    for (i = mWordCol.Count; i >= 0; i --) {
+      //if new word is greater than current word
+      if (NewWord.WordText > mWordCol(i).WordText) {
+        //this is where word goes
+        Exit For
+      }
+    } //nxt  i
+    //add it, using the word itself as the key
+    mWordCol.Add NewWord, NewWord.WordText, , i
+  }
+}
+
+//set dirty flag
+mIsDirty = true
+return;
+
+ErrHandler:
+strError = Err.Description
+strErrSrc = Err.Source
+lngError = Err.Number
+
+throw new Exception("673, strErrSrc, Replace(LoadResString(673), ARG1, CStr(lngError)+ strError)");
+}
+    bool LoadWinAGIFile(string LoadFile)
     {
-     // throw new NotImplementedException();
+      string strInput;
+      string[] strWords;
+      string strThisWord;
+      int lngGrpNum;
+      int i;
+
+      //attempt to open the WinAGI resource
+      FileStream fsWords;
+      StreamReader srWords;
+      try
+      {
+        //attempt to open the WinAGI resource
+        fsWords = new FileStream(LoadFile, FileMode.Open);
+        srWords = new StreamReader(fsWords);
+      }
+      catch (Exception)
+      {
+        //ignore and fail
+        return false;
+      }
+
+      //first line should be loader
+      strInput = srWords.ReadLine();
+      switch (strInput)
+      {
+        case WINAGI_VERSION:
+        case WINAGI_VERSION_1_2:
+        case WINAGI_VERSION_1_0:
+        case WINAGI_VERSION_BETA:
+          //ok
+          break;
+        default:
+          //any 1.2.x is ok
+          if (Left(strInput, 4) != "1.2.")
+          {
+            //close file
+            fsWords.Dispose();
+            srWords.Dispose();
+            return false;
+          }
+          break;
+      }
+      //enable inline error handling to check for invalid words/groups
+      try
+      {
+        //begin loading word groups
+        while (!srWords.EndOfStream) // Until EOF(intFile)
+        {
+          strInput = srWords.ReadLine();
+          //check for end of input characters
+          if (strInput == ((char)255 + (char)255).ToString())
+          {
+            break;
+          }
+          //split input line
+          strWords = strInput.Split("\t");
+          //if there is at least one word and one number,
+          if (strWords.Length >= 2)
+          {
+            //get group number
+            lngGrpNum = (int)Val(strWords[0]);
+            //add this group
+            AddGroup(lngGrpNum);
+            //add words to this group
+            for (i = 1; i < strWords.Length; i++)
+            {
+              AddWord(strWords[i], lngGrpNum);
+            }
+          }
+        } //Loop
+      }
+      catch (Exception)
+      {
+        //invalid word group, or other word error
+        fsWords.Dispose();
+        srWords.Dispose();
+        // pass along error
+        throw;
+      }
+      //if any lines left
+      if (!srWords.EndOfStream)
+      {
+        //get first remaining line
+        strThisWord = srWords.ReadLine();
+        //if there are additional lines, add them as a description
+        while (!srWords.EndOfStream)
+        {
+          strInput = srWords.ReadLine();
+          strThisWord += NEWLINE + strInput;
+        }
+        //save description
+        mDescription = strThisWord;
+      }
+      //close file
+      fsWords.Dispose();
+      srWords.Dispose();
+
+      //if no words
+      if (mWordCol.Count == 0)
+      {
+        //add default words
+        AddWord("a", 0);
+        AddWord("anyword", 1);
+        AddWord("rol", 9999);
+      }
+      //set loaded flag
+      mLoaded = true;
+      return true;
     }
   }
 }

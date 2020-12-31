@@ -221,7 +221,7 @@ namespace WinAGI
   On Error GoTo ErrHandler
   
   'if no name
-  If LenB(CompileFile) = 0 Then
+  If LenB(CompileFile) == 0 Then
     On Error GoTo 0
     'raise error
     On Error GoTo 0: Err.Raise vbObjectError + 615, strErrSource, LoadResString(615)
@@ -229,7 +229,7 @@ namespace WinAGI
   End If
   
   'get temporary file
-  strTempFile = TempFileName()
+  strTempFile = Path.GetTempFileName();
   
   'open file for output
   intFile = FreeFile()

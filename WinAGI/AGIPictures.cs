@@ -52,7 +52,7 @@ namespace WinAGI
       }
       //create new picture object
       agResource = new AGIPicture();
-      //if an object was passed
+      //if no object was passed
       if ((NewPicture == null))
       {
         //proposed ID will be default

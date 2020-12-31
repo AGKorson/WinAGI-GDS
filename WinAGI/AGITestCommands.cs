@@ -117,7 +117,6 @@ namespace WinAGI
 
       strErrSource = "WinAGI.agiTestCommands";
     }
-
     public static CommandStruct TestCmd(byte index)
     {
       //validate index

@@ -366,10 +366,11 @@ namespace WinAGI
     }
     internal static string MultStr(string strIn, int NumCopies)
     {
-      string retval = "";
-      for (int i = 1; i <= NumCopies; i++)
-        retval += strIn;
-      return retval;
+      return new StringBuilder(strIn.Length * NumCopies).Insert(0, strIn,  NumCopies).ToString();
+      //string retval = "";
+      //for (int i = 1; i <= NumCopies; i++)
+      //  retval += strIn;
+      //return retval;
     }
     /// <summary>
     /// Extension method that works out if a string is numeric or not

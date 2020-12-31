@@ -224,7 +224,7 @@ Public Property Get CelBMP() As Long
 
   'create compatible DC
   lngCelDC = CreateCompatibleDC(0)
-  If lngCelDC = 0 Then
+  If lngCelDC == 0 Then
     'error
     On Error GoTo 0: Err.Raise vbObjectError + 607, strErrSource, LoadResString(607)
     Exit Sub
@@ -232,7 +232,7 @@ Public Property Get CelBMP() As Long
   
   'get handle to dibsection bitmap
   lngCelDIBSec = CreateDIBSection(lngCelDC, biCel, DIB_RGB_COLORS, lngCelAddr, 0, 0)
-  If lngCelDIBSec = 0 Then
+  If lngCelDIBSec == 0 Then
     'error
     rtn = DeleteDC(lngCelDC)
     On Error GoTo 0: Err.Raise vbObjectError + 607, strErrSource, LoadResString(607)
@@ -241,7 +241,7 @@ Public Property Get CelBMP() As Long
   
   'save old device context, and select this object into the dibsection
   lngOldCelDC = SelectObject(lngCelDC, lngCelDIBSec)
-  If lngOldCelDC = 0 Then
+  If lngOldCelDC == 0 Then
     'error
     rtn = DeleteDC(lngCelDC)
     rtn = DeleteObject(lngCelDIBSec)
@@ -342,7 +342,7 @@ Public Property Let Height(ByVal NewHeight As Byte)
   On Error GoTo ErrHandler
   
   'must be non-zero
-  If NewHeight = 0 Then
+  If NewHeight == 0 Then
     On Error GoTo 0: Err.Raise vbObjectError + 532, strErrSource, LoadResString(532)
     Exit Property
   End If
@@ -430,7 +430,7 @@ Public Property Let AllCelData(NewCelData() As AGIColors)
   
   'first, validate array does not have more than two dimensions
   i = UBound(NewCelData, 3)
-  If Err.Number = 0 Then
+  If Err.Number == 0 Then
     'invalid data
     On Error GoTo 0: Err.Raise vbObjectError + 614, strErrSource, LoadResString(614)
     Exit Property
@@ -479,7 +479,7 @@ Public Property Let Width(ByVal NewWidth As Byte)
   On Error GoTo ErrHandler
   
   'width must be non zero
-  If NewWidth = 0 Then
+  If NewWidth == 0 Then
     On Error GoTo 0: Err.Raise vbObjectError + 533, strErrSource, LoadResString(533)
     Exit Property
   End If

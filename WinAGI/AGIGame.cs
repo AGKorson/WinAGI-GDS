@@ -34,7 +34,7 @@ namespace WinAGI
     internal static AGIViews agViews = new AGIViews();
     internal static AGIPictures agPics = new AGIPictures();
     internal static AGIInventoryObjects agInvObj = new AGIInventoryObjects();
-    static AGIWordList agVocabWords = new AGIWordList();
+    internal static AGIWordList agVocabWords = new AGIWordList();
     public static AGILogics Logics
     { get => agLogs; set { } }
     public static AGIPictures Pictures

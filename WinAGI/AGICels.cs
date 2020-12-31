@@ -61,7 +61,7 @@ Public Function Add(Optional ByRef Pos As Byte = 255, Optional ByVal CelWidth As
   On Error GoTo ErrHandler
   
   'if too many cels
-  If mCelCol.Count = MAX_CELS Then
+  If mCelCol.Count == MAX_CELS Then
     'error - too many cels
     On Error GoTo 0: Err.Raise vbObjectError + 552, strErrSource, Replace(LoadResString(552), ARG1, vbNullString)
     Exit Function
@@ -86,10 +86,10 @@ Public Function Add(Optional ByRef Pos As Byte = 255, Optional ByVal CelWidth As
   End If
   
   'if no cels yet
-  If mCelCol.Count = 0 Then
+  If mCelCol.Count == 0 Then
     'just add it
     mCelCol.Add agNewCel
-  ElseIf Pos = 0 Then
+  ElseIf Pos == 0 Then
     'add new loop to front
     mCelCol.Add agNewCel, , 1
   Else
@@ -128,7 +128,7 @@ Public Sub Remove(ByVal Index As Long)
   On Error Resume Next
   
   'if this is last cel
-  If mCelCol.Count = 1 Then
+  If mCelCol.Count == 1 Then
     'cant remove last cel
     On Error GoTo 0: Err.Raise vbObjectError + 612, strErrSource, LoadResString(612)
     Exit Sub

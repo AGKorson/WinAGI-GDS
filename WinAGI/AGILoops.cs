@@ -31,7 +31,7 @@ Public Function Add(Optional ByRef Pos As Byte = 255) As AGILoop
   '*'Debug.Assert Not mParent Is Nothing
   
   'if too many loops
-  If mLoopCol.Count = MAX_LOOPS Then
+  If mLoopCol.Count == MAX_LOOPS Then
     'error - too many loops
     On Error GoTo 0: Err.Raise vbObjectError + 537, strErrSource, LoadResString(537)
     Exit Function
@@ -62,10 +62,10 @@ Public Function Add(Optional ByRef Pos As Byte = 255) As AGILoop
   agNewLoop.SetParent mParent
   
   'if no loops yet
-  If mLoopCol.Count = 0 Then
+  If mLoopCol.Count == 0 Then
     'just add it
     mLoopCol.Add agNewLoop
-  ElseIf Pos = 0 Then
+  ElseIf Pos == 0 Then
     'add new loop to front
     mLoopCol.Add agNewLoop, , 1
   Else
@@ -136,7 +136,7 @@ Public Sub Remove(ByVal Index As Byte)
   On Error GoTo ErrHandler
   
   'if this is last loop
-  If mLoopCol.Count = 1 Then
+  If mLoopCol.Count == 1 Then
     'can't delete last loop
     On Error Resume Next
     On Error GoTo 0: Err.Raise vbObjectError + 613, strErrSource, LoadResString(613)
