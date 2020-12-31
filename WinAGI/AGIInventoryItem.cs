@@ -8,7 +8,7 @@ namespace WinAGI
 {
   public class AGIInventoryItem
   {
-    private string mItemName;
+    private string mItemName = "";
     private byte mRoom;
     //unique flag used to identify objects that are unique to the list
     //if two or more objects have the same name, then all are flagged

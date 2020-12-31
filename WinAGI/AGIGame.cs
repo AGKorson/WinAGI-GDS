@@ -1739,7 +1739,7 @@ namespace WinAGI
       Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtWords, 0, "");
       try {
       agVocabWords = new AGIWordList();
-      //agVocabWords.Init();
+      agVocabWords.Init();
       agVocabWords.Load(agGameDir + "WORDS.TOK"); }
       catch (Exception e) {
       //if there was an error,
@@ -1753,7 +1753,7 @@ namespace WinAGI
       Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtObjects, 0, "");
       try {
         agInvObj = new AGIInventoryObjects();
-        //agInvObjList.Init
+        agInvObj.Init();
         agInvObj.Load(agGameDir + "OBJECT");
       } catch (Exception e) {
       //if there was an error,

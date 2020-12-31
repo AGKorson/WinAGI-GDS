@@ -17,7 +17,11 @@ namespace WinAGI
       //access to word list is by index only
     public string this[byte index]
     { get { return mWords[index]; } }
-
+    public AGIWordGroup()
+    {
+      //initialze the word collection
+      mWords = new List<string>();
+    }
     internal void AddWordToGroup(string aWord)
     {
       //add word to collection of strings
@@ -32,8 +36,8 @@ namespace WinAGI
       } 
       else
       {
-        //step through words in reverse order
-        for (i = 0; i <= mWords.Count; i++)
+        //step through all words
+        for (i = 0; i < mWords.Count; i++)
         {
           //if new word is less than current word
           if (String.Compare(aWord, mWords[i], true) < 0)

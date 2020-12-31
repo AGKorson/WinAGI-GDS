@@ -11,15 +11,15 @@ namespace WinAGI
     byte mMaxScreenObjects;
     bool mEncrypted;
     bool mAmigaOBJ;
-    string mResFile;
-    string mDescription;
+    string mResFile = "";
+    string mDescription = "";
     bool mInGame;
     bool mIsDirty;
     bool mWriteProps;
     bool mLoaded;
     bool mLoading;
     //other
-    string strErrSource;
+    string strErrSource = "";
     public AGIInventoryObjects()
     {
       // create the initial Col object
@@ -389,10 +389,10 @@ End Sub
       mLoaded = true;
       //read in entire resource
       Array.Resize(ref bytData, (int)fsObj.Length);
-      fsObj.Read(bytData, 0, (int)fsObj.Length);
+      fsObj.Read(bytData);
       fsObj.Dispose();
       //determine if file is encrypted or clear
-      rtn = IsEncrypted(bytData[bytData.Length - 1], bytData.Length);
+      rtn = IsEncrypted(bytData[bytData.Length - 1], bytData.Length - 1);
       switch (rtn)
       {
         case 0:  //unencrypted
@@ -773,7 +773,7 @@ End Sub
           throw new Exception("692, strErrSource, LoadResString(692)");
         }
         //get description, if there is one
-        ReadSettingString(agGameProps, "OBJECT", "Description", "");
+        mDescription = ReadSettingString(agGameProps, "OBJECT", "Description", "");
       }
       else
       {

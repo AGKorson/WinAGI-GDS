@@ -3111,7 +3111,7 @@ namespace WinAGI
         strType = "ERROR: ";
       }
 
-      using (FileStream fsErrLog = new FileStream(agGameDir, FileMode.Append))
+      using (FileStream fsErrLog = new FileStream(agGameDir + "errlog.txt", FileMode.Append))
       {
         using (StreamWriter swErrLog = new StreamWriter(fsErrLog))
         {

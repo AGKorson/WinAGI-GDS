@@ -13,18 +13,24 @@ namespace WinAGI
 
     SortedList<string, AGIWord> mWordCol;
     SortedList<int, AGIWordGroup> mGroupCol;
-    string mResFile;
-    string mDescription;
+    string mResFile = "";
+    string mDescription = "";
     bool mInGame;
     bool mIsDirty;
     bool mWriteProps;
     bool mLoaded;
     readonly string strErrSource = "WinAGI.AGIWordList";
-    string strCurWord;  //for reasons that make no sense, this variable
+    string strCurWord = "";  //for reasons that make no sense, this variable
                         //has to be declared at module level; if it is
                         //declared in Compile(), the variable pointer
                         //fails (it points to random memory) when run in
                         //Linux under Wine
+    public AGIWordList()
+    {
+      //initialize the collections
+      mWordCol = new SortedList<string, AGIWord>();
+      mGroupCol = new SortedList<int, AGIWordGroup>();
+    }
     public void NewWords()
     {
       //marks the resource as loaded
@@ -227,7 +233,7 @@ namespace WinAGI
       mLoaded = true;
       //read in entire resource
       Array.Resize(ref bytData, (int)fsWords.Length);
-
+      fsWords.Read(bytData);
       //start at beginning of words section
       //note that words.tok file uses MSLS format for two byte-word data)
       bytHigh = bytData[0];
@@ -285,7 +291,8 @@ namespace WinAGI
         lngPos += 2;
         //if this word different to previous,
         //(this ensures no duplicates are added)
-        if (strThisWord <> strPrevWord) {
+        if (strThisWord != strPrevWord)
+        {
           //if this word already exists,
           if (WordExists(strThisWord))
           {
@@ -332,7 +339,7 @@ namespace WinAGI
       for (i = 0; i < lngCount; i++)
       {
         //create new temp group
-        tmpGroup = new AGIWordGroup;
+        tmpGroup = new AGIWordGroup();
         lngGrpNum = NewWords.Group(i).GroupNum;
         tmpGroup.GroupNum = lngGrpNum;
         //add group to end of collection
@@ -351,13 +358,11 @@ namespace WinAGI
         tmpWord.WordText = strWord;
         tmpWord.Group = lngGrpNum;
         //add word to wordcol
-        mWordCol.Add(tmpWord);
+        mWordCol.Add(strWord, tmpWord);
         //add word to its groupcol
         //in order to access internal properties,
         //need to create a direct reference to the AGIwordgroup class
-        tmpGroup = mGroupCol[lngGrpNum];
-        //add this word to its group
-        tmpGroup.AddWordToGroup(strWord);
+        mGroupCol[lngGrpNum].AddWordToGroup(strWord);
       } //nxt  i
 
       //copy description
@@ -459,7 +464,7 @@ namespace WinAGI
       }
       //reset group and word collections
       mGroupCol = new SortedList<int, AGIWordGroup>();
-      mWordCol = new List<AGIWord>();
+      mWordCol = new SortedList<string, AGIWord>();
       mDescription = "";
       mIsDirty = true;
     }
@@ -484,7 +489,8 @@ namespace WinAGI
     {
       get
       {
-
+        //if resource is dirty, or (prop values need writing AND in game)
+        return (mIsDirty || (mWriteProps && mInGame));
       }
       set
       {
@@ -497,34 +503,33 @@ namespace WinAGI
       {
         //access is by word string or index number
         //if not loaded
-        if (!mLoaded) {
+        if (!mLoaded)
+        {
           //error
           throw new Exception("563, strErrSource, LoadResString(563)");
         }
         //only allow string or integer number
-        if ((vKeyIndex is int) || (vbKeyIndex is byte) || (vbKeyIndex is short))
+        if ((vKeyIndex is int) || (vKeyIndex is byte) || (vKeyIndex is short))
         {
           //retrieve via index
 
           //validate index
           if (vKeyIndex < 0 || vKeyIndex > mWordCol.Count - 1)
           {
-            throw new IndexOutOfRangeException;
+            throw new IndexOutOfRangeException();
           }
-          return mWordCol[vKeyIndex + 1];
+          return mWordCol[vKeyIndex];
         }
         else if (vKeyIndex is string)
         {
           //retrieve via string key
-          return mWordCol[vKeyIndex]; //***this is not right
+          return mWordCol[vKeyIndex]; //***this is not right?
         }
         else
         {
           throw new Exception("invalid key/index");
         }
       }
-      set
-      { mWordCol = value; }
     }
     public void Save(string SaveFile = "", int FileType = 0)
     {
@@ -599,7 +604,7 @@ namespace WinAGI
       //if this word exists, it returns true
       for (int i = 0; i < mWordCol.Count; i++)
       {
-        if (mWordCol[i].WordText.Equals(aWord, StringComparison.OrdinalIgnoreCase))
+        if (mWordCol.Values[i].WordText.Equals(aWord, StringComparison.OrdinalIgnoreCase))
         {
           return true;
         }
@@ -767,7 +772,6 @@ namespace WinAGI
       //set dirty flag
       mIsDirty = true;
     }
-
     void Compile(string CompileFile)
     {
       //compiles the word list into a Sierra WORDS.TOK file
@@ -911,212 +915,137 @@ namespace WinAGI
         throw new Exception("672, strErrSrc, Replace(LoadResString(672), ARG1, CStr(lngError) + strError)");
       }
     }
-public void Load(string LoadFile = "")
-{
-//this function loads words for the game
-//if loading from a Sierra game, it extracts words
-//from the WORDS.TOK file;
-//if not in a game, LoadFile must be specified
+    public void Load(string LoadFile = "")
+    {
+      //this function loads words for the game
+      //if loading from a Sierra game, it extracts words
+      //from the WORDS.TOK file;
+      //if not in a game, LoadFile must be specified
 
-bool blnSuccess
-
-On Error GoTo ErrHandler
-
-//if already loaded,
-if (mLoaded) {
-  //error- resource already loaded
-  throw new Exception("511, strErrSource, LoadResString(511)");
-    return;
-}
-
-if (mInGame) {
-  //use default filename
-  LoadFile = agGameDir + "WORDS.TOK"
-  //attempt to load
-  if (!LoadSierraFile(LoadFile)) {
-    On Error GoTo 0
-    //error
-    throw new Exception("529, strErrSource, LoadResString(529)");
+      //if already loaded,
+      if (mLoaded) 
+      {
+        //error- resource already loaded
+        throw new Exception("511, strErrSource, LoadResString(511)");
+      }
+      if (mInGame) 
+      {
+        //use default filename
+        LoadFile = agGameDir + "WORDS.TOK";
+        //attempt to load
+        if (!LoadSierraFile(LoadFile)) 
+        {
+          //error
+          throw new Exception("529, strErrSource, LoadResString(529)");
+        }
+        //get description, if there is one
+        mDescription = ReadSettingString(agGameProps, "WORDS.TOK", "Description", "");
+      } 
+      else 
+      {
+        //if not in a game, must have a valid filename
+        if (LoadFile.Length == 0)
+        {
+          //not in game; return error
+          throw new Exception("599, strErrSource, LoadResString(599)");
+        }
+        //verify file exists
+        if (!File.Exists(LoadFile))
+        {
+          //error
+          throw new Exception("524, strErrSource, Replace(LoadResString(524), ARG1, LoadFile)");
+        }
+        //if extension is .agw then
+        if (LoadFile.EndsWith(".agw",StringComparison.OrdinalIgnoreCase))
+        {
+          //assume winagi format
+          if (!LoadWinAGIFile(LoadFile))
+          {
+            //try sierra format
+            if (!LoadSierraFile(LoadFile))
+            {
+              //error
+              throw new Exception("529, strErrSource, LoadResString(529)");
+            }
+          }
+        } 
+        else 
+        {
+          //assume sierra format
+          if (!LoadSierraFile(LoadFile)) 
+          {
+            //try winagi format
+            if (!LoadWinAGIFile(LoadFile))
+            {
+              //error
+              throw new Exception("529, strErrSource, LoadResString(529)");
+            }
+          }
+        }
+        //save filename
+        mResFile = LoadFile;
+      }
+      //reset dirty flag
+      mIsDirty = false;
+      return;
     }
-
-  //get description, if there is one
-  //////Debug.Assert !(agGameProps Is Nothing)
-  ReadSettingString agGameProps, "WORDS.TOK", "Description", ""
-} else {
-  //if not in a game, must have a valid filename
-
-  //if optional filename not passed,
-  if (LoadFile.Length = 0) {
-    //not in game; return error
-    On Error GoTo 0
-    throw new Exception("599, strErrSource, LoadResString(599)");
-      return;
-  }
-
-  //verify file exists
-  if (!FileExists(LoadFile)) {
-    On Error GoTo 0
-    //error
-    throw new Exception("524, strErrSource, Replace(LoadResString(524), ARG1, LoadFile)");
-      return;
-  }
-
-  //if extension is .agw then
-  if (LCase$(Right$(LoadFile, 4)) = ".agw") {
-    //assume winagi format
-    if (!LoadWinAGIFile(LoadFile)) {
-      //try sierra format
-      if (!LoadSierraFile(LoadFile)) {
-        On Error GoTo 0
+    public AGIWordGroup Group(int Index)
+    {
+      //returns a group by its index (NOT the same as group number)
+      //if not loaded
+      if (!mLoaded) 
+      {
         //error
-        throw new Exception("529, strErrSource, LoadResString(529)");
-      return;
+        throw new Exception("563, strErrSource, LoadResString(563)");
       }
-    }
-  } else {
-    //assume sierra format
-    if (!LoadSierraFile(LoadFile)) {
-      //try winagi format
-      if (!LoadWinAGIFile(LoadFile)) {
-        On Error GoTo 0
+      //if invalid index
+      if (Index < 0 || Index > mGroupCol.Count - 1)
+      {
         //error
-        throw new Exception("529, strErrSource, LoadResString(529)");
-      return;
+        throw new Exception("588, strErrSource, LoadResString(588)");
       }
+      //access the group by its index
+      return mGroupCol.Values[Index];
     }
-  }
-
-  //save filename
-  mResFile = LoadFile
-}
-
-//reset dirty flag
-mIsDirty = false
-return;
-
-ErrHandler:
-//////Debug.Assert false
-}
-public AGIWordGroup Get Group(int Index)
-{
-//returns a group by its index (NOT the same as group number)
-
-//if not loaded
-if (!mLoaded) {
-  //error
-  throw new Exception("563, strErrSource, LoadResString(563)");
-    return;
-}
-
-
-//if invalid index
-if (Index < 0 Or Index > mGroupCol.Count - 1) {
-  //error
-  throw new Exception("588, strErrSource, LoadResString(588)");
-    return;
-}
-
-//access the group by its index
-Set Group = mGroupCol(Index + 1)
-
-}
-
-
-public bool Get IsDirty()
-{
-//if resource is dirty, or (prop values need writing AND in game)
-IsDirty = (mIsDirty Or (mWriteProps And mInGame))
-}
-
-
-public void AddWord(string WordText, int Group)
-{
-int i
-AGIWord NewWord
-AGIWordGroup tmpGroup
-
-
-//if not loaded
-if (!mLoaded) {
-  //error
-  throw new Exception("563, strErrSource, LoadResString(563)");
-    return;
-}
-
-//convert input to lowercase
-WordText = LCase$(WordText)
-
-//check to see if word is already in collection,
-i = mWordCol(WordText).Group
-if (Err.Number = 0) {
-  throw new Exception("579, strErrSource, LoadResString(579)");
-    return;
-}
-
-Err.Clear
-
-//if group number is invalid (negative, or > max)
-if (Group < 0 Or Group > MAX_GROUP_NUM) {
-  //error
-  throw new Exception("581, strErrSource, LoadResString(581)");
-  return;
-}
-
-//if this group does not yet exist,
-if (!Me.GroupExists(Group)) {
-  //add this group
-  AddGroup Group
-}
-
-//any other error gets trapped
-On Error GoTo ErrHandler
-
-//in order to access internal properties,
-//need to create a direct reference to the AGIwordgroup class
-Set tmpGroup = mGroupCol("g" + CStr(Group))
-
-//add this word to its group
-tmpGroup.AddWordToGroup WordText
-Set tmpGroup = Nothing
-
-//now add it to the main word collection
-NewWord.WordText = WordText
-NewWord.Group = Group
-
-//if this is the first word,
-if (mWordCol.Count = 0) {
-  //add it, using the word itself as the key
-  mWordCol.Add NewWord, WordText
-} else {
-  //find correct position for this word
-  if (NewWord.WordText < mWordCol(1).WordText) {
-    //this word should be first
-    mWordCol.Add NewWord, WordText, 1
-  } else {
-    //step through rest of objects
-    for (i = mWordCol.Count; i >= 0; i --) {
-      //if new word is greater than current word
-      if (NewWord.WordText > mWordCol(i).WordText) {
-        //this is where word goes
-        Exit For
+    public void AddWord(string WordText, int Group)
+    {
+      int i;
+      AGIWord NewWord;
+      //if not loaded
+      if (!mLoaded)
+      {
+      //error
+      throw new Exception("563, strErrSource, LoadResString(563)");
       }
-    } //nxt  i
-    //add it, using the word itself as the key
-    mWordCol.Add NewWord, NewWord.WordText, , i
-  }
-}
-
-//set dirty flag
-mIsDirty = true
-return;
-
-ErrHandler:
-strError = Err.Description
-strErrSrc = Err.Source
-lngError = Err.Number
-
-throw new Exception("673, strErrSrc, Replace(LoadResString(673), ARG1, CStr(lngError)+ strError)");
-}
+      //convert input to lowercase
+      WordText = WordText.ToLower();
+      //check to see if word is already in collection,
+      if (mWordCol.ContainsKey(WordText))
+      {
+        throw new Exception("579, strErrSource, LoadResString(579)");
+      }
+      //if group number is invalid (negative, or > max)
+      if (Group < 0 || Group > MAX_GROUP_NUM)
+      {
+        //error
+        throw new Exception("581, strErrSource, LoadResString(581)");
+      }
+      //if this group does not yet exist,
+      if (!GroupExists(Group))
+      {
+        //add this group
+        AddGroup(Group);
+      }
+      //add word to the group
+      mGroupCol[Group].AddWordToGroup(WordText);
+      //now add it to the main word collection
+      NewWord.WordText = WordText;
+      NewWord.Group = Group;
+      //add it, using the word itself as the key
+      mWordCol.Add(WordText, NewWord);
+      //set dirty flag
+      mIsDirty = true;
+    }
     bool LoadWinAGIFile(string LoadFile)
     {
       string strInput;
