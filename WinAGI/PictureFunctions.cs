@@ -20,7 +20,7 @@ namespace WinAGI
     private static short bytIn;
     private static PenStatus CurrentPen, SavePen;
     private static int[] Queue = new int[26880];
-    private static byte[] CircleData = new byte[64];
+    private static readonly byte[] CircleData = new byte[64];
     private static bool InitPlotData;
 
     internal static PenStatus GetToolStatus()

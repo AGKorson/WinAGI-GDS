@@ -4,6 +4,7 @@ using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
 using static WinAGI.AGICommands;
 using System.IO;
+using System.Diagnostics;
 
 namespace WinAGI
 {
@@ -20,16 +21,30 @@ namespace WinAGI
     bool mWriteProps;
     bool mLoaded;
     readonly string strErrSource = "WinAGI.AGIWordList";
-    string strCurWord = "";  //for reasons that make no sense, this variable
-                        //has to be declared at module level; if it is
-                        //declared in Compile(), the variable pointer
-                        //fails (it points to random memory) when run in
-                        //Linux under Wine
     public AGIWordList()
     {
       //initialize the collections
       mWordCol = new SortedList<string, AGIWord>();
       mGroupCol = new SortedList<int, AGIWordGroup>();
+      // add starting words, but don't use AddWord method
+      // because list is not loaded yet
+      AGIWord tmpWord = new AGIWord { WordText = "a", Group = 0 };
+      mWordCol.Add("a", tmpWord);
+      tmpWord.WordText = "anyword";
+      tmpWord.Group = 1;
+      mWordCol.Add("anyword", tmpWord);
+      tmpWord.WordText = "rol";
+      tmpWord.Group = 9999;
+      mWordCol.Add("rol", tmpWord);
+      AGIWordGroup tmpGroup = new AGIWordGroup { mGroupNum = 0 };
+      tmpGroup.AddWordToGroup("a");
+      mGroupCol.Add(0, tmpGroup);
+      tmpGroup = new AGIWordGroup { mGroupNum = 1 };
+      tmpGroup.AddWordToGroup("any");
+      mGroupCol.Add(1, tmpGroup);
+      tmpGroup = new AGIWordGroup { mGroupNum = 9999 };
+      tmpGroup.AddWordToGroup("rol");
+      mGroupCol.Add(9999, tmpGroup);
     }
     public void NewWords()
     {
@@ -210,12 +225,10 @@ namespace WinAGI
       int lngGrpNum;
       byte bytPrevWordCharCount;
       FileStream fsWords;
-      StreamReader srWords;
       try
       {
         //open the file
         fsWords = new FileStream(LoadFile, FileMode.Open);
-        srWords = new StreamReader(fsWords);
       }
       catch (Exception)
       {
@@ -226,11 +239,14 @@ namespace WinAGI
       if (fsWords.Length == 0)
       {
         fsWords.Dispose();
-        srWords.Dispose();
         return false;
       }
       //set load flag
       mLoaded = true;
+      // empty word and group columns
+      mWordCol = new SortedList<string, AGIWord> { };
+      mGroupCol = new SortedList<int, AGIWordGroup> { };
+
       //read in entire resource
       Array.Resize(ref bytData, (int)fsWords.Length);
       fsWords.Read(bytData);
@@ -288,13 +304,14 @@ namespace WinAGI
         //get group number
         lngGrpNum = bytData[lngPos] * 256 + bytData[lngPos + 1];
         //set pointer to next word
+        
         lngPos += 2;
         //if this word different to previous,
         //(this ensures no duplicates are added)
         if (strThisWord != strPrevWord)
         {
           //if this word already exists,
-          if (WordExists(strThisWord))
+          if (mWordCol.ContainsKey(strThisWord))
           {
             //delete the old one
             RemoveWord(strThisWord);
@@ -468,7 +485,7 @@ namespace WinAGI
       mDescription = "";
       mIsDirty = true;
     }
-    public AGIWordGroup GroupN(int GroupNumber)
+    public AGIWordGroup GroupN(int groupNum)
     {
       //returns a group by its group number
       //if not loaded
@@ -477,8 +494,8 @@ namespace WinAGI
         //error
         throw new Exception("563, strErrSource, LoadResString(563)");
       }
-      //return group with this number
-      return mGroupCol[GroupNumber];
+      //return this group by it's number (key value)
+      return mGroupCol[groupNum];
     }
     public bool GroupExists(int GroupNumber)
     {
@@ -518,12 +535,14 @@ namespace WinAGI
           {
             throw new IndexOutOfRangeException();
           }
-          return mWordCol[vKeyIndex];
+          return mWordCol.Values[vKeyIndex];
         }
         else if (vKeyIndex is string)
         {
-          //retrieve via string key
-          return mWordCol[vKeyIndex]; //***this is not right?
+          // a string could be a number passed as a string, OR an actual word?
+          // user has to make sure it's not a number passed as a string...
+          //retrieve via string key - actual word, which is the key
+          return mWordCol[vKeyIndex]; 
         }
         else
         {
@@ -601,16 +620,18 @@ namespace WinAGI
     }
     public bool WordExists(string aWord)
     {
-      //if this word exists, it returns true
-      for (int i = 0; i < mWordCol.Count; i++)
-      {
-        if (mWordCol.Values[i].WordText.Equals(aWord, StringComparison.OrdinalIgnoreCase))
-        {
-          return true;
-        }
-      }
-      // not found
-      return false;
+      return mWordCol.ContainsKey(aWord);
+      ////if this word exists, it returns true
+      //for (int i = 0; i < mWordCol.Count; i++)
+      //{
+      //  if (mWordCol.Values[i].WordText.Equals(aWord, StringComparison.OrdinalIgnoreCase))
+      //  {
+      //    return true;
+      //  }
+      //}
+      //// not found
+      //return false;
+      
     }
     public void AddGroup(int GroupNumber)
     {
@@ -661,8 +682,14 @@ namespace WinAGI
         //word not found
         throw new Exception("584, strErrSource, LoadResString(584)");
       }
-      //delete this word from its assigned group
-      GroupN(mWordCol[aWord].Group).DeleteWordFromGroup(aWord);
+      //delete this word from its assigned group BY Group number
+      AGIWordGroup tmpGroup = GroupN(mWordCol[aWord].Group);
+      tmpGroup.DeleteWordFromGroup(aWord);
+      //if group is now empty, delete it too
+      if (tmpGroup.WordCount == 0)
+      {
+        mGroupCol.Remove(tmpGroup.GroupNum);
+      }
       //remove it from the word collection
       mWordCol.Remove(aWord);
       //set dirty flag
@@ -1009,7 +1036,6 @@ namespace WinAGI
     }
     public void AddWord(string WordText, int Group)
     {
-      int i;
       AGIWord NewWord;
       //if not loaded
       if (!mLoaded)

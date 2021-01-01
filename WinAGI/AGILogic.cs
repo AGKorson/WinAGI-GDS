@@ -52,7 +52,8 @@ namespace WinAGI
       catch (Exception)
       {
         // pass it along
-        throw;
+        //throw;
+        //>???? how to break, but still keep going after fixing error????
       }
 
       //compiledCRC Value should already be set,
@@ -75,8 +76,10 @@ namespace WinAGI
       base.PropertyChanged += ResPropChange;
       strErrSource = "WinAGI.Logic";
       //set default resource data
-      Data = new RData(6);// ();
-      Data.AllData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x02, 0x00};
+      Data = new RData(6)
+      {
+        AllData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x02, 0x00 }
+      };
       // set default source
       mSourceText = agCmds[0].Name + "();" + NEWLINE + NEWLINE + "[ messages";
       //to avoid having compile property read true if both values are 0, set compiled to -1 on initialization
@@ -294,8 +297,10 @@ namespace WinAGI
       //clear resource
       base.Clear();
       //set default resource data
-      Data = new RData(6);// ();
-      Data.AllData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x02, 0x00 };
+      Data = new RData(6)
+      {
+        AllData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x02, 0x00 }
+      };
 
       //clear the source code by setting it to //return// command
       mSourceText = agCmds[0].Name + "();" + NEWLINE + NEWLINE + "[ messages";

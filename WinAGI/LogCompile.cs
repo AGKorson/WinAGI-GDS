@@ -23,8 +23,8 @@ namespace WinAGI
       }
     internal struct LogicLabel
     { 
-      string Name ;
-      int Loc;
+      internal string Name ;
+      internal int Loc;
     }
 
     internal static AGIResource tmpLogRes;
@@ -34,7 +34,7 @@ namespace WinAGI
     internal const bool UseTypeChecking = true;
 
     internal const string NOT_TOKEN = "!";
-    internal const string OR_TOKEN = "||";
+    internal const string OR_TOKEN = " || ";
     internal const string AND_TOKEN = "&&";
     internal const string NOTEQUAL_TOKEN = "!=";
     internal const string EQUAL_TOKEN = "==";

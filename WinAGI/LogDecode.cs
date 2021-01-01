@@ -9,6 +9,7 @@ using static WinAGI.LogicErrorLevel;
 using static WinAGI.ArgTypeEnum;
 using static WinAGI.AGICommands;
 using static WinAGI.AGITestCommands;
+using System.Diagnostics;
 
 namespace WinAGI
 {
@@ -34,14 +35,14 @@ namespace WinAGI
     const int MAX_LINE_LEN = 80;
     //tokens for building source code output
     //const string NOT_TOKEN = "!";
-    //const string AND_TOKEN = " && ";
-    //const string OR_TOKEN = " || ";
     const string IF_TOKEN = "if (";
     const string THEN_TOKEN = ")%1{"; //where %1 is a line feed plus indent at current level
     const string ELSE_TOKEN = "else%1{"; //where %1 is a line feed plus indent at current level
     const string ENDIF_TOKEN = "}";
     const string GOTO_TOKEN = "goto(%1)";
     const string EOL_TOKEN = ";";
+    const string D_TKN_AND = " && ";
+    const string D_TKN_OR = " || ";
     const string EQUAL_TEST_TOKEN = " == ";
     const string NOT_EQUAL_TEST_TOKEN = " != ";
     const string CMT_TOKEN = "[ ";
@@ -73,7 +74,7 @@ namespace WinAGI
         return stlOutput;
       }
       //clear block info
-      for (i = 0; i <= MAX_BLOCK_DEPTH; i++)
+      for (i = 0; i < MAX_BLOCK_DEPTH; i++)
       {
         Block[i].EndPos = 0;
         Block[i].IsIf = false;
@@ -113,14 +114,22 @@ namespace WinAGI
 
       //set error flag
       strError = "";
-      //locate labels, && mark them
-      if (!FindLabels(bytData))
+      try
       {
-        //use error string set by findlabels
-        goto ErrHandler;
+        //locate labels, and mark them
+        if (!FindLabels(bytData))
+        {
+          //use error string set by findlabels
+          goto ErrHandler;
+        }
+
+      }
+      catch (Exception e)
+      {
+        string msg = e.Message;
       }
 
-      //reset block depth && data position
+      //reset block depth and data position
       bytBlockDepth = 0;
       lngPos = 2;
       if (bytLabelCount > 0)
@@ -136,14 +145,14 @@ namespace WinAGI
         if (lngLabelPos[lngNextLabel] == lngPos)
         {
           stlOutput.Add("Label" + lngNextLabel + ":");
-          lngNextLabel = lngNextLabel + 1;
+          lngNextLabel += 1;
           if (lngNextLabel > bytLabelCount)
           {
             lngNextLabel = 0;
           }
         }
         bytCurData = bytData[lngPos];
-        lngPos = lngPos + 1;
+        lngPos += 1;
         if (bytCurData == 0xFF)
         {
           //this byte starts an IF statement
@@ -151,504 +160,504 @@ namespace WinAGI
           {
             goto ErrHandler;
           }
-          else if (bytCurData <= 182)
+        }
+        else if (bytCurData <= 182)
+        {
+          //valid agi command
+          //if this command is not within range of expected commands for targeted interpretr version,
+          if (bytCurData > AGICommands.Count)
+          { //this byte is a command
+            //show warning
+            AddDecodeWarning("this command not valid for selected interpreter version (" + agIntVersion + ")");
+          }
+
+          bytCmd = bytCurData;
+          string strCurrentLine = MultStr("  ", bytBlockDepth);
+          if (agMainLogSettings.SpecialSyntax && (bytCmd >= 0x1 && bytCmd <= 0xB) || (bytCmd >= 0xA5 && bytCmd <= 0xA8))
           {
-            //valid agi command
-            //if this command is not within range of expected commands for targeted interpretr version,
-            if (bytCurData > AGICommands.Count)
-            { //this byte is a command
-              //show warning
-              AddDecodeWarning("this command not valid for selected interpreter version (" + agIntVersion + ")");
-            }
-
-            bytCmd = bytCurData;
-            string strCurrentLine = MultStr("  ", bytBlockDepth);
-            if (agMainLogSettings.SpecialSyntax && (bytCmd >= 0x1 && bytCmd <= 0xB) || (bytCmd >= 0xA5 && bytCmd <= 0xA8))
+            strCurrentLine += AddSpecialCmd(bytData, bytCmd);
+          }
+          else
+          {
+            strCurrentLine = strCurrentLine + agCmds[bytCmd].Name + "(";
+            intArgStart = strCurrentLine.Length;
+            for (intArg = 0; intArg < agCmds[bytCmd].ArgType.Length; intArg++)
             {
-              strCurrentLine += AddSpecialCmd(bytData, bytCmd);
-            }
-            else
-            {
-              strCurrentLine = strCurrentLine + agCmds[bytCmd].Name + "(";
-              intArgStart = strCurrentLine.Length;
-              for (intArg = 0; intArg < agCmds[bytCmd].ArgType.Length; intArg++)
+              bytCurData = bytData[lngPos];
+              lngPos++;
+              strArg = ArgValue(bytCurData, agCmds[bytCmd].ArgType[intArg]);
+              //if showing reserved names && using reserved defines
+              if (agResAsText && agUseRes)
               {
-                bytCurData = bytData[lngPos];
-                lngPos++;
-                strArg = ArgValue(bytCurData, agCmds[bytCmd].ArgType[intArg]);
-                //if showing reserved names && using reserved defines
-                if (agResAsText && agUseRes)
-                {
-                  //some commands use resources as arguments; substitute as appropriate
-                  switch (bytCmd)
-                  {
-                    case 122: //add.to.pic,    1st arg (V)
-                      if (intArg == 0)
-                      {
-                        if (agViews.Exists(bytCurData))
-                        {
-                          strArg = agViews[bytCurData].ID;
-                        }
-                        else
-                        {
-                          //view doesn//t exist
-                          switch (agMainLogSettings.ErrorLevel)
-                          {
-                            case leHigh:
-                            case leMedium:
-                              //set warning
-                              AddDecodeWarning("view " + bytCurData + " in add.to.pic() does not exist");
-                              break;
-                            case leLow:
-                              //do nothing
-                              break;
-                          }
-                        }
-                      }
-                      break;
-                    case 22:  //call,          only arg (L)
-                      if (agLogs.Exists(bytCurData))
-                      {
-                        strArg = agLogs[bytCurData].ID;
-                      }
-                      else
-                      {
-                        //logic doesn//t exist
-                        switch (agMainLogSettings.ErrorLevel)
-                        {
-                          case leHigh:
-                          case leMedium:
-                            //set warning
-                            AddDecodeWarning("logic " + bytCurData + " in call() does not exist");
-                            break;
-                          case leLow:
-                            //do nothing
-                            break;
-                        }
-                      }
-                      break;
-                    case 175: //discard.sound, only arg (S)
-                      if (agSnds.Exists(bytCurData))
-                      {
-                        strArg = agSnds[bytCurData].ID;
-                      }
-                      else
-                      {
-                        //sound doesn//t exist
-                        switch (agMainLogSettings.ErrorLevel)
-                        {
-                          case leHigh:
-                          case leMedium:
-                            //set warning
-                            AddDecodeWarning("sound " + bytCurData + " in discard.sound() does not exist");
-                            break;
-                          case leLow:
-                            //do nothing
-                            break;
-                        }
-                      }
-                      break;
-                    case 32:  //discard.view,  only arg (V)
-                      if (agViews.Exists(bytCurData))
-                      {
-                        strArg = agViews[bytCurData].ID;
-                      }
-                      else
-                      {
-                        //view doesn//t exist
-                        switch (agMainLogSettings.ErrorLevel)
-                        {
-                          case leHigh:
-                          case leMedium:
-                            //set warning
-                            AddDecodeWarning("view " + bytCurData + " in discard.view() does not exist");
-                            break;
-                          case leLow:
-                            //do nothing
-                            break;
-                        }
-                      }
-                      break;
-                    case 20:  //load.logics,   only arg (L)
-                      if (agLogs.Exists(bytCurData))
-                      {
-                        strArg = agLogs[bytCurData].ID;
-                      }
-                      else
-                      {
-                        //logic doesn//t exist
-                        switch (agMainLogSettings.ErrorLevel)
-                        {
-                          case leHigh:
-                          case leMedium:
-                            //set warning
-                            AddDecodeWarning("logic " + bytCurData + " in loadlogics() does not exist");
-                            break;
-                          case leLow:
-                            //do nothing
-                            break;
-                        }
-                      }
-                      break;
-                    case 98:  //load.sound,    only arg (S)
-                      if (agSnds.Exists(bytCurData))
-                      {
-                        strArg = agSnds[bytCurData].ID;
-                      }
-                      else
-                      {
-                        //sound doesn//t exist
-                        switch (agMainLogSettings.ErrorLevel)
-                        {
-                          case leHigh:
-                          case leMedium:
-                            //set warning
-                            AddDecodeWarning("sound " + bytCurData + " in load.sound() does not exist");
-                            break;
-                          case leLow:
-                            //do nothing
-                            break;
-                        }
-                      }
-                      break;
-                    case 30:  //load.view,     only arg (V)
-                      if (agViews.Exists(bytCurData))
-                      {
-                        strArg = agViews[bytCurData].ID;
-                      }
-                      else
-                      {
-                        //view doesn//t exist
-                        switch (agMainLogSettings.ErrorLevel)
-                        {
-                          case leHigh:
-                          case leMedium:
-                            //set warning
-                            AddDecodeWarning("view " + bytCurData + " in load.view() does not exist");
-                            break;
-                          case leLow:
-                            //do nothing
-                            break;
-                        }
-                      }
-                      break;
-                    case 18:  //new.room,      only arg (L)
-                      if (agLogs.Exists(bytCurData))
-                      {
-                        strArg = agLogs[bytCurData].ID;
-                      }
-                      else
-                      {
-                        //logic doesn//t exist
-                        switch (agMainLogSettings.ErrorLevel)
-                        {
-                          case leHigh:
-                          case leMedium:
-                            //set warning
-                            AddDecodeWarning("logic " + bytCurData + " in new.room() does not exist");
-                            break;
-                          case leLow:
-                            //do nothing
-                            break;
-                        }
-                      }
-                      break;
-                    case 41:  //set.view,      2nd arg (V)
-                      if (intArg == 1)
-                      {
-                        if (agViews.Exists(bytCurData))
-                        {
-                          strArg = agViews[bytCurData].ID;
-                        }
-                        else
-                        {
-                          //view doesn//t exist
-                          switch (agMainLogSettings.ErrorLevel)
-                          {
-                            case leHigh:
-                            case leMedium:
-                              //set warning
-                              AddDecodeWarning("view " + bytCurData + " in set.view() does not exist");
-                              break;
-                            case leLow:
-                              //do nothing
-                              break;
-                          }
-                        }
-                      }
-                      break;
-                    case 129: //show.obj,      only arg (V)
-                      if (agViews.Exists(bytCurData))
-                      {
-                        strArg = agViews[bytCurData].ID;
-                      }
-                      else
-                      {
-                        //view doesn//t exist
-                        switch (agMainLogSettings.ErrorLevel)
-                        {
-                          case leHigh:
-                          case leMedium:
-                            //set warning
-                            AddDecodeWarning("view " + bytCurData + " in show.obj() does not exist");
-                            break;
-                          case leLow:
-                            //do nothing
-                            break;
-                        }
-                      }
-                      break;
-                    case 99:  //sound,         1st arg (S)
-                      if (intArg == 0)
-                      {
-                        if (agSnds.Exists(bytCurData))
-                        {
-                          strArg = agSnds[bytCurData].ID;
-                        }
-                        else
-                        {
-                          //sound doesn//t exist
-                          switch (agMainLogSettings.ErrorLevel)
-                          {
-                            case leHigh:
-                            case leMedium:
-                              //set warning
-                              AddDecodeWarning("sound " + bytCurData + " in sound() does not exist");
-                              break;
-                            case leLow:
-                              //do nothing
-                              break;
-                          }
-                        }
-                      }
-                      break;
-                    case 150: //trace.info,    1st arg (L)
-                      if (intArg == 0)
-                      {
-                        if (agLogs.Exists(bytCurData))
-                        {
-                          strArg = agLogs[bytCurData].ID;
-                        }
-                        else
-                        {
-                          //logic doesn//t exist
-                          switch (agMainLogSettings.ErrorLevel)
-                          {
-                            case leHigh:
-                            case leMedium:
-                              //set warning
-                              AddDecodeWarning("logic " + bytCurData + " in trace.info() does not exist");
-                              break;
-                            case leLow:
-                              //do nothing
-                              break;
-                          }
-                        }
-                      }
-                      break;
-                  }
-                }
-
-                //if message error (no string returned)
-                if (strArg.Length == 0)
-                {
-                  //error string set by ArgValue function
-                  goto ErrHandler;
-                }
-                //check for commands that use colors here
+                //some commands use resources as arguments; substitute as appropriate
                 switch (bytCmd)
                 {
-                  case 105: //clear.lines, 3rd arg
-                    if (intArg == 2)
+                  case 122: //add.to.pic,    1st arg (V)
+                    if (intArg == 0)
                     {
-                      if (Val(strArg) < 16)
+                      if (agViews.Exists(bytCurData))
                       {
-                        strArg = agResColor[(int)Val(strArg)].Name;
+                        strArg = agViews[bytCurData].ID;
+                      }
+                      else
+                      {
+                        //view doesn//t exist
+                        switch (agMainLogSettings.ErrorLevel)
+                        {
+                          case leHigh:
+                          case leMedium:
+                            //set warning
+                            AddDecodeWarning("view " + bytCurData + " in add.to.pic() does not exist");
+                            break;
+                          case leLow:
+                            //do nothing
+                            break;
+                        }
                       }
                     }
                     break;
-                  case 154: //clear.text.rect, 5th arg
-                    if (intArg == 4)
+                  case 22:  //call,          only arg (L)
+                    if (agLogs.Exists(bytCurData))
                     {
-                      if (Val(strArg) < 16)
+                      strArg = agLogs[bytCurData].ID;
+                    }
+                    else
+                    {
+                      //logic doesn//t exist
+                      switch (agMainLogSettings.ErrorLevel)
                       {
-                        strArg = agResColor[(int)Val(strArg)].Name;
+                        case leHigh:
+                        case leMedium:
+                          //set warning
+                          AddDecodeWarning("logic " + bytCurData + " in call() does not exist");
+                          break;
+                        case leLow:
+                          //do nothing
+                          break;
                       }
                     }
                     break;
-                  case 109: //set.text.attribute, all args
+                  case 175: //discard.sound, only arg (S)
+                    if (agSnds.Exists(bytCurData))
+                    {
+                      strArg = agSnds[bytCurData].ID;
+                    }
+                    else
+                    {
+                      //sound doesn//t exist
+                      switch (agMainLogSettings.ErrorLevel)
+                      {
+                        case leHigh:
+                        case leMedium:
+                          //set warning
+                          AddDecodeWarning("sound " + bytCurData + " in discard.sound() does not exist");
+                          break;
+                        case leLow:
+                          //do nothing
+                          break;
+                      }
+                    }
+                    break;
+                  case 32:  //discard.view,  only arg (V)
+                    if (agViews.Exists(bytCurData))
+                    {
+                      strArg = agViews[bytCurData].ID;
+                    }
+                    else
+                    {
+                      //view doesn//t exist
+                      switch (agMainLogSettings.ErrorLevel)
+                      {
+                        case leHigh:
+                        case leMedium:
+                          //set warning
+                          AddDecodeWarning("view " + bytCurData + " in discard.view() does not exist");
+                          break;
+                        case leLow:
+                          //do nothing
+                          break;
+                      }
+                    }
+                    break;
+                  case 20:  //load.logics,   only arg (L)
+                    if (agLogs.Exists(bytCurData))
+                    {
+                      strArg = agLogs[bytCurData].ID;
+                    }
+                    else
+                    {
+                      //logic doesn//t exist
+                      switch (agMainLogSettings.ErrorLevel)
+                      {
+                        case leHigh:
+                        case leMedium:
+                          //set warning
+                          AddDecodeWarning("logic " + bytCurData + " in loadlogics() does not exist");
+                          break;
+                        case leLow:
+                          //do nothing
+                          break;
+                      }
+                    }
+                    break;
+                  case 98:  //load.sound,    only arg (S)
+                    if (agSnds.Exists(bytCurData))
+                    {
+                      strArg = agSnds[bytCurData].ID;
+                    }
+                    else
+                    {
+                      //sound doesn//t exist
+                      switch (agMainLogSettings.ErrorLevel)
+                      {
+                        case leHigh:
+                        case leMedium:
+                          //set warning
+                          AddDecodeWarning("sound " + bytCurData + " in load.sound() does not exist");
+                          break;
+                        case leLow:
+                          //do nothing
+                          break;
+                      }
+                    }
+                    break;
+                  case 30:  //load.view,     only arg (V)
+                    if (agViews.Exists(bytCurData))
+                    {
+                      strArg = agViews[bytCurData].ID;
+                    }
+                    else
+                    {
+                      //view doesn//t exist
+                      switch (agMainLogSettings.ErrorLevel)
+                      {
+                        case leHigh:
+                        case leMedium:
+                          //set warning
+                          AddDecodeWarning("view " + bytCurData + " in load.view() does not exist");
+                          break;
+                        case leLow:
+                          //do nothing
+                          break;
+                      }
+                    }
+                    break;
+                  case 18:  //new.room,      only arg (L)
+                    if (agLogs.Exists(bytCurData))
+                    {
+                      strArg = agLogs[bytCurData].ID;
+                    }
+                    else
+                    {
+                      //logic doesn//t exist
+                      switch (agMainLogSettings.ErrorLevel)
+                      {
+                        case leHigh:
+                        case leMedium:
+                          //set warning
+                          AddDecodeWarning("logic " + bytCurData + " in new.room() does not exist");
+                          break;
+                        case leLow:
+                          //do nothing
+                          break;
+                      }
+                    }
+                    break;
+                  case 41:  //set.view,      2nd arg (V)
+                    if (intArg == 1)
+                    {
+                      if (agViews.Exists(bytCurData))
+                      {
+                        strArg = agViews[bytCurData].ID;
+                      }
+                      else
+                      {
+                        //view doesn//t exist
+                        switch (agMainLogSettings.ErrorLevel)
+                        {
+                          case leHigh:
+                          case leMedium:
+                            //set warning
+                            AddDecodeWarning("view " + bytCurData + " in set.view() does not exist");
+                            break;
+                          case leLow:
+                            //do nothing
+                            break;
+                        }
+                      }
+                    }
+                    break;
+                  case 129: //show.obj,      only arg (V)
+                    if (agViews.Exists(bytCurData))
+                    {
+                      strArg = agViews[bytCurData].ID;
+                    }
+                    else
+                    {
+                      //view doesn//t exist
+                      switch (agMainLogSettings.ErrorLevel)
+                      {
+                        case leHigh:
+                        case leMedium:
+                          //set warning
+                          AddDecodeWarning("view " + bytCurData + " in show.obj() does not exist");
+                          break;
+                        case leLow:
+                          //do nothing
+                          break;
+                      }
+                    }
+                    break;
+                  case 99:  //sound,         1st arg (S)
+                    if (intArg == 0)
+                    {
+                      if (agSnds.Exists(bytCurData))
+                      {
+                        strArg = agSnds[bytCurData].ID;
+                      }
+                      else
+                      {
+                        //sound doesn//t exist
+                        switch (agMainLogSettings.ErrorLevel)
+                        {
+                          case leHigh:
+                          case leMedium:
+                            //set warning
+                            AddDecodeWarning("sound " + bytCurData + " in sound() does not exist");
+                            break;
+                          case leLow:
+                            //do nothing
+                            break;
+                        }
+                      }
+                    }
+                    break;
+                  case 150: //trace.info,    1st arg (L)
+                    if (intArg == 0)
+                    {
+                      if (agLogs.Exists(bytCurData))
+                      {
+                        strArg = agLogs[bytCurData].ID;
+                      }
+                      else
+                      {
+                        //logic doesn//t exist
+                        switch (agMainLogSettings.ErrorLevel)
+                        {
+                          case leHigh:
+                          case leMedium:
+                            //set warning
+                            AddDecodeWarning("logic " + bytCurData + " in trace.info() does not exist");
+                            break;
+                          case leLow:
+                            //do nothing
+                            break;
+                        }
+                      }
+                    }
+                    break;
+                }
+              }
+
+              //if message error (no string returned)
+              if (strArg.Length == 0)
+              {
+                //error string set by ArgValue function
+                goto ErrHandler;
+              }
+              //check for commands that use colors here
+              switch (bytCmd)
+              {
+                case 105: //clear.lines, 3rd arg
+                  if (intArg == 2)
+                  {
                     if (Val(strArg) < 16)
                     {
                       strArg = agResColor[(int)Val(strArg)].Name;
                     }
-                    break;
-                }
-
-                //if message
-                if (agCmds[bytCmd].ArgType[intArg] == atMsg)
-                {
-                  //split over additional lines, if necessary
-                  do
+                  }
+                  break;
+                case 154: //clear.text.rect, 5th arg
+                  if (intArg == 4)
                   {
-                    //if this message is too long to add to current line,
-                    if (strCurrentLine.Length + strArg.Length > MAX_LINE_LEN)
+                    if (Val(strArg) < 16)
                     {
-                      //determine number of characters availableto add to this line
-                      intCharCount = MAX_LINE_LEN - strCurrentLine.Length;
-                      //determine longest available section of message that can be added
-                      //without exceeding max line length
-                      if (intCharCount > 1)
+                      strArg = agResColor[(int)Val(strArg)].Name;
+                    }
+                  }
+                  break;
+                case 109: //set.text.attribute, all args
+                  if (Val(strArg) < 16)
+                  {
+                    strArg = agResColor[(int)Val(strArg)].Name;
+                  }
+                  break;
+              }
+
+              //if message
+              if (agCmds[bytCmd].ArgType[intArg] == atMsg)
+              {
+                //split over additional lines, if necessary
+                do
+                {
+                  //if this message is too long to add to current line,
+                  if (strCurrentLine.Length + strArg.Length > MAX_LINE_LEN)
+                  {
+                    //determine number of characters availableto add to this line
+                    intCharCount = MAX_LINE_LEN - strCurrentLine.Length;
+                    //determine longest available section of message that can be added
+                    //without exceeding max line length
+                    if (intCharCount > 1)
+                    {
+                      while (intCharCount > 1 && strArg[intCharCount - 1] != ' ') // Until (intCharCount <= 1) || (Mid$(strArg, intCharCount, 1) = " ")
                       {
-                        while (intCharCount > 1 && strArg[intCharCount - 1] != ' ') // Until (intCharCount <= 1) || (Mid$(strArg, intCharCount, 1) = " ")
-                        {
-                          intCharCount--;
-                        }
-                        //if no space is found to split up the line
-                        if (intCharCount <= 1)
-                        {
-                          //just split it without worrying about a space
-                          intCharCount = MAX_LINE_LEN - strCurrentLine.Length;
-                        }
-                        //add the section of the message that fits on this line
-                        strCurrentLine = strCurrentLine + Left(strArg, intCharCount) + QUOTECHAR;
-                        strArg = Mid(strArg, intCharCount, strArg.Length - intCharCount);
-                        //add line
-                        stlOutput.Add(strCurrentLine);
-                        //create indent (but don't exceed 20 spaces (to ensure msgs aren't split
-                        //up into small chunks)
-                        if (intArgStart >= MAX_LINE_LEN - 20)
-                        {
-                          intArgStart = MAX_LINE_LEN - 20;
-                        }
-                        strCurrentLine = MultStr(" ", intArgStart) + QUOTECHAR;
+                        intCharCount--;
                       }
-                      else
+                      //if no space is found to split up the line
+                      if (intCharCount <= 1)
                       {
-                        //line is messed up; just add it
-                        strCurrentLine = strCurrentLine + strArg;
-                        strArg = "";
+                        //just split it without worrying about a space
+                        intCharCount = MAX_LINE_LEN - strCurrentLine.Length;
                       }
+                      //add the section of the message that fits on this line
+                      strCurrentLine = strCurrentLine + Left(strArg, intCharCount) + QUOTECHAR;
+                      strArg = Mid(strArg, intCharCount, strArg.Length - intCharCount);
+                      //add line
+                      stlOutput.Add(strCurrentLine);
+                      //create indent (but don't exceed 20 spaces (to ensure msgs aren't split
+                      //up into small chunks)
+                      if (intArgStart >= MAX_LINE_LEN - 20)
+                      {
+                        intArgStart = MAX_LINE_LEN - 20;
+                      }
+                      strCurrentLine = MultStr(" ", intArgStart) + QUOTECHAR;
                     }
                     else
                     {
-                      //not too long; add the message to current line
+                      //line is messed up; just add it
                       strCurrentLine += strArg;
                       strArg = "";
                     }
                   }
-                  //continue adding new lines until entire message is split && added
-                  while (strArg != ""); // Until strArg = ""
+                  else
+                  {
+                    //not too long; add the message to current line
+                    strCurrentLine += strArg;
+                    strArg = "";
+                  }
                 }
-                else
-                {
-                  //add arg
-                  strCurrentLine = strCurrentLine + strArg;
-                }
-
-                //if more arguments needed,
-                if (intArg < agCmds[bytCmd].ArgType.Length - 1)
-                {
-                  strCurrentLine = strCurrentLine + ", ";
-                }
-              } // Next intArg
-              strCurrentLine = strCurrentLine + ")";
-            }
-            strCurrentLine = strCurrentLine + EOL_TOKEN;
-            stlOutput.Add(strCurrentLine);
-            //if any warnings
-            if (blnWarning)
-            {
-              //add warning lines
-              strWarningLine = strWarning.Split("|");
-              for (i = 0; i < strWarningLine.Length; i++)
-              {
-                stlOutput.Add(CMT_TOKEN + "WARNING: " + strWarningLine[i]);
-              }
-              //reset warning flag + string
-              blnWarning = false;
-              strWarning = "";
-            }
-          }
-          else if (bytCurData == 0xFE)
-          {
-            //this byte is a goto || else
-            blnGoto = false;
-            tmpBlockLen = 256 * bytData[lngPos + 1] + bytData[lngPos];
-            lngPos += 2;
-            //need to check for negative Value here
-            if (tmpBlockLen > 0x7FFF)
-            {
-              tmpBlockLen = tmpBlockLen - 0x10000;
-            }
-            if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!agMainLogSettings.ElseAsGoto))
-            {
-              Block[bytBlockDepth].IsIf = false;
-              Block[bytBlockDepth].IsOutside = false;
-              if ((tmpBlockLen + lngPos > Block[bytBlockDepth - 1].EndPos) || (tmpBlockLen < 0) || (Block[bytBlockDepth].Length <= 3))
-              {
-                blnGoto = true;
+                //continue adding new lines until entire message is split && added
+                while (strArg != ""); // Until strArg = ""
               }
               else
               {
-                stlOutput.Add(MultStr("  ", bytBlockDepth) + ENDIF_TOKEN);
-                if (agMainLogSettings.ElseAsGoto)
-                {
-                  stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + GOTO_TOKEN);
-                }
-                else
-                {
-                  stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + ELSE_TOKEN.Replace(ARG1, NEWLINE + new String(' ', bytBlockDepth * 2)));
-                }
-                Block[bytBlockDepth].Length = tmpBlockLen;
-                Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
+                //add arg
+                strCurrentLine += strArg;
               }
+
+              //if more arguments needed,
+              if (intArg < agCmds[bytCmd].ArgType.Length - 1)
+              {
+                strCurrentLine += ", ";
+              }
+            } // Next intArg
+            strCurrentLine += ")";
+          }
+          strCurrentLine += EOL_TOKEN;
+          stlOutput.Add(strCurrentLine);
+          //if any warnings
+          if (blnWarning)
+          {
+            //add warning lines
+            strWarningLine = strWarning.Split("|");
+            for (i = 0; i < strWarningLine.Length; i++)
+            {
+              stlOutput.Add(CMT_TOKEN + "WARNING: " + strWarningLine[i]);
             }
-            else
+            //reset warning flag + string
+            blnWarning = false;
+            strWarning = "";
+          }
+        }
+        else if (bytCurData == 0xFE)
+        {
+          //this byte is a goto || else
+          blnGoto = false;
+          tmpBlockLen = 256 * bytData[lngPos + 1] + bytData[lngPos];
+          lngPos += 2;
+          //need to check for negative Value here
+          if (tmpBlockLen > 0x7FFF)
+          {
+            tmpBlockLen -= 0x10000;
+          }
+          if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!agMainLogSettings.ElseAsGoto))
+          {
+            Block[bytBlockDepth].IsIf = false;
+            Block[bytBlockDepth].IsOutside = false;
+            if ((tmpBlockLen + lngPos > Block[bytBlockDepth - 1].EndPos) || (tmpBlockLen < 0) || (Block[bytBlockDepth].Length <= 3))
             {
               blnGoto = true;
             }
-            // goto
-            if (blnGoto)
+            else
             {
-              lngLabelLoc = tmpBlockLen + lngPos;
-              //label already verified in FindLabels; add warning if necessary
-              if (lngLabelLoc > bytData.Length - 2)
+              stlOutput.Add(MultStr("  ", bytBlockDepth) + ENDIF_TOKEN);
+              if (agMainLogSettings.ElseAsGoto)
               {
-                switch (agMainLogSettings.ErrorLevel)
-                {
-                  //case leHigh - high level handled in FindLabels
-                  case leMedium:
-                    //set warning
-                    AddDecodeWarning("Goto destination past end of logic at position " + lngPos + " adjusted to end of logic");
-                    //adjust it to end of resource
-                    lngLabelLoc = bytData.Length - 1;
-                    break;
-                  case leLow:
-                    //adjust it to end of resource
-                    lngLabelLoc = bytData.Length - 1;
-                    break;
-                }
+                stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + GOTO_TOKEN);
               }
-              for (i = 1; i <= bytLabelCount; i++)
+              else
               {
-                if (lngLabelPos[i] == lngLabelLoc)
-                {
-                  stlOutput.Add(MultStr("  ", bytBlockDepth) + GOTO_TOKEN.Replace(ARG1, "Label" + i) + EOL_TOKEN);
-                  //if any warnings
-                  if (blnWarning)
-                  {
-                    //add warning lines
-                    strWarningLine = strWarning.Split("|");
-                    for (j = 0; j < strWarningLine.Length; j++)
-                    {
-                      stlOutput.Add(CMT_TOKEN + "WARNING: " + strWarningLine[j]);
-                    }
-                    //reset warning flag + string
-                    blnWarning = false;
-                    strWarning = "";
-                  }
+                stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + ELSE_TOKEN.Replace(ARG1, NEWLINE + new String(' ', bytBlockDepth * 2)));
+              }
+              Block[bytBlockDepth].Length = tmpBlockLen;
+              Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
+            }
+          }
+          else
+          {
+            blnGoto = true;
+          }
+          // goto
+          if (blnGoto)
+          {
+            lngLabelLoc = tmpBlockLen + lngPos;
+            //label already verified in FindLabels; add warning if necessary
+            if (lngLabelLoc > bytData.Length - 2)
+            {
+              switch (agMainLogSettings.ErrorLevel)
+              {
+                //case leHigh - high level handled in FindLabels
+                case leMedium:
+                  //set warning
+                  AddDecodeWarning("Goto destination past end of logic at position " + lngPos + " adjusted to end of logic");
+                  //adjust it to end of resource
+                  lngLabelLoc = bytData.Length - 1;
                   break;
+                case leLow:
+                  //adjust it to end of resource
+                  lngLabelLoc = bytData.Length - 1;
+                  break;
+              }
+            }
+            for (i = 1; i <= bytLabelCount; i++)
+            {
+              if (lngLabelPos[i] == lngLabelLoc)
+              {
+                stlOutput.Add(MultStr("  ", bytBlockDepth) + GOTO_TOKEN.Replace(ARG1, "Label" + i) + EOL_TOKEN);
+                //if any warnings
+                if (blnWarning)
+                {
+                  //add warning lines
+                  strWarningLine = strWarning.Split("|");
+                  for (j = 0; j < strWarningLine.Length; j++)
+                  {
+                    stlOutput.Add(CMT_TOKEN + "WARNING: " + strWarningLine[j]);
+                  }
+                  //reset warning flag + string
+                  blnWarning = false;
+                  strWarning = "";
                 }
+                break;
               }
             }
           }
@@ -670,7 +679,7 @@ namespace WinAGI
       if (blnWarning)
       {
         //add pipe character
-        strWarning = strWarning + "|";
+        strWarning += "|";
       }
       else
       {
@@ -961,19 +970,19 @@ namespace WinAGI
                 }
                 else if (bytInput == 0x22)
                 {
-                  strMessage = strMessage + "\\\"";
+                  strMessage += "\\\"";
                 }
                 else if (bytInput == 0x5C)
                 {
-                  strMessage = strMessage + "\\\\"; //TODO: check this!!!!
+                  strMessage += "\\\\"; //TODO: check this!!!!
                 }
                 else if (bytInput == 0x7F)
                 {
-                  strMessage = strMessage + "\\x7F";
+                  strMessage += "\\x7F";
                 }
                 else if (bytInput == 0xFF)
                 {
-                  strMessage = strMessage + "\\xFF";
+                  strMessage += "\\xFF";
                 }
                 else
                 {
@@ -1023,11 +1032,11 @@ namespace WinAGI
       blnIfFinished = false;
       blnFirstCmd = true;
       blnInOrBlock = false;
-      strLine = MultStr("  ", bytBlockDepth) + IF_TOKEN;
+      strLine = MultStr("  ", bytBlockDepth) + IF_TOKEN; //new String(" ", bytBlockDepth)? why not this?
       //main loop - read in logic, one byte at a time, and write text accordingly
       do
       {
-        //always reset //NOT// block status to false
+        //always reset 'NOT' block status to false
         blnInNotBlock = false;
 
         //read next byte from input stream
@@ -1043,16 +1052,16 @@ namespace WinAGI
           {
             if (!blnFirstCmd)
             {
-              strLine += AND_TOKEN;
+              strLine += D_TKN_AND;
               stlOut.Add(strLine);
               strLine = MultStr("  ", bytBlockDepth) + "    ";
               blnFirstCmd = true;
             }
-            strLine = strLine + "(";
+            strLine += "(";
           }
           else
           {
-            strLine = strLine + ")";
+            strLine += ")";
           }
 
           //now get next byte, and continue checking
@@ -1063,11 +1072,11 @@ namespace WinAGI
         //special check needed in case two 0xFCs are in a row, e.g. (a || b) && (c || d)
         if ((bytCurByte == 0xFC) && (!blnInOrBlock))
         {
-          strLine = strLine + AND_TOKEN;
+          strLine += D_TKN_AND;
           stlOut.Add(strLine);
           strLine = MultStr("  ", bytBlockDepth) + "    ";
           blnFirstCmd = true;
-          strLine = strLine + "(";
+          strLine += "(";
           blnInOrBlock = true;
           bytCurByte = bytData[lngPos];
           lngPos++;
@@ -1088,11 +1097,11 @@ namespace WinAGI
           {
             if (blnInOrBlock)
             {
-              strLine = strLine + OR_TOKEN;
+              strLine += D_TKN_OR;
             }
             else
             {
-              strLine = strLine + AND_TOKEN;
+              strLine += D_TKN_AND;
             }
             stlOut.Add(strLine);
             strLine = MultStr("  ", bytBlockDepth) + "    ";
@@ -1105,13 +1114,13 @@ namespace WinAGI
             lngPos++;
             bytArg2Val = bytData[lngPos];
             lngPos++;
-            strLine = strLine + AddSpecialIf(bytCmd, bytCurByte, bytArg2Val, blnInNotBlock);
+            strLine += AddSpecialIf(bytCmd, bytCurByte, bytArg2Val, blnInNotBlock);
           }
           else
           {
             if (blnInNotBlock)
             {
-              strLine = strLine + NOT_TOKEN;
+              strLine += NOT_TOKEN;
             }
 
             strLine = strLine + agTestCmds[bytCmd].Name + "(";
@@ -1125,7 +1134,7 @@ namespace WinAGI
               for (intArg1Val = 1; intArg1Val <= bytNumSaidArgs; intArg1Val++)
               {
                 lngWordGroupNum = 256 * bytData[lngPos + 1] + bytData[lngPos];
-                lngPos = lngPos + 2;
+                lngPos += 2;
                 //if a game is loaded,
                 if (agGameLoaded)
                 {
@@ -1145,13 +1154,13 @@ namespace WinAGI
                         return false;
                       case leMedium:
                         //add the word by its number
-                        strLine = strLine + lngWordGroupNum;
+                        strLine += lngWordGroupNum;
                         //set warning text
                         AddDecodeWarning("unknown word: " + lngWordGroupNum);
                         break;
                       case leLow:
                         //add the word by its number
-                        strLine = strLine + lngWordGroupNum;
+                        strLine += lngWordGroupNum;
                         break;
                     }
                   }
@@ -1159,12 +1168,12 @@ namespace WinAGI
                 else
                 {
                   //alwys use word number as the argument
-                  strLine = strLine + lngWordGroupNum;
+                  strLine += lngWordGroupNum;
                 }
 
                 if (intArg1Val < bytNumSaidArgs)
                 {
-                  strLine = strLine + ", ";
+                  strLine += ", ";
                 }
               } //Next intArg1Val
 
@@ -1202,10 +1211,10 @@ namespace WinAGI
                         //without exceeding max line length
                         do
                         {
-                          intCharCount = intCharCount - 1;
+                          intCharCount -= 1;
                         }
                         while (intCharCount != 1 && strArg[intCharCount - 1] != ' '); //Loop Until (intCharCount = 1) || (Mid(strArg, intCharCount, 1) = " ")
-                                                                                     //if no space is found to split up the line
+                                                                                      //if no space is found to split up the line
                         if (intCharCount <= 1)
                         {
                           //just split it without worrying about a space
@@ -1227,7 +1236,7 @@ namespace WinAGI
                       else
                       {
                         //not too long; add the message to current line
-                        strLine = strLine + strArg;
+                        strLine += strArg;
                         strArg = "";
                       }
                       //continue adding new lines until entire message is split and added
@@ -1237,18 +1246,18 @@ namespace WinAGI
                   else
                   {
                     //just add it
-                    strLine = strLine + strArg;
+                    strLine += strArg;
                   }
 
                   //if more arguments needed,
                   if (intArg1Val < agTestCmds[bytCmd].ArgType.Length - 1)
                   {
-                    strLine = strLine + ", ";
+                    strLine += ", ";
                   }
                 } //Next intArg1Val
               }
             }
-            strLine = strLine + ")";
+            strLine += ")";
           }
           blnFirstCmd = false;
           //add warning if this is the unknown test19 command
@@ -1261,13 +1270,13 @@ namespace WinAGI
         else if (bytCurByte == 0xFF)
         {
           //done with if block; add //then//
-          strLine = strLine + THEN_TOKEN.Replace(ARG1, NEWLINE + MultStr(" ", bytBlockDepth * 2 + 2));
+          strLine += THEN_TOKEN.Replace(ARG1, NEWLINE + MultStr(" ", bytBlockDepth * 2 + 2));
           //(SkipToEndIf verified that max block depth is not exceeded)
           //increase block depth counter
           bytBlockDepth++;
           Block[bytBlockDepth].IsIf = true;
           Block[bytBlockDepth].Length = 256 * bytData[lngPos + 1] + bytData[lngPos];
-          lngPos = lngPos + 2;
+          lngPos += 2;
           //check for length of zero
           if (Block[bytBlockDepth].Length == 0 && agMainLogSettings.ErrorLevel == leMedium)
           {
@@ -1283,14 +1292,14 @@ namespace WinAGI
             {
               //if error level is high, SkipToEndIf catches this condition
               case leMedium:
-              //adjust to end
-              Block[bytBlockDepth].EndPos = bytData.Length - 2;
+                //adjust to end
+                Block[bytBlockDepth].EndPos = bytData.Length - 2;
                 //set warning text
                 AddDecodeWarning("block end past end of resource; adjusted to end of resource");
                 break;
               case leLow:
-              //adjust to end
-              Block[bytBlockDepth].EndPos = bytData.Length - 2;
+                //adjust to end
+                Block[bytBlockDepth].EndPos = bytData.Length - 2;
                 break;
             }
           }
@@ -1339,7 +1348,7 @@ namespace WinAGI
         }
       }
       while (!blnIfFinished); //Loop Until blnIfFinished
-  return true;
+      return true;
 
       //ErrHandler:
       //  //unknown test command
@@ -1392,12 +1401,12 @@ namespace WinAGI
             lngPos++;
             //move pointer to next position past these arguments
             //(note that words use two bytes per argument, not one)
-            lngPos = lngPos + NumSaidArgs * 2;
+            lngPos += NumSaidArgs * 2;
           }
           else
           {
             //move pointer to next position past the arguments for this command
-            lngPos = lngPos + agTestCmds[ThisCommand].ArgType.Length;
+            lngPos += agTestCmds[ThisCommand].ArgType.Length;
           }
         }
         else if (CurByte == 0xFF)
@@ -1411,7 +1420,7 @@ namespace WinAGI
           bytBlockDepth++;
           Block[bytBlockDepth].IsIf = true;
           Block[bytBlockDepth].Length = 256 * bytData[lngPos + 1] + bytData[lngPos];
-          lngPos = lngPos + 2;
+          lngPos += 2;
           //check length of block
           if (Block[bytBlockDepth].Length == 0)
           {
@@ -1472,7 +1481,7 @@ namespace WinAGI
         }
       }
       while (!IfFinished); //Loop Until IfFinished
-  return true;
+      return true;
 
       //ErrHandler:
       //  //if no error string
@@ -1483,392 +1492,392 @@ namespace WinAGI
       //  return false;
     }
 
-  static bool FindLabels(byte[] bytData)
-  {
-    int i, j, CurBlock;
-    byte bytCurData;
-    int tmpBlockLength;
-    bool DoGoto;
-    int LabelLoc;
-    //finds all labels and stores them in an array;
-    //they are then sorted and put in order so that
-    //as each is found during decoding of the logic
-    //the label is created, and the next label position
-    //is moved to top of stack
-    bytBlockDepth = 0;
-    bytLabelCount = 0;
-    int[] lngLabelPos = Array.Empty<int>();
-    lngPos = 2;
-    do
+    static bool FindLabels(byte[] bytData)
     {
-      //check to see if the end of a block has been found
-      //start at most recent block and work up to oldest block
-      for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--)
+      int i, j, CurBlock;
+      byte bytCurData;
+      int tmpBlockLength;
+      bool DoGoto;
+      int LabelLoc;
+      //finds all labels and stores them in an array;
+      //they are then sorted and put in order so that
+      //as each is found during decoding of the logic
+      //the label is created, and the next label position
+      //is moved to top of stack
+      bytBlockDepth = 0;
+      bytLabelCount = 0;
+      lngPos = 2;
+      do
       {
-        //if this position matches the end of this block
-        if (Block[CurBlock].EndPos <= lngPos)
+        //check to see if the end of a block has been found
+        //start at most recent block and work up to oldest block
+        for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--)
         {
-          //verify it is exact
-          if (Block[CurBlock].EndPos != lngPos)
+          //if this position matches the end of this block
+          if (Block[CurBlock].EndPos <= lngPos)
           {
-            //error
-            strError = "Invalid goto position, or invalid if/then block length at position ";
-            strError += (Block[CurBlock].EndPos - Block[CurBlock].Length);
+            //verify it is exact
+            if (Block[CurBlock].EndPos != lngPos)
+            {
+              //error
+              strError = "Invalid goto position, or invalid if/then block length at position ";
+              strError += (Block[CurBlock].EndPos - Block[CurBlock].Length);
+              return false;
+            }
+            //take this block off stack
+            bytBlockDepth--;
+          }
+        }
+        //get next byte
+        bytCurData = bytData[lngPos];
+        lngPos++;
+        if (bytCurData == 0xFF) //this byte points to start of an IF statement
+        {
+          //find labels associated with this if statement
+          if (!SkipToEndIf(bytData))
+          {
+            //major error
             return false;
           }
-          //take this block off stack
+        }
+        else if (bytCurData <= AGICommands.Count) //byte is an AGI command
+        {
+          //skip over arguments to get next command
+          //////Debug.Assert bytCurData != 178
+          lngPos += agCmds[bytCurData].ArgType.Length;
+        }
+        else if (bytCurData == 0xFE)   //if the byte is a GOTO command
+        {
+          //reset goto status flag
+          DoGoto = false;
+          tmpBlockLength = 256 * bytData[lngPos + 1] + bytData[lngPos];
+          lngPos += 2;
+          //need to check for negative Value here
+          if (tmpBlockLength > 0x7FFF)
+          {
+            //convert block length to negative value
+            tmpBlockLength -= 0x10000;
+          }
+          //check to see if this 'goto' might be an 'else':
+          //  - end of this block matches this position (the if-then part is done)
+          //  - this block is identified as an IF block
+          //  - this is NOT the main block
+          //  - the flag to set elses as gotos is turned off
+          if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!agMainLogSettings.ElseAsGoto))
+          {
+            //this block is now in the //else// part, so reset flag
+            Block[bytBlockDepth].IsIf = false;
+            Block[bytBlockDepth].IsOutside = false;
+            //does this //else// statement line up to end at the same
+            //point that the //if// statement does?
+            //the end of this block is past where the //if// block ended OR
+            //the block is negative (means jumping backward, so it MUST be a goto)
+            //length of block doesn//t have enough room for code necessary to close the //else//
+            if ((tmpBlockLength + lngPos > Block[bytBlockDepth - 1].EndPos) || (tmpBlockLength < 0) || (Block[bytBlockDepth].Length <= 3))
+            {
+              //this is a //goto// statement,
+              DoGoto = true;
+            }
+            else
+            {
+              //this is an //else// statement;
+              //readjust block end so the IF statement that owns this //else//
+              //is ended correctly
+              Block[bytBlockDepth].Length = tmpBlockLength;
+              Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
+            }
+          }
+          else
+          {
+            //this is a goto statement (or an else statement while mGotos flag is false)
+            DoGoto = true;
+          }
+          // goto
+          if (DoGoto)
+          {
+            LabelLoc = tmpBlockLength + lngPos;
+            if (LabelLoc > bytData.Length - 2)
+            {
+              //if error level is high (medium and low are handled in DecodeLogic)
+              if (agMainLogSettings.ErrorLevel == leHigh)
+              {
+                strError = "Goto destination past end of logic (" + LabelLoc + ")" + "at position " + lngPos;
+                return false;
+              }
+            }
+            //if label is already created
+            for (i = 1; i <= bytLabelCount; i++)
+            {
+              if (lngLabelPos[i] == LabelLoc)
+              {
+                break;
+              }
+            }
+            //if loop exited normally (i will equal bytLabelCount+1)
+            if (i == bytLabelCount + 1)
+            {
+              //increment label Count
+              bytLabelCount++;
+              Array.Resize(ref lngLabelPos, bytLabelCount + 1);
+              //save this label position
+              lngLabelPos[bytLabelCount] = LabelLoc;
+            }
+          }
+        }
+        else
+        {
+          //if not a valid command not implemented in this version
+          if (bytCurData > 182)
+          {
+            //major error
+            strError = "Unknown action command (" + bytCurData + ") at position " + lngPos;
+            return false;
+          }
+        }
+      }
+      while (lngPos < lngMsgSecStart); //Loop Until (lngPos >= lngMsgSecStart)
+                                       //now sort labels, if found
+      if (bytLabelCount > 1)
+      {
+        for (i = 1; i <= bytLabelCount - 1; i++)
+        {
+          for (j = i + 1; j <= bytLabelCount; j++)
+          {
+            if (lngLabelPos[j] < lngLabelPos[i])
+            {
+              LabelLoc = lngLabelPos[i];
+              lngLabelPos[i] = lngLabelPos[j];
+              lngLabelPos[j] = LabelLoc;
+            }
+          }
+        }
+      }
+      //clear block info (don't overwrite main block)
+      for (i = 1; i < MAX_BLOCK_DEPTH; i++)
+      {
+        Block[i].EndPos = 0;
+        Block[i].IsIf = false;
+        Block[i].IsOutside = false;
+        Block[i].JumpPos = 0;
+        Block[i].Length = 0;
+      }
+      //return success
+      return true;
+
+      //ErrHandler:
+      //  //if no error string
+      //  if (strError.Length == 0) 
+      //  {
+      //    //use a default
+      //    strError = "Unhandled error in FindLabels (" + Err.Number + ": " + Err.Description + ") at position " + lngPos;
+      //  }
+      //  FindLabels = false;
+    }
+    static void DisplayMessages(List<string> stlOut)
+    {
+      int lngMsg;
+      //need to adjust references to the Messages stringlist object by one
+      //since the list is zero based, but messages are one-based.
+      stlOut.Add(CMT_TOKEN + "Messages");
+      for (lngMsg = 1; lngMsg <= stlMsgs.Count; lngMsg++)
+      {
+        Debug.Print($"Msg Num: {lngMsg}  MsgExists:{blnMsgExists[lngMsg].ToString()}  MsgUsed:{blnMsgUsed[lngMsg]}");
+        if (blnMsgExists[lngMsg] && ((agMainLogSettings.ShowAllMessages) || !blnMsgUsed[lngMsg]))
+        {
+          stlOut.Add(MSG_LINE.Replace(ARG1, lngMsg.ToString()).Replace(ARG2, stlMsgs[lngMsg - 1]));
+        }
+      }
+    }
+    static string AddSpecialCmd(byte[] bytData, byte bytCmd)
+    {
+      byte bytArg1, bytArg2;
+      //get first argument
+      bytArg1 = bytData[lngPos];
+      lngPos++;
+      switch (bytCmd)
+      {
+        case 0x1:  // increment
+          return "++" + ArgValue(bytArg1, ArgTypeEnum.atVar);
+        case 0x2:  // decrement
+          return "--" + ArgValue(bytArg1, ArgTypeEnum.atVar);
+        case 0x3:  // assignn
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + " = " + ArgValue(bytArg2, ArgTypeEnum.atNum, bytArg1);
+        case 0x4:  // assignv
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + " = " + ArgValue(bytArg2, ArgTypeEnum.atVar);
+        case 0x5:  // addn
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + "  += " + ArgValue(bytArg2, ArgTypeEnum.atNum);
+        case 0x6:  // addv
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + "  += " + ArgValue(bytArg2, ArgTypeEnum.atVar);
+        case 0x7:  // subn
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + " -= " + ArgValue(bytArg2, ArgTypeEnum.atNum);
+        case 0x8:  // subv
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + " -= " + ArgValue(bytArg2, ArgTypeEnum.atVar);
+        case 0x9:  // lindirectv
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return "*" + ArgValue(bytArg1, ArgTypeEnum.atVar) + " = " + ArgValue(bytArg2, ArgTypeEnum.atVar);
+        case 0xA:  // rindirect
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + " = *" + ArgValue(bytArg2, ArgTypeEnum.atVar);
+        case 0xB:  // lindirectn
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return "*" + ArgValue(bytArg1, ArgTypeEnum.atVar) + " = " + ArgValue(bytArg2, ArgTypeEnum.atNum);
+        case 0xA5: // mul.n
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + " *= " + ArgValue(bytArg2, ArgTypeEnum.atNum);
+        case 0xA6: // mul.v
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + " *= " + ArgValue(bytArg2, ArgTypeEnum.atVar);
+        case 0xA7: // div.n
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + " /= " + ArgValue(bytArg2, ArgTypeEnum.atNum);
+        case 0xA8: // div.v
+          bytArg2 = bytData[lngPos];
+          lngPos++;
+          return ArgValue(bytArg1, ArgTypeEnum.atVar) + " /= " + ArgValue(bytArg2, ArgTypeEnum.atVar);
+        default:
+          return "";
+      }
+    }
+    static string AddSpecialIf(byte bytCmd, byte bytArg1, byte bytArg2, bool NOTOn)
+    {
+      string retval = ArgValue(bytArg1, ArgTypeEnum.atVar);
+      switch (bytCmd)
+      {
+        case 1:
+        case 2:            // equaln or equalv
+                           //if NOT in effect,
+          if (NOTOn)
+          {
+            //test for not equal
+            retval += NOT_EQUAL_TEST_TOKEN;
+          }
+          else
+          {
+            //test for equal
+            retval += EQUAL_TEST_TOKEN;
+          }
+          //if command is comparing variables,
+          if (bytCmd == 2)
+          {
+            //variable
+            retval += ArgValue(bytArg2, ArgTypeEnum.atVar, bytArg1);
+          }
+          else
+          {
+            //add number
+            retval += ArgValue(bytArg2, ArgTypeEnum.atNum, bytArg1);
+          }
+          break;
+        case 3:
+        case 4:           // lessn, lessv
+                          //if NOT is in effect,
+          if (NOTOn)
+          {
+            //test for greater than or equal
+            retval += " >= ";
+          }
+          else
+          {
+            //test for less than
+            retval += " < ";
+          }
+          //if command is comparing variables,
+          if (bytCmd == 4)
+          {
+            retval += ArgValue(bytArg2, ArgTypeEnum.atVar, bytArg1);
+          }
+          else
+          {
+            //number string
+            retval += ArgValue(bytArg2, ArgTypeEnum.atNum, bytArg1);
+          }
+
+          break;
+        case 5:
+        case 6:            // greatern, greaterv
+                           //if NOT is in effect,
+          if (NOTOn)
+          {
+            //test for less than or equal
+            retval += " <= ";
+          }
+          else
+          {
+            //test for greater than
+            retval += " > ";
+          }
+          //if command is comparing variables,
+          if (bytCmd == 6)
+          {
+            retval += ArgValue(bytArg2, ArgTypeEnum.atVar, bytArg1);
+          }
+          else
+          {
+            //number string
+            retval += ArgValue(bytArg2, ArgTypeEnum.atNum, bytArg1);
+          }
+          break;
+      }
+      return retval;
+    }
+    static void AddBlockEnds(List<string> stlIn)
+    {
+      int CurBlock, i;
+
+      for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--)
+      {
+        //why would a less than apply here?
+        //FOUND IT!!! here is a case where it is less than!!!
+        //if (Block(CurBlock).EndPos <= lngPos) {
+        if (Block[CurBlock].EndPos == lngPos)
+        {
+          //check for unusual case where an if block ends outside
+          //the if block it is nested in
+          if (Block[CurBlock].IsOutside)
+          {
+            //add an else
+            stlIn.Add(MultStr("  ", bytBlockDepth) + ENDIF_TOKEN);
+            if (agMainLogSettings.ElseAsGoto)
+            {
+              stlIn.Add(MultStr("  ", bytBlockDepth - 1) + GOTO_TOKEN);
+            }
+            else
+            {
+              stlIn.Add(MultStr("  ", bytBlockDepth - 1) + ELSE_TOKEN.Replace(ARG1, NEWLINE + new String(' ', bytBlockDepth * 2)));
+            }
+            //add a goto
+            for (i = 1; i <= bytLabelCount; i++)
+            {
+              if (lngLabelPos[i] == Block[CurBlock].JumpPos)
+              {
+                stlIn.Add(MultStr("  ", bytBlockDepth) + GOTO_TOKEN.Replace(ARG1, "Label" + i) + EOL_TOKEN);
+                break;
+              }
+            }
+          }
+          //add end if
+          stlIn.Add(MultStr("  ", CurBlock) + ENDIF_TOKEN);
           bytBlockDepth--;
         }
       }
-      //get next byte
-      bytCurData = bytData[lngPos];
-      lngPos++;
-      if (bytCurData == 0xFF) //this byte points to start of an IF statement
-      {
-        //find labels associated with this if statement
-        if (!SkipToEndIf(bytData))
-        {
-          //major error
-          return false;
-        }
-      }
-      else if (bytCurData <= AGICommands.Count) //byte is an AGI command
-      {
-        //skip over arguments to get next command
-        //////Debug.Assert bytCurData != 178
-        lngPos += agCmds[bytCurData].ArgType.Length;
-      }
-      else if (bytCurData == 0xFE)   //if the byte is a GOTO command
-      {
-        //reset goto status flag
-        DoGoto = false;
-        tmpBlockLength = 256 * bytData[lngPos + 1] + bytData[lngPos];
-        lngPos += 2;
-        //need to check for negative Value here
-        if (tmpBlockLength > 0x7FFF)
-        {
-          //convert block length to negative value
-          tmpBlockLength = tmpBlockLength - 0x10000;
-        }
-        //check to see if this 'goto' might be an 'else':
-        //  - end of this block matches this position (the if-then part is done)
-        //  - this block is identified as an IF block
-        //  - this is NOT the main block
-        //  - the flag to set elses as gotos is turned off
-        if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!agMainLogSettings.ElseAsGoto))
-        {
-          //this block is now in the //else// part, so reset flag
-          Block[bytBlockDepth].IsIf = false;
-          Block[bytBlockDepth].IsOutside = false;
-          //does this //else// statement line up to end at the same
-          //point that the //if// statement does?
-          //the end of this block is past where the //if// block ended OR
-          //the block is negative (means jumping backward, so it MUST be a goto)
-          //length of block doesn//t have enough room for code necessary to close the //else//
-          if ((tmpBlockLength + lngPos > Block[bytBlockDepth - 1].EndPos) || (tmpBlockLength < 0) || (Block[bytBlockDepth].Length <= 3))
-          {
-            //this is a //goto// statement,
-            DoGoto = true;
-          }
-          else
-          {
-            //this is an //else// statement;
-            //readjust block end so the IF statement that owns this //else//
-            //is ended correctly
-            Block[bytBlockDepth].Length = tmpBlockLength;
-            Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
-          }
-        }
-        else
-        {
-          //this is a goto statement (or an else statement while mGotos flag is false)
-          DoGoto = true;
-        }
-        // goto
-        if (DoGoto)
-        {
-          LabelLoc = tmpBlockLength + lngPos;
-          if (LabelLoc > bytData.Length - 2)
-          {
-            //if error level is high (medium and low are handled in DecodeLogic)
-            if (agMainLogSettings.ErrorLevel == leHigh)
-            {
-              strError = "Goto destination past end of logic (" + LabelLoc + ")" + "at position " + lngPos;
-              return false;
-            }
-          }
-          //if label is already created
-          for (i = 1; i <= bytLabelCount; i++)
-          {
-            if (lngLabelPos[i] == LabelLoc)
-            {
-              break;
-            }
-          }
-          //if loop exited normally (i will equal bytLabelCount+1)
-          if (i == bytLabelCount + 1)
-          {
-            //increment label Count
-            bytLabelCount++;
-            Array.Resize(ref lngLabelPos, bytLabelCount);
-            //save this label position
-            lngLabelPos[bytLabelCount] = LabelLoc;
-          }
-        }
-      }
-      else
-      {
-        //if not a valid command not implemented in this version
-        if (bytCurData > 182)
-        {
-          //major error
-          strError = "Unknown action command (" + bytCurData + ") at position " + lngPos;
-          return false;
-        }
-      }
-    }
-    while (lngPos < lngMsgSecStart); //Loop Until (lngPos >= lngMsgSecStart)
-                                     //now sort labels, if found
-    if (bytLabelCount > 1)
-    {
-      for (i = 1; i <= bytLabelCount - 1; i++)
-      {
-        for (j = i + 1; j <= bytLabelCount; j++)
-        {
-          if (lngLabelPos[j] < lngLabelPos[i])
-          {
-            LabelLoc = lngLabelPos[i];
-            lngLabelPos[i] = lngLabelPos[j];
-            lngLabelPos[j] = LabelLoc;
-          }
-        }
-      }
-    }
-    //clear block info (don't overwrite main block)
-    for (i = 1; i <= MAX_BLOCK_DEPTH; i++)
-    {
-      Block[i].EndPos = 0;
-      Block[i].IsIf = false;
-      Block[i].IsOutside = false;
-      Block[i].JumpPos = 0;
-      Block[i].Length = 0;
-    }
-    //return success
-    return true;
-
-    //ErrHandler:
-    //  //if no error string
-    //  if (strError.Length == 0) 
-    //  {
-    //    //use a default
-    //    strError = "Unhandled error in FindLabels (" + Err.Number + ": " + Err.Description + ") at position " + lngPos;
-    //  }
-    //  FindLabels = false;
-  }
-  static void DisplayMessages(List<string> stlOut)
-  {
-    int lngMsg;
-    //need to adjust references to the Messages stringlist object by one
-    //since the list is zero based, but messages are one-based.
-    stlOut.Add(CMT_TOKEN + "Messages");
-    for (lngMsg = 1; lngMsg <= stlMsgs.Count; lngMsg++)
-    {
-      if (blnMsgExists[lngMsg] && ((agMainLogSettings.ShowAllMessages) || !blnMsgUsed[lngMsg]))
-      {
-        stlOut.Add(MSG_LINE.Replace(ARG1, lngMsg.ToString()).Replace(ARG2, stlMsgs[lngMsg - 1]));
-      }
     }
   }
-  static string AddSpecialCmd(byte[] bytData, byte bytCmd)
-  {
-    byte bytArg1, bytArg2;
-    //get first argument
-    bytArg1 = bytData[lngPos];
-    lngPos++;
-    switch (bytCmd)
-    {
-      case 0x1:  // increment
-        return "++" + ArgValue(bytArg1, ArgTypeEnum.atVar);
-      case 0x2:  // decrement
-        return "--" + ArgValue(bytArg1, ArgTypeEnum.atVar);
-      case 0x3:  // assignn
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + " = " + ArgValue(bytArg2, ArgTypeEnum.atNum, bytArg1);
-      case 0x4:  // assignv
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + " = " + ArgValue(bytArg2, ArgTypeEnum.atVar);
-      case 0x5:  // addn
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + "  += " + ArgValue(bytArg2, ArgTypeEnum.atNum);
-      case 0x6:  // addv
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + "  += " + ArgValue(bytArg2, ArgTypeEnum.atVar);
-      case 0x7:  // subn
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + " -= " + ArgValue(bytArg2, ArgTypeEnum.atNum);
-      case 0x8:  // subv
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + " -= " + ArgValue(bytArg2, ArgTypeEnum.atVar);
-      case 0x9:  // lindirectv
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return "*" + ArgValue(bytArg1, ArgTypeEnum.atVar) + " = " + ArgValue(bytArg2, ArgTypeEnum.atVar);
-      case 0xA:  // rindirect
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + " = *" + ArgValue(bytArg2, ArgTypeEnum.atVar);
-      case 0xB:  // lindirectn
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return "*" + ArgValue(bytArg1, ArgTypeEnum.atVar) + " = " + ArgValue(bytArg2, ArgTypeEnum.atNum);
-      case 0xA5: // mul.n
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + " *= " + ArgValue(bytArg2, ArgTypeEnum.atNum);
-      case 0xA6: // mul.v
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + " *= " + ArgValue(bytArg2, ArgTypeEnum.atVar);
-      case 0xA7: // div.n
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + " /= " + ArgValue(bytArg2, ArgTypeEnum.atNum);
-      case 0xA8: // div.v
-        bytArg2 = bytData[lngPos];
-        lngPos++;
-        return ArgValue(bytArg1, ArgTypeEnum.atVar) + " /= " + ArgValue(bytArg2, ArgTypeEnum.atVar);
-      default:
-        return "";
-    }
-  }
-  static string AddSpecialIf(byte bytCmd, byte bytArg1, byte bytArg2, bool NOTOn)
-  {
-    string retval = ArgValue(bytArg1, ArgTypeEnum.atVar);
-    switch (bytCmd)
-    {
-      case 1:
-      case 2:            // equaln or equalv
-                         //if NOT in effect,
-        if (NOTOn)
-        {
-          //test for not equal
-          retval += NOT_EQUAL_TEST_TOKEN;
-        }
-        else
-        {
-          //test for equal
-          retval += EQUAL_TEST_TOKEN;
-        }
-        //if command is comparing variables,
-        if (bytCmd == 2)
-        {
-          //variable
-          retval += ArgValue(bytArg2, ArgTypeEnum.atVar, bytArg1);
-        }
-        else
-        {
-          //add number
-          retval += ArgValue(bytArg2, ArgTypeEnum.atNum, bytArg1);
-        }
-        break;
-      case 3:
-      case 4:           // lessn, lessv
-                        //if NOT is in effect,
-        if (NOTOn)
-        {
-          //test for greater than or equal
-          retval += " >= ";
-        }
-        else
-        {
-          //test for less than
-          retval += " < ";
-        }
-        //if command is comparing variables,
-        if (bytCmd == 4)
-        {
-          retval += ArgValue(bytArg2, ArgTypeEnum.atVar, bytArg1);
-        }
-        else
-        {
-          //number string
-          retval += ArgValue(bytArg2, ArgTypeEnum.atNum, bytArg1);
-        }
-
-        break;
-      case 5:
-      case 6:            // greatern, greaterv
-                         //if NOT is in effect,
-        if (NOTOn)
-        {
-          //test for less than or equal
-          retval += " <= ";
-        }
-        else
-        {
-          //test for greater than
-          retval += " > ";
-        }
-        //if command is comparing variables,
-        if (bytCmd == 6)
-        {
-          retval += ArgValue(bytArg2, ArgTypeEnum.atVar, bytArg1);
-        }
-        else
-        {
-          //number string
-          retval += ArgValue(bytArg2, ArgTypeEnum.atNum, bytArg1);
-        }
-        break;
-    }
-    return retval;
-  }
-  static void AddBlockEnds(List<string> stlIn)
-  {
-    int CurBlock, i;
-
-    for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--)
-    {
-      //why would a less than apply here?
-      //FOUND IT!!! here is a case where it is less than!!!
-      //if (Block(CurBlock).EndPos <= lngPos) {
-      if (Block[CurBlock].EndPos == lngPos)
-      {
-        //check for unusual case where an if block ends outside
-        //the if block it is nested in
-        if (Block[CurBlock].IsOutside)
-        {
-          //add an else
-          stlIn.Add(MultStr("  ", bytBlockDepth) + ENDIF_TOKEN);
-          if (agMainLogSettings.ElseAsGoto)
-          {
-            stlIn.Add(MultStr("  ", bytBlockDepth - 1) + GOTO_TOKEN);
-          }
-          else
-          {
-            stlIn.Add(MultStr("  ", bytBlockDepth - 1) + ELSE_TOKEN.Replace(ARG1, NEWLINE + new String(' ', bytBlockDepth * 2)));
-          }
-          //add a goto
-          for (i = 1; i <= bytLabelCount; i++)
-          {
-            if (lngLabelPos[i] == Block[CurBlock].JumpPos)
-            {
-              stlIn.Add(MultStr("  ", bytBlockDepth) + GOTO_TOKEN.Replace(ARG1, "Label" + i) + EOL_TOKEN);
-              break;
-            }
-          }
-        }
-        //add end if
-        stlIn.Add(MultStr("  ", CurBlock) + ENDIF_TOKEN);
-        bytBlockDepth--;
-      }
-    }
-  }
-}
 }

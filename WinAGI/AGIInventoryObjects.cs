@@ -29,10 +29,9 @@ namespace WinAGI
       mMaxScreenObjects = 16;
       //add placeholder for item 0
       tmpItem = new AGIInventoryItem();
-      //but don't set parent; otherwise
-      //circular object reference is created
       tmpItem.ItemName = "?";
       tmpItem.Room = 0;
+      tmpItem.SetParent(this);
       mItems.Add(tmpItem);
     }
     internal List<AGIInventoryItem> mItems
@@ -656,6 +655,7 @@ End Sub
       }
       //add the item
       tmpItem = new AGIInventoryItem();
+      //set parent first, so duplicate protection works
       tmpItem.SetParent(this);
       tmpItem.ItemName = NewItem;
       tmpItem.Room = Room;
@@ -673,7 +673,51 @@ End Sub
         //error
         throw new Exception("563, strErrSource, LoadResString(563)");
       }
+      AGIInventoryItem tmpItem = mItems[Index];
 
+      //if this item is currently a duplicate, 
+      // need to de-unique-ify this item
+      if (!tmpItem.Unique)
+      {
+        //there are at least two objects with this item name;
+        //this object and one or more duplicates
+        //if there is only one other duplicate, it needs to have its
+        //unique property reset because it will no longer be unique
+        //after this object is changed
+        //if there are multiple duplicates, the unique property does
+        //not need to be reset
+        byte dupItem = 0, dupCount = 0;
+        for (int i = 0; i < mItems.Count; i++)
+        {
+          if (mItems[(byte)i] != tmpItem)
+          {
+            if (tmpItem.ItemName.Equals(mItems[(byte)i].ItemName, StringComparison.OrdinalIgnoreCase))
+            {
+              //duplicate found- is this the second?
+              if (dupCount == 1)
+              {
+                //the other's are still non-unique
+                // so don't reset them
+                dupCount = 2;
+                break;
+              }
+              else
+              {
+                //set duplicate count
+                dupCount = 1;
+                //save dupitem number
+                dupItem = (byte)i;
+              }
+            }
+          }
+        }
+        // if only one duplicate found
+        if (dupCount == 1)
+        {
+          // set unique flag for that item; it's no longer a duplicate
+          mItems[dupItem].Unique = true;
+        }
+      }
       //if this is the last item (but not FIRST item)
       if (Index == mItems.Count - 1 && mItems.Count > 1)
       {
@@ -683,8 +727,9 @@ End Sub
       else
       {
         //set item to '?'
-        mItems[Index + 1].ItemName = "?";
-        mItems[Index + 1].Room = 0;
+        mItems[Index].Unique = true;
+        mItems[Index].ItemName = "?";
+        mItems[Index].Room = 0;
       }
       //set dirty flag
       mIsDirty = true;
@@ -1067,7 +1112,7 @@ End Sub
       bytTemp[2] = mMaxScreenObjects;
       //increment offset by width (to take into account file header)
       //this is also pointer to the null item
-      lngDataOffset = lngDataOffset + Dwidth;
+      lngDataOffset += Dwidth;
       //set counter to beginning of data
       lngPos = lngDataOffset;
       //write string for null object (?)

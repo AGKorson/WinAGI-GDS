@@ -26,9 +26,9 @@ namespace WinAGI
     private static int lngOriginalSize;
 
     //sound subclassing variables, constants, declarations
-    public static int PrevSndWndProc;
-    public static bool blnPlaying;
-    public static byte PlaySndResNum;
+    internal static int PrevSndWndProc;
+    internal static bool blnPlaying;
+    internal static byte PlaySndResNum;
     //public Declare Function CallWindowProc Lib "user32" Alias "CallWindowProcA" (ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
     //public Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
     //public Declare Function mciGetErrorString Lib "winmm.dll" Alias "mciGetErrorStringA" (ByVal dwError As Long, ByVal lpstrBuffer As String, ByVal uLength As Long) As Long
@@ -715,7 +715,7 @@ namespace WinAGI
         while (lngByteCount < lngMirrorCount)
         {    //add a zero
           bytTempRLE[lngByteCount] = 0;
-          lngByteCount = lngByteCount + 1;
+          lngByteCount += 1;
         }
       }
 

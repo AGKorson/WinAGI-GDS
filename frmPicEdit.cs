@@ -32,13 +32,11 @@ namespace WinAGI_GDS
       // first, create new image in the picture box that is desired size
       picVisual.Image = new Bitmap(640, 336);
       // intialize a graphics object for the image just created
-      using (Graphics g = Graphics.FromImage(picVisual.Image))
-      {
-        // set correct interpolation mode
-        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-        // draw the bitmap, at correct resolution
-        g.DrawImage(Pictures[1].VisualBMP, 0, 0, 640, 336);
-      }
+      using Graphics g = Graphics.FromImage(picVisual.Image);
+      // set correct interpolation mode
+      g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+      // draw the bitmap, at correct resolution
+      g.DrawImage(Pictures[1].VisualBMP, 0, 0, 640, 336);
 
     }
 
@@ -58,13 +56,11 @@ namespace WinAGI_GDS
       // first, create new image in the picture box that is desired size
       picVisual.Image = new Bitmap((int)(320 * zoom), (int)(168 * zoom));
       // intialize a graphics object for the image just created
-      using (Graphics g = Graphics.FromImage(picVisual.Image))
-      {
-        // set correct interpolation mode
-        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-        // draw the bitmap, at correct resolution
-        g.DrawImage(Pictures[1].VisualBMP, 0, 0, 320 * zoom, 168 * zoom);
-      }
+      using Graphics g = Graphics.FromImage(picVisual.Image);
+      // set correct interpolation mode
+      g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+      // draw the bitmap, at correct resolution
+      g.DrawImage(Pictures[1].VisualBMP, 0, 0, 320 * zoom, 168 * zoom);
     }
   } 
 }

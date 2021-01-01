@@ -1,5 +1,18 @@
 ﻿namespace WinAGI_GDS
 {
+  using System.Windows.Forms;
+  // custom dropdown, that behaves the way I want?
+  public class ToolStripDropDownButtonEx : ToolStripDropDownButton
+  {
+    protected override bool ProcessDialogKey(Keys keyData)
+    {
+      if (keyData == Keys.Escape)
+        return false;
+      else
+        return base.ProcessDialogKey(keyData);
+    }
+  }
+
     partial class frmMDIMain
     {
         /// <summary>
@@ -129,6 +142,11 @@
       this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
       this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
       this.toolStripSplitButton1 = new System.Windows.Forms.ToolStripSplitButton();
+      this.btnNewRes = new System.Windows.Forms.ToolStripDropDownButton();
+      this.btnNewLogic = new System.Windows.Forms.ToolStripMenuItem();
+      this.btnNewPicture = new System.Windows.Forms.ToolStripMenuItem();
+      this.btnNewSound = new System.Windows.Forms.ToolStripMenuItem();
+      this.btnNewView = new System.Windows.Forms.ToolStripMenuItem();
       this.statusStrip1 = new System.Windows.Forms.StatusStrip();
       this.Label1 = new System.Windows.Forms.ToolStripStatusLabel();
       this.Label2 = new System.Windows.Forms.ToolStripStatusLabel();
@@ -140,11 +158,6 @@
       this.btnRun = new System.Windows.Forms.ToolStripButton();
       this.btnSep1 = new System.Windows.Forms.ToolStripSeparator();
       this.btnPrint = new System.Windows.Forms.ToolStripButton();
-      this.btnNewRes = new System.Windows.Forms.ToolStripDropDownButton();
-      this.btnNewLogic = new System.Windows.Forms.ToolStripMenuItem();
-      this.btnNewPicture = new System.Windows.Forms.ToolStripMenuItem();
-      this.btnNewSound = new System.Windows.Forms.ToolStripMenuItem();
-      this.btnNewView = new System.Windows.Forms.ToolStripMenuItem();
       this.btnOpenRes = new System.Windows.Forms.ToolStripDropDownButton();
       this.btnOpenLogic = new System.Windows.Forms.ToolStripMenuItem();
       this.btnOpenPicture = new System.Windows.Forms.ToolStripMenuItem();
@@ -952,6 +965,52 @@
       this.toolStripSplitButton1.Size = new System.Drawing.Size(48, 36);
       this.toolStripSplitButton1.Text = "toolStripSplitButton1";
       // 
+      // btnNewRes
+      // 
+      this.btnNewRes.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+      this.btnNewRes.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btnNewLogic,
+            this.btnNewPicture,
+            this.btnNewSound,
+            this.btnNewView});
+      this.btnNewRes.Image = ((System.Drawing.Image)(resources.GetObject("btnNewRes.Image")));
+      this.btnNewRes.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
+      this.btnNewRes.Margin = new System.Windows.Forms.Padding(2, 2, 2, 4);
+      this.btnNewRes.Name = "btnNewRes";
+      this.btnNewRes.Size = new System.Drawing.Size(61, 52);
+      this.btnNewRes.Text = "&New Resource";
+      this.btnNewRes.DropDownOpening += new System.EventHandler(this.btnNewRes_DropDownOpening);
+      // 
+      // btnNewLogic
+      // 
+      this.btnNewLogic.Image = ((System.Drawing.Image)(resources.GetObject("btnNewLogic.Image")));
+      this.btnNewLogic.Name = "btnNewLogic";
+      this.btnNewLogic.Size = new System.Drawing.Size(170, 54);
+      this.btnNewLogic.Text = "New Logic";
+      this.btnNewLogic.Click += new System.EventHandler(this.btnNewLogic_Click);
+      // 
+      // btnNewPicture
+      // 
+      this.btnNewPicture.Image = ((System.Drawing.Image)(resources.GetObject("btnNewPicture.Image")));
+      this.btnNewPicture.Name = "btnNewPicture";
+      this.btnNewPicture.Size = new System.Drawing.Size(170, 54);
+      this.btnNewPicture.Text = "New Picture";
+      this.btnNewPicture.Click += new System.EventHandler(this.btnNewPicture_Click);
+      // 
+      // btnNewSound
+      // 
+      this.btnNewSound.Image = ((System.Drawing.Image)(resources.GetObject("btnNewSound.Image")));
+      this.btnNewSound.Name = "btnNewSound";
+      this.btnNewSound.Size = new System.Drawing.Size(170, 54);
+      this.btnNewSound.Text = "New Sound";
+      // 
+      // btnNewView
+      // 
+      this.btnNewView.Image = ((System.Drawing.Image)(resources.GetObject("btnNewView.Image")));
+      this.btnNewView.Name = "btnNewView";
+      this.btnNewView.Size = new System.Drawing.Size(170, 54);
+      this.btnNewView.Text = "New View";
+      // 
       // statusStrip1
       // 
       this.statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
@@ -1086,56 +1145,6 @@
       this.btnPrint.Size = new System.Drawing.Size(52, 52);
       this.btnPrint.Text = "&Print";
       // 
-      // btnNewRes
-      // 
-      this.btnNewRes.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnNewRes.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.btnNewLogic,
-            this.btnNewPicture,
-            this.btnNewSound,
-            this.btnNewView});
-      this.btnNewRes.Image = ((System.Drawing.Image)(resources.GetObject("btnNewRes.Image")));
-      this.btnNewRes.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
-      this.btnNewRes.Margin = new System.Windows.Forms.Padding(2, 2, 2, 4);
-      this.btnNewRes.Name = "btnNewRes";
-      this.btnNewRes.Size = new System.Drawing.Size(61, 52);
-      this.btnNewRes.Text = "&New Resource";
-      this.btnNewRes.DropDownOpening += new System.EventHandler(this.btnNewRes_DropDownOpening);
-      // 
-      // btnNewLogic
-      // 
-      this.btnNewLogic.Image = ((System.Drawing.Image)(resources.GetObject("btnNewLogic.Image")));
-      this.btnNewLogic.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
-      this.btnNewLogic.Name = "btnNewLogic";
-      this.btnNewLogic.Size = new System.Drawing.Size(138, 22);
-      this.btnNewLogic.Text = "New Logic";
-      this.btnNewLogic.Click += new System.EventHandler(this.btnNewLogic_Click);
-      // 
-      // btnNewPicture
-      // 
-      this.btnNewPicture.Image = ((System.Drawing.Image)(resources.GetObject("btnNewPicture.Image")));
-      this.btnNewPicture.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
-      this.btnNewPicture.Name = "btnNewPicture";
-      this.btnNewPicture.Size = new System.Drawing.Size(138, 22);
-      this.btnNewPicture.Text = "New Picture";
-      this.btnNewPicture.Click += new System.EventHandler(this.btnNewPicture_Click);
-      // 
-      // btnNewSound
-      // 
-      this.btnNewSound.Image = ((System.Drawing.Image)(resources.GetObject("btnNewSound.Image")));
-      this.btnNewSound.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
-      this.btnNewSound.Name = "btnNewSound";
-      this.btnNewSound.Size = new System.Drawing.Size(138, 22);
-      this.btnNewSound.Text = "New Sound";
-      // 
-      // btnNewView
-      // 
-      this.btnNewView.Image = ((System.Drawing.Image)(resources.GetObject("btnNewView.Image")));
-      this.btnNewView.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
-      this.btnNewView.Name = "btnNewView";
-      this.btnNewView.Size = new System.Drawing.Size(138, 22);
-      this.btnNewView.Text = "New View";
-      // 
       // btnOpenRes
       // 
       this.btnOpenRes.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -1241,6 +1250,7 @@
       this.btnWords.Name = "btnWords";
       this.btnWords.Size = new System.Drawing.Size(52, 52);
       this.btnWords.Text = "WORDS.TOK";
+      this.btnWords.Click += new System.EventHandler(this.btnWords_Click);
       // 
       // btnOjects
       // 
@@ -1251,6 +1261,7 @@
       this.btnOjects.Name = "btnOjects";
       this.btnOjects.Size = new System.Drawing.Size(52, 52);
       this.btnOjects.Text = "OBJECT File";
+      this.btnOjects.Click += new System.EventHandler(this.btnOjects_Click);
       // 
       // btnSep3
       // 
@@ -1585,10 +1596,7 @@
         private System.Windows.Forms.ToolStripSeparator btnSep1;
         private System.Windows.Forms.ToolStripButton btnPrint;
         private System.Windows.Forms.ToolStripDropDownButton btnNewRes;
-        private System.Windows.Forms.ToolStripMenuItem btnNewLogic;
-        private System.Windows.Forms.ToolStripMenuItem btnNewPicture;
-        private System.Windows.Forms.ToolStripMenuItem btnNewSound;
-        private System.Windows.Forms.ToolStripMenuItem btnNewView;
+    //    private ToolStripDropDownButtonEx btnNewRes;
         private System.Windows.Forms.ToolStripDropDownButton btnOpenRes;
         private System.Windows.Forms.ToolStripMenuItem btnOpenLogic;
         private System.Windows.Forms.ToolStripMenuItem btnOpenPicture;
@@ -1611,6 +1619,10 @@
         private System.Windows.Forms.ToolStripButton btnGlobals;
         private System.Windows.Forms.ToolStripSeparator btnSep5;
         private System.Windows.Forms.ToolStripButton btnHelp;
-    }
+    private ToolStripMenuItem btnNewLogic;
+    private ToolStripMenuItem btnNewPicture;
+    private ToolStripMenuItem btnNewSound;
+    private ToolStripMenuItem btnNewView;
+  }
 }
 

@@ -1079,7 +1079,7 @@ namespace WinAGI
         bytHigh = mRData[mlngCurPos + 1];
       }
       //adjust intCount
-      mlngCurPos = mlngCurPos + 2;
+      mlngCurPos += 2;
       //check for end of resource
       mblnEORes = (mlngCurPos == mRData.Length);
       //calculate word Value
@@ -1115,7 +1115,7 @@ namespace WinAGI
         mlngCurPos = Pos;
       }
       byte bRetVal = mRData[mlngCurPos];
-      mlngCurPos = mlngCurPos + 1;
+      mlngCurPos += 1;
 
       //set end of resource Value
       mblnEORes = (mlngCurPos == mRData.Length);
@@ -1138,15 +1138,15 @@ namespace WinAGI
       //array of bytes = OK
       //single byte = OK
       //anything that can be converted to single byte = OK
-      if (NewData is byte[])
+      if (NewData is byte[] bData)
       {
         //ok
-        bNewData = (byte[])NewData;
+        bNewData = bData;
       }
-      else if (NewData is byte)
+      else if (NewData is byte newByte)
       {
         // ok
-        bNewData[0] = (byte)NewData;
+        bNewData[0] = newByte;
       }
 
       else if (NewData is string)

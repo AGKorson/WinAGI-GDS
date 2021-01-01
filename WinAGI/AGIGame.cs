@@ -15,11 +15,11 @@ namespace WinAGI
     //AGIGame agMainGame;
 
     // exposed game properties, methods, objects
-    public static AGILogicSourceSettings agMainLogSettings = new AGILogicSourceSettings();
+    internal static AGILogicSourceSettings agMainLogSettings = new AGILogicSourceSettings();
 
     internal static List<string> agGameProps = new List<string> { };// As StringList
 
-    static string strErrSource = "";
+    static readonly string strErrSource = "WinAGI.AGIGame";
 
     //game compile variables
     internal static bool agCompGame = false;
@@ -84,7 +84,7 @@ namespace WinAGI
 
     //temp file location
     internal static string TempFileDir = "";
-    private const int WINAGI_ERR= 0x100000;
+    public const int WINAGI_ERR = 0x100000;
 
     public static void CancelCompile()
     {
@@ -191,7 +191,7 @@ namespace WinAGI
       lngEGACol[index] = newcolor;
 
       //now invert red and blue components for revcolor
-      lngEGARevCol[index] = (uint)(newcolor & 0xFF000000) + ((newcolor & 0xFF) << 16)+ (newcolor & 0xFF00) + ((newcolor & 0xFF0000) >> 16);
+      lngEGARevCol[index] = (uint)(newcolor & 0xFF000000) + ((newcolor & 0xFF) << 16) + (newcolor & 0xFF00) + ((newcolor & 0xFF0000) >> 16);
 
       //if in a game, save the color in the game's WAG file
       if (agGameLoaded)
@@ -274,7 +274,7 @@ namespace WinAGI
           return CDir(Directory.GetCurrentDirectory());
         }
       }
-    set
+      set
       {
 
         //changing directory is only allowed if a game
@@ -297,7 +297,7 @@ namespace WinAGI
           //validate gamedir
           if (Directory.Exists(WinAGI.CDir(value))) //, vbDirectory) 
                                                     //return error
-                                                    //On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, Replace(LoadResString(630), ARG1, NewDir)
+                                                    //throw new Exception("630, strErrSource, Replace(LoadResString(630), ARG1, NewDir)
                                                     //Exit Property
             throw new System.NotImplementedException();
 
@@ -532,7 +532,7 @@ namespace WinAGI
       }
 
       //set flag if game is being compiled in its current directory
-      blnReplace = NewGameDir.Equals(agGameDir,StringComparison.OrdinalIgnoreCase);
+      blnReplace = NewGameDir.Equals(agGameDir, StringComparison.OrdinalIgnoreCase);
 
       //save compile dir so rebuild method can access it
       agCompileDir = NewGameDir;
@@ -883,7 +883,7 @@ namespace WinAGI
         }
         bwDIR.Write((short)(8 + 3 * tmpMax));
         i = 8 + 3 * tmpMax;
-        //view offset is pic offset +3*picmax
+        //view offset is pic offset + 3*picmax
         tmpMax = agPics.Max + 1;
         if (tmpMax == 0)
         {
@@ -1035,17 +1035,17 @@ namespace WinAGI
         //to point to the wrong place
         foreach (AGILogic tmpLogic in agLogs.Col.Values)
         {
-          tmpLogic.Volume = (sbyte) (bytDIR[0, tmpLogic.Number * 3] >> 4);
+          tmpLogic.Volume = (sbyte)(bytDIR[0, tmpLogic.Number * 3] >> 4);
           tmpLogic.Loc = (bytDIR[0, tmpLogic.Number * 3] & 0xF) * 0x10000 + bytDIR[0, tmpLogic.Number * 3 + 1] * 0x100 + bytDIR[0, tmpLogic.Number * 3 + 2];
         }
         foreach (AGIPicture tmpPicture in agPics.Col.Values)
         {
-          tmpPicture.Volume = (sbyte) (bytDIR[1, tmpPicture.Number * 3] >> 4);
+          tmpPicture.Volume = (sbyte)(bytDIR[1, tmpPicture.Number * 3] >> 4);
           tmpPicture.Loc = (bytDIR[1, tmpPicture.Number * 3] & 0xF) * 0x10000 + bytDIR[1, tmpPicture.Number * 3 + 1] * 0x100 + bytDIR[1, tmpPicture.Number * 3 + 2];
         }
         foreach (AGISound tmpSound in agSnds.Col.Values)
         {
-          tmpSound.Volume = (sbyte) (bytDIR[2, tmpSound.Number * 3] >> 4);
+          tmpSound.Volume = (sbyte)(bytDIR[2, tmpSound.Number * 3] >> 4);
           tmpSound.Loc = (bytDIR[2, tmpSound.Number * 3] & 0xF) * 0x10000 + bytDIR[2, tmpSound.Number * 3 + 1] * 0x100 + bytDIR[2, tmpSound.Number * 3 + 2];
         }
         foreach (AGIView tmpView in agViews.Col.Values)
@@ -1166,7 +1166,7 @@ namespace WinAGI
         //  strErrSrc = Err.Source
         //  lngError = Err.Number
 
-        //  On Error GoTo 0: Err.Raise vbObjectError + 530, strErrSrc, Replace(LoadResString(530), ARG1, CStr(lngError) & ":" & strError)
+        //  throw new Exception("530, strErrSrc, Replace(LoadResString(530), ARG1, CStr(lngError) & ":" & strError)
       }
     }
 
@@ -1357,7 +1357,7 @@ namespace WinAGI
         if (tmpName.Length == 0)
           return;
 
-        if ("\\/:*?<>|".Any(tmpName.Contains))
+        if (@"\/:*?<>|".Any(tmpName.Contains))
         {
           throw new Exception("380, Invalid property Value");
         }
@@ -1365,7 +1365,7 @@ namespace WinAGI
         //save new resdir name
         agResDirName = tmpName;
         //update the actual resdir
-        agResDir = agGameDir + agResDirName + "\\";
+        agResDir = agGameDir + agResDirName + @"\";
 
         //save resdirname
         WriteGameSetting("General", "ResDir", agResDirName);
@@ -1581,8 +1581,8 @@ namespace WinAGI
           if (Left(strVer, 4) == "1.2." || (Left(strVer, 4) == "2.1."))
           {
             //any v1.2.x or 2.1.x is ok, but update
-// TODO: after testing, re-enable version updating
-//            WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION);
+            // TODO: after testing, re-enable version updating
+            //            WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION);
           }
           else
           {
@@ -1637,7 +1637,7 @@ namespace WinAGI
     }
     public static int FinishGameLoad(int Mode = 0)
     {
-     //finishes game load
+      //finishes game load
       //mode determines whether opening by wag file (0) or
       //extracting from Sierra game files (1)
       //(currently, no difference between them)
@@ -1650,27 +1650,32 @@ namespace WinAGI
       //set v3 flag
       agIsVersion3 = (Val(agIntVersion) >= 3);
       //if loading from a wag file
-      if (Mode == 0) {
+      if (Mode == 0)
+      {
         //informs user we are checking property file to set game parameters
         Raise_LoadGameEvent(ELStatus.lsPropertyFile, AGIResType.rtNone, 0, "");
 
         //get resdir before loading resources
         agResDirName = ReadSettingString(agGameProps, "General", "ResDir", "");
-      } 
-      else 
+      }
+      else
       {
         //no resdir yet for imported game
         agResDirName = "";
       }
 
       //if none, check for existing, or use default
-      if (agResDirName.Length == 0) {
+      if (agResDirName.Length == 0)
+      {
         //look for an existing directory
 
-      if (Directory.GetDirectories(agGameDir).Count() == 1) {
+        if (Directory.GetDirectories(agGameDir).Length == 1)
+        {
           //assume it is resource directory
           agResDirName = Directory.GetDirectories(agGameDir)[0];
-        } else {
+        }
+        else
+        {
           //either no subfolders, or more than one
           //so use default
           agResDirName = agDefResDir;
@@ -1678,16 +1683,16 @@ namespace WinAGI
         WriteGameSetting("General", "ResDir", JustFileName(agResDirName));
       }
       //now create full resdir from name
-      agResDir = agGameDir + agResDirName + "\\";
+      agResDir = agGameDir + agResDirName + @"\";
 
       //ensure resource directory exists
-      if (!Directory.Exists(agResDir)) 
+      if (!Directory.Exists(agResDir))
       {
         try
         {
           Directory.CreateDirectory(agResDir);
         }
-        catch (Exception) 
+        catch (Exception)
         {
           //if can't create the resources directory
           //note the problem in the error log as a warning
@@ -1710,8 +1715,10 @@ namespace WinAGI
         //    //if opening by directory, extract resources from the VOL
         //    //files load resources
         blnWarnings = ExtractResources();
-    //  }
-      } catch (Exception e) {
+        //  }
+      }
+      catch (Exception e)
+      {
         //if there was an error
         //can't continue
         //save error information
@@ -1737,12 +1744,15 @@ namespace WinAGI
       }
       //load vocabulary word list
       Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtWords, 0, "");
-      try {
-      agVocabWords = new AGIWordList();
-      agVocabWords.Init();
-      agVocabWords.Load(agGameDir + "WORDS.TOK"); }
-      catch (Exception e) {
-      //if there was an error,
+      try
+      {
+        agVocabWords = new AGIWordList();
+        agVocabWords.Init();
+        agVocabWords.Load(agGameDir + "WORDS.TOK");
+      }
+      catch (Exception e)
+      {
+        //if there was an error,
         //note the problem in the error log as a warning
         RecordLogEvent(LogEventType.leError, "An error occurred while loading WORDS.TOK: " + e.Message);
         //reset warning flag
@@ -1751,12 +1761,15 @@ namespace WinAGI
 
       //load inventory objects list
       Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtObjects, 0, "");
-      try {
+      try
+      {
         agInvObj = new AGIInventoryObjects();
         agInvObj.Init();
         agInvObj.Load(agGameDir + "OBJECT");
-      } catch (Exception e) {
-      //if there was an error,
+      }
+      catch (Exception e)
+      {
+        //if there was an error,
         //note the problem in the error log as a warning
         RecordLogEvent(LogEventType.leError, "An error occurred while loading OBJECT: " + e.Message);
         //reset warning flag
@@ -1775,10 +1788,13 @@ namespace WinAGI
       agPlatformOpts = "";
       agDOSExec = "";
       agLastEdit = new DateTime();
-      try {
-      //get rest of game properties
-      GetGameProperties();
-      } catch (Exception e) {
+      try
+      {
+        //get rest of game properties
+        GetGameProperties();
+      }
+      catch (Exception e)
+      {
         //record event
         RecordLogEvent(LogEventType.leWarning, "Error while loading WAG file; some properties not loaded. (Error number: " + e.Message + ")");
         blnWarnings = true;
@@ -1793,7 +1809,7 @@ namespace WinAGI
       //and save the wag file
       SaveSettingList(agGameProps);
       //if errors
-      if (blnWarnings) 
+      if (blnWarnings)
       {
         return WINAGI_ERR + 636;
       }
@@ -1805,361 +1821,277 @@ namespace WinAGI
 
     public static void NewGame(string NewID, string NewVersion, string NewGameDir, string NewResDir, string TemplateDir = "")
     {
-      /*
-      //  //creates a new game in NewGameDir
-      //  //if a template directory is passed,
-      //  //use the resources from that template directory
 
-      //  Dim strDirData As String, strGameWAG As String, strTmplResDir As String, strTempDir As String
-      //  Dim i As Long, lngDirCount As Long
-      //  Dim blnWarnings As Boolean
-      //  Dim stlGlobals As StringList
+      //creates a new game in NewGameDir
+      //if a template directory is passed,
+      //use the resources from that template directory
 
+      string strGameWAG, strTmplResDir, strTempDir;
+      int i, lngDirCount;
+      bool blnWarnings = false;
+      List<string> stlGlobals;
+      //if a game is already open,
+      if (agGameLoaded)
+      {
+        //can't open a game if one is already open
+        throw new Exception("501, strErrSource, LoadResString(501)");
+      }
+      //if not a valid directory
+      if (!Directory.Exists(NewGameDir))
+      {
+        //raise error
+        throw new Exception("630, strErrSource, Replace(LoadResString(630), ARG1, NewGameDir)");
+      }
 
-                     //creates a new game in NewGameDir
-                     //if a template directory is passed,
-                     //use the resources from that template directory
+      //if a game already exists
+      if (Directory.GetFiles(NewGameDir, "*.wag").Length != 0)
+      {
+        //game file exists;
+        throw new Exception("687, strErrSource, LoadResString(687)");
+      }
+      if (IsValidGameDir(CDir(NewGameDir)))
+      {
+        //game files exist;
+        ClearGameState();
+        throw new Exception("687, strErrSource, LoadResString(687)");
+      }
+      //set game directory
+      agGameDir = CDir(NewGameDir);
+      //ensure resdir is valid
+      if (NewResDir.Length == 0)
+      {
+        //if blank use default
+        NewResDir = agDefResDir;
+      }
+      //if using template
+      if (TemplateDir.Length != 0)
+      {
+        //template should include dir files, vol files, words.tok and object;
+        // also globals list and layout, and source directory with logic source files
+        TemplateDir = CDir(TemplateDir);
+        // should be exactly one wag file
+        if (Directory.GetFiles(TemplateDir, "*.wag").Length != 1)
+        {
+          //raise error
+          throw new Exception("630, strErrSource, LoadResString(630)");
+        }
+        // get file name (it's first[and only] element)
+        strGameWAG = Directory.GetFiles(TemplateDir, "*.wag")[0];
+        // should only be one subdirectory; if there's more than one, 
+        //it's on the user to figure it out; we use the first one found
+        // as resource directory
+        if (Directory.GetDirectories(TemplateDir).Length == 0)
+        {
+          //no resource directory; we will build a default
+          strTmplResDir = "";
+        }
+        else
+        {
+          // retrieve name of the first directory
+          strTmplResDir = Directory.GetDirectories(TemplateDir)[0];
+        }
+        //copy all files from the templatedir into gamedir
+        if (!DirectoryCopy(TemplateDir, agGameDir, true))
+        {
+          throw new Exception("683, strErrSource, Replace(LoadResString(683), ARG1, Err.Description)");
+        }
 
-      //  //if a game is already open,
-      //  if (agGameLoaded)
-      //    //can't open a game if one is already open
-      //    On Error GoTo 0: Err.Raise vbObjectError + 501, strErrSource, LoadResString(501)
-      //    return;
-      //  }
-                            Dim strDirData As String, intFile As Integer, strGameWAG As String
-                            Dim i As Long, strTempDir As String, lngDirCount As Long
-                            Dim blnWarnings As Boolean, strTmplResDir As String
-                            Dim stlGlobals As StringList
+        // open the game in the newly created directory
+        try
+        {
+          //open game with template id
+          OpenGameWAG(agGameDir + strGameWAG);
+        }
+        catch (Exception)
+        {
+          throw new Exception("684, strErrSource, Replace(LoadResString(684), ARG1, Err.Description)");
+        }
+        //we need to rename the resdir
+        //(have to do this AFTER load, because loading will keep the current
+        //resdir that's in the WAG file)
+        if (NewResDir != strTmplResDir)
+        {
+          //we need to change it
+          DirectoryInfo resDir = new DirectoryInfo(agGameDir + strTmplResDir);
+          resDir.MoveTo(agGameDir + NewResDir);
+        }
+        //then change the resource directory property
+        agResDirName = NewResDir;
+        //update the actual resdir
+        agResDir = agGameDir + agResDirName + @"\";
+        //change gameid
+        GameID = NewID;
+        //update global file header
+        stlGlobals = OpenSettingList(agGameDir + "globals.txt", false);
+        if (stlGlobals.Count > 3)
+        {
+          if (Left(stlGlobals[2].Trim(), 1) == "[")
+          {
+            stlGlobals[2] = "[ global defines file for " + NewID;
+          }
+          //save it
+          SaveSettingList(stlGlobals);
+        }
+      }
+      else
+      //if not using template,
+      {
+        //validate new version
+        if (IntVersions.Contains(NewVersion))
+        {
+          //ok; set version
+          agIntVersion = NewVersion;
+          //set version3 flag
+          agIsVersion3 = (Val(NewVersion) > 3);
+        }
+        else
+        {
+          if (Val(NewVersion) < 2 || Val(NewVersion) > 3)
+          {
+            //not a version 2 or 3 game
+            throw new Exception("597, strErrSource, LoadResString(597)");
+          }
+          else
+          {
+            //unsupported version 2 or 3 game
+            throw new Exception("543, strErrSource, LoadResString(543)");
+          }
+        }
 
-      //  //if not a valid directory
-      //  if (!FileExists(NewGameDir, vbDirectory))
-      //    //raise error
-      //    On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, Replace(LoadResString(630), ARG1, NewGameDir)
-      //    return;
-      //  }
+        //set game id (limit to 6 characters for v2, and 5 characters for v3
+        //(don't use the GameID property; gameloaded flag is not set yet
+        //so using GameID property will cause error)
+        if (agIsVersion3)
+        {
+          agGameID = Left(NewID, 5).ToUpper();
+        }
+        else
+        {
+          agGameID = Left(NewID, 6).ToUpper();
+        }
 
-      //  //if a game already exists
-      //  if (LenB(Dir(CDir(NewGameDir) &"*.wag")) != 0)
-      //   //game file exists;
-      //   On Error GoTo 0: Err.Raise vbObjectError + 687, strErrSource, LoadResString(687)
-      //    return;
+        //create empty property file
+        agGameFile = agGameDir + agGameID + ".wag";
+        if (File.Exists(agGameFile))
+        {
+          File.Delete(agGameFile);
+        }
+        agGameProps = OpenSettingList(agGameFile);
+        agGameProps.Add("#");
+        agGameProps.Add("# WinAGI Game Property File for " + agGameID);
+        agGameProps.Add("#");
+        agGameProps.Add("[General]");
+        agGameProps.Add("");
+        agGameProps.Add("[Palette]");
+        agGameProps.Add("");
+        agGameProps.Add("[WORDS.TOK]");
+        agGameProps.Add("");
+        agGameProps.Add("[OBJECT]");
+        agGameProps.Add("");
+        agGameProps.Add("[::BEGIN Logics::]");
+        agGameProps.Add("[::END Logics::]");
+        agGameProps.Add("");
+        agGameProps.Add("[::BEGIN Pictures::]");
+        agGameProps.Add("[::END Pictures::]");
+        agGameProps.Add("");
+        agGameProps.Add("[::BEGIN Sounds::]");
+        agGameProps.Add("[::END Sounds::]");
+        agGameProps.Add("");
+        agGameProps.Add("[::BEGIN Views::]");
+        agGameProps.Add("[::END Views::]");
+        agGameProps.Add("");
+        //add WinAGI version
+        WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION);
+        //set the resource directory name so it can be set up
+        ResDirName = NewResDir;
+        //create default resource directories
+        byte[] bytDirData = new byte[768];
+        for (i = 0; i < 768; i++) bytDirData[i] = 0xff;
 
-                     //if a game is already open,
-                     if (agGameLoaded)
-                       //can't open a game if one is already open
-                       On Error GoTo 0: Err.Raise vbObjectError + 501, strErrSource, LoadResString(501)
-                       return;
-                     }
+        if (agIsVersion3)
+        {
+          byte[] bytDirHdr = new byte[8] { 8, 0, 8, 3, 8, 6, 8, 9 };
+          using FileStream fsDIR = new FileStream(agGameDir + agGameID + "DIR", FileMode.OpenOrCreate);
+          fsDIR.Write(bytDirHdr);
+          for (i = 0; i < 4; i++)
+          {
+            fsDIR.Write(bytDirData);
+          }
+        }
+        else
+        {
+          FileStream fsDIR = new FileStream(agGameDir + "LOGDIR", FileMode.OpenOrCreate);
+          fsDIR.Write(bytDirData);
+          fsDIR = new FileStream(agGameDir + "PICDIR", FileMode.OpenOrCreate);
+          fsDIR.Write(bytDirData);
+          fsDIR = new FileStream(agGameDir + "SNDDIR", FileMode.OpenOrCreate);
+          fsDIR.Write(bytDirData);
+          fsDIR = new FileStream(agGameDir + "VIEWDIR", FileMode.OpenOrCreate);
+          fsDIR.Write(bytDirData);
+          fsDIR.Dispose();
+        }
+        //create default vocabulary word list
+        agVocabWords = new AGIWordList();
+        //use loaded argument to force load of the new wordlist
+        agVocabWords.Init(true);
+        agVocabWords.Save();
+        //create inventory objects list
+        agInvObj = new AGIInventoryObjects();
+        //use loaded argument to force load of new inventory list
+        agInvObj.Init(true);
+        agInvObj.Save();
 
-      //  } else {if (IsValidGameDir(CDir(NewGameDir)))
-      //    //game files exist;
-      //    ClearGameState();
-      //    On Error GoTo 0: Err.Raise vbObjectError + 687, strErrSource, LoadResString(687)
-      //    return;
-      //  }
+        //commands based on AGI version
+        CorrectCommands(agIntVersion);
 
-      //  //set game directory
-      //  agGameDir = CDir(NewGameDir)
+        //add logic zero
+        agLogs.Add(0);
+          agLogs[0].Clear();
+        agLogs[0].Save();
+        agLogs[0].Unload();
 
-      //  //ensure resdir is valid
-      //  if (LenB(NewResDir) == 0)
-      //    //if blank use default
-      //    NewResDir = agDefResDir
-      //  }
+        //force id reset
+        blnSetIDs = false;
 
-      //  //if using template
-      //  if (LenB(TemplateDir) != 0)
-      //    //template should include dir files, vol files, logic
-      //    //source, words and objects lists;
-      //    //globals lists and layouts
+        //set open flag, so properties can be updated
+        agGameLoaded = true;
+      }
 
-      //    //(first, make sure it's formatted as a directory
-      //    TemplateDir = CDir(TemplateDir)
-      //    //we need to know name of the resource subdir so we can
-      //    //rename it later, if needed
+      //set resource directory
+      //ensure resource directory exists
+      if (!Directory.Exists(agGameDir + agResDirName))
+      {
+        if (Directory.CreateDirectory(agGameDir + agResDirName) == null)
+        {
+          //note the problem in the error log as a warning
+          RecordLogEvent(LogEventType.leWarning, "Can't create " + agResDir);
+          //use main directory
+          agResDir = agGameDir;
+          //set warning flag
+          blnWarnings = true;
+        }
+      }
+      //save gameID, version, directory resource name to the property file;
+      //rest of properties need to be set by the calling function
+      WriteGameSetting("General", "GameID", agGameID);
+      WriteGameSetting("General", "Interpreter", agIntVersion);
+      WriteGameSetting("General", "ResDir", agResDirName);
 
-      //    // get wag file
-      //    strGameWAG = Dir(TemplateDir & "*.wag")
-      //    //if not a valid directory
-      //    if (Len(strGameWAG) == 0)
-      //      //raise error
-      //      On Error GoTo 0: Err.Raise vbObjectError + 630, strErrSource, LoadResString(508)
-      //      return;
-      //    }
+      //save palette colors
+      for (i = 0; i < 16; i++)
+         {
+        WriteGameSetting("Palette", "Color" + i, "0x" + lngEGACol[i].ToString("x8"));
+      }
 
-      //    //find first subdir, use that name
-      //    strTmplResDir = Dir(TemplateDir, vbDirectory)
-      //    Do Until Len(strTmplResDir) = 0
-      //      if (strTmplResDir<> "." And strTmplResDir != "..")
-      //        if ((GetAttr(TemplateDir & strTmplResDir) And vbDirectory) == vbDirectory)
-      //          //this is it
-      //          lngDirCount = 1
-      //          Exit Do
-      //        }
-      //      }
-      //      strTmplResDir = Dir()
-      //    Loop
-
-      //    //if no resdir found, reset template resdir name so it gets handled correctly
-      //    if (lngDirCount<> 1)
-      //      strTmplResDir = ""
-      //    }
-
-      //    //copy all files from the templatedir into gamedir
-      //    if (!CopyFolder(TemplateDir, agGameDir, false))
-      //      On Error GoTo 0: Err.Raise vbObjectError + 683, strErrSource, Replace(LoadResString(683), ARG1, Err.Description)
-      //      return;
-      //    }
-
-      //    //open game with template id
-      //    OpenGameWAG agGameDir & strGameWAG
-
-      //    if (Err.Number<> 0)
-      //     On Error GoTo 0: Err.Raise vbObjectError + 684, strErrSource, Replace(LoadResString(684), ARG1, Err.Description)
-      //      return;
-      //    }
-
-      //    //we need to rename the resdir
-      //    //(have to do this AFTER load, because loading will keep the current
-      //    //resdir that's in the WAG file)
-      //    if (NewResDir<> strTmplResDir)
-      //      //we need to change it
-      //        Name agGameDir & strTmplResDir As agGameDir & NewResDir
-      //    }
-      //    //then change the resource directory property
-      //    agResDirName = NewResDir
-      //    //update the actual resdir
-      //    agResDir = agGameDir & agResDirName & "\"
-
-      //    //change gameid
-      //    GameID = NewID
-      //    if (Err.Number<> 0)
-      //      On Error GoTo 0: Err.Raise vbObjectError + 685, strErrSource, Replace(LoadResString(685), ARG1, Err.Description)
-      //      return;
-      //    }
-
-      //    //update global file header
-      //    Set stlGlobals = OpenSettingList(agGameDir & "globals.txt", false)
-      //    if (!stlGlobals Is Nothing)
-      //      if (stlGlobals.Count > 3)
-      //        if (Left(Trim(stlGlobals.StringLine(2)), 1) == "[")
-      //          stlGlobals.StringLine(2) = "[ global defines file for " & NewID
-      //        }
-      //        //save it
-      //        SaveSettingList stlGlobals
-      //      }
-      //      //toss it
-      //      Set stlGlobals = Nothing
-      //    }
-
-      //  //if not using template,
-      //  } else {
-      //    //validate new version
-      //     if (IntVersions.Contains(value))
-      //    //if (ValidateVersion(NewVersion))
-      //      //ok; set version
-      //      agIntVersion = NewVersion
-      //      //set version3 flag
-      //      agIsVersion3 = (Val(NewVersion) > 3)
-      //    } else {
-      //      if (Val(NewVersion) < 2 Or Val(NewVersion) > 3)
-      //        //not a version 2 or 3 game
-      //        On Error GoTo 0: Err.Raise vbObjectError + 597, strErrSource, LoadResString(597)
-      //      } else {
-      //        //unsupported version 2 or 3 game
-      //        On Error GoTo 0: Err.Raise vbObjectError + 543, strErrSource, LoadResString(543)
-      //      }
-      //      return;
-      //    }
-
-      //    //set game id (limit to 6 characters for v2, and 5 characters for v3
-      //    //(don't use the GameID property; gameloaded flag is not set yet
-      //    //so using GameID property will cause error)
-      //    if (agIsVersion3)
-      //      agGameID = UCase$(Left(NewID, 5))
-      //    } else {
-      //      agGameID = UCase$(Left(NewID, 6))
-      //    }
-
-      //    //create empty property file
-      //    agGameFile = agGameDir & agGameID & ".wag"
-      //    File.Delete(agGameFile
-      //    Err.Clear
-      //    Set agGameProps = OpenSettingList(agGameFile)
-      //    With agGameProps
-      //      .Add "#"
-      //      .Add "# WinAGI Game Property File for " & agGameID
-      //      .Add "#"
-      //      .Add "[General]"
-      //      .Add ""
-      //      .Add "[Palette]"
-      //      .Add ""
-      //      .Add "[WORDS.TOK]"
-      //      .Add ""
-      //      .Add "[OBJECT]"
-      //      .Add ""
-      //      .Add "[::BEGIN Logics::]"
-      //      .Add "[::END Logics::]"
-      //      .Add ""
-      //      .Add "[::BEGIN Pictures::]"
-      //      .Add "[::END Pictures::]"
-      //      .Add ""
-      //      .Add "[::BEGIN Sounds::]"
-      //      .Add "[::END Sounds::]"
-      //      .Add ""
-      //      .Add "[::BEGIN Views::]"
-      //      .Add "[::END Views::]"
-      //      .Add ""
-      //    End With
-      //    //add WinAGI version
-      //    WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION
-
-
-      //    //set the resource directory name so it can be set up
-      //    ResDirName = NewResDir
-
-      //    //errors after this cause failure
-      //    On Error GoTo ErrHandler
-
-      //    //create default resource directories
-      //    strDirData = String$(768, 0xFF)
-      //    if (agIsVersion3)
-      //      intFile = FreeFile()
-      //      Open agGameDir & agGameID & "DIR" For Binary As intFile
-      //      Put intFile, 1, Chr$(8) &Chr$(0) & Chr$(8) & Chr$(3) & Chr$(8) & Chr$(6) & Chr$(8) & Chr$(9)
-      //      Put intFile, , strDirData
-      //      Put intFile, , strDirData
-      //      Put intFile, , strDirData
-      //      Put intFile, , strDirData
-      //      Close intFile
-      //    } else {
-      //      intFile = FreeFile()
-      //      Open agGameDir & "LOGDIR" For Binary As intFile
-      //      Put intFile, 1, strDirData
-      //      Close intFile
-
-
-      //      intFile = FreeFile()
-      //      Open agGameDir & "PICDIR" For Binary As intFile
-      //      Put intFile, 1, strDirData
-      //      Close intFile
-
-
-      //      intFile = FreeFile()
-      //      Open agGameDir & "SNDDIR" For Binary As intFile
-      //      Put intFile, 1, strDirData
-      //      Close intFile
-
-
-      //      intFile = FreeFile()
-      //      Open agGameDir & "VIEWDIR" For Binary As intFile
-      //      Put intFile, 1, strDirData
-      //      Close intFile
-      //    }
-
-      //    //create default vocabulary word list
-      //    Set agVocabWords = New AGIWordList
-      //    //use loaded argument to force load of the new wordlist
-      //    agVocabWords.Init true
-      //    agVocabWords.AddWord "a", 0
-      //    agVocabWords.AddWord "anyword", 1
-      //    agVocabWords.AddWord "rol", 9999
-      //    agVocabWords.Save
-
-      //    //create inventory objects list
-      //    Set agInvObjList = New AGIInventoryObjects
-      //    //use loaded argument to force load of new inventory list
-      //    agInvObjList.Init true
-      //    agInvObjList.Add "?", 0
-      //    agInvObjList.Save
-
-      //    //assign and adust commands based on AGI version
-      //    AssignCommands
-      //    CorrectCommands agIntVersion
-
-      //    //add logic zero
-      //    agLogs.Add 0
-      //    agLogs(0).Clear
-      //    agLogs(0).Save
-      //    agLogs(0).Unload
-
-      //    //force id reset
-      //    blnSetIDs = false
-
-      //    //set open flag, so properties can be updated
-      //    agGameLoaded = true
-      //  }
-
-      //  //set resource directory
-      //  //Debug.Assert LenB(agResDirName) != 0
-      //  //Debug.Assert agResDir = agGameDir & agResDirName & "\"
-
-
-      //  On Error Resume Next
-      //  //ensure resource directory exists
-      //  if (!FileExists(agGameDir & agResDirName, vbDirectory))
-      //    MkDir agGameDir & agResDirName
-      //    //if can't create the resources directory
-      //    if (Err.Number<> 0)
-      //      //note the problem in the error log as a warning
-      //      RecordLogEvent leWarning, "Can't create " & agResDir
-      //      //use main directory
-      //      agResDir = agGameDir
-      //      //set warning flag
-      //      blnWarnings = true
-      //    }
-      //  }
-
-      //  //for non-template games, save the source code for logic 0
-      //  if (LenB(TemplateDir) == 0)
-      //    agLogs(0).SaveSource
-      //  }
-
-      //  //save gameID, version, directory resource name to the property file;
-      //  //rest of properties need to be set by the calling function
-      //  WriteGameSetting("General", "GameID", agGameID
-      //  WriteGameSetting("General", "Interpreter", agIntVersion
-      //  WriteGameSetting("General", "ResDir", agResDirName
-
-      //  //save palette colors
-      //  For i = 0 To 15
-      //    WriteGameSetting("Palette", "Color" & CStr(i), "&H" & PadHex(lngEGACol(i), 8)
-      //  Next i
-
-      //  //if errors
-      //  if (blnWarnings)
-      //    On Error GoTo 0: Err.Raise vbObjectError + 637, strErrSource, LoadResString(637)
-      //  }
-
-      //  //Debug.Print "logic0: ", Logics(0).Loaded
-      //return;
-
-      //ErrHandler:
-      //  strError = Err.Description
-      //  strErrSrc = Err.Source
-      //  lngError = Err.Number
-
-      //  //reset collections & objects
-      //  Set agLogs = Nothing
-      //  Set agViews = Nothing
-      //  Set agPics = Nothing
-      //  Set agSnds = Nothing
-      //  Set agInvObjList = Nothing
-      //  Set agVocabWords = Nothing
-      //  Set agLogs = New AGILogics
-      //  Set agViews = New AGIViews
-      //  Set agPics = New AGIPictures
-      //  Set agSnds = New AGISounds
-      //  Set agInvObjList = New AGIInventoryObjects
-      //  Set agVocabWords = New AGIWordList
-
-
-      //  On Error GoTo 0: Err.Raise vbObjectError + 631, strErrSrc, Replace(LoadResString(631), ARG1, CStr(lngError) & ":" & strError)
-
-      */
+      //if errors
+      if (blnWarnings)
+      {
+        throw new Exception("637, strErrSource, LoadResString(637)");
+      }
+      return;
     }
     static AGIGame()
-  {
+    {
       // hmm, WinAGI class doesn't run on startup; need to initialize it 
       // but not sure how...
       // WinAGI.CRC32Setup();

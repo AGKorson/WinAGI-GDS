@@ -51,7 +51,8 @@ namespace WinAGI
     }
     internal void SetParent(AGIInventoryObjects Parent)
     {
-      //sets parent for this item
+      //sets parent for this item; needed so we can update the item's unique property
+      // when it changes
       mParent = Parent;
     }
     public string ItemName
@@ -80,7 +81,7 @@ namespace WinAGI
             //after this object is changed
             //if there are multiple duplicates, the unique property does
             //not need to be reset
-            int lngDupItem = 0, lngDupCount = 0;
+            byte dupItem = 0, dupCount = 0;
             for (i = 0; i < mParent.Count; i++)
             {
               if (mParent[(byte)i] != this)
@@ -88,19 +89,19 @@ namespace WinAGI
                 if (mItemName.Equals(mParent[(byte)i].ItemName, StringComparison.OrdinalIgnoreCase))
                 {
                   //duplicate found- is this the second?
-                  if (lngDupCount == 1)
+                  if (dupCount == 1)
                   {
                     //the other's are still non-unique
                     // so don't reset them
-                    lngDupCount = 2;
+                    dupCount = 2;
                     break;
                   }
                   else
                   {
                     //set duplicate count
-                    lngDupCount = 1;
+                    dupCount = 1;
                     //save dupitem number
-                    lngDupItem = i;
+                    dupItem = (byte)i;
                   }
                 }
               }
@@ -108,10 +109,10 @@ namespace WinAGI
             //set the unique flag for this object
             mUnique = true;
             // if only one duplicate found
-            if (lngDupCount == 1)
+            if (dupCount == 1)
             {
               // set unique flag for that object too
-              mParent[(byte)lngDupItem].Unique = true;
+              mParent[dupItem].Unique = true;
             }
           }
         }
@@ -141,6 +142,8 @@ namespace WinAGI
                   //mark both as NOT unique
                   mParent[(byte)i].Unique = false;
                   mUnique = false;
+                  // no need to continue
+                  break;
                 }
               }
             }
