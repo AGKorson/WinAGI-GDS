@@ -17,6 +17,8 @@ namespace WinAGI_GDS
 {
   public partial class frmPicEdit : Form
   {
+    Bitmap thisBMP;
+    float zoom;
     public frmPicEdit()
     {
       InitializeComponent();
@@ -24,20 +26,9 @@ namespace WinAGI_GDS
 
       // load the picture
       Pictures[1].Load();
+      thisBMP = Pictures[1].VisualBMP;
 
-      //to scale the picture without blurring, need to use NearestNeighbor interpolation
-      // that can't be set directly, so a graphics object is needed to draw the
-      // the picture
-
-      // first, create new image in the picture box that is desired size
-      picVisual.Image = new Bitmap(640, 336);
-      // intialize a graphics object for the image just created
-      using Graphics g = Graphics.FromImage(picVisual.Image);
-      // set correct interpolation mode
-      g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-      // draw the bitmap, at correct resolution
-      g.DrawImage(Pictures[1].VisualBMP, 0, 0, 640, 336);
-
+      frmMDIMain.ShowAGIBitmap(picVisual, thisBMP);
     }
 
     private void frmPicEdit_Load(object sender, EventArgs e)
@@ -51,7 +42,7 @@ namespace WinAGI_GDS
       //resize our picture on the fly
 
       // convert trackbar value to a zoom factor
-      float zoom = (float)(trackBar1.Value / 2f + 1);
+      zoom = (float)(trackBar1.Value / 2f + 1);
 
       // first, create new image in the picture box that is desired size
       picVisual.Image = new Bitmap((int)(320 * zoom), (int)(168 * zoom));
@@ -60,7 +51,27 @@ namespace WinAGI_GDS
       // set correct interpolation mode
       g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
       // draw the bitmap, at correct resolution
-      g.DrawImage(Pictures[1].VisualBMP, 0, 0, 320 * zoom, 168 * zoom);
+      g.DrawImage(thisBMP, 0, 0, 320 * zoom, 168 * zoom);
+    }
+
+    private void picVisual_Click(object sender, EventArgs e)
+    {
+      //swap visual/priority
+      if (thisBMP == Pictures[1].VisualBMP)
+      {
+        thisBMP = Pictures[1].PriorityBMP;
+      }
+      else
+      {
+        thisBMP = Pictures[1].VisualBMP;
+      }
+      // intialize a graphics object for the image just created
+      using Graphics g = Graphics.FromImage(picVisual.Image);
+      // set correct interpolation mode
+      g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+      // draw the bitmap, at correct resolution
+      g.DrawImage(thisBMP, 0, 0, 320 * zoom, 168 * zoom);
+      picVisual.Refresh();
     }
   } 
 }

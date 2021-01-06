@@ -11,249 +11,229 @@ namespace WinAGI
     void tmpScreenObjs()
     {
       /*
-Option Explicit
 
-Private mPriority As AGIColors
-Private mView As AGIView
-Private mCurLoop As Byte
-Private mCurCel As Byte
-Private mDirection As Byte
-Private mX As Byte
-Private mY As Byte
-Private mCycleTime As Byte
-Private mStepSize As Byte
-Private mStepTime As Byte
-Private mIgnoreObjects As Boolean
-Private mIgnoreHorizon As Boolean
-Private mIgnoreBlocks As Boolean
-Private mRestriction As Byte
-Public Sub Wander()
-End Sub
+AGIColors mPriority
+AGIView mView
+byte mCurLoop
+byte mCurCel
+byte mDirection
+byte mX
+byte mY
+byte mCycleTime
+byte mStepSize
+byte mStepTime
+bool mIgnoreObjects
+bool mIgnoreHorizon
+bool mIgnoreBlocks
+byte mRestriction
+public void Wander()
+{
+      }
 
-Public Sub FollowEgo()
-End Sub
+public void FollowEgo()
+{
+      }
 
-Public Sub MoveObject()
-End Sub
+public void MoveObject()
+{
+      }
 
-Public Sub ReverseCycle()
-End Sub
+public void ReverseCycle()
+{
+      }
+      
 
-Public Sub NormalCycle()
-End Sub
+public void NormalCycle()
+{
+      }
+      
 
-Public Sub StopCycle()
-End Sub
+public void StopCycle()
+{
+      }
+      
 
-Public Sub StartCycle()
-End Sub
+public void StartCycle()
+{
+      }
+      
 
-Public Sub ReleasePriority()
-End Sub
+public void ReleasePriority()
+{
+      }
+      
 
-Public Sub ReleaseLoop()
-End Sub
+public void ReleaseLoop()
+{
+      }
+      
 
-Public Sub FixLoop()
-End Sub
+public void FixLoop()
+{
+      }
+      
 
-Public Property Let Restriction(ByVal vData As Byte)
+public byte Let Restriction(byte vData)
     
     mRestriction = vData
-End Property
+}
 
-
-Public Property Get Restriction() As Byte
-    
+public byte Get Restriction()
+{    
     Restriction = mRestriction
-End Property
+}
 
+public void ReverseLoop()
+{
+      }
+      
+public void EndOfLoop()
+{
+      }
 
+public void NormalMotion()
+{
+      }
 
-Public Sub ReverseLoop()
-End Sub
+public void StartMotion()
+{
+      }
 
-Public Sub EndOfLoop()
-End Sub
+public void StopMotion()
+{
+      }
 
-Public Sub NormalMotion()
-End Sub
-
-Public Sub StartMotion()
-End Sub
-
-Public Sub StopMotion()
-End Sub
-
-Public Property Let IgnoreBlocks(ByVal vData As Boolean)
+public bool Let IgnoreBlocks(bool vData)
     
     mIgnoreBlocks = vData
-End Property
+}
 
-
-Public Property Get IgnoreBlocks() As Boolean
-    
+public bool Get IgnoreBlocks()
+{    
     IgnoreBlocks = mIgnoreBlocks
-End Property
+}
 
-
-
-Public Property Let IgnoreHorizon(ByVal vData As Boolean)
-    
+public bool Let IgnoreHorizon(bool vData)
+{    
     mIgnoreHorizon = vData
-End Property
+}
 
-
-Public Property Get IgnoreHorizon() As Boolean
-    
+public bool Get IgnoreHorizon()
+{    
     IgnoreHorizon = mIgnoreHorizon
-End Property
+}
 
-
-
-Public Property Let IgnoreObjects(ByVal vData As Boolean)
-    
+public bool Let IgnoreObjects(ByVal vData)
+{    
     mIgnoreObjects = vData
-End Property
+}
 
-
-Public Property Get IgnoreObjects() As Boolean
-    
+public bool Get IgnoreObjects()
+{    
     IgnoreObjects = mIgnoreObjects
-End Property
+}
 
-
-
-Public Property Let StepTime(ByVal vData As Byte)
-    
+public byte Let StepTime(byte vData)
+{    
     mStepTime = vData
-End Property
+}
 
-
-Public Property Get StepTime() As Byte
-    
+public byte Get StepTime()
+{    
     StepTime = mStepTime
-End Property
+}
 
-
-
-Public Property Let StepSize(ByVal vData As Byte)
-    
+public byte Let StepSize(byte vData)
+{    
     mStepSize = vData
-End Property
+}
 
-
-Public Property Get StepSize() As Byte
-    
+public byte Get StepSize()
+{    
     StepSize = mStepSize
-End Property
+}
 
-
-
-Public Property Let CycleTime(ByVal vData As Byte)
-    
+public byte Let CycleTime(byte vData)
+{    
     mCycleTime = vData
-End Property
+}
 
-
-Public Property Get CycleTime() As Byte
-    
+public byte Get CycleTime()
+{    
     CycleTime = mCycleTime
-End Property
+}
 
-
-
-Public Property Let Y(ByVal vData As Byte)
-    
+public byte Let Y(byte vData)
+{    
     mY = vData
-End Property
+}
 
-
-Public Property Get Y() As Byte
-    
+public byte Get Y()
+{    
     Y = mY
-End Property
+}
 
-
-
-Public Property Let X(ByVal vData As Byte)
-    
+public byte Let X(byte vData)
+{    
     mX = vData
-End Property
+}
 
-
-Public Property Get X() As Byte
-    
+public byte Get X()
+{    
     X = mX
-End Property
+}
 
-
-
-Public Property Let Direction(ByVal vData As Byte)
-    
+public byte Let Direction(byte vData)
+{    
     mDirection = vData
-End Property
+}
 
-
-Public Property Get Direction() As Byte
-    
+public byte Get Direction()
+ {   
     Direction = mDirection
-End Property
+}
 
-
-
-Public Property Let CurCel(ByVal vData As Byte)
-    
+public byte Let CurCel(byte vData)
+{    
     mCurCel = vData
-End Property
+}
 
-
-Public Property Get CurCel() As Byte
-    
+public byte Get CurCel()
+{    
     CurCel = mCurCel
-End Property
+}
 
-
-
-Public Property Let CurLoop(ByVal vData As Byte)
-    
+public byte Let CurLoop(byte vData)
+{    
     mCurLoop = vData
-End Property
+}
 
-
-Public Property Get CurLoop() As Byte
-    
+public byte Get CurLoop()
+{    
     CurLoop = mCurLoop
-End Property
+}
 
+public AGIView set View(AGIView vData)
+{
+      //used when assigning an Object to the property, on the left side of a set statement.
+    mView = vData
+}
 
+public AGIView Get View()
+{    
+    View = mView
+}
 
-Public Property Set View(ByVal vData As AGIView)
-'used when assigning an Object to the property, on the left side of a Set statement.
-    Set mView = vData
-End Property
-
-
-Public Property Get View() As AGIView
-    
-    Set View = mView
-End Property
-
-
-
-Public Property Let Priority(ByVal vData As AGIColors)
-'used when assigning an Object to the property, on the left side of a Set statement.
+public AGIColors Let Priority(AGIColors vData)
+{
+      //used when assigning an Object to the property, on the left side of a set statement.
     mPriority = vData
-End Property
+}
 
-
-Public Property Get Priority() As AGIColors
-    
+public AGIColors Get Priority()
+{    
     Priority = mPriority
-End Property
-
-
-
+}
       */
     }
   }

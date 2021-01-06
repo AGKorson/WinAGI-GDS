@@ -74,7 +74,6 @@ namespace WinAGI
     static internal void CompileLogic(AGILogic SourceLogic)
     {
       /*
-        internal Sub CompileLogic(SourceLogic As AGILogic)
           //this function compiles the sourcetext that is passed
           //the function returns a Value of true if successful; it returns false
           //and sets information about the error if an error in the source text is found
@@ -82,10 +81,10 @@ namespace WinAGI
           //note that when errors are returned, line is adjusted because
           //editor rows(lines) start at //1//, but the compiler starts at line //0//
 
-          Dim blnCompiled As bool
-          Dim stlSource As string[]
-          Dim dtFileMod As Date
-          Dim strInput As string
+          bool blnCompiled
+          string[] stlSource
+          Dim DateTime dtFileMod
+          Dim strInput
 
           //set error info to success as default
           blnError = false
@@ -98,36 +97,36 @@ namespace WinAGI
           On Error Resume Next
           //initialize global defines
           //get datemodified property
-          dtFileMod = FileLastMod(agGameDir & "globals.txt")
+          dtFileMod = FileLastMod(agGameDir + "globals.txt")
           if (CRC32(StrConv(CStr(dtFileMod), vbFromUnicode)) != agGlobalCRC) {
             GetGlobalDefines
-          } //End If
+          } //}
 
           //if ids not set yet
           if (!blnSetIDs) {
             SetResourceIDs
-          } //End If
+          } //}
 
           On Error GoTo ErrHandler
 
           //insert current values for reserved defines that can change values
           //agResDef(0).Value = "ego"  //this one doesn//t change
-          agResDef(1).Value = QUOTECHAR & agMainGame.GameVersion & QUOTECHAR
-          agResDef(2).Value = QUOTECHAR & agMainGame.GameAbout & QUOTECHAR
-          agResDef(3).Value = QUOTECHAR & agMainGame.GameID & QUOTECHAR
-          //////Debug.Assert agInvObj.Loaded
+          agResDef(1).Value = QUOTECHAR + agMainGame.GameVersion + QUOTECHAR
+          agResDef(2).Value = QUOTECHAR + agMainGame.GameAbout + QUOTECHAR
+          agResDef(3).Value = QUOTECHAR + agMainGame.GameID + QUOTECHAR
+          //Debug.Assert agInvObj.Loaded
           if (agInvObj.Loaded) {
             //Count of ACTUAL useable objects is one less than inventory object Count
             //because the first object (//?//) is just a placeholder
             agResDef(4).Value = agInvObj.Count - 1
-          Else
+          } else {
             agResDef(4).Value = -1
-          } //End If
+          } //}
 
           //convert back to correct byte values
           strInput = StrConv(ExtCharTobyte(SourceLogic.SourceText), vbUnicode)
           //assign to source stringlist
-          Set stlSource = New StringList
+          stlSource = New StringList
           stlSource.Assign strInput
 
           bytLogComp = SourceLogic.Number
@@ -142,12 +141,12 @@ namespace WinAGI
           //add include files (extchars handled automatically)
           if (!AddIncludes(stlSource)) {
             //dereference objects
-            Set stlInput = Nothing
+            stlInput = Nothing
             //return error
             On Error GoTo 0
-            On Error GoTo 0: Err.Raise vbObjectError + 635, "LogCompile", CStr(lngErrLine + 1) & "|" & strModule & "|" & strErrMsg
+            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //End If
+          } //}
 
           //remove any blank lines from end
           Do Until Len(stlInput(stlInput.Count - 1)) != 0 || stlInput.Count = 0
@@ -157,56 +156,56 @@ namespace WinAGI
           //if nothing to compile, throw an error
           if (stlInput.Count == 0) {
             //dereference objects
-            Set stlInput = Nothing
+            stlInput = Nothing
             //return error
             strErrMsg = LoadResString(4159)
             lngErrLine = 0
-            On Error GoTo 0: Err.Raise vbObjectError + 635, "LogCompile", CStr(lngErrLine + 1) & "|" & strModule & "|" & strErrMsg
+            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //End If
+          } //}
 
           //strip out all comments
           if (!RemoveComments()) {
             //dereference objects
-            Set stlInput = Nothing
+            stlInput = Nothing
             //return error
             On Error GoTo 0
-            On Error GoTo 0: Err.Raise vbObjectError + 635, "LogCompile", CStr(lngErrLine + 1) & "|" & strModule & "|" & strErrMsg
+            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //End If
+          } //}
 
           //read labels
           if (!ReadLabels()) {
             //dereference objects
-            Set stlInput = Nothing
+            stlInput = Nothing
             //return error
             On Error GoTo 0
-            On Error GoTo 0: Err.Raise vbObjectError + 635, "LogCompile", CStr(lngErrLine + 1) & "|" & strModule & "|" & strErrMsg
+            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //End If
+          } //}
 
           //enumerate and replace all the defines
           if (!ReadDefines()) {
             //dereference objects
-            Set stlInput = Nothing
+            stlInput = Nothing
             //return error
             On Error GoTo 0
-            On Error GoTo 0: Err.Raise vbObjectError + 635, "LogCompile", CStr(lngErrLine + 1) & "|" & strModule & "|" & strErrMsg
+            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //End If
+          } //}
 
           //read predefined messages
           if (!ReadMsgs()) {
             //dereference objects
-            Set stlInput = Nothing
+            stlInput = Nothing
             //return error
             On Error GoTo 0
-            On Error GoTo 0: Err.Raise vbObjectError + 635, "LogCompile", CStr(lngErrLine + 1) & "|" & strModule & "|" & strErrMsg
+            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //End If
+          } //}
 
           //assign temporary resource object
-          Set tmpLogRes = New AGIResource
+          tmpLogRes = New AGIResource
           tmpLogRes.NewResource
 
           //write a word as a place holder for offset to msg section start
@@ -219,24 +218,24 @@ namespace WinAGI
           if (!blnCompiled) {
             //dereference objects
             tmpLogRes.Unload
-            Set tmpLogRes = Nothing
-            Set stlInput = Nothing
+            tmpLogRes = Nothing
+            stlInput = Nothing
             //return error
-            On Error GoTo 0: Err.Raise vbObjectError + 635, "LogCompile", CStr(lngErrLine + 1) & "|" & strModule & "|" & strErrMsg
+            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //End If
+          } //}
 
           //write message section
           if (!WriteMsgs()) {
             //dereference objects
             tmpLogRes.Unload
-            Set tmpLogRes = Nothing
-            Set stlInput = Nothing
+            tmpLogRes = Nothing
+            stlInput = Nothing
             //return error
             On Error GoTo 0
-            On Error GoTo 0: Err.Raise vbObjectError + 635, "LogCompile", CStr(lngErrLine + 1) & "|" & strModule & "|" & strErrMsg
+            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //End If
+          } //}
 
           With SourceLogic
             //assign resource data
@@ -245,14 +244,14 @@ namespace WinAGI
             //update compiled crc
             SourceLogic.CompiledCRC = SourceLogic.CRC
             // and write the new crc values to property file
-            WriteGameSetting "Logic" & CStr(.Number), "CRC32", "&H" & Hex$(.CRC), "Logics"
-            WriteGameSetting "Logic" & CStr(.Number), "CompCRC32", "&H" & Hex$(.CompiledCRC)
+            WriteGameSetting("Logic" + CStr(.Number), "CRC32", "0x" + Hex$(.CRC), "Logics"
+            WriteGameSetting("Logic" + CStr(.Number), "CompCRC32", "0x" + Hex$(.CompiledCRC)
           End With
 
           //dereference objects
           tmpLogRes.Unload
-          Set tmpLogRes = Nothing
-          Set stlInput = Nothing
+          tmpLogRes = Nothing
+          stlInput = Nothing
 
         return;
 
@@ -265,24 +264,23 @@ namespace WinAGI
 
           //dereference objects
           tmpLogRes.Unload
-          Set tmpLogRes = Nothing
-          Set stlInput = Nothing
+          tmpLogRes = Nothing
+          stlInput = Nothing
           if ((lngError && vbObjectError) == vbObjectError) {
             //pass it along
-            On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-          Else
+            throw new Exception("lngError, strErrSrc, strError
+          } else {
             //return error
             On Error GoTo 0
-            On Error GoTo 0: Err.Raise vbObjectError + 634, "LogCompile", "-1||" & Replace(LoadResString(591), ARG1, CStr(lngError) & ":" & strError)
-          } //End If
-        } //End Sub
+            throw new Exception("634, "LogCompile", "-1||" + Replace(LoadResString(591), ARG1, CStr(lngError) + ":" + strError)
+          } //}
       */
     }
     static void tmp_LogCompile()
     {
       /*
-        static internal Function ArgTypeName(ArgType As ArgTypeEnum) As string
-
+        static internal string ArgTypeName(ArgTypeEnum ArgType)
+      {
           switch (ArgType
           case atNum       //i.e. numeric Value
             ArgTypeName = "number"
@@ -307,14 +305,14 @@ namespace WinAGI
           case atVocWrd    //vocabulary word; NOT word argument
             ArgTypeName = "vocabulary word"
           } 
-        } //End Function
+        } //endfunction
 
-        static internal Sub CheckResFlagUse(ArgVal As byte)
-
+        static internal void CheckResFlagUse(byte ArgVal)
+      {
           //if error level is low, don//t do anything
           if (agMainLogSettings.ErrorLevel == leLow) {
             return;
-          } //End If
+          } //}
 
           switch (ArgVal
           case 2, 4, 7, 8, 9, 10, Is >= 13
@@ -333,13 +331,13 @@ namespace WinAGI
           default: //all other reserved variables should be read only
             AddWarning 5025, Replace(LoadResString(5025), ARG1, agResFlag(ArgVal).Name)
           } 
-        } //End Sub
-        static internal Sub CheckResVarUse(ArgNum As byte, ArgVal As byte)
-
+        } //sub
+        static internal void CheckResVarUse(byte ArgNum, byte ArgVal)
+      {
           //if error level is low, don//t do anything
           if (agMainLogSettings.ErrorLevel == leLow) {
             return;
-          } //End If
+          } //}
 
           switch (ArgNum
           case Is >= 27, 21, 15, 7, 3
@@ -354,47 +352,48 @@ namespace WinAGI
             //should be restricted to values 0-8
             if (ArgVal > 8) {
               AddWarning 5018, Replace(Replace(LoadResString(5018), ARG1, agResVar(6).Name), ARG2, "8")
-            } //End If
+            } //}
 
           case 10 //cycle delay time
             //large values highly unusual
             if (ArgVal > 20) {
               AddWarning 5055
-            } //End If
+            } //}
 
           case 23 //sound attenuation
             //restrict to 0-15
             if (ArgVal > 15) {
               AddWarning 5018, Replace(Replace(LoadResString(5018), ARG1, agResVar(23).Name), ARG2, "15")
-            } //End If
+            } //}
 
           case 24 //max input length
             if (ArgVal > 39) {
               AddWarning 5018, Replace(Replace(LoadResString(5018), ARG1, agResVar(24).Name), ARG2, "39")
-            } //End If
+            } //}
 
           case 17, 18 //error value, and error info
             //resetting to zero is usually a good thing; other values don//t make sense
             if (ArgVal > 0) {
               AddWarning 5092, Replace(LoadResString(5092), ARG1, agResVar(ArgNum).Name)
-            } //End If
+            } //}
 
           case 19 //key_pressed value
             //ok if resetting for key input
             if (ArgVal > 0) {
               AddWarning 5017, Replace(LoadResString(5017), ARG1, agResVar(ArgNum).Name)
-            } //End If
+            } //}
 
           default: //all other reserved variables should be read only
             AddWarning 5017, Replace(LoadResString(5017), ARG1, agResVar(ArgNum).Name)
           } 
-        } //End Sub
+        } //endsub
 
 
 
 
-        internal Function ConvertArgument(ByRef strArgIn As string, ArgType As ArgTypeEnum, Optional ByRef blnVarOrNum As bool = false) As bool
-          //if input is not a system argument already
+        internal bool ConvertArgument(ref string strArgIn, ArgTypeEnum ArgType, ref bool blnVarOrNum = false)
+        {
+      //if input is not a system argument already
           //(i.e. ##, v##, f##, s##, o##, w##, i##, c##)
           //this function searches resource IDs, local defines, global defines,
           //and reserved names for strArgIn; if found
@@ -411,8 +410,8 @@ namespace WinAGI
           //the blnVarOrNum flag is used to do this; when the flag is
           //true, number searches also return variables
 
-          Dim i As int
-          Dim intAsc As int
+          int i
+          int intAsc
 
           On Error GoTo ErrHandler
 
@@ -423,18 +422,18 @@ namespace WinAGI
               ConvertArgument = true
               //reset VarOrNum flag
               blnVarOrNum = false
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
             //unless looking for var or num
             if (blnVarOrNum) {
               //then //v##// is ok
               if ((AscW(strArgIn) || 32) == 118) {
                 if (VariableValue(strArgIn) != -1) {
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
-              } //End If
-            } //End If
+                  return;
+                } //}
+              } //}
+            } //}
 
           case atVar
             //if first char matches
@@ -443,9 +442,9 @@ namespace WinAGI
               if (VariableValue(strArgIn) != -1) {
                 //ok
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
-            } //End If
+                return;
+              } //}
+            } //}
 
           case atFlag
             //if first char matches
@@ -454,9 +453,9 @@ namespace WinAGI
               if (VariableValue(strArgIn) != -1) {
                 //ok
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
-            } //End If
+                return;
+              } //}
+            } //}
 
           case atCtrl
             //if first char matches
@@ -465,9 +464,9 @@ namespace WinAGI
               if (VariableValue(strArgIn) != -1) {
                 //ok
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
-            } //End If
+                return;
+              } //}
+            } //}
 
           case atSObj
             //if first char matches
@@ -476,9 +475,9 @@ namespace WinAGI
               if (VariableValue(strArgIn) != -1) {
                 //ok
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
-            } //End If
+                return;
+              } //}
+            } //}
 
           case atStr
             //if first char matches
@@ -487,9 +486,9 @@ namespace WinAGI
               if (VariableValue(strArgIn) != -1) {
                 //ok
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
-            } //End If
+                return;
+              } //}
+            } //}
 
           case atWord //NOTE: this is NOT vocab word; this is word arg type (used in command word.to.string)
             //if first char matches
@@ -498,9 +497,9 @@ namespace WinAGI
               if (VariableValue(strArgIn) != -1) {
                 //ok
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
-            } //End If
+                return;
+              } //}
+            } //}
 
           case atMsg
             //if first char matches, or is a quote
@@ -511,12 +510,12 @@ namespace WinAGI
               if (VariableValue(strArgIn) != -1) {
                 //ok
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
             case 34
               //strings are always ok
               ConvertArgument = true
-              return  //Exit Function
+              return;
             } 
 
           case atIObj
@@ -528,12 +527,12 @@ namespace WinAGI
               if (VariableValue(strArgIn) != -1) {
                 //ok
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
             case 34
               //strings are always ok
               ConvertArgument = true
-              return  //Exit Function
+              return;
             } 
 
           case atVocWrd
@@ -541,8 +540,8 @@ namespace WinAGI
             if (IsNumeric(strArgIn) || AscW(strArgIn) == 34) {
               //ok
               ConvertArgument = true
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
           } 
 
           //arg is not in correct format; must be reserved name, global or local define, or an error
@@ -559,8 +558,8 @@ namespace WinAGI
                   blnVarOrNum = false
                   ConvertArgument = true
                   strArgIn = tdDefines(i).Value
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
 
                 //if checking for variables
                 if (blnVarOrNum) {
@@ -570,9 +569,9 @@ namespace WinAGI
                       //ok
                       strArgIn = tdDefines(i).Value
                       ConvertArgument = true
-                    } //End If
-                  } //End If
-                } //End If
+                    } //}
+                  } //}
+                } //}
 
               case atVar
                 //v## only
@@ -582,8 +581,8 @@ namespace WinAGI
                     //ok
                     strArgIn = tdDefines(i).Value
                     ConvertArgument = true
-                  } //End If
-                } //End If
+                  } //}
+                } //}
 
               case atFlag
                 //f## only
@@ -593,8 +592,8 @@ namespace WinAGI
                     //ok
                     strArgIn = tdDefines(i).Value
                     ConvertArgument = true
-                  } //End If
-                } //End If
+                  } //}
+                } //}
 
               case atMsg
                 //m## or a string
@@ -606,7 +605,7 @@ namespace WinAGI
                     //ok
                     strArgIn = tdDefines(i).Value
                     ConvertArgument = true
-                  } //End If
+                  } //}
 
                 case 34
                   strArgIn = tdDefines(i).Value
@@ -621,8 +620,8 @@ namespace WinAGI
                     //ok
                     strArgIn = tdDefines(i).Value
                     ConvertArgument = true
-                  } //End If
-                } //End If
+                  } //}
+                } //}
 
               case atIObj
                 //i## or a string
@@ -634,7 +633,7 @@ namespace WinAGI
                     //ok
                     strArgIn = tdDefines(i).Value
                     ConvertArgument = true
-                  } //End If
+                  } //}
                 case 34
                   strArgIn = tdDefines(i).Value
                   ConvertArgument = true
@@ -648,8 +647,8 @@ namespace WinAGI
                     //ok
                     strArgIn = tdDefines(i).Value
                     ConvertArgument = true
-                  } //End If
-                } //End If
+                  } //}
+                } //}
 
               case atWord
                 //w## only
@@ -659,8 +658,8 @@ namespace WinAGI
                     //ok
                     strArgIn = tdDefines(i).Value
                     ConvertArgument = true
-                  } //End If
-                } //End If
+                  } //}
+                } //}
 
               case atCtrl
                 //c## only
@@ -670,25 +669,25 @@ namespace WinAGI
                     //ok
                     strArgIn = tdDefines(i).Value
                     ConvertArgument = true
-                  } //End If
-                } //End If
+                  } //}
+                } //}
 
               case atVocWrd
                 //numeric or string only
                 if (IsNumeric(tdDefines(i).Value)) {
                   strArgIn = tdDefines(i).Value
                   ConvertArgument = true
-                ElseIf AscW(tdDefines(i).Value) == 34) {
+                } else if ( AscW(tdDefines(i).Value) == 34) {
                   strArgIn = tdDefines(i).Value
                   ConvertArgument = true
-                } //End If
+                } //}
 
               case atDefStr
                 //call to ConvertArgument is never made with type of atDefStr
               } 
               //exit, regardless of result
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
           Next i
 
           //second, check against global defines
@@ -702,9 +701,9 @@ namespace WinAGI
                   //reset VarOrNum flag
                   blnVarOrNum = false
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
-              } //End If
+                  return;
+                } //}
+              } //}
             Next i
             //if checking var or num
             if (blnVarOrNum) {
@@ -714,23 +713,23 @@ namespace WinAGI
                   if (strArgIn == agGlobal(i).Name) {
                     strArgIn = agGlobal(i).Value
                     ConvertArgument = true
-                    return  //Exit Function
-                  } //End If
-                } //End If
+                    return;
+                  } //}
+                } //}
               Next i
-            } //End If
-          Else
+            } //}
+          } else {
             //check vocab words only against numbers
             For i = 0 To agGlobalCount - 1
               if (agGlobal(i).Type == atNum) {
                 if (strArgIn == agGlobal(i).Name) {
                   strArgIn = agGlobal(i).Value
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
-              } //End If
+                  return;
+                } //}
+              } //}
             Next i
-          } //End If
+          } //}
 
           //check messages, iobjs, and vocab words against global strings
           if ((ArgType == atMsg) || (ArgType == atIObj) || (ArgType == atVocWrd)) {
@@ -740,11 +739,11 @@ namespace WinAGI
                 if (strArgIn == agGlobal(i).Name) {
                   strArgIn = agGlobal(i).Value
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
-              } //End If
+                  return;
+                } //}
+              } //}
             Next i
-          } //End If
+          } //}
 
           //third, check numbers against list of resource IDs
           if (ArgType == atNum) {
@@ -756,31 +755,31 @@ namespace WinAGI
                 //reset VarOrNum flag
                 blnVarOrNum = false
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               if (strArgIn == strPicID(i)) {
                 strArgIn = CStr(i)
                 //reset VarOrNum flag
                 blnVarOrNum = false
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               if (strArgIn == strSndID(i)) {
                 strArgIn = CStr(i)
                 //reset VarOrNum flag
                 blnVarOrNum = false
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               if (strArgIn == strViewID(i)) {
                 strArgIn = CStr(i)
                 //reset VarOrNum flag
                 blnVarOrNum = false
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
             Next i
-          } //End If
+          } //}
 
           //lastly, if using reserved names,
           if (agUseRes) {
@@ -793,8 +792,8 @@ namespace WinAGI
                   //reset VarOrNum flag
                   blnVarOrNum = false
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
               Next i
               For i = 0 To 8
                 if (strArgIn == agEgoDir(i).Name) {
@@ -802,8 +801,8 @@ namespace WinAGI
                   //reset VarOrNum flag
                   blnVarOrNum = false
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
               Next i
               For i = 0 To 4
                 if (strArgIn == agVideoMode(i).Name) {
@@ -811,8 +810,8 @@ namespace WinAGI
                   //reset VarOrNum flag
                   blnVarOrNum = false
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
               Next i
               For i = 0 To 8
                 if (strArgIn == agCompType(i).Name) {
@@ -820,8 +819,8 @@ namespace WinAGI
                   //reset VarOrNum flag
                   blnVarOrNum = false
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
               Next i
               For i = 0 To 15
                 if (strArgIn == agResColor(i).Name) {
@@ -829,8 +828,8 @@ namespace WinAGI
                   //reset VarOrNum flag
                   blnVarOrNum = false
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
               Next i
               //check against invobj Count
               if (strArgIn == agResDef(4).Name) {
@@ -838,8 +837,8 @@ namespace WinAGI
                 //reset VarOrNum flag
                 blnVarOrNum = false
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //if looking for numbers OR variables
               if (blnVarOrNum) {
@@ -848,18 +847,18 @@ namespace WinAGI
                   if (strArgIn == agResVar(i).Name) {
                     strArgIn = agResVar(i).Value
                     ConvertArgument = true
-                    return  //Exit Function
-                  } //End If
+                    return;
+                  } //}
                 Next i
-              } //End If
+              } //}
 
             case atVar
                For i = 0 To 26
                 if (strArgIn == agResVar(i).Name) {
                   strArgIn = agResVar(i).Value
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
               Next i
 
             case atFlag
@@ -867,39 +866,40 @@ namespace WinAGI
                 if (strArgIn == agResFlag(i).Name) {
                   strArgIn = agResFlag(i).Value
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
               Next i
             case atMsg
               For i = 1 To 3 //for gamever and gameabout and gameid
                 if (strArgIn == agResDef(i).Name) {
                   strArgIn = agResDef(i).Value
                   ConvertArgument = true
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
               Next i
             case atSObj
               if (strArgIn == agResDef(0).Name) {
                 strArgIn = agResDef(0).Value
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
             case atStr
               if (strArgIn == agResDef(5).Name) {
                 strArgIn = agResDef(5).Value
                 ConvertArgument = true
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
             } 
-          } //End If
+          } //}
 
           //if not found or error, return false
         ErrHandler:
 
           //just exit
-        } //End Function
-        static internal Function GetNextArg(ArgType As ArgTypeEnum, ArgPos As int, Optional ByRef blnVarOrNum As bool = false) As int
-          //this function retrieves the next argument and validates
+        } //endfunction
+        static internal int GetNextArg(ArgTypeEnum ArgType, int ArgPos, ref bool blnVarOrNum = false)
+        {
+      //this function retrieves the next argument and validates
           //that the argument is of the correct type
           //and has a valid Value
           //multline message/string/inv.item/word strings are recombined, and checked
@@ -913,8 +913,9 @@ namespace WinAGI
           //variables return true; the flag is set to TRUE if returned Value
           //is for a variable, to false if it is for a number
 
-          Dim strArg As string, lngArg As int
-          Dim i As int
+          string strArg
+      int lngArg
+          int i
 
           On Error GoTo ErrHandler
 
@@ -929,12 +930,12 @@ namespace WinAGI
             if (strArg == ")") {
               // arg missing
               strErrMsg = Replace(Replace(LoadResString(4054), ARG1, CStr(ArgPos + 1)), ARG3, ArgTypeName(ArgType))
-            Else
+            } else {
               //use 1-base arg values
               strErrMsg = Replace(Replace(Replace(LoadResString(4063), ARG1, CStr(ArgPos + 1)), ARG2, ArgTypeName(ArgType)), ARG3, strArg)
-            } //End If
-            return  //Exit Function
-          } //End If
+            } //}
+            return;
+          } //}
 
           switch (ArgType
           case atNum  //number
@@ -944,12 +945,12 @@ namespace WinAGI
               if (!blnVarOrNum) {
                 blnError = true
                 strErrMsg = Replace(LoadResString(4062), ARG1, CStr(ArgPos))
-                return  //Exit Function
-              } //End If
-            Else
+                return;
+              } //}
+            } else {
               //return //is NOT a variable//; ensure flag is reset
               blnVarOrNum = false
-            } //End If
+            } //}
             //check for negative number
             if (Val(strArg) < 0) {
               //valid negative numbers are -1 to -128
@@ -957,11 +958,11 @@ namespace WinAGI
                 //error
                 blnError = true
                 strErrMsg = LoadResString(4157)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //convert it to 2s-compliment unsigned value by adding it to 256
               strArg = CStr(256 + Val(strArg))
-              //////Debug.Assert Val(strArg) >= 128 && Val(strArg) <= 255
+              //Debug.Assert Val(strArg) >= 128 && Val(strArg) <= 255
 
               switch (agMainLogSettings.ErrorLevel
               case leHigh, leMedium
@@ -969,15 +970,15 @@ namespace WinAGI
                 AddWarning 5098
               } 
 
-            } //End If
+            } //}
             //convert to number and validate
             lngArg = VariableValue(strArg)
             if (lngArg == -1) {
               blnError = true
               //use 1-based arg values
               strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
           case atVar, atFlag  //variable, flag
             //get Value
@@ -986,8 +987,8 @@ namespace WinAGI
               blnError = true
               //use 1-based arg values
               strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
           case atCtrl    //controller
             //controllers should be  0 - 49
@@ -999,12 +1000,12 @@ namespace WinAGI
               if (agMainLogSettings.ErrorLevel == leHigh) {
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4136), ARG1, CStr(ArgPos + 1))
-              Else
+              } else {
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-              } //End If
-              return  //Exit Function
-            Else
+              } //}
+              return;
+            } else {
               //if outside expected bounds (controllers should be limited to 0-49)
               if (lngArg > 49) {
                 switch (agMainLogSettings.ErrorLevel
@@ -1013,14 +1014,14 @@ namespace WinAGI
                   blnError = true
                   //use 1-based arg values
                   strErrMsg = Replace(LoadResString(4136), ARG1, CStr(ArgPos + 1))
-                  return  //Exit Function
+                  return;
 
                 case leMedium
                   //generate warning
                   AddWarning 5060
                 } 
-              } //End If
-            } //End If
+              } //}
+            } //}
 
           case atSObj //screen object
             //get Value
@@ -1029,8 +1030,8 @@ namespace WinAGI
               blnError = true
               //use 1-based arg values
               strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
             //check against max screen object Value
             if (lngArg > agInvObj.MaxScreenObjects) {
@@ -1039,13 +1040,13 @@ namespace WinAGI
                 //generate error
                 blnError = true
                 strErrMsg = Replace(LoadResString(4119), ARG1, CStr(agInvObj.MaxScreenObjects))
-                return  //Exit Function
+                return;
 
               case leMedium
                 //generate warning
                 AddWarning 5006, Replace(LoadResString(5006), ARG1, CStr(agInvObj.MaxScreenObjects))
               } 
-            } //End If
+            } //}
 
           case atStr //string
             //get Value
@@ -1063,12 +1064,12 @@ namespace WinAGI
                   strErrMsg = Replace(Replace(LoadResString(4079), ARG1, CStr(ArgPos + 1)), ARG2, "23")
                 } 
 
-              Else
+              } else {
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-              } //End If
-              return  //Exit Function
-            Else
+              } //}
+              return;
+            } else {
               //if outside expected bounds (strings should be limited to 0-23)
               if ((lngArg > 23) || (lngArg > 11 && (agIntVersion == "2.089" || agIntVersion == "2.272" || agIntVersion == "3.002149"))) {
                 switch (agMainLogSettings.ErrorLevel
@@ -1083,7 +1084,7 @@ namespace WinAGI
                   default:
                     strErrMsg = Replace(Replace(LoadResString(4079), ARG1, CStr(ArgPos + 1)), ARG2, "23")
                   } 
-                  return  //Exit Function
+                  return;
 
                 case leMedium
                  //generate warning
@@ -1095,8 +1096,8 @@ namespace WinAGI
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "23")
                   } 
                 } 
-              } //End If
-            } //End If
+              } //}
+            } //}
 
           case atWord //word  (word type is NOT words from word.tok)
             //get Value
@@ -1107,11 +1108,11 @@ namespace WinAGI
               if (agMainLogSettings.ErrorLevel == leHigh) {
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4090), ARG1, CStr(ArgPos + 1))
-              Else
+              } else {
                 strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-              } //End If
-              return  //Exit Function
-            Else
+              } //}
+              return;
+            } else {
               //if outside expected bounds (words should be limited to 0-9)
               if (lngArg > 9) {
                 switch (agMainLogSettings.ErrorLevel
@@ -1120,14 +1121,14 @@ namespace WinAGI
                   blnError = true
                   //use 1-based arg values
                   strErrMsg = Replace(LoadResString(4090), ARG1, CStr(ArgPos + 1))
-                  return  //Exit Function
+                  return;
 
                 case leMedium
                   //generate warning
                   AddWarning 5008
                 } 
-              } //End If
-            } //End If
+              } //}
+            } //}
 
           case atMsg  //message
             //returned arg is either m## or "msg"
@@ -1139,15 +1140,15 @@ namespace WinAGI
                 blnError = true
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //m0 is not allowed
               if (lngArg == 0) {
                 switch (agMainLogSettings.ErrorLevel
                 case leHigh
                   blnError = true
                   strErrMsg = LoadResString(4107)
-                  return  //Exit Function
+                  return;
                 case leMedium
                   //generate warning
                   AddWarning 5091, Replace(LoadResString(5091), ARG1, CStr(lngArg))
@@ -1157,7 +1158,7 @@ namespace WinAGI
                 case leLow
                   //ignore; it will be handled when writing messages
                 } 
-              } //End If
+              } //}
 
               //verify msg exists
               if (!blnMsg(lngArg)) {
@@ -1165,7 +1166,7 @@ namespace WinAGI
                 case leHigh
                   blnError = true
                   strErrMsg = Replace(LoadResString(4113), ARG1, CStr(lngArg))
-                  return  //Exit Function
+                  return;
                 case leMedium
                   //generate warning
                   AddWarning 5090, Replace(LoadResString(5090), ARG1, CStr(lngArg))
@@ -1175,14 +1176,14 @@ namespace WinAGI
                 case leLow
                   //ignore; WinAGI adds a null value, so no error will occur
                 } 
-              } //End If
+              } //}
             case 34
               //concatenate, if applicable
               strArg = ConcatArg(strArg)
               if (blnError) {
                 //concatenation error; exit
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //strip off quotes
               strArg = Mid(strArg, 2, Len(strArg) - 2)
@@ -1192,15 +1193,15 @@ namespace WinAGI
               //if unallowed characters found, error was raised; exit
               if (lngArg == -1) {
                 blnError = true
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //if valid number not found
               if (lngArg == 0) {
                 blnError = true
                 strErrMsg = LoadResString(4092)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
             } 
 
@@ -1219,16 +1220,16 @@ namespace WinAGI
                 blnError = true
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
             case 34
               //concatenate, if applicable
               strArg = ConcatArg(strArg)
               if (blnError) {
                 //concatenation error
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //convert to inv obj number
               //first strip off starting and ending quotes
@@ -1246,7 +1247,7 @@ namespace WinAGI
                   //return this Value
                   lngArg = Cbyte(i)
                   Exit For
-                } //End If
+                } //}
               Next i
 
               //if not found,
@@ -1258,12 +1259,12 @@ namespace WinAGI
                   lngLine = lngQuoteAdded
                   //string error
                   strErrMsg = LoadResString(4051)
-                Else
+                } else {
                   //use 1-base arg values
                   strErrMsg = Replace(LoadResString(4075), ARG1, CStr(ArgPos + 1))
-                } //End If
-                return  //Exit Function
-              } //End If
+                } //}
+                return;
+              } //}
 
               //if object is not unique
               if (!agInvObj(lngArg).Unique) {
@@ -1272,14 +1273,14 @@ namespace WinAGI
                   blnError = true
                   //use 1-based arg values
                   strErrMsg = Replace(LoadResString(4036), ARG1, CStr(ArgPos + 1))
-                  return  //Exit Function
+                  return;
                 case leMedium
                   //set warning
                   AddWarning 5003, Replace(LoadResString(5003), ARG1, CStr(ArgPos + 1))
                 case leLow
                   //no action
                 } 
-              } //End If
+              } //}
             } 
 
             //if object number exceeds current object Count,
@@ -1290,7 +1291,7 @@ namespace WinAGI
                 blnError = true
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4112), ARG1, CStr(ArgPos + 1))
-                return  //Exit Function
+                return;
               case leMedium
                 //set warning
                 //use 1-based arg values
@@ -1298,7 +1299,7 @@ namespace WinAGI
               case leLow
                 //no action
               } 
-            Else
+            } else {
               //if object is a question mark, raise error/warning
               if (agInvObj(lngArg).ItemName == "?") {
                 switch (agMainLogSettings.ErrorLevel
@@ -1306,15 +1307,15 @@ namespace WinAGI
                   blnError = true
                   //use 1-based arg values
                   strErrMsg = Replace(LoadResString(4111), ARG1, CStr(ArgPos + 1))
-                  return  //Exit Function
+                  return;
                 case leMedium
                   //set warning
                   AddWarning 5004
                 case leLow
                   //no action
                 } 
-              } //End If
-            } //End If
+              } //}
+            } //}
 
           case atVocWrd
             //words can be ## or "word"
@@ -1324,17 +1325,17 @@ namespace WinAGI
               if (Val(strArg) != lngArg) {
                 blnError = true
                 lngArg = -1
-              Else
+              } else {
                 //validate the group
                 blnError = !agVocabWords.GroupExists(lngArg)
-              } //End If
-            Else
+              } //}
+            } else {
               //this is a string; concatenate if applicable
               strArg = ConcatArg(strArg)
               if (blnError) {
                 //concatenation error
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //convert to word number
               //first strip off starting and ending quotes
@@ -1344,7 +1345,7 @@ namespace WinAGI
               //get argument val by checking against word list
               if (agVocabWords.WordExists(strArg)) {
                 lngArg = agVocabWords(strArg).Group
-              Else
+              } else {
                 //RARE, but if it//s an //a// or //i// that isn//t defined,
                 //it//s word group 0
                 if (strArg == "i" || strArg == "a" || strArg == "I" || strArg == "A") {
@@ -1354,14 +1355,14 @@ namespace WinAGI
                   case leHigh, leMedium
                     AddWarning 5108, Replace(LoadResString(5108), ARG1, strArg)
                   } 
-                Else
+                } else {
                   //set error flag
                   blnError = true
                   //set arg to invalid number
                   lngArg = -1
-                } //End If
-              } //End If
-            } //End If
+                } //}
+              } //}
+            } //}
 
             //now lngArg is a valid group number, unless blnError is set
 
@@ -1371,44 +1372,45 @@ namespace WinAGI
               if (agMainLogSettings.ErrorLevel == leHigh || (lngArg == -1)) {
                 //argument is already 1-based for said tests
                 strErrMsg = Replace(LoadResString(4114), ARG1, strArg)
-                return  //Exit Function
-              Else
+                return;
+              } else {
                 if (agMainLogSettings.ErrorLevel == leMedium) {
                   //set warning
                   AddWarning 5019, Replace(LoadResString(5019), ARG1, strArg)
                   blnError = false
-                } //End If
-              } //End If
-            } //End If
+                } //}
+              } //}
+            } //}
 
             //check for group 0
             if (lngArg == 0) {
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4035), ARG1, strArg)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5083, Replace(LoadResString(5083), ARG1, strArg)
               case leLow
               } 
-            } //End If
+            } //}
 
           } 
 
           //set return Value
           GetNextArg = lngArg
-        return  //Exit Function
+        return;
 
         ErrHandler:
-          //////Debug.Assert false
+          //Debug.Assert false
 
           strErrMsg = Replace(Replace(LoadResString(4115), ARG1, CStr(Err.Number)), ARG2, "GetNextArg")
           blnError = true
-        } //End Function
+        } //endfunction
 
 
-        static internal Sub IncrementLine()
-          //increments the the current line of input being processed
+        static internal void IncrementLine()
+        {
+      //increments the the current line of input being processed
           //sets all counters, pointers, etc
           //as well as info needed to support error locating
 
@@ -1416,13 +1418,13 @@ namespace WinAGI
           if (lngLine == -1) {
             //just exit
             return;
-          } //End If
+          } //}
 
           //if compiler is reset
           if (lngLine == -2) {
             //set it to -1 so line 0 is returned
             lngLine = -1
-          } //End If
+          } //}
 
           //increment line counter
           lngLine = lngLine + 1
@@ -1431,7 +1433,7 @@ namespace WinAGI
           if (lngLine == stlInput.Count) {
             lngLine = -1
             return;
-          } //End If
+          } //}
           //check for include lines
           if (Left(stlInput(lngLine), 2) == "#I") {
             lngIncludeOffset = lngIncludeOffset + 1
@@ -1441,17 +1443,18 @@ namespace WinAGI
             //set errline
             lngErrLine = CLng(Mid(stlInput(lngLine), InStr(3, stlInput(lngLine), ":") + 1, InStr(3, stlInput(lngLine), "#") - 5))
             strCurrentLine = Right(stlInput(lngLine), Len(stlInput(lngLine)) - InStr(2, stlInput(lngLine), "#"))
-          Else
+          } else {
             strModule = ""
             strModFileName = ""
             lngErrLine = lngLine - lngIncludeOffset
             //set string
             strCurrentLine = stlInput(lngLine)
-          } //End If
+          } //}
 
-        } //End Sub
-        static internal Function NextChar(Optional blnNoNewLine As bool = false) As string
-          //gets the next non-space character (tabs (ascii code H&9, are converted
+        } //endsub
+        static internal string NextChar(bool blnNoNewLine = false)
+        {
+      //gets the next non-space character (tabs (ascii code H&9, are converted
           //to a space character, and ignored) from the input stream
 
           //if the NoNewLine flag is passed,
@@ -1465,8 +1468,8 @@ namespace WinAGI
           if (lngLine == -1) {
             //just exit
             NextChar = ""
-            return  //Exit Function
-          } //End If
+            return;
+          } //}
 
           Do
             //first, increment position
@@ -1479,19 +1482,19 @@ namespace WinAGI
                 lngPos = lngPos - 1
                 //return empty string
                 NextChar = ""
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //get the next line
               IncrementLine
               //if at end of input
               if (lngLine == -1) {
                 //exit with no character
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //increment pointer(so it points to first character of line)
               lngPos = lngPos + 1
-            } //End If
+            } //}
 
             NextChar = Mid(strCurrentLine, lngPos, 1)
 
@@ -1504,10 +1507,10 @@ namespace WinAGI
                 default:
                   NextChar = " "
                 } 
-              } //End If
-            } //End If
+              } //}
+            } //}
           Loop Until NextChar != " " && LenB(NextChar) != 0
-        return  //Exit Function
+        return;
 
         ErrHandler:
 
@@ -1519,13 +1522,14 @@ namespace WinAGI
           //an app specific error to encapsulate whatever happened
           if ((lngError && vbObjectError) == vbObjectError) {
             //pass it along
-            On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-          Else
-            On Error GoTo 0: Err.Raise vbObjectError + 656, strErrSrc, Replace(LoadResString(656), ARG1, CStr(lngError) & ":" & strError)
-          } //End If
-        } //End Function
-        static internal Function NextCommand(Optional blnNoNewLine As bool = false) As string
-          //this function will return the next command, which is comprised
+            throw new Exception("lngError, strErrSrc, strError
+          } else {
+            throw new Exception("656, strErrSrc, Replace(LoadResString(656), ARG1, CStr(lngError) + ":" + strError)
+          } //}
+        } //endfunction
+        static internal string NextCommand(bool blnNoNewLine = false)
+        {
+      //this function will return the next command, which is comprised
           //of command elements, and separated by element separators
           //command elements include:
           //  characters a-z, A-Z, numbers 0-9, and:  #$%.@_
@@ -1547,9 +1551,9 @@ namespace WinAGI
           //
           //if end of input is reached it returns empty string
 
-          Dim intCmdEnd As int
-          Dim intChar As int
-          Dim blnInQuotes As bool, blnSlash As bool
+          int intCmdEnd
+          int intChar
+          bool blnInQuotes, blnSlash
 
           //find next non-blank character
           NextCommand = NextChar(blnNoNewLine)
@@ -1557,12 +1561,12 @@ namespace WinAGI
           if (lngLine == -1) {
             //return empty string
             NextCommand = ""
-            return  //Exit Function
-          } //End If
+            return;
+          } //}
           //if no character returned
           if (LenB(NextCommand) == 0) {
-            return  //Exit Function
-          } //End If
+            return;
+          } //}
 
           On Error GoTo ErrHandler
 
@@ -1570,7 +1574,7 @@ namespace WinAGI
           switch (AscW(NextCommand)
           case 39, 40, 41, 44, 58, 59, 63, 91, 92, 93, 94, 96, 123, 125, 126 //  //(),:;?[\]^`{}~
             //return this single character as a command
-            return  //Exit Function
+            return;
           case 61 //=
             //special case; "=", "=<" and "=>" returned as separate commands
             switch (Mid(strCurrentLine, lngPos + 1, 1)
@@ -1579,7 +1583,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return the two byte cmd (swap so we get ">=" and "<="
               // instead of "=>" and "=<"
-              NextCommand = Mid(strCurrentLine, lngPos, 1) & NextCommand
+              NextCommand = Mid(strCurrentLine, lngPos, 1) + NextCommand
 
             case "=" //"=="
               //increment pointer
@@ -1587,7 +1591,7 @@ namespace WinAGI
               //return the two byte cmd
               NextCommand = "=="
             } 
-            return  //Exit Function
+            return;
           case 34 //"
             //special case; quote means start of a string
             blnInQuotes = true
@@ -1598,12 +1602,12 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return shorthand increment
               NextCommand = "++"
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "=") {
+            } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "=") {
               lngPos = lngPos + 1
               //return shorthand addition
               NextCommand = "+="
-            } //End If
-            return  //Exit Function
+            } //}
+            return;
           case 45 //-
             //special case; "-", "--" and "-=" returned as separate commands
             //also check for "-##"
@@ -1612,11 +1616,11 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return shorthand decrement
               NextCommand = "--"
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "=") {
+            } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "=") {
               lngPos = lngPos + 1
               //return shorthand subtract
               NextCommand = "-="
-            ElseIf Val(Mid(strCurrentLine, lngPos + 1)) != 0) {
+            } else if ( Val(Mid(strCurrentLine, lngPos + 1)) != 0) {
               //add the number found here to current command so it
               //forms a negative number
 
@@ -1626,15 +1630,15 @@ namespace WinAGI
                 if (intChar < 48 || intChar > 57) {
                   //anything other than a digit (0-9)
                   Exit Do
-                Else
+                } else {
                   //add character
-                  NextCommand = NextCommand & ChrW$(intChar)
+                  NextCommand = NextCommand + ChrW$(intChar)
                   //incrmeent position
                   lngPos = lngPos + 1
-                } //End If
+                } //}
               Loop
-            } //End If
-            return  //Exit Function
+            } //}
+            return;
           case 33 //!
             //special case; "!" and "!=" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
@@ -1642,8 +1646,8 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return not equal
               NextCommand = "!="
-            } //End If
-            return  //Exit Function
+            } //}
+            return;
           case 60 //<
             //special case; "<", "<=" and "<>" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
@@ -1651,13 +1655,13 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return less than or equal
               NextCommand = "<="
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == ">") {
+            } else if ( Mid(strCurrentLine, lngPos + 1, 1) == ">") {
               //increment pointer
               lngPos = lngPos + 1
               //return not equal
               NextCommand = "<>"
-            } //End If
-            return  //Exit Function
+            } //}
+            return;
           case 62 //>
             //special case; ">", ">=" and "><" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
@@ -1665,13 +1669,13 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return greater than or equal
               NextCommand = ">="
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "<") {
+            } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "<") {
               //increment pointer
               lngPos = lngPos + 1
               //return not equal (//><// is same as //<>//)
               NextCommand = "<>"
-            } //End If
-            return  //Exit Function
+            } //}
+            return;
           case 42 //*
             //special case; "*" and "*=" returned as separate commands;
             if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
@@ -1681,27 +1685,27 @@ namespace WinAGI
               NextCommand = "*="
             //since block commands are removed, check for the in order to provide a
             //meaningful error message
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "/") {
+            } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "/") {
               lngPos = lngPos + 1
               NextCommand = "* /"
-            } //End If
-            return  //Exit Function
+            } //}
+            return;
           case 47 ///
             //special case; "/" , "//" and "/=" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
               lngPos = lngPos + 1
               //return shorthand division
               NextCommand = "/="
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "/") {
+            } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "/") {
               lngPos = lngPos + 1
               NextCommand = "//"
             //since block commands are removed, check for the in order to provide a
             //meaningful error message
-            ElseIf Mid(strCurrentLine, lngPos + 1, 1) == "*") {
+            } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "*") {
               lngPos = lngPos + 1
               NextCommand = "/*"
-            } //End If
-            return  //Exit Function
+            } //}
+            return;
           case 124 //|
             //special case; "|" and "||" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "|") {
@@ -1709,8 +1713,8 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return double //|//
               NextCommand = "||"
-            } //End If
-            return  //Exit Function
+            } //}
+            return;
           case 38 //&
             //special case; "&" and "&&" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "&") {
@@ -1718,8 +1722,8 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return double //&//
               NextCommand = "&&"
-            } //End If
-            return  //Exit Function
+            } //}
+            return;
           } 
 
           //if not a text string,
@@ -1734,19 +1738,19 @@ namespace WinAGI
                 Exit Do
               default:
                 //add character
-                NextCommand = NextCommand & ChrW$(intChar)
+                NextCommand = NextCommand + ChrW$(intChar)
                 //incrmeent position
                 lngPos = lngPos + 1
               } 
             Loop
 
-          Else
+          } else {
             //if past end of line
             //(which could only happen if a line contains a single double quote on it)
             if (lngPos + 1 > Len(strCurrentLine)) {
               //return the single quote
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
             //add characters until another TRUE quote is found
             Do
@@ -1762,7 +1766,7 @@ namespace WinAGI
                 //no checking it
                 //always reset  the slash
                 blnSlash = false
-              Else
+              } else {
                 //regular char; check for slash or quote mark
                 switch (intChar
                 case 34 //quote mark
@@ -1771,9 +1775,9 @@ namespace WinAGI
                 case 92 //slash
                   blnSlash = true
                 } 
-              } //End If
+              } //}
 
-              NextCommand = NextCommand & ChrW$(intChar)
+              NextCommand = NextCommand + ChrW$(intChar)
 
               //if at end of line
               If(lngPos = Len(strCurrentLine))) {
@@ -1783,11 +1787,11 @@ namespace WinAGI
                   //the compiler will have to recognize that
                   //this text string is not properly enclosed in quotes
                   blnInQuotes = false
-                } //End If
-              } //End If
+                } //}
+              } //}
             Loop While blnInQuotes
-          } //End If
-        return  //Exit Function
+          } //}
+        return;
 
         ErrHandler:
           strError = Err.Description
@@ -1798,13 +1802,14 @@ namespace WinAGI
           //an app specific error to encapsulate whatever happened
           If(lngError && vbObjectError) = vbObjectError) {
             //pass it along
-            On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-          Else
-            On Error GoTo 0: Err.Raise vbObjectError + 657, strErrSrc, Replace(LoadResString(657), ARG1, CStr(lngError) & ":" & strError)
-          } //End If
-        } //End Function
-        static internal Function CompileIf() As bool
-          //this routine will read and validate a group of test commands
+            throw new Exception("lngError, strErrSrc, strError
+          } else {
+            throw new Exception("657, strErrSrc, Replace(LoadResString(657), ARG1, CStr(lngError) + ":" + strError)
+          } //}
+        } //endfunction
+        static internal bool CompileIf()
+        {
+      //this routine will read and validate a group of test commands
           //for an //if// statement and return
           //it is entered when the compiler encounters an //if// command
           //the syntax expected for test commands is:
@@ -1831,16 +1836,18 @@ namespace WinAGI
           //
           //(any test command may have the negation operator (!) placed directly in front of it
 
-          Dim strTestCmd As string, strArg As string
-          Dim bytTestCmd As byte, bytArg(7) As byte
-          Dim lngArg As int, lngWord() As int
-          Dim intWordCount As int
-          Dim i As int
-          Dim blnIfBlock As bool //command block, not a comment block
-          Dim blnNeedNextCmd As bool
-          Dim intNumTestCmds As int
-          Dim intNumCmdsInBlock As int
-          Dim blnNOT As bool
+          string strTestCmd, strArg
+          byte bytTestCmd;
+      byte[] bytArg(7)
+          int lngArg;
+      int[] lngWord()
+          int intWordCount
+          int i
+          bool blnIfBlock //command block, not a comment block
+          bool blnNeedNextCmd
+          int intNumTestCmds
+          int intNumCmdsInBlock
+          bool blnNOT
 
 
           On Error GoTo ErrHandler
@@ -1852,14 +1859,14 @@ namespace WinAGI
           blnNeedNextCmd = true
 
           //write out starting if byte
-          tmpLogRes.Writebyte &HFF
+          tmpLogRes.Writebyte 0xFF
 
           //next character should be "("
           if (NextChar() != "(") {
             blnError = true
             strErrMsg = LoadResString(4002)
-            return  //Exit Function
-          } //End If
+            return;
+          } //}
 
           //now, step through input, until final //)//// is found:
           Do
@@ -1869,8 +1876,8 @@ namespace WinAGI
             if (lngLine == -1) {
               blnError = true
               strErrMsg = LoadResString(4106)
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
             //if awaiting a test command,
             if (blnNeedNextCmd) {
@@ -1880,37 +1887,37 @@ namespace WinAGI
                 if (blnIfBlock) {
                   blnError = true
                   strErrMsg = LoadResString(4045)
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
                 //write //or// block start
-                tmpLogRes.Writebyte &HFC
+                tmpLogRes.Writebyte 0xFC
                 blnIfBlock = true
                 intNumCmdsInBlock = 0
               case ")"
                 //if a test command is expected, //)// always causes error
                 if (intNumTestCmds == 0) {
                   strErrMsg = LoadResString(4057)
-                ElseIf blnIfBlock && intNumCmdsInBlock == 0) {
+                } else if ( blnIfBlock && intNumCmdsInBlock == 0) {
                   strErrMsg = LoadResString(4044)
-                Else
+                } else {
                   strErrMsg = LoadResString(4056)
-                } //End If
+                } //}
                 blnError = true
-                return  //Exit Function
+                return;
               default:
                 //check for NOT
                 blnNOT = (strTestCmd = NOT_TOKEN)
                 if (blnNOT) {
-                  tmpLogRes.Writebyte &HFD
+                  tmpLogRes.Writebyte 0xFD
                   //read in next test command
                   strTestCmd = NextCommand()
                   //check for end of input,
                   if (lngLine == -1) {
                     blnError = true
                     strErrMsg = LoadResString(4106)
-                    return  //Exit Function
-                  } //End If
-                } //End If
+                    return;
+                  } //}
+                } //}
                 bytTestCmd = CommandNum(true, strTestCmd)
                 //if command not found,
                 if (bytTestCmd == 255) {
@@ -1919,17 +1926,17 @@ namespace WinAGI
                     //error; the CompileSpecialIf function
                     //sets the error codes, and CompileLogic will
                     //call the error handler
-                    return  //Exit Function
-                  } //End If
-                Else
+                    return;
+                  } //}
+                } else {
                   //write the test command code
                   tmpLogRes.Writebyte bytTestCmd
                   //next command should be "("
                   if (NextChar() != "(") {
                     blnError = true
                     strErrMsg = LoadResString(4048)
-                    return  //Exit Function
-                  } //End If
+                    return;
+                  } //}
 
                   //check for return.false() command
                   if (bytTestCmd == 0) {
@@ -1940,10 +1947,10 @@ namespace WinAGI
                       AddWarning 5081
                     case leLow
                     } 
-                  } //End If
+                  } //}
 
                   //if said command
-                  if (bytTestCmd == &HE) {
+                  if (bytTestCmd == 0xE) {
                     //enable error trapping to catch invalid word
                     On Error Resume Next
                     //and word count
@@ -1957,10 +1964,10 @@ namespace WinAGI
                       if (Val(strErrMsg) == 4054) {
                         // add command name to error string
                         strErrMsg = Replace(strErrMsg, ARG2, agTestCmds(bytTestCmd).Name)
-                      } //End If
+                      } //}
                       //exit
-                      return  //Exit Function
-                    } //End If
+                      return;
+                    } //}
 
                     //loop to add this word, and any more
                     Do
@@ -1972,8 +1979,8 @@ namespace WinAGI
                       if (intWordCount == 10) {
                         blnError = true
                         strErrMsg = LoadResString(4093)
-                        return  //Exit Function
-                      } //End If
+                        return;
+                      } //}
 
                       //get next character
                       //(should be a comma, or close parenthesis, if no more words)
@@ -1997,9 +2004,9 @@ namespace WinAGI
                             if (Val(strErrMsg) == 4054) {
                               // add command name to error string
                               strErrMsg = Replace(strErrMsg, ARG2, agTestCmds(bytTestCmd).Name)
-                            } //End If
-                            return  //Exit Function
-                          } //End If
+                            } //}
+                            return;
+                          } //}
 
 
                         default:
@@ -2012,14 +2019,14 @@ namespace WinAGI
                             lngErrLine = lngLine - lngIncludeOffset
                             //string error
                             strErrMsg = LoadResString(4051)
-                          Else
+                          } else {
                             //use 1-base arg values
                             strErrMsg = Replace(LoadResString(4047), ARG1, CStr(intWordCount + 1))
-                          } //End If
-                          return  //Exit Function
+                          } //}
+                          return;
                         } 
-                      Else
-                      //////Debug.Assert false
+                      } else {
+                      //Debug.Assert false
                       //we should normally never get here, since changing the function to allow
                       //splitting over multiple lines, unless this is the LAST line of
                       //the logic (an EXTREMELY rare edge case)
@@ -2033,12 +2040,12 @@ namespace WinAGI
                           lngErrLine = lngLine - lngIncludeOffset
                           //string error
                           strErrMsg = LoadResString(4051)
-                        Else
+                        } else {
                           //use 1-base arg values
                           strErrMsg = Replace(LoadResString(4047), ARG1, CStr(intWordCount + 1))
-                        } //End If
-                        return  //Exit Function
-                      } //End If
+                        } //}
+                        return;
+                      } //}
                     Loop While true
 
                     //reset the quotemark error flag after //)// is found
@@ -2056,7 +2063,7 @@ namespace WinAGI
                       //write word Value
                       tmpLogRes.WriteWord lngWord(i)
                     Next i
-                  Else
+                  } else {
                     //not //said//; extract arguments for this command
                     For i = 0 To agTestCmds(Cbyte(bytTestCmd)).ArgType.Length - 1
                       //after first argument, verify comma separates arguments
@@ -2065,9 +2072,9 @@ namespace WinAGI
                           blnError = true
                           //use 1-base arg values
                           strErrMsg = Replace(LoadResString(4047), ARG1, CStr(i + 1))
-                          return  //Exit Function
-                        } //End If
-                      } //End If
+                          return;
+                        } //}
+                      } //}
 
                       //reset the quotemark error flag after comma is found
                       lngQuoteAdded = -1
@@ -2078,60 +2085,60 @@ namespace WinAGI
                         if (Val(strErrMsg) == 4054) {
                           // add command name to error string
                           strErrMsg = Replace(strErrMsg, ARG2, agTestCmds(bytTestCmd).Name)
-                        } //End If
-                        return  //Exit Function
-                      } //End If
+                        } //}
+                        return;
+                      } //}
                       //write argument
                       tmpLogRes.Writebyte bytArg(i)
                     Next i
-                  } //End If
+                  } //}
                   //next character should be ")"
                   if (NextChar() != ")") {
                     blnError = true
                     strErrMsg = LoadResString(4160)
-                    return  //Exit Function
-                  } //End If
+                    return;
+                  } //}
                   //reset the quotemark error flag
                   lngQuoteAdded = -1
 
                   //validate arguments for this command
                   if (!ValidateIfArgs(bytTestCmd, bytArg())) {
                     //error assigned by called function
-                    return  //Exit Function
-                  } //End If
-                } //End If
+                    return;
+                  } //}
+                } //}
 
                 //command added
                 intNumTestCmds = intNumTestCmds + 1
                 //if in IF block,
                 if (blnIfBlock) {
                   intNumCmdsInBlock = intNumCmdsInBlock + 1
-                } //End If
+                } //}
                 //toggle off need for test command
                 blnNeedNextCmd = false
               } 
-            Else //not awaiting a test command
+            } else { //not awaiting a test command
               switch (strTestCmd
               case NOT_TOKEN
                 //invalid
                 blnError = true
                 strErrMsg = LoadResString(4097)
-                return  //Exit Function
+                return;
               case AND_TOKEN
                 //if inside brackets
                 if (blnIfBlock) {
                   blnError = true
                   strErrMsg = LoadResString(4037)
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
                 blnNeedNextCmd = true
               case OR_TOKEN
                 //if NOT inside brackets
                 if (!blnIfBlock) {
                   blnError = true
                   strErrMsg = LoadResString(4100)
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
                 blnNeedNextCmd = true
               case ")"
                 //if inside brackets
@@ -2140,48 +2147,49 @@ namespace WinAGI
                   if (intNumCmdsInBlock == 0) {
                     blnError = true
                     strErrMsg = LoadResString(4044)
-                    return  //Exit Function
-                  } //End If
+                    return;
+                  } //}
                   //close brackets
                   blnIfBlock = false
-                  tmpLogRes.Writebyte &HFC
-                Else
+                  tmpLogRes.Writebyte 0xFC
+                } else {
                   //ensure at least one command in block,
                   if (intNumTestCmds == 0) {
                     blnError = true
                     strErrMsg = LoadResString(4044)
-                    return  //Exit Function
-                  } //End If
+                    return;
+                  } //}
                   //end of if found
                   Exit Do
-                } //End If
+                } //}
               default:
                 if (blnIfBlock) {
                   strErrMsg = LoadResString(4101)
-                Else
+                } else {
                   strErrMsg = LoadResString(4038)
-                } //End If
+                } //}
                 blnError = true
-                return  //Exit Function
+                return;
               } 
-            } //End If
+            } //}
           //never leave loop normally; error, end of input, or successful
           //compilation of test commands will all exit loop directly
           Loop While true
 
           //write ending if byte
-          tmpLogRes.Writebyte &HFF
+          tmpLogRes.Writebyte 0xFF
           //return true
           CompileIf = true
-        return  //Exit Function
+        return;
 
         ErrHandler:
           blnError = true
           strErrMsg = Replace(Replace(LoadResString(4115), ARG1, CStr(Err.Number)), ARG2, "CompileIf")
           //err.clear
-        } //End Function
-        static internal Function ConcatArg(strText As string) As string
-          //this function concatenates strings; it assumes strText
+        } //endfunction
+        static internal string ConcatArg(string strText)
+        {
+      //this function concatenates strings; it assumes strText
           //is the string that was just read into the compiler;
           //it then checks if there are additional elements of
           //this string to add to it; if so, they are added.
@@ -2192,10 +2200,10 @@ namespace WinAGI
           //and ending quotation marks
 
 
-          Dim strTextContinue As string
-          Dim lngLastPos As int, lngLastLine As int
-          Dim strLastLine As string
-          Dim lngSlashCount As int, lngQuotesOK As int
+          string strTextContinue
+          int lngLastPos, lngLastLine
+          string strLastLine
+          int lngSlashCount, lngQuotesOK
 
 
           On Error GoTo ErrHandler
@@ -2205,8 +2213,8 @@ namespace WinAGI
             //error
             blnError = true
             strErrMsg = LoadResString(4081)
-            return  //Exit Function
-          } //End If
+            return;
+          } //}
 
           //start with input string
           ConcatArg = strText
@@ -2232,7 +2240,7 @@ namespace WinAGI
                 //bad end quote (set end quote marker, overriding error
                 //that might happen on a previous line)
                 lngQuotesOK = 2
-              Else
+              } else {
                 //just because it ends in a quote doesn//t mean it//s good;
                 //it might be an embedded quote
                 //(we know we have at least two chars, so we don//t need
@@ -2244,9 +2252,9 @@ namespace WinAGI
                 Do
                   if (Mid(ConcatArg, Len(ConcatArg) - (lngSlashCount + 1), 1) == "\") {
                     lngSlashCount = lngSlashCount + 1
-                  Else
+                  } else {
                     Exit Do
-                  } //End If
+                  } //}
                 Loop While Len(ConcatArg) - (lngSlashCount + 1) >= 0
 
                 //if it IS odd, then it//s not a valid quote
@@ -2255,8 +2263,8 @@ namespace WinAGI
                   //bad end quote (set end quote marker, overriding error
                   //that might happen on a previous line)
                   lngQuotesOK = 2
-                } //End If
-              } //End If
+                } //}
+              } //}
 
               //if end quote is missing, deal with it
               if (lngQuotesOK > 0) {
@@ -2270,22 +2278,22 @@ namespace WinAGI
                   //error
                   blnError = true
                   strErrMsg = LoadResString(4080)
-                  return  //Exit Function
+                  return;
                 case leMedium
                   //add quote
-                  strTextContinue = strTextContinue & QUOTECHAR
+                  strTextContinue = strTextContinue + QUOTECHAR
                   //set warning
                   AddWarning 5002
                 case leLow
                   //add quote
-                  strTextContinue = strTextContinue & QUOTECHAR
+                  strTextContinue = strTextContinue + QUOTECHAR
                 } 
-              } //End If
+              } //}
 
               //strip off ending quote of current msg
               ConcatArg = Left(ConcatArg, Len(ConcatArg) - 1)
               //add it to strText
-              ConcatArg = ConcatArg & Right(strTextContinue, Len(strTextContinue) - 1)
+              ConcatArg = ConcatArg + Right(strTextContinue, Len(strTextContinue) - 1)
               //save current position info
               lngLastPos = lngPos
               lngLastLine = lngLine
@@ -2299,20 +2307,21 @@ namespace WinAGI
             lngLine = lngLastLine
             lngErrLine = lngLastLine
             strCurrentLine = strLastLine
-          } //End If
+          } //}
 
 
-        return  //Exit Function
+        return;
 
         ErrHandler:
           //raise an error
           blnError = true
           strErrMsg = Replace(Replace(LoadResString(4115), ARG1, CStr(Err.Number)), ARG2, "ConcatArg")
-        } //End Function
+        } //endfunction
 
 
-        static internal Function RemoveComments() As bool
-          //this function strips out comments from the input text
+        static internal bool RemoveComments()
+        {
+      //this function strips out comments from the input text
           //and trims off leading and trailing spaces
           //
           //agi comments:
@@ -2320,9 +2329,9 @@ namespace WinAGI
           //      [ - rest of line is ignored
 
 
-          Dim lngPos As int
-          Dim blnInQuotes As bool, blnSlash As bool
-          Dim intROLIgnore As int
+          int lngPos
+          bool blnInQuotes, blnSlash
+          int intROLIgnore
 
 
           On Error GoTo ErrHandler
@@ -2336,7 +2345,7 @@ namespace WinAGI
             //reset rol ignore
             intROLIgnore = 0
 
-            //reset comment start & char ptr, and inquotes
+            //reset comment start + char ptr, and inquotes
             lngPos = 0
             blnInQuotes = false
 
@@ -2351,18 +2360,18 @@ namespace WinAGI
                   If((Mid(strCurrentLine, lngPos, 2) = CMT2_TOKEN) Or(Mid(strCurrentLine, lngPos, 1) = CMT1_TOKEN))) {
                   intROLIgnore = lngPos
                     Exit Do
-                  } //End If
+                  } //}
                   // slash codes never occur outside quotes
                   blnSlash = false
                   //if this character is a quote mark, it starts a string
                   blnInQuotes = (AscW(Mid(strCurrentLine, lngPos)) = 34)
-                Else
+                } else {
                   //if last character was a slash, ignore this character
                   //because it//s part of a slash code
                   if (blnSlash) {
                     //always reset  the slash
                     blnSlash = false
-                  Else
+                  } else {
                     //check for slash or quote mark
                     switch (AscW(Mid(strCurrentLine, lngPos))
                     case 34 //quote mark
@@ -2371,14 +2380,14 @@ namespace WinAGI
                     case 92 //slash
                       blnSlash = true
                     } 
-                  } //End If
-                } //End If
+                  } //}
+                } //}
               Loop
               //if any part of line should be ignored,
               if (intROLIgnore > 0) {
                 strCurrentLine = Left(strCurrentLine, intROLIgnore - 1)
-              } //End If
-            } //End If
+              } //}
+            } //}
             //replace comment, also trim it
             ReplaceLine Trim$(strCurrentLine)
 
@@ -2388,14 +2397,15 @@ namespace WinAGI
 
           //success
           RemoveComments = true
-        return  //Exit Function
+        return;
         ErrHandler:
           strErrMsg = Replace(Replace(LoadResString(4115), ARG1, CStr(Err.Number)), ARG2, "RemoveComments")
           Err.Clear
-        } //End Function
+        } //endfunction
 
-        static internal Function AddIncludes(stlLogicText As string[]) As bool
-          //this function uses the logic text that is passed to the compiler
+        static internal bool AddIncludes(string[] stlLogicText)
+        {
+      //this function uses the logic text that is passed to the compiler
           //to create the input text that is parsed.
           //it copies the lines from the logic text to the input text, and
           //replaces any include file lines with the actual lines from the
@@ -2403,22 +2413,21 @@ namespace WinAGI
           //them as include lines)
 
 
-          Dim IncludeLines As string[]
-          Dim strIncludeFilename As string
-          Dim strIncludePath As string
-          Dim strIncludeText As string
-          Dim CurIncludeLine As int   // current line in IncludeLines (the include file)
-          Dim intFileCount As int
-          Dim i As int
-          Dim intFile As int
-          Dim lngLineCount As int
+          string[] IncludeLines
+          string strIncludeFilename
+          string strIncludePath
+          string strIncludeText
+          int CurIncludeLine   // current line in IncludeLines (the include file)
+          int intFileCount
+          int i
+          int lngLineCount
 
 
           On Error GoTo ErrHandler
 
 
-          Set stlInput = New StringList
-          Set IncludeLines = New StringList //only temporary,
+          stlInput = New StringList
+          IncludeLines = New StringList //only temporary,
 
 
           lngLine = 0
@@ -2438,16 +2447,16 @@ namespace WinAGI
               if (Mid(stlLogicText(lngLine), 9, 1) != " ") {
                 //generate error
                 strErrMsg = LoadResString(4103)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //build include filename
               strIncludeFilename = Trim$(Right(stlLogicText(lngLine), Len(stlLogicText(lngLine)) - 9))
 
               //check for a filename
               if (LenB(strIncludeFilename) == 0) {
                 strErrMsg = LoadResString(4060)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //if quotes aren//t used correctly
               if (Left(strIncludeFilename, 1) == QUOTECHAR && Right(strIncludeFilename, 1) != QUOTECHAR || _
@@ -2456,37 +2465,37 @@ namespace WinAGI
                 case leHigh
                   //return error: improper use of quote marks
                   strErrMsg = LoadResString(4059)
-                  return  //Exit Function
+                  return;
                 case leMedium, leLow
                   //assume quotes are needed
                   if (AscW(strIncludeFilename) != 34) {
-                    strIncludeFilename = QUOTECHAR & strIncludeFilename
-                  } //End If
+                    strIncludeFilename = QUOTECHAR + strIncludeFilename
+                  } //}
                   if (AscW(Right(strIncludeFilename, 1)) != 34) {
-                    strIncludeFilename = strIncludeFilename & QUOTECHAR
-                  } //End If
+                    strIncludeFilename = strIncludeFilename + QUOTECHAR
+                  } //}
                   //set warning
                   AddWarning 5028, Replace(LoadResString(5028), ARG1, strIncludeFilename)
                 } 
-              } //End If
+              } //}
 
               //if quotes,
               if (Left(strIncludeFilename, 1) == QUOTECHAR) {
                 //strip off quotes
                 strIncludeFilename = Mid(strIncludeFilename, 2, Len(strIncludeFilename) - 2)
-              } //End If
+              } //}
 
               //if filename doesnt include a path,
               if (LenB(JustPath(strIncludeFilename, true)) == 0) {
                 //get full path name to include file
-                strIncludeFilename = agResDir & strIncludeFilename
-              } //End If
+                strIncludeFilename = agResDir + strIncludeFilename
+              } //}
 
               //verify file exists
               if (!FileExists(strIncludeFilename)) {
                 strErrMsg = Replace(LoadResString(4050), ARG1, strIncludeFilename)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
         //****
         //      cant check for open includes; they are in a different application
         //****
@@ -2494,21 +2503,21 @@ namespace WinAGI
               On Error Resume Next
               //now open the include file, and get the text
               intFile = FreeFile()
-              Open strIncludeFilename For Binary As intFile
+              Open strIncludeFilename binary
               strIncludeText = string$(LOF(intFile), 0)
               Get intFile, 1, strIncludeText
               Close intFile
               //check for error,
               if (Err.Number<> 0) {
                 strErrMsg = Replace(LoadResString(4055), ARG1, strIncludeFilename)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
 
               On Error GoTo ErrHandler
 
               //assign text to stringlist
-              Set IncludeLines = New StringList
+              IncludeLines = New StringList
               IncludeLines.Assign strIncludeText
 
               //if there are any lines,
@@ -2524,49 +2533,49 @@ namespace WinAGI
                   if (Left(Trim$(IncludeLines(CurIncludeLine)), 2) == "#i") {
                     strErrMsg = LoadResString(4061)
                     lngErrLine = CurIncludeLine
-                    return  //Exit Function
-                  } //End If
+                    return;
+                  } //}
                   //include filenumber and line number from includefile
-                  stlInput.Add "#I" & CStr(intFileCount) & ":" & CStr(CurIncludeLine) & "#" & IncludeLines(CurIncludeLine)
+                  stlInput.Add "#I" + CStr(intFileCount) + ":" + CStr(CurIncludeLine) + "#" + IncludeLines(CurIncludeLine)
                 Next CurIncludeLine
-              } //End If
+              } //}
               //add a blank line as a place holder for the //include// line
               //(to keep line counts accurate when calculating line number for errors)
               stlInput.Add ""
-            Else
+            } else {
               //not an include line
               //check for any instances of #I, since these will
               //interfere with include line handling
               if (Left(stlLogicText(lngLine), 2) == "#i") {
                 strErrMsg = LoadResString(4069)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //copy the line by itself
               stlInput.Add stlLogicText(lngLine)
-            } //End If
+            } //}
             lngLine = lngLine + 1
           Loop Until lngLine >= lngLineCount
           //done
-          Set IncludeLines = Nothing
+          IncludeLines = Nothing
           //return success
           AddIncludes = true
-        return  //Exit Function
+        return;
 
         ErrHandler:
           //unknown error
           strErrMsg = Replace(Replace(LoadResString(4115), ARG1, CStr(Err.Number)), ARG2, "AddIncludes")
           Err.Clear
-        } //End Function
+        } //endfunction
 
 
 
-        static internal Function ReadDefines() As bool
+        static internal bool ReadDefines()
+      {
 
-
-          Dim i As int, j As int
-          Dim blnInQuote As bool
-          Dim tdNewDefine As TDefine
-          Dim rtn As int
+          int i, j
+          bool blnInQuote
+          TDefine tdNewDefine
+          int rtn
 
 
           On Error GoTo ErrHandler
@@ -2591,8 +2600,8 @@ namespace WinAGI
               if (InStr(1, strCurrentLine, " ") == 0) {
                 //error
                 strErrMsg = LoadResString(4104)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //split it by position of first space
               tdNewDefine.Name = Trim$(Left(strCurrentLine, InStr(1, strCurrentLine, " ") - 1))
@@ -2622,7 +2631,7 @@ namespace WinAGI
                 if (rtn >= 7 && rtn <= 12) {
                   //reset return error code
                   rtn = 0
-                } //End If
+                } //}
               } 
 
               //check for errors
@@ -2657,7 +2666,7 @@ namespace WinAGI
                   strErrMsg = LoadResString(4067)
                 } 
                 //don//t exit; check for define Value errors first
-              } //End If
+              } //}
 
               //validate define Value
               rtn = ValidateDefValue(tdNewDefine)
@@ -2669,11 +2678,11 @@ namespace WinAGI
                 case 4  //string Value missing quotes
                   //fix the define Value
                   if (AscW(tdNewDefine.Value) != 34) {
-                    tdNewDefine.Value = QUOTECHAR & tdNewDefine.Value
-                  } //End If
+                    tdNewDefine.Value = QUOTECHAR + tdNewDefine.Value
+                  } //}
                   if (AscW(Right(tdNewDefine.Value, 1)) != 34) {
-                    tdNewDefine.Value = tdNewDefine.Value & QUOTECHAR
-                  } //End If
+                    tdNewDefine.Value = tdNewDefine.Value + QUOTECHAR
+                  } //}
 
                   //set warning
                   AddWarning 5022
@@ -2697,11 +2706,11 @@ namespace WinAGI
                 case 4
                   //fix the define Value
                   if (AscW(tdNewDefine.Value) != 34) {
-                    tdNewDefine.Value = QUOTECHAR & tdNewDefine.Value
-                  } //End If
+                    tdNewDefine.Value = QUOTECHAR + tdNewDefine.Value
+                  } //}
                   if (AscW(Right(tdNewDefine.Value, 1)) != 34) {
-                    tdNewDefine.Value = tdNewDefine.Value & QUOTECHAR
-                  } //End If
+                    tdNewDefine.Value = tdNewDefine.Value + QUOTECHAR
+                  } //}
                   //reset return Value
                   rtn = 0
                 case 5, 6
@@ -2715,40 +2724,40 @@ namespace WinAGI
                 //if already have a name error
                 if (LenB(strErrMsg) != 0) {
                   //append Value error
-                  strErrMsg = strErrMsg & "; and "
-                } //End If
+                  strErrMsg = strErrMsg + "; and "
+                } //}
 
                 //check for Value error
                 switch (rtn
                 case 1 // no Value
-                  strErrMsg = strErrMsg & LoadResString(4073)
+                  strErrMsg = strErrMsg + LoadResString(4073)
         //
         //a return Value of 2 is no longer possible; this
         //Value has been removed from the ValidateDefineValue function
         //        case 2 // Value is an invalid argument marker
-        //          strErrMsg = strErrMsg & "4065: Invalid argument declaration Value"
+        //          strErrMsg = strErrMsg + "4065: Invalid argument declaration Value"
                 case 3 // Value contains an invalid argument Value
-                  strErrMsg = strErrMsg & LoadResString(4042)
+                  strErrMsg = strErrMsg + LoadResString(4042)
                 case 4 // Value is not a string, number or argument marker
-                  strErrMsg = strErrMsg & LoadResString(4082)
+                  strErrMsg = strErrMsg + LoadResString(4082)
                 case 5 // Value is already defined by a reserved name
-                  strErrMsg = strErrMsg & Replace(LoadResString(4041), ARG1, tdNewDefine.Value)
+                  strErrMsg = strErrMsg + Replace(LoadResString(4041), ARG1, tdNewDefine.Value)
                 case 6 // Value is already defined by a global name
-                  strErrMsg = strErrMsg & Replace(LoadResString(4040), ARG1, tdNewDefine.Value)
+                  strErrMsg = strErrMsg + Replace(LoadResString(4040), ARG1, tdNewDefine.Value)
                 } 
-              } //End If
+              } //}
 
               //if an error was generated during define validation
               if (LenB(strErrMsg) != 0) {
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //check all previous defines
               For i = 0 To lngDefineCount - 1
                 if (tdNewDefine.Name == tdDefines(i).Name) {
                   strErrMsg = Replace(LoadResString(4012), ARG1, tdDefines(i).Name)
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
                 if (tdNewDefine.Value == tdDefines(i).Value) {
                   //numeric duplicates aren//t a problem
                   if (!IsNumeric(tdNewDefine.Value)) {
@@ -2756,15 +2765,15 @@ namespace WinAGI
                     case leHigh
                       //set error
                       strErrMsg = Replace(Replace(LoadResString(4023), ARG1, tdDefines(i).Value), ARG2, tdDefines(i).Name)
-                      return  //Exit Function
+                      return;
                     case leMedium
                       //set warning
                       AddWarning 5033, Replace(Replace(LoadResString(5033), ARG1, tdNewDefine.Value), ARG2, tdDefines(i).Name)
                     case leLow
                       //do nothing
                     } 
-                  } //End If
-                } //End If
+                  } //}
+                } //}
               Next i
 
               //check define against labels
@@ -2772,10 +2781,10 @@ namespace WinAGI
                 For i = 1 To bytLabelCount
                   if (tdNewDefine.Name == llLabel(i).Name) {
                     strErrMsg = Replace(LoadResString(4020), ARG1, tdNewDefine.Name)
-                    return  //Exit Function
-                  } //End If
+                    return;
+                  } //}
                 Next i
-              } //End If
+              } //}
 
               //save this define
               ReDim Preserve tdDefines(lngDefineCount)
@@ -2788,36 +2797,37 @@ namespace WinAGI
               if (Left(stlInput(lngLine), 2) == "#I") {
                 //this is an include line; need to leave include line info
                 stlInput(lngLine) = Left(stlInput(lngLine), InStr(4, stlInput(lngLine), "#"))
-              Else
+              } else {
                 //just blank out entire line
                 stlInput(lngLine) = ""
-              } //End If
-            } //End If
+              } //}
+            } //}
             //get next line
             IncrementLine
           Loop Until lngLine = -1
 
 
           ReadDefines = true
-        return  //Exit Function
+        return;
 
         ErrHandler:
           strErrMsg = Replace(Replace(LoadResString(4115), ARG1, CStr(Err.Number)), ARG2, "ReadDefines")
           Err.Clear
-        } //End Function
-        static internal Function ReadMsgs() As bool
-
+        } //endfunction
+        static internal bool ReadMsgs()
+      {
           //note that stripped message lines also strip out the include header string
           //this doesn//t matter since they are only blank lines anyway
           //only need include header info if error occurs, and errors never occur on
           //blank line
 
-          Dim intMsgNum As int, i As int
-          Dim strCmd As string, strMsgContinue As string
-          Dim strMsgSep As string
-          Dim lngMsgStart As int, blnDef As bool
-          Dim intMsgLineCount As int
-          Dim lngSlashCount As int, lngQuotesOK As int
+          int intMsgNum, i
+          string strCmd, strMsgContinue
+          string strMsgSep
+          int lngMsgStart
+      bool blnDef
+          int intMsgLineCount
+          int lngSlashCount, lngQuotesOK
 
 
           On Error GoTo ErrHandler
@@ -2849,8 +2859,8 @@ namespace WinAGI
                 //error
                 blnError = true
                 strErrMsg = LoadResString(4077)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //validate msg number
               intMsgNum = VariableValue(strCmd)
@@ -2858,14 +2868,14 @@ namespace WinAGI
                 //error
                 blnError = true
                 strErrMsg = LoadResString(4077)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //if msg is already assigned
               if (blnMsg(intMsgNum)) {
                 blnError = true
                 strErrMsg = Replace(LoadResString(4094), ARG1, CStr(intMsgNum))
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //get next string command
               strCmd = NextCommand(false)
@@ -2876,8 +2886,8 @@ namespace WinAGI
                 if (ConvertArgument(strCmd, atMsg)) {
                   //defined strings never get concatenated
                   blnDef = true
-                } //End If
-              } //End If
+                } //}
+              } //}
 
               //always reset the //addquote// flag
               //(this is the flag that notes if/where a line had an end quote
@@ -2893,12 +2903,12 @@ namespace WinAGI
               if (Left(strCmd, 1) != QUOTECHAR) {
                 //bad start quote
                 lngQuotesOK = 1
-              } //End If
+              } //}
               //check for end quote
               if (Right(strCmd, 1) != QUOTECHAR) {
                 //bad end quote
                 lngQuotesOK = lngQuotesOK + 2
-              Else
+              } else {
                 //just because it ends in a quote doesn//t mean it//s good;
                 //it might be an embedded quote
                 //(we know we have at least two chars, so we don//t need
@@ -2910,17 +2920,17 @@ namespace WinAGI
                 Do
                   if (Mid(strCmd, Len(strCmd) - (lngSlashCount + 1), 1) == "\") {
                     lngSlashCount = lngSlashCount + 1
-                  Else
+                  } else {
                     Exit Do
-                  } //End If
+                  } //}
                 Loop While Len(strCmd) - (lngSlashCount + 1) >= 0
 
                 //if it IS odd, then it//s not a valid quote
                 if (Int(lngSlashCount / 2) != lngSlashCount / 2) {
                   //it//s embedded, and doesn//t count
                   lngQuotesOK = lngQuotesOK + 2
-                } //End If
-              } //End If
+                } //}
+              } //}
 
               //if either (or both) quote is missing, deal with it
               if (lngQuotesOK > 0) {
@@ -2933,39 +2943,39 @@ namespace WinAGI
                 case leHigh
                   blnError = true
                   strErrMsg = LoadResString(4051)
-                  return  //Exit Function
+                  return;
                 case leMedium, leLow
                   //add quotes as appropriate
                   if (AscW(strCmd) != 34) {
-                    strCmd = QUOTECHAR & strCmd
-                  } //End If
+                    strCmd = QUOTECHAR + strCmd
+                  } //}
                   if (AscW(Right(strCmd, 1)) != 34) {
-                    strCmd = strCmd & QUOTECHAR
-                  } //End If
+                    strCmd = strCmd + QUOTECHAR
+                  } //}
                   //warn if medium
                   if (agMainLogSettings.ErrorLevel == leMedium) {
                     //set warning
                     AddWarning 5002
-                  } //End If
+                  } //}
                 } 
-              } //End If
+              } //}
 
               //concatenate, if necessary
               if (!blnDef) {
                 strCmd = ConcatArg(strCmd)
                 //if error,
                 if (blnError) {
-                  return  //Exit Function
-                } //End If
-              } //End If
+                  return;
+                } //}
+              } //}
 
               //nothing allowed after msg declaration
               if (lngPos != Len(strCurrentLine)) {
                 //error
                 blnError = true
                 strErrMsg = LoadResString(4099)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //strip off quotes (we know that the string
               //is properly enclosed by quotes because
@@ -2979,8 +2989,8 @@ namespace WinAGI
               //validate message characters
               if (!ValidateMsgChars(strCmd, intMsgNum)) {
                 //error was raised
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
 
               blnMsg(intMsgNum) = true
@@ -2994,7 +3004,7 @@ namespace WinAGI
               //continue until back to current line
               Loop Until lngMsgStart > lngLine
 
-            } //End If
+            } //}
             //get next line
             IncrementLine
           Loop Until lngLine = -1
@@ -3008,35 +3018,36 @@ namespace WinAGI
           Loop
 
           ReadMsgs = true
-        return  //Exit Function
+        return;
 
         ErrHandler:
           blnError = true
           strErrMsg = Replace(Replace(LoadResString(4115), ARG1, CStr(Err.Number)), ARG2, "ReadMsgs")
           Err.Clear
-        } //End Function
+        } //endfunction
 
-        static internal Sub ReplaceLine(strNewLine As string)
-          //this function replaces the current line in the input string
+        static internal void ReplaceLine(string strNewLine)
+        {
+      //this function replaces the current line in the input string
           //with the strNewLine, while preserving include header info
 
-          Dim strInclude As string
+          string strInclude
 
             //if this is from an include file
             if (Left(stlInput(lngLine), 2) == "#I") {
               //need to save include header info so it can
               //be preserved after comments are removed
               strInclude = Left(stlInput(lngLine), InStr(2, stlInput(lngLine), "#"))
-            Else
+            } else {
               strInclude = ""
-            } //End If
+            } //}
 
             //replace the line
-            stlInput(lngLine) = strInclude & strNewLine
-        } //End Sub
+            stlInput(lngLine) = strInclude + strNewLine
+        } //endsub
 
 
-        static internal Sub ResetCompiler()
+        static internal void ResetCompiler()
           //resets the compiler so it points to beginning of input
           //also loads first line into strCurrentLine
 
@@ -3057,20 +3068,20 @@ namespace WinAGI
           IncrementLine
           //NOTE: don//t need to worry about first line;
           //compiler has already verified the input has at least one line
-        } //End Sub
+        } //endsub
 
 
-        internal Sub SetResourceIDs()
+        internal void SetResourceIDs()
           //builds array of resourceIDs so
           //convertarg function can iterate through them much quicker
 
-          Dim tmpLog As AGILogic, tmpPic As AGIPicture
-          Dim tmpSnd As AGISound, tmpView As AGIView
+          Dim AGILogic tmpLog, AGIPicture tmpPic
+          Dim AGISound tmpSnd, AGIView tmpView
 
 
           if (blnSetIDs) {
             return;
-          } //End If
+          } //}
 
           ReDim strLogID(255)
           ReDim strPicID(255)
@@ -3099,9 +3110,9 @@ namespace WinAGI
 
           //set flag
           blnSetIDs = true
-        } //End Sub
+        } //endsub
 
-        static internal Sub AddWarning(WarningNum As int, Optional WarningText As string)
+        static internal void AddWarning(int WarningNum, string WarningText == "")
 
           //warning elements are separated by pipe character
           //WarningsText is in format:
@@ -3113,24 +3124,24 @@ namespace WinAGI
 
           //if no text passed, use the default resource string
 
-          Dim evWarn As string
+          string evWarn
 
 
           if (Len(WarningText) == 0) {
             WarningText = LoadResString(WarningNum)
-          } //End If
+          } //}
 
           //only add if not ignoring
           if (!agNoCompWarn(WarningNum - 5000)) {
-            evWarn = CStr(WarningNum) & "|" & WarningText & "|" & CStr(lngErrLine + 1) & "|" & _
+            evWarn = CStr(WarningNum) + "|" + WarningText + "|" + CStr(lngErrLine + 1) + "|" + _
                          IIf(LenB(strModule) != 0, strModule, "")
             agGameEvents.RaiseEvent_LogCompWarning evWarn, bytLogComp
-          } //End If
-        } //End Sub
-        static internal Function ValidateArgs(CmdNum As int, ByRef ArgVal() As byte) As bool
+          } //}
+        } //endsub
+        static internal bool ValidateArgs(int CmdNum, ref byte[] ArgVal())
+      {
 
-
-          Dim blnUnload As bool, blnWarned As bool
+          bool blnUnload, blnWarned
 
           //check for specific command issues
           On Error GoTo ErrHandler
@@ -3154,13 +3165,13 @@ namespace WinAGI
                 switch (agMainLogSettings.ErrorLevel
                 case leHigh
                   strErrMsg = LoadResString(4149)
-                  return  //Exit Function
+                  return;
                 case leMedium
                   AddWarning 5030
                 case leLow
                 } 
-              } //End If
-            } //End If
+              } //}
+            } //}
 
 
           case 3 //assignn
@@ -3179,12 +3190,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4120)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5053
               case leLow
               } 
-            } //End If
+            } //}
             //expect no more commands
             blnNewRoom = true
 
@@ -3200,12 +3211,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4121), ARG1, CStr(ArgVal(0)))
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5013
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 22  //call(A)
@@ -3214,38 +3225,38 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4118)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5010
               case leLow
                 //no action
               } 
-            } //End If
+            } //}
 
             //recursive calling is BAD
             if (ArgVal(0) == bytLogComp) {
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4117)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5089
               case leLow
                 //no action
               } 
-            } //End If
+            } //}
 
             //validate that logic exists
             if (!agLogs.Exists(ArgVal(0))) {
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4156), ARG1, CStr(ArgVal(0)))
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5076
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 30 //load.view(A)
@@ -3254,12 +3265,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4122), ARG1, CStr(ArgVal(0)))
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5015
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 32 //discard.view(A)
@@ -3268,12 +3279,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4123), ARG1, CStr(ArgVal(0)))
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5024
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 37 //position(oA, X,Y)
@@ -3282,12 +3293,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                strErrMsg = LoadResString(4128)
-               return  //Exit Function
+               return;
               case leMedium
                 AddWarning 5023
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 39 //get.posn
@@ -3298,7 +3309,7 @@ namespace WinAGI
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 41 //set.view(oA, B)
@@ -3307,12 +3318,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4124), ARG1, CStr(ArgVal(1)))
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5037
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 49 To 53, 97, 118  //last.cel, current.cel, current.loop,
@@ -3326,7 +3337,7 @@ namespace WinAGI
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 54 //set.priority(oA, B)
@@ -3335,12 +3346,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4125)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5050
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 57 //get.priority
@@ -3352,7 +3363,7 @@ namespace WinAGI
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 63 //set.horizon(A)
@@ -3364,23 +3375,23 @@ namespace WinAGI
             case leHigh
               if (ArgVal(0) >= 167) {
                 strErrMsg = LoadResString(4126)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               if (ArgVal(0) > 120) {
                 AddWarning 5042
-              ElseIf ArgVal(0) < 16) {
+              } else if ( ArgVal(0) < 16) {
                 AddWarning 5041
-              } //End If
+              } //}
 
 
             case leMedium
               if (ArgVal(0) >= 167) {
                 AddWarning 5043
-              ElseIf ArgVal(0) > 120) {
+              } else if ( ArgVal(0) > 120) {
                   AddWarning 5042
-              ElseIf ArgVal(0) < 16) {
+              } else if ( ArgVal(0) < 16) {
                 AddWarning 5041
-              } //End If
+              } //}
 
 
             case leLow
@@ -3395,7 +3406,7 @@ namespace WinAGI
                 AddWarning 5082
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 69 //distance
@@ -3407,7 +3418,7 @@ namespace WinAGI
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 73, 75, 99 //end.of.loop, reverse.loop
@@ -3418,7 +3429,7 @@ namespace WinAGI
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //End If
+            } //}
             //check for read only reserved flags
             CheckResFlagUse ArgVal(1)
 
@@ -3429,12 +3440,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4127)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5062
               case leLow
               } 
-            } //End If
+            } //}
 
             //check for ego object
             if (ArgVal(0) == 0) {
@@ -3443,7 +3454,7 @@ namespace WinAGI
                 AddWarning 5045
               case leLow
               } 
-            } //End If
+            } //}
 
             //flag arg should not be a reserved Value
             if (ArgVal(4) <= 15) {
@@ -3452,7 +3463,7 @@ namespace WinAGI
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //End If
+            } //}
 
             //check for read only reserved flags
             CheckResFlagUse ArgVal(4)
@@ -3466,7 +3477,7 @@ namespace WinAGI
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //End If
+            } //}
 
             //check for read only reserved flags
             CheckResFlagUse ArgVal(4)
@@ -3480,7 +3491,7 @@ namespace WinAGI
                 AddWarning 5102
               case leLow
               } 
-            } //End If
+            } //}
 
             //check for ego object
             if (ArgVal(0) == 0) {
@@ -3489,7 +3500,7 @@ namespace WinAGI
                 AddWarning 5027
               case leLow
               } 
-            } //End If
+            } //}
 
             //flag arg should not be a reserved Value
             if (ArgVal(2) <= 15) {
@@ -3498,7 +3509,7 @@ namespace WinAGI
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //End If
+            } //}
             //check for read only reserved flags
             CheckResFlagUse ArgVal(2)
 
@@ -3511,7 +3522,7 @@ namespace WinAGI
                 AddWarning 5026
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 87 //get.dir
@@ -3523,7 +3534,7 @@ namespace WinAGI
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 90 //block(x1,y1,x2,y2)
@@ -3534,12 +3545,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4129)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5020
               case leLow
               } 
-            } //End If
+            } //}
 
 
             If(ArgVal(2) - ArgVal(0) < 2) Or(ArgVal(3) - ArgVal(1) < 2)) {
@@ -3547,12 +3558,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4129)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5051
               case leLow
               } 
-            } //End If
+            } //}
 
 
 
@@ -3562,12 +3573,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4130), ARG1, CStr(ArgVal(0)))
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5014
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 99 //sound(A)
@@ -3576,12 +3587,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4137), ARG1, CStr(ArgVal(0)))
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5084
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 103 //display(ROW,COL,mC)
@@ -3590,12 +3601,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                strErrMsg = LoadResString(4131)
-               return  //Exit Function
+               return;
               case leMedium
                 AddWarning 5059
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 105 //clear.lines(TOP,BTM,C)
@@ -3604,12 +3615,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4132)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5011
               case leLow
               } 
-            } //End If
+            } //}
             //color value should be 0 or 15 //(but it doesn//t hurt to be anything else)
             if (ArgVal(2) > 0 && ArgVal(2) != 15) {
               switch (agMainLogSettings.ErrorLevel
@@ -3617,7 +3628,7 @@ namespace WinAGI
                 AddWarning 5100
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 109 //set.text.attribute(A,B)
@@ -3626,12 +3637,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4133)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5029
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 110 //shake.screen(A)
@@ -3641,10 +3652,10 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh, leMedium
                 strErrMsg = LoadResString(4134)
-                return  //Exit Function
+                return;
               case leLow
               } 
-            ElseIf ArgVal(0) > 15) {
+            } else if ( ArgVal(0) > 15) {
               //could be a palette change?
               if (ArgVal(0) >= 100 && ArgVal(0) <= 109) {
                 //separate warning
@@ -3653,15 +3664,15 @@ namespace WinAGI
                   AddWarning 5058
                 case leLow
                 } 
-              Else
+              } else {
                 //warning
                 switch (agMainLogSettings.ErrorLevel
                 case leHigh, leMedium
                   AddWarning 5057
                 case leLow
                 } 
-              } //End If
-            } //End If
+              } //}
+            } //}
 
 
           case 111 //configure.screen(TOP,INPUT,STATUS)
@@ -3672,26 +3683,26 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4135)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5044
               case leLow
               } 
-            } //End If
+            } //}
             if (ArgVal(1) > 24 || ArgVal(2) > 24) {
               switch (agMainLogSettings.ErrorLevel
               case leHigh, leMedium
                 AddWarning 5099
               case leLow
               } 
-            } //End If
+            } //}
             if (ArgVal(1) == ArgVal(2)) {
               switch (agMainLogSettings.ErrorLevel
               case leHigh, leMedium
                 AddWarning 5048
               case leLow
               } 
-            } //End If
+            } //}
             if ((ArgVal(1) >= ArgVal(0) && ArgVal(1) <= CLng(ArgVal(0)) + 20) Or(ArgVal(2) >= ArgVal(0) && ArgVal(2) <= CLng(ArgVal(0)) + 20)) {
              switch (agMainLogSettings.ErrorLevel
 
@@ -3702,7 +3713,7 @@ namespace WinAGI
 
              } 
 
-           } //End If
+           } //}
 
 
          case 114 //set.string(sA, mB)
@@ -3719,9 +3730,9 @@ namespace WinAGI
 
                } 
 
-             } //End If
+             } //}
 
-           } //End If
+           } //}
 
 
          case 115 //get.string(sA, mB, ROW,COL,LEN)
@@ -3737,7 +3748,7 @@ namespace WinAGI
 
              } 
 
-           } //End If
+           } //}
 
 
            if (ArgVal(3) > 39) {
@@ -3747,7 +3758,7 @@ namespace WinAGI
 
                strErrMsg = LoadResString(4004)
 
-               return  //Exit Function
+               return;
 
              case leMedium
 
@@ -3757,7 +3768,7 @@ namespace WinAGI
 
              } 
 
-           } //End If
+           } //}
 
 
            if (ArgVal(4) > 40) {
@@ -3770,7 +3781,7 @@ namespace WinAGI
 
              } 
 
-           } //End If
+           } //}
 
 
          case 121 //set.key(A,B,cC)
@@ -3789,7 +3800,7 @@ namespace WinAGI
 
                strErrMsg = LoadResString(4154)
 
-               return  //Exit Function
+               return;
 
              case leMedium
 
@@ -3799,7 +3810,7 @@ namespace WinAGI
 
              } 
 
-           } //End If
+           } //}
 
             //check for improper ASCII assignments
 
@@ -3810,13 +3821,13 @@ namespace WinAGI
                 switch (agMainLogSettings.ErrorLevel
                 case leHigh
                   strErrMsg = LoadResString(4155)
-                  return  //Exit Function
+                  return;
                 case leMedium
                   AddWarning 5066
                 case leLow
                 } 
               } 
-            } //End If
+            } //}
 
             //check for improper KEYCODE assignments
             if (ArgVal(0) == 0) {
@@ -3826,17 +3837,17 @@ namespace WinAGI
                 switch (agMainLogSettings.ErrorLevel
                 case leHigh
                   strErrMsg = LoadResString(4155)
-                  return  //Exit Function
+                  return;
                 case leMedium
                   AddWarning 5066
                 case leLow
                 } 
               } 
-            } //End If
+            } //}
 
 
           case 122 //add.to.pic(VIEW,LOOP,CEL,X,Y,PRI,MGN)
-            //VIEW, LOOP & CEL must exist
+            //VIEW, LOOP + CEL must exist
             //CEL width must be >=3
             //x,y must be within limits
             //PRI must be 0, or >=3 AND <=15
@@ -3847,18 +3858,18 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4138), ARG1, CStr(ArgVal(0)))
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5064
                 //dont need to check loops or cels
                 blnWarned = true
               case leLow
               } 
-            } //End If
+            } //}
 
 
             if (!blnWarned) {
-              //try to load view to test loop & cel
+              //try to load view to test loop + cel
               On Error Resume Next
               blnUnload = !agViews(ArgVal(0)).Loaded
               //if error trying to get loaded status, ignore for now
@@ -3867,7 +3878,7 @@ namespace WinAGI
               Err.Clear
               if (blnUnload) {
                 agViews(ArgVal(0)).Load
-              } //End If
+              } //}
               if (Err.Number == 0) {
                 //validate loop
                 if (ArgVal(1) >= agViews(ArgVal(0)).Loops.Count) {
@@ -3876,15 +3887,15 @@ namespace WinAGI
                     strErrMsg = Replace(Replace(LoadResString(4139), ARG1, CStr(ArgVal(1))), ARG2, CStr(ArgVal(0)))
                     if (blnUnload) {
                       agViews(ArgVal(0)).Unload
-                    } //End If
-                    return  //Exit Function
+                    } //}
+                    return;
                   case leMedium
                     AddWarning 5085
                     //dont need to check cel
                     blnWarned = true
                   case leLow
                   } 
-                } //End If
+                } //}
                 //if loop was valid, check cel
                 if (!blnWarned) {
                   //validate cel
@@ -3894,23 +3905,23 @@ namespace WinAGI
                       strErrMsg = Replace(Replace(Replace(LoadResString(4140), ARG1, CStr(ArgVal(2))), ARG2, CStr(ArgVal(1))), ARG3, CStr(ArgVal(0)))
                       if (blnUnload) {
                         agViews(ArgVal(0)).Unload
-                      } //End If
-                      return  //Exit Function
+                      } //}
+                      return;
                     case leMedium
                       AddWarning 5086
                     case leLow
                     } 
-                  } //End If
-                } //End If
-              Else
+                  } //}
+                } //}
+              } else {
                 //can//t load the view; add a warning
                 Err.Clear
                 AddWarning 5021, Replace(LoadResString(5021), ARG1, CStr(ArgVal(0)))
-              } //End If
+              } //}
               if (blnUnload) {
                 agViews(ArgVal(0)).Unload
-              } //End If
-            } //End If
+              } //}
+            } //}
 
             On Error GoTo ErrHandler
 
@@ -3919,24 +3930,24 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4141)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5038
               case leLow
               } 
-            } //End If
+            } //}
 
             //PRI should be <=15
             if (ArgVal(5) > 15) {
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4142)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5079
               case leLow
               } 
-            } //End If
+            } //}
 
             //PRI should be 0 OR >=4 (but doesn//t raise an error; only a warning)
             if (ArgVal(5) < 4 && ArgVal(5) != 0) {
@@ -3945,7 +3956,7 @@ namespace WinAGI
                 AddWarning 5079
               case leLow
               } 
-            } //End If
+            } //}
 
             //MGN values >15 will only use lower nibble
             if (ArgVal(6) > 15) {
@@ -3954,7 +3965,7 @@ namespace WinAGI
                 AddWarning 5101
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 129 //show.obj(VIEW)
@@ -3963,12 +3974,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4144), ARG1, CStr(ArgVal(0)))
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5061
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 127, 176, 178  //init.disk, hide.mouse, show.mouse
@@ -3983,7 +3994,7 @@ namespace WinAGI
             switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4152), ARG1, agCmds(CmdNum).Name)
-                return  //Exit Function
+                return;
               case leMedium
               AddWarning 5088, Replace(LoadResString(5088), ARG1, agCmds(CmdNum).Name)
             case leLow
@@ -3996,11 +4007,11 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4145)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5054
               } 
-            } //End If
+            } //}
 
             //lower=upper means result=lower=upper
             if (ArgVal(0) == ArgVal(1)) {
@@ -4009,18 +4020,18 @@ namespace WinAGI
                 AddWarning 5106
               case leLow
               } 
-            } //End If
+            } //}
 
             //if lower=upper+1, means div by 0!
             if (ArgVal(0) == ArgVal(1) + 1) {
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4158)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5107
               } 
-            } //End If
+            } //}
 
             //variable arg should not be a reserved Value
             if (ArgVal(2) <= 26) {
@@ -4029,7 +4040,7 @@ namespace WinAGI
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 142 //script.size
@@ -4043,7 +4054,7 @@ namespace WinAGI
               case leLow
                 //no action
               } 
-            } //End If
+            } //}
             //check for absurdly low Value for script size
             if (ArgVal(0) < 10) {
               switch (agMainLogSettings.ErrorLevel
@@ -4051,7 +4062,7 @@ namespace WinAGI
                 AddWarning 5009
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 147 //reposition.to(oA, B,C)
@@ -4060,12 +4071,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4128)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5023
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 150 //trace.info(LOGIC,ROW,HEIGHT)
@@ -4078,12 +4089,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = Replace(LoadResString(4153), ARG1, CStr(ArgVal(0)))
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5040
               case leLow
               } 
-            } //End If
+            } //}
             //validate that height is not too small
             if (ArgVal(2) < 2) {
               switch (agMainLogSettings.ErrorLevel
@@ -4091,18 +4102,18 @@ namespace WinAGI
                 AddWarning 5046
               case leLow
               } 
-            } //End If
+            } //}
             //validate size of window
             if (CLng(ArgVal(1)) + CLng(ArgVal(2)) > 23) {
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4146)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5063
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 151, 152 //Print.at(mA, ROW, COL, MAXWIDTH), print.at.v
@@ -4116,12 +4127,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4147)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5067
               case leLow
               } 
-            } //End If
+            } //}
 
 
             switch (ArgVal(3)
@@ -4137,7 +4148,7 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4043)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5103
               case leLow
@@ -4148,7 +4159,7 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4043)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5104
               case leLow
@@ -4160,12 +4171,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4148)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5068
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 154 //clear.text.rect(R1,C1,R2,C2,COLOR)
@@ -4180,19 +4191,19 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4150)
-                return  //Exit Function
+                return;
               case leMedium
                 //if due to pos2 < pos1
                 if (ArgVal(2) < ArgVal(0) || ArgVal(3) < ArgVal(1)) {
                   AddWarning 5069
-                } //End If
+                } //}
                 //if due to variables outside limits
                 if (ArgVal(0) > 24 || ArgVal(1) > 39 || _
                    ArgVal(2) > 24 || ArgVal(3) > 39) {
                   AddWarning 5070
-                } //End If
+                } //}
               } 
-            } //End If
+            } //}
 
             //color value should be 0 or 15 //(but it doesn//t hurt to be anything else)
             if (ArgVal(4) > 0 && ArgVal(4) != 15) {
@@ -4201,7 +4212,7 @@ namespace WinAGI
                 AddWarning 5100
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 158 //submit.menu()
@@ -4215,7 +4226,7 @@ namespace WinAGI
                 AddWarning 5047
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 174 //set.pri.base(A)
@@ -4226,20 +4237,20 @@ namespace WinAGI
                 AddWarning 5071
               case leLow
               } 
-            } //End If
+            } //}
           } 
 
           //success
           ValidateArgs = true
-        return  //Exit Function
+        return;
 
         ErrHandler:
-          //////Debug.Assert false
+          //Debug.Assert false
           Resume Next
-        } //End Function
+        } //endfunction
 
-        static internal Function ValidateIfArgs(CmdNum As int, ByRef ArgVal() As byte) As bool
-
+        static internal bool ValidateIfArgs(int CmdNum, ref byte ArgVal())
+      {
           //check for specific command issues
 
 
@@ -4264,12 +4275,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4151)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5072
               case leLow
               } 
-            } //End If
+            } //}
 
 
             If(ArgVal(1) > ArgVal(3)) Or(ArgVal(2) > ArgVal(4))) {
@@ -4277,12 +4288,12 @@ namespace WinAGI
               switch (agMainLogSettings.ErrorLevel
               case leHigh
                 strErrMsg = LoadResString(4151)
-                return  //Exit Function
+                return;
               case leMedium
                 AddWarning 5073
               case leLow
               } 
-            } //End If
+            } //}
 
 
           case 12 //controller (cA)
@@ -4298,23 +4309,23 @@ namespace WinAGI
 
           //success
           ValidateIfArgs = true
-        } //End Function
+        } //endfunction
 
-        static internal Function ValidateMsgChars(strMsg As string, MsgNum As int) As bool
-
+        static internal bool ValidateMsgChars(string strMsg, int MsgNum)
+      {
           //raise error/warning, depending on setting
 
           //return TRUE if OK or only a warning;  FALSE means error found
 
 
-          Dim i As int
-          Dim blnWarn5093 As bool, blnWarn5094 As bool
+          int i
+          bool blnWarn5093, blnWarn5094
 
           //if LOW errdetection, EXIT
           if (agMainLogSettings.ErrorLevel == leLow) {
             ValidateMsgChars = true
-            return  //Exit Function
-          } //End If
+            return;
+          } //}
 
 
           For i = 1 To Len(strMsg)
@@ -4326,7 +4337,7 @@ namespace WinAGI
               case leHigh
                 strErrMsg = LoadResString(4005)
                 blnError = true
-                return  //Exit Function
+                return;
               case leMedium
                 if (!blnWarn5093) {
                   AddWarning 5093
@@ -4334,7 +4345,7 @@ namespace WinAGI
                   //need to track warning in case this msg is
                   //also included in body of logic
                   intMsgWarn(MsgNum) = intMsgWarn(MsgNum) || 1
-                } //End If
+                } //}
               } 
 
             //extended character
@@ -4343,7 +4354,7 @@ namespace WinAGI
               case leHigh
                 strErrMsg = LoadResString(4006)
                 blnError = true
-                return  //Exit Function
+                return;
               case leMedium
                 if (!blnWarn5094) {
                   AddWarning 5094
@@ -4351,17 +4362,18 @@ namespace WinAGI
                   //need to track warning in case this msg is
                   //also included in body of logic
                   intMsgWarn(MsgNum) = intMsgWarn(MsgNum) || 2
-                } //End If
+                } //}
               } 
             } 
            Next i
 
            //msg is OK
            ValidateMsgChars = true
-        } //End Function
+        } //endfunction
 
-        static internal Function VariableValue(strVar As string) As int
-          //this function will extract the variable number from
+        static internal int VariableValue(string strVar)
+        {
+      //this function will extract the variable number from
           //an input variable string
           //the input string should be of the form #, a# or *a#
           // where a is a valid variable prefix (v, f, s, m, w, c)
@@ -4369,9 +4381,9 @@ namespace WinAGI
           //if the result is invalid, this function returns -1
 
 
-          Dim strVarVal As string
-          Dim intVarVal  As int
-          Dim blnOutofBounds As bool
+          string strVarVal
+          int intVarVal 
+          bool blnOutofBounds
 
 
           On Error GoTo ErrHandler
@@ -4382,13 +4394,13 @@ namespace WinAGI
             //if indirection
             if (Left(strVar, 1) == "*") {
               strVarVal = Right(strVar, Len(strVar) - 2)
-            Else
+            } else {
               strVarVal = Right(strVar, Len(strVar) - 1)
-            } //End If
-          Else
+            } //}
+          } else {
             //use the input Value
             strVarVal = strVar
-          } //End If
+          } //}
 
           //if result is a number
           if (IsNumeric(strVarVal)) {
@@ -4399,42 +4411,45 @@ namespace WinAGI
             //(i.e. w1 is first word, but command uses arg Value of //0//)
             if (AscW(strVar) == 119) {
               intVarVal = intVarVal - 1
-            } //End If
+            } //}
 
             //verify within bounds  0-255
             if (intVarVal >= 0 && intVarVal <= 255) {
               //return this Value
               VariableValue = intVarVal
-              return  //Exit Function
-            } //End If
-          } //End If
+              return;
+            } //}
+          } //}
 
           //error- return -1
           VariableValue = -1
-        return  //Exit Function
+        return;
 
         ErrHandler:
           Err.Clear
           //return -1
           VariableValue = -1
-        } //End Function
-        static internal Function WriteMsgs() As bool
-          //this function will write the messages for a logic at the end of
+        } //endfunction
+        static internal bool WriteMsgs()
+        {
+      //this function will write the messages for a logic at the end of
           //the resource.
           //messages are encrypted with the string //Avis Durgan//. No gaps
           //are allowed, so messages that are skipped must be included as
           //zero length messages
 
-          Dim lngMsgSecStart As int
-          Dim lngMsgSecLen As int
-          Dim lngMsgPos(255) As int
-          Dim intCharPos As int, bytCharVal As byte
-          Dim lngMsg As int
-          Dim lngMsgCount As int
-          Dim lngCryptStart As int
-          Dim lngMsgLen As int
-          Dim i As int, strHex As string
-          Dim blnSkipNull As bool, blnSkipChar As bool
+          int lngMsgSecStart
+          int lngMsgSecLen
+          int[] lngMsgPos(255)
+          int intCharPos
+      byte bytCharVal
+          int lngMsg
+          int lngMsgCount
+          int lngCryptStart
+          int lngMsgLen
+          int i
+      string strHex
+          bool blnSkipNull, blnSkipChar
 
 
           On Error GoTo ErrHandler
@@ -4472,13 +4487,13 @@ namespace WinAGI
               //calculate offset to start of this message (adjust by one byte, which
               //is the byte that indicates how many msgs there are)
               lngMsgPos(lngMsg) = tmpLogRes.GetPos - (lngMsgSecStart + 1)
-            Else
-              //////Debug.Assert strMsg(lngMsg) = ""
+            } else {
+              //Debug.Assert strMsg(lngMsg) = ""
               //need to write a null value for offset; (when it gets added after all
               //messages are written it gets set to the beginning of message section
               // ( a relative offset of zero here)
               lngMsgPos(lngMsg) = 0
-            } //End If
+            } //}
             if (lngMsgLen > 0) {
               //step through all characters in this msg
               intCharPos = 1
@@ -4497,19 +4512,19 @@ namespace WinAGI
                  switch (AscW(Mid(strMsg(lngMsg), intCharPos + 1))
                     case 110, 78 //n or N//
                       // \n = new line
-                      bytCharVal = &HA
+                      bytCharVal = 0xA
                       intCharPos = intCharPos + 1
 
 
                     case 34 //dbl quote(")//
                       //\" = quote mark (chr$(34))
-                      bytCharVal = &H22
+                      bytCharVal = 0x22
                       intCharPos = intCharPos + 1
 
 
                     case 92 //\//
                       //\\ = \
-                      bytCharVal = &H5C
+                      bytCharVal = 0x5C
                       intCharPos = intCharPos + 1
 
 
@@ -4525,43 +4540,43 @@ namespace WinAGI
                       //make sure at least two more characters
                       if (intCharPos + 2 < lngMsgLen) {
                         //get next 2 chars and hexify them
-                        strHex = "&H" & Mid(strMsg(lngMsg), intCharPos + 2, 2)
+                        strHex = "0x" + Mid(strMsg(lngMsg), intCharPos + 2, 2)
 
                         //if this hex value >=1 and <256, use it
                         i = Val(strHex)
                         if (i >= 1 && i< 256) {
                           bytCharVal = i
                           intCharPos = intCharPos + 3
-                        } //End If
-                      } //End If
+                        } //}
+                      } //}
                     default:
                       //if no special char found, the single slash should be dropped
                       blnSkipChar = true
                     } 
-                  Else
+                  } else {
                     //if the //\// is the last char, skip it
                     blnSkipChar = true
-                  } //End If
+                  } //}
                 } 
 
                 //write the encrypted byte (need to adjust for previous messages, and current position)
                 if (!blnSkipChar) {
                   tmpLogRes.Writebyte bytCharVal Xor bytEncryptKey((tmpLogRes.GetPos - lngCryptStart) Mod 11)
-                } //End If
+                } //}
                 //increment pointer
                 intCharPos = intCharPos + 1
                 //reset skip flag
                 blnSkipChar = false
               Loop
-            } //End If
+            } //}
 
             //if msg was used, add trailing zero to terminate message
             //(if msg was zero length, we still need this terminator)
             if (blnMsg(lngMsg)) {
               if (!blnSkipNull) {
-                tmpLogRes.Writebyte &H0 Xor bytEncryptKey((tmpLogRes.GetPos - lngCryptStart) Mod 11)
-              } //End If
-            } //End If
+                tmpLogRes.Writebyte 0x0 Xor bytEncryptKey((tmpLogRes.GetPos - lngCryptStart) Mod 11)
+              } //}
+            } //}
           Next lngMsg
 
           //calculate length of msg section, and write it at beginning
@@ -4584,7 +4599,7 @@ namespace WinAGI
           //and return true
           WriteMsgs = true
 
-        return  //Exit Function
+        return;
 
         ErrHandler:
           //any errors, means there is a problem
@@ -4592,16 +4607,16 @@ namespace WinAGI
           strErrMsg = Replace(Replace(LoadResString(4115), ARG1, CStr(Err.Number)), ARG2, "WriteMsgs")
           Err.Clear
           WriteMsgs = false
-        } //End Function
+        } //endfunction
 
 
 
-        static internal Function ReadLabels() As bool
-
-          Dim i As byte
-          Dim intLabel As int
-          Dim strLabel As string
-          Dim rtn As int
+        static internal bool ReadLabels()
+      {
+          byte i
+          int intLabel
+          string strLabel
+          int rtn
 
 
           On Error GoTo ErrHandler
@@ -4624,27 +4639,27 @@ namespace WinAGI
               //check for //label://
               if (Right(strLabel, 1) == ":") {
                 strLabel = RTrim(Left(strLabel, Len(strLabel) - 1))
-              ElseIf Left(strLabel, 1) == ":") {
+              } else if ( Left(strLabel, 1) == ":") {
                 strLabel = LTrim(Right(strLabel, Len(strLabel) - 1))
-              Else
+              } else {
                 //not a label
                 strLabel = ""
-              } //End If
+              } //}
 
               //if a label was found, validate it
               if (Len(strLabel) != 0) {
                 //make sure enough room
                 if (bytLabelCount >= MAX_LABELS) {
                   strErrMsg = Replace(LoadResString(4109), ARG1, CStr(MAX_LABELS))
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
 
 
                 rtn = ValidateDefName(strLabel)
                 //numbers are ok for labels
                 if (rtn == 2) {
                   rtn = 0
-                } //End If
+                } //}
                 if (rtn<> 0) {
                   //error
                   switch (rtn
@@ -4673,43 +4688,44 @@ namespace WinAGI
                   case 13
                     strErrMsg = LoadResString(4068)
                   } 
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
 
                 //no periods allowed either
                 if (InStr(1, strLabel, ".") != 0) {
                   strErrMsg = LoadResString(4068)
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
 
                 //check label against current list of labels
                 if (bytLabelCount > 0) {
                   For i = 1 To bytLabelCount
                     if (strLabel == llLabel(i).Name) {
                       strErrMsg = Replace(LoadResString(4027), ARG1, strLabel)
-                      return  //Exit Function
-                    } //End If
+                      return;
+                    } //}
                   Next i
-                } //End If
+                } //}
 
                 //increment number of labels, and save
                 bytLabelCount = bytLabelCount + 1
                 llLabel(bytLabelCount).Name = strLabel
                 llLabel(bytLabelCount).Loc = 0
-              } //End If
-            } //End If
+              } //}
+            } //}
 
             //get next line
             IncrementLine
           Loop Until lngLine = -1
           ReadLabels = true
-        return  //Exit Function
+        return;
         ErrHandler:
           strErrMsg = Replace(Replace(LoadResString(4115), ARG1, CStr(Err.Number)), ARG1, "ReadLabels")
           Err.Clear
-        } //End Function
-        static internal Function CompileAGI() As bool
-          //main compiler function
+        } //endfunction
+        static internal bool CompileAGI()
+        {
+      //main compiler function
           //steps through input one command at a time and converts it
           //to AGI logic code
           //Note that we don//t need to set blnError flag here;
@@ -4718,23 +4734,24 @@ namespace WinAGI
 
           const MaxGotos = 255
 
-          Dim strNextCmd As string
-          Dim strPrevCmd As string
-          Dim strArg As string, bytArg(7) As byte
-          Dim i As int
-          Dim intCmdNum As int
-          Dim BlockStartDataLoc(MAX_BLOCK_DEPTH) As int
-          Dim BlockDepth As int
-          Dim BlockIsIf(MAX_BLOCK_DEPTH) As bool
-          Dim BlockLength(MAX_BLOCK_DEPTH) As int
-          Dim CurLabel As int
-          Dim intLabelNum As int
-          Dim Gotos(MaxGotos) As LogicGoto
-          Dim NumGotos As int
-          Dim GotoData As int
-          Dim CurGoto As int
-          Dim blnLastCmdRtn As bool
-          Dim lngReturnLine As int
+          string strNextCmd
+          string strPrevCmd
+          string strArg
+      byte[] bytArg(7)
+          int i
+          int intCmdNum
+          int[] BlockStartDataLoc(MAX_BLOCK_DEPTH)
+          int BlockDepth
+          bool[] BlockIsIf(MAX_BLOCK_DEPTH)
+          int[] BlockLength(MAX_BLOCK_DEPTH)
+          int CurLabel
+          int intLabelNum
+          LogicGoto Gotos(MaxGotos)
+          int NumGotos
+          int GotoData
+          int CurGoto
+          bool blnLastCmdRtn
+          int lngReturnLine
 
 
           On Error GoTo ErrHandler
@@ -4762,33 +4779,33 @@ namespace WinAGI
               //can//t have a "{" command, unless it follows an //if// or //else//
               if (strPrevCmd<> "if" && strPrevCmd != "else") {
                 strErrMsg = LoadResString(4008)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
 
             case "}"
               //if no block currently open,
               if (BlockDepth == 0) {
                 strErrMsg = LoadResString(4010)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //if last command was a new.room command, then closing block is expected
               if (blnNewRoom) {
                 blnNewRoom = false
-              } //End If
+              } //}
               //if last position in resource is two bytes from start of block
               if (tmpLogRes.Size == BlockStartDataLoc(BlockDepth) + 2) {
                 switch (agMainLogSettings.ErrorLevel
                 case leHigh
                   strErrMsg = LoadResString(4049)
-                  return  //Exit Function
+                  return;
                 case leMedium
                   //set warning
                   AddWarning 5001
                 case leLow
                   //no action
                 } 
-              } //End If
+              } //}
               //calculate and write block length
               BlockLength(BlockDepth) = tmpLogRes.Size - BlockStartDataLoc(BlockDepth) - 2
               tmpLogRes.WriteWord CLng(BlockLength(BlockDepth)), CLng(BlockStartDataLoc(BlockDepth))
@@ -4797,42 +4814,42 @@ namespace WinAGI
             case "if"
               //compile the //if// statement
               if (!CompileIf()) {
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //if block stack exceeded
               if (BlockDepth >= MAX_BLOCK_DEPTH) {
                 strErrMsg = Replace(LoadResString(4110), ARG1, CStr(MAX_BLOCK_DEPTH))
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //add block to stack
               BlockDepth = BlockDepth + 1
               BlockStartDataLoc(BlockDepth) = tmpLogRes.GetPos
               BlockIsIf(BlockDepth) = true
               //write placeholders for block length
-              tmpLogRes.WriteWord &H0
+              tmpLogRes.WriteWord 0x0
 
               //next command better be a bracket
               strNextCmd = NextCommand()
               if (strNextCmd<> "{") {
                 //error!!!!
                 strErrMsg = LoadResString(4053)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
 
             case "else"
               //else can only follow a close bracket
               if (strPrevCmd != "}") {
                 strErrMsg = LoadResString(4011)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //if the block closed by that bracket was an //else//
               //(which will be determined by having that block//s IsIf flag NOT being set),
               if (!BlockIsIf(BlockDepth + 1)) {
                 strErrMsg = LoadResString(4083)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //adjust blockdepth to the //if// command
               //directly before this //else//
@@ -4844,17 +4861,17 @@ namespace WinAGI
               //for this //else// block
               BlockIsIf(BlockDepth) = false
               //write the //else// code
-              tmpLogRes.Writebyte &HFE
+              tmpLogRes.Writebyte 0xFE
               BlockStartDataLoc(BlockDepth) = tmpLogRes.GetPos
-              tmpLogRes.WriteWord &H0  // block length filled in later.
+              tmpLogRes.WriteWord 0x0  // block length filled in later.
 
               //next command better be a bracket
               strNextCmd = NextCommand()
               if (strNextCmd != "{") {
                 //error!!!!
                 strErrMsg = LoadResString(4053)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
 
             case "goto"
@@ -4868,60 +4885,60 @@ namespace WinAGI
                   //no action
                 } 
                 blnNewRoom = false
-              } //End If
+              } //}
 
               //next command should be "("
               if (NextChar() != "(") {
                 strErrMsg = LoadResString(4001)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //get goto argument
               strArg = NextCommand()
 
               //if argument is NOT a valid label
               if (LabelNum(strArg) == 0) {
                 strErrMsg = Replace(LoadResString(4074), ARG1, strArg)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //if too many gotos
               if (NumGotos >= MaxGotos) {
                 strErrMsg = Replace(LoadResString(4108), ARG1, CStr(MaxGotos))
-              } //End If
+              } //}
               //save this goto info on goto stack
               NumGotos = NumGotos + 1
               Gotos(NumGotos).LabelNum = LabelNum(strArg)
               //write goto command byte
-              tmpLogRes.Writebyte &HFE
+              tmpLogRes.Writebyte 0xFE
               Gotos(NumGotos).DataLoc = tmpLogRes.GetPos
               //write placeholder for amount of offset
-              tmpLogRes.WriteWord &H0
+              tmpLogRes.WriteWord 0x0
               //next character should be ")"
               if (NextChar() != ")") {
                 strErrMsg = LoadResString(4003)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //verify next command is end of line (;)
               if (NextChar() != ";") {
                 blnError = true
                 strErrMsg = LoadResString(4007)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //since block commands are no longer supported, check for markers in order to provide a
               //meaningful error message
             case "/*", "* /"
               blnError = true
               strErrMsg = LoadResString(4052)
-              return  //Exit Function
+              return;
 
 
             case "++", "--" //unary operators; need to get a variable next
               //write the command code
               if (strNextCmd == "++") {
                 tmpLogRes.Writebyte 1
-              Else
+              } else {
                 tmpLogRes.Writebyte 2
-              } //End If
+              } //}
 
               //get the variable to update
               strArg = NextCommand()
@@ -4929,25 +4946,25 @@ namespace WinAGI
               if (!ConvertArgument(strArg, atVar, false)) {
                 //error
                 blnError = true
-                //////Debug.Assert false
+                //Debug.Assert false
                 strErrMsg = LoadResString(4046)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //get Value
               intCmdNum = VariableValue(strArg)
               if (intCmdNum == -1) {
                 blnError = true
-                //////Debug.Assert false
+                //Debug.Assert false
                 strErrMsg = Replace(LoadResString(4066), "%1", "")
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //write the variable value
               tmpLogRes.Writebyte Cbyte(intCmdNum)
               //verify next command is end of line (;)
               if (NextChar(true) != ";") {
                 strErrMsg = LoadResString(4007)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
 
             case ":"  //alternate label syntax
@@ -4957,8 +4974,8 @@ namespace WinAGI
               //if not a valid label
               if (intLabelNum == 0) {
                 strErrMsg = LoadResString(4076)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
               //save position of label
               llLabel(intLabelNum).Loc = tmpLogRes.Size
 
@@ -4972,13 +4989,13 @@ namespace WinAGI
                 //if not a valid label
                 if (intLabelNum == 0) {
                   strErrMsg = LoadResString(4076)
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
                 //save position of label
                 llLabel(intLabelNum).Loc = tmpLogRes.Size
                 //read in next char to skip past the colon
                 NextChar
-              Else
+              } else {
                 //if last command was a new room (and not followed by return(), warn user
                 if (blnNewRoom && strNextCmd<> "return") {
                   switch (agMainLogSettings.ErrorLevel
@@ -4989,7 +5006,7 @@ namespace WinAGI
                     //no action
                   } 
                   blnNewRoom = false
-                } //End If
+                } //}
 
                 //get number of command
                 intCmdNum = CommandNum(false, strNextCmd)
@@ -4997,28 +5014,28 @@ namespace WinAGI
                 if (intCmdNum == 254) {
                   //raise error
                   strErrMsg = Replace(LoadResString(4065), ARG1, strNextCmd)
-                  return  //Exit Function
+                  return;
                 //if command not found,
-                ElseIf intCmdNum == 255) {  // not found
+                } else if ( intCmdNum == 255) {  // not found
                   //try to parse special syntax
                   if (CompileSpecial(strNextCmd)) {
                     //check for error
                     if (blnError) {
-                      return  //Exit Function
-                    } //End If
-                  Else
+                      return;
+                    } //}
+                  } else {
                     //unknown command
                     strErrMsg = Replace(LoadResString(4116), ARG1, strNextCmd)
-                    return  //Exit Function
-                  } //End If
-                Else
+                    return;
+                  } //}
+                } else {
                   //write the command code,
                   tmpLogRes.Writebyte Cbyte(intCmdNum)
                   //next character should be "("
                   if (NextChar() != "(") {
                     strErrMsg = LoadResString(4048)
-                    return  //Exit Function
-                  } //End If
+                    return;
+                  } //}
 
                   //reset the quotemark error flag
                   lngQuoteAdded = -1
@@ -5035,13 +5052,13 @@ namespace WinAGI
                           lngErrLine = lngLine - lngIncludeOffset
                           //string error
                           strErrMsg = LoadResString(4051)
-                        Else
+                        } else {
                           //use 1-base arg values
                           strErrMsg = Replace(LoadResString(4047), ARG1, CStr(i + 1))
-                        } //End If
-                        return  //Exit Function
-                      } //End If
-                    } //End If
+                        } //}
+                        return;
+                      } //}
+                    } //}
                     bytArg(i) = GetNextArg(agCmds(Cbyte(intCmdNum)).ArgType(i), i)
                     //if error
                     if (blnError) {
@@ -5049,9 +5066,9 @@ namespace WinAGI
                       if (Val(strErrMsg) == 4054) {
                         // add command name to error string
                         strErrMsg = Replace(strErrMsg, ARG2, agCmds(intCmdNum).Name)
-                      } //End If
-                      return  //Exit Function
-                    } //End If
+                      } //}
+                      return;
+                    } //}
 
                     //write argument
                     tmpLogRes.Writebyte bytArg(i)
@@ -5059,8 +5076,8 @@ namespace WinAGI
 
                   //validate arguments for this command
                   if (!ValidateArgs(intCmdNum, bytArg())) {
-                    return  //Exit Function
-                  } //End If
+                    return;
+                  } //}
 
                   //next character must be ")"
                   if (NextChar() != ")") {
@@ -5072,26 +5089,26 @@ namespace WinAGI
                       lngErrLine = lngLine - lngIncludeOffset
                       //string error
                       strErrMsg = LoadResString(4051)
-                    Else
+                    } else {
                       strErrMsg = LoadResString(4160)
-                    } //End If
-                    return  //Exit Function
-                  } //End If
+                    } //}
+                    return;
+                  } //}
                   if (intCmdNum == 0) {
                     blnLastCmdRtn = true
                     //set line number
                     if (lngReturnLine == 0) {
                       lngReturnLine = lngLine + 1
-                    } //End If
-                  } //End If
-                } //End If
+                    } //}
+                  } //}
+                } //}
 
                 //verify next command is end of line (;)
                 if (NextChar(true) != ";") {
                   strErrMsg = LoadResString(4007)
-                  return  //Exit Function
-                } //End If
-              } //End If
+                  return;
+                } //}
+              } //}
              } 
             //get next command
             strPrevCmd = strNextCmd
@@ -5106,7 +5123,7 @@ namespace WinAGI
 
              strErrMsg = LoadResString(4102)
 
-             return  //Exit Function
+             return;
 
            case leMedium
               //add a return code
@@ -5123,7 +5140,7 @@ namespace WinAGI
 
            } 
 
-         } //End If
+         } //}
 
           //check to see if everything was wrapped up properly
 
@@ -5133,9 +5150,9 @@ namespace WinAGI
 
            lngErrLine = lngReturnLine
 
-           return  //Exit Function
+           return;
 
-         } //End If
+         } //}
 
           //write in goto values
 
@@ -5146,16 +5163,16 @@ namespace WinAGI
            if (GotoData < 0) {
               //need to convert it to an unsigned integer Value
 
-             GotoData = &H10000 + GotoData
+             GotoData = 0x10000 + GotoData
 
-           } //End If
+           } //}
 
            tmpLogRes.WriteWord CLng(GotoData), CLng(Gotos(CurGoto).DataLoc)
           Next CurGoto
 
           //return true
           CompileAGI = true
-        return  //Exit Function
+        return;
 
         ErrHandler:
           //if error is an app specific error, just pass it along; otherwise create
@@ -5165,18 +5182,19 @@ namespace WinAGI
           lngError = Err.Number
           If(lngError && vbObjectError) = vbObjectError) {
             //pass it along
-            On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-          Else
-            On Error GoTo 0: Err.Raise vbObjectError + 658, strErrSrc, Replace(LoadResString(658), ARG1, CStr(lngError) & ":" & strError)
-          } //End If
-        } //End Function
+            throw new Exception("lngError, strErrSrc, strError
+          } else {
+            throw new Exception("658, strErrSrc, Replace(LoadResString(658), ARG1, CStr(lngError) + ":" + strError)
+          } //}
+        } //endfunction
 
-        static internal Function MessageNum(strMsgIn As string) As int
-          // Returns the number of the message corresponding to
+        static internal int MessageNum(string strMsgIn)
+        {
+      // Returns the number of the message corresponding to
           //strMsg, or creates a new msg number if strMsg is not
           //currently a message
           //if maximum number of msgs assigned, returns  0
-          Dim lngMsg As int
+          int lngMsg
 
           //blank msgs normally not allowed
           if (LenB(strMsgIn) == 0) {
@@ -5186,7 +5204,7 @@ namespace WinAGI
             case leLow
               //allow it
             } 
-          } //End If
+          } //}
 
 
           For lngMsg = 1 To 255
@@ -5198,16 +5216,16 @@ namespace WinAGI
               //if null string found for first time, msg-in-use flag will be false
               if (!blnMsg(lngMsg)) {
                 blnMsg(lngMsg) = true
-              } //End If
+              } //}
               //if this msg has an extended char warning, repeat it here
               If(intMsgWarn(lngMsg) && 1) = 1) {
                AddWarning 5093
-              } //End If
+              } //}
               If(intMsgWarn(lngMsg) && 2) = 2) {
                AddWarning 5094
-              } //End If
-              return  //Exit Function
-            } //End If
+              } //}
+              return;
+            } //}
           Next lngMsg
 
           //msg doesn//t exist; find an empty spot
@@ -5221,34 +5239,34 @@ namespace WinAGI
               if (!ValidateMsgChars(strMsgIn, lngMsg)) {
                 //return a value to indicate error
                 MessageNum = -1
-              Else
+              } else {
                 MessageNum = lngMsg
-              } //End If
+              } //}
 
 
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
           Next lngMsg
 
           //if no room found, return zero
           MessageNum = 0
-        } //End Function
+        } //endfunction
 
-        static internal Function CommandNum(blnIF As bool, strCmdName As string) As byte
-          //gets the command number
+        static internal byte CommandNum(bool blnIF, string strCmdName)
+        {  //gets the command number
           //of a command, based on the text
 
           if (blnIF) {
             For CommandNum = 0 To agNumTestCmds
               if (strCmdName == agTestCmds(CommandNum).Name) {
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
             Next CommandNum
-          Else
+          } else {
             For CommandNum = 0 To agNumCmds
               if (strCmdName == agCmds(CommandNum).Name) {
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
             Next CommandNum
             //maybe the command is a valid agi command, but
             //just not supported in this agi version
@@ -5266,16 +5284,17 @@ namespace WinAGI
                 } 
 
 
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
             Next CommandNum
-          } //End If
+          } //}
 
           CommandNum = 255
-        } //End Function
+        } //endfunction
 
-        static internal Function CompileSpecialIf(strArg1 As string, blnNOT As bool) As bool
-          //this funtion determines if strArg1 is a properly
+        static internal bool CompileSpecialIf(string strArg1, bool blnNOT)
+        {
+      //this funtion determines if strArg1 is a properly
           //formatted special test syntax
           //and writes the appropriate data to the resource
 
@@ -5292,11 +5311,11 @@ namespace WinAGI
           //so no call to ValidateIfArgs
 
 
-          Dim strArg2 As string
-          Dim intArg1 As int, intArg2 As int
-          Dim blnArg2Var As bool
-          Dim blnAddNOT As bool
-          Dim bytCmdNum As byte
+          string strArg2
+          int intArg1, intArg2
+          bool blnArg2Var
+          bool blnAddNOT
+          byte bytCmdNum
 
 
           On Error GoTo ErrHandler
@@ -5308,9 +5327,9 @@ namespace WinAGI
               //invalid argument
               blnError = true
               strErrMsg = Replace(LoadResString(4039), ARG1, strArg1)
-              return  //Exit Function
-            } //End If
-          } //End If
+              return;
+            } //}
+          } //}
 
           //arg in can only be f# or v#
           switch (Left(strArg1, 1)
@@ -5322,10 +5341,10 @@ namespace WinAGI
               //invalid number
                 blnError = true
                 strErrMsg = Replace(LoadResString(4066), ARG1, "1")
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
             //write isset cmd
-            tmpLogRes.Writebyte &H7  // isset
+            tmpLogRes.Writebyte 0x7  // isset
             tmpLogRes.Writebyte Cbyte(intArg1)
 
 
@@ -5338,34 +5357,34 @@ namespace WinAGI
               //invalid number
                 blnError = true
                 strErrMsg = LoadResString(4086)
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
             //get comparison expression
             strArg2 = NextCommand()
             //get command code for this expression
             switch (strArg2
             case EQUAL_TOKEN
-              bytCmdNum = &H1
+              bytCmdNum = 0x1
             case NOTEQUAL_TOKEN
-              bytCmdNum = &H1
+              bytCmdNum = 0x1
               blnAddNOT = true
             case ">"
-              bytCmdNum = &H5
+              bytCmdNum = 0x5
             case "<=", "=<"
-              bytCmdNum = &H5
+              bytCmdNum = 0x5
               blnAddNOT = true
             case "<"
-              bytCmdNum = &H3
+              bytCmdNum = 0x3
             case ">=", "=>"
-              bytCmdNum = &H3
+              bytCmdNum = 0x3
               blnAddNOT = true
             case ")", "&&", "||"
               //means we are doing a boolean test of the variable;
               //use greatern with zero as arg
 
               //write command, and arguments
-              tmpLogRes.Writebyte &H5
+              tmpLogRes.Writebyte 0x5
               tmpLogRes.Writebyte Cbyte(intArg1)
               tmpLogRes.Writebyte Cbyte(0)
 
@@ -5373,12 +5392,12 @@ namespace WinAGI
               lngPos = lngPos - Len(strArg2)
               //return true
               CompileSpecialIf = true
-              return  //Exit Function
+              return;
 
             default:
               blnError = true
               strErrMsg = LoadResString(4078)
-              return  //Exit Function
+              return;
             } 
 
             //before getting second arg, check for NOT symbol in front of a variable
@@ -5386,8 +5405,8 @@ namespace WinAGI
             if (blnNOT) {
               blnError = true
               strErrMsg = LoadResString(4098)
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
             //get second argument (numerical or variable)
             blnArg2Var = true
@@ -5401,21 +5420,21 @@ namespace WinAGI
                 //change error message
                 strErrMsg = Mid(strErrMsg, 55, InStrRev(strErrMsg, "//") - 53)
                 strErrMsg = Replace(LoadResString(4089), ARG1, strErrMsg)
-              Else
+              } else {
                 strErrMsg = Replace(LoadResString(4089), ARG1, "")
-              } //End If
-              return  //Exit Function
-            } //End If
+              } //}
+              return;
+            } //}
 
             //if comparing to a variable,
             if (blnArg2Var) {
               bytCmdNum = bytCmdNum + 1
-            } //End If
+            } //}
 
             //if adding a //not//
             if (blnAddNOT) {
-              tmpLogRes.Writebyte(&HFD)
-            } //End If
+              tmpLogRes.Writebyte(0xFD)
+            } //}
 
             //write command, and arguments
             tmpLogRes.Writebyte bytCmdNum
@@ -5425,15 +5444,16 @@ namespace WinAGI
 
           //return true
           CompileSpecialIf = true
-        return  //Exit Function
+        return;
 
         ErrHandler:
-          //////Debug.Assert false
+          //Debug.Assert false
           Resume Next
-        } //End Function
+        } //endfunction
 
-        static internal Function CompileSpecial(strArgIn As string) As bool
-          //strArg1 should be a variable in the format of *v##, v##, f## or s##
+        static internal bool CompileSpecial(string strArgIn)
+        {
+      //strArg1 should be a variable in the format of *v##, v##, f## or s##
           //if it is not, this function will trap it and return an error
           //the expression after strArg1 should be one of the following:
           // =, +=, -=, *=, /=, ++, --
@@ -5443,11 +5463,12 @@ namespace WinAGI
           //
 
 
-          Dim strArg1 As string, strArg2 As string
-          Dim intArg1 As int, intArg2 As int
-          Dim blnArg2Var  As bool
-          Dim intDir As int //0 = no indirection; 1 = left; 2 = right
-          Dim bytCmd As byte, bytArgs() As byte
+          string strArg1, strArg2
+          int intArg1, intArg2
+          bool blnArg2Var 
+          int intDir //0 = no indirection; 1 = left; 2 = right
+          byte bytCmd;
+      byte[] bytArgs
 
 
           On Error GoTo ErrHandler
@@ -5470,7 +5491,7 @@ namespace WinAGI
               //error
               blnError = true
               strErrMsg = LoadResString(4105)
-              return  //Exit Function
+              return;
             } 
 
             //get actual first arg
@@ -5479,8 +5500,8 @@ namespace WinAGI
             if (blnError) {
               //adjust error message
               strErrMsg = LoadResString(4064)
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
 
             intDir = 1
@@ -5490,11 +5511,11 @@ namespace WinAGI
               //error
               blnError = true
               strErrMsg = LoadResString(4105)
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
           //if this arg is string
-          ElseIf ConvertArgument(strArg1, atStr)) {
+          } else if ( ConvertArgument(strArg1, atStr)) {
             //string assignment
             //     s# = m#
             //     s# = "<string>"
@@ -5515,7 +5536,7 @@ namespace WinAGI
                   case leMedium
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "11")
                   } 
-                } //End If
+                } //}
 
               //for all other versions, limit is 24 strings
               default:
@@ -5526,9 +5547,9 @@ namespace WinAGI
                   case leMedium
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "23")
                   } 
-                } //End If
+                } //}
               } 
-            } //End If
+            } //}
 
             //check for equal sign
             strArg2 = NextCommand()
@@ -5537,8 +5558,8 @@ namespace WinAGI
               //error
               blnError = true
               strErrMsg = LoadResString(4034)
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
             //get actual second variable
             //use argument extractor in case
             //second variable is a literal string)
@@ -5549,17 +5570,17 @@ namespace WinAGI
               if (Val(strErrMsg) == 4054) {
                 // change it to 4058
                 strErrMsg = LoadResString(4058)
-              } //End If
+              } //}
 
               //just exit
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
             //write set.string cmd
-            bytCmd = &H72
+            bytCmd = 0x72
 
           //if this is a variable
-          ElseIf ConvertArgument(strArg1, atVar)) {
+          } else if ( ConvertArgument(strArg1, atVar)) {
             //arg 1 must be //v#// format
             intArg1 = VariableValue(strArg1)
 
@@ -5568,8 +5589,8 @@ namespace WinAGI
               //invalid number
                 blnError = true
                 strErrMsg = LoadResString(4085)
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
             //variable assignment or arithmetic operation
             //need next command to determine what kind of assignment/operation
@@ -5579,22 +5600,22 @@ namespace WinAGI
             switch (strArg2
             case "++"
               // v#++;
-              bytCmd = &H1
+              bytCmd = 0x1
             case "+="
               // v# += #; or v# += v#;
-              bytCmd = &H5
+              bytCmd = 0x5
             case "--"
               // v#--
-              bytCmd = &H2
+              bytCmd = 0x2
             case "-="
               // v# -= #; or v# -= v#;
-              bytCmd = &H7
+              bytCmd = 0x7
             case "*="
               // v# *= #; or v# *= v#;
-              bytCmd = &HA5
+              bytCmd = 0xA5
             case "/="
               // v# /= #; v# /= v#
-              bytCmd = &HA7
+              bytCmd = 0xA7
             case "="
               //right indirection
               //     v# = *v#;
@@ -5612,11 +5633,11 @@ namespace WinAGI
               //don//t know what the heck it is...
               blnError = true
               strErrMsg = LoadResString(4034)
-              return  //Exit Function
+              return;
             } 
 
           //check for flag assignment
-          ElseIf ConvertArgument(strArg1, atFlag)) {
+          } else if ( ConvertArgument(strArg1, atFlag)) {
             //flag assignment
             //     f# = true;
             //     f# = false;
@@ -5631,8 +5652,8 @@ namespace WinAGI
               //error
               blnError = true
               strErrMsg = LoadResString(4034)
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
 
             //get flag Value
             strArg2 = NextCommand()
@@ -5641,12 +5662,12 @@ namespace WinAGI
             switch (LCase$(strArg2)
             case "true"
               //set this flag
-              bytCmd = &HC
+              bytCmd = 0xC
 
 
             case "false"
               //reset this flag
-              bytCmd = &HD
+              bytCmd = 0xD
 
 
             default:
@@ -5654,21 +5675,21 @@ namespace WinAGI
               blnError = true
               strErrMsg = LoadResString(4034)
               //always exit
-              return  //Exit Function
+              return;
             } 
 
 
-          Else
+          } else {
             //not a special syntax
             CompileSpecial = false
-            return  //Exit Function
-          } //End If
+            return;
+          } //}
 
           //skip check for second argument if cmd is known to be a single arg
           //command (increment/decrement/reset/set
           //(set string is also skipped because second arg is already determined)
           switch (bytCmd
-          case &H1, &H2, &HC, &HD, &H72
+          case 0x1, 0x2, 0xC, 0xD, 0x72
           default:
             //get next argument
             strArg2 = NextCommand()
@@ -5685,7 +5706,7 @@ namespace WinAGI
                   //error
                   blnError = true
                   strErrMsg = LoadResString(4105)
-                  return  //Exit Function
+                  return;
                 } 
 
                 //get actual variable
@@ -5693,15 +5714,15 @@ namespace WinAGI
                 if (blnError) {
                   //reset error string
                   strErrMsg = LoadResString(4105)
-                  return  //Exit Function
-                } //End If
-              Else
+                  return;
+                } //}
+              } else {
                 //error
                 blnError = true
                 strErrMsg = LoadResString(4105)
-                return  //Exit Function
-              } //End If
-            Else
+                return;
+              } //}
+            } else {
               //arg2 is either number or variable- convert input to standard syntax
 
               //if it//s a number, check for negative value
@@ -5711,18 +5732,18 @@ namespace WinAGI
                   //error
                   blnError = true
                   strErrMsg = LoadResString(4095)
-                  return  //Exit Function
-                } //End If
+                  return;
+                } //}
                 //convert it to 2s-compliment unsigned value by adding it to 256
                 strArg2 = CStr(256 + Val(strArg2))
-                //////Debug.Assert Val(strArg2) >= 128 && Val(strArg2) <= 255
+                //Debug.Assert Val(strArg2) >= 128 && Val(strArg2) <= 255
 
                 switch (agMainLogSettings.ErrorLevel
                 case leHigh, leMedium
                   //show warning
                   AddWarning 5098
                 } 
-              } //End If
+              } //}
 
 
               blnArg2Var = true
@@ -5730,8 +5751,8 @@ namespace WinAGI
                 //set error
                 blnError = true
                 strErrMsg = Replace(LoadResString(4088), ARG1, strArg2)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //it//s a number or variable; verify it//s 0-255
               intArg2 = VariableValue(strArg2)
@@ -5740,8 +5761,8 @@ namespace WinAGI
                 //set error
                 blnError = true
                 strErrMsg = Replace(LoadResString(4088), ARG1, strArg2)
-                return  //Exit Function
-              } //End If
+                return;
+              } //}
 
               //if arg2 is a number
               if (!blnArg2Var) {
@@ -5752,13 +5773,13 @@ namespace WinAGI
                   // *v# = #
                   if (intDir == 1) {
                     //lindirect.n
-                    bytCmd = &HB
-                  Else
+                    bytCmd = 0xB
+                  } else {
                     //assign.n
-                    bytCmd = &H3
-                  } //End If
-                } //End If
-              } //End If
+                    bytCmd = 0x3
+                  } //}
+                } //}
+              } //}
             } //End if (// not indirection
           }  //if not inc/dec
 
@@ -5780,29 +5801,29 @@ namespace WinAGI
                 case leHigh
                   blnError = true
                   strErrMsg = LoadResString(4084)
-                  return  //Exit Function
+                  return;
                 case leMedium
                   AddWarning 5036
                 case leLow
                   //allow it
                 } 
-                bytCmd = &H3
-              Else
+                bytCmd = 0x3
+              } else {
                 //this may be long arithmetic
                 switch (strArg2
                 case "+"
-                  bytCmd = &H5
+                  bytCmd = 0x5
                 case "-"
-                  bytCmd = &H7
+                  bytCmd = 0x7
                 case "*"
-                  bytCmd = &HA5
+                  bytCmd = 0xA5
                 case "/"
-                  bytCmd = &HA7
+                  bytCmd = 0xA7
                 default:
                   //error
                   blnError = true
                   strErrMsg = LoadResString(4087)
-                  return  //Exit Function
+                  return;
                 } 
 
                 //now get actual second argument
@@ -5814,13 +5835,13 @@ namespace WinAGI
                     //change error message
                     strErrMsg = Mid(strErrMsg, 55, InStrRev(strErrMsg, "//") - 53)
                     strErrMsg = Replace(LoadResString(4161), ARG1, strErrMsg)
-                  Else
+                  } else {
                     strErrMsg = Replace(LoadResString(4161), ARG1, "")
-                  } //End If
-                  return  //Exit Function
-                } //End If
-              } //End If
-            Else
+                  } //}
+                  return;
+                } //}
+              } //}
+            } else {
               //variables are different
               //must be assignment
               // v# = v#
@@ -5828,23 +5849,23 @@ namespace WinAGI
               // v# = *v#
               switch (intDir
               case 0  //assign.v
-                bytCmd = &H4
+                bytCmd = 0x4
               case 1 //lindirect.v
-                bytCmd = &H9
+                bytCmd = 0x9
               case 2  //rindirect
-                bytCmd = &HA
+                bytCmd = 0xA
                 blnArg2Var = false
               } 
               //always reset arg2var flag so
               //command won//t be adjusted later
                 blnArg2Var = false
-            } //End If
-          } //End If
+            } //}
+          } //}
 
           //if second argument is a variable
           if (blnArg2Var) {
             bytCmd = bytCmd + 1
-          } //End If
+          } //}
 
           //get next command on this line
           strArg2 = NextCommand(true)
@@ -5859,25 +5880,25 @@ namespace WinAGI
               lngErrLine = lngLine - lngIncludeOffset
               //string error
               strErrMsg = LoadResString(4051)
-            Else
+            } else {
               strErrMsg = LoadResString(4007)
-            } //End If
-            return  //Exit Function
-          Else
+            } //}
+            return;
+          } else {
             //move pointer back one space so
             //eol check in CompileAGI works
             //correctly
             lngPos = lngPos - 1
-          } //End If
+          } //}
 
           //need to validate arguments for this command
           switch (bytCmd
-          case &H1, &H2, &HC, &HD
+          case 0x1, 0x2, 0xC, 0xD
             //single arg commands
             ReDim bytArgs(0)
             bytArgs(0) = intArg1
           case 0
-            //////Debug.Assert false
+            //Debug.Assert false
           default:
             //two arg commands
             ReDim bytArgs(1)
@@ -5888,19 +5909,19 @@ namespace WinAGI
           //validate commands before writing
           if (!ValidateArgs(bytCmd, bytArgs)) {
             CompileSpecial = false
-            return  //Exit Function
-          } //End If
+            return;
+          } //}
 
           //write command and arg1
           tmpLogRes.Writebyte bytCmd
           tmpLogRes.Writebyte Cbyte(intArg1)
-          //write second argument for all cmds except &H1, &H2, &HC, &HD
+          //write second argument for all cmds except 0x1, 0x2, 0xC, 0xD
           switch (bytCmd
-          case &H1, &H2, &HC, &HD
+          case 0x1, 0x2, 0xC, 0xD
           default:
             tmpLogRes.Writebyte Cbyte(intArg2)
           } 
-        return  //Exit Function
+        return;
 
         ErrHandler:
           strError = Err.Description
@@ -5910,30 +5931,30 @@ namespace WinAGI
           //an app specific error to encapsulate whatever happened
           if ((lngError && vbObjectError) == vbObjectError) {
             //pass it along
-            On Error GoTo 0: Err.Raise lngError, strErrSrc, strError
-          Else
-            On Error GoTo 0: Err.Raise vbObjectError + 659, strErrSrc, Replace(LoadResString(659), ARG1, CStr(lngError) & ":" & strError)
-          } //End If
-        } //End Function
+            throw new Exception("lngError, strErrSrc, strError
+          } else {
+            throw new Exception("659, strErrSrc, Replace(LoadResString(659), ARG1, CStr(lngError) + ":" + strError)
+          } //}
+        } //endfunction
 
-        static internal Function LabelNum(LabelName As string) As byte
+        static internal byte LabelNum(string LabelName)
           //this function will return the number of the label passed
           //as a string,
           //or zero, if a match is not found
 
 
-          Dim i As int
+          int i
 
           //step through all labels,
           For i = 1 To bytLabelCount
             if (llLabel(i).Name == LabelName) {
               LabelNum = i
-              return  //Exit Function
-            } //End If
+              return;
+            } //}
           Next i
 
           //if not found, zero is returned
-        } //End Function
+        } //endfunction
 
 
         */

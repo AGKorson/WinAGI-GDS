@@ -36,8 +36,8 @@ namespace WinAGI
     protected bool mIsDirty;
     protected byte mResNum;
     protected string mDescription;
-    private readonly AGIResType mResType;
-    private string mResFile;
+    protected readonly AGIResType mResType;
+    protected string mResFile;
     private bool mblnEORes; //flag indicating pointer is at beginning of resource (CurPos=0)
     private int mlngCurPos;  //current position of pointer in resource data
 
@@ -298,7 +298,7 @@ namespace WinAGI
         }
       }
     }
-    public int EORes
+    public bool EORes
     {
       get
       {
@@ -309,7 +309,7 @@ namespace WinAGI
           //error
           throw new Exception("563, strErrSource, LoadResString(563)");
         }
-        return mRData.Length;
+        return mlngCurPos >= mRData.Length;
       }
       private set { }
     }
@@ -401,7 +401,7 @@ namespace WinAGI
       }
     }
     internal void SetRes(AGIResource NewRes)
-    { 
+    {
       //called by setview, setlog, setpic and setsnd
       //copies entire resource structure
 
@@ -412,6 +412,8 @@ namespace WinAGI
 
       //resource data are copied manually as necessary by calling method
       //EORes and CurPos are calculated; don't need to copy them
+      mResID = NewRes.ID;
+      mDescription = NewRes.Description;
       mResNum = NewRes.Number;
       mResFile = NewRes.ResFile;
       //if resource being copied is in a game,
@@ -423,6 +425,9 @@ namespace WinAGI
       }
       mLoaded = NewRes.Loaded;
       mRData.AllData = NewRes.Data.AllData;
+      //copy dirty flag and writeprop flag
+      mIsDirty = NewRes.IsDirty;
+      WritePropState = NewRes.WritePropState;
     }
     protected void InitInGame(byte ResNum, sbyte VOL, int Loc)
     {
@@ -559,15 +564,18 @@ namespace WinAGI
         {
           //pictures use this decompression
           mRData.AllData = DecompressPicture(mRData.AllData);
-
-          //if resource is LZW compressed,
+          // adjust size
+          intSize = lngExpandedSize;
         }
         else
         {
+          //if resource is LZW compressed,
           if (mRData.Length != lngExpandedSize)
           {
             //all other resources use LZW compression
             mRData.AllData = ExpandV3ResData(mRData.AllData, lngExpandedSize);
+            // update size
+            intSize = lngExpandedSize;
             //if expanding a logic
             if (mResType == AGIResType.rtLogic)
             {
@@ -638,7 +646,7 @@ namespace WinAGI
       //detach events
       mRData.PropertyChanged -= Raise_DataChange;
     }
-    internal virtual void Save(string SaveFile = "")
+    internal void Save(string SaveFile = "")
     {
       //saves a resource into a VOL file if in a game
       //exports the resource if not in a game
@@ -791,20 +799,17 @@ namespace WinAGI
         //error
         throw new Exception(" 604, strErrSource, LoadResString(604)");
       }
-
       //if file doesn//t exist
       if (!File.Exists(ImportFile))
       {
         //error
         throw new Exception("LoadResString(524), ImportFile)");
       }
-
       //if resource is currently loaded,
       if (mLoaded)
       {
         Unload();
       }
-
       //open file for binary
       FileStream fsImport = null;
       try
@@ -1025,7 +1030,7 @@ namespace WinAGI
           throw new Exception($"error: {lngError}");
         }
         //new position is ok; assign it
-        mlngCurPos = Pos;
+        mlngCurPos = value;
         //set eor Value
         mblnEORes = (mlngCurPos == mRData.Length);
         //set bor Value
@@ -1280,11 +1285,11 @@ namespace WinAGI
       //mSizeInVol is undefined
       mSizeInVol = -1;
       mblnEORes = false;
+      mIsDirty = true;
     }
     protected AGIResource(AGIResType ResType, string ID)
     {
-      // can ONLY create new resource from within other game logics
-
+      // can ONLY create new resource from within other game resources
       // when first created, a resource MUST have a type assigned
       mResType = ResType;
       // New resources start out NOT in game; so vol and loc are undefined
@@ -1299,6 +1304,14 @@ namespace WinAGI
       //new resources start as loaded by default, and can only be unloaded when
       // in a game!
       mLoaded = true;
+    }
+    public override string ToString()
+    {
+      if (mResID.Length > 0)
+      {
+        return mResID;
+      }
+      return "blank " + ResTypeName[(int)mResType];
     }
     internal void Raise_DataChange(object sender, RData.RDataChangedEventArgs e)
     {

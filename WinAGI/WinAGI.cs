@@ -246,7 +246,7 @@ namespace WinAGI
     internal const string WINAGI_VERSION_1_2 = "WINAGI v1.2     ";
     internal const string WINAGI_VERSION_1_0 = "WINAGI v1.0     ";
     internal const string WINAGI_VERSION_BETA = "1.0 BETA        ";
-    // old version property constants for loading/saving game & resource properties
+    // old version property constants for loading/saving game + resource properties
     internal const int SP_SEPARATOR = 128;
     internal const int PC_GAMEDESC = 129;
     internal const int PC_GAMEAUTHOR = 130;
@@ -484,18 +484,16 @@ namespace WinAGI
     }
     internal static uint CRC32(byte[] DataIn)
     {
-
-      //Public Function CRC32(DataIn() As Byte) As Long
       //calculates the CRC32 for an input array of bytes
       //a special table is necessary; the table is loaded
       //at program startup
 
       //the CRC is calculated according to the following equation:
       //
-      //  CRC[i] = LSHR8(CRC[i-1]) Xor CRC32Table[(CRC[i-1] And &HFF) Xor DataIn[i])
+      //  CRC[i] = LSHR8(CRC[i-1]) Xor CRC32Table[(CRC[i-1] && 0xFF) Xor DataIn[i])
       //
-      //initial Value of CRC is &HFFFFFFFF; iterate the equation
-      //for each byte of data; then end by XORing final result with &HFFFFFFFF
+      //initial Value of CRC is 0xFFFFFFFF; iterate the equation
+      //for each byte of data; then end by XORing final result with 0xFFFFFFFF
 
       int i;
       //initial Value
@@ -1002,13 +1000,13 @@ namespace WinAGI
       agResDef[0].Name = "ego";
       agResDef[0].Value = "o0";
       agResDef[1].Name = "gameVersionMsg";
-      //agResDef[1].Value = vbNullString; //will be assigned by compiler
+      //agResDef[1].Value = ""; //will be assigned by compiler
       agResDef[2].Name = "gameAboutMsg";
-      //agResDef[2].Value = vbNullString; //will be assigned by compiler
+      //agResDef[2].Value = ""; //will be assigned by compiler
       agResDef[3].Name = "gameID";
-      //agResDef[3].Value = vbNullString; //will be assigned by compiler
+      //agResDef[3].Value = ""; //will be assigned by compiler
       agResDef[4].Name = "numberOfItems";
-      //agResDef[4].Value = vbNullString; //will be assigned by compiler
+      //agResDef[4].Value = ""; //will be assigned by compiler
       agResDef[5].Name = "inputPrompt";
       agResDef[5].Value = "s0";
 
@@ -1155,7 +1153,6 @@ namespace WinAGI
     }
     internal static int ValidateDefName(string DefName)
     {
-      //Public Function ValidateDefName(DefName As String) As Long
       // validates that DefValue is a valid define Value
       // 
       // returns 0 if successful
@@ -1370,8 +1367,6 @@ namespace WinAGI
     }
     internal static string StripComments(string strLine, ref string strComment, bool NoTrim)
     {
-      //Public Function StripComments(ByVal strLine As String, ByRef strComment As String, Optional ByVal NoTrim As Boolean = False) As String
-
       //strips off any comments on the line
       //if NoTrim is false, the string is also
       //stripped of any blank space
@@ -1386,7 +1381,7 @@ namespace WinAGI
       //reset rol ignore
       int intROLIgnore = -1;
 
-      //reset comment start & char ptr, and inquotes
+      //reset comment start + char ptr, and inquotes
       int lngPos = -1;
       bool blnInQuotes = false;
       bool blnSlash = false;
@@ -1469,23 +1464,20 @@ namespace WinAGI
         strOut = strOut.Trim();
 
       return strOut;
-      //Exit Function
 
       //ErrHandler:
-      ////*'Debug.Assert False
+      ////*'Debug.Throw exception
       //  Resume Next
     }
-    internal static void WriteGameSetting(string Section, string Key, string Value, string Group = "")
+    internal static void WriteGameSetting(string Section, string Key, dynamic Value, string Group = "")
     {
-      WriteAppSetting(agGameProps, Section, Key, Value, Group);
+      WriteAppSetting(agGameProps, Section, Key, Value.ToString(), Group);
 
       if (Key.ToLower() != "lastedit" && Key.ToLower() != "winagiversion" && Key.ToLower() != "palette")
         agLastEdit = DateTime.Now;
     }
     internal static void WriteAppSetting(List<string> ConfigList, string Section, string Key, string Value, string Group)
     {
-      //   Public Sub WriteAppSetting(ConfigList As StringList, ByVal Section As String, ByVal Key As String, ByVal Value As String, Optional ByVal Group As String = "")
-
       //elements of a settings file:
       //
       //  #comments begin with hashtag; all characters on line after hashtag are ignored
@@ -1914,9 +1906,6 @@ namespace WinAGI
     internal static void SaveSettingList(List<string> ConfigList)
     {
       //filename is first line
-      //Dim strFileName As String
-      //Dim intFile As Integer, bytData() As Byte, TempFile As String
-
       //get filename (and remove it; we don't need to save that)
       string strFileName = ConfigList[0];
       ConfigList.RemoveAt(0);
@@ -2181,7 +2170,7 @@ namespace WinAGI
           return Default;
         }
       }
-      else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase))
+      else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase))
       {
         try
         {
@@ -2225,7 +2214,7 @@ namespace WinAGI
           return Default;
         }
       }
-      else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase))
+      else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase))
       {
         try
         {
@@ -2886,16 +2875,16 @@ namespace WinAGI
                   WriteGameSetting("Logic" + ResNum.ToString(), "Description", strValue, "Logics");
                   break;
                 case PT_CRC32:
-                  WriteGameSetting("Logic" + ResNum.ToString(), "CRC32", "&H" + strValue, "Logics");
+                  WriteGameSetting("Logic" + ResNum.ToString(), "CRC32", "0x" + strValue, "Logics");
                   break;
                 case PT_COMPCRC32:
-                  WriteGameSetting("Logic" + ResNum.ToString(), "CompCRC32", "&H" + strValue, "Logics");
+                  WriteGameSetting("Logic" + ResNum.ToString(), "CompCRC32", "0x" + strValue, "Logics");
                   break;
                 case PT_ROOM:
                   if (ResNum == 0)
                   {
                     //force to false
-                    strValue = "False";
+                    strValue = "false";
                   }
                   WriteGameSetting("Logic" + ResNum.ToString(), "IsRoom", strValue, "Logics");
                   break;
@@ -2905,7 +2894,7 @@ namespace WinAGI
 
                 default:
                   //unknown code; ignore it
-                  //*'Debug.Assert False
+                  //*'Debug.Throw exception
                   break;
               }
               break;
@@ -2936,7 +2925,7 @@ namespace WinAGI
                   break;
                 default:
                   //unknown code; ignore it
-                  //*'Debug.Assert False
+                  //*'Debug.Throw exception
                   break;
               }
               break;
@@ -2995,7 +2984,7 @@ namespace WinAGI
                   break;
                 default:
                   //unknown code; ignore it
-                  //*'Debug.Assert False
+                  //*'Debug.Throw exception
                   break;
               }
               break;
@@ -3014,7 +3003,7 @@ namespace WinAGI
                   break;
                 default:
                   //unknown code; ignore it
-                  //*'Debug.Assert False
+                  //*'Debug.Throw exception
                   break;
               }
               break;
@@ -3063,7 +3052,7 @@ namespace WinAGI
               //Exec property no longer supported
               break;
 
-            case PC_PALETTE:  //TODO: all hex strings need to be stored as '0x00', not '&H00'
+            case PC_PALETTE:  //TODO: all hex strings need to be stored as '0x00', not '0x00'
                               //convert the color bytes into long values
               for (i = 0; i < 16; i++)
               {
@@ -3171,7 +3160,7 @@ namespace WinAGI
             }
             catch (Exception)
             {
-              // maybe it's an old (&H0,&H0,&H0,&H0) format
+              // maybe it's an old (0x0,0x0,0x0,0x0) format
               bool bIsOK = false;
               tmpColor = 0;
               //split into individual color components
@@ -3182,7 +3171,7 @@ namespace WinAGI
                 tmpColor = 0;
                 for (int j = 0; j < 4; j++)
                 {
-                  if (Left(strColor[j].Trim(), 2) == "&H")
+                  if (Left(strColor[j].Trim(), 2) == "0x")
                   {
                     strColor[j] = "0x" + Right(strColor[j].Trim(), 2);
                     if (IsNumeric(strColor[j]))

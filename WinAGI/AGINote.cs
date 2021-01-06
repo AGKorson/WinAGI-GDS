@@ -6,154 +6,114 @@ using System.Threading.Tasks;
 
 namespace WinAGI
 {
-  class AGINote
+  public class AGINote
   {
-    void tmpNote()
+    int mFreqDiv;
+    int mDuration;
+    byte mAttenuation;
+    internal AGISound mSndParent;
+    internal AGITrack mTrkParent;
+    string strErrSource;
+    public byte Attenuation
+       { 
+      get  
+      { 
+        return mAttenuation; 
+      }  
+      set
+      {
+        //validate
+        if (value > 15)
+        {
+          //invalid item
+          throw new Exception("6, strErrSource, Overflow");
+        }
+        mAttenuation = value;
+        //if parent is assigned
+        if (mSndParent != null)
+        {
+          //notify parent
+          mSndParent.NoteChanged();
+        }
+      }
+    }
+    public int Duration
     {
-      /*
-Option Explicit
-
-Private mFreqDiv As Integer
-Private mDuration As Long
-Private mAttenuation As Integer
-
-Private mParent As AGISound
-Private mTParent As AGITrack
-
-Private strErrSource As String
-
-Property Let Attenuation(ByVal NewAttenuation As Integer)
-
-  On Error GoTo ErrHandler
-  
-  'validate
-  If NewAttenuation < 0 Then
-    'invalid frequency
-    On Error GoTo 0: Err.Raise 6, strErrSource, "Overflow"
-    Exit Property
-  End If
-  
-  If NewAttenuation > 15 Then
-    'invalid item
-    On Error GoTo 0: Err.Raise 6, strErrSource, "Overflow"
-    Exit Property
-  End If
-  
-  mAttenuation = NewAttenuation
-  
-  'if parent is assigned
-  If Not mParent Is Nothing Then
-    'notify parent
-    mParent.NoteChanged
-  End If
-Exit Property
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Property
-
-Public Property Get Attenuation() As Integer
-  
-  Attenuation = mAttenuation
-End Property
-
-Public Property Let Duration(ByVal NewDuration As Long)
-
-  On Error GoTo ErrHandler
-  
-  'validate
-  If NewDuration < 0 Then
-    'invalid frequency
-    On Error GoTo 0: Err.Raise 6, strErrSource, "Overflow"
-    Exit Property
-  End If
-  
-  If NewDuration > &HFFFF& Then
-    'invalid item
-    On Error GoTo 0: Err.Raise 6, strErrSource, "Overflow"
-    Exit Property
-  End If
-  
-  mDuration = NewDuration
-  
-  'if parent is assigned
-  If Not mParent Is Nothing Then
-    'notify parent
-    mParent.NoteChanged
-    mTParent.SetLengthDirty
-  End If
-Exit Property
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Property
-
-Public Property Get Duration() As Long
-  
-  Duration = mDuration
-End Property
-
-
-Public Property Let FreqDivisor(ByVal NewFreq As Integer)
-  
-  On Error GoTo ErrHandler
-  
-  'validate
-  If NewFreq < 0 Then
-    'invalid frequency
-    On Error GoTo 0: Err.Raise 6, strErrSource, "Overflow"
-    Exit Property
-  End If
-  
-  If NewFreq > 1023 Then
-    'invalid item
-    On Error GoTo 0: Err.Raise 6, strErrSource, "Overflow"
-    Exit Property
-  End If
-  
-  mFreqDiv = NewFreq
-  
-  'if parent is assigned
-  If Not mParent Is Nothing Then
-    'notify parent
-    mParent.NoteChanged
-  End If
-Exit Property
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Property
-Public Property Get FreqDivisor() As Integer
-  
-  FreqDivisor = mFreqDiv
-End Property
-
-
-Private Sub Class_Initialize()
-
-  strErrSource = "AGINote"
-End Sub
-
-
-Private Sub Class_Terminate()
-
-  'ensure reference to parent is released
-  Set mParent = Nothing
-  Set mTParent = Nothing
-End Sub
-
-
-Friend Sub SetParent(NewParent As AGISound, NewTrackParent As AGITrack)
-  
-  'sets parent for this item
-  Set mParent = NewParent
-  Set mTParent = NewTrackParent
-End Sub
-
-      */
+      get
+      {
+        return mDuration;
+      }
+      set
+      {
+        //validate
+        if (value < 0 || value > 0xFFFF)
+        {
+          //invalid frequency
+          throw new Exception("6, strErrSource, Overflow");
+        }
+        mDuration = value;
+        //notify parents, if applicable
+        mSndParent?.NoteChanged();
+        mTrkParent?.SetLengthDirty();
+      }
+    }
+    public int FreqDivisor
+    {
+      get
+      {
+        return mFreqDiv;
+      }
+      set
+      {
+        //validate
+        if (value < 0 || value > 1023)
+        {
+          //invalid frequency
+          throw new Exception("6, strErrSource, Overflow");
+        }
+        mFreqDiv = value;
+        //if parent is assigned
+        if (mSndParent != null)
+        {
+          //notify parent
+          mSndParent.NoteChanged();
+        }
+      }
+    }
+    public AGINote()
+    {
+      strErrSource = "AGINote";
+    }
+    internal AGINote(AGISound parent, AGITrack tparent)
+    {
+      mSndParent = parent;
+      mTrkParent = tparent;
+      strErrSource = "AGINote";
+    }
+    public AGINote(int freqdiv, int duration, byte attenuation)
+    {
+      strErrSource = "AGINote";
+      //validate freqdiv
+      if (freqdiv < 0 || freqdiv > 1023)
+      {
+        //invalid frequency
+        throw new Exception("6, strErrSource, Overflow");
+      }
+      mFreqDiv = freqdiv;
+      //validate duration
+      if (duration < 0 || duration > 0xFFFF)
+      {
+        //invalid frequency
+        throw new Exception("6, strErrSource, Overflow");
+      }
+      mDuration = duration;
+      //validate attenuation
+      if (attenuation > 15)
+      {
+        //invalid item
+        throw new Exception("6, strErrSource, Overflow");
+      }
+      mAttenuation = attenuation;
     }
   }
 }

@@ -8,6 +8,8 @@ using static WinAGI.WinAGI;
 using static WinAGI.AGILogicSourceSettings;
 using static WinAGI.AGICommands;
 using static WinAGI.AGIGame;
+using System.Windows.Forms;
+using static WinAGI.AudioPlayer;
 
 namespace WinAGI
 {
@@ -26,21 +28,14 @@ namespace WinAGI
     private static int lngOriginalSize;
 
     //sound subclassing variables, constants, declarations
-    internal static int PrevSndWndProc;
-    internal static bool blnPlaying;
-    internal static byte PlaySndResNum;
-    //public Declare Function CallWindowProc Lib "user32" Alias "CallWindowProcA" (ByVal lpPrevWndFunc As Long, ByVal hWnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-    //public Declare Function SetWindowLong Lib "user32" Alias "SetWindowLongA" (ByVal hWnd As Long, ByVal nIndex As Long, ByVal dwNewLong As Long) As Long
-    //public Declare Function mciGetErrorString Lib "winmm.dll" Alias "mciGetErrorStringA" (ByVal dwError As Long, ByVal lpstrBuffer As String, ByVal uLength As Long) As Long
-    //public Declare Function mciSendString Lib "winmm.dll" Alias "mciSendStringA" (ByVal lpstrCommand As String, ByVal lpstrReturnString As String, ByVal uReturnLength As Long, ByVal hwndCallback As Long) As Long
+    internal static AudioPlayer SndPlayer = new AudioPlayer();
+    //public Declare int CallWindowProc Lib "user32" Alias "CallWindowProcA" (int lpPrevWndFunc, int hWnd, int uMsg, int wParam, int lParam)
+    //public Declare int SetWindowLong Lib "user32" Alias "SetWindowLongA" (int hWnd, int nIndex, int dwNewLong)
     public const int GWL_WNDPROC = (-4);
+    //public Declare int mciGetErrorString Lib "winmm.dll" Alias "mciGetErrorStringA" (int dwError, string lpstrBuffer, int uLength)
+    //public Declare int mciSendString Lib "winmm.dll" Alias "mciSendStringA" (string lpstrCommand, string lpstrReturnString, int uReturnLength, int hwndCallback)
     public const int MM_MCINOTIFY = 0x3B9;
     public const int MCI_NOTIFY_SUCCESSFUL = 0x1;
-
-    //others
-    //private static int lngPos;
-    private static byte[] mMIDIData;
-
     internal static bool ExtractResources()
     {
       //gets the resources from VOL files, and adds them to the game
@@ -89,7 +84,7 @@ namespace WinAGI
           throw new Exception("502LoadResString(502)");
         }
 
-        //if not enough bytes to hold at least the 4 dir pointers & 1 resource
+        //if not enough bytes to hold at least the 4 dir pointers + 1 resource
         if (bytBuffer.Length < 11) // 11 + bytes
         {
           throw new Exception("542 LoadResString(542), ARG1, strDirFile");
@@ -531,7 +526,7 @@ namespace WinAGI
       lngBitBuffer = 0;
       lngBitsInBuffer = 0;
 
-      //Set initial Value for code size
+      //set initial Value for code size
       intCodeSize = NewCodeSize(START_BITS);
       //first code is 257
       intNextCode = 257;
@@ -637,7 +632,7 @@ namespace WinAGI
       byte[] bytTempRLE;
       byte mHeight, mWidth, bytChunkLen;
       byte[,] mCelData;
-      byte mTransColor;
+      AGIColors mTransColor;
       int lngByteCount = 0;
       byte bytChunkColor, bytNextColor;
       byte bytOut, blnErr;
@@ -657,14 +652,14 @@ namespace WinAGI
       for (j = 0; j < mHeight; j++)
       {
         //get first pixel color
-        bytChunkColor = mCelData[0, j];
+        bytChunkColor = (byte)mCelData[0, j];
         bytChunkLen = 1;
         blnFirstChunk = true;
         //step through rest of pixels in this row
         for (i = 1; i < mWidth; i++)
         {
           //get next pixel color
-          bytNextColor = mCelData[i, j];
+          bytNextColor = (byte)mCelData[i, j];
           //if different from current chunk
           if ((bytNextColor != bytChunkColor) || (bytChunkLen == 0xF))
           {
@@ -674,7 +669,7 @@ namespace WinAGI
             lngByteCount++;
 
             //if this is NOT first chunk or NOT transparent)
-            if (!blnFirstChunk || (bytChunkColor != mTransColor))
+            if (!blnFirstChunk || (bytChunkColor != (byte)mTransColor))
             {
               //increment lngMirorCount for any chunks
               //after the first, and also for the first
@@ -694,7 +689,7 @@ namespace WinAGI
           }
         }
         //if last chunk is NOT transparent
-        if (bytChunkColor != mTransColor)
+        if (bytChunkColor != (byte)mTransColor)
         {
           //add last chunk
           bytTempRLE[lngByteCount] = (byte)(bytChunkColor * 0x10 + bytChunkLen);
@@ -736,7 +731,7 @@ namespace WinAGI
         //if code Value exceeds table size,
         if (intCode > TABLE_SIZE)
         {
-          //////Debug.Print "FATAL ERROR as  Invalid code (" & CStr(intCode) & ") in DecodeString."
+          //Debug.Print "FATAL ERROR as  Invalid code (" + CStr(intCode) + ") in DecodeString."
           return retval;
         }
         else
@@ -838,934 +833,869 @@ namespace WinAGI
       }
       return retval;
     }
-    private static void tmpResFunc()
-  {
-      /*
-  Private Function NewCodeSize(intVal As Integer) As Integer
-  End Function
+    internal static byte[] BuildMIDI(AGISound SoundIn)
+    {
+      int lngWriteTrack = 0;
+      int i, j;
+      byte bytNote;
+      int intFreq;
+      byte bytVol;
+      int lngTrackCount = 0, lngTickCount;
+      int lngStart, lngEnd;
 
-  Public Function BuildMIDI(SoundIn As AGISound) As Byte()
+      //calculate track Count
+      if (!SoundIn[0].Muted && SoundIn[0].Notes.Count > 0)
+      {
+        lngTrackCount = 1;
+      }
+      if (!SoundIn[1].Muted && SoundIn[1].Notes.Count > 0)
+      {
+        lngTrackCount++;
+      }
+      if (!SoundIn[2].Muted && SoundIn[2].Notes.Count > 0)
+      {
+        lngTrackCount++;
+      }
+      if (!SoundIn[3].Muted && SoundIn[3].Notes.Count > 0)
+      {
+        //add two tracks if noise is not muted
+        //because the white noise and periodic noise
+        //are written as two separate tracks
+        lngTrackCount = lngTrackCount + 2;
+      }
 
-  Dim lngWriteTrack As Long
-  Dim i As Long, j As Long
-  Dim bytNote As Byte, intFreq As Integer, bytVol As Byte
-  Dim lngTrackCount As Long, lngTickCount As Long
-  Dim lngStart As Long, lngEnd As Long
+      //set intial size of midi data array
+      SndPlayer.mMIDIData = new byte[70 + 256];
 
-  On Error Resume Next
-
-  //////Debug.Assert SoundIn.Resource.Loaded
-
-  //calculate track Count
-  if (!SoundIn.Track(0).Muted && SoundIn.Track(0).Notes.Count > 0) {
-    lngTrackCount = 1
-  }
-  if (!SoundIn.Track(1).Muted && SoundIn.Track(1).Notes.Count > 0) {
-    lngTrackCount = lngTrackCount + 1
-  }
-  if (!SoundIn.Track(2).Muted && SoundIn.Track(2).Notes.Count > 0) {
-    lngTrackCount = lngTrackCount + 1
-  }
-  if (!SoundIn.Track(3).Muted && SoundIn.Track(3).Notes.Count > 0) {
-    //add two tracks if noise is not muted
-    //because the white noise and periodic noise
-    //are written as two separate tracks
-    lngTrackCount = lngTrackCount + 2
-  }
-
-  //set intial size of midi data array
-  new mMIDIData(70 + 256)
-
-  // write header
-  mMIDIData(0) = 77 //"M"
-  mMIDIData(1) = 84 //"T"
-  mMIDIData(2) = 104 //"h"
-  mMIDIData(3) = 100 //"d"
-  lngPos = 4
+      // write header
+      SndPlayer.mMIDIData[0] = 77; //"M"
+      SndPlayer.mMIDIData[1] = 84; //"T"
+      SndPlayer.mMIDIData[2] = 104; //"h"
+      SndPlayer.mMIDIData[3] = 100; //"d"
+      lngPos = 4;
 
 
-  WriteSndLong 6& //remaining length of header (3 integers = 6 bytes)
-  //write mode, trackcount and ppqn as bigendian integers
-  WriteSndWord 1   //mode 0 = single track
-                    //mode 1 = multiple tracks, all start at zero
-                    //mode 2 = multiple tracks, independent start times
-  //if no tracks,
-  if (lngTrackCount == 0) {
-    //need to build a //null// set of data!!!
+      WriteSndLong(6); //remaining length of header (3 integers = 6 bytes)
+                       //write mode, trackcount and ppqn as bigendian integers
+      WriteSndWord(1);   //mode 0 = single track
+                         //mode 1 = multiple tracks, all start at zero
+                         //mode 2 = multiple tracks, independent start times
+                         //if no tracks,
+      if (lngTrackCount == 0)
+      {
+        //need to build a //null// set of data!!!
 
-    Array.Resize(mMIDIData(37)
+        Array.Resize(ref SndPlayer.mMIDIData, 38);
 
-    //one track, with one note of smallest length, and no sound
-    WriteSndWord 1  //one track
-    WriteSndWord 30 //pulses per quarter note
-    //add the track info
-    WriteSndByte 77 //"M"
-    WriteSndByte 84 //"T"
-    WriteSndByte 114 //"r"
-    WriteSndByte 107 //"k"
-    WriteSndLong 15 //track length
-    //write the track number
-    WriteSndDelta CLng(0)
-    //write the set instrument status byte
-    WriteSndByte 0xC0
-    //write the instrument number
-    WriteSndByte 0
-    //write a slight delay note with no volume to end
-    WriteSndDelta 0
-    WriteSndByte 0x90
-    WriteSndByte 60
-    WriteSndByte 0
-    WriteSndDelta 16
-    WriteSndByte 0x80
-    WriteSndByte 60
-    WriteSndByte 0
-    //add end of track info
-    WriteSndDelta 0
-    WriteSndByte 0xFF
-    WriteSndByte 0x2F
-    WriteSndByte 0x0
-    //return
-    BuildMIDI = mMIDIData()
-    Exit Function
-  }
+        //one track, with one note of smallest length, and no sound
+        WriteSndWord(1);  //one track
+        WriteSndWord(30); //pulses per quarter note
+                          //add the track info
+        WriteSndByte(77); //"M"
+        WriteSndByte(84); //"T"
+        WriteSndByte(114); //"r"
+        WriteSndByte(107); //"k"
+        WriteSndLong(15); //track length
+                          //write the track number
+        WriteSndDelta(0);
+        //write the set instrument status byte
+        WriteSndByte(0xC0);
+        //write the instrument number
+        WriteSndByte(0);
+        //write a slight delay note with no volume to end
+        WriteSndDelta(0);
+        WriteSndByte(0x90);
+        WriteSndByte(60);
+        WriteSndByte(0);
+        WriteSndDelta(16);
+        WriteSndByte(0x80);
+        WriteSndByte(60);
+        WriteSndByte(0);
+        //add end of track info
+        WriteSndDelta(0);
+        WriteSndByte(0xFF);
+        WriteSndByte(0x2F);
+        WriteSndByte(0x0);
+        //return
+        return SndPlayer.mMIDIData;
+      }
+      //add track count
+      WriteSndWord(lngTrackCount);
+      //write pulses per quarter note
+      //(agi sound tick is 1/60 sec; each tick of an AGI note
+      //is 1/60 of a second; by default, MIDI defines a whole
+      //note as 2 seconds; therefore, a quarter note is 1/2
+      //second, or 30 ticks
+      WriteSndWord(30);
 
-  //add track count
-  WriteSndWord lngTrackCount
+      //write the sound tracks
+      for (i = 0; i < 3; i++)
+      {
+        //if adding this instrument,
+        if (!SoundIn[i].Muted && SoundIn[i].Notes.Count > 0)
+        {
+          WriteSndByte(77); //"M"
+          WriteSndByte(84); //"T"
+          WriteSndByte(114); //"r"
+          WriteSndByte(107); //"k"
+                             //store starting position for this track//s data
+          lngStart = lngPos;
+          //place holder for data size
+          WriteSndLong(0);
+          //write the track number
+          //*********** i think this should be zero for all tracks
+          //it's the delta sound value for the instrument setting
+          WriteSndDelta(0); //CLng(lngWriteTrack)
+                            //write the set instrument status byte
+          WriteSndByte((byte)(0xC0 + lngWriteTrack));
+          //write the instrument number
+          WriteSndByte(SoundIn[i].Instrument);
 
+          //write a slight delay note with no volume to start
+          WriteSndDelta(0);
+          WriteSndByte((byte)(0x90 + lngWriteTrack));
+          WriteSndByte(60);
+          WriteSndByte(0);
+          WriteSndDelta(4); //16
+          WriteSndByte((byte)(0x80 + lngWriteTrack));
+          WriteSndByte(60);
+          WriteSndByte(0);
 
-  //write pulses per quarter note
-  //(agi sound tick is 1/60 sec; each tick of an AGI note
-  //is 1/60 of a second; by default, MIDI defines a whole
-  //note as 2 seconds; therefore, a quarter note is 1/2
-  //second, or 30 ticks
-  WriteSndWord 30
+          //step through notes in this track (5 bytes at a time)
+          for (j = 0; j <= SoundIn[i].Notes.Count - 1; j++)
+          {
+            //calculate note to play
+            if (SoundIn[i].Notes[j].FreqDivisor > 0)
+            {
+              //middle C is 261.6 HZ; from midi specs,
+              //middle C is a note with a Value of 60
+              //this requires a shift in freq of approx. 36.376
+              //however, this offset results in crappy sounding music;
+              //empirically, 36.5 seems to work best
+              bytNote = (byte)((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.5);
+              //
+              //f = 111860 / (((Byte2 + 0x3F) << 4) + (Byte3 + 0x0F))
+              //
+              //(bytNote can never be <44 or >164)
+              //in case note is too high,
+              if (bytNote > 127)
+              {
+                bytNote = 127;
+              }
+              bytVol = (byte)(127 * (15 - SoundIn[i].Notes[j].Attenuation) / 15);
+            }
+            else
+            {
+              bytNote = 0;
+              bytVol = 0;
+            }
 
-  //write the sound tracks
-  for (i = 0 To 2
-    //if adding this instrument,
-    if (!SoundIn.Track(i).Muted && SoundIn.Track(i).Notes.Count > 0) {
-      WriteSndByte 77 //"M"
-      WriteSndByte 84 //"T"
-      WriteSndByte 114 //"r"
-      WriteSndByte 107 //"k"
+            //write NOTE ON data
+            WriteSndDelta(0);
+            WriteSndByte((byte)(0x90 + lngWriteTrack));
+            WriteSndByte(bytNote);
+            WriteSndByte(bytVol);
+            //write NOTE OFF data
+            WriteSndDelta(SoundIn[i].Notes[j].Duration);
+            WriteSndByte((byte)(0x80 + lngWriteTrack));
+            WriteSndByte(bytNote);
+            WriteSndByte(0);
+          } //nxt j
 
-      //store starting position for this track//s data
-      lngStart = lngPos
-      //place holder for data size
-      WriteSndLong 0
+          //write a slight delay note with no volume to end
+          WriteSndDelta(0);
+          WriteSndByte((byte)(0x90 + lngWriteTrack));
+          WriteSndByte(60);
+          WriteSndByte(0);
+          WriteSndDelta(4); //16
+          WriteSndByte((byte)(0x80 + lngWriteTrack));
+          WriteSndByte(60);
+          WriteSndByte(0);
 
-      //write the track number
-      //*********** i think this should be zero for all tracks
-      //it//s the delta sound value for the instrument setting
-      WriteSndDelta 0 //CLng(lngWriteTrack)
-
-      //write the set instrument status byte
-      WriteSndByte 0xC0 + lngWriteTrack
-      //write the instrument number
-      WriteSndByte SoundIn.Track(i).Instrument
-
-      //write a slight delay note with no volume to start
-      WriteSndDelta 0
-      WriteSndByte 0x90 + lngWriteTrack
-      WriteSndByte 60
-      WriteSndByte 0
-      WriteSndDelta 4 //16
-      WriteSndByte 0x80 + lngWriteTrack
-      WriteSndByte 60
-      WriteSndByte 0
-
-      //step through notes in this track (5 bytes at a time)
-      for (j = 0 To SoundIn.Track(i).Notes.Count - 1
-        //calculate note to play
-        if (SoundIn.Track(i).Notes(j).FreqDivisor > 0) {
-          //middle C is 261.6 HZ; from midi specs,
-          //middle C is a note with a Value of 60
-          //this requires a shift in freq of approx. 36.376
-          //however, this offset results in crappy sounding music;
-          //empirically, 36.5 seems to work best
-          bytNote = CLng((Log10(111860# / CDbl(SoundIn.Track(i).Notes(j).FreqDivisor)) / LOG10_1_12) - 36.5)
-
-          //
-          //f = 111860 / (((Byte2 & 0x3F) << 4) + (Byte3 & 0x0F))
-          //
-          //(bytNote can never be <44 or >164)
-          //in case note is too high,
-          if (bytNote > 127) {
-            bytNote = 127
-          }
-          bytVol = 127 * (15 - SoundIn.Track(i).Notes(j).Attenuation) / 15
-        } else {
-          bytNote = 0
-          bytVol = 0
+          //add end of track info
+          WriteSndDelta(0);
+          WriteSndByte(0xFF);
+          WriteSndByte(0x2F);
+          WriteSndByte(0x0);
+          //save track end position
+          lngEnd = lngPos;
+          //set cursor to start of track
+          lngPos = lngStart;
+          //write the track length
+          WriteSndLong((lngEnd - lngStart) - 4);
+          lngPos = lngEnd;
         }
+        //increment track counter
+        lngWriteTrack++;
+      } //nxt i
 
-        //write NOTE ON data
-        WriteSndDelta 0
-        WriteSndByte 0x90 + lngWriteTrack
-        WriteSndByte bytNote
-        WriteSndByte bytVol
-        //write NOTE OFF data
-        WriteSndDelta CLng(SoundIn.Track(i).Notes(j).Duration)
-        WriteSndByte 0x80 + lngWriteTrack
-        WriteSndByte bytNote
-        WriteSndByte 0
-      Next j
+      //seashore does a good job of imitating the white noise, with frequency adjusted empirically
+      //harpsichord does a good job of imitating the tone noise, with frequency adjusted empirically
 
-      //write a slight delay note with no volume to end
-      WriteSndDelta 0
-      WriteSndByte 0x90 + lngWriteTrack
-      WriteSndByte 60
-      WriteSndByte 0
-      WriteSndDelta 4 //16
-      WriteSndByte 0x80 + lngWriteTrack
-      WriteSndByte 60
-      WriteSndByte 0
+      //if adding noise track,
+      if (!SoundIn[3].Muted && SoundIn[3].Notes.Count > 0)
+      {
+        //because there are two types of noise, must use two channels
+        //one uses seashore (white noise)
+        //other uses harpsichord (tone noise)
 
-      //add end of track info
-      WriteSndDelta 0
-      WriteSndByte 0xFF
-      WriteSndByte 0x2F
-      WriteSndByte 0x0
-      //save track end position
-      lngEnd = lngPos
-      //set cursor to start of track
-      lngPos = lngStart
-      //write the track length
-      WriteSndLong (lngEnd - lngStart) - 4
-      lngPos = lngEnd
-    }
-    //increment track counter
-    lngWriteTrack = lngWriteTrack + 1
-  Next i
+        for (i = 0; i < 2; i++)
+        {
+          //0 means add tone
+          //1 means add white noise
 
-  //seashore does a good job of imitating the white noise, with frequency adjusted empirically
-  //harpsichord does a good job of imitating the tone noise, with frequency adjusted empirically
+          WriteSndByte(77); //"M"
+          WriteSndByte(84); //"T"
+          WriteSndByte(114); //"r"
+          WriteSndByte(107); //"k"
 
-  //if adding noise track,
-  if (!SoundIn.Track(3).Muted && SoundIn.Track(3).Notes.Count > 0) {
-    //because there are two types of noise, must use two channels
-    //one uses seashore (white noise)
-    //other uses harpsichord (tone noise)
+          //store starting position for this track//s data
+          lngStart = lngPos;
+          WriteSndLong(0);      //place holder for chunklength
 
-    for (i = 0 To 1
-      //0 means add tone
-      //1 means add white noise
+          //write track number
+          WriteSndDelta(lngWriteTrack);
+          //write the set instrument byte
+          WriteSndByte((byte)(0xC0 + lngWriteTrack));
+          //write the instrument number
+          switch (i)
+          {
+            case 0:  //tone
+              WriteSndByte(6); //harpsichord seems to be good simulation for tone
+              break;
+            case 1:  //white noise
+              WriteSndByte(122); //seashore seems to be good simulation for white noise
+                                 //crank up the volume
+              WriteSndByte(0);
+              WriteSndByte((byte)(0xB0 + lngWriteTrack));
+              WriteSndByte(7);
+              WriteSndByte(127);
+              //set legato
+              WriteSndByte(0);
+              WriteSndByte((byte)(0xB0 + lngWriteTrack));
+              WriteSndByte(68);
+              WriteSndByte(127);
+              break;
+          }
 
-      WriteSndByte 77 //"M"
-      WriteSndByte 84 //"T"
-      WriteSndByte 114 //"r"
-      WriteSndByte 107 //"k"
+          //write a slight delay note with no volume to start
+          WriteSndDelta(0);
+          WriteSndByte((byte)(0x90 + lngWriteTrack));
+          WriteSndByte(60);
+          WriteSndByte(0);
+          WriteSndDelta(4); //16
+          WriteSndByte((byte)(0x80 + lngWriteTrack));
+          WriteSndByte(60);
+          WriteSndByte(0);
 
-      //store starting position for this track//s data
-      lngStart = lngPos
-      WriteSndLong 0       //place holder for chunklength
+          //reset tick counter (used in case of need to borrow track 3 freq)
+          lngTickCount = 0;
 
-      //write track number
-      WriteSndDelta CLng(lngWriteTrack)
-      //write the set instrument byte
-      WriteSndByte 0xC0 + lngWriteTrack
-      //write the instrument number
-      switch (i
-      case 0  //tone
-        WriteSndByte 6 //harpsichord seems to be good simulation for tone
-      case 1  //white noise
-        WriteSndByte 122 //seashore seems to be good simulation for white noise
-        //crank up the volume
-        WriteSndByte 0
-        WriteSndByte 0xB0 + lngWriteTrack
-        WriteSndByte 7
-        WriteSndByte 127
-        //set legato
-        WriteSndByte 0
-        WriteSndByte 0xB0 + lngWriteTrack
-        WriteSndByte 68
-        WriteSndByte 127
+          //0 - add periodic
+          //1 - add white noise
+          for (j = 0; j < SoundIn[3].Notes.Count; j++)
+          {
+            //add duration to tickcount
+            lngTickCount = lngTickCount + SoundIn[3].Notes[j].Duration;
+            //Fourth byte: noise freq and type
+            //    In the case of the noise voice,
+            //    7  6  5  4  3  2  1  0
+            //
+            //    1  .  .  .  .  .  .  .      Always 1.
+            //    .  1  1  0  .  .  .  .      Register number in T1 chip (6)
+            //    .  .  .  .  X  .  .  .      Unused, ignored; can be set to 0 or 1
+            //    .  .  .  .  .  FB .  .      1 for white noise, 0 for periodic
+            //    .  .  .  .  .  . NF0 NF1    2 noise frequency control bits
+            //
+            //    NF0  NF1       Noise Frequency
+            //
+            //     0    0         1,193,180 / 512 = 2330
+            //     0    1         1,193,180 / 1024 = 1165
+            //     1    0         1,193,180 / 2048 = 583
+            //     1    1         Borrow freq from channel 3
+            //
+            //AGINote contains bits 2-1-0 only
+            //
+            //if this note matches desired type
+            if ((SoundIn[3].Notes[j].FreqDivisor & 4) == 4 * i)
+            {
+              //if using borrow function:
+              if ((SoundIn[3].Notes[j].FreqDivisor & 3) == 3)
+              {
+                //get frequency from channel 3
+                intFreq = GetTrack3Freq(SoundIn[2], lngTickCount);
+              }
+              else
+              {
+                //get frequency from bits 0 and 1
+                intFreq = (int)(2330.4296875 / (1 << (SoundIn[3].Notes[j].FreqDivisor & 3)));
+              }
+
+              //convert to midi note
+              if ((SoundIn[3].Notes[j].FreqDivisor & 4) == 4)
+              {
+                //for white noise, 96 is my best guess to imitate noise
+                //BUT... 96 causes some notes to come out negative;
+                //80 is max Value that ensures all AGI freq values convert
+                //to positive MIDI note values
+                bytNote = (byte)((Math.Log10(intFreq) / LOG10_1_12) - 80);
+              }
+              else
+              {
+                //for periodic noise, 64 is my best guess to imitate noise
+                bytNote = (byte)((Math.Log10(intFreq) / LOG10_1_12) - 64);
+              }
+              //get volume
+              bytVol = (byte)(127 * (15 - SoundIn[3].Notes[j].Attenuation) / 15);
+            }
+            else
+            {
+              //write a blank
+              bytNote = 0;
+              bytVol = 0;
+            }
+
+            //write NOTE ON data
+            //no delta time
+            WriteSndDelta(0);
+            //note on this track
+            WriteSndByte((byte)(0x90 + lngWriteTrack));
+            WriteSndByte(bytNote);
+            WriteSndByte(bytVol);
+
+            //write NOTE OFF data
+            WriteSndDelta(SoundIn[3].Notes[j].Duration);
+            WriteSndByte((byte)(0x80 + lngWriteTrack));
+            WriteSndByte(bytNote);
+            WriteSndByte(0);
+          } //nxt j
+
+          //write a slight delay note with no volume to end
+          WriteSndDelta(0);
+          WriteSndByte((byte)(0x90 + lngWriteTrack));
+          WriteSndByte(60);
+          WriteSndByte(0);
+          WriteSndDelta(4); //16
+          WriteSndByte((byte)(0x80 + lngWriteTrack));
+          WriteSndByte(60);
+          WriteSndByte(0);
+
+          //write end of track data
+          WriteSndDelta(0);
+          WriteSndByte(0xFF);
+          WriteSndByte(0x2F);
+          WriteSndByte(0x0);
+          //save ending position
+          lngEnd = lngPos;
+          //go back to start of track, and write track length
+          lngPos = lngStart;
+          WriteSndLong((lngEnd - lngStart) - 4);
+          lngPos = lngEnd;
+          //increment track counter
+          lngWriteTrack++;
+        } //nxt i
       }
 
-      //write a slight delay note with no volume to start
-      WriteSndDelta 0
-      WriteSndByte 0x90 + lngWriteTrack
-      WriteSndByte 60
-      WriteSndByte 0
-      WriteSndDelta 4 //16
-      WriteSndByte 0x80 + lngWriteTrack
-      WriteSndByte 60
-      WriteSndByte 0
+      //remove any extra padding from the data array (-1?)
+      Array.Resize(ref SndPlayer.mMIDIData, lngPos);
+      return SndPlayer.mMIDIData;
+    }
+    internal static byte[] BuildIIgsMIDI(AGISound SoundIn, ref double Length)
+    {
+      int lngInPos, lngOutPos;
+      byte[] midiIn, midiOut;
+      int lngTicks = 0, lngTime;
+      byte bytIn, bytCmd = 0, bytChannel = 0;
+      //it also counts max ticks, returning that so sound length
+      //can be calculated
+      //length value gets calculated by counting total number of ticks
+      //assumption is 60 ticks per second; nothing to indicate that is
+      //not correct; all sounds //sound// right, so we go with it
+      //builds a midi chunk based on apple IIgs sound format -
+      //the raw midi data embedded in the sound seems to play OK
+      //when using //high-end// players (WinAmp as an example) but not
+      //Windows Media Player, or the midi API functions; even in
+      //WinAmp, the total sound length (ticks and seconds) doesn't
+      //calculate correctly, even though it plays
+      //this seems to be due to the prescence of the 0xFC commands
+      //it looks like every sound resource has them; sometimes
+      //one 0xFC ends the file; othertimes there are a series of
+      //them that are followed by a set of 0xDx and 0xBx commands
+      //that appear to reset all 16 channels
+      //eliminating the 0xFC command and everything that follows
+      //plays the sound correctly (I think)
+      //a common 'null' file is one with just four 0xFC codes, and
+      //nothing else
 
-      //reset tick counter (used in case of need to borrow track 3 freq)
-      lngTickCount = 0
-
-      //0 - add periodic
-      //1 - add white noise
-      for (j = 0 To SoundIn.Track(3).Notes.Count - 1
-        //add duration to tickcount
-        lngTickCount = lngTickCount + SoundIn.Track(3).Notes(j).Duration
-        //Fourth byte: noise freq and type
-        //    In the case of the noise voice,
-        //    7  6  5  4  3  2  1  0
-        //
-        //    1  .  .  .  .  .  .  .      Always 1.
-        //    .  1  1  0  .  .  .  .      Register number in T1 chip (6)
-        //    .  .  .  .  X  .  .  .      Unused, ignored; can be set to 0 or 1
-        //    .  .  .  .  .  FB .  .      1 for white noise, 0 for periodic
-        //    .  .  .  .  .  . NF0 NF1    2 noise frequency control bits
-        //
-        //    NF0  NF1       Noise Frequency
-        //
-        //     0    0         1,193,180 / 512 = 2330
-        //     0    1         1,193,180 / 1024 = 1165
-        //     1    0         1,193,180 / 2048 = 583
-        //     1    1         Borrow freq from channel 3
-        //
-        //AGINote contains bits 2-1-0 only
-        //
-        //if this note matches desired type
-        if ((SoundIn.Track(3).Notes(j).FreqDivisor && 4) == 4 * i) {
-          //if using borrow function:
-          if ((SoundIn.Track(3).Notes(j).FreqDivisor && 3) == 3) {
-            //get frequency from channel 3
-            intFreq = GetTrack3Freq(SoundIn.Track(2), lngTickCount)
-          } else {
-            //get frequency from bits 0 and 1
-            intFreq = CInt(2330.4296875 / 2 ^ (SoundIn.Track(3).Notes(j).FreqDivisor && 3))
+      //local copy of data -easier to manipulate
+      midiIn = SoundIn.Data.AllData;
+      //start with size of input data, assuming it all gets used,
+      //plus space for headers and track end command
+      //   need 22 bytes for header
+      //   size of sound data, minus the two byte header
+      //   need to also add 'end of track' event, which takes up 4 bytes
+      midiOut = new byte[26 + midiIn.Length];
+      // write header
+      midiOut[0] = 77; //"M"
+      midiOut[1] = 84; //"T"
+      midiOut[2] = 104; //"h"
+      midiOut[3] = 100; //"d"
+                        //size of header, as a long
+      midiOut[4] = 0;
+      midiOut[5] = 0;
+      midiOut[6] = 0;
+      midiOut[7] = 6;
+      //mode, as an integer
+      midiOut[8] = 0;
+      midiOut[9] = 1;
+      //track count as integer
+      midiOut[10] = 0;
+      midiOut[11] = 1;
+      //write pulses per quarter note as integer
+      midiOut[12] = 0;
+      midiOut[13] = 30;
+      //track header
+      midiOut[14] = 77;  //"M"
+      midiOut[15] = 84;  //"T"
+      midiOut[16] = 114;  //"r"
+      midiOut[17] = 107;  //"k"
+                          //size of track data (placeholder)
+      midiOut[18] = 0;
+      midiOut[19] = 0;
+      midiOut[20] = 0;
+      midiOut[21] = 0;
+      //null sounds will start with 0xFC in first four bytes
+      // (and nothing else), so ANY file starting with 0xFC
+      // is considered empty
+      if (midiIn[2] == 0xFC)
+      {
+        //assume no sound
+        midiOut = new byte[26];
+        midiOut[21] = 4;
+        //add end of track data
+        midiOut[22] = 0;
+        midiOut[23] = 0xFF;
+        midiOut[24] = 0x2F;
+        midiOut[25] = 0;
+        Array.Resize(ref midiOut, 26);
+        Length = 0;
+        return midiOut;
+      }
+      //starting output pos
+      lngOutPos = 22;
+      //move the data over, one byte at a time
+      lngInPos = 2;
+      do
+      {
+        //get next byte of input data
+        bytIn = midiIn[lngInPos];
+        //add it to output
+        midiOut[lngOutPos] = bytIn;
+        lngOutPos++;
+        //time is always first input; it is supposed to be a delta value
+        //but it appears that agi used it as an absolute value; so if time
+        //is greater than 0x7F, it will cause a hiccup in modern midi
+        //players
+        lngTime = bytIn;
+        if ((bytIn & 0x80) == 0x80)
+        {
+          //treat 0xFC as an end mark, even if found in time position
+          //0xF8 also appears to cause an end
+          if ((bytIn == 0xFC) || (bytIn == 0xF8))
+          {
+            //backup one to cancel this byte
+            lngOutPos--;
+            break;
           }
-
-          //convert to midi note
-          if ((SoundIn.Track(3).Notes(j).FreqDivisor && 4) == 4) {
-            //for white noise, 96 is my best guess to imitate noise
-            //BUT... 96 causes some notes to come out negative;
-            //80 is max Value that ensures all AGI freq values convert
-            //to positive MIDI note values
-            bytNote = CByte((Log10(intFreq) / LOG10_1_12) - 80)
-          } else {
-            //for periodic noise, 64 is my best guess to imitate noise
-            bytNote = CByte((Log10(intFreq) / LOG10_1_12) - 64)
-          }
-          //get volume
-          bytVol = 127 * (15 - SoundIn.Track(3).Notes(j).Attenuation) / 15
-        } else {
-          //write a blank
-          bytNote = 0
-          bytVol = 0
+          //convert into two-byte time value (means expanding
+          // array size by one byte)
+          Array.Resize(ref midiOut, midiOut.Length + 1);
+          midiOut[lngOutPos - 1] = 129;
+          midiOut[lngOutPos] = (byte)(bytIn & 0x7F);
+          lngOutPos++;
+          //ignore 'normal' delta time calculations
+          //////      lngTime = lngTime & 0x7F;
+          //////      do
+          //////      {
+          //////        lngTime = lngTime * 128;
+          //////        lngInPos++;
+          //////        //err check
+          //////        if (lngInPos >= midiIn.Length)
+          //////        {
+          //////          break;
+          //////        }
+          //////        bytIn = midiIn[lngInPos];
+          //////        //add it to output
+          //////        midiOut[lngOutPos] = bytIn;
+          //////        lngOutPos++;
+          //////        lngTime = lngTime + (bytIn & 0x7F);
+          //////      }
+          //////      while ((bytIn & 0x80) = 0x80);
         }
-
-        //write NOTE ON data
-        //no delta time
-        WriteSndDelta 0
-        //note on this track
-        WriteSndByte 0x90 + lngWriteTrack
-        WriteSndByte CByte(bytNote)
-        WriteSndByte CByte(bytVol)
-
-        //write NOTE OFF data
-        WriteSndDelta CLng(SoundIn.Track(3).Notes(j).Duration)
-        WriteSndByte 0x80 + lngWriteTrack
-        WriteSndByte CByte(bytNote)
-        WriteSndByte 0
-      Next j
-
-      //write a slight delay note with no volume to end
-      WriteSndDelta 0
-      WriteSndByte 0x90 + lngWriteTrack
-      WriteSndByte 60
-      WriteSndByte 0
-      WriteSndDelta 4 //16
-      WriteSndByte 0x80 + lngWriteTrack
-      WriteSndByte 60
-      WriteSndByte 0
-
-      //write end of track data
-      WriteSndDelta 0
-      WriteSndByte 0xFF
-      WriteSndByte 0x2F
-      WriteSndByte 0x0
-      //save ending position
-      lngEnd = lngPos
-      //go back to start of track, and write track length
-      lngPos = lngStart
-      WriteSndLong (lngEnd - lngStart) - 4
-      lngPos = lngEnd
-      //increment track counter
-      lngWriteTrack = lngWriteTrack + 1
-    Next i
-  }
-
-  //remove any extra padding from the data array (-1?)
-  //////  Array.Resize(mMIDIData(lngPos)
-  Array.Resize(mMIDIData(lngPos - 1)
-  //return
-  BuildMIDI = mMIDIData()
-  //clear any errors
-  Err.Clear
-  End Function
-
-  Public Function BuildIIgsMIDI(SoundIn As AGISound, ByRef Length As Single) As Byte()
-
-  Dim i As Long, midiIn() As Byte, lngInPos As Long
-  Dim midiOut() As Byte, lngOutPos As Long
-  Dim lngTicks As Long
-  Dim bytIn As Byte, lngTime As Long, bytCmd As Byte, bytChannel As Byte
-
-
-  On Error GoTo ErrHandler
-
-  //it also counts max ticks, returning that so sound length
-  //can be calculated
-
-  //length value gets calculated by counting total number of ticks
-  //assumption is 60 ticks per second; nothing to indicate that is
-  //not correct; all sounds //sound// right, so we go with it
-
-  //builds a midi chunk based on apple IIgs sound format -
-  //the raw midi data embedded in the sound seems to play OK
-  //when using //high-end// players (WinAmp as an example) but not
-  //Windows Media Player, or the midi API functions; even in
-  //WinAmp, the total sound length (ticks and seconds) doesn//t
-  //calculate correctly, even though it plays
-
-  //this seems to be due to the prescence of the 0xFC commands
-  //it looks like every sound resource has them; sometimes
-  //one 0xFC ends the file; othertimes there are a series of
-  //them that are followed by a set of 0xDx and 0xBx commands
-  //that appear to reset all 16 channels
-
-  //eliminating the 0xFC command and everything that follows
-  //plays the sound correctly (I think)
-
-  //a common //null// file is one with just four 0xFC codes, and
-  //nothing else
-
-  //local copy of data -easier to manipulate
-  midiIn() = SoundIn.Resource.AllData
-
-  //start with size of input data, assuming it all gets used,
-  //plus space for headers and track end command
-  //   need 22 bytes for header
-  //   size of sound data, minus the two byte header
-  //   need to also add //end of track// event, which takes up 4 bytes
-  //   (adjust total by -1 because of arrays are 0-based)
-  new midiOut(23 + UBound(midiIn()))
-
-  // write header
-  midiOut(0) = 77 //"M"
-  midiOut(1) = 84 //"T"
-  midiOut(2) = 104 //"h"
-  midiOut(3) = 100 //"d"
-  //size of header, as a long
-  midiOut(4) = 0
-  midiOut(5) = 0
-  midiOut(6) = 0
-  midiOut(7) = 6
-  //mode, as an integer
-  midiOut(8) = 0
-  midiOut(9) = 1
-  //track count as integer
-  midiOut(10) = 0
-  midiOut(11) = 1
-  //write pulses per quarter note as integer
-  midiOut(12) = 0
-  midiOut(13) = 30
-  //track header
-  midiOut(14) = 77  //"M"
-  midiOut(15) = 84  //"T"
-  midiOut(16) = 114  //"r"
-  midiOut(17) = 107  //"k"
-  //size of track data (placeholder)
-  midiOut(18) = 0
-  midiOut(19) = 0
-  midiOut(20) = 0
-  midiOut(21) = 0
-
-  //null sounds will start with 0xFC in first four bytes
-  // (and nothing else), so ANY file starting with 0xFC
-  // is considered empty
-  if (midiIn(2) == 0xFC) {
-    //assume no sound
-    Array.Resize(midiOut(25)
-    midiOut(21) = 4
-    //add end of track data
-    midiOut(22) = 0
-    midiOut(23) = 0xFF
-    midiOut(24) = 0x2F
-    midiOut(25) = 0
-    Length = 0
-    BuildIIgsMIDI = midiOut()
-    Exit Function
-  }
-
-  //starting output pos
-  lngOutPos = 22
-
-  //move the data over, one byte at a time
-  lngInPos = 2
-  Do
-    //get next byte of input data
-    bytIn = midiIn(lngInPos)
-    //add it to output
-    midiOut(lngOutPos) = bytIn
-    lngOutPos = lngOutPos + 1
-
-    //time is always first input; it is supposed to be a delta value
-    //but it appears that agi used it as an absolute value; so if time
-    //is greater than 0x7F, it will cause a hiccup in modern midi
-    //players
-
-    lngTime = bytIn
-    if (bytIn && 0x80) {
-      //treat 0xFC as an end mark, even if found in time position
-      //0xF8 also appears to cause an end
-      if (bytIn == 0xFC || bytIn == 0xF8) {
-        //backup one to cancel this byte
-        lngOutPos = lngOutPos - 1
-        Exit Do
-      }
-
-      //convert into two-byte time value
-      Array.Resize(midiOut(UBound(midiOut()) + 1)
-      midiOut(lngOutPos - 1) = 129
-      midiOut(lngOutPos) = bytIn && 0x7F
-      lngOutPos = lngOutPos + 1
-
-      //ignore //normal// delta time calculations
-  //////      lngTime = (lngTime && 0x7F)
-  //////      Do
-  //////        lngTime = lngTime * 128
-  //////        lngInPos = lngInPos + 1
-  //////        //err check
-  //////        if (lngInPos > UBound(midiIn())) { Exit Do
-  //////        bytIn = midiIn(lngInPos)
-  //////
-  //////        //add it to output
-  //////        midiOut(lngOutPos) = bytIn
-  //////        lngOutPos = lngOutPos + 1
-  //////
-  //////        lngTime = lngTime + (bytIn && 0x7F)
-  //////      Loop While (bytIn && 0x80) = 0x80
-    }
-
-    lngInPos = lngInPos + 1
-    //err check
-    if (lngInPos > UBound(midiIn())) { Exit Do
-    bytIn = midiIn(lngInPos)
-
-    //next byte is a controller (>=0x80) OR a running status (<0x80)
-    if (bytIn >= 0x80) {
-      //it//s a command
-      bytCmd = bytIn \ 16
-      bytChannel = bytIn && 0xF
-      //commands:
-      //    0x8 = note off
-      //    0x9 = note on
-      //    0xA = polyphonic key pressure
-      //    0xB = control change (volume, pan, etc)
-      //    0xC = set patch (instrument)
-      //    0xD = channel pressure
-      //    0xE = pitch wheel change
-      //    0xF = system command
-      //
-      // all agi sounds appear to start with 0xC commands, then
-      // optionally 0xB commands, followed by 0x8/0x9s; VERY
-      // rarely 0xD command will show up
-      //
-      // 0xFC command seems to be the terminating code for agi
-      // sounds; so if encountered, immediately stop processing
-      // sometimes extra 0xD and 0xB commands follow a 0xFC,
-      // but they cause hiccups in modern midi programs
-      if (bytIn == 0xFC) {
-        //back up so last time value gets overwritten
-        lngOutPos = lngOutPos - 1
-        Exit Do
-      }
-
-      //assume any other 0xF command is OK;
-      //add it to output
-      midiOut(lngOutPos) = bytIn
-      lngOutPos = lngOutPos + 1
-
-    } else {
-      //it//s a running status -
-      //back up one so next byte is event data
-      lngInPos = lngInPos - 1
-    }
-
-    //increment tick count
-    lngTicks = lngTicks + lngTime
-
-    //next comes event data; number of data points depends on command
-    switch (bytCmd
-    case 8, 9, 0xA, 0xB, 0xE
-      //these all take two bytes of data
-      //get next byte
-      lngInPos = lngInPos + 1
-      //err check
-      if (lngInPos > UBound(midiIn())) { Exit Do
-      bytIn = midiIn(lngInPos)
-
-      //add it to output
-      midiOut(lngOutPos) = bytIn
-      lngOutPos = lngOutPos + 1
-
-      //get next byte
-      lngInPos = lngInPos + 1
-      //err check
-      if (lngInPos > UBound(midiIn())) { Exit Do
-      bytIn = midiIn(lngInPos)
-
-      //add it to output
-      midiOut(lngOutPos) = bytIn
-      lngOutPos = lngOutPos + 1
-
-    case 0xC, 0xD
-      //only one byte for program change, channel pressure
-      //get next byte
-      lngInPos = lngInPos + 1
-      //err check
-      if (lngInPos > UBound(midiIn())) { Exit Do
-      bytIn = midiIn(lngInPos)
-
-      //add it to output
-      midiOut(lngOutPos) = bytIn
-      lngOutPos = lngOutPos + 1
-
-    case 0xF //system messages
-      //depends on submsg (channel value) - only expected value is 0xC
-      switch (bytChannel
-      case 0
-        //////Debug.Assert false
-        //variable; go until 0xF7 found
-        Do
-          //get next byte
-          lngInPos = lngInPos + 1
-          //err check
-          if (lngInPos > UBound(midiIn())) { Exit Do
-          bytIn = midiIn(lngInPos)
-
+        lngInPos++;
+        //err check
+        if (lngInPos >= midiIn.Length)
+        {
+          break;
+        }
+        bytIn = midiIn[lngInPos];
+        //next byte is a controller (>=0x80) OR a running status (<0x80)
+        if (bytIn >= 0x80)
+        {
+          //it's a command
+          bytCmd = (byte)(bytIn / 16);
+          bytChannel = (byte)(bytIn & 0xF);
+          //commands:
+          //    0x8 = note off
+          //    0x9 = note on
+          //    0xA = polyphonic key pressure
+          //    0xB = control change (volume, pan, etc)
+          //    0xC = set patch (instrument)
+          //    0xD = channel pressure
+          //    0xE = pitch wheel change
+          //    0xF = system command
+          // all agi sounds appear to start with 0xC commands, then
+          // optionally 0xB commands, followed by 0x8/0x9s; VERY
+          // rarely 0xD command will show up
+          // 0xFC command seems to be the terminating code for agi
+          // sounds; so if encountered, immediately stop processing
+          // sometimes extra 0xD and 0xB commands follow a 0xFC,
+          // but they cause hiccups in modern midi programs
+          if (bytIn == 0xFC)
+          {
+            //back up so last time value gets overwritten
+            lngOutPos--;
+            break;
+          }
+          //assume any other 0xF command is OK;
           //add it to output
-          midiOut(lngOutPos) = bytIn
-          lngOutPos = lngOutPos + 1
-        Loop Until bytIn = 0xF7
-
-      case 1, 4, 5, 9, 0xD
-        //all undefined- indicates an error
-        //back up so last time value gets overwritten
-        lngOutPos = lngOutPos - 1
-        Exit Do
-
-      case 2 //song position
-        //this uses two bytes
-        //get next byte
-        lngInPos = lngInPos + 1
-        //err check
-        if (lngInPos > UBound(midiIn())) { Exit Do
-        bytIn = midiIn(lngInPos)
-
-        //add it to output
-        midiOut(lngOutPos) = bytIn
-        lngOutPos = lngOutPos + 1
-
-        //get next byte
-        lngInPos = lngInPos + 1
-        //err check
-        if (lngInPos > UBound(midiIn())) { Exit Do
-        bytIn = midiIn(lngInPos)
-
-        //add it to output
-        midiOut(lngOutPos) = bytIn
-        lngOutPos = lngOutPos + 1
-
-      case 3 //song select
-        //this uses one byte
-        //get next byte
-        lngInPos = lngInPos + 1
-        //err check
-        if (lngInPos > UBound(midiIn())) { Exit Do
-        bytIn = midiIn(lngInPos)
-
-        //add it to output
-        midiOut(lngOutPos) = bytIn
-        lngOutPos = lngOutPos + 1
-
-      case 6, 7, 8, 0xA, 0xB, 0xE, 0xF
-        //these all have no bytes of data
-        // but only 0xFC is expected; it gets
-        // checked above, though, so it doesn//t
-        // get checked here
+          midiOut[lngOutPos] = bytIn;
+          lngOutPos++;
+        }
+        else
+        {
+          //it's a running status -
+          //back up one so next byte is event data
+          lngInPos--;
+        }
+        //increment tick count
+        lngTicks = lngTicks + lngTime;
+        //next comes event data; number of data points depends on command
+        switch (bytCmd)
+        {
+          case 8:
+          case 9:
+          case 0xA:
+          case 0xB:
+          case 0xE:
+            //these all take two bytes of data
+            //get next byte
+            lngInPos++;
+            //err check
+            if (lngInPos >= midiIn.Length)
+            {
+              break;
+            }
+            bytIn = midiIn[lngInPos];
+            //add it to output
+            midiOut[lngOutPos] = bytIn;
+            lngOutPos++;
+            //get next byte
+            lngInPos++;
+            //err check
+            if (lngInPos >= midiIn.Length)
+            {
+              break;
+            }
+            bytIn = midiIn[lngInPos];
+            //add it to output
+            midiOut[lngOutPos] = bytIn;
+            lngOutPos++;
+            break;
+          case 0xC:
+          case 0xD:
+            //only one byte for program change, channel pressure
+            //get next byte
+            lngInPos++;
+            //err check
+            if (lngInPos >= midiIn.Length)
+            {
+              break;
+            }
+            bytIn = midiIn[lngInPos];
+            //add it to output
+            midiOut[lngOutPos] = bytIn;
+            lngOutPos++;
+            break;
+          case 0xF: //system messages
+                    //depends on submsg (channel value) - only expected value is 0xC
+            switch (bytChannel)
+            {
+              case 0:
+                //variable; go until 0xF7 found
+                do
+                {
+                  //get next byte
+                  lngInPos++;
+                  //err check
+                  if (lngInPos >= midiIn.Length)
+                  {
+                    break;
+                  }
+                  bytIn = midiIn[lngInPos];
+                  //add it to output
+                  midiOut[lngOutPos] = bytIn;
+                  lngOutPos++;
+                }
+                while (bytIn != 0xF7);
+                break;
+              case 1:
+              case 4:
+              case 5:
+              case 9:
+              case 0xD:
+                //all undefined- indicates an error
+                //back up so last time value gets overwritten
+                lngOutPos--;
+                break;
+              case 2: //song position
+                //this uses two bytes
+                //get next byte
+                lngInPos++;
+                //err check
+                if (lngInPos >= midiIn.Length)
+                {
+                  break;
+                }
+                bytIn = midiIn[lngInPos];
+                //add it to output
+                midiOut[lngOutPos] = bytIn;
+                lngOutPos++;
+                //get next byte
+                lngInPos++;
+                //err check
+                if (lngInPos >= midiIn.Length)
+                {
+                  break;
+                }
+                bytIn = midiIn[lngInPos];
+                //add it to output
+                midiOut[lngOutPos] = bytIn;
+                lngOutPos++;
+                break;
+              case 3: //song select
+                //this uses one byte
+                //get next byte
+                lngInPos++;
+                //err check
+                if (lngInPos >= midiIn.Length)
+                {
+                  break;
+                }
+                bytIn = midiIn[lngInPos];
+                //add it to output
+                midiOut[lngOutPos] = bytIn;
+                lngOutPos++;
+                break;
+              case 6:
+              case 7:
+              case 8:
+              case 0xA:
+              case 0xB:
+              case 0xE:
+              case 0xF:
+                //these all have no bytes of data
+                // but only 0xFC is expected; it gets
+                // checked above, though, so it doesn't
+                // get checked here
+                break;
+            }
+            break;
+        }
+        //move to next byte (which should be another time value)
+        lngInPos++;
       }
+      while (lngInPos < midiIn.Length); //Loop Until lngInPos >= midiIn.Length
+
+      //resize output array to remove any extra potential bytes
+      if (lngOutPos + 4 < midiOut.Length)
+      {
+        Array.Resize(ref midiOut, lngOutPos + 4);
+      }
+      //add end of track data
+      midiOut[lngOutPos] = 0;
+      midiOut[lngOutPos + 1] = 0xFF;
+      midiOut[lngOutPos + 2] = 0x2F;
+      midiOut[lngOutPos + 3] = 0;
+      lngOutPos = lngOutPos + 4;
+      //update size of track data (total length - 22)
+      midiOut[18] = (byte)(((lngOutPos - 22) / 0x1000000) & 0xFF);
+      midiOut[19] = (byte)(((lngOutPos - 22) / 0x10000) & 0xFF);
+      midiOut[20] = (byte)(((lngOutPos - 22) / 0x100) & 0xFF);
+      midiOut[21] = (byte)((lngOutPos - 22) & 0xFF);
+      //(convert ticks seconds)
+      Length = lngTicks / 60;
+      return midiOut;
     }
-
-    //move to next byte (which should be another time value)
-    lngInPos = lngInPos + 1
-  Loop Until lngInPos > UBound(midiIn())
-
-  //resize output array to remove correct size
-  if (lngOutPos + 3 != UBound(midiOut())) {
-    Array.Resize(midiOut(lngOutPos + 3)
-  }
-
-  //add end of track data
-  midiOut(lngOutPos) = 0
-  midiOut(lngOutPos + 1) = 0xFF
-  midiOut(lngOutPos + 2) = 0x2F
-  midiOut(lngOutPos + 3) = 0
-  lngOutPos = lngOutPos + 4
-
-  //update size of track data (total length - 22)
-  midiOut(18) = (lngOutPos - 22) \ 0x1000000 && 0xFF
-  midiOut(19) = (lngOutPos - 22) \ 0x10000 && 0xFF
-  midiOut(20) = (lngOutPos - 22) \ 0x100& && 0xFF
-  midiOut(21) = (lngOutPos - 22) && 0xFF
-
-  //(convert ticks seconds)
-  Length = lngTicks / 60
-
-  BuildIIgsMIDI = midiOut()
-  Exit Function
-
-  ErrHandler:
-  //////Debug.Assert false
-  Resume Next
-  End Function
-
-  Public Function BuildIIgsPCM(SoundIn As AGISound) As Byte()
-
-  Dim i As Long, bData() As Byte
-  Dim lngSize As Long
-
-  On Error GoTo ErrHandler
-
-
-  //builds a wav file stream from an apple IIgs PCM sound resource
-
-  //Positions Sample Value  Description
-  //0 - 3 = "RIFF"  Marks the file as a riff file.
-  //4 - 7 = var File size (integer) Size of the overall file
-  //8 -11 = "WAVE"  File Type Header. for (our purposes, it always equals "WAVE".
-  //12-15 = "fmt "  Format chunk marker. Includes trailing space
-  //16-19 = 16  Length of format data as listed above
-  //20-21 = 1 Type of format (1 is PCM) - 2 byte integer
-  //22-23 = 1 Number of Channels - 2 byte integer
-  //24-27 = 8000 Sample Rate - 32 byte integer.
-  //28-31 = 8000  (Sample Rate * BitsPerSample * Channels) / 8.
-  //32-33 = 1 (BitsPerSample * Channels) / 8. 1 - 8 bit mono; 2 - 8 bit stereo/16 bit mono; 4 - 16 bit stereo
-  //34-35 = 8  Bits per sample
-  //36-39 "data"  "data" chunk header. Marks the beginning of the data section.
-  //40-43 = var  Size of the data section.
-  //44+    data
-
-  //local copy of data -easier to manipulate
-  bData() = SoundIn.Resource.AllData
-
-  //header is 54 bytes for pcm, but its purpose is still mostly
-  //unknown; the total size is at pos 8-9; the rest of the
-  //header appears identical across resources, with exception of
-  //position 2- it seems to vary from low thirties to upper 60s,
-  //maybe it//s a volume thing?
-
-  //all resources appear to end with a byte value of 0; not sure
-  //if it//s necessary for wav files, but we keep it anyway
-
-  //size of sound data is total file size, minus header (add one
-  //to account for zero based arrays)
-  lngSize = UBound(bData()) + 1 - 54
-
-  //expand midi data array to hold the sound resource data plus
-  //the WAV file header
-  new mMIDIData(43 + lngSize)
-
-  mMIDIData(0) = 82
-  mMIDIData(1) = 73
-  mMIDIData(2) = 70
-  mMIDIData(3) = 70
-  mMIDIData(4) = (lngSize + 36) && 0xFF
-  mMIDIData(5) = (lngSize + 36) \ 0x100& && 0xFF
-  mMIDIData(6) = (lngSize + 36) \ 0x10000 && 0xFF
-  mMIDIData(7) = (lngSize + 36) \ 0x1000000 && 0xFF
-  mMIDIData(8) = 87
-  mMIDIData(9) = 65
-  mMIDIData(10) = 86
-  mMIDIData(11) = 69
-  mMIDIData(12) = 102
-  mMIDIData(13) = 109
-  mMIDIData(14) = 116
-  mMIDIData(15) = 32
-  mMIDIData(16) = 16
-  mMIDIData(17) = 0
-  mMIDIData(18) = 0
-  mMIDIData(19) = 0
-  mMIDIData(20) = 1
-  mMIDIData(21) = 0
-  mMIDIData(22) = 1
-  mMIDIData(23) = 0
-  mMIDIData(24) = 64
-  mMIDIData(25) = 31
-  mMIDIData(26) = 0
-  mMIDIData(27) = 0
-  mMIDIData(28) = 64
-  mMIDIData(29) = 31
-  mMIDIData(30) = 0
-  mMIDIData(31) = 0
-  mMIDIData(32) = 1
-  mMIDIData(33) = 0
-  mMIDIData(34) = 8
-  mMIDIData(35) = 0
-  mMIDIData(36) = 100
-  mMIDIData(37) = 97
-  mMIDIData(38) = 116
-  mMIDIData(39) = 97
-  mMIDIData(40) = (lngSize - 2) && 0xFF
-  mMIDIData(41) = (lngSize - 2) \ 0x100& && 0xFF
-  mMIDIData(42) = (lngSize - 2) \ 0x10000 && 0xFF
-  mMIDIData(43) = (lngSize - 2) \ 0x1000000 && 0xFF
-  lngPos = 44
-  //copy data from sound resource, beginning at pos 2
-  for (i = 54 To UBound(bData())
-    //copy this one over
-    mMIDIData(lngPos) = bData(i)
-    lngPos = lngPos + 1
-  Next i
-
-  //return
-  BuildIIgsPCM = mMIDIData()
-  Exit Function
-
-  ErrHandler:
-  //////Debug.Assert false
-  Resume Next
-  End Function
-
-  Private Sub WriteSndDelta(ByVal LongIn As Long)
-  //writes variable delta times!!
-
-  Dim i As Long
-  i = LngSHR(LongIn, 21)
-  if ((i > 0)) {
-    WriteSndByte (i && 127) || 128
-  }
-
-  i = LngSHR(LongIn, 14)
-  if ((i > 0)) {
-    WriteSndByte (i && 127) || 128
-  }
-
-  i = LngSHR(LongIn, 7)
-  if ((i > 0)) {
-    WriteSndByte (i && 127) || 128
-  }
-
-  WriteSndByte LongIn && 127
-  End Sub
-
-  Private Sub WriteSndWord(ByVal IntegerIn As Integer)
-  WriteSndByte IntegerIn \ 256
-  WriteSndByte IntegerIn && 0xFF
-  End Sub
-
-  Private Sub WriteSndLong(ByVal LongIn As Long)
-
-  WriteSndByte LongIn \ 0x1000000
-  WriteSndByte (LongIn \ 0x10000) && 0xFF
-  WriteSndByte (LongIn \ 0x100) && 0xFF
-  WriteSndByte (LongIn) && 0xFF
-  End Sub
-
-  Private Function GetTrack3Freq(Track3 As AGITrack, ByVal lngTarget As Long) As Long
-  //if noise channel needs the frequency of track 3,
-  //must step through track three until the same point in time is found
-  //then use that frequency for noise channel
-
-  Dim i As Long, lngTickCount As Long
-
-  //step through notes in this track (5 bytes at a time)
-  for (i = 0 To Track3.Notes.Count - 1
-    //add duration
-    lngTickCount = lngTickCount + Track3.Notes(i).Duration
-    //if equal to or past current tick Count
-    if (lngTickCount >= lngTarget) {
-      //this is the frequency we want
-      GetTrack3Freq = Track3.Notes(i).FreqDivisor
-      Exit Function
+    internal static byte[] BuildIIgsPCM(AGISound SoundIn)
+    {
+      int i, lngSize;
+      byte[] bData;
+      //builds a wav file stream from an apple IIgs PCM sound resource
+      //Positions Sample Value  Description
+      //0 - 3 = "RIFF"  Marks the file as a riff file.
+      //4 - 7 = var File size (integer) Size of the overall file
+      //8 -11 = "WAVE"  File Type Header. for (our purposes, it always equals "WAVE".
+      //12-15 = "fmt "  Format chunk marker. Includes trailing space
+      //16-19 = 16  Length of format data as listed above
+      //20-21 = 1 Type of format (1 is PCM) - 2 byte integer
+      //22-23 = 1 Number of Channels - 2 byte integer
+      //24-27 = 8000 Sample Rate - 32 byte integer.
+      //28-31 = 8000  (Sample Rate * BitsPerSample * Channels) / 8.
+      //32-33 = 1 (BitsPerSample * Channels) / 8. 1 - 8 bit mono; 2 - 8 bit stereo/16 bit mono; 4 - 16 bit stereo
+      //34-35 = 8  Bits per sample
+      //36-39 "data"  "data" chunk header. Marks the beginning of the data section.
+      //40-43 = var  Size of the data section.
+      //44+    data
+      //local copy of data -easier to manipulate
+      bData = SoundIn.Data.AllData;
+      //header is 54 bytes for pcm sounds, but its purpose is still mostly
+      //unknown; the total size is at pos 8-9; the rest of the
+      //header appears identical across resources, with exception of
+      //position 2- it seems to vary from low thirties to upper 60s,
+      //(maybe it's a volume thing?)
+      //all resources appear to end with a byte value of 0; not sure
+      //if it's necessary for wav files, but we keep it anyway
+      //size of sound data is total file size, minus header 
+      lngSize = bData.Length - 54;
+      //expand midi data array to hold the sound resource data plus
+      //the WAV file header
+      SndPlayer.mMIDIData = new byte[44 + lngSize];
+      SndPlayer.mMIDIData[0] = 82;
+     SndPlayer.mMIDIData[1] = 73;
+      SndPlayer.mMIDIData[2] = 70;
+      SndPlayer.mMIDIData[3] = 70;
+      SndPlayer.mMIDIData[4] = (byte)((lngSize + 36) & 0xFF);
+      SndPlayer.mMIDIData[5] = (byte)(((lngSize + 36) / 0x100) & 0xFF);
+      SndPlayer.mMIDIData[6] = (byte)(((lngSize + 36) / 0x10000) & 0xFF);
+      SndPlayer.mMIDIData[7] = (byte)(((lngSize + 36) / 0x1000000) & 0xFF);
+      SndPlayer.mMIDIData[8] = 87;
+      SndPlayer.mMIDIData[9] = 65;
+      SndPlayer.mMIDIData[10] = 86;
+      SndPlayer.mMIDIData[11] = 69;
+      SndPlayer.mMIDIData[12] = 102;
+      SndPlayer.mMIDIData[13] = 109;
+      SndPlayer.mMIDIData[14] = 116;
+      SndPlayer.mMIDIData[15] = 32;
+      SndPlayer.mMIDIData[16] = 16;
+      SndPlayer.mMIDIData[17] = 0;
+      SndPlayer.mMIDIData[18] = 0;
+      SndPlayer.mMIDIData[19] = 0;
+      SndPlayer.mMIDIData[20] = 1;
+      SndPlayer.mMIDIData[21] = 0;
+      SndPlayer.mMIDIData[22] = 1;
+      SndPlayer.mMIDIData[23] = 0;
+      SndPlayer.mMIDIData[24] = 64;
+      SndPlayer.mMIDIData[25] = 31;
+      SndPlayer.mMIDIData[26] = 0;
+      SndPlayer.mMIDIData[27] = 0;
+      SndPlayer.mMIDIData[28] = 64;
+      SndPlayer.mMIDIData[29] = 31;
+      SndPlayer.mMIDIData[30] = 0;
+      SndPlayer.mMIDIData[31] = 0;
+      SndPlayer.mMIDIData[32] = 1;
+      SndPlayer.mMIDIData[33] = 0;
+      SndPlayer.mMIDIData[34] = 8;
+      SndPlayer.mMIDIData[35] = 0;
+      SndPlayer.mMIDIData[36] = 100;
+      SndPlayer.mMIDIData[37] = 97;
+      SndPlayer.mMIDIData[38] = 116;
+      SndPlayer.mMIDIData[39] = 97;
+      SndPlayer.mMIDIData[40] = (byte)((lngSize - 2) & 0xFF);
+      SndPlayer.mMIDIData[41] = (byte)(((lngSize - 2) / 0x100) & 0xFF);
+      SndPlayer.mMIDIData[42] = (byte)(((lngSize - 2) / 0x10000) & 0xFF);
+      SndPlayer.mMIDIData[43] = (byte)(((lngSize - 2) / 0x1000000) & 0xFF);
+      lngPos = 44;
+      //copy data from sound resource, beginning at pos 2
+      for (i = 54; i < bData.Length; i++)
+      {
+        //copy this one over
+        SndPlayer.mMIDIData[lngPos] = bData[i];
+        lngPos++;
+      }
+      return SndPlayer.mMIDIData;
     }
-  Next i
-
-  //if nothing found, return 0
-
-  End Function
-
-
-  Private Sub WriteSndByte(ByVal ByteIn As Byte)
-  //Put intFile, , ByteIn
-  mMIDIData(lngPos) = ByteIn
-  lngPos = lngPos + 1
-  //if at end
-  if (lngPos > UBound(mMIDIData)) {
-    //jack it up
-    Array.Resize(mMIDIData(lngPos + 256)
-  }
-  End Sub
-
-  Public Function SndSubclassProc(ByVal hWnd As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
-
-  Dim blnSuccess As Boolean
-  Dim rtn As Long
-
-  On Error Resume Next
-
-  if (!blnPlaying && !frmSndSubclass.agSndToPlay Is Nothing) {
-    //set it to nothing
-    //////Debug.Print "shouldn//t be!"
-  }
-
-  //check for mci msg
-  switch (uMsg
-  case MM_MCINOTIFY
-    //determine success status
-    blnSuccess = (wParam = MCI_NOTIFY_SUCCESSFUL)
-
-    //close the sound
-    rtn = mciSendString("close all", 0&, 0&, 0&)
-
-    //raise the //done// event
-    frmSndSubclass.agSndToPlay.RaiseSoundComplete blnSuccess
-    //agSnds(PlaySndResNum).RaiseSoundComplete blnSuccess
-
-    //reset the flag
-    blnPlaying = false
-
-    //release the object
-    Set frmSndSubclass.agSndToPlay = Nothing
-  }
-
-  //pass back to previous function
-  SndSubclassProc = CallWindowProc(PrevSndWndProc, hWnd, uMsg, wParam, lParam)
-  End Function
-
-  Public Function UniqueResFile(ResType As AGIResType) As String
-
-  Dim intNo As Integer
-
-  On Error GoTo ErrHandler
-
-  Do
-    intNo = intNo + 1
-    UniqueResFile = agResDir & "New" & ResTypeName(ResType) & CStr(intNo) & ".ag" & Lcase$(Left(ResTypeName(ResType), 1))
-  Loop Until Dir(UniqueResFile) = vbNullString
-  Exit Function
-
-  ErrHandler:
-  //on off chance that user has too many files
-  Err.Clear
-  throw new Exception("vbObjectError, "ResourceFunctions.UniqueResFile", "Can//t save- max number of files exceeded in directory. NO WAY YOU HAVE THAT MANY FILES!!!!!"
-  End Function
-
-
-  */
+    internal static void WriteSndDelta(int LongIn)
+    {
+      //writes variable delta times!!
+      int i;
+      i = LongIn << 21; //LngSHR(LongIn, 21)
+      if ((i > 0))
+      {
+        WriteSndByte((byte)((i & 127) | 128));
+      }
+      i = LongIn << 14; //LngSHR(LongIn, 14)
+      if (i > 0)
+      {
+        WriteSndByte((byte)((i & 127) | 128));
+      }
+      i = LongIn << 7; //LngSHR(LongIn, 7)
+      if ((i > 0))
+      {
+        WriteSndByte((byte)((i & 127) | 128));
+      }
+      WriteSndByte((byte)(LongIn & 127));
+    }
+    internal static void WriteSndWord(int IntegerIn)
+    {
+      WriteSndByte((byte)(IntegerIn / 256));
+      WriteSndByte((byte)(IntegerIn & 0xFF));
+    }
+    internal static void WriteSndLong(int LongIn)
+    {
+      WriteSndByte((byte)(LongIn / 0x1000000));
+      WriteSndByte((byte)((LongIn / 0x10000) & 0xFF));
+      WriteSndByte((byte)((LongIn / 0x100) & 0xFF));
+      WriteSndByte((byte)(LongIn & 0xFF));
+    }
+    internal static int GetTrack3Freq(AGITrack Track3, int lngTarget)
+    {
+      //if noise channel needs the frequency of track 3,
+      //must step through track three until the same point in time is found
+      //then use that frequency for noise channel
+      int lngTickCount = 0;
+      //step through notes in this track (5 bytes at a time)
+      for (int i = 0; i < Track3.Notes.Count; i++)
+      {
+        //add duration
+        lngTickCount += Track3.Notes[i].Duration;
+        //if equal to or past current tick Count
+        if (lngTickCount >= lngTarget)
+        {
+          //this is the frequency we want
+          return Track3.Notes[i].FreqDivisor;
+        }
+      }
+      //if nothing found, return 0
+      return 0;
+    }
+    internal static void WriteSndByte(byte ByteIn)
+    {
+      SndPlayer.mMIDIData[lngPos] = ByteIn;
+      lngPos = lngPos + 1;
+      //if at end
+      if (lngPos >= SndPlayer.mMIDIData.Length)
+      {
+        //jack it up
+        Array.Resize(ref SndPlayer.mMIDIData, lngPos + 256);
+      }
     }
     internal static bool IsUniqueResID(string checkID)
     {
       // check all resids
       foreach (AGIResource tmpRes in agLogs.Col.Values)
       {
-        if (tmpRes.ID.Equals(checkID,StringComparison.OrdinalIgnoreCase))
+        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase))
         {
           return false;
         }
@@ -1793,6 +1723,110 @@ namespace WinAGI
       }
       // not found; must be unique
       return true;
+    }
+    internal static string UniqueResFile(AGIResType ResType)
+    {
+      int intNo = 0;
+      string retval;
+      do
+      {
+        intNo++;
+        retval = agResDir + "New" + ResTypeName[(int)ResType] + intNo + ".ag" + ResTypeName[(int)ResType][0];
+      }
+      while (File.Exists(retval));// Until Dir(UniqueResFile) = ""
+      return retval;
+    }
+  }
+  internal class AudioPlayer : NativeWindow, IDisposable
+  {
+    IntPtr piFormHandle = IntPtr.Zero;
+    internal bool blnPlaying;
+    internal byte PlaySndResNum;
+    internal AGISound agSndToPlay;
+    internal byte[] mMIDIData;
+    internal AudioPlayer()
+    {
+      CreateParams cpSndPlayer = new CreateParams
+      {
+        //Style = 1
+      };
+      this.CreateHandle(cpSndPlayer);
+      piFormHandle = this.Handle;
+    }
+    internal void PlaySound(AGISound SndRes)
+    {
+      string strTempFile, strShortFile;
+      int rtn;
+      string strID, strMode;
+      StringBuilder strError = new StringBuilder(255);
+      //no spaces allowed in id
+      strID = SndRes.ID.Replace(" ", "_");
+      //create MIDI sound file
+      strTempFile = Path.GetTempFileName();
+      FileStream fsMidi = new FileStream(strTempFile, FileMode.Open);
+      fsMidi.Write(SndRes.MIDIData);
+      fsMidi.Dispose();
+      //convert to shortname
+      strShortFile = ShortFileName(strTempFile);
+      //if midi (format 1 or 3)
+      if (SndRes.SndFormat == 1 || SndRes.SndFormat == 3)
+      {
+        strMode = "sequencer";
+      }
+      else
+      {
+        strMode = "waveaudio";
+      }
+      //open midi file and assign alias
+      rtn = mciSendString("open " + strShortFile + " type " + strMode + " alias " + strID, null, 0, IntPtr.Zero);
+      //check for error
+      if (rtn != 0)
+      {
+        rtn = mciGetErrorString(rtn, strError, 255);
+        //return the error
+        throw new Exception("678, SndSubclass " + strError.ToString());
+      }
+      //set playing flag and number of sound being played
+      blnPlaying = true;
+      PlaySndResNum = SndRes.Number;
+      agSndToPlay = SndRes;
+      //play the file
+      rtn = mciSendString("play " + strID + " notify", null, 0, this.Handle);
+      //check for errors
+      if (rtn != 0)
+      {
+        rtn = mciGetErrorString(rtn, strError, 255);
+        //reset playing flag
+        blnPlaying = false;
+        agSndToPlay = null;
+        //close sound
+        rtn = mciSendString("close all", null, 0, (IntPtr)0);
+        //return the error
+        throw new Exception("628, SndSubclass " + strError.ToString());
+      }
+    }
+    public void Dispose()
+    {
+      this.DestroyHandle();
+    }
+    protected override void WndProc(ref Message m)
+    {
+      bool blnSuccess;
+      //check for mci msg
+      switch (m.Msg)
+      {
+        case MM_MCINOTIFY:
+          //determine success status
+          blnSuccess = m.WParam.ToInt32() == MCI_NOTIFY_SUCCESSFUL;
+          //close the sound
+          _ = mciSendString("close all", null, 0, (IntPtr)null);
+          //raise the 'done' event
+          agSnds[PlaySndResNum].Raise_SoundCompleteEvent(blnSuccess);
+          //reset the flag
+          blnPlaying = false;
+          break;
+      }
+      base.WndProc(ref m);
     }
   }
 }

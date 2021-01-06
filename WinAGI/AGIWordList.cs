@@ -100,7 +100,7 @@ namespace WinAGI
       string strOutput
   
       //if no name
-      if (CompileFile.Length = 0) {
+      if (CompileFile.Length == 0) {
         On Error GoTo 0
         //raise error
         throw new Exception("615, strErrSource, LoadResString(615)");
@@ -119,7 +119,7 @@ namespace WinAGI
   
       //step through all groups
       for (j = 0; j < GroupCount; j++) {
-        Set tmpGroup = Me.Group(j)
+        tmpGroup = Me.Group(j)
         //if this group has at least one word
         if (tmpGroup.WordCount > 0) {
           //add group number to output line
@@ -137,7 +137,7 @@ namespace WinAGI
       } //nxt  j
   
       //if there is a description
-      if (mDescription.Length <> 0) {
+      if (mDescription.Length != 0) {
         //print eof marker
         Print #intFile, Chr$(255) + Chr$(255)
         //print description
@@ -290,7 +290,7 @@ namespace WinAGI
           lngPos++;
           //continue until last character (indicated by flag) or endofresource is reached
         }
-        while ((bytVal < 0x80) && (lngPos < bytData.Length)); // Loop Until (bytVal >= 0x80) Or lngPos > UBound(bytData)
+        while ((bytVal < 0x80) && (lngPos < bytData.Length)); // Loop Until (bytVal >= 0x80) || lngPos > UBound(bytData)
         //if end of file is reached before 0x80,
         if (lngPos >= bytData.Length)
         {

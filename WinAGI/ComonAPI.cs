@@ -101,8 +101,11 @@ namespace WinAGI
     internal const int TRANSCOPY = 0xB8074A;
 
     //api//s for bitmap creation/manipulation
-    //[DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    [DllImport("kernel32.dll")]
+    [DllImport("Winmm.dll", SetLastError = true)]
+    internal static extern int mciSendString(string lpszCommand, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn, IntPtr hwndCallback);
+    [DllImport("Winmm.dll", SetLastError = true)]
+    internal static extern int mciGetErrorString(int errNum, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn);
+    [DllImport("gdi32.dll")]
     internal static extern int GetTickCount();
     [DllImport("gdi32.dll")]
     internal static extern int BitBlt(int hDestDC, int X, int Y, int nWidth, int nHeight, int hSrcDC, int xSrc, int ySrc, int dwRop);
@@ -136,20 +139,22 @@ namespace WinAGI
     [ResourceExposure(ResourceScope.None)]
     internal static extern void CopyMemory(HandleRef destData, HandleRef srcData, int size);
 
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern int GetShortPathName(string pathName, StringBuilder shortName, int cbShortName);
 
     [DllImport("gdi32.dll")]
     internal static extern int SetBkColor(int hDC, int crColor);
-  ////api//s for file stuff
-  //internal static extern int GetTempPath Lib "kernel32" Alias "GetTempPathA" (ByVal nBufferLength As Long, ByVal lpBuffer As String) As Long
-  //internal static extern int GetTempFileName Lib "kernel32" Alias "GetTempFileNameA" (ByVal lpszPath As String, ByVal lpPrefixString As String, ByVal wUnique As Long, ByVal lpTempFileName As String) As Long
-  //internal static extern int GetShortPathName Lib "kernel32" Alias "GetShortPathNameA" (ByVal lpszLongPath As String, ByVal lpszShortPath As String, ByVal cchBuffer As Long) As Long
-  //internal static extern int GetFileAttributesEx Lib "kernel32" Alias "GetFileAttributesExA" (ByVal FileName As String, ByVal InfoLevel As GET_FILEEX_INFO_LEVELS, FileInfo As W32FileAttributeData) As Long
-  //internal static extern int FileTimeToSystemTime Lib "kernel32" (inFT As FileTime, outST As SystemTime) As Long
-  ////api for extchar manipulations
-  //internal static extern int WideCharToMultiByte Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, ByVal lpWideCharStr As String, ByVal cchWideChar As Long, ByVal lpMultiByteStr As String, ByVal cbMultiByte As Long, ByVal lpDefaultChar As String, ByRef lpUsedDefaultChar As Long) As Long
-  //internal static extern int MultiByteToWideChar Lib "kernel32" (ByVal CodePage As Long, ByVal dwFlags As Long, lpMultiByteStr As String, ByVal cbMultiByte As Long, lpWideCharStr As String, cchWideChar As Long) As Long
-  //Private intExtChar(127) As Integer
-  static void tmpCommon()
+    internal static Array ResizeArray(Array arr, int[] newSizes)
+    {
+      if (newSizes.Length != arr.Rank)
+        throw new ArgumentException("arr must have the same number of dimensions " +
+                                    "as there are elements in newSizes", "newSizes");
+      var temp = Array.CreateInstance(arr.GetType().GetElementType(), newSizes);
+      int length = arr.Length <= temp.Length ? arr.Length : temp.Length;
+      Array.ConstrainedCopy(arr, 0, temp, 0, length);
+      return temp;
+    }
+    static void tmpCommon()
     {
       /*
 Option Explicit
@@ -191,7 +196,7 @@ internal bool IsTokenChar(int intChar, bool Quotes = false)
 return
 
 ErrHandler:
-  //////Debug.Assert false
+  //Debug.Assert false
   Resume Next
 }
 
@@ -283,7 +288,7 @@ internal string StripComments(string strLine, ref string strComment, bool NoTrim
 return
 
 ErrHandler:
-  //////Debug.Assert false
+  //Debug.Assert false
   Resume Next
 }
 
@@ -347,7 +352,7 @@ internal bool IsValidMsg(string MsgText)
 return
 
 ErrHandler:
-  //////Debug.Assert false
+  //Debug.Assert false
   Resume Next
 }
 
@@ -384,7 +389,7 @@ internal bool IsValidQuote(string strText, int QPos)
 return
 
 ErrHandler:
-  //////Debug.Assert false
+  //Debug.Assert false
   Resume Next
 */
     }
@@ -400,7 +405,7 @@ ErrHandler:
       DirectoryInfo[] dirs = dir.GetDirectories();
       try
       {
-        // If the destination directory doesn't exist, create it.       
+        // if (the destination directory doesn't exist, create it.       
         Directory.CreateDirectory(destDirName);
         // Get the files in the directory and copy them to the new location.
         FileInfo[] files = dir.GetFiles();
@@ -409,7 +414,7 @@ ErrHandler:
           string tempPath = Path.Combine(destDirName, file.Name);
           file.CopyTo(tempPath, false);
         }
-        // If copying subdirectories, copy them and their contents to new location.
+        // if (copying subdirectories, copy them and their contents to new location.
         if (copySubDirs)
         {
           foreach (DirectoryInfo subdir in dirs)
@@ -493,11 +498,6 @@ return
 ErrHandler:
 
 }
-internal double Log10(double X)
-{  On Error Resume Next
-  Log10 = Log(X) / Log(10#)
-}
-
 internal byte AGIVal(int IntIn)
 {  
     switch (IntIn
@@ -544,7 +544,7 @@ internal string CompactPath(string LongPath, int MaxLength = 40)
   }
   
   //if not a valid path (i.e.doesn//t start with a drive letter, and a colon and a backslash
-  if (AscW(LongPath.toLower()) < 97 Or AscW(LongPath.ToLower()) > 122 Or Mid(LongPath, 2, 1) != ":" Or Mid(LongPath, 3, 1) != "\\") {
+  if (AscW(LongPath.toLower()) < 97 || AscW(LongPath.ToLower()) > 122 || Mid(LongPath, 2, 1) != ":" || Mid(LongPath, 3, 1) != "\\") {
     //return truncated path
     CompactPath = Left(LongPath, MaxLength - 3) + "..."
     return
@@ -622,7 +622,7 @@ internal string CompactPath(string LongPath, int MaxLength = 40)
 return
 
 ErrHandler:
-  //////Debug.Assert false
+  //Debug.Assert false
   //just return string, truncated
   CompactPath = Left(LongPath, MaxLength - 3) + "..."
 }
@@ -748,43 +748,46 @@ internal int FindWholeWord(int lngStartPos, string strText, string strFind, _
 return
 
 ErrHandler:
-  //////Debug.Assert false
+  //Debug.Assert false
   Resume Next
 }
 
-internal string ShortFileName(string strLongFileName)
-{
-  //returns the short filename of a file
-  //to make it compatible with DOS programs
-  
-  int rtn
-  int lngStrLen
-  string strTemp
-  
-  //get size of required buffer
-  lngStrLen = GetShortPathName(strLongFileName, strTemp, 0)
-  strTemp = new String((char)0, lngStrLen);
-  
-  //now get path
-  rtn = GetShortPathName(strLongFileName, strTemp, lngStrLen)
-  
-  //if error
-  if (lngStrLen == 0) {
-    //raise error
-    On Error GoTo 0: On Error GoTo 0: Err.Raise 53
-    return
-  }
-  
-  //strip off null char
-  ShortFileName = Left(strTemp, strTemp.Length - 1)
-  
-}
 
 internal int vClng(double InputNum)
 {  
   vClng = Int(InputNum) + CLng(InputNum - Int(InputNum) + 1) - 1
 }
       */
+    }
+    internal static string ShortFileName(string strLongFileName)
+    {
+      //returns the short filename of a file
+      //to make it compatible with DOS programs
+      int rtn;
+      int lngStrLen;
+      StringBuilder strTemp = new StringBuilder(0);
+      try
+      {
+        //get size of required buffer
+        lngStrLen = GetShortPathName(strLongFileName, strTemp, 0);
+        strTemp = new StringBuilder((char)0, lngStrLen);
+        //now get path
+        rtn = GetShortPathName(strLongFileName, strTemp, lngStrLen);
+        //if error
+        if (lngStrLen == 0)
+        {
+          //ignore error
+          return "";
+        }
+        ////strip off null char
+        //strTemp = Left(strTemp, strTemp.Length - 1);
+        return strTemp.ToString();
+      }
+      catch (Exception)
+      {
+        //ignore errors
+        return "";
+      }
     }
   }
 }

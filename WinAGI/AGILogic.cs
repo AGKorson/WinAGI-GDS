@@ -52,8 +52,7 @@ namespace WinAGI
       catch (Exception)
       {
         // pass it along
-        //throw;
-        //>???? how to break, but still keep going after fixing error????
+        throw;
       }
 
       //compiledCRC Value should already be set,
@@ -76,10 +75,13 @@ namespace WinAGI
       base.PropertyChanged += ResPropChange;
       strErrSource = "WinAGI.Logic";
       //set default resource data
-      Data = new RData(6)
-      {
-        AllData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x02, 0x00 }
-      };
+      mRData = new RData(0);
+      mRData.AllData = new byte[] { 0x01, 0x00, 0x00, 0x00 };
+        // byte0 = low byte of msg section offset (relative to byte 2)
+        // byte1 = high byte of msg section offset
+        // byte2 = first byte of code data (a single return)
+        // byte3 = first byte of msg section = # of messages
+      
       // set default source
       mSourceText = agCmds[0].Name + "();" + NEWLINE + NEWLINE + "[ messages";
       //to avoid having compile property read true if both values are 0, set compiled to -1 on initialization
@@ -132,10 +134,7 @@ namespace WinAGI
       //copies logic data from CopyLogic into this logic
       base.SetRes(CopyLogic);
       //add WinAGI items
-      mResID = CopyLogic.ID;
-      mDescription = CopyLogic.Description;
       mIsRoom = CopyLogic.IsRoom;
-
       //if NOT loaded, need to load if ingame to get source text
       bool blnLoaded = Loaded;
       if (!blnLoaded)
@@ -148,9 +147,6 @@ namespace WinAGI
       mSourceText = CopyLogic.SourceText;
       mSourceDirty = CopyLogic.SourceDirty;
       mSourceFile = CopyLogic.SourceFile;
-      //copy dirty flag and writeprop flag
-      mIsDirty = CopyLogic.IsDirty;
-      WritePropState = CopyLogic.WritePropState;
 
       //unload if wasn't loaded earlier
       if (!blnLoaded)
@@ -269,7 +265,7 @@ namespace WinAGI
             {
               //presumably due to decompiling error;
               //return value of false?
-              ////Debug.Assert False
+              ////Debug.Throw exception
               Unload();
               return false;
             }
@@ -310,9 +306,7 @@ namespace WinAGI
         mCRC = CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(mSourceText));
         mCompiledCRC = mCRC;
       }
-
-      //note change by marking resource as dirty
-      IsDirty = true;
+      //note change by marking source as dirty
       mSourceDirty = true;
     }
     public void Export(string ExportFile, bool ResetDirty)
@@ -665,9 +659,6 @@ namespace WinAGI
       //if Save method is called for a resource NOT in a game,
       //it calls the SaveSource method automatically
 
-      int i;
-      string tmpVal;
-
       //if properties need to be written
       if (WritePropState && mInGame) 
       {
@@ -676,8 +667,8 @@ namespace WinAGI
       //if not loaded
       if (!mLoaded)
       {
-        //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+        //nothing to do
+        return;
       }
       //if in a game
       if (mInGame)

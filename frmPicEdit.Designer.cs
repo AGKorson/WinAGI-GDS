@@ -43,6 +43,7 @@ namespace WinAGI_GDS
       this.picVisual.Size = new System.Drawing.Size(1189, 717);
       this.picVisual.TabIndex = 0;
       this.picVisual.TabStop = false;
+      this.picVisual.Click += new System.EventHandler(this.picVisual_Click);
       // 
       // trackBar1
       // 

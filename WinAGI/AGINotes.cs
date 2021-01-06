@@ -6,189 +6,104 @@ using System.Threading.Tasks;
 
 namespace WinAGI
 {
-  class AGINotes
+  public class AGINotes
   {
-    void tmpNotes()
+    //local variable to hold collection
+    List<AGINote> mCol = new List<AGINote>();
+    AGISound mParent;
+    AGITrack mTParent;
+    string strErrSource;
+    public AGINote this[int index]
+    { 
+      get 
+      { // validate
+        //validate
+        if (index < 0 || index > mCol.Count - 1)
+        {
+          throw new Exception("index out of bounds");
+        }
+        return mCol[index]; 
+      } 
+    }
+    public void Clear()
     {
-      /*
-Option Explicit
+      //clear by setting collection to nothing
+      mCol = new List<AGINote>();
 
-'local variable to hold collection
-Private mCol As Collection
-
-Private mParent As AGISound
-Private mTParent As AGITrack
-
-Private strErrSource As String
-
-Public Sub Clear()
-
-  'clear by setting collection to nothing
-  Dim i As Long
-  
-  For i = mCol.Count To 1 Step -1
-    mCol.Remove i
-  Next i
-  
-  Set mCol = Nothing
-  Set mCol = New Collection
-  
-  'if parent is assigned
-  If Not mParent Is Nothing Then
-    'notify parent
-    mParent.NoteChanged
-    mTParent.SetLengthDirty
-  End If
-End Sub
-
-Public Function Add(ByVal FreqDivisor As Integer, ByVal Duration As Long, ByVal Attenuation As Integer, Optional ByVal InsertPos As Long = -1) As AGINote
-
-  Dim agNewNote As AGINote
-
-  On Error GoTo ErrHandler
-  
-  'NOTE: VB collections are '1' based;
-  'AGI objects are zero based; InsertPos is
-  'passed assuming zero-base, so it must
-  'be adjusted to conform to VB 1-base
-  InsertPos = InsertPos + 1
-  
-  'create a new object
-  Set agNewNote = New AGINote
-  
-  'set parent property
-  agNewNote.SetParent mParent, mTParent
-  
-  'set the properties passed into the method
-  agNewNote.FreqDivisor = FreqDivisor
-  agNewNote.Duration = Duration
-  agNewNote.Attenuation = Attenuation
-  
-  'if no position passed (or position is past end)
-  If InsertPos < 1 Or InsertPos > mCol.Count Then
-    'add it to end
-    mCol.Add agNewNote
-  Else
-    'add it before insert pos
-    mCol.Add agNewNote, , InsertPos
-  End If
-
-  'return the object created
-  Set Add = agNewNote
-  Set agNewNote = Nothing
-  
-  'if parent is assigned
-  If Not mParent Is Nothing Then
-    'notify parent
-    mParent.NoteChanged
-    mTParent.SetLengthDirty
-  End If
-Exit Function
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Function
-Public Property Get Item(ByVal Index As Long) As AGINote
-  
-  'NOTE: need to adjust index by one
-  'because VB collections are 1-based, but
-  'agi objects are zero based
-  
-  On Error GoTo ErrHandler
-  
-  'validate
-  If Index < 0 Then
-    On Error GoTo 0: Err.Raise 9, strErrSource, "Subscript out of range"
-    Exit Property
-  End If
-  If Index > mCol.Count - 1 Then
-    On Error GoTo 0: Err.Raise 9, strErrSource, "Subscript out of range"
-    Exit Property
-  End If
-  
-  Set Item = mCol(Index + 1)
-Exit Property
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Property
-Public Property Get Count() As Long
-    
-    Count = mCol.Count
-End Property
-
-
-Public Sub Remove(ByVal Index As Long)
-
-  'NOTE: need to adjust index by one
-  'because VB collections are 1-based, but
-  'agi objects are zero based
-  
-  On Error GoTo ErrHandler
-  
-  'validate
-  If Index < 0 Then
-    On Error GoTo 0: Err.Raise 9, strErrSource, "Subscript out of range"
-    Exit Sub
-  End If
-  
-  If Index > mCol.Count - 1 Then
-    On Error GoTo 0: Err.Raise 9, strErrSource, "Subscript out of range"
-    Exit Sub
-  End If
-  
-  mCol.Remove Index + 1
-  
-  'if parent is assigned
-  If Not mParent Is Nothing Then
-    'notify parent
-    mParent.NoteChanged
-    mTParent.SetLengthDirty
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-
-Public Property Get NewEnum() As IUnknown
-    
-    Set NewEnum = mCol.[_NewEnum]
-End Property
-
-
-Friend Sub SetParent(NewParent As AGISound, NewTrackParent As AGITrack)
-
-  Set mParent = NewParent
-  Set mTParent = NewTrackParent
-End Sub
-
-Private Sub Class_Initialize()
-    'creates the collection when this class is created
-    Set mCol = New Collection
-    
-    strErrSource = "AGINotes"
-End Sub
-
-
-Private Sub Class_Terminate()
-  
-  'destroys collection when this class is terminated
-  Dim i As Long
-  For i = mCol.Count To 1 Step -1
-    mCol.Remove i
-  Next i
-  Set mCol = Nothing
-    
-  'ensure parent is cleared
-  Set mParent = Nothing
-  Set mTParent = Nothing
-End Sub
-      */
+      //if parent is assigned
+      if (mParent != null)
+      {
+        //notify parent
+        mParent.NoteChanged();
+        mTParent.SetLengthDirty();
+      }
+    }
+    public AGINote Add(int FreqDivisor, int Duration, byte Attenuation, int InsertPos = -1)
+    {
+      AGINote agNewNote = new AGINote
+      {
+        FreqDivisor = FreqDivisor,
+        Duration = Duration,
+        Attenuation = Attenuation,
+        // copy parent objects, even if null
+        mSndParent = this.mParent,
+        mTrkParent = this.mTParent
+      };
+      //if no position passed (or position is past end)
+      if (InsertPos < 0 || InsertPos > mCol.Count - 1)
+      {
+        //add it to end
+        mCol.Add(agNewNote);
+      }
+      else
+      {
+        //add it before insert pos
+        mCol.Insert(InsertPos, agNewNote);
+      }
+      //if parent is assigned
+      if (mParent != null)
+      {
+        //notify parent
+        mParent.NoteChanged();
+        mTParent.SetLengthDirty();
+      }
+      //return the object created
+      return agNewNote;
+    }
+    public int Count
+    {
+      get
+      {
+        return mCol.Count;
+      }
+    }
+    public void Remove(int Index)
+    {
+      //validate
+      if (Index < 0 || Index > mCol.Count - 1)
+      {
+        throw new Exception("index out of bounds");
+      }
+      mCol.RemoveAt(Index);
+      //if parent is assigned
+      if (mParent != null)
+      {
+        //notify parent
+        mParent.NoteChanged();
+        mTParent.SetLengthDirty();
+      }
+    }
+    public AGINotes()
+    {    //creates the collection when this class is created
+      mCol = new List<AGINote>();
+      strErrSource = "AGINotes";
+    }
+    internal AGINotes(AGISound parent, AGITrack tparent)
+    {    //creates the collection when this class is created
+      mCol = new List<AGINote>();
+      mParent = parent;
+      mTParent = tparent; 
+      strErrSource = "AGINotes";
     }
   }
 }

@@ -215,23 +215,23 @@ namespace WinAGI
       /*
    'tie function to allow access to the LogCompile variable conversion function
 
-   Dim dtFileMod As Date
+   DateTime dtFileMod
 
    On Error Resume Next
    'if in a game
-   If agMainGame.GameLoaded Then
+   if (agMainGame.GameLoaded) {
      'initialize global defines
      'get datemodified property
-     dtFileMod = FileLastMod(agGameDir & "globals.txt")
-     If CRC32(StrConv(CStr(dtFileMod), vbFromUnicode)) <> agGlobalCRC Then
+     dtFileMod = FileLastMod(agGameDir + "globals.txt")
+     if (CRC32(StrConv(CStr(dtFileMod), vbFromUnicode)) != agGlobalCRC) {
        GetGlobalDefines
-     End If
+     }
 
      'if ids not set yet
-     If Not blnSetIDs Then
+     if (!blnSetIDs) {
        SetResourceIDs
-     End If
-   End If
+     }
+   }
 
    'convert argument
    ConvertArgument ArgIn, ArgType, VarOrNum

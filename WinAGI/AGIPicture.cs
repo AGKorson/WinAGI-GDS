@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
-using static WinAGI.AGILogicSourceSettings;
 using static WinAGI.AGICommands;
 using System.Runtime.InteropServices;
 using System.Drawing;
@@ -29,18 +28,6 @@ namespace WinAGI
                     //variables used for low level graphics handling
     Bitmap bmpVis;
     Bitmap bmpPri;
-
-    BitmapInfo biVis; 
-    BitmapInfo biPri; 
-
-    int hVisDIBSec;
-    int hPriDIBSec;
-
-    int lngVisAddr;
-    int lngPriAddr;
-
-    int hOldVisDIB;
-    int hOldPriDIB;
     public AGIPicture() : base(AGIResType.rtPicture, "NewPicture")
     {
       //initialize
@@ -48,26 +35,10 @@ namespace WinAGI
       base.PropertyChanged += ResPropChange;
       strErrSource = "WinAGI.Picture";
       //set default resource data
-      Data = new RData(1);
+      mRData = new RData(1);
       //create default picture with no commands
       mRData[0] = 0xff;
       //initialize the DIBSection headers
-      biVis.bmiHeader.biSize = 40;
-      biVis.bmiHeader.biWidth = 160;
-      biVis.bmiHeader.biHeight = -168; //negative cuz bitmaps normally go down to up; we build pics going up to down...
-      biVis.bmiHeader.biPlanes = 1;
-      biVis.bmiHeader.biBitCount = 8;
-      biVis.bmiHeader.biCompression = BI_RGB;
-      biVis.bmiHeader.biSizeImage = 26880;
-      biVis.bmiHeader.biClrUsed = 16; //need to define this because if set to undefined (0), files expect 2^8 entries
-      biPri.bmiHeader.biSize = 40;
-      biPri.bmiHeader.biWidth = 160;
-      biPri.bmiHeader.biHeight = -168;
-      biPri.bmiHeader.biPlanes = 1;
-      biPri.bmiHeader.biBitCount = 8;
-      biPri.bmiHeader.biCompression = BI_RGB;
-      biPri.bmiHeader.biSizeImage = 26880;
-      biPri.bmiHeader.biClrUsed = 16;
       //default to entire image
       mDrawPos = -1;
       //default pribase is 48
@@ -113,8 +84,6 @@ namespace WinAGI
       //add resource data
       base.SetRes(CopyPicture);
       //add WinAGI items
-      mResID = CopyPicture.ID;
-      mDescription = CopyPicture.Description;
       mBkImgFile = CopyPicture.BkgdImgFile;
       mBkShow = CopyPicture.BkgdShow;
       mBkTrans = CopyPicture.BkgdTrans;
@@ -134,9 +103,6 @@ namespace WinAGI
           // ignore errors
         }
       }
-      //copy dirty flag and writeprop flag
-      mIsDirty = CopyPicture.IsDirty;
-      WritePropState = CopyPicture.WritePropState;
     }
     public string BkgdImgFile
     { 
@@ -570,7 +536,7 @@ namespace WinAGI
         //move down to next row
         Y++;
       }
-      while (retval < AGIColors.agCyan && Y < 168);// Until PixelPriority >= 3 Or Y = 168
+      while (retval < AGIColors.agCyan && Y < 168);// Until PixelPriority >= 3 || Y = 168
       // if not valid
       if (retval < AGIColors.agCyan)
       {
@@ -647,8 +613,6 @@ namespace WinAGI
       mDrawPos = 1;
       //load pictures
       BuildPictures();
-      //set dirty flag
-      mIsDirty = true;
     }
     public override void Load()
     {
@@ -673,18 +637,14 @@ namespace WinAGI
         // pass along any error
         throw;
       }
-      // get other properties, if it's a game resource
-      if (InGame)
+      //load bkgd info, if there is such
+      mBkImgFile = ReadSettingString(agGameProps, "Picture" + Number, "BkgdImg", "");
+      if (mBkImgFile.Length != 0)
       {
-        //load bkgd info, if there is such
-        mBkImgFile = ReadSettingString(agGameProps, "Picture" + Number, "BkgdImg", "");
-        if (mBkImgFile.Length != 0)
-        {
-          mBkShow = ReadSettingBool(agGameProps, "Picture" + Number, "BkgdShow", false);
-          mBkTrans = ReadSettingLong(agGameProps, "Picture" + Number, "BkgdTrans", 0);
-          mBkPos = ReadSettingString(agGameProps, "Picture" + Number, "BkgdPosn", "");
-          mBkSize = ReadSettingString(agGameProps, "Picture" + Number, "BkgdSize", "");
-        }
+        mBkShow = ReadSettingBool(agGameProps, "Picture" + Number, "BkgdShow", false);
+        mBkTrans = ReadSettingLong(agGameProps, "Picture" + Number, "BkgdTrans", 0);
+        mBkPos = ReadSettingString(agGameProps, "Picture" + Number, "BkgdPosn", "");
+        mBkSize = ReadSettingString(agGameProps, "Picture" + Number, "BkgdSize", "");
       }
       try
       {
@@ -757,12 +717,12 @@ namespace WinAGI
     }
     public void Save()
     {
-      //saves the picture resource
-      string strPicKey = "";
       //if properties need to be written
-      if (WritePropState && mInGame) {
+      if (WritePropState && mInGame)
+      {
+        //saves the picture resource
         //save ID and description to ID file
-        strPicKey = "Picture" + Number;
+        string strPicKey = "Picture" + Number;
         WriteGameSetting(strPicKey, "ID", mResID, "Pictures");
         WriteGameSetting(strPicKey, "Description", mDescription);
         if (mPriBase != 48)
@@ -794,15 +754,15 @@ namespace WinAGI
         }
         WritePropState = false;
       }
+      //if not loaded
+      if (!Loaded)
+      {
+        //nothing to do
+        return;
+      }
       //if dirty
       if (mIsDirty)
       {
-        //if not loaded
-        if (!Loaded)
-        {
-          //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
-        }
         //(no picture-specific action needed, since changes in picture are
         //made directly to resource data)
         //use the base save method
@@ -928,25 +888,6 @@ namespace WinAGI
       bmpVis = null;
       bmpPri = null; 
       mPicBMPSet = false;
-    }
-    private void Class_Terminate()
-    {
-      /*
-       
-      what is the C# equivalent of class_terminate????
-       
-       */
-
-      //resources should be unloaded,
-      //but just in case,
-      //check in the termination section
-      //to do the unload operation
-      if (Loaded) {
-        //unload it
-        Unload();
-      }
-      bmpVis = null;
-      bmpPri = null;
     }
   }
 }

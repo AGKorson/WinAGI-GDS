@@ -213,26 +213,25 @@ namespace WinAGI
   'first line is version identifier
   'file description is saved at end of words
   
-  Dim strTempFile As String
-  Dim intFile As Integer
-  Dim tmpItem As AGIInventoryItem
+  string strTempFile
+  AGIInventoryItem tmpItem
   
   On Error GoTo ErrHandler
   
   'if no name
-  If LenB(CompileFile) == 0 Then
+  if (LenB(CompileFile) == 0) {
     On Error GoTo 0
     'raise error
-    On Error GoTo 0: Err.Raise vbObjectError + 615, strErrSource, LoadResString(615)
-    Exit Sub
-  End If
+    throw new Exception("615, strErrSource, LoadResString(615)
+    return;
+  }
   
   'get temporary file
   strTempFile = Path.GetTempFileName();
   
   'open file for output
   intFile = FreeFile()
-  Open strTempFile For Output As intFile
+  Open strTempFile output
   'print version
   Print #intFile, WINAGI_VERSION
   
@@ -241,26 +240,26 @@ namespace WinAGI
   
   'print item description and room for each object
   For Each tmpItem In Me
-    Print #intFile, tmpItem.ItemName & vbTab & CStr(tmpItem.Room)
+    Print #intFile, tmpItem.ItemName + vbTab + CStr(tmpItem.Room)
   Next
   
   'if there is a description
-  If LenB(mDescription) != 0 Then
+  if (LenB(mDescription) != 0) {
     'print eof marker
-    Print #intFile, Chr$(255) & Chr$(255)
+    Print #intFile, Chr$(255) + Chr$(255)
     'print description
     Print #intFile, mDescription
-  End If
+  }
   
   'close file
   Close intFile
   
   'if CompileFile exists
-  If FileExists(CompileFile) Then
+  if (FileExists(CompileFile)) {
     'delete it
     Kill CompileFile
     Err.Clear
-  End If
+  }
   
   'copy tempfile to CompileFile
   FileCopy strTempFile, CompileFile
@@ -270,13 +269,13 @@ namespace WinAGI
   Err.Clear
   
   'if not in a game,
-  If Not mInGame Then
+  if (!mInGame) {
     'change resfile
     mResFile = CompileFile
     'mark as clean
-    mIsDirty = False
-  End If
-Exit Sub
+    mIsDirty = false
+  }
+return;
 
 ErrHandler:
   'close file
@@ -285,8 +284,7 @@ ErrHandler:
   Kill CompileFile
   Err.Clear
   'return error condition
-  On Error GoTo 0: Err.Raise vbObjectError + 582, strErrSource, LoadResString(582)
-End Sub
+  throw new Exception("582, strErrSource, LoadResString(582)
       */
     }
     public bool InGame
@@ -500,7 +498,7 @@ End Sub
         }
         intItem++;
       }
-      while (((intItem * Dwidth) + Dwidth < lngDataOffset) && (intItem < MAX_ITEMS)); //Until ((intItem * Dwidth) + Dwidth >= lngDataOffset) Or (intItem >= MAX_ITEMS)
+      while (((intItem * Dwidth) + Dwidth < lngDataOffset) && (intItem < MAX_ITEMS)); //Until ((intItem * Dwidth) + Dwidth >= lngDataOffset) || (intItem >= MAX_ITEMS)
 
       //reset loading flag
       mLoading = false;

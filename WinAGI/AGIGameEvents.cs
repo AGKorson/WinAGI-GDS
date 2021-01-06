@@ -4,7 +4,6 @@ namespace WinAGI
 {
   public class CompileGameEventArgs
   {
-    //Public Event CompileGameStatus(cStatus As ECStatus, ResType As AGIResType, ResNum As Byte, ErrString As String)
     public CompileGameEventArgs(ECStatus status, AGIResType restype, byte num, string errString)
     {
       cStatus = status;
@@ -20,7 +19,6 @@ namespace WinAGI
 
   public class LoadGameEventArgs
   {
-    //Public Event LoadStatus(lStatus As ELStatus, ResType As AGIResType, ResNum As Byte, ErrString As String)
     public LoadGameEventArgs(ELStatus status, AGIResType restype, byte num, string errString)
     {
       lStatus = status;
@@ -36,7 +34,6 @@ namespace WinAGI
 
   public class CompileLogicEventArgs
   {
-    //Public Event LogCompWarning(Warning As String, LogNum As Byte)
     public CompileLogicEventArgs(string warning, byte num)
     {
       Warning = warning;

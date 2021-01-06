@@ -34,19 +34,19 @@ namespace WinAGI
 
     const int MAX_LINE_LEN = 80;
     //tokens for building source code output
-    //const string NOT_TOKEN = "!";
-    const string IF_TOKEN = "if (";
-    const string THEN_TOKEN = ")%1{"; //where %1 is a line feed plus indent at current level
-    const string ELSE_TOKEN = "else%1{"; //where %1 is a line feed plus indent at current level
-    const string ENDIF_TOKEN = "}";
-    const string GOTO_TOKEN = "goto(%1)";
-    const string EOL_TOKEN = ";";
+    const string D_TKN_NOT = "!";
+    const string D_TKN_IF = "if (";
+    const string D_TKN_THEN = ")%1{"; //where %1 is a line feed plus indent at current level
+    const string D_TKN_ELSE = "else%1{"; //where %1 is a line feed plus indent at current level
+    const string D_TKN_ENDIF = "}";
+    const string D_TKN_GOTO = "goto(%1)";
+    const string D_TKN_EOL = ";";
     const string D_TKN_AND = " && ";
     const string D_TKN_OR = " || ";
-    const string EQUAL_TEST_TOKEN = " == ";
-    const string NOT_EQUAL_TEST_TOKEN = " != ";
-    const string CMT_TOKEN = "[ ";
-    const string MSG_LINE = "#message %1 %2";
+    const string D_TKN_EQUAL = " == ";
+    const string D_TKN_NOT_EQUAL = " != ";
+    const string D_TKN_COMMENT = "[ ";
+    const string D_TKN_MESSAGE = "#message %1 %2";
 
     static bool blnWarning;
     static string strWarning;
@@ -563,7 +563,7 @@ namespace WinAGI
             } // Next intArg
             strCurrentLine += ")";
           }
-          strCurrentLine += EOL_TOKEN;
+          strCurrentLine += D_TKN_EOL;
           stlOutput.Add(strCurrentLine);
           //if any warnings
           if (blnWarning)
@@ -572,7 +572,7 @@ namespace WinAGI
             strWarningLine = strWarning.Split("|");
             for (i = 0; i < strWarningLine.Length; i++)
             {
-              stlOutput.Add(CMT_TOKEN + "WARNING: " + strWarningLine[i]);
+              stlOutput.Add(D_TKN_COMMENT + "WARNING: " + strWarningLine[i]);
             }
             //reset warning flag + string
             blnWarning = false;
@@ -600,14 +600,14 @@ namespace WinAGI
             }
             else
             {
-              stlOutput.Add(MultStr("  ", bytBlockDepth) + ENDIF_TOKEN);
+              stlOutput.Add(MultStr("  ", bytBlockDepth) + D_TKN_ENDIF);
               if (agMainLogSettings.ElseAsGoto)
               {
-                stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + GOTO_TOKEN);
+                stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + D_TKN_GOTO);
               }
               else
               {
-                stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + ELSE_TOKEN.Replace(ARG1, NEWLINE + new String(' ', bytBlockDepth * 2)));
+                stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + D_TKN_ELSE.Replace(ARG1, NEWLINE + new String(' ', bytBlockDepth * 2)));
               }
               Block[bytBlockDepth].Length = tmpBlockLen;
               Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
@@ -643,7 +643,7 @@ namespace WinAGI
             {
               if (lngLabelPos[i] == lngLabelLoc)
               {
-                stlOutput.Add(MultStr("  ", bytBlockDepth) + GOTO_TOKEN.Replace(ARG1, "Label" + i) + EOL_TOKEN);
+                stlOutput.Add(MultStr("  ", bytBlockDepth) + D_TKN_GOTO.Replace(ARG1, "Label" + i) + D_TKN_EOL);
                 //if any warnings
                 if (blnWarning)
                 {
@@ -651,7 +651,7 @@ namespace WinAGI
                   strWarningLine = strWarning.Split("|");
                   for (j = 0; j < strWarningLine.Length; j++)
                   {
-                    stlOutput.Add(CMT_TOKEN + "WARNING: " + strWarningLine[j]);
+                    stlOutput.Add(D_TKN_COMMENT + "WARNING: " + strWarningLine[j]);
                   }
                   //reset warning flag + string
                   blnWarning = false;
@@ -1032,7 +1032,7 @@ namespace WinAGI
       blnIfFinished = false;
       blnFirstCmd = true;
       blnInOrBlock = false;
-      strLine = MultStr("  ", bytBlockDepth) + IF_TOKEN; //new String(" ", bytBlockDepth)? why not this?
+      strLine = MultStr("  ", bytBlockDepth) + D_TKN_IF; //new String(" ", bytBlockDepth)? why not this?
       //main loop - read in logic, one byte at a time, and write text accordingly
       do
       {
@@ -1120,7 +1120,7 @@ namespace WinAGI
           {
             if (blnInNotBlock)
             {
-              strLine += NOT_TOKEN;
+              strLine += D_TKN_NOT;
             }
 
             strLine = strLine + agTestCmds[bytCmd].Name + "(";
@@ -1270,7 +1270,7 @@ namespace WinAGI
         else if (bytCurByte == 0xFF)
         {
           //done with if block; add //then//
-          strLine += THEN_TOKEN.Replace(ARG1, NEWLINE + MultStr(" ", bytBlockDepth * 2 + 2));
+          strLine += D_TKN_THEN.Replace(ARG1, NEWLINE + MultStr(" ", bytBlockDepth * 2 + 2));
           //(SkipToEndIf verified that max block depth is not exceeded)
           //increase block depth counter
           bytBlockDepth++;
@@ -1330,7 +1330,7 @@ namespace WinAGI
             strWarningLine = strWarning.Split("|");
             for (i = 0; i < strWarningLine.Length; i++)
             {
-              stlOut.Add(MultStr("  ", bytBlockDepth) + CMT_TOKEN + "WARNING: " + strWarningLine[i]);
+              stlOut.Add(MultStr("  ", bytBlockDepth) + D_TKN_COMMENT + "WARNING: " + strWarningLine[i]);
             } //Next i
               //reset warning flag + string
             blnWarning = false;
@@ -1543,7 +1543,7 @@ namespace WinAGI
         else if (bytCurData <= AGICommands.Count) //byte is an AGI command
         {
           //skip over arguments to get next command
-          //////Debug.Assert bytCurData != 178
+          //Debug.Assert bytCurData != 178
           lngPos += agCmds[bytCurData].ArgType.Length;
         }
         else if (bytCurData == 0xFE)   //if the byte is a GOTO command
@@ -1678,13 +1678,13 @@ namespace WinAGI
       int lngMsg;
       //need to adjust references to the Messages stringlist object by one
       //since the list is zero based, but messages are one-based.
-      stlOut.Add(CMT_TOKEN + "Messages");
+      stlOut.Add(D_TKN_COMMENT + "Messages");
       for (lngMsg = 1; lngMsg <= stlMsgs.Count; lngMsg++)
       {
         Debug.Print($"Msg Num: {lngMsg}  MsgExists:{blnMsgExists[lngMsg].ToString()}  MsgUsed:{blnMsgUsed[lngMsg]}");
         if (blnMsgExists[lngMsg] && ((agMainLogSettings.ShowAllMessages) || !blnMsgUsed[lngMsg]))
         {
-          stlOut.Add(MSG_LINE.Replace(ARG1, lngMsg.ToString()).Replace(ARG2, stlMsgs[lngMsg - 1]));
+          stlOut.Add(D_TKN_MESSAGE.Replace(ARG1, lngMsg.ToString()).Replace(ARG2, stlMsgs[lngMsg - 1]));
         }
       }
     }
@@ -1767,12 +1767,12 @@ namespace WinAGI
           if (NOTOn)
           {
             //test for not equal
-            retval += NOT_EQUAL_TEST_TOKEN;
+            retval += D_TKN_NOT_EQUAL;
           }
           else
           {
             //test for equal
-            retval += EQUAL_TEST_TOKEN;
+            retval += D_TKN_EQUAL;
           }
           //if command is comparing variables,
           if (bytCmd == 2)
@@ -1854,27 +1854,27 @@ namespace WinAGI
           if (Block[CurBlock].IsOutside)
           {
             //add an else
-            stlIn.Add(MultStr("  ", bytBlockDepth) + ENDIF_TOKEN);
+            stlIn.Add(MultStr("  ", bytBlockDepth) + D_TKN_ENDIF);
             if (agMainLogSettings.ElseAsGoto)
             {
-              stlIn.Add(MultStr("  ", bytBlockDepth - 1) + GOTO_TOKEN);
+              stlIn.Add(MultStr("  ", bytBlockDepth - 1) + D_TKN_GOTO);
             }
             else
             {
-              stlIn.Add(MultStr("  ", bytBlockDepth - 1) + ELSE_TOKEN.Replace(ARG1, NEWLINE + new String(' ', bytBlockDepth * 2)));
+              stlIn.Add(MultStr("  ", bytBlockDepth - 1) + D_TKN_ELSE.Replace(ARG1, NEWLINE + new String(' ', bytBlockDepth * 2)));
             }
             //add a goto
             for (i = 1; i <= bytLabelCount; i++)
             {
               if (lngLabelPos[i] == Block[CurBlock].JumpPos)
               {
-                stlIn.Add(MultStr("  ", bytBlockDepth) + GOTO_TOKEN.Replace(ARG1, "Label" + i) + EOL_TOKEN);
+                stlIn.Add(MultStr("  ", bytBlockDepth) + D_TKN_GOTO.Replace(ARG1, "Label" + i) + D_TKN_EOL);
                 break;
               }
             }
           }
           //add end if
-          stlIn.Add(MultStr("  ", CurBlock) + ENDIF_TOKEN);
+          stlIn.Add(MultStr("  ", CurBlock) + D_TKN_ENDIF);
           bytBlockDepth--;
         }
       }

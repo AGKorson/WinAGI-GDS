@@ -15,6 +15,23 @@ namespace WinAGI_GDS
 {
   public partial class frmMDIMain : Form
   {
+    AGIView SelectedView;
+
+    public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int scale = 1)
+    {
+      //to scale the picture without blurring, need to use NearestNeighbor interpolation
+      // that can't be set directly, so a graphics object is needed to draw the
+      // the picture
+      int bWidth = agiBMP.Width * scale * 2, bHeight = agiBMP.Height * scale;
+      // first, create new image in the picture box that is desired size
+      pic.Image = new Bitmap(bWidth, bHeight);
+      // intialize a graphics object for the image just created
+      using Graphics g = Graphics.FromImage(pic.Image);
+      // set correct interpolation mode
+      g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+      // draw the bitmap, at correct resolution
+      g.DrawImage(agiBMP, 0, 0, bWidth, bHeight);
+    }
     public frmMDIMain()
     {
       InitializeComponent();
@@ -24,6 +41,7 @@ namespace WinAGI_GDS
       CompileLogicStatus += GameEvents_CompileLogicStatus;
       LoadGameStatus += GameEvents_LoadGameStatus;
 
+      
       //
       WinAGI.WinAGI.InitWinAGI();
       LogicSourceSettings.ShowAllMessages = true;
@@ -35,32 +53,26 @@ namespace WinAGI_GDS
       
 
     }
-
     private void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e)
     {
 
     }
-
     private void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e)
     {
       Debug.Print($"Loading Status: {e.lStatus} - Type: {e.ResType} - Number: {e.ResNum} Msg: {e.ErrString}");
     }
-
     private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e)
     {
 
     }
-
     private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
     {
 
     }
-
     private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
     {
 
     }
-
     private void btnOpenGame_Click(object sender, EventArgs e)
     {
       int retval;
@@ -89,27 +101,22 @@ namespace WinAGI_GDS
         MessageBox.Show($"opengame result: {(retval - WINAGI_ERR).ToString()}");
       }
     }
-
     private void mnuWCascade_Click(object sender, EventArgs e)
     {
       LayoutMdi(MdiLayout.Cascade);
     }
-
     private void mnuWArrange_Click(object sender, EventArgs e)
     {
       LayoutMdi(MdiLayout.ArrangeIcons);
     }
-
     private void mnuWTileH_Click(object sender, EventArgs e)
     {
       LayoutMdi(MdiLayout.TileHorizontal);
     }
-
     private void mnuWTileV_Click(object sender, EventArgs e)
     {
       LayoutMdi(MdiLayout.TileVertical);
     }
-
     private void mnuWMinimize_Click(object sender, EventArgs e)
     {
       foreach (Form childForm in MdiChildren)
@@ -117,19 +124,16 @@ namespace WinAGI_GDS
         childForm.WindowState = FormWindowState.Minimized;
       }
     }
-
     private void mnuWClose_Click(object sender, EventArgs e)
     {
       //only close if window is close-able
       this.ActiveMdiChild.Close();
     }
-
     private void mnuWindow_DropDownOpening(object sender, EventArgs e)
     {
       // disable the close item if no windows
       mnuWClose.Enabled = (this.MdiChildren.Length != 0);
     }
-
     private void btnNewRes_DropDownOpening(object sender, EventArgs e)
     {
       // cancel it? and do whatever is shown?
@@ -139,15 +143,12 @@ namespace WinAGI_GDS
         MessageBox.Show("on dropdown");
       }
     }
-
     private void frmMDIMain_Load(object sender, EventArgs e)
     {
 
     }
-
     private void btnNewLogic_Click(object sender, EventArgs e)
     {
-
       if (!GameLoaded) return;
 
       //lets try to load a logic!
@@ -161,7 +162,6 @@ namespace WinAGI_GDS
       frmNew.rtfLogic.Text = Logics[5].SourceText;
       frmNew.Show();
     }
-
     private void btnNewPicture_Click(object sender, EventArgs e)
     {
       frmPicEdit frmNew = new frmPicEdit
@@ -170,7 +170,6 @@ namespace WinAGI_GDS
       };
       frmNew.Show();
     }
-
     private void btnOjects_Click(object sender, EventArgs e)
     {
       //let's test object list
@@ -205,6 +204,87 @@ namespace WinAGI_GDS
         Debug.Print($"group: {WordList[i].Group}  -- {WordList[i].WordText}");
 
 //      WordList.Clear();
+    }
+    private void btnNewSound_Click(object sender, EventArgs e)
+    {
+      // show editor form
+      frmSoundEdit frmNew = new frmSoundEdit
+      {
+        MdiParent = this
+      };
+      frmNew.Show();
+    }
+    private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      //fill list box with resources for selected type
+      if (GameLoaded)
+      {
+        //lstResources.Anchor = AnchorStyles.None;
+
+        // clear current list
+        lstResources.Items.Clear();
+        switch (cmbResType.SelectedIndex)
+        {
+          case 0: //logics
+            foreach (AGILogic tmpRes in Logics.Col.Values)
+              lstResources.Items.Add(tmpRes);
+            break;
+          case 1://pictures
+            foreach (AGIPicture tmpRes in Pictures.Col.Values)
+              lstResources.Items.Add(tmpRes);
+            break;
+          case 2: //sounds
+            foreach (AGISound tmpRes in Sounds.Col.Values)
+              lstResources.Items.Add(tmpRes);
+            break;
+          case 3: //views
+            foreach (AGIView tmpRes in Views.Col.Values)
+              lstResources.Items.Add(tmpRes);
+            break;
+        }
+      }
+
+    }
+
+    private void lstResources_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      if (GameLoaded)
+      {
+        //try to load the selected item
+        switch (cmbResType.SelectedIndex)
+        {
+          case 0: //logic
+            ((AGILogic)lstResources.SelectedItem).Load();
+            break;
+          case 1: //picture
+            ((AGIPicture)lstResources.SelectedItem).Load();
+            break;
+          case 2: //sound
+            ((AGISound)lstResources.SelectedItem).Load();
+            //double it = Sounds[1].Track[0].Length;
+            break;
+          case 3: //view
+            SelectedView = ((AGIView)lstResources.SelectedItem);
+            SelectedView.Load();
+            curCel = 0;
+            ShowAGIBitmap(picView, SelectedView[0][0].CelBMP, 5);
+            timer1.Enabled = (SelectedView[0].Cels.Count > 1);
+            break;
+        }
+      }
+    }
+    int curCel = 0;
+    private void timer1_Tick(object sender, EventArgs e)
+    {
+      if (SelectedView != null)
+      {
+        curCel++;
+        if (curCel == SelectedView[0].Cels.Count)
+        {
+          curCel = 0;
+        }
+        ShowAGIBitmap(picView, SelectedView[0][curCel].CelBMP, 5);
+      }
     }
   }
 }

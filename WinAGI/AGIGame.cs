@@ -17,7 +17,7 @@ namespace WinAGI
     // exposed game properties, methods, objects
     internal static AGILogicSourceSettings agMainLogSettings = new AGILogicSourceSettings();
 
-    internal static List<string> agGameProps = new List<string> { };// As StringList
+    internal static List<string> agGameProps = new List<string> { };
 
     static readonly string strErrSource = "WinAGI.AGIGame";
 
@@ -115,16 +115,16 @@ namespace WinAGI
 
         if (NewDir.Length == 0)
         {
-          //On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+          //throw new Exception("380, strErrSource, "Invalid property Value"
           throw new Exception("Invalid property Value");
         }
         if ("\\/:*?<>|".Any(NewDir.Contains))
-          //On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+          //throw new Exception("380, strErrSource, "Invalid property Value"
           throw new Exception("Invalid property Value");
 
         // ? space should be OK in a directory!
         //if (NewDir.IndexOf(" ") != 0) {
-        //  //On Error GoTo 0: Err.Raise 380, strErrSource, "Invalid property Value"
+        //  //throw new Exception("380, strErrSource, "Invalid property Value"
         //  throw new Exception("Invalid property Value");
         //}
 
@@ -167,7 +167,7 @@ namespace WinAGI
 
       //validate index
       if (index < 0 || index > 15)
-        //On Error GoTo 0: Err.Raise 9, strErrSource, "Subscript out of range"
+        //throw new Exception("index out of bounds");
         throw new Exception("Subscript out of range");
       return lngEGACol[index];
     }
@@ -184,18 +184,18 @@ namespace WinAGI
 
       //validate index
       if (index < 0 || index > 15)
-        //On Error GoTo 0: Err.Raise 9, strErrSource, "Subscript out of range"
+        //throw new Exception("index out of bounds");
         throw new Exception("Subscript out of range");
 
       //store the new color
       lngEGACol[index] = newcolor;
 
       //now invert red and blue components for revcolor
-      lngEGARevCol[index] = (uint)(newcolor & 0xFF000000) + ((newcolor & 0xFF) << 16) + (newcolor & 0xFF00) + ((newcolor & 0xFF0000) >> 16);
+      lngEGARevCol[index] = (uint)(newcolor + 0xFF000000) + ((newcolor + 0xFF) << 16) + (newcolor + 0xFF00) + ((newcolor + 0xFF0000) >> 16);
 
       //if in a game, save the color in the game's WAG file
       if (agGameLoaded)
-        WriteGameSetting("Palette", "Color" + index, "&H" + newcolor.ToString("X"));
+        WriteGameSetting("Palette", "Color" + index, "0x" + newcolor.ToString("X"));
     }
 
     public static uint[] EGARevColor
@@ -298,7 +298,7 @@ namespace WinAGI
           if (Directory.Exists(WinAGI.CDir(value))) //, vbDirectory) 
                                                     //return error
                                                     //throw new Exception("630, strErrSource, Replace(LoadResString(630), ARG1, NewDir)
-                                                    //Exit Property
+                                                    //return;
             throw new System.NotImplementedException();
 
         //change the directory
@@ -1036,22 +1036,22 @@ namespace WinAGI
         foreach (AGILogic tmpLogic in agLogs.Col.Values)
         {
           tmpLogic.Volume = (sbyte)(bytDIR[0, tmpLogic.Number * 3] >> 4);
-          tmpLogic.Loc = (bytDIR[0, tmpLogic.Number * 3] & 0xF) * 0x10000 + bytDIR[0, tmpLogic.Number * 3 + 1] * 0x100 + bytDIR[0, tmpLogic.Number * 3 + 2];
+          tmpLogic.Loc = (bytDIR[0, tmpLogic.Number * 3] + 0xF) * 0x10000 + bytDIR[0, tmpLogic.Number * 3 + 1] * 0x100 + bytDIR[0, tmpLogic.Number * 3 + 2];
         }
         foreach (AGIPicture tmpPicture in agPics.Col.Values)
         {
           tmpPicture.Volume = (sbyte)(bytDIR[1, tmpPicture.Number * 3] >> 4);
-          tmpPicture.Loc = (bytDIR[1, tmpPicture.Number * 3] & 0xF) * 0x10000 + bytDIR[1, tmpPicture.Number * 3 + 1] * 0x100 + bytDIR[1, tmpPicture.Number * 3 + 2];
+          tmpPicture.Loc = (bytDIR[1, tmpPicture.Number * 3] + 0xF) * 0x10000 + bytDIR[1, tmpPicture.Number * 3 + 1] * 0x100 + bytDIR[1, tmpPicture.Number * 3 + 2];
         }
         foreach (AGISound tmpSound in agSnds.Col.Values)
         {
           tmpSound.Volume = (sbyte)(bytDIR[2, tmpSound.Number * 3] >> 4);
-          tmpSound.Loc = (bytDIR[2, tmpSound.Number * 3] & 0xF) * 0x10000 + bytDIR[2, tmpSound.Number * 3 + 1] * 0x100 + bytDIR[2, tmpSound.Number * 3 + 2];
+          tmpSound.Loc = (bytDIR[2, tmpSound.Number * 3] + 0xF) * 0x10000 + bytDIR[2, tmpSound.Number * 3 + 1] * 0x100 + bytDIR[2, tmpSound.Number * 3 + 2];
         }
         foreach (AGIView tmpView in agViews.Col.Values)
         {
           tmpView.Volume = (sbyte)(bytDIR[3, tmpView.Number * 3] >> 4);
-          tmpView.Loc = (bytDIR[3, tmpView.Number * 3] & 0xF) * 0x10000 + bytDIR[3, tmpView.Number * 3 + 1] * 0x100 + bytDIR[3, tmpView.Number * 3 + 2];
+          tmpView.Loc = (bytDIR[3, tmpView.Number * 3] + 0xF) * 0x10000 + bytDIR[3, tmpView.Number * 3 + 1] * 0x100 + bytDIR[3, tmpView.Number * 3 + 2];
         }
       }
 
@@ -1070,7 +1070,7 @@ namespace WinAGI
       //case 58 //file already exists
       //  //this means the previous version of the file we are trying to create
       //  //wasn't able to be renamed; most likely due to being open
-      //  strError = "Unable to delete existing " & strFileName & ". New " & strFileName & " file was not created."
+      //  strError = "Unable to delete existing " + strFileName + ". New " + strFileName + " file was not created."
       //case  else 
       //  //some other error - who knows what's going on
       //  strError = Err.Description
@@ -1078,7 +1078,7 @@ namespace WinAGI
 
 
       //CompleteCancel(true);
-      //On Error GoTo 0: Err.Raise lngError, strErrSource, strError
+      //throw new Exception("lngError, strErrSource, strError
     }
 
     public static string GameID
@@ -1166,7 +1166,7 @@ namespace WinAGI
         //  strErrSrc = Err.Source
         //  lngError = Err.Number
 
-        //  throw new Exception("530, strErrSrc, Replace(LoadResString(530), ARG1, CStr(lngError) & ":" & strError)
+        //  throw new Exception("530, strErrSrc, Replace(LoadResString(530), ARG1, CStr(lngError) + ":" + strError)
       }
     }
 
@@ -1728,7 +1728,7 @@ namespace WinAGI
         //clear game variables
         ClearGameState();
 
-        //reset collections & objects
+        //reset collections + objects
         agLogs = new AGILogics();
         agViews = new AGIViews();
         agPics = new AGIPictures();
