@@ -25,10 +25,10 @@ namespace WinAGI_GDS
 
     const int SPLIT_WIDTH = 60; //in twips
     const int SPLIT_HEIGHT = 5;  //in pixels
-    const int MIN_SPLIT_V = 1875; //in twips
-    const int MAX_SPLIT_V = 7500; //in twips
-    const int MIN_SPLIT_H = 1875; //in twips
-    const int MAX_SPLIT_H = 7500; //in twips
+    const int MIN_SPLIT_V = 125; //pixels? 1875 in twips
+    const int MAX_SPLIT_V = 500; //pixels? 7500 in twips
+    const int MIN_SPLIT_H = 125;
+    const int MAX_SPLIT_H = 500;
     const int MAX_SPLIT_RES = 10; //in rows
     const int MIN_SPLIT_RES = 3; //in rows
 
@@ -188,9 +188,9 @@ namespace WinAGI_GDS
     }
     private void frmMDIMain_Load(object sender, EventArgs e)
     {
-      // temporary settings
-      Settings.ResListType = 2;
-      Settings.ShowPreview = true;
+      // init it
+      InitializeResMan();
+      // read settings
       ReadSettings();
     }
     private void btnNewLogic_Click(object sender, EventArgs e)
@@ -526,7 +526,7 @@ namespace WinAGI_GDS
         //always disable forward button
         cmdForward.Enabled = false;
         //enable back button if at least two in queue
-        cmdBack.Enabled = ResQueue.Count >=2;
+        cmdBack.Enabled = ResQueue.Count >= 2;
 
         //if a logic is selected, and layout editor is active form
         if (SelResType == AGIResType.rtLogic)
@@ -621,7 +621,7 @@ namespace WinAGI_GDS
             //reset the listbox
             lstResources.SelectedIndex = -1;
             //then force selection change
-        SelectResource((AGIResType)ResNum, -1);
+            SelectResource((AGIResType)ResNum, -1);
             break;
           }
           break;
@@ -682,7 +682,7 @@ namespace WinAGI_GDS
           //(restype+1 matches desired listindex)
           cmbResType.SelectedIndex = (int)(ResType + 1);
           //now select the resource
-//          lstResources.SelectedItem = lstResources.ListItems(strKey);
+          //          lstResources.SelectedItem = lstResources.ListItems(strKey);
           break;
         }
 
@@ -697,7 +697,6 @@ namespace WinAGI_GDS
     bool ReadSettings()
     {
       double sngProp;
-      string strProp;
       double sngTop, sngLeft;
       double sngWidth, sngHeight;
       int i, lngNoCompVal;
@@ -748,14 +747,10 @@ namespace WinAGI_GDS
       {
         DefResDir = "src";
       }
-      else
+      else if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) //     !#$%&'()+,-;=@[]^`{}~
       {
-        // validate it TODO: need to use the builtin bad char finder...
-        if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) //     !#$%&'()+,-;=@[]^`{}~
-        {
-          //invalid character; reset to default
-          DefResDir = "src";
-        }
+        //invalid character; reset to default
+        DefResDir = "src";
       }
       Settings.MaxSO = ReadSettingLong(SettingsList, sGENERAL, "MaxSO", DEFAULT_MAXSO);
       if (Settings.MaxSO > 255)
@@ -771,30 +766,30 @@ namespace WinAGI_GDS
         Settings.MaxVol0Size = 1047552;
       MaxVol0Size = Settings.MaxVol0Size;
       //get help window parent
-      blnTools = ReadSettingBool(SettingsList, sGENERAL, "DockHelpWindow", true);
-      if (!blnTools)
+      if (!ReadSettingBool(SettingsList, sGENERAL, "DockHelpWindow", true))
+      {  
         //HelpParent = GetDesktopWindow();
         //if (HelpParent = 0)
         //HelpParent = Me.hWnd;
-
-        //RESFORMAT settings
-        Settings.ShowResNum = ReadSettingBool(SettingsList, "ResFormat", "ShowResNum", DEFAULT_SHOWRESNUM);
+      }
+      //RESFORMAT settings
+      Settings.ShowResNum = ReadSettingBool(SettingsList, "ResFormat", "ShowResNum", DEFAULT_SHOWRESNUM);
       Settings.IncludeResNum = ReadSettingBool(SettingsList, "ResFormat", "IncludeResNum", DEFAULT_INCLUDERESNUM);
-      Settings.ResFormat.NameCase = (StringComparison)ReadSettingLong(SettingsList, "ResFormat", "NameCase", DEFAULT_NAMECASE);
-      if ((int)Settings.ResFormat.NameCase < 1 || (int)Settings.ResFormat.NameCase > 3) {
-        Settings.ResFormat.NameCase = (StringComparison)DEFAULT_NAMECASE;
+      Settings.ResFormat.NameCase = (StringComparison)ReadSettingLong(SettingsList, "ResFormat", "NameCase", (int)DEFAULT_NAMECASE);
+      if ((int)Settings.ResFormat.NameCase < 1 || (int)Settings.ResFormat.NameCase > 3)
+      {
+        Settings.ResFormat.NameCase = DEFAULT_NAMECASE;
       }
       Settings.ResFormat.Separator = Left(ReadSettingString(SettingsList, "ResFormat", "Separator", DEFAULT_SEPARATOR), 1);
       Settings.ResFormat.NumFormat = ReadSettingString(SettingsList, "ResFormat", "NumFormat", DEFAULT_NUMFORMAT);
-
       //GLOBAL EDITOR
       Settings.GlobalUndo = ReadSettingLong(SettingsList, "Globals", "GlobalUndo", DEFAULT_GLBUNDO);
       Settings.GEShowComment = ReadSettingBool(SettingsList, "Globals", "ShowCommentColumn", DEFAULT_GESHOWCMT);
       Settings.GENameFrac = ReadSettingSingle(SettingsList, "Globals", "GENameFrac", 0);
       Settings.GEValFrac = ReadSettingSingle(SettingsList, "Globals", "GEValFrac", 0);
 
-      ////get overrides of reserved defines, if there are any
-      //GetResDefOverrides();
+      //get overrides of reserved defines, if there are any
+      GetResDefOverrides();
 
       //LAYOUT
       Settings.DefUseLE = ReadSettingBool(SettingsList, sLAYOUT, "DefUseLE", DEFAULT_DEFUSELE);
@@ -810,19 +805,17 @@ namespace WinAGI_GDS
       if (Settings.LEGrid < 0.05)
         Settings.LEGrid = 0.05;
       Settings.LEZoom = ReadSettingLong(SettingsList, sLAYOUT, "Zoom", DEFAULT_LEZOOM);
-      Settings.LESync = ReadSettingBool(SettingsList, sLAYOUT, "Sync", DEFAULT_LESYNC);
       //get editor colors
-      Settings.LEColors.Room.Edge = ReadSettingLong(SettingsList, sLAYOUT, "RoomEdgeColor", DEFAULT_LEROOM_EDGE);
-      Settings.LEColors.Room.Fill = ReadSettingLong(SettingsList, sLAYOUT, "RoomFillColor", DEFAULT_LEROOM_FILL);
-      Settings.LEColors.TransPt.Edge = ReadSettingLong(SettingsList, sLAYOUT, "TransEdgeColor", DEFAULT_LETRANSPT_EDGE);
-      Settings.LEColors.TransPt.Fill = ReadSettingLong(SettingsList, sLAYOUT, "TransFillColor", DEFAULT_LETRANSPT_FILL);
-      Settings.LEColors.ErrPt.Edge = ReadSettingLong(SettingsList, sLAYOUT, "ErrEdgeColor", DEFAULT_LEERR_EDGE);
-      Settings.LEColors.ErrPt.Fill = ReadSettingLong(SettingsList, sLAYOUT, "ErrFillColor", DEFAULT_LEERR_FILL);
-      Settings.LEColors.Cmt.Edge = ReadSettingLong(SettingsList, sLAYOUT, "CmtEdgeColor", DEFAULT_LECMT_EDGE);
-      Settings.LEColors.Cmt.Fill = ReadSettingLong(SettingsList, sLAYOUT, "CmtFillColor", DEFAULT_LECMT_FILL);
-      Settings.LEColors.Edge = ReadSettingLong(SettingsList, sLAYOUT, "ExitEdgeColor", DEFAULT_LEEXIT_EDGE);
-      Settings.LEColors.Other = ReadSettingLong(SettingsList, sLAYOUT, "ExitOtherColor", DEFAULT_LEEXIT_OTHERS);
-
+      Settings.LEColors.Room.Edge = ReadSettingLong(SettingsList, sLAYOUT, "RoomEdgeColor", DEFAULT_LEROOM_EDGE, true);
+      Settings.LEColors.Room.Fill = ReadSettingLong(SettingsList, sLAYOUT, "RoomFillColor", DEFAULT_LEROOM_FILL, true);
+      Settings.LEColors.TransPt.Edge = ReadSettingLong(SettingsList, sLAYOUT, "TransEdgeColor", DEFAULT_LETRANSPT_EDGE, true);
+      Settings.LEColors.TransPt.Fill = ReadSettingLong(SettingsList, sLAYOUT, "TransFillColor", DEFAULT_LETRANSPT_FILL, true);
+      Settings.LEColors.ErrPt.Edge = ReadSettingLong(SettingsList, sLAYOUT, "ErrEdgeColor", DEFAULT_LEERR_EDGE, true);
+      Settings.LEColors.ErrPt.Fill = ReadSettingLong(SettingsList, sLAYOUT, "ErrFillColor", DEFAULT_LEERR_FILL, true);
+      Settings.LEColors.Cmt.Edge = ReadSettingLong(SettingsList, sLAYOUT, "CmtEdgeColor", DEFAULT_LECMT_EDGE, true);
+      Settings.LEColors.Cmt.Fill = ReadSettingLong(SettingsList, sLAYOUT, "CmtFillColor", DEFAULT_LECMT_FILL, true);
+      Settings.LEColors.Edge = ReadSettingLong(SettingsList, sLAYOUT, "ExitEdgeColor", DEFAULT_LEEXIT_EDGE, true);
+      Settings.LEColors.Other = ReadSettingLong(SettingsList, sLAYOUT, "ExitOtherColor", DEFAULT_LEEXIT_OTHERS, true);
       //LOGICS
       Settings.HighlightLogic = ReadSettingBool(SettingsList, sLOGICS, "HighlightLogic", DEFAULT_HILITELOG);
       Settings.HighlightText = ReadSettingBool(SettingsList, sLOGICS, "HighlightText", DEFAULT_HILITETEXT);
@@ -847,10 +840,10 @@ namespace WinAGI_GDS
         }
       }
       // not found?
-      if (i == 1) 
+      if (i == 1)
         Settings.EFontName = DEFAULT_EFONTNAME;
       Settings.EFontSize = ReadSettingLong(SettingsList, sLOGICS, "EditorFontSize", DEFAULT_EFONTSIZE);
-      if (Settings.EFontSize< 8) 
+      if (Settings.EFontSize < 8)
         Settings.EFontSize = 8;
       if (Settings.EFontSize > 24)
         Settings.EFontSize = 24;
@@ -903,297 +896,337 @@ namespace WinAGI_GDS
       Settings.DefUseResDef = ReadSettingBool(SettingsList, sLOGICS, "DefUseResDef", DEFAULT_DEFUSERESDEF);
       Settings.Snippets = ReadSettingBool(SettingsList, sLOGICS, "Snippets", DEFAULT_SNIPPETS);
 
-//SYNTAXHIGHLIGHTFORMAT
-Settings.HColor[0] = ReadSettingLong(SettingsList, sSHFORMAT, "NormalColor", DEFAULT_HNRMCOLOR);
-Settings.HColor[1] = ReadSettingLong(SettingsList, sSHFORMAT, "KeywordColor", DEFAULT_HKEYCOLOR);
-Settings.HColor[2] = ReadSettingLong(SettingsList, sSHFORMAT, "IdentifierColor", DEFAULT_HIDTCOLOR);
-Settings.HColor[3] = ReadSettingLong(SettingsList, sSHFORMAT, "StringColor", DEFAULT_HSTRCOLOR);
-Settings.HColor[4] = ReadSettingLong(SettingsList, sSHFORMAT, "CommentColor", DEFAULT_HCMTCOLOR);
-Settings.HColor[5] = ReadSettingLong(SettingsList, sSHFORMAT, "BackColor", DEFAULT_HBKGCOLOR);
-Settings.HBold[0] = ReadSettingBool(SettingsList, sSHFORMAT, "NormalBold", DEFAULT_HNRMBOLD);
-Settings.HBold[1] = ReadSettingBool(SettingsList, sSHFORMAT, "KeywordBold", DEFAULT_HKEYBOLD);
-Settings.HBold[2] = ReadSettingBool(SettingsList, sSHFORMAT, "IdentifierBold", DEFAULT_HIDTBOLD);
-Settings.HBold[3] = ReadSettingBool(SettingsList, sSHFORMAT, "StringBold", DEFAULT_HSTRBOLD);
-Settings.HBold[4] = ReadSettingBool(SettingsList, sSHFORMAT, "CommentBold", DEFAULT_HCMTBOLD);
-Settings.HItalic[0] = ReadSettingBool(SettingsList, sSHFORMAT, "NormalItalic", DEFAULT_HNRMITALIC);
-Settings.HItalic[1] = ReadSettingBool(SettingsList, sSHFORMAT, "KeywordItalic", DEFAULT_HKEYITALIC);
-Settings.HItalic[2] = ReadSettingBool(SettingsList, sSHFORMAT, "IdentifierItalic", DEFAULT_HIDTITALIC);
-Settings.HItalic[3] = ReadSettingBool(SettingsList, sSHFORMAT, "StringItalic", DEFAULT_HSTRITALIC);
-Settings.HItalic[4] = ReadSettingBool(SettingsList, sSHFORMAT, "CommentItalic", DEFAULT_HCMTITALIC);
+      //SYNTAXHIGHLIGHTFORMAT
+      Settings.HColor[0] = ReadSettingLong(SettingsList, sSHFORMAT, "NormalColor", DEFAULT_HNRMCOLOR, true);
+      Settings.HColor[1] = ReadSettingLong(SettingsList, sSHFORMAT, "KeywordColor", DEFAULT_HKEYCOLOR, true);
+      Settings.HColor[2] = ReadSettingLong(SettingsList, sSHFORMAT, "IdentifierColor", DEFAULT_HIDTCOLOR, true);
+      Settings.HColor[3] = ReadSettingLong(SettingsList, sSHFORMAT, "StringColor", DEFAULT_HSTRCOLOR, true);
+      Settings.HColor[4] = ReadSettingLong(SettingsList, sSHFORMAT, "CommentColor", DEFAULT_HCMTCOLOR, true);
+      Settings.HColor[5] = ReadSettingLong(SettingsList, sSHFORMAT, "BackColor", DEFAULT_HBKGCOLOR, true);
+      Settings.HBold[0] = ReadSettingBool(SettingsList, sSHFORMAT, "NormalBold", DEFAULT_HNRMBOLD);
+      Settings.HBold[1] = ReadSettingBool(SettingsList, sSHFORMAT, "KeywordBold", DEFAULT_HKEYBOLD);
+      Settings.HBold[2] = ReadSettingBool(SettingsList, sSHFORMAT, "IdentifierBold", DEFAULT_HIDTBOLD);
+      Settings.HBold[3] = ReadSettingBool(SettingsList, sSHFORMAT, "StringBold", DEFAULT_HSTRBOLD);
+      Settings.HBold[4] = ReadSettingBool(SettingsList, sSHFORMAT, "CommentBold", DEFAULT_HCMTBOLD);
+      Settings.HItalic[0] = ReadSettingBool(SettingsList, sSHFORMAT, "NormalItalic", DEFAULT_HNRMITALIC);
+      Settings.HItalic[1] = ReadSettingBool(SettingsList, sSHFORMAT, "KeywordItalic", DEFAULT_HKEYITALIC);
+      Settings.HItalic[2] = ReadSettingBool(SettingsList, sSHFORMAT, "IdentifierItalic", DEFAULT_HIDTITALIC);
+      Settings.HItalic[3] = ReadSettingBool(SettingsList, sSHFORMAT, "StringItalic", DEFAULT_HSTRITALIC);
+      Settings.HItalic[4] = ReadSettingBool(SettingsList, sSHFORMAT, "CommentItalic", DEFAULT_HCMTITALIC);
 
-//PICTURES
-Settings.PicScale.Edit = ReadSettingLong(SettingsList, sPICTURES, "EditorScale", DEFAULT_PICSCALE_EDIT);
-if (Settings.PicScale.Edit < 1)
-  Settings.PicScale.Edit = 1;
-if (Settings.PicScale.Edit > 4)
-  Settings.PicScale.Edit = 4;
-Settings.PicScale.Preview = ReadSettingLong(SettingsList, sPICTURES, "PreviewScale", DEFAULT_PICSCALE_PREVIEW);
-if (Settings.PicScale.Preview < 1)
-  Settings.PicScale.Preview = 1;
-if (Settings.PicScale.Preview > 4)
-  Settings.PicScale.Preview = 4;
-Settings.PicUndo = ReadSettingLong(SettingsList, sPICTURES, "PicUndo", DEFAULT_PICUNDO);
-if (Settings.PicUndo < -1)
-  Settings.PicUndo = -1;
-Settings.ShowBands = ReadSettingBool(SettingsList, sPICTURES, "ShowBands", DEFAULT_SHOWBANDS);
-Settings.SplitWindow = ReadSettingBool(SettingsList, sPICTURES, "SplitWindow", DEFAULT_SPLITWINDOW);
-Settings.CursorMode = (EPicCursorMode)ReadSettingLong(SettingsList, sPICTURES, "CursorMode", DEFAULT_CURSORMODE);
+      //PICTURES
+      Settings.PicScale.Edit = ReadSettingLong(SettingsList, sPICTURES, "EditorScale", DEFAULT_PICSCALE_EDIT);
+      if (Settings.PicScale.Edit < 1)
+        Settings.PicScale.Edit = 1;
+      if (Settings.PicScale.Edit > 4)
+        Settings.PicScale.Edit = 4;
+      Settings.PicScale.Preview = ReadSettingLong(SettingsList, sPICTURES, "PreviewScale", DEFAULT_PICSCALE_PREVIEW);
+      if (Settings.PicScale.Preview < 1)
+        Settings.PicScale.Preview = 1;
+      if (Settings.PicScale.Preview > 4)
+        Settings.PicScale.Preview = 4;
+      Settings.PicUndo = ReadSettingLong(SettingsList, sPICTURES, "PicUndo", DEFAULT_PICUNDO);
+      if (Settings.PicUndo < -1)
+        Settings.PicUndo = -1;
+      Settings.ShowBands = ReadSettingBool(SettingsList, sPICTURES, "ShowBands", DEFAULT_SHOWBANDS);
+      Settings.SplitWindow = ReadSettingBool(SettingsList, sPICTURES, "SplitWindow", DEFAULT_SPLITWINDOW);
+      Settings.CursorMode = (EPicCursorMode)ReadSettingLong(SettingsList, sPICTURES, "CursorMode", DEFAULT_CURSORMODE);
 
-//PICTEST
-//these settings get loaded with each picedit form (and the logic template, which uses
-//the Horizion setting) that gets loaded; no need to
-//retrieve them here
+      //PICTEST
+      //these settings get loaded with each picedit form (and the logic template, which uses
+      //the Horizion setting) that gets loaded; no need to
+      //retrieve them here
 
-//SOUNDS
-Settings.ShowKybd = ReadSettingBool(SettingsList, sSOUNDS, "ShowKeyboard", DEFAULT_SHOWKYBD);
-Settings.ShowNotes = ReadSettingBool(SettingsList, sSOUNDS, "ShowNotes", DEFAULT_SHOWNOTES);
-Settings.OneTrack = ReadSettingBool(SettingsList, sSOUNDS, "OneTrack", DEFAULT_ONETRACK);
-Settings.SndUndo = ReadSettingLong(SettingsList, sSOUNDS, "SndUndo", DEFAULT_SNDUNDO);
-if (Settings.SndUndo < -1)
-  Settings.SndUndo = -1;
-Settings.SndZoom = ReadSettingLong(SettingsList, sSOUNDS, "Zoom", DEFAULT_SNDZOOM);
-if (Settings.SndZoom < 1)
-  Settings.SndZoom = 1;
-if (Settings.SndZoom > 3)
-  Settings.SndZoom = 3;
-Settings.NoMIDI = ReadSettingBool(SettingsList, sSOUNDS, "NoMIDI", DEFAULT_NOMIDI);
-i = ReadSettingLong(SettingsList, sSOUNDS, "Instrument0", DEFAULT_DEFINST);
-if (i > 255)
-  i = 255;
-if (i < 0)
-  i = 0;
-Settings.DefInst0 = (byte)i;
-i = ReadSettingLong(SettingsList, sSOUNDS, "Instrument1", DEFAULT_DEFINST);
-if (i > 255)
-  i = 255;
-if (i < 0)
-  i = 0;
-Settings.DefInst1 = (byte)i;
-i = ReadSettingLong(SettingsList, sSOUNDS, "Instrument2", DEFAULT_DEFINST);
-if (i > 255)
-  i = 255;
-if (i < 0)
-  i = 0;
-Settings.DefInst2 = (byte)i;
-Settings.DefMute0 = ReadSettingBool(SettingsList, sSOUNDS, "Mute0", DEFAULT_DEFMUTE);
-Settings.DefMute1 = ReadSettingBool(SettingsList, sSOUNDS, "Mute1", DEFAULT_DEFMUTE);
-Settings.DefMute2 = ReadSettingBool(SettingsList, sSOUNDS, "Mute2", DEFAULT_DEFMUTE);
-Settings.DefMute3 = ReadSettingBool(SettingsList, sSOUNDS, "Mute3", DEFAULT_DEFMUTE);
+      //SOUNDS
+      Settings.ShowKybd = ReadSettingBool(SettingsList, sSOUNDS, "ShowKeyboard", DEFAULT_SHOWKYBD);
+      Settings.ShowNotes = ReadSettingBool(SettingsList, sSOUNDS, "ShowNotes", DEFAULT_SHOWNOTES);
+      Settings.OneTrack = ReadSettingBool(SettingsList, sSOUNDS, "OneTrack", DEFAULT_ONETRACK);
+      Settings.SndUndo = ReadSettingLong(SettingsList, sSOUNDS, "SndUndo", DEFAULT_SNDUNDO);
+      if (Settings.SndUndo < -1)
+        Settings.SndUndo = -1;
+      Settings.SndZoom = ReadSettingLong(SettingsList, sSOUNDS, "Zoom", DEFAULT_SNDZOOM);
+      if (Settings.SndZoom < 1)
+        Settings.SndZoom = 1;
+      if (Settings.SndZoom > 3)
+        Settings.SndZoom = 3;
+      Settings.NoMIDI = ReadSettingBool(SettingsList, sSOUNDS, "NoMIDI", DEFAULT_NOMIDI);
+      i = ReadSettingLong(SettingsList, sSOUNDS, "Instrument0", DEFAULT_DEFINST);
+      if (i > 255)
+        i = 255;
+      if (i < 0)
+        i = 0;
+      Settings.DefInst0 = (byte)i;
+      i = ReadSettingLong(SettingsList, sSOUNDS, "Instrument1", DEFAULT_DEFINST);
+      if (i > 255)
+        i = 255;
+      if (i < 0)
+        i = 0;
+      Settings.DefInst1 = (byte)i;
+      i = ReadSettingLong(SettingsList, sSOUNDS, "Instrument2", DEFAULT_DEFINST);
+      if (i > 255)
+        i = 255;
+      if (i < 0)
+        i = 0;
+      Settings.DefInst2 = (byte)i;
+      Settings.DefMute0 = ReadSettingBool(SettingsList, sSOUNDS, "Mute0", DEFAULT_DEFMUTE);
+      Settings.DefMute1 = ReadSettingBool(SettingsList, sSOUNDS, "Mute1", DEFAULT_DEFMUTE);
+      Settings.DefMute2 = ReadSettingBool(SettingsList, sSOUNDS, "Mute2", DEFAULT_DEFMUTE);
+      Settings.DefMute3 = ReadSettingBool(SettingsList, sSOUNDS, "Mute3", DEFAULT_DEFMUTE);
 
-//VIEWS
-Settings.ViewScale.Edit = ReadSettingLong(SettingsList, sVIEWS, "EditorScale", DEFAULT_VIEWSCALE_EDIT);
-if (Settings.ViewScale.Edit < 1)
-  Settings.ViewScale.Edit = 1;
-if (Settings.ViewScale.Edit > 10)
-  Settings.ViewScale.Edit = 10;
-Settings.ViewScale.Preview = ReadSettingLong(SettingsList, sVIEWS, "PreviewScale", DEFAULT_VIEWSCALE_PREVIEW);
-if (Settings.ViewScale.Preview < 1)
-  Settings.ViewScale.Preview = 1;
-if (Settings.ViewScale.Preview > 10)
-  Settings.ViewScale.Preview = 10;
-Settings.ViewAlignH = ReadSettingLong(SettingsList, sVIEWS, "AlignH", DEFAULT_VIEWALIGNH);
-if (Settings.ViewAlignH < 0)
-  Settings.ViewAlignH = 0;
-if (Settings.ViewAlignH > 2)
-  Settings.ViewAlignH = 2;
-Settings.ViewAlignV = ReadSettingLong(SettingsList, sVIEWS, "AlignV", DEFAULT_VIEWALIGNV);
-if (Settings.ViewAlignV < 0)
-  Settings.ViewAlignV = 0;
-if (Settings.ViewAlignV > 2)
-  Settings.ViewAlignV = 2;
-Settings.ViewUndo = ReadSettingLong(SettingsList, sVIEWS, "ViewUndo", DEFAULT_VIEWUNDO);
-if (Settings.ViewUndo < -1)
-  Settings.ViewUndo = -1;
-i = ReadSettingLong(SettingsList, sVIEWS, "DefaultCelHeight", DEFAULT_DEFCELH);
-if (i < 1)
-  i = 1;
-if (i > 167)
-  i = 167;
-Settings.DefCelH = (byte)i;
-i = ReadSettingLong(SettingsList, sVIEWS, "DefaultCelWidth", DEFAULT_DEFCELW);
-if (i < 1) i = 1;
-if (i > 167)
-  i = 160;
-Settings.DefCelW = (byte)i;
-Settings.DefVColor1 = ReadSettingLong(SettingsList, sVIEWS, "Color1", (int)DEFAULT_DEFVCOLOR1);
-if (Settings.DefVColor1 < 0)
-  Settings.DefVColor1 = 0;
-if (Settings.DefVColor1 > 15)
-  Settings.DefVColor1 = 15;
-Settings.DefVColor2 = ReadSettingLong(SettingsList, sVIEWS, "Color2", (int)DEFAULT_DEFVCOLOR2);
-if (Settings.DefVColor2 < 0)
-  Settings.DefVColor2 = 0;
-if (Settings.DefVColor2 > 15)
-  Settings.DefVColor2 = 15;
-Settings.ShowVEPrev = ReadSettingBool(SettingsList, sVIEWS, "ShowVEPreview", DEFAULT_SHOWVEPREV);
-Settings.ShowGrid = ReadSettingBool(SettingsList, sVIEWS, "ShowEditGrid", DEFAULT_SHOWGRID);
+      //VIEWS
+      Settings.ViewScale.Edit = ReadSettingLong(SettingsList, sVIEWS, "EditorScale", DEFAULT_VIEWSCALE_EDIT);
+      if (Settings.ViewScale.Edit < 1)
+        Settings.ViewScale.Edit = 1;
+      if (Settings.ViewScale.Edit > 10)
+        Settings.ViewScale.Edit = 10;
+      Settings.ViewScale.Preview = ReadSettingLong(SettingsList, sVIEWS, "PreviewScale", DEFAULT_VIEWSCALE_PREVIEW);
+      if (Settings.ViewScale.Preview < 1)
+        Settings.ViewScale.Preview = 1;
+      if (Settings.ViewScale.Preview > 10)
+        Settings.ViewScale.Preview = 10;
+      Settings.ViewAlignH = ReadSettingLong(SettingsList, sVIEWS, "AlignH", DEFAULT_VIEWALIGNH);
+      if (Settings.ViewAlignH < 0)
+        Settings.ViewAlignH = 0;
+      if (Settings.ViewAlignH > 2)
+        Settings.ViewAlignH = 2;
+      Settings.ViewAlignV = ReadSettingLong(SettingsList, sVIEWS, "AlignV", DEFAULT_VIEWALIGNV);
+      if (Settings.ViewAlignV < 0)
+        Settings.ViewAlignV = 0;
+      if (Settings.ViewAlignV > 2)
+        Settings.ViewAlignV = 2;
+      Settings.ViewUndo = ReadSettingLong(SettingsList, sVIEWS, "ViewUndo", DEFAULT_VIEWUNDO);
+      if (Settings.ViewUndo < -1)
+        Settings.ViewUndo = -1;
+      i = ReadSettingLong(SettingsList, sVIEWS, "DefaultCelHeight", DEFAULT_DEFCELH);
+      if (i < 1)
+        i = 1;
+      if (i > 167)
+        i = 167;
+      Settings.DefCelH = (byte)i;
+      i = ReadSettingLong(SettingsList, sVIEWS, "DefaultCelWidth", DEFAULT_DEFCELW);
+      if (i < 1) i = 1;
+      if (i > 167)
+        i = 160;
+      Settings.DefCelW = (byte)i;
+      Settings.DefVColor1 = ReadSettingLong(SettingsList, sVIEWS, "Color1", (int)DEFAULT_DEFVCOLOR1);
+      if (Settings.DefVColor1 < 0)
+        Settings.DefVColor1 = 0;
+      if (Settings.DefVColor1 > 15)
+        Settings.DefVColor1 = 15;
+      Settings.DefVColor2 = ReadSettingLong(SettingsList, sVIEWS, "Color2", (int)DEFAULT_DEFVCOLOR2);
+      if (Settings.DefVColor2 < 0)
+        Settings.DefVColor2 = 0;
+      if (Settings.DefVColor2 > 15)
+        Settings.DefVColor2 = 15;
+      Settings.ShowVEPrev = ReadSettingBool(SettingsList, sVIEWS, "ShowVEPreview", DEFAULT_SHOWVEPREV);
+      Settings.ShowGrid = ReadSettingBool(SettingsList, sVIEWS, "ShowEditGrid", DEFAULT_SHOWGRID);
 
-//DECOMPILER
-LogicSourceSettings.ShowAllMessages = ReadSettingBool(SettingsList, sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
-LogicSourceSettings.ElseAsGoto = ReadSettingBool(SettingsList, sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
-LogicSourceSettings.SpecialSyntax = ReadSettingBool(SettingsList, sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
-LogicSourceSettings.ReservedAsText = ReadSettingBool(SettingsList, sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
-LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
+      //DECOMPILER
+      LogicSourceSettings.ShowAllMessages = ReadSettingBool(SettingsList, sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
+      LogicSourceSettings.ElseAsGoto = ReadSettingBool(SettingsList, sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
+      LogicSourceSettings.SpecialSyntax = ReadSettingBool(SettingsList, sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
+      LogicSourceSettings.ReservedAsText = ReadSettingBool(SettingsList, sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
+      LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
       if (Settings.UseTxt)
       {
         LogicSourceSettings.SourceExt = ".txt";
-      } else { 
-      LogicSourceSettings.SourceExt = ".lgc";
-}
-   
-  ////get property window height
-  //PropRowCount = ReadSettingLong(SettingsList, sPOSITION, "PropRowCount", 4)
-  //  if (PropRowCount < 3) { PropRowCount = MIN_SPLIT_RES
-  //  if (PropRowCount > 9) { PropRowCount = MAX_SPLIT_RES
-  //  UpdateSplitRes picResources.ScaleHeight - ((PropRowCount + 1) * PropRowHeight) - SPLIT_HEIGHT
-    
-  ////try multimonitor version first
-  //blnMax = ReadSettingBool(SettingsList, sPOSITION, "MCheck", false)
-  //if (blnMax) {
-  //  wpWinAGI.Flags = ReadSettingLong(SettingsList, sPOSITION, "Mflags")
-  //  wpWinAGI.Length = ReadSettingLong(SettingsList, sPOSITION, "Mlength")
-  //  wpWinAGI.ptMaxPosition.X = ReadSettingLong(SettingsList, sPOSITION, "MptMxPX")
-  //  wpWinAGI.ptMaxPosition.Y = ReadSettingLong(SettingsList, sPOSITION, "MptMxPY")
-  //  wpWinAGI.ptMinPosition.X = ReadSettingLong(SettingsList, sPOSITION, "MptMnPX")
-  //  wpWinAGI.ptMinPosition.Y = ReadSettingLong(SettingsList, sPOSITION, "MptMnPY")
-  //  wpWinAGI.rcNormalPosition.Bottom = ReadSettingLong(SettingsList, sPOSITION, "MBottom")
-  //  wpWinAGI.rcNormalPosition.Left = ReadSettingLong(SettingsList, sPOSITION, "MLeft")
-  //  wpWinAGI.rcNormalPosition.Right = ReadSettingLong(SettingsList, sPOSITION, "MRight")
-  //  wpWinAGI.rcNormalPosition.Top = ReadSettingLong(SettingsList, sPOSITION, "MTop")
-  //  wpWinAGI.showCmd = ReadSettingLong(SettingsList, sPOSITION, "MShow")
-  //  // if minimized
-  //  if (wpWinAGI.showCmd = SW_SHOWMINIMIZED) {
-  //    //must restore to avoid sizing errors
-  //    wpWinAGI.showCmd = SW_SHOW
-  //  }
-    
-  //  i = SetWindowPlacement(Me.hWnd, wpWinAGI)
-  //  //if NOT successful, we will have to try with the original placement settings
-  //  //use blnMax to temporarily store the result
-  //  blnMax = (i != 0)
-  //}
-  
-  ////blnMax is TRUE if we found and successfully used multimonitor placement info
-  ////blnMax is FALSE if not found, or not successful
-  //if (!blnMax) {
-  //  //get main window state
-  //  blnMax = ReadSettingBool(SettingsList, sPOSITION, "WindowMax")
-    
-  //  //get main window position
-  //  sngLeft = ReadSettingSingle(SettingsList, sPOSITION, "Left", Screen.Width * 0.15)
-  //    if (sngLeft < 0) {
-  //      sngLeft = 0
-  //    ElseIf sngLeft > Screen.Width - 20) {
-  //      sngLeft = Screen.Width - 20
-  //    }
-  //  sngTop = ReadSettingSingle(SettingsList, sPOSITION, "Top", Screen.Height * 0.15)
-  //    if (sngTop < 0) {
-  //      sngTop = 0
-  //    ElseIf sngTop > Screen.Height - 20) {
-  //      sngTop = Screen.Height - 20
-  //    }
-  //  sngWidth = ReadSettingSingle(SettingsList, sPOSITION, "Width", Screen.Width * 0.7)
-  //    if (sngWidth <= 5000) {
-  //      sngWidth = 5000
-  //    ElseIf sngWidth > Screen.Width) {
-  //      sngWidth = Screen.Width
-  //    }
-  //  sngHeight = ReadSettingSingle(SettingsList, sPOSITION, "Height", Screen.Height * 0.7)
-  //    if (sngHeight <= 5000) {
-  //      sngHeight = 5000
-  //    ElseIf sngHeight > Screen.Height) {
-  //      sngHeight = Screen.Height
-  //    }
-      
-  //  //now move the form
-  //  frmMDIMain.Move sngLeft, sngTop, sngWidth, sngHeight
-  //  //if maximized
-  //  if (blnMax) {
-  //    //maximize window
-  //    WindowState = vbMaximized
-  //  }
-  
-  ////get resource window width
-  //sngProp = ReadSettingSingle(SettingsList, sPOSITION, "ResourceWidth", MIN_SPLIT_V * 1.5);
-  //if (sngProp < MIN_SPLIT_V)
-  //{
-  //  sngProp = MIN_SPLIT_V;
-  //}
-  //else if (sngProp > ScaleWidth - MIN_SPLIT_V)
-  //{
-  //  sngProp = ScaleWidth - MIN_SPLIT_V;
-  //}
+      }
+      else
+      {
+        LogicSourceSettings.SourceExt = ".lgc";
+      }
 
-////set width
-//picResources.Width = sngProp;
+      //get property window height
+      PropRowCount = ReadSettingLong(SettingsList, sPOSITION, "PropRowCount", 4);
+      if (PropRowCount < 3)
+        PropRowCount = MIN_SPLIT_RES;
+      if (PropRowCount > 9)
+        PropRowCount = MAX_SPLIT_RES;
+      //  UpdateSplitRes picResources.ScaleHeight - ((PropRowCount + 1) * PropRowHeight) - SPLIT_HEIGHT
 
-////get mru settings
-//Settings.AutoOpen = ReadSettingBool(SettingsList, sMRULIST, "AutoOpen", DEFAULT_AUTOOPEN)
-//For i = 1 To 4
-//  strMRU(i) = ReadSettingString(SettingsList, sMRULIST, "MRUGame" + CStr(i), "")
-//  //if one exists
-//  if (LenB(strMRU(i)) != 0) {
-//    //add it to menu
-//    Controls("mnuGMRU" + CStr(i)).Caption = CompactPath(strMRU(i), 60)
-//    Controls("mnuGMRU" + CStr(i)).Visible = true
-//    mnuGMRUBar.Visible = true
-//  Else
-//    //stop loading list at first blank
-//    Exit For
-//  }
-//Next i
+      //get main window state
+      blnMax = ReadSettingBool(SettingsList, sPOSITION, "WindowMax");
 
-////get tools info
-//blnTools = false
-//For i = 1 To 6
-//  strCaption = ReadSettingString(SettingsList, sTOOLS, "Caption" + CStr(i), "")
-//  strTool = ReadSettingString(SettingsList, sTOOLS, "Source" + CStr(i), "")
+      //get main window position
+      sngLeft = ReadSettingSingle(SettingsList, sPOSITION, "Left", Screen.PrimaryScreen.Bounds.Width * 0.15);
+      if (sngLeft < 0)
+      {
+        sngLeft = 0;
+      } else if (sngLeft > Screen.PrimaryScreen.Bounds.Width * 0.85) 
+      {
+        sngLeft = Screen.PrimaryScreen.Bounds.Width * 0.85;
+      }
+      sngTop = ReadSettingSingle(SettingsList, sPOSITION, "Top", Screen.PrimaryScreen.Bounds.Height * 0.15);
+      if (sngTop < 0)
+      {
+        sngTop = 0;
+      } else if ( sngTop > Screen.PrimaryScreen.Bounds.Height * 0.85) 
+      {
+        sngTop = Screen.PrimaryScreen.Bounds.Height * 0.85;
+      }
+      sngWidth = ReadSettingSingle(SettingsList, sPOSITION, "Width", Screen.PrimaryScreen.Bounds.Width * 0.7);
+      if (sngWidth <= Screen.PrimaryScreen.Bounds.Width * 0.2)
+      {
+        sngWidth = Screen.PrimaryScreen.Bounds.Width * 0.2;
+      } 
+      if (sngWidth > Screen.PrimaryScreen.Bounds.Width)
+      {
+        sngWidth = Screen.PrimaryScreen.Bounds.Width;
+      }
+      sngHeight = ReadSettingSingle(SettingsList, sPOSITION, "Height", Screen.PrimaryScreen.Bounds.Height * 0.7);
+      if (sngHeight <= Screen.PrimaryScreen.Bounds.Height * 0.2)
+      {
+        sngHeight = Screen.PrimaryScreen.Bounds.Height * 0.2;
+      } else if (sngHeight > Screen.PrimaryScreen.Bounds.Height)
+      {
+        sngHeight = Screen.PrimaryScreen.Bounds.Height;
+      }
+      //now move the form
+      MDIMain.Bounds = new Rectangle((int)sngLeft, (int)sngTop, (int)sngWidth, (int)sngHeight);
+        //if maximized
+        if (blnMax)
+        {
+          //maximize window
+          WindowState = FormWindowState.Maximized;
+        }
+      //get resource window width
+      sngProp = ReadSettingSingle(SettingsList, sPOSITION, "ResourceWidth", MIN_SPLIT_V * 1.5);
+      if (sngProp < MIN_SPLIT_V)
+      {
+        sngProp = MIN_SPLIT_V;
+      }
+      else if (sngProp > MDIMain.Bounds.Width - MIN_SPLIT_V)
+      {
+        sngProp = MDIMain.Bounds.Width - MIN_SPLIT_V;
+      }
+      //set width
+      pnlResources.Width = (int)sngProp;
 
-//  //update tools menu
-//  With frmMDIMain.mnuTCustom(i)
-//    if (LenB(strCaption) != 0 And LenB(strTool) != 0) {
-//      Settings.Visible = true
-//      Settings.Caption = strCaption
-//      Settings.Tag = strTool
-//      blnTools = true
-//    Else
-//      Settings.Visible = false
-//    }
-//  End With
-//Next i
-////if no tools, hide separator
-//frmMDIMain.mnuTBar1.Visible = blnTools
+      ////get mru settings
+      //Settings.AutoOpen = ReadSettingBool(SettingsList, sMRULIST, "AutoOpen", DEFAULT_AUTOOPEN)
+      //For i = 1 To 4
+      //  strMRU(i) = ReadSettingString(SettingsList, sMRULIST, "MRUGame" + CStr(i), "")
+      //  //if one exists
+      //  if (LenB(strMRU(i)) != 0) {
+      //    //add it to menu
+      //    Controls("mnuGMRU" + CStr(i)).Caption = CompactPath(strMRU(i), 60)
+      //    Controls("mnuGMRU" + CStr(i)).Visible = true
+      //    mnuGMRUBar.Visible = true
+      //  Else
+      //    //stop loading list at first blank
+      //    Exit For
+      //  }
+      //Next i
 
-////for error warning settings, just ignore errors
-//On Error Resume Next
-//lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn0", 0)
-//For i = 1 To 30
-//  LogicSourceSettings.IgnoreWarning(5000 + i) = (lngNoCompVal And 2 ^ i) = 2 ^ i
-//Next i
-//lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn1", 0)
-//For i = 31 To 60
-//  LogicSourceSettings.IgnoreWarning(5000 + i) = (lngNoCompVal And 2 ^ (i - 30)) = 2 ^ (i - 30)
-//Next i
-//lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn2", 0)
-//For i = 61 To 90
-//  LogicSourceSettings.IgnoreWarning(5000 + i) = (lngNoCompVal And 2 ^ (i - 60)) = 2 ^ (i - 60)
-//Next i
-//lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn3", 0)
-//For i = 91 To WARNCOUNT
-//  LogicSourceSettings.IgnoreWarning(5000 + i) = (lngNoCompVal And 2 ^ (i - 90)) = 2 ^ (i - 90)
-//Next i
+      ////get tools info
+      //blnTools = false;
+      //for (i = 1; i <= 6; i++) {
+      //  strCaption = ReadSettingString(SettingsList, sTOOLS, "Caption" + CStr(i), "");
+      //  strTool = ReadSettingString(SettingsList, sTOOLS, "Source" + CStr(i), "");
+      //  //update tools menu
+      //  With MDIMain.mnuTCustom(i)
+      //    if (strCaption.Length > 0 && strTool.Length > 0) {
+      //      MDIMain.mnuTCustom[i].Visible = true;
+      //      MDIMain.mnuTCustom(i).Caption = strCaption
+      //      MDIMain.mnuTCustom(i).Tag = strTool
+      //      blnTools = true;
+      //    Else
+      //      Settings.Visible = false
+      //    }
+      //}
+      ////if no tools, hide separator
+      //MDIMain.mnuTBar1.Visible = blnTools
 
-return true;
+      //error warning settings
+      lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn0", 0);
+      for (i = 1; i <= 30; i++)
+      {
+        LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << i)) == (1 << i));
+      }
+      lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn1", 0);
+      for (i = 31; i <= 60; i++)
+      {
+        LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 30))) == 1 << (i - 30));
+      }
+      lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn2", 0);
+      for (i = 61; i <= 90; i++)
+      {
+        LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 60))) == 1 << (i - 60));
+      }
+      lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn3", 0);
+      for (i = 91; i < WARNCOUNT; i++)
+      {
+        LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 90))) == 1 << (i - 90));
+      }
 
-  ////if error not yet encountered
-  ////Debug.Assert false
-  //if (!blnErrors) {
-  //  MsgBox "An error occurred while reading settings from the config file. Check the config file carefully to correct any errors.", vbInformation + vbOKOnly, "Read Settings Error"
-  //  blnErrors = true
-  //  //Debug.Assert false
-  //}
-}
-   void working()
+      return true;
+
+      ////if error not yet encountered
+      ////Debug.Assert false
+      //if (!blnErrors) {
+      //  MsgBox "An error occurred while reading settings from the config file. Check the config file carefully to correct any errors.", vbInformation + vbOKOnly, "Read Settings Error"
+      //  blnErrors = true
+      //  //Debug.Assert false
+      //}
+    }
+    public void SaveSettings()
+    {  //saves game settings to config file
+      int i, lngCompVal;
+      //if main form is maximized
+      if (MDIMain.WindowState == FormWindowState.Maximized)
+      {
+        //save Max Value only
+        WriteAppSetting(SettingsList, sPOSITION, "WindowMax", true);
+      }
+      else
+      {
+        //save all window settings
+        WriteAppSetting(SettingsList, sPOSITION, "Top", MDIMain.Top.ToString());
+        WriteAppSetting(SettingsList, sPOSITION, "Left", MDIMain.Left.ToString());
+        WriteAppSetting(SettingsList, sPOSITION, "Width", MDIMain.Width.ToString());
+        WriteAppSetting(SettingsList, sPOSITION, "Height", MDIMain.Height.ToString());
+        WriteAppSetting(SettingsList, sPOSITION, "WindowMax", false.ToString());
+      }
+      //save other position settings
+      WriteAppSetting(SettingsList, sPOSITION, "PropRowCount", PropRowCount);
+      //save mru settings
+      for (i = 1; i < 5; i++)
+      {
+        WriteAppSetting(SettingsList, sMRULIST, "MRUGame" + i, strMRU[i]);
+      }
+      //save resource pane width
+      WriteAppSetting(SettingsList, sPOSITION, "ResourceWidth", pnlResources.Width);
+      //save other general settings
+      WriteAppSetting(SettingsList, sGENERAL, "DockHelpWindow", HelpParent == (int)this.Handle);
+      // for warnings, create a bitfield to mark which are being ignored
+      lngCompVal = 0;
+      for (i = 1; i <= 30; i++)
+      {
+        lngCompVal |= (LogicSourceSettings.IgnoreWarning(5000 + i) ? 1 << i : 0);
+      }
+      WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn0", lngCompVal);
+      lngCompVal = 0;
+      for (i = 1; i <= 30; i++)
+      {
+        lngCompVal |= (LogicSourceSettings.IgnoreWarning(5030 + i) ? 1 << i : 0);
+      }
+      WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn1", lngCompVal);
+      lngCompVal = 0;
+      for (i = 1; i <= 30; i++)
+      {
+        lngCompVal |= (LogicSourceSettings.IgnoreWarning(5060 + i) ? 1 << i : 0);
+      }
+      WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn2", lngCompVal);
+      lngCompVal = 0;
+      for (i = 1; i < (WARNCOUNT % 30); i++)
+      {
+        lngCompVal |= (LogicSourceSettings.IgnoreWarning(5090 + i) ? 1 << i : 0);
+      }
+      WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn3", lngCompVal);
+      //save to file
+      SaveSettingList(SettingsList);
+    }
+    void working()
     {
       /*
 
@@ -1208,23 +1241,23 @@ return true;
 //    Copyright (C) 2005-2020 Andrew Korson
 //
 //    This program is free software; you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
+//    it under the terms of the GNU General public License as published by
 //    the Free Software Foundation; either version 2 of the License, or
 //    (at your option) any later version.
 //
 //    This program is distributed in the hope that it will be useful,
 //    but WITHOUT ANY WARRANTY; without even the implied warranty of
 //    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
+//    GNU General public License for more details.
 //
-//    You should have received a copy of the GNU General Public License
+//    You should have received a copy of the GNU General public License
 //    along with this program; if not, write to the Free Software
 //    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 Option Explicit
 
-Public Sub AddError(ByVal LineNum As Long, ByVal ErrNum As Long, ByVal ErrorText As String, ByVal ResNumber As Long, ByVal Module As String)
+public void AddError(ByVal LineNum As Long, ByVal ErrNum As Long, ByVal ErrorText As String, ByVal ResNumber As Long, ByVal Module As String)
 
 //Error  Description  ResNum  Line  Module
 //4118      Blah          1     34    Logic1
@@ -1265,8 +1298,8 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
-Public Sub AddWarning(ByRef WarningText As String, ByVal ResType As AGIResType, ByVal ResNumber As Long)
+}
+public void AddWarning(ByRef WarningText As String, ByVal ResType As AGIResType, ByVal ResNumber As Long)
 
 //Warning  Description  ResNum  Line  Module
 //4118      Blah          1     34    Logic1
@@ -1301,7 +1334,7 @@ Public Sub AddWarning(ByRef WarningText As String, ByVal ResType As AGIResType, 
       .AddItem " " + vbTab + vbTab + strWarning(0) + vbTab + strWarning(1) + vbTab + "--" + vbTab + strWarning(2) + vbTab + Sounds(ResNumber).ID
     Case rtView
       .AddItem " " + vbTab + vbTab + strWarning(0) + vbTab + strWarning(1) + vbTab + "--" + vbTab + strWarning(2) + vbTab + Views(ResNumber).ID
-    End Select
+    }
     
     //save restype in row data tag
     .RowData(.Rows - 1) = ResType
@@ -1324,9 +1357,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub BeginFind()
+public void BeginFind()
 
   //used by SearchForID function
   
@@ -1356,15 +1389,15 @@ Public Sub BeginFind()
      
   Case faReplaceAll
     ReplaceAll GFindText, GReplaceText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
-  End Select
+  }
 return;
 
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub ClearWarnings(ByVal ResNum As Long, ByVal ResType As AGIResType)
+public void ClearWarnings(ByVal ResNum As Long, ByVal ResType As AGIResType)
 
 //Warning  Description  ResNum  Line  Module
 //4118      Blah          1     34    Logic1
@@ -1387,13 +1420,13 @@ Public Sub ClearWarnings(ByVal ResNum As Long, ByVal ResType As AGIResType)
       For i = .Rows To 3 Step -1
         .RemoveItem 1
       Next i
-    Else
+    } else {
       //find the matching lines (by type/number)
       For i = .Rows - 1 To 1 Step -1
-        if (CLng(Val(.TextMatrix(i, 4))) = ResNum And .RowData(i) = ResType) {
+        if (CLng(Val(.TextMatrix(i, 4))) = ResNum && .RowData(i) = ResType) {
           if (.Rows = 2) {
             .Clear
-          Else
+          } else {
             .RemoveItem i
           }
         }
@@ -1414,9 +1447,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub DismissWarning()
+public void DismissWarning()
 
   //Debug.Assert fgWarnings.Row > 0
   
@@ -1429,7 +1462,7 @@ Public Sub DismissWarning()
   With fgWarnings
     if (.Rows = 2) {
       .Clear
-    Else
+    } else {
       .RemoveItem fgWarnings.Row
     }
   
@@ -1445,9 +1478,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub HelpWarning()
+public void HelpWarning()
 
   //Debug.Assert fgWarnings.Row > 0
   
@@ -1462,7 +1495,7 @@ Public Sub HelpWarning()
       strNum = .TextMatrix(.Row, 2)
       if (Val(strNum) > 5000) {
         strTopic = "htm\winagi\compilerwarnings.htm"
-      Else
+      } else {
         strTopic = "htm\winagi\compilererrors.htm"
       }
       strTopic = strTopic + "#" + strNum
@@ -1476,9 +1509,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub SearchForID(Optional ffValue As FindFormFunction = ffFindLogic)
+public void SearchForID(Optional ffValue As FindFormFunction = ffFindLogic)
 
   On Error GoTo ErrHandler
   
@@ -1494,7 +1527,7 @@ Public Sub SearchForID(Optional ffValue As FindFormFunction = ffFindLogic)
     GFindText = Sounds(SelResNum).ID
   Case rtView
     GFindText = Views(SelResNum).ID
-  End Select
+  }
   
   GFindDir = fdAll
   GMatchWord = true
@@ -1505,12 +1538,12 @@ Public Sub SearchForID(Optional ffValue As FindFormFunction = ffFindLogic)
   //reset search flags
   FindForm.ResetSearch
   
-  Set SearchForm = frmMDIMain
+  Set SearchForm = MDIMain
   
   //display find form
   With FindForm
     .SetForm ffFindLogic, true
-    .Show , frmMDIMain
+    .Show , MDIMain
   End With
   
 // decided to stick with just showing the form, instead of
@@ -1522,9 +1555,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub SelectPropFromList()
+Private void SelectPropFromList()
 
   Dim i As Long
   Dim Reason As EUReason
@@ -1548,7 +1581,7 @@ Private Sub SelectPropFromList()
     SelectedProp = 4
   Case "USELE"
     SelectedProp = 9
-  End Select
+  }
   
   //save property that was edited
   Select Case lstProperty.Tag
@@ -1568,7 +1601,7 @@ Private Sub SelectPropFromList()
         if (cmbResType.List(0) != GameID) {
           cmbResType.List(0) = GameID
         }
-      End Select
+      }
     }
   
   Case "USERESNAMES"
@@ -1602,7 +1635,7 @@ Private Sub SelectPropFromList()
       if (UseLE) {
         if (Logics(SelResNum).IsRoom) {
           Reason = euShowRoom
-        Else
+        } else {
           Reason = euRemoveRoom
         }
         //update layout editor to show new room status
@@ -1619,7 +1652,7 @@ Private Sub SelectPropFromList()
       
       Screen.MousePointer = vbDefault
     }
-  End Select
+  }
   
   //hide listbox
   lstProperty.Visible = false
@@ -1634,9 +1667,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub SelectPropFromText()
+Private void SelectPropFromText()
   
   On Error GoTo ErrHandler
   
@@ -1662,7 +1695,7 @@ Private Sub SelectPropFromText()
     SelectedProp = 4
   Case "MAXOBJ"
     SelectedProp = 4
-  End Select
+  }
     
   //save property that was edited
   Select Case txtProperty.Tag
@@ -1670,7 +1703,7 @@ Private Sub SelectPropFromText()
     //new game id
     
     //if new id is valid (not zero-length) AND changed
-    if (LenB(txtProperty.Text) != 0 And GameID != txtProperty.Text) {
+    if (LenB(txtProperty.Text) != 0 && GameID != txtProperty.Text) {
       ChangeGameID txtProperty.Text
     }
     
@@ -1708,7 +1741,7 @@ Private Sub SelectPropFromText()
         .ViewDescription = Replace(txtProperty.Text, vbNewLine, vbLf)
         .Save
         .Unload
-      Else
+      } else {
         .ViewDescription = Replace(txtProperty.Text, vbNewLine, vbLf)
         .Save
       }
@@ -1717,7 +1750,7 @@ Private Sub SelectPropFromText()
     Dim tmpFrm As Form
     For Each tmpFrm In Forms
       if (tmpFrm.Name = "frmViewEdit") {
-        if (tmpFrm.ViewNumber = SelResNum And tmpFrm.InGame) {
+        if (tmpFrm.ViewNumber = SelResNum && tmpFrm.InGame) {
           tmpFrm.ViewEdit.ViewDescription = Views(SelResNum).ViewDescription
           tmpFrm.UpdateViewDesc
         }
@@ -1728,12 +1761,12 @@ Private Sub SelectPropFromText()
     //validate Max val
     if (Val(txtProperty) > 255) {
       txtProperty.Text = 255
-    ElseIf Val(txtProperty) <= 0) {
+    } else if ( Val(txtProperty) <= 0) {
       txtProperty.Text = 1
     }
     InventoryObjects.MaxScreenObjects = CByte(txtProperty.Text)
     InventoryObjects.Save
-  End Select
+  }
   
   //hide textbox
   txtProperty.Visible = false
@@ -1748,9 +1781,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub WLMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
+public void WLMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
   Dim NewValue As Long
   Dim Lstep As Single
   
@@ -1764,7 +1797,7 @@ Public Sub WLMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal x
       if (NewValue < 1) {
         NewValue = 1
       }
-    Else
+    } else {
       NewValue = .TopRow + Lstep
       if (NewValue > .Rows - 1) {
         NewValue = .Rows - 1
@@ -1772,10 +1805,10 @@ Public Sub WLMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal x
     }
     .TopRow = NewValue
   End With
-End Sub
+}
 
 
-Public Sub IgnoreWarning()
+public void IgnoreWarning()
 
   //Debug.Assert fgWarnings.Row > 0
   
@@ -1795,7 +1828,7 @@ Public Sub IgnoreWarning()
       if (CLng(Val(.TextMatrix(i, 1))) = lngWarning) {
         if (.Rows = 2) {
           .Clear
-        Else
+        } else {
           .RemoveItem i
         }
       }
@@ -1813,10 +1846,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub CheckCmd()
+Private void CheckCmd()
 
   Dim strCmdLine As String
   Dim frmNewO As frmObjectEdit
@@ -1833,7 +1866,7 @@ Private Sub CheckCmd()
   //ensure no quotes
   if (Asc(Command$) = 34) {
     strCmdLine = Mid$(Command$, 2, Len(Command$) - 2)
-  Else
+  } else {
     strCmdLine = Command$
   }
   
@@ -1847,12 +1880,12 @@ Private Sub CheckCmd()
     frmNewO.LoadObjects strCmdLine
     if (Err.Number != 0) {
       Set frmNewO = Nothing
-    Else
+    } else {
       frmNewO.Show
       frmNewO.fgObjects.SetFocus
     }
       
-  ElseIf UCase(JustFileName(Command$)) = "WORDS.TOK") {
+  } else if ( UCase(JustFileName(Command$)) = "WORDS.TOK") {
     //open a word resource
     Set frmNewW = New frmWordsEdit
     Load frmNewW
@@ -1861,11 +1894,11 @@ Private Sub CheckCmd()
     frmNewW.LoadWords strCmdLine
     if (Err.Number != 0) {
       Set frmNewW = Nothing
-    Else
+    } else {
       frmNewW.Show
     }
       
-  Else
+  } else {
     //check for a file
     Select Case LCase$(Right$(strCmdLine, 4))
     Case ".wag"
@@ -1892,7 +1925,7 @@ Private Sub CheckCmd()
       frmNewO.LoadObjects strCmdLine
       if (Err.Number != 0) {
         Set frmNewO = Nothing
-      Else
+      } else {
         frmNewO.Show
         frmNewO.fgObjects.SetFocus
       }
@@ -1918,14 +1951,14 @@ Private Sub CheckCmd()
       frmNewW.LoadWords strCmdLine
       if (Err.Number != 0) {
         Set frmNewW = Nothing
-      Else
+      } else {
         frmNewW.Show
       }
       
-    Case Else
+    default:
       //not sure what was clicked; just ignore it...
       AdjustMenus rtNone, false, false, false
-    End Select
+    }
   }
   
   Set frmNewO = Nothing
@@ -1936,9 +1969,9 @@ ErrHandler:
   //if an error is encountered, just update menus, and exit
   Err.Clear
   AdjustMenus rtNone, false, false, false
-End Sub
+}
 
-Private Sub EditResource(ByVal ResType As AGIResType, ByVal ResNum As Long)
+Private void EditResource(ByVal ResType As AGIResType, ByVal ResNum As Long)
 
   //edits a resource; called by the resource lists
   
@@ -1979,15 +2012,15 @@ Private Sub EditResource(ByVal ResType As AGIResType, ByVal ResNum As Long)
     //same as open
     mnuROWords_Click
   
-  End Select
-End Sub
+  }
+}
 
-Public Sub GRun()
+public void GRun()
   //tie function
   mnuGRun_Click
-End Sub
+}
 
-Public Sub HideResTree()
+public void HideResTree()
 
   //first hide the resource panel and associated elements
   picResources.Visible = false
@@ -2001,16 +2034,16 @@ Public Sub HideResTree()
     picSplitH.Left = picBottom.Left + 30
     picSplitH.Width = picBottom.Width - 60
   }
-End Sub
+}
 
-Public Sub HideWarningList()
+public void HideWarningList()
 
     picWarnings.Visible = false
     picBottom.Visible = false
     picSplitH.Visible = false
-End Sub
+}
 
-Public Sub PrintResources()
+public void PrintResources()
 
   Dim i As Long
   
@@ -2076,10 +2109,10 @@ Public Sub PrintResources()
       return;
     }
     
-  Case Else //text, game or none
+  default: //text, game or none
     //print does not apply
     
-  End Select
+  }
   
   //if no open editor is found, use the selected item method
   SelectedItemPrint
@@ -2088,114 +2121,114 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub RDescription()
+public void RDescription()
   //tie function
   mnuRDescription_Click
-End Sub
+}
 
-Public Sub RILogic()
+public void RILogic()
   //tie function
   mnuRILogic_Click
-End Sub
+}
 
-Public Sub RIObjects()
+public void RIObjects()
   //tie function
   mnuRIObjects_Click
-End Sub
+}
 
-Public Sub RIPicture()
+public void RIPicture()
   //tie function
   mnuRIPicture_Click
-End Sub
+}
 
-Public Sub RISound()
+public void RISound()
   //tie function
   mnuRISound_Click
-End Sub
+}
 
-Public Sub RIView()
+public void RIView()
   //tie function
   mnuRIView_Click
-End Sub
+}
 
 
-Public Sub RIWords()
+public void RIWords()
   //tie function
   mnuRIWords_Click
-End Sub
+}
 
-Public Sub RNLogic()
+public void RNLogic()
   //tie function
   mnuRNLogic_Click
-End Sub
+}
 
-Public Sub RNObjects()
+public void RNObjects()
   //tie function
   mnuRNObjects_Click
-End Sub
+}
 
-Public Sub RNPicture()
+public void RNPicture()
   //tie function
   mnuRNPicture_Click
-End Sub
+}
 
-Public Sub RNSound()
+public void RNSound()
   //tie function
   mnuRNSound_Click
-End Sub
+}
 
 
-Public Sub RNView()
+public void RNView()
   //tie function
   mnuRNView_Click
-End Sub
+}
 
-Public Sub RNWords()
+public void RNWords()
   //tie function
   mnuRNWords_Click
-End Sub
+}
 
-Public Sub ROLogic()
+public void ROLogic()
   //tie function
   mnuROLogic_Click
-End Sub
+}
 
-Public Sub ROObjects()
+public void ROObjects()
   //tie function
   mnuROObjects_Click
-End Sub
+}
 
-Public Sub ROPicture()
+public void ROPicture()
   //tie function
   mnuROPicture_Click
-End Sub
+}
 
-Public Sub ROSound()
+public void ROSound()
   //tie function
   mnuROSound_Click
-End Sub
+}
 
-Public Sub ROText()
+public void ROText()
   //tie function
   mnuROText_Click
-End Sub
-Public Sub RNText()
+}
+public void RNText()
   //tie function
   mnuRNText_Click
-End Sub
-Public Sub ROView()
+}
+public void ROView()
   //tie function
   mnuROView_Click
-End Sub
+}
 
-Public Sub ROWords()
+public void ROWords()
   //tie function
   mnuROWords_Click
-End Sub
+}
 
-Private Sub SelectedItemDescription(ByVal FirstProp As Long)
+Private void SelectedItemDescription(ByVal FirstProp As Long)
 
   Dim strID As String, strTempD As String
   Dim frm As Form
@@ -2241,9 +2274,9 @@ Private Sub SelectedItemDescription(ByVal FirstProp As Long)
         return;
       }
     Next
-  End Select
+  }
   
-  //Debug.Assert FirstProp > 0 And FirstProp < 3
+  //Debug.Assert FirstProp > 0 && FirstProp < 3
   //set current values
   Select Case SelResType
   Case rtObjects
@@ -2267,7 +2300,7 @@ Private Sub SelectedItemDescription(ByVal FirstProp As Long)
   Case rtView
     strID = Views(SelResNum).ID
     strTempD = Views(SelResNum).Description
-  End Select
+  }
     
   GetNewResID SelResType, SelResNum, strID, strTempD, true, FirstProp
 return;
@@ -2275,9 +2308,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub RemoveSelectedRes()
+public void RemoveSelectedRes()
 
   //removes a resource from the game
 
@@ -2298,10 +2331,10 @@ Public Sub RemoveSelectedRes()
   Case rtView
     strID = Views(SelResNum).ID
     
-  Case Else
+  default:
     //Debug.Assert false
     return;
-  End Select
+  }
     
   //ask if resource should be exported first
   if (Settings.AskExport) {
@@ -2313,9 +2346,9 @@ Public Sub RemoveSelectedRes()
     Settings.AskExport = !blnDontAsk
     //if now hiding, update settings file
     if (!Settings.AskExport) {
-      WriteAppSetting SettingsList, sGENERAL, "AskExport", Settings.AskExport
+      WriteAppSetting(SettingsList, sGENERAL, "AskExport", Settings.AskExport
     }
-  Else
+  } else {
     //dont ask; assume no
     rtn = vbNo
   }
@@ -2329,7 +2362,7 @@ Public Sub RemoveSelectedRes()
     SelectedItemExport
   Case vbNo
     //nothing to do
-  End Select
+  }
   
   //confirm removal
   if (Settings.AskRemove) {
@@ -2341,9 +2374,9 @@ Public Sub RemoveSelectedRes()
     Settings.AskRemove = !blnDontAsk
     //if now hiding, update settings file
     if (!Settings.AskRemove) {
-      WriteAppSetting SettingsList, sGENERAL, "AskRemove", Settings.AskRemove
+      WriteAppSetting(SettingsList, sGENERAL, "AskRemove", Settings.AskRemove
     }
-  Else
+  } else {
     //assume OK
     rtn = vbOK
   }
@@ -2371,11 +2404,11 @@ Public Sub RemoveSelectedRes()
     //remove the sound
     RemoveSound SelResNum
   
-  End Select
+  }
   
-End Sub
+}
 
-Public Sub SelectedItemExport()
+public void SelectedItemExport()
   
   //exports the resource currently being previewed
   
@@ -2424,17 +2457,17 @@ Public Sub SelectedItemExport()
   Case rtWords
     ExportWords VocabularyWords, true
     
-  Case Else
+  default:
     //should never get here for other resource types
     
-  End Select
+  }
 return;
 
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
-Public Sub SelectedItemRenumber()
+}
+public void SelectedItemRenumber()
   //renumber the selected resource
   
   Dim NewResNum As Byte, OldResNum As Byte
@@ -2482,9 +2515,9 @@ Public Sub SelectedItemRenumber()
         return;
       }
     Next
-  End Select
+  }
   
-  //Debug.Assert SelResNum >= 0 And SelResNum <= 255
+  //Debug.Assert SelResNum >= 0 && SelResNum <= 255
   
   //if logic,
   if (SelResType = rtLogic) {
@@ -2532,8 +2565,8 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
-Public Sub SelectedItemPrint()
+}
+public void SelectedItemPrint()
   
   Dim blnLoaded As Boolean
   
@@ -2629,15 +2662,15 @@ Public Sub SelectedItemPrint()
     frmPrint.Show vbModal, Me
     KeepFocus = false
     
-  End Select
+  }
 return;
 
 ErrHandler:
   Resume Next
-End Sub
+}
 
 
-Public Sub ShowResTree()
+public void ShowResTree()
 
   Dim lngSplitLoc As Long
   
@@ -2685,14 +2718,14 @@ Public Sub ShowResTree()
     picResources.Font.Name = Settings.PFontName
     picResources.Font.Size = Settings.PFontSize
     
-  End Select
+  }
   
   //show and position the resource list panels
   picLeft.Visible = true
   picResources.Visible = true
   if (picWarnings.Visible) {
     picResources.Height = Me.ScaleHeight + lngMainLeftBorder + picWarnings.Height
-  Else
+  } else {
     picResources.Height = picLeft.Height
   }
   // and the splitter
@@ -2715,9 +2748,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub ShowWarningList()
+public void ShowWarningList()
 
   picWarnings.Visible = true
   //force resize
@@ -2728,27 +2761,27 @@ Public Sub ShowWarningList()
   if (picResources.Visible) {
     picWarnings.Move picResources.Width, picBottom.Top, CalcWidth + 60
     picSplitH.Move picWarnings.Left + 30, picWarnings.Top, picWarnings.Width - 60
-  Else
+  } else {
     picWarnings.Move 0, picBottom.Top, picBottom.Width
     picSplitH.Move 30, picBottom.Top, picBottom.Width - 60
   }
   UpdateSplitH picBottom.Top, true
   UpdateSplitV picLeft.Width - SPLIT_WIDTH, true
-End Sub
+}
 
-Public Sub TMenu()
+public void TMenu()
   //tie function
   mnuTMenuEditor_Click
-End Sub
+}
 
-Private Sub UpdateSplitRes(ByVal SplitResLoc As Single)
+Private void UpdateSplitRes(ByVal SplitResLoc As Single)
 
   Dim OldHeight As Single
   
   On Error GoTo ErrHandler
   
   //if minimized
-  if ((frmMDIMain.WindowState = vbMinimized)) {
+  if ((MDIMain.WindowState = vbMinimized)) {
     return;
   }
   
@@ -2777,7 +2810,7 @@ Private Sub UpdateSplitRes(ByVal SplitResLoc As Single)
   Case 2 //box
     //set listbox height
     lstResources.Height = SplitResLoc - lstResources.Top
-  End Select
+  }
 
   //move property box to bottom (picResources scale is pixels)
   picProperties.Top = SplitResLoc + SPLIT_HEIGHT
@@ -2797,9 +2830,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub UpdateSplitH(ByVal SplitHLoc As Single, Optional ByVal Force As Boolean = false)
+public void UpdateSplitH(ByVal SplitHLoc As Single, Optional ByVal Force As Boolean = false)
   
   Dim frm As Form
   Dim OldHeight As Single
@@ -2810,7 +2843,7 @@ Public Sub UpdateSplitH(ByVal SplitHLoc As Single, Optional ByVal Force As Boole
   //note that form and screen are in twips; picResources scalemode is pixels
   
   //if minimized,
-  if ((frmMDIMain.WindowState = vbMinimized)) {
+  if ((MDIMain.WindowState = vbMinimized)) {
     //just exit
     return;
   }
@@ -2828,7 +2861,7 @@ Public Sub UpdateSplitH(ByVal SplitHLoc As Single, Optional ByVal Force As Boole
   OldHeight = picWarnings.Top
   
   //if no change in width, AND not forcing
-  if (OldHeight = SplitHLoc And !Force) {
+  if (OldHeight = SplitHLoc && !Force) {
     //nothing needs changing
     return;
   }
@@ -2847,9 +2880,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub UpdateSplitV(ByVal SplitVLoc As Single, Optional ByVal Force As Boolean = false)
+public void UpdateSplitV(ByVal SplitVLoc As Single, Optional ByVal Force As Boolean = false)
   
   Dim frm As Form
   Dim OldWidth As Single
@@ -2860,7 +2893,7 @@ Public Sub UpdateSplitV(ByVal SplitVLoc As Single, Optional ByVal Force As Boole
   //note that form and screen are in twips; picResources scalemode is pixels
   
   //if minimized,
-  if ((frmMDIMain.WindowState = vbMinimized)) {
+  if ((MDIMain.WindowState = vbMinimized)) {
     //just exit
     return;
   }
@@ -2879,7 +2912,7 @@ Public Sub UpdateSplitV(ByVal SplitVLoc As Single, Optional ByVal Force As Boole
   OldWidth = picResources.Width - SPLIT_WIDTH
   
   //if no change in width, AND not forcing
-  if (OldWidth = SplitVLoc And !Force) {
+  if (OldWidth = SplitVLoc && !Force) {
     //nothing needs changing
     return;
   }
@@ -2896,7 +2929,7 @@ Public Sub UpdateSplitV(ByVal SplitVLoc As Single, Optional ByVal Force As Boole
     //set combo and listbox width
     cmbResType.Width = picResources.ScaleWidth - (SPLIT_WIDTH / ScreenTWIPSX)
     lstResources.Width = cmbResType.Width
-  End Select
+  }
   
   //set propertywindow width
   picSplitRes.Width = picResources.ScaleWidth - (SPLIT_WIDTH / ScreenTWIPSX)
@@ -2921,95 +2954,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Public Sub SaveSettings()
-  //saves game settings to registry
-  
-  Dim i As Long, lngCompVal As Long
-  
-  On Error GoTo ErrHandler
-  
-  //if main form is maximized
-  if (frmMDIMain.WindowState = vbMaximized) {
-    //save Max Value only
-    WriteAppSetting SettingsList, sPOSITION, "WindowMax", true
-  Else
-    //save all window settings
-    WriteAppSetting SettingsList, sPOSITION, "Top", frmMDIMain.Top
-    WriteAppSetting SettingsList, sPOSITION, "Left", frmMDIMain.Left
-    WriteAppSetting SettingsList, sPOSITION, "Width", frmMDIMain.Width
-    WriteAppSetting SettingsList, sPOSITION, "Height", frmMDIMain.Height
-    WriteAppSetting SettingsList, sPOSITION, "WindowMax", false
-  }
-  
-  //let//s try the multi-monitor version...
-  i = GetWindowPlacement(Me.hWnd, wpWinAGI)
-  if (i != 0) {
-    WriteAppSetting SettingsList, sPOSITION, "MCheck", true
-    WriteAppSetting SettingsList, sPOSITION, "Mflags", wpWinAGI.Flags
-    WriteAppSetting SettingsList, sPOSITION, "Mlength", wpWinAGI.Length
-    WriteAppSetting SettingsList, sPOSITION, "MptMxPX", wpWinAGI.ptMaxPosition.X
-    WriteAppSetting SettingsList, sPOSITION, "MptMxPY", wpWinAGI.ptMaxPosition.Y
-    WriteAppSetting SettingsList, sPOSITION, "MptMnPX", wpWinAGI.ptMinPosition.X
-    WriteAppSetting SettingsList, sPOSITION, "MptMnPY", wpWinAGI.ptMinPosition.Y
-    WriteAppSetting SettingsList, sPOSITION, "MBottom", wpWinAGI.rcNormalPosition.Bottom
-    WriteAppSetting SettingsList, sPOSITION, "MLeft", wpWinAGI.rcNormalPosition.Left
-    WriteAppSetting SettingsList, sPOSITION, "MRight", wpWinAGI.rcNormalPosition.Right
-    WriteAppSetting SettingsList, sPOSITION, "MTop", wpWinAGI.rcNormalPosition.Top
-    if (wpWinAGI.showCmd = 1) { wpWinAGI.showCmd = 5
-    WriteAppSetting SettingsList, sPOSITION, "MShow", wpWinAGI.showCmd
-  Else
-    WriteAppSetting SettingsList, sPOSITION, "MCheck", false
-  }
-  
-  
-  //save other position settings
-  WriteAppSetting SettingsList, sPOSITION, "PropRowCount", PropRowCount
-  
-  //save mru settings
-  For i = 1 To 4
-    WriteAppSetting SettingsList, sMRULIST, "MRUGame" + CStr(i), strMRU(i)
-  Next i
-  
-  //save resource pane width
-  WriteAppSetting SettingsList, sPOSITION, "ResourceWidth", picResources.Width
-  
-  //save other general settings
-  WriteAppSetting SettingsList, sGENERAL, "DockHelpWindow", CBool(HelpParent = Me.hWnd)
-
-  lngCompVal = 0
-  For i = 1 To 30
-    lngCompVal = lngCompVal Or (2 ^ i * -(LogicSourceSettings.IgnoreWarning(5000 + i)))
-  Next i
-  WriteAppSetting SettingsList, sLOGICS, "NoCompWarn0", lngCompVal
-  lngCompVal = 0
-  For i = 1 To 30
-    lngCompVal = lngCompVal Or (2 ^ i * -(LogicSourceSettings.IgnoreWarning(5030 + i)))
-  Next i
-  WriteAppSetting SettingsList, sLOGICS, "NoCompWarn1", lngCompVal
-  lngCompVal = 0
-  For i = 1 To 30
-    lngCompVal = lngCompVal Or (2 ^ i * -(LogicSourceSettings.IgnoreWarning(5060 + i)))
-  Next i
-  WriteAppSetting SettingsList, sLOGICS, "NoCompWarn2", lngCompVal
-  lngCompVal = 0
-  For i = 1 To WARNCOUNT Mod 30
-    lngCompVal = lngCompVal Or (2 ^ i * -(LogicSourceSettings.IgnoreWarning(5090 + i)))
-  Next i
-  WriteAppSetting SettingsList, sLOGICS, "NoCompWarn3", lngCompVal
-  
-  //save to file
-  SaveSettingList SettingsList
-  
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-End Sub
-Private Sub agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType As WinAGI.AGIResType, ResNum As Byte, ErrString As String)
+Private void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType As WinAGI.AGIResType, ResNum As Byte, ErrString As String)
 
   Dim rtn As VbMsgBoxResult
   Dim strID As String, blnDontAsk As Boolean
@@ -3043,7 +2991,7 @@ Private Sub agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType A
         .lblStatus.Caption = "Adding " + ResourceName(Sounds(ResNum), true, true)
       Case rtView
         .lblStatus.Caption = "Adding " + ResourceName(Views(ResNum), true, true)
-      End Select
+      }
       
     Case csDoneAdding
       .lblStatus.Caption = "Copying VOL files"
@@ -3056,7 +3004,7 @@ Private Sub agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType A
         .lblStatus.Caption = "Rebuild complete"
       Case 2
         .lblStatus.Caption = "All logics compiled"
-      End Select
+      }
       
       //set progressbar to full Value
       .pgbStatus.Value = .pgbStatus.Max
@@ -3075,7 +3023,7 @@ Private Sub agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType A
         For i = 0 To UBound(strWarnings)
           AddWarning strWarnings(i), rtLogic, ResNum
         Next i
-      Else
+      } else {
         AddWarning ErrString, ResType, ResNum
       }
       
@@ -3092,7 +3040,7 @@ Private Sub agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType A
         strID = ResourceName(Sounds(ResNum), true, true)
       Case rtView
         strID = ResourceName(Views(ResNum), true, true)
-      End Select
+      }
       
       //always cancel compile on error
       .CompCanceled = true
@@ -3118,7 +3066,7 @@ Private Sub agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType A
       strErrInfo = Split(ErrString, "|")
       
       //add it to the warning list
-      With frmMDIMain
+      With MDIMain
         .AddError strErrInfo(0), Val(Left(strErrInfo(2), 4)), Right(strErrInfo(2), Len(strErrInfo(2)) - 6), ResNum, strErrInfo(1)
         if (!.picWarnings.Visible) {
           .ShowWarningList
@@ -3143,11 +3091,11 @@ Private Sub agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType A
         if (blnDontAsk) {
           if (rtn = vbYes) {
             Settings.OpenOnErr = 1
-          Else
+          } else {
             Settings.OpenOnErr = 2
           }
           //update settings list
-          WriteAppSetting SettingsList, sLOGICS, "OpenOnErr", Settings.OpenOnErr
+          WriteAppSetting(SettingsList, sLOGICS, "OpenOnErr", Settings.OpenOnErr
           
         }
         
@@ -3163,7 +3111,7 @@ Private Sub agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType A
         //show wait cursor again
         WaitCursor
         
-      End Select
+      }
       
       //if yes,
       if (rtn = vbYes) {
@@ -3181,10 +3129,10 @@ Private Sub agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType A
       .CompCanceled = true
       CancelCompile
       return;
-    End Select
+    }
     
     //if not complete, error, or warning
-    if (cStatus != csCompileComplete And cStatus != csResError And cStatus != csWarning) {
+    if (cStatus != csCompileComplete && cStatus != csResError && cStatus != csWarning) {
       //increment progressbar
       .pgbStatus.Value = .pgbStatus.Value + 1
       //allow user chance to cancel (can//t use safe version, or user won//t be able to cancel)
@@ -3196,9 +3144,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub agGameEvents_LoadStatus(lStatus As WinAGI.ELStatus, ResType As WinAGI.AGIResType, ResNum As Byte, ErrString As String)
+Private void agGameEvents_LoadStatus(lStatus As WinAGI.ELStatus, ResType As WinAGI.AGIResType, ResNum As Byte, ErrString As String)
   
   //update the load progress form
   
@@ -3216,7 +3164,7 @@ Private Sub agGameEvents_LoadStatus(lStatus As WinAGI.ELStatus, ResType As WinAG
     Case lsPropertyFile
       if (blnNoWAG) {
         .lblProgress.Caption = "Creating game property file ..."
-      Else
+      } else {
         .lblProgress.Caption = "Loading game property file ..."
       }
       
@@ -3230,12 +3178,12 @@ Private Sub agGameEvents_LoadStatus(lStatus As WinAGI.ELStatus, ResType As WinAG
       
       Case rtObjects
         .lblProgress.Caption = "Validating OBJECT file"
-      End Select
+      }
       
     Case lsFinalizing
       .lblProgress.Caption = "Configuring WinAGI"
     
-    End Select
+    }
     
     SafeDoEvents
     
@@ -3245,10 +3193,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub agGameEvents_LogCompWarning(Warning As String, LogNum As Byte)
+Private void agGameEvents_LogCompWarning(Warning As String, LogNum As Byte)
 
   //should only happen when a logic is being compiled;
   //add this warning to the list
@@ -3271,9 +3219,9 @@ Private Sub agGameEvents_LogCompWarning(Warning As String, LogNum As Byte)
     .lblWarnings.Caption = .lblWarnings.Caption + 1
   End With
   
-End Sub
+}
 
-Private Sub cmbResType_Click()
+Private void cmbResType_Click()
 
   Dim i As Long, tmpItem As ListItem
   Dim NewType As AGIResType, NewNum As Long
@@ -3302,7 +3250,7 @@ Private Sub cmbResType_Click()
             //load source to set compiled status
             if (Logics(i).Compiled) {
               tmpItem.ForeColor = vbBlack
-            Else
+            } else {
               tmpItem.ForeColor = vbRed
             }
             // check for max width
@@ -3388,7 +3336,7 @@ Private Sub cmbResType_Click()
       NewNum = -1
       //no listitems
       
-    End Select
+    }
   End With
   
   //if not adding to queue
@@ -3400,10 +3348,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub cmbResType_GotFocus()
+Private void cmbResType_GotFocus()
 
   //if not using preview window then focus
   //events must be tracked
@@ -3430,7 +3378,7 @@ Private Sub cmbResType_GotFocus()
         if (SelResNum = -1) {
           //resource header
           AdjustMenus rtNone, true, false, false
-        Else
+        } else {
           //resource
           AdjustMenus SelResType, true, false, false
         }
@@ -3441,7 +3389,7 @@ Private Sub cmbResType_GotFocus()
       Case rtWords
         AdjustMenus rtWords, true, false, false
         
-      End Select
+      }
     }
   }
 return;
@@ -3450,17 +3398,17 @@ ErrHandler:
 
 //Debug.Assert false
 Resume Next
-End Sub
+}
 
 
-Private Sub cmbResType_KeyDown(KeyCode As Integer, Shift As Integer)
+Private void cmbResType_KeyDown(KeyCode As Integer, Shift As Integer)
 
   Dim strTopic As String
   
   On Error GoTo ErrHandler
   
   // if main form is disabled for a doevents
-  if (!frmMDIMain.Enabled) {
+  if (!MDIMain.Enabled) {
     // don't process the keystroke
     KeyCode = 0
     Shift = 0
@@ -3480,7 +3428,7 @@ Private Sub cmbResType_KeyDown(KeyCode As Integer, Shift As Integer)
       //if using preview window
       if (Settings.ShowPreview) {
         frmPreview.MenuClickHelp
-      Else
+      } else {
         //show treeview help
         HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\restree.htm"
       }
@@ -3489,7 +3437,7 @@ Private Sub cmbResType_KeyDown(KeyCode As Integer, Shift As Integer)
     Case 9  //tab
       lstResources.SetFocus
       KeyCode = 0
-    End Select
+    }
   }
 
 return;
@@ -3497,10 +3445,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub cmbResType_LostFocus()
+Private void cmbResType_LostFocus()
 
   //if not using the preview window, then
   //focus events must be tracked
@@ -3512,19 +3460,16 @@ Private Sub cmbResType_LostFocus()
     if (!ActiveControl Is Nothing) {
       //if active control is still resource list
       //then an open form may have been clicked
-      if (ActiveControl.Name = "lstResources" And !KeepFocus) {
+      if (ActiveControl.Name = "lstResources" && !KeepFocus) {
         if (!ActiveForm Is Nothing) {
           //reset menus for active form
           ActiveForm.Activate
         }
-      Else
+      } else {
         //if focus is staying on the form
-        if (ActiveControl.Name = "picProperties" Or _
-           ActiveControl.Name = "picSplitRes" Or _
-           ActiveControl.Name = "picSplitV" Or _
-           ActiveControl.Name = "cmbResType") {
+        if (ActiveControl.Name = "picProperties" && ActiveControl.Name = "picSplitRes" &&  ActiveControl.Name = "picSplitV" &&  ActiveControl.Name = "cmbResType") {
           //force focus marker back to true
-          MDIHasFocus = true
+          MDIHasFocus = true;
         }
       }
     }
@@ -3534,10 +3479,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub cmdBack_Click()
+Private void cmdBack_Click()
 
   On Error GoTo ErrHandler
   
@@ -3561,15 +3506,15 @@ Private Sub cmdBack_Click()
     tvwResources.SetFocus
   Case 2
     lstResources.SetFocus
-  End Select
+  }
 return;
 
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub cmdBack_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void cmdBack_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim rtn As Long, i As Long
   
@@ -3593,10 +3538,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub cmdBack_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void cmdBack_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //always set focus to resource list
   Select Case Settings.ResListType
@@ -3604,11 +3549,11 @@ Private Sub cmdBack_MouseUp(Button As Integer, Shift As Integer, X As Single, Y 
     tvwResources.SetFocus
   Case 2
     lstResources.SetFocus
-  End Select
-End Sub
+  }
+}
 
 
-Private Sub cmdForward_Click()
+Private void cmdForward_Click()
 
   On Error GoTo ErrHandler
   
@@ -3632,17 +3577,17 @@ Private Sub cmdForward_Click()
     tvwResources.SetFocus
   Case 2
     lstResources.SetFocus
-  End Select
+  }
   
 return;
 
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub cmdForward_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void cmdForward_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim rtn As Long, i As Long
   
@@ -3666,10 +3611,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub cmdForward_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void cmdForward_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //always set focus to resource list
   Select Case Settings.ResListType
@@ -3677,16 +3622,16 @@ Private Sub cmdForward_MouseUp(Button As Integer, Shift As Integer, X As Single,
     tvwResources.SetFocus
   Case 2
     lstResources.SetFocus
-  End Select
-End Sub
+  }
+}
 
-Private Sub cmdWLClose_Click()
+Private void cmdWLClose_Click()
 
   //hide the warning list window
   HideWarningList
-End Sub
+}
 
-Private Sub fgWarnings_DblClick()
+Private void fgWarnings_DblClick()
 
   Dim lngRow As Long, lngErrLine As Long, lngLogicNo As Long
   Dim strErrMsg As String, strModule As String, rtRes As AGIResType
@@ -3719,13 +3664,13 @@ Private Sub fgWarnings_DblClick()
     rtRes = .RowData(lngRow)
   
     //if a logic or text,
-    if (rtRes = rtLogic Or rtRes = rtText) {
+    if (rtRes = rtLogic && rtRes = rtText) {
       strErrMsg = .TextMatrix(.Row, 3)
       lngLogicNo = CLng(.TextMatrix(.Row, 4))
       lngErrLine = CLng(.TextMatrix(.Row, 5))
       if (.TextMatrix(.Row, 6) = Logics(lngLogicNo).ID) {
         strModule = ""
-      Else
+      } else {
         strModule = .TextMatrix(.Row, 0) + "\" + .TextMatrix(.Row, 6)
       }
       
@@ -3740,10 +3685,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub fgWarnings_KeyDown(KeyCode As Integer, Shift As Integer)
+Private void fgWarnings_KeyDown(KeyCode As Integer, Shift As Integer)
 
   //allow select all and copy
   Dim i As Long, j As Long, strText As String
@@ -3756,9 +3701,9 @@ Private Sub fgWarnings_KeyDown(KeyCode As Integer, Shift As Integer)
       //  and carriage returns separating rows
       With fgWarnings
         //if only one cell selected, add just the one cell
-        if (.Row = .RowSel And .Col = .ColSel) {
+        if (.Row = .RowSel && .Col = .ColSel) {
           strText = .TextMatrix(.Row, .Col)
-        Else
+        } else {
           //multiple rows selected
           For i = .Row To .RowSel
             For j = .Col To .ColSel
@@ -3783,11 +3728,11 @@ Private Sub fgWarnings_KeyDown(KeyCode As Integer, Shift As Integer)
         .RowSel = .Rows - 1
         .ColSel = .Cols - 1
       End With
-    End Select
+    }
   }
-End Sub
+}
 
-Private Sub fgWarnings_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void fgWarnings_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim lngRow As Long, rtRes As AGIResType
   
@@ -3812,7 +3757,7 @@ Private Sub fgWarnings_MouseDown(Button As Integer, Shift As Integer, X As Singl
       //make sure grid is the active control
       if (Me.ActiveControl Is Nothing) {
         .SetFocus
-      ElseIf Me.ActiveControl.Name != "fgWarnings") {
+      } else if ( Me.ActiveControl.Name != "fgWarnings") {
         .SetFocus
       }
       //Debug.Assert Me.ActiveControl Is fgWarnings
@@ -3835,11 +3780,11 @@ Private Sub fgWarnings_MouseDown(Button As Integer, Shift As Integer, X As Singl
       rtRes = .RowData(lngRow)
     
       //can only ignore/dismiss compiler warnings (restype has to be a logic/text)
-      if (rtRes = rtLogic Or rtRes = rtText) {
+      if (rtRes = rtLogic && rtRes = rtText) {
         if (Val(.TextMatrix(.Row, 2)) < 5000) {
           mnuCWIgnore.Visible = false
           mnuCWHelp.Caption = "Help with this Error"
-        Else
+        } else {
           mnuCWIgnore.Visible = true
           mnuCWHelp.Caption = "Help with this Warning"
         }
@@ -3853,10 +3798,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub fgWarnings_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void fgWarnings_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //set tooltip if current warning doesnt fit
   
@@ -3866,12 +3811,12 @@ Private Sub fgWarnings_MouseMove(Button As Integer, Shift As Integer, X As Singl
   Case vbLeftButton
     //always reset rowsel to row; so only one row at a time
     With fgWarnings
-      if (.Row != .MouseRow And .MouseRow != 0) {
+      if (.Row != .MouseRow && .MouseRow != 0) {
         .Row = .MouseRow
         .RowSel = .Row
       }
     End With
-  End Select
+  }
   
 //  //is mouse over an item?
 //  Set tmpItem = lvWarnings.HitTest(x, y)
@@ -3882,7 +3827,7 @@ Private Sub fgWarnings_MouseMove(Button As Integer, Shift As Integer, X As Singl
 //  //subitem(1) is text of the warning; but the column index is 2
 //  if (Me.TextWidth(tmpItem.SubItems(1)) > lvWarnings.ColumnHeaders(2).Width) {
 //    tmpItem.ListSubItems(1).ToolTipText = tmpItem.ListSubItems(1).Text
-//  Else
+//  } else {
 //    tmpItem.ListSubItems(1).ToolTipText = ""
 //  }
 return;
@@ -3890,14 +3835,14 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub fgWarnings_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void fgWarnings_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   if (Button = vbLeftButton) {
     With fgWarnings
-      if (.Row != .MouseRow And .MouseRow != 0) {
+      if (.Row != .MouseRow && .MouseRow != 0) {
         .Row = .MouseRow
         .RowSel = .Row
       }
@@ -3907,10 +3852,10 @@ Private Sub fgWarnings_MouseUp(Button As Integer, Shift As Integer, X As Single,
   mEX = X
   mEY = Y
 
-End Sub
+}
 
 
-Private Sub fsbProperty_Change()
+Private void fsbProperty_Change()
 
   //cancel editing, if it is occurring
   if (txtProperty.Visible) {
@@ -3927,9 +3872,9 @@ Private Sub fsbProperty_Change()
   
   //redraw
   PaintPropertyWindow
-End Sub
+}
 
-Private Sub lstProperty_DblClick()
+Private void lstProperty_DblClick()
   
   On Error GoTo ErrHandler
   
@@ -3945,14 +3890,14 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub lstProperty_GotFocus()
+Private void lstProperty_GotFocus()
     
   picProperties.Refresh
-End Sub
+}
 
-Private Sub lstProperty_KeyPress(KeyAscii As Integer)
+Private void lstProperty_KeyPress(KeyAscii As Integer)
 
   //trap enter key
   Select Case KeyAscii
@@ -3972,10 +3917,10 @@ Private Sub lstProperty_KeyPress(KeyAscii As Integer)
     picProperties.SetFocus
     PaintPropertyWindow
     return;
-  End Select
-End Sub
+  }
+}
 
-Private Sub lstProperty_LostFocus()
+Private void lstProperty_LostFocus()
 
   On Error GoTo ErrHandler
   
@@ -3990,9 +3935,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub lstResources_DblClick()
+Private void lstResources_DblClick()
 
   On Error Resume Next
   
@@ -4007,9 +3952,9 @@ Private Sub lstResources_DblClick()
     //edit the selected item
     EditResource SelResType, SelResNum
   }
-End Sub
+}
 
-Private Sub lstResources_GotFocus()
+Private void lstResources_GotFocus()
 
   //if not using preview window then focus
   //events must be tracked
@@ -4036,7 +3981,7 @@ Private Sub lstResources_GotFocus()
         if (SelResNum = -1) {
           //resource header
           AdjustMenus rtNone, true, false, false
-        Else
+        } else {
           //resource
           AdjustMenus SelResType, true, false, false
         }
@@ -4047,7 +3992,7 @@ Private Sub lstResources_GotFocus()
       Case rtWords
         AdjustMenus rtWords, true, false, false
         
-      End Select
+      }
     }
   }
 return;
@@ -4056,17 +4001,17 @@ ErrHandler:
 
 //Debug.Assert false
 Resume Next
-End Sub
+}
 
 
-Private Sub lstResources_KeyDown(KeyCode As Integer, Shift As Integer)
+Private void lstResources_KeyDown(KeyCode As Integer, Shift As Integer)
 
   Dim strTopic As String
   
   On Error GoTo ErrHandler
   
   // if main form is disabled for a doevents
-  if (!frmMDIMain.Enabled) {
+  if (!MDIMain.Enabled) {
     // don't process the keystroke
     KeyCode = 0
     Shift = 0
@@ -4089,13 +4034,13 @@ Private Sub lstResources_KeyDown(KeyCode As Integer, Shift As Integer)
         //call remove from game method
         RemoveSelectedRes
         KeyCode = 0
-      End Select
+      }
       
     Case vbKeyF1
       //if using preview window
       if (Settings.ShowPreview) {
         frmPreview.MenuClickHelp
-      Else
+      } else {
         //show treeview help
         HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\restree.htm"
       }
@@ -4104,24 +4049,24 @@ Private Sub lstResources_KeyDown(KeyCode As Integer, Shift As Integer)
     Case 9  //tab
       picProperties.SetFocus
       KeyCode = 0
-    End Select
-  ElseIf Shift = vbShiftMask + vbCtrlMask) {
+    }
+  } else if ( Shift = vbShiftMask + vbCtrlMask) {
     //Shift+Ctrl//
     if (Settings.ShowPreview) {
-      if (SelResType = rtPicture And KeyCode = vbKeyS) {
+      if (SelResType = rtPicture && KeyCode = vbKeyS) {
         //save Image as ...
         frmPreview.MenuClickCustom1
       }
     }
-  ElseIf Shift = vbCtrlMask) {
+  } else if ( Shift = vbCtrlMask) {
     Select Case KeyCode
     Case vbKeyF //Ctrl+F (Find)
       Select Case SelResType
       Case rtLogic, rtPicture, rtSound, rtView
         //find this resid
         SearchForID
-      End Select
-    End Select
+      }
+    }
   }
 
 return;
@@ -4129,10 +4074,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub lstResources_KeyPress(KeyAscii As Integer)
+Private void lstResources_KeyPress(KeyAscii As Integer)
 
   On Error GoTo ErrHandler
   
@@ -4142,9 +4087,9 @@ Private Sub lstResources_KeyPress(KeyAscii As Integer)
     //edit the selected resource
     EditResource SelResType, SelResNum
     KeyAscii = 0
-  Case Else
+  default:
   
-  End Select
+  }
   
   //if preview window is visible,
   if (PreviewWin.Visible) {
@@ -4155,10 +4100,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub lstResources_LostFocus()
+Private void lstResources_LostFocus()
 
   //if not using the preview window, then
   //focus events must be tracked
@@ -4170,16 +4115,16 @@ Private Sub lstResources_LostFocus()
     if (!ActiveControl Is Nothing) {
       //if active control is still resource list
       //then an open form may have been clicked
-      if (ActiveControl.Name = "lstResources" And !KeepFocus) {
+      if (ActiveControl.Name = "lstResources" && !KeepFocus) {
         if (!ActiveForm Is Nothing) {
           //reset menus for active form
           ActiveForm.Activate
         }
-      Else
+      } else {
         //if focus is staying on the form
-        if (ActiveControl.Name = "picProperties" Or _
-           ActiveControl.Name = "picSplitRes" Or _
-           ActiveControl.Name = "picSplitV" Or _
+        if (ActiveControl.Name = "picProperties" && _
+           ActiveControl.Name = "picSplitRes" && _
+           ActiveControl.Name = "picSplitV" && _
            ActiveControl.Name = "cmbResType") {
           //force focus marker back to true
           MDIHasFocus = true
@@ -4192,9 +4137,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub lstResources_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void lstResources_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim tmpItem As ListItem
   Dim NewNum As Long
@@ -4252,16 +4197,16 @@ Private Sub lstResources_MouseDown(Button As Integer, Shift As Integer, X As Sin
       mnuRImport.Visible = true
       mnuRBar0.Caption = "-"
       mnuRBar2.Visible = true
-    End Select
+    }
   }
 return;
 
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub MDIForm_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void MDIForm_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   On Error GoTo ErrHandler
   
@@ -4282,11 +4227,11 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
 
-Private Sub mnuCWAll_Click()
+Private void mnuCWAll_Click()
 
   On Error Resume Next
   
@@ -4307,9 +4252,9 @@ Private Sub mnuCWAll_Click()
       .TextMatrix(0, 6) = "Module"
     End With
   }
-End Sub
+}
 
-Private Sub mnuCWDismiss_Click()
+Private void mnuCWDismiss_Click()
 
   On Error Resume Next
   
@@ -4317,39 +4262,39 @@ Private Sub mnuCWDismiss_Click()
   if (Me.ActiveControl Is Me.fgWarnings) {
     DismissWarning
   }
-End Sub
+}
 
-Private Sub mnuCWPrint_Click()
+Private void mnuCWPrint_Click()
 
   //print the list
   Load frmPrint
   frmPrint.SetMode rtWarnings, Nothing
   frmPrint.Show vbModal, Me
   
-End Sub
+}
 
-Private Sub mnuECustom1_Click()
+Private void mnuECustom1_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickECustom1
-End Sub
-Private Sub mnuECustom2_Click()
+}
+Private void mnuECustom2_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickECustom2
-End Sub
+}
 
 
-Private Sub mnuECustom3_Click()
+Private void mnuECustom3_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickECustom3
-End Sub
+}
 
-Private Sub mnuEdit_Click()
+Private void mnuEdit_Click()
 
 
 // this doesn//t work; VB can//t change visible status
@@ -4367,65 +4312,65 @@ Private Sub mnuEdit_Click()
 //////ErrHandler:
 //////  //Debug.Assert false
 //////  Resume Next
-End Sub
+}
 
-Private Sub mnuERedo_Click()
+Private void mnuERedo_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickRedo
-End Sub
+}
 
-Private Sub mnuEReplace_Click()
+Private void mnuEReplace_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickReplace
-End Sub
+}
 
 
-Private Sub mnuGCompDirty_Click()
+Private void mnuGCompDirty_Click()
 
   //compile dirty
   CompileDirtyLogics
-End Sub
+}
 
-Private Sub mnuGCompileTo_Click()
+Private void mnuGCompileTo_Click()
 
   //compile game to directory of user//s choice
   CompileAGIGame
-End Sub
+}
 
-Private Sub mnuGImport_Click()
+Private void mnuGImport_Click()
 
   //import a game by directory
   OpenDIR
-End Sub
+}
 
-Private Sub mnuGMRU1_Click()
+Private void mnuGMRU1_Click()
 
   OpenMRUGame 1
-End Sub
+}
 
-Private Sub mnuGMRU2_Click()
+Private void mnuGMRU2_Click()
 
   OpenMRUGame 2
-End Sub
+}
 
 
-Private Sub mnuGMRU3_Click()
+Private void mnuGMRU3_Click()
 
   OpenMRUGame 3
-End Sub
+}
 
 
-Private Sub mnuGMRU4_Click()
+Private void mnuGMRU4_Click()
 
   OpenMRUGame 4
-End Sub
+}
 
 
-Private Sub mnuGProperties_Click()
+Private void mnuGProperties_Click()
   
   Dim rtn As VbMsgBoxResult
   
@@ -4451,7 +4396,7 @@ Private Sub mnuGProperties_Click()
     
     //GameDir is now read-only
 //////    //directory
-//////    if (GameDir != .DisplayDir And LenB(.DisplayDir) != 0) {
+//////    if (GameDir != .DisplayDir && LenB(.DisplayDir) != 0) {
 //////      ChangeGameDir .DisplayDir, true
 //////    }
     
@@ -4467,15 +4412,15 @@ Private Sub mnuGProperties_Click()
     //if no directory, force platform to nothing
     if (Len(.NewPlatformFile) = 0) {
       PlatformType = 0
-    Else
+    } else {
       //platform
       if (.optDosBox.Value) {
         PlatformType = 1
-      ElseIf .optScummVM.Value) {
+      } else if ( .optScummVM.Value) {
         PlatformType = 2
-      ElseIf .optNAGI.Value) {
+      } else if ( .optNAGI.Value) {
         PlatformType = 3
-      ElseIf .optOther.Value) {
+      } else if ( .optOther.Value) {
         PlatformType = 4
       }
     }
@@ -4485,19 +4430,19 @@ Private Sub mnuGProperties_Click()
       Platform = Trim$(.NewPlatformFile)
     
       //platform options OK if dosbox or scummvm
-      if (PlatformType = 1 Or PlatformType = 2) {
+      if (PlatformType = 1 && PlatformType = 2) {
         PlatformOpts = .txtOptions.Text
-      Else
+      } else {
         PlatformOpts = ""
       }
       //dos executable only used if dosbox
       if (PlatformType = 1) {
         DosExec = .txtExec.Text
-      Else
+      } else {
         DosExec = ""
       }
       
-    Else
+    } else {
       Platform = ""
       PlatformOpts = ""
       DosExec = ""
@@ -4519,7 +4464,7 @@ Private Sub mnuGProperties_Click()
         if (cmbResType.List(0) != GameID) {
           cmbResType.List(0) = GameID
         }
-      End Select
+      }
     }
     
     //id
@@ -4562,9 +4507,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuCWHelp_Click()
+Private void mnuCWHelp_Click()
 
   On Error Resume Next
   
@@ -4572,9 +4517,9 @@ Private Sub mnuCWHelp_Click()
   if (Me.ActiveControl Is Me.fgWarnings) {
     HelpWarning
   }
-End Sub
+}
 
-Private Sub mnuHIndex_Click()
+Private void mnuHIndex_Click()
 
   //open the help file, with index displayed
   
@@ -4583,22 +4528,22 @@ Private Sub mnuHIndex_Click()
    
    //select index pane
    hWndHelp = HtmlHelp(HelpParent, WinAGIHelp, HH_DISPLAY_INDEX, 0)
-End Sub
+}
 
-Private Sub mnuHLogic_Click()
+Private void mnuHLogic_Click()
     
   //select commands start page
   HtmlHelp HelpParent, WinAGIHelp, HH_HELP_CONTEXT, 1001
-End Sub
+}
 
 
-Private Sub mnuHReference_Click()
+Private void mnuHReference_Click()
 
   //select reference start page
   HtmlHelp HelpParent, WinAGIHelp, HH_HELP_CONTEXT, 1002
-End Sub
+}
 
-Private Sub mnuCWIgnore_Click()
+Private void mnuCWIgnore_Click()
 
   On Error Resume Next
   
@@ -4606,26 +4551,26 @@ Private Sub mnuCWIgnore_Click()
   if (Me.ActiveControl Is Me.fgWarnings) {
     IgnoreWarning
   }
-End Sub
+}
 
-Private Sub mnuLPCopy_Click()
+Private void mnuLPCopy_Click()
 
   On Error Resume Next
   
   if (ActiveForm Is PreviewWin) {
     PreviewWin.rtfLogPrev.Selection.Range.Copy
     ReDim GlobalsClipboard(0)
-  Else
+  } else {
     Clipboard.Clear
     if (mnuLPCopy.Tag = "A") {
       Clipboard.SetText Right(MainStatusBar.Panels("Anchor").Text, Len(MainStatusBar.Panels("Anchor").Text) - 8)
-    Else
+    } else {
       Clipboard.SetText Right(MainStatusBar.Panels("Block").Text, Len(MainStatusBar.Panels("Block").Text) - 7)
     }
   }
-End Sub
+}
 
-Private Sub mnuLPSelectAll_Click()
+Private void mnuLPSelectAll_Click()
 
   //selects all the text in the preview logic window
   
@@ -4633,9 +4578,9 @@ Private Sub mnuLPSelectAll_Click()
   
   PreviewWin.rtfLogPrev.Range.SelectRange
 
-End Sub
+}
 
-Private Sub mnuRBar0_Click()
+Private void mnuRBar0_Click()
 
   //used in context menus only;
   //purpose is to open the selected
@@ -4650,36 +4595,36 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuTBCopy_Click()
+Private void mnuTBCopy_Click()
 
   // select the //copy// command
   TBCmd = 2
-End Sub
+}
 
-Private Sub mnuTBCut_Click()
+Private void mnuTBCut_Click()
 
   // select the //cut// command
   TBCmd = 1
-End Sub
+}
 
 
-Private Sub mnuTBPaste_Click()
+Private void mnuTBPaste_Click()
 
   // select the //paste// command
   TBCmd = 3
-End Sub
+}
 
 
-Private Sub mnuTBSelectAll_Click()
+Private void mnuTBSelectAll_Click()
 
   // select the //selectall// command
   TBCmd = 4
-End Sub
+}
 
 
-Private Sub mnuTCustom_Click(Index As Integer)
+Private void mnuTCustom_Click(Index As Integer)
   
   Dim rtn As Long
   Dim strTemp As String
@@ -4688,7 +4633,7 @@ Private Sub mnuTCustom_Click(Index As Integer)
   Dim strFile As String, strNewPath As String
   
   //if a url
-  if (Left$(mnuTCustom(Index).Tag, 4) = "http" Or Left$(mnuTCustom(Index).Tag, 4) = "www.") {
+  if (Left$(mnuTCustom(Index).Tag, 4) = "http" && Left$(mnuTCustom(Index).Tag, 4) = "www.") {
     //open as a url, not a file
     
     //create a temporary file that is the url
@@ -4705,7 +4650,7 @@ Private Sub mnuTCustom_Click(Index As Integer)
     Name strTemp As strTemp + ".url"
     rtn = ShellExecute(Me.hWnd, "open", strTemp + ".url", "", "", SW_SHOWNORMAL)
     Kill strTemp + ".url"
-  Else
+  } else {
     //execute the command stored in the tag property
     On Error Resume Next
     
@@ -4717,7 +4662,7 @@ Private Sub mnuTCustom_Click(Index As Integer)
     if (GameLoaded) {
       ChDrive GameDir
       ChDir GameDir
-    Else
+    } else {
       ChDrive ProgramDir
       ChDir ProgramDir
     }
@@ -4729,7 +4674,7 @@ Private Sub mnuTCustom_Click(Index As Integer)
     //if a path is provided, check for program dir
       strNewPath = Replace(strNewPath, "%PROGDIR%", ProgramDir)
       strFile = strNewPath + JustFileName(mnuTCustom(Index).Tag)
-    Else
+    } else {
       strFile = mnuTCustom(Index).Tag
     }
       
@@ -4763,25 +4708,25 @@ Private Sub mnuTCustom_Click(Index As Integer)
         MsgBox "Sorry, DDE was not able to open this file/program." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Busy Error"
       Case 31 //#define SE_ERR_NOASSOC                  31
         MsgBox "Sorry, an association was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Association !Found"
-      Case Else
+      default:
         MsgBox "Sorry, an error occurred when trying to open this tool entry." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Unknown Error"
-      End Select
+      }
     }
     
     //restore current directory
     ChDrive OldPath
     ChDir OldPath
   }
-End Sub
+}
 
-Private Sub mnuTCustomize_Click()
+Private void mnuTCustomize_Click()
 
   KeepFocus = true
   frmTools.Show vbModal, Me
   KeepFocus = false
-End Sub
+}
 
-Private Sub mnuTGlobals_Click()
+Private void mnuTGlobals_Click()
   On Error GoTo ErrHandler
   
   //open the game//s globals
@@ -4793,15 +4738,15 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuTLayout_Click()
+Private void mnuTLayout_Click()
 
   //open the layout editor
   OpenLayout
-End Sub
+}
 
-Private Sub mnuTMenuEditor_Click()
+Private void mnuTMenuEditor_Click()
 
   On Error GoTo ErrHandler
   
@@ -4814,7 +4759,7 @@ Private Sub mnuTMenuEditor_Click()
       //restore it
       MenuEditor.WindowState = vbNormal
     }
-  Else
+  } else {
     // create a new instance of menu editor
     Set MenuEditor = New frmMenuEdit
     Load MenuEditor
@@ -4822,7 +4767,7 @@ Private Sub mnuTMenuEditor_Click()
     //if canceled, just exit
     if (MenuEditor.Canceled) {
       Unload MenuEditor
-    Else
+    } else {
       MenuEditor.Show
       MenuEditor.SetFocus
     }
@@ -4833,17 +4778,17 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuTPalette_Click()
+Private void mnuTPalette_Click()
 
   //show the palette form
   Load frmPalette
   frmPalette.SetForm 0
-  frmPalette.Show vbModal, frmMDIMain
-End Sub
+  frmPalette.Show vbModal, MDIMain
+}
 
-Private Sub mnuTResDef_Click()
+Private void mnuTResDef_Click()
 
   //edit reserved define values
   
@@ -4858,7 +4803,7 @@ Private Sub mnuTResDef_Click()
   On Error GoTo ErrHandler
   
   //edit reserved define names
-  frmReserved.Show vbModal, frmMDIMain
+  frmReserved.Show vbModal, MDIMain
     
   //if NOT canceled, gotta validate all defines again
   if (!frmReserved.Canceled) {
@@ -4876,11 +4821,11 @@ Private Sub mnuTResDef_Click()
           .Row = i
           .Col = 1 //ctName
           rtn = GlobalsEditor.ValidateName(.TextMatrix(i, 1))
-          if (rtn >= 8 And rtn <= 13) {
+          if (rtn >= 8 && rtn <= 13) {
             //override
             .CellFontBold = true
             .CellForeColor = vbRed
-          Else
+          } else {
             //normal
             .CellFontBold = false
             .CellForeColor = vbBlack
@@ -4901,9 +4846,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuTSettings_Click()
+Private void mnuTSettings_Click()
   //show wait cursor
   WaitCursor
   
@@ -4913,69 +4858,69 @@ Private Sub mnuTSettings_Click()
   KeepFocus = false
   
   Screen.MousePointer = vbDefault
-End Sub
+}
 
-Private Sub mnuTSnippets_Click()
+Private void mnuTSnippets_Click()
 
   On Error GoTo ErrHandler
   
   //open snippet manager
   SnipMode = 1
-  frmSnippets.Show vbModal, frmMDIMain
+  frmSnippets.Show vbModal, MDIMain
   //if active form is an editor
-  if (frmMDIMain.ActiveForm.Name = "frmLogicEdit" Or frmMDIMain.ActiveForm.Name = "frmTextEdit") {
+  if (MDIMain.ActiveForm.Name = "frmLogicEdit" && MDIMain.ActiveForm.Name = "frmTextEdit") {
     //force focus to edit control
-    frmMDIMain.ActiveForm.rtfLogic.SetFocus
+    MDIMain.ActiveForm.rtfLogic.SetFocus
   }
 return;
 
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuWArrange_Click()
+Private void mnuWArrange_Click()
   
   //arrange icons
-  frmMDIMain.Arrange vbArrangeIcons
-End Sub
+  MDIMain.Arrange vbArrangeIcons
+}
 
-Private Sub mnuWCascade_Click()
+Private void mnuWCascade_Click()
 
   //cascade windows
-  frmMDIMain.Arrange vbCascade
-End Sub
+  MDIMain.Arrange vbCascade
+}
 
-Private Sub mnuWMinimize_Click()
+Private void mnuWMinimize_Click()
 
   Dim frm As Form
   
   //minimizes all open editors
   For Each frm In Forms
     //if not main, or preview
-    if (frm.Name != "frmMDIMain" And frm.Name != "frmPreview") {
+    if (frm.Name != "MDIMain" && frm.Name != "frmPreview") {
       frm.WindowState = vbMinimized
     }
   Next
   
   //now arrange all
-  frmMDIMain.Arrange vbArrangeIcons
+  MDIMain.Arrange vbArrangeIcons
   
-End Sub
+}
 
-Private Sub mnuWTileH_Click()
+Private void mnuWTileH_Click()
 
   //tile horizontal
-  frmMDIMain.Arrange vbTileHorizontal
-End Sub
+  MDIMain.Arrange vbTileHorizontal
+}
 
-Private Sub mnuWTileV_Click()
+Private void mnuWTileV_Click()
 
   //tile vertically
-  frmMDIMain.Arrange vbTileVertical
-End Sub
+  MDIMain.Arrange vbTileVertical
+}
 
-Private Sub picNavList_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picNavList_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim mPos As POINTAPI, SelRow As Long
   Dim rtn As Long
@@ -4996,7 +4941,7 @@ Private Sub picNavList_MouseMove(Button As Integer, Shift As Integer, X As Singl
     //if on a new row
     if (SelRow != NLRow) {
     //if both values still offscreen
-      if ((SelRow < 0 And NLRow < 0) Or (SelRow > 4 And NLRow > 4)) {
+      if ((SelRow < 0 && NLRow < 0) && (SelRow > 4 && NLRow > 4)) {
         //just update the selected row
         NLRow = SelRow
         //no need to repaint
@@ -5009,17 +4954,17 @@ Private Sub picNavList_MouseMove(Button As Integer, Shift As Integer, X As Singl
     }
     
     //if not on the list
-    if (SelRow < 0 Or SelRow > 4) {
+    if (SelRow < 0 && SelRow > 4) {
       //enable autoscrolling
       tmrNavList.Enabled = true
-    Else
+    } else {
       //no scrolling
       tmrNavList.Enabled = false
     }
   End With
-End Sub
+}
 
-Private Sub picNavList_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picNavList_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim newPtr As Long
   
@@ -5032,7 +4977,7 @@ Private Sub picNavList_MouseUp(Button As Integer, Shift As Integer, X As Single,
   newPtr = NLOffset + NLRow - 2
   if (newPtr < 0) {
     return;
-  ElseIf newPtr > UBound(ResQueue())) {
+  } else if ( newPtr > UBound(ResQueue())) {
     return;
   }
   
@@ -5052,10 +4997,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub picNavList_Paint()
+Private void picNavList_Paint()
   
   Dim i As Long, rtn As Long
   
@@ -5071,7 +5016,7 @@ Private Sub picNavList_Paint()
     //print five lines
     For i = 0 To 4
       
-      if (i + NLOffset - 2 > 0 And i + NLOffset - 2 <= UBound(ResQueue())) {
+      if (i + NLOffset - 2 > 0 && i + NLOffset - 2 <= UBound(ResQueue())) {
         //if this row is highlighted (under cursor and valid)
         if (i = NLRow) {
           picNavList.Line (0, (i + 0.035) * NLRowHeight)-Step(.Width, NLRowHeight), &HFFE0E0, BF
@@ -5106,8 +5051,8 @@ Private Sub picNavList_Paint()
             picNavList.Print "OBJECTS"
           Case rtWords
             picNavList.Print "WORDS"
-          End Select
-        End Select
+          }
+        }
       }
     Next i
   End With
@@ -5116,10 +5061,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub picProperties_GotFocus()
+Private void picProperties_GotFocus()
   
   //if nothing selected, exit
   if (SelResType = rtNone) {
@@ -5158,7 +5103,7 @@ Private Sub picProperties_GotFocus()
     Case rtLogic, rtPicture, rtSound, rtView  //logic, picture, sound, view
       if (SelResNum = -1) {
         AdjustMenus rtNone, true, false, false
-      Else
+      } else {
         AdjustMenus SelResType, true, false, false
       }
     
@@ -5167,17 +5112,17 @@ Private Sub picProperties_GotFocus()
       
     Case rtWords  //words
       AdjustMenus rtWords, true, false, false
-    End Select
+    }
   }
-End Sub
-Private Sub picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
+}
+Private void picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
   
   Dim strHelp As String
   
   On Error GoTo ErrHandler
   
   //always check for help key
-  if (KeyCode = vbKeyF1 And Shift = 0) {
+  if (KeyCode = vbKeyF1 && Shift = 0) {
     //show property window help, depending on what resource or header is selected
     
     Select Case SelResType
@@ -5188,21 +5133,21 @@ Private Sub picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
     Case rtLogic
       if (SelResNum = -1) {
         strHelp = "#logicsprop"
-      Else
+      } else {
         strHelp = "#logicprop"
       }
       
     Case rtPicture, rtSound
       if (SelResNum = -1) {
         strHelp = "#hdrsprop"
-      Else
+      } else {
         strHelp = "#picsndprop"
       }
       
     Case rtView
       if (SelResNum = -1) {
         strHelp = "#hdrsprop"
-      Else
+      } else {
         strHelp = "#viewprop"
       }
       
@@ -5211,7 +5156,7 @@ Private Sub picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
       
     Case rtWords
       strHelp = "#wordsprop"
-    End Select
+    }
       
     
     HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\restree.htm" + strHelp
@@ -5262,15 +5207,15 @@ Private Sub picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
       PreviewWin.SetFocus
       KeyCode = 0
     }
-  End Select
+  }
 return;
 
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub picProperties_KeyPress(KeyAscii As Integer)
+Private void picProperties_KeyPress(KeyAscii As Integer)
 
   On Error GoTo ErrHandler
   
@@ -5282,9 +5227,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub picProperties_LostFocus()
+Private void picProperties_LostFocus()
   
   //if not using the preview window, then
   //focus events must be tracked
@@ -5304,12 +5249,12 @@ Private Sub picProperties_LostFocus()
         //reset menus for active form
         ActiveForm.Activate
       }
-    Else
+    } else {
       //if focus is staying on the form
-      if (ActiveControl.Name = "tvwResources" Or _
-         ActiveControl.Name = "picSplitRes" Or _
-         ActiveControl.Name = "picSplitV" Or _
-         ActiveControl.Name = "cmbResType" Or _
+      if (ActiveControl.Name = "tvwResources" && _
+         ActiveControl.Name = "picSplitRes" && _
+         ActiveControl.Name = "picSplitV" && _
+         ActiveControl.Name = "cmbResType" && _
          ActiveControl.Name = "lstResources") {
         //force focus marker back to true
         MDIHasFocus = true
@@ -5324,9 +5269,9 @@ Private Sub picProperties_LostFocus()
     PaintPropertyWindow
   }
   NoPaint = false
-End Sub
+}
 
-Private Sub picResources_Resize()
+Private void picResources_Resize()
 
   //update resource panels, if visible
   if (picResources.Visible) {
@@ -5340,9 +5285,9 @@ Private Sub picResources_Resize()
     cmdForward.Width = cmdBack.Width
     cmdForward.Left = cmdBack.Width
   }
-End Sub
+}
 
-Private Sub picSplitH_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picSplitH_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //begin split operation
   picSplitHIcon.Width = picSplitH.Width
@@ -5351,10 +5296,10 @@ Private Sub picSplitH_MouseDown(Button As Integer, Shift As Integer, X As Single
   
   //save offset
   SplitHOffset = picSplitH.Top - Y
-End Sub
+}
 
 
-Private Sub picSplitH_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picSplitH_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim Pos As Single
   
@@ -5379,10 +5324,10 @@ Private Sub picSplitH_MouseMove(Button As Integer, Shift As Integer, X As Single
     //move splitter icon and splitter form
     picSplitHIcon.Top = Pos
   }
-End Sub
+}
 
 
-Private Sub picSplitH_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picSplitH_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim Pos As Single
   //if splitting
@@ -5417,27 +5362,27 @@ Private Sub picSplitH_MouseUp(Button As Integer, Shift As Integer, X As Single, 
         tvwResources.SetFocus
       Case 2
         lstResources.SetFocus
-      End Select
-    Else
+      }
+    } else {
       //force focus back to active form, if there is one
       if (!ActiveForm Is Nothing) {
         ActiveForm.SetFocus
       }
     }
   }
-End Sub
+}
 
 
-Private Sub picSplitH_Paint()
+Private void picSplitH_Paint()
 
   //draw a line across bottom row of pixels to act as a border for the grid
   
   //sometimes the splitter isn//t exactly on the right spot after resizing; can
   //the paint method find and fix that?
 
-End Sub
+}
 
-Private Sub picSplitRes_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picSplitRes_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //begin split operation
   picSplitResIcon.Width = picSplitRes.Width
@@ -5446,10 +5391,10 @@ Private Sub picSplitRes_MouseDown(Button As Integer, Shift As Integer, X As Sing
   
   //save offset
   SplitResOffset = picSplitRes.Top - Y
-End Sub
+}
 
 
-Private Sub picSplitRes_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picSplitRes_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim tmpHeight As Long
   
@@ -5459,17 +5404,17 @@ Private Sub picSplitRes_MouseMove(Button As Integer, Shift As Integer, X As Sing
     //limit movement
     if (tmpHeight < MIN_SPLIT_RES) {
       tmpHeight = MIN_SPLIT_RES
-    ElseIf tmpHeight > MAX_SPLIT_RES) {
+    } else if ( tmpHeight > MAX_SPLIT_RES) {
       tmpHeight = MAX_SPLIT_RES
     }
     
     //move splitter icon and splitter form (adjust by one to account for header)
     picSplitResIcon.Top = picResources.ScaleHeight - ((tmpHeight + 1) * PropRowHeight) - SPLIT_HEIGHT
   }
-End Sub
+}
 
 
-Private Sub picSplitRes_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picSplitRes_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim tmpHeight As Long
   
@@ -5482,7 +5427,7 @@ Private Sub picSplitRes_MouseUp(Button As Integer, Shift As Integer, X As Single
     //limit movement
     if (tmpHeight < MIN_SPLIT_RES) {
       tmpHeight = MIN_SPLIT_RES
-    ElseIf tmpHeight > MAX_SPLIT_RES) {
+    } else if ( tmpHeight > MAX_SPLIT_RES) {
       tmpHeight = MAX_SPLIT_RES
     }
     
@@ -5501,18 +5446,18 @@ Private Sub picSplitRes_MouseUp(Button As Integer, Shift As Integer, X As Single
         tvwResources.SetFocus
       Case 2
         lstResources.SetFocus
-      End Select
-    Else
+      }
+    } else {
       //force focus back to active form, if there is one
       if (!ActiveForm Is Nothing) {
         ActiveForm.SetFocus
       }
     }
   }
-End Sub
+}
 
 
-Private Sub picSplitV_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picSplitV_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
   
   //begin split operation
   picSplitVIcon.Height = picSplitV.Height
@@ -5521,10 +5466,10 @@ Private Sub picSplitV_MouseDown(Button As Integer, Shift As Integer, X As Single
   
   //save offset
   SplitVOffset = picSplitV.Left - X
-End Sub
+}
 
 
-Private Sub picSplitV_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picSplitV_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim Pos As Single
   
@@ -5534,17 +5479,17 @@ Private Sub picSplitV_MouseMove(Button As Integer, Shift As Integer, X As Single
     //limit movement
     if (Pos < MIN_SPLIT_V) {
       Pos = MIN_SPLIT_V
-    ElseIf Pos > MAX_SPLIT_V) {
+    } else if ( Pos > MAX_SPLIT_V) {
       Pos = MAX_SPLIT_V
     }
     
     //move splitter icon and splitter form
     picSplitVIcon.Left = Pos
   }
-End Sub
+}
 
 
-Private Sub picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim Pos As Single
   
@@ -5558,7 +5503,7 @@ Private Sub picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single, 
     //limit movement
     if (Pos < MIN_SPLIT_V) {
       Pos = MIN_SPLIT_V
-    ElseIf Pos > MAX_SPLIT_V) {
+    } else if ( Pos > MAX_SPLIT_V) {
       Pos = MAX_SPLIT_V
     }
     
@@ -5575,30 +5520,30 @@ Private Sub picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single, 
         tvwResources.SetFocus
       Case 2
         lstResources.SetFocus
-      End Select
-    Else
+      }
+    } else {
       //force focus back to active form, if there is one
       if (!ActiveForm Is Nothing) {
         ActiveForm.SetFocus
       }
     }
   }
-End Sub
+}
 
-Private Sub picWarnings_Paint()
+Private void picWarnings_Paint()
 
   //draw that darn line?
   picWarnings.Line (0, 30)-Step(picWarnings.Width, 0), vbBlack
   
-End Sub
+}
 
-Private Sub picWarnings_Resize()
+Private void picWarnings_Resize()
 
   On Error GoTo ErrHandler
   
   Dim lngVarW As Long
   
-  if (!frmMDIMain.Visible) {
+  if (!MDIMain.Visible) {
     return;
   }
   
@@ -5622,17 +5567,17 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub StatusBar1_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void StatusBar1_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   StatusMouseBtn = Button
   sbX = X
   sbY = Y
-End Sub
+}
 
-Private Sub StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
+Private void StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
   
   Dim lngErrNum As Long
   
@@ -5652,7 +5597,7 @@ Private Sub StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
           //get error number
           lngErrNum = Val(Mid$(Panel.Text, InStr(1, Panel.Text, ":") + 2))
           MsgBoxEx Panel.Text, vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Logic Compile Error", WinAGIHelp, "htm\winagi\compilererrors.htm#" + CStr(lngErrNum)
-        Else
+        } else {
           //no error info, so don't show help
           MsgBox Panel.Text, vbInformation + vbOKOnly, "Logic Editor Status"
         }
@@ -5667,7 +5612,7 @@ Private Sub StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
         if (ActiveForm.ScaleFactor > 1) {
           ActiveForm.ScaleFactor = ActiveForm.ScaleFactor - 1
         }
-      Else
+      } else {
         //if not at Max
         if (ActiveForm.ScaleFactor < 4) {
           ActiveForm.ScaleFactor = ActiveForm.ScaleFactor + 1
@@ -5676,31 +5621,31 @@ Private Sub StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
       //redraw pictures
       ActiveForm.ResizePictures
     Case "Anchor"
-      With frmMDIMain
+      With MDIMain
         .mnuLPCopy.Enabled = true
         .mnuLPCopy.Tag = "A"
         .mnuLPSelectAll.Visible = false
         PopupMenu .mnuLPPopup, 0, .StatusBar1.Left + sbX, .StatusBar1.Top + sbY
       End With
     Case "Block"
-      With frmMDIMain
+      With MDIMain
         .mnuLPCopy.Enabled = true
         .mnuLPCopy.Tag = "B"
         .mnuLPSelectAll.Visible = false
         PopupMenu .mnuLPPopup, 0, .StatusBar1.Left + sbX, .StatusBar1.Top + sbY
       End With
       
-    End Select
+    }
     
   Case "frmSoundEdit"
     Select Case Panel.Key
     Case "Scale"
       if (StatusMouseBtn = vbRightButton) {
         ActiveForm.ZoomScale -1
-      Else
+      } else {
         ActiveForm.ZoomScale 1
       }
-    End Select
+    }
   
   Case "frmViewEdit"
     Select Case Panel.Key
@@ -5708,11 +5653,11 @@ Private Sub StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
       if (StatusMouseBtn = vbRightButton) {
         //zoom in
         ActiveForm.ZoomCel 0
-      Else
+      } else {
         //zoom out
         ActiveForm.ZoomCel 1
       }
-    End Select
+    }
     
   Case "frmTextEdit"
   Case "frmObjectEdit"
@@ -5720,7 +5665,7 @@ Private Sub StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
     Case "Encrypt"
       //toggle encryption
       ActiveForm.MenuClickCustom3
-    End Select
+    }
     
   Case "frmWordsEdit"
   Case "frmLayout"
@@ -5728,37 +5673,37 @@ Private Sub StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
     Case "Scale"
       if (StatusMouseBtn = vbRightButton) {
         ActiveForm.ChangeScale 1
-      Else
+      } else {
         ActiveForm.ChangeScale -1
       }
-    End Select
-  End Select
+    }
+  }
 return;
 
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub StatusBar1_PanelDblClick(ByVal Panel As MSComctlLib.Panel)
+Private void StatusBar1_PanelDblClick(ByVal Panel As MSComctlLib.Panel)
   //same as click
   StatusBar1_PanelClick Panel
   
-End Sub
+}
 
 
-Private Sub tmrFlash_Timer()
+Private void tmrFlash_Timer()
 
   //flash the main status bar, panel 1 three times;
   
   FlashCount = FlashCount + 1
   
   With MainStatusBar
-    if ((FlashCount And 1) = 1) {
+    if ((FlashCount && 1) = 1) {
       //flash it
       .Panels(1).Tag = .Panels(1).Text
       .Panels(1).Text = ""
-    Else
+    } else {
       //restore it
       .Panels(1).Text = .Panels(1).Tag
     }
@@ -5770,9 +5715,9 @@ Private Sub tmrFlash_Timer()
     FlashCount = 0
   }
   
-End Sub
+}
 
-Private Sub tmrNavList_Timer()
+Private void tmrNavList_Timer()
 
   //scroll the navlist
   
@@ -5784,7 +5729,7 @@ Private Sub tmrNavList_Timer()
      NLOffset = NLOffset - 1
      picNavList_Paint
     }
-  Else
+  } else {
     //scroll down
     if (NLOffset < UBound(ResQueue()) - 2) {
      NLOffset = NLOffset + 1
@@ -5796,8 +5741,8 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
-Private Sub Toolbar1_ButtonMenuClick(ByVal ButtonMenu As MSComctlLib.ButtonMenu)
+}
+Private void Toolbar1_ButtonMenuClick(ByVal ButtonMenu As MSComctlLib.ButtonMenu)
 
   //new, open, import default resource has been changed
   
@@ -5813,7 +5758,7 @@ Private Sub Toolbar1_ButtonMenuClick(ByVal ButtonMenu As MSComctlLib.ButtonMenu)
     i = 22
   Case "import_r"
     i = 14
-  End Select
+  }
   
   //update picture (caption)
   ButtonMenu.Parent.Image = i + ButtonMenu.Index
@@ -5821,9 +5766,9 @@ Private Sub Toolbar1_ButtonMenuClick(ByVal ButtonMenu As MSComctlLib.ButtonMenu)
   //now //click// the button
   Toolbar1_ButtonClick ButtonMenu.Parent
   
-End Sub
+}
 
-Private Sub tvwResources_Click()
+Private void tvwResources_Click()
 
   On Error GoTo ErrHandler
   
@@ -5845,9 +5790,9 @@ ErrHandler:
   //Debug.Assert false
   }
   Resume Next
-End Sub
+}
 
-Private Sub tvwResources_Collapse(ByVal Node As MSComctlLib.Node)
+Private void tvwResources_Collapse(ByVal Node As MSComctlLib.Node)
 
   //when collapsing, select the collapsed node
   On Error GoTo ErrHandler
@@ -5858,9 +5803,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub tvwResources_GotFocus()
+Private void tvwResources_GotFocus()
   
   //if not using preview window then focus
   //events must be tracked
@@ -5891,7 +5836,7 @@ Private Sub tvwResources_GotFocus()
       Case rtLogic, rtPicture, rtSound, rtView
         if (SelResNum = -1) {
           AdjustMenus rtNone, true, false, false
-        Else
+        } else {
           AdjustMenus SelResType, true, false, false
         }
         
@@ -5901,7 +5846,7 @@ Private Sub tvwResources_GotFocus()
       Case rtWords  //words
         AdjustMenus rtWords, true, false, false
         
-      End Select
+      }
     }
   }
 return;
@@ -5910,16 +5855,16 @@ ErrHandler:
 
 //Debug.Assert false
 Resume Next
-End Sub
+}
 
-Private Sub tvwResources_KeyDown(KeyCode As Integer, Shift As Integer)
+Private void tvwResources_KeyDown(KeyCode As Integer, Shift As Integer)
 
   Dim strTopic As String
   
   On Error GoTo ErrHandler
   
   // if main form is disabled for a doevents
-  if (!frmMDIMain.Enabled) {
+  if (!MDIMain.Enabled) {
     // don't process the keystroke
     KeyCode = 0
     Shift = 0
@@ -5942,13 +5887,13 @@ Private Sub tvwResources_KeyDown(KeyCode As Integer, Shift As Integer)
         //call remove from game method
         RemoveSelectedRes
         KeyCode = 0
-      End Select
+      }
       
     Case vbKeyF1
       //if using preview window
       if (Settings.ShowPreview) {
         frmPreview.MenuClickHelp
-      Else
+      } else {
         //show treeview help
         HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\restree.htm"
       }
@@ -5957,24 +5902,24 @@ Private Sub tvwResources_KeyDown(KeyCode As Integer, Shift As Integer)
     Case 9  //tab
       picProperties.SetFocus
       KeyCode = 0
-    End Select
-  ElseIf Shift = vbShiftMask + vbCtrlMask) {
+    }
+  } else if ( Shift = vbShiftMask + vbCtrlMask) {
     //Shift+Ctrl//
     if (Settings.ShowPreview) {
-      if (SelResType = rtPicture And KeyCode = vbKeyS) {
+      if (SelResType = rtPicture && KeyCode = vbKeyS) {
         //save Image as ...
         frmPreview.MenuClickCustom1
       }
     }
-  ElseIf Shift = vbCtrlMask) {
+  } else if ( Shift = vbCtrlMask) {
     Select Case KeyCode
     Case vbKeyF //Ctrl+F (Find)
       Select Case SelResType
       Case rtLogic, rtPicture, rtSound, rtView
         //find this resid
         SearchForID
-      End Select
-    End Select
+      }
+    }
   }
 
 return;
@@ -5982,9 +5927,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub tvwResources_KeyPress(KeyAscii As Integer)
+Private void tvwResources_KeyPress(KeyAscii As Integer)
 
   On Error GoTo ErrHandler
   
@@ -5996,9 +5941,9 @@ Private Sub tvwResources_KeyPress(KeyAscii As Integer)
     //edit the selected resource
     EditResource SelResType, SelResNum
     KeyAscii = 0
-  Case Else
+  default:
   
-  End Select
+  }
   
   //if preview window is visible,
   if (PreviewWin.Visible) {
@@ -6009,9 +5954,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub tvwResources_LostFocus()
+Private void tvwResources_LostFocus()
   
   //if not using the preview window, then
   //focus events must be tracked
@@ -6023,14 +5968,14 @@ Private Sub tvwResources_LostFocus()
     if (!ActiveControl Is Nothing) {
       //if active control is still tvwResources
       //then an open form may have been clicked
-      if (ActiveControl.Name = "tvwResources" And !KeepFocus) {
+      if (ActiveControl.Name = "tvwResources" && !KeepFocus) {
         if (!ActiveForm Is Nothing) {
           //reset menus for active form
           ActiveForm.Activate
         }
-      Else
+      } else {
         //if focus is staying on the form
-        if (ActiveControl.Name = "picProperties" Or ActiveControl.Name = "picSplitRes" Or ActiveControl.Name = "picSplitV") {
+        if (ActiveControl.Name = "picProperties" && ActiveControl.Name = "picSplitRes" && ActiveControl.Name = "picSplitV") {
           //force focus marker back to true
           MDIHasFocus = true
         }
@@ -6042,9 +5987,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub txtProperty_Change()
+Private void txtProperty_Change()
 
   Dim tmpSS As Long
   
@@ -6061,7 +6006,7 @@ Private Sub txtProperty_Change()
         txtProperty.Text = Left$(txtProperty.Text, 6)
         txtProperty.SelStart = tmpSS
       }
-    Else
+    } else {
       //limit to 5 characters
       if (Len(txtProperty.Text) > 5) {
         tmpSS = txtProperty.SelStart
@@ -6075,15 +6020,15 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub txtProperty_KeyPress(KeyAscii As Integer)
+Private void txtProperty_KeyPress(KeyAscii As Integer)
   
   //trap enter key
   Select Case KeyAscii
   Case 10 //ctrl-enter key combination
     //if not description or about
-    if (txtProperty.Tag != "GAMEDESC" And txtProperty.Tag != "GAMEABOUT") {
+    if (txtProperty.Tag != "GAMEDESC" && txtProperty.Tag != "GAMEABOUT") {
       //save the property value
       KeyAscii = 0
       SelectPropFromText
@@ -6103,11 +6048,11 @@ Private Sub txtProperty_KeyPress(KeyAscii As Integer)
     PaintPropertyWindow
     return;
     
-  Case Else
+  default:
     Select Case txtProperty.Tag
     Case "MAXOBJ"
       //limit to numbers only
-      if (KeyAscii < 48 Or KeyAscii > 57) {
+      if (KeyAscii < 48 && KeyAscii > 57) {
         KeyAscii = 0
       }
       
@@ -6118,22 +6063,22 @@ Private Sub txtProperty_KeyPress(KeyAscii As Integer)
         KeyAscii = 0
         
       //force upper case
-      Case 97 To 122 // if (KeyAscii >= 97 And KeyAscii <= 122) {
+      Case 97 To 122 // if (KeyAscii >= 97 && KeyAscii <= 122) {
         KeyAscii = KeyAscii - 32
-      End Select
+      }
       
     Case "RESDIR"
       //validate- cant have  "\/:*?<>|
       Select Case KeyAscii
       Case 32, 34, 42, 47, 58, 60, 62, 63, 92, 124
         KeyAscii = 0
-      End Select
+      }
       
-    End Select
-  End Select
-End Sub
+    }
+  }
+}
 
-Private Sub txtProperty_LostFocus()
+Private void txtProperty_LostFocus()
   
   On Error GoTo ErrHandler
   
@@ -6148,18 +6093,18 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub picProperties_DblClick()
+Private void picProperties_DblClick()
   
   //set dblclick mode (to allow properties to be toggled)
   PropDblClick = true
   
   //call mouse down again
   picProperties_MouseDown 0, 0, mPX, mPY
-End Sub
+}
 
-Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
   
   Dim tmpProp As Long
   Dim rtn As Long, blnDblClick As Boolean
@@ -6187,7 +6132,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
   NoPaint = true
   
   if (Settings.ShowPreview) {
-    if (!ActiveForm Is PreviewWin And Settings.ShiftPreview) {
+    if (!ActiveForm Is PreviewWin && Settings.ShiftPreview) {
       //now set form focus to preview
       if (!PreviewWin.Visible) {
         PreviewWin.Show
@@ -6229,7 +6174,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
       if (tmpProp > 4) {
         return;
       }
-    Else
+    } else {
       //logic resource
       //4 editable properties; 4 read-only
       if (tmpProp > 8) {
@@ -6243,7 +6188,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
       if (tmpProp > 1) {
         return;
       }
-    Else
+    } else {
       //picture and sound
       //3 editable properties, 3 read-only
       if (tmpProp > 6) {
@@ -6257,7 +6202,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
       if (tmpProp > 1) {
         return;
       }
-    Else
+    } else {
       //view
       //4 editable properties, 3 read-only
       if (tmpProp > 7) {
@@ -6276,7 +6221,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
     if (tmpProp > 3) {
       return;
     }
-  End Select
+  }
   
   //if property selected was clicked
   if (tmpProp = SelectedProp) {
@@ -6295,14 +6240,14 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
         //game dir is now read only
         
 //////        //if button clicked or dblclicked
-//////        if ((X > picProperties.Width - 17) Or blnDblClick) {
+//////        if ((X > picProperties.Width - 17) && blnDblClick) {
 //////          //copy pressed dropdialog picture
 //////          rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (3 - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
 //////
 //////          //reset browser start dir to game dir
 //////           BrowserStartDir = GameDir
 //////          //get a directory from which to load a game
-//////          strNewDir = GetNewDir(frmMDIMain.hWnd, "Select a new directory for this game:")
+//////          strNewDir = GetNewDir(MDIMain.hWnd, "Select a new directory for this game:")
 //////
 //////          //restore dropdialog button
 //////          rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (3 - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 0, 0, SRCCOPY)
@@ -6319,7 +6264,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
         DisplayPropertyEditBox PropSplitLoc + 3, (4 - PropScroll) * PropRowHeight + 1, picProperties.Width - PropSplitLoc - 4, PropRowHeight - 2, "RESDIR", 0
       
       Case 5  //int version
-        if ((X > picProperties.Width - 17) Or blnDblClick) {
+        if ((X > picProperties.Width - 17) && blnDblClick) {
           //copy pressed dropdown picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (5 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
           //display list box
@@ -6328,7 +6273,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
         
       Case 6  //Description
         //if button clicked
-        if (((X > picProperties.Width - 17) Or blnDblClick) And !txtProperty.Visible) {
+        if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
           //copy pressed dropover picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (6 - PropScroll) * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
           //display edit box
@@ -6338,7 +6283,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
           
       Case 7  //game version
         //if button clicked
-        if (((X > picProperties.Width - 17) Or blnDblClick) And !txtProperty.Visible) {
+        if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
           //copy pressed dropover picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (7 - PropScroll) * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
           //display edit box
@@ -6348,7 +6293,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
           
       Case 8  //game about
         //if button clicked
-        if (((X > picProperties.Width - 17) Or blnDblClick) And !txtProperty.Visible) {
+        if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
           //copy pressed dropover picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (8 - PropScroll) * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
           //display edit box
@@ -6358,7 +6303,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
         
       Case 9  //use Layout Editor
         //if dblclicking AND on actual property
-        if (blnDblClick And X > PropSplitLoc And X < picProperties.Width - 17) {
+        if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
           //toggle useresdef
           UseLE = !UseLE
           PaintPropertyWindow
@@ -6366,7 +6311,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
           UpdateLEStatus
           
         //if button is clicked
-        ElseIf X > picProperties.Width - 17) {
+        } else if ( X > picProperties.Width - 17) {
           //copy pressed dropdown picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (9 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
           //show list box offering choice of true or false
@@ -6376,7 +6321,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
       Case 10  //last edit date
         //read only
         
-      End Select
+      }
       
     Case rtLogic
       if (SelResNum = -1) {
@@ -6384,7 +6329,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
         Select Case SelectedProp
         Case 2  //globals
           //if button is clicked
-          if ((X > picProperties.Width - 17) Or blnDblClick) {
+          if ((X > picProperties.Width - 17) && blnDblClick) {
             //copy pressed dropdialog picture
             rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (2 - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
             //display edit globals dialog
@@ -6394,32 +6339,32 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
           
         Case 3  //use reserved defines
           //if dblclicking AND on actual property
-          if (blnDblClick And X > PropSplitLoc And X < picProperties.Width - 17) {
+          if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
             //toggle useresdef
             LogicSourceSettings.UseReservedNames = !LogicSourceSettings.UseReservedNames
             PaintPropertyWindow
           //if button is clicked
-          ElseIf X > picProperties.Width - 17) {
+          } else if ( X > picProperties.Width - 17) {
             //copy pressed dropdown picture
             rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (3 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
             //show list box offering choice of true or false
             DisplayPropertyListBox PropSplitLoc, (3 - PropScroll) * PropRowHeight, picProperties.Width - PropSplitLoc - 17, ListItemHeight * 2, "USERESNAMES"
           }
         
-        End Select
-      Else
+        }
+      } else {
         //logic resource
         //if selected prop is 1,2,3
         Select Case SelectedProp
         Case 1, 2, 3
           //if button is clicked or doubleclicking
-          if (X > picProperties.Width - 17 Or blnDblClick) {
+          if (X > picProperties.Width - 17 && blnDblClick) {
             //copy pressed dropdialog picture
             rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
             if (SelectedProp = 1) {
               //use selected item method
               SelectedItemRenumber
-            Else
+            } else {
               //use selected item method (remember to adjust selprop by 1)
               SelectedItemDescription SelectedProp - 1
             }
@@ -6429,14 +6374,14 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
         
         Case 4  //isroom (used to be 6)
           //if dblclicking AND on actual property
-          if (blnDblClick And X > PropSplitLoc And X < picProperties.Width - 17) {
+          if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
             //toggle isroom
             if (SelResNum != 0) {
               Logics(SelResNum).IsRoom = !Logics(SelResNum).IsRoom
               if (UseLE) {
                 if (Logics(SelResNum).IsRoom) {
                   Reason = euShowRoom
-                Else
+                } else {
                   Reason = euRemoveRoom
                 }
                 //update layout editor and data file to show new room status
@@ -6454,7 +6399,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
             }
             
           //if button is clicked
-          ElseIf X > picProperties.Width - 17) {
+          } else if ( X > picProperties.Width - 17) {
             if (SelResNum != 0) {
               //copy pressed dropdown picture
               rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (4 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
@@ -6462,7 +6407,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
               DisplayPropertyListBox PropSplitLoc, (4 - PropScroll) * PropRowHeight, picProperties.Width - PropSplitLoc - 17, ListItemHeight * 2, "ISROOM"
             }
           }
-        End Select
+        }
       }
       
     Case rtPicture
@@ -6470,7 +6415,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
       if (SelResNum >= 0) {
         //pictures, sounds
         //if button is clicked or doubleclicking
-        if (X > picProperties.Width - 17 Or blnDblClick) {
+        if (X > picProperties.Width - 17 && blnDblClick) {
           //copy pressed dropdialog picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
           
@@ -6478,7 +6423,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
           if (SelectedProp = 1) {
             //use selected item method
             SelectedItemRenumber
-          Else
+          } else {
             //use selected item method (remember to adjust selprop by 1)
             SelectedItemDescription SelectedProp - 1
           }
@@ -6492,7 +6437,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
       if (SelResNum >= 0) {
         //pictures, sounds
         //if button is clicked or doubleclicking
-        if (X > picProperties.Width - 17 Or blnDblClick) {
+        if (X > picProperties.Width - 17 && blnDblClick) {
           //copy pressed dropdialog picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
           
@@ -6500,7 +6445,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
           if (SelectedProp = 1) {
             //use selected item method
             SelectedItemRenumber
-          Else
+          } else {
             //use selected item method (remember to adjust selprop by 1)
             SelectedItemDescription SelectedProp - 1
           }
@@ -6514,7 +6459,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
       if (SelResNum >= 0) {
         //views
         //if button is clicked or doubleclicking
-        if (X > picProperties.Width - 17 Or blnDblClick) {
+        if (X > picProperties.Width - 17 && blnDblClick) {
           Select Case SelectedProp
           Case 1  //number
             //copy pressed dropdialog picture
@@ -6540,7 +6485,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
               //display edit box
               DisplayPropertyEditBox picProperties.Width, 0, 2 * picProperties.Width, picProperties.Height, "VIEWDESC", 1
             }
-          End Select
+          }
         }
       }
       
@@ -6548,7 +6493,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
       Select Case SelectedProp
       Case 2 // description
         //if button clicked
-        if (((X > picProperties.Width - 17) Or blnDblClick) And !txtProperty.Visible) {
+        if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
           //copy pressed dropover picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, SelectedProp * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
           //display edit box
@@ -6556,7 +6501,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
         }
       Case 3  //encryption
         //if dblclicking AND on actual property
-        if (blnDblClick And X > PropSplitLoc And X < picProperties.Width - 17) {
+        if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
           //toggle encryption
           InventoryObjects.Encrypted = !InventoryObjects.Encrypted
           InventoryObjects.Save
@@ -6568,7 +6513,7 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
           }
           
         //if button is clicked
-        ElseIf X > picProperties.Width - 17) {
+        } else if ( X > picProperties.Width - 17) {
           //copy pressed dropdown picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (3 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
           //display list box
@@ -6577,25 +6522,25 @@ Private Sub picProperties_MouseDown(Button As Integer, Shift As Integer, X As Si
         
       Case 4  //Max screen objects
         DisplayPropertyEditBox PropSplitLoc + 3, (4 - PropScroll) * PropRowHeight + 1, picProperties.Width - PropSplitLoc - 4, PropRowHeight - 2, "MAXOBJ", 0
-      End Select
+      }
             
     Case rtWords
       Select Case SelectedProp
       Case 3 //description
         //if button clicked
-        if (((X > picProperties.Width - 17) Or blnDblClick) And !txtProperty.Visible) {
+        if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
           //copy pressed dropover picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (2 - PropScroll) * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
           //display edit box
           DisplayPropertyEditBox picProperties.Width, 0, 2 * picProperties.Width, picProperties.Height, "WORDSDESC", 1
         }
-      End Select
-    End Select
+      }
+    }
 
   //if not the same as current prop
-  Else
+  } else {
     //if changed
-    if (tmpProp != SelectedProp And tmpProp != 0) {
+    if (tmpProp != SelectedProp && tmpProp != 0) {
       SelectedProp = tmpProp
       PaintPropertyWindow
     }
@@ -6605,9 +6550,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal strProp As String, ByVal lngBorderStyle As Long)
+Private void DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal strProp As String, ByVal lngBorderStyle As Long)
   //moves the edit box to appropriate position
   //preloads it with appropriate prop Value
   
@@ -6645,13 +6590,13 @@ Private Sub DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVal
       Views(SelResNum).Load
       txtProperty.Text = Replace(Views(SelResNum).ViewDescription, vbLf, vbNewLine)
       Views(SelResNum).Unload
-    Else
+    } else {
       txtProperty.Text = Replace(Views(SelResNum).ViewDescription, vbLf, vbNewLine)
     }
     
   Case "MAXOBJ"
     txtProperty.Text = InventoryObjects.MaxScreenObjects
-  End Select
+  }
   
   //pass property to textbox tag
   txtProperty.Tag = strProp
@@ -6663,10 +6608,10 @@ Private Sub DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVal
   txtProperty.SetFocus
   //move cursor to end
   txtProperty.SelStart = Len(txtProperty.Text)
-End Sub
+}
 
 
-Private Sub DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal strProp As String)
+Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal strProp As String)
   //moves the list box to appropriate position
   //preloads it with appropriate prop Value
   
@@ -6682,7 +6627,7 @@ Private Sub DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVal
   //if there is room
   if (posY < picProperties.Height - lstProperty.Height) {
     lstProperty.Move picProperties.Left + posX, picProperties.Top + posY
-  Else
+  } else {
     lstProperty.Move picProperties.Left + posX, picProperties.Top + picProperties.Height - lstProperty.Height
   }
   
@@ -6730,7 +6675,7 @@ Private Sub DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVal
     //select entry matching current Value
     if (InventoryObjects.Encrypted) {
       lstProperty.ListIndex = 1
-    Else
+    } else {
       lstProperty.ListIndex = 0
     }
     
@@ -6742,7 +6687,7 @@ Private Sub DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVal
     //select entry matching current Value
     if (Logics(SelResNum).IsRoom) {
       lstProperty.ListIndex = 1
-    Else
+    } else {
       lstProperty.ListIndex = 0
     }
     
@@ -6754,7 +6699,7 @@ Private Sub DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVal
     //select entry matching current Value
     if (LogicSourceSettings.UseReservedNames) {
       lstProperty.ListIndex = 1
-    Else
+    } else {
       lstProperty.ListIndex = 0
     }
     
@@ -6766,11 +6711,11 @@ Private Sub DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVal
     //select entry matching current value
     if (UseLE) {
       lstProperty.ListIndex = 1
-    Else
+    } else {
       lstProperty.ListIndex = 0
     }
     
-  End Select
+  }
   
   //pass property to tag
   lstProperty.Tag = strProp
@@ -6786,21 +6731,21 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub picProperties_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picProperties_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
   //cache the Y Value
   mPY = Y
-End Sub
+}
 
-Private Sub picProperties_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void picProperties_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
 //  PaintPropertyWindow
-End Sub
+}
 
 
-Private Sub MDIForm_Resize()
+Private void MDIForm_Resize()
 
   On Error GoTo ErrHandler
   
@@ -6809,19 +6754,19 @@ Private Sub MDIForm_Resize()
   //use separate variables for managing minimum width/height
   if (ScaleWidth < MIN_WIDTH) {
     CalcWidth = MIN_WIDTH
-  Else
+  } else {
     CalcWidth = ScaleWidth
   }
   if (ScaleHeight < MIN_HEIGHT) {
     CalcHeight = MIN_HEIGHT
-  Else
+  } else {
     CalcHeight = ScaleHeight
   }
   
   //don't resize unless form is NOT minimized, and not resized too small
-  if (Me.WindowState != vbMinimized And Me.Visible) {
+  if (Me.WindowState != vbMinimized && Me.Visible) {
     //resize horizontally
-    if (picWarnings.Visible And ScaleWidth > MIN_WIDTH) {
+    if (picWarnings.Visible && ScaleWidth > MIN_WIDTH) {
       picWarnings.Width = Me.Width - WLOffsetW - picResources.Width + 60
       picSplitH.Width = picWarnings.Width - 60
     }
@@ -6842,10 +6787,10 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
-Private Sub MDIForm_Unload(Cancel As Integer)
+Private void MDIForm_Unload(Cancel As Integer)
   
   Dim frm As Form
   Dim rtn As Long
@@ -6858,7 +6803,7 @@ Private Sub MDIForm_Unload(Cancel As Integer)
     
   //ensure all forms are unloaded
   For Each frm In Forms
-    if (frm.Name != "frmMDIMain") {
+    if (frm.Name != "MDIMain") {
       Unload frm
     }
   Next
@@ -6913,98 +6858,98 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuEClear_Click()
+Private void mnuEClear_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickClear
-End Sub
+}
 
-Private Sub mnuECopy_Click()
+Private void mnuECopy_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickCopy
-End Sub
+}
 
-Private Sub mnuECut_Click()
+Private void mnuECut_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickCut
-End Sub
+}
 
 
-Private Sub mnuEDelete_Click()
+Private void mnuEDelete_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickDelete
-End Sub
+}
 
-Private Sub mnuEFind_Click()
+Private void mnuEFind_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickFind
-End Sub
+}
 
-Private Sub mnuEFindAgain_Click()
+Private void mnuEFindAgain_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickFindAgain
-End Sub
+}
 
-Private Sub mnuEInsert_Click()
+Private void mnuEInsert_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickInsert
-End Sub
+}
 
-Private Sub mnuEPaste_Click()
+Private void mnuEPaste_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickPaste
-End Sub
+}
 
-Private Sub mnuESelectAll_Click()
+Private void mnuESelectAll_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickSelectAll
-End Sub
+}
 
-Private Sub mnuEUndo_Click()
+Private void mnuEUndo_Click()
   //undo an action
   
   On Error Resume Next
   
   ActiveForm.MenuClickUndo
-End Sub
+}
 
-Private Sub mnuGCompile_Click()
+Private void mnuGCompile_Click()
 
   //compile game in default directory
   CompileAGIGame GameDir
-End Sub
+}
 
-Private Sub mnuGExit_Click()
+Private void mnuGExit_Click()
 
   //unload
   Unload Me
-End Sub
+}
 
-Public Sub mnuGOpen_Click()
+public void mnuGOpen_Click()
   
   //open a game - user will get chance to select wag file in OpenWAG()
   OpenWAG
-End Sub
-Private Sub MDIForm_Load()
+}
+Private void MDIForm_Load()
   Dim rtn As Long, i As Long
   Dim lngBeginLoad As Long, lngEndLoad As Long
   Dim blnLastLoad As Boolean
@@ -7149,7 +7094,7 @@ Private Sub MDIForm_Load()
   
   //show splash screen, if applicable
   if (Settings.ShowSplashScreen) {
-    frmMDIMain.Visible = true
+    MDIMain.Visible = true
     SafeDoEvents
     Load frmSplash
     frmSplash.Show vbModeless, Me
@@ -7202,7 +7147,7 @@ Private Sub MDIForm_Load()
   }
   
   //retrieve user//s preferred AGI colors
-  GetDefaultColors
+  GetDefaultColors();
   
   //can//t seem to get the splitters to show up on top without using zorder in code
   //not sure why
@@ -7229,7 +7174,7 @@ Private Sub MDIForm_Load()
   blnLastLoad = ReadSettingBool(SettingsList, sMRULIST, "LastLoad", false)
   
   //if nothing loaded AND autoreload is set AND something was loaded last time program ended,
-  if (!GameLoaded And ActiveForm Is Nothing And Settings.AutoOpen And blnLastLoad) {
+  if (!GameLoaded && ActiveForm Is Nothing && Settings.AutoOpen && blnLastLoad) {
     //open mru1
     OpenMRUGame 1
   }
@@ -7244,18 +7189,18 @@ Private Sub MDIForm_Load()
   Show
   
   //if no printers,
-  if (NoPrinter And !Settings.SkipPrintWarning) {
+  if (NoPrinter && !Settings.SkipPrintWarning) {
     MsgBoxEx "There are no printers available, so printing functions will be disabled.", vbInformation + vbOKOnly, "WinAGI GDS", , , "Don//t show this warning again.", Settings.SkipPrintWarning
   }
   if (Settings.SkipPrintWarning) {
-    WriteAppSetting SettingsList, sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning
+    WriteAppSetting(SettingsList, sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning
   }
   
   //set the navigation list picbox parameters
   NLRowHeight = 1.15 * picNavList.TextHeight("")
   picNavList.Height = 5.261 * NLRowHeight
   picNavList.Top = 0 + Me.Toolbar1.Height / ScreenTWIPSY + cmdBack.Top + cmdBack.Height / 2 - picNavList.Height / 2
-  SetParent picNavList.hWnd, frmMDIMain.hWnd
+  SetParent picNavList.hWnd, MDIMain.hWnd
   
   Screen.MousePointer = vbDefault
 
@@ -7264,9 +7209,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuRDescription_Click()
+Private void mnuRDescription_Click()
 
   Dim i As Long
   
@@ -7279,17 +7224,17 @@ Private Sub mnuRDescription_Click()
     //use selected item method (remember to adjust selprop by 1)
     i = SelectedProp - 1
     // validate; (if nothing selected, default to first property)
-    if (i < 1 Or i > 3) {
+    if (i < 1 && i > 3) {
       i = 1
     }
     SelectedItemDescription i
-  Else
+  } else {
     //if active form is NOT the preview form
     //if any form other than preview is active
     if (ActiveForm.Name != "frmPreview") {
       //use the active form method (always default to editing ID when selected via menu)
       ActiveForm.MenuClickDescription 1
-    Else
+    } else {
       
       //check for an open editor that matches resource being previewed
       Select Case SelResType
@@ -7351,10 +7296,10 @@ Private Sub mnuRDescription_Click()
           return;
         }
       
-      Case Else //text, game or none
+      default: //text, game or none
         //export does not apply
         
-      End Select
+      }
       
       //if no open editor is found, use the selected item method
       Select Case SelResType
@@ -7363,16 +7308,16 @@ Private Sub mnuRDescription_Click()
         SelectedItemDescription 2
       Case rtLogic, rtPicture, rtSound, rtView
         //if id or desc selected, use it, otherwise default to id
-        if (SelectedProp = 2 Or SelectedProp = 3) {
+        if (SelectedProp = 2 && SelectedProp = 3) {
           //(remember to adjust selprop by 1)
           SelectedItemDescription SelectedProp - 1
-        Else
+        } else {
           SelectedItemDescription 1
         }
-      Case Else
+      default:
         //shouldnt get here?
         //Debug.Assert false
-      End Select
+      }
     }
   }
 return;
@@ -7380,9 +7325,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub MDIForm_QueryUnload(Cancel As Integer, UnloadMode As Integer)
+Private void MDIForm_QueryUnload(Cancel As Integer, UnloadMode As Integer)
   
   Dim frm As Form, i As Long
   Dim blnLastLoad As Boolean
@@ -7411,7 +7356,7 @@ Private Sub MDIForm_QueryUnload(Cancel As Integer, UnloadMode As Integer)
   //unload any remaining open forms
   For Each frm In Forms
     //if an editor
-    if (frm.Name != "frmMDIMain" And frm.Name != "frmPreview") {
+    if (frm.Name != "MDIMain" && frm.Name != "frmPreview") {
       if (frm.MDIChild) {
         //store current form Count
         i = Forms.Count
@@ -7425,8 +7370,8 @@ Private Sub MDIForm_QueryUnload(Cancel As Integer, UnloadMode As Integer)
           //this ensures main form border is adjusted after the
           //resource picbox is hidden
           On Error Resume Next
-          frmMDIMain.Width = frmMDIMain.Width - ScreenTWIPSX
-          frmMDIMain.Width = frmMDIMain.Width + ScreenTWIPSX
+          MDIMain.Width = MDIMain.Width - ScreenTWIPSX
+          MDIMain.Width = MDIMain.Width + ScreenTWIPSX
           return;
         }
       }
@@ -7434,7 +7379,7 @@ Private Sub MDIForm_QueryUnload(Cancel As Integer, UnloadMode As Integer)
   Next
   
   //write lastload status
-  WriteAppSetting SettingsList, sMRULIST, "LastLoad", blnLastLoad
+  WriteAppSetting(SettingsList, sMRULIST, "LastLoad", blnLastLoad
   
   //save settings to register
   SaveSettings
@@ -7444,14 +7389,14 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
-Private Sub mnuGRebuild_Click()
+}
+Private void mnuGRebuild_Click()
 
   //rebuild volfiles only
   CompileAGIGame GameDir, true
-End Sub
+}
 
-Sub mnuGRun_Click()
+void mnuGRun_Click()
 
   Dim rtn As Long, strParams As String
   Dim strErrTitle As String, strErrMsg As String, strErrType As String
@@ -7494,7 +7439,7 @@ Sub mnuGRun_Click()
     //run with whatever is in Platform and PlatformOpts
     strParams = PlatformOpts
     
-  End Select
+  }
   
   //check if any logics are dirty;
   if (CheckLogics()) {
@@ -7528,9 +7473,9 @@ Sub mnuGRun_Click()
         strErrType = "(DDE Busy Error)"
       Case 31 //#define SE_ERR_NOASSOC                  31
         strErrType = "(Association !Found)"
-      Case Else
+      default:
         strErrType = "(Unknown Error)"
-      End Select
+      }
       
       //message also depends on platform type
       Select Case PlatformType
@@ -7549,7 +7494,7 @@ Sub mnuGRun_Click()
       Case 4 //other
         strErrTitle = "Run AGI Game Error"
         strErrMsg = "this program"
-      End Select
+      }
       
       strErrMsg = "Unable to run " + strErrMsg + " " + strErrType + ". Make sure you" + vbNewLine + _
                   "have selected the correct executable file, and that any parameters" + vbNewLine + _
@@ -7563,32 +7508,32 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuRCustom1_Click()
+Private void mnuRCustom1_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickCustom1
-End Sub
+}
 
-Private Sub mnuRCustom2_Click()
+Private void mnuRCustom2_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickCustom2
-End Sub
+}
 
 
-Private Sub mnuRCustom3_Click()
+Private void mnuRCustom3_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickCustom3
-End Sub
+}
 
 
-Private Sub mnuRExport_Click()
+Private void mnuRExport_Click()
   
   Dim i As Long
   
@@ -7600,12 +7545,12 @@ Private Sub mnuRExport_Click()
     //AND Settings.ResListType is non-zero, AND no editor window are open
     //use selected item method
     SelectedItemExport
-  Else
+  } else {
     //if active form is preview window OR the mdi form is active
     if (ActiveForm.Name != "frmPreview") {
       //use the active form method
       ActiveForm.MenuClickExport
-    Else
+    } else {
       //check for an open editor that matches resource being previewed
       Select Case SelResType
       Case rtLogic
@@ -7670,10 +7615,10 @@ Private Sub mnuRExport_Click()
         ExportAll
         return;
         
-      Case Else //text, game or none
+      default: //text, game or none
         //export does not apply
         
-      End Select
+      }
       //if no open editor is found, use the selected item method
       SelectedItemExport
     }
@@ -7682,8 +7627,8 @@ return;
 
 ErrHandler:
   Resume Next
-End Sub
-Private Sub mnuRILogic_Click()
+}
+Private void mnuRILogic_Click()
 
   On Error GoTo ErrHandler
   
@@ -7699,7 +7644,7 @@ Private Sub mnuRILogic_Click()
     
     .ShowOpen
     //save default filter index
-    WriteAppSetting SettingsList, sLOGICS, sOPENFILTER, .FilterIndex
+    WriteAppSetting(SettingsList, sLOGICS, sOPENFILTER, .FilterIndex
     DefaultResDir = JustPath(.FileName)
   End With
   
@@ -7729,13 +7674,13 @@ ErrHandler:
   
   //Debug.Assert false
   Resume Next
-End Sub
-Private Sub mnuRInGame_Click()
+}
+Private void mnuRInGame_Click()
 
   AddOrRemoveRes
-End Sub
+}
 
-Private Sub mnuRIObjects_Click()
+Private void mnuRIObjects_Click()
   
   //imports an object file
   //if a game is loaded, ask if it should
@@ -7766,7 +7711,7 @@ Private Sub mnuRIObjects_Click()
           if (ObjectEditor.IsDirty) {
             //warn user
             rtn = MsgBox("Do you want to save your changes and export the existing object file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
-          Else
+          } else {
             rtn = MsgBox("Do you want to export the existing object file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
           }
           
@@ -7820,7 +7765,7 @@ Private Sub mnuRIObjects_Click()
         
         //adjust menus accordingly
         AdjustMenus rtWords, true, true, false
-      Else
+      } else {
         //not replacing; adjust menus accordingly
         AdjustMenus rtWords, false, true, false
       }
@@ -7834,9 +7779,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuRIPicture_Click()
+Private void mnuRIPicture_Click()
 
   On Error GoTo ErrHandler
   
@@ -7852,7 +7797,7 @@ Private Sub mnuRIPicture_Click()
     
     .ShowOpen
     //save default filter index
-    WriteAppSetting SettingsList, sPICTURES, sOPENFILTER, .FilterIndex
+    WriteAppSetting(SettingsList, sPICTURES, sOPENFILTER, .FilterIndex
     DefaultResDir = JustPath(.FileName)
   End With
 
@@ -7882,9 +7827,9 @@ ErrHandler:
   
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuRISound_Click()
+Private void mnuRISound_Click()
 
   On Error GoTo ErrHandler
   
@@ -7899,7 +7844,7 @@ Private Sub mnuRISound_Click()
    
     .ShowOpen
     //save default filter index
-    WriteAppSetting SettingsList, sSOUNDS, sOPENFILTER, .FilterIndex
+    WriteAppSetting(SettingsList, sSOUNDS, sOPENFILTER, .FilterIndex
     DefaultResDir = JustPath(.FileName)
   End With
   
@@ -7929,8 +7874,8 @@ ErrHandler:
   
   //Debug.Assert false
   Resume Next
-End Sub
-Private Sub mnuRIView_Click()
+}
+Private void mnuRIView_Click()
   
   On Error GoTo ErrHandler
   
@@ -7945,7 +7890,7 @@ Private Sub mnuRIView_Click()
    
     .ShowOpen
     //save default filter index
-    WriteAppSetting SettingsList, sVIEWS, sOPENFILTER, .FilterIndex
+    WriteAppSetting(SettingsList, sVIEWS, sOPENFILTER, .FilterIndex
     DefaultResDir = JustPath(.FileName)
   End With
   
@@ -7975,8 +7920,8 @@ ErrHandler:
   
   //Debug.Assert false
   Resume Next
-End Sub
-Private Sub mnuRIWords_Click()
+}
+Private void mnuRIWords_Click()
   
   //open a word file
   //if a game is loaded, ask if it should
@@ -8007,7 +7952,7 @@ Private Sub mnuRIWords_Click()
           if (WordEditor.IsDirty) {
             //warn user
             rtn = MsgBox("Do you want to save your changes and export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
-          Else
+          } else {
             rtn = MsgBox("Do you want to export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
           }
           
@@ -8061,7 +8006,7 @@ Private Sub mnuRIWords_Click()
         
         //adjust menus accordingly
         AdjustMenus rtWords, true, true, false
-      Else
+      } else {
         //not replacing; adjust menus accordingly
         AdjustMenus rtWords, false, true, false
       }
@@ -8074,14 +8019,14 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuRNLogic_Click()
+Private void mnuRNLogic_Click()
   //create new logic and enter edit mode
   NewLogic
   
-End Sub
-Private Sub mnuRNObjects_Click()
+}
+Private void mnuRNObjects_Click()
   
   //create a new object file
   //if a game is loaded, ask if it should
@@ -8104,7 +8049,7 @@ Private Sub mnuRNObjects_Click()
         if (ObjectEditor.IsDirty) {
           //warn user
           rtn = MsgBox("Do you want to save your changes and export the existing OBJECT file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
-        Else
+        } else {
           rtn = MsgBox("Do you want to export the existing OBJECT file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
         }
         
@@ -8162,33 +8107,33 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuRNPicture_Click()
+Private void mnuRNPicture_Click()
   
   //create new picture and enter edit mode
   NewPicture
-End Sub
+}
 
-Private Sub mnuRNSound_Click()
+Private void mnuRNSound_Click()
 
   //create new logic and enter edit mode
   NewSound
-End Sub
+}
 
-Private Sub mnuRNText_Click()
+Private void mnuRNText_Click()
   //create new text file
   NewTextFile
   
-End Sub
+}
 
-Private Sub mnuRNView_Click()
+Private void mnuRNView_Click()
   //create new view and enter edit mode
   NewView
   
-End Sub
+}
 
-Private Sub mnuRNWords_Click()
+Private void mnuRNWords_Click()
 
   //create a new word list file
   //if a game is loaded, ask if it should
@@ -8211,7 +8156,7 @@ Private Sub mnuRNWords_Click()
         if (WordEditor.IsDirty) {
           //warn user
           rtn = MsgBox("Do you want to save your changes and export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
-        Else
+        } else {
           rtn = MsgBox("Do you want to export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
         }
         
@@ -8269,9 +8214,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuROLogic_Click()
+Private void mnuROLogic_Click()
   //open a logic for editing
   
   //if a game is loaded
@@ -8294,26 +8239,26 @@ Private Sub mnuROLogic_Click()
     End With
     
     Unload frmGetResourceNum
-  Else
+  } else {
     //use import method
     mnuRILogic_Click
   }
-End Sub
+}
 
-Private Sub mnuROObjects_Click()
+Private void mnuROObjects_Click()
 
   //open the current object list for editing
   
   //if a game is loaded
   if (GameLoaded) {
     OpenObjects
-  Else
+  } else {
     //use import method
     mnuRIObjects_Click
   }
-End Sub
+}
 
-Private Sub mnuROPicture_Click()
+Private void mnuROPicture_Click()
   //open a picture for editing
   
   //if a game is loaded
@@ -8336,13 +8281,13 @@ Private Sub mnuROPicture_Click()
     End With
     
     Unload frmGetResourceNum
-  Else
+  } else {
     //use import method
     mnuRIPicture_Click
   }
-End Sub
+}
 
-Private Sub mnuROSound_Click()
+Private void mnuROSound_Click()
   //open a sound for editing
   
   //if a game is loaded
@@ -8365,14 +8310,14 @@ Private Sub mnuROSound_Click()
     End With
     
     Unload frmGetResourceNum
-  Else
+  } else {
     //use import method
     mnuRISound_Click
   }
-End Sub
+}
 
 
-Private Sub mnuROText_Click()
+Private void mnuROText_Click()
   
   On Error GoTo ErrHandler
   
@@ -8411,9 +8356,9 @@ ErrHandler:
   
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Private Sub mnuROView_Click()
+Private void mnuROView_Click()
   //open a view for editing
   
   //if a game is loaded
@@ -8436,26 +8381,26 @@ Private Sub mnuROView_Click()
     End With
     
     Unload frmGetResourceNum
-  Else
+  } else {
     //use import method
     mnuRIView_Click
   }
-End Sub
+}
 
-Private Sub mnuROWords_Click()
+Private void mnuROWords_Click()
 
   //opens the current word list for editing
     
   //if a game is loaded
   if (GameLoaded) {
     OpenWords
-  Else
+  } else {
     //use import method
     mnuRIWords_Click
   }
-End Sub
+}
 
-Private Sub mnuRPrint_Click()
+Private void mnuRPrint_Click()
   
   Dim i As Long
   
@@ -8467,13 +8412,13 @@ Private Sub mnuRPrint_Click()
     //AND Settings.ResListType is non-zero, AND no editor window are open
     //use selected item method
     SelectedItemPrint
-  Else
+  } else {
     //if active form is NOT the preview form
     //if any form other than preview is active
     if (ActiveForm.Name != "frmPreview") {
       //use the active form method
       ActiveForm.MenuClickPrint
-    Else
+    } else {
       //use generic print method
       //to check if resource is open
       PrintResources
@@ -8484,9 +8429,9 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
-Public Sub mnuRRenumber_Click()
+public void mnuRRenumber_Click()
 
   Dim i As Long
   
@@ -8498,14 +8443,14 @@ Public Sub mnuRRenumber_Click()
     //AND Settings.ResListType is non-zero, AND no editor window are open
     //use selected item method
     SelectedItemRenumber
-  Else
+  } else {
     //if active form is NOT the preview form
     //if any form other than preview is active
     if (ActiveForm.Name != "frmPreview") {
       //use the active form method
       ActiveForm.MenuClickRenumber
-    Else
-  //Debug.Assert SelResNum >= 0 And SelResNum <= 255
+    } else {
+  //Debug.Assert SelResNum >= 0 && SelResNum <= 255
       //check for an open editor that matches resource being previewed
       Select Case SelResType
       Case rtLogic
@@ -8513,7 +8458,7 @@ Public Sub mnuRRenumber_Click()
         For i = 1 To LogicEditors.Count
           //verify the editor is a logic editor, not a text editor
           if (LogicEditors(i).FormMode = fmLogic) {
-            if (LogicEditors(i).LogicNumber = SelResNum And LogicEditors(i).InGame) {
+            if (LogicEditors(i).LogicNumber = SelResNum && LogicEditors(i).InGame) {
               //use this form//s method
               LogicEditors(i).MenuClickRenumber
               return;
@@ -8524,7 +8469,7 @@ Public Sub mnuRRenumber_Click()
       Case rtPicture
         //if any Picture editor matches this resource
         For i = 1 To PictureEditors.Count
-          if (PictureEditors(i).PicNumber = SelResNum And PictureEditors(i).InGame) {
+          if (PictureEditors(i).PicNumber = SelResNum && PictureEditors(i).InGame) {
             //use this form//s method
             PictureEditors(i).MenuClickRenumber
             return;
@@ -8534,7 +8479,7 @@ Public Sub mnuRRenumber_Click()
       Case rtSound
         //if any Sound editor matches this resource
         For i = 1 To SoundEditors.Count
-          if (SoundEditors(i).SoundNumber = SelResNum And SoundEditors(i).InGame) {
+          if (SoundEditors(i).SoundNumber = SelResNum && SoundEditors(i).InGame) {
             //use this form//s method
             SoundEditors(i).MenuClickRenumber
             return;
@@ -8544,17 +8489,17 @@ Public Sub mnuRRenumber_Click()
       Case rtView
         //if any View editor matches this resource
         For i = 1 To ViewEditors.Count
-          if (ViewEditors(i).ViewNumber = SelResNum And ViewEditors(i).InGame) {
+          if (ViewEditors(i).ViewNumber = SelResNum && ViewEditors(i).InGame) {
             //use this form//s method
             ViewEditors(i).MenuClickRenumber
             return;
           }
         Next i
         
-      Case Else //words, objects, text, game or none
+      default: //words, objects, text, game or none
         //renumber doesn//t apply
         
-      End Select
+      }
       
       //if no open editor is found, use the selected item method
       SelectedItemRenumber
@@ -8564,33 +8509,33 @@ return;
 
 ErrHandler:
   Resume Next
-End Sub
+}
 
-Private Sub mnuRSave_Click()
+Private void mnuRSave_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickSave
-End Sub
+}
 
-Private Sub mnuHAbout_Click()
+Private void mnuHAbout_Click()
 
 
-  frmAbout.Left = frmMDIMain.Left + (frmMDIMain.Width - frmAbout.Width) / 2
-  frmAbout.Top = frmMDIMain.Top + (frmMDIMain.Height - frmAbout.Height) / 2
+  frmAbout.Left = MDIMain.Left + (MDIMain.Width - frmAbout.Width) / 2
+  frmAbout.Top = MDIMain.Top + (MDIMain.Height - frmAbout.Height) / 2
   KeepFocus = true
   frmAbout.Show vbModal, Me
   KeepFocus = false
-End Sub
+}
 
-Public Sub mnuHContents_Click()
+public void mnuHContents_Click()
 
    Dim hWndHelp As Long
    //select table of contents
    hWndHelp = HtmlHelp(HelpParent, WinAGIHelp, HH_DISPLAY_TOC, 0)
-End Sub
+}
 
-Public Sub mnuGClose_Click()
+public void mnuGClose_Click()
 
   On Error GoTo ErrHandler
   
@@ -8605,19 +8550,19 @@ ErrHandler:
   //Debug.Assert false
   ErrMsgBox "Error on close: ", "", "Close Game Error"
   Resume Next
-End Sub
+}
 
-Private Sub mnuGNBlank_Click()
+Private void mnuGNBlank_Click()
 
   //create new blank game
   NewAGIGame false
-End Sub
+}
 
-Private Sub mnuGNTemplate_Click()
+Private void mnuGNTemplate_Click()
 
   //create new game using template
   NewAGIGame true
-End Sub
+}
 
 
 
@@ -8625,15 +8570,15 @@ End Sub
 
 
 
-Private Sub mnuWiClose_Click()
+Private void mnuWiClose_Click()
 
   //make sure this is not preview window
-  if (frmMDIMain.ActiveForm.Name != "frmPreview") {
+  if (MDIMain.ActiveForm.Name != "frmPreview") {
     Unload ActiveForm
   }
-End Sub
+}
 
-Private Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
+Private void Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
 
   On Error GoTo ErrHandler
   
@@ -8661,7 +8606,7 @@ Private Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
       mnuRNSound_Click
     Case 3
       mnuRNView_Click
-    End Select
+    }
     
   Case "open_r"
     Select Case Val(Button.Tag)
@@ -8673,7 +8618,7 @@ Private Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
       mnuROSound_Click
     Case 3
       mnuROView_Click
-    End Select
+    }
       
   Case "import_r"
     Select Case Val(Button.Tag)
@@ -8685,7 +8630,7 @@ Private Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
       mnuRISound_Click
     Case 3
       mnuRIView_Click
-    End Select
+    }
   
   Case "worded"
     mnuROWords_Click
@@ -8720,20 +8665,20 @@ Private Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
       //Debug.Assert false
         mnuHContents_Click
       }
-    Else
+    } else {
       //no form; use main menu click
       mnuHContents_Click
     }
     
-  End Select
+  }
 return;
 
 ErrHandler:
   //Debug.Assert false
   Err.Clear
   Resume Next
-End Sub
-Private Sub tvwResources_DblClick()
+}
+Private void tvwResources_DblClick()
 
   On Error Resume Next
   
@@ -8748,20 +8693,20 @@ Private Sub tvwResources_DblClick()
     //edit the selected item
     EditResource SelResType, SelResNum
   }
-End Sub
+}
 
-Public Sub PropMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
+public void PropMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
   
   On Error Resume Next
   
   //validate cursor is over window
-  if (xPos < 0 Or yPos < 0 Or xPos >= picProperties.Width Or yPos >= picProperties.Height) {
+  if (xPos < 0 && yPos < 0 && xPos >= picProperties.Width && yPos >= picProperties.Height) {
     return;
   }
   
   //if property window doesn//t have focus,
   //make it so
-  if (!frmMDIMain.ActiveControl Is picProperties) {
+  if (!MDIMain.ActiveControl Is picProperties) {
     picProperties.SetFocus
   }
   
@@ -8788,7 +8733,7 @@ Public Sub PropMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal
       PaintPropertyWindow
     }
     
-  Else
+  } else {
     //same as down arrow
     //increment selected prop
     if (SelectedProp < PropRows) {
@@ -8802,8 +8747,8 @@ Public Sub PropMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal
       PaintPropertyWindow
     }
   }
-End Sub
-Public Sub MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
+}
+public void MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
   
   Dim NewValue As Long, lngTarget As Long
   Dim Lstep As Single
@@ -8824,7 +8769,7 @@ Public Sub MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPo
   With fgWarnings
     if (.Visible) {
       //Debug.Print xPos, .Left + .Width
-      if (xPos > .Left And xPos < .Left + .Width And yPos > .Top And yPos < .Top + .Height) {
+      if (xPos > .Left && xPos < .Left + .Width && yPos > .Top && yPos < .Top + .Height) {
         lngTarget = 1
       }
     }
@@ -8841,7 +8786,7 @@ Public Sub MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPo
         if (NewValue < 1) {
           NewValue = 1
         }
-      Else
+      } else {
         NewValue = .TopRow + Lstep
         if (NewValue > .Rows - 1) {
           NewValue = .Rows - 1
@@ -8850,13 +8795,13 @@ Public Sub MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPo
       .TopRow = NewValue
     End With
   
-  End Select
+  }
   
-End Sub
+}
 
 
 
-Private Sub tvwResources_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+Private void tvwResources_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim tmpNode As Node
   
@@ -8901,7 +8846,7 @@ Private Sub tvwResources_MouseDown(Button As Integer, Shift As Integer, X As Sin
       SafeDoEvents
       PopupMenu mnuResource, , X + tvwResources.Left, Y + picResources.Top
       
-    Case Else
+    default:
       //a resource
     
       //force preview on right mouse click
@@ -8937,21 +8882,21 @@ Private Sub tvwResources_MouseDown(Button As Integer, Shift As Integer, X As Sin
       mnuRImport.Visible = true
       mnuRBar0.Caption = "-"
       mnuRBar2.Visible = true
-    End Select
+    }
   }
 return;
 
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
-Private Sub tvwResources_NodeClick(ByVal Node As MSComctlLib.Node)
+}
+Private void tvwResources_NodeClick(ByVal Node As MSComctlLib.Node)
 
   On Error Resume Next
   
   //if previewing
   if (Settings.ShowPreview) {
-    if (!ActiveForm Is PreviewWin And (Settings.ShiftPreview Or ForcePreview)) {
+    if (!ActiveForm Is PreviewWin && (Settings.ShiftPreview && ForcePreview)) {
       //if previn hidden on lostfocus, need to show it AFTER changing displayed resource
       if (PreviewWin.Visible) {
         //set form focus to preview
@@ -8977,7 +8922,7 @@ Private Sub tvwResources_NodeClick(ByVal Node As MSComctlLib.Node)
   
   //if not changed from previous number
   if (LastIndex = tvwResources.SelectedItem.Index) {
-    if (!PreviewWin.Visible And Settings.ShowPreview) {
+    if (!PreviewWin.Visible && Settings.ShowPreview) {
       PreviewWin.Show
       //set form focus to preview
       PreviewWin.SetFocus
@@ -8997,19 +8942,19 @@ Private Sub tvwResources_NodeClick(ByVal Node As MSComctlLib.Node)
   
     if (.SelectedItem.Parent Is Nothing) {
       //it//s the game node
-      frmMDIMain.SelectResource rtGame, -1
-    ElseIf .SelectedItem.Parent.Parent Is Nothing) {
+      MDIMain.SelectResource rtGame, -1
+    } else if ( .SelectedItem.Parent.Parent Is Nothing) {
       //it//s a resource header
-      frmMDIMain.SelectResource .SelectedItem.Index - 2, -1
-    Else
+      MDIMain.SelectResource .SelectedItem.Index - 2, -1
+    } else {
       //it//s a resource
-      frmMDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
+      MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
     }
   End With
   
   //after selection, force preview window to show and
   //move up, if those settings are active
-  if (!PreviewWin.Visible And Settings.ShowPreview) {
+  if (!PreviewWin.Visible && Settings.ShowPreview) {
     PreviewWin.Show
     //set form focus to preview
     PreviewWin.SetFocus
@@ -9022,12 +8967,12 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
 
 
 
-Public Sub ClearResourceList()
+public void ClearResourceList()
   
   On Error GoTo ErrHandler
   
@@ -9076,7 +9021,7 @@ Public Sub ClearResourceList()
       if (.ListCount = 0) {
         if (GameLoaded) {
           .List(0) = GameID
-        Else
+        } else {
           .List(0) = "AGIGame"
         }
         .List(1) = "LOGICS"
@@ -9094,7 +9039,7 @@ Public Sub ClearResourceList()
     //deselect property
     SelectedProp = 1
     PaintPropertyWindow
-  End Select
+  }
   
   //allow queuing
   DontQueue = false
@@ -9104,7 +9049,7 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-End Sub
+}
 
       */
     }
@@ -9118,7 +9063,7 @@ End Sub
         On Error GoTo ErrHandler
 
         //if resource panel is NOT visible, just exit
-        if (!frmMDIMain.picResources.Visible) {
+        if (!MDIMain.picResources.Visible) {
           return;
         }
 
@@ -9170,8 +9115,8 @@ End Sub
         //if a property is selected //and picProperty has focus,
         if (SelectedProp > 0) {
           //if there is an active control
-          if (!frmMDIMain.ActiveControl Is Nothing) {
-            if (frmMDIMain.ActiveControl.Name = "picProperties") {
+          if (!MDIMain.ActiveControl Is Nothing) {
+            if (MDIMain.ActiveControl.Name = "picProperties") {
               //allow selection
               CanSelect = true
             }
@@ -9340,6 +9285,8 @@ End Sub
 
     private void frmMDIMain_FormClosing(object sender, FormClosingEventArgs e)
     {
+      // save app settings
+      SaveSettings();
       // drop the global reference
       MDIMain = null;
     }

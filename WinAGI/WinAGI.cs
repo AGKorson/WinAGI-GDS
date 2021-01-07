@@ -1479,7 +1479,8 @@ namespace WinAGI
       if (Key.ToLower() != "lastedit" && Key.ToLower() != "winagiversion" && Key.ToLower() != "palette")
         agLastEdit = DateTime.Now;
     }
-    public static void WriteAppSetting(List<string> ConfigList, string Section, string Key, string Value, string Group)
+    //public static void WriteAppSetting(List<string> ConfigList, string Section, string Key, string Value, string Group = "")
+    public static void WriteAppSetting(List<string> ConfigList, string Section, string Key, dynamic Value, string Group = "")
     {
       //elements of a settings file:
       //
@@ -1497,36 +1498,43 @@ namespace WinAGI
       int lngSectionEnd = 0;
       int lenKey; bool blnFound = false;
       int lngGrpStart, lngGrpEnd, lngInsertLine;
-
-      //if value contains spaces, it must be enclosed in quotes
-      if (Value.IndexOf(" ") > 0)
+      if (Value == null)
       {
-        if (Value[0] != '"')
+        strCheck = "\"\"";
+      }
+      else
+      {  //convert to string
+        strCheck = Value.ToString();
+      }
+      //if value contains spaces, it must be enclosed in quotes
+      if (strCheck.IndexOf(" ") > 0)
+      {
+        if (strCheck[0] != '"')
         {
-          Value = "\"" + Value;
+          strCheck = "\"" + strCheck;
         }
-        if ((Value[Value.Length - 1] != '"'))
+        if ((strCheck[strCheck.Length - 1] != '"'))
         {
-          Value += "\"";
+          strCheck += "\"";
         }
       }
       //if value contains any carriage returns, replace them with control characters
-      if (Value.Contains("\r\n", StringComparison.OrdinalIgnoreCase))
+      if (strCheck.Contains("\r\n", StringComparison.OrdinalIgnoreCase))
       {
-        Value = Value.Replace("\r\n", "\\n");
+        strCheck = strCheck.Replace("\r\n", "\\n");
       }
-      if (Value.Contains("\r", StringComparison.OrdinalIgnoreCase))
+      if (strCheck.Contains("\r", StringComparison.OrdinalIgnoreCase))
       {
-        Value = Value.Replace("\r", "\\n");
+        strCheck = strCheck.Replace("\r", "\\n");
       }
-      if (Value.Contains("\n", StringComparison.OrdinalIgnoreCase))
+      if (strCheck.Contains("\n", StringComparison.OrdinalIgnoreCase))
       {
-        Value = Value.Replace("\n", "\\n");
+        strCheck = strCheck.Replace("\n", "\\n");
       }
       //if nullstring, include quotes
-      if (Value.Length == 0)
+      if (strCheck.Length == 0)
       {
-        Value = "\"\"";
+        strCheck = "\"\"";
       }
       //if a group is provided, we will add new items within the group;
       //existing items, even if within the group, will be left where they are
@@ -1685,7 +1693,7 @@ namespace WinAGI
           }
         }
         ConfigList.Insert(lngInsertLine, "[" + Section + "]");
-        ConfigList.Insert(lngInsertLine + 1, "   " + Key + " = " + Value);
+        ConfigList.Insert(lngInsertLine + 1, "   " + Key + " = " + strCheck);
         //no need to check for location of section within group;
         //we just added it to the group (if one is needed)
       }
@@ -1722,7 +1730,7 @@ namespace WinAGI
                     }
                   }
                   //add the key and value at this pos
-                  ConfigList.Insert(lngPos + 1, "   " + Key + " = " + Value);
+                  ConfigList.Insert(lngPos + 1, "   " + Key + " = " + strCheck);
                   //this also bumps down the section end
                   lngSectionEnd++;
                   //it also may bump down group start/end
@@ -1809,7 +1817,7 @@ namespace WinAGI
                     //make sure it starts with a space
                     strLine = "   " + strLine;
                   }
-                  strLine = "   " + Key + " = " + Value + strLine;
+                  strLine = "   " + Key + " = " + strCheck + strLine;
                   ConfigList[i] = strLine;
                   //we are done, but if part of a group
                   //we need to keep going to find end so
@@ -1841,7 +1849,7 @@ namespace WinAGI
             }
           }
           //add the key and value at this pos
-          ConfigList.Insert(lngPos + 1, "   " + Key + " = " + Value);
+          ConfigList.Insert(lngPos + 1, "   " + Key + " = " + strCheck);
           //we SHOULD be done, but just in case this section is
           //out of position, we still check for the group
           if (lngGrpStart < 0)
@@ -2109,7 +2117,7 @@ namespace WinAGI
         }
         //not found// add it here
         //back up until a nonblank line is found
-        for (lngPos = i - 1; i >= lngSection; i--)
+        for (lngPos = i - 1; lngPos >= lngSection; lngPos--)
         {
           if (ConfigList[lngPos].Trim().Length > 0)
           {
@@ -2152,12 +2160,11 @@ namespace WinAGI
         return sReturn;
       }
     }
-    public static int ReadSettingLong(List<string> ConfigList, string Section, string Key, int Default = 0)
+    public static int ReadSettingLong(List<string> ConfigList, string Section, string Key, int Default = 0, bool hex = false)
     {
       //get the setting value; if it converts to long value, use it;
       //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-
+      string strValue = ReadAppSetting(ConfigList, Section, Key, hex ? "0x" + Default.ToString("x8") : Default.ToString());
       if (strValue.Length == 0)
       {
         return Default;
