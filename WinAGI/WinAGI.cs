@@ -32,6 +32,7 @@ namespace WinAGI
    ***************************************************************/
 
   //enums 
+  #region
   public enum AGIResType
   {
     rtLogic = 0,
@@ -163,8 +164,9 @@ namespace WinAGI
     atDefStr = 9,   //defined string; could be msg, inv obj, or vocword
     atVocWrd = 10   //vocabulary word; NOT word argument
   }
-
+  #endregion
   //structs
+  #region
   public struct PenStatus
   {
     public AGIColors VisColor;
@@ -198,6 +200,7 @@ namespace WinAGI
     public string Name;
     public ArgTypeEnum[] ArgType; //7
   }
+  #endregion
   public static partial class WinAGI
   {
     // this class is for all the global stuff that was previously in separate modules in VB6
@@ -1476,7 +1479,7 @@ namespace WinAGI
       if (Key.ToLower() != "lastedit" && Key.ToLower() != "winagiversion" && Key.ToLower() != "palette")
         agLastEdit = DateTime.Now;
     }
-    internal static void WriteAppSetting(List<string> ConfigList, string Section, string Key, string Value, string Group)
+    public static void WriteAppSetting(List<string> ConfigList, string Section, string Key, string Value, string Group)
     {
       //elements of a settings file:
       //
@@ -1989,7 +1992,7 @@ namespace WinAGI
       //return the list
       return stlConfig;
     }
-    public static string ReadAppSetting(List<string> ConfigList, string Section, string Key, string Default = "")
+    internal static string ReadAppSetting(List<string> ConfigList, string Section, string Key, string Default = "")
     {
       //need to make sure there is a list to read from
       if (ConfigList.Count == 0)

@@ -583,7 +583,7 @@ namespace WinAGI
               byte NumMessages;
               int lngPos, lngMsgEnd, EncryptionStart, i;
               //need to toggle encryption of message section
-              //(since compressed version three logics don//t
+              //(since compressed version three logics don't
               //have their message sections encrypted)
               //
               //get start of msg section

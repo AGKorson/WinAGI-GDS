@@ -71,7 +71,7 @@ namespace WinAGI
     internal static string[] strSndID;
     internal static string[] strViewID;
 
-    static internal void CompileLogic(AGILogic SourceLogic)
+    internal static void CompileLogic(AGILogic SourceLogic)
     {
       /*
           //this function compiles the sourcetext that is passed
@@ -309,7 +309,7 @@ namespace WinAGI
 
         static internal void CheckResFlagUse(byte ArgVal)
       {
-          //if error level is low, don//t do anything
+          //if error level is low, don't do anything
           if (agMainLogSettings.ErrorLevel == leLow) {
             return;
           } //}
@@ -334,7 +334,7 @@ namespace WinAGI
         } //sub
         static internal void CheckResVarUse(byte ArgNum, byte ArgVal)
       {
-          //if error level is low, don//t do anything
+          //if error level is low, don't do anything
           if (agMainLogSettings.ErrorLevel == leLow) {
             return;
           } //}
@@ -372,7 +372,7 @@ namespace WinAGI
             } //}
 
           case 17, 18 //error value, and error info
-            //resetting to zero is usually a good thing; other values don//t make sense
+            //resetting to zero is usually a good thing; other values don't make sense
             if (ArgVal > 0) {
               AddWarning 5092, Replace(LoadResString(5092), ARG1, agResVar(ArgNum).Name)
             } //}
@@ -2243,7 +2243,7 @@ namespace WinAGI
               } else {
                 //just because it ends in a quote doesn//t mean it//s good;
                 //it might be an embedded quote
-                //(we know we have at least two chars, so we don//t need
+                //(we know we have at least two chars, so we don't need
                 //to worry about an error with MID function)
 
                 //check for an odd number of slashes immediately preceding
@@ -2665,7 +2665,7 @@ namespace WinAGI
                 case 13 // name contains improper character
                   strErrMsg = LoadResString(4067)
                 } 
-                //don//t exit; check for define Value errors first
+                //don't exit; check for define Value errors first
               } //}
 
               //validate define Value
@@ -2911,7 +2911,7 @@ namespace WinAGI
               } else {
                 //just because it ends in a quote doesn//t mean it//s good;
                 //it might be an embedded quote
-                //(we know we have at least two chars, so we don//t need
+                //(we know we have at least two chars, so we don't need
                 //to worry about an error with MID function)
 
                 //check for an odd number of slashes immediately preceding
@@ -3066,7 +3066,7 @@ namespace WinAGI
 
           //get first line
           IncrementLine
-          //NOTE: don//t need to worry about first line;
+          //NOTE: don't need to worry about first line;
           //compiler has already verified the input has at least one line
         } //endsub
 
@@ -4529,7 +4529,7 @@ namespace WinAGI
 
 
                     case 48 //0//
-                      //\0 = don//t add null terminator
+                      //\0 = don't add null terminator
                       blnSkipNull = true
                       //also skip this char
                       blnSkipChar = true
@@ -4728,7 +4728,7 @@ namespace WinAGI
       //main compiler function
           //steps through input one command at a time and converts it
           //to AGI logic code
-          //Note that we don//t need to set blnError flag here;
+          //Note that we don't need to set blnError flag here;
           //an error will cause this function to return a Value of false
           //which causes the compiler to display error info
 
@@ -5280,7 +5280,7 @@ namespace WinAGI
                   //add warning
                   AddWarning 5075, Replace(LoadResString(5075), ARG1, strCmdName)
                 case leLow
-                  //don//t worry about command validity; return the extracted command num
+                  //don't worry about command validity; return the extracted command num
                 } 
 
 
@@ -5630,7 +5630,7 @@ namespace WinAGI
 
 
             default:
-              //don//t know what the heck it is...
+              //don't know what the heck it is...
               blnError = true
               strErrMsg = LoadResString(4034)
               return;

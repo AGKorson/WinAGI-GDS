@@ -1225,7 +1225,7 @@ namespace WinAGI
                         strArg = Mid(strArg, intCharCount + 1, strArg.Length - intCharCount);
                         //add line
                         stlOut.Add(strLine);
-                        //create indent (but don//t exceed 20 spaces (to ensure msgs aren//t split
+                        //create indent (but don't exceed 20 spaces (to ensure msgs aren//t split
                         //up into small chunks)
                         if (intArgStart >= MAX_LINE_LEN - 20)
                         {

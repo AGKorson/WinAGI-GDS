@@ -669,7 +669,7 @@ namespace WinAGI
                 }
                 else
                 {
-                  //don//t need tone type
+                  //don't need tone type
                   swSnd.WriteLine(mTrack[i].Notes[j].FreqDivisor + ", " + mTrack[i].Notes[j].Attenuation + ", " + mTrack[i].Notes[j].Duration);
                 }
               } //next j

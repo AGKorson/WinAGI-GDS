@@ -35,24 +35,6 @@ namespace WinAGI
     internal static AGIPictures agPics = new AGIPictures();
     internal static AGIInventoryObjects agInvObj = new AGIInventoryObjects();
     internal static AGIWordList agVocabWords = new AGIWordList();
-    public static AGILogics Logics
-    { get => agLogs; set { } }
-    public static AGIPictures Pictures
-    { get => agPics; set { } }
-    public static AGISounds Sounds
-    { get => agSnds; set { } }
-    public static AGIViews Views
-    { get => agViews; set { } }
-    public static AGIWordList WordList
-    { get => agVocabWords; set { } }
-    public static AGIInventoryObjects InvObjects
-    { get => agInvObj; set { } }
-
-    //status of game load
-    internal static bool agGameLoaded = false;
-    public static bool GameLoaded
-    { get => agGameLoaded; set { } }
-
     internal static string agGameDir = "";
     internal static string agResDir = "";
     internal static string agResDirName = "";
@@ -67,7 +49,8 @@ namespace WinAGI
     internal static string agAbout = "";
     internal static string agGameVersion = "";
     internal static string agGameFile = "";
-
+    //status of game load
+    internal static bool agGameLoaded = false;
     internal static int agMaxVol0 = 0;
     internal static int agMaxVolSize = 0;
     internal static string agCompileDir = "";
@@ -86,6 +69,20 @@ namespace WinAGI
     internal static string TempFileDir = "";
     public const int WINAGI_ERR = 0x100000;
 
+    public static AGILogics Logics
+    { get => agLogs; set { } }
+    public static AGIPictures Pictures
+    { get => agPics; set { } }
+    public static AGISounds Sounds
+    { get => agSnds; set { } }
+    public static AGIViews Views
+    { get => agViews; set { } }
+    public static AGIWordList WordList
+    { get => agVocabWords; set { } }
+    public static AGIInventoryObjects InvObjects
+    { get => agInvObj; set { } }
+    public static bool GameLoaded
+    { get => agGameLoaded; set { } }
     public static void CancelCompile()
     {
       // can be called by parent program during a compile
@@ -100,7 +97,6 @@ namespace WinAGI
         agCancelComp = true;
       }
     }
-
     public static string DefResDir
     {
       get { return agDefResDir; }
@@ -153,7 +149,6 @@ namespace WinAGI
         }
       }
     }
-
     public static uint EGAColor(int index)
     {
       //in VB (and other languages?) colors are four byte:
@@ -197,10 +192,8 @@ namespace WinAGI
       if (agGameLoaded)
         WriteGameSetting("Palette", "Color" + index, "0x" + newcolor.ToString("X"));
     }
-
     public static uint[] EGARevColor
     { get { return lngEGARevCol; } set { } }
-
     public static string GameAbout
     {
       get { return agAbout; }
@@ -220,7 +213,6 @@ namespace WinAGI
       }
 
     }
-
     public static string GameAuthor
     {
       get { return agAuthor; }
@@ -239,7 +231,6 @@ namespace WinAGI
           WriteGameSetting("General", "Author", agAuthor);
       }
     }
-
     public static string GameDescription
     {
       get => agDescription;
@@ -257,7 +248,6 @@ namespace WinAGI
           WriteGameSetting("General", "Description", agDescription);
       }
     }
-
     public static string GameDir
     {
       get
@@ -314,7 +304,6 @@ namespace WinAGI
         agLastEdit = DateTime.Now;
       }
     }
-
     public static string GameFile
     {
       get
@@ -355,7 +344,6 @@ namespace WinAGI
         SaveSettingList(agGameProps);
       }
     }
-
     public static int PlatformType
     {
       get => agPlatformType;
@@ -386,7 +374,6 @@ namespace WinAGI
           WriteGameSetting("General", "Platform", agPlatformFile);
       }
     }
-
     public static string PlatformOpts
     {
       get { return agPlatformOpts; }
@@ -401,7 +388,6 @@ namespace WinAGI
           WriteGameSetting("General", "PlatformOpts", agPlatformOpts);
       }
     }
-
     public static bool UseLE
     {
       get
@@ -425,7 +411,6 @@ namespace WinAGI
           WriteGameSetting("General", "UseLE", agUseLE.ToString());
       }
     }
-
     public static string GameVersion
     {
       get => agGameVersion;
@@ -443,7 +428,6 @@ namespace WinAGI
           WriteGameSetting("General", "GameVersion", agGameVersion);
       }
     }
-
     public static TDefine[] GlobalDefines
     {
       get
@@ -454,7 +438,6 @@ namespace WinAGI
         return agGlobal;
       }
     }
-
     public static void CloseGame()
     {
 
@@ -489,7 +472,6 @@ namespace WinAGI
       // clear all game properties
       ClearGameState();
     }
-
     public static void CompileGame(bool RebuildOnly, string NewGameDir = "")
     {
       //compiles the game into NewGameDir
@@ -1080,7 +1062,6 @@ namespace WinAGI
       //CompleteCancel(true);
       //throw new Exception("lngError, strErrSource, strError
     }
-
     public static string GameID
     {
       get
@@ -1169,7 +1150,6 @@ namespace WinAGI
         //  throw new Exception("530, strErrSrc, Replace(LoadResString(530), ARG1, CStr(lngError) + ":" + strError)
       }
     }
-
     public static DateTime LastEdit
     {
       get
@@ -1199,7 +1179,6 @@ namespace WinAGI
         agLastEdit = DateTime.Now;
       }
     }
-
     public static int MaxVol0Size
     {
       get { return agMaxVol0; }
@@ -1220,7 +1199,6 @@ namespace WinAGI
         }
       }
     }
-
     public static string InterpreterVersion
     {
       get
@@ -1324,7 +1302,6 @@ namespace WinAGI
         }
       }
     }
-
     public static string ResDir
     {
       get
@@ -1342,7 +1319,6 @@ namespace WinAGI
 
       }
     }
-
     public static string ResDirName
     {
       get { return agResDirName; }
@@ -1374,7 +1350,6 @@ namespace WinAGI
         agLastEdit = DateTime.Now;
       }
     }
-
     public static void SaveProperties()
     {
 
@@ -1384,7 +1359,6 @@ namespace WinAGI
       if (agGameLoaded)
         SaveSettingList(agGameProps);
     }
-
     public static string TemplateDir
     {
       get { return agTemplateDir; }
@@ -1397,7 +1371,6 @@ namespace WinAGI
         agTemplateDir = CDir(value);
       }
     }
-
     public static int OpenGameDIR(string NewGameDir)
     {
       //creates a new WinAGI game file from Sierra game directory
@@ -1470,7 +1443,6 @@ namespace WinAGI
       //finish the game load
       return FinishGameLoad(1);
     }
-
     internal static void ClearGameState()
     {
       //clears basic game variables when a game is
@@ -1507,7 +1479,6 @@ namespace WinAGI
       agPlatformOpts = "";
       agDOSExec = "";
     }
-
     public static int OpenGameWAG(string GameWAG)
     {
       //TODO: all game manipulation functions (open, new, finish, close, etc
@@ -1818,7 +1789,6 @@ namespace WinAGI
         return 0;
       }
     }
-
     public static void NewGame(string NewID, string NewVersion, string NewGameDir, string NewResDir, string TemplateDir = "")
     {
 
@@ -2100,5 +2070,4 @@ namespace WinAGI
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
   }
-
 }

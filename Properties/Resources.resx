@@ -12,7 +12,7 @@
     
     Example:
     
-    ... ado.net/XML headers + schema ...
+    ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
     <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
@@ -121,8 +121,26 @@
   <data name="tbNSnd" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbNSnd.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbRun" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbRun.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="tbRemove" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbRemove.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tbUndo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbUndo.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tbFind" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbFind.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tbMsg" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbMsg.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tbDelete" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbDelete.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="VAlignM" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\VAlignM.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tbOPic" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbOPic.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="tbGlobal" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbGlobal.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -133,8 +151,17 @@
   <data name="tbLayout" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbLayout.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbOLog" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbOLog.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="tbPaste" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbPaste.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="HAlignC" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\HAlignC.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tbRedo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbRedo.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="HAlignL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\HAlignL.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="tbIView" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbIView.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -145,11 +172,29 @@
   <data name="tbSave" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbSave.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="back" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\back.gif;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tbUncomment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbUncomment.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="tbISnd" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbISnd.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="eli_zoomin" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\eli_zoomin.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="forward" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\forward.gif;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="tbWords" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbWords.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tbCompile" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbCompile.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tbCopy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbCopy.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="tbOView" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbOView.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -160,11 +205,14 @@
   <data name="tbNView" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbNView.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbILog" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbILog.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="tbComment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbComment.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="tbAdd" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbAdd.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="ValignT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ValignT.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="tbIPic" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbIPic.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -184,8 +232,11 @@
   <data name="tbMenu" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbMenu.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbOPic" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbOPic.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="eli_zoomout" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\eli_zoomout.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tbILog" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbILog.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="tbHelp" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbHelp.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -193,43 +244,25 @@
   <data name="tbExport" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbExport.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbNLog" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbNLog.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="tbRemove" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbRemove.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="tbComment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbComment.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="tbCompile" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbCompile.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="tbCopy" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbCopy.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="tbCut" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tbCut.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbDelete" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbDelete.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="HAlignR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\HAlignR.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbFind" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbFind.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="ValignB" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ValignB.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbMsg" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbMsg.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="tbRun" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbRun.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbPaste" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbPaste.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="tbNLog" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbNLog.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbRedo" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbRedo.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="tbOLog" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tbOLog.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="tbUncomment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbUncomment.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="tbUndo" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\tbUndo.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="forward1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\forward1.gif;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

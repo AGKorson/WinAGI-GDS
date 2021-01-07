@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using WinAGI;
 using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
+using static WinAGI_GDS.ResMan;
 
 namespace WinAGI_GDS
 {
@@ -28,7 +29,7 @@ namespace WinAGI_GDS
       Pictures[1].Load();
       thisBMP = Pictures[1].VisualBMP;
 
-      frmMDIMain.ShowAGIBitmap(picVisual, thisBMP);
+      ShowAGIBitmap(picVisual, thisBMP);
     }
 
     private void frmPicEdit_Load(object sender, EventArgs e)

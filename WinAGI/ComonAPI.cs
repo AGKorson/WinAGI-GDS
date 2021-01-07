@@ -324,7 +324,7 @@ internal bool IsValidMsg(string MsgText)
     
   //just because it ends in a quote doesn//t mean it//s good;
   //it might be an embedded quote
-  //(we know we have at least two chars, so we don//t need
+  //(we know we have at least two chars, so we don't need
   //to worry about an error with MID function)
   
   //check for an odd number of slashes immediately preceding
