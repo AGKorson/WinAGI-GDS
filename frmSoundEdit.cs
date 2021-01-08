@@ -58,5 +58,10 @@ namespace WinAGI_GDS
     {
       MessageBox.Show("all done!");
     }
+
+    private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+    {
+
+    }
   }
 }

@@ -239,7 +239,7 @@ namespace WinAGI
   Print #intFile, mMaxScreenObjects
   
   'print item description and room for each object
-  For Each tmpItem In Me
+  foreach (tmpItem In Me
     Print #intFile, tmpItem.ItemName + vbTab + CStr(tmpItem.Room)
   Next
   

@@ -26,12 +26,30 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="resman1.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>resman1.resx</DependentUpon>
+    </Compile>
+    <Compile Update="WinAGI\winagi.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>winagi.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="resman1.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>resman1.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="WinAGI\winagi.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>winagi.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

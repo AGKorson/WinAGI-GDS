@@ -82,18 +82,7 @@ namespace WinAGI_GDS
       LoadGameStatus += GameEvents_LoadGameStatus;
 
       //
-      WinAGI.WinAGI.InitWinAGI();
-      LogicSourceSettings.ShowAllMessages = true;
-      LogicSourceSettings.UseReservedNames = true;
-      LogicSourceSettings.SpecialSyntax = true;
-      LogicSourceSettings.ReservedAsText = true;
-      LogicSourceSettings.ErrorLevel = LogicErrorLevel.leMedium;
-      LogicSourceSettings.ElseAsGoto = false;
-
-      // show the preview window
-      PreviewWin = new frmPreview();
-      PreviewWin.MdiParent = this;
-      PreviewWin.Show();
+      InitWinAGI();
 
     }
     private void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e)
@@ -118,19 +107,34 @@ namespace WinAGI_GDS
     }
     private void btnOpenGame_Click(object sender, EventArgs e)
     {
-      int retval;
-      //MessageBox.Show("need to fully test Read/Write settings functions; since VB is 1 based, the functions may not be working correctly in all cases, especially for bad format input and edge cases");
+      int retval = 0;
       //ok, let's try to open a game!
-      if (SystemInformation.UserName == "agkor")
+      OpenDlg.InitialDirectory = Environment.SpecialFolder.Desktop.ToString();
+      OpenDlg.DefaultExt = "wag";
+      OpenDlg.Filter = "WinAGI Game Files (*.wag)|*.wag|All files|*.*";
+      DialogResult result = OpenDlg.ShowDialog(this);
+      if (result == DialogResult.OK)
       {
-        // at home:
-        retval = OpenGameWAG(@"C:\Users\Andy\OneDrive\AGI Stuff\AGI Test Games\GRm\gr.wag");
+        //let's open it
+        this.UseWaitCursor = true;
+        OpenGameWAG(OpenDlg.FileName);
+        this.UseWaitCursor = false;
       }
       else
       {
-        // at work:
-        retval = OpenGameWAG(@"C:\Users\d3m294\OneDrive - PNNL\Desktop\WinAGI\GR-IIGS\GR.wag");
+        return;
       }
+
+      //if (SystemInformation.UserName == "agkor")
+      //{
+      //  // at home:
+      //  retval = OpenGameWAG(@"C:\Users\Andy\OneDrive\AGI Stuff\AGI Test Games\GRm\gr.wag");
+      //}
+      //else
+      //{
+      //  // at work:
+      //  retval = OpenGameWAG(@"C:\Users\d3m294\OneDrive - PNNL\Desktop\WinAGI\GR-IIGS\GR.wag");
+      //}
       if (retval == 0)
       {
         MessageBox.Show("Game opened with no errors or warnings.");
@@ -192,6 +196,14 @@ namespace WinAGI_GDS
       InitializeResMan();
       // read settings
       ReadSettings();
+
+      if (Settings.ShowPreview)
+      {
+        // show the preview window
+        PreviewWin = new frmPreview();
+        PreviewWin.MdiParent = this;
+        PreviewWin.Show();
+      }
     }
     private void btnNewLogic_Click(object sender, EventArgs e)
     {
@@ -675,7 +687,7 @@ namespace WinAGI_GDS
         switch (Settings.ResListType)
         {
         case 1:
-          //Set tvwResources.SelectedItem = tvwResources.Nodes(strKey)
+          //tvwResources.SelectedItem = tvwResources.Nodes(strKey)
           //tvwResources_NodeClick tvwResources.SelectedItem
           break;
         case 2:
@@ -1538,7 +1550,7 @@ public void SearchForID(Optional ffValue As FindFormFunction = ffFindLogic)
   //reset search flags
   FindForm.ResetSearch
   
-  Set SearchForm = MDIMain
+  SearchForm = MDIMain
   
   //display find form
   With FindForm
@@ -1606,31 +1618,31 @@ Private void SelectPropFromList()
   
   Case "USERESNAMES"
     //determine if a change was made
-    if (CBool(lstProperty.ListIndex) != LogicSourceSettings.UseReservedNames) {
-      LogicSourceSettings.UseReservedNames = CBool(lstProperty.ListIndex)
+    if (CBool(lstProperty.SelectedIndex) != LogicSourceSettings.UseReservedNames) {
+      LogicSourceSettings.UseReservedNames = CBool(lstProperty.SelectedIndex)
     }
       
   Case "USELE"
     //determine if a change was made
-    if (CBool(lstProperty.ListIndex) != UseLE) {
-      UseLE = CBool(lstProperty.ListIndex)
+    if (CBool(lstProperty.SelectedIndex) != UseLE) {
+      UseLE = CBool(lstProperty.SelectedIndex)
       // update menu, toolbar and close LE if necessary
       UpdateLEStatus
     }
     
   Case "OBJENCRYPT"
     //determine if a change was made
-    if (CBool(lstProperty.ListIndex) != InventoryObjects.Encrypted) {
-      InventoryObjects.Encrypted = CBool(lstProperty.ListIndex)
+    if (CBool(lstProperty.SelectedIndex) != InventoryObjects.Encrypted) {
+      InventoryObjects.Encrypted = CBool(lstProperty.SelectedIndex)
       InventoryObjects.Save
     }
   
   Case "ISROOM"
     //determine if a change was made
-    if (CBool(lstProperty.ListIndex) != Logics(SelResNum).IsRoom) {
+    if (CBool(lstProperty.SelectedIndex) != Logics(SelResNum).IsRoom) {
       WaitCursor
       
-      Logics(SelResNum).IsRoom = CBool(lstProperty.ListIndex)
+      Logics(SelResNum).IsRoom = CBool(lstProperty.SelectedIndex)
       Logics(SelResNum).Save
       if (UseLE) {
         if (Logics(SelResNum).IsRoom) {
@@ -1748,7 +1760,7 @@ Private void SelectPropFromText()
     End With
     //check for an editor with this number
     Dim tmpFrm As Form
-    For Each tmpFrm In Forms
+    foreach (tmpFrm In Forms
       if (tmpFrm.Name = "frmViewEdit") {
         if (tmpFrm.ViewNumber = SelResNum && tmpFrm.InGame) {
           tmpFrm.ViewEdit.ViewDescription = Views(SelResNum).ViewDescription
@@ -1873,13 +1885,13 @@ Private void CheckCmd()
   //check for OBJECT or WORDS.TOK file:
   if (UCase(JustFileName(Command$)) = "OBJECT") {
     //open a object resource
-    Set frmNewO = New frmObjectEdit
+    frmNewO = New frmObjectEdit
     Load frmNewO
     
     On Error Resume Next
     frmNewO.LoadObjects strCmdLine
     if (Err.Number != 0) {
-      Set frmNewO = Nothing
+      frmNewO = Nothing
     } else {
       frmNewO.Show
       frmNewO.fgObjects.SetFocus
@@ -1887,13 +1899,13 @@ Private void CheckCmd()
       
   } else if ( UCase(JustFileName(Command$)) = "WORDS.TOK") {
     //open a word resource
-    Set frmNewW = New frmWordsEdit
+    frmNewW = New frmWordsEdit
     Load frmNewW
     
     On Error Resume Next
     frmNewW.LoadWords strCmdLine
     if (Err.Number != 0) {
-      Set frmNewW = Nothing
+      frmNewW = Nothing
     } else {
       frmNewW.Show
     }
@@ -1918,13 +1930,13 @@ Private void CheckCmd()
   
     Case ".ago"
       //open a object resource
-      Set frmNewO = New frmObjectEdit
+      frmNewO = New frmObjectEdit
       Load frmNewO
       
       On Error Resume Next
       frmNewO.LoadObjects strCmdLine
       if (Err.Number != 0) {
-        Set frmNewO = Nothing
+        frmNewO = Nothing
       } else {
         frmNewO.Show
         frmNewO.fgObjects.SetFocus
@@ -1944,13 +1956,13 @@ Private void CheckCmd()
       
     Case ".agw"
       //open a word resource
-      Set frmNewW = New frmWordsEdit
+      frmNewW = New frmWordsEdit
       Load frmNewW
       
       On Error Resume Next
       frmNewW.LoadWords strCmdLine
       if (Err.Number != 0) {
-        Set frmNewW = Nothing
+        frmNewW = Nothing
       } else {
         frmNewW.Show
       }
@@ -1961,8 +1973,8 @@ Private void CheckCmd()
     }
   }
   
-  Set frmNewO = Nothing
-  Set frmNewW = Nothing
+  frmNewO = Nothing
+  frmNewW = Nothing
 return;
 
 ErrHandler:
@@ -2244,7 +2256,7 @@ Private void SelectedItemDescription(ByVal FirstProp As Long)
   Select Case SelResType
   Case rtLogic
     //step through logiceditors
-    For Each frm In LogicEditors
+    foreach (frm In LogicEditors
       if (frm.LogicNumber = SelResNum) {
         frm.MenuClickDescription 1
         return;
@@ -2252,7 +2264,7 @@ Private void SelectedItemDescription(ByVal FirstProp As Long)
     Next
   Case rtPicture
     //step through pictureeditors
-    For Each frm In PictureEditors
+    foreach (frm In PictureEditors
       if (frm.PicNumber = SelResNum) {
         frm.MenuClickDescription 1
         return;
@@ -2260,7 +2272,7 @@ Private void SelectedItemDescription(ByVal FirstProp As Long)
     Next
   Case rtSound
     //step through soundeditors
-    For Each frm In SoundEditors
+    foreach (frm In SoundEditors
       if (frm.SoundNumber = SelResNum) {
         frm.MenuClickDescription 1
         return;
@@ -2268,7 +2280,7 @@ Private void SelectedItemDescription(ByVal FirstProp As Long)
     Next
   Case rtView
     //step through Vieweditors
-    For Each frm In ViewEditors
+    foreach (frm In ViewEditors
       if (frm.ViewNumber = SelResNum) {
         frm.MenuClickDescription 1
         return;
@@ -2485,7 +2497,7 @@ public void SelectedItemRenumber()
   Select Case SelResType
   Case rtLogic
     //step through logiceditors
-    For Each frm In LogicEditors
+    foreach (frm In LogicEditors
       if (frm.LogicNumber = SelResNum) {
         frm.MenuClickRenumber
         return;
@@ -2493,7 +2505,7 @@ public void SelectedItemRenumber()
     Next
   Case rtPicture
     //step through pictureeditors
-    For Each frm In PictureEditors
+    foreach (frm In PictureEditors
       if (frm.PicNumber = SelResNum) {
         frm.MenuClickRenumber
         return;
@@ -2501,7 +2513,7 @@ public void SelectedItemRenumber()
     Next
   Case rtSound
     //step through soundeditors
-    For Each frm In SoundEditors
+    foreach (frm In SoundEditors
       if (frm.SoundNumber = SelResNum) {
         frm.MenuClickRenumber
         return;
@@ -2509,7 +2521,7 @@ public void SelectedItemRenumber()
     Next
   Case rtView
     //step through Vieweditors
-    For Each frm In ViewEditors
+    foreach (frm In ViewEditors
       if (frm.ViewNumber = SelResNum) {
         frm.MenuClickRenumber
         return;
@@ -3233,7 +3245,7 @@ Private void cmbResType_Click()
     //always clear the list
     .Clear
     
-    Select Case cmbResType.ListIndex
+    Select Case cmbResType.SelectedIndex
     Case 0 //root
       NewType = rtGame
       NewNum = -1
@@ -3245,7 +3257,7 @@ Private void cmbResType_Click()
         For i = 0 To 255
           //if a valid resource
           if (Logics.Exists(i)) {
-            Set tmpItem = .Add(, "l" + CStr(i), ResourceName(Logics(i), true))
+            tmpItem = .Add(, "l" + CStr(i), ResourceName(Logics(i), true))
             tmpItem.Tag = i
             //load source to set compiled status
             if (Logics(i).Compiled) {
@@ -3271,7 +3283,7 @@ Private void cmbResType_Click()
         For i = 0 To 255
           //if a valid resource
           if (Pictures.Exists(i)) {
-            Set tmpItem = .Add(, "p" + CStr(i), ResourceName(Pictures(i), true))
+            tmpItem = .Add(, "p" + CStr(i), ResourceName(Pictures(i), true))
             tmpItem.Tag = i
             // check for max width
             if (picResources.TextWidth(tmpItem.Text) > lngWidth) {
@@ -3291,7 +3303,7 @@ Private void cmbResType_Click()
         For i = 0 To 255
           //if a valid resource
           if (Sounds.Exists(i)) {
-            Set tmpItem = .Add(, "s" + CStr(i), ResourceName(Sounds(i), true))
+            tmpItem = .Add(, "s" + CStr(i), ResourceName(Sounds(i), true))
             tmpItem.Tag = i
             // check for max width
             if (picResources.TextWidth(tmpItem.Text) > lngWidth) {
@@ -3311,7 +3323,7 @@ Private void cmbResType_Click()
         For i = 0 To 255
           //if a valid resource
           if (Views.Exists(i)) {
-            Set tmpItem = .Add(, "v" + CStr(i), ResourceName(Views(i), true))
+            tmpItem = .Add(, "v" + CStr(i), ResourceName(Views(i), true))
             tmpItem.Tag = i
             // check for max width
             if (picResources.TextWidth(tmpItem.Text) > lngWidth) {
@@ -3819,7 +3831,7 @@ Private void fgWarnings_MouseMove(Button As Integer, Shift As Integer, X As Sing
   }
   
 //  //is mouse over an item?
-//  Set tmpItem = lvWarnings.HitTest(x, y)
+//  tmpItem = lvWarnings.HitTest(x, y)
 //  if (tmpItem Is Nothing) {
 //    return;
 //  }
@@ -4153,7 +4165,7 @@ Private void lstResources_MouseDown(Button As Integer, Shift As Integer, X As Si
   //if right clicked
   if (Button = vbRightButton) {
     //res type determines action
-    Select Case cmbResType.ListIndex
+    Select Case cmbResType.SelectedIndex
     Case 0, 5, 6 //root, objects, words
       //need doevents so form activation occurs BEFORE popup
       //otherwise, errors will be generated because of menu
@@ -4163,7 +4175,7 @@ Private void lstResources_MouseDown(Button As Integer, Shift As Integer, X As Si
 
     Case 1 To 4 //lpsv
       // get the item under the cursor
-      Set tmpItem = lstResources.HitTest(X, Y)
+      tmpItem = lstResources.HitTest(X, Y)
       
       //if nothing, just exit
       if (tmpItem Is Nothing) {
@@ -4761,7 +4773,7 @@ Private void mnuTMenuEditor_Click()
     }
   } else {
     // create a new instance of menu editor
-    Set MenuEditor = New frmMenuEdit
+    MenuEditor = New frmMenuEdit
     Load MenuEditor
     
     //if canceled, just exit
@@ -4896,7 +4908,7 @@ Private void mnuWMinimize_Click()
   Dim frm As Form
   
   //minimizes all open editors
-  For Each frm In Forms
+  foreach (frm In Forms
     //if not main, or preview
     if (frm.Name != "MDIMain" && frm.Name != "frmPreview") {
       frm.WindowState = vbMinimized
@@ -5826,7 +5838,7 @@ Private void tvwResources_GotFocus()
     if (ActiveForm Is Nothing) {
       //if no node selected, select first node
       if (tvwResources.SelectedItem Is Nothing) {
-        Set tvwResources.SelectedItem = tvwResources.Nodes(1)
+        tvwResources.SelectedItem = tvwResources.Nodes(1)
       }
       
       Select Case SelResType
@@ -6662,7 +6674,7 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
     //check versions
     For i = 0 To lstProperty.ListCount - 1
       if (lstProperty.List(i) = InterpreterVersion) {
-        lstProperty.ListIndex = i
+        lstProperty.SelectedIndex = i
         Exit For
       }
     Next i
@@ -6674,9 +6686,9 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
     
     //select entry matching current Value
     if (InventoryObjects.Encrypted) {
-      lstProperty.ListIndex = 1
+      lstProperty.SelectedIndex = 1
     } else {
-      lstProperty.ListIndex = 0
+      lstProperty.SelectedIndex = 0
     }
     
   Case "ISROOM"
@@ -6686,9 +6698,9 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
     
     //select entry matching current Value
     if (Logics(SelResNum).IsRoom) {
-      lstProperty.ListIndex = 1
+      lstProperty.SelectedIndex = 1
     } else {
-      lstProperty.ListIndex = 0
+      lstProperty.SelectedIndex = 0
     }
     
   Case "USERESNAMES"
@@ -6698,9 +6710,9 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
     
     //select entry matching current Value
     if (LogicSourceSettings.UseReservedNames) {
-      lstProperty.ListIndex = 1
+      lstProperty.SelectedIndex = 1
     } else {
-      lstProperty.ListIndex = 0
+      lstProperty.SelectedIndex = 0
     }
     
   Case "USELE"
@@ -6710,9 +6722,9 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
     
     //select entry matching current value
     if (UseLE) {
-      lstProperty.ListIndex = 1
+      lstProperty.SelectedIndex = 1
     } else {
-      lstProperty.ListIndex = 0
+      lstProperty.SelectedIndex = 0
     }
     
   }
@@ -6723,7 +6735,7 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
   //show list box
   lstProperty.Visible = true
   //set top index to the selected Value
-  lstProperty.TopIndex = lstProperty.ListIndex
+  lstProperty.TopIndex = lstProperty.SelectedIndex
   //select it
   lstProperty.SetFocus
 return;
@@ -6802,33 +6814,33 @@ Private void MDIForm_Unload(Cancel As Integer)
   }
     
   //ensure all forms are unloaded
-  For Each frm In Forms
+  foreach (frm In Forms
     if (frm.Name != "MDIMain") {
       Unload frm
     }
   Next
   
   //ensure all global objects are set to nothing
-  Set ClipViewLoop = Nothing
-  Set ClipViewCel = Nothing
-  Set LogicEditors = Nothing
-  Set ViewEditors = Nothing
-  Set PictureEditors = Nothing
-  Set SoundEditors = Nothing
-  Set LayoutEditor = Nothing
-  Set ObjectEditor = Nothing
-  Set WordEditor = Nothing
-  Set GlobalsEditor = Nothing
-  Set PreviewWin = Nothing
-  Set NotePictures = Nothing
-  Set SoundClipboard = Nothing
-  Set MainStatusBar = Nothing
-  Set MainDialog = Nothing
-  Set MainSaveDlg = Nothing
-  Set ViewClipboard = Nothing
-  Set WordsClipboard = Nothing
-  Set FindForm = Nothing
-  Set SearchForm = Nothing
+  ClipViewLoop = Nothing
+  ClipViewCel = Nothing
+  LogicEditors = Nothing
+  ViewEditors = Nothing
+  PictureEditors = Nothing
+  SoundEditors = Nothing
+  LayoutEditor = Nothing
+  ObjectEditor = Nothing
+  WordEditor = Nothing
+  GlobalsEditor = Nothing
+  PreviewWin = Nothing
+  NotePictures = Nothing
+  SoundClipboard = Nothing
+  MainStatusBar = Nothing
+  MainDialog = Nothing
+  MainSaveDlg = Nothing
+  ViewClipboard = Nothing
+  WordsClipboard = Nothing
+  FindForm = Nothing
+  SearchForm = Nothing
   
   //reset parent for controls that were moved to the form
   rtn = SetParent(picResources.hWnd, picLeft.hWnd)
@@ -6989,7 +7001,7 @@ Private void MDIForm_Load()
   WLOffsetW = Me.Width - Me.ScaleWidth
   
   //assign game events object
-  Set agGameEvents = GameEvents
+  agGameEvents = GameEvents
   //if error
   if (Err.Number != 0) {
     //problem with objects
@@ -7001,15 +7013,15 @@ Private void MDIForm_Load()
   On Error GoTo ErrHandler
   
   //set preview window, status bar and other dialog objects
-  Set PreviewWin = New frmPreview
-  Set MainStatusBar = StatusBar1
-  Set MainDialog = CommonDialog1
-  Set MainSaveDlg = SaveDialog1
-  Set ViewClipboard = picViewCB
-  Set SoundClipboard = New AGINotes
-  Set NotePictures = picNotes
-  Set WordsClipboard = New WordsUndo
-  Set FindForm = New frmFind
+  PreviewWin = New frmPreview
+  MainStatusBar = StatusBar1
+  MainDialog = CommonDialog1
+  MainSaveDlg = SaveDialog1
+  ViewClipboard = picViewCB
+  SoundClipboard = New AGINotes
+  NotePictures = picNotes
+  WordsClipboard = New WordsUndo
+  FindForm = New frmFind
   
   //set parent for property text box, and splitters, to the main form
   rtn = SetParent(txtProperty.hWnd, Me.hWnd)
@@ -7105,10 +7117,10 @@ Private void MDIForm_Load()
   //set tick Count at start of load
   lngBeginLoad = GetTickCount()
   
-  Set LogicEditors = New Collection
-  Set ViewEditors = New Collection
-  Set PictureEditors = New Collection
-  Set SoundEditors = New Collection
+  LogicEditors = New Collection
+  ViewEditors = New Collection
+  PictureEditors = New Collection
+  SoundEditors = New Collection
   
   //build the lookup table for reserved defines
   BuildRDefLookup
@@ -7354,7 +7366,7 @@ Private void MDIForm_QueryUnload(Cancel As Integer, UnloadMode As Integer)
   }
   
   //unload any remaining open forms
-  For Each frm In Forms
+  foreach (frm In Forms
     //if an editor
     if (frm.Name != "MDIMain" && frm.Name != "frmPreview") {
       if (frm.MDIChild) {
@@ -7741,7 +7753,7 @@ Private void mnuRIObjects_Click()
         
         //active form is now the Objects Editor
         OEInUse = true
-        Set ObjectEditor = ActiveForm
+        ObjectEditor = ActiveForm
         
         //set ingame status for this object
         ObjectEditor.InGame = true
@@ -7982,7 +7994,7 @@ Private void mnuRIWords_Click()
         
         //active form is now the word editor
         WEInUse = true
-        Set WordEditor = ActiveForm
+        WordEditor = ActiveForm
         
         //set ingame status for this word
         WordEditor.InGame = true
@@ -8079,7 +8091,7 @@ Private void mnuRNObjects_Click()
       
       //active form is now the word editor
       OEInUse = true
-      Set ObjectEditor = ActiveForm
+      ObjectEditor = ActiveForm
       
       //set ingame status for this word
       ObjectEditor.InGame = true
@@ -8186,7 +8198,7 @@ Private void mnuRNWords_Click()
       
       //active form is now the word editor
       WEInUse = true
-      Set WordEditor = ActiveForm
+      WordEditor = ActiveForm
       
       //set ingame status for this word
       WordEditor.InGame = true
@@ -8814,7 +8826,7 @@ Private void tvwResources_MouseDown(Button As Integer, Shift As Integer, X As Si
   //if right clicked
   if (Button = vbRightButton) {
     //get the node being clicked
-    Set tmpNode = tvwResources.HitTest(X, Y)
+    tmpNode = tvwResources.HitTest(X, Y)
     //if nothing
     if (tmpNode Is Nothing) {
       //exit
@@ -9032,7 +9044,7 @@ public void ClearResourceList()
         .List(6) = "Words"
       }
       //select top item (game level)
-      .ListIndex = 0
+      .SelectedIndex = 0
     End With
     
     //select resource root

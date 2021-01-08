@@ -448,7 +448,7 @@ namespace WinAGI
         //if length is changed
         if (mLength == -1)
         {
-          mLength = GetSoundLength();
+          mLength = (double)GetSoundLength();
         }
         return mLength;
       }

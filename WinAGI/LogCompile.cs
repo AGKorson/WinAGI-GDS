@@ -3089,22 +3089,22 @@ namespace WinAGI
           ReDim strViewID(255)
 
 
-          For Each tmpLog In agLogs
+          foreach (tmpLog In agLogs
             strLogID(tmpLog.Number) = tmpLog.ID
           Next
 
 
-          For Each tmpPic In agPics
+          foreach (tmpPic In agPics
             strPicID(tmpPic.Number) = tmpPic.ID
           Next
 
 
-          For Each tmpSnd In agSnds
+          foreach (tmpSnd In agSnds
             strSndID(tmpSnd.Number) = tmpSnd.ID
           Next
 
 
-          For Each tmpView In agViews
+          foreach (tmpView In agViews
             strViewID(tmpView.Number) = tmpView.ID
           Next
 

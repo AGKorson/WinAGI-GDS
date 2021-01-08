@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Resources;
 using WinAGI;
 using static WinAGI.AGIGame;
 using static WinAGI.WinAGI;
@@ -638,6 +639,7 @@ namespace WinAGI_GDS
     //***************************************************
     #region
     public static frmMDIMain MDIMain;
+    
     public static string ProgramDir;
     public static string DefaultResDir; //this is the location that the file dialog box uses as the initial directory
     public static string CurGameFile;
@@ -1140,17 +1142,17 @@ public static void AddOrRemoveRes()
   On Error GoTo ErrHandler
   
   //if no form is active,
- if (frmMDIMain.ActiveForm Is Nothing) {
+ if (MDIMain.ActiveForm Is Nothing) {
     //can only mean that Settings.ShowPreview is false,
     //AND Settings.ResListType is non-zero, AND no editor window are open
     //use selected item method
-    frmMDIMain.RemoveSelectedRes
+    MDIMain.RemoveSelectedRes
   } else {
     //if active form is NOT the preview form
     //if any form other than preview is active
-   if (frmMDIMain.ActiveForm.Name != "frmPreview") {
+   if (MDIMain.ActiveForm.Name != "frmPreview") {
       //use the active form method
-      frmMDIMain.ActiveForm.MenuClickInGame
+      MDIMain.ActiveForm.MenuClickInGame
     } else {
       //removing a preview resource; first check for an open
       //editor that matches resource being previewed
@@ -1203,7 +1205,7 @@ public static void AddOrRemoveRes()
       End Select
       
       //if no open editor is found, use the selected item method
-      frmMDIMain.RemoveSelectedRes
+      MDIMain.RemoveSelectedRes
     }
   }
 return;
@@ -1237,12 +1239,12 @@ public static void ChangeGameID(ByVal NewID As String)
   //update resource list
   Select Case Settings.ResListType
   Case 1
-    frmMDIMain.tvwResources.Nodes(1).Text = GameID
+    MDIMain.tvwResources.Nodes(1).Text = GameID
   Case 2
-    frmMDIMain.cmbResType.List(0) = GameID
+    MDIMain.cmbResType.List(0) = GameID
   End Select
   //update form caption
-  frmMDIMain.Caption = "WinAGI GDS - " + GameID
+  MDIMain.Caption = "WinAGI GDS - " + GameID
 
 return;
 
@@ -1520,7 +1522,7 @@ End Function
 
 public static void UpdateLEStatus()
 
-  With frmMDIMain
+  With MDIMain
     //if layout editor is no longer in use
    if (!UseLE) {
       //disable the menubar and toolbar
@@ -1911,7 +1913,7 @@ public static void BuildSnippets()
   Close intFile
   
   //assign to stringlist
-  Set SnipList = New StringList
+  SnipList = New StringList
   SnipList.Assign strLine
   //insert line where filename is stored
   SnipList.Add "", 0
@@ -1921,7 +1923,7 @@ public static void BuildSnippets()
   //if none
  if (lngCount <= 0) {
     //no Snippets
-    Set SnipList = Nothing
+    SnipList = Nothing
     return;
   }
   
@@ -1964,7 +1966,7 @@ public static void BuildSnippets()
   }
   
   // done!
-  Set SnipList = Nothing
+  SnipList = Nothing
 return;
 
 ErrHandler:
@@ -1980,7 +1982,8 @@ public static void ChangeResDir(ByVal NewResDir As String)
   Dim rtn As VbMsgBoxResult
   
   //display wait cursor while copying
-  WaitCursor
+        MDIMain.UseWaitCursor = true;
+
    
   //if the folder already exists,
  if (LenB(Dir(GameDir + NewResDir, vbDirectory)) != 0) {
@@ -2093,10 +2096,10 @@ public static void ExportAllPicImgs()
     // force image only
     .SetForm 1
     .Caption = "Export All Picture Images"
-    .Show vbModal, frmMDIMain
+    .Show vbModal, MDIMain
     blnCanceled = .Canceled
     lngZoom = CLng(.txtZoom.Text)
-    lngFormat = .cmbFormat.ListIndex + 1
+    lngFormat = .cmbFormat.SelectedIndex + 1
    if (.optVisual.Value) {
       lngMode = 0
     } else if ( .optPriority.Value) {
@@ -2110,7 +2113,7 @@ public static void ExportAllPicImgs()
   Unload frmPicExpOptions
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //need to get correct file extension
   Select Case lngFormat
@@ -2138,7 +2141,7 @@ public static void ExportAllPicImgs()
       .Show
       .Refresh
       
-      For Each ThisPic In Pictures
+      foreach (ThisPic In Pictures
         .lblProgress.Caption = "Exporting " + ThisPic.ID + " Image..."
         .pgbStatus.Value = .pgbStatus.Value + 1
         .Refresh
@@ -2247,7 +2250,7 @@ Private static void ExportImg(ExportPic As AGIPicture, ByVal ExportFile As Strin
         With encoderParams.Parameter
           .NumberOfValues = 1     // Should be one
           .Type = EncoderParameterValueTypeLong
-          // Set the GUID to EncoderQuality
+          // the GUID to EncoderQuality
           .GUID = DEFINE_GUID(EncoderQuality)
           .Value = VarPtr(lngQuality)  // Remember: The Value expects only pointers!
         End With
@@ -2323,7 +2326,7 @@ public static void ExportLoop(ThisLoop As AGILoop)
   With frmViewGifOptions
     //set up form to export a view loop
     .InitForm 0, ThisLoop
-    .Show vbModal, frmMDIMain
+    .Show vbModal, MDIMain
     blnCanceled = .Canceled
     
     //if not canceled, get a filename
@@ -2337,7 +2340,7 @@ public static void ExportLoop(ThisLoop As AGILoop)
         .Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
         .FilterIndex = 1
         .FullName = ""
-        .hWndOwner = frmMDIMain.hWnd
+        .hWndOwner = MDIMain.hWnd
       End With
       
       Do
@@ -2380,7 +2383,7 @@ public static void ExportLoop(ThisLoop As AGILoop)
       End With
       
       //show wait cursor
-      WaitCursor
+      MDIMain.UseWaitCursor = true;
 
       MakeLoopGif ThisLoop, VGOptions, MainSaveDlg.FullName
       
@@ -2425,7 +2428,7 @@ public Function CheckLogics() As Boolean
   }
   
   //step through all logics
-  For Each tmpLogic In Logics
+  foreach (tmpLogic In Logics
     blnLoaded = tmpLogic.Loaded
    if (!blnLoaded) {
       tmpLogic.Load
@@ -2515,46 +2518,46 @@ public static void CheckShortcuts(ByRef KeyCode As Integer, ByRef Shift As Integ
   Case 3 //vbCtrlMask + vbShiftMask
     Select Case KeyCode
     Case vbKeyA //add/remove resource
-     if (frmMDIMain.mnuRInGame.Enabled) {
+     if (MDIMain.mnuRInGame.Enabled) {
         AddOrRemoveRes
         KeyCode = 0
       }
       
     Case vbKeyB //compile to
-     if (frmMDIMain.mnuGCompileTo.Enabled) {
+     if (MDIMain.mnuGCompileTo.Enabled) {
         //compile game to directory of user//s choice
         CompileAGIGame
         KeyCode = 0
       }
       
     Case vbKeyD //compile dirty logics
-     if (frmMDIMain.mnuGCompDirty.Enabled) {
+     if (MDIMain.mnuGCompDirty.Enabled) {
         CompileDirtyLogics
         KeyCode = 0
       }
       
     Case vbKeyN //new game from blank
-     if (frmMDIMain.mnuGNBlank.Enabled) {
+     if (MDIMain.mnuGNBlank.Enabled) {
         //create new blank game
         NewAGIGame false
         KeyCode = 0
       }
       
     Case vbKeyR //rebuild VOL
-     if (frmMDIMain.mnuGRebuild.Enabled) {
+     if (MDIMain.mnuGRebuild.Enabled) {
         //rebuild volfiles only
         CompileAGIGame GameDir, true
         KeyCode = 0
       }
     
     Case vbKeyT //insert a snippet
-     if (!frmMDIMain.ActiveForm Is Nothing) {
-       if (frmMDIMain.ActiveForm.Name = "frmLogicEdit" || frmMDIMain.ActiveForm.Name = "frmTextEdit") {
+     if (!MDIMain.ActiveForm Is Nothing) {
+       if (MDIMain.ActiveForm.Name = "frmLogicEdit" || MDIMain.ActiveForm.Name = "frmTextEdit") {
           //open snippet manager
           SnipMode = 1
-          frmSnippets.Show vbModal, frmMDIMain
+          frmSnippets.Show vbModal, MDIMain
           //force focus back to the editor
-          frmMDIMain.ActiveForm.rtfLogic.SetFocus
+          MDIMain.ActiveForm.rtfLogic.SetFocus
         }
       }
       
@@ -2562,7 +2565,7 @@ public static void CheckShortcuts(ByRef KeyCode As Integer, ByRef Shift As Integ
     
   Case vbCtrlMask + vbAltMask
     //import resources
-    With frmMDIMain
+    With MDIMain
       //but only if import menu is enabled
      if (.mnuRImport.Enabled) {
         Select Case KeyCode
@@ -2585,47 +2588,47 @@ public static void CheckShortcuts(ByRef KeyCode As Integer, ByRef Shift As Integ
   Case vbCtrlMask
     Select Case KeyCode
     Case vbKey1
-      frmMDIMain.RNLogic
+      MDIMain.RNLogic
     Case vbKey2
-      frmMDIMain.RNPicture
+      MDIMain.RNPicture
     Case vbKey3
-      frmMDIMain.RNSound
+      MDIMain.RNSound
     Case vbKey4
-      frmMDIMain.RNView
+      MDIMain.RNView
     Case vbKey5
-      frmMDIMain.RNObjects
+      MDIMain.RNObjects
     Case vbKey6
-      frmMDIMain.RNWords
+      MDIMain.RNWords
     Case vbKey7
-      frmMDIMain.RNText
+      MDIMain.RNText
     End Select
     
   Case vbAltMask
     Select Case KeyCode
     Case vbKey1
-      frmMDIMain.ROLogic
+      MDIMain.ROLogic
     Case vbKey2
-      frmMDIMain.ROPicture
+      MDIMain.ROPicture
     Case vbKey3
-      frmMDIMain.ROSound
+      MDIMain.ROSound
     Case vbKey4
-      frmMDIMain.ROView
+      MDIMain.ROView
     Case vbKey5
-      frmMDIMain.ROObjects
+      MDIMain.ROObjects
     Case vbKey6
-      frmMDIMain.ROWords
+      MDIMain.ROWords
     Case vbKey7
-      frmMDIMain.ROText
+      MDIMain.ROText
       
     Case vbKeyX //close game
-     if (frmMDIMain.mnuGClose.Enabled) {
-        frmMDIMain.mnuGClose_Click
+     if (MDIMain.mnuGClose.Enabled) {
+        MDIMain.mnuGClose_Click
         KeyCode = 0
       }
       
     Case vbKeyN //renumber
-     if (frmMDIMain.mnuRRenumber.Enabled) {
-        frmMDIMain.mnuRRenumber_Click
+     if (MDIMain.mnuRRenumber.Enabled) {
+        MDIMain.mnuRRenumber_Click
         KeyCode = 0
       }
       
@@ -2655,10 +2658,10 @@ public Function CmdInfo(rtfLogic As RichEdAGI) As String
     rtn = SendMessage(rtfLogic.hWnd, EM_LINEFROMCHAR, rtfLogic.Selection.Range.StartPos, 0)
     //get the start of this line
     rtn = SendMessage(rtfLogic.hWnd, EM_LINEINDEX, rtn, 0)
-    Set tmpRange = rtfLogic.Range(rtn, rtn)
+    tmpRange = rtfLogic.Range(rtn, rtn)
     tmpRange.Expand (reLine)
     strLine = Left$(tmpRange.Text, Len(tmpRange.Text) - 1)
-    Set tmpRange = Nothing
+    tmpRange = Nothing
     CmdInfo = strLine
 Exit Function
 
@@ -2682,11 +2685,11 @@ public static void ExportOnePicImg(ThisPicture As AGIPicture)
   With frmPicExpOptions
     //save image only
     .SetForm 1
-    .Show vbModal, frmMDIMain
+    .Show vbModal, MDIMain
     
     blnCanceled = .Canceled
     lngZoom = CLng(.txtZoom.Text)
-    lngFormat = .cmbFormat.ListIndex + 1
+    lngFormat = .cmbFormat.SelectedIndex + 1
    if (.optVisual.Value) {
       lngMode = 0
     } else if ( .optPriority.Value) {
@@ -2713,7 +2716,7 @@ public static void ExportOnePicImg(ThisPicture As AGIPicture)
       .Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
       .FilterIndex = lngFormat
       .FullName = ""
-      .hWndOwner = frmMDIMain.hWnd
+      .hWndOwner = MDIMain.hWnd
     End With
   
     Do
@@ -2748,7 +2751,7 @@ public static void ExportOnePicImg(ThisPicture As AGIPicture)
   //if NOT canceled, then export!
  if (!blnCanceled) {
     //show wait cursor
-    WaitCursor
+    MDIMain.UseWaitCursor = true;
 
     //show progress form
     Load frmProgress
@@ -3079,39 +3082,6 @@ ErrHandler:
   Resume Next
 End Function
 
-public static void LastForm(ThisForm As Form)
-  
-  //checks if this is last visible form; if so, resets menus
-  
-  Dim tmpForm As Form
-  
-  On Error GoTo ErrHandler
-  
-  For Each tmpForm In Forms
-   if (!(tmpForm Is ThisForm)) {
-     if (tmpForm.Name != "frmMDIMain") {
-       if (tmpForm.MDIChild) {
-          //another open form found
-          return;
-        }
-      }
-    }
-  Next
-  
-  //no other form found; this is last form
-  AdjustMenus rtNone, false, false, false
-  
-  //disable windows menu (done here, because no other easy way
-  //to tell if no forms are left)
-  frmMDIMain.mnuWindow.Enabled = false
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
 public Function LogicCmd(strCmd As String) As Long
 
   //returns the command number of the string
@@ -3218,11 +3188,11 @@ public static void RenameMRU(ByVal OldWAGFile As String, ByVal NewWAGFile As Str
       //delete it by moving others up
       For j = i To 3
         strMRU(j) = strMRU(j + 1)
-        frmMDIMain.Controls("mnuGMRU" + CStr(j)).Caption = CompactPath(strMRU(j), 60)
+        MDIMain.Controls("mnuGMRU" + CStr(j)).Caption = CompactPath(strMRU(j), 60)
       Next j
       //now delete last entry
       strMRU(4) = ""
-      frmMDIMain.mnuGMRU1.Caption = ""
+      MDIMain.mnuGMRU1.Caption = ""
       Exit For
     }
   Next i
@@ -3232,7 +3202,7 @@ public static void RenameMRU(ByVal OldWAGFile As String, ByVal NewWAGFile As Str
    if (strMRU(i) = OldWAGFile) {
     //rename it
       strMRU(i) = NewWAGFile
-      frmMDIMain.Controls("mnuGMRU" + CStr(i)).Caption = CompactPath(NewWAGFile, 60)
+      MDIMain.Controls("mnuGMRU" + CStr(i)).Caption = CompactPath(NewWAGFile, 60)
       Exit For
     }
   Next i
@@ -3261,9 +3231,9 @@ public static void SafeDoEvents()
   
   On Error GoTo ErrHandler
   
-  frmMDIMain.Enabled = false
+  MDIMain.Enabled = false
   DoEvents
-  frmMDIMain.Enabled = true
+  MDIMain.Enabled = true
 return;
 
 ErrHandler:
@@ -3303,11 +3273,11 @@ public static void SetLogicCompiledStatus(ByVal ResNum As Byte, ByVal Compiled A
   
   Select Case Settings.ResListType
   Case 1
-    frmMDIMain.tvwResources.Nodes("l" + ResNum).ForeColor = IIf(Compiled, vbBlack, vbRed)
+    MDIMain.tvwResources.Nodes("l" + ResNum).ForeColor = IIf(Compiled, vbBlack, vbRed)
   Case 2
     //only need to update if logics are selected
-   if (frmMDIMain.cmbResType.ListIndex = 1) {
-      frmMDIMain.lstResources.ListItems("l" + ResNum).ForeColor = IIf(Compiled, vbBlack, vbRed)
+   if (MDIMain.cmbResType.SelectedIndex = 1) {
+      MDIMain.lstResources.ListItems("l" + ResNum).ForeColor = IIf(Compiled, vbBlack, vbRed)
     }
   End Select
 return;
@@ -3339,32 +3309,32 @@ public static void UpdateSelection(ByVal ResType As AGIResType, ByVal ResNum As 
       //update the node for this resource
       Select Case ResType
       Case rtLogic
-        frmMDIMain.tvwResources.Nodes("l" + CStr(ResNum)).Text = ResourceName(Logics(ResNum), true)
+        MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).Text = ResourceName(Logics(ResNum), true)
         //also set compiled status
        if (!Logics(ResNum).Compiled) {
-          frmMDIMain.tvwResources.Nodes("l" + CStr(ResNum)).ForeColor = vbRed
+          MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).ForeColor = vbRed
         } else {
-          frmMDIMain.tvwResources.Nodes("l" + CStr(ResNum)).ForeColor = vbBlack
+          MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).ForeColor = vbBlack
         }
       Case rtPicture
-        frmMDIMain.tvwResources.Nodes("p" + CStr(ResNum)).Text = ResourceName(Pictures(ResNum), true)
+        MDIMain.tvwResources.Nodes("p" + CStr(ResNum)).Text = ResourceName(Pictures(ResNum), true)
       Case rtSound
-        frmMDIMain.tvwResources.Nodes("s" + CStr(ResNum)).Text = ResourceName(Sounds(ResNum), true)
+        MDIMain.tvwResources.Nodes("s" + CStr(ResNum)).Text = ResourceName(Sounds(ResNum), true)
       Case rtView
-        frmMDIMain.tvwResources.Nodes("v" + CStr(ResNum)).Text = ResourceName(Views(ResNum), true)
+        MDIMain.tvwResources.Nodes("v" + CStr(ResNum)).Text = ResourceName(Views(ResNum), true)
       End Select
     }
   
   Case 2 //combo/list boxes
     //only update if current type is listed
-   if (frmMDIMain.cmbResType.ListIndex - 1 = ResType) {
+   if (MDIMain.cmbResType.SelectedIndex - 1 = ResType) {
       //if updating tree OR updating a logic (because color of
       //logic text might need updating)
      if (((UpDateMode && umResList) || ResType = rtLogic)) {
         //update the node for this resource
         Select Case ResType
         Case rtLogic
-          Set tmpItem = frmMDIMain.lstResources.ListItems("l" + CStr(ResNum))
+          tmpItem = MDIMain.lstResources.ListItems("l" + CStr(ResNum))
           tmpItem.Text = ResourceName(Logics(ResNum), true)
           //also set compiled status
          if (!Logics(ResNum).Compiled) {
@@ -3373,18 +3343,18 @@ public static void UpdateSelection(ByVal ResType As AGIResType, ByVal ResNum As 
             tmpItem.ForeColor = vbBlack
           }
         Case rtPicture
-          Set tmpItem = frmMDIMain.lstResources.ListItems("p" + CStr(ResNum))
+          tmpItem = MDIMain.lstResources.ListItems("p" + CStr(ResNum))
           tmpItem.Text = ResourceName(Pictures(ResNum), true)
         Case rtSound
-          Set tmpItem = frmMDIMain.lstResources.ListItems("s" + CStr(ResNum))
+          tmpItem = MDIMain.lstResources.ListItems("s" + CStr(ResNum))
           tmpItem.Text = ResourceName(Sounds(ResNum), true)
         Case rtView
-          Set tmpItem = frmMDIMain.lstResources.ListItems("v" + CStr(ResNum))
+          tmpItem = MDIMain.lstResources.ListItems("v" + CStr(ResNum))
           tmpItem.Text = ResourceName(Views(ResNum), true)
         End Select
         //expand column width if necessary
-       if (1.2 * frmMDIMain.picResources.TextWidth(tmpItem.Text) > frmMDIMain.lstResources.ColumnHeaders(1).Width) {
-          frmMDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * frmMDIMain.picResources.TextWidth(tmpItem.Text)
+       if (1.2 * MDIMain.picResources.TextWidth(tmpItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
+          MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpItem.Text)
         }
       }
     }
@@ -3395,7 +3365,7 @@ public static void UpdateSelection(ByVal ResType As AGIResType, ByVal ResNum As 
     //if updating properties OR updating tree AND tree is visible
    if (((UpDateMode && umProperty) || (UpDateMode && umResList)) && Settings.ResListType != 0) {
       //redraw property window
-      frmMDIMain.PaintPropertyWindow
+      MDIMain.PaintPropertyWindow
     }
     
     //if updating preview
@@ -3439,7 +3409,7 @@ public static void SetError(ByVal lngErrLine As Long, strErrMsg As String, ByVal
      if (LogicEditors(i).FormMode = fmText) {
         //if this is the form we are looking for
        if (LogicEditors(i).FileName = strModule) {
-          Set frmTemp = LogicEditors(i)
+          frmTemp = LogicEditors(i)
           Exit For
         }
       }
@@ -3466,7 +3436,7 @@ public static void SetError(ByVal lngErrLine As Long, strErrMsg As String, ByVal
      if (LogicEditors(i).FormMode = fmLogic) {
        if (LogicEditors(i).LogicNumber = LogicNumber) {
           //this is it
-          Set frmTemp = LogicEditors(i)
+          frmTemp = LogicEditors(i)
           Exit For
         }
       }
@@ -3482,7 +3452,7 @@ public static void SetError(ByVal lngErrLine As Long, strErrMsg As String, ByVal
        if (LogicEditors(i).FormMode = fmLogic) {
          if (LogicEditors(i).LogicNumber = LogicNumber) {
             //this is it
-            Set frmTemp = LogicEditors(i)
+            frmTemp = LogicEditors(i)
             Exit For
           }
         }
@@ -4207,7 +4177,7 @@ public Function ExtractExits(ThisLogic As AGILogic) As AGIExits
   strLogic = ThisLogic.SourceText
   
   //create new room object
-  Set RoomExits = New AGIExits
+  RoomExits = New AGIExits
   
   //locate first instance of new.room command
   lngCmdLoc = FindNextToken(strLogic, 0, "new.room")
@@ -4215,7 +4185,7 @@ public Function ExtractExits(ThisLogic As AGILogic) As AGIExits
   //loop through exit extraction until all new.room commands are processed
   Do Until lngCmdLoc = 0
     //get exit info
-    Set tmpExit = AnalyzeExit(strLogic, lngCmdLoc, lngLastPos)
+    tmpExit = AnalyzeExit(strLogic, lngCmdLoc, lngLastPos)
     
     //find end of line by searching for crlf
     j = InStr(lngCmdLoc, strLogic, vbCr)
@@ -4350,7 +4320,7 @@ public Function ExtractExits(ThisLogic As AGILogic) As AGIExits
   }
   
   //return the new exit list
-  Set ExtractExits = RoomExits
+  ExtractExits = RoomExits
 Exit Function
 
 ErrHandler:
@@ -4428,9 +4398,9 @@ public static void ExportAll()
   On Error GoTo ErrHandler
   
   //disable main form while exporting
-  frmMDIMain.Enabled = false
+  MDIMain.Enabled = false
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //use progress form to track progress
   Load frmProgress
@@ -4442,7 +4412,7 @@ public static void ExportAll()
     .Show
     .Refresh
     
-    For Each tmpLog In Logics
+    foreach (tmpLog In Logics
       .lblProgress.Caption = "Exporting " + tmpLog.ID
       .pgbStatus.Value = .pgbStatus.Value + 1
       .Refresh
@@ -4483,7 +4453,7 @@ public static void ExportAll()
       }
     Next
     
-    For Each tmpPic In Pictures
+    foreach (tmpPic In Pictures
       .lblProgress.Caption = "Exporting " + tmpPic.ID
       .pgbStatus.Value = .pgbStatus.Value + 1
       .Refresh
@@ -4499,7 +4469,7 @@ public static void ExportAll()
       }
     Next
     
-    For Each tmpSnd In Sounds
+    foreach (tmpSnd In Sounds
       .lblProgress.Caption = "Exporting " + tmpSnd.ID
       .pgbStatus.Value = .pgbStatus.Value + 1
       .Refresh
@@ -4515,7 +4485,7 @@ public static void ExportAll()
       }
     Next
     
-    For Each tmpView In Views
+    foreach (tmpView In Views
       .lblProgress.Caption = "Exporting " + tmpView.ID
       .pgbStatus.Value = .pgbStatus.Value + 1
       .Refresh
@@ -4536,7 +4506,7 @@ public static void ExportAll()
   Unload frmProgress
   
   //reenable main form
-  frmMDIMain.Enabled = true
+  MDIMain.Enabled = true
   Screen.MousePointer = vbDefault
 return;
 
@@ -4581,7 +4551,7 @@ public Function ExportObjects(ThisObjectsFile As AGIInventoryObjects, ByVal InGa
     }
     .DefaultExt = ""
     .Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-    .hWndOwner = frmMDIMain.hWnd
+    .hWndOwner = MDIMain.hWnd
   End With
   
   Do
@@ -4613,7 +4583,7 @@ public Function ExportObjects(ThisObjectsFile As AGIInventoryObjects, ByVal InGa
   Loop While true
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
  if (LCase$(Right$(MainSaveDlg.FullName, 4)) = ".ago") {
     //export with new filename
@@ -5604,12 +5574,12 @@ public Function ExportPicture(ThisPicture As AGIPicture, ByVal InGame As Boolean
   
   With frmPicExpOptions
     .SetForm 0
-    .Show vbModal, frmMDIMain
+    .Show vbModal, MDIMain
     
     ExportImage = .optImage.Value
     blnCanceled = .Canceled
     lngZoom = CLng(.txtZoom.Text)
-    lngFormat = .cmbFormat.ListIndex + 1
+    lngFormat = .cmbFormat.SelectedIndex + 1
    if (.optVisual.Value) {
       lngMode = 0
     } else if ( .optPriority.Value) {
@@ -5643,7 +5613,7 @@ public Function ExportPicture(ThisPicture As AGIPicture, ByVal InGame As Boolean
       .Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
       .FilterIndex = lngFormat
       .FullName = ""
-      .hWndOwner = frmMDIMain.hWnd
+      .hWndOwner = MDIMain.hWnd
     End With
   
     On Error Resume Next
@@ -5672,7 +5642,7 @@ public Function ExportPicture(ThisPicture As AGIPicture, ByVal InGame As Boolean
     On Error GoTo ErrHandler
   
     //show wait cursor
-    WaitCursor
+    MDIMain.UseWaitCursor = true;
 
     //show progress form
     Load frmProgress
@@ -5723,7 +5693,7 @@ public Function ExportPicture(ThisPicture As AGIPicture, ByVal InGame As Boolean
           .FullName = .FullName + ".agp"
         End Select
       }
-      .hWndOwner = frmMDIMain.hWnd
+      .hWndOwner = MDIMain.hWnd
     End With
   
     Do
@@ -5756,7 +5726,7 @@ public Function ExportPicture(ThisPicture As AGIPicture, ByVal InGame As Boolean
     Loop While true
     
     //show wait cursor
-    WaitCursor
+    MDIMain.UseWaitCursor = true;
     
     //export the resource as agi picture
     ThisPicture.Export strFileName, !InGame
@@ -5856,7 +5826,7 @@ public Function ExportSound(ThisSound As AGISound, ByVal InGame As Boolean) As B
     End Select
     
     .Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-    .hWndOwner = frmMDIMain.hWnd
+    .hWndOwner = MDIMain.hWnd
   End With
   
   
@@ -5892,7 +5862,7 @@ public Function ExportSound(ThisSound As AGISound, ByVal InGame As Boolean) As B
   Loop While true
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //let export function use extension of file to determine format
   eFmt = sfUndefined
@@ -5977,7 +5947,7 @@ public Function ExportView(ThisView As AGIView, ByVal InGame As Boolean) As Bool
         .FullName = .FullName + ".agv"
       }
     }
-    .hWndOwner = frmMDIMain.hWnd
+    .hWndOwner = MDIMain.hWnd
   End With
   
   Do
@@ -6011,7 +5981,7 @@ public Function ExportView(ThisView As AGIView, ByVal InGame As Boolean) As Bool
   Loop While true
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //export the resource
   ThisView.Export strFileName, !InGame
@@ -6062,7 +6032,7 @@ public Function ExportWords(ThisWordList As AGIWordList, ByVal InGame As Boolean
     }
     .DefaultExt = ""
     .Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-    .hWndOwner = frmMDIMain.hWnd
+    .hWndOwner = MDIMain.hWnd
   End With
   
   Do
@@ -6094,7 +6064,7 @@ public Function ExportWords(ThisWordList As AGIWordList, ByVal InGame As Boolean
   Loop While true
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
  if (LCase$(Right$(MainSaveDlg.FullName, 4)) = ".agw") {
     //save with new filename
@@ -6128,10 +6098,10 @@ public Function NewObjects() As Boolean
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
 
   //create a new file
-  Set frmNew = New frmObjectEdit
+  frmNew = New frmObjectEdit
   Load frmNew
   
   frmNew.NewObjects
@@ -6169,7 +6139,7 @@ public static void OpenGlobals(Optional ByVal ForceLoad As Boolean = false)
     } else {
       //load it
       
-      WaitCursor
+      MDIMain.UseWaitCursor = true;
       
       //use the game//s default globals file
       strFileName = GameDir + "globals.txt"
@@ -6193,7 +6163,7 @@ public static void OpenGlobals(Optional ByVal ForceLoad As Boolean = false)
       }
       
       //load it
-      Set GlobalsEditor = New frmGlobals
+      GlobalsEditor = New frmGlobals
       Load GlobalsEditor
       
       //set ingame status first, so caption will indicate correctly
@@ -6230,7 +6200,7 @@ public static void OpenGlobals(Optional ByVal ForceLoad As Boolean = false)
     End With
   
     //check if already open
-    For Each tmpForm In Forms
+    foreach (tmpForm In Forms
      if (tmpForm.Name = "frmGlobals") {
        if (tmpForm.FileName = strFileName && !tmpForm.InGame) {
           //just shift focus
@@ -6242,9 +6212,9 @@ public static void OpenGlobals(Optional ByVal ForceLoad As Boolean = false)
     
     //not open yet; create new form
     //and open this file into it
-    WaitCursor
+    MDIMain.UseWaitCursor = true;
     
-    Set frmNew = New frmGlobals
+    frmNew = New frmGlobals
     
     //open this file
     Load frmNew
@@ -6560,7 +6530,7 @@ public Function GetNewResID(ByVal ResType As AGIResType, ByVal ResNum As Long, B
       On Error GoTo ErrHandler
       
       //get new values
-      .Show vbModal, frmMDIMain
+      .Show vbModal, MDIMain
       
       //if canceled,
      if (.Canceled) {
@@ -6751,7 +6721,7 @@ public Function GetNewResID(ByVal ResType As AGIResType, ByVal ResNum As Long, B
     
     //set any open logics deflist flag to force a rebuild
    if (LogicEditors.Count > 0) {
-      For Each tmpForm In LogicEditors
+      foreach (tmpForm In LogicEditors
        if (tmpForm.Name = "frmLogicEdit") {
          if (tmpForm.InGame) {
             tmpForm.ListDirty = true
@@ -6825,26 +6795,26 @@ public static void AddNewLogic(ByVal NewLogicNumber As Long, NewLogic As AGILogi
   //add to resource list
   Select Case Settings.ResListType
   Case 1
-    Set tmpNode = frmMDIMain.tvwResources.Nodes(2)
+    tmpNode = MDIMain.tvwResources.Nodes(2)
     //if no logics
    if (tmpNode.Children = 0) {
       //add it as first logic
       tmpRel = tvwChild
     } else {
       //find place to insert this logic
-      Set tmpNode = tmpNode.Child
+      tmpNode = tmpNode.Child
       tmpRel = tvwPrevious
       Do Until tmpNode.Tag > NewLogicNumber
        if (tmpNode.Next Is Nothing) {
           tmpRel = tvwNext
           Exit Do
         }
-        Set tmpNode = tmpNode.Next
+        tmpNode = tmpNode.Next
       Loop
     }
     
     //add to tree
-    Set tmpNode = frmMDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "l" + CStr(NewLogicNumber), ResourceName(Logics(NewLogicNumber), true))
+    tmpNode = MDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "l" + CStr(NewLogicNumber), ResourceName(Logics(NewLogicNumber), true))
     tmpNode.Tag = NewLogicNumber
     
    if (!Logics(NewLogicNumber).Compiled) {
@@ -6853,28 +6823,28 @@ public static void AddNewLogic(ByVal NewLogicNumber As Long, NewLogic As AGILogi
     
   Case 2
     //only update if logics are being listed
-   if (frmMDIMain.cmbResType.ListIndex = 1) {
+   if (MDIMain.cmbResType.SelectedIndex = 1) {
       //find a place to insert this logic in the box list
      if (Logics.Count = 0) {
         //add it as first item
-        Set tmpListItem = frmMDIMain.lstResources.ListItems.Add(, "l" + CStr(NewLogicNumber), ResourceName(Logics(NewLogicNumber), true))
+        tmpListItem = MDIMain.lstResources.ListItems.Add(, "l" + CStr(NewLogicNumber), ResourceName(Logics(NewLogicNumber), true))
       } else {
         //find a place to add it
-        For i = 1 To frmMDIMain.lstResources.ListItems.Count
-         if (CLng(frmMDIMain.lstResources.ListItems(i).Tag) > NewLogicNumber) {
+        For i = 1 To MDIMain.lstResources.ListItems.Count
+         if (CLng(MDIMain.lstResources.ListItems(i).Tag) > NewLogicNumber) {
             Exit For
           }
         Next i
         //i is index position we are looking for
-        Set tmpListItem = frmMDIMain.lstResources.ListItems.Add(i, "l" + CStr(NewLogicNumber), ResourceName(Logics(NewLogicNumber), true))
+        tmpListItem = MDIMain.lstResources.ListItems.Add(i, "l" + CStr(NewLogicNumber), ResourceName(Logics(NewLogicNumber), true))
       }
       tmpListItem.Tag = NewLogicNumber
      if (!Logics(NewLogicNumber).Compiled) {
         tmpListItem.ForeColor = vbRed
       }
       //expand column width if necessary
-     if (1.2 * frmMDIMain.picResources.TextWidth(tmpListItem.Text) > frmMDIMain.lstResources.ColumnHeaders(1).Width) {
-        frmMDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * frmMDIMain.picResources.TextWidth(tmpListItem.Text)
+     if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
+        MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
       }
     }
   
@@ -6892,7 +6862,7 @@ public static void AddNewLogic(ByVal NewLogicNumber As Long, NewLogic As AGILogi
   }
   
   //last index is no longer accurate; reset
-  frmMDIMain.LastIndex = -1
+  MDIMain.LastIndex = -1
 return;
 
 ErrHandler:
@@ -7469,48 +7439,48 @@ public static void AddNewPicture(ByVal NewPictureNumber As Long, NewPicture As A
   //add to resource list
   Select Case Settings.ResListType
   Case 1
-    Set tmpNode = frmMDIMain.tvwResources.Nodes(3)
+    tmpNode = MDIMain.tvwResources.Nodes(3)
     //if no sounds
    if (tmpNode.Children = 0) {
       //add it as first picture
       tmpRel = tvwChild
     } else {
       //find place to insert this picture
-      Set tmpNode = tmpNode.Child
+      tmpNode = tmpNode.Child
       tmpRel = tvwPrevious
       Do Until tmpNode.Tag > NewPictureNumber
        if (tmpNode.Next Is Nothing) {
           tmpRel = tvwNext
           Exit Do
         }
-        Set tmpNode = tmpNode.Next
+        tmpNode = tmpNode.Next
       Loop
     }
     
     //add it to tree
-    frmMDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "p" + CStr(NewPictureNumber), ResourceName(Pictures(NewPictureNumber), true)).Tag = NewPictureNumber
+    MDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "p" + CStr(NewPictureNumber), ResourceName(Pictures(NewPictureNumber), true)).Tag = NewPictureNumber
     
   Case 2
     //only update if pictures are being listed
-   if (frmMDIMain.cmbResType.ListIndex = 2) {
+   if (MDIMain.cmbResType.SelectedIndex = 2) {
       //if no pictures yet
      if (Pictures.Count = 0) {
         //add it as first item
-        Set tmpListItem = frmMDIMain.lstResources.ListItems.Add(, "p" + CStr(NewPictureNumber), ResourceName(Pictures(NewPictureNumber), true))
+        tmpListItem = MDIMain.lstResources.ListItems.Add(, "p" + CStr(NewPictureNumber), ResourceName(Pictures(NewPictureNumber), true))
       } else {
         //find a place to add it
-        For i = 1 To frmMDIMain.lstResources.ListItems.Count
-         if (CLng(frmMDIMain.lstResources.ListItems(i).Tag) > NewPictureNumber) {
+        For i = 1 To MDIMain.lstResources.ListItems.Count
+         if (CLng(MDIMain.lstResources.ListItems(i).Tag) > NewPictureNumber) {
             Exit For
           }
         Next i
         //i is index position we are looking for
-        Set tmpListItem = frmMDIMain.lstResources.ListItems.Add(i, "p" + CStr(NewPictureNumber), ResourceName(Pictures(NewPictureNumber), true))
+        tmpListItem = MDIMain.lstResources.ListItems.Add(i, "p" + CStr(NewPictureNumber), ResourceName(Pictures(NewPictureNumber), true))
       }
       tmpListItem.Tag = NewPictureNumber
       //expand column width if necessary
-     if (1.2 * frmMDIMain.picResources.TextWidth(tmpListItem.Text) > frmMDIMain.lstResources.ColumnHeaders(1).Width) {
-        frmMDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * frmMDIMain.picResources.TextWidth(tmpListItem.Text)
+     if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
+        MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
       }
     }
   End Select
@@ -7528,7 +7498,7 @@ public static void AddNewPicture(ByVal NewPictureNumber As Long, NewPicture As A
   }
   
   //last index is no longer accurate; reset
-  frmMDIMain.LastIndex = -1
+  MDIMain.LastIndex = -1
 return;
 
 ErrHandler:
@@ -7548,48 +7518,48 @@ public static void AddNewSound(ByVal NewSoundNumber As Long, NewSound As AGISoun
   Select Case Settings.ResListType
   Case 1
     //add to treelist
-    Set tmpNode = frmMDIMain.tvwResources.Nodes(4)
+    tmpNode = MDIMain.tvwResources.Nodes(4)
     //if no sounds
    if (tmpNode.Children = 0) {
       //add it as first sound
       tmpRel = tvwChild
     } else {
       //find place to insert this sound
-      Set tmpNode = tmpNode.Child
+      tmpNode = tmpNode.Child
       tmpRel = tvwPrevious
       Do Until tmpNode.Tag > NewSoundNumber
        if (tmpNode.Next Is Nothing) {
           tmpRel = tvwNext
           Exit Do
         }
-        Set tmpNode = tmpNode.Next
+        tmpNode = tmpNode.Next
       Loop
     }
     
     //add it to tree
-    frmMDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "s" + CStr(NewSoundNumber), ResourceName(Sounds(NewSoundNumber), true)).Tag = NewSoundNumber
+    MDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "s" + CStr(NewSoundNumber), ResourceName(Sounds(NewSoundNumber), true)).Tag = NewSoundNumber
         
   Case 2
     //only update if sounds are being updated
-   if (frmMDIMain.cmbResType.ListIndex = 3) {
+   if (MDIMain.cmbResType.SelectedIndex = 3) {
       //if no sounds yet
      if (Sounds.Count = 0) {
         //add it as first item
-        Set tmpListItem = frmMDIMain.lstResources.ListItems.Add(, "s" + CStr(NewSoundNumber), ResourceName(Sounds(NewSoundNumber), true))
+        tmpListItem = MDIMain.lstResources.ListItems.Add(, "s" + CStr(NewSoundNumber), ResourceName(Sounds(NewSoundNumber), true))
       } else {
         //find a place to add it
-        For i = 1 To frmMDIMain.lstResources.ListItems.Count
-         if (CLng(frmMDIMain.lstResources.ListItems(i).Tag) > NewSoundNumber) {
+        For i = 1 To MDIMain.lstResources.ListItems.Count
+         if (CLng(MDIMain.lstResources.ListItems(i).Tag) > NewSoundNumber) {
             Exit For
           }
         Next i
         //i is index position we are looking for
-        Set tmpListItem = frmMDIMain.lstResources.ListItems.Add(i, "s" + CStr(NewSoundNumber), ResourceName(Sounds(NewSoundNumber), true))
+        tmpListItem = MDIMain.lstResources.ListItems.Add(i, "s" + CStr(NewSoundNumber), ResourceName(Sounds(NewSoundNumber), true))
       }
       tmpListItem.Tag = NewSoundNumber
       //expand column width if necessary
-     if (1.2 * frmMDIMain.picResources.TextWidth(tmpListItem.Text) > frmMDIMain.lstResources.ColumnHeaders(1).Width) {
-        frmMDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * frmMDIMain.picResources.TextWidth(tmpListItem.Text)
+     if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
+        MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
       }
     }
   End Select
@@ -7607,7 +7577,7 @@ public static void AddNewSound(ByVal NewSoundNumber As Long, NewSound As AGISoun
   }
   
   //last index is no longer accurate; reset
-  frmMDIMain.LastIndex = -1
+  MDIMain.LastIndex = -1
 }
 public static void AddNewView(ByVal NewViewNumber As Long, NewView As AGIView)
 
@@ -7623,48 +7593,48 @@ public static void AddNewView(ByVal NewViewNumber As Long, NewView As AGIView)
   Select Case Settings.ResListType
   Case 1
     //add to treelist
-    Set tmpNode = frmMDIMain.tvwResources.Nodes(5)
+    tmpNode = MDIMain.tvwResources.Nodes(5)
     //if no views
    if (tmpNode.Children = 0) {
       //add it as first view
       tmpRel = tvwChild
     } else {
       //find place to insert this view
-      Set tmpNode = tmpNode.Child
+      tmpNode = tmpNode.Child
       tmpRel = tvwPrevious
       Do Until tmpNode.Tag > NewViewNumber
        if (tmpNode.Next Is Nothing) {
           tmpRel = tvwNext
           Exit Do
         }
-        Set tmpNode = tmpNode.Next
+        tmpNode = tmpNode.Next
       Loop
     }
   
     //add it to tree
-    frmMDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "v" + CStr(NewViewNumber), ResourceName(Views(NewViewNumber), true)).Tag = NewViewNumber
+    MDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "v" + CStr(NewViewNumber), ResourceName(Views(NewViewNumber), true)).Tag = NewViewNumber
   
   Case 2
     //only update if views are being displayed
-   if (frmMDIMain.cmbResType.ListIndex = 4) {
+   if (MDIMain.cmbResType.SelectedIndex = 4) {
       //if no views yet
      if (Views.Count = 0) {
         //add it as first item
-        Set tmpListItem = frmMDIMain.lstResources.ListItems.Add(, "v" + CStr(NewViewNumber), ResourceName(Views(NewViewNumber), true))
+        tmpListItem = MDIMain.lstResources.ListItems.Add(, "v" + CStr(NewViewNumber), ResourceName(Views(NewViewNumber), true))
       } else {
         //find a place to add it
-        For i = 1 To frmMDIMain.lstResources.ListItems.Count
-         if (CLng(frmMDIMain.lstResources.ListItems(i).Tag) > NewViewNumber) {
+        For i = 1 To MDIMain.lstResources.ListItems.Count
+         if (CLng(MDIMain.lstResources.ListItems(i).Tag) > NewViewNumber) {
             Exit For
           }
         Next i
         //i is index position we are looking for
-        Set tmpListItem = frmMDIMain.lstResources.ListItems.Add(i, "v" + CStr(NewViewNumber), ResourceName(Views(NewViewNumber), true))
+        tmpListItem = MDIMain.lstResources.ListItems.Add(i, "v" + CStr(NewViewNumber), ResourceName(Views(NewViewNumber), true))
       }
       tmpListItem.Tag = NewViewNumber
       //expand column width if necessary
-     if (1.2 * frmMDIMain.picResources.TextWidth(tmpListItem.Text) > frmMDIMain.lstResources.ColumnHeaders(1).Width) {
-        frmMDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * frmMDIMain.picResources.TextWidth(tmpListItem.Text)
+     if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
+        MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
       }
     }
   End Select
@@ -7682,7 +7652,7 @@ public static void AddNewView(ByVal NewViewNumber As Long, NewView As AGIView)
   }
   
   //last index is no longer accurate; reset
-  frmMDIMain.LastIndex = -1
+  MDIMain.LastIndex = -1
 return;
 
 ErrHandler:
@@ -7762,7 +7732,7 @@ public Function MsgBoxEx(ByVal Prompt As String, Optional ByVal Buttons As VbMsg
     //add icons (if requested)
    if (((Buttons / 0x10) && 0x7) > 0 && ((Buttons / 0x10) && 0x7) <= 4) {
       //load associated Image
-      Set .Image1.Picture = .ImageList1.ListImages((Buttons / 0x10) && 0x7).Picture
+      .Image1.Picture = .ImageList1.ListImages((Buttons / 0x10) && 0x7).Picture
       .Image1.Visible = true
       
       //adjust label position to account for icon
@@ -7914,7 +7884,7 @@ public Function MsgBoxEx(ByVal Prompt As String, Optional ByVal Buttons As VbMsg
     }
     
     //show it
-    frmDialog.Show vbModal, frmMDIMain
+    frmDialog.Show vbModal, MDIMain
     
     //get result
     MsgBoxEx = frmDialog.Result
@@ -7975,7 +7945,7 @@ public static void UpdateLayoutFile(ByVal Reason As EUReason, LogicNumber As Lon
   Close intFile
   
   //assign to stringlist
-  Set stlLayout = New StringList
+  stlLayout = New StringList
   stlLayout.Assign strLine
  if (stlLayout(stlLayout.Count - 1) = "") {
     stlLayout.Delete stlLayout.Count - 1
@@ -8300,7 +8270,7 @@ public Function AnalyzeExit(strSource As String, ByRef lngLoc As Long, Optional 
   intStyle = 0
   
   //return exit object
-  Set AnalyzeExit = New AGIExit
+  AnalyzeExit = New AGIExit
   With AnalyzeExit
     .Reason = eReason
     .Room = intRoom
@@ -8329,10 +8299,10 @@ public static void NewWords()
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //create new file
-  Set frmNew = New frmWordsEdit
+  frmNew = New frmWordsEdit
   Load frmNew
   
   frmNew.NewWords
@@ -8757,17 +8727,17 @@ public Function ChangeIntVersion(ByVal NewVersion As String) As Boolean
     }
     
     //disable form until compile complete
-    frmMDIMain.Enabled = false
+    MDIMain.Enabled = false
     //show wait cursor
-    WaitCursor
+    MDIMain.UseWaitCursor = true;
     
     //set up compile form
-    Set CompStatusWin = New frmCompStatus
+    CompStatusWin = New frmCompStatus
     CompStatusWin.SetMode 1 //rebuild only
     CompStatusWin.Show
     
     //setup and clear warning list
-    frmMDIMain.ClearWarnings -1, 0
+    MDIMain.ClearWarnings -1, 0
     
     //change the version
     InterpreterVersion = NewVersion
@@ -8796,8 +8766,8 @@ public Function ChangeIntVersion(ByVal NewVersion As String) As Boolean
       }
           
      if (CLng(CompStatusWin.lblWarnings.Caption) > 0) {
-       if (!frmMDIMain.picWarnings.Visible) {
-          frmMDIMain.ShowWarningList
+       if (!MDIMain.picWarnings.Visible) {
+          MDIMain.ShowWarningList
         }
       }
     } else {
@@ -8808,10 +8778,10 @@ public Function ChangeIntVersion(ByVal NewVersion As String) As Boolean
     
     //unload the compile staus form
     Unload CompStatusWin
-    Set CompStatusWin = Nothing
+    CompStatusWin = Nothing
     
     //restore form state
-    frmMDIMain.Enabled = true
+    MDIMain.Enabled = true
     Screen.MousePointer = vbDefault
   } else {
     //ask for confirmation
@@ -8834,10 +8804,10 @@ Exit Function
 ErrHandler:
   //unload the compile staus form
   Unload CompStatusWin
-  Set CompStatusWin = Nothing
+  CompStatusWin = Nothing
 
   //restore form state
-  frmMDIMain.Enabled = true
+  MDIMain.Enabled = true
   Screen.MousePointer = vbDefault
   
   //clean up any leftover files
@@ -9114,7 +9084,7 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
     //if no directory was passed to the function
    if (LenB(CompGameDir) = 0) {
       //get a new dir
-      CompGameDir = GetNewDir(frmMDIMain.hWnd, "Choose target directory for compiled game:")
+      CompGameDir = GetNewDir(MDIMain.hWnd, "Choose target directory for compiled game:")
       
       //if not canceled
      if (LenB(CompGameDir) != 0) {
@@ -9141,12 +9111,12 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
   }
   
   //disable form until compile complete
-  frmMDIMain.Enabled = false
+  MDIMain.Enabled = false
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //set up compile form
-  Set CompStatusWin = New frmCompStatus
+  CompStatusWin = New frmCompStatus
   CompStatusWin.MousePointer = vbArrow
  if (RebuildOnly) {
     CompStatusWin.SetMode 1
@@ -9159,7 +9129,7 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
   CompGameDir = cDir(CompGameDir)
   
   //setup and clear warning list
-  frmMDIMain.ClearWarnings -1, 0
+  MDIMain.ClearWarnings -1, 0
   
   //compile the game
   On Error Resume Next
@@ -9180,14 +9150,14 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
     //Error Information:
     ErrMsgBox strTemp, "", IIf(RebuildOnly, "Rebuild VOL Files", "Compile Game Error")
     //show wait cursor again
-    WaitCursor
+    MDIMain.UseWaitCursor = true;
     
     //unload the compile staus form
     Unload CompStatusWin
-    Set CompStatusWin = Nothing
+    CompStatusWin = Nothing
   
     //restore form state
-    frmMDIMain.Enabled = true
+    MDIMain.Enabled = true
     
     //clean up any leftover files
    if (Asc(InterpreterVersion) = 51) {
@@ -9301,10 +9271,10 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
     
     //unload the compile staus form
     Unload CompStatusWin
-    Set CompStatusWin = Nothing
+    CompStatusWin = Nothing
   
     //restore form state
-    frmMDIMain.Enabled = true
+    MDIMain.Enabled = true
     Screen.MousePointer = vbDefault
     
     //exit
@@ -9322,7 +9292,7 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
     MsgBox "Warnings were generated during game compile.", vbInformation + vbOKOnly, "Compile Game"
     
     //show wait cursor again
-    WaitCursor
+    MDIMain.UseWaitCursor = true;
     
     //if errors
    if (CLng(CompStatusWin.lblErrors.Caption) > 0) {
@@ -9331,8 +9301,8 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
     }
     
    if (CLng(CompStatusWin.lblWarnings.Caption) > 0) {
-     if (!frmMDIMain.picWarnings.Visible) {
-        frmMDIMain.ShowWarningList
+     if (!MDIMain.picWarnings.Visible) {
+        MDIMain.ShowWarningList
       }
     }
   } else {
@@ -9344,17 +9314,17 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
            vbInformation + vbOKOnly, IIf(RebuildOnly, "Rebuild VOL Files", "Compile Game")
     
     //show wait cursor again
-    WaitCursor
+    MDIMain.UseWaitCursor = true;
   }
   
   //unload the compile staus form
   Unload CompStatusWin
-  Set CompStatusWin = Nothing
+  CompStatusWin = Nothing
   
   UpdateSelection rtLogic, SelResNum, umPreview || umProperty
   
   //restore form state
-  frmMDIMain.Enabled = true
+  MDIMain.Enabled = true
   Screen.MousePointer = vbDefault
 return;
 
@@ -9416,21 +9386,21 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
   Next i
   
   //disable form until compile complete
-  frmMDIMain.Enabled = false
+  MDIMain.Enabled = false
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //set up compile form
-  Set CompStatusWin = New frmCompStatus
+  CompStatusWin = New frmCompStatus
   CompStatusWin.MousePointer = vbArrow
   CompStatusWin.SetMode 2
   CompStatusWin.Show
   
   //setup and clear warning list
-  frmMDIMain.ClearWarnings -1, 0
+  MDIMain.ClearWarnings -1, 0
 
   //compile the logics
-  For Each tmpLogic In Logics
+  foreach (tmpLogic In Logics
     blnLoaded = tmpLogic.Loaded
    if (!blnLoaded) {
       tmpLogic.Load
@@ -9471,9 +9441,9 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
         End With
         
         //add it to warning list
-        frmMDIMain.AddError strErrInfo(0), Val(Left(strErrInfo(2), 4)), Right(strErrInfo(2), Len(strErrInfo(2)) - 6), tmpLogic.Number, strErrInfo(1)
-       if (!frmMDIMain.picWarnings.Visible) {
-          frmMDIMain.ShowWarningList
+        MDIMain.AddError strErrInfo(0), Val(Left(strErrInfo(2), 4)), Right(strErrInfo(2), Len(strErrInfo(2)) - 6), tmpLogic.Number, strErrInfo(1)
+       if (!MDIMain.picWarnings.Visible) {
+          MDIMain.ShowWarningList
         }
         
         //determine user response to the error
@@ -9485,7 +9455,7 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
           rtn = MsgBoxEx("An error occurred while attempting to compile " + ResourceName(tmpLogic, true, true) + ":" + vbNewLine + vbNewLine _
                    + ErrString + vbNewLine + vbNewLine + "Do you want to open the logic at the location of the error?", vbQuestion + vbYesNo, "Update Logics?", , , "Always take this action when a compile error occurs.", blnDontAsk)
           //show wait cursor again
-          WaitCursor
+          MDIMain.UseWaitCursor = true;
          if (blnDontAsk) {
            if (rtn = vbYes) {
               Settings.OpenOnErr = 2
@@ -9504,7 +9474,7 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
           MsgBox "An error in your code has been detected in logic //" + ResourceName(tmpLogic, true, true) + "//:" + vbNewLine + vbNewLine _
                      + "Line " + strErrInfo(0) + ", Error# " + strErrInfo(1), vbOKOnly + vbInformation, "Logic Compiler Error"
           //show wait cursor again
-          WaitCursor
+          MDIMain.UseWaitCursor = true;
           
         End Select
         
@@ -9528,7 +9498,7 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
         Screen.MousePointer = vbDefault
         //some other error
         ErrMsgBox "Error occurred during compilation: ", "", "Compile Error"
-        WaitCursor
+        MDIMain.UseWaitCursor = true;
         blnErr = true
         Exit For
       End Select
@@ -9540,11 +9510,11 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
     //reset dirty status in resource list
     Select Case Settings.ResListType
     Case 1
-      frmMDIMain.tvwResources.Nodes("l" + CStr(tmpLogic.Number)).ForeColor = vbBlack
+      MDIMain.tvwResources.Nodes("l" + CStr(tmpLogic.Number)).ForeColor = vbBlack
     Case 2
       //only update if logics are listed
-     if (frmMDIMain.cmbResType.ListIndex = 1) {
-        frmMDIMain.lstResources.ListItems("l" + CStr(tmpLogic.Number)).ForeColor = vbBlack
+     if (MDIMain.cmbResType.SelectedIndex = 1) {
+        MDIMain.lstResources.ListItems("l" + CStr(tmpLogic.Number)).ForeColor = vbBlack
       }
     End Select
     
@@ -9565,7 +9535,7 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
    if (CLng(CompStatusWin.lblErrors.Caption) + CLng(CompStatusWin.lblWarnings.Caption) > 0) {
       //msgbox to user
       MsgBox "Errors and/or warnings were generated during logic compilation.", vbInformation + vbOKOnly, "Compile Logics"
-      WaitCursor
+      MDIMain.UseWaitCursor = true;
       //if errors
      if (CLng(CompStatusWin.lblErrors.Caption) > 0) {
         //rebuild resource list
@@ -9573,8 +9543,8 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
       }
         
      if (CLng(CompStatusWin.lblWarnings.Caption) > 0) {
-       if (!frmMDIMain.picWarnings.Visible) {
-          frmMDIMain.ShowWarningList
+       if (!MDIMain.picWarnings.Visible) {
+          MDIMain.ShowWarningList
         }
       }
     } else {
@@ -9582,7 +9552,7 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
      if (!NoMsg) {
         MsgBox "All logics compiled successfully.", vbInformation + vbOKOnly, "Compile Dirty Logics"
       }
-      WaitCursor
+      MDIMain.UseWaitCursor = true;
       //return true
       CompileDirtyLogics = true
     }
@@ -9598,10 +9568,10 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
   
   //unload the compile staus form
   Unload CompStatusWin
-  Set CompStatusWin = Nothing
+  CompStatusWin = Nothing
   
   //restore form state
-  frmMDIMain.Enabled = true
+  MDIMain.Enabled = true
   Screen.MousePointer = vbDefault
 Exit Function
 
@@ -9625,7 +9595,7 @@ public Function CompileLogic(LogicEditor As frmLogicEdit, ByVal LogicNumber As L
   Compiling = true
   
  if (!LogicEditor Is Nothing) {
-    //Debug.Assert frmMDIMain.ActiveForm Is LogicEditor
+    //Debug.Assert MDIMain.ActiveForm Is LogicEditor
     
     //if source is not clean,
    if (LogicEditor.rtfLogic.Dirty) {
@@ -9635,8 +9605,8 @@ public Function CompileLogic(LogicEditor As frmLogicEdit, ByVal LogicNumber As L
   }
   
   //clear warning list for this logic
-  frmMDIMain.ClearWarnings LogicNumber, rtLogic
-  frmMDIMain.fgWarnings.Refresh
+  MDIMain.ClearWarnings LogicNumber, rtLogic
+  MDIMain.fgWarnings.Refresh
   
   //unlike other resources, the ingame logic is referenced directly
   //when being edited; so, it//s possible that the logic might get closed
@@ -9679,7 +9649,7 @@ public Function CompileLogic(LogicEditor As frmLogicEdit, ByVal LogicNumber As L
     //sound a tone
     Beep
     
-    With frmMDIMain
+    With MDIMain
       .AddError strErrInfo(0), Val(Left(strErrInfo(2), 4)), Right(strErrInfo(2), Len(strErrInfo(2)) - 6), LogicNumber, strErrInfo(1)
      if (!.picWarnings.Visible) {
         .ShowWarningList
@@ -9769,7 +9739,7 @@ public Function NewSourceName(ThisLogic As AGILogic, ByVal InGame As Boolean) As
      }
     .DefaultExt = Right$(LogicSourceSettings.SourceExt, Len(LogicSourceSettings.SourceExt) - 1)
     .Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-    .hWndOwner = frmMDIMain.hWnd
+    .hWndOwner = MDIMain.hWnd
   End With
   
   Do
@@ -9837,7 +9807,7 @@ public Function ExportLogic(ByVal LogicNumber As Byte) As Boolean
     .FullName = ResDir + Logics(LogicNumber).ID + ".agl"
     
     .Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-    .hWndOwner = frmMDIMain.hWnd
+    .hWndOwner = MDIMain.hWnd
   End With
   
   On Error Resume Next
@@ -9910,11 +9880,11 @@ public static void AddToMRU(ByVal NewWAGFile As String)
       //move others down
       For j = i To 2 Step -1
         strMRU(j) = strMRU(j - 1)
-        frmMDIMain.Controls("mnuGMRU" + CStr(j)).Caption = CompactPath(strMRU(j), 60)
+        MDIMain.Controls("mnuGMRU" + CStr(j)).Caption = CompactPath(strMRU(j), 60)
       Next j
       //move to top of list
       strMRU(1) = NewWAGFile
-      frmMDIMain.mnuGMRU1.Caption = CompactPath(NewWAGFile, 60)
+      MDIMain.mnuGMRU1.Caption = CompactPath(NewWAGFile, 60)
       //we//re done
       return;
     }
@@ -9928,19 +9898,19 @@ public static void AddToMRU(ByVal NewWAGFile As String)
     //if this entry is valid
    if (LenB(strMRU(j)) != 0) {
       //update menu
-      frmMDIMain.Controls("mnuGMRU" + CStr(j)).Caption = CompactPath(strMRU(j), 60)
-      frmMDIMain.Controls("mnuGMRU" + CStr(j)).Visible = true
+      MDIMain.Controls("mnuGMRU" + CStr(j)).Caption = CompactPath(strMRU(j), 60)
+      MDIMain.Controls("mnuGMRU" + CStr(j)).Visible = true
     } else {
       //hide it
-      frmMDIMain.Controls("mnuGMRU" + CStr(j)).Visible = false
+      MDIMain.Controls("mnuGMRU" + CStr(j)).Visible = false
     }
   Next j
   //add new item 1
   strMRU(1) = NewWAGFile
-  frmMDIMain.mnuGMRU1.Caption = CompactPath(NewWAGFile, 60)
-  frmMDIMain.mnuGMRU1.Visible = true
+  MDIMain.mnuGMRU1.Caption = CompactPath(NewWAGFile, 60)
+  MDIMain.mnuGMRU1.Visible = true
   //ensure bar is visible
-  frmMDIMain.mnuGMRUBar.Visible = true
+  MDIMain.mnuGMRUBar.Visible = true
 }
 
 public static void BuildResourceTree()
@@ -9957,10 +9927,10 @@ public static void BuildResourceTree()
   
   Case 1 // treeview list
     //clear the treelist
-    frmMDIMain.ClearResourceList
+    MDIMain.ClearResourceList
     
     //add the base nodes
-    With frmMDIMain.tvwResources
+    With MDIMain.tvwResources
       //if a game id was passed
      if (LenB(GameID) != 0) {
         //update root
@@ -9971,7 +9941,7 @@ public static void BuildResourceTree()
           For i = 0 To 255
             //if a valid resource
            if (Logics.Exists(i)) {
-              Set tmpNode = .Nodes.Add(sLOGICS, tvwChild, "l" + CStr(i), ResourceName(Logics(i), true))
+              tmpNode = .Nodes.Add(sLOGICS, tvwChild, "l" + CStr(i), ResourceName(Logics(i), true))
               tmpNode.Tag = i
               //load source to set compiled status
              if (Logics(i).Compiled) {
@@ -10014,13 +9984,13 @@ public static void BuildResourceTree()
     
   Case 2 //combo/list boxes
    //update root
-   frmMDIMain.cmbResType.List(0) = GameID
+   MDIMain.cmbResType.List(0) = GameID
    //select root
-   frmMDIMain.cmbResType.ListIndex = 0
+   MDIMain.cmbResType.SelectedIndex = 0
   End Select
   
   // always update the property window
-  frmMDIMain.PaintPropertyWindow
+  MDIMain.PaintPropertyWindow
 return;
 
 ErrHandler:
@@ -10080,7 +10050,7 @@ public static void ChangeGameDir(strNewGameDir As String, Optional Quiet As Bool
 //////  End With
 //////
 //////  //show wait cursor
-//////  WaitCursor
+//////  MDIMain.UseWaitCursor = true;
 //////
 //////  //catch any errors
 //////  On Error GoTo ErrHandler
@@ -10156,7 +10126,7 @@ Private Function FindInClosedLogics(ByVal FindText As String, ByVal FindDir As F
     }
     .pgbStatus.Max = SearchLogCount
     .pgbStatus.Value = SearchLogVal //- 1
-    .Show vbModeless, frmMDIMain
+    .Show vbModeless, MDIMain
     .Refresh
   End With
   //Debug.Assert Screen.MousePointer != vbDefault
@@ -10308,7 +10278,7 @@ public static void NewAGIGame(ByVal UseTemplate As Boolean)
         return;
       }
       
-      .Show vbModal, frmMDIMain
+      .Show vbModal, MDIMain
      if (.Canceled) {
         Unload frmTemplate
         return;
@@ -10331,7 +10301,7 @@ public static void NewAGIGame(ByVal UseTemplate As Boolean)
       //version is preset based on template
       For i = 0 To .cmbVersion.ListCount - 1
        if (.cmbVersion.List(i) = strVer) {
-          .cmbVersion.ListIndex = i
+          .cmbVersion.SelectedIndex = i
           Exit For
         }
       Next i
@@ -10340,7 +10310,7 @@ public static void NewAGIGame(ByVal UseTemplate As Boolean)
       .txtGameDescription.Text = strDescription
     }
     
-    .Show vbModal, frmMDIMain
+    .Show vbModal, MDIMain
   
     //if canceled
    if (.Canceled) {
@@ -10375,7 +10345,7 @@ public static void NewAGIGame(ByVal UseTemplate As Boolean)
     }
     
     //show wait cursor
-    WaitCursor
+    MDIMain.UseWaitCursor = true;
 
     //inline error checking
     On Error Resume Next
@@ -10426,7 +10396,7 @@ public static void NewAGIGame(ByVal UseTemplate As Boolean)
       SaveProperties
       
       //created ok; maybe with warning
-      frmMDIMain.Caption = "WinAGI GDS - " + GameID
+      MDIMain.Caption = "WinAGI GDS - " + GameID
       
       //if there is a layout file
      if (LenB(Dir(GameDir + "*.wal")) != 0) {
@@ -10443,14 +10413,14 @@ public static void NewAGIGame(ByVal UseTemplate As Boolean)
       Select Case Settings.ResListType
       Case 1
         //select root
-        frmMDIMain.tvwResources.Nodes(1).Selected = true
+        MDIMain.tvwResources.Nodes(1).Selected = true
         //force update
-        frmMDIMain.SelectResource rtGame, -1
+        MDIMain.SelectResource rtGame, -1
       Case 2
         //select root
-        frmMDIMain.cmbResType.ListIndex = 0
+        MDIMain.cmbResType.SelectedIndex = 0
         //force update
-        frmMDIMain.SelectResource rtGame, -1
+        MDIMain.SelectResource rtGame, -1
       End Select
       
       //set default directory
@@ -10468,7 +10438,7 @@ public static void NewAGIGame(ByVal UseTemplate As Boolean)
       }
       //show resource tree
      if (Settings.ResListType != 0) {
-        frmMDIMain.ShowResTree
+        MDIMain.ShowResTree
       }
       
       //if warnings
@@ -10589,7 +10559,7 @@ public static void OpenLayout()
     
   } else {
     //open the layout for the current game
-    Set LayoutEditor = New frmLayout
+    LayoutEditor = New frmLayout
     LayoutEditor.LoadLayout
   }
 }
@@ -10622,20 +10592,20 @@ public static void OpenMRUGame(ByVal Index As Long)
       //if blank
      if (LenB(strMRU(i)) = 0) {
         //hide this mru item
-        frmMDIMain.Controls("mnuGMRU" + CStr(i - 1)).Visible = false
+        MDIMain.Controls("mnuGMRU" + CStr(i - 1)).Visible = false
       } else {
         //change this mru item
-        frmMDIMain.Controls("mnuGMRU" + CStr(i - 1)).Caption = CompactPath(strMRU(i), 60)
+        MDIMain.Controls("mnuGMRU" + CStr(i - 1)).Caption = CompactPath(strMRU(i), 60)
       }
     Next i
     //remove last entry
     strMRU(4) = ""
-    frmMDIMain.mnuGMRU4.Visible = false
+    MDIMain.mnuGMRU4.Visible = false
     
     //if none left
    if (LenB(strMRU(1)) = 0) {
       //hide bar too
-      frmMDIMain.mnuGMRUBar.Visible = false
+      MDIMain.mnuGMRUBar.Visible = false
     }
   } else {
     //reset browser start dir to this dir
@@ -10660,7 +10630,7 @@ public Function OpenWords(Optional ByVal InGame As Boolean = true) As Boolean
     } else {
       //load it
       WEInUse = true
-      Set WordEditor = New frmWordsEdit
+      WordEditor = New frmWordsEdit
       Load WordEditor
       //set ingame status first, so caption will indicate correctly
       WordEditor.InGame = true
@@ -10668,7 +10638,7 @@ public Function OpenWords(Optional ByVal InGame As Boolean = true) As Boolean
       On Error Resume Next
       WordEditor.LoadWords VocabularyWords.ResFile
      if (Err.Number != 0) {
-        Set WordEditor = Nothing
+        WordEditor = Nothing
         WEInUse = false
         Exit Function
       }
@@ -10697,7 +10667,7 @@ public Function OpenWords(Optional ByVal InGame As Boolean = true) As Boolean
     End With
     
     //check if already open
-    For Each tmpForm In Forms
+    foreach (tmpForm In Forms
      if (tmpForm.Name = "frmWordsEdit") {
        if (tmpForm.WordsEdit.ResFile = strFileName && !tmpForm.InGame) {
           //just shift focus
@@ -10710,13 +10680,13 @@ public Function OpenWords(Optional ByVal InGame As Boolean = true) As Boolean
     
     //not open yet; create new form
     //and open this form into it
-    Set frmNew = New frmWordsEdit
+    frmNew = New frmWordsEdit
     
     Load frmNew
     On Error Resume Next
     frmNew.LoadWords strFileName
    if (Err.Number != 0) {
-      Set frmNew = Nothing
+      frmNew = Nothing
       Exit Function
     } else {
       frmNew.Show
@@ -10753,7 +10723,7 @@ public Function OpenObjects(Optional ByVal InGame As Boolean = true) As Boolean
     } else {
       //load it
       OEInUse = true
-      Set ObjectEditor = New frmObjectEdit
+      ObjectEditor = New frmObjectEdit
       Load ObjectEditor
       ObjectEditor.InGame = true
       
@@ -10761,7 +10731,7 @@ public Function OpenObjects(Optional ByVal InGame As Boolean = true) As Boolean
       On Error Resume Next
       ObjectEditor.LoadObjects InventoryObjects.ResFile
      if (Err.Number != 0) {
-        Set ObjectEditor = Nothing
+        ObjectEditor = Nothing
         OEInUse = false
         Exit Function
       }
@@ -10793,7 +10763,7 @@ public Function OpenObjects(Optional ByVal InGame As Boolean = true) As Boolean
     End With
     
     //check if already open
-    For Each tmpForm In Forms
+    foreach (tmpForm In Forms
      if (tmpForm.Name = "frmObjectEdit") {
        if (tmpForm.ObjectsEdit.ResFile = strFileName && !tmpForm.InGame) {
           //just shift focus
@@ -10806,13 +10776,13 @@ public Function OpenObjects(Optional ByVal InGame As Boolean = true) As Boolean
     
     //not open yet; create new form
     //and open this form into it
-    Set frmNew = New frmObjectEdit
+    frmNew = New frmObjectEdit
     
     Load frmNew
     On Error Resume Next
     frmNew.LoadObjects strFileName
    if (Err.Number != 0) {
-      Set frmNew = Nothing
+      frmNew = Nothing
       Exit Function
     } else {
       frmNew.Show
@@ -10871,33 +10841,33 @@ public static void RemoveLogic(ByVal LogicNum As Byte)
   
   Select Case Settings.ResListType
   Case 1
-    With frmMDIMain.tvwResources
+    With MDIMain.tvwResources
       //remove it from resource list
       .Nodes.Remove .Nodes("l" + CStr(LogicNum)).Index
       
       //update selection to whatever is now the selected node
-      frmMDIMain.LastIndex = -1
+      MDIMain.LastIndex = -1
       
      if (.SelectedItem.Parent Is Nothing) {
         //it//s the game node
-        frmMDIMain.SelectResource rtGame, -1
+        MDIMain.SelectResource rtGame, -1
       } else if ( .SelectedItem.Parent.Parent Is Nothing) {
         //it//s a resource header
-        frmMDIMain.SelectResource .SelectedItem.Index - 2, -1
+        MDIMain.SelectResource .SelectedItem.Index - 2, -1
       } else {
         //it//s a resource
-        frmMDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
+        MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
       }
     End With
     
   Case 2
     //only need to remove if logics are listed
-   if (frmMDIMain.cmbResType.ListIndex = 1) {
+   if (MDIMain.cmbResType.SelectedIndex = 1) {
       //remove it
-      frmMDIMain.lstResources.ListItems.Remove frmMDIMain.lstResources.ListItems("l" + CStr(LogicNum)).Index
+      MDIMain.lstResources.ListItems.Remove MDIMain.lstResources.ListItems("l" + CStr(LogicNum)).Index
       //use click event to update
-      frmMDIMain.lstResources_Click
-      frmMDIMain.lstResources.SelectedItem.Selected = true
+      MDIMain.lstResources_Click
+      MDIMain.lstResources.SelectedItem.Selected = true
     }
   End Select
   
@@ -10943,13 +10913,6 @@ ErrHandler:
   Resume Next
 }
 
-public Function InstrumentName(ByVal bytInstrument As Byte) As String
-  //returns a string Value of an instrument
-  //if too big
-  //Debug.Assert bytInstrument <= 127
-    
-  InstrumentName = LoadResString(INSTRUMENTNAMETEXT + bytInstrument)
-End Function
 
 
 public static void NewSound(Optional ImportSoundFile As String)
@@ -10961,11 +10924,11 @@ public static void NewSound(Optional ImportSoundFile As String)
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
 
   Do
     //create temporary sound
-    Set tmpSound = New AGISound
+    tmpSound = New AGISound
     //set default instrument settings;
     //if a sound is being imported, these may be overridden...
     With tmpSound
@@ -11018,14 +10981,14 @@ public static void NewSound(Optional ImportSoundFile As String)
         
         //restore cursor while getting resnum
         Screen.MousePointer = vbDefault
-        .Show vbModal, frmMDIMain
+        .Show vbModal, MDIMain
         
         //show wait cursor again while finishing creating the new sound
-        WaitCursor
+        MDIMain.UseWaitCursor = true;
       
         //if canceled, release the temporary sound, restore cursor and exit method
        if (.Canceled) {
-          Set tmpSound = Nothing
+          tmpSound = Nothing
           //restore mousepointer, unload form and exit
           Unload frmGetResourceNum
           Screen.MousePointer = vbDefault
@@ -11040,8 +11003,8 @@ public static void NewSound(Optional ImportSoundFile As String)
           //add sound
           AddNewSound .NewResNum, tmpSound
           //reset tmpSound to point to the new game sound
-          Set tmpSound = Nothing
-          Set tmpSound = Sounds(.NewResNum)
+          tmpSound = Nothing
+          tmpSound = Sounds(.NewResNum)
           
           //set flag
           blnInGame = true
@@ -11058,7 +11021,7 @@ public static void NewSound(Optional ImportSoundFile As String)
    if (blnOpen || !GameLoaded || !blnInGame) {
       
       //open a new sound editing window
-      Set frmNew = New frmSoundEdit
+      frmNew = New frmSoundEdit
       
       //pass the sound to the editor
      if (frmNew.EditSound(tmpSound)) {
@@ -11068,7 +11031,7 @@ public static void NewSound(Optional ImportSoundFile As String)
         SoundEditors.Add frmNew
       } else {
         //error
-        Set frmNew = Nothing
+        frmNew = Nothing
       }
     }
     
@@ -11101,10 +11064,10 @@ public static void NewTextFile()
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //open a new text editing window
-  Set frmNew = New frmTextEdit
+  frmNew = New frmTextEdit
   
   With frmNew
     //set caption
@@ -11147,11 +11110,11 @@ public static void NewLogic(Optional ImportLogicFile As String)
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
 
   Do
     //create temporary logic
-    Set tmpLogic = New AGILogic
+    tmpLogic = New AGILogic
     
     //if an import filename passed,
    if (LenB(ImportLogicFile) != 0) {
@@ -11231,14 +11194,14 @@ public static void NewLogic(Optional ImportLogicFile As String)
         
         //restore cursor while getting resnum
         Screen.MousePointer = vbDefault
-        .Show vbModal, frmMDIMain
+        .Show vbModal, MDIMain
       
         //show wait cursor while resource is added
-        WaitCursor
+        MDIMain.UseWaitCursor = true;
         
         //if canceled, release the temporary logic, restore mousepointer and exit
        if (.Canceled) {
-          Set tmpLogic = Nothing
+          tmpLogic = Nothing
           //restore mousepointer and exit
           Unload frmGetResourceNum
           Screen.MousePointer = vbDefault
@@ -11253,8 +11216,8 @@ public static void NewLogic(Optional ImportLogicFile As String)
           //add Logic
           AddNewLogic .NewResNum, tmpLogic, (.chkRoom.Value = vbChecked), blnImporting
           //reset tmplogic to point to the new game logic
-          Set tmpLogic = Nothing
-          Set tmpLogic = Logics(.NewResNum)
+          tmpLogic = Nothing
+          tmpLogic = Logics(.NewResNum)
           
           //if using layout editor AND a room,
          if (UseLE && (.chkRoom.Value = vbChecked)) {
@@ -11311,7 +11274,7 @@ public static void NewLogic(Optional ImportLogicFile As String)
     //only open if user wants it open (or if not in a game or if opening/not importing)
    if (blnOpen || !GameLoaded || !blnInGame) {
       //open a new logic editing window
-      Set frmNew = New frmLogicEdit
+      frmNew = New frmLogicEdit
       
       //pass the logic to the editor
      if (frmNew.EditLogic(tmpLogic)) {
@@ -11320,7 +11283,7 @@ public static void NewLogic(Optional ImportLogicFile As String)
         //add form to collection
         LogicEditors.Add frmNew
       } else {
-        Set frmNew = Nothing
+        frmNew = Nothing
       }
     }
     
@@ -11354,11 +11317,11 @@ public static void NewPicture(Optional ImportPictureFile As String)
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
 
   Do
     //create temporary picture
-    Set tmpPic = New AGIPicture
+    tmpPic = New AGIPicture
     
     //if an import filename was passed
    if (LenB(ImportPictureFile) != 0) {
@@ -11400,14 +11363,14 @@ public static void NewPicture(Optional ImportPictureFile As String)
         
         //restore cursor while getting resnum
         Screen.MousePointer = vbDefault
-        .Show vbModal, frmMDIMain
+        .Show vbModal, MDIMain
         
         //show wait cursor while resource is added
-        WaitCursor
+        MDIMain.UseWaitCursor = true;
         
         //if canceled, release the temporary picture, restore cursor and exit method
        if (.Canceled) {
-          Set tmpPic = Nothing
+          tmpPic = Nothing
           //restore mousepointer and exit
           Unload frmGetResourceNum
           Screen.MousePointer = vbDefault
@@ -11422,8 +11385,8 @@ public static void NewPicture(Optional ImportPictureFile As String)
           //add picture
           AddNewPicture .NewResNum, tmpPic
           //reset tmpPic to point to the new game picture
-          Set tmpPic = Nothing
-          Set tmpPic = Pictures(.NewResNum)
+          tmpPic = Nothing
+          tmpPic = Pictures(.NewResNum)
           //set ingame flag
           blnInGame = true
         }
@@ -11438,7 +11401,7 @@ public static void NewPicture(Optional ImportPictureFile As String)
     //only open if user wants it open (or if not in a game or if opening/not importing)
    if (blnOpen || !GameLoaded || !blnInGame) {
       //open a new picture editing window
-      Set frmNew = New frmPictureEdit
+      frmNew = New frmPictureEdit
         
       //pass the picture to the editor
      if (frmNew.EditPicture(tmpPic)) {
@@ -11448,7 +11411,7 @@ public static void NewPicture(Optional ImportPictureFile As String)
         PictureEditors.Add frmNew
       } else {
         //error
-        Set frmNew = Nothing
+        frmNew = Nothing
       }
     }
     
@@ -11482,11 +11445,11 @@ public static void NewView(Optional ImportViewFile As String)
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
 
   Do
     //create temporary view
-    Set tmpView = New AGIView
+    tmpView = New AGIView
     //set first cel to default height/width
     tmpView.Loops(0).Cels(0).Height = Settings.DefCelH
     tmpView.Loops(0).Cels(0).Width = Settings.DefCelW
@@ -11531,14 +11494,14 @@ public static void NewView(Optional ImportViewFile As String)
       
         //restore cursor while getting resnum
         Screen.MousePointer = vbDefault
-        .Show vbModal, frmMDIMain
+        .Show vbModal, MDIMain
         
         //show wait cursor while resource is added
-        WaitCursor
+        MDIMain.UseWaitCursor = true;
         
         //if canceled, release the temporary view, restore cursor and exit method
        if (.Canceled) {
-          Set tmpView = Nothing
+          tmpView = Nothing
           //restore mousepointer and exit
           Unload frmGetResourceNum
           Screen.MousePointer = vbDefault
@@ -11553,8 +11516,8 @@ public static void NewView(Optional ImportViewFile As String)
           //add view
           AddNewView .NewResNum, tmpView
           //reset tmpView to point to the new game view
-          Set tmpView = Nothing
-          Set tmpView = Views(.NewResNum)
+          tmpView = Nothing
+          tmpView = Views(.NewResNum)
           //set ingame flag
           blnInGame = true
         }
@@ -11569,7 +11532,7 @@ public static void NewView(Optional ImportViewFile As String)
     //only open if user wants it open (or if not in a game or if opening/not importing)
    if (blnOpen || !GameLoaded || !blnInGame) {
       //open a new view editing window
-      Set frmNew = New frmViewEdit
+      frmNew = New frmViewEdit
       
       //pass the view to the editor
      if (frmNew.EditView(tmpView)) {
@@ -11580,7 +11543,7 @@ public static void NewView(Optional ImportViewFile As String)
         ViewEditors.Add frmNew
       } else {
         //error
-        Set frmNew = Nothing
+        frmNew = Nothing
       }
     }
     
@@ -11646,7 +11609,7 @@ public static void OpenWAG(Optional ThisGameFile As String)
   //Debug.Assert !GEInUse
       
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //show load progress bar
   Load frmProgress
@@ -11655,7 +11618,7 @@ public static void OpenWAG(Optional ThisGameFile As String)
     .lblProgress.Caption = "Checking WinAGI Game file ..."
     .pgbStatus.Visible = false
     .Show
-    .Move frmMDIMain.Left + (frmMDIMain.Width - .Width) / 2, frmMDIMain.Top + (frmMDIMain.Height - .Height) / 2
+    .Move MDIMain.Left + (MDIMain.Width - .Width) / 2, MDIMain.Top + (MDIMain.Height - .Height) / 2
     .Refresh
   End With
   
@@ -11681,7 +11644,7 @@ public static void OpenWAG(Optional ThisGameFile As String)
     //loaded ok; maybe with warning
     frmProgress.lblProgress.Caption = "Game loaded successfully, setting up editors"
     
-    frmMDIMain.Caption = "WinAGI GDS - " + GameID
+    MDIMain.Caption = "WinAGI GDS - " + GameID
     
     //build resource list
     BuildResourceTree
@@ -11689,16 +11652,16 @@ public static void OpenWAG(Optional ThisGameFile As String)
     Select Case Settings.ResListType
     Case 1 //tree
       //select root
-      frmMDIMain.tvwResources.Nodes(1).Selected = true
+      MDIMain.tvwResources.Nodes(1).Selected = true
       //update selected resource
-      frmMDIMain.SelectResource rtGame, -1
+      MDIMain.SelectResource rtGame, -1
       //set LastIndex property
-      frmMDIMain.LastIndex = 1
+      MDIMain.LastIndex = 1
     Case 2
       //select root
-      frmMDIMain.cmbResType.ListIndex = 0
+      MDIMain.cmbResType.SelectedIndex = 0
       //update selected resource
-      frmMDIMain.SelectResource rtGame, -1
+      MDIMain.SelectResource rtGame, -1
     End Select
     
     //set default directory
@@ -11720,7 +11683,7 @@ public static void OpenWAG(Optional ThisGameFile As String)
     }
     // show resource tree pane
    if (Settings.ResListType != 0) {
-      frmMDIMain.ShowResTree
+      MDIMain.ShowResTree
     }
     
     //set default text file directory to game source file directory
@@ -11835,7 +11798,7 @@ public static void OpenDIR()
   On Error GoTo ErrHandler
   
   //get a directory for importing
-  ThisGameDir = GetNewDir(frmMDIMain.hWnd, "Select the directory of the game you wish to import:")
+  ThisGameDir = GetNewDir(MDIMain.hWnd, "Select the directory of the game you wish to import:")
   
   //if still nothing (user canceled),
  if (LenB(ThisGameDir) = 0) {
@@ -11861,7 +11824,7 @@ public static void OpenDIR()
   //Debug.Assert !GEInUse
       
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //show load progress bar
   Load frmProgress
@@ -11870,7 +11833,7 @@ public static void OpenDIR()
     .lblProgress.Caption = "Importing AGI Game ..."
     .pgbStatus.Visible = false
     .Show
-    .Move frmMDIMain.Left + (frmMDIMain.Width - .Width) / 2, frmMDIMain.Top + (frmMDIMain.Height - .Height) / 2
+    .Move MDIMain.Left + (MDIMain.Width - .Width) / 2, MDIMain.Top + (MDIMain.Height - .Height) / 2
     .Refresh
   End With
   
@@ -11917,7 +11880,7 @@ public static void OpenDIR()
     //loaded ok; maybe with warning
     frmProgress.lblProgress.Caption = "Game loaded successfully, setting up editors"
     
-    frmMDIMain.Caption = "WinAGI GDS - " + GameID
+    MDIMain.Caption = "WinAGI GDS - " + GameID
     
     //build resource list
     BuildResourceTree
@@ -11925,16 +11888,16 @@ public static void OpenDIR()
     Select Case Settings.ResListType
     Case 1 //tree
       //select root
-      frmMDIMain.tvwResources.Nodes(1).Selected = true
+      MDIMain.tvwResources.Nodes(1).Selected = true
       //update selected resource
-      frmMDIMain.SelectResource rtGame, -1
+      MDIMain.SelectResource rtGame, -1
       //set LastIndex property
-      frmMDIMain.LastIndex = 1
+      MDIMain.LastIndex = 1
     Case 2
       //select root
-      frmMDIMain.cmbResType.ListIndex = 0
+      MDIMain.cmbResType.SelectedIndex = 0
       //update selected resource
-      frmMDIMain.SelectResource rtGame, -1
+      MDIMain.SelectResource rtGame, -1
     End Select
     
     //set default directory
@@ -11954,7 +11917,7 @@ public static void OpenDIR()
     
     // show resource tree pane
    if (Settings.ResListType != 0) {
-      frmMDIMain.ShowResTree
+      MDIMain.ShowResTree
     }
     
     //set default text file directory to game source file directory
@@ -12079,7 +12042,7 @@ public static void OpenSound(ByVal ResNum As Byte, Optional ByVal Quiet As Boole
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //step through all Sound editor windows
   For i = 1 To SoundEditors.Count
@@ -12106,7 +12069,7 @@ public static void OpenSound(ByVal ResNum As Byte, Optional ByVal Quiet As Boole
   }
 
   //open a new Sound editing window
-  Set frmNew = New frmSoundEdit
+  frmNew = New frmSoundEdit
   
   //if the resource is not loaded,
   blnLoaded = Sounds(ResNum).Loaded
@@ -12138,7 +12101,7 @@ public static void OpenSound(ByVal ResNum As Byte, Optional ByVal Quiet As Boole
     } else {
       //error
       Unload frmNew
-      Set frmNew = Nothing
+      frmNew = Nothing
     }
   } else {
    if (!Quiet) {
@@ -12170,7 +12133,7 @@ public static void OpenTextFile(strOpenFile As String, Optional ByVal Quiet As B
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //step through all log windows
   For i = 1 To LogicEditors.Count
@@ -12200,7 +12163,7 @@ public static void OpenTextFile(strOpenFile As String, Optional ByVal Quiet As B
   }
 
   //open a new logic editing window
-  Set frmNew = New frmTextEdit
+  frmNew = New frmTextEdit
   
   //if file does not exist,
  if (!CanAccessFile(strOpenFile)) {
@@ -12272,7 +12235,7 @@ public static void OpenLogic(ByVal ResNum As Byte, Optional ByVal Quiet As Boole
   On Error GoTo ErrHandler
 
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //step through all logic editor windows
   For i = 1 To LogicEditors.Count
@@ -12302,7 +12265,7 @@ public static void OpenLogic(ByVal ResNum As Byte, Optional ByVal Quiet As Boole
   }
 
   //open a new logic editing window
-  Set frmNew = New frmLogicEdit
+  frmNew = New frmLogicEdit
   
   //if the resource is not loaded,
   blnLoaded = Logics(ResNum).Loaded
@@ -12321,7 +12284,7 @@ public static void OpenLogic(ByVal ResNum As Byte, Optional ByVal Quiet As Boole
   } else {
     //error
     Unload frmNew
-    Set frmNew = Nothing
+    frmNew = Nothing
   }
   
   //unload if necessary
@@ -12358,7 +12321,7 @@ public Function TokenFromCursor(rtfLogic As RichEdAGI, Optional NoComment As Boo
   
   //get line (use range property of richedit)
   lngPos = rtfLogic.Selection.Range.StartPos
-  Set tmpRange = rtfLogic.Range(lngPos, lngPos)
+  tmpRange = rtfLogic.Range(lngPos, lngPos)
   tmpRange.StartOf reLine, true
   tmpRange.EndOf reLine, true
   strToken = tmpRange.Text
@@ -12371,7 +12334,7 @@ public Function TokenFromCursor(rtfLogic As RichEdAGI, Optional NoComment As Boo
   //(need to add 1 because the rtf editor position
   // is zero-based, but string functions are 1 based)
   lngPos = lngPos - tmpRange.StartPos + 1
-  Set tmpRange = Nothing
+  tmpRange = Nothing
   
  if (NoComment) {
     //strip off comments
@@ -12533,7 +12496,7 @@ public static void OpenPicture(ByVal ResNum As Byte, Optional ByVal Quiet As Boo
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //step through all Picture windows
   For i = 1 To PictureEditors.Count
@@ -12557,7 +12520,7 @@ public static void OpenPicture(ByVal ResNum As Byte, Optional ByVal Quiet As Boo
   }
   
   //open a new edit Picture form
-  Set frmNew = New frmPictureEdit
+  frmNew = New frmPictureEdit
   
   //if the resource is not loaded
   blnLoaded = Pictures(ResNum).Loaded
@@ -12585,7 +12548,7 @@ public static void OpenPicture(ByVal ResNum As Byte, Optional ByVal Quiet As Boo
   } else {
     //error
     Unload frmNew
-    Set frmNew = Nothing
+    frmNew = Nothing
   }
   
   //unload if necessary
@@ -12611,7 +12574,7 @@ public static void OpenView(ByVal ResNum As Byte, Optional ByVal Quiet As Boolea
   On Error GoTo ErrHandler
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   //step through all view windows
   For i = 1 To ViewEditors.Count
@@ -12636,7 +12599,7 @@ public static void OpenView(ByVal ResNum As Byte, Optional ByVal Quiet As Boolea
   }
   
   //open a new edit view form
-  Set frmNew = New frmViewEdit
+  frmNew = New frmViewEdit
   
   //if the resource is not loaded
   blnLoaded = Views(ResNum).Loaded
@@ -12668,7 +12631,7 @@ public static void OpenView(ByVal ResNum As Byte, Optional ByVal Quiet As Boolea
   } else {
     //error
     Unload frmNew
-    Set frmNew = Nothing
+    frmNew = Nothing
   }
   
   //unload if necessary
@@ -12761,9 +12724,9 @@ public Function CloseThisGame() As Boolean
   Next i
   
   //always clear and hide warning list if it is showing
- if (frmMDIMain.picWarnings.Visible) {
-    frmMDIMain.ClearWarnings -1, rtLogic
-    frmMDIMain.HideWarningList
+ if (MDIMain.picWarnings.Visible) {
+    MDIMain.ClearWarnings -1, rtLogic
+    MDIMain.HideWarningList
   }
   
   //always hide find dialog if it//s showing
@@ -12822,7 +12785,7 @@ public Function CloseThisGame() As Boolean
   //all resources should be unloaded, but just in case...
   
   //unload all resources
-  For Each tmpLog In Logics
+  foreach (tmpLog In Logics
     //Debug.Assert !tmpLog.Loaded
    if (tmpLog.Loaded) {
       //Debug.Print tmpLog.ID
@@ -12843,7 +12806,7 @@ public Function CloseThisGame() As Boolean
     }
   Next
   
-  For Each tmpPic In Pictures
+  foreach (tmpPic In Pictures
     //Debug.Assert !tmpPic.Loaded
    if (tmpPic.Loaded) {
       //if dirty
@@ -12863,7 +12826,7 @@ public Function CloseThisGame() As Boolean
     }
   Next
   
-  For Each tmpSnd In Sounds
+  foreach (tmpSnd In Sounds
     //Debug.Assert !tmpSnd.Loaded
    if (tmpSnd.Loaded) {
       //if dirty
@@ -12883,7 +12846,7 @@ public Function CloseThisGame() As Boolean
     }
   Next
   
-  For Each tmpView In Views
+  foreach (tmpView In Views
     //Debug.Assert !tmpView.Loaded
    if (tmpView.Loaded) {
       //if dirty
@@ -12905,10 +12868,10 @@ public Function CloseThisGame() As Boolean
   
   //if using resource tree
  if (Settings.ResListType != 0) {
-    frmMDIMain.HideResTree
+    MDIMain.HideResTree
     
     //clear resource list
-    frmMDIMain.ClearResourceList
+    MDIMain.ClearResourceList
   }
   
   //if using preview window
@@ -12929,11 +12892,11 @@ public Function CloseThisGame() As Boolean
   
   //update menus, toolbars, and caption
   AdjustMenus rtNone, false, false, false
-  frmMDIMain.Caption = "WinAGI GDS"
+  MDIMain.Caption = "WinAGI GDS"
   
   //reset index marker so selection of resources
   //works correctly first time after another game loaded
-  frmMDIMain.LastIndex = -1
+  MDIMain.LastIndex = -1
   
   //reset default text location to program dir
   DefaultResDir = ProgramDir
@@ -13127,7 +13090,7 @@ static void FindInLogic(ByVal FindText As String, ByVal FindDir As FindDirection
   }
   
   //show wait cursor
-  WaitCursor
+  MDIMain.UseWaitCursor = true;
   
   Select Case SearchForm.Name
   Case "frmLogicEdit", "frmTextEdit"
@@ -13284,13 +13247,13 @@ static void FindInLogic(ByVal FindText As String, ByVal FindDir As FindDirection
       //begin search in closed logics
       
       //first disable main form
-      frmMDIMain.Enabled = false
+      MDIMain.Enabled = false
       //set closelogics flag to false
       ClosedLogics = false
       //get number of next logic
       lngNextLogWin = FindInClosedLogics(FindText, FindDir, MatchWord, MatchCase, SearchType)
       //reenable form
-      frmMDIMain.Enabled = true
+      MDIMain.Enabled = true
       //if nothing found (lngnextlogwin =-1)
      if (lngNextLogWin = -1) {
         //show msgbox and exit
@@ -13511,14 +13474,14 @@ static void FindInLogic(ByVal FindText As String, ByVal FindDir As FindDirection
      if (BeginClosedLogics || ClosedLogics) {
       
         //first disable main form
-        frmMDIMain.Enabled = false
+        MDIMain.Enabled = false
         //get number of next logic
         lngNextLogWin = FindInClosedLogics(FindText, FindDir, MatchWord, MatchCase, SearchType)
         // clear the start-closed-logic-search flag
         BeginClosedLogics = false
         
         //reenable main form
-        frmMDIMain.Enabled = true
+        MDIMain.Enabled = true
         //if nothing found (lngnextlogwin =-1 or -2)
        if (lngNextLogWin < 0) {
           FoundPos = 0
@@ -13606,7 +13569,7 @@ static void FindInLogic(ByVal FindText As String, ByVal FindDir As FindDirection
       
       //force the form to activate, in case we need to add a statusbar update
       SafeDoEvents
-      //Debug.Print frmMDIMain.ActiveForm.Name
+      //Debug.Print MDIMain.ActiveForm.Name
     } else {
       //when searching from the dialog, make sure the logic is at top of zorder, but
       //don't need to give it focus
@@ -13618,12 +13581,12 @@ static void FindInLogic(ByVal FindText As String, ByVal FindDir As FindDirection
      if (FindText != QUOTECHAR + WordEditor.WordsEdit.GroupN(GFindGrpNum).GroupName + QUOTECHAR) {
         MainStatusBar.Panels(1).Text = FindText + " is a synonym for " + QUOTECHAR + WordEditor.WordsEdit.GroupN(GFindGrpNum).GroupName + QUOTECHAR
         //flash the status bar
-        frmMDIMain.tmrFlash.Enabled = true
+        MDIMain.tmrFlash.Enabled = true
       }
     }
     
     //this form is now the search form
-    Set SearchForm = LogicEditors(lngNextLogWin)
+    SearchForm = LogicEditors(lngNextLogWin)
     
   } else {  //search string was NOT found (or couldn//t open a window)
   
@@ -13727,7 +13690,7 @@ public static void AdjustMenus(ByVal NewMode As AGIResType, ByVal InGame As Bool
   //rtWarnings = 11
   //rtNone = 255
   
-  With frmMDIMain
+  With MDIMain
     //commands that are only available if a game is loaded
     .mnuGClose.Enabled = GameLoaded
     .mnuGCompile.Enabled = GameLoaded
@@ -14152,18 +14115,18 @@ public static void AdjustMenus(ByVal NewMode As AGIResType, ByVal InGame As Bool
     End Select
   End With
     
-  With frmMDIMain.Toolbar1
+  With MDIMain.Toolbar1
     //set toolbar buttons
     .Buttons("close").Enabled = GameLoaded
     .Buttons("run").Enabled = GameLoaded
     .Buttons("import_r").Enabled = GameLoaded
     .Buttons("layout").Enabled = (GameLoaded && UseLE)
-    .Buttons("menu").Enabled = frmMDIMain.mnuTMenuEditor.Enabled
-    .Buttons("globals").Enabled = frmMDIMain.mnuTGlobals.Enabled
-    .Buttons("print").Enabled = frmMDIMain.mnuRPrint.Enabled
-    .Buttons("remove").Enabled = frmMDIMain.mnuRInGame.Enabled
-    .Buttons("export").Enabled = frmMDIMain.mnuRExport.Enabled
-    .Buttons("save").Enabled = frmMDIMain.mnuRSave.Enabled
+    .Buttons("menu").Enabled = MDIMain.mnuTMenuEditor.Enabled
+    .Buttons("globals").Enabled = MDIMain.mnuTGlobals.Enabled
+    .Buttons("print").Enabled = MDIMain.mnuRPrint.Enabled
+    .Buttons("remove").Enabled = MDIMain.mnuRInGame.Enabled
+    .Buttons("export").Enabled = MDIMain.mnuRExport.Enabled
+    .Buttons("save").Enabled = MDIMain.mnuRSave.Enabled
     Select Case NewMode
     Case rtNone
       .Buttons("save").ToolTipText = "Save"
@@ -14221,241 +14184,241 @@ public static void AdjustMenus(ByVal NewMode As AGIResType, ByVal InGame As Bool
       Select Case NewMode
       Case rtNone, rtGame, rtGlobals, rtWarnings
         //only caps, num, and insert
-        Set tmpPanel = .Panels.Add(1, , , sbrText)
+        tmpPanel = .Panels.Add(1, , , sbrText)
           tmpPanel.AutoSize = sbrSpring
           tmpPanel.Bevel = sbrNoBevel
           tmpPanel.MinWidth = 132
          
-         Set tmpPanel = .Panels.Add(2, , , sbrCaps)
+         tmpPanel = .Panels.Add(2, , , sbrCaps)
            tmpPanel.Alignment = sbrCenter
            tmpPanel.MinWidth = 750
            tmpPanel.Width = 750
          
-         Set tmpPanel = .Panels.Add(3, , , sbrNum)
+         tmpPanel = .Panels.Add(3, , , sbrNum)
            tmpPanel.Alignment = sbrCenter
            tmpPanel.MinWidth = 750
            tmpPanel.Width = 750
     
-         Set tmpPanel = .Panels.Add(4, , , sbrIns)
+         tmpPanel = .Panels.Add(4, , , sbrIns)
            tmpPanel.Alignment = sbrCenter
            tmpPanel.MinWidth = 750
            tmpPanel.Width = 750
            
       Case rtLogic, rtText
-        Set tmpPanel = .Panels.Add(1, "Status", , sbrText)
+        tmpPanel = .Panels.Add(1, "Status", , sbrText)
           tmpPanel.AutoSize = sbrSpring
           tmpPanel.Alignment = sbrLeft
-          //Debug.Assert !frmMDIMain.ActiveForm Is Nothing
-          tmpPanel.Text = frmMDIMain.ActiveForm.Tag
+          //Debug.Assert !MDIMain.ActiveForm Is Nothing
+          tmpPanel.Text = MDIMain.ActiveForm.Tag
           
-         Set tmpPanel = .Panels.Add(2, "Row", , sbrText)
+         tmpPanel = .Panels.Add(2, "Row", , sbrText)
            tmpPanel.MinWidth = 1587
            tmpPanel.Width = 1587
          
-         Set tmpPanel = .Panels.Add(3, "Col", , sbrText)
+         tmpPanel = .Panels.Add(3, "Col", , sbrText)
            tmpPanel.MinWidth = 1323
            tmpPanel.Width = 1323
          
-         Set tmpPanel = .Panels.Add(4, , , sbrCaps)
+         tmpPanel = .Panels.Add(4, , , sbrCaps)
            tmpPanel.Alignment = sbrCenter
            tmpPanel.MinWidth = 750
            tmpPanel.Width = 750
          
-         Set tmpPanel = .Panels.Add(5, , , sbrNum)
+         tmpPanel = .Panels.Add(5, , , sbrNum)
            tmpPanel.Alignment = sbrCenter
            tmpPanel.MinWidth = 750
            tmpPanel.Width = 750
     
-         Set tmpPanel = .Panels.Add(6, , , sbrIns)
+         tmpPanel = .Panels.Add(6, , , sbrIns)
            tmpPanel.Alignment = sbrCenter
            tmpPanel.MinWidth = 750
            tmpPanel.Width = 750
          
       Case rtPicture
-        Set tmpPanel = .Panels.Add(1, "Scale", , sbrText)
+        tmpPanel = .Panels.Add(1, "Scale", , sbrText)
           tmpPanel.Width = 1720
           tmpPanel.MinWidth = 1720
           
-        Set tmpPanel = .Panels.Add(2, "Mode", , sbrText)
+        tmpPanel = .Panels.Add(2, "Mode", , sbrText)
           tmpPanel.Width = 1323
           tmpPanel.MinWidth = 1323
           
-        Set tmpPanel = .Panels.Add(3, "Tool", , sbrText)
+        tmpPanel = .Panels.Add(3, "Tool", , sbrText)
           tmpPanel.MinWidth = 1323
           tmpPanel.Width = 2646
           
-        Set tmpPanel = .Panels.Add(4, "Anchor", , sbrText)
+        tmpPanel = .Panels.Add(4, "Anchor", , sbrText)
           tmpPanel.MinWidth = 1335
           tmpPanel.Width = 1335
           tmpPanel.Visible = false
           
-        Set tmpPanel = .Panels.Add(5, "Block", , sbrText)
+        tmpPanel = .Panels.Add(5, "Block", , sbrText)
           tmpPanel.MinWidth = 1935
           tmpPanel.Width = 1935
           tmpPanel.Visible = false
           
-        Set tmpPanel = .Panels.Add(6, , , sbrText)
+        tmpPanel = .Panels.Add(6, , , sbrText)
           tmpPanel.AutoSize = sbrSpring
           tmpPanel.Bevel = sbrNoBevel
           tmpPanel.MinWidth = 132
           
-        Set tmpPanel = .Panels.Add(7, "CurX", , sbrText)
+        tmpPanel = .Panels.Add(7, "CurX", , sbrText)
           tmpPanel.MinWidth = 1111
           tmpPanel.Width = 1111
           
-        Set tmpPanel = .Panels.Add(8, "CurY", , sbrText)
+        tmpPanel = .Panels.Add(8, "CurY", , sbrText)
           tmpPanel.MinWidth = 1111
           tmpPanel.Width = 1111
           
-        Set tmpPanel = .Panels.Add(9, "PriBand", , sbrText)
+        tmpPanel = .Panels.Add(9, "PriBand", , sbrText)
           tmpPanel.Alignment = sbrRight
           tmpPanel.MinWidth = 1587
           tmpPanel.Width = 1587
           
       Case rtSound
-        Set tmpPanel = .Panels.Add(1, "Scale", , sbrText)
+        tmpPanel = .Panels.Add(1, "Scale", , sbrText)
           tmpPanel.Width = 860
           tmpPanel.MinWidth = 860
           
-        Set tmpPanel = .Panels.Add(2, "Time", , sbrText)
+        tmpPanel = .Panels.Add(2, "Time", , sbrText)
           tmpPanel.Width = 1323
           tmpPanel.MinWidth = 1323
           
-        Set tmpPanel = .Panels.Add(3, , , sbrText)
+        tmpPanel = .Panels.Add(3, , , sbrText)
           tmpPanel.AutoSize = sbrSpring
           tmpPanel.Bevel = sbrNoBevel
           tmpPanel.MinWidth = 132
           
-        Set tmpPanel = .Panels.Add(4, , , sbrCaps)
+        tmpPanel = .Panels.Add(4, , , sbrCaps)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
         
-        Set tmpPanel = .Panels.Add(5, , , sbrNum)
+        tmpPanel = .Panels.Add(5, , , sbrNum)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
         
-        Set tmpPanel = .Panels.Add(6, , , sbrIns)
+        tmpPanel = .Panels.Add(6, , , sbrIns)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
               
       Case rtView
-        Set tmpPanel = .Panels.Add(1, "Scale", , sbrText)
+        tmpPanel = .Panels.Add(1, "Scale", , sbrText)
           tmpPanel.Width = 1720
           tmpPanel.MinWidth = 1720
           
-        Set tmpPanel = .Panels.Add(2, "Tool", , sbrText)
+        tmpPanel = .Panels.Add(2, "Tool", , sbrText)
           tmpPanel.Width = 1984
           tmpPanel.MinWidth = 1984
           
-        Set tmpPanel = .Panels.Add(3, , , sbrText)
+        tmpPanel = .Panels.Add(3, , , sbrText)
           tmpPanel.AutoSize = sbrSpring
           tmpPanel.Bevel = sbrNoBevel
           tmpPanel.MinWidth = 132
           
-        Set tmpPanel = .Panels.Add(4, "CurX", , sbrText)
+        tmpPanel = .Panels.Add(4, "CurX", , sbrText)
           tmpPanel.MinWidth = 1111
           tmpPanel.Width = 1111
           
-        Set tmpPanel = .Panels.Add(5, "CurY", , sbrText)
+        tmpPanel = .Panels.Add(5, "CurY", , sbrText)
           tmpPanel.MinWidth = 1111
           tmpPanel.Width = 1111
             
       Case rtObjects
-        Set tmpPanel = .Panels.Add(1, "Count", , sbrText)
+        tmpPanel = .Panels.Add(1, "Count", , sbrText)
           tmpPanel.MinWidth = 1587
           tmpPanel.Width = 1587
        
-        Set tmpPanel = .Panels.Add(2, "Encrypt", , sbrText)
+        tmpPanel = .Panels.Add(2, "Encrypt", , sbrText)
           tmpPanel.MinWidth = 1587
           tmpPanel.Width = 1587
        
-        Set tmpPanel = .Panels.Add(3, , , sbrText)
+        tmpPanel = .Panels.Add(3, , , sbrText)
           tmpPanel.AutoSize = sbrSpring
           tmpPanel.Bevel = sbrNoBevel
           tmpPanel.MinWidth = 132
          
-        Set tmpPanel = .Panels.Add(4, , , sbrCaps)
+        tmpPanel = .Panels.Add(4, , , sbrCaps)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
         
-        Set tmpPanel = .Panels.Add(5, , , sbrNum)
+        tmpPanel = .Panels.Add(5, , , sbrNum)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
         
-        Set tmpPanel = .Panels.Add(6, , , sbrIns)
+        tmpPanel = .Panels.Add(6, , , sbrIns)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
        
       Case rtWords
-        Set tmpPanel = .Panels.Add(1, "GroupCount", , sbrText)
+        tmpPanel = .Panels.Add(1, "GroupCount", , sbrText)
           tmpPanel.MinWidth = 1587
           tmpPanel.Width = 1587
         
-        Set tmpPanel = .Panels.Add(2, "WordCount", , sbrText)
+        tmpPanel = .Panels.Add(2, "WordCount", , sbrText)
           tmpPanel.MinWidth = 1587
           tmpPanel.Width = 1587
         
-        Set tmpPanel = .Panels.Add(3, , , sbrText)
+        tmpPanel = .Panels.Add(3, , , sbrText)
           tmpPanel.AutoSize = sbrSpring
           tmpPanel.Bevel = sbrNoBevel
           tmpPanel.MinWidth = 132
           
-        Set tmpPanel = .Panels.Add(4, , , sbrCaps)
+        tmpPanel = .Panels.Add(4, , , sbrCaps)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
         
-        Set tmpPanel = .Panels.Add(5, , , sbrNum)
+        tmpPanel = .Panels.Add(5, , , sbrNum)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
     
-        Set tmpPanel = .Panels.Add(6, , , sbrIns)
+        tmpPanel = .Panels.Add(6, , , sbrIns)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
           
       Case rtLayout
-        Set tmpPanel = .Panels.Add(1, "Scale", , sbrText)
+        tmpPanel = .Panels.Add(1, "Scale", , sbrText)
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
           
-        Set tmpPanel = .Panels.Add(2, "Tool", , sbrText)
+        tmpPanel = .Panels.Add(2, "Tool", , sbrText)
           tmpPanel.MinWidth = 2000
           tmpPanel.Width = 2000
           
-        Set tmpPanel = .Panels.Add(3, "ID", , sbrText)
+        tmpPanel = .Panels.Add(3, "ID", , sbrText)
           tmpPanel.Width = 1323
           tmpPanel.MinWidth = 1323
           
-        Set tmpPanel = .Panels.Add(4, "Type", , sbrText)
+        tmpPanel = .Panels.Add(4, "Type", , sbrText)
           tmpPanel.Width = 1323
           tmpPanel.MinWidth = 1323
           
-        Set tmpPanel = .Panels.Add(5, "Room1", , sbrText)
+        tmpPanel = .Panels.Add(5, "Room1", , sbrText)
           tmpPanel.Width = 2646
           tmpPanel.MinWidth = 2646 //1323
           
-        Set tmpPanel = .Panels.Add(6, "Room2", , sbrText)
+        tmpPanel = .Panels.Add(6, "Room2", , sbrText)
           tmpPanel.Width = 2646
           tmpPanel.MinWidth = 2646 //1323
           
-        Set tmpPanel = .Panels.Add(7, , , sbrText)
+        tmpPanel = .Panels.Add(7, , , sbrText)
           tmpPanel.AutoSize = sbrSpring
           tmpPanel.Bevel = sbrNoBevel
           tmpPanel.MinWidth = 132
           
-        Set tmpPanel = .Panels.Add(8, "CurX", , sbrText)
+        tmpPanel = .Panels.Add(8, "CurX", , sbrText)
           tmpPanel.MinWidth = 1111
           tmpPanel.Width = 1111
           
-        Set tmpPanel = .Panels.Add(9, "CurY", , sbrText)
+        tmpPanel = .Panels.Add(9, "CurY", , sbrText)
           tmpPanel.MinWidth = 1111
           tmpPanel.Width = 1111
       End Select
@@ -14463,44 +14426,44 @@ public static void AdjustMenus(ByVal NewMode As AGIResType, ByVal InGame As Bool
     } else {
       Select Case NewMode
       Case rtLogic, rtPicture, rtSound, rtView
-        Set tmpPanel = .Panels.Add(1, , , sbrText)
+        tmpPanel = .Panels.Add(1, , , sbrText)
           tmpPanel.AutoSize = sbrSpring
           tmpPanel.Bevel = sbrNoBevel
           tmpPanel.MinWidth = 132
         
-        Set tmpPanel = .Panels.Add(2, , , sbrCaps)
+        tmpPanel = .Panels.Add(2, , , sbrCaps)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
         
-        Set tmpPanel = .Panels.Add(3, , , sbrNum)
+        tmpPanel = .Panels.Add(3, , , sbrNum)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
         
-        Set tmpPanel = .Panels.Add(4, , , sbrIns)
+        tmpPanel = .Panels.Add(4, , , sbrIns)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
         
       default:
         //same as game/none
-        Set tmpPanel = .Panels.Add(1, , , sbrText)
+        tmpPanel = .Panels.Add(1, , , sbrText)
           tmpPanel.AutoSize = sbrSpring
           tmpPanel.Bevel = sbrNoBevel
           tmpPanel.MinWidth = 132
         
-        Set tmpPanel = .Panels.Add(2, , , sbrCaps)
+        tmpPanel = .Panels.Add(2, , , sbrCaps)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
         
-        Set tmpPanel = .Panels.Add(3, , , sbrNum)
+        tmpPanel = .Panels.Add(3, , , sbrNum)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
         
-        Set tmpPanel = .Panels.Add(4, , , sbrIns)
+        tmpPanel = .Panels.Add(4, , , sbrIns)
           tmpPanel.Alignment = sbrCenter
           tmpPanel.MinWidth = 750
           tmpPanel.Width = 750
@@ -14709,33 +14672,33 @@ public static void RemovePicture(ByVal PicNum As Byte)
   
   Select Case Settings.ResListType
   Case 1
-    With frmMDIMain.tvwResources
+    With MDIMain.tvwResources
       //remove it from resource list
-      .Nodes.Remove frmMDIMain.tvwResources.Nodes("p" + CStr(PicNum)).Index
+      .Nodes.Remove MDIMain.tvwResources.Nodes("p" + CStr(PicNum)).Index
       
       //update selection to whatever is now the selected node
-      frmMDIMain.LastIndex = -1
+      MDIMain.LastIndex = -1
       
      if (.SelectedItem.Parent Is Nothing) {
         //it//s the game node
-        frmMDIMain.SelectResource rtGame, -1
+        MDIMain.SelectResource rtGame, -1
       } else if ( .SelectedItem.Parent.Parent Is Nothing) {
         //it//s a resource header
-        frmMDIMain.SelectResource .SelectedItem.Index - 2, -1
+        MDIMain.SelectResource .SelectedItem.Index - 2, -1
       } else {
         //it//s a resource
-        frmMDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
+        MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
       }
     End With
     
   Case 2
     //only need to remove if pictures are listed
-   if (frmMDIMain.cmbResType.ListIndex = 2) {
+   if (MDIMain.cmbResType.SelectedIndex = 2) {
       //remove it
-      frmMDIMain.lstResources.ListItems.Remove frmMDIMain.lstResources.ListItems("p" + CStr(PicNum)).Index
+      MDIMain.lstResources.ListItems.Remove MDIMain.lstResources.ListItems("p" + CStr(PicNum)).Index
       //use click event to update
-      frmMDIMain.lstResources_Click
-      frmMDIMain.lstResources.SelectedItem.Selected = true
+      MDIMain.lstResources_Click
+      MDIMain.lstResources.SelectedItem.Selected = true
     }
   End Select
     
@@ -14801,33 +14764,33 @@ public static void RemoveSound(ByVal SndNum As Byte)
   
   Select Case Settings.ResListType
   Case 1
-    With frmMDIMain.tvwResources
+    With MDIMain.tvwResources
       //remove it from resource list
-      .Nodes.Remove frmMDIMain.tvwResources.Nodes("s" + CStr(SndNum)).Index
+      .Nodes.Remove MDIMain.tvwResources.Nodes("s" + CStr(SndNum)).Index
       
       //update selection to whatever is now the selected node
-      frmMDIMain.LastIndex = -1
+      MDIMain.LastIndex = -1
       
      if (.SelectedItem.Parent Is Nothing) {
         //it//s the game node
-        frmMDIMain.SelectResource rtGame, -1
+        MDIMain.SelectResource rtGame, -1
       } else if ( .SelectedItem.Parent.Parent Is Nothing) {
         //it//s a resource header
-        frmMDIMain.SelectResource .SelectedItem.Index - 2, -1
+        MDIMain.SelectResource .SelectedItem.Index - 2, -1
       } else {
         //it//s a resource
-        frmMDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
+        MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
       }
     End With
   
   Case 2
     //only need to remove if sounds are listed
-   if (frmMDIMain.cmbResType.ListIndex = 3) {
+   if (MDIMain.cmbResType.SelectedIndex = 3) {
       //remove it
-      frmMDIMain.lstResources.ListItems.Remove frmMDIMain.lstResources.ListItems("s" + CStr(SndNum)).Index
+      MDIMain.lstResources.ListItems.Remove MDIMain.lstResources.ListItems("s" + CStr(SndNum)).Index
       //use click event to update
-      frmMDIMain.lstResources_Click
-      frmMDIMain.lstResources.SelectedItem.Selected = true
+      MDIMain.lstResources_Click
+      MDIMain.lstResources.SelectedItem.Selected = true
     }
   End Select
   
@@ -14895,33 +14858,33 @@ public static void RemoveView(ByVal ViewNum As Byte)
   
   Select Case Settings.ResListType
   Case 1
-    With frmMDIMain.tvwResources
+    With MDIMain.tvwResources
       //remove it from resource list
-      .Nodes.Remove frmMDIMain.tvwResources.Nodes("v" + CStr(ViewNum)).Index
+      .Nodes.Remove MDIMain.tvwResources.Nodes("v" + CStr(ViewNum)).Index
       
       //update selection to whatever is now the selected node
-      frmMDIMain.LastIndex = -1
+      MDIMain.LastIndex = -1
       
      if (.SelectedItem.Parent Is Nothing) {
         //it//s the game node
-        frmMDIMain.SelectResource rtGame, -1
+        MDIMain.SelectResource rtGame, -1
       } else if ( .SelectedItem.Parent.Parent Is Nothing) {
         //it//s a resource header
-        frmMDIMain.SelectResource .SelectedItem.Index - 2, -1
+        MDIMain.SelectResource .SelectedItem.Index - 2, -1
       } else {
         //it//s a resource
-        frmMDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
+        MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
       }
     End With
   
   Case 2
     //only need to remove if views are listed
-   if (frmMDIMain.cmbResType.ListIndex = 4) {
+   if (MDIMain.cmbResType.SelectedIndex = 4) {
       //remove it
-      frmMDIMain.lstResources.ListItems.Remove frmMDIMain.lstResources.ListItems("v" + CStr(ViewNum)).Index
+      MDIMain.lstResources.ListItems.Remove MDIMain.lstResources.ListItems("v" + CStr(ViewNum)).Index
       //use click event to update
-      frmMDIMain.lstResources_Click
-      frmMDIMain.lstResources.SelectedItem.Selected = true
+      MDIMain.lstResources_Click
+      MDIMain.lstResources.SelectedItem.Selected = true
     }
   End Select
   
@@ -15011,7 +14974,7 @@ public Function RenumberResource(ByVal OldResNum As Byte, ByVal ResType As AGIRe
     .WindowFunction = grRenumber
     //setup before loading so ghosts don't show up
     .FormSetup
-    .Show vbModal, frmMDIMain
+    .Show vbModal, MDIMain
   End With
   
   //if user makes a choice AND number is different
@@ -15049,28 +15012,28 @@ public Function RenumberResource(ByVal OldResNum As Byte, ByVal ResType As AGIRe
     //update resource list
     Select Case Settings.ResListType
     Case 1
-      With frmMDIMain.tvwResources
+      With MDIMain.tvwResources
         //remove the old node
         .Nodes.Remove strResType + CStr(OldResNum)
       
         //start with first node of this Type
-        Set tmpNode = .Nodes(ResType + 2).Child
+        tmpNode = .Nodes(ResType + 2).Child
         
         //if there are no nodes
        if (tmpNode Is Nothing) {
           //add first child
-          Set tmpNode = .Nodes(ResType + 2)
+          tmpNode = .Nodes(ResType + 2)
           tvwRel = tvwChild
         //if this node belongs at end of list
         } else if ( NewResNum > tmpNode.LastSibling.Tag) {
           //add to end
-          Set tmpNode = tmpNode.LastSibling
+          tmpNode = tmpNode.LastSibling
           tvwRel = tvwNext
         } else {
           //get position which should immediately follow this resource
           //step through until a node is found that is past this new number
           Do Until CByte(tmpNode.Tag) > NewResNum
-            Set tmpNode = tmpNode.Next
+            tmpNode = tmpNode.Next
           Loop
           tvwRel = tvwPrevious
         }
@@ -15088,30 +15051,30 @@ public Function RenumberResource(ByVal OldResNum As Byte, ByVal ResType As AGIRe
         }
         
         //update by re-selecting
-        frmMDIMain.LastIndex = -1
+        MDIMain.LastIndex = -1
         
        if (.SelectedItem.Parent Is Nothing) {
           //it//s the game node
-          frmMDIMain.SelectResource rtGame, -1
+          MDIMain.SelectResource rtGame, -1
         } else if ( .SelectedItem.Parent.Parent Is Nothing) {
           //it//s a resource header
-          frmMDIMain.SelectResource .SelectedItem.Index - 2, -1
+          MDIMain.SelectResource .SelectedItem.Index - 2, -1
         } else {
           //it//s a resource
-          frmMDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
+          MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
         }
       End With
     Case 2
       //only update if the resource type is being listed
-     if (frmMDIMain.cmbResType.ListIndex - 1 = ResType) {
-        With frmMDIMain.lstResources.ListItems
+     if (MDIMain.cmbResType.SelectedIndex - 1 = ResType) {
+        With MDIMain.lstResources.ListItems
           //remove it from current location
           .Remove strResType + CStr(OldResNum)
           
           //if nothing left
          if (.Count = 0) {
             //add it as first item
-            Set tmpListItem = .Add(, strResType + CStr(NewResNum), ResourceName(Pictures(NewResNum), true))
+            tmpListItem = .Add(, strResType + CStr(NewResNum), ResourceName(Pictures(NewResNum), true))
         
           } else {
             //get index position to add a new one
@@ -15121,7 +15084,7 @@ public Function RenumberResource(ByVal OldResNum As Byte, ByVal ResType As AGIRe
               }
             Next i
             //add it at this index point
-            Set tmpListItem = .Add(i, strResType + CStr(NewResNum), ResourceName(Pictures(NewResNum), true))
+            tmpListItem = .Add(i, strResType + CStr(NewResNum), ResourceName(Pictures(NewResNum), true))
           }
           
           //add  tag
@@ -15139,7 +15102,7 @@ public Function RenumberResource(ByVal OldResNum As Byte, ByVal ResType As AGIRe
           tmpListItem.Selected = true
           
           //use click event to update
-          frmMDIMain.lstResources_Click
+          MDIMain.lstResources_Click
         End With
       }
     End Select
@@ -15181,8 +15144,8 @@ public static void ReplaceAll(ByVal FindText As String, ByVal ReplaceText As Str
     //restore mouse, reneable main form, and exit
     //Debug.Assert Screen.MousePointer = vbDefault
     Screen.MousePointer = vbDefault
-    //Debug.Assert frmMDIMain.Enabled = true
-    frmMDIMain.Enabled = true
+    //Debug.Assert MDIMain.Enabled = true
+    MDIMain.Enabled = true
     return;
   }
   
@@ -15190,7 +15153,7 @@ public static void ReplaceAll(ByVal FindText As String, ByVal ReplaceText As Str
  if ((LenB(FindText) = 0)) {
     //restore mouse, reneable main form, and exit
     Screen.MousePointer = vbDefault
-    frmMDIMain.Enabled = true
+    MDIMain.Enabled = true
     return;
   }
   
@@ -15198,9 +15161,9 @@ public static void ReplaceAll(ByVal FindText As String, ByVal ReplaceText As Str
   Select Case SearchType
   Case rtNone, rtLogic, rtPicture, rtSound, rtView
     //show wait cursor
-    WaitCursor
+    MDIMain.UseWaitCursor = true;
     //disable main form
-    frmMDIMain.Enabled = false
+    MDIMain.Enabled = false
     //refresh (normal DoEvents here; otherwise SafeDoEvents will re-enable the form)
     DoEvents
   End Select
@@ -15218,7 +15181,7 @@ public static void ReplaceAll(ByVal FindText As String, ByVal ReplaceText As Str
       .Caption = "Replace All"
       .lblProgress.Caption = "Searching..."
       .pgbStatus.Max = LogicEditors.Count
-      .Show vbModeless, frmMDIMain
+      .Show vbModeless, MDIMain
       .Refresh
     End With
 
@@ -15261,7 +15224,7 @@ public static void ReplaceAll(ByVal FindText As String, ByVal ReplaceText As Str
         
         .pgbStatus.Max = Logics.Count
         .pgbStatus.Value = 0
-        .Show vbModeless, frmMDIMain
+        .Show vbModeless, MDIMain
         .Refresh
       End With
     }
@@ -15343,13 +15306,13 @@ public static void ReplaceAll(ByVal FindText As String, ByVal ReplaceText As Str
     }
     
     //enable form and reset cursor
-    frmMDIMain.Enabled = true
+    MDIMain.Enabled = true
     Screen.MousePointer = vbDefault
     
     // have to set focus to main form in order get the child forms
     // to properly switch focus (the searching logic should always
     // get the focus after a replace all; not the FindForm)
-    frmMDIMain.SetFocus
+    MDIMain.SetFocus
   End Select
     
   //reset search flags
@@ -15534,7 +15497,7 @@ public static void UpdateExitInfo(ByVal Reason As EUReason, ByVal LogicNumber As
   //if adding new room, showing existing room, or updating an existing room,
  if (Reason = euAddRoom || Reason = euShowRoom || Reason = euUpdateRoom) {
     //get new exits from the logic that was passed
-    Set tmpExits = ExtractExits(ThisLogic)
+    tmpExits = ExtractExits(ThisLogic)
   }
   
   //if a layout file exists, it needs to be updated too
@@ -15564,7 +15527,7 @@ public Function ParseExits(strExitInfo As String, strVer As String) As AGIExits
   Dim strExit() As String, strData() As String
   Dim i As Long, offset As Long, Size As Long
   
-  Set ParseExits = New AGIExits
+  ParseExits = New AGIExits
   
   On Error GoTo ErrHandler
   
@@ -15607,17 +15570,31 @@ ErrHandler:
   //error!
   //Debug.Assert false
   Resume Next
-  Set ParseExits = Nothing
+  ParseExits = Nothing
 End Function
       */
     }
-    public static void WaitCursor()
- {
-      //called whenever a wait cursor is needed due to a long-running process
-      //use screen object//s cursor, which covers entire app
+    public static string LoadResString(int index)
+    {
+      // this function is just a handy way to get resource strings by number
+      // instead of by stringkey
+      try
+      {
+        return resman1.ResourceManager.GetString(index.ToString());
+      }
+      catch (Exception)
+      {
+        // return nothing if string doesn't exist
+        return "";
+      }
+    }
+    public static string InstrumentName(int instrument)
+    {
+      
+      //returns a string Value of an instrument
+      return LoadResString(INSTRUMENTNAMETEXT + instrument);
+    }
 
-      MDIMain.Cursor = Cursors.WaitCursor;
-}
     public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int scale = 1)
     {
       //to scale the picture without blurring, need to use NearestNeighbor interpolation

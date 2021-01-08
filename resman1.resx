@@ -1,0 +1,1866 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="1202" xml:space="preserve">
+    <value>Delete Loop</value>
+  </data>
+  <data name="1203" xml:space="preserve">
+    <value>Delete Cel</value>
+  </data>
+  <data name="1204" xml:space="preserve">
+    <value>Change View Desc</value>
+  </data>
+  <data name="1205" xml:space="preserve">
+    <value>Change Cel Height</value>
+  </data>
+  <data name="1206" xml:space="preserve">
+    <value>Change Cel Width</value>
+  </data>
+  <data name="1207" xml:space="preserve">
+    <value>Change Cel Height</value>
+  </data>
+  <data name="1208" xml:space="preserve">
+    <value>Change Cel Width</value>
+  </data>
+  <data name="1209" xml:space="preserve">
+    <value>Flip Horizontal</value>
+  </data>
+  <data name="1210" xml:space="preserve">
+    <value>Flip Vertical</value>
+  </data>
+  <data name="1211" xml:space="preserve">
+    <value>Draw Line</value>
+  </data>
+  <data name="1212" xml:space="preserve">
+    <value>Draw Box</value>
+  </data>
+  <data name="1213" xml:space="preserve">
+    <value>Draw BoxFill</value>
+  </data>
+  <data name="1214" xml:space="preserve">
+    <value>Pencil</value>
+  </data>
+  <data name="1215" xml:space="preserve">
+    <value>Erase</value>
+  </data>
+  <data name="1216" xml:space="preserve">
+    <value>Paint Fill</value>
+  </data>
+  <data name="1217" xml:space="preserve">
+    <value>Mirror</value>
+  </data>
+  <data name="1218" xml:space="preserve">
+    <value>Change TransColor</value>
+  </data>
+  <data name="1219" xml:space="preserve">
+    <value>Paste Loop</value>
+  </data>
+  <data name="1220" xml:space="preserve">
+    <value>Paste Cel</value>
+  </data>
+  <data name="1221" xml:space="preserve">
+    <value>Cut Selection</value>
+  </data>
+  <data name="1222" xml:space="preserve">
+    <value>Delete Selection</value>
+  </data>
+  <data name="1223" xml:space="preserve">
+    <value>Paste Selection</value>
+  </data>
+  <data name="1224" xml:space="preserve">
+    <value>Move Selection</value>
+  </data>
+  <data name="1225" xml:space="preserve">
+    <value>Clear Loop</value>
+  </data>
+  <data name="1226" xml:space="preserve">
+    <value>Clear Cel</value>
+  </data>
+  <data name="1227" xml:space="preserve">
+    <value>Cut Loop</value>
+  </data>
+  <data name="1228" xml:space="preserve">
+    <value>Cut Cel</value>
+  </data>
+  <data name="1300" xml:space="preserve">
+    <value>Change Color</value>
+  </data>
+  <data name="1301" xml:space="preserve">
+    <value>Change Plot Pen</value>
+  </data>
+  <data name="1302" xml:space="preserve">
+    <value>Delete </value>
+  </data>
+  <data name="1303" xml:space="preserve">
+    <value>Delete Coordinate</value>
+  </data>
+  <data name="1304" xml:space="preserve">
+    <value>Add </value>
+  </data>
+  <data name="1305" xml:space="preserve">
+    <value>Add Coordinate</value>
+  </data>
+  <data name="1306" xml:space="preserve">
+    <value>Insert Coordinate</value>
+  </data>
+  <data name="1307" xml:space="preserve">
+    <value>Edit Coordinate</value>
+  </data>
+  <data name="1308" xml:space="preserve">
+    <value>Draw Rectangle</value>
+  </data>
+  <data name="1309" xml:space="preserve">
+    <value>Draw Trapezoid</value>
+  </data>
+  <data name="1310" xml:space="preserve">
+    <value>Draw Ellipse</value>
+  </data>
+  <data name="1311" xml:space="preserve">
+    <value>Join Commands</value>
+  </data>
+  <data name="1312" xml:space="preserve">
+    <value>Split Command</value>
+  </data>
+  <data name="1313" xml:space="preserve">
+    <value>Cut </value>
+  </data>
+  <data name="1314" xml:space="preserve">
+    <value>Paste Command</value>
+  </data>
+  <data name="1315" xml:space="preserve">
+    <value>Move Command</value>
+  </data>
+  <data name="1316" xml:space="preserve">
+    <value>Flip Horizontal</value>
+  </data>
+  <data name="1317" xml:space="preserve">
+    <value>Flip Vertical</value>
+  </data>
+  <data name="1318" xml:space="preserve">
+    <value>addplotpattern</value>
+  </data>
+  <data name="1319" xml:space="preserve">
+    <value>delplotpattern</value>
+  </data>
+  <data name="1320" xml:space="preserve">
+    <value>Edit Plot Coordinate</value>
+  </data>
+  <data name="1321" xml:space="preserve">
+    <value>Priority Base</value>
+  </data>
+  <data name="1400" xml:space="preserve">
+    <value>Change Key</value>
+  </data>
+  <data name="1401" xml:space="preserve">
+    <value>Change TPQN</value>
+  </data>
+  <data name="1402" xml:space="preserve">
+    <value>Change Instrument</value>
+  </data>
+  <data name="1403" xml:space="preserve">
+    <value>Edit Note</value>
+  </data>
+  <data name="1404" xml:space="preserve">
+    <value>Cut</value>
+  </data>
+  <data name="1405" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="1406" xml:space="preserve">
+    <value>Add Note</value>
+  </data>
+  <data name="1407" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="1408" xml:space="preserve">
+    <value>Shift Key</value>
+  </data>
+  <data name="1409" xml:space="preserve">
+    <value>Shift Volume</value>
+  </data>
+  <data name="1500" xml:space="preserve">
+    <value>Add Group</value>
+  </data>
+  <data name="1501" xml:space="preserve">
+    <value>Delete Group</value>
+  </data>
+  <data name="1502" xml:space="preserve">
+    <value>Renumber Group</value>
+  </data>
+  <data name="1503" xml:space="preserve">
+    <value>Add Word</value>
+  </data>
+  <data name="1504" xml:space="preserve">
+    <value>Delete Word</value>
+  </data>
+  <data name="1505" xml:space="preserve">
+    <value>Move Word</value>
+  </data>
+  <data name="1506" xml:space="preserve">
+    <value>Edit Word</value>
+  </data>
+  <data name="1507" xml:space="preserve">
+    <value>Change Description</value>
+  </data>
+  <data name="1508" xml:space="preserve">
+    <value>Cut Word</value>
+  </data>
+  <data name="1509" xml:space="preserve">
+    <value>Cut Group</value>
+  </data>
+  <data name="1510" xml:space="preserve">
+    <value>Paste Word</value>
+  </data>
+  <data name="1511" xml:space="preserve">
+    <value>Paste Group</value>
+  </data>
+  <data name="1512" xml:space="preserve">
+    <value>Replace</value>
+  </data>
+  <data name="1513" xml:space="preserve">
+    <value>Replace All</value>
+  </data>
+  <data name="1514" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="1600" xml:space="preserve">
+    <value>Add Item</value>
+  </data>
+  <data name="1601" xml:space="preserve">
+    <value>Delete Item</value>
+  </data>
+  <data name="1602" xml:space="preserve">
+    <value>Edit Item</value>
+  </data>
+  <data name="1603" xml:space="preserve">
+    <value>Edit Room</value>
+  </data>
+  <data name="1604" xml:space="preserve">
+    <value>Change Description</value>
+  </data>
+  <data name="1605" xml:space="preserve">
+    <value>Edit Max Objects</value>
+  </data>
+  <data name="1606" xml:space="preserve">
+    <value>Toggle Encryption</value>
+  </data>
+  <data name="1607" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="1608" xml:space="preserve">
+    <value>Replace</value>
+  </data>
+  <data name="1609" xml:space="preserve">
+    <value>Replace All</value>
+  </data>
+  <data name="1700" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="1701" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="1702" xml:space="preserve">
+    <value>Draw</value>
+  </data>
+  <data name="1703" xml:space="preserve">
+    <value>Line</value>
+  </data>
+  <data name="1704" xml:space="preserve">
+    <value>Rectangle</value>
+  </data>
+  <data name="1705" xml:space="preserve">
+    <value>Solid Rectangle</value>
+  </data>
+  <data name="1706" xml:space="preserve">
+    <value>Fill</value>
+  </data>
+  <data name="1707" xml:space="preserve">
+    <value>Erase</value>
+  </data>
+  <data name="1800" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="1801" xml:space="preserve">
+    <value>Pen</value>
+  </data>
+  <data name="1802" xml:space="preserve">
+    <value>Absolute Line</value>
+  </data>
+  <data name="1803" xml:space="preserve">
+    <value>Relative Line</value>
+  </data>
+  <data name="1804" xml:space="preserve">
+    <value>Corner</value>
+  </data>
+  <data name="1805" xml:space="preserve">
+    <value>Fill</value>
+  </data>
+  <data name="1806" xml:space="preserve">
+    <value>Plot</value>
+  </data>
+  <data name="1807" xml:space="preserve">
+    <value>Rectangle</value>
+  </data>
+  <data name="1808" xml:space="preserve">
+    <value>Trapezoid</value>
+  </data>
+  <data name="1809" xml:space="preserve">
+    <value>Ellipse</value>
+  </data>
+  <data name="1810" xml:space="preserve">
+    <value>Edit Select</value>
+  </data>
+  <data name="1900" xml:space="preserve">
+    <value>Vis: Color</value>
+  </data>
+  <data name="1901" xml:space="preserve">
+    <value>Vis: Off</value>
+  </data>
+  <data name="1902" xml:space="preserve">
+    <value>Pri: Color</value>
+  </data>
+  <data name="1903" xml:space="preserve">
+    <value>Pri: Off</value>
+  </data>
+  <data name="1904" xml:space="preserve">
+    <value>Y Corner</value>
+  </data>
+  <data name="1905" xml:space="preserve">
+    <value>X Corner</value>
+  </data>
+  <data name="1906" xml:space="preserve">
+    <value>Abs Line</value>
+  </data>
+  <data name="1907" xml:space="preserve">
+    <value>Rel Line</value>
+  </data>
+  <data name="1908" xml:space="preserve">
+    <value>Fill</value>
+  </data>
+  <data name="1909" xml:space="preserve">
+    <value>Change Pen</value>
+  </data>
+  <data name="1910" xml:space="preserve">
+    <value>Plot</value>
+  </data>
+  <data name="1911" xml:space="preserve">
+    <value>End</value>
+  </data>
+  <data name="2001" xml:space="preserve">
+    <value>Obstacle</value>
+  </data>
+  <data name="2002" xml:space="preserve">
+    <value>Conditional Obstacle</value>
+  </data>
+  <data name="2003" xml:space="preserve">
+    <value>Alarm Line</value>
+  </data>
+  <data name="2004" xml:space="preserve">
+    <value>On Water</value>
+  </data>
+  <data name="2005" xml:space="preserve">
+    <value>At Water Edge</value>
+  </data>
+  <data name="2006" xml:space="preserve">
+    <value>At Land Edge</value>
+  </data>
+  <data name="2007" xml:space="preserve">
+    <value>At Horizon</value>
+  </data>
+  <data name="2008" xml:space="preserve">
+    <value>At Top Edge</value>
+  </data>
+  <data name="2009" xml:space="preserve">
+    <value>At Right Edge</value>
+  </data>
+  <data name="2010" xml:space="preserve">
+    <value>At Bottom Edge</value>
+  </data>
+  <data name="2011" xml:space="preserve">
+    <value>At Left Edge</value>
+  </data>
+  <data name="2100" xml:space="preserve">
+    <value>Add Define</value>
+  </data>
+  <data name="2101" xml:space="preserve">
+    <value>Import Defines</value>
+  </data>
+  <data name="2102" xml:space="preserve">
+    <value>Paste Define</value>
+  </data>
+  <data name="2103" xml:space="preserve">
+    <value>Delete Define</value>
+  </data>
+  <data name="2104" xml:space="preserve">
+    <value>Cut Define</value>
+  </data>
+  <data name="2105" xml:space="preserve">
+    <value>Clear List</value>
+  </data>
+  <data name="2106" xml:space="preserve">
+    <value>Edit Define Name</value>
+  </data>
+  <data name="2107" xml:space="preserve">
+    <value>Edit Define Value</value>
+  </data>
+  <data name="2108" xml:space="preserve">
+    <value>Sort Defines</value>
+  </data>
+  <data name="2109" xml:space="preserve">
+    <value>Edit Comment</value>
+  </data>
+  <data name="3000" xml:space="preserve">
+    <value>Acoustic grand piano</value>
+  </data>
+  <data name="3001" xml:space="preserve">
+    <value>Bright acoustic piano</value>
+  </data>
+  <data name="3002" xml:space="preserve">
+    <value>Electric grand piano</value>
+  </data>
+  <data name="3003" xml:space="preserve">
+    <value>Honky-tonk piano</value>
+  </data>
+  <data name="3004" xml:space="preserve">
+    <value>Rhodes piano</value>
+  </data>
+  <data name="3005" xml:space="preserve">
+    <value>Chorused piano</value>
+  </data>
+  <data name="3006" xml:space="preserve">
+    <value>Harpsichord</value>
+  </data>
+  <data name="3007" xml:space="preserve">
+    <value>Clavinet</value>
+  </data>
+  <data name="3008" xml:space="preserve">
+    <value>Celesta</value>
+  </data>
+  <data name="3009" xml:space="preserve">
+    <value>Glockenspiel</value>
+  </data>
+  <data name="3010" xml:space="preserve">
+    <value>Music box</value>
+  </data>
+  <data name="3011" xml:space="preserve">
+    <value>Vibraphone</value>
+  </data>
+  <data name="3012" xml:space="preserve">
+    <value>Marimba</value>
+  </data>
+  <data name="3013" xml:space="preserve">
+    <value>Xylophone</value>
+  </data>
+  <data name="3014" xml:space="preserve">
+    <value>Tubular bells</value>
+  </data>
+  <data name="3015" xml:space="preserve">
+    <value>Dulcimer</value>
+  </data>
+  <data name="3016" xml:space="preserve">
+    <value>Hammond organ</value>
+  </data>
+  <data name="3017" xml:space="preserve">
+    <value>Percussive organ</value>
+  </data>
+  <data name="3018" xml:space="preserve">
+    <value>Rock organ</value>
+  </data>
+  <data name="3019" xml:space="preserve">
+    <value>Church organ</value>
+  </data>
+  <data name="3020" xml:space="preserve">
+    <value>Reed organ</value>
+  </data>
+  <data name="3021" xml:space="preserve">
+    <value>Accordion</value>
+  </data>
+  <data name="3022" xml:space="preserve">
+    <value>Harmonica</value>
+  </data>
+  <data name="3023" xml:space="preserve">
+    <value>Tango accordion</value>
+  </data>
+  <data name="3024" xml:space="preserve">
+    <value>Acoustic guitar (nylon)</value>
+  </data>
+  <data name="3025" xml:space="preserve">
+    <value>Acoustic guitar (steel)</value>
+  </data>
+  <data name="3026" xml:space="preserve">
+    <value>Acoustic guitar (jazz)</value>
+  </data>
+  <data name="3027" xml:space="preserve">
+    <value>Acoustic guitar (clean)</value>
+  </data>
+  <data name="3028" xml:space="preserve">
+    <value>Acoustic guitar (muted)</value>
+  </data>
+  <data name="3029" xml:space="preserve">
+    <value>Overdriven guitar</value>
+  </data>
+  <data name="3030" xml:space="preserve">
+    <value>Distortion guitar</value>
+  </data>
+  <data name="3031" xml:space="preserve">
+    <value>Guitar harmonics</value>
+  </data>
+  <data name="3032" xml:space="preserve">
+    <value>Acoustic bass</value>
+  </data>
+  <data name="3033" xml:space="preserve">
+    <value>Electric bass (finger)</value>
+  </data>
+  <data name="3034" xml:space="preserve">
+    <value>Electric bass (pick)</value>
+  </data>
+  <data name="3035" xml:space="preserve">
+    <value>Fretless bass</value>
+  </data>
+  <data name="3036" xml:space="preserve">
+    <value>Slap bass 1</value>
+  </data>
+  <data name="3037" xml:space="preserve">
+    <value>Slap bass 2</value>
+  </data>
+  <data name="3038" xml:space="preserve">
+    <value>Synth bass 1</value>
+  </data>
+  <data name="3039" xml:space="preserve">
+    <value>Synth bass 2</value>
+  </data>
+  <data name="3040" xml:space="preserve">
+    <value>Violin</value>
+  </data>
+  <data name="3041" xml:space="preserve">
+    <value>Viola</value>
+  </data>
+  <data name="3042" xml:space="preserve">
+    <value>Cello</value>
+  </data>
+  <data name="3043" xml:space="preserve">
+    <value>Contrabass</value>
+  </data>
+  <data name="3044" xml:space="preserve">
+    <value>Tremolo strings</value>
+  </data>
+  <data name="3045" xml:space="preserve">
+    <value>Pizzicato strings</value>
+  </data>
+  <data name="3046" xml:space="preserve">
+    <value>Orchestral harp</value>
+  </data>
+  <data name="3047" xml:space="preserve">
+    <value>Timpani</value>
+  </data>
+  <data name="3048" xml:space="preserve">
+    <value>String ensemble 1</value>
+  </data>
+  <data name="3049" xml:space="preserve">
+    <value>String ensemble 2</value>
+  </data>
+  <data name="3050" xml:space="preserve">
+    <value>Synth. strings 1</value>
+  </data>
+  <data name="3051" xml:space="preserve">
+    <value>Synth. strings 2</value>
+  </data>
+  <data name="3052" xml:space="preserve">
+    <value>Choir Aahs</value>
+  </data>
+  <data name="3053" xml:space="preserve">
+    <value>Voice Oohs</value>
+  </data>
+  <data name="3054" xml:space="preserve">
+    <value>Synth voice</value>
+  </data>
+  <data name="3055" xml:space="preserve">
+    <value>Orchestra hit</value>
+  </data>
+  <data name="3056" xml:space="preserve">
+    <value>Trumpet</value>
+  </data>
+  <data name="3057" xml:space="preserve">
+    <value>Trombone</value>
+  </data>
+  <data name="3058" xml:space="preserve">
+    <value>Tuba</value>
+  </data>
+  <data name="3059" xml:space="preserve">
+    <value>Muted trumpet</value>
+  </data>
+  <data name="3060" xml:space="preserve">
+    <value>French horn</value>
+  </data>
+  <data name="3061" xml:space="preserve">
+    <value>Brass section</value>
+  </data>
+  <data name="3062" xml:space="preserve">
+    <value>Synth. brass 1</value>
+  </data>
+  <data name="3063" xml:space="preserve">
+    <value>Synth. brass 2</value>
+  </data>
+  <data name="3064" xml:space="preserve">
+    <value>Soprano sax</value>
+  </data>
+  <data name="3065" xml:space="preserve">
+    <value>Alto sax</value>
+  </data>
+  <data name="3066" xml:space="preserve">
+    <value>Tenor sax</value>
+  </data>
+  <data name="3067" xml:space="preserve">
+    <value>Baritone sax</value>
+  </data>
+  <data name="3068" xml:space="preserve">
+    <value>Oboe</value>
+  </data>
+  <data name="3069" xml:space="preserve">
+    <value>English horn</value>
+  </data>
+  <data name="3070" xml:space="preserve">
+    <value>Bassoon</value>
+  </data>
+  <data name="3071" xml:space="preserve">
+    <value>Clarinet</value>
+  </data>
+  <data name="3072" xml:space="preserve">
+    <value>Piccolo</value>
+  </data>
+  <data name="3073" xml:space="preserve">
+    <value>Flute</value>
+  </data>
+  <data name="3074" xml:space="preserve">
+    <value>Recorder</value>
+  </data>
+  <data name="3075" xml:space="preserve">
+    <value>Pan flute</value>
+  </data>
+  <data name="3076" xml:space="preserve">
+    <value>Bottle blow</value>
+  </data>
+  <data name="3077" xml:space="preserve">
+    <value>Shakuhachi</value>
+  </data>
+  <data name="3078" xml:space="preserve">
+    <value>Whistle</value>
+  </data>
+  <data name="3079" xml:space="preserve">
+    <value>Ocarina</value>
+  </data>
+  <data name="3080" xml:space="preserve">
+    <value>Lead 1 (square)</value>
+  </data>
+  <data name="3081" xml:space="preserve">
+    <value>Lead 2 (sawtooth)</value>
+  </data>
+  <data name="3082" xml:space="preserve">
+    <value>Lead 3 (calliope lead)</value>
+  </data>
+  <data name="3083" xml:space="preserve">
+    <value>Lead 4 (chiff lead)</value>
+  </data>
+  <data name="3084" xml:space="preserve">
+    <value>Lead 5 (charang)</value>
+  </data>
+  <data name="3085" xml:space="preserve">
+    <value>Lead 6 (voice)</value>
+  </data>
+  <data name="3086" xml:space="preserve">
+    <value>Lead 7 (fifths)</value>
+  </data>
+  <data name="3087" xml:space="preserve">
+    <value>Lead 8 (brass + lead)</value>
+  </data>
+  <data name="3088" xml:space="preserve">
+    <value>Pad 1 (new age)</value>
+  </data>
+  <data name="3089" xml:space="preserve">
+    <value>Pad 2 (warm)</value>
+  </data>
+  <data name="3090" xml:space="preserve">
+    <value>Pad 3 (polysynth)</value>
+  </data>
+  <data name="3091" xml:space="preserve">
+    <value>Pad 4 (choir)</value>
+  </data>
+  <data name="3092" xml:space="preserve">
+    <value>Pad 5 (bowed)</value>
+  </data>
+  <data name="3093" xml:space="preserve">
+    <value>Pad 6 (metallic)</value>
+  </data>
+  <data name="3094" xml:space="preserve">
+    <value>Pad 7 (halo)</value>
+  </data>
+  <data name="3095" xml:space="preserve">
+    <value>Pad 8 (sweep)</value>
+  </data>
+  <data name="3096" xml:space="preserve">
+    <value>FX 1 (rain)</value>
+  </data>
+  <data name="3097" xml:space="preserve">
+    <value>FX 2 (soundtrack)</value>
+  </data>
+  <data name="3098" xml:space="preserve">
+    <value>FX 3 (crystal)</value>
+  </data>
+  <data name="3099" xml:space="preserve">
+    <value>FX 4 (atmosphere)</value>
+  </data>
+  <data name="3100" xml:space="preserve">
+    <value>FX 5 (brightness)</value>
+  </data>
+  <data name="3101" xml:space="preserve">
+    <value>FX 6 (goblins)</value>
+  </data>
+  <data name="3102" xml:space="preserve">
+    <value>FX 7 (echoes, drops)</value>
+  </data>
+  <data name="3103" xml:space="preserve">
+    <value>FX 8 (sci-fi, star theme)</value>
+  </data>
+  <data name="3104" xml:space="preserve">
+    <value>Sitar</value>
+  </data>
+  <data name="3105" xml:space="preserve">
+    <value>Banjo</value>
+  </data>
+  <data name="3106" xml:space="preserve">
+    <value>Shamisen</value>
+  </data>
+  <data name="3107" xml:space="preserve">
+    <value>Koto</value>
+  </data>
+  <data name="3108" xml:space="preserve">
+    <value>Kalimba</value>
+  </data>
+  <data name="3109" xml:space="preserve">
+    <value>Bag pipe</value>
+  </data>
+  <data name="3110" xml:space="preserve">
+    <value>Fiddle</value>
+  </data>
+  <data name="3111" xml:space="preserve">
+    <value>Shanai</value>
+  </data>
+  <data name="3112" xml:space="preserve">
+    <value>Tinkle Bell</value>
+  </data>
+  <data name="3113" xml:space="preserve">
+    <value>Agogo</value>
+  </data>
+  <data name="3114" xml:space="preserve">
+    <value>Steel Drums</value>
+  </data>
+  <data name="3115" xml:space="preserve">
+    <value>Woodblock</value>
+  </data>
+  <data name="3116" xml:space="preserve">
+    <value>Taiko Drum</value>
+  </data>
+  <data name="3117" xml:space="preserve">
+    <value>Melodic Tom</value>
+  </data>
+  <data name="3118" xml:space="preserve">
+    <value>Synth Drum</value>
+  </data>
+  <data name="3119" xml:space="preserve">
+    <value>Reverse Cymbal</value>
+  </data>
+  <data name="3120" xml:space="preserve">
+    <value>Guitar fret noise</value>
+  </data>
+  <data name="3121" xml:space="preserve">
+    <value>Breath noise</value>
+  </data>
+  <data name="3122" xml:space="preserve">
+    <value>Seashore</value>
+  </data>
+  <data name="3123" xml:space="preserve">
+    <value>Bird tweet</value>
+  </data>
+  <data name="3124" xml:space="preserve">
+    <value>Telphone ring</value>
+  </data>
+  <data name="3125" xml:space="preserve">
+    <value>Helicopter</value>
+  </data>
+  <data name="3126" xml:space="preserve">
+    <value>Applause</value>
+  </data>
+  <data name="3127" xml:space="preserve">
+    <value>Gunshot</value>
+  </data>
+  <data name="4000" xml:space="preserve">
+    <value>add.to.pic</value>
+  </data>
+  <data name="4001" xml:space="preserve">
+    <value>add.to.pic.v</value>
+  </data>
+  <data name="4002" xml:space="preserve">
+    <value>addn</value>
+  </data>
+  <data name="4003" xml:space="preserve">
+    <value>addv</value>
+  </data>
+  <data name="4004" xml:space="preserve">
+    <value>allow.menu</value>
+  </data>
+  <data name="4005" xml:space="preserve">
+    <value>animate.obj</value>
+  </data>
+  <data name="4006" xml:space="preserve">
+    <value>assignn</value>
+  </data>
+  <data name="4007" xml:space="preserve">
+    <value>assignv</value>
+  </data>
+  <data name="4008" xml:space="preserve">
+    <value>block</value>
+  </data>
+  <data name="4009" xml:space="preserve">
+    <value>call</value>
+  </data>
+  <data name="4010" xml:space="preserve">
+    <value>call.v</value>
+  </data>
+  <data name="4011" xml:space="preserve">
+    <value>center.posn</value>
+  </data>
+  <data name="4012" xml:space="preserve">
+    <value>clear.lines</value>
+  </data>
+  <data name="4013" xml:space="preserve">
+    <value>clear.text.rect</value>
+  </data>
+  <data name="4014" xml:space="preserve">
+    <value>compare.strings</value>
+  </data>
+  <data name="4015" xml:space="preserve">
+    <value>configure.screen</value>
+  </data>
+  <data name="4016" xml:space="preserve">
+    <value>controller</value>
+  </data>
+  <data name="4017" xml:space="preserve">
+    <value>current.cel</value>
+  </data>
+  <data name="4018" xml:space="preserve">
+    <value>current.loop</value>
+  </data>
+  <data name="4019" xml:space="preserve">
+    <value>current.view</value>
+  </data>
+  <data name="4020" xml:space="preserve">
+    <value>cycle.time</value>
+  </data>
+  <data name="4021" xml:space="preserve">
+    <value>decrement</value>
+  </data>
+  <data name="4022" xml:space="preserve">
+    <value>disable.item</value>
+  </data>
+  <data name="4023" xml:space="preserve">
+    <value>discard.pic</value>
+  </data>
+  <data name="4024" xml:space="preserve">
+    <value>discard.sound</value>
+  </data>
+  <data name="4025" xml:space="preserve">
+    <value>discard.view</value>
+  </data>
+  <data name="4026" xml:space="preserve">
+    <value>discard.view.v</value>
+  </data>
+  <data name="4027" xml:space="preserve">
+    <value>display</value>
+  </data>
+  <data name="4028" xml:space="preserve">
+    <value>display.v</value>
+  </data>
+  <data name="4029" xml:space="preserve">
+    <value>distance</value>
+  </data>
+  <data name="4030" xml:space="preserve">
+    <value>div.n</value>
+  </data>
+  <data name="4031" xml:space="preserve">
+    <value>div.v</value>
+  </data>
+  <data name="4032" xml:space="preserve">
+    <value>draw</value>
+  </data>
+  <data name="4033" xml:space="preserve">
+    <value>draw.pic</value>
+  </data>
+  <data name="4034" xml:space="preserve">
+    <value>drop</value>
+  </data>
+  <data name="4035" xml:space="preserve">
+    <value>enable.item</value>
+  </data>
+  <data name="4036" xml:space="preserve">
+    <value>end.of.loop</value>
+  </data>
+  <data name="4037" xml:space="preserve">
+    <value>equaln</value>
+  </data>
+  <data name="4038" xml:space="preserve">
+    <value>equalv</value>
+  </data>
+  <data name="4039" xml:space="preserve">
+    <value>erase</value>
+  </data>
+  <data name="4040" xml:space="preserve">
+    <value>fence.mouse</value>
+  </data>
+  <data name="4041" xml:space="preserve">
+    <value>fix.loop</value>
+  </data>
+  <data name="4042" xml:space="preserve">
+    <value>follow.ego</value>
+  </data>
+  <data name="4043" xml:space="preserve">
+    <value>force.update</value>
+  </data>
+  <data name="4044" xml:space="preserve">
+    <value>get</value>
+  </data>
+  <data name="4045" xml:space="preserve">
+    <value>get.dir</value>
+  </data>
+  <data name="4046" xml:space="preserve">
+    <value>get.num</value>
+  </data>
+  <data name="4047" xml:space="preserve">
+    <value>get.posn</value>
+  </data>
+  <data name="4048" xml:space="preserve">
+    <value>get.priority</value>
+  </data>
+  <data name="4049" xml:space="preserve">
+    <value>get.room.v</value>
+  </data>
+  <data name="4050" xml:space="preserve">
+    <value>get.string</value>
+  </data>
+  <data name="4051" xml:space="preserve">
+    <value>get.v</value>
+  </data>
+  <data name="4052" xml:space="preserve">
+    <value>greatern</value>
+  </data>
+  <data name="4053" xml:space="preserve">
+    <value>greaterv</value>
+  </data>
+  <data name="4054" xml:space="preserve">
+    <value>has</value>
+  </data>
+  <data name="4055" xml:space="preserve">
+    <value>ignore.blocks</value>
+  </data>
+  <data name="4056" xml:space="preserve">
+    <value>ignore.horizon</value>
+  </data>
+  <data name="4057" xml:space="preserve">
+    <value>ignore.objs</value>
+  </data>
+  <data name="4058" xml:space="preserve">
+    <value>increment</value>
+  </data>
+  <data name="4059" xml:space="preserve">
+    <value>isset</value>
+  </data>
+  <data name="4060" xml:space="preserve">
+    <value>issetv</value>
+  </data>
+  <data name="4061" xml:space="preserve">
+    <value>last.cel</value>
+  </data>
+  <data name="4062" xml:space="preserve">
+    <value>lessn</value>
+  </data>
+  <data name="4063" xml:space="preserve">
+    <value>lessv</value>
+  </data>
+  <data name="4064" xml:space="preserve">
+    <value>lindirectn</value>
+  </data>
+  <data name="4065" xml:space="preserve">
+    <value>lindirectv</value>
+  </data>
+  <data name="4066" xml:space="preserve">
+    <value>load.logics</value>
+  </data>
+  <data name="4067" xml:space="preserve">
+    <value>load.logics.v</value>
+  </data>
+  <data name="4068" xml:space="preserve">
+    <value>load.pic</value>
+  </data>
+  <data name="4069" xml:space="preserve">
+    <value>load.sound</value>
+  </data>
+  <data name="4070" xml:space="preserve">
+    <value>load.view</value>
+  </data>
+  <data name="4071" xml:space="preserve">
+    <value>load.view.v</value>
+  </data>
+  <data name="4072" xml:space="preserve">
+    <value>log</value>
+  </data>
+  <data name="4073" xml:space="preserve">
+    <value>mouse.posn</value>
+  </data>
+  <data name="4074" xml:space="preserve">
+    <value>move.obj</value>
+  </data>
+  <data name="4075" xml:space="preserve">
+    <value>move.obj.v</value>
+  </data>
+  <data name="4076" xml:space="preserve">
+    <value>mul.n</value>
+  </data>
+  <data name="4077" xml:space="preserve">
+    <value>mul.v</value>
+  </data>
+  <data name="4078" xml:space="preserve">
+    <value>new.room</value>
+  </data>
+  <data name="4079" xml:space="preserve">
+    <value>new.room.v</value>
+  </data>
+  <data name="4080" xml:space="preserve">
+    <value>normal.cycle</value>
+  </data>
+  <data name="4081" xml:space="preserve">
+    <value>normal.motion</value>
+  </data>
+  <data name="4082" xml:space="preserve">
+    <value>number.of.loops</value>
+  </data>
+  <data name="4083" xml:space="preserve">
+    <value>obj.in.box</value>
+  </data>
+  <data name="4084" xml:space="preserve">
+    <value>obj.in.room</value>
+  </data>
+  <data name="4085" xml:space="preserve">
+    <value>obj.status.v</value>
+  </data>
+  <data name="4086" xml:space="preserve">
+    <value>object.on.anything</value>
+  </data>
+  <data name="4087" xml:space="preserve">
+    <value>object.on.land</value>
+  </data>
+  <data name="4088" xml:space="preserve">
+    <value>object.on.water</value>
+  </data>
+  <data name="4089" xml:space="preserve">
+    <value>observe.blocks</value>
+  </data>
+  <data name="4090" xml:space="preserve">
+    <value>observe.horizon</value>
+  </data>
+  <data name="4091" xml:space="preserve">
+    <value>observe.objs</value>
+  </data>
+  <data name="4092" xml:space="preserve">
+    <value>overlay.pic</value>
+  </data>
+  <data name="4093" xml:space="preserve">
+    <value>parse</value>
+  </data>
+  <data name="4094" xml:space="preserve">
+    <value>position</value>
+  </data>
+  <data name="4095" xml:space="preserve">
+    <value>position.v</value>
+  </data>
+  <data name="4096" xml:space="preserve">
+    <value>posn</value>
+  </data>
+  <data name="4097" xml:space="preserve">
+    <value>print</value>
+  </data>
+  <data name="4098" xml:space="preserve">
+    <value>print.at</value>
+  </data>
+  <data name="4099" xml:space="preserve">
+    <value>print.at.v</value>
+  </data>
+  <data name="4100" xml:space="preserve">
+    <value>print.v</value>
+  </data>
+  <data name="4101" xml:space="preserve">
+    <value>put</value>
+  </data>
+  <data name="4102" xml:space="preserve">
+    <value>put.v</value>
+  </data>
+  <data name="4103" xml:space="preserve">
+    <value>quit</value>
+  </data>
+  <data name="4104" xml:space="preserve">
+    <value>random</value>
+  </data>
+  <data name="4105" xml:space="preserve">
+    <value>release.loop</value>
+  </data>
+  <data name="4106" xml:space="preserve">
+    <value>release.priority</value>
+  </data>
+  <data name="4107" xml:space="preserve">
+    <value>reposition</value>
+  </data>
+  <data name="4108" xml:space="preserve">
+    <value>reposition.to</value>
+  </data>
+  <data name="4109" xml:space="preserve">
+    <value>reposition.to.v</value>
+  </data>
+  <data name="4110" xml:space="preserve">
+    <value>reset</value>
+  </data>
+  <data name="4111" xml:space="preserve">
+    <value>reset.v</value>
+  </data>
+  <data name="4112" xml:space="preserve">
+    <value>reverse.cycle</value>
+  </data>
+  <data name="4113" xml:space="preserve">
+    <value>reverse.loop</value>
+  </data>
+  <data name="4114" xml:space="preserve">
+    <value>right.posn</value>
+  </data>
+  <data name="4115" xml:space="preserve">
+    <value>rindirect</value>
+  </data>
+  <data name="4116" xml:space="preserve">
+    <value>said</value>
+  </data>
+  <data name="4117" xml:space="preserve">
+    <value>script.size</value>
+  </data>
+  <data name="4118" xml:space="preserve">
+    <value>set</value>
+  </data>
+  <data name="4119" xml:space="preserve">
+    <value>set.cel</value>
+  </data>
+  <data name="4120" xml:space="preserve">
+    <value>set.cel.v</value>
+  </data>
+  <data name="4121" xml:space="preserve">
+    <value>set.cursor.char</value>
+  </data>
+  <data name="4122" xml:space="preserve">
+    <value>set.dir</value>
+  </data>
+  <data name="4123" xml:space="preserve">
+    <value>set.game.id</value>
+  </data>
+  <data name="4124" xml:space="preserve">
+    <value>set.horizon</value>
+  </data>
+  <data name="4125" xml:space="preserve">
+    <value>set.key</value>
+  </data>
+  <data name="4126" xml:space="preserve">
+    <value>set.loop</value>
+  </data>
+  <data name="4127" xml:space="preserve">
+    <value>set.loop.v</value>
+  </data>
+  <data name="4128" xml:space="preserve">
+    <value>set.menu</value>
+  </data>
+  <data name="4129" xml:space="preserve">
+    <value>set.menu.item</value>
+  </data>
+  <data name="4130" xml:space="preserve">
+    <value>set.pri.base</value>
+  </data>
+  <data name="4131" xml:space="preserve">
+    <value>set.priority</value>
+  </data>
+  <data name="4132" xml:space="preserve">
+    <value>set.priority.v</value>
+  </data>
+  <data name="4133" xml:space="preserve">
+    <value>set.simple</value>
+  </data>
+  <data name="4134" xml:space="preserve">
+    <value>set.string</value>
+  </data>
+  <data name="4135" xml:space="preserve">
+    <value>set.text.attribute</value>
+  </data>
+  <data name="4136" xml:space="preserve">
+    <value>set.upper.left</value>
+  </data>
+  <data name="4137" xml:space="preserve">
+    <value>set.v</value>
+  </data>
+  <data name="4138" xml:space="preserve">
+    <value>set.view</value>
+  </data>
+  <data name="4139" xml:space="preserve">
+    <value>set.view.v</value>
+  </data>
+  <data name="4140" xml:space="preserve">
+    <value>shake.screen</value>
+  </data>
+  <data name="4141" xml:space="preserve">
+    <value>show.obj</value>
+  </data>
+  <data name="4142" xml:space="preserve">
+    <value>show.obj.v</value>
+  </data>
+  <data name="4143" xml:space="preserve">
+    <value>sound</value>
+  </data>
+  <data name="4144" xml:space="preserve">
+    <value>start.cycling</value>
+  </data>
+  <data name="4145" xml:space="preserve">
+    <value>start.motion</value>
+  </data>
+  <data name="4146" xml:space="preserve">
+    <value>start.update</value>
+  </data>
+  <data name="4147" xml:space="preserve">
+    <value>step.size</value>
+  </data>
+  <data name="4148" xml:space="preserve">
+    <value>step.time</value>
+  </data>
+  <data name="4149" xml:space="preserve">
+    <value>stop.cycling</value>
+  </data>
+  <data name="4150" xml:space="preserve">
+    <value>stop.motion</value>
+  </data>
+  <data name="4151" xml:space="preserve">
+    <value>stop.update</value>
+  </data>
+  <data name="4152" xml:space="preserve">
+    <value>subn</value>
+  </data>
+  <data name="4153" xml:space="preserve">
+    <value>subv</value>
+  </data>
+  <data name="4154" xml:space="preserve">
+    <value>toggle</value>
+  </data>
+  <data name="4155" xml:space="preserve">
+    <value>toggle.v</value>
+  </data>
+  <data name="4156" xml:space="preserve">
+    <value>trace.info</value>
+  </data>
+  <data name="4157" xml:space="preserve">
+    <value>wander</value>
+  </data>
+  <data name="4158" xml:space="preserve">
+    <value>word.to.string</value>
+  </data>
+  <data name="5000" xml:space="preserve">
+    <value>byt VIEW, byt LOOP, byt CEL, byt X, byt Y, byt PRI, byt MGN</value>
+  </data>
+  <data name="5001" xml:space="preserve">
+    <value>var vVIEW, var vLOOP, var vCEL, var vX, var vY, var vPRI, var vMGN</value>
+  </data>
+  <data name="5002" xml:space="preserve">
+    <value>var vA, byt B</value>
+  </data>
+  <data name="5003" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5004" xml:space="preserve">
+    <value>byt A</value>
+  </data>
+  <data name="5005" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5006" xml:space="preserve">
+    <value>var vA, byt B</value>
+  </data>
+  <data name="5007" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5008" xml:space="preserve">
+    <value>byt X1, byt Y1, byt X2, byt Y2</value>
+  </data>
+  <data name="5009" xml:space="preserve">
+    <value>byt LOGICNUM</value>
+  </data>
+  <data name="5010" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5011" xml:space="preserve">
+    <value>obj oA, byt X1, byt Y1, byt X2, byt Y2</value>
+  </data>
+  <data name="5012" xml:space="preserve">
+    <value>byt TOP, byt BTM, byt COLOR</value>
+  </data>
+  <data name="5013" xml:space="preserve">
+    <value>byt R1, byt C1, byt R2, byt C2, byt COLOR</value>
+  </data>
+  <data name="5014" xml:space="preserve">
+    <value>str sA, str sB</value>
+  </data>
+  <data name="5015" xml:space="preserve">
+    <value>byt PLAYTOP, byt INPUTLINE, byt STATUSLINE</value>
+  </data>
+  <data name="5016" xml:space="preserve">
+    <value>ctl cA</value>
+  </data>
+  <data name="5017" xml:space="preserve">
+    <value>obj oA, var vB</value>
+  </data>
+  <data name="5018" xml:space="preserve">
+    <value>obj oA, var vB</value>
+  </data>
+  <data name="5019" xml:space="preserve">
+    <value>obj oA, var vB</value>
+  </data>
+  <data name="5020" xml:space="preserve">
+    <value>obj oA, var vB</value>
+  </data>
+  <data name="5021" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5022" xml:space="preserve">
+    <value>ctl cA</value>
+  </data>
+  <data name="5023" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5024" xml:space="preserve">
+    <value>byt SOUNDNUM</value>
+  </data>
+  <data name="5025" xml:space="preserve">
+    <value>byt VIEWNUM</value>
+  </data>
+  <data name="5026" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5027" xml:space="preserve">
+    <value>byt ROW, byt COL, msg mMSG</value>
+  </data>
+  <data name="5028" xml:space="preserve">
+    <value>var vROW, var vCOL, var vMSG</value>
+  </data>
+  <data name="5029" xml:space="preserve">
+    <value>obj oA, obj oB, var vC</value>
+  </data>
+  <data name="5030" xml:space="preserve">
+    <value>var vA, byt B</value>
+  </data>
+  <data name="5031" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5032" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5033" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5034" xml:space="preserve">
+    <value>itm iA</value>
+  </data>
+  <data name="5035" xml:space="preserve">
+    <value>ctl cA</value>
+  </data>
+  <data name="5036" xml:space="preserve">
+    <value>obj oA, flg fDONE</value>
+  </data>
+  <data name="5037" xml:space="preserve">
+    <value>var vA, byt B</value>
+  </data>
+  <data name="5038" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5039" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5040" xml:space="preserve">
+    <value>byt X1, byt Y1, byt X2, byt Y2</value>
+  </data>
+  <data name="5041" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5042" xml:space="preserve">
+    <value>obj oA, byt DISTANCE, flg fCAUGHT</value>
+  </data>
+  <data name="5043" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5044" xml:space="preserve">
+    <value>itm iA</value>
+  </data>
+  <data name="5045" xml:space="preserve">
+    <value>obj oA, var vDIR</value>
+  </data>
+  <data name="5046" xml:space="preserve">
+    <value>msg mPROMPT, var vB</value>
+  </data>
+  <data name="5047" xml:space="preserve">
+    <value>obj oA, var vX, var vY</value>
+  </data>
+  <data name="5048" xml:space="preserve">
+    <value>obj oA, var vPRI</value>
+  </data>
+  <data name="5049" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5050" xml:space="preserve">
+    <value>str sA, msg mPROMPT, byt ROW, byt COL, byt LEN</value>
+  </data>
+  <data name="5051" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5052" xml:space="preserve">
+    <value>var vA, byt B</value>
+  </data>
+  <data name="5053" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5054" xml:space="preserve">
+    <value>itm iA</value>
+  </data>
+  <data name="5055" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5056" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5057" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5058" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5059" xml:space="preserve">
+    <value>flg fA</value>
+  </data>
+  <data name="5060" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5061" xml:space="preserve">
+    <value>obj oA, var vB</value>
+  </data>
+  <data name="5062" xml:space="preserve">
+    <value>var vA, byt B</value>
+  </data>
+  <data name="5063" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5064" xml:space="preserve">
+    <value>var vA, byt B</value>
+  </data>
+  <data name="5065" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5066" xml:space="preserve">
+    <value>byt LOGICNUM</value>
+  </data>
+  <data name="5067" xml:space="preserve">
+    <value>var vLOGICNUM</value>
+  </data>
+  <data name="5068" xml:space="preserve">
+    <value>var vPICNUM</value>
+  </data>
+  <data name="5069" xml:space="preserve">
+    <value>byt SOUNDNUM</value>
+  </data>
+  <data name="5070" xml:space="preserve">
+    <value>byt VIEWNUM</value>
+  </data>
+  <data name="5071" xml:space="preserve">
+    <value>var vVIEWNUM</value>
+  </data>
+  <data name="5072" xml:space="preserve">
+    <value>msg mLOGMSG</value>
+  </data>
+  <data name="5073" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5074" xml:space="preserve">
+    <value>obj oA, byt X, byt Y, byt STEP, flg fDONE</value>
+  </data>
+  <data name="5075" xml:space="preserve">
+    <value>obj oA, var vX, var vY, var vSTEP, flg fDONE</value>
+  </data>
+  <data name="5076" xml:space="preserve">
+    <value>var vA, byt B</value>
+  </data>
+  <data name="5077" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5078" xml:space="preserve">
+    <value>byt ROOMNUM</value>
+  </data>
+  <data name="5079" xml:space="preserve">
+    <value>var vROOMNUM</value>
+  </data>
+  <data name="5080" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5081" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5082" xml:space="preserve">
+    <value>obj oA, var vB</value>
+  </data>
+  <data name="5083" xml:space="preserve">
+    <value>obj oA, byt X1, byt Y1, byt X2, byt Y2</value>
+  </data>
+  <data name="5084" xml:space="preserve">
+    <value>itm iA, var vB</value>
+  </data>
+  <data name="5085" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5086" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5087" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5088" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5089" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5090" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5091" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5092" xml:space="preserve">
+    <value>var vPICNUM</value>
+  </data>
+  <data name="5093" xml:space="preserve">
+    <value>str sA</value>
+  </data>
+  <data name="5094" xml:space="preserve">
+    <value>obj oA, byt X, byt Y</value>
+  </data>
+  <data name="5095" xml:space="preserve">
+    <value>obj oA, var vX, var vY</value>
+  </data>
+  <data name="5096" xml:space="preserve">
+    <value>obj oA, byt X1, byt Y1, byt X2, byt Y2</value>
+  </data>
+  <data name="5097" xml:space="preserve">
+    <value>msg mMSG</value>
+  </data>
+  <data name="5098" xml:space="preserve">
+    <value>msg mMSG, byt ROW, byt COL, byt MAXWIDTH</value>
+  </data>
+  <data name="5099" xml:space="preserve">
+    <value>var vMSG, byt ROW, byt COL, byt MAXWIDTH</value>
+  </data>
+  <data name="5100" xml:space="preserve">
+    <value>var vMSG</value>
+  </data>
+  <data name="5101" xml:space="preserve">
+    <value>itm iA, byt ROOMNUM</value>
+  </data>
+  <data name="5102" xml:space="preserve">
+    <value>var vITEM, var vROOMNUM</value>
+  </data>
+  <data name="5103" xml:space="preserve">
+    <value>byt MODE</value>
+  </data>
+  <data name="5104" xml:space="preserve">
+    <value>byt LOWER, byt UPPER, var vRESULT</value>
+  </data>
+  <data name="5105" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5106" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5107" xml:space="preserve">
+    <value>obj oA, var vDX, var vDY</value>
+  </data>
+  <data name="5108" xml:space="preserve">
+    <value>obj oA, byt X, byt Y</value>
+  </data>
+  <data name="5109" xml:space="preserve">
+    <value>obj oA, var vX, var vY</value>
+  </data>
+  <data name="5110" xml:space="preserve">
+    <value>flg fA</value>
+  </data>
+  <data name="5111" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5112" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5113" xml:space="preserve">
+    <value>obj oA, fDONE</value>
+  </data>
+  <data name="5114" xml:space="preserve">
+    <value>obj oA, byt X1, byt Y1, byt X2, byt Y2</value>
+  </data>
+  <data name="5115" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5116" xml:space="preserve">
+    <value>WORDGRPNUM1, WORDGRPNUM2, ...</value>
+  </data>
+  <data name="5117" xml:space="preserve">
+    <value>byt SIZE</value>
+  </data>
+  <data name="5118" xml:space="preserve">
+    <value>flg fA</value>
+  </data>
+  <data name="5119" xml:space="preserve">
+    <value>obj oA, byt CEL</value>
+  </data>
+  <data name="5120" xml:space="preserve">
+    <value>obj oA, var vCEL</value>
+  </data>
+  <data name="5121" xml:space="preserve">
+    <value>msg mCURSORCHAR</value>
+  </data>
+  <data name="5122" xml:space="preserve">
+    <value>obj oA, var vDIR</value>
+  </data>
+  <data name="5123" xml:space="preserve">
+    <value>msg mGAMEID</value>
+  </data>
+  <data name="5124" xml:space="preserve">
+    <value>byt HORIZON</value>
+  </data>
+  <data name="5125" xml:space="preserve">
+    <value>byt ASCII, byt SCAN, ctl C</value>
+  </data>
+  <data name="5126" xml:space="preserve">
+    <value>obj oA, byt LOOP</value>
+  </data>
+  <data name="5127" xml:space="preserve">
+    <value>obj oA, var vLOOP</value>
+  </data>
+  <data name="5128" xml:space="preserve">
+    <value>msg mA</value>
+  </data>
+  <data name="5129" xml:space="preserve">
+    <value>msg mA, ctl cB</value>
+  </data>
+  <data name="5130" xml:space="preserve">
+    <value>byt A</value>
+  </data>
+  <data name="5131" xml:space="preserve">
+    <value>obj oA, byt PRI</value>
+  </data>
+  <data name="5132" xml:space="preserve">
+    <value>obj oA, var vPRI</value>
+  </data>
+  <data name="5133" xml:space="preserve">
+    <value>str sA</value>
+  </data>
+  <data name="5134" xml:space="preserve">
+    <value>str sA, msg mB</value>
+  </data>
+  <data name="5135" xml:space="preserve">
+    <value>byt FG, byt BG</value>
+  </data>
+  <data name="5136" xml:space="preserve">
+    <value>byt A, byt B</value>
+  </data>
+  <data name="5137" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5138" xml:space="preserve">
+    <value>obj oA, byt VIEW</value>
+  </data>
+  <data name="5139" xml:space="preserve">
+    <value>obj oA, var vVIEW</value>
+  </data>
+  <data name="5140" xml:space="preserve">
+    <value>byt COUNT</value>
+  </data>
+  <data name="5141" xml:space="preserve">
+    <value>byt VIEWNUM</value>
+  </data>
+  <data name="5142" xml:space="preserve">
+    <value>var vVIEWNUM</value>
+  </data>
+  <data name="5143" xml:space="preserve">
+    <value>byt SOUNDNUM, flg fDONE</value>
+  </data>
+  <data name="5144" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5145" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5146" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5147" xml:space="preserve">
+    <value>obj oA, var vB</value>
+  </data>
+  <data name="5148" xml:space="preserve">
+    <value>obj oA, var vB</value>
+  </data>
+  <data name="5149" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5150" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5151" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5152" xml:space="preserve">
+    <value>var vA, byt B</value>
+  </data>
+  <data name="5153" xml:space="preserve">
+    <value>var vA, var vB</value>
+  </data>
+  <data name="5154" xml:space="preserve">
+    <value>flg fA</value>
+  </data>
+  <data name="5155" xml:space="preserve">
+    <value>var vA</value>
+  </data>
+  <data name="5156" xml:space="preserve">
+    <value>byt LOGNUM, byt TOP, byt HEIGHT</value>
+  </data>
+  <data name="5157" xml:space="preserve">
+    <value>obj oA</value>
+  </data>
+  <data name="5158" xml:space="preserve">
+    <value>str sA, wrd wB</value>
+  </data>
+</root>

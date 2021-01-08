@@ -1534,7 +1534,7 @@ namespace WinAGI
       midiOut[20] = (byte)(((lngOutPos - 22) / 0x100) & 0xFF);
       midiOut[21] = (byte)((lngOutPos - 22) & 0xFF);
       //(convert ticks seconds)
-      Length = lngTicks / 60;
+      Length = (double)lngTicks / 60;
       return midiOut;
     }
     internal static byte[] BuildIIgsPCM(AGISound SoundIn)
