@@ -20,21 +20,39 @@ namespace WinAGI_GDS
   {
     Bitmap thisBMP;
     float zoom;
+    bool picMode = false;
     public frmPicEdit()
     {
       InitializeComponent();
-      //can we draw a picture?
-
-      // load the picture
-      Pictures[1].Load();
-      thisBMP = Pictures[1].VisualBMP;
-
-      ShowAGIBitmap(picVisual, thisBMP);
     }
 
     private void frmPicEdit_Load(object sender, EventArgs e)
     {
+      //load combobox with AGI color indices
+      cmbTransCol.Items.Add(AGIColors.agBlack);
+      cmbTransCol.Items.Add(AGIColors.agBlue);
+      cmbTransCol.Items.Add(AGIColors.agGreen);
+      cmbTransCol.Items.Add(AGIColors.agCyan);
+      cmbTransCol.Items.Add(AGIColors.agRed);
+      cmbTransCol.Items.Add(AGIColors.agMagenta);
+      cmbTransCol.Items.Add(AGIColors.agBrown);
+      cmbTransCol.Items.Add(AGIColors.agLtGray);
+      cmbTransCol.Items.Add(AGIColors.agDkGray);
+      cmbTransCol.Items.Add(AGIColors.agLtBlue);
+      cmbTransCol.Items.Add(AGIColors.agLtGreen);
+      cmbTransCol.Items.Add(AGIColors.agLtCyan);
+      cmbTransCol.Items.Add(AGIColors.agLtRed);
+      cmbTransCol.Items.Add(AGIColors.agLtMagenta);
+      cmbTransCol.Items.Add(AGIColors.agYellow);
+      cmbTransCol.Items.Add(AGIColors.agWhite);
+      cmbTransCol.Items.Add("None");
+      cmbTransCol.SelectedIndex = 16;
 
+      // load the picture
+      Pictures[1].Load();
+      thisBMP = Pictures[1].VisualBMP;
+      // show it with NO transparency
+      ShowAGIBitmap(picVisual, thisBMP);
     }
 
     private void trackBar1_Scroll(object sender, EventArgs e)
@@ -46,33 +64,41 @@ namespace WinAGI_GDS
       zoom = (float)(trackBar1.Value / 2f + 1);
 
       // first, create new image in the picture box that is desired size
-      picVisual.Image = new Bitmap((int)(320 * zoom), (int)(168 * zoom));
-      // intialize a graphics object for the image just created
-      using Graphics g = Graphics.FromImage(picVisual.Image);
-      // set correct interpolation mode
-      g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-      // draw the bitmap, at correct resolution
-      g.DrawImage(thisBMP, 0, 0, 320 * zoom, 168 * zoom);
-    }
+      //picVisual.Size = new Size((int)(320 * zoom), (int)(168 * zoom));
+      picVisual.Width = (int)(320 * zoom);
+      picVisual.Height = (int)(168 * zoom);
 
+      showPic();
+    }
     private void picVisual_Click(object sender, EventArgs e)
     {
       //swap visual/priority
-      if (thisBMP == Pictures[1].VisualBMP)
+      picMode = !picMode;
+      showPic();
+    }
+
+    void showPic()
+    {
+      if (picMode)
       {
-        thisBMP = Pictures[1].PriorityBMP;
+        thisBMP = (Bitmap)Pictures[1].PriorityBMP.Clone();
       }
       else
       {
-        thisBMP = Pictures[1].VisualBMP;
+        thisBMP = (Bitmap)Pictures[1].VisualBMP.Clone();
       }
-      // intialize a graphics object for the image just created
-      using Graphics g = Graphics.FromImage(picVisual.Image);
-      // set correct interpolation mode
-      g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-      // draw the bitmap, at correct resolution
-      g.DrawImage(thisBMP, 0, 0, 320 * zoom, 168 * zoom);
-      picVisual.Refresh();
+      if (cmbTransCol.SelectedIndex < 16)
+      {
+        thisBMP.MakeTransparent(Color.FromArgb((int)lngEGARevCol[cmbTransCol.SelectedIndex]));
+      }
+      ShowAGIBitmap(picVisual, thisBMP, zoom);
+
+    }
+
+    private void cmbTransCol_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+      //redraw, with the selected transparent image
+      showPic();
     }
   } 
 }

@@ -654,6 +654,7 @@ namespace WinAGI_GDS
       this.tbbZoomIn.Name = "tbbZoomIn";
       this.tbbZoomIn.Size = new System.Drawing.Size(46, 36);
       this.tbbZoomIn.Text = "toolStripButton1";
+      this.tbbZoomIn.Click += new System.EventHandler(this.tbbZoomIn_Click);
       // 
       // tbbZoomOut
       // 
@@ -663,6 +664,7 @@ namespace WinAGI_GDS
       this.tbbZoomOut.Name = "tbbZoomOut";
       this.tbbZoomOut.Size = new System.Drawing.Size(46, 36);
       this.tbbZoomOut.Text = "toolStripButton2";
+      this.tbbZoomOut.Click += new System.EventHandler(this.tbbZoomOut_Click);
       // 
       // tsSep1
       // 
@@ -759,7 +761,7 @@ namespace WinAGI_GDS
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(1072, 825);
+      this.ClientSize = new System.Drawing.Size(577, 583);
       this.Controls.Add(this.pnlView);
       this.Controls.Add(this.pnlSound);
       this.Controls.Add(this.pnlPicture);

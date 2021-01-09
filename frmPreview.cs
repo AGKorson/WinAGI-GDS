@@ -467,10 +467,6 @@ namespace WinAGI_GDS
       cmdReset.Enabled = true;
     }
 
-    private void cmdStop_Click(object sender, EventArgs e)
-    {
-      StopSoundPreview();
-    }
     void SetPScrollbars()
     {
       //determine if scrollbars are necessary

@@ -12,7 +12,7 @@ namespace WinAGI
   {
     AGICels mCelCol;
     int mMirrorPair;
-    int mIndex;
+    internal int mIndex;
     AGIView mParent;
     //other
     string strErrSource;
@@ -35,7 +35,7 @@ namespace WinAGI
         if (mMirrorPair != 0)
         {
           //find mirror pair
-          for (i = 0; i < mParent.Loops.Count; i++)
+          for (i = 0; i < mParent.mLoopCol.Count; i++)
           {  //if sum of mirror pairs is zero
             if (mParent.mLoopCol[(byte)i].MirrorPair + mMirrorPair == 0)
             {

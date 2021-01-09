@@ -15,9 +15,10 @@ namespace WinAGI
     internal byte mHeight;
     internal AGIColors mTransColor;
     internal byte[,] mCelData;
-    internal byte mIndex;
-    internal bool blnCelBMPSet;
-    internal bool mCelChanged;
+    internal int mIndex;
+    internal bool blnCelBMPSet;  //means cel bitmap needs to be rebuilt
+    internal bool mTransparency;
+    internal bool mCelChanged;   // means cel data has change? who cares?
     internal Bitmap mCelBMP;
     //mSetMirror is true if cel is supposed to show the mirror
     bool mSetMirror;
@@ -148,6 +149,22 @@ namespace WinAGI
       //set flag
       blnCelBMPSet = false;
     }
+    public bool Transparency
+    { get { return mTransparency; }
+      set
+      {
+        if (mTransparency != value)
+        {
+          mTransparency = value;
+          mCelChanged = true;
+          if (mParent != null)
+          {
+            //set dirty flag
+            mParent.IsDirty = true;
+          }
+        }
+      }
+    }
     public Bitmap CelBMP
     {
       get
@@ -173,7 +190,7 @@ namespace WinAGI
         ColorPalette ncp = mCelBMP.Palette;
         for (i = 0; i < 16; i++)
         {
-          ncp.Entries[i] = Color.FromArgb(255,
+          ncp.Entries[i] = Color.FromArgb((mTransparency && i == (int)mTransColor) ? 0 : 255,
           (int)((lngEGARevCol[i] & 0xFF0000) / 0x10000),
           (int)((lngEGARevCol[i] & 0xFF00) / 0x100),
           (int)(lngEGARevCol[i] % 0x100)
@@ -370,7 +387,7 @@ namespace WinAGI
       }
       mCelChanged = true;
     }
-    public byte Index
+    public int Index
     {
       get
       {
@@ -458,9 +475,7 @@ namespace WinAGI
         {
           //change it
           mTransColor = value;
-          //(don't need to set celchanged flag
-          //since changing transcolor does not change bitmap image)
-          //if there is a parent object
+          mCelChanged = true;
           if (mParent != null)
           {
             //set dirty flag

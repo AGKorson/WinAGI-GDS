@@ -562,9 +562,14 @@ namespace WinAGI_GDS
       }
     }
 
-    private void btnCloseGame_Click(object sender, EventArgs e)
+    private void btnNewView_Click(object sender, EventArgs e)
     {
-      CloseGame();
+      // show editor form
+      frmViewEdit frmNew = new frmViewEdit
+      {
+        MdiParent = this
+      };
+      frmNew.Show();
     }
 
     void SelectFromQueue()

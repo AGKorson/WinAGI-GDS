@@ -15595,16 +15595,18 @@ End Function
       return LoadResString(INSTRUMENTNAMETEXT + instrument);
     }
 
-    public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int scale = 1)
+    public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1)
     {
       //to scale the picture without blurring, need to use NearestNeighbor interpolation
       // that can't be set directly, so a graphics object is needed to draw the
       // the picture
-      int bWidth = agiBMP.Width * scale * 2, bHeight = agiBMP.Height * scale;
+      int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
       // first, create new image in the picture box that is desired size
       pic.Image = new Bitmap(bWidth, bHeight);
       // intialize a graphics object for the image just created
       using Graphics g = Graphics.FromImage(pic.Image);
+      //always clear the background first
+      g.Clear(pic.BackColor);
       // set correct interpolation mode
       g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
       // draw the bitmap, at correct resolution
