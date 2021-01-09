@@ -561,6 +561,17 @@ namespace WinAGI_GDS
         }
       }
     }
+
+    private void btnNewView_Click(object sender, EventArgs e)
+    {
+      // show editor form
+      frmViewEdit frmNew = new frmViewEdit
+      {
+        MdiParent = this
+      };
+      frmNew.Show();
+    }
+
     void SelectFromQueue()
     {
       //selects the node/resource from the current queue position

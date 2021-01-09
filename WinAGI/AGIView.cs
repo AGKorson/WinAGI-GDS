@@ -83,6 +83,7 @@ namespace WinAGI
         tmpLoop = mLoopCol.Add(i);
         tmpLoop.CopyLoop(CopyView.Loops[i]);
       }
+      throw new Exception("need to check this - I think mirror status is already copied");
       //step through again to set mirrors
       for (i = 0; i < CopyView.Loops.Count; i++)
       {
@@ -386,7 +387,7 @@ namespace WinAGI
         if (bytLoop > 0)
         {
           //for all other loops, check to see if it mirrors an earlier loop
-          for (tmpLoopNo = 0; tmpLoopNo < bytLoop - 1; tmpLoopNo++)
+          for (tmpLoopNo = 0; tmpLoopNo < bytLoop; tmpLoopNo++)
           {
             //if the loops have the same starting position,
             if (lngLoopStart[bytLoop] == lngLoopStart[tmpLoopNo])
@@ -394,7 +395,14 @@ namespace WinAGI
               //this loop is a mirror
               try
               {
-                SetMirror((byte)bytLoop, (byte)tmpLoopNo);
+                //get a new mirror pair number
+                byte i = GetMirrorPair();
+                //set the mirror loop hasmirror property
+                mLoopCol[tmpLoopNo].MirrorPair = i;
+                //set the mirror loop mirrorloop property
+                mLoopCol[bytLoop].MirrorPair = -i;
+                //link to the cel collection
+                mLoopCol[bytLoop].Cels = mLoopCol[tmpLoopNo].Cels;
               }
               catch (Exception e)
               {

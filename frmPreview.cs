@@ -501,6 +501,16 @@ namespace WinAGI_GDS
       cmdReset.Enabled = true;
     }
 
+    private void tbbZoomIn_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    private void tbbZoomOut_Click(object sender, EventArgs e)
+    {
+
+    }
+
     void SetPScrollbars()
     {
       //determine if scrollbars are necessary

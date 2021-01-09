@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,11 +9,27 @@ using static WinAGI.AGIGame;
 
 namespace WinAGI
 {
-  public class AGILoops
+  public class AGILoops : IEnumerable<AGILoop>
   {
     List<AGILoop> mLoopCol;
     AGIView mParent;
     string strErrSource;
+    public AGILoop this[int index]
+    {
+      get
+      {
+        //validate
+        if (index < 0)
+        {
+          throw new Exception("index out of bounds");
+        }
+        if (index >= mLoopCol.Count)
+        {
+          throw new Exception("index out of bounds");
+        }
+        return mLoopCol[index];
+      }
+    }
     public AGILoop Add(int Pos)
     {
       //Pos is position of this loop in the loop collection
@@ -25,10 +42,10 @@ namespace WinAGI
         throw new Exception("537, strErrSource, LoadResString(537)");
       }
       //if no position is past end
-      if (Pos >= mLoopCol.Count)
+      if (Pos > mLoopCol.Count)
       {
         //set it to end
-        Pos = (byte)mLoopCol.Count;
+        Pos = mLoopCol.Count;
       }
       //if adding a loop in position 0-7
       //(which could push a mirror loop out of position
@@ -45,7 +62,7 @@ namespace WinAGI
       agNewLoop = new AGILoop(mParent)
       {
         //set index
-        Index = Pos
+        mIndex = Pos
       };
       //if no loops yet
       if (mLoopCol.Count == 0)
@@ -66,26 +83,14 @@ namespace WinAGI
       {
         mLoopCol[i].Index = (byte)i;
       }
-      //set dirty flag
-      mParent.IsDirty = true;
+      //if there is a parent view
+      if (mParent != null)
+      {
+        //set dirty flag
+        mParent.IsDirty = true;
+      }
       //return the object created
       return agNewLoop;
-    }
-    public AGILoop this[int index]
-    {
-      get
-      {
-        //validate
-        if (index < 0)
-        {
-          throw new Exception("index out of bounds");
-        }
-        if (index >= mLoopCol.Count)
-        {
-          throw new Exception("index out of bounds");
-        }
-        return mLoopCol[index];
-      }
     }
     public int Count
     {
@@ -144,12 +149,63 @@ namespace WinAGI
       //creates the collection when this class is created
       mLoopCol = new List<AGILoop>();
     }
+    public AGIView Parent
+    { get { return mParent; } internal set { mParent = value; } }
     internal AGILoops(AGIView parent)
     {
       //create the collection when this class is created
       mLoopCol = new List<AGILoop>();
       // set parent
       mParent = parent;
+    }
+    LoopEnum GetEnumerator()
+    {
+      return new LoopEnum(mLoopCol);
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return (IEnumerator)GetEnumerator();
+    }
+    IEnumerator<AGILoop> IEnumerable<AGILoop>.GetEnumerator()
+    {
+      return (IEnumerator<AGILoop>)GetEnumerator();
+    }
+  }
+  internal class LoopEnum : IEnumerator<AGILoop>
+  {
+    public List<AGILoop> _loops;
+    int position = -1;
+    public LoopEnum(List<AGILoop> list)
+    {
+      _loops = list;
+    }
+    object IEnumerator.Current => Current;
+    public AGILoop Current
+    { get
+      {
+        try
+        {
+          return _loops[position];
+        }
+        catch (IndexOutOfRangeException)
+        {
+
+          throw new InvalidOperationException();
+        }
+      }
+    }
+    public bool MoveNext()
+    {
+      position++;
+      return (position < _loops.Count);
+    }
+    public void Reset()
+    {
+      position = -1;
+    }
+    public void Dispose()
+    {
+      _loops = null;
     }
   }
 }

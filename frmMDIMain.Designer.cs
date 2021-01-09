@@ -970,7 +970,7 @@
       // 
       this.btnNewLogic.Image = ((System.Drawing.Image)(resources.GetObject("btnNewLogic.Image")));
       this.btnNewLogic.Name = "btnNewLogic";
-      this.btnNewLogic.Size = new System.Drawing.Size(138, 22);
+      this.btnNewLogic.Size = new System.Drawing.Size(170, 54);
       this.btnNewLogic.Text = "New Logic";
       this.btnNewLogic.Click += new System.EventHandler(this.btnNewLogic_Click);
       // 
@@ -978,7 +978,7 @@
       // 
       this.btnNewPicture.Image = ((System.Drawing.Image)(resources.GetObject("btnNewPicture.Image")));
       this.btnNewPicture.Name = "btnNewPicture";
-      this.btnNewPicture.Size = new System.Drawing.Size(138, 22);
+      this.btnNewPicture.Size = new System.Drawing.Size(170, 54);
       this.btnNewPicture.Text = "New Picture";
       this.btnNewPicture.Click += new System.EventHandler(this.btnNewPicture_Click);
       // 
@@ -986,7 +986,7 @@
       // 
       this.btnNewSound.Image = ((System.Drawing.Image)(resources.GetObject("btnNewSound.Image")));
       this.btnNewSound.Name = "btnNewSound";
-      this.btnNewSound.Size = new System.Drawing.Size(138, 22);
+      this.btnNewSound.Size = new System.Drawing.Size(170, 54);
       this.btnNewSound.Text = "New Sound";
       this.btnNewSound.Click += new System.EventHandler(this.btnNewSound_Click);
       // 
@@ -994,8 +994,9 @@
       // 
       this.btnNewView.Image = ((System.Drawing.Image)(resources.GetObject("btnNewView.Image")));
       this.btnNewView.Name = "btnNewView";
-      this.btnNewView.Size = new System.Drawing.Size(138, 22);
+      this.btnNewView.Size = new System.Drawing.Size(170, 54);
       this.btnNewView.Text = "New View";
+      this.btnNewView.Click += new System.EventHandler(this.btnNewView_Click);
       // 
       // statusStrip1
       // 
