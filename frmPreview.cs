@@ -39,7 +39,6 @@ namespace WinAGI_GDS
 
     //sound preview
     AGISound agSound;
-    string strMIDIFile;
     long lngStart;
 
     //view preview
@@ -56,8 +55,8 @@ namespace WinAGI_GDS
     //are set to true
     bool blnViewHSB, blnViewVSB;
     bool blnPicVSB, blnPicHSB;
-
     const int PW_MARGIN = 4;
+
     public frmPreview()
     {
       InitializeComponent();
@@ -69,7 +68,6 @@ namespace WinAGI_GDS
       chkTrack[2] = chkTrack2;
       chkTrack[3] = chkTrack3;
     }
-
     private void udPZoom_ValueChanged(object sender, EventArgs e)
     {
       //set zoom
@@ -77,7 +75,6 @@ namespace WinAGI_GDS
       //force update
       DisplayPicture();
     }
-
     public void LoadPreview(AGIResType ResType, int ResNum)
     {
       //show wait cursor
@@ -123,20 +120,13 @@ namespace WinAGI_GDS
       }
       //restore mouse pointer
       this.UseWaitCursor = false;
-
       //set restype
       PrevResType = ResType;
-
-      ////if previewwin has focus, always clear statusbar
-      //if (MainStatusBar.Tag = "") {
-      //  MainStatusBar.Panels(1).Text = ""
-      //}
     }
     public void ClearPreviewWin()
     {
       //if the resource being cleared has recently been deleted
       //we don't need to unload it, just dereference it
-
       //unload view
       if (agView != null)
       {
@@ -174,7 +164,6 @@ namespace WinAGI_GDS
         }
         // always unhook the event handler
         agSound.SoundComplete -= This_SoundComplete;
-
         agSound = null;
         //ensure timer is off
         Timer1.Enabled = false;
@@ -196,16 +185,13 @@ namespace WinAGI_GDS
       pnlPicture.Visible = false;
       pnlSound.Visible = false;
       pnlView.Visible = false;
-
       PrevResType = rtNone;
-
       // default caption
       this.Text = "Preview";
     }
     public void UpdateCaption(AGIResType ResType, byte ResNum)
     {
       string strID = "";
-
       // update window caption
       this.Text = "Preview - " + ResTypeName[(int)ResType] + " " + ResNum;
       // if not showing by number in the prvieww list
@@ -243,11 +229,7 @@ namespace WinAGI_GDS
           agLogic.Load();
         }
         //success - load the source code
-        //need to set text to nothing first in order to force scrollbars back to top
-        //    rtfLogPrev.Text = "";
         rtfLogPrev.Text = agLogic.SourceText;
-        //rtfLogPrev.Dirty = false;
-
         //if logic is compiled
         if (agLogic.Compiled)
         {
@@ -259,7 +241,6 @@ namespace WinAGI_GDS
           //use pink background
           rtfLogPrev.BackColor = Color.FromArgb(0xff, 0xE0, 0xe0);
         }
-
         //always unload
         agLogic.Unload();
         return true;
@@ -267,27 +248,21 @@ namespace WinAGI_GDS
       catch (Exception e)
       {
         //check for error
-        //if errors occurred,
         //switch (Err.Number
         //case vbObjectError + 688
         //  ErrMsgBox "No source code found: ", "Unable to decode the logic resource.", "Preview Logic Error"
-
         //default:
         //  ErrMsgBox "Error while loading logic resource", "", "Preview Logic Error"
-        //}
-        //clear the error
         //always unload
         agLogic.Unload();
         return false;
       }
     }
-
     private void optVisual_CheckedChanged(object sender, EventArgs e)
     {
       //force a redraw
       DisplayPicture();
     }
-
     private void panel2_Resize(object sender, EventArgs e)
     {
       //position scrollbars
@@ -297,13 +272,11 @@ namespace WinAGI_GDS
       vsbPic.Height = panel2.Bounds.Height;
       SetPScrollbars();
     }
-
     private void vsbPic_Scroll(object sender, ScrollEventArgs e)
     {
       // position image
       imgPicture.Top = -vsbPic.Value;
     }
-
     private void hsbPic_Scroll(object sender, ScrollEventArgs e)
     {
       //position image
@@ -311,7 +284,6 @@ namespace WinAGI_GDS
       System.Diagnostics.Debug.Print($"hsb min: {hsbPic.Minimum} hsb value: {hsbPic.Value} hsb max: {hsbPic.Maximum}");
       System.Diagnostics.Debug.Print($"  hsb larg: {hsbPic.LargeChange} hsb small: {hsbPic.SmallChange}");
     }
-
     private void hsbPic_ValueChanged(object sender, EventArgs e)
     {
     }
@@ -364,7 +336,6 @@ namespace WinAGI_GDS
           //load resource for this view
           agPic.Load();
         }
-
         //draw picture
         DisplayPicture();
         return true;
@@ -398,20 +369,16 @@ namespace WinAGI_GDS
     }
     private void cmdPlay_Click(object sender, EventArgs e)
     {
-
       int i;
-
       //if nothing to play
       if (agSound.Length == 0)
       {
         //this could happen if the sound has no notes in any tracks
         return;
       }
-
       //disable play and enable stop
       cmdStop.Enabled = true;
       cmdPlay.Enabled = false;
-
       //disable other controls while sound is playing
       for (i = 0; i < 3; i++)
       {
@@ -439,7 +406,6 @@ namespace WinAGI_GDS
         pgbSound.Value = 0;
         //////  Settings.NoMIDI = true
       }
-
       //save current time
       lngStart = DateTime.Now.Ticks;
 
@@ -501,6 +467,10 @@ namespace WinAGI_GDS
       cmdReset.Enabled = true;
     }
 
+    private void cmdStop_Click(object sender, EventArgs e)
+    {
+      StopSoundPreview();
+    }
     void SetPScrollbars()
     {
       //determine if scrollbars are necessary
@@ -552,6 +522,34 @@ namespace WinAGI_GDS
       {
         vsbPic.Value = -imgPicture.Top;
       }
+    }
+    private void chkTrack0_CheckedChanged(object sender, EventArgs e)
+    {
+      chkTrack_Click(0);
+    }
+    private void chkTrack1_CheckedChanged(object sender, EventArgs e)
+    {
+      chkTrack_Click(1);
+    }
+    private void chkTrack2_CheckedChanged(object sender, EventArgs e)
+    {
+      chkTrack_Click(2);
+    }
+    private void chkTrack3_CheckedChanged(object sender, EventArgs e)
+    {
+      chkTrack_Click(3);
+    }
+    private void cmbInst0_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+      cmbInst_Click(0);
+    }
+    private void cmbInst1_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+      cmbInst_Click(1);
+    }
+    private void cmbInst2_SelectionChangeCommitted(object sender, EventArgs e)
+    {
+      cmbInst_Click(2);
     }
     bool PreviewSound(byte SndNum)
     {
@@ -623,14 +621,23 @@ namespace WinAGI_GDS
       cmdPlay.Enabled = !Settings.NoMIDI;
       return true;
     }
+    private void cmdReset_Click(object sender, EventArgs e)
+    {
+      //reset instruments to default
+      cmbInst[0].SelectedIndex = 80;
+      cmbInst[1].SelectedIndex = 80;
+      cmbInst[2].SelectedIndex = 80;
+    }
     private void This_SoundComplete(object sender, SoundCompleteEventArgs e)
     {
       //disable stop and enable play
       cmdPlay.Enabled = !Settings.NoMIDI;
       cmdStop.Enabled = false;
       Timer1.Enabled = false;
-      pgbSound.Value = 0;
-
+      pgbSound.Value = pgbSound.Maximum;
+      pgbSound.Refresh();
+      //long lngNow = DateTime.Now.Ticks;
+      //System.Diagnostics.Debug.Print($"Play time: {((double)(lngNow - lngStart) / 10000).ToString("0.0")} seconds");
       //if this is a PC/PCjr sound, re-enable track controls
       //now that sound is done
       if (agSound.SndFormat == 1)
@@ -643,87 +650,202 @@ namespace WinAGI_GDS
         chkTrack[3].Enabled = true;
         cmdReset.Enabled = true;
       }
+      //now reset the progress bar
+      pgbSound.Value = 0;
     }
     bool PreviewView(byte ViewNum)
     {
-      udLoop.Width = 50;
-      udLoop.Height = 50;
-      udLoop.Left = 0;
-      udLoop.Top = 0;
-      udLoop.Visible = true;
-
-      pnlView.Controls.Add(udLoop);
-
-
-      return false;
-      /*
-  On Error GoTo ErrHandler
-  
-  //get the view
-  agView = Views(ViewNum)
-  
-  On Error Resume Next
-  if (!agView.Loaded) {
-    //load resource for this view
-    agView.Load
-  }
-  
-  if (Err.Number = 0) {
-    On Error GoTo ErrHandler
-    //ensure picturebox is resized
-    With pnlView
-      if (.Width != CalcWidth || .Height != CalcHeight) {
-        .Move 0, 0, CalcWidth, CalcHeight
+      //get the view
+      agView = Views[ViewNum];
+      try
+      {
+        if (!agView.Loaded)
+        {
+          //load resource for this view
+          agView.Load();
+        }
       }
-    endwith
-    
-    //show correct toolbars for alignment
-    Toolbar1.Buttons("HAlign").Image = lngHAlign + 3
-    Toolbar1.Buttons("VAlign").Image = lngVAlign + 6
-    
-    //success-disable updating until
-    //loop updowns is set
-    blnNoUpdate = true
-    
-    //set updown for Loops
-    udLoop.Max = agView.Loops.Count - 1
-    udLoop.Value = 0
-    lblLoop.Caption = "0"
-    lblLoopCount.Caption = "/ " + CStr(agView.Loops.Count - 1)
-    
-    CurLoop = 0
-    
-    //reenable updates
-    blnNoUpdate = false
-    
-    //display the first loop (which will display the first cel!)
-    DisplayLoop
-    
-    //return true
-    PreviewView = true
-  } else {
-    //error occurred,
-    ErrMsgBox "Error while loading view resource", "", "Preview View Error"
-    Err.Clear
-  }
-return val;
+      catch (Exception)
+      {
+        ////error occurred,
+        //ErrMsgBox "Error while loading view resource", "", "Preview View Error"
+        return false;
+      }
+      //show correct toolbars for alignment
+      tsViewPrev.Items["HAlign"].ImageIndex = lngHAlign + 3;
+      tsViewPrev.Items["VAlign"].ImageIndex = lngVAlign + 6;
+      //success-disable updating until
+      //loop updowns is set
+      blnNoUpdate = true;
 
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-      */
-    }
-
-    void working()
+      //set updown for Loops
+      udLoop.Items.Clear();
+      for (int i = agView.Loops.Count - 1; i >= 0; i--)
+      {
+        udLoop.Items.Add($"Loop {i} / {agView.Loops.Count} ");
+      }
+      udLoop.SelectedIndex = 0;
+      CurLoop = 0;
+      //reenable updates
+      blnNoUpdate = false;
+      //display the first loop (which will display the first cel!)
+      DisplayLoop();
+      //return true
+      return true;
+    } 
+    void cmbInst_Click(int Index)
     {
-      /*
-      */
+      //if changing,
+      if (agSound.Track(Index).Instrument != cmbInst[Index].SelectedIndex)
+      {
+        //set instrument for this sound
+        agSound.Track(Index).Instrument = (byte)cmbInst[Index].SelectedIndex;
+      }
+
     }
+    void DisplayLoop()
+    {
+      int i, mW, mH;
+      //disable updating while
+      //changing loop and cel controls
+      blnNoUpdate = true;
+      //update updown control for cels
+      for (i = 0; i < agView[CurLoop].Cels.Count; i++)
+      {
+        udCel.Items.Add($"Cel {i} / {agView[CurLoop].Cels.Count - 1} ");
+      }
+      //default to first cel
+      udCel.SelectedIndex = 0;
+      CurCel = 0;
+      //enable play/stop if more than one cel
+      cmdVPlay.Enabled = udCel.Enabled;
+      cmdVPlay.Image = imageList1.Images[9];
+      //determine size of holding pic
+      mW = 0;
+      mH = 0;
+      for (i = 0; i <= agView[CurLoop].Cels.Count - 1; i++)
+      {
+        if (agView[CurLoop].Cels[i].Width > mW)
+        {
+          mW = agView.Loops[CurLoop].Cels[i].Width;
+        }
+        if (agView.Loops[CurLoop].Cels[i].Height > mH)
+        {
+          mH = agView.Loops[CurLoop].Cels[i].Height;
+        }
+      }
+      //set size of view holder
+      picCel.Width = mW * 2 * ViewScale;
+      picCel.Height = mH * ViewScale;
+      //force back to upper, left
+      picCel.Top = PW_MARGIN;
+      picCel.Left = PW_MARGIN;
+      //set scroll bars everytime loop is changed
+      SetVScrollBars();
+      //restore updating, and display the first cel in the loop
+      blnNoUpdate = false;
+      DisplayCel();
+    }
+    void SetVScrollBars()
+    {
+      DontDraw = true;
+      //adjust scroll bar values
+
+      // set horizontal scrollbox
+      hsbView.LargeChange = (int)(picViewHolder.Width * LG_SCROLL);
+      hsbView.SmallChange = (int)(picViewHolder.Width * SM_SCROLL);
+      hsbView.Visible = (picCel.Width > picViewHolder.Width - 2 * PW_MARGIN);
+      if (hsbView.Visible)
+      {
+        hsbView.Width = picViewHolder.Width;
+        hsbView.Maximum = picCel.Width + PW_MARGIN - picViewHolder.Width + hsbView.LargeChange - 1;
+      }
+      else
+      {
+        //reset it, reposition cel frame
+        hsbView.Value = -PW_MARGIN;
+        picCel.Left = PW_MARGIN;
+      }
+      // set vertical scrollbar
+      vsbView.Visible = (picCel.Height > picViewHolder.Height - 2 * PW_MARGIN);
+      if (vsbView.Visible)
+      {
+        vsbView.Height = picViewHolder.Height;
+        vsbView.Maximum = picCel.Height + PW_MARGIN - picViewHolder.Height + vsbView.LargeChange - 1;
+        vsbView.LargeChange = (int)(picViewHolder.Height * LG_SCROLL);
+        vsbView.SmallChange = (int)(picViewHolder.Height * SM_SCROLL);
+      }
+      else
+      {
+        //reset it, reposition cel frame
+        vsbView.Value = -PW_MARGIN;
+        picCel.Top = PW_MARGIN;
+      }
+      DontDraw = false;
+      return;
+    }
+    public bool DisplayCel()
+    {
+      //this function copies the bitmap Image
+      //from CurLoop.CurCel into the view Image box,
+      //and resizes it to be correct size
+
+      int rtn;
+      int tgtX, tgtY, tgtH, tgtW;
+
+      //set transparent color for the holder
+      tbbTrans.BackColor = EGAColor[(int)agView[CurLoop][CurCel].TransColor];
+      picCel.CreateGraphics().Clear(EGAColor[(int)agView[CurLoop][CurCel].TransColor]);
+      //copy view Image
+      tgtW = agView[CurLoop][CurCel].Width * 2 * ViewScale;
+      tgtH = agView[CurLoop][CurCel].Height * ViewScale;
+      switch (lngHAlign)
+      {
+      case 0:
+        tgtX = 0;
+        break;
+      case 1:
+        tgtX = (picCel.Width - tgtW) / 2;
+        break;
+      case 2:
+        tgtX = picCel.Width - tgtW;
+        break;
+      }
+      switch (lngVAlign)
+      {
+      case 0:
+        tgtY = 0;
+        break;
+      case 1:
+        tgtY = (picCel.Height - tgtH) / 2;
+        break;
+      case 2:
+        tgtY = picCel.Height - tgtH;
+        break;
+      }
+      //if transparency
+      if (blnTrans)
+      {
+        agView[CurLoop][CurCel].CelBMP.MakeTransparent(EGAColor[(int)agView[CurLoop][CurCel].TransColor]);
+      }
+      else
+      {
+        agView[CurLoop][CurCel].CelBMP.MakeTransparent(EGAColor[(int)agView[CurLoop][CurCel].TransColor]);
+//        agView[CurLoop][CurCel].CelBMP.MakeTransparent();
+      }
+      //load visual Image
+      ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, ViewScale);
+      //picCel.Refresh();
+      //pnlView.Refresh();
+      //success
+      return true;
+    }
+
     void tmpPreview()
     {
       /*
 
-Sub DrawTransGrid()
+void DrawTransGrid()
 
   Dim i As Long, j As Long, rtn As Long, offset As Long
   
@@ -742,7 +864,7 @@ Sub DrawTransGrid()
   Next i
 }
 
-public Sub KeyHandler(ByRef KeyAscii As Integer)
+public void KeyHandler(ByRef KeyAscii As Integer)
 
   switch (SelResType
   case rtPicture
@@ -760,9 +882,7 @@ public Sub KeyHandler(ByRef KeyAscii As Integer)
         udPZoom.Value = udPZoom.Value - 1
       }
       KeyAscii = 0
-      
     }
-    
   case rtView
     switch (KeyAscii
     case 32 // //
@@ -773,41 +893,35 @@ public Sub KeyHandler(ByRef KeyAscii As Integer)
       //zoom in
       ZoomPrev 1
       KeyAscii = 0
-      
     case 45 //-//
       //zoom out
       ZoomPrev -1
       KeyAscii = 0
-      
     case 65, 97 //a//
       if (udCel.Value > 0) {
         udCel.Value = udCel.Value - 1
       }
       KeyAscii = 0
-      
     case 83, 115 //s//
-      if (udCel.Value < udCel.Max) {
+      if (udCel.Value < udCel.Maximum) {
         udCel.Value = udCel.Value + 1
       }
       KeyAscii = 0
-      
     case 81, 113 //q//
       if (udLoop.Value > 0) {
         udLoop.Value = udLoop.Value - 1
       }
       KeyAscii = 0
-      
     case 87, 119 //w//
-      if (udLoop.Value < udLoop.Max) {
+      if (udLoop.Value < udLoop.Maximum) {
         udLoop.Value = udLoop.Value + 1
       }
       KeyAscii = 0
-      
     }
   }
 }
 
-public Sub MenuClickCustom1()
+public void MenuClickCustom1()
 
   //export a loop as a gif
   //export a picture as bmp or gif
@@ -834,21 +948,21 @@ ErrHandler:
   Resume Next
 }
 
-Sub MenuClickFind(Optional ByVal ffValue As FindFormFunction = ffFindLogic)
+void MenuClickFind(Optional ByVal ffValue As FindFormFunction = ffFindLogic)
 
   On Error GoTo ErrHandler
   
   //don't need the find form; just go directly to the find function
   
   //set form defaults
-  switch (SelResType
-  case rtLogic
+  switch (SelResType) {
+  case rtLogic:
     GFindText = Logics(SelResNum).ID
-  case rtPicture
+  case rtPicture:
     GFindText = Pictures[SelResNum).ID
-  case rtSound
+  case rtSound:
     GFindText = Sounds(SelResNum).ID
-  case rtView
+  case rtView:
     GFindText = Views(SelResNum).ID
   }
   
@@ -870,9 +984,7 @@ ErrHandler:
   //Debug.Assert false
   Resume Next
 }
-
-
-public Sub MenuClickHelp()
+public void MenuClickHelp()
   
   Dim strTopic As String
   
@@ -894,401 +1006,109 @@ ErrHandler:
   Resume Next
 }
 
+void ZoomPrev(ByVal Dir As Long)
 
-public Function DisplayCel() As Boolean
-  //this function copies the bitmap Image
-  //from CurLoop.CurCel into the view Image box,
-  //and resizes it to be correct size
-  
-  Dim rtn As Long
-  Dim tgtX As Long, tgtY As Long, tgtH As Long, tgtW As Long
-  
-  On Error GoTo ErrHandler
-  
-  SendMessage picCel.hWnd, WM_SETREDRAW, 0, 0
-  
-  //set transparent color
-  picTransCol.BackColor = EGAColor(agView.Loops(CurLoop).Cels(CurCel).TransColor)
-  picCel.Cls
-  
-  With agView.Loops(CurLoop).Cels(CurCel)
-    //copy view Image
-    tgtW = .Width * 2 * ViewScale
-    tgtH = .Height * ViewScale
-    
-    switch (lngHAlign
-    case 0
-      tgtX = 0
-    case 1
-      tgtX = (picCel.Width - tgtW) / 2
-    case 2
-      tgtX = picCel.Width - tgtW
-    }
-    switch (lngVAlign
-    case 0
-      tgtY = 0
-    case 1
-      tgtY = (picCel.Height - tgtH) / 2
-    case 2
-      tgtY = picCel.Height - tgtH
-    }
-  
-    //if no transparency
-    if (!blnTrans) {
-    rtn = .CelBMP
-      rtn = StretchBlt(picCel.hDC, tgtX, tgtY, tgtW, tgtH, .CelBMP, 0&, 0&, CLng(.Width), CLng(.Height), SRCCOPY)
-    
-    } else {
-      //first get background
-      rtn = BitBlt(picCel.hDC, 0&, 0&, CLng(picCel.Width), CLng(picCel.Height), picViewHolder.hDC, CLng(picCel.Left), CLng(picCel.Top), SRCCOPY)
-      //use transblit
-      rtn = TransparentBlt(picCel.hDC, tgtX, tgtY, tgtW, tgtH, .CelBMP, 0&, 0&, CLng(.Width), CLng(.Height), EGAColor(.TransColor))
-    }
-  endwith
-  
-  SendMessage picCel.hWnd, WM_SETREDRAW, 1, 0
-  picCel.Refresh
-  pnlView.Refresh
-  //success
-  DisplayCel = true
-return val;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-Sub DisplayLoop()
-    
-  Dim i As Long, mW As Long, mH As Long
-  
-  //disable updating while
-  //changing loop and cel controls
-  blnNoUpdate = true
-  
-  //update updown control for cels
-  udCel.Max = agView.Loops(CurLoop).Cels.Count - 1
-  udCel.Enabled = (agView.Loops(CurLoop).Cels.Count > 1)
-  
-  //default to first cel
-  udCel.Value = 0
-  CurCel = 0
-  //set cel caption
-  lblCel.Caption = "0"
-  lblCelCount.Caption = "/ " + CStr(agView.Loops(CurLoop).Cels.Count - 1)
-  
-  //enable play/stop if more than one cel
-  cmdVPlay.Enabled = udCel.Enabled
-  cmdVPlay.Picture = ImageList1.ListImages(9).Picture
-  
-  //determine size of holding pic
-  mW = 0
-  mH = 0
-  With agView.Loops(CurLoop)
-    For i = 0 To .Cels.Count - 1
-      if (.Cels(i).Width > mW) {
-        mW = .Cels(i).Width
-      }
-      if (.Cels(i).Height > mH) {
-        mH = .Cels(i).Height
-      }
-    Next i
-  endwith
-  
-  With picCel
-    //set size of view holder
-    .Width = mW * 2 * ViewScale
-    .Height = mH * ViewScale
-    //force back to upper, left
-    .Top = PW_MARGIN
-    .Left = PW_MARGIN
-  endwith
-  
-  //set scroll bars everytime loop is changed
-  SetVScrollBars
-  
-  //restore updating, and display the first cel in the loop
-  blnNoUpdate = false
-  DisplayCel
-}
-
-
-
-
-
-
-Sub SetVScrollBars()
-
-On Error GoTo ErrHandler
-  
-  DontDraw = true
-  
-  With hsbView
-    .Visible = (picCel.Width > picViewHolder.Width - 2 * PW_MARGIN)
-    if (.Visible) {
-      .Width = picViewHolder.Width
-      .Max = .Min + picCel.Width + 2 * PW_MARGIN - picViewHolder.Width
-    } else {
-      //reset it, reposition cel frame
-      .Value = -PW_MARGIN
-      picCel.Left = PW_MARGIN
-    }
-  endwith
-  
-  With vsbView
-    .Visible = (picCel.Height > picViewHolder.Height - 2 * PW_MARGIN)
-    if (.Visible) {
-      .Height = picViewHolder.Height
-      .Max = .Min + picCel.Height + 2 * PW_MARGIN - picViewHolder.Height
-    } else {
-      //reset it, reposition cel frame
-      .Value = -PW_MARGIN
-      picCel.Top = PW_MARGIN
-    }
-  endwith
-  
-  //adjust scroll bar values
-  hsbView.LargeChange = picViewHolder.Width * LG_SCROLL
-  vsbView.LargeChange = picViewHolder.Height * LG_SCROLL
-  hsbView.SmallChange = picViewHolder.Width * SM_SCROLL
-  vsbView.SmallChange = picViewHolder.Height * SM_SCROLL
-  
-  DontDraw = false
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-
-
-Sub ZoomPrev(ByVal Dir As Long)
-
-  Dim mW As Long, mH As Long
-  
-  On Error Resume Next
-  
+  int mW, mH;
   //get current maxH and maxW (by de-calculating...)
-  mW = picCel.Width / ViewScale / 2
-  mH = picCel.Height / ViewScale
+  mW = picCel.Width / ViewScale / 2;
+  mH = picCel.Height / ViewScale;
 
-  if (Dir = 1) {
-    ViewScale = ViewScale + 1
-    if (ViewScale = 13) {
-      ViewScale = 12
+  if (Dir == 1) {
+    ViewScale++
+    if (ViewScale == 13) {
+      ViewScale = 12;
       return;
     }
   } else {
-    ViewScale = ViewScale - 1
-    if (ViewScale = 0) {
-      ViewScale = 1
+    ViewScale--;
+    if (ViewScale == 0) {
+      ViewScale = 1;
       return;
     }
   }
-  
   //now rezize cel
-  picCel.Width = mW * 2 * ViewScale
-  picCel.Height = mH * ViewScale
-  
+  picCel.Width = mW * 2 * ViewScale;
+  picCel.Height = mH * ViewScale;
   //set scrollbars
-  SetVScrollBars
-  
+  SetVScrollBars();
   //then redraw the cel
-  DisplayCel
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
+  DisplayCel();
 }
-
-Sub chkTrack_Click(Index As Integer)
-  
-  //if disabled, just exit
-  if (!chkTrack(Index).Enabled) {
-    return;
-  }
-  
-  //if form not visible, just exit
-  if (!this.Visible) {
-    return;
-  }
-  
-  //if changing
-  if (agSound.Track(Index).Muted != (chkTrack(Index).Value = vbUnchecked)) {
-    agSound.Track(Index).Muted = (chkTrack(Index).Value = vbUnchecked)
-  }
-  
-  //redisplay length (it may have changed)
-  this.lblLength = "Sound clip length: " + format$(agSound.Length, "0.0") + " seconds"
-  
-  //enable play button if at least one track is NOT muted AND midi not disabled AND length>0
-  cmdPlay.Enabled = ((chkTrack(0).Value = vbChecked) || (chkTrack(1).Value = vbChecked) || (chkTrack(2).Value = vbChecked) || (chkTrack[3].Value = vbChecked)) && !Settings.NoMIDI && agSound.Length > 0
-}
-
-Sub cmbInst_Click(Index As Integer)
-
-  //if changing,
-  if (agSound.Track(Index).Instrument != cmbInst(Index).SelectedIndex) {
-    //set instrument for this sound
-    agSound.Track(Index).Instrument = cmbInst(Index).SelectedIndex
-  }
-  
-}
-
-Sub cmbMotion_Click()
-
-  On Error GoTo ErrHandler
-  //only set focus if visible and enabled
-  if (picCel.Visible && picCel.Enabled) {
-    picCel.SetFocus
-  }
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-Sub cmdReset_Click()
-
-  //reset instruments to default
-  cmbInst(0).SelectedIndex = 80
-  cmbInst(1).SelectedIndex = 80
-  cmbInst(2).SelectedIndex = 80
-}
-
-Sub cmdStop_Click()
-  //stop sounds
-  StopSoundPreview
-}
-
-
-Sub cmdToggleTrans_Click()
-
-  On Error GoTo ErrHandler
-  
-  blnTrans = !blnTrans
-  
+void cmdToggleTrans_Click()
+  blnTrans = !blnTrans;
   //toggle transparency
   if (blnTrans) {
-    DrawTransGrid
-    cmdToggleTrans.Caption = "Show"
+    DrawTransGrid();
+    cmdToggleTrans.Text = "Show";
   } else {
-    picViewHolder.Cls
-    pnlView.Cls
-    cmdToggleTrans.Caption = "Hide"
+    picViewHolder.Cls;
+    pnlView.Cls;
+    cmdToggleTrans.Text = "Hide";
   }
  
-  DisplayCel
-  picCel.SetFocus
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
+  DisplayCel();
+  picCel.SetFocus();
 }
 
-Sub cmdToggleTrans_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-Sub cmdVPlay_Click()
-  
-  On Error GoTo ErrHandler
-  
+void cmdVPlay_Click()
+{  
   //toggle motion
-  tmrMotion.Enabled = !tmrMotion.Enabled
-  
+  tmrMotion.Enabled = !tmrMotion.Enabled;
   //set icon to match
   if (tmrMotion.Enabled) {
-    cmdVPlay.Picture = ImageList1.ListImages(10).Picture
+    cmdVPlay.Picture = ImageList1.ListImages(10).Picture;
     //reset cel, if endofloop or reverseloop motion selected
-    switch (cmbMotion.SelectedIndex
-    case 2  //endofloop
+    switch (cmbMotion.SelectedIndex) {
+    case 2:  //endofloop
       //if already on last cel
-      if (udCel.Value = udCel.Max) {
-        udCel.Value = 0
+      if (udCel.Value == udCel.Maximum) {
+        udCel.Value = 0;
       }
       
-    case 3 //reverseloop
+    case 3: //reverseloop
       //if already on first cel
-      if (udCel.Value = 0) {
-        udCel.Value = udCel.Max
+      if (udCel.Value == 0) {
+        udCel.Value = udCel.Maximum;
       }
     }
   } else {
-    cmdVPlay.Picture = ImageList1.ListImages(9).Picture
+    cmdVPlay.Picture = ImageList1.ListImages(9).Picture;
   }
   
-  picCel.SetFocus
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
+  picCel.SetFocus();
 }
 
-Sub Form_Activate()
-
-  On Error GoTo ErrHandler
-  
+void Form_Activate()
   //if minimized, exit
   //(to deal with occasional glitch causing focus to lock up)
-  if (this.WindowState = vbMinimized) {
+  if (this.WindowState == WindowState.Minimized) {
     return;
   }
-  
-  //if form not visible
-  if (!this.Visible) {
-    return;
-  }
-  
   //if findform is visible,
   if (FindForm.Visible) {
     //hide it it
     FindForm.Visible = false
   }
-  
-  //adjust menus
-  AdjustMenus SelResType, true, false, false
-   
-  cmbMotion.SelectedIndex = 0
-  sldSpeed.Value = 5
-  hsbView.Min = -PW_MARGIN
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
+  cmbMotion.SelectedIndex = 0;
+  sldSpeed.Value = 5;
+  hsbView.Minimum = -PW_MARGIN;
 }
-
-
-Sub Form_Deactivate()
+void Form_Deactivate()
 
   //if previewing a sound,
   if (SelResType = rtSound) {
-    StopSoundPreview
+    StopSoundPreview();
   }
   
-//  //if previewing a view
-//  if (SelResType = rtView) {
     //stop cycling
     if (tmrMotion.Enabled) {
-      //Debug.Assert SelResType = rtView
-    
       //show play
-      tmrMotion.Enabled = false
-      cmdVPlay.Picture = ImageList1.ListImages(9).Picture
+      tmrMotion.Enabled = false;
+      cmdVPlay.Picture = ImageList1.ListImages(9).Picture;
     }
-//  }
 }
 
-Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+void Form_KeyDown(KeyCode As Integer, Shift As Integer)
 
   //detect and respond to keyboard shortcuts
   //
@@ -1342,7 +1162,7 @@ Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
   }
 }
 
-Sub Form_KeyPress(KeyAscii As Integer)
+void Form_KeyPress(KeyAscii As Integer)
 
 On Error GoTo ErrHandler
 
@@ -1353,144 +1173,50 @@ ErrHandler:
   //Debug.Assert false
   Resume Next
 }
-Sub Form_LostFocus()
-
-  //clear statusbar if in picpreview mode
-  if (PrevResType = rtPicture) {
-    MainStatusBar.Panels(1).Text = ""
-  }
-}
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-Sub fraCel_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub fraLoop_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub fraToolbar_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub fraTransCol_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-Sub hsbPic_Change()
-
+void hsbView_Change()
+{
   //if not updating
   if (!blnNoUpdate) {
     //position viewholder
-    imgPicture.Left = -hsbPic.Value
-    if (imgPicture.Left > PW_MARGIN) {
-      imgPicture.Left = PW_MARGIN
-    }
+    picCel.Left = -hsbView.Value;
   }
 }
+void hsbView_Scroll()
 
-Sub hsbPic_GotFocus()
-
-  On Error GoTo ErrHandler
-  
-  //give focus back to picturebox
-  pnlPicture.SetFocus
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
+  hsbView_Change();
 }
-
-
-Sub hsbPic_Scroll()
-
-  hsbPic_Change
-}
-
-Sub hsbView_Change()
-
-  //if not updating
-  if (!blnNoUpdate) {
-    //position viewholder
-    picCel.Left = -hsbView.Value
-  }
-}
-
-Sub hsbView_GotFocus()
-  
-  On Error GoTo ErrHandler
-  
-  //set focus to cel
-  picCel.SetFocus
-  
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-Sub hsbView_Scroll()
-
-  hsbView_Change
-}
-
-Sub imgPicture_DblClick()
+void imgPicture_DblClick()
 
   //open picture for editing
-  OpenPicture SelResNum
+  OpenPicture(SelResNum);
 }
 
-Sub imgPicture_LostFocus()
+void imgPicture_LostFocus()
 
   //clear statusbar
   MainStatusBar.Panels(1).Text = ""
 }
 
-Sub imgPicture_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void imgPicture_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim rtn As Long
   
   //if either scrollbar is visible,
   if (hsbPic.Visible || vsbPic.Visible) {
     //set dragpic mode
-    blnDraggingPic = true
+    blnDraggingPic = true;
     
     //set pointer to custom
     pnlPicture.MousePointer = vbCustom
     rtn = SetCapture(pnlPicture.hWnd)
     //save x and Y offsets
-    sngOffsetX = X
-    sngOffsetY = Y
+    sngOffsetX = X;
+    sngOffsetY = Y;
   }
 }
 
 
-Sub imgPicture_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void imgPicture_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //display coords in statusbar
   
@@ -1499,88 +1225,12 @@ Sub imgPicture_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As 
   pY = Y / PicScale
   MainStatusBar.Panels(1).Text = "X: " + pX + "    Y: " + pY
 }
-
-Sub Label1_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub Label2_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub Label6_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void Label6_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //always clear statusbar
   MainStatusBar.Panels(1).Text = ""
 }
-
-
-Sub lblTrans_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub lblCel_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub lblCelCount_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub lblLoop_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub lblLoopCount_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub optPriority_Click()
-  
-  DisplayPicture
-}
-
-Sub optPriority_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //always clear statusbar
-  MainStatusBar.Panels(1).Text = ""
-}
-
-
-Sub optVisual_Click()
-
-  DisplayPicture
-}
-
-Sub Form_Resize()
+void Form_Resize()
   
   if (ScaleWidth < MIN_WIDTH) {
     CalcWidth = MIN_WIDTH
@@ -1618,21 +1268,12 @@ Sub Form_Resize()
     }
   }
 }
-
-Sub optVisual_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //always clear statusbar
-  MainStatusBar.Panels(1).Text = ""
-}
-
-Sub picCel_DblClick()
+void picCel_DblClick()
 
   //open view for editing
   OpenView SelResNum
 }
-
-
-Sub picCel_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picCel_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim rtn As Long
   
@@ -1653,16 +1294,7 @@ Sub picCel_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Sing
     sngOffsetY = Y
   }
 }
-
-
-Sub picLogic_Resize()
-
-  rtfLogPrev.Width = pnlLogic.Bounds.Width
-  rtfLogPrev.Height = pnlLogic.Bounds.Height
-}
-
-
-Sub picPicture_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picPicture_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim tmpX As Single, tmpY As Single
   
@@ -1683,10 +1315,10 @@ Sub picPicture_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As 
     //if vertical scrollbar is visible
     if (vsbPic.Visible) {
       //limit positions to valid values
-      if (tmpY < vsbPic.Min) {
-        tmpY = vsbPic.Min
-      } else if (tmpY > vsbPic.Max) {
-        tmpY = vsbPic.Max
+      if (tmpY < vsbPic.Minimum) {
+        tmpY = vsbPic.Minimum
+      } else if (tmpY > vsbPic.Maximum) {
+        tmpY = vsbPic.Maximum
       }
       //set vertical scrollbar
       vsbPic.Value = tmpY
@@ -1695,17 +1327,17 @@ Sub picPicture_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As 
     //if horizontal scrollbar is visible
     if (hsbPic.Visible) {
       //limit positions to valid values
-      if (tmpX < hsbPic.Min) {
-        tmpX = hsbPic.Min
-      } else if (tmpX > hsbPic.Max) {
-        tmpX = hsbPic.Max
+      if (tmpX < hsbPic.Minimum) {
+        tmpX = hsbPic.Minimum
+      } else if (tmpX > hsbPic.Maximum) {
+        tmpX = hsbPic.Maximum
       }
       //set horizontal scrollbar
       hsbPic.Value = tmpX
     }
   }
 }
-Sub picPicture_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picPicture_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim rtn As Long
   
@@ -1720,22 +1352,13 @@ Sub picPicture_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Si
 }
 
 
-Sub picSound_DblClick()
+void picSound_DblClick()
 
   //open sound for editing, if standard agi
   
   OpenSound SelResNum
 }
-
-Sub picTransCol_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub picView_DblClick()
+void picView_DblClick()
 
   //let user change background color
   Load frmPalette
@@ -1751,15 +1374,7 @@ Sub picView_DblClick()
     DrawTransGrid
   }
 }
-
-Sub picView_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-Sub picView_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picView_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim tmpX As Single, tmpY As Single
   
@@ -1779,10 +1394,10 @@ Sub picView_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Sin
     //if vertical scrollbar is visible
     if (vsbView.Visible) {
       //limit positions to valid values
-      if (tmpY < vsbView.Min) {
-        tmpY = vsbView.Min
-      } else if (tmpY > vsbView.Max) {
-        tmpY = vsbView.Max
+      if (tmpY < vsbView.Minimum) {
+        tmpY = vsbView.Minimum
+      } else if (tmpY > vsbView.Maximum) {
+        tmpY = vsbView.Maximum
       }
       //set vertical scrollbar
       vsbView.Value = tmpY
@@ -1791,10 +1406,10 @@ Sub picView_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Sin
     //if horizontal scrollbar is visible
     if (hsbView.Visible) {
       //limit positions to valid values
-      if (tmpX < hsbView.Min) {
-        tmpX = hsbView.Min
-      } else if (tmpX > hsbView.Max) {
-        tmpX = hsbView.Max
+      if (tmpX < hsbView.Minimum) {
+        tmpX = hsbView.Minimum
+      } else if (tmpX > hsbView.Maximum) {
+        tmpX = hsbView.Maximum
       }
       //set horizontal scrollbar
       hsbView.Value = tmpX
@@ -1807,7 +1422,7 @@ ErrHandler:
   Resume Next
 }
 
-Sub picView_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picView_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim rtn As Long
   
@@ -1821,7 +1436,7 @@ Sub picView_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Singl
   }
 }
 
-Sub picView_Resize()
+void picView_Resize()
   
   Dim rtn As Long, offset As Long
   
@@ -1872,19 +1487,17 @@ ErrHandler:
   Resume Next
 }
 
-Sub picViewHolder_DblClick()
+void picViewHolder_DblClick()
 
-  picView_DblClick
+  picView_DblClick();
 }
 
-Sub rtfLogPrev_DblClick(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As RichEditAGI.Range)
+void rtfLogPrev_DblClick(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As RichEditAGI.Range)
 
   //open logic for editing
-  OpenLogic SelResNum
+  OpenLogic(SelResNum);
 }
-
-
-Sub rtfLogPrev_KeyDown(KeyCode As Integer, Shift As Integer)
+void rtfLogPrev_KeyDown(KeyCode As Integer, Shift As Integer)
 
   //BLAST! with the rtf window for previewing logics, the key
   //preview feature doesn//t work; so we have to catch the
@@ -1917,19 +1530,7 @@ Sub rtfLogPrev_KeyDown(KeyCode As Integer, Shift As Integer)
   Shift = 0
   
 }
-
-Sub rtfLogPrev_KeyPress(KeyAscii As Integer)
-  //ignore all key events except copy (ctrl+c) in KeyDown event
-  KeyAscii = 0
-}
-
-Sub rtfLogPrev_KeyUp(KeyCode As Integer, Shift As Integer)
-  //ignore all key events except copy (ctrl+c) in KeyDown event
-  KeyCode = 0
-  Shift = 0
-}
-
-Sub rtfLogPrev_MouseDown(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As RichEditAGI.Range)
+void rtfLogPrev_MouseDown(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As RichEditAGI.Range)
 
   //with right mouse click, show the context menu, but only
   //allow user to copy text, if some was selected
@@ -1953,18 +1554,16 @@ ErrHandler:
   Resume Next
 }
 
-Sub sldSpeed_Change()
-  
-  tmrMotion.Interval = 600 / sldSpeed - 45
+void sldSpeed_Change()
+{  
+  tmrMotion.Interval = 600 / sldSpeed - 45;
 }
 
-Sub sldSpeed_Click()
-  
-  tmrMotion.Interval = 600 / sldSpeed - 45
+void sldSpeed_Click()
+{  
+  tmrMotion.Interval = 600 / sldSpeed - 45;
 }
-
-
-Sub tlbHAlign_ButtonClick(ByVal Button As MSComctlLib.Button)
+void tlbHAlign_ButtonClick(ByVal Button As MSComctlLib.Button)
 
   Dim i As Long, MaxW As Long
   
@@ -1981,7 +1580,7 @@ Sub tlbHAlign_ButtonClick(ByVal Button As MSComctlLib.Button)
   DisplayCel
 }
 
-Sub tlbVAlign_ButtonClick(ByVal Button As MSComctlLib.Button)
+void tlbVAlign_ButtonClick(ByVal Button As MSComctlLib.Button)
 
   //set alignment
   lngVAlign = Button.Index - 1
@@ -1995,9 +1594,7 @@ Sub tlbVAlign_ButtonClick(ByVal Button As MSComctlLib.Button)
   //redraw the cel to update
   DisplayCel
 }
-
-
-Sub tmrMotion_Timer()
+void tmrMotion_Timer()
   
   On Error GoTo ErrHandler
   
@@ -2005,7 +1602,7 @@ Sub tmrMotion_Timer()
   
   switch (cmbMotion.SelectedIndex
   case 0  //normal
-    if (udCel.Value = udCel.Max) {
+    if (udCel.Value = udCel.Maximum) {
       udCel.Value = 0
     } else {
       udCel.Value = udCel.Value + 1
@@ -2013,13 +1610,13 @@ Sub tmrMotion_Timer()
   
   case 1 //reverse
     if (udCel.Value = 0) {
-      udCel.Value = udCel.Max
+      udCel.Value = udCel.Maximum
     } else {
       udCel.Value = udCel.Value - 1
     }
     
   case 2  //end of loop
-    if (udCel.Value = udCel.Max) {
+    if (udCel.Value = udCel.Maximum) {
       //stop motion
       tmrMotion.Enabled = false
       //show play
@@ -2044,7 +1641,7 @@ ErrHandler:
   Resume Next
 }
 
-Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
+void Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
 
   switch (Button.Key
   case "ZoomIn"
@@ -2064,7 +1661,7 @@ Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
   }
 }
 
-Sub Toolbar1_ButtonDropDown(ByVal Button As MSComctlLib.Button)
+void Toolbar1_ButtonDropDown(ByVal Button As MSComctlLib.Button)
 
   switch (Button.Key
   case "VAlign"
@@ -2076,183 +1673,74 @@ Sub Toolbar1_ButtonDropDown(ByVal Button As MSComctlLib.Button)
     tlbHAlign.Visible = true
   }
 }
-Sub Toolbar1_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-Sub txtPZoom_KeyPress(KeyAscii As Integer)
-  //ignore all keys
-  KeyAscii = 0
-}
-
-
-Sub txtPZoom_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //always clear statusbar
-  MainStatusBar.Panels(1).Text = ""
-}
-
-
-Sub udCel_Change()
-  
-  //if not updating,
+void udCel_Change()
+{
+      //if not updating,
   if (blnNoUpdate) {
     return;
   }
-    
-  CurCel = udCel.Value
-  
+  CurCel = udCel.Value;
   //display this cel
-  DisplayCel
+  DisplayCel();
 }
-
-Sub udCel_DownClick()
-
+void udCel_DownClick()
+{
   //stop motion
-  tmrMotion.Enabled = false
+  tmrMotion.Enabled = false;
 }
-
-Sub udCel_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub udLoop_Change()
-  
+void udLoop_Change()
+{  
   //if updating is disabled,
   if (blnNoUpdate) {
     return;
   }
-  
   //get new loop Value
-  CurLoop = udLoop.Value
-  
+  CurLoop = udLoop.Value;
   //display the loop
   DisplayLoop
 }
-
-
-Sub udLoop_DownClick()
-
+void udLoop_DownClick()
+{
   //stop motion
   tmrMotion.Enabled = false
 }
-
-Sub udLoop_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-}
-
-
-Sub udPZoom_Change()
-
-  //if not updating
-  if (blnNoUpdate) {
-    return;
-  }
-  
-  //set zoom
-  PicScale = udPZoom.Value
-  txtPZoom.Text = CStr(PicScale)
-  
-  //force update
-  DisplayPicture
-}
-
-Sub udPZoom_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  //always clear statusbar
-  MainStatusBar.Panels(1).Text = ""
-}
-
-
-Sub vsbPic_Change()
-
-  //if not updating
-  if (!blnNoUpdate) {
-    //position viewholder
-    imgPicture.Top = -vsbPic.Value + fraPHeader.Height
-    if (imgPicture.Top > fraPHeader.Height) {
-      imgPicture.Top = fraPHeader.Height
-    }
-  }
-}
-
-Sub vsbPic_GotFocus()
-
-  On Error GoTo ErrHandler
-  
-  //give focus back to picturebox
-  pnlPicture.SetFocus
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-Sub vsbPic_Scroll()
-
-  vsbPic_Change
-}
-
-Sub vsbView_Change()
-
-  //if not updating
-  if (!blnNoUpdate) {
-    //position viewholder
-    picCel.Top = -vsbView.Value
-  }
-}
-
-
-Sub vsbView_GotFocus()
-  
-  On Error GoTo ErrHandler
-  
-  //set focus to view
-  picCel.SetFocus
-  
-  //ensure flyout toolbars are hidden
-  tlbHAlign.Visible = false
-  tlbVAlign.Visible = false
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-Sub vsbView_Scroll()
+void vsbView_Scroll()
 
   vsbView_Change
 }
-
       */
     }
-
     private void tmrMotion_Tick(object sender, EventArgs e)
     {
 
     }
-
+    void chkTrack_Click(int Index)
+    {
+      //if disabled, just exit
+      if (!chkTrack[Index].Enabled)
+      {
+        return;
+      }
+      //if changing
+      if (agSound.Track(Index).Muted == chkTrack[Index].Checked)
+      {
+        agSound.Track(Index).Muted = !chkTrack[Index].Checked;
+      }
+      //redisplay length (it may have changed)
+      lblLength.Text = "Sound clip length: " + agSound.Length.ToString("0.0") + " seconds";
+      //enable play button if at least one track is NOT muted AND midi not disabled AND length>0
+      cmdPlay.Enabled = (chkTrack[0].Checked || chkTrack[1].Checked || chkTrack[2].Checked || chkTrack[3].Checked) && !Settings.NoMIDI && (agSound.Length > 0);
+    }
     private void frmPreview_Load(object sender, EventArgs e)
     {
       // temp settings
       //set up the form controls
       hsbPic.Minimum = -PW_MARGIN;
       vsbPic.Minimum = -PW_MARGIN;
-
+      cmbMotion.SelectedIndex = 0;
+      sldSpeed.Value = 5;
+      hsbView.Minimum = -PW_MARGIN;
+      vsbView.Minimum = -PW_MARGIN;
 
       int i;
       int sngLeft, sngTop;
@@ -2357,40 +1845,6 @@ Sub vsbView_Scroll()
 
       ////restore updating capability
       //blnNoUpdate = false;
-    }
-
-    class MyUD : UpDownBase, ISupportInitialize
-    {
-      public MyUD()
-      {
-      }
-
-      public void BeginInit()
-      {
-        //throw new NotImplementedException();
-        this.HScroll = true;
-        this.VScroll = false;
-      }
-
-      public override void DownButton()
-      {
-        //throw new NotImplementedException();
-      }
-
-      public void EndInit()
-      {
-        //throw new NotImplementedException();
-      }
-
-      public override void UpButton()
-      {
-        //throw new NotImplementedException();
-      }
-
-      protected override void UpdateEditText()
-      {
-        //throw new NotImplementedException();
-      }
     }
   }
 }

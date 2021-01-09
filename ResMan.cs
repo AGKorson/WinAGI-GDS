@@ -943,7 +943,7 @@ namespace WinAGI_GDS
       //from WinAGI game object
       for (i = 0; i < 16; i++)
       {
-        DefEGAColor[i] = EGAColor(i);
+        DefEGAColor[i] = EGAColorLong(i);
       }
       // initialize settings arrays
       Settings.HBold = new bool[5];
@@ -3256,8 +3256,8 @@ public static void GetDefaultColors()
       //keep default
     } else {
       //if color is not the default
-     if (EGAColor(i) != CLng(strLine)) {
-        EGAColor(i) = CLng(strLine)
+     if (EGAColorLong(i) != CLng(strLine)) {
+        EGAColorLong(i) = CLng(strLine)
       }
     }
   Next i
@@ -4663,9 +4663,9 @@ public Function MakeLoopGif(GifLoop As AGILoop, GifOps As GifOptions, ByVal Expo
   
   //add global color table
   For i = 0 To 15
-    bytData(13 + 3 * i) = EGAColor(i) && 0xFF
-    bytData(14 + 3 * i) = (EGAColor(i) && 0xFF00) / 0x100
-    bytData(15 + 3 * i) = (EGAColor(i) && 0xFF0000) / 0x10000
+    bytData(13 + 3 * i) = EGAColorLong(i) && 0xFF
+    bytData(14 + 3 * i) = (EGAColorLong(i) && 0xFF00) / 0x100
+    bytData(15 + 3 * i) = (EGAColorLong(i) && 0xFF0000) / 0x10000
   Next i
   
   //if cycling, add netscape extension to allow continuous looping
@@ -4970,9 +4970,9 @@ public Function MakePicGif(GifPic As AGIPicture, GifOps As GifOptions, ByVal Exp
   
   //add global color table
   For i = 0 To 15
-    bytData(13 + 3 * i) = EGAColor(i) && 0xFF
-    bytData(14 + 3 * i) = (EGAColor(i) && 0xFF00) / 0x100
-    bytData(15 + 3 * i) = (EGAColor(i) && 0xFF0000) / 0x10000
+    bytData(13 + 3 * i) = EGAColorLong(i) && 0xFF
+    bytData(14 + 3 * i) = (EGAColorLong(i) && 0xFF00) / 0x100
+    bytData(15 + 3 * i) = (EGAColorLong(i) && 0xFF0000) / 0x10000
   Next i
   
   //if cycling, add netscape extension to allow continuous looping
@@ -5396,9 +5396,9 @@ Private static void ExportPicGIF(ImgData() As Byte, ExportFile As String, Option
 ////
 ////  //add global color table
 ////  For i = 0 To 15
-////    bytData(13 + 3 * i) = EGAColor(i) && 0xFF
-////    bytData(14 + 3 * i) = (EGAColor(i) && 0xFF00) / 0x100
-////    bytData(15 + 3 * i) = (EGAColor(i) && 0xFF0000) / 0x10000
+////    bytData(13 + 3 * i) = EGAColorLong(i) && 0xFF
+////    bytData(14 + 3 * i) = (EGAColorLong(i) && 0xFF00) / 0x100
+////    bytData(15 + 3 * i) = (EGAColorLong(i) && 0xFF0000) / 0x10000
 ////  Next i
 ////
 ////  //at this point, numbering is not absolute, so we need to begin tracking the data position
@@ -11693,7 +11693,7 @@ public static void OpenWAG(Optional ThisGameFile As String)
     //update local copy of colors
     //(used to speed up color matching)
     For i = 0 To 15
-      lngEGACol(i) = EGAColor(i)
+      lngEGACol(i) = EGAColorLong(i)
     Next i
 
     //done with progress form
@@ -11927,7 +11927,7 @@ public static void OpenDIR()
     //update local copy of colors
     //(used to speed up color matching)
     For i = 0 To 15
-      lngEGACol(i) = EGAColor(i)
+      lngEGACol(i) = EGAColorLong(i)
     Next i
 
     //done with progress form
@@ -15580,7 +15580,7 @@ End Function
       // instead of by stringkey
       try
       {
-        return resman1.ResourceManager.GetString(index.ToString());
+        return ResManRes.ResourceManager.GetString(index.ToString());
       }
       catch (Exception)
       {

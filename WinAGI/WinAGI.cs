@@ -11,25 +11,27 @@ using static WinAGI.AGITestCommands;
 namespace WinAGI
 {
   using System.Diagnostics;
+  using System.Drawing;
+
   /***************************************************************
-   WinAGI Game Engine
-   Copyright (C) 2020 Andrew Korson
+WinAGI Game Engine
+Copyright (C) 2020 Andrew Korson
 
-   This program is free software; you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of
-   the License, or (at your option) any later version.
+This program is free software; you can redistribute it and/or 
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of
+the License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public
-   License along with this program; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
-   MA  02110-1301  USA
-   ***************************************************************/
+You should have received a copy of the GNU General Public
+License along with this program; if not, write to the Free
+Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+MA  02110-1301  USA
+***************************************************************/
 
   //enums 
   #region
@@ -212,7 +214,7 @@ namespace WinAGI
     //so api functions using colors work correctly
     internal static uint[] lngEGARevCol = new uint[16]; //15
     internal static uint[] lngEGACol = new uint[16]; //15;
-    //internal static AGIColors[] agColor = new AGIColors[16]; //15;
+    internal static EGAColors colorEGA = new EGAColors();
     internal static byte[] bytEncryptKey = { (byte)'A', (byte)'v', (byte)'i',
                              (byte)'s', (byte)' ', (byte)'D',
                              (byte)'u', (byte)'r', (byte)'g',
@@ -2687,6 +2689,23 @@ namespace WinAGI
       lngEGACol[13] = 0xFF50FF; //light magenta
       lngEGACol[14] = 0x50FFFF; //yellow
       lngEGACol[15] = 0xFFFFFF; //white
+
+      colorEGA[0] = Color.FromArgb(unchecked((int)0xff000000)); //black
+      colorEGA[1] = Color.FromArgb(unchecked((int)0xff0000A0)); //blue
+      colorEGA[2] = Color.FromArgb(unchecked((int)0xff00A000)); //green
+      colorEGA[3] = Color.FromArgb(unchecked((int)0xff00A0A0)); //cyan
+      colorEGA[4] = Color.FromArgb(unchecked((int)0xffA00000)); //red
+      colorEGA[5] = Color.FromArgb(unchecked((int)0xff8000A0)); //magenta
+      colorEGA[6] = Color.FromArgb(unchecked((int)0xffA05000)); //brown
+      colorEGA[7] = Color.FromArgb(unchecked((int)0xffA0A0A0)); //light gray
+      colorEGA[8] = Color.FromArgb(unchecked((int)0xff505050)); //dark gray
+      colorEGA[9] = Color.FromArgb(unchecked((int)0xff5050FF)); //light blue
+      colorEGA[10] = Color.FromArgb(unchecked((int)0xff00FF50)); //light green
+      colorEGA[11] = Color.FromArgb(unchecked((int)0xff50FFFF)); //light cyan
+      colorEGA[12] = Color.FromArgb(unchecked((int)0xffFF5050)); //light red
+      colorEGA[13] = Color.FromArgb(unchecked((int)0xffFF50FF)); //light magenta
+      colorEGA[14] = Color.FromArgb(unchecked((int)0xffFFFF50)); //yellow
+      colorEGA[15] = Color.FromArgb(unchecked((int)0xffFFFFFF)); //white
     }
     public static bool IsValidGameDir(string strDir)
     {

@@ -7,6 +7,7 @@ using System.IO;
 using static WinAGI.WinAGI;
 using static WinAGI.AGILogicSourceSettings;
 using static WinAGI.AGICommands;
+using System.Drawing;
 
 namespace WinAGI
 {
@@ -149,11 +150,11 @@ namespace WinAGI
         }
       }
     }
-    public static uint EGAColor(int index)
+    public static uint EGAColorLong(int index)
     {
       //in VB (and other languages?) colors are four byte:
       //         xxbbggrr,
-      // this is the format used by EGAColor
+      // this is the format used by EGAColorLong
 
       //in API calls, the red and blue values are reversed:
       //         xxrrggbb
@@ -166,11 +167,16 @@ namespace WinAGI
         throw new Exception("Subscript out of range");
       return lngEGACol[index];
     }
+    public static EGAColors EGAColor
+    { 
+      get { return colorEGA; }
+      //set { colorEGA = value; }
+    }
     public static void EGAColorSet(int index, uint newcolor)
     {
       //in VB (and other languages?) colors are four byte:
       //         xxbbggrr,
-      // this is the format used by EGAColor
+      // this is the format used by EGAColorLong
 
       //in API calls, the red and blue values are reversed:
       //         xxrrggbb
@@ -2070,4 +2076,29 @@ namespace WinAGI
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
   }
+  public class EGAColors
+  {
+    Color[] colorEGA = new Color[16];
+    
+    public Color this[int index]
+    {
+      get
+      {
+        if (index < 0 || index > 15)
+        {
+          throw new IndexOutOfRangeException("bad color");
+        }
+        return colorEGA[index];
+      }
+      set
+      {
+        if (index < 0 || index > 15)
+        {
+          throw new IndexOutOfRangeException("bad color");
+        }
+        colorEGA[index] = value;
+      }
+    }
+  }
+
 }

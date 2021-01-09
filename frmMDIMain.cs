@@ -561,6 +561,12 @@ namespace WinAGI_GDS
         }
       }
     }
+
+    private void btnCloseGame_Click(object sender, EventArgs e)
+    {
+      CloseGame();
+    }
+
     void SelectFromQueue()
     {
       //selects the node/resource from the current queue position

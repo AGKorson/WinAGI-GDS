@@ -319,13 +319,12 @@ namespace WinAGI
       }
       catch (Exception e)
       {
-        int ei = 0;
         //throw new Exception("565, strErrSrc, LoadResString(565), ARG1, lngError + strError)");
       }
       //save length
       // original playsound dos app used, sound tick of 1/64 sec
       // but correct value is 1/60 sec
-      mLength = lngLength / 60;
+      mLength = (double)lngLength / 60;
 
       //set flag to indicate tracks loaded
       mTracksSet = true;
@@ -432,7 +431,7 @@ namespace WinAGI
         mTrack[0].Visible = true;
       } //next i
       //reset length
-      mLength = 10;
+      mLength = -1;
     }
     public double Length
     {
@@ -449,6 +448,7 @@ namespace WinAGI
         if (mLength == -1)
         {
           mLength = (double)GetSoundLength();
+          System.Diagnostics.Debug.Print($"length: {mLength}");
         }
         return mLength;
       }
