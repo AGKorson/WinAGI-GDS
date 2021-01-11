@@ -165,73 +165,95 @@ namespace WinAGI
         }
       }
     }
-    public Bitmap CelBMP
+    internal AGICel Clone(AGIView cloneparent)
     {
-      get
-      {
-        int i, j;
-        byte[] mCelBData;
+      AGICel CopyCel = new AGICel(cloneparent);
+      CopyCel.mWidth = mWidth;
+      CopyCel.mHeight = mHeight;
+      CopyCel.mTransColor = mTransColor;
+      CopyCel.mCelData = mCelData;
+      CopyCel.mIndex = mIndex;
+      CopyCel.mSetMirror = mSetMirror;
+      CopyCel.mMirrored = mMirrored;
+      CopyCel.blnCelBMPSet = blnCelBMPSet;
+      CopyCel.mTransparency = mTransparency;
+      CopyCel.mCelChanged = mCelChanged;   // means cel data has change? who cares?
 
-        //if cel bitmap is already assigned
-        if (blnCelBMPSet)
-        {
-          //if cel bitmap is in correct state AND not changed
-          if ((mSetMirror == mMirrored) && (!mCelChanged))
-          {
-            //exit; cel bitmap is correct
-            return mCelBMP;
-          }
-          //rebuild the bitmap; first clear it 
-          ClearBMP();
-        }
-        //create new visual picture bitmap
-        mCelBMP = new Bitmap(mWidth, mHeight, PixelFormat.Format8bppIndexed);
-        //modify color palette to match current AGI palette
-        ColorPalette ncp = mCelBMP.Palette;
-        for (i = 0; i < 16; i++)
-        {
-          ncp.Entries[i] = Color.FromArgb((mTransparency && i == (int)mTransColor) ? 0 : 255,
-          (int)((lngEGARevCol[i] & 0xFF0000) / 0x10000),
-          (int)((lngEGARevCol[i] & 0xFF00) / 0x100),
-          (int)(lngEGARevCol[i] % 0x100)
-            );
-        }
-        // set the new palette
-        mCelBMP.Palette = ncp;
-        // set boundary rectangle
-        var BoundsRect = new Rectangle(0, 0, mWidth, mHeight);
-        // create access point for bitmap data
-        BitmapData bmpCelData = mCelBMP.LockBits(BoundsRect, ImageLockMode.WriteOnly, mCelBMP.PixelFormat);
-        IntPtr ptrVis = bmpCelData.Scan0;
-        //now we can create our custom data arrays
-        // array size is determined by stride (bytes per row) and height
-        mCelBData = new byte[bmpCelData.Stride * mHeight];
-        //set cel mirror state to desired Value (determined by mSetMirror)
-        mMirrored = mSetMirror;
-        for (i = 0; i < mWidth; i++)
-        {
-          for (j = 0; j < mHeight; j++)
-          { //if showing mirrored cel
-            if (mMirrored)
-            {
-              //set cel data backwards
-              mCelBData[mWidth - i - 1 + j * bmpCelData.Stride] = (byte)mCelData[i, j];
-            }
-            else
-            {
-              //set cel data forwards
-              mCelBData[i + j * bmpCelData.Stride] = (byte)mCelData[i, j];
-            }
-          }
-        }
-        // copy the picture data to the bitmaps
-        Marshal.Copy(mCelBData, 0, ptrVis, bmpCelData.Stride * mHeight);
-        mCelBMP.UnlockBits(bmpCelData);
-        //set flag
-        blnCelBMPSet = true;
-        return mCelBMP;
+      if (mCelBMP == null) {
+        CopyCel.mCelBMP = null;
+      } else {
+        // make a new bitmap 
+        CopyCel.mCelBMP = (Bitmap)mCelBMP.Clone();
       }
+      return CopyCel;
     }
+    public Bitmap CelBMP
+      {
+        get
+        {
+          int i, j;
+          byte[] mCelBData;
+
+          //if cel bitmap is already assigned
+          if (blnCelBMPSet)
+          {
+            //if cel bitmap is in correct state AND not changed
+            if ((mSetMirror == mMirrored) && (!mCelChanged))
+            {
+              //exit; cel bitmap is correct
+              return mCelBMP;
+            }
+            //rebuild the bitmap; first clear it 
+            ClearBMP();
+          }
+          //create new visual picture bitmap
+          mCelBMP = new Bitmap(mWidth, mHeight, PixelFormat.Format8bppIndexed);
+          //modify color palette to match current AGI palette
+          ColorPalette ncp = mCelBMP.Palette;
+          for (i = 0; i < 16; i++)
+          {
+            ncp.Entries[i] = Color.FromArgb((mTransparency && i == (int)mTransColor) ? 0 : 255,
+            (int)((lngEGARevCol[i] & 0xFF0000) / 0x10000),
+            (int)((lngEGARevCol[i] & 0xFF00) / 0x100),
+            (int)(lngEGARevCol[i] % 0x100)
+              );
+          }
+          // set the new palette
+          mCelBMP.Palette = ncp;
+          // set boundary rectangle
+          var BoundsRect = new Rectangle(0, 0, mWidth, mHeight);
+          // create access point for bitmap data
+          BitmapData bmpCelData = mCelBMP.LockBits(BoundsRect, ImageLockMode.WriteOnly, mCelBMP.PixelFormat);
+          IntPtr ptrVis = bmpCelData.Scan0;
+          //now we can create our custom data arrays
+          // array size is determined by stride (bytes per row) and height
+          mCelBData = new byte[bmpCelData.Stride * mHeight];
+          //set cel mirror state to desired Value (determined by mSetMirror)
+          mMirrored = mSetMirror;
+          for (i = 0; i < mWidth; i++)
+          {
+            for (j = 0; j < mHeight; j++)
+            { //if showing mirrored cel
+              if (mMirrored)
+              {
+                //set cel data backwards
+                mCelBData[mWidth - i - 1 + j * bmpCelData.Stride] = (byte)mCelData[i, j];
+              }
+              else
+              {
+                //set cel data forwards
+                mCelBData[i + j * bmpCelData.Stride] = (byte)mCelData[i, j];
+              }
+            }
+          }
+          // copy the picture data to the bitmaps
+          Marshal.Copy(mCelBData, 0, ptrVis, bmpCelData.Stride * mHeight);
+          mCelBMP.UnlockBits(bmpCelData);
+          //set flag
+          blnCelBMPSet = true;
+          return mCelBMP;
+        }
+      }
     public void CopyCel(AGICel SourceCel)
     {
       //copies the source cel into this cel

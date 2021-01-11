@@ -22,5280 +22,7047 @@ namespace WinAGI_GDS {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class ResManRes {
-        
-        private static global::System.Resources.ResourceManager resourceMan;
-        
-        private static global::System.Globalization.CultureInfo resourceCulture;
-        
-        [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal ResManRes() {
-        }
-        
-        /// <summary>
-        ///   Returns the cached ResourceManager instance used by this class.
-        /// </summary>
-        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
-            get {
-                if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI_GDS.ResMan", typeof(ResMan).Assembly);
-                    resourceMan = temp;
-                }
-                return resourceMan;
-            }
-        }
-        
-        /// <summary>
-        ///   Overrides the current thread's CurrentUICulture property for all
-        ///   resource lookups using this strongly typed resource class.
-        /// </summary>
-        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
-            get {
-                return resourceCulture;
-            }
-            set {
-                resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete Loop.
-        /// </summary>
-        internal static string _1202 {
-            get {
-                return ResourceManager.GetString("1202", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete Cel.
-        /// </summary>
-        internal static string _1203 {
-            get {
-                return ResourceManager.GetString("1203", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change View Desc.
-        /// </summary>
-        internal static string _1204 {
-            get {
-                return ResourceManager.GetString("1204", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Cel Height.
-        /// </summary>
-        internal static string _1205 {
-            get {
-                return ResourceManager.GetString("1205", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Cel Width.
-        /// </summary>
-        internal static string _1206 {
-            get {
-                return ResourceManager.GetString("1206", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Cel Height.
-        /// </summary>
-        internal static string _1207 {
-            get {
-                return ResourceManager.GetString("1207", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Cel Width.
-        /// </summary>
-        internal static string _1208 {
-            get {
-                return ResourceManager.GetString("1208", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Flip Horizontal.
-        /// </summary>
-        internal static string _1209 {
-            get {
-                return ResourceManager.GetString("1209", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Flip Vertical.
-        /// </summary>
-        internal static string _1210 {
-            get {
-                return ResourceManager.GetString("1210", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Draw Line.
-        /// </summary>
-        internal static string _1211 {
-            get {
-                return ResourceManager.GetString("1211", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Draw Box.
-        /// </summary>
-        internal static string _1212 {
-            get {
-                return ResourceManager.GetString("1212", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Draw BoxFill.
-        /// </summary>
-        internal static string _1213 {
-            get {
-                return ResourceManager.GetString("1213", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pencil.
-        /// </summary>
-        internal static string _1214 {
-            get {
-                return ResourceManager.GetString("1214", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Erase.
-        /// </summary>
-        internal static string _1215 {
-            get {
-                return ResourceManager.GetString("1215", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Paint Fill.
-        /// </summary>
-        internal static string _1216 {
-            get {
-                return ResourceManager.GetString("1216", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Mirror.
-        /// </summary>
-        internal static string _1217 {
-            get {
-                return ResourceManager.GetString("1217", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change TransColor.
-        /// </summary>
-        internal static string _1218 {
-            get {
-                return ResourceManager.GetString("1218", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Paste Loop.
-        /// </summary>
-        internal static string _1219 {
-            get {
-                return ResourceManager.GetString("1219", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Paste Cel.
-        /// </summary>
-        internal static string _1220 {
-            get {
-                return ResourceManager.GetString("1220", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cut Selection.
-        /// </summary>
-        internal static string _1221 {
-            get {
-                return ResourceManager.GetString("1221", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete Selection.
-        /// </summary>
-        internal static string _1222 {
-            get {
-                return ResourceManager.GetString("1222", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Paste Selection.
-        /// </summary>
-        internal static string _1223 {
-            get {
-                return ResourceManager.GetString("1223", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Move Selection.
-        /// </summary>
-        internal static string _1224 {
-            get {
-                return ResourceManager.GetString("1224", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Clear Loop.
-        /// </summary>
-        internal static string _1225 {
-            get {
-                return ResourceManager.GetString("1225", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Clear Cel.
-        /// </summary>
-        internal static string _1226 {
-            get {
-                return ResourceManager.GetString("1226", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cut Loop.
-        /// </summary>
-        internal static string _1227 {
-            get {
-                return ResourceManager.GetString("1227", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cut Cel.
-        /// </summary>
-        internal static string _1228 {
-            get {
-                return ResourceManager.GetString("1228", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Color.
-        /// </summary>
-        internal static string _1300 {
-            get {
-                return ResourceManager.GetString("1300", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Plot Pen.
-        /// </summary>
-        internal static string _1301 {
-            get {
-                return ResourceManager.GetString("1301", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete .
-        /// </summary>
-        internal static string _1302 {
-            get {
-                return ResourceManager.GetString("1302", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete Coordinate.
-        /// </summary>
-        internal static string _1303 {
-            get {
-                return ResourceManager.GetString("1303", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add .
-        /// </summary>
-        internal static string _1304 {
-            get {
-                return ResourceManager.GetString("1304", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add Coordinate.
-        /// </summary>
-        internal static string _1305 {
-            get {
-                return ResourceManager.GetString("1305", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Insert Coordinate.
-        /// </summary>
-        internal static string _1306 {
-            get {
-                return ResourceManager.GetString("1306", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Coordinate.
-        /// </summary>
-        internal static string _1307 {
-            get {
-                return ResourceManager.GetString("1307", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Draw Rectangle.
-        /// </summary>
-        internal static string _1308 {
-            get {
-                return ResourceManager.GetString("1308", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Draw Trapezoid.
-        /// </summary>
-        internal static string _1309 {
-            get {
-                return ResourceManager.GetString("1309", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Draw Ellipse.
-        /// </summary>
-        internal static string _1310 {
-            get {
-                return ResourceManager.GetString("1310", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Join Commands.
-        /// </summary>
-        internal static string _1311 {
-            get {
-                return ResourceManager.GetString("1311", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Split Command.
-        /// </summary>
-        internal static string _1312 {
-            get {
-                return ResourceManager.GetString("1312", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cut .
-        /// </summary>
-        internal static string _1313 {
-            get {
-                return ResourceManager.GetString("1313", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Paste Command.
-        /// </summary>
-        internal static string _1314 {
-            get {
-                return ResourceManager.GetString("1314", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Move Command.
-        /// </summary>
-        internal static string _1315 {
-            get {
-                return ResourceManager.GetString("1315", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Flip Horizontal.
-        /// </summary>
-        internal static string _1316 {
-            get {
-                return ResourceManager.GetString("1316", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Flip Vertical.
-        /// </summary>
-        internal static string _1317 {
-            get {
-                return ResourceManager.GetString("1317", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to addplotpattern.
-        /// </summary>
-        internal static string _1318 {
-            get {
-                return ResourceManager.GetString("1318", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to delplotpattern.
-        /// </summary>
-        internal static string _1319 {
-            get {
-                return ResourceManager.GetString("1319", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Plot Coordinate.
-        /// </summary>
-        internal static string _1320 {
-            get {
-                return ResourceManager.GetString("1320", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Priority Base.
-        /// </summary>
-        internal static string _1321 {
-            get {
-                return ResourceManager.GetString("1321", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Key.
-        /// </summary>
-        internal static string _1400 {
-            get {
-                return ResourceManager.GetString("1400", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change TPQN.
-        /// </summary>
-        internal static string _1401 {
-            get {
-                return ResourceManager.GetString("1401", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Instrument.
-        /// </summary>
-        internal static string _1402 {
-            get {
-                return ResourceManager.GetString("1402", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Note.
-        /// </summary>
-        internal static string _1403 {
-            get {
-                return ResourceManager.GetString("1403", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cut.
-        /// </summary>
-        internal static string _1404 {
-            get {
-                return ResourceManager.GetString("1404", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Paste.
-        /// </summary>
-        internal static string _1405 {
-            get {
-                return ResourceManager.GetString("1405", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add Note.
-        /// </summary>
-        internal static string _1406 {
-            get {
-                return ResourceManager.GetString("1406", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete.
-        /// </summary>
-        internal static string _1407 {
-            get {
-                return ResourceManager.GetString("1407", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shift Key.
-        /// </summary>
-        internal static string _1408 {
-            get {
-                return ResourceManager.GetString("1408", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shift Volume.
-        /// </summary>
-        internal static string _1409 {
-            get {
-                return ResourceManager.GetString("1409", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add Group.
-        /// </summary>
-        internal static string _1500 {
-            get {
-                return ResourceManager.GetString("1500", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete Group.
-        /// </summary>
-        internal static string _1501 {
-            get {
-                return ResourceManager.GetString("1501", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Renumber Group.
-        /// </summary>
-        internal static string _1502 {
-            get {
-                return ResourceManager.GetString("1502", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add Word.
-        /// </summary>
-        internal static string _1503 {
-            get {
-                return ResourceManager.GetString("1503", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete Word.
-        /// </summary>
-        internal static string _1504 {
-            get {
-                return ResourceManager.GetString("1504", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Move Word.
-        /// </summary>
-        internal static string _1505 {
-            get {
-                return ResourceManager.GetString("1505", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Word.
-        /// </summary>
-        internal static string _1506 {
-            get {
-                return ResourceManager.GetString("1506", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Description.
-        /// </summary>
-        internal static string _1507 {
-            get {
-                return ResourceManager.GetString("1507", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cut Word.
-        /// </summary>
-        internal static string _1508 {
-            get {
-                return ResourceManager.GetString("1508", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cut Group.
-        /// </summary>
-        internal static string _1509 {
-            get {
-                return ResourceManager.GetString("1509", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Paste Word.
-        /// </summary>
-        internal static string _1510 {
-            get {
-                return ResourceManager.GetString("1510", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Paste Group.
-        /// </summary>
-        internal static string _1511 {
-            get {
-                return ResourceManager.GetString("1511", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replace.
-        /// </summary>
-        internal static string _1512 {
-            get {
-                return ResourceManager.GetString("1512", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replace All.
-        /// </summary>
-        internal static string _1513 {
-            get {
-                return ResourceManager.GetString("1513", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Clear.
-        /// </summary>
-        internal static string _1514 {
-            get {
-                return ResourceManager.GetString("1514", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add Item.
-        /// </summary>
-        internal static string _1600 {
-            get {
-                return ResourceManager.GetString("1600", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete Item.
-        /// </summary>
-        internal static string _1601 {
-            get {
-                return ResourceManager.GetString("1601", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Item.
-        /// </summary>
-        internal static string _1602 {
-            get {
-                return ResourceManager.GetString("1602", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Room.
-        /// </summary>
-        internal static string _1603 {
-            get {
-                return ResourceManager.GetString("1603", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Description.
-        /// </summary>
-        internal static string _1604 {
-            get {
-                return ResourceManager.GetString("1604", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Max Objects.
-        /// </summary>
-        internal static string _1605 {
-            get {
-                return ResourceManager.GetString("1605", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Toggle Encryption.
-        /// </summary>
-        internal static string _1606 {
-            get {
-                return ResourceManager.GetString("1606", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Clear.
-        /// </summary>
-        internal static string _1607 {
-            get {
-                return ResourceManager.GetString("1607", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replace.
-        /// </summary>
-        internal static string _1608 {
-            get {
-                return ResourceManager.GetString("1608", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replace All.
-        /// </summary>
-        internal static string _1609 {
-            get {
-                return ResourceManager.GetString("1609", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to None.
-        /// </summary>
-        internal static string _1700 {
-            get {
-                return ResourceManager.GetString("1700", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Select.
-        /// </summary>
-        internal static string _1701 {
-            get {
-                return ResourceManager.GetString("1701", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Draw.
-        /// </summary>
-        internal static string _1702 {
-            get {
-                return ResourceManager.GetString("1702", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Line.
-        /// </summary>
-        internal static string _1703 {
-            get {
-                return ResourceManager.GetString("1703", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rectangle.
-        /// </summary>
-        internal static string _1704 {
-            get {
-                return ResourceManager.GetString("1704", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Solid Rectangle.
-        /// </summary>
-        internal static string _1705 {
-            get {
-                return ResourceManager.GetString("1705", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fill.
-        /// </summary>
-        internal static string _1706 {
-            get {
-                return ResourceManager.GetString("1706", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Erase.
-        /// </summary>
-        internal static string _1707 {
-            get {
-                return ResourceManager.GetString("1707", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to None.
-        /// </summary>
-        internal static string _1800 {
-            get {
-                return ResourceManager.GetString("1800", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pen.
-        /// </summary>
-        internal static string _1801 {
-            get {
-                return ResourceManager.GetString("1801", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Absolute Line.
-        /// </summary>
-        internal static string _1802 {
-            get {
-                return ResourceManager.GetString("1802", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Relative Line.
-        /// </summary>
-        internal static string _1803 {
-            get {
-                return ResourceManager.GetString("1803", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Corner.
-        /// </summary>
-        internal static string _1804 {
-            get {
-                return ResourceManager.GetString("1804", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fill.
-        /// </summary>
-        internal static string _1805 {
-            get {
-                return ResourceManager.GetString("1805", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Plot.
-        /// </summary>
-        internal static string _1806 {
-            get {
-                return ResourceManager.GetString("1806", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rectangle.
-        /// </summary>
-        internal static string _1807 {
-            get {
-                return ResourceManager.GetString("1807", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Trapezoid.
-        /// </summary>
-        internal static string _1808 {
-            get {
-                return ResourceManager.GetString("1808", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ellipse.
-        /// </summary>
-        internal static string _1809 {
-            get {
-                return ResourceManager.GetString("1809", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Select.
-        /// </summary>
-        internal static string _1810 {
-            get {
-                return ResourceManager.GetString("1810", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Vis: Color.
-        /// </summary>
-        internal static string _1900 {
-            get {
-                return ResourceManager.GetString("1900", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Vis: Off.
-        /// </summary>
-        internal static string _1901 {
-            get {
-                return ResourceManager.GetString("1901", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pri: Color.
-        /// </summary>
-        internal static string _1902 {
-            get {
-                return ResourceManager.GetString("1902", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pri: Off.
-        /// </summary>
-        internal static string _1903 {
-            get {
-                return ResourceManager.GetString("1903", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Y Corner.
-        /// </summary>
-        internal static string _1904 {
-            get {
-                return ResourceManager.GetString("1904", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to X Corner.
-        /// </summary>
-        internal static string _1905 {
-            get {
-                return ResourceManager.GetString("1905", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Abs Line.
-        /// </summary>
-        internal static string _1906 {
-            get {
-                return ResourceManager.GetString("1906", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rel Line.
-        /// </summary>
-        internal static string _1907 {
-            get {
-                return ResourceManager.GetString("1907", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fill.
-        /// </summary>
-        internal static string _1908 {
-            get {
-                return ResourceManager.GetString("1908", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Pen.
-        /// </summary>
-        internal static string _1909 {
-            get {
-                return ResourceManager.GetString("1909", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Plot.
-        /// </summary>
-        internal static string _1910 {
-            get {
-                return ResourceManager.GetString("1910", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to End.
-        /// </summary>
-        internal static string _1911 {
-            get {
-                return ResourceManager.GetString("1911", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Obstacle.
-        /// </summary>
-        internal static string _2001 {
-            get {
-                return ResourceManager.GetString("2001", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Conditional Obstacle.
-        /// </summary>
-        internal static string _2002 {
-            get {
-                return ResourceManager.GetString("2002", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Alarm Line.
-        /// </summary>
-        internal static string _2003 {
-            get {
-                return ResourceManager.GetString("2003", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to On Water.
-        /// </summary>
-        internal static string _2004 {
-            get {
-                return ResourceManager.GetString("2004", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At Water Edge.
-        /// </summary>
-        internal static string _2005 {
-            get {
-                return ResourceManager.GetString("2005", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At Land Edge.
-        /// </summary>
-        internal static string _2006 {
-            get {
-                return ResourceManager.GetString("2006", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At Horizon.
-        /// </summary>
-        internal static string _2007 {
-            get {
-                return ResourceManager.GetString("2007", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At Top Edge.
-        /// </summary>
-        internal static string _2008 {
-            get {
-                return ResourceManager.GetString("2008", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At Right Edge.
-        /// </summary>
-        internal static string _2009 {
-            get {
-                return ResourceManager.GetString("2009", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At Bottom Edge.
-        /// </summary>
-        internal static string _2010 {
-            get {
-                return ResourceManager.GetString("2010", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to At Left Edge.
-        /// </summary>
-        internal static string _2011 {
-            get {
-                return ResourceManager.GetString("2011", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add Define.
-        /// </summary>
-        internal static string _2100 {
-            get {
-                return ResourceManager.GetString("2100", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Import Defines.
-        /// </summary>
-        internal static string _2101 {
-            get {
-                return ResourceManager.GetString("2101", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Paste Define.
-        /// </summary>
-        internal static string _2102 {
-            get {
-                return ResourceManager.GetString("2102", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete Define.
-        /// </summary>
-        internal static string _2103 {
-            get {
-                return ResourceManager.GetString("2103", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cut Define.
-        /// </summary>
-        internal static string _2104 {
-            get {
-                return ResourceManager.GetString("2104", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Clear List.
-        /// </summary>
-        internal static string _2105 {
-            get {
-                return ResourceManager.GetString("2105", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Define Name.
-        /// </summary>
-        internal static string _2106 {
-            get {
-                return ResourceManager.GetString("2106", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Define Value.
-        /// </summary>
-        internal static string _2107 {
-            get {
-                return ResourceManager.GetString("2107", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Sort Defines.
-        /// </summary>
-        internal static string _2108 {
-            get {
-                return ResourceManager.GetString("2108", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Comment.
-        /// </summary>
-        internal static string _2109 {
-            get {
-                return ResourceManager.GetString("2109", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Acoustic grand piano.
-        /// </summary>
-        internal static string _3000 {
-            get {
-                return ResourceManager.GetString("3000", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Bright acoustic piano.
-        /// </summary>
-        internal static string _3001 {
-            get {
-                return ResourceManager.GetString("3001", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Electric grand piano.
-        /// </summary>
-        internal static string _3002 {
-            get {
-                return ResourceManager.GetString("3002", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Honky-tonk piano.
-        /// </summary>
-        internal static string _3003 {
-            get {
-                return ResourceManager.GetString("3003", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rhodes piano.
-        /// </summary>
-        internal static string _3004 {
-            get {
-                return ResourceManager.GetString("3004", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Chorused piano.
-        /// </summary>
-        internal static string _3005 {
-            get {
-                return ResourceManager.GetString("3005", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Harpsichord.
-        /// </summary>
-        internal static string _3006 {
-            get {
-                return ResourceManager.GetString("3006", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Clavinet.
-        /// </summary>
-        internal static string _3007 {
-            get {
-                return ResourceManager.GetString("3007", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Celesta.
-        /// </summary>
-        internal static string _3008 {
-            get {
-                return ResourceManager.GetString("3008", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Glockenspiel.
-        /// </summary>
-        internal static string _3009 {
-            get {
-                return ResourceManager.GetString("3009", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Music box.
-        /// </summary>
-        internal static string _3010 {
-            get {
-                return ResourceManager.GetString("3010", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Vibraphone.
-        /// </summary>
-        internal static string _3011 {
-            get {
-                return ResourceManager.GetString("3011", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Marimba.
-        /// </summary>
-        internal static string _3012 {
-            get {
-                return ResourceManager.GetString("3012", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Xylophone.
-        /// </summary>
-        internal static string _3013 {
-            get {
-                return ResourceManager.GetString("3013", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tubular bells.
-        /// </summary>
-        internal static string _3014 {
-            get {
-                return ResourceManager.GetString("3014", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Dulcimer.
-        /// </summary>
-        internal static string _3015 {
-            get {
-                return ResourceManager.GetString("3015", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Hammond organ.
-        /// </summary>
-        internal static string _3016 {
-            get {
-                return ResourceManager.GetString("3016", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Percussive organ.
-        /// </summary>
-        internal static string _3017 {
-            get {
-                return ResourceManager.GetString("3017", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rock organ.
-        /// </summary>
-        internal static string _3018 {
-            get {
-                return ResourceManager.GetString("3018", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Church organ.
-        /// </summary>
-        internal static string _3019 {
-            get {
-                return ResourceManager.GetString("3019", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reed organ.
-        /// </summary>
-        internal static string _3020 {
-            get {
-                return ResourceManager.GetString("3020", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Accordion.
-        /// </summary>
-        internal static string _3021 {
-            get {
-                return ResourceManager.GetString("3021", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Harmonica.
-        /// </summary>
-        internal static string _3022 {
-            get {
-                return ResourceManager.GetString("3022", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tango accordion.
-        /// </summary>
-        internal static string _3023 {
-            get {
-                return ResourceManager.GetString("3023", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Acoustic guitar (nylon).
-        /// </summary>
-        internal static string _3024 {
-            get {
-                return ResourceManager.GetString("3024", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Acoustic guitar (steel).
-        /// </summary>
-        internal static string _3025 {
-            get {
-                return ResourceManager.GetString("3025", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Acoustic guitar (jazz).
-        /// </summary>
-        internal static string _3026 {
-            get {
-                return ResourceManager.GetString("3026", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Acoustic guitar (clean).
-        /// </summary>
-        internal static string _3027 {
-            get {
-                return ResourceManager.GetString("3027", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Acoustic guitar (muted).
-        /// </summary>
-        internal static string _3028 {
-            get {
-                return ResourceManager.GetString("3028", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Overdriven guitar.
-        /// </summary>
-        internal static string _3029 {
-            get {
-                return ResourceManager.GetString("3029", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Distortion guitar.
-        /// </summary>
-        internal static string _3030 {
-            get {
-                return ResourceManager.GetString("3030", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Guitar harmonics.
-        /// </summary>
-        internal static string _3031 {
-            get {
-                return ResourceManager.GetString("3031", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Acoustic bass.
-        /// </summary>
-        internal static string _3032 {
-            get {
-                return ResourceManager.GetString("3032", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Electric bass (finger).
-        /// </summary>
-        internal static string _3033 {
-            get {
-                return ResourceManager.GetString("3033", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Electric bass (pick).
-        /// </summary>
-        internal static string _3034 {
-            get {
-                return ResourceManager.GetString("3034", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fretless bass.
-        /// </summary>
-        internal static string _3035 {
-            get {
-                return ResourceManager.GetString("3035", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Slap bass 1.
-        /// </summary>
-        internal static string _3036 {
-            get {
-                return ResourceManager.GetString("3036", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Slap bass 2.
-        /// </summary>
-        internal static string _3037 {
-            get {
-                return ResourceManager.GetString("3037", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Synth bass 1.
-        /// </summary>
-        internal static string _3038 {
-            get {
-                return ResourceManager.GetString("3038", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Synth bass 2.
-        /// </summary>
-        internal static string _3039 {
-            get {
-                return ResourceManager.GetString("3039", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Violin.
-        /// </summary>
-        internal static string _3040 {
-            get {
-                return ResourceManager.GetString("3040", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Viola.
-        /// </summary>
-        internal static string _3041 {
-            get {
-                return ResourceManager.GetString("3041", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cello.
-        /// </summary>
-        internal static string _3042 {
-            get {
-                return ResourceManager.GetString("3042", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Contrabass.
-        /// </summary>
-        internal static string _3043 {
-            get {
-                return ResourceManager.GetString("3043", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tremolo strings.
-        /// </summary>
-        internal static string _3044 {
-            get {
-                return ResourceManager.GetString("3044", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pizzicato strings.
-        /// </summary>
-        internal static string _3045 {
-            get {
-                return ResourceManager.GetString("3045", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Orchestral harp.
-        /// </summary>
-        internal static string _3046 {
-            get {
-                return ResourceManager.GetString("3046", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Timpani.
-        /// </summary>
-        internal static string _3047 {
-            get {
-                return ResourceManager.GetString("3047", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to String ensemble 1.
-        /// </summary>
-        internal static string _3048 {
-            get {
-                return ResourceManager.GetString("3048", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to String ensemble 2.
-        /// </summary>
-        internal static string _3049 {
-            get {
-                return ResourceManager.GetString("3049", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Synth. strings 1.
-        /// </summary>
-        internal static string _3050 {
-            get {
-                return ResourceManager.GetString("3050", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Synth. strings 2.
-        /// </summary>
-        internal static string _3051 {
-            get {
-                return ResourceManager.GetString("3051", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Choir Aahs.
-        /// </summary>
-        internal static string _3052 {
-            get {
-                return ResourceManager.GetString("3052", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Voice Oohs.
-        /// </summary>
-        internal static string _3053 {
-            get {
-                return ResourceManager.GetString("3053", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Synth voice.
-        /// </summary>
-        internal static string _3054 {
-            get {
-                return ResourceManager.GetString("3054", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Orchestra hit.
-        /// </summary>
-        internal static string _3055 {
-            get {
-                return ResourceManager.GetString("3055", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Trumpet.
-        /// </summary>
-        internal static string _3056 {
-            get {
-                return ResourceManager.GetString("3056", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Trombone.
-        /// </summary>
-        internal static string _3057 {
-            get {
-                return ResourceManager.GetString("3057", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tuba.
-        /// </summary>
-        internal static string _3058 {
-            get {
-                return ResourceManager.GetString("3058", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Muted trumpet.
-        /// </summary>
-        internal static string _3059 {
-            get {
-                return ResourceManager.GetString("3059", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to French horn.
-        /// </summary>
-        internal static string _3060 {
-            get {
-                return ResourceManager.GetString("3060", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Brass section.
-        /// </summary>
-        internal static string _3061 {
-            get {
-                return ResourceManager.GetString("3061", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Synth. brass 1.
-        /// </summary>
-        internal static string _3062 {
-            get {
-                return ResourceManager.GetString("3062", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Synth. brass 2.
-        /// </summary>
-        internal static string _3063 {
-            get {
-                return ResourceManager.GetString("3063", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Soprano sax.
-        /// </summary>
-        internal static string _3064 {
-            get {
-                return ResourceManager.GetString("3064", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Alto sax.
-        /// </summary>
-        internal static string _3065 {
-            get {
-                return ResourceManager.GetString("3065", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tenor sax.
-        /// </summary>
-        internal static string _3066 {
-            get {
-                return ResourceManager.GetString("3066", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Baritone sax.
-        /// </summary>
-        internal static string _3067 {
-            get {
-                return ResourceManager.GetString("3067", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Oboe.
-        /// </summary>
-        internal static string _3068 {
-            get {
-                return ResourceManager.GetString("3068", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to English horn.
-        /// </summary>
-        internal static string _3069 {
-            get {
-                return ResourceManager.GetString("3069", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Bassoon.
-        /// </summary>
-        internal static string _3070 {
-            get {
-                return ResourceManager.GetString("3070", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Clarinet.
-        /// </summary>
-        internal static string _3071 {
-            get {
-                return ResourceManager.GetString("3071", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Piccolo.
-        /// </summary>
-        internal static string _3072 {
-            get {
-                return ResourceManager.GetString("3072", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Flute.
-        /// </summary>
-        internal static string _3073 {
-            get {
-                return ResourceManager.GetString("3073", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Recorder.
-        /// </summary>
-        internal static string _3074 {
-            get {
-                return ResourceManager.GetString("3074", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pan flute.
-        /// </summary>
-        internal static string _3075 {
-            get {
-                return ResourceManager.GetString("3075", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Bottle blow.
-        /// </summary>
-        internal static string _3076 {
-            get {
-                return ResourceManager.GetString("3076", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shakuhachi.
-        /// </summary>
-        internal static string _3077 {
-            get {
-                return ResourceManager.GetString("3077", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Whistle.
-        /// </summary>
-        internal static string _3078 {
-            get {
-                return ResourceManager.GetString("3078", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ocarina.
-        /// </summary>
-        internal static string _3079 {
-            get {
-                return ResourceManager.GetString("3079", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Lead 1 (square).
-        /// </summary>
-        internal static string _3080 {
-            get {
-                return ResourceManager.GetString("3080", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Lead 2 (sawtooth).
-        /// </summary>
-        internal static string _3081 {
-            get {
-                return ResourceManager.GetString("3081", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Lead 3 (calliope lead).
-        /// </summary>
-        internal static string _3082 {
-            get {
-                return ResourceManager.GetString("3082", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Lead 4 (chiff lead).
-        /// </summary>
-        internal static string _3083 {
-            get {
-                return ResourceManager.GetString("3083", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Lead 5 (charang).
-        /// </summary>
-        internal static string _3084 {
-            get {
-                return ResourceManager.GetString("3084", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Lead 6 (voice).
-        /// </summary>
-        internal static string _3085 {
-            get {
-                return ResourceManager.GetString("3085", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Lead 7 (fifths).
-        /// </summary>
-        internal static string _3086 {
-            get {
-                return ResourceManager.GetString("3086", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Lead 8 (brass + lead).
-        /// </summary>
-        internal static string _3087 {
-            get {
-                return ResourceManager.GetString("3087", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pad 1 (new age).
-        /// </summary>
-        internal static string _3088 {
-            get {
-                return ResourceManager.GetString("3088", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pad 2 (warm).
-        /// </summary>
-        internal static string _3089 {
-            get {
-                return ResourceManager.GetString("3089", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pad 3 (polysynth).
-        /// </summary>
-        internal static string _3090 {
-            get {
-                return ResourceManager.GetString("3090", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pad 4 (choir).
-        /// </summary>
-        internal static string _3091 {
-            get {
-                return ResourceManager.GetString("3091", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pad 5 (bowed).
-        /// </summary>
-        internal static string _3092 {
-            get {
-                return ResourceManager.GetString("3092", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pad 6 (metallic).
-        /// </summary>
-        internal static string _3093 {
-            get {
-                return ResourceManager.GetString("3093", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pad 7 (halo).
-        /// </summary>
-        internal static string _3094 {
-            get {
-                return ResourceManager.GetString("3094", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pad 8 (sweep).
-        /// </summary>
-        internal static string _3095 {
-            get {
-                return ResourceManager.GetString("3095", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to FX 1 (rain).
-        /// </summary>
-        internal static string _3096 {
-            get {
-                return ResourceManager.GetString("3096", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to FX 2 (soundtrack).
-        /// </summary>
-        internal static string _3097 {
-            get {
-                return ResourceManager.GetString("3097", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to FX 3 (crystal).
-        /// </summary>
-        internal static string _3098 {
-            get {
-                return ResourceManager.GetString("3098", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to FX 4 (atmosphere).
-        /// </summary>
-        internal static string _3099 {
-            get {
-                return ResourceManager.GetString("3099", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to FX 5 (brightness).
-        /// </summary>
-        internal static string _3100 {
-            get {
-                return ResourceManager.GetString("3100", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to FX 6 (goblins).
-        /// </summary>
-        internal static string _3101 {
-            get {
-                return ResourceManager.GetString("3101", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to FX 7 (echoes, drops).
-        /// </summary>
-        internal static string _3102 {
-            get {
-                return ResourceManager.GetString("3102", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to FX 8 (sci-fi, star theme).
-        /// </summary>
-        internal static string _3103 {
-            get {
-                return ResourceManager.GetString("3103", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Sitar.
-        /// </summary>
-        internal static string _3104 {
-            get {
-                return ResourceManager.GetString("3104", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Banjo.
-        /// </summary>
-        internal static string _3105 {
-            get {
-                return ResourceManager.GetString("3105", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shamisen.
-        /// </summary>
-        internal static string _3106 {
-            get {
-                return ResourceManager.GetString("3106", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Koto.
-        /// </summary>
-        internal static string _3107 {
-            get {
-                return ResourceManager.GetString("3107", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Kalimba.
-        /// </summary>
-        internal static string _3108 {
-            get {
-                return ResourceManager.GetString("3108", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Bag pipe.
-        /// </summary>
-        internal static string _3109 {
-            get {
-                return ResourceManager.GetString("3109", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fiddle.
-        /// </summary>
-        internal static string _3110 {
-            get {
-                return ResourceManager.GetString("3110", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shanai.
-        /// </summary>
-        internal static string _3111 {
-            get {
-                return ResourceManager.GetString("3111", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tinkle Bell.
-        /// </summary>
-        internal static string _3112 {
-            get {
-                return ResourceManager.GetString("3112", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Agogo.
-        /// </summary>
-        internal static string _3113 {
-            get {
-                return ResourceManager.GetString("3113", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Steel Drums.
-        /// </summary>
-        internal static string _3114 {
-            get {
-                return ResourceManager.GetString("3114", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Woodblock.
-        /// </summary>
-        internal static string _3115 {
-            get {
-                return ResourceManager.GetString("3115", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Taiko Drum.
-        /// </summary>
-        internal static string _3116 {
-            get {
-                return ResourceManager.GetString("3116", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Melodic Tom.
-        /// </summary>
-        internal static string _3117 {
-            get {
-                return ResourceManager.GetString("3117", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Synth Drum.
-        /// </summary>
-        internal static string _3118 {
-            get {
-                return ResourceManager.GetString("3118", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reverse Cymbal.
-        /// </summary>
-        internal static string _3119 {
-            get {
-                return ResourceManager.GetString("3119", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Guitar fret noise.
-        /// </summary>
-        internal static string _3120 {
-            get {
-                return ResourceManager.GetString("3120", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Breath noise.
-        /// </summary>
-        internal static string _3121 {
-            get {
-                return ResourceManager.GetString("3121", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Seashore.
-        /// </summary>
-        internal static string _3122 {
-            get {
-                return ResourceManager.GetString("3122", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Bird tweet.
-        /// </summary>
-        internal static string _3123 {
-            get {
-                return ResourceManager.GetString("3123", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Telphone ring.
-        /// </summary>
-        internal static string _3124 {
-            get {
-                return ResourceManager.GetString("3124", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Helicopter.
-        /// </summary>
-        internal static string _3125 {
-            get {
-                return ResourceManager.GetString("3125", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Applause.
-        /// </summary>
-        internal static string _3126 {
-            get {
-                return ResourceManager.GetString("3126", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Gunshot.
-        /// </summary>
-        internal static string _3127 {
-            get {
-                return ResourceManager.GetString("3127", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to add.to.pic.
-        /// </summary>
-        internal static string _4000 {
-            get {
-                return ResourceManager.GetString("4000", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to add.to.pic.v.
-        /// </summary>
-        internal static string _4001 {
-            get {
-                return ResourceManager.GetString("4001", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to addn.
-        /// </summary>
-        internal static string _4002 {
-            get {
-                return ResourceManager.GetString("4002", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to addv.
-        /// </summary>
-        internal static string _4003 {
-            get {
-                return ResourceManager.GetString("4003", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to allow.menu.
-        /// </summary>
-        internal static string _4004 {
-            get {
-                return ResourceManager.GetString("4004", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to animate.obj.
-        /// </summary>
-        internal static string _4005 {
-            get {
-                return ResourceManager.GetString("4005", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to assignn.
-        /// </summary>
-        internal static string _4006 {
-            get {
-                return ResourceManager.GetString("4006", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to assignv.
-        /// </summary>
-        internal static string _4007 {
-            get {
-                return ResourceManager.GetString("4007", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to block.
-        /// </summary>
-        internal static string _4008 {
-            get {
-                return ResourceManager.GetString("4008", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to call.
-        /// </summary>
-        internal static string _4009 {
-            get {
-                return ResourceManager.GetString("4009", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to call.v.
-        /// </summary>
-        internal static string _4010 {
-            get {
-                return ResourceManager.GetString("4010", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to center.posn.
-        /// </summary>
-        internal static string _4011 {
-            get {
-                return ResourceManager.GetString("4011", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to clear.lines.
-        /// </summary>
-        internal static string _4012 {
-            get {
-                return ResourceManager.GetString("4012", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to clear.text.rect.
-        /// </summary>
-        internal static string _4013 {
-            get {
-                return ResourceManager.GetString("4013", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to compare.strings.
-        /// </summary>
-        internal static string _4014 {
-            get {
-                return ResourceManager.GetString("4014", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to configure.screen.
-        /// </summary>
-        internal static string _4015 {
-            get {
-                return ResourceManager.GetString("4015", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to controller.
-        /// </summary>
-        internal static string _4016 {
-            get {
-                return ResourceManager.GetString("4016", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to current.cel.
-        /// </summary>
-        internal static string _4017 {
-            get {
-                return ResourceManager.GetString("4017", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to current.loop.
-        /// </summary>
-        internal static string _4018 {
-            get {
-                return ResourceManager.GetString("4018", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to current.view.
-        /// </summary>
-        internal static string _4019 {
-            get {
-                return ResourceManager.GetString("4019", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to cycle.time.
-        /// </summary>
-        internal static string _4020 {
-            get {
-                return ResourceManager.GetString("4020", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to decrement.
-        /// </summary>
-        internal static string _4021 {
-            get {
-                return ResourceManager.GetString("4021", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to disable.item.
-        /// </summary>
-        internal static string _4022 {
-            get {
-                return ResourceManager.GetString("4022", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to discard.pic.
-        /// </summary>
-        internal static string _4023 {
-            get {
-                return ResourceManager.GetString("4023", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to discard.sound.
-        /// </summary>
-        internal static string _4024 {
-            get {
-                return ResourceManager.GetString("4024", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to discard.view.
-        /// </summary>
-        internal static string _4025 {
-            get {
-                return ResourceManager.GetString("4025", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to discard.view.v.
-        /// </summary>
-        internal static string _4026 {
-            get {
-                return ResourceManager.GetString("4026", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to display.
-        /// </summary>
-        internal static string _4027 {
-            get {
-                return ResourceManager.GetString("4027", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to display.v.
-        /// </summary>
-        internal static string _4028 {
-            get {
-                return ResourceManager.GetString("4028", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to distance.
-        /// </summary>
-        internal static string _4029 {
-            get {
-                return ResourceManager.GetString("4029", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to div.n.
-        /// </summary>
-        internal static string _4030 {
-            get {
-                return ResourceManager.GetString("4030", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to div.v.
-        /// </summary>
-        internal static string _4031 {
-            get {
-                return ResourceManager.GetString("4031", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to draw.
-        /// </summary>
-        internal static string _4032 {
-            get {
-                return ResourceManager.GetString("4032", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to draw.pic.
-        /// </summary>
-        internal static string _4033 {
-            get {
-                return ResourceManager.GetString("4033", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to drop.
-        /// </summary>
-        internal static string _4034 {
-            get {
-                return ResourceManager.GetString("4034", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to enable.item.
-        /// </summary>
-        internal static string _4035 {
-            get {
-                return ResourceManager.GetString("4035", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to end.of.loop.
-        /// </summary>
-        internal static string _4036 {
-            get {
-                return ResourceManager.GetString("4036", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to equaln.
-        /// </summary>
-        internal static string _4037 {
-            get {
-                return ResourceManager.GetString("4037", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to equalv.
-        /// </summary>
-        internal static string _4038 {
-            get {
-                return ResourceManager.GetString("4038", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to erase.
-        /// </summary>
-        internal static string _4039 {
-            get {
-                return ResourceManager.GetString("4039", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to fence.mouse.
-        /// </summary>
-        internal static string _4040 {
-            get {
-                return ResourceManager.GetString("4040", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to fix.loop.
-        /// </summary>
-        internal static string _4041 {
-            get {
-                return ResourceManager.GetString("4041", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to follow.ego.
-        /// </summary>
-        internal static string _4042 {
-            get {
-                return ResourceManager.GetString("4042", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to force.update.
-        /// </summary>
-        internal static string _4043 {
-            get {
-                return ResourceManager.GetString("4043", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to get.
-        /// </summary>
-        internal static string _4044 {
-            get {
-                return ResourceManager.GetString("4044", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to get.dir.
-        /// </summary>
-        internal static string _4045 {
-            get {
-                return ResourceManager.GetString("4045", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to get.num.
-        /// </summary>
-        internal static string _4046 {
-            get {
-                return ResourceManager.GetString("4046", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to get.posn.
-        /// </summary>
-        internal static string _4047 {
-            get {
-                return ResourceManager.GetString("4047", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to get.priority.
-        /// </summary>
-        internal static string _4048 {
-            get {
-                return ResourceManager.GetString("4048", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to get.room.v.
-        /// </summary>
-        internal static string _4049 {
-            get {
-                return ResourceManager.GetString("4049", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to get.string.
-        /// </summary>
-        internal static string _4050 {
-            get {
-                return ResourceManager.GetString("4050", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to get.v.
-        /// </summary>
-        internal static string _4051 {
-            get {
-                return ResourceManager.GetString("4051", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to greatern.
-        /// </summary>
-        internal static string _4052 {
-            get {
-                return ResourceManager.GetString("4052", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to greaterv.
-        /// </summary>
-        internal static string _4053 {
-            get {
-                return ResourceManager.GetString("4053", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to has.
-        /// </summary>
-        internal static string _4054 {
-            get {
-                return ResourceManager.GetString("4054", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ignore.blocks.
-        /// </summary>
-        internal static string _4055 {
-            get {
-                return ResourceManager.GetString("4055", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ignore.horizon.
-        /// </summary>
-        internal static string _4056 {
-            get {
-                return ResourceManager.GetString("4056", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ignore.objs.
-        /// </summary>
-        internal static string _4057 {
-            get {
-                return ResourceManager.GetString("4057", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to increment.
-        /// </summary>
-        internal static string _4058 {
-            get {
-                return ResourceManager.GetString("4058", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to isset.
-        /// </summary>
-        internal static string _4059 {
-            get {
-                return ResourceManager.GetString("4059", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to issetv.
-        /// </summary>
-        internal static string _4060 {
-            get {
-                return ResourceManager.GetString("4060", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to last.cel.
-        /// </summary>
-        internal static string _4061 {
-            get {
-                return ResourceManager.GetString("4061", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to lessn.
-        /// </summary>
-        internal static string _4062 {
-            get {
-                return ResourceManager.GetString("4062", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to lessv.
-        /// </summary>
-        internal static string _4063 {
-            get {
-                return ResourceManager.GetString("4063", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to lindirectn.
-        /// </summary>
-        internal static string _4064 {
-            get {
-                return ResourceManager.GetString("4064", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to lindirectv.
-        /// </summary>
-        internal static string _4065 {
-            get {
-                return ResourceManager.GetString("4065", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to load.logics.
-        /// </summary>
-        internal static string _4066 {
-            get {
-                return ResourceManager.GetString("4066", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to load.logics.v.
-        /// </summary>
-        internal static string _4067 {
-            get {
-                return ResourceManager.GetString("4067", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to load.pic.
-        /// </summary>
-        internal static string _4068 {
-            get {
-                return ResourceManager.GetString("4068", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to load.sound.
-        /// </summary>
-        internal static string _4069 {
-            get {
-                return ResourceManager.GetString("4069", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to load.view.
-        /// </summary>
-        internal static string _4070 {
-            get {
-                return ResourceManager.GetString("4070", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to load.view.v.
-        /// </summary>
-        internal static string _4071 {
-            get {
-                return ResourceManager.GetString("4071", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to log.
-        /// </summary>
-        internal static string _4072 {
-            get {
-                return ResourceManager.GetString("4072", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to mouse.posn.
-        /// </summary>
-        internal static string _4073 {
-            get {
-                return ResourceManager.GetString("4073", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to move.obj.
-        /// </summary>
-        internal static string _4074 {
-            get {
-                return ResourceManager.GetString("4074", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to move.obj.v.
-        /// </summary>
-        internal static string _4075 {
-            get {
-                return ResourceManager.GetString("4075", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to mul.n.
-        /// </summary>
-        internal static string _4076 {
-            get {
-                return ResourceManager.GetString("4076", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to mul.v.
-        /// </summary>
-        internal static string _4077 {
-            get {
-                return ResourceManager.GetString("4077", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to new.room.
-        /// </summary>
-        internal static string _4078 {
-            get {
-                return ResourceManager.GetString("4078", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to new.room.v.
-        /// </summary>
-        internal static string _4079 {
-            get {
-                return ResourceManager.GetString("4079", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to normal.cycle.
-        /// </summary>
-        internal static string _4080 {
-            get {
-                return ResourceManager.GetString("4080", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to normal.motion.
-        /// </summary>
-        internal static string _4081 {
-            get {
-                return ResourceManager.GetString("4081", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to number.of.loops.
-        /// </summary>
-        internal static string _4082 {
-            get {
-                return ResourceManager.GetString("4082", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj.in.box.
-        /// </summary>
-        internal static string _4083 {
-            get {
-                return ResourceManager.GetString("4083", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj.in.room.
-        /// </summary>
-        internal static string _4084 {
-            get {
-                return ResourceManager.GetString("4084", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj.status.v.
-        /// </summary>
-        internal static string _4085 {
-            get {
-                return ResourceManager.GetString("4085", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to object.on.anything.
-        /// </summary>
-        internal static string _4086 {
-            get {
-                return ResourceManager.GetString("4086", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to object.on.land.
-        /// </summary>
-        internal static string _4087 {
-            get {
-                return ResourceManager.GetString("4087", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to object.on.water.
-        /// </summary>
-        internal static string _4088 {
-            get {
-                return ResourceManager.GetString("4088", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to observe.blocks.
-        /// </summary>
-        internal static string _4089 {
-            get {
-                return ResourceManager.GetString("4089", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to observe.horizon.
-        /// </summary>
-        internal static string _4090 {
-            get {
-                return ResourceManager.GetString("4090", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to observe.objs.
-        /// </summary>
-        internal static string _4091 {
-            get {
-                return ResourceManager.GetString("4091", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to overlay.pic.
-        /// </summary>
-        internal static string _4092 {
-            get {
-                return ResourceManager.GetString("4092", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to parse.
-        /// </summary>
-        internal static string _4093 {
-            get {
-                return ResourceManager.GetString("4093", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to position.
-        /// </summary>
-        internal static string _4094 {
-            get {
-                return ResourceManager.GetString("4094", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to position.v.
-        /// </summary>
-        internal static string _4095 {
-            get {
-                return ResourceManager.GetString("4095", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to posn.
-        /// </summary>
-        internal static string _4096 {
-            get {
-                return ResourceManager.GetString("4096", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to print.
-        /// </summary>
-        internal static string _4097 {
-            get {
-                return ResourceManager.GetString("4097", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to print.at.
-        /// </summary>
-        internal static string _4098 {
-            get {
-                return ResourceManager.GetString("4098", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to print.at.v.
-        /// </summary>
-        internal static string _4099 {
-            get {
-                return ResourceManager.GetString("4099", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to print.v.
-        /// </summary>
-        internal static string _4100 {
-            get {
-                return ResourceManager.GetString("4100", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to put.
-        /// </summary>
-        internal static string _4101 {
-            get {
-                return ResourceManager.GetString("4101", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to put.v.
-        /// </summary>
-        internal static string _4102 {
-            get {
-                return ResourceManager.GetString("4102", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to quit.
-        /// </summary>
-        internal static string _4103 {
-            get {
-                return ResourceManager.GetString("4103", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to random.
-        /// </summary>
-        internal static string _4104 {
-            get {
-                return ResourceManager.GetString("4104", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to release.loop.
-        /// </summary>
-        internal static string _4105 {
-            get {
-                return ResourceManager.GetString("4105", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to release.priority.
-        /// </summary>
-        internal static string _4106 {
-            get {
-                return ResourceManager.GetString("4106", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to reposition.
-        /// </summary>
-        internal static string _4107 {
-            get {
-                return ResourceManager.GetString("4107", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to reposition.to.
-        /// </summary>
-        internal static string _4108 {
-            get {
-                return ResourceManager.GetString("4108", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to reposition.to.v.
-        /// </summary>
-        internal static string _4109 {
-            get {
-                return ResourceManager.GetString("4109", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to reset.
-        /// </summary>
-        internal static string _4110 {
-            get {
-                return ResourceManager.GetString("4110", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to reset.v.
-        /// </summary>
-        internal static string _4111 {
-            get {
-                return ResourceManager.GetString("4111", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to reverse.cycle.
-        /// </summary>
-        internal static string _4112 {
-            get {
-                return ResourceManager.GetString("4112", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to reverse.loop.
-        /// </summary>
-        internal static string _4113 {
-            get {
-                return ResourceManager.GetString("4113", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to right.posn.
-        /// </summary>
-        internal static string _4114 {
-            get {
-                return ResourceManager.GetString("4114", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to rindirect.
-        /// </summary>
-        internal static string _4115 {
-            get {
-                return ResourceManager.GetString("4115", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to said.
-        /// </summary>
-        internal static string _4116 {
-            get {
-                return ResourceManager.GetString("4116", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to script.size.
-        /// </summary>
-        internal static string _4117 {
-            get {
-                return ResourceManager.GetString("4117", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.
-        /// </summary>
-        internal static string _4118 {
-            get {
-                return ResourceManager.GetString("4118", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.cel.
-        /// </summary>
-        internal static string _4119 {
-            get {
-                return ResourceManager.GetString("4119", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.cel.v.
-        /// </summary>
-        internal static string _4120 {
-            get {
-                return ResourceManager.GetString("4120", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.cursor.char.
-        /// </summary>
-        internal static string _4121 {
-            get {
-                return ResourceManager.GetString("4121", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.dir.
-        /// </summary>
-        internal static string _4122 {
-            get {
-                return ResourceManager.GetString("4122", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.game.id.
-        /// </summary>
-        internal static string _4123 {
-            get {
-                return ResourceManager.GetString("4123", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.horizon.
-        /// </summary>
-        internal static string _4124 {
-            get {
-                return ResourceManager.GetString("4124", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.key.
-        /// </summary>
-        internal static string _4125 {
-            get {
-                return ResourceManager.GetString("4125", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.loop.
-        /// </summary>
-        internal static string _4126 {
-            get {
-                return ResourceManager.GetString("4126", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.loop.v.
-        /// </summary>
-        internal static string _4127 {
-            get {
-                return ResourceManager.GetString("4127", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.menu.
-        /// </summary>
-        internal static string _4128 {
-            get {
-                return ResourceManager.GetString("4128", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.menu.item.
-        /// </summary>
-        internal static string _4129 {
-            get {
-                return ResourceManager.GetString("4129", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.pri.base.
-        /// </summary>
-        internal static string _4130 {
-            get {
-                return ResourceManager.GetString("4130", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.priority.
-        /// </summary>
-        internal static string _4131 {
-            get {
-                return ResourceManager.GetString("4131", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.priority.v.
-        /// </summary>
-        internal static string _4132 {
-            get {
-                return ResourceManager.GetString("4132", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.simple.
-        /// </summary>
-        internal static string _4133 {
-            get {
-                return ResourceManager.GetString("4133", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.string.
-        /// </summary>
-        internal static string _4134 {
-            get {
-                return ResourceManager.GetString("4134", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.text.attribute.
-        /// </summary>
-        internal static string _4135 {
-            get {
-                return ResourceManager.GetString("4135", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.upper.left.
-        /// </summary>
-        internal static string _4136 {
-            get {
-                return ResourceManager.GetString("4136", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.v.
-        /// </summary>
-        internal static string _4137 {
-            get {
-                return ResourceManager.GetString("4137", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.view.
-        /// </summary>
-        internal static string _4138 {
-            get {
-                return ResourceManager.GetString("4138", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to set.view.v.
-        /// </summary>
-        internal static string _4139 {
-            get {
-                return ResourceManager.GetString("4139", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to shake.screen.
-        /// </summary>
-        internal static string _4140 {
-            get {
-                return ResourceManager.GetString("4140", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to show.obj.
-        /// </summary>
-        internal static string _4141 {
-            get {
-                return ResourceManager.GetString("4141", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to show.obj.v.
-        /// </summary>
-        internal static string _4142 {
-            get {
-                return ResourceManager.GetString("4142", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to sound.
-        /// </summary>
-        internal static string _4143 {
-            get {
-                return ResourceManager.GetString("4143", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to start.cycling.
-        /// </summary>
-        internal static string _4144 {
-            get {
-                return ResourceManager.GetString("4144", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to start.motion.
-        /// </summary>
-        internal static string _4145 {
-            get {
-                return ResourceManager.GetString("4145", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to start.update.
-        /// </summary>
-        internal static string _4146 {
-            get {
-                return ResourceManager.GetString("4146", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to step.size.
-        /// </summary>
-        internal static string _4147 {
-            get {
-                return ResourceManager.GetString("4147", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to step.time.
-        /// </summary>
-        internal static string _4148 {
-            get {
-                return ResourceManager.GetString("4148", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to stop.cycling.
-        /// </summary>
-        internal static string _4149 {
-            get {
-                return ResourceManager.GetString("4149", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to stop.motion.
-        /// </summary>
-        internal static string _4150 {
-            get {
-                return ResourceManager.GetString("4150", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to stop.update.
-        /// </summary>
-        internal static string _4151 {
-            get {
-                return ResourceManager.GetString("4151", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to subn.
-        /// </summary>
-        internal static string _4152 {
-            get {
-                return ResourceManager.GetString("4152", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to subv.
-        /// </summary>
-        internal static string _4153 {
-            get {
-                return ResourceManager.GetString("4153", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to toggle.
-        /// </summary>
-        internal static string _4154 {
-            get {
-                return ResourceManager.GetString("4154", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to toggle.v.
-        /// </summary>
-        internal static string _4155 {
-            get {
-                return ResourceManager.GetString("4155", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to trace.info.
-        /// </summary>
-        internal static string _4156 {
-            get {
-                return ResourceManager.GetString("4156", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to wander.
-        /// </summary>
-        internal static string _4157 {
-            get {
-                return ResourceManager.GetString("4157", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to word.to.string.
-        /// </summary>
-        internal static string _4158 {
-            get {
-                return ResourceManager.GetString("4158", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt VIEW, byt LOOP, byt CEL, byt X, byt Y, byt PRI, byt MGN.
-        /// </summary>
-        internal static string _5000 {
-            get {
-                return ResourceManager.GetString("5000", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vVIEW, var vLOOP, var vCEL, var vX, var vY, var vPRI, var vMGN.
-        /// </summary>
-        internal static string _5001 {
-            get {
-                return ResourceManager.GetString("5001", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, byt B.
-        /// </summary>
-        internal static string _5002 {
-            get {
-                return ResourceManager.GetString("5002", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5003 {
-            get {
-                return ResourceManager.GetString("5003", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt A.
-        /// </summary>
-        internal static string _5004 {
-            get {
-                return ResourceManager.GetString("5004", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5005 {
-            get {
-                return ResourceManager.GetString("5005", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, byt B.
-        /// </summary>
-        internal static string _5006 {
-            get {
-                return ResourceManager.GetString("5006", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5007 {
-            get {
-                return ResourceManager.GetString("5007", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt X1, byt Y1, byt X2, byt Y2.
-        /// </summary>
-        internal static string _5008 {
-            get {
-                return ResourceManager.GetString("5008", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt LOGICNUM.
-        /// </summary>
-        internal static string _5009 {
-            get {
-                return ResourceManager.GetString("5009", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5010 {
-            get {
-                return ResourceManager.GetString("5010", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt X1, byt Y1, byt X2, byt Y2.
-        /// </summary>
-        internal static string _5011 {
-            get {
-                return ResourceManager.GetString("5011", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt TOP, byt BTM, byt COLOR.
-        /// </summary>
-        internal static string _5012 {
-            get {
-                return ResourceManager.GetString("5012", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt R1, byt C1, byt R2, byt C2, byt COLOR.
-        /// </summary>
-        internal static string _5013 {
-            get {
-                return ResourceManager.GetString("5013", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to str sA, str sB.
-        /// </summary>
-        internal static string _5014 {
-            get {
-                return ResourceManager.GetString("5014", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt PLAYTOP, byt INPUTLINE, byt STATUSLINE.
-        /// </summary>
-        internal static string _5015 {
-            get {
-                return ResourceManager.GetString("5015", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ctl cA.
-        /// </summary>
-        internal static string _5016 {
-            get {
-                return ResourceManager.GetString("5016", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vB.
-        /// </summary>
-        internal static string _5017 {
-            get {
-                return ResourceManager.GetString("5017", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vB.
-        /// </summary>
-        internal static string _5018 {
-            get {
-                return ResourceManager.GetString("5018", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vB.
-        /// </summary>
-        internal static string _5019 {
-            get {
-                return ResourceManager.GetString("5019", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vB.
-        /// </summary>
-        internal static string _5020 {
-            get {
-                return ResourceManager.GetString("5020", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5021 {
-            get {
-                return ResourceManager.GetString("5021", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ctl cA.
-        /// </summary>
-        internal static string _5022 {
-            get {
-                return ResourceManager.GetString("5022", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5023 {
-            get {
-                return ResourceManager.GetString("5023", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt SOUNDNUM.
-        /// </summary>
-        internal static string _5024 {
-            get {
-                return ResourceManager.GetString("5024", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt VIEWNUM.
-        /// </summary>
-        internal static string _5025 {
-            get {
-                return ResourceManager.GetString("5025", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5026 {
-            get {
-                return ResourceManager.GetString("5026", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt ROW, byt COL, msg mMSG.
-        /// </summary>
-        internal static string _5027 {
-            get {
-                return ResourceManager.GetString("5027", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vROW, var vCOL, var vMSG.
-        /// </summary>
-        internal static string _5028 {
-            get {
-                return ResourceManager.GetString("5028", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, obj oB, var vC.
-        /// </summary>
-        internal static string _5029 {
-            get {
-                return ResourceManager.GetString("5029", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, byt B.
-        /// </summary>
-        internal static string _5030 {
-            get {
-                return ResourceManager.GetString("5030", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5031 {
-            get {
-                return ResourceManager.GetString("5031", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5032 {
-            get {
-                return ResourceManager.GetString("5032", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5033 {
-            get {
-                return ResourceManager.GetString("5033", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to itm iA.
-        /// </summary>
-        internal static string _5034 {
-            get {
-                return ResourceManager.GetString("5034", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ctl cA.
-        /// </summary>
-        internal static string _5035 {
-            get {
-                return ResourceManager.GetString("5035", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, flg fDONE.
-        /// </summary>
-        internal static string _5036 {
-            get {
-                return ResourceManager.GetString("5036", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, byt B.
-        /// </summary>
-        internal static string _5037 {
-            get {
-                return ResourceManager.GetString("5037", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5038 {
-            get {
-                return ResourceManager.GetString("5038", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5039 {
-            get {
-                return ResourceManager.GetString("5039", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt X1, byt Y1, byt X2, byt Y2.
-        /// </summary>
-        internal static string _5040 {
-            get {
-                return ResourceManager.GetString("5040", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5041 {
-            get {
-                return ResourceManager.GetString("5041", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt DISTANCE, flg fCAUGHT.
-        /// </summary>
-        internal static string _5042 {
-            get {
-                return ResourceManager.GetString("5042", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5043 {
-            get {
-                return ResourceManager.GetString("5043", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to itm iA.
-        /// </summary>
-        internal static string _5044 {
-            get {
-                return ResourceManager.GetString("5044", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vDIR.
-        /// </summary>
-        internal static string _5045 {
-            get {
-                return ResourceManager.GetString("5045", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to msg mPROMPT, var vB.
-        /// </summary>
-        internal static string _5046 {
-            get {
-                return ResourceManager.GetString("5046", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vX, var vY.
-        /// </summary>
-        internal static string _5047 {
-            get {
-                return ResourceManager.GetString("5047", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vPRI.
-        /// </summary>
-        internal static string _5048 {
-            get {
-                return ResourceManager.GetString("5048", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5049 {
-            get {
-                return ResourceManager.GetString("5049", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to str sA, msg mPROMPT, byt ROW, byt COL, byt LEN.
-        /// </summary>
-        internal static string _5050 {
-            get {
-                return ResourceManager.GetString("5050", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5051 {
-            get {
-                return ResourceManager.GetString("5051", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, byt B.
-        /// </summary>
-        internal static string _5052 {
-            get {
-                return ResourceManager.GetString("5052", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5053 {
-            get {
-                return ResourceManager.GetString("5053", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to itm iA.
-        /// </summary>
-        internal static string _5054 {
-            get {
-                return ResourceManager.GetString("5054", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5055 {
-            get {
-                return ResourceManager.GetString("5055", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5056 {
-            get {
-                return ResourceManager.GetString("5056", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5057 {
-            get {
-                return ResourceManager.GetString("5057", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5058 {
-            get {
-                return ResourceManager.GetString("5058", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to flg fA.
-        /// </summary>
-        internal static string _5059 {
-            get {
-                return ResourceManager.GetString("5059", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5060 {
-            get {
-                return ResourceManager.GetString("5060", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vB.
-        /// </summary>
-        internal static string _5061 {
-            get {
-                return ResourceManager.GetString("5061", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, byt B.
-        /// </summary>
-        internal static string _5062 {
-            get {
-                return ResourceManager.GetString("5062", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5063 {
-            get {
-                return ResourceManager.GetString("5063", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, byt B.
-        /// </summary>
-        internal static string _5064 {
-            get {
-                return ResourceManager.GetString("5064", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5065 {
-            get {
-                return ResourceManager.GetString("5065", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt LOGICNUM.
-        /// </summary>
-        internal static string _5066 {
-            get {
-                return ResourceManager.GetString("5066", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vLOGICNUM.
-        /// </summary>
-        internal static string _5067 {
-            get {
-                return ResourceManager.GetString("5067", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vPICNUM.
-        /// </summary>
-        internal static string _5068 {
-            get {
-                return ResourceManager.GetString("5068", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt SOUNDNUM.
-        /// </summary>
-        internal static string _5069 {
-            get {
-                return ResourceManager.GetString("5069", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt VIEWNUM.
-        /// </summary>
-        internal static string _5070 {
-            get {
-                return ResourceManager.GetString("5070", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vVIEWNUM.
-        /// </summary>
-        internal static string _5071 {
-            get {
-                return ResourceManager.GetString("5071", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to msg mLOGMSG.
-        /// </summary>
-        internal static string _5072 {
-            get {
-                return ResourceManager.GetString("5072", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5073 {
-            get {
-                return ResourceManager.GetString("5073", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt X, byt Y, byt STEP, flg fDONE.
-        /// </summary>
-        internal static string _5074 {
-            get {
-                return ResourceManager.GetString("5074", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vX, var vY, var vSTEP, flg fDONE.
-        /// </summary>
-        internal static string _5075 {
-            get {
-                return ResourceManager.GetString("5075", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, byt B.
-        /// </summary>
-        internal static string _5076 {
-            get {
-                return ResourceManager.GetString("5076", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5077 {
-            get {
-                return ResourceManager.GetString("5077", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt ROOMNUM.
-        /// </summary>
-        internal static string _5078 {
-            get {
-                return ResourceManager.GetString("5078", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vROOMNUM.
-        /// </summary>
-        internal static string _5079 {
-            get {
-                return ResourceManager.GetString("5079", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5080 {
-            get {
-                return ResourceManager.GetString("5080", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5081 {
-            get {
-                return ResourceManager.GetString("5081", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vB.
-        /// </summary>
-        internal static string _5082 {
-            get {
-                return ResourceManager.GetString("5082", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt X1, byt Y1, byt X2, byt Y2.
-        /// </summary>
-        internal static string _5083 {
-            get {
-                return ResourceManager.GetString("5083", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to itm iA, var vB.
-        /// </summary>
-        internal static string _5084 {
-            get {
-                return ResourceManager.GetString("5084", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5085 {
-            get {
-                return ResourceManager.GetString("5085", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5086 {
-            get {
-                return ResourceManager.GetString("5086", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5087 {
-            get {
-                return ResourceManager.GetString("5087", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5088 {
-            get {
-                return ResourceManager.GetString("5088", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5089 {
-            get {
-                return ResourceManager.GetString("5089", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5090 {
-            get {
-                return ResourceManager.GetString("5090", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5091 {
-            get {
-                return ResourceManager.GetString("5091", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vPICNUM.
-        /// </summary>
-        internal static string _5092 {
-            get {
-                return ResourceManager.GetString("5092", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to str sA.
-        /// </summary>
-        internal static string _5093 {
-            get {
-                return ResourceManager.GetString("5093", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt X, byt Y.
-        /// </summary>
-        internal static string _5094 {
-            get {
-                return ResourceManager.GetString("5094", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vX, var vY.
-        /// </summary>
-        internal static string _5095 {
-            get {
-                return ResourceManager.GetString("5095", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt X1, byt Y1, byt X2, byt Y2.
-        /// </summary>
-        internal static string _5096 {
-            get {
-                return ResourceManager.GetString("5096", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to msg mMSG.
-        /// </summary>
-        internal static string _5097 {
-            get {
-                return ResourceManager.GetString("5097", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to msg mMSG, byt ROW, byt COL, byt MAXWIDTH.
-        /// </summary>
-        internal static string _5098 {
-            get {
-                return ResourceManager.GetString("5098", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vMSG, byt ROW, byt COL, byt MAXWIDTH.
-        /// </summary>
-        internal static string _5099 {
-            get {
-                return ResourceManager.GetString("5099", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vMSG.
-        /// </summary>
-        internal static string _5100 {
-            get {
-                return ResourceManager.GetString("5100", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to itm iA, byt ROOMNUM.
-        /// </summary>
-        internal static string _5101 {
-            get {
-                return ResourceManager.GetString("5101", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vITEM, var vROOMNUM.
-        /// </summary>
-        internal static string _5102 {
-            get {
-                return ResourceManager.GetString("5102", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt MODE.
-        /// </summary>
-        internal static string _5103 {
-            get {
-                return ResourceManager.GetString("5103", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt LOWER, byt UPPER, var vRESULT.
-        /// </summary>
-        internal static string _5104 {
-            get {
-                return ResourceManager.GetString("5104", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5105 {
-            get {
-                return ResourceManager.GetString("5105", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5106 {
-            get {
-                return ResourceManager.GetString("5106", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vDX, var vDY.
-        /// </summary>
-        internal static string _5107 {
-            get {
-                return ResourceManager.GetString("5107", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt X, byt Y.
-        /// </summary>
-        internal static string _5108 {
-            get {
-                return ResourceManager.GetString("5108", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vX, var vY.
-        /// </summary>
-        internal static string _5109 {
-            get {
-                return ResourceManager.GetString("5109", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to flg fA.
-        /// </summary>
-        internal static string _5110 {
-            get {
-                return ResourceManager.GetString("5110", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5111 {
-            get {
-                return ResourceManager.GetString("5111", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5112 {
-            get {
-                return ResourceManager.GetString("5112", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, fDONE.
-        /// </summary>
-        internal static string _5113 {
-            get {
-                return ResourceManager.GetString("5113", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt X1, byt Y1, byt X2, byt Y2.
-        /// </summary>
-        internal static string _5114 {
-            get {
-                return ResourceManager.GetString("5114", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5115 {
-            get {
-                return ResourceManager.GetString("5115", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to WORDGRPNUM1, WORDGRPNUM2, ....
-        /// </summary>
-        internal static string _5116 {
-            get {
-                return ResourceManager.GetString("5116", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt SIZE.
-        /// </summary>
-        internal static string _5117 {
-            get {
-                return ResourceManager.GetString("5117", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to flg fA.
-        /// </summary>
-        internal static string _5118 {
-            get {
-                return ResourceManager.GetString("5118", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt CEL.
-        /// </summary>
-        internal static string _5119 {
-            get {
-                return ResourceManager.GetString("5119", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vCEL.
-        /// </summary>
-        internal static string _5120 {
-            get {
-                return ResourceManager.GetString("5120", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to msg mCURSORCHAR.
-        /// </summary>
-        internal static string _5121 {
-            get {
-                return ResourceManager.GetString("5121", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vDIR.
-        /// </summary>
-        internal static string _5122 {
-            get {
-                return ResourceManager.GetString("5122", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to msg mGAMEID.
-        /// </summary>
-        internal static string _5123 {
-            get {
-                return ResourceManager.GetString("5123", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt HORIZON.
-        /// </summary>
-        internal static string _5124 {
-            get {
-                return ResourceManager.GetString("5124", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt ASCII, byt SCAN, ctl C.
-        /// </summary>
-        internal static string _5125 {
-            get {
-                return ResourceManager.GetString("5125", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt LOOP.
-        /// </summary>
-        internal static string _5126 {
-            get {
-                return ResourceManager.GetString("5126", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vLOOP.
-        /// </summary>
-        internal static string _5127 {
-            get {
-                return ResourceManager.GetString("5127", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to msg mA.
-        /// </summary>
-        internal static string _5128 {
-            get {
-                return ResourceManager.GetString("5128", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to msg mA, ctl cB.
-        /// </summary>
-        internal static string _5129 {
-            get {
-                return ResourceManager.GetString("5129", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt A.
-        /// </summary>
-        internal static string _5130 {
-            get {
-                return ResourceManager.GetString("5130", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt PRI.
-        /// </summary>
-        internal static string _5131 {
-            get {
-                return ResourceManager.GetString("5131", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vPRI.
-        /// </summary>
-        internal static string _5132 {
-            get {
-                return ResourceManager.GetString("5132", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to str sA.
-        /// </summary>
-        internal static string _5133 {
-            get {
-                return ResourceManager.GetString("5133", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to str sA, msg mB.
-        /// </summary>
-        internal static string _5134 {
-            get {
-                return ResourceManager.GetString("5134", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt FG, byt BG.
-        /// </summary>
-        internal static string _5135 {
-            get {
-                return ResourceManager.GetString("5135", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt A, byt B.
-        /// </summary>
-        internal static string _5136 {
-            get {
-                return ResourceManager.GetString("5136", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5137 {
-            get {
-                return ResourceManager.GetString("5137", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, byt VIEW.
-        /// </summary>
-        internal static string _5138 {
-            get {
-                return ResourceManager.GetString("5138", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vVIEW.
-        /// </summary>
-        internal static string _5139 {
-            get {
-                return ResourceManager.GetString("5139", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt COUNT.
-        /// </summary>
-        internal static string _5140 {
-            get {
-                return ResourceManager.GetString("5140", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt VIEWNUM.
-        /// </summary>
-        internal static string _5141 {
-            get {
-                return ResourceManager.GetString("5141", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vVIEWNUM.
-        /// </summary>
-        internal static string _5142 {
-            get {
-                return ResourceManager.GetString("5142", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt SOUNDNUM, flg fDONE.
-        /// </summary>
-        internal static string _5143 {
-            get {
-                return ResourceManager.GetString("5143", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5144 {
-            get {
-                return ResourceManager.GetString("5144", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5145 {
-            get {
-                return ResourceManager.GetString("5145", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5146 {
-            get {
-                return ResourceManager.GetString("5146", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vB.
-        /// </summary>
-        internal static string _5147 {
-            get {
-                return ResourceManager.GetString("5147", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA, var vB.
-        /// </summary>
-        internal static string _5148 {
-            get {
-                return ResourceManager.GetString("5148", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5149 {
-            get {
-                return ResourceManager.GetString("5149", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5150 {
-            get {
-                return ResourceManager.GetString("5150", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5151 {
-            get {
-                return ResourceManager.GetString("5151", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, byt B.
-        /// </summary>
-        internal static string _5152 {
-            get {
-                return ResourceManager.GetString("5152", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA, var vB.
-        /// </summary>
-        internal static string _5153 {
-            get {
-                return ResourceManager.GetString("5153", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to flg fA.
-        /// </summary>
-        internal static string _5154 {
-            get {
-                return ResourceManager.GetString("5154", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to var vA.
-        /// </summary>
-        internal static string _5155 {
-            get {
-                return ResourceManager.GetString("5155", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to byt LOGNUM, byt TOP, byt HEIGHT.
-        /// </summary>
-        internal static string _5156 {
-            get {
-                return ResourceManager.GetString("5156", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to obj oA.
-        /// </summary>
-        internal static string _5157 {
-            get {
-                return ResourceManager.GetString("5157", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to str sA, wrd wB.
-        /// </summary>
-        internal static string _5158 {
-            get {
-                return ResourceManager.GetString("5158", resourceCulture);
-            }
-        }
+  internal class ResManRes
+  {
+
+    private static global::System.Resources.ResourceManager resourceMan;
+
+    private static global::System.Globalization.CultureInfo resourceCulture;
+
+    /// <summary>
+    ///   Returns the cached ResourceManager instance used by this class.
+    /// </summary>
+    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+    internal static global::System.Resources.ResourceManager ResourceManager
+    {
+      get
+      {
+        if (object.ReferenceEquals(resourceMan, null))
+        {
+          global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI_GDS.ResMan", typeof(ResMan).Assembly);
+          resourceMan = temp;
+        }
+        return resourceMan;
+      }
     }
+
+    /// <summary>
+    ///   Overrides the current thread's CurrentUICulture property for all
+    ///   resource lookups using this strongly typed resource class.
+    /// </summary>
+    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+    internal static global::System.Globalization.CultureInfo Culture
+    {
+      get
+      {
+        return resourceCulture;
+      }
+      set
+      {
+        resourceCulture = value;
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Delete Loop.
+    /// </summary>
+    internal static string _1202
+    {
+      get
+      {
+        return ResourceManager.GetString("1202", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Delete Cel.
+    /// </summary>
+    internal static string _1203
+    {
+      get
+      {
+        return ResourceManager.GetString("1203", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change View Desc.
+    /// </summary>
+    internal static string _1204
+    {
+      get
+      {
+        return ResourceManager.GetString("1204", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Cel Height.
+    /// </summary>
+    internal static string _1205
+    {
+      get
+      {
+        return ResourceManager.GetString("1205", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Cel Width.
+    /// </summary>
+    internal static string _1206
+    {
+      get
+      {
+        return ResourceManager.GetString("1206", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Cel Height.
+    /// </summary>
+    internal static string _1207
+    {
+      get
+      {
+        return ResourceManager.GetString("1207", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Cel Width.
+    /// </summary>
+    internal static string _1208
+    {
+      get
+      {
+        return ResourceManager.GetString("1208", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Flip Horizontal.
+    /// </summary>
+    internal static string _1209
+    {
+      get
+      {
+        return ResourceManager.GetString("1209", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Flip Vertical.
+    /// </summary>
+    internal static string _1210
+    {
+      get
+      {
+        return ResourceManager.GetString("1210", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Draw Line.
+    /// </summary>
+    internal static string _1211
+    {
+      get
+      {
+        return ResourceManager.GetString("1211", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Draw Box.
+    /// </summary>
+    internal static string _1212
+    {
+      get
+      {
+        return ResourceManager.GetString("1212", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Draw BoxFill.
+    /// </summary>
+    internal static string _1213
+    {
+      get
+      {
+        return ResourceManager.GetString("1213", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pencil.
+    /// </summary>
+    internal static string _1214
+    {
+      get
+      {
+        return ResourceManager.GetString("1214", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Erase.
+    /// </summary>
+    internal static string _1215
+    {
+      get
+      {
+        return ResourceManager.GetString("1215", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Paint Fill.
+    /// </summary>
+    internal static string _1216
+    {
+      get
+      {
+        return ResourceManager.GetString("1216", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Mirror.
+    /// </summary>
+    internal static string _1217
+    {
+      get
+      {
+        return ResourceManager.GetString("1217", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change TransColor.
+    /// </summary>
+    internal static string _1218
+    {
+      get
+      {
+        return ResourceManager.GetString("1218", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Paste Loop.
+    /// </summary>
+    internal static string _1219
+    {
+      get
+      {
+        return ResourceManager.GetString("1219", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Paste Cel.
+    /// </summary>
+    internal static string _1220
+    {
+      get
+      {
+        return ResourceManager.GetString("1220", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Cut Selection.
+    /// </summary>
+    internal static string _1221
+    {
+      get
+      {
+        return ResourceManager.GetString("1221", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Delete Selection.
+    /// </summary>
+    internal static string _1222
+    {
+      get
+      {
+        return ResourceManager.GetString("1222", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Paste Selection.
+    /// </summary>
+    internal static string _1223
+    {
+      get
+      {
+        return ResourceManager.GetString("1223", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Move Selection.
+    /// </summary>
+    internal static string _1224
+    {
+      get
+      {
+        return ResourceManager.GetString("1224", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Clear Loop.
+    /// </summary>
+    internal static string _1225
+    {
+      get
+      {
+        return ResourceManager.GetString("1225", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Clear Cel.
+    /// </summary>
+    internal static string _1226
+    {
+      get
+      {
+        return ResourceManager.GetString("1226", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Cut Loop.
+    /// </summary>
+    internal static string _1227
+    {
+      get
+      {
+        return ResourceManager.GetString("1227", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Cut Cel.
+    /// </summary>
+    internal static string _1228
+    {
+      get
+      {
+        return ResourceManager.GetString("1228", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Color.
+    /// </summary>
+    internal static string _1300
+    {
+      get
+      {
+        return ResourceManager.GetString("1300", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Plot Pen.
+    /// </summary>
+    internal static string _1301
+    {
+      get
+      {
+        return ResourceManager.GetString("1301", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Delete .
+    /// </summary>
+    internal static string _1302
+    {
+      get
+      {
+        return ResourceManager.GetString("1302", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Delete Coordinate.
+    /// </summary>
+    internal static string _1303
+    {
+      get
+      {
+        return ResourceManager.GetString("1303", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Add .
+    /// </summary>
+    internal static string _1304
+    {
+      get
+      {
+        return ResourceManager.GetString("1304", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Add Coordinate.
+    /// </summary>
+    internal static string _1305
+    {
+      get
+      {
+        return ResourceManager.GetString("1305", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Insert Coordinate.
+    /// </summary>
+    internal static string _1306
+    {
+      get
+      {
+        return ResourceManager.GetString("1306", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Coordinate.
+    /// </summary>
+    internal static string _1307
+    {
+      get
+      {
+        return ResourceManager.GetString("1307", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Draw Rectangle.
+    /// </summary>
+    internal static string _1308
+    {
+      get
+      {
+        return ResourceManager.GetString("1308", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Draw Trapezoid.
+    /// </summary>
+    internal static string _1309
+    {
+      get
+      {
+        return ResourceManager.GetString("1309", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Draw Ellipse.
+    /// </summary>
+    internal static string _1310
+    {
+      get
+      {
+        return ResourceManager.GetString("1310", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Join Commands.
+    /// </summary>
+    internal static string _1311
+    {
+      get
+      {
+        return ResourceManager.GetString("1311", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Split Command.
+    /// </summary>
+    internal static string _1312
+    {
+      get
+      {
+        return ResourceManager.GetString("1312", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Cut .
+    /// </summary>
+    internal static string _1313
+    {
+      get
+      {
+        return ResourceManager.GetString("1313", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Paste Command.
+    /// </summary>
+    internal static string _1314
+    {
+      get
+      {
+        return ResourceManager.GetString("1314", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Move Command.
+    /// </summary>
+    internal static string _1315
+    {
+      get
+      {
+        return ResourceManager.GetString("1315", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Flip Horizontal.
+    /// </summary>
+    internal static string _1316
+    {
+      get
+      {
+        return ResourceManager.GetString("1316", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Flip Vertical.
+    /// </summary>
+    internal static string _1317
+    {
+      get
+      {
+        return ResourceManager.GetString("1317", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to addplotpattern.
+    /// </summary>
+    internal static string _1318
+    {
+      get
+      {
+        return ResourceManager.GetString("1318", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to delplotpattern.
+    /// </summary>
+    internal static string _1319
+    {
+      get
+      {
+        return ResourceManager.GetString("1319", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Plot Coordinate.
+    /// </summary>
+    internal static string _1320
+    {
+      get
+      {
+        return ResourceManager.GetString("1320", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Priority Base.
+    /// </summary>
+    internal static string _1321
+    {
+      get
+      {
+        return ResourceManager.GetString("1321", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Key.
+    /// </summary>
+    internal static string _1400
+    {
+      get
+      {
+        return ResourceManager.GetString("1400", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change TPQN.
+    /// </summary>
+    internal static string _1401
+    {
+      get
+      {
+        return ResourceManager.GetString("1401", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Instrument.
+    /// </summary>
+    internal static string _1402
+    {
+      get
+      {
+        return ResourceManager.GetString("1402", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Note.
+    /// </summary>
+    internal static string _1403
+    {
+      get
+      {
+        return ResourceManager.GetString("1403", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Cut.
+    /// </summary>
+    internal static string _1404
+    {
+      get
+      {
+        return ResourceManager.GetString("1404", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Paste.
+    /// </summary>
+    internal static string _1405
+    {
+      get
+      {
+        return ResourceManager.GetString("1405", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Add Note.
+    /// </summary>
+    internal static string _1406
+    {
+      get
+      {
+        return ResourceManager.GetString("1406", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Delete.
+    /// </summary>
+    internal static string _1407
+    {
+      get
+      {
+        return ResourceManager.GetString("1407", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Shift Key.
+    /// </summary>
+    internal static string _1408
+    {
+      get
+      {
+        return ResourceManager.GetString("1408", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Shift Volume.
+    /// </summary>
+    internal static string _1409
+    {
+      get
+      {
+        return ResourceManager.GetString("1409", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Add Group.
+    /// </summary>
+    internal static string _1500
+    {
+      get
+      {
+        return ResourceManager.GetString("1500", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Delete Group.
+    /// </summary>
+    internal static string _1501
+    {
+      get
+      {
+        return ResourceManager.GetString("1501", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Renumber Group.
+    /// </summary>
+    internal static string _1502
+    {
+      get
+      {
+        return ResourceManager.GetString("1502", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Add Word.
+    /// </summary>
+    internal static string _1503
+    {
+      get
+      {
+        return ResourceManager.GetString("1503", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Delete Word.
+    /// </summary>
+    internal static string _1504
+    {
+      get
+      {
+        return ResourceManager.GetString("1504", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Move Word.
+    /// </summary>
+    internal static string _1505
+    {
+      get
+      {
+        return ResourceManager.GetString("1505", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Word.
+    /// </summary>
+    internal static string _1506
+    {
+      get
+      {
+        return ResourceManager.GetString("1506", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Description.
+    /// </summary>
+    internal static string _1507
+    {
+      get
+      {
+        return ResourceManager.GetString("1507", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Cut Word.
+    /// </summary>
+    internal static string _1508
+    {
+      get
+      {
+        return ResourceManager.GetString("1508", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Cut Group.
+    /// </summary>
+    internal static string _1509
+    {
+      get
+      {
+        return ResourceManager.GetString("1509", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Paste Word.
+    /// </summary>
+    internal static string _1510
+    {
+      get
+      {
+        return ResourceManager.GetString("1510", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Paste Group.
+    /// </summary>
+    internal static string _1511
+    {
+      get
+      {
+        return ResourceManager.GetString("1511", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Replace.
+    /// </summary>
+    internal static string _1512
+    {
+      get
+      {
+        return ResourceManager.GetString("1512", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Replace All.
+    /// </summary>
+    internal static string _1513
+    {
+      get
+      {
+        return ResourceManager.GetString("1513", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Clear.
+    /// </summary>
+    internal static string _1514
+    {
+      get
+      {
+        return ResourceManager.GetString("1514", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Add Item.
+    /// </summary>
+    internal static string _1600
+    {
+      get
+      {
+        return ResourceManager.GetString("1600", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Delete Item.
+    /// </summary>
+    internal static string _1601
+    {
+      get
+      {
+        return ResourceManager.GetString("1601", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Item.
+    /// </summary>
+    internal static string _1602
+    {
+      get
+      {
+        return ResourceManager.GetString("1602", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Room.
+    /// </summary>
+    internal static string _1603
+    {
+      get
+      {
+        return ResourceManager.GetString("1603", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Description.
+    /// </summary>
+    internal static string _1604
+    {
+      get
+      {
+        return ResourceManager.GetString("1604", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Max Objects.
+    /// </summary>
+    internal static string _1605
+    {
+      get
+      {
+        return ResourceManager.GetString("1605", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Toggle Encryption.
+    /// </summary>
+    internal static string _1606
+    {
+      get
+      {
+        return ResourceManager.GetString("1606", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Clear.
+    /// </summary>
+    internal static string _1607
+    {
+      get
+      {
+        return ResourceManager.GetString("1607", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Replace.
+    /// </summary>
+    internal static string _1608
+    {
+      get
+      {
+        return ResourceManager.GetString("1608", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Replace All.
+    /// </summary>
+    internal static string _1609
+    {
+      get
+      {
+        return ResourceManager.GetString("1609", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to None.
+    /// </summary>
+    internal static string _1700
+    {
+      get
+      {
+        return ResourceManager.GetString("1700", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Select.
+    /// </summary>
+    internal static string _1701
+    {
+      get
+      {
+        return ResourceManager.GetString("1701", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Draw.
+    /// </summary>
+    internal static string _1702
+    {
+      get
+      {
+        return ResourceManager.GetString("1702", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Line.
+    /// </summary>
+    internal static string _1703
+    {
+      get
+      {
+        return ResourceManager.GetString("1703", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Rectangle.
+    /// </summary>
+    internal static string _1704
+    {
+      get
+      {
+        return ResourceManager.GetString("1704", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Solid Rectangle.
+    /// </summary>
+    internal static string _1705
+    {
+      get
+      {
+        return ResourceManager.GetString("1705", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Fill.
+    /// </summary>
+    internal static string _1706
+    {
+      get
+      {
+        return ResourceManager.GetString("1706", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Erase.
+    /// </summary>
+    internal static string _1707
+    {
+      get
+      {
+        return ResourceManager.GetString("1707", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to None.
+    /// </summary>
+    internal static string _1800
+    {
+      get
+      {
+        return ResourceManager.GetString("1800", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pen.
+    /// </summary>
+    internal static string _1801
+    {
+      get
+      {
+        return ResourceManager.GetString("1801", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Absolute Line.
+    /// </summary>
+    internal static string _1802
+    {
+      get
+      {
+        return ResourceManager.GetString("1802", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Relative Line.
+    /// </summary>
+    internal static string _1803
+    {
+      get
+      {
+        return ResourceManager.GetString("1803", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Corner.
+    /// </summary>
+    internal static string _1804
+    {
+      get
+      {
+        return ResourceManager.GetString("1804", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Fill.
+    /// </summary>
+    internal static string _1805
+    {
+      get
+      {
+        return ResourceManager.GetString("1805", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Plot.
+    /// </summary>
+    internal static string _1806
+    {
+      get
+      {
+        return ResourceManager.GetString("1806", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Rectangle.
+    /// </summary>
+    internal static string _1807
+    {
+      get
+      {
+        return ResourceManager.GetString("1807", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Trapezoid.
+    /// </summary>
+    internal static string _1808
+    {
+      get
+      {
+        return ResourceManager.GetString("1808", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Ellipse.
+    /// </summary>
+    internal static string _1809
+    {
+      get
+      {
+        return ResourceManager.GetString("1809", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Select.
+    /// </summary>
+    internal static string _1810
+    {
+      get
+      {
+        return ResourceManager.GetString("1810", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Vis: Color.
+    /// </summary>
+    internal static string _1900
+    {
+      get
+      {
+        return ResourceManager.GetString("1900", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Vis: Off.
+    /// </summary>
+    internal static string _1901
+    {
+      get
+      {
+        return ResourceManager.GetString("1901", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pri: Color.
+    /// </summary>
+    internal static string _1902
+    {
+      get
+      {
+        return ResourceManager.GetString("1902", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pri: Off.
+    /// </summary>
+    internal static string _1903
+    {
+      get
+      {
+        return ResourceManager.GetString("1903", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Y Corner.
+    /// </summary>
+    internal static string _1904
+    {
+      get
+      {
+        return ResourceManager.GetString("1904", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to X Corner.
+    /// </summary>
+    internal static string _1905
+    {
+      get
+      {
+        return ResourceManager.GetString("1905", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Abs Line.
+    /// </summary>
+    internal static string _1906
+    {
+      get
+      {
+        return ResourceManager.GetString("1906", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Rel Line.
+    /// </summary>
+    internal static string _1907
+    {
+      get
+      {
+        return ResourceManager.GetString("1907", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Fill.
+    /// </summary>
+    internal static string _1908
+    {
+      get
+      {
+        return ResourceManager.GetString("1908", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Change Pen.
+    /// </summary>
+    internal static string _1909
+    {
+      get
+      {
+        return ResourceManager.GetString("1909", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Plot.
+    /// </summary>
+    internal static string _1910
+    {
+      get
+      {
+        return ResourceManager.GetString("1910", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to End.
+    /// </summary>
+    internal static string _1911
+    {
+      get
+      {
+        return ResourceManager.GetString("1911", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Obstacle.
+    /// </summary>
+    internal static string _2001
+    {
+      get
+      {
+        return ResourceManager.GetString("2001", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Conditional Obstacle.
+    /// </summary>
+    internal static string _2002
+    {
+      get
+      {
+        return ResourceManager.GetString("2002", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Alarm Line.
+    /// </summary>
+    internal static string _2003
+    {
+      get
+      {
+        return ResourceManager.GetString("2003", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to On Water.
+    /// </summary>
+    internal static string _2004
+    {
+      get
+      {
+        return ResourceManager.GetString("2004", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to At Water Edge.
+    /// </summary>
+    internal static string _2005
+    {
+      get
+      {
+        return ResourceManager.GetString("2005", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to At Land Edge.
+    /// </summary>
+    internal static string _2006
+    {
+      get
+      {
+        return ResourceManager.GetString("2006", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to At Horizon.
+    /// </summary>
+    internal static string _2007
+    {
+      get
+      {
+        return ResourceManager.GetString("2007", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to At Top Edge.
+    /// </summary>
+    internal static string _2008
+    {
+      get
+      {
+        return ResourceManager.GetString("2008", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to At Right Edge.
+    /// </summary>
+    internal static string _2009
+    {
+      get
+      {
+        return ResourceManager.GetString("2009", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to At Bottom Edge.
+    /// </summary>
+    internal static string _2010
+    {
+      get
+      {
+        return ResourceManager.GetString("2010", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to At Left Edge.
+    /// </summary>
+    internal static string _2011
+    {
+      get
+      {
+        return ResourceManager.GetString("2011", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Add Define.
+    /// </summary>
+    internal static string _2100
+    {
+      get
+      {
+        return ResourceManager.GetString("2100", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Import Defines.
+    /// </summary>
+    internal static string _2101
+    {
+      get
+      {
+        return ResourceManager.GetString("2101", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Paste Define.
+    /// </summary>
+    internal static string _2102
+    {
+      get
+      {
+        return ResourceManager.GetString("2102", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Delete Define.
+    /// </summary>
+    internal static string _2103
+    {
+      get
+      {
+        return ResourceManager.GetString("2103", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Cut Define.
+    /// </summary>
+    internal static string _2104
+    {
+      get
+      {
+        return ResourceManager.GetString("2104", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Clear List.
+    /// </summary>
+    internal static string _2105
+    {
+      get
+      {
+        return ResourceManager.GetString("2105", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Define Name.
+    /// </summary>
+    internal static string _2106
+    {
+      get
+      {
+        return ResourceManager.GetString("2106", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Define Value.
+    /// </summary>
+    internal static string _2107
+    {
+      get
+      {
+        return ResourceManager.GetString("2107", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Sort Defines.
+    /// </summary>
+    internal static string _2108
+    {
+      get
+      {
+        return ResourceManager.GetString("2108", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Edit Comment.
+    /// </summary>
+    internal static string _2109
+    {
+      get
+      {
+        return ResourceManager.GetString("2109", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Acoustic grand piano.
+    /// </summary>
+    internal static string _3000
+    {
+      get
+      {
+        return ResourceManager.GetString("3000", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Bright acoustic piano.
+    /// </summary>
+    internal static string _3001
+    {
+      get
+      {
+        return ResourceManager.GetString("3001", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Electric grand piano.
+    /// </summary>
+    internal static string _3002
+    {
+      get
+      {
+        return ResourceManager.GetString("3002", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Honky-tonk piano.
+    /// </summary>
+    internal static string _3003
+    {
+      get
+      {
+        return ResourceManager.GetString("3003", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Rhodes piano.
+    /// </summary>
+    internal static string _3004
+    {
+      get
+      {
+        return ResourceManager.GetString("3004", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Chorused piano.
+    /// </summary>
+    internal static string _3005
+    {
+      get
+      {
+        return ResourceManager.GetString("3005", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Harpsichord.
+    /// </summary>
+    internal static string _3006
+    {
+      get
+      {
+        return ResourceManager.GetString("3006", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Clavinet.
+    /// </summary>
+    internal static string _3007
+    {
+      get
+      {
+        return ResourceManager.GetString("3007", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Celesta.
+    /// </summary>
+    internal static string _3008
+    {
+      get
+      {
+        return ResourceManager.GetString("3008", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Glockenspiel.
+    /// </summary>
+    internal static string _3009
+    {
+      get
+      {
+        return ResourceManager.GetString("3009", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Music box.
+    /// </summary>
+    internal static string _3010
+    {
+      get
+      {
+        return ResourceManager.GetString("3010", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Vibraphone.
+    /// </summary>
+    internal static string _3011
+    {
+      get
+      {
+        return ResourceManager.GetString("3011", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Marimba.
+    /// </summary>
+    internal static string _3012
+    {
+      get
+      {
+        return ResourceManager.GetString("3012", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Xylophone.
+    /// </summary>
+    internal static string _3013
+    {
+      get
+      {
+        return ResourceManager.GetString("3013", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Tubular bells.
+    /// </summary>
+    internal static string _3014
+    {
+      get
+      {
+        return ResourceManager.GetString("3014", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Dulcimer.
+    /// </summary>
+    internal static string _3015
+    {
+      get
+      {
+        return ResourceManager.GetString("3015", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Hammond organ.
+    /// </summary>
+    internal static string _3016
+    {
+      get
+      {
+        return ResourceManager.GetString("3016", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Percussive organ.
+    /// </summary>
+    internal static string _3017
+    {
+      get
+      {
+        return ResourceManager.GetString("3017", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Rock organ.
+    /// </summary>
+    internal static string _3018
+    {
+      get
+      {
+        return ResourceManager.GetString("3018", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Church organ.
+    /// </summary>
+    internal static string _3019
+    {
+      get
+      {
+        return ResourceManager.GetString("3019", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Reed organ.
+    /// </summary>
+    internal static string _3020
+    {
+      get
+      {
+        return ResourceManager.GetString("3020", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Accordion.
+    /// </summary>
+    internal static string _3021
+    {
+      get
+      {
+        return ResourceManager.GetString("3021", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Harmonica.
+    /// </summary>
+    internal static string _3022
+    {
+      get
+      {
+        return ResourceManager.GetString("3022", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Tango accordion.
+    /// </summary>
+    internal static string _3023
+    {
+      get
+      {
+        return ResourceManager.GetString("3023", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Acoustic guitar (nylon).
+    /// </summary>
+    internal static string _3024
+    {
+      get
+      {
+        return ResourceManager.GetString("3024", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Acoustic guitar (steel).
+    /// </summary>
+    internal static string _3025
+    {
+      get
+      {
+        return ResourceManager.GetString("3025", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Acoustic guitar (jazz).
+    /// </summary>
+    internal static string _3026
+    {
+      get
+      {
+        return ResourceManager.GetString("3026", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Acoustic guitar (clean).
+    /// </summary>
+    internal static string _3027
+    {
+      get
+      {
+        return ResourceManager.GetString("3027", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Acoustic guitar (muted).
+    /// </summary>
+    internal static string _3028
+    {
+      get
+      {
+        return ResourceManager.GetString("3028", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Overdriven guitar.
+    /// </summary>
+    internal static string _3029
+    {
+      get
+      {
+        return ResourceManager.GetString("3029", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Distortion guitar.
+    /// </summary>
+    internal static string _3030
+    {
+      get
+      {
+        return ResourceManager.GetString("3030", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Guitar harmonics.
+    /// </summary>
+    internal static string _3031
+    {
+      get
+      {
+        return ResourceManager.GetString("3031", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Acoustic bass.
+    /// </summary>
+    internal static string _3032
+    {
+      get
+      {
+        return ResourceManager.GetString("3032", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Electric bass (finger).
+    /// </summary>
+    internal static string _3033
+    {
+      get
+      {
+        return ResourceManager.GetString("3033", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Electric bass (pick).
+    /// </summary>
+    internal static string _3034
+    {
+      get
+      {
+        return ResourceManager.GetString("3034", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Fretless bass.
+    /// </summary>
+    internal static string _3035
+    {
+      get
+      {
+        return ResourceManager.GetString("3035", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Slap bass 1.
+    /// </summary>
+    internal static string _3036
+    {
+      get
+      {
+        return ResourceManager.GetString("3036", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Slap bass 2.
+    /// </summary>
+    internal static string _3037
+    {
+      get
+      {
+        return ResourceManager.GetString("3037", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Synth bass 1.
+    /// </summary>
+    internal static string _3038
+    {
+      get
+      {
+        return ResourceManager.GetString("3038", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Synth bass 2.
+    /// </summary>
+    internal static string _3039
+    {
+      get
+      {
+        return ResourceManager.GetString("3039", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Violin.
+    /// </summary>
+    internal static string _3040
+    {
+      get
+      {
+        return ResourceManager.GetString("3040", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Viola.
+    /// </summary>
+    internal static string _3041
+    {
+      get
+      {
+        return ResourceManager.GetString("3041", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Cello.
+    /// </summary>
+    internal static string _3042
+    {
+      get
+      {
+        return ResourceManager.GetString("3042", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Contrabass.
+    /// </summary>
+    internal static string _3043
+    {
+      get
+      {
+        return ResourceManager.GetString("3043", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Tremolo strings.
+    /// </summary>
+    internal static string _3044
+    {
+      get
+      {
+        return ResourceManager.GetString("3044", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pizzicato strings.
+    /// </summary>
+    internal static string _3045
+    {
+      get
+      {
+        return ResourceManager.GetString("3045", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Orchestral harp.
+    /// </summary>
+    internal static string _3046
+    {
+      get
+      {
+        return ResourceManager.GetString("3046", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Timpani.
+    /// </summary>
+    internal static string _3047
+    {
+      get
+      {
+        return ResourceManager.GetString("3047", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to String ensemble 1.
+    /// </summary>
+    internal static string _3048
+    {
+      get
+      {
+        return ResourceManager.GetString("3048", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to String ensemble 2.
+    /// </summary>
+    internal static string _3049
+    {
+      get
+      {
+        return ResourceManager.GetString("3049", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Synth. strings 1.
+    /// </summary>
+    internal static string _3050
+    {
+      get
+      {
+        return ResourceManager.GetString("3050", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Synth. strings 2.
+    /// </summary>
+    internal static string _3051
+    {
+      get
+      {
+        return ResourceManager.GetString("3051", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Choir Aahs.
+    /// </summary>
+    internal static string _3052
+    {
+      get
+      {
+        return ResourceManager.GetString("3052", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Voice Oohs.
+    /// </summary>
+    internal static string _3053
+    {
+      get
+      {
+        return ResourceManager.GetString("3053", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Synth voice.
+    /// </summary>
+    internal static string _3054
+    {
+      get
+      {
+        return ResourceManager.GetString("3054", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Orchestra hit.
+    /// </summary>
+    internal static string _3055
+    {
+      get
+      {
+        return ResourceManager.GetString("3055", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Trumpet.
+    /// </summary>
+    internal static string _3056
+    {
+      get
+      {
+        return ResourceManager.GetString("3056", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Trombone.
+    /// </summary>
+    internal static string _3057
+    {
+      get
+      {
+        return ResourceManager.GetString("3057", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Tuba.
+    /// </summary>
+    internal static string _3058
+    {
+      get
+      {
+        return ResourceManager.GetString("3058", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Muted trumpet.
+    /// </summary>
+    internal static string _3059
+    {
+      get
+      {
+        return ResourceManager.GetString("3059", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to French horn.
+    /// </summary>
+    internal static string _3060
+    {
+      get
+      {
+        return ResourceManager.GetString("3060", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Brass section.
+    /// </summary>
+    internal static string _3061
+    {
+      get
+      {
+        return ResourceManager.GetString("3061", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Synth. brass 1.
+    /// </summary>
+    internal static string _3062
+    {
+      get
+      {
+        return ResourceManager.GetString("3062", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Synth. brass 2.
+    /// </summary>
+    internal static string _3063
+    {
+      get
+      {
+        return ResourceManager.GetString("3063", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Soprano sax.
+    /// </summary>
+    internal static string _3064
+    {
+      get
+      {
+        return ResourceManager.GetString("3064", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Alto sax.
+    /// </summary>
+    internal static string _3065
+    {
+      get
+      {
+        return ResourceManager.GetString("3065", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Tenor sax.
+    /// </summary>
+    internal static string _3066
+    {
+      get
+      {
+        return ResourceManager.GetString("3066", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Baritone sax.
+    /// </summary>
+    internal static string _3067
+    {
+      get
+      {
+        return ResourceManager.GetString("3067", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Oboe.
+    /// </summary>
+    internal static string _3068
+    {
+      get
+      {
+        return ResourceManager.GetString("3068", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to English horn.
+    /// </summary>
+    internal static string _3069
+    {
+      get
+      {
+        return ResourceManager.GetString("3069", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Bassoon.
+    /// </summary>
+    internal static string _3070
+    {
+      get
+      {
+        return ResourceManager.GetString("3070", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Clarinet.
+    /// </summary>
+    internal static string _3071
+    {
+      get
+      {
+        return ResourceManager.GetString("3071", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Piccolo.
+    /// </summary>
+    internal static string _3072
+    {
+      get
+      {
+        return ResourceManager.GetString("3072", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Flute.
+    /// </summary>
+    internal static string _3073
+    {
+      get
+      {
+        return ResourceManager.GetString("3073", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Recorder.
+    /// </summary>
+    internal static string _3074
+    {
+      get
+      {
+        return ResourceManager.GetString("3074", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pan flute.
+    /// </summary>
+    internal static string _3075
+    {
+      get
+      {
+        return ResourceManager.GetString("3075", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Bottle blow.
+    /// </summary>
+    internal static string _3076
+    {
+      get
+      {
+        return ResourceManager.GetString("3076", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Shakuhachi.
+    /// </summary>
+    internal static string _3077
+    {
+      get
+      {
+        return ResourceManager.GetString("3077", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Whistle.
+    /// </summary>
+    internal static string _3078
+    {
+      get
+      {
+        return ResourceManager.GetString("3078", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Ocarina.
+    /// </summary>
+    internal static string _3079
+    {
+      get
+      {
+        return ResourceManager.GetString("3079", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Lead 1 (square).
+    /// </summary>
+    internal static string _3080
+    {
+      get
+      {
+        return ResourceManager.GetString("3080", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Lead 2 (sawtooth).
+    /// </summary>
+    internal static string _3081
+    {
+      get
+      {
+        return ResourceManager.GetString("3081", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Lead 3 (calliope lead).
+    /// </summary>
+    internal static string _3082
+    {
+      get
+      {
+        return ResourceManager.GetString("3082", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Lead 4 (chiff lead).
+    /// </summary>
+    internal static string _3083
+    {
+      get
+      {
+        return ResourceManager.GetString("3083", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Lead 5 (charang).
+    /// </summary>
+    internal static string _3084
+    {
+      get
+      {
+        return ResourceManager.GetString("3084", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Lead 6 (voice).
+    /// </summary>
+    internal static string _3085
+    {
+      get
+      {
+        return ResourceManager.GetString("3085", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Lead 7 (fifths).
+    /// </summary>
+    internal static string _3086
+    {
+      get
+      {
+        return ResourceManager.GetString("3086", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Lead 8 (brass + lead).
+    /// </summary>
+    internal static string _3087
+    {
+      get
+      {
+        return ResourceManager.GetString("3087", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pad 1 (new age).
+    /// </summary>
+    internal static string _3088
+    {
+      get
+      {
+        return ResourceManager.GetString("3088", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pad 2 (warm).
+    /// </summary>
+    internal static string _3089
+    {
+      get
+      {
+        return ResourceManager.GetString("3089", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pad 3 (polysynth).
+    /// </summary>
+    internal static string _3090
+    {
+      get
+      {
+        return ResourceManager.GetString("3090", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pad 4 (choir).
+    /// </summary>
+    internal static string _3091
+    {
+      get
+      {
+        return ResourceManager.GetString("3091", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pad 5 (bowed).
+    /// </summary>
+    internal static string _3092
+    {
+      get
+      {
+        return ResourceManager.GetString("3092", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pad 6 (metallic).
+    /// </summary>
+    internal static string _3093
+    {
+      get
+      {
+        return ResourceManager.GetString("3093", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pad 7 (halo).
+    /// </summary>
+    internal static string _3094
+    {
+      get
+      {
+        return ResourceManager.GetString("3094", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Pad 8 (sweep).
+    /// </summary>
+    internal static string _3095
+    {
+      get
+      {
+        return ResourceManager.GetString("3095", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to FX 1 (rain).
+    /// </summary>
+    internal static string _3096
+    {
+      get
+      {
+        return ResourceManager.GetString("3096", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to FX 2 (soundtrack).
+    /// </summary>
+    internal static string _3097
+    {
+      get
+      {
+        return ResourceManager.GetString("3097", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to FX 3 (crystal).
+    /// </summary>
+    internal static string _3098
+    {
+      get
+      {
+        return ResourceManager.GetString("3098", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to FX 4 (atmosphere).
+    /// </summary>
+    internal static string _3099
+    {
+      get
+      {
+        return ResourceManager.GetString("3099", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to FX 5 (brightness).
+    /// </summary>
+    internal static string _3100
+    {
+      get
+      {
+        return ResourceManager.GetString("3100", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to FX 6 (goblins).
+    /// </summary>
+    internal static string _3101
+    {
+      get
+      {
+        return ResourceManager.GetString("3101", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to FX 7 (echoes, drops).
+    /// </summary>
+    internal static string _3102
+    {
+      get
+      {
+        return ResourceManager.GetString("3102", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to FX 8 (sci-fi, star theme).
+    /// </summary>
+    internal static string _3103
+    {
+      get
+      {
+        return ResourceManager.GetString("3103", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Sitar.
+    /// </summary>
+    internal static string _3104
+    {
+      get
+      {
+        return ResourceManager.GetString("3104", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Banjo.
+    /// </summary>
+    internal static string _3105
+    {
+      get
+      {
+        return ResourceManager.GetString("3105", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Shamisen.
+    /// </summary>
+    internal static string _3106
+    {
+      get
+      {
+        return ResourceManager.GetString("3106", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Koto.
+    /// </summary>
+    internal static string _3107
+    {
+      get
+      {
+        return ResourceManager.GetString("3107", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Kalimba.
+    /// </summary>
+    internal static string _3108
+    {
+      get
+      {
+        return ResourceManager.GetString("3108", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Bag pipe.
+    /// </summary>
+    internal static string _3109
+    {
+      get
+      {
+        return ResourceManager.GetString("3109", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Fiddle.
+    /// </summary>
+    internal static string _3110
+    {
+      get
+      {
+        return ResourceManager.GetString("3110", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Shanai.
+    /// </summary>
+    internal static string _3111
+    {
+      get
+      {
+        return ResourceManager.GetString("3111", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Tinkle Bell.
+    /// </summary>
+    internal static string _3112
+    {
+      get
+      {
+        return ResourceManager.GetString("3112", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Agogo.
+    /// </summary>
+    internal static string _3113
+    {
+      get
+      {
+        return ResourceManager.GetString("3113", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Steel Drums.
+    /// </summary>
+    internal static string _3114
+    {
+      get
+      {
+        return ResourceManager.GetString("3114", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Woodblock.
+    /// </summary>
+    internal static string _3115
+    {
+      get
+      {
+        return ResourceManager.GetString("3115", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Taiko Drum.
+    /// </summary>
+    internal static string _3116
+    {
+      get
+      {
+        return ResourceManager.GetString("3116", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Melodic Tom.
+    /// </summary>
+    internal static string _3117
+    {
+      get
+      {
+        return ResourceManager.GetString("3117", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Synth Drum.
+    /// </summary>
+    internal static string _3118
+    {
+      get
+      {
+        return ResourceManager.GetString("3118", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Reverse Cymbal.
+    /// </summary>
+    internal static string _3119
+    {
+      get
+      {
+        return ResourceManager.GetString("3119", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Guitar fret noise.
+    /// </summary>
+    internal static string _3120
+    {
+      get
+      {
+        return ResourceManager.GetString("3120", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Breath noise.
+    /// </summary>
+    internal static string _3121
+    {
+      get
+      {
+        return ResourceManager.GetString("3121", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Seashore.
+    /// </summary>
+    internal static string _3122
+    {
+      get
+      {
+        return ResourceManager.GetString("3122", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Bird tweet.
+    /// </summary>
+    internal static string _3123
+    {
+      get
+      {
+        return ResourceManager.GetString("3123", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Telphone ring.
+    /// </summary>
+    internal static string _3124
+    {
+      get
+      {
+        return ResourceManager.GetString("3124", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Helicopter.
+    /// </summary>
+    internal static string _3125
+    {
+      get
+      {
+        return ResourceManager.GetString("3125", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Applause.
+    /// </summary>
+    internal static string _3126
+    {
+      get
+      {
+        return ResourceManager.GetString("3126", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to Gunshot.
+    /// </summary>
+    internal static string _3127
+    {
+      get
+      {
+        return ResourceManager.GetString("3127", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to add.to.pic.
+    /// </summary>
+    internal static string _4000
+    {
+      get
+      {
+        return ResourceManager.GetString("4000", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to add.to.pic.v.
+    /// </summary>
+    internal static string _4001
+    {
+      get
+      {
+        return ResourceManager.GetString("4001", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to addn.
+    /// </summary>
+    internal static string _4002
+    {
+      get
+      {
+        return ResourceManager.GetString("4002", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to addv.
+    /// </summary>
+    internal static string _4003
+    {
+      get
+      {
+        return ResourceManager.GetString("4003", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to allow.menu.
+    /// </summary>
+    internal static string _4004
+    {
+      get
+      {
+        return ResourceManager.GetString("4004", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to animate.obj.
+    /// </summary>
+    internal static string _4005
+    {
+      get
+      {
+        return ResourceManager.GetString("4005", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to assignn.
+    /// </summary>
+    internal static string _4006
+    {
+      get
+      {
+        return ResourceManager.GetString("4006", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to assignv.
+    /// </summary>
+    internal static string _4007
+    {
+      get
+      {
+        return ResourceManager.GetString("4007", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to block.
+    /// </summary>
+    internal static string _4008
+    {
+      get
+      {
+        return ResourceManager.GetString("4008", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to call.
+    /// </summary>
+    internal static string _4009
+    {
+      get
+      {
+        return ResourceManager.GetString("4009", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to call.v.
+    /// </summary>
+    internal static string _4010
+    {
+      get
+      {
+        return ResourceManager.GetString("4010", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to center.posn.
+    /// </summary>
+    internal static string _4011
+    {
+      get
+      {
+        return ResourceManager.GetString("4011", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to clear.lines.
+    /// </summary>
+    internal static string _4012
+    {
+      get
+      {
+        return ResourceManager.GetString("4012", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to clear.text.rect.
+    /// </summary>
+    internal static string _4013
+    {
+      get
+      {
+        return ResourceManager.GetString("4013", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to compare.strings.
+    /// </summary>
+    internal static string _4014
+    {
+      get
+      {
+        return ResourceManager.GetString("4014", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to configure.screen.
+    /// </summary>
+    internal static string _4015
+    {
+      get
+      {
+        return ResourceManager.GetString("4015", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to controller.
+    /// </summary>
+    internal static string _4016
+    {
+      get
+      {
+        return ResourceManager.GetString("4016", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to current.cel.
+    /// </summary>
+    internal static string _4017
+    {
+      get
+      {
+        return ResourceManager.GetString("4017", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to current.loop.
+    /// </summary>
+    internal static string _4018
+    {
+      get
+      {
+        return ResourceManager.GetString("4018", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to current.view.
+    /// </summary>
+    internal static string _4019
+    {
+      get
+      {
+        return ResourceManager.GetString("4019", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to cycle.time.
+    /// </summary>
+    internal static string _4020
+    {
+      get
+      {
+        return ResourceManager.GetString("4020", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to decrement.
+    /// </summary>
+    internal static string _4021
+    {
+      get
+      {
+        return ResourceManager.GetString("4021", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to disable.item.
+    /// </summary>
+    internal static string _4022
+    {
+      get
+      {
+        return ResourceManager.GetString("4022", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to discard.pic.
+    /// </summary>
+    internal static string _4023
+    {
+      get
+      {
+        return ResourceManager.GetString("4023", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to discard.sound.
+    /// </summary>
+    internal static string _4024
+    {
+      get
+      {
+        return ResourceManager.GetString("4024", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to discard.view.
+    /// </summary>
+    internal static string _4025
+    {
+      get
+      {
+        return ResourceManager.GetString("4025", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to discard.view.v.
+    /// </summary>
+    internal static string _4026
+    {
+      get
+      {
+        return ResourceManager.GetString("4026", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to display.
+    /// </summary>
+    internal static string _4027
+    {
+      get
+      {
+        return ResourceManager.GetString("4027", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to display.v.
+    /// </summary>
+    internal static string _4028
+    {
+      get
+      {
+        return ResourceManager.GetString("4028", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to distance.
+    /// </summary>
+    internal static string _4029
+    {
+      get
+      {
+        return ResourceManager.GetString("4029", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to div.n.
+    /// </summary>
+    internal static string _4030
+    {
+      get
+      {
+        return ResourceManager.GetString("4030", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to div.v.
+    /// </summary>
+    internal static string _4031
+    {
+      get
+      {
+        return ResourceManager.GetString("4031", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to draw.
+    /// </summary>
+    internal static string _4032
+    {
+      get
+      {
+        return ResourceManager.GetString("4032", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to draw.pic.
+    /// </summary>
+    internal static string _4033
+    {
+      get
+      {
+        return ResourceManager.GetString("4033", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to drop.
+    /// </summary>
+    internal static string _4034
+    {
+      get
+      {
+        return ResourceManager.GetString("4034", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to enable.item.
+    /// </summary>
+    internal static string _4035
+    {
+      get
+      {
+        return ResourceManager.GetString("4035", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to end.of.loop.
+    /// </summary>
+    internal static string _4036
+    {
+      get
+      {
+        return ResourceManager.GetString("4036", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to equaln.
+    /// </summary>
+    internal static string _4037
+    {
+      get
+      {
+        return ResourceManager.GetString("4037", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to equalv.
+    /// </summary>
+    internal static string _4038
+    {
+      get
+      {
+        return ResourceManager.GetString("4038", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to erase.
+    /// </summary>
+    internal static string _4039
+    {
+      get
+      {
+        return ResourceManager.GetString("4039", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to fence.mouse.
+    /// </summary>
+    internal static string _4040
+    {
+      get
+      {
+        return ResourceManager.GetString("4040", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to fix.loop.
+    /// </summary>
+    internal static string _4041
+    {
+      get
+      {
+        return ResourceManager.GetString("4041", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to follow.ego.
+    /// </summary>
+    internal static string _4042
+    {
+      get
+      {
+        return ResourceManager.GetString("4042", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to force.update.
+    /// </summary>
+    internal static string _4043
+    {
+      get
+      {
+        return ResourceManager.GetString("4043", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to get.
+    /// </summary>
+    internal static string _4044
+    {
+      get
+      {
+        return ResourceManager.GetString("4044", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to get.dir.
+    /// </summary>
+    internal static string _4045
+    {
+      get
+      {
+        return ResourceManager.GetString("4045", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to get.num.
+    /// </summary>
+    internal static string _4046
+    {
+      get
+      {
+        return ResourceManager.GetString("4046", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to get.posn.
+    /// </summary>
+    internal static string _4047
+    {
+      get
+      {
+        return ResourceManager.GetString("4047", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to get.priority.
+    /// </summary>
+    internal static string _4048
+    {
+      get
+      {
+        return ResourceManager.GetString("4048", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to get.room.v.
+    /// </summary>
+    internal static string _4049
+    {
+      get
+      {
+        return ResourceManager.GetString("4049", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to get.string.
+    /// </summary>
+    internal static string _4050
+    {
+      get
+      {
+        return ResourceManager.GetString("4050", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to get.v.
+    /// </summary>
+    internal static string _4051
+    {
+      get
+      {
+        return ResourceManager.GetString("4051", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to greatern.
+    /// </summary>
+    internal static string _4052
+    {
+      get
+      {
+        return ResourceManager.GetString("4052", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to greaterv.
+    /// </summary>
+    internal static string _4053
+    {
+      get
+      {
+        return ResourceManager.GetString("4053", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to has.
+    /// </summary>
+    internal static string _4054
+    {
+      get
+      {
+        return ResourceManager.GetString("4054", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to ignore.blocks.
+    /// </summary>
+    internal static string _4055
+    {
+      get
+      {
+        return ResourceManager.GetString("4055", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to ignore.horizon.
+    /// </summary>
+    internal static string _4056
+    {
+      get
+      {
+        return ResourceManager.GetString("4056", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to ignore.objs.
+    /// </summary>
+    internal static string _4057
+    {
+      get
+      {
+        return ResourceManager.GetString("4057", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to increment.
+    /// </summary>
+    internal static string _4058
+    {
+      get
+      {
+        return ResourceManager.GetString("4058", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to isset.
+    /// </summary>
+    internal static string _4059
+    {
+      get
+      {
+        return ResourceManager.GetString("4059", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to issetv.
+    /// </summary>
+    internal static string _4060
+    {
+      get
+      {
+        return ResourceManager.GetString("4060", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to last.cel.
+    /// </summary>
+    internal static string _4061
+    {
+      get
+      {
+        return ResourceManager.GetString("4061", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to lessn.
+    /// </summary>
+    internal static string _4062
+    {
+      get
+      {
+        return ResourceManager.GetString("4062", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to lessv.
+    /// </summary>
+    internal static string _4063
+    {
+      get
+      {
+        return ResourceManager.GetString("4063", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to lindirectn.
+    /// </summary>
+    internal static string _4064
+    {
+      get
+      {
+        return ResourceManager.GetString("4064", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to lindirectv.
+    /// </summary>
+    internal static string _4065
+    {
+      get
+      {
+        return ResourceManager.GetString("4065", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to load.logics.
+    /// </summary>
+    internal static string _4066
+    {
+      get
+      {
+        return ResourceManager.GetString("4066", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to load.logics.v.
+    /// </summary>
+    internal static string _4067
+    {
+      get
+      {
+        return ResourceManager.GetString("4067", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to load.pic.
+    /// </summary>
+    internal static string _4068
+    {
+      get
+      {
+        return ResourceManager.GetString("4068", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to load.sound.
+    /// </summary>
+    internal static string _4069
+    {
+      get
+      {
+        return ResourceManager.GetString("4069", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to load.view.
+    /// </summary>
+    internal static string _4070
+    {
+      get
+      {
+        return ResourceManager.GetString("4070", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to load.view.v.
+    /// </summary>
+    internal static string _4071
+    {
+      get
+      {
+        return ResourceManager.GetString("4071", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to log.
+    /// </summary>
+    internal static string _4072
+    {
+      get
+      {
+        return ResourceManager.GetString("4072", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to mouse.posn.
+    /// </summary>
+    internal static string _4073
+    {
+      get
+      {
+        return ResourceManager.GetString("4073", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to move.obj.
+    /// </summary>
+    internal static string _4074
+    {
+      get
+      {
+        return ResourceManager.GetString("4074", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to move.obj.v.
+    /// </summary>
+    internal static string _4075
+    {
+      get
+      {
+        return ResourceManager.GetString("4075", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to mul.n.
+    /// </summary>
+    internal static string _4076
+    {
+      get
+      {
+        return ResourceManager.GetString("4076", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to mul.v.
+    /// </summary>
+    internal static string _4077
+    {
+      get
+      {
+        return ResourceManager.GetString("4077", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to new.room.
+    /// </summary>
+    internal static string _4078
+    {
+      get
+      {
+        return ResourceManager.GetString("4078", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to new.room.v.
+    /// </summary>
+    internal static string _4079
+    {
+      get
+      {
+        return ResourceManager.GetString("4079", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to normal.cycle.
+    /// </summary>
+    internal static string _4080
+    {
+      get
+      {
+        return ResourceManager.GetString("4080", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to normal.motion.
+    /// </summary>
+    internal static string _4081
+    {
+      get
+      {
+        return ResourceManager.GetString("4081", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to number.of.loops.
+    /// </summary>
+    internal static string _4082
+    {
+      get
+      {
+        return ResourceManager.GetString("4082", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj.in.box.
+    /// </summary>
+    internal static string _4083
+    {
+      get
+      {
+        return ResourceManager.GetString("4083", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj.in.room.
+    /// </summary>
+    internal static string _4084
+    {
+      get
+      {
+        return ResourceManager.GetString("4084", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj.status.v.
+    /// </summary>
+    internal static string _4085
+    {
+      get
+      {
+        return ResourceManager.GetString("4085", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to object.on.anything.
+    /// </summary>
+    internal static string _4086
+    {
+      get
+      {
+        return ResourceManager.GetString("4086", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to object.on.land.
+    /// </summary>
+    internal static string _4087
+    {
+      get
+      {
+        return ResourceManager.GetString("4087", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to object.on.water.
+    /// </summary>
+    internal static string _4088
+    {
+      get
+      {
+        return ResourceManager.GetString("4088", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to observe.blocks.
+    /// </summary>
+    internal static string _4089
+    {
+      get
+      {
+        return ResourceManager.GetString("4089", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to observe.horizon.
+    /// </summary>
+    internal static string _4090
+    {
+      get
+      {
+        return ResourceManager.GetString("4090", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to observe.objs.
+    /// </summary>
+    internal static string _4091
+    {
+      get
+      {
+        return ResourceManager.GetString("4091", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to overlay.pic.
+    /// </summary>
+    internal static string _4092
+    {
+      get
+      {
+        return ResourceManager.GetString("4092", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to parse.
+    /// </summary>
+    internal static string _4093
+    {
+      get
+      {
+        return ResourceManager.GetString("4093", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to position.
+    /// </summary>
+    internal static string _4094
+    {
+      get
+      {
+        return ResourceManager.GetString("4094", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to position.v.
+    /// </summary>
+    internal static string _4095
+    {
+      get
+      {
+        return ResourceManager.GetString("4095", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to posn.
+    /// </summary>
+    internal static string _4096
+    {
+      get
+      {
+        return ResourceManager.GetString("4096", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to print.
+    /// </summary>
+    internal static string _4097
+    {
+      get
+      {
+        return ResourceManager.GetString("4097", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to print.at.
+    /// </summary>
+    internal static string _4098
+    {
+      get
+      {
+        return ResourceManager.GetString("4098", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to print.at.v.
+    /// </summary>
+    internal static string _4099
+    {
+      get
+      {
+        return ResourceManager.GetString("4099", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to print.v.
+    /// </summary>
+    internal static string _4100
+    {
+      get
+      {
+        return ResourceManager.GetString("4100", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to put.
+    /// </summary>
+    internal static string _4101
+    {
+      get
+      {
+        return ResourceManager.GetString("4101", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to put.v.
+    /// </summary>
+    internal static string _4102
+    {
+      get
+      {
+        return ResourceManager.GetString("4102", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to quit.
+    /// </summary>
+    internal static string _4103
+    {
+      get
+      {
+        return ResourceManager.GetString("4103", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to random.
+    /// </summary>
+    internal static string _4104
+    {
+      get
+      {
+        return ResourceManager.GetString("4104", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to release.loop.
+    /// </summary>
+    internal static string _4105
+    {
+      get
+      {
+        return ResourceManager.GetString("4105", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to release.priority.
+    /// </summary>
+    internal static string _4106
+    {
+      get
+      {
+        return ResourceManager.GetString("4106", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to reposition.
+    /// </summary>
+    internal static string _4107
+    {
+      get
+      {
+        return ResourceManager.GetString("4107", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to reposition.to.
+    /// </summary>
+    internal static string _4108
+    {
+      get
+      {
+        return ResourceManager.GetString("4108", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to reposition.to.v.
+    /// </summary>
+    internal static string _4109
+    {
+      get
+      {
+        return ResourceManager.GetString("4109", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to reset.
+    /// </summary>
+    internal static string _4110
+    {
+      get
+      {
+        return ResourceManager.GetString("4110", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to reset.v.
+    /// </summary>
+    internal static string _4111
+    {
+      get
+      {
+        return ResourceManager.GetString("4111", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to reverse.cycle.
+    /// </summary>
+    internal static string _4112
+    {
+      get
+      {
+        return ResourceManager.GetString("4112", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to reverse.loop.
+    /// </summary>
+    internal static string _4113
+    {
+      get
+      {
+        return ResourceManager.GetString("4113", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to right.posn.
+    /// </summary>
+    internal static string _4114
+    {
+      get
+      {
+        return ResourceManager.GetString("4114", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to rindirect.
+    /// </summary>
+    internal static string _4115
+    {
+      get
+      {
+        return ResourceManager.GetString("4115", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to said.
+    /// </summary>
+    internal static string _4116
+    {
+      get
+      {
+        return ResourceManager.GetString("4116", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to script.size.
+    /// </summary>
+    internal static string _4117
+    {
+      get
+      {
+        return ResourceManager.GetString("4117", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.
+    /// </summary>
+    internal static string _4118
+    {
+      get
+      {
+        return ResourceManager.GetString("4118", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.cel.
+    /// </summary>
+    internal static string _4119
+    {
+      get
+      {
+        return ResourceManager.GetString("4119", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.cel.v.
+    /// </summary>
+    internal static string _4120
+    {
+      get
+      {
+        return ResourceManager.GetString("4120", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.cursor.char.
+    /// </summary>
+    internal static string _4121
+    {
+      get
+      {
+        return ResourceManager.GetString("4121", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.dir.
+    /// </summary>
+    internal static string _4122
+    {
+      get
+      {
+        return ResourceManager.GetString("4122", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.game.id.
+    /// </summary>
+    internal static string _4123
+    {
+      get
+      {
+        return ResourceManager.GetString("4123", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.horizon.
+    /// </summary>
+    internal static string _4124
+    {
+      get
+      {
+        return ResourceManager.GetString("4124", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.key.
+    /// </summary>
+    internal static string _4125
+    {
+      get
+      {
+        return ResourceManager.GetString("4125", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.loop.
+    /// </summary>
+    internal static string _4126
+    {
+      get
+      {
+        return ResourceManager.GetString("4126", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.loop.v.
+    /// </summary>
+    internal static string _4127
+    {
+      get
+      {
+        return ResourceManager.GetString("4127", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.menu.
+    /// </summary>
+    internal static string _4128
+    {
+      get
+      {
+        return ResourceManager.GetString("4128", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.menu.item.
+    /// </summary>
+    internal static string _4129
+    {
+      get
+      {
+        return ResourceManager.GetString("4129", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.pri.base.
+    /// </summary>
+    internal static string _4130
+    {
+      get
+      {
+        return ResourceManager.GetString("4130", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.priority.
+    /// </summary>
+    internal static string _4131
+    {
+      get
+      {
+        return ResourceManager.GetString("4131", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.priority.v.
+    /// </summary>
+    internal static string _4132
+    {
+      get
+      {
+        return ResourceManager.GetString("4132", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.simple.
+    /// </summary>
+    internal static string _4133
+    {
+      get
+      {
+        return ResourceManager.GetString("4133", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.string.
+    /// </summary>
+    internal static string _4134
+    {
+      get
+      {
+        return ResourceManager.GetString("4134", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.text.attribute.
+    /// </summary>
+    internal static string _4135
+    {
+      get
+      {
+        return ResourceManager.GetString("4135", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.upper.left.
+    /// </summary>
+    internal static string _4136
+    {
+      get
+      {
+        return ResourceManager.GetString("4136", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.v.
+    /// </summary>
+    internal static string _4137
+    {
+      get
+      {
+        return ResourceManager.GetString("4137", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.view.
+    /// </summary>
+    internal static string _4138
+    {
+      get
+      {
+        return ResourceManager.GetString("4138", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to set.view.v.
+    /// </summary>
+    internal static string _4139
+    {
+      get
+      {
+        return ResourceManager.GetString("4139", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to shake.screen.
+    /// </summary>
+    internal static string _4140
+    {
+      get
+      {
+        return ResourceManager.GetString("4140", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to show.obj.
+    /// </summary>
+    internal static string _4141
+    {
+      get
+      {
+        return ResourceManager.GetString("4141", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to show.obj.v.
+    /// </summary>
+    internal static string _4142
+    {
+      get
+      {
+        return ResourceManager.GetString("4142", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to sound.
+    /// </summary>
+    internal static string _4143
+    {
+      get
+      {
+        return ResourceManager.GetString("4143", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to start.cycling.
+    /// </summary>
+    internal static string _4144
+    {
+      get
+      {
+        return ResourceManager.GetString("4144", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to start.motion.
+    /// </summary>
+    internal static string _4145
+    {
+      get
+      {
+        return ResourceManager.GetString("4145", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to start.update.
+    /// </summary>
+    internal static string _4146
+    {
+      get
+      {
+        return ResourceManager.GetString("4146", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to step.size.
+    /// </summary>
+    internal static string _4147
+    {
+      get
+      {
+        return ResourceManager.GetString("4147", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to step.time.
+    /// </summary>
+    internal static string _4148
+    {
+      get
+      {
+        return ResourceManager.GetString("4148", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to stop.cycling.
+    /// </summary>
+    internal static string _4149
+    {
+      get
+      {
+        return ResourceManager.GetString("4149", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to stop.motion.
+    /// </summary>
+    internal static string _4150
+    {
+      get
+      {
+        return ResourceManager.GetString("4150", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to stop.update.
+    /// </summary>
+    internal static string _4151
+    {
+      get
+      {
+        return ResourceManager.GetString("4151", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to subn.
+    /// </summary>
+    internal static string _4152
+    {
+      get
+      {
+        return ResourceManager.GetString("4152", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to subv.
+    /// </summary>
+    internal static string _4153
+    {
+      get
+      {
+        return ResourceManager.GetString("4153", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to toggle.
+    /// </summary>
+    internal static string _4154
+    {
+      get
+      {
+        return ResourceManager.GetString("4154", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to toggle.v.
+    /// </summary>
+    internal static string _4155
+    {
+      get
+      {
+        return ResourceManager.GetString("4155", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to trace.info.
+    /// </summary>
+    internal static string _4156
+    {
+      get
+      {
+        return ResourceManager.GetString("4156", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to wander.
+    /// </summary>
+    internal static string _4157
+    {
+      get
+      {
+        return ResourceManager.GetString("4157", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to word.to.string.
+    /// </summary>
+    internal static string _4158
+    {
+      get
+      {
+        return ResourceManager.GetString("4158", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt VIEW, byt LOOP, byt CEL, byt X, byt Y, byt PRI, byt MGN.
+    /// </summary>
+    internal static string _5000
+    {
+      get
+      {
+        return ResourceManager.GetString("5000", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vVIEW, var vLOOP, var vCEL, var vX, var vY, var vPRI, var vMGN.
+    /// </summary>
+    internal static string _5001
+    {
+      get
+      {
+        return ResourceManager.GetString("5001", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, byt B.
+    /// </summary>
+    internal static string _5002
+    {
+      get
+      {
+        return ResourceManager.GetString("5002", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5003
+    {
+      get
+      {
+        return ResourceManager.GetString("5003", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt A.
+    /// </summary>
+    internal static string _5004
+    {
+      get
+      {
+        return ResourceManager.GetString("5004", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5005
+    {
+      get
+      {
+        return ResourceManager.GetString("5005", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, byt B.
+    /// </summary>
+    internal static string _5006
+    {
+      get
+      {
+        return ResourceManager.GetString("5006", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5007
+    {
+      get
+      {
+        return ResourceManager.GetString("5007", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt X1, byt Y1, byt X2, byt Y2.
+    /// </summary>
+    internal static string _5008
+    {
+      get
+      {
+        return ResourceManager.GetString("5008", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt LOGICNUM.
+    /// </summary>
+    internal static string _5009
+    {
+      get
+      {
+        return ResourceManager.GetString("5009", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5010
+    {
+      get
+      {
+        return ResourceManager.GetString("5010", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt X1, byt Y1, byt X2, byt Y2.
+    /// </summary>
+    internal static string _5011
+    {
+      get
+      {
+        return ResourceManager.GetString("5011", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt TOP, byt BTM, byt COLOR.
+    /// </summary>
+    internal static string _5012
+    {
+      get
+      {
+        return ResourceManager.GetString("5012", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt R1, byt C1, byt R2, byt C2, byt COLOR.
+    /// </summary>
+    internal static string _5013
+    {
+      get
+      {
+        return ResourceManager.GetString("5013", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to str sA, str sB.
+    /// </summary>
+    internal static string _5014
+    {
+      get
+      {
+        return ResourceManager.GetString("5014", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt PLAYTOP, byt INPUTLINE, byt STATUSLINE.
+    /// </summary>
+    internal static string _5015
+    {
+      get
+      {
+        return ResourceManager.GetString("5015", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to ctl cA.
+    /// </summary>
+    internal static string _5016
+    {
+      get
+      {
+        return ResourceManager.GetString("5016", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vB.
+    /// </summary>
+    internal static string _5017
+    {
+      get
+      {
+        return ResourceManager.GetString("5017", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vB.
+    /// </summary>
+    internal static string _5018
+    {
+      get
+      {
+        return ResourceManager.GetString("5018", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vB.
+    /// </summary>
+    internal static string _5019
+    {
+      get
+      {
+        return ResourceManager.GetString("5019", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vB.
+    /// </summary>
+    internal static string _5020
+    {
+      get
+      {
+        return ResourceManager.GetString("5020", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5021
+    {
+      get
+      {
+        return ResourceManager.GetString("5021", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to ctl cA.
+    /// </summary>
+    internal static string _5022
+    {
+      get
+      {
+        return ResourceManager.GetString("5022", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5023
+    {
+      get
+      {
+        return ResourceManager.GetString("5023", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt SOUNDNUM.
+    /// </summary>
+    internal static string _5024
+    {
+      get
+      {
+        return ResourceManager.GetString("5024", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt VIEWNUM.
+    /// </summary>
+    internal static string _5025
+    {
+      get
+      {
+        return ResourceManager.GetString("5025", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5026
+    {
+      get
+      {
+        return ResourceManager.GetString("5026", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt ROW, byt COL, msg mMSG.
+    /// </summary>
+    internal static string _5027
+    {
+      get
+      {
+        return ResourceManager.GetString("5027", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vROW, var vCOL, var vMSG.
+    /// </summary>
+    internal static string _5028
+    {
+      get
+      {
+        return ResourceManager.GetString("5028", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, obj oB, var vC.
+    /// </summary>
+    internal static string _5029
+    {
+      get
+      {
+        return ResourceManager.GetString("5029", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, byt B.
+    /// </summary>
+    internal static string _5030
+    {
+      get
+      {
+        return ResourceManager.GetString("5030", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5031
+    {
+      get
+      {
+        return ResourceManager.GetString("5031", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5032
+    {
+      get
+      {
+        return ResourceManager.GetString("5032", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5033
+    {
+      get
+      {
+        return ResourceManager.GetString("5033", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to itm iA.
+    /// </summary>
+    internal static string _5034
+    {
+      get
+      {
+        return ResourceManager.GetString("5034", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to ctl cA.
+    /// </summary>
+    internal static string _5035
+    {
+      get
+      {
+        return ResourceManager.GetString("5035", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, flg fDONE.
+    /// </summary>
+    internal static string _5036
+    {
+      get
+      {
+        return ResourceManager.GetString("5036", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, byt B.
+    /// </summary>
+    internal static string _5037
+    {
+      get
+      {
+        return ResourceManager.GetString("5037", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5038
+    {
+      get
+      {
+        return ResourceManager.GetString("5038", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5039
+    {
+      get
+      {
+        return ResourceManager.GetString("5039", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt X1, byt Y1, byt X2, byt Y2.
+    /// </summary>
+    internal static string _5040
+    {
+      get
+      {
+        return ResourceManager.GetString("5040", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5041
+    {
+      get
+      {
+        return ResourceManager.GetString("5041", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt DISTANCE, flg fCAUGHT.
+    /// </summary>
+    internal static string _5042
+    {
+      get
+      {
+        return ResourceManager.GetString("5042", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5043
+    {
+      get
+      {
+        return ResourceManager.GetString("5043", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to itm iA.
+    /// </summary>
+    internal static string _5044
+    {
+      get
+      {
+        return ResourceManager.GetString("5044", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vDIR.
+    /// </summary>
+    internal static string _5045
+    {
+      get
+      {
+        return ResourceManager.GetString("5045", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to msg mPROMPT, var vB.
+    /// </summary>
+    internal static string _5046
+    {
+      get
+      {
+        return ResourceManager.GetString("5046", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vX, var vY.
+    /// </summary>
+    internal static string _5047
+    {
+      get
+      {
+        return ResourceManager.GetString("5047", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vPRI.
+    /// </summary>
+    internal static string _5048
+    {
+      get
+      {
+        return ResourceManager.GetString("5048", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5049
+    {
+      get
+      {
+        return ResourceManager.GetString("5049", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to str sA, msg mPROMPT, byt ROW, byt COL, byt LEN.
+    /// </summary>
+    internal static string _5050
+    {
+      get
+      {
+        return ResourceManager.GetString("5050", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5051
+    {
+      get
+      {
+        return ResourceManager.GetString("5051", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, byt B.
+    /// </summary>
+    internal static string _5052
+    {
+      get
+      {
+        return ResourceManager.GetString("5052", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5053
+    {
+      get
+      {
+        return ResourceManager.GetString("5053", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to itm iA.
+    /// </summary>
+    internal static string _5054
+    {
+      get
+      {
+        return ResourceManager.GetString("5054", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5055
+    {
+      get
+      {
+        return ResourceManager.GetString("5055", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5056
+    {
+      get
+      {
+        return ResourceManager.GetString("5056", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5057
+    {
+      get
+      {
+        return ResourceManager.GetString("5057", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5058
+    {
+      get
+      {
+        return ResourceManager.GetString("5058", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to flg fA.
+    /// </summary>
+    internal static string _5059
+    {
+      get
+      {
+        return ResourceManager.GetString("5059", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5060
+    {
+      get
+      {
+        return ResourceManager.GetString("5060", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vB.
+    /// </summary>
+    internal static string _5061
+    {
+      get
+      {
+        return ResourceManager.GetString("5061", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, byt B.
+    /// </summary>
+    internal static string _5062
+    {
+      get
+      {
+        return ResourceManager.GetString("5062", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5063
+    {
+      get
+      {
+        return ResourceManager.GetString("5063", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, byt B.
+    /// </summary>
+    internal static string _5064
+    {
+      get
+      {
+        return ResourceManager.GetString("5064", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5065
+    {
+      get
+      {
+        return ResourceManager.GetString("5065", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt LOGICNUM.
+    /// </summary>
+    internal static string _5066
+    {
+      get
+      {
+        return ResourceManager.GetString("5066", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vLOGICNUM.
+    /// </summary>
+    internal static string _5067
+    {
+      get
+      {
+        return ResourceManager.GetString("5067", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vPICNUM.
+    /// </summary>
+    internal static string _5068
+    {
+      get
+      {
+        return ResourceManager.GetString("5068", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt SOUNDNUM.
+    /// </summary>
+    internal static string _5069
+    {
+      get
+      {
+        return ResourceManager.GetString("5069", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt VIEWNUM.
+    /// </summary>
+    internal static string _5070
+    {
+      get
+      {
+        return ResourceManager.GetString("5070", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vVIEWNUM.
+    /// </summary>
+    internal static string _5071
+    {
+      get
+      {
+        return ResourceManager.GetString("5071", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to msg mLOGMSG.
+    /// </summary>
+    internal static string _5072
+    {
+      get
+      {
+        return ResourceManager.GetString("5072", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5073
+    {
+      get
+      {
+        return ResourceManager.GetString("5073", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt X, byt Y, byt STEP, flg fDONE.
+    /// </summary>
+    internal static string _5074
+    {
+      get
+      {
+        return ResourceManager.GetString("5074", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vX, var vY, var vSTEP, flg fDONE.
+    /// </summary>
+    internal static string _5075
+    {
+      get
+      {
+        return ResourceManager.GetString("5075", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, byt B.
+    /// </summary>
+    internal static string _5076
+    {
+      get
+      {
+        return ResourceManager.GetString("5076", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5077
+    {
+      get
+      {
+        return ResourceManager.GetString("5077", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt ROOMNUM.
+    /// </summary>
+    internal static string _5078
+    {
+      get
+      {
+        return ResourceManager.GetString("5078", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vROOMNUM.
+    /// </summary>
+    internal static string _5079
+    {
+      get
+      {
+        return ResourceManager.GetString("5079", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5080
+    {
+      get
+      {
+        return ResourceManager.GetString("5080", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5081
+    {
+      get
+      {
+        return ResourceManager.GetString("5081", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vB.
+    /// </summary>
+    internal static string _5082
+    {
+      get
+      {
+        return ResourceManager.GetString("5082", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt X1, byt Y1, byt X2, byt Y2.
+    /// </summary>
+    internal static string _5083
+    {
+      get
+      {
+        return ResourceManager.GetString("5083", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to itm iA, var vB.
+    /// </summary>
+    internal static string _5084
+    {
+      get
+      {
+        return ResourceManager.GetString("5084", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5085
+    {
+      get
+      {
+        return ResourceManager.GetString("5085", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5086
+    {
+      get
+      {
+        return ResourceManager.GetString("5086", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5087
+    {
+      get
+      {
+        return ResourceManager.GetString("5087", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5088
+    {
+      get
+      {
+        return ResourceManager.GetString("5088", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5089
+    {
+      get
+      {
+        return ResourceManager.GetString("5089", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5090
+    {
+      get
+      {
+        return ResourceManager.GetString("5090", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5091
+    {
+      get
+      {
+        return ResourceManager.GetString("5091", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vPICNUM.
+    /// </summary>
+    internal static string _5092
+    {
+      get
+      {
+        return ResourceManager.GetString("5092", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to str sA.
+    /// </summary>
+    internal static string _5093
+    {
+      get
+      {
+        return ResourceManager.GetString("5093", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt X, byt Y.
+    /// </summary>
+    internal static string _5094
+    {
+      get
+      {
+        return ResourceManager.GetString("5094", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vX, var vY.
+    /// </summary>
+    internal static string _5095
+    {
+      get
+      {
+        return ResourceManager.GetString("5095", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt X1, byt Y1, byt X2, byt Y2.
+    /// </summary>
+    internal static string _5096
+    {
+      get
+      {
+        return ResourceManager.GetString("5096", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to msg mMSG.
+    /// </summary>
+    internal static string _5097
+    {
+      get
+      {
+        return ResourceManager.GetString("5097", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to msg mMSG, byt ROW, byt COL, byt MAXWIDTH.
+    /// </summary>
+    internal static string _5098
+    {
+      get
+      {
+        return ResourceManager.GetString("5098", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vMSG, byt ROW, byt COL, byt MAXWIDTH.
+    /// </summary>
+    internal static string _5099
+    {
+      get
+      {
+        return ResourceManager.GetString("5099", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vMSG.
+    /// </summary>
+    internal static string _5100
+    {
+      get
+      {
+        return ResourceManager.GetString("5100", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to itm iA, byt ROOMNUM.
+    /// </summary>
+    internal static string _5101
+    {
+      get
+      {
+        return ResourceManager.GetString("5101", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vITEM, var vROOMNUM.
+    /// </summary>
+    internal static string _5102
+    {
+      get
+      {
+        return ResourceManager.GetString("5102", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt MODE.
+    /// </summary>
+    internal static string _5103
+    {
+      get
+      {
+        return ResourceManager.GetString("5103", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt LOWER, byt UPPER, var vRESULT.
+    /// </summary>
+    internal static string _5104
+    {
+      get
+      {
+        return ResourceManager.GetString("5104", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5105
+    {
+      get
+      {
+        return ResourceManager.GetString("5105", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5106
+    {
+      get
+      {
+        return ResourceManager.GetString("5106", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vDX, var vDY.
+    /// </summary>
+    internal static string _5107
+    {
+      get
+      {
+        return ResourceManager.GetString("5107", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt X, byt Y.
+    /// </summary>
+    internal static string _5108
+    {
+      get
+      {
+        return ResourceManager.GetString("5108", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vX, var vY.
+    /// </summary>
+    internal static string _5109
+    {
+      get
+      {
+        return ResourceManager.GetString("5109", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to flg fA.
+    /// </summary>
+    internal static string _5110
+    {
+      get
+      {
+        return ResourceManager.GetString("5110", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5111
+    {
+      get
+      {
+        return ResourceManager.GetString("5111", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5112
+    {
+      get
+      {
+        return ResourceManager.GetString("5112", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, fDONE.
+    /// </summary>
+    internal static string _5113
+    {
+      get
+      {
+        return ResourceManager.GetString("5113", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt X1, byt Y1, byt X2, byt Y2.
+    /// </summary>
+    internal static string _5114
+    {
+      get
+      {
+        return ResourceManager.GetString("5114", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5115
+    {
+      get
+      {
+        return ResourceManager.GetString("5115", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to WORDGRPNUM1, WORDGRPNUM2, ....
+    /// </summary>
+    internal static string _5116
+    {
+      get
+      {
+        return ResourceManager.GetString("5116", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt SIZE.
+    /// </summary>
+    internal static string _5117
+    {
+      get
+      {
+        return ResourceManager.GetString("5117", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to flg fA.
+    /// </summary>
+    internal static string _5118
+    {
+      get
+      {
+        return ResourceManager.GetString("5118", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt CEL.
+    /// </summary>
+    internal static string _5119
+    {
+      get
+      {
+        return ResourceManager.GetString("5119", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vCEL.
+    /// </summary>
+    internal static string _5120
+    {
+      get
+      {
+        return ResourceManager.GetString("5120", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to msg mCURSORCHAR.
+    /// </summary>
+    internal static string _5121
+    {
+      get
+      {
+        return ResourceManager.GetString("5121", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vDIR.
+    /// </summary>
+    internal static string _5122
+    {
+      get
+      {
+        return ResourceManager.GetString("5122", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to msg mGAMEID.
+    /// </summary>
+    internal static string _5123
+    {
+      get
+      {
+        return ResourceManager.GetString("5123", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt HORIZON.
+    /// </summary>
+    internal static string _5124
+    {
+      get
+      {
+        return ResourceManager.GetString("5124", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt ASCII, byt SCAN, ctl C.
+    /// </summary>
+    internal static string _5125
+    {
+      get
+      {
+        return ResourceManager.GetString("5125", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt LOOP.
+    /// </summary>
+    internal static string _5126
+    {
+      get
+      {
+        return ResourceManager.GetString("5126", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vLOOP.
+    /// </summary>
+    internal static string _5127
+    {
+      get
+      {
+        return ResourceManager.GetString("5127", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to msg mA.
+    /// </summary>
+    internal static string _5128
+    {
+      get
+      {
+        return ResourceManager.GetString("5128", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to msg mA, ctl cB.
+    /// </summary>
+    internal static string _5129
+    {
+      get
+      {
+        return ResourceManager.GetString("5129", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt A.
+    /// </summary>
+    internal static string _5130
+    {
+      get
+      {
+        return ResourceManager.GetString("5130", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt PRI.
+    /// </summary>
+    internal static string _5131
+    {
+      get
+      {
+        return ResourceManager.GetString("5131", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vPRI.
+    /// </summary>
+    internal static string _5132
+    {
+      get
+      {
+        return ResourceManager.GetString("5132", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to str sA.
+    /// </summary>
+    internal static string _5133
+    {
+      get
+      {
+        return ResourceManager.GetString("5133", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to str sA, msg mB.
+    /// </summary>
+    internal static string _5134
+    {
+      get
+      {
+        return ResourceManager.GetString("5134", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt FG, byt BG.
+    /// </summary>
+    internal static string _5135
+    {
+      get
+      {
+        return ResourceManager.GetString("5135", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt A, byt B.
+    /// </summary>
+    internal static string _5136
+    {
+      get
+      {
+        return ResourceManager.GetString("5136", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5137
+    {
+      get
+      {
+        return ResourceManager.GetString("5137", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, byt VIEW.
+    /// </summary>
+    internal static string _5138
+    {
+      get
+      {
+        return ResourceManager.GetString("5138", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vVIEW.
+    /// </summary>
+    internal static string _5139
+    {
+      get
+      {
+        return ResourceManager.GetString("5139", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt COUNT.
+    /// </summary>
+    internal static string _5140
+    {
+      get
+      {
+        return ResourceManager.GetString("5140", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt VIEWNUM.
+    /// </summary>
+    internal static string _5141
+    {
+      get
+      {
+        return ResourceManager.GetString("5141", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vVIEWNUM.
+    /// </summary>
+    internal static string _5142
+    {
+      get
+      {
+        return ResourceManager.GetString("5142", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt SOUNDNUM, flg fDONE.
+    /// </summary>
+    internal static string _5143
+    {
+      get
+      {
+        return ResourceManager.GetString("5143", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5144
+    {
+      get
+      {
+        return ResourceManager.GetString("5144", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5145
+    {
+      get
+      {
+        return ResourceManager.GetString("5145", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5146
+    {
+      get
+      {
+        return ResourceManager.GetString("5146", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vB.
+    /// </summary>
+    internal static string _5147
+    {
+      get
+      {
+        return ResourceManager.GetString("5147", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA, var vB.
+    /// </summary>
+    internal static string _5148
+    {
+      get
+      {
+        return ResourceManager.GetString("5148", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5149
+    {
+      get
+      {
+        return ResourceManager.GetString("5149", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5150
+    {
+      get
+      {
+        return ResourceManager.GetString("5150", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5151
+    {
+      get
+      {
+        return ResourceManager.GetString("5151", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, byt B.
+    /// </summary>
+    internal static string _5152
+    {
+      get
+      {
+        return ResourceManager.GetString("5152", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA, var vB.
+    /// </summary>
+    internal static string _5153
+    {
+      get
+      {
+        return ResourceManager.GetString("5153", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to flg fA.
+    /// </summary>
+    internal static string _5154
+    {
+      get
+      {
+        return ResourceManager.GetString("5154", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to var vA.
+    /// </summary>
+    internal static string _5155
+    {
+      get
+      {
+        return ResourceManager.GetString("5155", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to byt LOGNUM, byt TOP, byt HEIGHT.
+    /// </summary>
+    internal static string _5156
+    {
+      get
+      {
+        return ResourceManager.GetString("5156", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to obj oA.
+    /// </summary>
+    internal static string _5157
+    {
+      get
+      {
+        return ResourceManager.GetString("5157", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized string similar to str sA, wrd wB.
+    /// </summary>
+    internal static string _5158
+    {
+      get
+      {
+        return ResourceManager.GetString("5158", resourceCulture);
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap back
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("back", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap close
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("close", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+    /// </summary>
+    internal static System.Drawing.Icon eli_zoomin
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("eli_zoomin", resourceCulture);
+        return ((System.Drawing.Icon)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+    /// </summary>
+    internal static System.Drawing.Icon eli_zoomout
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("eli_zoomout", resourceCulture);
+        return ((System.Drawing.Icon)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap forward
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("forward", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap forward1
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("forward1", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+    /// </summary>
+    internal static System.Drawing.Icon HAlignC
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("HAlignC", resourceCulture);
+        return ((System.Drawing.Icon)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+    /// </summary>
+    internal static System.Drawing.Icon HAlignL
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("HAlignL", resourceCulture);
+        return ((System.Drawing.Icon)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+    /// </summary>
+    internal static System.Drawing.Icon HAlignR
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("HAlignR", resourceCulture);
+        return ((System.Drawing.Icon)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap sndplay
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("sndplay", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbAdd
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbAdd", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbClose
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbClose", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbComment
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbComment", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbCompile
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbCompile", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbCopy
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbCopy", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbCut
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbCut", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbDelete
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbDelete", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbExport
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbExport", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbFind
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbFind", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbGlobal
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbGlobal", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbHelp
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbHelp", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbILog
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbILog", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbIPic
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbIPic", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbISnd
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbISnd", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbIView
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbIView", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbLayout
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbLayout", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbMenu
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbMenu", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbMsg
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbMsg", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbNLog
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbNLog", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbNPic
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbNPic", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbNSnd
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbNSnd", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbNView
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbNView", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbObjects
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbObjects", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbOLog
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbOLog", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbOpen
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbOpen", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbOPic
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbOPic", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbOSnd
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbOSnd", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbOView
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbOView", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbPaste
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbPaste", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbPrint
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbPrint", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbRedo
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbRedo", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbRemove
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbRemove", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbRun
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbRun", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbSave
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbSave", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbUncomment
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbUncomment", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbUndo
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbUndo", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Bitmap.
+    /// </summary>
+    internal static System.Drawing.Bitmap tbWords
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("tbWords", resourceCulture);
+        return ((System.Drawing.Bitmap)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+    /// </summary>
+    internal static System.Drawing.Icon ValignB
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("ValignB", resourceCulture);
+        return ((System.Drawing.Icon)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+    /// </summary>
+    internal static System.Drawing.Icon VAlignM
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("VAlignM", resourceCulture);
+        return ((System.Drawing.Icon)(obj));
+      }
+    }
+
+    /// <summary>
+    ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+    /// </summary>
+    internal static System.Drawing.Icon ValignT
+    {
+      get
+      {
+        object obj = ResourceManager.GetObject("ValignT", resourceCulture);
+        return ((System.Drawing.Icon)(obj));
+      }
+    }
+  }
 }

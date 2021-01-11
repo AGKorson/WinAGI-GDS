@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
 using System.IO;
 
 namespace WinAGI
 {
-  public class AGISounds
+  public class AGISounds : IEnumerable<AGISound>
   {
     public AGISounds()
     {
@@ -50,18 +51,18 @@ namespace WinAGI
         //resource already exists
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
-      //create new sound resource
-      agResource = new AGISound();
-      //if an object was passed
+      //if an object was not passed
       if ((NewSound == null))
       {
+        //create new sound resource
+        agResource = new AGISound();
         //proposed ID will be default
         strID = "Sound" + ResNum;
       }
       else
       {
-        //copy entire sound
-        agResource.SetSound(NewSound);
+        //clone the passed sound
+        agResource = NewSound.Clone();
         //get proposed id
         strID = NewSound.ID;
       }
@@ -187,6 +188,56 @@ namespace WinAGI
       newResource.InGameInit(bytResNum, bytVol, lngLoc);
       //add it
       Col.Add(bytResNum, newResource);
+    }
+    SoundEnum GetEnumerator()
+    {
+      return new SoundEnum(Col);
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return (IEnumerator)GetEnumerator();
+    }
+    IEnumerator<AGISound> IEnumerable<AGISound>.GetEnumerator()
+    {
+      return (IEnumerator<AGISound>)GetEnumerator();
+    }
+  }
+  internal class SoundEnum : IEnumerator<AGISound>
+  {
+    public SortedList<byte, AGISound> _sounds;
+    int position = -1;
+    public SoundEnum(SortedList<byte, AGISound> list)
+    {
+      _sounds = list;
+    }
+    object IEnumerator.Current => Current;
+    public AGISound Current
+    {
+      get
+      {
+        try
+        {
+          return _sounds.Values[position];
+        }
+        catch (IndexOutOfRangeException)
+        {
+
+          throw new InvalidOperationException();
+        }
+      }
+    }
+    public bool MoveNext()
+    {
+      position++;
+      return (position < _sounds.Count);
+    }
+    public void Reset()
+    {
+      position = -1;
+    }
+    public void Dispose()
+    {
+      _sounds = null;
     }
   }
 }

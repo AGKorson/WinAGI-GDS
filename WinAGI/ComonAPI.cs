@@ -112,15 +112,15 @@ namespace WinAGI
     [DllImport("gdi32.dll")]
     internal static extern int CreateDIBSection(int hDC, BitmapInfo pBitmapInfo, int un, int lplpVoid, int handle, int dw);
     [DllImport("gdi32.dll")]
-    internal static extern int CreateCompatibleDC(int hDC);
+    internal static extern IntPtr CreateCompatibleDC(IntPtr hDC);
     [DllImport("gdi32.dll")]
-    internal static extern int DeleteObject(int hObject);
+    internal static extern int DeleteObject(IntPtr hObject);
     [DllImport("gdi32.dll")]
-    internal static extern int DeleteDC(int hDC);
+    internal static extern int DeleteDC(IntPtr hDC);
     [DllImport("gdi32.dll")]
-    internal static extern int SelectObject(int hDC, int hObject);
+    internal static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
     [DllImport("gdi32.dll")]
-    internal static extern int StretchBlt(int hDC, int X, int Y, int nWidth, int nHeight, int hSrcDC, int xSrc, int ySrc, int nSrWidth, int nSrHeight, int dwRop);
+    internal static extern int StretchBlt(IntPtr hDC, int X, int Y, int nWidth, int nHeight, IntPtr hSrcDC, int xSrc, int ySrc, int nSrWidth, int nSrHeight, int dwRop);
     [DllImport("gdi32.dll")]
     internal static extern int GetLastError();
     [DllImport("gdi32.dll")]

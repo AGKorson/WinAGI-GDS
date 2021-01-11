@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
 using System.IO;
 
 namespace WinAGI
 {
-  public class AGIViews
+  public class AGIViews : IEnumerable<AGIView>
   {
     public AGIViews()
     {
@@ -50,18 +51,19 @@ namespace WinAGI
         //resource already exists
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
-      //create new view resource
-      agResource = new AGIView();
-      //if an object was passed
+      //if no object was passed
       if ((NewView == null))
       {
+        //create new view resource
+        agResource = new AGIView();
         //proposed ID will be default
         strID = "View" + ResNum;
       }
       else
       {
-        //copy entire view
-        agResource.SetView(NewView);
+        //clone the passed view
+        agResource = NewView.Clone();
+
         //get proposed id
         strID = NewView.ID;
       }
@@ -190,6 +192,56 @@ namespace WinAGI
       // update VOL and LOC
       newResource.Volume = bytVol;
       newResource.Loc = lngLoc;
+    }
+    ViewEnum GetEnumerator()
+    {
+      return new ViewEnum(Col);
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return (IEnumerator)GetEnumerator();
+    }
+    IEnumerator<AGIView> IEnumerable<AGIView>.GetEnumerator()
+    {
+      return (IEnumerator<AGIView>)GetEnumerator();
+    }
+  }
+  internal class ViewEnum : IEnumerator<AGIView>
+  {
+    public SortedList<byte, AGIView> _views;
+    int position = -1;
+    public ViewEnum(SortedList<byte, AGIView> list)
+    {
+      _views = list;
+    }
+    object IEnumerator.Current => Current;
+    public AGIView Current
+    {
+      get
+      {
+        try
+        {
+          return _views.Values[position];
+        }
+        catch (IndexOutOfRangeException)
+        {
+
+          throw new InvalidOperationException();
+        }
+      }
+    }
+    public bool MoveNext()
+    {
+      position++;
+      return (position < _views.Count);
+    }
+    public void Reset()
+    {
+      position = -1;
+    }
+    public void Dispose()
+    {
+      _views = null;
     }
   }
 }

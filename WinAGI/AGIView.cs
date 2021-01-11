@@ -63,39 +63,17 @@ namespace WinAGI
       //// increment number everytime data changes
       //Number++;
     }
-    internal void SetView(AGIView CopyView)
+    internal AGIView Clone()
     {
-      //copies view data from CopyView into this view
-      byte i, j;
-      AGILoop tmpLoop;
-      //copy base resource data
+      //copies view data from this view and returns a completely separate object reference
+      AGIView CopyView = new AGIView();
+      // copy base properties
       base.SetRes(CopyView);
       //add WinAGI items
-      mViewSet = CopyView.mViewSet;
-      //copy view desc
-      mViewDesc = CopyView.mViewDesc;
-      //clear out loop collection by assigning a new one
-      mLoopCol = new AGILoops(this);
-      //copy any existing loop information
-      for (i = 0; i < CopyView.Loops.Count; i++)
-      {
-        //first, create copy of every loop
-        tmpLoop = mLoopCol.Add(i);
-        tmpLoop.CopyLoop(CopyView.Loops[i]);
-      }
-      throw new Exception("need to check this - I think mirror status is already copied");
-      //step through again to set mirrors
-      for (i = 0; i < CopyView.Loops.Count; i++)
-      {
-        if (CopyView.Loops[i].Mirrored)
-        {
-          //if this is the primary mirror
-          if (CopyView.Loops[i].MirrorPair > 0)
-          {
-            SetMirror(CopyView.Loops[i].MirrorLoop, i);
-          }
-        }
-      }
+      CopyView.mViewSet = mViewSet; 
+      CopyView.mViewDesc = mViewDesc;
+      CopyView.mLoopCol = mLoopCol.Clone(this);
+      return CopyView;
     }
     public override void Clear()
     {

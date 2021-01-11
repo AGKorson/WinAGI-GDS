@@ -430,11 +430,11 @@ namespace WinAGI
       byte bytCurComp, bytBuffer, bytCurUncomp;
       bool blnOffset;
       int lngTempSize, lngTempCurPos;
-      byte[] bytExpandedData = Array.Empty<byte>();
+      byte[] bytExpandedData = new byte[MAX_RES_SIZE];// Array.Empty<byte>();
 
       //temporarily set size to max
       lngTempSize = MAX_RES_SIZE;
-      Array.Resize(ref bytExpandedData, MAX_RES_SIZE);
+      //Array.Resize(ref bytExpandedData, MAX_RES_SIZE);
 
       //reset variables
       intPosIn = 0;
@@ -499,7 +499,7 @@ namespace WinAGI
       while (intPosIn < bytOriginalData.Length);
 
       //redim to array to actual size
-      Array.Resize(ref bytExpandedData, lngTempCurPos - 1);
+      Array.Resize(ref bytExpandedData, lngTempCurPos);
       return bytExpandedData;
     }
     internal static byte[] ExpandV3ResData(byte[] bytOriginalData, int lngExpandedSize)

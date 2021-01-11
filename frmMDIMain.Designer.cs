@@ -971,7 +971,7 @@
       // 
       this.btnNewLogic.Image = ((System.Drawing.Image)(resources.GetObject("btnNewLogic.Image")));
       this.btnNewLogic.Name = "btnNewLogic";
-      this.btnNewLogic.Size = new System.Drawing.Size(170, 54);
+      this.btnNewLogic.Size = new System.Drawing.Size(275, 44);
       this.btnNewLogic.Text = "New Logic";
       this.btnNewLogic.Click += new System.EventHandler(this.btnNewLogic_Click);
       // 
@@ -979,7 +979,7 @@
       // 
       this.btnNewPicture.Image = ((System.Drawing.Image)(resources.GetObject("btnNewPicture.Image")));
       this.btnNewPicture.Name = "btnNewPicture";
-      this.btnNewPicture.Size = new System.Drawing.Size(170, 54);
+      this.btnNewPicture.Size = new System.Drawing.Size(275, 44);
       this.btnNewPicture.Text = "New Picture";
       this.btnNewPicture.Click += new System.EventHandler(this.btnNewPicture_Click);
       // 
@@ -987,7 +987,7 @@
       // 
       this.btnNewSound.Image = ((System.Drawing.Image)(resources.GetObject("btnNewSound.Image")));
       this.btnNewSound.Name = "btnNewSound";
-      this.btnNewSound.Size = new System.Drawing.Size(170, 54);
+      this.btnNewSound.Size = new System.Drawing.Size(275, 44);
       this.btnNewSound.Text = "New Sound";
       this.btnNewSound.Click += new System.EventHandler(this.btnNewSound_Click);
       // 
@@ -995,7 +995,7 @@
       // 
       this.btnNewView.Image = ((System.Drawing.Image)(resources.GetObject("btnNewView.Image")));
       this.btnNewView.Name = "btnNewView";
-      this.btnNewView.Size = new System.Drawing.Size(170, 54);
+      this.btnNewView.Size = new System.Drawing.Size(275, 44);
       this.btnNewView.Text = "New View";
       this.btnNewView.Click += new System.EventHandler(this.btnNewView_Click);
       // 
@@ -1091,7 +1091,6 @@
       this.btnCloseGame.Name = "btnCloseGame";
       this.btnCloseGame.Size = new System.Drawing.Size(52, 52);
       this.btnCloseGame.Text = "&Close";
-      this.btnCloseGame.Click += new System.EventHandler(this.btnCloseGame_Click);
       // 
       // btnRun
       // 
@@ -1417,7 +1416,7 @@
       this.cmbResType.Name = "cmbResType";
       this.cmbResType.Size = new System.Drawing.Size(305, 40);
       this.cmbResType.TabIndex = 0;
-      this.cmbResType.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+      this.cmbResType.SelectedIndexChanged += new System.EventHandler(this.cmbResType_SelectedIndexChanged);
       // 
       // splitter1
       // 

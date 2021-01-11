@@ -813,6 +813,12 @@ namespace WinAGI_GDS
       //add the res info
       ResQueue.Push(lngRes);
     }
+    public static void ResetQueue()
+    {
+      ResQueue = new Stack<int>();
+      MDIMain.cmdBack.Enabled = false;
+      MDIMain.cmdForward.Enabled = false;
+    }
     public static void GetResDefOverrides()
     {
       string strIn;
@@ -853,12 +859,6 @@ namespace WinAGI_GDS
         //if any were changed, re-write the WinAGI.config file
         SaveResDefOverrides();
        }
-    }
-    public static void ResetQueue()
-    {
-      ResQueue = new Stack<int>();
-      MDIMain.cmdBack.Enabled = false;
-      MDIMain.cmdForward.Enabled = false;
     }
     public static void SaveResDefOverrides()
     {
@@ -2557,7 +2557,7 @@ public static void CheckShortcuts(ByRef KeyCode As Integer, ByRef Shift As Integ
           SnipMode = 1
           frmSnippets.Show vbModal, MDIMain
           //force focus back to the editor
-          MDIMain.ActiveForm.rtfLogic.SetFocus
+          MDIMain.ActiveForm.rtfLogic.Focus()
         }
       }
       
@@ -3474,7 +3474,7 @@ public static void SetError(ByVal lngErrLine As Long, strErrMsg As String, ByVal
   
  if (frmTemp.Enabled) {
     //set focus to this editor NOT WORKING!!!
-    frmTemp.SetFocus
+    frmTemp.Focus()
   } else {
     frmTemp.ZOrder
   }
@@ -3523,7 +3523,7 @@ public static void SetError(ByVal lngErrLine As Long, strErrMsg As String, ByVal
       }
     Loop Until true
     //set focus to the text editor
-    .SetFocus
+    .Focus()
     //refresh the screen
     .Refresh
   End With
@@ -6129,7 +6129,7 @@ public static void OpenGlobals(Optional ByVal ForceLoad As Boolean = false)
   //   or switch to it if it//s already open
  if (GameLoaded && !ForceLoad) {
    if (GEInUse) {
-      GlobalsEditor.SetFocus
+      GlobalsEditor.Focus()
       //if minimized,
      if (GlobalsEditor.WindowState = vbMinimized) {
         //restore it
@@ -6204,7 +6204,7 @@ public static void OpenGlobals(Optional ByVal ForceLoad As Boolean = false)
      if (tmpForm.Name = "frmGlobals") {
        if (tmpForm.FileName = strFileName && !tmpForm.InGame) {
           //just shift focus
-          tmpForm.SetFocus
+          tmpForm.Focus()
           return;
         }
       }
@@ -8886,7 +8886,7 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
        if (Settings.SaveOnCompile != 1) {
           //if not automatic,
          if (Settings.SaveOnCompile = 0) {
-            LogicEditors(i).SetFocus
+            LogicEditors(i).Focus()
             //get user//s response
             rtn = MsgBoxEx("Do you want to save this logic before compiling?", vbQuestion + vbYesNoCancel, "Update " + ResourceName(LogicEditors(i).LogicEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
            if (blnDontAsk) {
@@ -8923,7 +8923,7 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
      if (Settings.SaveOnCompile != 1) {
         //if not automatic,
        if (Settings.SaveOnCompile = 0) {
-          PictureEditors(i).SetFocus
+          PictureEditors(i).Focus()
           //get user//s response
           rtn = MsgBoxEx("Do you want to save this picture before compiling?", vbQuestion + vbYesNoCancel, "Update " + ResourceName(PictureEditors(i).PicEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
@@ -8955,7 +8955,7 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
      if (Settings.SaveOnCompile != 1) {
         //if not automatic,
        if (Settings.SaveOnCompile = 0) {
-          SoundEditors(i).SetFocus
+          SoundEditors(i).Focus()
           //get user//s response
           rtn = MsgBoxEx("Do you want to save this Sound before compiling?", vbQuestion + vbYesNoCancel, "Update " + ResourceName(SoundEditors(i).SoundEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
@@ -8987,7 +8987,7 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
      if (Settings.SaveOnCompile != 1) {
         //if not automatic,
        if (Settings.SaveOnCompile = 0) {
-          ViewEditors(i).SetFocus
+          ViewEditors(i).Focus()
           //get user//s response
           rtn = MsgBoxEx("Do you want to save this View before compiling?", vbQuestion + vbYesNoCancel, "Update " + ResourceName(ViewEditors(i).ViewEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
@@ -9019,7 +9019,7 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
      if (Settings.SaveOnCompile != 1) {
         //if not automatic,
        if (Settings.SaveOnCompile = 0) {
-          ObjectEditor.SetFocus
+          ObjectEditor.Focus()
           //get user//s response
           rtn = MsgBoxEx("Do you want to save OBJECT file before compiling?", vbQuestion + vbYesNoCancel, "Update OBJECT File?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
@@ -9051,7 +9051,7 @@ public static void CompileAGIGame(Optional ByVal CompGameDir As String = "", Opt
      if (Settings.SaveOnCompile != 1) {
         //if not automatic,
        if (Settings.SaveOnCompile = 0) {
-          WordEditor.SetFocus
+          WordEditor.Focus()
           //get user//s response
           rtn = MsgBoxEx("Do you want to save WORDS.TOK file before compiling?", vbQuestion + vbYesNoCancel, "Update WORDS.TOK File?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
@@ -9356,7 +9356,7 @@ public Function CompileDirtyLogics(Optional ByVal NoMsg As Boolean = false) As B
      if (LogicEditors(i).rtfLogic.Dirty) {
         Select Case Settings.SaveOnCompile
         Case 0  //ask user for input
-          LogicEditors(i).SetFocus
+          LogicEditors(i).Focus()
           //get user//s response
           rtn = MsgBoxEx("Do you want to save this logic before compiling?", vbQuestion + vbYesNoCancel, "Update " + ResourceName(LogicEditors(i).LogicEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
@@ -10550,7 +10550,7 @@ public static void OpenLayout()
   //if layout editor is currently open
  if (LEInUse) {
     //just bring it in focus
-    LayoutEditor.SetFocus
+    LayoutEditor.Focus()
     //if minimized
    if (LayoutEditor.WindowState = vbMinimized) {
       //restore it
@@ -10626,7 +10626,7 @@ public Function OpenWords(Optional ByVal InGame As Boolean = true) As Boolean
     //if it is in use,
    if (WEInUse) {
       //just switch to it
-      WordEditor.SetFocus
+      WordEditor.Focus()
     } else {
       //load it
       WEInUse = true
@@ -10671,7 +10671,7 @@ public Function OpenWords(Optional ByVal InGame As Boolean = true) As Boolean
      if (tmpForm.Name = "frmWordsEdit") {
        if (tmpForm.WordsEdit.ResFile = strFileName && !tmpForm.InGame) {
           //just shift focus
-          tmpForm.SetFocus
+          tmpForm.Focus()
           OpenWords = true
           Exit Function
         }
@@ -10719,7 +10719,7 @@ public Function OpenObjects(Optional ByVal InGame As Boolean = true) As Boolean
     //if it is in use,
    if (OEInUse) {
       //just switch to it
-      ObjectEditor.SetFocus
+      ObjectEditor.Focus()
     } else {
       //load it
       OEInUse = true
@@ -10737,7 +10737,7 @@ public Function OpenObjects(Optional ByVal InGame As Boolean = true) As Boolean
       }
       On Error GoTo ErrHandler
       ObjectEditor.Show
-      ObjectEditor.fgObjects.SetFocus
+      ObjectEditor.fgObjects.Focus()
     }
   } else {
   //either a game is NOT loaded, OR we are forcing a load from file
@@ -10767,7 +10767,7 @@ public Function OpenObjects(Optional ByVal InGame As Boolean = true) As Boolean
      if (tmpForm.Name = "frmObjectEdit") {
        if (tmpForm.ObjectsEdit.ResFile = strFileName && !tmpForm.InGame) {
           //just shift focus
-          tmpForm.SetFocus
+          tmpForm.Focus()
           OpenObjects = true
           Exit Function
         }
@@ -10786,7 +10786,7 @@ public Function OpenObjects(Optional ByVal InGame As Boolean = true) As Boolean
       Exit Function
     } else {
       frmNew.Show
-      frmNew.fgObjects.SetFocus
+      frmNew.fgObjects.Focus()
     }
   }
   
@@ -12061,7 +12061,7 @@ public static void OpenSound(ByVal ResNum As Byte, Optional ByVal Quiet As Boole
    if (SoundEditors(i).WindowState = vbMinimized) {
       SoundEditors(i).WindowState = vbNormal
     }
-    SoundEditors(i).SetFocus
+    SoundEditors(i).Focus()
     
     //set mousepointer to hourglass
     Screen.MousePointer = vbDefault
@@ -12155,7 +12155,7 @@ public static void OpenTextFile(strOpenFile As String, Optional ByVal Quiet As B
    if (LogicEditors(i).WindowState = vbMinimized) {
       LogicEditors(i).WindowState = vbNormal
     }
-    LogicEditors(i).SetFocus
+    LogicEditors(i).Focus()
     
     //restore mousepointer and exit
     Screen.MousePointer = vbDefault
@@ -12257,7 +12257,7 @@ public static void OpenLogic(ByVal ResNum As Byte, Optional ByVal Quiet As Boole
    if (LogicEditors(i).WindowState = vbMinimized) {
       LogicEditors(i).WindowState = vbNormal
     }
-    LogicEditors(i).SetFocus
+    LogicEditors(i).Focus()
   
     //restore mousepointer and exit
     Screen.MousePointer = vbDefault
@@ -12513,7 +12513,7 @@ public static void OpenPicture(ByVal ResNum As Byte, Optional ByVal Quiet As Boo
    if (PictureEditors(i).WindowState = vbMinimized) {
       PictureEditors(i).WindowState = vbNormal
     }
-    PictureEditors(i).SetFocus
+    PictureEditors(i).Focus()
     //restore mousepointer and exit
     Screen.MousePointer = vbDefault
     return;
@@ -12591,7 +12591,7 @@ public static void OpenView(ByVal ResNum As Byte, Optional ByVal Quiet As Boolea
    if (ViewEditors(i).WindowState = vbMinimized) {
       ViewEditors(i).WindowState = vbNormal
     }
-    ViewEditors(i).SetFocus
+    ViewEditors(i).Focus()
     
     //restore mousepointer and exit
     Screen.MousePointer = vbDefault
@@ -13491,7 +13491,7 @@ static void FindInLogic(ByVal FindText As String, ByVal FindDir As FindDirection
         // if search started in editor (by pressing F3 or using menu option)
        if (!SearchStartDlg) {
           // select the newly opened logic
-          LogicEditors(lngNextLogWin).SetFocus
+          LogicEditors(lngNextLogWin).Focus()
           //Debug.Print LogicEditors(lngNextLogWin).Name + " has focus (next editor in collection, begin search)"
         }
       } else {
@@ -13563,9 +13563,9 @@ static void FindInLogic(ByVal FindText As String, ByVal FindDir As FindDirection
     //if search was started from the editor (by pressing F3 or using menu option)
    if (!SearchStartDlg) {
       //set focus to the editor
-      LogicEditors(lngNextLogWin).SetFocus
+      LogicEditors(lngNextLogWin).Focus()
       // and then force focus to the rtf control
-      LogicEditors(lngNextLogWin).rtfLogic.SetFocus
+      LogicEditors(lngNextLogWin).rtfLogic.Focus()
       
       //force the form to activate, in case we need to add a statusbar update
       SafeDoEvents
@@ -13625,7 +13625,7 @@ static void FindInLogic(ByVal FindText As String, ByVal FindDir As FindDirection
       } else {
         //set focus to searchform
        if (!SearchForm Is Nothing) {
-          SearchForm.SetFocus
+          SearchForm.Focus()
         }
       }
     }
@@ -15312,7 +15312,7 @@ public static void ReplaceAll(ByVal FindText As String, ByVal ReplaceText As Str
     // have to set focus to main form in order get the child forms
     // to properly switch focus (the searching logic should always
     // get the focus after a replace all; not the FindForm)
-    MDIMain.SetFocus
+    MDIMain.Focus()
   End Select
     
   //reset search flags
@@ -15594,23 +15594,96 @@ End Function
       //returns a string Value of an instrument
       return LoadResString(INSTRUMENTNAMETEXT + instrument);
     }
-
-    public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1)
+    public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int tgtX, int tgtY, int tgtW, int tgtH, double scale = 1)
     {
       //to scale the picture without blurring, need to use NearestNeighbor interpolation
-      // that can't be set directly, so a graphics object is needed to draw the
-      // the picture
+      // that can't be set directly, so a graphics object is needed to draw the the picture
+      // also, the top row and left column pixels get halved; need to draw the picture twice
+      // to get those pixels to show full size
       int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
+      bWidth = pic.Width;
+      bHeight = pic.Height;
       // first, create new image in the picture box that is desired size
       pic.Image = new Bitmap(bWidth, bHeight);
       // intialize a graphics object for the image just created
       using Graphics g = Graphics.FromImage(pic.Image);
-      //always clear the background first
-      g.Clear(pic.BackColor);
-      // set correct interpolation mode
-      g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-      // draw the bitmap, at correct resolution
-      g.DrawImage(agiBMP, 0, 0, bWidth, bHeight);
+      // Create a blank bitmap with the same dimensions
+      Bitmap bmp = new Bitmap(agiBMP);
+      //get handle to bitmap
+      IntPtr hbmp = bmp.GetHbitmap();
+      //get handle to destination graphic
+      IntPtr destHDC = g.GetHdc();
+      //get handle to source graphic
+      IntPtr srcHdc = CreateCompatibleDC(destHDC);
+      //get original object and select bitmap
+      IntPtr pOrig = SelectObject(srcHdc, hbmp);
+      //copy it
+      int rtn = StretchBlt(destHDC, tgtX, tgtY, tgtW, tgtH,
+          srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, SRCCOPY);
+      //select original object
+      IntPtr pNew = SelectObject(srcHdc, pOrig);
+      //delete objects
+      DeleteObject(pNew);
+      DeleteDC(srcHdc);
+      //release handles
+      g.ReleaseHdc(destHDC);
+      pic.Refresh();
+
+      ////always clear the background first
+      //g.Clear(pic.BackColor);
+      //// set correct interpolation mode
+      //g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+      //// draw the bitmap, at correct resolution
+      //g.DrawImage(agiBMP, tgtX, tgtY, tgtW, tgtH);
+      //g.DrawImage(agiBMP, tgtX + (int)scale, tgtY, tgtW, tgtH);
+      //g.DrawImage(agiBMP, tgtX, tgtY + (int)scale / 2, tgtW, tgtH);
+      //g.DrawImage(agiBMP, tgtX + (int)scale, tgtY + (int)scale / 2, tgtW, tgtH);
+    }
+    public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1)
+    {
+      // to scale the picture without blurring, need to use NearestNeighbor interpolation
+      // that can't be set directly, so a graphics object is needed to draw the the picture
+      // also, the top row and left column pixels get halved; need to draw the picture twice
+      // to get those pixels to show full size
+
+      int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
+      //// first, create new image in the picture box that is desired size
+      pic.Image = new Bitmap(bWidth, bHeight);
+      //intialize a graphics object for the image just created
+      using Graphics g = Graphics.FromImage(pic.Image);
+
+      // Create a blank bitmap with the same dimensions
+      Bitmap bmp = new Bitmap(agiBMP);
+      //get handle to bitmap
+      IntPtr hbmp = bmp.GetHbitmap();
+      //get handle to destination graphic
+      IntPtr destHDC = g.GetHdc();
+      //get handle to source graphic
+      IntPtr srcHdc = CreateCompatibleDC(destHDC);
+      //get original object and select bitmap
+      IntPtr pOrig = SelectObject(srcHdc, hbmp);
+      //copy it
+      int rtn = StretchBlt(destHDC,  0, 0,bWidth, bHeight,
+          srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, SRCCOPY);
+      //select original object
+      IntPtr pNew = SelectObject(srcHdc, pOrig);
+      //delete objects
+      DeleteObject(pNew);
+      DeleteDC(srcHdc);
+      //release handles
+      g.ReleaseHdc(destHDC);
+      pic.Refresh();
+
+
+      ////always clear the background first
+      //g.Clear(pic.BackColor);
+      //// set correct interpolation mode
+      //// draw the bitmap, at correct resolution
+      //g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+      //g.DrawImage(agiBMP, 0, 0, bWidth, bHeight);
+      //g.DrawImage(agiBMP, 0, (int)scale / 2, bWidth, bHeight);
+      //g.DrawImage(agiBMP, (int)scale, 0, bWidth, bHeight);
+      //g.DrawImage(agiBMP, (int)scale, (int)scale / 2, bWidth, bHeight);
     }
   }
 }

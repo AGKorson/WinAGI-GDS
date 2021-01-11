@@ -35,22 +35,23 @@ namespace WinAGI_GDS
       this.rtfLogPrev = new System.Windows.Forms.RichTextBox();
       this.pnlPicture = new System.Windows.Forms.Panel();
       this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-      this.panel1 = new System.Windows.Forms.Panel();
+      this.pnlPicHeader = new System.Windows.Forms.Panel();
       this.optPriority = new System.Windows.Forms.RadioButton();
       this.optVisual = new System.Windows.Forms.RadioButton();
       this.udPZoom = new System.Windows.Forms.NumericUpDown();
       this.label1 = new System.Windows.Forms.Label();
-      this.panel2 = new System.Windows.Forms.Panel();
+      this.pnlPicImage = new System.Windows.Forms.Panel();
       this.fraPCorner = new System.Windows.Forms.PictureBox();
       this.vsbPic = new System.Windows.Forms.VScrollBar();
       this.hsbPic = new System.Windows.Forms.HScrollBar();
       this.imgPicture = new System.Windows.Forms.PictureBox();
       this.pnlSound = new System.Windows.Forms.Panel();
+      this.pnlProgressBar = new System.Windows.Forms.Panel();
+      this.picProgress = new System.Windows.Forms.PictureBox();
       this.lblFormat = new System.Windows.Forms.Label();
       this.cmdStop = new System.Windows.Forms.Button();
       this.imageList1 = new System.Windows.Forms.ImageList(this.components);
       this.cmdPlay = new System.Windows.Forms.Button();
-      this.pgbSound = new System.Windows.Forms.ProgressBar();
       this.lblLength = new System.Windows.Forms.Label();
       this.cmdReset = new System.Windows.Forms.Button();
       this.cmbInst2 = new System.Windows.Forms.ComboBox();
@@ -61,19 +62,25 @@ namespace WinAGI_GDS
       this.chkTrack1 = new System.Windows.Forms.CheckBox();
       this.chkTrack0 = new System.Windows.Forms.CheckBox();
       this.pnlView = new System.Windows.Forms.Panel();
+      this.picTrans = new System.Windows.Forms.PictureBox();
+      this.chkTrans = new System.Windows.Forms.CheckBox();
       this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
-      this.panel3 = new System.Windows.Forms.Panel();
-      this.udCel = new System.Windows.Forms.DomainUpDown();
-      this.udLoop = new System.Windows.Forms.DomainUpDown();
-      this.panel4 = new System.Windows.Forms.Panel();
+      this.pnlViewHdr = new System.Windows.Forms.Panel();
+      this.dCel = new System.Windows.Forms.Button();
+      this.uCel = new System.Windows.Forms.Button();
+      this.uLoop = new System.Windows.Forms.Button();
+      this.dLoop = new System.Windows.Forms.Button();
+      this.udCel = new System.Windows.Forms.Label();
+      this.udLoop = new System.Windows.Forms.Label();
+      this.pnlViewFtr = new System.Windows.Forms.Panel();
       this.sldSpeed = new System.Windows.Forms.TrackBar();
       this.cmbMotion = new System.Windows.Forms.ComboBox();
       this.cmdVPlay = new System.Windows.Forms.Button();
-      this.panel5 = new System.Windows.Forms.Panel();
-      this.picViewHolder = new System.Windows.Forms.Panel();
-      this.picCel = new System.Windows.Forms.PictureBox();
-      this.hsbView = new System.Windows.Forms.HScrollBar();
+      this.pnlCel = new System.Windows.Forms.Panel();
+      this.fraVCorner = new System.Windows.Forms.PictureBox();
       this.vsbView = new System.Windows.Forms.VScrollBar();
+      this.hsbView = new System.Windows.Forms.HScrollBar();
+      this.picCel = new System.Windows.Forms.PictureBox();
       this.tsViewPrev = new System.Windows.Forms.ToolStrip();
       this.tbbZoomIn = new System.Windows.Forms.ToolStripButton();
       this.tbbZoomOut = new System.Windows.Forms.ToolStripButton();
@@ -86,25 +93,27 @@ namespace WinAGI_GDS
       this.tbbTop = new System.Windows.Forms.ToolStripMenuItem();
       this.tbbMiddle = new System.Windows.Forms.ToolStripMenuItem();
       this.tbbBottom = new System.Windows.Forms.ToolStripMenuItem();
-      this.tbbTrans = new System.Windows.Forms.ToolStripButton();
       this.tmrMotion = new System.Windows.Forms.Timer(this.components);
-      this.Timer1 = new System.Windows.Forms.Timer(this.components);
+      this.tmrSound = new System.Windows.Forms.Timer(this.components);
       this.pnlLogic.SuspendLayout();
       this.pnlPicture.SuspendLayout();
       this.tableLayoutPanel1.SuspendLayout();
-      this.panel1.SuspendLayout();
+      this.pnlPicHeader.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.udPZoom)).BeginInit();
-      this.panel2.SuspendLayout();
+      this.pnlPicImage.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.fraPCorner)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.imgPicture)).BeginInit();
       this.pnlSound.SuspendLayout();
+      this.pnlProgressBar.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.picProgress)).BeginInit();
       this.pnlView.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.picTrans)).BeginInit();
       this.tableLayoutPanel2.SuspendLayout();
-      this.panel3.SuspendLayout();
-      this.panel4.SuspendLayout();
+      this.pnlViewHdr.SuspendLayout();
+      this.pnlViewFtr.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.sldSpeed)).BeginInit();
-      this.panel5.SuspendLayout();
-      this.picViewHolder.SuspendLayout();
+      this.pnlCel.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.fraVCorner)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.picCel)).BeginInit();
       this.tsViewPrev.SuspendLayout();
       this.SuspendLayout();
@@ -116,7 +125,7 @@ namespace WinAGI_GDS
       this.pnlLogic.Location = new System.Drawing.Point(0, 0);
       this.pnlLogic.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
       this.pnlLogic.Name = "pnlLogic";
-      this.pnlLogic.Size = new System.Drawing.Size(1072, 825);
+      this.pnlLogic.Size = new System.Drawing.Size(1005, 837);
       this.pnlLogic.TabIndex = 0;
       this.pnlLogic.Visible = false;
       // 
@@ -130,7 +139,7 @@ namespace WinAGI_GDS
       this.rtfLogPrev.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
       this.rtfLogPrev.Name = "rtfLogPrev";
       this.rtfLogPrev.ReadOnly = true;
-      this.rtfLogPrev.Size = new System.Drawing.Size(1051, 803);
+      this.rtfLogPrev.Size = new System.Drawing.Size(984, 815);
       this.rtfLogPrev.TabIndex = 0;
       this.rtfLogPrev.Text = "";
       this.rtfLogPrev.WordWrap = false;
@@ -142,7 +151,7 @@ namespace WinAGI_GDS
       this.pnlPicture.Location = new System.Drawing.Point(0, 0);
       this.pnlPicture.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
       this.pnlPicture.Name = "pnlPicture";
-      this.pnlPicture.Size = new System.Drawing.Size(1072, 825);
+      this.pnlPicture.Size = new System.Drawing.Size(1005, 837);
       this.pnlPicture.TabIndex = 1;
       this.pnlPicture.Visible = false;
       // 
@@ -150,8 +159,8 @@ namespace WinAGI_GDS
       // 
       this.tableLayoutPanel1.ColumnCount = 1;
       this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel1.Controls.Add(this.panel1, 0, 0);
-      this.tableLayoutPanel1.Controls.Add(this.panel2, 0, 1);
+      this.tableLayoutPanel1.Controls.Add(this.pnlPicHeader, 0, 0);
+      this.tableLayoutPanel1.Controls.Add(this.pnlPicImage, 0, 1);
       this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
       this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
       this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(6);
@@ -159,20 +168,20 @@ namespace WinAGI_GDS
       this.tableLayoutPanel1.RowCount = 2;
       this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 79F));
       this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel1.Size = new System.Drawing.Size(1072, 825);
+      this.tableLayoutPanel1.Size = new System.Drawing.Size(1005, 837);
       this.tableLayoutPanel1.TabIndex = 5;
       // 
-      // panel1
+      // pnlPicHeader
       // 
-      this.panel1.Controls.Add(this.optPriority);
-      this.panel1.Controls.Add(this.optVisual);
-      this.panel1.Controls.Add(this.udPZoom);
-      this.panel1.Controls.Add(this.label1);
-      this.panel1.Location = new System.Drawing.Point(6, 6);
-      this.panel1.Margin = new System.Windows.Forms.Padding(6);
-      this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(481, 66);
-      this.panel1.TabIndex = 0;
+      this.pnlPicHeader.Controls.Add(this.optPriority);
+      this.pnlPicHeader.Controls.Add(this.optVisual);
+      this.pnlPicHeader.Controls.Add(this.udPZoom);
+      this.pnlPicHeader.Controls.Add(this.label1);
+      this.pnlPicHeader.Location = new System.Drawing.Point(6, 6);
+      this.pnlPicHeader.Margin = new System.Windows.Forms.Padding(6);
+      this.pnlPicHeader.Name = "pnlPicHeader";
+      this.pnlPicHeader.Size = new System.Drawing.Size(481, 66);
+      this.pnlPicHeader.TabIndex = 0;
       // 
       // optPriority
       // 
@@ -235,28 +244,27 @@ namespace WinAGI_GDS
       this.label1.TabIndex = 4;
       this.label1.Text = "Zoom:";
       // 
-      // panel2
+      // pnlPicImage
       // 
-      this.panel2.Controls.Add(this.fraPCorner);
-      this.panel2.Controls.Add(this.vsbPic);
-      this.panel2.Controls.Add(this.hsbPic);
-      this.panel2.Controls.Add(this.imgPicture);
-      this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.panel2.Location = new System.Drawing.Point(6, 85);
-      this.panel2.Margin = new System.Windows.Forms.Padding(6);
-      this.panel2.Name = "panel2";
-      this.panel2.Padding = new System.Windows.Forms.Padding(22, 26, 7, 9);
-      this.panel2.Size = new System.Drawing.Size(1060, 734);
-      this.panel2.TabIndex = 1;
-      this.panel2.Resize += new System.EventHandler(this.panel2_Resize);
+      this.pnlPicImage.Controls.Add(this.fraPCorner);
+      this.pnlPicImage.Controls.Add(this.vsbPic);
+      this.pnlPicImage.Controls.Add(this.hsbPic);
+      this.pnlPicImage.Controls.Add(this.imgPicture);
+      this.pnlPicImage.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.pnlPicImage.Location = new System.Drawing.Point(6, 85);
+      this.pnlPicImage.Margin = new System.Windows.Forms.Padding(6);
+      this.pnlPicImage.Name = "pnlPicImage";
+      this.pnlPicImage.Size = new System.Drawing.Size(993, 746);
+      this.pnlPicImage.TabIndex = 1;
+      this.pnlPicImage.Resize += new System.EventHandler(this.pnlPicImage_Resize);
       // 
       // fraPCorner
       // 
       this.fraPCorner.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.fraPCorner.Location = new System.Drawing.Point(1023, 691);
+      this.fraPCorner.Location = new System.Drawing.Point(973, 726);
       this.fraPCorner.Margin = new System.Windows.Forms.Padding(6);
       this.fraPCorner.Name = "fraPCorner";
-      this.fraPCorner.Size = new System.Drawing.Size(37, 43);
+      this.fraPCorner.Size = new System.Drawing.Size(20, 20);
       this.fraPCorner.TabIndex = 8;
       this.fraPCorner.TabStop = false;
       this.fraPCorner.Visible = false;
@@ -264,21 +272,20 @@ namespace WinAGI_GDS
       // vsbPic
       // 
       this.vsbPic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.vsbPic.Location = new System.Drawing.Point(1023, 0);
+      this.vsbPic.Location = new System.Drawing.Point(973, 0);
       this.vsbPic.Name = "vsbPic";
-      this.vsbPic.Size = new System.Drawing.Size(20, 834);
+      this.vsbPic.Size = new System.Drawing.Size(20, 720);
       this.vsbPic.TabIndex = 7;
       this.vsbPic.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vsbPic_Scroll);
       // 
       // hsbPic
       // 
       this.hsbPic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.hsbPic.Location = new System.Drawing.Point(0, 691);
+      this.hsbPic.Location = new System.Drawing.Point(0, 726);
       this.hsbPic.Name = "hsbPic";
-      this.hsbPic.Size = new System.Drawing.Size(1057, 20);
+      this.hsbPic.Size = new System.Drawing.Size(900, 20);
       this.hsbPic.TabIndex = 6;
       this.hsbPic.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hsbPic_Scroll);
-      this.hsbPic.ValueChanged += new System.EventHandler(this.hsbPic_ValueChanged);
       // 
       // imgPicture
       // 
@@ -291,10 +298,10 @@ namespace WinAGI_GDS
       // 
       // pnlSound
       // 
+      this.pnlSound.Controls.Add(this.pnlProgressBar);
       this.pnlSound.Controls.Add(this.lblFormat);
       this.pnlSound.Controls.Add(this.cmdStop);
       this.pnlSound.Controls.Add(this.cmdPlay);
-      this.pnlSound.Controls.Add(this.pgbSound);
       this.pnlSound.Controls.Add(this.lblLength);
       this.pnlSound.Controls.Add(this.cmdReset);
       this.pnlSound.Controls.Add(this.cmbInst2);
@@ -308,9 +315,28 @@ namespace WinAGI_GDS
       this.pnlSound.Location = new System.Drawing.Point(0, 0);
       this.pnlSound.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
       this.pnlSound.Name = "pnlSound";
-      this.pnlSound.Size = new System.Drawing.Size(1072, 825);
+      this.pnlSound.Size = new System.Drawing.Size(1005, 837);
       this.pnlSound.TabIndex = 2;
       this.pnlSound.Visible = false;
+      // 
+      // pnlProgressBar
+      // 
+      this.pnlProgressBar.BackColor = System.Drawing.SystemColors.Info;
+      this.pnlProgressBar.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+      this.pnlProgressBar.Controls.Add(this.picProgress);
+      this.pnlProgressBar.Location = new System.Drawing.Point(43, 409);
+      this.pnlProgressBar.Name = "pnlProgressBar";
+      this.pnlProgressBar.Size = new System.Drawing.Size(639, 29);
+      this.pnlProgressBar.TabIndex = 13;
+      // 
+      // picProgress
+      // 
+      this.picProgress.BackColor = System.Drawing.SystemColors.Highlight;
+      this.picProgress.Location = new System.Drawing.Point(0, 0);
+      this.picProgress.Name = "picProgress";
+      this.picProgress.Size = new System.Drawing.Size(0, 19);
+      this.picProgress.TabIndex = 0;
+      this.picProgress.TabStop = false;
       // 
       // lblFormat
       // 
@@ -334,7 +360,6 @@ namespace WinAGI_GDS
       this.cmdStop.Size = new System.Drawing.Size(176, 60);
       this.cmdStop.TabIndex = 11;
       this.cmdStop.UseVisualStyleBackColor = true;
-      this.cmdStop.Click += new System.EventHandler(this.cmdStop_Click);
       // 
       // imageList1
       // 
@@ -363,16 +388,6 @@ namespace WinAGI_GDS
       this.cmdPlay.TabIndex = 10;
       this.cmdPlay.UseVisualStyleBackColor = true;
       this.cmdPlay.Click += new System.EventHandler(this.cmdPlay_Click);
-      // 
-      // pgbSound
-      // 
-      this.pgbSound.Location = new System.Drawing.Point(43, 410);
-      this.pgbSound.Margin = new System.Windows.Forms.Padding(6);
-      this.pgbSound.MarqueeAnimationSpeed = 0;
-      this.pgbSound.Name = "pgbSound";
-      this.pgbSound.Size = new System.Drawing.Size(639, 34);
-      this.pgbSound.Step = 1;
-      this.pgbSound.TabIndex = 9;
       // 
       // lblLength
       // 
@@ -478,23 +493,44 @@ namespace WinAGI_GDS
       // 
       // pnlView
       // 
+      this.pnlView.Controls.Add(this.picTrans);
+      this.pnlView.Controls.Add(this.chkTrans);
       this.pnlView.Controls.Add(this.tableLayoutPanel2);
       this.pnlView.Controls.Add(this.tsViewPrev);
       this.pnlView.Dock = System.Windows.Forms.DockStyle.Fill;
       this.pnlView.Location = new System.Drawing.Point(0, 0);
       this.pnlView.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
       this.pnlView.Name = "pnlView";
-      this.pnlView.Size = new System.Drawing.Size(1072, 825);
+      this.pnlView.Size = new System.Drawing.Size(1005, 837);
       this.pnlView.TabIndex = 3;
       this.pnlView.Visible = false;
+      // 
+      // picTrans
+      // 
+      this.picTrans.Location = new System.Drawing.Point(436, 1);
+      this.picTrans.Name = "picTrans";
+      this.picTrans.Size = new System.Drawing.Size(36, 36);
+      this.picTrans.TabIndex = 10;
+      this.picTrans.TabStop = false;
+      // 
+      // chkTrans
+      // 
+      this.chkTrans.AutoSize = true;
+      this.chkTrans.Location = new System.Drawing.Point(255, 3);
+      this.chkTrans.Name = "chkTrans";
+      this.chkTrans.Size = new System.Drawing.Size(185, 36);
+      this.chkTrans.TabIndex = 10;
+      this.chkTrans.Text = "Transparency";
+      this.chkTrans.UseVisualStyleBackColor = true;
+      this.chkTrans.Click += new System.EventHandler(this.chkTrans_Click);
       // 
       // tableLayoutPanel2
       // 
       this.tableLayoutPanel2.ColumnCount = 1;
-      this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-      this.tableLayoutPanel2.Controls.Add(this.panel3, 0, 0);
-      this.tableLayoutPanel2.Controls.Add(this.panel4, 0, 2);
-      this.tableLayoutPanel2.Controls.Add(this.panel5, 0, 1);
+      this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+      this.tableLayoutPanel2.Controls.Add(this.pnlViewHdr, 0, 0);
+      this.tableLayoutPanel2.Controls.Add(this.pnlViewFtr, 0, 2);
+      this.tableLayoutPanel2.Controls.Add(this.pnlCel, 0, 1);
       this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
       this.tableLayoutPanel2.Location = new System.Drawing.Point(0, 42);
       this.tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(6);
@@ -503,63 +539,111 @@ namespace WinAGI_GDS
       this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 53F));
       this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
       this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 83F));
-      this.tableLayoutPanel2.Size = new System.Drawing.Size(1072, 783);
+      this.tableLayoutPanel2.Size = new System.Drawing.Size(1005, 795);
       this.tableLayoutPanel2.TabIndex = 13;
       // 
-      // panel3
+      // pnlViewHdr
       // 
-      this.panel3.Controls.Add(this.udCel);
-      this.panel3.Controls.Add(this.udLoop);
-      this.panel3.Location = new System.Drawing.Point(6, 6);
-      this.panel3.Margin = new System.Windows.Forms.Padding(6);
-      this.panel3.Name = "panel3";
-      this.panel3.Size = new System.Drawing.Size(507, 41);
-      this.panel3.TabIndex = 9;
+      this.pnlViewHdr.Controls.Add(this.dCel);
+      this.pnlViewHdr.Controls.Add(this.uCel);
+      this.pnlViewHdr.Controls.Add(this.uLoop);
+      this.pnlViewHdr.Controls.Add(this.dLoop);
+      this.pnlViewHdr.Controls.Add(this.udCel);
+      this.pnlViewHdr.Controls.Add(this.udLoop);
+      this.pnlViewHdr.Location = new System.Drawing.Point(6, 6);
+      this.pnlViewHdr.Margin = new System.Windows.Forms.Padding(6);
+      this.pnlViewHdr.Name = "pnlViewHdr";
+      this.pnlViewHdr.Size = new System.Drawing.Size(740, 41);
+      this.pnlViewHdr.TabIndex = 9;
+      // 
+      // dCel
+      // 
+      this.dCel.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("dCel.BackgroundImage")));
+      this.dCel.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+      this.dCel.Location = new System.Drawing.Point(475, 1);
+      this.dCel.Name = "dCel";
+      this.dCel.Size = new System.Drawing.Size(36, 36);
+      this.dCel.TabIndex = 19;
+      this.dCel.UseVisualStyleBackColor = true;
+      this.dCel.Click += new System.EventHandler(this.dCel_Click);
+      // 
+      // uCel
+      // 
+      this.uCel.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("uCel.BackgroundImage")));
+      this.uCel.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+      this.uCel.Location = new System.Drawing.Point(511, 1);
+      this.uCel.Name = "uCel";
+      this.uCel.Size = new System.Drawing.Size(36, 36);
+      this.uCel.TabIndex = 18;
+      this.uCel.UseVisualStyleBackColor = true;
+      this.uCel.Click += new System.EventHandler(this.uCel_Click);
+      // 
+      // uLoop
+      // 
+      this.uLoop.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("uLoop.BackgroundImage")));
+      this.uLoop.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+      this.uLoop.Location = new System.Drawing.Point(231, 1);
+      this.uLoop.Name = "uLoop";
+      this.uLoop.Size = new System.Drawing.Size(36, 36);
+      this.uLoop.TabIndex = 17;
+      this.uLoop.UseVisualStyleBackColor = true;
+      this.uLoop.Click += new System.EventHandler(this.uLoop_Click);
+      // 
+      // dLoop
+      // 
+      this.dLoop.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("dLoop.BackgroundImage")));
+      this.dLoop.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+      this.dLoop.Location = new System.Drawing.Point(195, 1);
+      this.dLoop.Name = "dLoop";
+      this.dLoop.Size = new System.Drawing.Size(36, 36);
+      this.dLoop.TabIndex = 16;
+      this.dLoop.UseVisualStyleBackColor = true;
+      this.dLoop.Click += new System.EventHandler(this.dLoop_Click);
       // 
       // udCel
       // 
-      this.udCel.BorderStyle = System.Windows.Forms.BorderStyle.None;
       this.udCel.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-      this.udCel.Location = new System.Drawing.Point(215, 0);
+      this.udCel.Location = new System.Drawing.Point(280, 0);
       this.udCel.Margin = new System.Windows.Forms.Padding(6);
       this.udCel.Name = "udCel";
-      this.udCel.ReadOnly = true;
-      this.udCel.Size = new System.Drawing.Size(204, 38);
+      this.udCel.Size = new System.Drawing.Size(195, 38);
       this.udCel.TabIndex = 15;
       this.udCel.Text = "Cel 0 / 0";
-      this.udCel.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+      this.udCel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
       // 
       // udLoop
       // 
-      this.udLoop.BorderStyle = System.Windows.Forms.BorderStyle.None;
       this.udLoop.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
       this.udLoop.Location = new System.Drawing.Point(0, 0);
       this.udLoop.Margin = new System.Windows.Forms.Padding(6);
       this.udLoop.Name = "udLoop";
-      this.udLoop.ReadOnly = true;
-      this.udLoop.Size = new System.Drawing.Size(204, 38);
+      this.udLoop.Size = new System.Drawing.Size(195, 38);
       this.udLoop.TabIndex = 9;
       this.udLoop.Text = "Loop 255 / 255";
-      this.udLoop.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+      this.udLoop.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
       // 
-      // panel4
+      // pnlViewFtr
       // 
-      this.panel4.Controls.Add(this.sldSpeed);
-      this.panel4.Controls.Add(this.cmbMotion);
-      this.panel4.Controls.Add(this.cmdVPlay);
-      this.panel4.Location = new System.Drawing.Point(6, 706);
-      this.panel4.Margin = new System.Windows.Forms.Padding(6);
-      this.panel4.Name = "panel4";
-      this.panel4.Size = new System.Drawing.Size(513, 70);
-      this.panel4.TabIndex = 10;
+      this.pnlViewFtr.Controls.Add(this.sldSpeed);
+      this.pnlViewFtr.Controls.Add(this.cmbMotion);
+      this.pnlViewFtr.Controls.Add(this.cmdVPlay);
+      this.pnlViewFtr.Location = new System.Drawing.Point(6, 718);
+      this.pnlViewFtr.Margin = new System.Windows.Forms.Padding(6);
+      this.pnlViewFtr.Name = "pnlViewFtr";
+      this.pnlViewFtr.Size = new System.Drawing.Size(513, 70);
+      this.pnlViewFtr.TabIndex = 10;
       // 
       // sldSpeed
       // 
       this.sldSpeed.Location = new System.Drawing.Point(336, 6);
       this.sldSpeed.Margin = new System.Windows.Forms.Padding(6);
+      this.sldSpeed.Maximum = 12;
+      this.sldSpeed.Minimum = 1;
       this.sldSpeed.Name = "sldSpeed";
       this.sldSpeed.Size = new System.Drawing.Size(186, 90);
       this.sldSpeed.TabIndex = 13;
+      this.sldSpeed.Value = 1;
+      this.sldSpeed.ValueChanged += new System.EventHandler(this.sldSpeed_ValueChanged);
       // 
       // cmbMotion
       // 
@@ -569,7 +653,7 @@ namespace WinAGI_GDS
             "reverse",
             "end of loop",
             "reverse loop"});
-      this.cmbMotion.Location = new System.Drawing.Point(113, 11);
+      this.cmbMotion.Location = new System.Drawing.Point(113, 14);
       this.cmbMotion.Margin = new System.Windows.Forms.Padding(6);
       this.cmbMotion.Name = "cmbMotion";
       this.cmbMotion.Size = new System.Drawing.Size(169, 40);
@@ -577,57 +661,67 @@ namespace WinAGI_GDS
       // 
       // cmdVPlay
       // 
-      this.cmdVPlay.ImageIndex = 8;
-      this.cmdVPlay.ImageList = this.imageList1;
-      this.cmdVPlay.Location = new System.Drawing.Point(9, 11);
+      this.cmdVPlay.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+      this.cmdVPlay.Location = new System.Drawing.Point(9, 10);
       this.cmdVPlay.Margin = new System.Windows.Forms.Padding(6);
       this.cmdVPlay.Name = "cmdVPlay";
       this.cmdVPlay.Size = new System.Drawing.Size(93, 49);
       this.cmdVPlay.TabIndex = 11;
       this.cmdVPlay.UseVisualStyleBackColor = true;
+      this.cmdVPlay.Click += new System.EventHandler(this.cmdVPlay_Click);
       // 
-      // panel5
+      // pnlCel
       // 
-      this.panel5.Controls.Add(this.picViewHolder);
-      this.panel5.Controls.Add(this.hsbView);
-      this.panel5.Controls.Add(this.vsbView);
-      this.panel5.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.panel5.Location = new System.Drawing.Point(6, 59);
-      this.panel5.Margin = new System.Windows.Forms.Padding(6);
-      this.panel5.Name = "panel5";
-      this.panel5.Size = new System.Drawing.Size(1060, 635);
-      this.panel5.TabIndex = 11;
+      this.pnlCel.Controls.Add(this.fraVCorner);
+      this.pnlCel.Controls.Add(this.vsbView);
+      this.pnlCel.Controls.Add(this.hsbView);
+      this.pnlCel.Controls.Add(this.picCel);
+      this.pnlCel.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.pnlCel.Location = new System.Drawing.Point(6, 59);
+      this.pnlCel.Margin = new System.Windows.Forms.Padding(6);
+      this.pnlCel.Name = "pnlCel";
+      this.pnlCel.Size = new System.Drawing.Size(993, 647);
+      this.pnlCel.TabIndex = 11;
+      this.pnlCel.Resize += new System.EventHandler(this.pnlPic_Resize);
       // 
-      // picViewHolder
+      // fraVCorner
       // 
-      this.picViewHolder.Controls.Add(this.picCel);
-      this.picViewHolder.Location = new System.Drawing.Point(4, 4);
-      this.picViewHolder.Name = "picViewHolder";
-      this.picViewHolder.Size = new System.Drawing.Size(317, 294);
-      this.picViewHolder.TabIndex = 9;
+      this.fraVCorner.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.fraVCorner.Location = new System.Drawing.Point(977, 631);
+      this.fraVCorner.Name = "fraVCorner";
+      this.fraVCorner.Size = new System.Drawing.Size(16, 16);
+      this.fraVCorner.TabIndex = 9;
+      this.fraVCorner.TabStop = false;
+      this.fraVCorner.Visible = false;
+      // 
+      // vsbView
+      // 
+      this.vsbView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.vsbView.Location = new System.Drawing.Point(973, 0);
+      this.vsbView.Name = "vsbView";
+      this.vsbView.Size = new System.Drawing.Size(16, 395);
+      this.vsbView.TabIndex = 5;
+      this.vsbView.Visible = false;
+      this.vsbView.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vsbView_Scroll);
+      // 
+      // hsbView
+      // 
+      this.hsbView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+      this.hsbView.Location = new System.Drawing.Point(0, 631);
+      this.hsbView.Name = "hsbView";
+      this.hsbView.Size = new System.Drawing.Size(292, 16);
+      this.hsbView.TabIndex = 6;
+      this.hsbView.Visible = false;
+      this.hsbView.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hsbView_Scroll);
       // 
       // picCel
       // 
-      this.picCel.Location = new System.Drawing.Point(39, 33);
+      this.picCel.Location = new System.Drawing.Point(0, 0);
       this.picCel.Margin = new System.Windows.Forms.Padding(6);
       this.picCel.Name = "picCel";
       this.picCel.Size = new System.Drawing.Size(133, 151);
       this.picCel.TabIndex = 8;
       this.picCel.TabStop = false;
-      // 
-      // hsbView
-      // 
-      this.hsbView.Location = new System.Drawing.Point(35, 407);
-      this.hsbView.Name = "hsbView";
-      this.hsbView.Size = new System.Drawing.Size(292, 16);
-      this.hsbView.TabIndex = 6;
-      // 
-      // vsbView
-      // 
-      this.vsbView.Location = new System.Drawing.Point(475, 4);
-      this.vsbView.Name = "vsbView";
-      this.vsbView.Size = new System.Drawing.Size(16, 395);
-      this.vsbView.TabIndex = 5;
       // 
       // tsViewPrev
       // 
@@ -637,12 +731,11 @@ namespace WinAGI_GDS
             this.tbbZoomOut,
             this.tsSep1,
             this.HAlign,
-            this.VAlign,
-            this.tbbTrans});
+            this.VAlign});
       this.tsViewPrev.Location = new System.Drawing.Point(0, 0);
       this.tsViewPrev.Name = "tsViewPrev";
       this.tsViewPrev.Padding = new System.Windows.Forms.Padding(0, 0, 4, 0);
-      this.tsViewPrev.Size = new System.Drawing.Size(1072, 42);
+      this.tsViewPrev.Size = new System.Drawing.Size(1005, 42);
       this.tsViewPrev.TabIndex = 0;
       this.tsViewPrev.Text = "toolStrip1";
       // 
@@ -682,7 +775,6 @@ namespace WinAGI_GDS
       this.HAlign.ImageTransparentColor = System.Drawing.Color.Magenta;
       this.HAlign.Name = "HAlign";
       this.HAlign.Size = new System.Drawing.Size(59, 36);
-      this.HAlign.Text = "toolStripSplitButton1";
       // 
       // tbbAlignLeft
       // 
@@ -690,6 +782,7 @@ namespace WinAGI_GDS
       this.tbbAlignLeft.Name = "tbbAlignLeft";
       this.tbbAlignLeft.Size = new System.Drawing.Size(218, 44);
       this.tbbAlignLeft.Text = "Left";
+      this.tbbAlignLeft.Click += new System.EventHandler(this.tbbAlignLeft_Click);
       // 
       // tbbAlignCenter
       // 
@@ -697,6 +790,7 @@ namespace WinAGI_GDS
       this.tbbAlignCenter.Name = "tbbAlignCenter";
       this.tbbAlignCenter.Size = new System.Drawing.Size(218, 44);
       this.tbbAlignCenter.Text = "Center";
+      this.tbbAlignCenter.Click += new System.EventHandler(this.tbbAlignCenter_Click);
       // 
       // tbbAlignRight
       // 
@@ -704,6 +798,7 @@ namespace WinAGI_GDS
       this.tbbAlignRight.Name = "tbbAlignRight";
       this.tbbAlignRight.Size = new System.Drawing.Size(218, 44);
       this.tbbAlignRight.Text = "Right";
+      this.tbbAlignRight.Click += new System.EventHandler(this.tbbAlignRight_Click);
       // 
       // VAlign
       // 
@@ -716,7 +811,6 @@ namespace WinAGI_GDS
       this.VAlign.ImageTransparentColor = System.Drawing.Color.Magenta;
       this.VAlign.Name = "VAlign";
       this.VAlign.Size = new System.Drawing.Size(59, 36);
-      this.VAlign.Text = "toolStripSplitButton2";
       // 
       // tbbTop
       // 
@@ -724,6 +818,7 @@ namespace WinAGI_GDS
       this.tbbTop.Name = "tbbTop";
       this.tbbTop.Size = new System.Drawing.Size(226, 44);
       this.tbbTop.Text = "Top";
+      this.tbbTop.Click += new System.EventHandler(this.tbbTop_Click);
       // 
       // tbbMiddle
       // 
@@ -731,6 +826,7 @@ namespace WinAGI_GDS
       this.tbbMiddle.Name = "tbbMiddle";
       this.tbbMiddle.Size = new System.Drawing.Size(226, 44);
       this.tbbMiddle.Text = "Middle";
+      this.tbbMiddle.Click += new System.EventHandler(this.tbbMiddle_Click);
       // 
       // tbbBottom
       // 
@@ -738,33 +834,25 @@ namespace WinAGI_GDS
       this.tbbBottom.Name = "tbbBottom";
       this.tbbBottom.Size = new System.Drawing.Size(226, 44);
       this.tbbBottom.Text = "Bottom";
-      // 
-      // tbbTrans
-      // 
-      this.tbbTrans.Image = ((System.Drawing.Image)(resources.GetObject("tbbTrans.Image")));
-      this.tbbTrans.ImageTransparentColor = System.Drawing.Color.Magenta;
-      this.tbbTrans.Name = "tbbTrans";
-      this.tbbTrans.Size = new System.Drawing.Size(170, 36);
-      this.tbbTrans.Text = "Show Trans";
-      this.tbbTrans.TextImageRelation = System.Windows.Forms.TextImageRelation.TextBeforeImage;
+      this.tbbBottom.Click += new System.EventHandler(this.tbbBottom_Click);
       // 
       // tmrMotion
       // 
       this.tmrMotion.Tick += new System.EventHandler(this.tmrMotion_Tick);
       // 
-      // Timer1
+      // tmrSound
       // 
-      this.Timer1.Interval = 1;
-      this.Timer1.Tick += new System.EventHandler(this.Timer1_Tick);
+      this.tmrSound.Interval = 1;
+      this.tmrSound.Tick += new System.EventHandler(this.Timer1_Tick);
       // 
       // frmPreview
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(577, 583);
+      this.ClientSize = new System.Drawing.Size(1005, 837);
       this.Controls.Add(this.pnlView);
-      this.Controls.Add(this.pnlSound);
       this.Controls.Add(this.pnlPicture);
+      this.Controls.Add(this.pnlSound);
       this.Controls.Add(this.pnlLogic);
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
       this.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
@@ -775,23 +863,26 @@ namespace WinAGI_GDS
       this.pnlLogic.ResumeLayout(false);
       this.pnlPicture.ResumeLayout(false);
       this.tableLayoutPanel1.ResumeLayout(false);
-      this.panel1.ResumeLayout(false);
-      this.panel1.PerformLayout();
+      this.pnlPicHeader.ResumeLayout(false);
+      this.pnlPicHeader.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.udPZoom)).EndInit();
-      this.panel2.ResumeLayout(false);
+      this.pnlPicImage.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.fraPCorner)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.imgPicture)).EndInit();
       this.pnlSound.ResumeLayout(false);
       this.pnlSound.PerformLayout();
+      this.pnlProgressBar.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.picProgress)).EndInit();
       this.pnlView.ResumeLayout(false);
       this.pnlView.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.picTrans)).EndInit();
       this.tableLayoutPanel2.ResumeLayout(false);
-      this.panel3.ResumeLayout(false);
-      this.panel4.ResumeLayout(false);
-      this.panel4.PerformLayout();
+      this.pnlViewHdr.ResumeLayout(false);
+      this.pnlViewFtr.ResumeLayout(false);
+      this.pnlViewFtr.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.sldSpeed)).EndInit();
-      this.panel5.ResumeLayout(false);
-      this.picViewHolder.ResumeLayout(false);
+      this.pnlCel.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.fraVCorner)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.picCel)).EndInit();
       this.tsViewPrev.ResumeLayout(false);
       this.tsViewPrev.PerformLayout();
@@ -818,16 +909,15 @@ namespace WinAGI_GDS
     private System.Windows.Forms.ToolStripMenuItem tbbTop;
     private System.Windows.Forms.ToolStripMenuItem tbbMiddle;
     private System.Windows.Forms.ToolStripMenuItem tbbBottom;
-    private System.Windows.Forms.ToolStripButton tbbTrans;
     private System.Windows.Forms.Timer tmrMotion;
-    private System.Windows.Forms.Timer Timer1;
+    private System.Windows.Forms.Timer tmrSound;
     private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-    private System.Windows.Forms.Panel panel1;
+    private System.Windows.Forms.Panel pnlPicHeader;
     private System.Windows.Forms.RadioButton optPriority;
     private System.Windows.Forms.RadioButton optVisual;
     private System.Windows.Forms.NumericUpDown udPZoom;
     private System.Windows.Forms.Label label1;
-    private System.Windows.Forms.Panel panel2;
+    private System.Windows.Forms.Panel pnlPicImage;
     private System.Windows.Forms.VScrollBar vsbPic;
     private System.Windows.Forms.HScrollBar hsbPic;
     private System.Windows.Forms.PictureBox imgPicture;
@@ -835,7 +925,6 @@ namespace WinAGI_GDS
     private System.Windows.Forms.Button cmdStop;
     private System.Windows.Forms.ImageList imageList1;
     private System.Windows.Forms.Button cmdPlay;
-    private System.Windows.Forms.ProgressBar pgbSound;
     private System.Windows.Forms.Label lblLength;
     private System.Windows.Forms.Button cmdReset;
     private System.Windows.Forms.ComboBox cmbInst2;
@@ -846,18 +935,26 @@ namespace WinAGI_GDS
     private System.Windows.Forms.CheckBox chkTrack1;
     private System.Windows.Forms.CheckBox chkTrack0;
     private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
-    private System.Windows.Forms.Panel panel3;
-    private System.Windows.Forms.DomainUpDown udCel;
-    private System.Windows.Forms.DomainUpDown udLoop;
-    private System.Windows.Forms.Panel panel4;
+    private System.Windows.Forms.Panel pnlViewHdr;
+    private System.Windows.Forms.Label udCel;
+    private System.Windows.Forms.Label udLoop;
+    private System.Windows.Forms.Panel pnlViewFtr;
     private System.Windows.Forms.TrackBar sldSpeed;
     private System.Windows.Forms.ComboBox cmbMotion;
     private System.Windows.Forms.Button cmdVPlay;
-    private System.Windows.Forms.Panel panel5;
+    private System.Windows.Forms.Panel pnlCel;
     private System.Windows.Forms.HScrollBar hsbView;
     private System.Windows.Forms.VScrollBar vsbView;
     private System.Windows.Forms.Label lblFormat;
-    private System.Windows.Forms.Panel picViewHolder;
+    private System.Windows.Forms.Button dCel;
+    private System.Windows.Forms.Button uCel;
+    private System.Windows.Forms.Button uLoop;
+    private System.Windows.Forms.Button dLoop;
+    private System.Windows.Forms.CheckBox chkTrans;
+    private System.Windows.Forms.PictureBox picTrans;
     private System.Windows.Forms.PictureBox picCel;
+    private System.Windows.Forms.PictureBox fraVCorner;
+    private System.Windows.Forms.Panel pnlProgressBar;
+    private System.Windows.Forms.PictureBox picProgress;
   }
 }

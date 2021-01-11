@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace WinAGI
 {
-  public class AGINotes
+  public class AGINotes : IEnumerable<AGINote>
   {
     //local variable to hold collection
     List<AGINote> mCol = new List<AGINote>();
@@ -104,6 +105,72 @@ namespace WinAGI
       mParent = parent;
       mTParent = tparent; 
       strErrSource = "AGINotes";
+    }
+    internal AGINotes Clone(AGITrack cloneTparent)
+    {
+      // return a copy of this notes collection
+      AGINotes CopyNotes = new AGINotes(mParent, cloneTparent);
+      foreach (AGINote tmpNote in mCol) {
+        CopyNotes.mCol.Add(new AGINote(mParent, mTParent)
+        {
+          mAttenuation = tmpNote.mAttenuation,
+          mDuration = tmpNote.mDuration,
+          mFreqDiv = tmpNote.mFreqDiv
+        });
+        ;
+      }
+      return CopyNotes;
+    }
+    NoteEnum GetEnumerator()
+    {
+      return new NoteEnum(mCol);
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return (IEnumerator)GetEnumerator();
+    }
+
+    IEnumerator<AGINote> IEnumerable<AGINote>.GetEnumerator()
+    {
+      return (IEnumerator<AGINote>)GetEnumerator();
+    }
+  }
+  internal class NoteEnum : IEnumerator<AGINote>
+  {
+    public List<AGINote> _notes;
+    int position = -1;
+    public NoteEnum(List<AGINote> list)
+    {
+      _notes = list;
+    }
+    object IEnumerator.Current => Current;
+    public AGINote Current
+    {
+      get
+      {
+        try
+        {
+          return _notes[position];
+        }
+        catch (IndexOutOfRangeException)
+        {
+
+          throw new InvalidOperationException();
+        }
+      }
+    }
+    public bool MoveNext()
+    {
+      position++;
+      return (position < _notes.Count);
+    }
+    public void Reset()
+    {
+      position = -1;
+    }
+    public void Dispose()
+    {
+      _notes = null;
     }
   }
 }

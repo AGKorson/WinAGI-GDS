@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
 using static WinAGI.AGICommands;
@@ -7,7 +8,7 @@ using System.IO;
 
 namespace WinAGI
 {
-  public class AGILogics
+  public class AGILogics : IEnumerable<AGILogic>
   {
     public AGILogics()
     {
@@ -46,30 +47,25 @@ namespace WinAGI
       int intNextNum = 0;
       string strID, strBaseID;
       //if this Logic already exists
-      if (Exists(ResNum))
-      {
+      if (Exists(ResNum)) {
         //resource already exists
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
-      //create new logic object
-      agResource = new AGILogic();
-      //if an object was passed
-      if ((NewLogic == null))
-      {
+      //if an object was not passed
+      if ((NewLogic == null)) {
+        //create a new logic object
+        agResource = new AGILogic();
         //proposed ID will be default
         strID = "Logic" + ResNum;
-      }
-      else
-      {
-        //copy entire logic
-        agResource.SetLogic(NewLogic);
+      } else {
+        //clone the passed logic
+        agResource = NewLogic.Clone();
         //get proposed id
         strID = NewLogic.ID;
       }
       // validate id
       strBaseID = strID;
-      while (!IsUniqueResID(strID))
-      {
+      while (!IsUniqueResID(strID)) {
         intNextNum++;
         strID = strBaseID + "_" + intNextNum;
       }
@@ -90,8 +86,7 @@ namespace WinAGI
       //removes a logic from the game file
 
       // if the resource exists
-      if (Col.ContainsKey(Index))
-      {
+      if (Col.ContainsKey(Index)) {
         //need to clear the directory file first
         UpdateDirFile(Col[Index], true);
         Col.Remove(Index);
@@ -107,13 +102,11 @@ namespace WinAGI
       bool blnUnload = false;
       string strSection, strID, strBaseID;
       //if no change
-      if (OldLogic == NewLogic) 
-      {
+      if (OldLogic == NewLogic) {
         return;
       }
       //verify new number is not in collection
-      if (Col.Keys.Contains(NewLogic))
-      {
+      if (Col.Keys.Contains(NewLogic)) {
         //number already in use
         throw new Exception("669, LoadResString(669)");
       }
@@ -121,65 +114,60 @@ namespace WinAGI
       tmpLogic = Col[OldLogic];
 
       //if not loaded,
-      if (!tmpLogic.Loaded)
-      {
+      if (!tmpLogic.Loaded) {
         tmpLogic.Load();
         blnUnload = true;
       }
 
       //remove old properties
       DeleteSettingSection(agGameProps, "Logic" + OldLogic);
-  
+
       //remove from collection
       Col.Remove(OldLogic);
-  
+
       //delete logic from old number in dir file
       //by calling update directory file method
       UpdateDirFile(tmpLogic, true);
-  
-    //if id is default
-    if (tmpLogic.ID.Equals("Logic" + OldLogic, StringComparison.OrdinalIgnoreCase))
-      {
+
+      //if id is default
+      if (tmpLogic.ID.Equals("Logic" + OldLogic, StringComparison.OrdinalIgnoreCase)) {
         //change default ID to new ID
         strID = strBaseID = "Logic" + NewLogic;
-        while (!IsUniqueResID(strID))
-        {
+        while (!IsUniqueResID(strID)) {
           intNextNum++;
           strID = strBaseID + "_" + intNextNum;
         }
-        try
-        {
+        try {
           //get rid of existing file with same name as new logicif needed
           File.Delete(agResDir + tmpLogic.ID + agSrcExt);
           //rename sourcefile
           File.Move(agResDir + "Logic" + OldLogic + agSrcExt, agResDir + tmpLogic.ID + agSrcExt);
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
           throw new Exception("670, LoadResString(670) " + e.Message);
         }
       }
-  
+
       //change number
       tmpLogic.Number = NewLogic;
-  
+
       //add with new number
       Col.Add(NewLogic, tmpLogic);
-  
+
       //update new logic number in dir file
       UpdateDirFile(tmpLogic);
-  
+
       //add properties back with new logic number
       strSection = "Logic" + NewLogic;
       WriteGameSetting(strSection, "ID", tmpLogic.ID, "Logics");
       WriteGameSetting(strSection, "Description", tmpLogic.Description);
       WriteGameSetting(strSection, "CRC32", "0x" + tmpLogic.CRC.ToString("x"));
-      WriteGameSetting(strSection, "CompCRC32", "0x" +(tmpLogic.CompiledCRC.ToString("x")));
+      WriteGameSetting(strSection, "CompCRC32", "0x" + (tmpLogic.CompiledCRC.ToString("x")));
       WriteGameSetting(strSection, "IsRoom", tmpLogic.IsRoom.ToString());
-  
+
       //force writeprop state back to false
       tmpLogic.WritePropState = false;
-  
+
       //unload if necessary
       if (blnUnload) {
         tmpLogic.Unload();
@@ -190,8 +178,7 @@ namespace WinAGI
       //called by the resource loading method for the initial loading of
       //resources into logics collection
       //if this Logic number is already in the game
-      if (agLogs.Exists(bytResNum))
-      {
+      if (agLogs.Exists(bytResNum)) {
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
       //create new logic object
@@ -202,8 +189,7 @@ namespace WinAGI
     }
     public void MarkAllAsDirty()
     {
-      foreach (AGILogic tmpLogic in Col.Values)
-      {
+      foreach (AGILogic tmpLogic in Col.Values) {
         tmpLogic.CompiledCRC = 0;
         WriteGameSetting("Logic" + tmpLogic.Number, "CompCRC32", "0x00", "Logics");
       }
@@ -211,33 +197,72 @@ namespace WinAGI
     }
     public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false)
     {
-      throw new NotImplementedException();
-      /*
-   'tie function to allow access to the LogCompile variable conversion function
+      //tie function to allow access to the LogCompile variable conversion function
+      //if in a game
+      if (agGameLoaded) {
+        //initialize global defines
+        //get datemodified property
+        DateTime dtFileMod = File.GetLastWriteTime(agGameDir + "globals.txt");
+        if (CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString())) != agGlobalCRC) {
+          GetGlobalDefines();
+        }
+        //if ids not set yet
+        if (!blnSetIDs) {
+          SetResourceIDs();
+        }
+      }
+      //convert argument
+      ConvertArgument(ref ArgIn, ArgType, ref VarOrNum);
+      //return it
+      return ArgIn.ToLower();
+    }
+    LogicEnum GetEnumerator()
+    {
+      return new LogicEnum(Col);
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return (IEnumerator)GetEnumerator();
+    }
+    IEnumerator<AGILogic> IEnumerable<AGILogic>.GetEnumerator()
+    {
+      return (IEnumerator<AGILogic>)GetEnumerator();
+    }
+  }
+  internal class LogicEnum : IEnumerator<AGILogic>
+  {
+    public SortedList<byte, AGILogic> _logics;
+    int position = -1;
+    public LogicEnum(SortedList<byte, AGILogic> list)
+    {
+      _logics = list;
+    }
+    object IEnumerator.Current => Current;
+    public AGILogic Current
+    {
+      get
+      {
+        try {
+          return _logics.Values[position];
+        }
+        catch (IndexOutOfRangeException) {
 
-   DateTime dtFileMod
-
-   On Error Resume Next
-   'if in a game
-   if (agMainGame.GameLoaded) {
-     'initialize global defines
-     'get datemodified property
-     dtFileMod = FileLastMod(agGameDir + "globals.txt")
-     if (CRC32(StrConv(CStr(dtFileMod), vbFromUnicode)) != agGlobalCRC) {
-       GetGlobalDefines
-     }
-
-     'if ids not set yet
-     if (!blnSetIDs) {
-       SetResourceIDs
-     }
-   }
-
-   'convert argument
-   ConvertArgument ArgIn, ArgType, VarOrNum
-   'return it
-   ConvertArg = LCase$(ArgIn)
-       */
+          throw new InvalidOperationException();
+        }
+      }
+    }
+    public bool MoveNext()
+    {
+      position++;
+      return (position < _logics.Count);
+    }
+    public void Reset()
+    {
+      position = -1;
+    }
+    public void Dispose()
+    {
+      _logics = null;
     }
   }
 }

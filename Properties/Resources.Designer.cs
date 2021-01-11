@@ -153,6 +153,16 @@ namespace WinAGI_GDS.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap sndplay {
+            get {
+                object obj = ResourceManager.GetObject("sndplay", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap tbAdd {
             get {
                 object obj = ResourceManager.GetObject("tbAdd", resourceCulture);

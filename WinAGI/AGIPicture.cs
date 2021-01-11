@@ -43,7 +43,7 @@ namespace WinAGI
       mDrawPos = -1;
       //default pribase is 48
       mPriBase = 48;
-   }
+    }
     internal void InGameInit(byte ResNum, sbyte VOL, int Loc)
     {
       //this internal function adds this resource to a game, setting its resource 
@@ -78,31 +78,27 @@ namespace WinAGI
       //for picture only, changing resource sets dirty flag
       mIsDirty = true;
     }
-    internal void SetPicture(AGIPicture CopyPicture)
+    internal AGIPicture Clone()
     {
-      //copies picture data from CopyPicture into this picture
-      //add resource data
+      //copies picture data from this picture and returns a completely separate object reference
+      AGIPicture CopyPicture = new AGIPicture();
+      // copy base properties
       base.SetRes(CopyPicture);
       //add WinAGI items
-      mBkImgFile = CopyPicture.BkgdImgFile;
-      mBkShow = CopyPicture.BkgdShow;
-      mBkTrans = CopyPicture.BkgdTrans;
-      mBkPos = CopyPicture.BkgdPosition;
-      mBkSize = CopyPicture.BkgdSize;
-      mPriBase = CopyPicture.PriBase;
-      //if loaded,
-      if (CopyPicture.Loaded)
-      {
-      try
-        {
-          //load pictures
-          BuildPictures();
-        }
-        catch (Exception)
-        {
-          // ignore errors
-        }
-      }
+      CopyPicture.mBkImgFile = mBkImgFile;
+      CopyPicture.mBkShow = mBkShow;
+      CopyPicture.mBkTrans = mBkTrans;
+      CopyPicture.mBkPos = mBkPos;
+      CopyPicture.mBkSize = mBkSize;
+      CopyPicture.mPriBase = mPriBase;
+      CopyPicture.mPicBMPSet = mPicBMPSet;
+      CopyPicture.DrawPos = DrawPos;
+      CopyPicture.mStepDraw = mStepDraw;
+      CopyPicture.mCurrentPen = mCurrentPen;
+      CopyPicture.mVisData = mVisData;
+      CopyPicture.mPriData = mPriData;
+      CopyPicture.mBMPErrLvl = mBMPErrLvl;
+      return CopyPicture;
     }
     public string BkgdImgFile
     { 

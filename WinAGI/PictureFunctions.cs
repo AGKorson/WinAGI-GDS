@@ -55,7 +55,7 @@ namespace WinAGI
       if (EndPos == -1)
       {
         //get size of data
-        EndPos = bytPicData.Length;
+        EndPos = bytPicData.Length - 1;
       }
 
       //if no status pos passed

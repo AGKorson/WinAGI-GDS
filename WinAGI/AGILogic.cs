@@ -129,30 +129,22 @@ namespace WinAGI
         mIsRoom = false;
       }
     }
-    internal void SetLogic(AGILogic CopyLogic)
-    {
-      //copies logic data from CopyLogic into this logic
+    public AGILogic Clone()
+    {  
+      //copies logic data from this logic and returns a completely separate object reference
+      AGILogic CopyLogic = new AGILogic();
+      // copy base properties
       base.SetRes(CopyLogic);
       //add WinAGI items
-      mIsRoom = CopyLogic.IsRoom;
-      //if NOT loaded, need to load if ingame to get source text
-      bool blnLoaded = Loaded;
-      if (!blnLoaded)
-      {
-        CopyLogic.Load();
-      }
+      CopyLogic.mIsRoom = IsRoom;
+      CopyLogic.mLoaded = mLoaded;
       //crc data
-      mCompiledCRC = CopyLogic.CompiledCRC;
-      mCRC = CopyLogic.CRC;
-      mSourceText = CopyLogic.SourceText;
-      mSourceDirty = CopyLogic.SourceDirty;
-      mSourceFile = CopyLogic.SourceFile;
-
-      //unload if wasn't loaded earlier
-      if (!blnLoaded)
-      {
-        CopyLogic.Unload();
-      }
+      CopyLogic.mCompiledCRC = mCompiledCRC;
+      CopyLogic.mCRC = mCRC;
+      CopyLogic.mSourceText = mSourceText;
+      CopyLogic.mSourceDirty = mSourceDirty;
+      CopyLogic.mSourceFile = mSourceFile;
+      return CopyLogic;
     }
     public uint CompiledCRC { 
       get 
@@ -428,7 +420,8 @@ namespace WinAGI
       if (LoadFile.Length == 0 || Decompile) 
       {
         //get source code by decoding the resource
-        strInput = string.Join(NEWLINE, DecodeLogic(mRData.AllData).ToArray());
+        // decrypting messages if not v3compressed
+        strInput = string.Join(NEWLINE, DecodeLogic(mRData.AllData, V3Compressed != 2).ToArray());
         //make sure decompile flag is set (so crc can be saved)
         Decompile = true;
         //if in a game, always save this newly created source
@@ -486,7 +479,7 @@ namespace WinAGI
         int i = 0;
         mSourceText = value;
 
-        //strip off any CRs at the end (unless it//s the only character)
+        //strip off any CRs at the end (unless it's the only character)
         int lngLen = mSourceText.Length;
         if (lngLen > 1)
         {

@@ -51,7 +51,7 @@ namespace WinAGI
     static bool blnWarning;
     static string strWarning;
 
-    internal static List<string> DecodeLogic(byte[] bytData)
+    internal static List<string> DecodeLogic(byte[] bytData, bool DecryptMsg)
     {
       byte bytCurData;
       bool blnGoto;
@@ -100,7 +100,7 @@ namespace WinAGI
       lngMsgSecStart = bytData[1] * 256 + bytData[0] + 2;
 
       //if can't read messges,
-      if (!ReadMessages(bytData, lngMsgSecStart))
+      if (!ReadMessages(bytData, lngMsgSecStart, DecryptMsg))
       {
         //raise error
         goto ErrHandler;
@@ -891,7 +891,7 @@ namespace WinAGI
       //shouldn't be possible to get here, but compiler wants a return statement here
       return "";
     }
-    static bool ReadMessages(byte[] bytData, int lngMsgStart)
+    static bool ReadMessages(byte[] bytData, int lngMsgStart, bool Decrypt)
     {
       int lngEndMsgSection;
       int[] MessageStart = new int[256];
@@ -941,7 +941,7 @@ namespace WinAGI
         //mark start of encrypted data (to align encryption string)
         EncryptionStart = lngPos;
 
-        //now read all messages, decrypting in the process
+        //now read all messages, decrypting in the process, if necessary
         for (intCurMsg = 1; intCurMsg <= NumMessages; intCurMsg++)
         {
           strMessage = "";
@@ -952,7 +952,11 @@ namespace WinAGI
             blnEndOfMsg = false;
             do
             {
-              bytInput = (byte)(bytData[lngPos] ^ bytEncryptKey[(lngPos - EncryptionStart) % 11]);
+              bytInput = bytData[lngPos];
+              // v3 compressed resources don't use encryption
+              if (Decrypt) {
+                bytInput ^= (bytEncryptKey[(lngPos - EncryptionStart) % 11]);
+              } 
               lngPos++;
               if ((bytInput == 0) || (lngPos >= bytData.Length))
               {

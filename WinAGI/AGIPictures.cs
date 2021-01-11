@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
 using System.IO;
 
 namespace WinAGI
 {
-  public class AGIPictures
+  public class AGIPictures : IEnumerable<AGIPicture>
   {
     public AGIPictures()
     {
@@ -50,18 +51,18 @@ namespace WinAGI
         //resource already exists
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
-      //create new picture object
-      agResource = new AGIPicture();
       //if no object was passed
       if ((NewPicture == null))
       {
+        //create new picture object
+        agResource = new AGIPicture();
         //proposed ID will be default
         strID = "Picture" + ResNum;
       }
       else
       {
-        //copy entire picture
-        agResource.SetPicture(NewPicture);
+        //clone the passed picture
+        agResource = NewPicture.Clone();
         //get proposed id
         strID = NewPicture.ID;
       }
@@ -187,6 +188,56 @@ namespace WinAGI
       newResource.InGameInit(bytResNum, bytVol, lngLoc);
       //add it
       Col.Add(bytResNum, newResource);
+    }
+    PictureEnum GetEnumerator()
+    {
+      return new PictureEnum(Col);
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return (IEnumerator)GetEnumerator();
+    }
+    IEnumerator<AGIPicture> IEnumerable<AGIPicture>.GetEnumerator()
+    {
+      return (IEnumerator<AGIPicture>)GetEnumerator();
+    }
+  }
+  internal class PictureEnum : IEnumerator<AGIPicture>
+  {
+    public SortedList<byte, AGIPicture> _pictures;
+    int position = -1;
+    public PictureEnum(SortedList<byte, AGIPicture> list)
+    {
+      _pictures = list;
+    }
+    object IEnumerator.Current => Current;
+    public AGIPicture Current
+    {
+      get
+      {
+        try
+        {
+          return _pictures.Values[position];
+        }
+        catch (IndexOutOfRangeException)
+        {
+
+          throw new InvalidOperationException();
+        }
+      }
+    }
+    public bool MoveNext()
+    {
+      position++;
+      return (position < _pictures.Count);
+    }
+    public void Reset()
+    {
+      position = -1;
+    }
+    public void Dispose()
+    {
+      _pictures = null;
     }
   }
 }

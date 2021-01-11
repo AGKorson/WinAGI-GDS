@@ -200,7 +200,16 @@ namespace WinAGI
         mParent.IsDirty = true;
       }
     }
-    public AGILoop()
+    internal AGILoop Clone(AGIView cloneparent)
+    {
+      // returns a copy of this loop
+      AGILoop CopyLoop = new AGILoop(cloneparent);
+      CopyLoop.mMirrorPair = mMirrorPair;
+      CopyLoop.mIndex = mIndex;
+      CopyLoop.mCelCol = mCelCol.Clone(cloneparent);
+      return CopyLoop;
+  }
+  public AGILoop()
     {
       //initialize cel collection object
       mCelCol = new AGICels();

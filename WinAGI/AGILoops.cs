@@ -144,6 +144,16 @@ namespace WinAGI
         mParent.IsDirty = true;
       }
     }
+
+    internal AGILoops Clone(AGIView cloneparent)
+    {
+      // returns a copy of this loop collection
+      AGILoops CopyLoops = new AGILoops(cloneparent);
+      foreach (AGILoop tmpLoop in mLoopCol) {
+        CopyLoops.mLoopCol.Add(tmpLoop.Clone(cloneparent));
+      }
+      return CopyLoops;
+    }
     public AGILoops()
     {
       //creates the collection when this class is created

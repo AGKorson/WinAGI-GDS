@@ -152,7 +152,17 @@ namespace WinAGI
       strErrSource = "WINAGI.agiCels";
       mParent = parent;
     }
-    CelEnum GetEnumerator()
+    internal AGICels Clone(AGIView cloneparent)
+    {
+      AGICels CopyCels = new AGICels(cloneparent);
+      foreach (AGICel tmpCel in mCelCol)
+      {
+        CopyCels.mCelCol.Add(tmpCel.Clone(cloneparent));
+      }
+      CopyCels.mSetMirror = mSetMirror;
+      return CopyCels;
+    }
+  CelEnum GetEnumerator()
     {
       return new CelEnum(mCelCol);
     }

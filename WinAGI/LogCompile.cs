@@ -5,8 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using static WinAGI.WinAGI;
+using static WinAGI.AGIGame;
 using static WinAGI.AGILogicSourceSettings;
 using static WinAGI.AGICommands;
+using static WinAGI.ArgTypeEnum;
 
 namespace WinAGI
 {
@@ -20,10 +22,10 @@ namespace WinAGI
     {
       byte LabelNum;
       int DataLoc;
-      }
+    }
     internal struct LogicLabel
-    { 
-      internal string Name ;
+    {
+      internal string Name;
       internal int Loc;
     }
 
@@ -54,7 +56,7 @@ namespace WinAGI
     internal static string[] strIncludeFile;
     internal static int lngIncludeOffset; //to correct line number due to added include lines
     internal static string[] stlInput;  //the entire text to be compiled; includes the
-                                    //original logic text, includes, and defines
+                                        //original logic text, includes, and defines
     internal static int lngLine;
     internal static int lngPos;
     internal static string strCurrentLine;
@@ -100,12 +102,12 @@ namespace WinAGI
           dtFileMod = FileLastMod(agGameDir + "globals.txt")
           if (CRC32(StrConv(CStr(dtFileMod), vbFromUnicode)) != agGlobalCRC) {
             GetGlobalDefines
-          } //}
+          }
 
           //if ids not set yet
           if (!blnSetIDs) {
             SetResourceIDs
-          } //}
+          }
 
           On Error GoTo ErrHandler
 
@@ -121,7 +123,7 @@ namespace WinAGI
             agResDef(4).Value = agInvObj.Count - 1
           } else {
             agResDef(4).Value = -1
-          } //}
+          }
 
           //convert back to correct byte values
           strInput = StrConv(ExtCharTobyte(SourceLogic.SourceText), vbUnicode)
@@ -146,7 +148,7 @@ namespace WinAGI
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //}
+          }
 
           //remove any blank lines from end
           Do Until Len(stlInput(stlInput.Count - 1)) != 0 || stlInput.Count = 0
@@ -162,7 +164,7 @@ namespace WinAGI
             lngErrLine = 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //}
+          }
 
           //strip out all comments
           if (!RemoveComments()) {
@@ -172,7 +174,7 @@ namespace WinAGI
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //}
+          }
 
           //read labels
           if (!ReadLabels()) {
@@ -182,7 +184,7 @@ namespace WinAGI
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //}
+          }
 
           //enumerate and replace all the defines
           if (!ReadDefines()) {
@@ -192,7 +194,7 @@ namespace WinAGI
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //}
+          }
 
           //read predefined messages
           if (!ReadMsgs()) {
@@ -202,7 +204,7 @@ namespace WinAGI
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //}
+          }
 
           //assign temporary resource object
           tmpLogRes = New AGIResource
@@ -223,7 +225,7 @@ namespace WinAGI
             //return error
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //}
+          }
 
           //write message section
           if (!WriteMsgs()) {
@@ -235,7 +237,7 @@ namespace WinAGI
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
-          } //}
+          }
 
           With SourceLogic
             //assign resource data
@@ -273,15 +275,559 @@ namespace WinAGI
             //return error
             On Error GoTo 0
             throw new Exception("634, "LogCompile", "-1||" + Replace(LoadResString(591), ARG1, CStr(lngError) + ":" + strError)
-          } //}
+          }
       */
     }
+    internal static void SetResourceIDs()
+    {
+      //builds array of resourceIDs so
+      //convertarg function can iterate through them much quicker
+      if (blnSetIDs) {
+        return;
+      }
+      strLogID = new string[255];
+      strPicID = new string[255];
+      strSndID = new string[255];
+      strViewID = new string[255];
+      foreach (AGILogic tmpLog in agLogs) {
+        strLogID[tmpLog.Number] = tmpLog.ID;
+      }
+      foreach (AGIPicture tmpPic in agPics) {
+        strPicID[tmpPic.Number] = tmpPic.ID;
+      }
+      foreach (AGISound tmpSnd in agSnds) {
+        strSndID[tmpSnd.Number] = tmpSnd.ID;
+      }
+      foreach (AGIView tmpView in agViews) {
+        strViewID[tmpView.Number] = tmpView.ID;
+      }
+      //set flag
+      blnSetIDs = true;
+    }
+    internal static bool ConvertArgument(ref string strArgIn, ArgTypeEnum ArgType, ref bool blnVarOrNum)
+    {
+      // make sure blnVarOrNum gets passed as false, unless explicitly needed to be true!
+      //if input is not a system argument already
+      //(i.e. ##, v##, f##, s##, o##, w##, i##, c##)
+      //this function searches resource IDs, local defines, global defines,
+      //and reserved names for strArgIn; if found
+      //strArgIn is replaced with the Value of the define
+      //optional argtype is used to identify words, messages, and inv objects
+      //to speed up search
+
+      //NOTE: this does NOT validate the numerical Value of arguments;
+      //calling function is responsible to make that check
+      //it also does not concatenate strings
+
+      //to support calls from special syntax compilers, need to be able
+      //to check for numbers AND variables with one check
+      //the blnVarOrNum flag is used to do this; when the flag is
+      //true, number searches also return variables
+
+      int i;
+      int intAsc;
+
+      //check if already in correct format
+      switch (ArgType) {
+      case ArgTypeEnum.atNum:  //numeric only
+        if (IsNumeric(strArgIn)) {
+          //reset VarOrNum flag
+          blnVarOrNum = false;
+          return true;
+        }
+        //unless looking for var or num
+        if (blnVarOrNum) {
+          //then //v##// is ok
+          if ((strArgIn[0] | 32) == 118) {
+            if (VariableValue(strArgIn) != -1) {
+              return true;
+            }
+          }
+        }
+        break;
+      case atVar:
+        //if first char matches
+        if ((strArgIn[0] | 32) == 118) {
+          //if this arg returns a valid Value
+          if (VariableValue(strArgIn) != -1) {
+            //ok
+            return true;
+          }
+        }
+        break;
+      case atFlag:
+        //if first char matches
+        if ((strArgIn[0] | 32) == 102) {
+          //if this arg returns a valid Value
+          if (VariableValue(strArgIn) != -1) {
+            //ok
+            return true;
+          }
+        }
+        break;
+      case atCtrl:
+        //if first char matches
+        if ((strArgIn[0] | 32) == 99) {
+          //if this arg returns a valid Value
+          if (VariableValue(strArgIn) != -1) {
+            //ok
+            return true;
+          }
+        }
+        break;
+      case atSObj:
+        //if first char matches
+        if ((strArgIn[0] | 32) == 111) {
+          //if this arg returns a valid Value
+          if (VariableValue(strArgIn) != -1) {
+            //ok
+            return true;
+          }
+        }
+        break;
+      case atStr:
+        //if first char matches
+        if ((strArgIn[0] | 32) == 115) {
+          //if this arg returns a valid Value
+          if (VariableValue(strArgIn) != -1) {
+            //ok
+            return true;
+          }
+        }
+        break;
+      case atWord: //NOTE: this is NOT vocab word; this is word arg type (used in command word.to.string)
+                   //if first char matches
+        if ((strArgIn[0] | 32) == 119) {
+          //if this arg returns a valid Value
+          if (VariableValue(strArgIn) != -1) {
+            //ok
+            return true;
+          }
+        }
+        break;
+      case atMsg:
+        //if first char matches, or is a quote
+        intAsc = strArgIn[0] | 32;
+        switch (intAsc) {
+        case 109:
+          //if this arg returns a valid Value
+          if (VariableValue(strArgIn) != -1) {
+            //ok
+            return true;
+          }
+          break;
+        case 34:
+          //strings are always ok
+          return true;
+        }
+        break;
+      case atIObj:
+        //if first char matches, or is a quote
+        intAsc = strArgIn[0] | 32;
+        switch (intAsc) {
+        case 105:
+          //if this arg returns a valid Value
+          if (VariableValue(strArgIn) != -1) {
+            //ok
+            return true;
+          }
+          break;
+        case 34:
+          //strings are always ok
+          return true;
+        }
+        break;
+      case atVocWrd:
+        //can be number or string in quotes
+        if (IsNumeric(strArgIn) || strArgIn[0] == 34) {
+          //ok
+          return true;
+        }
+        break;
+      }
+
+      //arg is not in correct format; must be reserved name, global or local define, or an error
+
+      //first, check against local defines
+      for (i = 0; i < lngDefineCount; i++) {
+        if (strArgIn.Equals(tdDefines[i].Name, StringComparison.OrdinalIgnoreCase)) {
+          //match found; check that Value is correct type
+          switch (ArgType) {
+          case atNum:
+            //check for number
+            if (IsNumeric(tdDefines[i].Value)) {
+              //reset VarOrNum flag
+              blnVarOrNum = false;
+              strArgIn = tdDefines[i].Value;
+              return true;
+            }
+
+            //if checking for variables
+            if (blnVarOrNum) {
+              if ((tdDefines[i].Value[0] | 32) == 118) {
+                //if this define returns a valid Value
+                if (VariableValue(tdDefines[i].Value) != -1) {
+                  //ok
+                  strArgIn = tdDefines[i].Value;
+                  return true;
+                }
+              }
+            }
+            break;
+          case atVar:
+            //v## only
+            if ((tdDefines[i].Value[0] | 32) == 118) {
+              //if this define returns a valid Value
+              if (VariableValue(tdDefines[i].Value) != -1) {
+                //ok
+                strArgIn = tdDefines[i].Value;
+                return true;
+              }
+            }
+            break;
+          case atFlag:
+            //f## only
+            if ((tdDefines[i].Value[0] | 32) == 102) {
+              //if this define returns a valid Value
+              if (VariableValue(tdDefines[i].Value) != -1) {
+                //ok
+                strArgIn = tdDefines[i].Value;
+                return true;
+              }
+            }
+            break;
+          case atMsg:
+            //m## or a string
+            intAsc = tdDefines[i].Value[0] | 32;
+            switch (intAsc) {
+            case 109:
+              //if this define returns a valid Value
+              if (VariableValue(tdDefines[i].Value) != -1) {
+                //ok
+                strArgIn = tdDefines[i].Value;
+                return true;
+              }
+              break;
+            case 34:
+              strArgIn = tdDefines[i].Value;
+              return true;
+            }
+            break;
+          case atSObj:
+            //o## only
+            if ((tdDefines[i].Value[0] | 32) == 111) {
+              //if this define returns a valid Value
+              if (VariableValue(tdDefines[i].Value) != -1) {
+                //ok
+                strArgIn = tdDefines[i].Value;
+                return true;
+              }
+            }
+            break;
+          case atIObj:
+            //i## or a string
+            intAsc = tdDefines[i].Value[0];
+            switch (intAsc) {
+            case 105:
+              //if this define returns a valid Value
+              if (VariableValue(tdDefines[i].Value) != -1) {
+                //ok
+                strArgIn = tdDefines[i].Value;
+                return true;
+              }
+              break;
+            case 34:
+              strArgIn = tdDefines[i].Value;
+              return true;
+            }
+            break;
+          case atStr:
+            //s## only
+            if ((tdDefines[i].Value[0] | 32) == 115) {
+              //if this define returns a valid Value
+              if (VariableValue(tdDefines[i].Value) != -1) {
+                //ok
+                strArgIn = tdDefines[i].Value;
+                return true;
+              }
+            }
+            break;
+          case atWord:
+            //w## only
+            if ((tdDefines[i].Value[0] | 32) == 119) {
+              //if this define returns a valid Value
+              if (VariableValue(tdDefines[i].Value) != -1) {
+                //ok
+                strArgIn = tdDefines[i].Value;
+                return true;
+              }
+            }
+            break;
+          case atCtrl:
+            //c## only
+            if ((tdDefines[i].Value[0] | 32) == 99) {
+              //if this define returns a valid Value
+              if (VariableValue(tdDefines[i].Value) != -1) {
+                //ok
+                strArgIn = tdDefines[i].Value;
+                return true;
+              }
+            }
+            break;
+          case atVocWrd:
+            //numeric or string only
+            if (IsNumeric(tdDefines[i].Value)) {
+              strArgIn = tdDefines[i].Value;
+              return true;
+            } else if (tdDefines[i].Value[0] == 34) {
+              strArgIn = tdDefines[i].Value;
+              return true;
+            }
+            break;
+          case atDefStr:
+            //call to ConvertArgument is never made with type of atDefStr
+            break;
+          }
+          //not validated, so return false
+          return false;
+        }
+      } //nexti
+
+      //second, check against global defines
+      //for any type except vocab words
+      if (ArgType != atVocWrd) {
+        //check against this type of global defines
+        for (i = 0; i < agGlobalCount; i++) {
+          if (agGlobal[i].Type == ArgType) {
+            if (strArgIn == agGlobal[i].Name) {
+              strArgIn = agGlobal[i].Value;
+              //reset VarOrNum flag
+              blnVarOrNum = false;
+              return true;
+            }
+          }
+        } //nexti
+          //if checking var or num
+        if (blnVarOrNum) {
+          //numbers were checked; need to check variables
+          for (i = 0; i < agGlobalCount; i++) {
+            if (agGlobal[i].Type == atVar) {
+              if (strArgIn == agGlobal[i].Name) {
+                strArgIn = agGlobal[i].Value;
+                return true;
+              }
+            }
+          } //nexti
+        }
+      } else {
+        //check vocab words only against numbers
+        for (i = 0; i < agGlobalCount; i++) {
+          if (agGlobal[i].Type == atNum) {
+            if (strArgIn == agGlobal[i].Name) {
+              strArgIn = agGlobal[i].Value;
+              return true;
+            }
+          }
+        } //nexti
+      }
+      //check messages, iobjs, and vocab words against global strings
+      if ((ArgType == atMsg) || (ArgType == atIObj) || (ArgType == atVocWrd)) {
+        //check against global defines (string type)
+        for (i = 0; i < agGlobalCount; i++) {
+          if (agGlobal[i].Type == atDefStr) {
+            if (strArgIn == agGlobal[i].Name) {
+              strArgIn = agGlobal[i].Value;
+              return true;
+            }
+          }
+        } //nexti
+      }
+
+      //third, check numbers against list of resource IDs
+      if (ArgType == atNum) {
+        //check against resource IDs
+        for (i = 0; i <= 255; i++) {
+          //if this arg matches one of the resource ids
+          if (strArgIn == strLogID[i]) {
+            strArgIn = i.ToString();
+            //reset VarOrNum flag
+            blnVarOrNum = false;
+            return true;
+          }
+          if (strArgIn == strPicID[i]) {
+            strArgIn = i.ToString();
+            //reset VarOrNum flag
+            blnVarOrNum = false;
+            return true;
+          }
+          if (strArgIn == strSndID[i]) {
+            strArgIn = i.ToString();
+            //reset VarOrNum flag
+            blnVarOrNum = false;
+            return true;
+          }
+          if (strArgIn == strViewID[i]) {
+            strArgIn = i.ToString();
+            //reset VarOrNum flag
+            blnVarOrNum = false;
+            return true;
+          }
+        } //nexti
+      }
+
+      //lastly, if using reserved names,
+      if (agUseRes) {
+        //last of all, check reserved names
+        switch (ArgType) {
+        case atNum:
+          for (i = 0; i <= 4; i++) {
+            if (strArgIn == agEdgeCodes[i].Name) {
+              strArgIn = agEdgeCodes[i].Value;
+              //reset VarOrNum flag
+              blnVarOrNum = false;
+              return true;
+            }
+          }// i
+          for (i = 0; i <= 8; i++) {
+            if (strArgIn == agEgoDir[i].Name) {
+              strArgIn = agEgoDir[i].Value;
+              //reset VarOrNum flag
+              blnVarOrNum = false;
+              return true;
+            }
+          }// i
+          for (i = 0; i <= 4; i++) {
+            if (strArgIn == agVideoMode[i].Name) {
+              strArgIn = agVideoMode[i].Value;
+              //reset VarOrNum flag
+              blnVarOrNum = false;
+              return true;
+            }
+          } // i
+          for (i = 0; i <= 8; i++) {
+            if (strArgIn == agCompType[i].Name) {
+              strArgIn = agCompType[i].Value;
+              //reset VarOrNum flag
+              blnVarOrNum = false;
+              return true;
+            }
+          } // i
+          for (i = 0; i <= 15; i++) {
+            if (strArgIn == agResColor[i].Name) {
+              strArgIn = agResColor[i].Value;
+              //reset VarOrNum flag
+              blnVarOrNum = false;
+              return true;
+            }
+          }// i
+           //check against invobj Count
+          if (strArgIn == agResDef[4].Name) {
+            strArgIn = agResDef[4].Value;
+            //reset VarOrNum flag
+            blnVarOrNum = false;
+            return true;
+          }
+          //if looking for numbers OR variables
+          if (blnVarOrNum) {
+            //check against builtin variables as well
+            for (i = 0; i <= 26; i++) {
+              if (strArgIn == agResVar[i].Name) {
+                strArgIn = agResVar[i].Value;
+                return true;
+              }
+            } // i
+          }
+          break;
+        case atVar:
+          for (i = 0; i <= 26; i++) {
+            if (strArgIn == agResVar[i].Name) {
+              strArgIn = agResVar[i].Value;
+              return true;
+            }
+          }// i
+          break;
+        case atFlag:
+          for (i = 0; i <= 17; i++) {
+            if (strArgIn == agResFlag[i].Name) {
+              strArgIn = agResFlag[i].Value;
+              return true;
+            }
+          }
+          break;
+        case atMsg:
+          for (i = 1; i <= 3; i++) { //for gamever and gameabout and gameid
+            if (strArgIn == agResDef[i].Name) {
+              strArgIn = agResDef[i].Value;
+              return true;
+            }
+          }
+          break;
+        case atSObj:
+          if (strArgIn == agResDef[0].Name) {
+            strArgIn = agResDef[0].Value;
+            return true;
+          }
+          break;
+        case atStr:
+          if (strArgIn == agResDef[5].Name) {
+            strArgIn = agResDef[5].Value;
+            return true;
+          }
+          break;
+        }
+      }
+      // if not validated above, it fails
+      return false;
+    }
+    static internal int VariableValue(string strVar)
+    {
+      //this function will extract the variable number from
+      //an input variable string
+      //the input string should be of the form #, a# or *a#
+      // where a is a valid variable prefix (v, f, s, m, w, c)
+      //and # is 0-255
+      //if the result is invalid, this function returns -1
+      string strVarVal;
+      int intVarVal;
+      //if not numeric
+      if (!IsNumeric(strVar)) {
+        //strip off variable prefix, and indirection
+        //if indirection
+        if (Left(strVar, 1) == "*") {
+          strVarVal = Right(strVar, strVar.Length - 2);
+        } else {
+          strVarVal = Right(strVar, strVar.Length - 1);
+        }
+      } else {
+        //use the input Value
+        strVarVal = strVar;
+      }
+      //if result is a number
+      if (IsNumeric(strVarVal)) {
+        //get number
+        intVarVal = (int)Val(strVarVal);
+        //for word only, subtract one to
+        //account for //1// based word data type
+        //(i.e. w1 is first word, but command uses arg Value of //0//)
+        if (strVar[0] == 119) {
+          intVarVal--;
+        }
+        //verify within bounds  0-255
+        if (intVarVal >= 0 && intVarVal <= 255) {
+          //return this Value
+          return intVarVal;
+        }
+      }
+      //error/invalid - return -1
+      return -1;
+    }
+
     static void tmp_LogCompile()
     {
       /*
         static internal string ArgTypeName(ArgTypeEnum ArgType)
       {
-          switch (ArgType
+          switch (ArgType) {
           case atNum       //i.e. numeric Value
             ArgTypeName = "number"
           case atVar       //v##
@@ -312,9 +858,9 @@ namespace WinAGI
           //if error level is low, don't do anything
           if (agMainLogSettings.ErrorLevel == leLow) {
             return;
-          } //}
+          }
 
-          switch (ArgVal
+          switch (ArgVal) {
           case 2, 4, 7, 8, 9, 10, Is >= 13
             //f2 = haveInput
             //f4 = haveMatch
@@ -337,9 +883,9 @@ namespace WinAGI
           //if error level is low, don't do anything
           if (agMainLogSettings.ErrorLevel == leLow) {
             return;
-          } //}
+          }
 
-          switch (ArgNum
+          switch (ArgNum) {
           case Is >= 27, 21, 15, 7, 3
             //no restrictions for
             //  all non restricted variables (>=27)
@@ -352,36 +898,36 @@ namespace WinAGI
             //should be restricted to values 0-8
             if (ArgVal > 8) {
               AddWarning 5018, Replace(Replace(LoadResString(5018), ARG1, agResVar(6).Name), ARG2, "8")
-            } //}
+            }
 
           case 10 //cycle delay time
             //large values highly unusual
             if (ArgVal > 20) {
               AddWarning 5055
-            } //}
+            }
 
           case 23 //sound attenuation
             //restrict to 0-15
             if (ArgVal > 15) {
               AddWarning 5018, Replace(Replace(LoadResString(5018), ARG1, agResVar(23).Name), ARG2, "15")
-            } //}
+            }
 
           case 24 //max input length
             if (ArgVal > 39) {
               AddWarning 5018, Replace(Replace(LoadResString(5018), ARG1, agResVar(24).Name), ARG2, "39")
-            } //}
+            }
 
           case 17, 18 //error value, and error info
             //resetting to zero is usually a good thing; other values don't make sense
             if (ArgVal > 0) {
               AddWarning 5092, Replace(LoadResString(5092), ARG1, agResVar(ArgNum).Name)
-            } //}
+            }
 
           case 19 //key_pressed value
             //ok if resetting for key input
             if (ArgVal > 0) {
               AddWarning 5017, Replace(LoadResString(5017), ARG1, agResVar(ArgNum).Name)
-            } //}
+            }
 
           default: //all other reserved variables should be read only
             AddWarning 5017, Replace(LoadResString(5017), ARG1, agResVar(ArgNum).Name)
@@ -391,512 +937,6 @@ namespace WinAGI
 
 
 
-        internal bool ConvertArgument(ref string strArgIn, ArgTypeEnum ArgType, ref bool blnVarOrNum = false)
-        {
-      //if input is not a system argument already
-          //(i.e. ##, v##, f##, s##, o##, w##, i##, c##)
-          //this function searches resource IDs, local defines, global defines,
-          //and reserved names for strArgIn; if found
-          //strArgIn is replaced with the Value of the define
-          //optional argtype is used to identify words, messages, and inv objects
-          //to speed up search
-
-          //NOTE: this does NOT validate the numerical Value of arguments;
-          //calling function is responsible to make that check
-          //it also does not concatenate strings
-
-          //to support calls from special syntax compilers, need to be able
-          //to check for numbers AND variables with one check
-          //the blnVarOrNum flag is used to do this; when the flag is
-          //true, number searches also return variables
-
-          int i
-          int intAsc
-
-          On Error GoTo ErrHandler
-
-          //check if already in correct format
-          switch (ArgType
-          case atNum  //numeric only
-            if (IsNumeric(strArgIn)) {
-              ConvertArgument = true
-              //reset VarOrNum flag
-              blnVarOrNum = false
-              return;
-            } //}
-            //unless looking for var or num
-            if (blnVarOrNum) {
-              //then //v##// is ok
-              if ((AscW(strArgIn) || 32) == 118) {
-                if (VariableValue(strArgIn) != -1) {
-                  ConvertArgument = true
-                  return;
-                } //}
-              } //}
-            } //}
-
-          case atVar
-            //if first char matches
-            if ((AscW(strArgIn) || 32) == 118) {
-              //if this arg returns a valid Value
-              if (VariableValue(strArgIn) != -1) {
-                //ok
-                ConvertArgument = true
-                return;
-              } //}
-            } //}
-
-          case atFlag
-            //if first char matches
-            if ((AscW(strArgIn) || 32) == 102) {
-              //if this arg returns a valid Value
-              if (VariableValue(strArgIn) != -1) {
-                //ok
-                ConvertArgument = true
-                return;
-              } //}
-            } //}
-
-          case atCtrl
-            //if first char matches
-            if ((AscW(strArgIn) || 32) == 99) {
-              //if this arg returns a valid Value
-              if (VariableValue(strArgIn) != -1) {
-                //ok
-                ConvertArgument = true
-                return;
-              } //}
-            } //}
-
-          case atSObj
-            //if first char matches
-            if ((AscW(strArgIn) || 32) == 111) {
-              //if this arg returns a valid Value
-              if (VariableValue(strArgIn) != -1) {
-                //ok
-                ConvertArgument = true
-                return;
-              } //}
-            } //}
-
-          case atStr
-            //if first char matches
-            if ((AscW(strArgIn) || 32) == 115) {
-              //if this arg returns a valid Value
-              if (VariableValue(strArgIn) != -1) {
-                //ok
-                ConvertArgument = true
-                return;
-              } //}
-            } //}
-
-          case atWord //NOTE: this is NOT vocab word; this is word arg type (used in command word.to.string)
-            //if first char matches
-            if ((AscW(strArgIn) || 32) == 119) {
-              //if this arg returns a valid Value
-              if (VariableValue(strArgIn) != -1) {
-                //ok
-                ConvertArgument = true
-                return;
-              } //}
-            } //}
-
-          case atMsg
-            //if first char matches, or is a quote
-            intAsc = AscW(strArgIn)
-            switch (intAsc
-            case 77, 109
-              //if this arg returns a valid Value
-              if (VariableValue(strArgIn) != -1) {
-                //ok
-                ConvertArgument = true
-                return;
-              } //}
-            case 34
-              //strings are always ok
-              ConvertArgument = true
-              return;
-            } 
-
-          case atIObj
-            //if first char matches, or is a quote
-            intAsc = AscW(strArgIn)
-            switch (intAsc
-            case 73, 105
-              //if this arg returns a valid Value
-              if (VariableValue(strArgIn) != -1) {
-                //ok
-                ConvertArgument = true
-                return;
-              } //}
-            case 34
-              //strings are always ok
-              ConvertArgument = true
-              return;
-            } 
-
-          case atVocWrd
-            //can be number or string in quotes
-            if (IsNumeric(strArgIn) || AscW(strArgIn) == 34) {
-              //ok
-              ConvertArgument = true
-              return;
-            } //}
-          } 
-
-          //arg is not in correct format; must be reserved name, global or local define, or an error
-
-          //first, check against local defines
-          For i = 0 To lngDefineCount - 1
-            if (strArgIn == tdDefines(i).Name) {
-              //match found; check that Value is correct type
-              switch (ArgType
-              case atNum
-                //check for number
-                if (IsNumeric(tdDefines(i).Value)) {
-                  //reset VarOrNum flag
-                  blnVarOrNum = false
-                  ConvertArgument = true
-                  strArgIn = tdDefines(i).Value
-                  return;
-                } //}
-
-                //if checking for variables
-                if (blnVarOrNum) {
-                  if ((AscW(tdDefines(i).Value) || 32) == 118) {
-                    //if this define returns a valid Value
-                    if (VariableValue(tdDefines(i).Value) != -1) {
-                      //ok
-                      strArgIn = tdDefines(i).Value
-                      ConvertArgument = true
-                    } //}
-                  } //}
-                } //}
-
-              case atVar
-                //v## only
-                if ((AscW(tdDefines(i).Value) || 32) == 118) {
-                  //if this define returns a valid Value
-                  if (VariableValue(tdDefines(i).Value) != -1) {
-                    //ok
-                    strArgIn = tdDefines(i).Value
-                    ConvertArgument = true
-                  } //}
-                } //}
-
-              case atFlag
-                //f## only
-                if ((AscW(tdDefines(i).Value) || 32) == 102) {
-                  //if this define returns a valid Value
-                  if (VariableValue(tdDefines(i).Value) != -1) {
-                    //ok
-                    strArgIn = tdDefines(i).Value
-                    ConvertArgument = true
-                  } //}
-                } //}
-
-              case atMsg
-                //m## or a string
-                intAsc = AscW(tdDefines(i).Value)
-                switch (intAsc
-                case 77, 109
-                  //if this define returns a valid Value
-                  if (VariableValue(tdDefines(i).Value) != -1) {
-                    //ok
-                    strArgIn = tdDefines(i).Value
-                    ConvertArgument = true
-                  } //}
-
-                case 34
-                  strArgIn = tdDefines(i).Value
-                  ConvertArgument = true
-                } 
-
-              case atSObj
-                //o## only
-                if (AscW(tdDefines(i).Value) == 111) {
-                  //if this define returns a valid Value
-                  if (VariableValue(tdDefines(i).Value) != -1) {
-                    //ok
-                    strArgIn = tdDefines(i).Value
-                    ConvertArgument = true
-                  } //}
-                } //}
-
-              case atIObj
-                //i## or a string
-                intAsc = AscW(tdDefines(i).Value)
-                switch (intAsc
-                case 73, 105
-                  //if this define returns a valid Value
-                  if (VariableValue(tdDefines(i).Value) != -1) {
-                    //ok
-                    strArgIn = tdDefines(i).Value
-                    ConvertArgument = true
-                  } //}
-                case 34
-                  strArgIn = tdDefines(i).Value
-                  ConvertArgument = true
-                } 
-
-              case atStr
-                //s## only
-                if ((AscW(tdDefines(i).Value) || 32) == 115) {
-                  //if this define returns a valid Value
-                  if (VariableValue(tdDefines(i).Value) != -1) {
-                    //ok
-                    strArgIn = tdDefines(i).Value
-                    ConvertArgument = true
-                  } //}
-                } //}
-
-              case atWord
-                //w## only
-                if ((AscW(tdDefines(i).Value) || 32) == 119) {
-                  //if this define returns a valid Value
-                  if (VariableValue(tdDefines(i).Value) != -1) {
-                    //ok
-                    strArgIn = tdDefines(i).Value
-                    ConvertArgument = true
-                  } //}
-                } //}
-
-              case atCtrl
-                //c## only
-                if ((AscW(tdDefines(i).Value) || 32) == 99) {
-                  //if this define returns a valid Value
-                  if (VariableValue(tdDefines(i).Value) != -1) {
-                    //ok
-                    strArgIn = tdDefines(i).Value
-                    ConvertArgument = true
-                  } //}
-                } //}
-
-              case atVocWrd
-                //numeric or string only
-                if (IsNumeric(tdDefines(i).Value)) {
-                  strArgIn = tdDefines(i).Value
-                  ConvertArgument = true
-                } else if ( AscW(tdDefines(i).Value) == 34) {
-                  strArgIn = tdDefines(i).Value
-                  ConvertArgument = true
-                } //}
-
-              case atDefStr
-                //call to ConvertArgument is never made with type of atDefStr
-              } 
-              //exit, regardless of result
-              return;
-            } //}
-          Next i
-
-          //second, check against global defines
-          //for any type except vocab words
-          if (ArgType != atVocWrd) {
-            //check against this type of global defines
-            For i = 0 To agGlobalCount - 1
-              if (agGlobal(i).Type == ArgType) {
-                if (strArgIn == agGlobal(i).Name) {
-                  strArgIn = agGlobal(i).Value
-                  //reset VarOrNum flag
-                  blnVarOrNum = false
-                  ConvertArgument = true
-                  return;
-                } //}
-              } //}
-            Next i
-            //if checking var or num
-            if (blnVarOrNum) {
-              //numbers were checked; need to check variables
-              For i = 0 To agGlobalCount - 1
-                if (agGlobal(i).Type == atVar) {
-                  if (strArgIn == agGlobal(i).Name) {
-                    strArgIn = agGlobal(i).Value
-                    ConvertArgument = true
-                    return;
-                  } //}
-                } //}
-              Next i
-            } //}
-          } else {
-            //check vocab words only against numbers
-            For i = 0 To agGlobalCount - 1
-              if (agGlobal(i).Type == atNum) {
-                if (strArgIn == agGlobal(i).Name) {
-                  strArgIn = agGlobal(i).Value
-                  ConvertArgument = true
-                  return;
-                } //}
-              } //}
-            Next i
-          } //}
-
-          //check messages, iobjs, and vocab words against global strings
-          if ((ArgType == atMsg) || (ArgType == atIObj) || (ArgType == atVocWrd)) {
-            //check against global defines (string type)
-            For i = 0 To agGlobalCount - 1
-              if (agGlobal(i).Type == atDefStr) {
-                if (strArgIn == agGlobal(i).Name) {
-                  strArgIn = agGlobal(i).Value
-                  ConvertArgument = true
-                  return;
-                } //}
-              } //}
-            Next i
-          } //}
-
-          //third, check numbers against list of resource IDs
-          if (ArgType == atNum) {
-            //check against resource IDs
-            For i = 0 To 255
-              //if this arg matches one of the resource ids
-              if (strArgIn == strLogID(i)) {
-                strArgIn = CStr(i)
-                //reset VarOrNum flag
-                blnVarOrNum = false
-                ConvertArgument = true
-                return;
-              } //}
-              if (strArgIn == strPicID(i)) {
-                strArgIn = CStr(i)
-                //reset VarOrNum flag
-                blnVarOrNum = false
-                ConvertArgument = true
-                return;
-              } //}
-              if (strArgIn == strSndID(i)) {
-                strArgIn = CStr(i)
-                //reset VarOrNum flag
-                blnVarOrNum = false
-                ConvertArgument = true
-                return;
-              } //}
-              if (strArgIn == strViewID(i)) {
-                strArgIn = CStr(i)
-                //reset VarOrNum flag
-                blnVarOrNum = false
-                ConvertArgument = true
-                return;
-              } //}
-            Next i
-          } //}
-
-          //lastly, if using reserved names,
-          if (agUseRes) {
-            //last of all, check reserved names
-            switch (ArgType
-            case atNum
-              For i = 0 To 4
-                if (strArgIn == agEdgeCodes(i).Name) {
-                  strArgIn = agEdgeCodes(i).Value
-                  //reset VarOrNum flag
-                  blnVarOrNum = false
-                  ConvertArgument = true
-                  return;
-                } //}
-              Next i
-              For i = 0 To 8
-                if (strArgIn == agEgoDir(i).Name) {
-                  strArgIn = agEgoDir(i).Value
-                  //reset VarOrNum flag
-                  blnVarOrNum = false
-                  ConvertArgument = true
-                  return;
-                } //}
-              Next i
-              For i = 0 To 4
-                if (strArgIn == agVideoMode(i).Name) {
-                  strArgIn = agVideoMode(i).Value
-                  //reset VarOrNum flag
-                  blnVarOrNum = false
-                  ConvertArgument = true
-                  return;
-                } //}
-              Next i
-              For i = 0 To 8
-                if (strArgIn == agCompType(i).Name) {
-                  strArgIn = agCompType(i).Value
-                  //reset VarOrNum flag
-                  blnVarOrNum = false
-                  ConvertArgument = true
-                  return;
-                } //}
-              Next i
-              For i = 0 To 15
-                if (strArgIn == agResColor(i).Name) {
-                  strArgIn = agResColor(i).Value
-                  //reset VarOrNum flag
-                  blnVarOrNum = false
-                  ConvertArgument = true
-                  return;
-                } //}
-              Next i
-              //check against invobj Count
-              if (strArgIn == agResDef(4).Name) {
-                strArgIn = agResDef(4).Value
-                //reset VarOrNum flag
-                blnVarOrNum = false
-                ConvertArgument = true
-                return;
-              } //}
-
-              //if looking for numbers OR variables
-              if (blnVarOrNum) {
-                //check against builtin variables as well
-                For i = 0 To 26
-                  if (strArgIn == agResVar(i).Name) {
-                    strArgIn = agResVar(i).Value
-                    ConvertArgument = true
-                    return;
-                  } //}
-                Next i
-              } //}
-
-            case atVar
-               For i = 0 To 26
-                if (strArgIn == agResVar(i).Name) {
-                  strArgIn = agResVar(i).Value
-                  ConvertArgument = true
-                  return;
-                } //}
-              Next i
-
-            case atFlag
-               For i = 0 To 17
-                if (strArgIn == agResFlag(i).Name) {
-                  strArgIn = agResFlag(i).Value
-                  ConvertArgument = true
-                  return;
-                } //}
-              Next i
-            case atMsg
-              For i = 1 To 3 //for gamever and gameabout and gameid
-                if (strArgIn == agResDef(i).Name) {
-                  strArgIn = agResDef(i).Value
-                  ConvertArgument = true
-                  return;
-                } //}
-              Next i
-            case atSObj
-              if (strArgIn == agResDef(0).Name) {
-                strArgIn = agResDef(0).Value
-                ConvertArgument = true
-                return;
-              } //}
-            case atStr
-              if (strArgIn == agResDef(5).Name) {
-                strArgIn = agResDef(5).Value
-                ConvertArgument = true
-                return;
-              } //}
-            } 
-          } //}
-
-          //if not found or error, return false
-        ErrHandler:
-
-          //just exit
-        } //endfunction
         static internal int GetNextArg(ArgTypeEnum ArgType, int ArgPos, ref bool blnVarOrNum = false)
         {
       //this function retrieves the next argument and validates
@@ -933,11 +973,11 @@ namespace WinAGI
             } else {
               //use 1-base arg values
               strErrMsg = Replace(Replace(Replace(LoadResString(4063), ARG1, CStr(ArgPos + 1)), ARG2, ArgTypeName(ArgType)), ARG3, strArg)
-            } //}
+            }
             return;
-          } //}
+          }
 
-          switch (ArgType
+          switch (ArgType) {
           case atNum  //number
             //verify type is number
             if (!IsNumeric(strArg)) {
@@ -946,11 +986,11 @@ namespace WinAGI
                 blnError = true
                 strErrMsg = Replace(LoadResString(4062), ARG1, CStr(ArgPos))
                 return;
-              } //}
+              }
             } else {
               //return //is NOT a variable//; ensure flag is reset
               blnVarOrNum = false
-            } //}
+            }
             //check for negative number
             if (Val(strArg) < 0) {
               //valid negative numbers are -1 to -128
@@ -959,18 +999,18 @@ namespace WinAGI
                 blnError = true
                 strErrMsg = LoadResString(4157)
                 return;
-              } //}
+              }
               //convert it to 2s-compliment unsigned value by adding it to 256
               strArg = CStr(256 + Val(strArg))
               //Debug.Assert Val(strArg) >= 128 && Val(strArg) <= 255
 
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 //show warning
                 AddWarning 5098
               } 
 
-            } //}
+            }
             //convert to number and validate
             lngArg = VariableValue(strArg)
             if (lngArg == -1) {
@@ -978,7 +1018,7 @@ namespace WinAGI
               //use 1-based arg values
               strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
               return;
-            } //}
+            }
 
           case atVar, atFlag  //variable, flag
             //get Value
@@ -988,7 +1028,7 @@ namespace WinAGI
               //use 1-based arg values
               strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
               return;
-            } //}
+            }
 
           case atCtrl    //controller
             //controllers should be  0 - 49
@@ -1003,12 +1043,12 @@ namespace WinAGI
               } else {
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-              } //}
+              }
               return;
             } else {
               //if outside expected bounds (controllers should be limited to 0-49)
               if (lngArg > 49) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   //generate error
                   blnError = true
@@ -1020,8 +1060,8 @@ namespace WinAGI
                   //generate warning
                   AddWarning 5060
                 } 
-              } //}
-            } //}
+              }
+            }
 
           case atSObj //screen object
             //get Value
@@ -1031,11 +1071,11 @@ namespace WinAGI
               //use 1-based arg values
               strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
               return;
-            } //}
+            }
 
             //check against max screen object Value
             if (lngArg > agInvObj.MaxScreenObjects) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 //generate error
                 blnError = true
@@ -1046,7 +1086,7 @@ namespace WinAGI
                 //generate warning
                 AddWarning 5006, Replace(LoadResString(5006), ARG1, CStr(agInvObj.MaxScreenObjects))
               } 
-            } //}
+            }
 
           case atStr //string
             //get Value
@@ -1056,7 +1096,7 @@ namespace WinAGI
               //if high errlevel
               if (agMainLogSettings.ErrorLevel == leHigh) {
                 //for version 2.089, 2.272, and 3.002149 only 12 strings
-                switch (agIntVersion
+                switch (agIntVersion) {
                 case "2.089", "2.272", "3.002149"
                   //use 1-based arg values
                   strErrMsg = Replace(Replace(LoadResString(4079), ARG1, CStr(ArgPos + 1)), ARG2, "11")
@@ -1067,17 +1107,17 @@ namespace WinAGI
               } else {
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-              } //}
+              }
               return;
             } else {
               //if outside expected bounds (strings should be limited to 0-23)
               if ((lngArg > 23) || (lngArg > 11 && (agIntVersion == "2.089" || agIntVersion == "2.272" || agIntVersion == "3.002149"))) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   //generate error
                   blnError = true
                   //for version 2.089, 2.272, and 3.002149 only 12 strings
-                  switch (agIntVersion
+                  switch (agIntVersion) {
                   case "2.089", "2.272", "3.002149"
                     //use 1-based arg values
                     strErrMsg = Replace(Replace(LoadResString(4079), ARG1, CStr(ArgPos + 1)), ARG2, "11")
@@ -1089,15 +1129,15 @@ namespace WinAGI
                 case leMedium
                  //generate warning
                  //for version 2.089, 2.272, and 3.002149 only 12 strings
-                  switch (agIntVersion
+                  switch (agIntVersion) {
                   case "2.089", "2.272", "3.002149"
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "11")
                   default:
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "23")
                   } 
                 } 
-              } //}
-            } //}
+              }
+            }
 
           case atWord //word  (word type is NOT words from word.tok)
             //get Value
@@ -1110,12 +1150,12 @@ namespace WinAGI
                 strErrMsg = Replace(LoadResString(4090), ARG1, CStr(ArgPos + 1))
               } else {
                 strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
-              } //}
+              }
               return;
             } else {
               //if outside expected bounds (words should be limited to 0-9)
               if (lngArg > 9) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   //generate error
                   blnError = true
@@ -1127,12 +1167,12 @@ namespace WinAGI
                   //generate warning
                   AddWarning 5008
                 } 
-              } //}
-            } //}
+              }
+            }
 
           case atMsg  //message
             //returned arg is either m## or "msg"
-            switch (AscW(strArg)
+            switch (AscW(strArg)) {
             case 109
               //validate Value
               lngArg = VariableValue(strArg)
@@ -1141,10 +1181,10 @@ namespace WinAGI
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
                 return;
-              } //}
+              }
               //m0 is not allowed
               if (lngArg == 0) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   blnError = true
                   strErrMsg = LoadResString(4107)
@@ -1158,11 +1198,11 @@ namespace WinAGI
                 case leLow
                   //ignore; it will be handled when writing messages
                 } 
-              } //}
+              }
 
               //verify msg exists
               if (!blnMsg(lngArg)) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   blnError = true
                   strErrMsg = Replace(LoadResString(4113), ARG1, CStr(lngArg))
@@ -1176,14 +1216,14 @@ namespace WinAGI
                 case leLow
                   //ignore; WinAGI adds a null value, so no error will occur
                 } 
-              } //}
+              }
             case 34
               //concatenate, if applicable
               strArg = ConcatArg(strArg)
               if (blnError) {
                 //concatenation error; exit
                 return;
-              } //}
+              }
 
               //strip off quotes
               strArg = Mid(strArg, 2, Len(strArg) - 2)
@@ -1194,14 +1234,14 @@ namespace WinAGI
               if (lngArg == -1) {
                 blnError = true
                 return;
-              } //}
+              }
 
               //if valid number not found
               if (lngArg == 0) {
                 blnError = true
                 strErrMsg = LoadResString(4092)
                 return;
-              } //}
+              }
 
             } 
 
@@ -1212,7 +1252,7 @@ namespace WinAGI
             //also, if any code tries to access an object by //?//, return error
 
             //if character is inv obj arg type prefix
-            switch (AscW(strArg)
+            switch (AscW(strArg)) {
             case 105
               //validate Value
               lngArg = VariableValue(strArg)
@@ -1221,7 +1261,7 @@ namespace WinAGI
                 //use 1-based arg values
                 strErrMsg = Replace(LoadResString(4066), ARG1, CStr(ArgPos + 1))
                 return;
-              } //}
+              }
 
             case 34
               //concatenate, if applicable
@@ -1229,7 +1269,7 @@ namespace WinAGI
               if (blnError) {
                 //concatenation error
                 return;
-              } //}
+              }
 
               //convert to inv obj number
               //first strip off starting and ending quotes
@@ -1247,7 +1287,7 @@ namespace WinAGI
                   //return this Value
                   lngArg = Cbyte(i)
                   Exit For
-                } //}
+                }
               Next i
 
               //if not found,
@@ -1262,13 +1302,13 @@ namespace WinAGI
                 } else {
                   //use 1-base arg values
                   strErrMsg = Replace(LoadResString(4075), ARG1, CStr(ArgPos + 1))
-                } //}
+                }
                 return;
-              } //}
+              }
 
               //if object is not unique
               if (!agInvObj(lngArg).Unique) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   blnError = true
                   //use 1-based arg values
@@ -1280,13 +1320,13 @@ namespace WinAGI
                 case leLow
                   //no action
                 } 
-              } //}
+              }
             } 
 
             //if object number exceeds current object Count,
             //if (lngArg >= agInvObj.Count) {
             if (lngArg > agResDef(4).Value) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 blnError = true
                 //use 1-based arg values
@@ -1302,7 +1342,7 @@ namespace WinAGI
             } else {
               //if object is a question mark, raise error/warning
               if (agInvObj(lngArg).ItemName == "?") {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   blnError = true
                   //use 1-based arg values
@@ -1314,8 +1354,8 @@ namespace WinAGI
                 case leLow
                   //no action
                 } 
-              } //}
-            } //}
+              }
+            }
 
           case atVocWrd
             //words can be ## or "word"
@@ -1328,14 +1368,14 @@ namespace WinAGI
               } else {
                 //validate the group
                 blnError = !agVocabWords.GroupExists(lngArg)
-              } //}
+              }
             } else {
               //this is a string; concatenate if applicable
               strArg = ConcatArg(strArg)
               if (blnError) {
                 //concatenation error
                 return;
-              } //}
+              }
 
               //convert to word number
               //first strip off starting and ending quotes
@@ -1351,7 +1391,7 @@ namespace WinAGI
                 if (strArg == "i" || strArg == "a" || strArg == "I" || strArg == "A") {
                   lngArg = 0
                   //add warning
-                  switch (agMainLogSettings.ErrorLevel
+                  if (agiMainLogSettings.ErrorLevel == ) {
                   case leHigh, leMedium
                     AddWarning 5108, Replace(LoadResString(5108), ARG1, strArg)
                   } 
@@ -1360,9 +1400,9 @@ namespace WinAGI
                   blnError = true
                   //set arg to invalid number
                   lngArg = -1
-                } //}
-              } //}
-            } //}
+                }
+              }
+            }
 
             //now lngArg is a valid group number, unless blnError is set
 
@@ -1378,13 +1418,13 @@ namespace WinAGI
                   //set warning
                   AddWarning 5019, Replace(LoadResString(5019), ARG1, strArg)
                   blnError = false
-                } //}
-              } //}
-            } //}
+                }
+              }
+            }
 
             //check for group 0
             if (lngArg == 0) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4035), ARG1, strArg)
                 return;
@@ -1392,7 +1432,7 @@ namespace WinAGI
                 AddWarning 5083, Replace(LoadResString(5083), ARG1, strArg)
               case leLow
               } 
-            } //}
+            }
 
           } 
 
@@ -1418,13 +1458,13 @@ namespace WinAGI
           if (lngLine == -1) {
             //just exit
             return;
-          } //}
+          }
 
           //if compiler is reset
           if (lngLine == -2) {
             //set it to -1 so line 0 is returned
             lngLine = -1
-          } //}
+          }
 
           //increment line counter
           lngLine = lngLine + 1
@@ -1433,7 +1473,7 @@ namespace WinAGI
           if (lngLine == stlInput.Count) {
             lngLine = -1
             return;
-          } //}
+          }
           //check for include lines
           if (Left(stlInput(lngLine), 2) == "#I") {
             lngIncludeOffset = lngIncludeOffset + 1
@@ -1449,7 +1489,7 @@ namespace WinAGI
             lngErrLine = lngLine - lngIncludeOffset
             //set string
             strCurrentLine = stlInput(lngLine)
-          } //}
+          }
 
         } //endsub
         static internal string NextChar(bool blnNoNewLine = false)
@@ -1469,7 +1509,7 @@ namespace WinAGI
             //just exit
             NextChar = ""
             return;
-          } //}
+          }
 
           Do
             //first, increment position
@@ -1483,7 +1523,7 @@ namespace WinAGI
                 //return empty string
                 NextChar = ""
                 return;
-              } //}
+              }
 
               //get the next line
               IncrementLine
@@ -1491,24 +1531,24 @@ namespace WinAGI
               if (lngLine == -1) {
                 //exit with no character
                 return;
-              } //}
+              }
               //increment pointer(so it points to first character of line)
               lngPos = lngPos + 1
-            } //}
+            }
 
             NextChar = Mid(strCurrentLine, lngPos, 1)
 
             //only characters <32 that we need to use are return, and linefeed
             if (Len(NextChar) > 0) {
               if (Asc(NextChar) < 32) {
-                switch (Asc(NextChar)
+                switch (Asc(NextChar)) {
                 case 10, 13 //treat as returns?
                   NextChar = vbCr
                 default:
                   NextChar = " "
                 } 
-              } //}
-            } //}
+              }
+            }
           Loop Until NextChar != " " && LenB(NextChar) != 0
         return;
 
@@ -1525,7 +1565,7 @@ namespace WinAGI
             throw new Exception("lngError, strErrSrc, strError
           } else {
             throw new Exception("656, strErrSrc, Replace(LoadResString(656), ARG1, CStr(lngError) + ":" + strError)
-          } //}
+          }
         } //endfunction
         static internal string NextCommand(bool blnNoNewLine = false)
         {
@@ -1562,22 +1602,22 @@ namespace WinAGI
             //return empty string
             NextCommand = ""
             return;
-          } //}
+          }
           //if no character returned
           if (LenB(NextCommand) == 0) {
             return;
-          } //}
+          }
 
           On Error GoTo ErrHandler
 
           //if command is a element separator:
-          switch (AscW(NextCommand)
+          switch (AscW(NextCommand)) {
           case 39, 40, 41, 44, 58, 59, 63, 91, 92, 93, 94, 96, 123, 125, 126 //  //(),:;?[\]^`{}~
             //return this single character as a command
             return;
           case 61 //=
             //special case; "=", "=<" and "=>" returned as separate commands
-            switch (Mid(strCurrentLine, lngPos + 1, 1)
+            switch (Mid(strCurrentLine, lngPos + 1, 1)) {
             case "<", ">"
               //increment pointer
               lngPos = lngPos + 1
@@ -1606,7 +1646,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return shorthand addition
               NextCommand = "+="
-            } //}
+            }
             return;
           case 45 //-
             //special case; "-", "--" and "-=" returned as separate commands
@@ -1635,9 +1675,9 @@ namespace WinAGI
                   NextCommand = NextCommand + ChrW$(intChar)
                   //incrmeent position
                   lngPos = lngPos + 1
-                } //}
+                }
               Loop
-            } //}
+            }
             return;
           case 33 //!
             //special case; "!" and "!=" returned as separate commands
@@ -1646,7 +1686,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return not equal
               NextCommand = "!="
-            } //}
+            }
             return;
           case 60 //<
             //special case; "<", "<=" and "<>" returned as separate commands
@@ -1660,7 +1700,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return not equal
               NextCommand = "<>"
-            } //}
+            }
             return;
           case 62 //>
             //special case; ">", ">=" and "><" returned as separate commands
@@ -1674,7 +1714,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return not equal (//><// is same as //<>//)
               NextCommand = "<>"
-            } //}
+            }
             return;
           case 42 //*
             //special case; "*" and "*=" returned as separate commands;
@@ -1688,7 +1728,7 @@ namespace WinAGI
             } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "/") {
               lngPos = lngPos + 1
               NextCommand = "* /"
-            } //}
+            }
             return;
           case 47 ///
             //special case; "/" , "//" and "/=" returned as separate commands
@@ -1704,7 +1744,7 @@ namespace WinAGI
             } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "*") {
               lngPos = lngPos + 1
               NextCommand = "/*"
-            } //}
+            }
             return;
           case 124 //|
             //special case; "|" and "||" returned as separate commands
@@ -1713,7 +1753,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return double //|//
               NextCommand = "||"
-            } //}
+            }
             return;
           case 38 //&
             //special case; "&" and "&&" returned as separate commands
@@ -1722,7 +1762,7 @@ namespace WinAGI
               lngPos = lngPos + 1
               //return double //&//
               NextCommand = "&&"
-            } //}
+            }
             return;
           } 
 
@@ -1731,7 +1771,7 @@ namespace WinAGI
             //continue adding characters until element separator or EOL is reached
             Do Until lngPos + 1 > Len(strCurrentLine)
               intChar = AscW(Mid(strCurrentLine, lngPos + 1, 1))
-              switch (intChar
+              switch (intChar) {
               case 32, 33, 34, 38 To 45, 47, 58 To 63, 91 To 94, 96, 123 To 126
                 //  space, !"&//() *+,-/:;<=>?[\]^`{|}~
                 //end of command text found;
@@ -1750,7 +1790,7 @@ namespace WinAGI
             if (lngPos + 1 > Len(strCurrentLine)) {
               //return the single quote
               return;
-            } //}
+            }
 
             //add characters until another TRUE quote is found
             Do
@@ -1768,14 +1808,14 @@ namespace WinAGI
                 blnSlash = false
               } else {
                 //regular char; check for slash or quote mark
-                switch (intChar
+                switch (intChar) {
                 case 34 //quote mark
                   //a quote marks end of string
                   blnInQuotes = false
                 case 92 //slash
                   blnSlash = true
                 } 
-              } //}
+              }
 
               NextCommand = NextCommand + ChrW$(intChar)
 
@@ -1787,10 +1827,10 @@ namespace WinAGI
                   //the compiler will have to recognize that
                   //this text string is not properly enclosed in quotes
                   blnInQuotes = false
-                } //}
-              } //}
+                }
+              }
             Loop While blnInQuotes
-          } //}
+          }
         return;
 
         ErrHandler:
@@ -1805,7 +1845,7 @@ namespace WinAGI
             throw new Exception("lngError, strErrSrc, strError
           } else {
             throw new Exception("657, strErrSrc, Replace(LoadResString(657), ARG1, CStr(lngError) + ":" + strError)
-          } //}
+          }
         } //endfunction
         static internal bool CompileIf()
         {
@@ -1866,7 +1906,7 @@ namespace WinAGI
             blnError = true
             strErrMsg = LoadResString(4002)
             return;
-          } //}
+          }
 
           //now, step through input, until final //)//// is found:
           Do
@@ -1877,18 +1917,18 @@ namespace WinAGI
               blnError = true
               strErrMsg = LoadResString(4106)
               return;
-            } //}
+            }
 
             //if awaiting a test command,
             if (blnNeedNextCmd) {
-              switch (strTestCmd
+              switch (strTestCmd) {
               case "(" //open paran
                 //if already in a block
                 if (blnIfBlock) {
                   blnError = true
                   strErrMsg = LoadResString(4045)
                   return;
-                } //}
+                }
                 //write //or// block start
                 tmpLogRes.Writebyte 0xFC
                 blnIfBlock = true
@@ -1901,7 +1941,7 @@ namespace WinAGI
                   strErrMsg = LoadResString(4044)
                 } else {
                   strErrMsg = LoadResString(4056)
-                } //}
+                }
                 blnError = true
                 return;
               default:
@@ -1916,8 +1956,8 @@ namespace WinAGI
                     blnError = true
                     strErrMsg = LoadResString(4106)
                     return;
-                  } //}
-                } //}
+                  }
+                }
                 bytTestCmd = CommandNum(true, strTestCmd)
                 //if command not found,
                 if (bytTestCmd == 255) {
@@ -1927,7 +1967,7 @@ namespace WinAGI
                     //sets the error codes, and CompileLogic will
                     //call the error handler
                     return;
-                  } //}
+                  }
                 } else {
                   //write the test command code
                   tmpLogRes.Writebyte bytTestCmd
@@ -1936,18 +1976,18 @@ namespace WinAGI
                     blnError = true
                     strErrMsg = LoadResString(4048)
                     return;
-                  } //}
+                  }
 
                   //check for return.false() command
                   if (bytTestCmd == 0) {
                     //warn user that it//s not compatible with AGI Studio
-                    switch (agMainLogSettings.ErrorLevel
+                    if (agiMainLogSettings.ErrorLevel == ) {
                     case leHigh, leMedium
                       //generate warning
                       AddWarning 5081
                     case leLow
                     } 
-                  } //}
+                  }
 
                   //if said command
                   if (bytTestCmd == 0xE) {
@@ -1964,10 +2004,10 @@ namespace WinAGI
                       if (Val(strErrMsg) == 4054) {
                         // add command name to error string
                         strErrMsg = Replace(strErrMsg, ARG2, agTestCmds(bytTestCmd).Name)
-                      } //}
+                      }
                       //exit
                       return;
-                    } //}
+                    }
 
                     //loop to add this word, and any more
                     Do
@@ -1980,13 +2020,13 @@ namespace WinAGI
                         blnError = true
                         strErrMsg = LoadResString(4093)
                         return;
-                      } //}
+                      }
 
                       //get next character
                       //(should be a comma, or close parenthesis, if no more words)
                       strArg = NextChar()
                       if (LenB(strArg) != 0) {
-                        switch (AscW(strArg)
+                        switch (AscW(strArg)) {
                         case 41 //)//
                           //move pointer back one space so
                           //the //)// will be found at end of command
@@ -2004,9 +2044,9 @@ namespace WinAGI
                             if (Val(strErrMsg) == 4054) {
                               // add command name to error string
                               strErrMsg = Replace(strErrMsg, ARG2, agTestCmds(bytTestCmd).Name)
-                            } //}
+                            }
                             return;
-                          } //}
+                          }
 
 
                         default:
@@ -2022,7 +2062,7 @@ namespace WinAGI
                           } else {
                             //use 1-base arg values
                             strErrMsg = Replace(LoadResString(4047), ARG1, CStr(intWordCount + 1))
-                          } //}
+                          }
                           return;
                         } 
                       } else {
@@ -2043,9 +2083,9 @@ namespace WinAGI
                         } else {
                           //use 1-base arg values
                           strErrMsg = Replace(LoadResString(4047), ARG1, CStr(intWordCount + 1))
-                        } //}
+                        }
                         return;
-                      } //}
+                      }
                     Loop While true
 
                     //reset the quotemark error flag after //)// is found
@@ -2073,8 +2113,8 @@ namespace WinAGI
                           //use 1-base arg values
                           strErrMsg = Replace(LoadResString(4047), ARG1, CStr(i + 1))
                           return;
-                        } //}
-                      } //}
+                        }
+                      }
 
                       //reset the quotemark error flag after comma is found
                       lngQuoteAdded = -1
@@ -2085,19 +2125,19 @@ namespace WinAGI
                         if (Val(strErrMsg) == 4054) {
                           // add command name to error string
                           strErrMsg = Replace(strErrMsg, ARG2, agTestCmds(bytTestCmd).Name)
-                        } //}
+                        }
                         return;
-                      } //}
+                      }
                       //write argument
                       tmpLogRes.Writebyte bytArg(i)
                     Next i
-                  } //}
+                  }
                   //next character should be ")"
                   if (NextChar() != ")") {
                     blnError = true
                     strErrMsg = LoadResString(4160)
                     return;
-                  } //}
+                  }
                   //reset the quotemark error flag
                   lngQuoteAdded = -1
 
@@ -2105,20 +2145,20 @@ namespace WinAGI
                   if (!ValidateIfArgs(bytTestCmd, bytArg())) {
                     //error assigned by called function
                     return;
-                  } //}
-                } //}
+                  }
+                }
 
                 //command added
                 intNumTestCmds = intNumTestCmds + 1
                 //if in IF block,
                 if (blnIfBlock) {
                   intNumCmdsInBlock = intNumCmdsInBlock + 1
-                } //}
+                }
                 //toggle off need for test command
                 blnNeedNextCmd = false
               } 
             } else { //not awaiting a test command
-              switch (strTestCmd
+              switch (strTestCmd) {
               case NOT_TOKEN
                 //invalid
                 blnError = true
@@ -2130,7 +2170,7 @@ namespace WinAGI
                   blnError = true
                   strErrMsg = LoadResString(4037)
                   return;
-                } //}
+                }
                 blnNeedNextCmd = true
               case OR_TOKEN
                 //if NOT inside brackets
@@ -2138,7 +2178,7 @@ namespace WinAGI
                   blnError = true
                   strErrMsg = LoadResString(4100)
                   return;
-                } //}
+                }
                 blnNeedNextCmd = true
               case ")"
                 //if inside brackets
@@ -2148,7 +2188,7 @@ namespace WinAGI
                     blnError = true
                     strErrMsg = LoadResString(4044)
                     return;
-                  } //}
+                  }
                   //close brackets
                   blnIfBlock = false
                   tmpLogRes.Writebyte 0xFC
@@ -2158,20 +2198,20 @@ namespace WinAGI
                     blnError = true
                     strErrMsg = LoadResString(4044)
                     return;
-                  } //}
+                  }
                   //end of if found
                   Exit Do
-                } //}
+                }
               default:
                 if (blnIfBlock) {
                   strErrMsg = LoadResString(4101)
                 } else {
                   strErrMsg = LoadResString(4038)
-                } //}
+                }
                 blnError = true
                 return;
               } 
-            } //}
+            }
           //never leave loop normally; error, end of input, or successful
           //compilation of test commands will all exit loop directly
           Loop While true
@@ -2214,7 +2254,7 @@ namespace WinAGI
             blnError = true
             strErrMsg = LoadResString(4081)
             return;
-          } //}
+          }
 
           //start with input string
           ConcatArg = strText
@@ -2254,7 +2294,7 @@ namespace WinAGI
                     lngSlashCount = lngSlashCount + 1
                   } else {
                     Exit Do
-                  } //}
+                  }
                 Loop While Len(ConcatArg) - (lngSlashCount + 1) >= 0
 
                 //if it IS odd, then it//s not a valid quote
@@ -2263,8 +2303,8 @@ namespace WinAGI
                   //bad end quote (set end quote marker, overriding error
                   //that might happen on a previous line)
                   lngQuotesOK = 2
-                } //}
-              } //}
+                }
+              }
 
               //if end quote is missing, deal with it
               if (lngQuotesOK > 0) {
@@ -2273,7 +2313,7 @@ namespace WinAGI
                 //the next required element is
                 lngQuoteAdded = lngLine
 
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   //error
                   blnError = true
@@ -2288,7 +2328,7 @@ namespace WinAGI
                   //add quote
                   strTextContinue = strTextContinue + QUOTECHAR
                 } 
-              } //}
+              }
 
               //strip off ending quote of current msg
               ConcatArg = Left(ConcatArg, Len(ConcatArg) - 1)
@@ -2307,7 +2347,7 @@ namespace WinAGI
             lngLine = lngLastLine
             lngErrLine = lngLastLine
             strCurrentLine = strLastLine
-          } //}
+          }
 
 
         return;
@@ -2360,7 +2400,7 @@ namespace WinAGI
                   If((Mid(strCurrentLine, lngPos, 2) = CMT2_TOKEN) Or(Mid(strCurrentLine, lngPos, 1) = CMT1_TOKEN))) {
                   intROLIgnore = lngPos
                     Exit Do
-                  } //}
+                  }
                   // slash codes never occur outside quotes
                   blnSlash = false
                   //if this character is a quote mark, it starts a string
@@ -2373,21 +2413,21 @@ namespace WinAGI
                     blnSlash = false
                   } else {
                     //check for slash or quote mark
-                    switch (AscW(Mid(strCurrentLine, lngPos))
+                    switch (AscW(Mid(strCurrentLine, lngPos))) {
                     case 34 //quote mark
                       //a quote marks end of string
                       blnInQuotes = false
                     case 92 //slash
                       blnSlash = true
                     } 
-                  } //}
-                } //}
+                  }
+                }
               Loop
               //if any part of line should be ignored,
               if (intROLIgnore > 0) {
                 strCurrentLine = Left(strCurrentLine, intROLIgnore - 1)
-              } //}
-            } //}
+              }
+            }
             //replace comment, also trim it
             ReplaceLine Trim$(strCurrentLine)
 
@@ -2448,7 +2488,7 @@ namespace WinAGI
                 //generate error
                 strErrMsg = LoadResString(4103)
                 return;
-              } //}
+              }
               //build include filename
               strIncludeFilename = Trim$(Right(stlLogicText(lngLine), Len(stlLogicText(lngLine)) - 9))
 
@@ -2456,12 +2496,12 @@ namespace WinAGI
               if (LenB(strIncludeFilename) == 0) {
                 strErrMsg = LoadResString(4060)
                 return;
-              } //}
+              }
 
               //if quotes aren//t used correctly
               if (Left(strIncludeFilename, 1) == QUOTECHAR && Right(strIncludeFilename, 1) != QUOTECHAR || _
                  Right(strIncludeFilename, 1) == QUOTECHAR && Left(strIncludeFilename, 1) != QUOTECHAR) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   //return error: improper use of quote marks
                   strErrMsg = LoadResString(4059)
@@ -2470,32 +2510,32 @@ namespace WinAGI
                   //assume quotes are needed
                   if (AscW(strIncludeFilename) != 34) {
                     strIncludeFilename = QUOTECHAR + strIncludeFilename
-                  } //}
+                  }
                   if (AscW(Right(strIncludeFilename, 1)) != 34) {
                     strIncludeFilename = strIncludeFilename + QUOTECHAR
-                  } //}
+                  }
                   //set warning
                   AddWarning 5028, Replace(LoadResString(5028), ARG1, strIncludeFilename)
                 } 
-              } //}
+              }
 
               //if quotes,
               if (Left(strIncludeFilename, 1) == QUOTECHAR) {
                 //strip off quotes
                 strIncludeFilename = Mid(strIncludeFilename, 2, Len(strIncludeFilename) - 2)
-              } //}
+              }
 
               //if filename doesnt include a path,
               if (LenB(JustPath(strIncludeFilename, true)) == 0) {
                 //get full path name to include file
                 strIncludeFilename = agResDir + strIncludeFilename
-              } //}
+              }
 
               //verify file exists
               if (!FileExists(strIncludeFilename)) {
                 strErrMsg = Replace(LoadResString(4050), ARG1, strIncludeFilename)
                 return;
-              } //}
+              }
         //****
         //      cant check for open includes; they are in a different application
         //****
@@ -2511,7 +2551,7 @@ namespace WinAGI
               if (Err.Number<> 0) {
                 strErrMsg = Replace(LoadResString(4055), ARG1, strIncludeFilename)
                 return;
-              } //}
+              }
 
 
               On Error GoTo ErrHandler
@@ -2534,11 +2574,11 @@ namespace WinAGI
                     strErrMsg = LoadResString(4061)
                     lngErrLine = CurIncludeLine
                     return;
-                  } //}
+                  }
                   //include filenumber and line number from includefile
                   stlInput.Add "#I" + CStr(intFileCount) + ":" + CStr(CurIncludeLine) + "#" + IncludeLines(CurIncludeLine)
                 Next CurIncludeLine
-              } //}
+              }
               //add a blank line as a place holder for the //include// line
               //(to keep line counts accurate when calculating line number for errors)
               stlInput.Add ""
@@ -2549,10 +2589,10 @@ namespace WinAGI
               if (Left(stlLogicText(lngLine), 2) == "#i") {
                 strErrMsg = LoadResString(4069)
                 return;
-              } //}
+              }
               //copy the line by itself
               stlInput.Add stlLogicText(lngLine)
-            } //}
+            }
             lngLine = lngLine + 1
           Loop Until lngLine >= lngLineCount
           //done
@@ -2601,7 +2641,7 @@ namespace WinAGI
                 //error
                 strErrMsg = LoadResString(4104)
                 return;
-              } //}
+              }
 
               //split it by position of first space
               tdNewDefine.Name = Trim$(Left(strCurrentLine, InStr(1, strCurrentLine, " ") - 1))
@@ -2610,10 +2650,10 @@ namespace WinAGI
               //validate define name
               rtn = ValidateDefName(tdNewDefine.Name)
               //name error 7-12  are only warnings if error level is medium or low
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leMedium
                 //check for name warnings
-                switch (rtn
+                switch (rtn) {
                 case 7
                   //set warning
                   AddWarning 5034, Replace(LoadResString(5034), ARG1, tdNewDefine.Name)
@@ -2631,13 +2671,13 @@ namespace WinAGI
                 if (rtn >= 7 && rtn <= 12) {
                   //reset return error code
                   rtn = 0
-                } //}
+                }
               } 
 
               //check for errors
               if (rtn<> 0) {
                 //check for name errors
-                switch (rtn
+                switch (rtn) {
                 case 1 // no name
                   strErrMsg = LoadResString(4070)
                 case 2 // name is numeric
@@ -2666,23 +2706,23 @@ namespace WinAGI
                   strErrMsg = LoadResString(4067)
                 } 
                 //don't exit; check for define Value errors first
-              } //}
+              }
 
               //validate define Value
               rtn = ValidateDefValue(tdNewDefine)
               //Value errors 4,5,6 are only warnings if error level is medium or low
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leMedium
                 //if Value error is due to missing quotes
-                switch (rtn
+                switch (rtn) {
                 case 4  //string Value missing quotes
                   //fix the define Value
                   if (AscW(tdNewDefine.Value) != 34) {
                     tdNewDefine.Value = QUOTECHAR + tdNewDefine.Value
-                  } //}
+                  }
                   if (AscW(Right(tdNewDefine.Value, 1)) != 34) {
                     tdNewDefine.Value = tdNewDefine.Value + QUOTECHAR
-                  } //}
+                  }
 
                   //set warning
                   AddWarning 5022
@@ -2702,15 +2742,15 @@ namespace WinAGI
                 } 
               case leLow
                 //if Value error is due to missing quotes
-                switch (rtn
+                switch (rtn) {
                 case 4
                   //fix the define Value
                   if (AscW(tdNewDefine.Value) != 34) {
                     tdNewDefine.Value = QUOTECHAR + tdNewDefine.Value
-                  } //}
+                  }
                   if (AscW(Right(tdNewDefine.Value, 1)) != 34) {
                     tdNewDefine.Value = tdNewDefine.Value + QUOTECHAR
-                  } //}
+                  }
                   //reset return Value
                   rtn = 0
                 case 5, 6
@@ -2725,10 +2765,10 @@ namespace WinAGI
                 if (LenB(strErrMsg) != 0) {
                   //append Value error
                   strErrMsg = strErrMsg + "; and "
-                } //}
+                }
 
                 //check for Value error
-                switch (rtn
+                switch (rtn) {
                 case 1 // no Value
                   strErrMsg = strErrMsg + LoadResString(4073)
         //
@@ -2745,23 +2785,23 @@ namespace WinAGI
                 case 6 // Value is already defined by a global name
                   strErrMsg = strErrMsg + Replace(LoadResString(4040), ARG1, tdNewDefine.Value)
                 } 
-              } //}
+              }
 
               //if an error was generated during define validation
               if (LenB(strErrMsg) != 0) {
                 return;
-              } //}
+              }
 
               //check all previous defines
               For i = 0 To lngDefineCount - 1
                 if (tdNewDefine.Name == tdDefines(i).Name) {
                   strErrMsg = Replace(LoadResString(4012), ARG1, tdDefines(i).Name)
                   return;
-                } //}
+                }
                 if (tdNewDefine.Value == tdDefines(i).Value) {
                   //numeric duplicates aren//t a problem
                   if (!IsNumeric(tdNewDefine.Value)) {
-                    switch (agMainLogSettings.ErrorLevel
+                    if (agiMainLogSettings.ErrorLevel == ) {
                     case leHigh
                       //set error
                       strErrMsg = Replace(Replace(LoadResString(4023), ARG1, tdDefines(i).Value), ARG2, tdDefines(i).Name)
@@ -2772,8 +2812,8 @@ namespace WinAGI
                     case leLow
                       //do nothing
                     } 
-                  } //}
-                } //}
+                  }
+                }
               Next i
 
               //check define against labels
@@ -2782,9 +2822,9 @@ namespace WinAGI
                   if (tdNewDefine.Name == llLabel(i).Name) {
                     strErrMsg = Replace(LoadResString(4020), ARG1, tdNewDefine.Name)
                     return;
-                  } //}
+                  }
                 Next i
-              } //}
+              }
 
               //save this define
               ReDim Preserve tdDefines(lngDefineCount)
@@ -2800,8 +2840,8 @@ namespace WinAGI
               } else {
                 //just blank out entire line
                 stlInput(lngLine) = ""
-              } //}
-            } //}
+              }
+            }
             //get next line
             IncrementLine
           Loop Until lngLine = -1
@@ -2860,7 +2900,7 @@ namespace WinAGI
                 blnError = true
                 strErrMsg = LoadResString(4077)
                 return;
-              } //}
+              }
 
               //validate msg number
               intMsgNum = VariableValue(strCmd)
@@ -2869,13 +2909,13 @@ namespace WinAGI
                 blnError = true
                 strErrMsg = LoadResString(4077)
                 return;
-              } //}
+              }
               //if msg is already assigned
               if (blnMsg(intMsgNum)) {
                 blnError = true
                 strErrMsg = Replace(LoadResString(4094), ARG1, CStr(intMsgNum))
                 return;
-              } //}
+              }
 
               //get next string command
               strCmd = NextCommand(false)
@@ -2886,8 +2926,8 @@ namespace WinAGI
                 if (ConvertArgument(strCmd, atMsg)) {
                   //defined strings never get concatenated
                   blnDef = true
-                } //}
-              } //}
+                }
+              }
 
               //always reset the //addquote// flag
               //(this is the flag that notes if/where a line had an end quote
@@ -2903,7 +2943,7 @@ namespace WinAGI
               if (Left(strCmd, 1) != QUOTECHAR) {
                 //bad start quote
                 lngQuotesOK = 1
-              } //}
+              }
               //check for end quote
               if (Right(strCmd, 1) != QUOTECHAR) {
                 //bad end quote
@@ -2922,15 +2962,15 @@ namespace WinAGI
                     lngSlashCount = lngSlashCount + 1
                   } else {
                     Exit Do
-                  } //}
+                  }
                 Loop While Len(strCmd) - (lngSlashCount + 1) >= 0
 
                 //if it IS odd, then it//s not a valid quote
                 if (Int(lngSlashCount / 2) != lngSlashCount / 2) {
                   //it//s embedded, and doesn//t count
                   lngQuotesOK = lngQuotesOK + 2
-                } //}
-              } //}
+                }
+              }
 
               //if either (or both) quote is missing, deal with it
               if (lngQuotesOK > 0) {
@@ -2939,7 +2979,7 @@ namespace WinAGI
                 //the next required element is
                 lngQuoteAdded = lngLine
 
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   blnError = true
                   strErrMsg = LoadResString(4051)
@@ -2948,17 +2988,17 @@ namespace WinAGI
                   //add quotes as appropriate
                   if (AscW(strCmd) != 34) {
                     strCmd = QUOTECHAR + strCmd
-                  } //}
+                  }
                   if (AscW(Right(strCmd, 1)) != 34) {
                     strCmd = strCmd + QUOTECHAR
-                  } //}
+                  }
                   //warn if medium
                   if (agMainLogSettings.ErrorLevel == leMedium) {
                     //set warning
                     AddWarning 5002
-                  } //}
+                  }
                 } 
-              } //}
+              }
 
               //concatenate, if necessary
               if (!blnDef) {
@@ -2966,8 +3006,8 @@ namespace WinAGI
                 //if error,
                 if (blnError) {
                   return;
-                } //}
-              } //}
+                }
+              }
 
               //nothing allowed after msg declaration
               if (lngPos != Len(strCurrentLine)) {
@@ -2975,7 +3015,7 @@ namespace WinAGI
                 blnError = true
                 strErrMsg = LoadResString(4099)
                 return;
-              } //}
+              }
 
               //strip off quotes (we know that the string
               //is properly enclosed by quotes because
@@ -2990,7 +3030,7 @@ namespace WinAGI
               if (!ValidateMsgChars(strCmd, intMsgNum)) {
                 //error was raised
                 return;
-              } //}
+              }
 
 
               blnMsg(intMsgNum) = true
@@ -3004,7 +3044,7 @@ namespace WinAGI
               //continue until back to current line
               Loop Until lngMsgStart > lngLine
 
-            } //}
+            }
             //get next line
             IncrementLine
           Loop Until lngLine = -1
@@ -3040,7 +3080,7 @@ namespace WinAGI
               strInclude = Left(stlInput(lngLine), InStr(2, stlInput(lngLine), "#"))
             } else {
               strInclude = ""
-            } //}
+            }
 
             //replace the line
             stlInput(lngLine) = strInclude + strNewLine
@@ -3071,47 +3111,6 @@ namespace WinAGI
         } //endsub
 
 
-        internal void SetResourceIDs()
-          //builds array of resourceIDs so
-          //convertarg function can iterate through them much quicker
-
-          Dim AGILogic tmpLog, AGIPicture tmpPic
-          Dim AGISound tmpSnd, AGIView tmpView
-
-
-          if (blnSetIDs) {
-            return;
-          } //}
-
-          ReDim strLogID(255)
-          ReDim strPicID(255)
-          ReDim strSndID(255)
-          ReDim strViewID(255)
-
-
-          foreach (tmpLog In agLogs
-            strLogID(tmpLog.Number) = tmpLog.ID
-          Next
-
-
-          foreach (tmpPic In agPics
-            strPicID(tmpPic.Number) = tmpPic.ID
-          Next
-
-
-          foreach (tmpSnd In agSnds
-            strSndID(tmpSnd.Number) = tmpSnd.ID
-          Next
-
-
-          foreach (tmpView In agViews
-            strViewID(tmpView.Number) = tmpView.ID
-          Next
-
-          //set flag
-          blnSetIDs = true
-        } //endsub
-
         static internal void AddWarning(int WarningNum, string WarningText == "")
 
           //warning elements are separated by pipe character
@@ -3129,14 +3128,14 @@ namespace WinAGI
 
           if (Len(WarningText) == 0) {
             WarningText = LoadResString(WarningNum)
-          } //}
+          }
 
           //only add if not ignoring
           if (!agNoCompWarn(WarningNum - 5000)) {
             evWarn = CStr(WarningNum) + "|" + WarningText + "|" + CStr(lngErrLine + 1) + "|" + _
                          IIf(LenB(strModule) != 0, strModule, "")
             agGameEvents.RaiseEvent_LogCompWarning evWarn, bytLogComp
-          } //}
+          }
         } //endsub
         static internal bool ValidateArgs(int CmdNum, ref byte[] ArgVal())
       {
@@ -3152,7 +3151,7 @@ namespace WinAGI
           //for other commands, check the passed arguments to see if values are appropriate
 
 
-          switch (CmdNum
+          switch (CmdNum) {
           case 1, 2, 4 To 8, 10, 165 To 168 //increment, decrement, assignv, addn, addv, subn, subv
                                             //rindirect, mul.n, mul.v, div.n, div.v
             //check for reserved variables that should never be manipulated
@@ -3162,7 +3161,7 @@ namespace WinAGI
             //for div.n(vA, B) only, check for divide-by-zero
             if (CmdNum == 167) {
               if (ArgVal(1) == 0) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   strErrMsg = LoadResString(4149)
                   return;
@@ -3170,8 +3169,8 @@ namespace WinAGI
                   AddWarning 5030
                 case leLow
                 } 
-              } //}
-            } //}
+              }
+            }
 
 
           case 3 //assignn
@@ -3187,7 +3186,7 @@ namespace WinAGI
           case 18 //new.room(A)
             //validate that this logic exists
             if (!agLogs.Exists(ArgVal(0))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4120)
                 return;
@@ -3195,7 +3194,7 @@ namespace WinAGI
                 AddWarning 5053
               case leLow
               } 
-            } //}
+            }
             //expect no more commands
             blnNewRoom = true
 
@@ -3208,7 +3207,7 @@ namespace WinAGI
           case 20 //load.logics(A)
             //validate that logic exists
             if (!agLogs.Exists(ArgVal(0))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4121), ARG1, CStr(ArgVal(0)))
                 return;
@@ -3216,13 +3215,13 @@ namespace WinAGI
                 AddWarning 5013
               case leLow
               } 
-            } //}
+            }
 
 
           case 22  //call(A)
             //calling logic0 is a BAD idea
             if (ArgVal(0) == 0) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4118)
                 return;
@@ -3231,11 +3230,11 @@ namespace WinAGI
               case leLow
                 //no action
               } 
-            } //}
+            }
 
             //recursive calling is BAD
             if (ArgVal(0) == bytLogComp) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4117)
                 return;
@@ -3244,11 +3243,11 @@ namespace WinAGI
               case leLow
                 //no action
               } 
-            } //}
+            }
 
             //validate that logic exists
             if (!agLogs.Exists(ArgVal(0))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4156), ARG1, CStr(ArgVal(0)))
                 return;
@@ -3256,13 +3255,13 @@ namespace WinAGI
                 AddWarning 5076
               case leLow
               } 
-            } //}
+            }
 
 
           case 30 //load.view(A)
             //validate that view exists
             if (!agViews.Exists(ArgVal(0))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4122), ARG1, CStr(ArgVal(0)))
                 return;
@@ -3270,13 +3269,13 @@ namespace WinAGI
                 AddWarning 5015
               case leLow
               } 
-            } //}
+            }
 
 
           case 32 //discard.view(A)
             //validate that view exists
             if (!agViews.Exists(ArgVal(0))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4123), ARG1, CStr(ArgVal(0)))
                 return;
@@ -3284,13 +3283,13 @@ namespace WinAGI
                 AddWarning 5024
               case leLow
               } 
-            } //}
+            }
 
 
           case 37 //position(oA, X,Y)
             //check x/y against limits
             if (ArgVal(1) > 159 || ArgVal(2) > 167) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                strErrMsg = LoadResString(4128)
                return;
@@ -3298,24 +3297,24 @@ namespace WinAGI
                 AddWarning 5023
               case leLow
               } 
-            } //}
+            }
 
 
           case 39 //get.posn
             //neither variable arg should be a reserved Value
             if (ArgVal(1) <= 26 || ArgVal(2) <= 26) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //}
+            }
 
 
           case 41 //set.view(oA, B)
             //validate that view exists
             if (!agViews.Exists(ArgVal(1))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4124), ARG1, CStr(ArgVal(1)))
                 return;
@@ -3323,7 +3322,7 @@ namespace WinAGI
                 AddWarning 5037
               case leLow
               } 
-            } //}
+            }
 
 
           case 49 To 53, 97, 118  //last.cel, current.cel, current.loop,
@@ -3332,18 +3331,18 @@ namespace WinAGI
             //variable arg is second
             //variable arg should not be a reserved Value
             if (ArgVal(1) <= 26) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //}
+            }
 
 
           case 54 //set.priority(oA, B)
             //check priority Value
             if (ArgVal(1) > 15) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4125)
                 return;
@@ -3351,19 +3350,19 @@ namespace WinAGI
                 AddWarning 5050
               case leLow
               } 
-            } //}
+            }
 
 
           case 57 //get.priority
             //variable is second argument
             //variable arg should not be a reserved Value
             if (ArgVal(1) <= 26) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //}
+            }
 
 
           case 63 //set.horizon(A)
@@ -3371,17 +3370,17 @@ namespace WinAGI
             //>=167 will cause AGI to freeze/crash
 
             //validate horizon Value
-            switch (agMainLogSettings.ErrorLevel
+            if (agiMainLogSettings.ErrorLevel == ) {
             case leHigh
               if (ArgVal(0) >= 167) {
                 strErrMsg = LoadResString(4126)
                 return;
-              } //}
+              }
               if (ArgVal(0) > 120) {
                 AddWarning 5042
               } else if ( ArgVal(0) < 16) {
                 AddWarning 5041
-              } //}
+              }
 
 
             case leMedium
@@ -3391,7 +3390,7 @@ namespace WinAGI
                   AddWarning 5042
               } else if ( ArgVal(0) < 16) {
                 AddWarning 5041
-              } //}
+              }
 
 
             case leLow
@@ -3401,35 +3400,35 @@ namespace WinAGI
           case 64, 65, 66 //object.on.water, object.on.land, object.on.anything
             //warn if used on ego
             if (ArgVal(0) == 0) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5082
               case leLow
               } 
-            } //}
+            }
 
 
           case 69 //distance
             //variable is third arg
             //variable arg should not be a reserved Value
             if (ArgVal(2) <= 26) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //}
+            }
 
 
           case 73, 75, 99 //end.of.loop, reverse.loop
             //flag arg should not be a reserved Value
             if (ArgVal(1) <= 15) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //}
+            }
             //check for read only reserved flags
             CheckResFlagUse ArgVal(1)
 
@@ -3437,7 +3436,7 @@ namespace WinAGI
           case 81 //move.obj(oA, X,Y,STEP,fDONE)
             //validate the target position
             if (ArgVal(1) > 159 || ArgVal(2) > 167) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4127)
                 return;
@@ -3445,25 +3444,25 @@ namespace WinAGI
                 AddWarning 5062
               case leLow
               } 
-            } //}
+            }
 
             //check for ego object
             if (ArgVal(0) == 0) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5045
               case leLow
               } 
-            } //}
+            }
 
             //flag arg should not be a reserved Value
             if (ArgVal(4) <= 15) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //}
+            }
 
             //check for read only reserved flags
             CheckResFlagUse ArgVal(4)
@@ -3472,12 +3471,12 @@ namespace WinAGI
           case 82 //move.obj.v
             //flag arg should not be a reserved Value
             if (ArgVal(4) <= 15) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //}
+            }
 
             //check for read only reserved flags
             CheckResFlagUse ArgVal(4)
@@ -3486,30 +3485,30 @@ namespace WinAGI
           case 83 //follow.ego(oA, DISTANCE, fDONE)
             //validate distance value
             if (ArgVal(1) <= 1) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5102
               case leLow
               } 
-            } //}
+            }
 
             //check for ego object
             if (ArgVal(0) == 0) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5027
               case leLow
               } 
-            } //}
+            }
 
             //flag arg should not be a reserved Value
             if (ArgVal(2) <= 15) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5078, Replace(LoadResString(5078), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //}
+            }
             //check for read only reserved flags
             CheckResFlagUse ArgVal(2)
 
@@ -3517,24 +3516,24 @@ namespace WinAGI
           case 86 //set.dir(oA, vB)
             //check for ego object
             if (ArgVal(0) == 0) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5026
               case leLow
               } 
-            } //}
+            }
 
 
           case 87 //get.dir
             //variable is second arg
             //variable arg should not be a reserved Value
             if (ArgVal(1) <= 26) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //}
+            }
 
 
           case 90 //block(x1,y1,x2,y2)
@@ -3542,7 +3541,7 @@ namespace WinAGI
             //also check that
             if (ArgVal(0) > 159 || ArgVal(1) > 167 || ArgVal(2) > 159 || ArgVal(3) > 167) {
               //bad number
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4129)
                 return;
@@ -3550,12 +3549,12 @@ namespace WinAGI
                 AddWarning 5020
               case leLow
               } 
-            } //}
+            }
 
 
             If(ArgVal(2) - ArgVal(0) < 2) Or(ArgVal(3) - ArgVal(1) < 2)) {
               //won//t work
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4129)
                 return;
@@ -3563,14 +3562,14 @@ namespace WinAGI
                 AddWarning 5051
               case leLow
               } 
-            } //}
+            }
 
 
 
           case 98 //load.sound(A)
             //validate the sound exists
             if (!agSnds.Exists(ArgVal(0))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4130), ARG1, CStr(ArgVal(0)))
                 return;
@@ -3578,13 +3577,13 @@ namespace WinAGI
                 AddWarning 5014
               case leLow
               } 
-            } //}
+            }
 
 
           case 99 //sound(A)
             //validate the sound exists
             if (!agSnds.Exists(ArgVal(0))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4137), ARG1, CStr(ArgVal(0)))
                 return;
@@ -3592,13 +3591,13 @@ namespace WinAGI
                 AddWarning 5084
               case leLow
               } 
-            } //}
+            }
 
 
           case 103 //display(ROW,COL,mC)
             //check row/col against limits
             if (ArgVal(0) > 24 || ArgVal(1) > 39) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                strErrMsg = LoadResString(4131)
                return;
@@ -3606,13 +3605,13 @@ namespace WinAGI
                 AddWarning 5059
               case leLow
               } 
-            } //}
+            }
 
 
           case 105 //clear.lines(TOP,BTM,C)
             //top must be >btm; both must be <=24
             if (ArgVal(0) > 24 || ArgVal(1) > 24 || ArgVal(0) > ArgVal(1)) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4132)
                 return;
@@ -3620,21 +3619,21 @@ namespace WinAGI
                 AddWarning 5011
               case leLow
               } 
-            } //}
+            }
             //color value should be 0 or 15 //(but it doesn//t hurt to be anything else)
             if (ArgVal(2) > 0 && ArgVal(2) != 15) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5100
               case leLow
               } 
-            } //}
+            }
 
 
           case 109 //set.text.attribute(A,B)
             //should be limited to valid color values (0-15)
             if (ArgVal(0) > 15 || ArgVal(1) > 15) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4133)
                 return;
@@ -3642,14 +3641,14 @@ namespace WinAGI
                 AddWarning 5029
               case leLow
               } 
-            } //}
+            }
 
 
           case 110 //shake.screen(A)
             //shouldn//t normally have more than a few shakes; zero is BAD
             if (ArgVal(0) == 0) {
               //error!
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 strErrMsg = LoadResString(4134)
                 return;
@@ -3659,20 +3658,20 @@ namespace WinAGI
               //could be a palette change?
               if (ArgVal(0) >= 100 && ArgVal(0) <= 109) {
                 //separate warning
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh, leMedium
                   AddWarning 5058
                 case leLow
                 } 
               } else {
                 //warning
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh, leMedium
                   AddWarning 5057
                 case leLow
                 } 
-              } //}
-            } //}
+              }
+            }
 
 
           case 111 //configure.screen(TOP,INPUT,STATUS)
@@ -3680,7 +3679,7 @@ namespace WinAGI
             //input and status should not be equal
             //input and status should be <top or >=top+21
             if (ArgVal(0) > 3) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4135)
                 return;
@@ -3688,23 +3687,23 @@ namespace WinAGI
                 AddWarning 5044
               case leLow
               } 
-            } //}
+            }
             if (ArgVal(1) > 24 || ArgVal(2) > 24) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5099
               case leLow
               } 
-            } //}
+            }
             if (ArgVal(1) == ArgVal(2)) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5048
               case leLow
               } 
-            } //}
+            }
             if ((ArgVal(1) >= ArgVal(0) && ArgVal(1) <= CLng(ArgVal(0)) + 20) Or(ArgVal(2) >= ArgVal(0) && ArgVal(2) <= CLng(ArgVal(0)) + 20)) {
-             switch (agMainLogSettings.ErrorLevel
+             if (agiMainLogSettings.ErrorLevel == ) {
 
              case leHigh, leMedium
                AddWarning 5049
@@ -3713,7 +3712,7 @@ namespace WinAGI
 
              } 
 
-           } //}
+           }
 
 
          case 114 //set.string(sA, mB)
@@ -3721,7 +3720,7 @@ namespace WinAGI
 
            if (ArgVal(0) == 0) {
              if (Len(strMsg(ArgVal(1))) > 10) {
-               switch (agMainLogSettings.ErrorLevel
+               if (agiMainLogSettings.ErrorLevel == ) {
 
                case leHigh, leMedium
                  AddWarning 5096
@@ -3730,16 +3729,16 @@ namespace WinAGI
 
                } 
 
-             } //}
+             }
 
-           } //}
+           }
 
 
          case 115 //get.string(sA, mB, ROW,COL,LEN)
             //if row>24, both row/col are ignored; if col>39, gets weird; len is limited automatically to <=40
 
            if (ArgVal(2) > 24) {
-             switch (agMainLogSettings.ErrorLevel
+             if (agiMainLogSettings.ErrorLevel == ) {
 
              case leHigh, leMedium
                AddWarning 5052
@@ -3748,11 +3747,11 @@ namespace WinAGI
 
              } 
 
-           } //}
+           }
 
 
            if (ArgVal(3) > 39) {
-             switch (agMainLogSettings.ErrorLevel
+             if (agiMainLogSettings.ErrorLevel == ) {
 
              case leHigh
 
@@ -3768,11 +3767,11 @@ namespace WinAGI
 
              } 
 
-           } //}
+           }
 
 
            if (ArgVal(4) > 40) {
-             switch (agMainLogSettings.ErrorLevel
+             if (agiMainLogSettings.ErrorLevel == ) {
 
              case leHigh, leMedium
                AddWarning 5056
@@ -3781,7 +3780,7 @@ namespace WinAGI
 
              } 
 
-           } //}
+           }
 
 
          case 121 //set.key(A,B,cC)
@@ -3794,7 +3793,7 @@ namespace WinAGI
             //must be ascii or key code, (Arg0 can be 1 to mean joystick)
 
            if (ArgVal(0) > 0 && ArgVal(1) > 0 && ArgVal(0) != 1) {
-             switch (agMainLogSettings.ErrorLevel
+             if (agiMainLogSettings.ErrorLevel == ) {
 
              case leHigh
 
@@ -3810,15 +3809,15 @@ namespace WinAGI
 
              } 
 
-           } //}
+           }
 
             //check for improper ASCII assignments
 
            if (ArgVal(1) == 0) {
-             switch (ArgVal(0) //ascii codes
+             switch (ArgVal(0)) { //ascii codes
               case 8, 13, 32 //bkspace, enter, spacebar
                 //bad
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   strErrMsg = LoadResString(4155)
                   return;
@@ -3827,14 +3826,14 @@ namespace WinAGI
                 case leLow
                 } 
               } 
-            } //}
+            }
 
             //check for improper KEYCODE assignments
             if (ArgVal(0) == 0) {
-              switch (ArgVal(0) //ascii codes
+              switch (ArgVal(0)) { //ascii codes
               case 71, 72, 73, 75, 76, 77, 79, 80, 81, 82, 83
                 //bad
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   strErrMsg = LoadResString(4155)
                   return;
@@ -3843,7 +3842,7 @@ namespace WinAGI
                 case leLow
                 } 
               } 
-            } //}
+            }
 
 
           case 122 //add.to.pic(VIEW,LOOP,CEL,X,Y,PRI,MGN)
@@ -3855,7 +3854,7 @@ namespace WinAGI
 
             //validate view
             if (!agViews.Exists(ArgVal(0))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4138), ARG1, CStr(ArgVal(0)))
                 return;
@@ -3865,7 +3864,7 @@ namespace WinAGI
                 blnWarned = true
               case leLow
               } 
-            } //}
+            }
 
 
             if (!blnWarned) {
@@ -3878,16 +3877,16 @@ namespace WinAGI
               Err.Clear
               if (blnUnload) {
                 agViews(ArgVal(0)).Load
-              } //}
+              }
               if (Err.Number == 0) {
                 //validate loop
                 if (ArgVal(1) >= agViews(ArgVal(0)).Loops.Count) {
-                  switch (agMainLogSettings.ErrorLevel
+                  if (agiMainLogSettings.ErrorLevel == ) {
                   case leHigh
                     strErrMsg = Replace(Replace(LoadResString(4139), ARG1, CStr(ArgVal(1))), ARG2, CStr(ArgVal(0)))
                     if (blnUnload) {
                       agViews(ArgVal(0)).Unload
-                    } //}
+                    }
                     return;
                   case leMedium
                     AddWarning 5085
@@ -3895,39 +3894,39 @@ namespace WinAGI
                     blnWarned = true
                   case leLow
                   } 
-                } //}
+                }
                 //if loop was valid, check cel
                 if (!blnWarned) {
                   //validate cel
                   if (ArgVal(2) >= agViews(ArgVal(0)).Loops(ArgVal(1)).Cels.Count) {
-                    switch (agMainLogSettings.ErrorLevel
+                    if (agiMainLogSettings.ErrorLevel == ) {
                     case leHigh
                       strErrMsg = Replace(Replace(Replace(LoadResString(4140), ARG1, CStr(ArgVal(2))), ARG2, CStr(ArgVal(1))), ARG3, CStr(ArgVal(0)))
                       if (blnUnload) {
                         agViews(ArgVal(0)).Unload
-                      } //}
+                      }
                       return;
                     case leMedium
                       AddWarning 5086
                     case leLow
                     } 
-                  } //}
-                } //}
+                  }
+                }
               } else {
                 //can//t load the view; add a warning
                 Err.Clear
                 AddWarning 5021, Replace(LoadResString(5021), ARG1, CStr(ArgVal(0)))
-              } //}
+              }
               if (blnUnload) {
                 agViews(ArgVal(0)).Unload
-              } //}
-            } //}
+              }
+            }
 
             On Error GoTo ErrHandler
 
             //x,y must be within limits
             if (ArgVal(3) > 159 || ArgVal(4) > 167) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4141)
                 return;
@@ -3935,11 +3934,11 @@ namespace WinAGI
                 AddWarning 5038
               case leLow
               } 
-            } //}
+            }
 
             //PRI should be <=15
             if (ArgVal(5) > 15) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4142)
                 return;
@@ -3947,31 +3946,31 @@ namespace WinAGI
                 AddWarning 5079
               case leLow
               } 
-            } //}
+            }
 
             //PRI should be 0 OR >=4 (but doesn//t raise an error; only a warning)
             if (ArgVal(5) < 4 && ArgVal(5) != 0) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5079
               case leLow
               } 
-            } //}
+            }
 
             //MGN values >15 will only use lower nibble
             if (ArgVal(6) > 15) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5101
               case leLow
               } 
-            } //}
+            }
 
 
           case 129 //show.obj(VIEW)
             //validate view
             if (!agViews.Exists(ArgVal(0))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4144), ARG1, CStr(ArgVal(0)))
                 return;
@@ -3979,11 +3978,11 @@ namespace WinAGI
                 AddWarning 5061
               case leLow
               } 
-            } //}
+            }
 
 
           case 127, 176, 178  //init.disk, hide.mouse, show.mouse
-            switch (agMainLogSettings.ErrorLevel
+            if (agiMainLogSettings.ErrorLevel == ) {
             case leHigh, leMedium
               AddWarning 5087, Replace(LoadResString(5087), ARG1, agCmds(CmdNum).Name)
             case leLow
@@ -3991,7 +3990,7 @@ namespace WinAGI
 
 
           case 175, 179, 180 //discard.sound, fence.mouse, mouse.posn
-            switch (agMainLogSettings.ErrorLevel
+            if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4152), ARG1, agCmds(CmdNum).Name)
                 return;
@@ -4004,71 +4003,71 @@ namespace WinAGI
           case 130 //random(LOWER,UPPER,vRESULT)
             //lower should be < upper
             if (ArgVal(0) > ArgVal(1)) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4145)
                 return;
               case leMedium
                 AddWarning 5054
               } 
-            } //}
+            }
 
             //lower=upper means result=lower=upper
             if (ArgVal(0) == ArgVal(1)) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5106
               case leLow
               } 
-            } //}
+            }
 
             //if lower=upper+1, means div by 0!
             if (ArgVal(0) == ArgVal(1) + 1) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4158)
                 return;
               case leMedium
                 AddWarning 5107
               } 
-            } //}
+            }
 
             //variable arg should not be a reserved Value
             if (ArgVal(2) <= 26) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5077, Replace(LoadResString(5077), ARG1, agCmds(CmdNum).Name)
               case leLow
               } 
-            } //}
+            }
 
 
           case 142 //script.size
             //raise warning/error if in other than logic0
             if (bytLogComp<> 0) {
               //warn
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 //set warning
                 AddWarning 5039
               case leLow
                 //no action
               } 
-            } //}
+            }
             //check for absurdly low Value for script size
             if (ArgVal(0) < 10) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5009
               case leLow
               } 
-            } //}
+            }
 
 
           case 147 //reposition.to(oA, B,C)
             //validate the new position
             if (ArgVal(1) > 159 || ArgVal(2) > 167) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4128)
                 return;
@@ -4076,7 +4075,7 @@ namespace WinAGI
                 AddWarning 5023
               case leLow
               } 
-            } //}
+            }
 
 
           case 150 //trace.info(LOGIC,ROW,HEIGHT)
@@ -4086,7 +4085,7 @@ namespace WinAGI
 
             //validate that logic exists
             if (!agLogs.Exists(ArgVal(0))) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = Replace(LoadResString(4153), ARG1, CStr(ArgVal(0)))
                 return;
@@ -4094,18 +4093,18 @@ namespace WinAGI
                 AddWarning 5040
               case leLow
               } 
-            } //}
+            }
             //validate that height is not too small
             if (ArgVal(2) < 2) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5046
               case leLow
               } 
-            } //}
+            }
             //validate size of window
             if (CLng(ArgVal(1)) + CLng(ArgVal(2)) > 23) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4146)
                 return;
@@ -4113,7 +4112,7 @@ namespace WinAGI
                 AddWarning 5063
               case leLow
               } 
-            } //}
+            }
 
 
           case 151, 152 //Print.at(mA, ROW, COL, MAXWIDTH), print.at.v
@@ -4124,7 +4123,7 @@ namespace WinAGI
             //maxwidth=1 crashes AGI
             //col + maxwidth <=39
             if (ArgVal(1) > 22) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4147)
                 return;
@@ -4132,12 +4131,12 @@ namespace WinAGI
                 AddWarning 5067
               case leLow
               } 
-            } //}
+            }
 
 
-            switch (ArgVal(3)
+            switch (ArgVal(3)) {
             case 0 //maxwidth=0 defaults to 30
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5105
               case leLow
@@ -4145,7 +4144,7 @@ namespace WinAGI
 
 
             case 1 //maxwidth=1 crashes AGI
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4043)
                 return;
@@ -4156,7 +4155,7 @@ namespace WinAGI
 
 
             case Is > 36 //maxwidth >36 won//t work
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4043)
                 return;
@@ -4168,7 +4167,7 @@ namespace WinAGI
 
             //col>2 and col + maxwidth <=39
             if (ArgVal(2) < 2 || CLng(ArgVal(2)) + CLng(ArgVal(3)) > 39) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4148)
                 return;
@@ -4176,7 +4175,7 @@ namespace WinAGI
                 AddWarning 5068
               case leLow
               } 
-            } //}
+            }
 
 
           case 154 //clear.text.rect(R1,C1,R2,C2,COLOR)
@@ -4188,7 +4187,7 @@ namespace WinAGI
                ArgVal(2) > 24 || ArgVal(3) > 39 || _
                ArgVal(2) < ArgVal(0) || ArgVal(3) < ArgVal(1)) {
               //invalid items
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4150)
                 return;
@@ -4196,23 +4195,23 @@ namespace WinAGI
                 //if due to pos2 < pos1
                 if (ArgVal(2) < ArgVal(0) || ArgVal(3) < ArgVal(1)) {
                   AddWarning 5069
-                } //}
+                }
                 //if due to variables outside limits
                 if (ArgVal(0) > 24 || ArgVal(1) > 39 || _
                    ArgVal(2) > 24 || ArgVal(3) > 39) {
                   AddWarning 5070
-                } //}
+                }
               } 
-            } //}
+            }
 
             //color value should be 0 or 15 //(but it doesn//t hurt to be anything else)
             if (ArgVal(4) > 0 && ArgVal(4) != 15) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5100
               case leLow
               } 
-            } //}
+            }
 
 
           case 158 //submit.menu()
@@ -4220,24 +4219,24 @@ namespace WinAGI
             //raise warning/error if in other than logic0
             if (bytLogComp != 0) {
               //warn
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 //set warning
                 AddWarning 5047
               case leLow
               } 
-            } //}
+            }
 
 
           case 174 //set.pri.base(A)
             //calling set.pri.base with Value >167 doesn//t make sense
             if (ArgVal(0) > 167) {
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh, leMedium
                 AddWarning 5071
               case leLow
               } 
-            } //}
+            }
           } 
 
           //success
@@ -4254,7 +4253,7 @@ namespace WinAGI
           //check for specific command issues
 
 
-          switch (CmdNum
+          switch (CmdNum) {
           case 9 //has (iA)
             //invobj number validated in GetNextArg function
 
@@ -4272,7 +4271,7 @@ namespace WinAGI
             //validate that all are within bounds, and that x1<=x2 and y1<=y2
             if (ArgVal(1) > 159 || ArgVal(2) > 167 || ArgVal(3) > 159 || ArgVal(4) > 167) {
               //bad number
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4151)
                 return;
@@ -4280,12 +4279,12 @@ namespace WinAGI
                 AddWarning 5072
               case leLow
               } 
-            } //}
+            }
 
 
             If(ArgVal(1) > ArgVal(3)) Or(ArgVal(2) > ArgVal(4))) {
               //can//t work
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4151)
                 return;
@@ -4293,7 +4292,7 @@ namespace WinAGI
                 AddWarning 5073
               case leLow
               } 
-            } //}
+            }
 
 
           case 12 //controller (cA)
@@ -4325,15 +4324,15 @@ namespace WinAGI
           if (agMainLogSettings.ErrorLevel == leLow) {
             ValidateMsgChars = true
             return;
-          } //}
+          }
 
 
           For i = 1 To Len(strMsg)
             //check for invalid codes (0,8,9,10,13)
-            switch (AscW(Mid(strMsg, i, 1))
+            switch (AscW(Mid(strMsg, i, 1))) {
             case 0, 8, 9, 10, 13
               //warn user
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4005)
                 blnError = true
@@ -4345,12 +4344,12 @@ namespace WinAGI
                   //need to track warning in case this msg is
                   //also included in body of logic
                   intMsgWarn(MsgNum) = intMsgWarn(MsgNum) || 1
-                } //}
+                }
               } 
 
             //extended character
             case Is > 127
-              switch (agMainLogSettings.ErrorLevel
+              if (agiMainLogSettings.ErrorLevel == ) {
               case leHigh
                 strErrMsg = LoadResString(4006)
                 blnError = true
@@ -4362,7 +4361,7 @@ namespace WinAGI
                   //need to track warning in case this msg is
                   //also included in body of logic
                   intMsgWarn(MsgNum) = intMsgWarn(MsgNum) || 2
-                } //}
+                }
               } 
             } 
            Next i
@@ -4371,65 +4370,6 @@ namespace WinAGI
            ValidateMsgChars = true
         } //endfunction
 
-        static internal int VariableValue(string strVar)
-        {
-      //this function will extract the variable number from
-          //an input variable string
-          //the input string should be of the form #, a# or *a#
-          // where a is a valid variable prefix (v, f, s, m, w, c)
-          //and # is 0-255
-          //if the result is invalid, this function returns -1
-
-
-          string strVarVal
-          int intVarVal 
-          bool blnOutofBounds
-
-
-          On Error GoTo ErrHandler
-
-          //if not numeric
-          if (!IsNumeric(strVar)) {
-            //strip off variable prefix, and indirection
-            //if indirection
-            if (Left(strVar, 1) == "*") {
-              strVarVal = Right(strVar, Len(strVar) - 2)
-            } else {
-              strVarVal = Right(strVar, Len(strVar) - 1)
-            } //}
-          } else {
-            //use the input Value
-            strVarVal = strVar
-          } //}
-
-          //if result is a number
-          if (IsNumeric(strVarVal)) {
-            //get number
-            intVarVal = Val(strVarVal)
-            //for word only, subtract one to
-            //account for //1// based word data type
-            //(i.e. w1 is first word, but command uses arg Value of //0//)
-            if (AscW(strVar) == 119) {
-              intVarVal = intVarVal - 1
-            } //}
-
-            //verify within bounds  0-255
-            if (intVarVal >= 0 && intVarVal <= 255) {
-              //return this Value
-              VariableValue = intVarVal
-              return;
-            } //}
-          } //}
-
-          //error- return -1
-          VariableValue = -1
-        return;
-
-        ErrHandler:
-          Err.Clear
-          //return -1
-          VariableValue = -1
-        } //endfunction
         static internal bool WriteMsgs()
         {
       //this function will write the messages for a logic at the end of
@@ -4493,7 +4433,7 @@ namespace WinAGI
               //messages are written it gets set to the beginning of message section
               // ( a relative offset of zero here)
               lngMsgPos(lngMsg) = 0
-            } //}
+            }
             if (lngMsgLen > 0) {
               //step through all characters in this msg
               intCharPos = 1
@@ -4501,7 +4441,7 @@ namespace WinAGI
                 //get ascii code for this character
                 bytCharVal = Asc(Mid(strMsg(lngMsg), intCharPos))
                 //check for invalid codes (8,9,10,13)
-                switch (bytCharVal
+                switch (bytCharVal) {
                 case 0, 8, 9, 10, 13
                   //convert these chars to space to avoid trouble
                   bytCharVal = 32
@@ -4509,7 +4449,7 @@ namespace WinAGI
                 case 92 //"\"
                   //check for special codes
                   If(intCharPos<lngMsgLen)) {
-                 switch (AscW(Mid(strMsg(lngMsg), intCharPos + 1))
+                 switch (AscW(Mid(strMsg(lngMsg), intCharPos + 1))) {
                     case 110, 78 //n or N//
                       // \n = new line
                       bytCharVal = 0xA
@@ -4547,8 +4487,8 @@ namespace WinAGI
                         if (i >= 1 && i< 256) {
                           bytCharVal = i
                           intCharPos = intCharPos + 3
-                        } //}
-                      } //}
+                        }
+                      }
                     default:
                       //if no special char found, the single slash should be dropped
                       blnSkipChar = true
@@ -4556,27 +4496,27 @@ namespace WinAGI
                   } else {
                     //if the //\// is the last char, skip it
                     blnSkipChar = true
-                  } //}
+                  }
                 } 
 
                 //write the encrypted byte (need to adjust for previous messages, and current position)
                 if (!blnSkipChar) {
                   tmpLogRes.Writebyte bytCharVal Xor bytEncryptKey((tmpLogRes.GetPos - lngCryptStart) Mod 11)
-                } //}
+                }
                 //increment pointer
                 intCharPos = intCharPos + 1
                 //reset skip flag
                 blnSkipChar = false
               Loop
-            } //}
+            }
 
             //if msg was used, add trailing zero to terminate message
             //(if msg was zero length, we still need this terminator)
             if (blnMsg(lngMsg)) {
               if (!blnSkipNull) {
                 tmpLogRes.Writebyte 0x0 Xor bytEncryptKey((tmpLogRes.GetPos - lngCryptStart) Mod 11)
-              } //}
-            } //}
+              }
+            }
           Next lngMsg
 
           //calculate length of msg section, and write it at beginning
@@ -4644,7 +4584,7 @@ namespace WinAGI
               } else {
                 //not a label
                 strLabel = ""
-              } //}
+              }
 
               //if a label was found, validate it
               if (Len(strLabel) != 0) {
@@ -4652,17 +4592,17 @@ namespace WinAGI
                 if (bytLabelCount >= MAX_LABELS) {
                   strErrMsg = Replace(LoadResString(4109), ARG1, CStr(MAX_LABELS))
                   return;
-                } //}
+                }
 
 
                 rtn = ValidateDefName(strLabel)
                 //numbers are ok for labels
                 if (rtn == 2) {
                   rtn = 0
-                } //}
+                }
                 if (rtn<> 0) {
                   //error
-                  switch (rtn
+                  switch (rtn) {
                   case 1
                     strErrMsg = LoadResString(4096)
                   case 3
@@ -4689,13 +4629,13 @@ namespace WinAGI
                     strErrMsg = LoadResString(4068)
                   } 
                   return;
-                } //}
+                }
 
                 //no periods allowed either
                 if (InStr(1, strLabel, ".") != 0) {
                   strErrMsg = LoadResString(4068)
                   return;
-                } //}
+                }
 
                 //check label against current list of labels
                 if (bytLabelCount > 0) {
@@ -4703,16 +4643,16 @@ namespace WinAGI
                     if (strLabel == llLabel(i).Name) {
                       strErrMsg = Replace(LoadResString(4027), ARG1, strLabel)
                       return;
-                    } //}
+                    }
                   Next i
-                } //}
+                }
 
                 //increment number of labels, and save
                 bytLabelCount = bytLabelCount + 1
                 llLabel(bytLabelCount).Name = strLabel
                 llLabel(bytLabelCount).Loc = 0
-              } //}
-            } //}
+              }
+            }
 
             //get next line
             IncrementLine
@@ -4774,13 +4714,13 @@ namespace WinAGI
             lngReturnLine = 0
 
             //process the command
-            switch (strNextCmd
+            switch (strNextCmd) {
             case "{"
               //can//t have a "{" command, unless it follows an //if// or //else//
               if (strPrevCmd<> "if" && strPrevCmd != "else") {
                 strErrMsg = LoadResString(4008)
                 return;
-              } //}
+              }
 
 
             case "}"
@@ -4788,14 +4728,14 @@ namespace WinAGI
               if (BlockDepth == 0) {
                 strErrMsg = LoadResString(4010)
                 return;
-              } //}
+              }
               //if last command was a new.room command, then closing block is expected
               if (blnNewRoom) {
                 blnNewRoom = false
-              } //}
+              }
               //if last position in resource is two bytes from start of block
               if (tmpLogRes.Size == BlockStartDataLoc(BlockDepth) + 2) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   strErrMsg = LoadResString(4049)
                   return;
@@ -4805,7 +4745,7 @@ namespace WinAGI
                 case leLow
                   //no action
                 } 
-              } //}
+              }
               //calculate and write block length
               BlockLength(BlockDepth) = tmpLogRes.Size - BlockStartDataLoc(BlockDepth) - 2
               tmpLogRes.WriteWord CLng(BlockLength(BlockDepth)), CLng(BlockStartDataLoc(BlockDepth))
@@ -4815,12 +4755,12 @@ namespace WinAGI
               //compile the //if// statement
               if (!CompileIf()) {
                 return;
-              } //}
+              }
               //if block stack exceeded
               if (BlockDepth >= MAX_BLOCK_DEPTH) {
                 strErrMsg = Replace(LoadResString(4110), ARG1, CStr(MAX_BLOCK_DEPTH))
                 return;
-              } //}
+              }
               //add block to stack
               BlockDepth = BlockDepth + 1
               BlockStartDataLoc(BlockDepth) = tmpLogRes.GetPos
@@ -4834,7 +4774,7 @@ namespace WinAGI
                 //error!!!!
                 strErrMsg = LoadResString(4053)
                 return;
-              } //}
+              }
 
 
             case "else"
@@ -4842,14 +4782,14 @@ namespace WinAGI
               if (strPrevCmd != "}") {
                 strErrMsg = LoadResString(4011)
                 return;
-              } //}
+              }
 
               //if the block closed by that bracket was an //else//
               //(which will be determined by having that block//s IsIf flag NOT being set),
               if (!BlockIsIf(BlockDepth + 1)) {
                 strErrMsg = LoadResString(4083)
                 return;
-              } //}
+              }
 
               //adjust blockdepth to the //if// command
               //directly before this //else//
@@ -4871,13 +4811,13 @@ namespace WinAGI
                 //error!!!!
                 strErrMsg = LoadResString(4053)
                 return;
-              } //}
+              }
 
 
             case "goto"
               //if last command was a new room, warn user
               if (blnNewRoom) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh, leMedium
                   //set warning
                   AddWarning 5095
@@ -4885,13 +4825,13 @@ namespace WinAGI
                   //no action
                 } 
                 blnNewRoom = false
-              } //}
+              }
 
               //next command should be "("
               if (NextChar() != "(") {
                 strErrMsg = LoadResString(4001)
                 return;
-              } //}
+              }
               //get goto argument
               strArg = NextCommand()
 
@@ -4899,11 +4839,11 @@ namespace WinAGI
               if (LabelNum(strArg) == 0) {
                 strErrMsg = Replace(LoadResString(4074), ARG1, strArg)
                 return;
-              } //}
+              }
               //if too many gotos
               if (NumGotos >= MaxGotos) {
                 strErrMsg = Replace(LoadResString(4108), ARG1, CStr(MaxGotos))
-              } //}
+              }
               //save this goto info on goto stack
               NumGotos = NumGotos + 1
               Gotos(NumGotos).LabelNum = LabelNum(strArg)
@@ -4916,13 +4856,13 @@ namespace WinAGI
               if (NextChar() != ")") {
                 strErrMsg = LoadResString(4003)
                 return;
-              } //}
+              }
               //verify next command is end of line (;)
               if (NextChar() != ";") {
                 blnError = true
                 strErrMsg = LoadResString(4007)
                 return;
-              } //}
+              }
 
               //since block commands are no longer supported, check for markers in order to provide a
               //meaningful error message
@@ -4938,7 +4878,7 @@ namespace WinAGI
                 tmpLogRes.Writebyte 1
               } else {
                 tmpLogRes.Writebyte 2
-              } //}
+              }
 
               //get the variable to update
               strArg = NextCommand()
@@ -4949,7 +4889,7 @@ namespace WinAGI
                 //Debug.Assert false
                 strErrMsg = LoadResString(4046)
                 return;
-              } //}
+              }
               //get Value
               intCmdNum = VariableValue(strArg)
               if (intCmdNum == -1) {
@@ -4957,14 +4897,14 @@ namespace WinAGI
                 //Debug.Assert false
                 strErrMsg = Replace(LoadResString(4066), "%1", "")
                 return;
-              } //}
+              }
               //write the variable value
               tmpLogRes.Writebyte Cbyte(intCmdNum)
               //verify next command is end of line (;)
               if (NextChar(true) != ";") {
                 strErrMsg = LoadResString(4007)
                 return;
-              } //}
+              }
 
 
             case ":"  //alternate label syntax
@@ -4975,7 +4915,7 @@ namespace WinAGI
               if (intLabelNum == 0) {
                 strErrMsg = LoadResString(4076)
                 return;
-              } //}
+              }
               //save position of label
               llLabel(intLabelNum).Loc = tmpLogRes.Size
 
@@ -4990,7 +4930,7 @@ namespace WinAGI
                 if (intLabelNum == 0) {
                   strErrMsg = LoadResString(4076)
                   return;
-                } //}
+                }
                 //save position of label
                 llLabel(intLabelNum).Loc = tmpLogRes.Size
                 //read in next char to skip past the colon
@@ -4998,7 +4938,7 @@ namespace WinAGI
               } else {
                 //if last command was a new room (and not followed by return(), warn user
                 if (blnNewRoom && strNextCmd<> "return") {
-                  switch (agMainLogSettings.ErrorLevel
+                  if (agiMainLogSettings.ErrorLevel == ) {
                   case leHigh, leMedium
                     //set warning
                     AddWarning 5095
@@ -5006,7 +4946,7 @@ namespace WinAGI
                     //no action
                   } 
                   blnNewRoom = false
-                } //}
+                }
 
                 //get number of command
                 intCmdNum = CommandNum(false, strNextCmd)
@@ -5022,12 +4962,12 @@ namespace WinAGI
                     //check for error
                     if (blnError) {
                       return;
-                    } //}
+                    }
                   } else {
                     //unknown command
                     strErrMsg = Replace(LoadResString(4116), ARG1, strNextCmd)
                     return;
-                  } //}
+                  }
                 } else {
                   //write the command code,
                   tmpLogRes.Writebyte Cbyte(intCmdNum)
@@ -5035,7 +4975,7 @@ namespace WinAGI
                   if (NextChar() != "(") {
                     strErrMsg = LoadResString(4048)
                     return;
-                  } //}
+                  }
 
                   //reset the quotemark error flag
                   lngQuoteAdded = -1
@@ -5055,10 +4995,10 @@ namespace WinAGI
                         } else {
                           //use 1-base arg values
                           strErrMsg = Replace(LoadResString(4047), ARG1, CStr(i + 1))
-                        } //}
+                        }
                         return;
-                      } //}
-                    } //}
+                      }
+                    }
                     bytArg(i) = GetNextArg(agCmds(Cbyte(intCmdNum)).ArgType(i), i)
                     //if error
                     if (blnError) {
@@ -5066,9 +5006,9 @@ namespace WinAGI
                       if (Val(strErrMsg) == 4054) {
                         // add command name to error string
                         strErrMsg = Replace(strErrMsg, ARG2, agCmds(intCmdNum).Name)
-                      } //}
+                      }
                       return;
-                    } //}
+                    }
 
                     //write argument
                     tmpLogRes.Writebyte bytArg(i)
@@ -5077,7 +5017,7 @@ namespace WinAGI
                   //validate arguments for this command
                   if (!ValidateArgs(intCmdNum, bytArg())) {
                     return;
-                  } //}
+                  }
 
                   //next character must be ")"
                   if (NextChar() != ")") {
@@ -5091,24 +5031,24 @@ namespace WinAGI
                       strErrMsg = LoadResString(4051)
                     } else {
                       strErrMsg = LoadResString(4160)
-                    } //}
+                    }
                     return;
-                  } //}
+                  }
                   if (intCmdNum == 0) {
                     blnLastCmdRtn = true
                     //set line number
                     if (lngReturnLine == 0) {
                       lngReturnLine = lngLine + 1
-                    } //}
-                  } //}
-                } //}
+                    }
+                  }
+                }
 
                 //verify next command is end of line (;)
                 if (NextChar(true) != ";") {
                   strErrMsg = LoadResString(4007)
                   return;
-                } //}
-              } //}
+                }
+              }
              } 
             //get next command
             strPrevCmd = strNextCmd
@@ -5116,7 +5056,7 @@ namespace WinAGI
          Loop
 
           If(!blnLastCmdRtn)) {
-           switch (agMainLogSettings.ErrorLevel
+           if (agiMainLogSettings.ErrorLevel == ) {
 
            case leHigh
               //no rtn error
@@ -5140,7 +5080,7 @@ namespace WinAGI
 
            } 
 
-         } //}
+         }
 
           //check to see if everything was wrapped up properly
 
@@ -5152,7 +5092,7 @@ namespace WinAGI
 
            return;
 
-         } //}
+         }
 
           //write in goto values
 
@@ -5165,7 +5105,7 @@ namespace WinAGI
 
              GotoData = 0x10000 + GotoData
 
-           } //}
+           }
 
            tmpLogRes.WriteWord CLng(GotoData), CLng(Gotos(CurGoto).DataLoc)
           Next CurGoto
@@ -5185,7 +5125,7 @@ namespace WinAGI
             throw new Exception("lngError, strErrSrc, strError
           } else {
             throw new Exception("658, strErrSrc, Replace(LoadResString(658), ARG1, CStr(lngError) + ":" + strError)
-          } //}
+          }
         } //endfunction
 
         static internal int MessageNum(string strMsgIn)
@@ -5198,13 +5138,13 @@ namespace WinAGI
 
           //blank msgs normally not allowed
           if (LenB(strMsgIn) == 0) {
-            switch (agMainLogSettings.ErrorLevel
+            if (agiMainLogSettings.ErrorLevel == ) {
             case leHigh, leMedium
               AddWarning 5074
             case leLow
               //allow it
             } 
-          } //}
+          }
 
 
           For lngMsg = 1 To 255
@@ -5216,16 +5156,16 @@ namespace WinAGI
               //if null string found for first time, msg-in-use flag will be false
               if (!blnMsg(lngMsg)) {
                 blnMsg(lngMsg) = true
-              } //}
+              }
               //if this msg has an extended char warning, repeat it here
               If(intMsgWarn(lngMsg) && 1) = 1) {
                AddWarning 5093
-              } //}
+              }
               If(intMsgWarn(lngMsg) && 2) = 2) {
                AddWarning 5094
-              } //}
+              }
               return;
-            } //}
+            }
           Next lngMsg
 
           //msg doesn//t exist; find an empty spot
@@ -5241,11 +5181,11 @@ namespace WinAGI
                 MessageNum = -1
               } else {
                 MessageNum = lngMsg
-              } //}
+              }
 
 
               return;
-            } //}
+            }
           Next lngMsg
 
           //if no room found, return zero
@@ -5260,19 +5200,19 @@ namespace WinAGI
             For CommandNum = 0 To agNumTestCmds
               if (strCmdName == agTestCmds(CommandNum).Name) {
                 return;
-              } //}
+              }
             Next CommandNum
           } else {
             For CommandNum = 0 To agNumCmds
               if (strCmdName == agCmds(CommandNum).Name) {
                 return;
-              } //}
+              }
             Next CommandNum
             //maybe the command is a valid agi command, but
             //just not supported in this agi version
             For CommandNum = agNumCmds + 1 To 182
               if (strCmdName == agCmds(CommandNum).Name) {
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   //error; return cmd Value of 254 so compiler knows to raise error
                   CommandNum = 254
@@ -5285,9 +5225,9 @@ namespace WinAGI
 
 
                 return;
-              } //}
+              }
             Next CommandNum
-          } //}
+          }
 
           CommandNum = 255
         } //endfunction
@@ -5328,11 +5268,11 @@ namespace WinAGI
               blnError = true
               strErrMsg = Replace(LoadResString(4039), ARG1, strArg1)
               return;
-            } //}
-          } //}
+            }
+          }
 
           //arg in can only be f# or v#
-          switch (Left(strArg1, 1)
+          switch (Left(strArg1, 1)) {
           case "f"
             //get flag argument Value
             intArg1 = VariableValue(strArg1)
@@ -5342,7 +5282,7 @@ namespace WinAGI
                 blnError = true
                 strErrMsg = Replace(LoadResString(4066), ARG1, "1")
               return;
-            } //}
+            }
             //write isset cmd
             tmpLogRes.Writebyte 0x7  // isset
             tmpLogRes.Writebyte Cbyte(intArg1)
@@ -5358,12 +5298,12 @@ namespace WinAGI
                 blnError = true
                 strErrMsg = LoadResString(4086)
               return;
-            } //}
+            }
 
             //get comparison expression
             strArg2 = NextCommand()
             //get command code for this expression
-            switch (strArg2
+            switch (strArg2) {
             case EQUAL_TOKEN
               bytCmdNum = 0x1
             case NOTEQUAL_TOKEN
@@ -5406,7 +5346,7 @@ namespace WinAGI
               blnError = true
               strErrMsg = LoadResString(4098)
               return;
-            } //}
+            }
 
             //get second argument (numerical or variable)
             blnArg2Var = true
@@ -5422,19 +5362,19 @@ namespace WinAGI
                 strErrMsg = Replace(LoadResString(4089), ARG1, strErrMsg)
               } else {
                 strErrMsg = Replace(LoadResString(4089), ARG1, "")
-              } //}
+              }
               return;
-            } //}
+            }
 
             //if comparing to a variable,
             if (blnArg2Var) {
               bytCmdNum = bytCmdNum + 1
-            } //}
+            }
 
             //if adding a //not//
             if (blnAddNOT) {
               tmpLogRes.Writebyte(0xFD)
-            } //}
+            }
 
             //write command, and arguments
             tmpLogRes.Writebyte bytCmdNum
@@ -5486,7 +5426,7 @@ namespace WinAGI
             //     *v# = v#
 
             //next char can//t be a space, newline, or tab
-            switch (Mid(strCurrentLine, lngPos + 1, 1)
+            switch (Mid(strCurrentLine, lngPos + 1, 1)) {
             case " ", vbTab, ""
               //error
               blnError = true
@@ -5501,7 +5441,7 @@ namespace WinAGI
               //adjust error message
               strErrMsg = LoadResString(4064)
               return;
-            } //}
+            }
 
 
             intDir = 1
@@ -5512,7 +5452,7 @@ namespace WinAGI
               blnError = true
               strErrMsg = LoadResString(4105)
               return;
-            } //}
+            }
 
           //if this arg is string
           } else if ( ConvertArgument(strArg1, atStr)) {
@@ -5526,30 +5466,30 @@ namespace WinAGI
 
             if (agMainLogSettings.ErrorLevel<> leLow) {
               //for version 2.089, 2.272, and 3.002149 only 12 strings
-              switch (agIntVersion
+              switch (agIntVersion) {
               case "2.089", "2.272", "3.002149"
                 if (intArg1 > 11) {
-                  switch (agMainLogSettings.ErrorLevel
+                  if (agiMainLogSettings.ErrorLevel == ) {
                   case leHigh
                     //use 1-based arg values
                     strErrMsg = Replace(Replace(LoadResString(4079), ARG1, "1"), ARG2, "11")
                   case leMedium
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "11")
                   } 
-                } //}
+                }
 
               //for all other versions, limit is 24 strings
               default:
                 if (intArg1 > 23) {
-                  switch (agMainLogSettings.ErrorLevel
+                  if (agiMainLogSettings.ErrorLevel == ) {
                   case leHigh
                     strErrMsg = Replace(Replace(LoadResString(4079), ARG1, "1"), ARG2, "23")
                   case leMedium
                     AddWarning 5007, Replace(LoadResString(5007), ARG1, "23")
                   } 
-                } //}
+                }
               } 
-            } //}
+            }
 
             //check for equal sign
             strArg2 = NextCommand()
@@ -5559,7 +5499,7 @@ namespace WinAGI
               blnError = true
               strErrMsg = LoadResString(4034)
               return;
-            } //}
+            }
             //get actual second variable
             //use argument extractor in case
             //second variable is a literal string)
@@ -5570,11 +5510,11 @@ namespace WinAGI
               if (Val(strErrMsg) == 4054) {
                 // change it to 4058
                 strErrMsg = LoadResString(4058)
-              } //}
+              }
 
               //just exit
               return;
-            } //}
+            }
 
             //write set.string cmd
             bytCmd = 0x72
@@ -5590,14 +5530,14 @@ namespace WinAGI
                 blnError = true
                 strErrMsg = LoadResString(4085)
               return;
-            } //}
+            }
 
             //variable assignment or arithmetic operation
             //need next command to determine what kind of assignment/operation
             strArg2 = NextCommand()
 
 
-            switch (strArg2
+            switch (strArg2) {
             case "++"
               // v#++;
               bytCmd = 0x1
@@ -5653,13 +5593,13 @@ namespace WinAGI
               blnError = true
               strErrMsg = LoadResString(4034)
               return;
-            } //}
+            }
 
             //get flag Value
             strArg2 = NextCommand()
 
 
-            switch (LCase$(strArg2)
+            switch (LCase$(strArg2)) {
             case "true"
               //set this flag
               bytCmd = 0xC
@@ -5683,12 +5623,12 @@ namespace WinAGI
             //not a special syntax
             CompileSpecial = false
             return;
-          } //}
+          }
 
           //skip check for second argument if cmd is known to be a single arg
           //command (increment/decrement/reset/set
           //(set string is also skipped because second arg is already determined)
-          switch (bytCmd
+          switch (bytCmd) {
           case 0x1, 0x2, 0xC, 0xD, 0x72
           default:
             //get next argument
@@ -5701,7 +5641,7 @@ namespace WinAGI
                 intDir = 2
 
                 //next char can//t be a space, newline, or tab
-                switch (Mid(strCurrentLine, lngPos + 1, 1)
+                switch (Mid(strCurrentLine, lngPos + 1, 1)) {
                 case " ", vbTab, ""
                   //error
                   blnError = true
@@ -5715,13 +5655,13 @@ namespace WinAGI
                   //reset error string
                   strErrMsg = LoadResString(4105)
                   return;
-                } //}
+                }
               } else {
                 //error
                 blnError = true
                 strErrMsg = LoadResString(4105)
                 return;
-              } //}
+              }
             } else {
               //arg2 is either number or variable- convert input to standard syntax
 
@@ -5733,17 +5673,17 @@ namespace WinAGI
                   blnError = true
                   strErrMsg = LoadResString(4095)
                   return;
-                } //}
+                }
                 //convert it to 2s-compliment unsigned value by adding it to 256
                 strArg2 = CStr(256 + Val(strArg2))
                 //Debug.Assert Val(strArg2) >= 128 && Val(strArg2) <= 255
 
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh, leMedium
                   //show warning
                   AddWarning 5098
                 } 
-              } //}
+              }
 
 
               blnArg2Var = true
@@ -5752,7 +5692,7 @@ namespace WinAGI
                 blnError = true
                 strErrMsg = Replace(LoadResString(4088), ARG1, strArg2)
                 return;
-              } //}
+              }
 
               //it//s a number or variable; verify it//s 0-255
               intArg2 = VariableValue(strArg2)
@@ -5762,7 +5702,7 @@ namespace WinAGI
                 blnError = true
                 strErrMsg = Replace(LoadResString(4088), ARG1, strArg2)
                 return;
-              } //}
+              }
 
               //if arg2 is a number
               if (!blnArg2Var) {
@@ -5777,9 +5717,9 @@ namespace WinAGI
                   } else {
                     //assign.n
                     bytCmd = 0x3
-                  } //}
-                } //}
-              } //}
+                  }
+                }
+              }
             } //End if (// not indirection
           }  //if not inc/dec
 
@@ -5797,7 +5737,7 @@ namespace WinAGI
                 lngPos = lngPos - 1
 
                 //this is a simple assign (with a variable being assigned to itself!!)
-                switch (agMainLogSettings.ErrorLevel
+                if (agiMainLogSettings.ErrorLevel == ) {
                 case leHigh
                   blnError = true
                   strErrMsg = LoadResString(4084)
@@ -5810,7 +5750,7 @@ namespace WinAGI
                 bytCmd = 0x3
               } else {
                 //this may be long arithmetic
-                switch (strArg2
+                switch (strArg2) {
                 case "+"
                   bytCmd = 0x5
                 case "-"
@@ -5837,17 +5777,17 @@ namespace WinAGI
                     strErrMsg = Replace(LoadResString(4161), ARG1, strErrMsg)
                   } else {
                     strErrMsg = Replace(LoadResString(4161), ARG1, "")
-                  } //}
+                  }
                   return;
-                } //}
-              } //}
+                }
+              }
             } else {
               //variables are different
               //must be assignment
               // v# = v#
               // *v# = v#
               // v# = *v#
-              switch (intDir
+              switch (intDir) {
               case 0  //assign.v
                 bytCmd = 0x4
               case 1 //lindirect.v
@@ -5859,13 +5799,13 @@ namespace WinAGI
               //always reset arg2var flag so
               //command won//t be adjusted later
                 blnArg2Var = false
-            } //}
-          } //}
+            }
+          }
 
           //if second argument is a variable
           if (blnArg2Var) {
             bytCmd = bytCmd + 1
-          } //}
+          }
 
           //get next command on this line
           strArg2 = NextCommand(true)
@@ -5882,17 +5822,17 @@ namespace WinAGI
               strErrMsg = LoadResString(4051)
             } else {
               strErrMsg = LoadResString(4007)
-            } //}
+            }
             return;
           } else {
             //move pointer back one space so
             //eol check in CompileAGI works
             //correctly
             lngPos = lngPos - 1
-          } //}
+          }
 
           //need to validate arguments for this command
-          switch (bytCmd
+          switch (bytCmd) {
           case 0x1, 0x2, 0xC, 0xD
             //single arg commands
             ReDim bytArgs(0)
@@ -5910,13 +5850,13 @@ namespace WinAGI
           if (!ValidateArgs(bytCmd, bytArgs)) {
             CompileSpecial = false
             return;
-          } //}
+          }
 
           //write command and arg1
           tmpLogRes.Writebyte bytCmd
           tmpLogRes.Writebyte Cbyte(intArg1)
           //write second argument for all cmds except 0x1, 0x2, 0xC, 0xD
-          switch (bytCmd
+          switch (bytCmd) {
           case 0x1, 0x2, 0xC, 0xD
           default:
             tmpLogRes.Writebyte Cbyte(intArg2)
@@ -5934,7 +5874,7 @@ namespace WinAGI
             throw new Exception("lngError, strErrSrc, strError
           } else {
             throw new Exception("659, strErrSrc, Replace(LoadResString(659), ARG1, CStr(lngError) + ":" + strError)
-          } //}
+          }
         } //endfunction
 
         static internal byte LabelNum(string LabelName)
@@ -5950,7 +5890,7 @@ namespace WinAGI
             if (llLabel(i).Name == LabelName) {
               LabelNum = i
               return;
-            } //}
+            }
           Next i
 
           //if not found, zero is returned

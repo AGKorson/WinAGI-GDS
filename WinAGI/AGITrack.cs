@@ -16,7 +16,6 @@ namespace WinAGI
     internal AGISound mParent;
     bool mLengthDirty;
     double mLength;
-    string strErrSource;
     public byte Instrument
     {
       get
@@ -119,6 +118,18 @@ namespace WinAGI
       mVisible = true;
       mInstrument = 80;
       mParent = parent;
+    }
+    public AGITrack Clone(AGISound cloneparent)
+    {
+      //returns a copy of this track
+      AGITrack CopyTrack = new AGITrack(cloneparent);
+      CopyTrack.mNotes = mNotes.Clone(this);
+      CopyTrack.mMuted = mMuted;
+      CopyTrack.mInstrument = mInstrument;
+      CopyTrack.mVisible = mVisible;
+      CopyTrack.mLengthDirty = mLengthDirty;
+      CopyTrack.mLength = mLength;
+      return CopyTrack;
     }
   }
 }

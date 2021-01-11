@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
 using static WinAGI.AGICommands;
 using System.IO;
+
 namespace WinAGI
 {
-  public class AGIInventoryObjects
+  public class AGIInventoryObjects : IEnumerable<AGIInventoryItem>
   {
     byte mMaxScreenObjects;
     bool mEncrypted;
@@ -1087,14 +1089,14 @@ ErrHandler:
       //(offset table size plus header + null obj '?')
       lngFileSize = (mItems.Count + 1) * Dwidth + 2;
       //step through all items to determine length of each, and add it to file length counter
-      for (i = 0;  i <mItems.Count; i++)
+      foreach (AGIInventoryItem tmpItem in mItems)
       {
         //if this item is NOT "?"
-        if (mItems[(byte)i].ItemName != "?")
+        if (tmpItem.ItemName != "?")
         {
           //add size of object name to file size
           //(include null character at end of string)
-          lngFileSize = lngFileSize + mItems[(byte)i].ItemName.Length + 1;
+          lngFileSize += tmpItem.ItemName.Length + 1;
         }
       }
       //initialize byte array to final size of file
@@ -1188,6 +1190,56 @@ ErrHandler:
         //raise the error
         throw new Exception("674, strErrSrc, Replace(LoadResString(674)");
       }
+    }
+    ItemEnum GetEnumerator()
+    {
+      return new ItemEnum(mItems);
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return (IEnumerator)GetEnumerator();
+    }
+    IEnumerator<AGIInventoryItem> IEnumerable<AGIInventoryItem>.GetEnumerator()
+    {
+      return (IEnumerator<AGIInventoryItem>)GetEnumerator();
+    }
+  }
+  internal class ItemEnum : IEnumerator<AGIInventoryItem>
+  {
+    public List<AGIInventoryItem> _invitems;
+    int position = -1;
+    public ItemEnum(List<AGIInventoryItem> list)
+    {
+      _invitems = list;
+    }
+    object IEnumerator.Current => Current;
+    public AGIInventoryItem Current
+    {
+      get
+      {
+        try
+        {
+          return _invitems[position];
+        }
+        catch (IndexOutOfRangeException)
+        {
+
+          throw new InvalidOperationException();
+        }
+      }
+    }
+    public bool MoveNext()
+    {
+      position++;
+      return (position < _invitems.Count);
+    }
+    public void Reset()
+    {
+      position = -1;
+    }
+    public void Dispose()
+    {
+      _invitems = null;
     }
   }
 }

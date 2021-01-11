@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace WinAGI
 {
-  public class AGIWordGroup
+  public class AGIWordGroup : IEnumerable<AGIWord>
   {
     internal List<string> mWords;
     //internal System.Collections.Generic.SortedDictionary<string, string> mWordsD;
@@ -90,6 +91,56 @@ namespace WinAGI
     public int WordCount
     {
       get { return mWords.Count; }
+    }
+    WordEnum GetEnumerator()
+    {
+      return new WordEnum(mWords);
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return (IEnumerator)GetEnumerator();
+    }
+    IEnumerator<AGIWord> IEnumerable<AGIWord>.GetEnumerator()
+    {
+      return (IEnumerator<AGIWord>)GetEnumerator();
+    }
+  }
+  internal class WordEnum : IEnumerator<string>
+  {
+    public List<string> _words;
+    int position = -1;
+    public WordEnum(List<string> list)
+    {
+      _words = list;
+    }
+    object IEnumerator.Current => Current;
+    public string Current
+    {
+      get
+      {
+        try
+        {
+          return _words[position];
+        }
+        catch (IndexOutOfRangeException)
+        {
+
+          throw new InvalidOperationException();
+        }
+      }
+    }
+    public bool MoveNext()
+    {
+      position++;
+      return (position < _words.Count);
+    }
+    public void Reset()
+    {
+      position = -1;
+    }
+    public void Dispose()
+    {
+      _words = null;
     }
   }
 }

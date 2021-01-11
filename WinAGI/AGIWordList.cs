@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
 using static WinAGI.AGICommands;
@@ -8,7 +9,7 @@ using System.Diagnostics;
 
 namespace WinAGI
 {
-  public class AGIWordList
+  public class AGIWordList : IEnumerable<AGIWordGroup>
   {
     //collection of words (agiWord objects)
 
@@ -59,7 +60,8 @@ namespace WinAGI
 
       //cant call NewResource if already in a game;
       //clear it instead
-      if (mInGame) {
+      if (mInGame)
+      {
         throw new Exception("510, strErrSource, LoadResString(510)");
       }
       //mark as loaded
@@ -118,22 +120,16 @@ namespace WinAGI
       Print #intFile, WINAGI_VERSION
   
       //step through all groups
-      for (j = 0; j < GroupCount; j++) {
-        tmpGroup = Me.Group(j)
-        //if this group has at least one word
-        if (tmpGroup.WordCount > 0) {
+      foreach (AGIWordGroup tmpGroup in this) {
           //add group number to output line
           strOutput = CStr(tmpGroup.GroupNum)
           //step through all words
-          for (i = 0; i < tmpGroup.WordCount; i++) {
-          //foreach (tmpWord in tmpGroup) {
+          foreach (string tmpWord in tmpGroup) {
             //add tab character and this word
-            strOutput = strOutput + vbTab + tmpGroup.Word(i)
-          }
+            strOutput = strOutput + vbTab + tmpWord;
           } //nxt  i
           //add this group to output file
           Print #intFile, strOutput
-        }
       } //nxt  j
   
       //if there is a description
@@ -183,12 +179,12 @@ namespace WinAGI
       }
       switch (FileType)
       {
-        case 0: //compile agi WORDS.TOK file
-          Compile(ExportFile);
-          break;
-        case 1:  //create WinAGI word list
-          CompileWinAGI(ExportFile);
-          break;
+      case 0: //compile agi WORDS.TOK file
+        Compile(ExportFile);
+        break;
+      case 1:  //create WinAGI word list
+        CompileWinAGI(ExportFile);
+        break;
       }
       //if NOT in a game,
       if (!mInGame)
@@ -304,7 +300,7 @@ namespace WinAGI
         //get group number
         lngGrpNum = bytData[lngPos] * 256 + bytData[lngPos + 1];
         //set pointer to next word
-        
+
         lngPos += 2;
         //if this word different to previous,
         //(this ensures no duplicates are added)
@@ -353,24 +349,22 @@ namespace WinAGI
       Clear();
       //then add all groups
       lngCount = NewWords.GroupCount;
-      for (i = 0; i < lngCount; i++)
+      foreach (AGIWordGroup oldGroup in NewWords)
       {
-        //create new temp group
+        //create new temp group, assign the number
         tmpGroup = new AGIWordGroup();
-        lngGrpNum = NewWords.Group(i).GroupNum;
+        lngGrpNum = oldGroup.GroupNum;
         tmpGroup.GroupNum = lngGrpNum;
         //add group to end of collection
         mGroupCol.Add(lngGrpNum, tmpGroup);
-      } //nxt  i
+      } 
 
       //then add all words
-      lngCount = NewWords.WordCount;
-      //(use one based, because it//s easier,
-      //and no other function uses ItemByIndex
-      for (i = 1; i <= lngCount; i++) {
+      foreach (AGIWord oldWord in NewWords.mWordCol.Values)
+      {
         //get word
-        strWord = NewWords.ItemByIndex(i).WordText;
-        lngGrpNum = NewWords.ItemByIndex(i).Group;
+        strWord = oldWord.WordText;
+        lngGrpNum = oldWord.Group;
         //create new word item
         tmpWord.WordText = strWord;
         tmpWord.Group = lngGrpNum;
@@ -454,7 +448,9 @@ namespace WinAGI
     }
     public string ResFile
     {
-      get { return mResFile;
+      get
+      {
+        return mResFile;
       }
       set
       {
@@ -542,7 +538,7 @@ namespace WinAGI
           // a string could be a number passed as a string, OR an actual word?
           // user has to make sure it's not a number passed as a string...
           //retrieve via string key - actual word, which is the key
-          return mWordCol[vKeyIndex]; 
+          return mWordCol[vKeyIndex];
         }
         else
         {
@@ -578,12 +574,12 @@ namespace WinAGI
         }
         switch (FileType)
         {
-          case 0:  //compile agi WORDS.TOK file
-            Compile(SaveFile);
-            break;
-          case 1:  //create WinAGI word list
-            CompileWinAGI(SaveFile);
-            break;
+        case 0:  //compile agi WORDS.TOK file
+          Compile(SaveFile);
+          break;
+        case 1:  //create WinAGI word list
+          CompileWinAGI(SaveFile);
+          break;
         }
         //save filename
         mResFile = SaveFile;
@@ -621,17 +617,6 @@ namespace WinAGI
     public bool WordExists(string aWord)
     {
       return mWordCol.ContainsKey(aWord);
-      ////if this word exists, it returns true
-      //for (int i = 0; i < mWordCol.Count; i++)
-      //{
-      //  if (mWordCol.Values[i].WordText.Equals(aWord, StringComparison.OrdinalIgnoreCase))
-      //  {
-      //    return true;
-      //  }
-      //}
-      //// not found
-      //return false;
-      
     }
     public void AddGroup(int GroupNumber)
     {
@@ -671,7 +656,7 @@ namespace WinAGI
     {
       //deletes aWord
       //if not loaded
-      if (!mLoaded) 
+      if (!mLoaded)
       {
         //error
         throw new Exception("563, strErrSource, LoadResString(563)");
@@ -713,7 +698,7 @@ namespace WinAGI
     {
       int i;
       //if not loaded
-      if (!mLoaded) 
+      if (!mLoaded)
       {
         //error
         throw new Exception("563, strErrSource, LoadResString(563)");
@@ -731,6 +716,8 @@ namespace WinAGI
         throw new Exception("583, strErrSource, LoadResString(583)");
       }
       //step through all words in main list
+      // CAN'T use foreach because we need to delete 
+      // some of the objects
       for (i = mWordCol.Count - 1; i >= 0; i--)
       {
         if (mWordCol.Values[i].Group == GroupNumber)
@@ -767,7 +754,7 @@ namespace WinAGI
         throw new Exception("575, strErrSource, LoadResString(575)");
       }
       //if old group doesn't exist
-      if (!GroupExists(OldGroupNumber)) 
+      if (!GroupExists(OldGroupNumber))
       {
         //error
         throw new Exception("696, strErrSource, LoadResString(696)");
@@ -785,9 +772,10 @@ namespace WinAGI
       // change group number
       tmpGroup.GroupNum = NewGroupNumber;
       //change group number for all words in the group
+      // CAN'T use forach, because we are adding to the collection
       for (i = 0; i < mWordCol.Count; i++)
       {
-        if (mWordCol.Values[i].Group == OldGroupNumber) 
+        if (mWordCol.Values[i].Group == OldGroupNumber)
         {
           AGIWord tmpWord = mWordCol.Values[i];
           tmpWord.Group = NewGroupNumber;
@@ -818,16 +806,18 @@ namespace WinAGI
         throw new Exception("616, strErrSource, LoadResString(616)");
       }
       //if not dirty AND CompileFile=resfile
-      if (!mIsDirty && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) 
+      if (!mIsDirty && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase))
       {
         return;
       }
       //if there are no word groups to add
-      if (mGroupCol.Count == 0) {
+      if (mGroupCol.Count == 0)
+      {
         throw new Exception("672, strErrSource, Replace(LoadResString(672), ARG1, no word groups to add)");
       }
       //if there are no words,
-      if (mWordCol.Count == 0) {
+      if (mWordCol.Count == 0)
+      {
         //error
         throw new Exception("672, strErrSource, Replace(LoadResString(672), ARG1, no words to add)");
       }
@@ -839,7 +829,7 @@ namespace WinAGI
       {
         fsWords = new FileStream(strTempFile, FileMode.OpenOrCreate);
         //write letter index
-        for (i = 0; i <= 51; i++) 
+        for (i = 0; i <= 51; i++)
         {
           fsWords.WriteByte(0);
         }
@@ -847,11 +837,10 @@ namespace WinAGI
         strFirstLetter = "a";
         intLetterIndex[1] = 52;
         //now step through all words in list
-        for (lngWord = 0; lngWord < mWordCol.Count; lngWord++)
+        foreach (AGIWord tmpWord in mWordCol.Values)
         {
           //get next word
-          //*********TODO: make sure words are sorted???*******
-          strCurWord = mWordCol.Values[lngWord].WordText;
+          strCurWord = tmpWord.WordText;
           //if first letter is not current first letter, AND it is 'b' through 'z'
           //(this ensures non letter words (such as numbers) are included in the //a// section)
           if ((strCurWord[0] != strFirstLetter[0]) && (strCurWord[0] >= 97) && (strCurWord[0] <= 122))
@@ -897,7 +886,7 @@ namespace WinAGI
           if (strCurWord.Length > 1)
           {
             //write all but last character
-            for (i = 0; i < strCurWord.Length - 1; i++) 
+            for (i = 0; i < strCurWord.Length - 1; i++)
             {
               //encrypt character before writing it
               CurByte = (byte)(0x7F ^ (byte)strCurWord[i]);
@@ -908,9 +897,9 @@ namespace WinAGI
           CurByte = (byte)(0x80 + (0x7F ^ (byte)strCurWord[strCurWord.Length]));
           fsWords.WriteByte(CurByte);
           //write group number (stored as 2-byte word; high byte first)
-          CurByte = (byte)(mWordCol.Values[lngWord].Group / 256);
+          CurByte = (byte)(tmpWord.Group / 256);
           fsWords.WriteByte(CurByte);
-          CurByte = (byte)(mWordCol.Values[lngWord].Group % 256);
+          CurByte = (byte)(tmpWord.Group % 256);
           fsWords.WriteByte(CurByte);
         }
         //add null character to end of file
@@ -918,7 +907,8 @@ namespace WinAGI
         //reset file pointer to start
         fsWords.Seek(0, SeekOrigin.Begin);
         //write index values for all 26 letters
-        for (i = 1;  i <= 26; i++) {
+        for (i = 1; i <= 26; i++)
+        {
           //(two byte word, high byte first
           CurByte = (byte)(intLetterIndex[i] / 256);
           fsWords.WriteByte(CurByte);
@@ -950,25 +940,25 @@ namespace WinAGI
       //if not in a game, LoadFile must be specified
 
       //if already loaded,
-      if (mLoaded) 
+      if (mLoaded)
       {
         //error- resource already loaded
         throw new Exception("511, strErrSource, LoadResString(511)");
       }
-      if (mInGame) 
+      if (mInGame)
       {
         //use default filename
         LoadFile = agGameDir + "WORDS.TOK";
         //attempt to load
-        if (!LoadSierraFile(LoadFile)) 
+        if (!LoadSierraFile(LoadFile))
         {
           //error
           throw new Exception("529, strErrSource, LoadResString(529)");
         }
         //get description, if there is one
         mDescription = ReadSettingString(agGameProps, "WORDS.TOK", "Description", "");
-      } 
-      else 
+      }
+      else
       {
         //if not in a game, must have a valid filename
         if (LoadFile.Length == 0)
@@ -983,7 +973,7 @@ namespace WinAGI
           throw new Exception("524, strErrSource, Replace(LoadResString(524), ARG1, LoadFile)");
         }
         //if extension is .agw then
-        if (LoadFile.EndsWith(".agw",StringComparison.OrdinalIgnoreCase))
+        if (LoadFile.EndsWith(".agw", StringComparison.OrdinalIgnoreCase))
         {
           //assume winagi format
           if (!LoadWinAGIFile(LoadFile))
@@ -995,11 +985,11 @@ namespace WinAGI
               throw new Exception("529, strErrSource, LoadResString(529)");
             }
           }
-        } 
-        else 
+        }
+        else
         {
           //assume sierra format
-          if (!LoadSierraFile(LoadFile)) 
+          if (!LoadSierraFile(LoadFile))
           {
             //try winagi format
             if (!LoadWinAGIFile(LoadFile))
@@ -1020,7 +1010,7 @@ namespace WinAGI
     {
       //returns a group by its index (NOT the same as group number)
       //if not loaded
-      if (!mLoaded) 
+      if (!mLoaded)
       {
         //error
         throw new Exception("563, strErrSource, LoadResString(563)");
@@ -1040,8 +1030,8 @@ namespace WinAGI
       //if not loaded
       if (!mLoaded)
       {
-      //error
-      throw new Exception("563, strErrSource, LoadResString(563)");
+        //error
+        throw new Exception("563, strErrSource, LoadResString(563)");
       }
       //convert input to lowercase
       WordText = WordText.ToLower();
@@ -1099,22 +1089,22 @@ namespace WinAGI
       strInput = srWords.ReadLine();
       switch (strInput)
       {
-        case WINAGI_VERSION:
-        case WINAGI_VERSION_1_2:
-        case WINAGI_VERSION_1_0:
-        case WINAGI_VERSION_BETA:
-          //ok
-          break;
-        default:
-          //any 1.2.x is ok
-          if (Left(strInput, 4) != "1.2.")
-          {
-            //close file
-            fsWords.Dispose();
-            srWords.Dispose();
-            return false;
-          }
-          break;
+      case WINAGI_VERSION:
+      case WINAGI_VERSION_1_2:
+      case WINAGI_VERSION_1_0:
+      case WINAGI_VERSION_BETA:
+        //ok
+        break;
+      default:
+        //any 1.2.x is ok
+        if (Left(strInput, 4) != "1.2.")
+        {
+          //close file
+          fsWords.Dispose();
+          srWords.Dispose();
+          return false;
+        }
+        break;
       }
       //enable inline error handling to check for invalid words/groups
       try
@@ -1137,7 +1127,7 @@ namespace WinAGI
             lngGrpNum = (int)Val(strWords[0]);
             //add this group
             AddGroup(lngGrpNum);
-            //add words to this group
+            //rest of strings in the list are words; add them to this group
             for (i = 1; i < strWords.Length; i++)
             {
               AddWord(strWords[i], lngGrpNum);
@@ -1182,6 +1172,56 @@ namespace WinAGI
       //set loaded flag
       mLoaded = true;
       return true;
+    }
+    WGrpEnum GetEnumerator()
+    {
+      return new WGrpEnum(mGroupCol);
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return (IEnumerator)GetEnumerator();
+    }
+    IEnumerator<AGIWordGroup> IEnumerable<AGIWordGroup>.GetEnumerator()
+    {
+      return (IEnumerator<AGIWordGroup>)GetEnumerator();
+    }
+  }
+    internal class WGrpEnum : IEnumerator<AGIWordGroup>
+  {
+    public SortedList<int, AGIWordGroup> _groups;
+    int position = -1;
+    public WGrpEnum(SortedList<int, AGIWordGroup> list)
+    {
+      _groups = list;
+    }
+    object IEnumerator.Current => Current;
+    public AGIWordGroup Current
+    {
+      get
+      {
+        try
+        {
+          return _groups.Values[position];
+        }
+        catch (IndexOutOfRangeException)
+        {
+
+          throw new InvalidOperationException();
+        }
+      }
+    }
+    public bool MoveNext()
+    {
+      position++;
+      return (position < _groups.Count);
+    }
+    public void Reset()
+    {
+      position = -1;
+    }
+    public void Dispose()
+    {
+      _groups = null;
     }
   }
 }

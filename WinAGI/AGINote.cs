@@ -8,9 +8,9 @@ namespace WinAGI
 {
   public class AGINote
   {
-    int mFreqDiv;
-    int mDuration;
-    byte mAttenuation;
+    internal int mFreqDiv;
+    internal int mDuration;
+    internal byte mAttenuation;
     internal AGISound mSndParent;
     internal AGITrack mTrkParent;
     string strErrSource;
@@ -84,12 +84,6 @@ namespace WinAGI
     {
       strErrSource = "AGINote";
     }
-    internal AGINote(AGISound parent, AGITrack tparent)
-    {
-      mSndParent = parent;
-      mTrkParent = tparent;
-      strErrSource = "AGINote";
-    }
     public AGINote(int freqdiv, int duration, byte attenuation)
     {
       strErrSource = "AGINote";
@@ -114,6 +108,12 @@ namespace WinAGI
         throw new Exception("6, strErrSource, Overflow");
       }
       mAttenuation = attenuation;
+    }
+    internal AGINote(AGISound parent, AGITrack tparent)
+    {
+      mSndParent = parent;
+      mTrkParent = tparent;
+      strErrSource = "AGINote";
     }
   }
 }

@@ -192,7 +192,7 @@ namespace WinAGI_GDS
     }
     private void frmMDIMain_Load(object sender, EventArgs e)
     {
-      // init it
+      // init the basic app functionality
       InitializeResMan();
       // read settings
       ReadSettings();
@@ -200,8 +200,10 @@ namespace WinAGI_GDS
       if (Settings.ShowPreview)
       {
         // show the preview window
-        PreviewWin = new frmPreview();
-        PreviewWin.MdiParent = this;
+        PreviewWin = new frmPreview
+        {
+          MdiParent = this
+        };
         PreviewWin.Show();
       }
     }
@@ -256,10 +258,18 @@ namespace WinAGI_GDS
       //{
       //  Debug.Print($"Group {WordList.GroupN(i).GroupNum}: {WordList.GroupN(i).GroupName} ({WordList.GroupN(i).WordCount} words)");
       //}
-
-      WordList.AddWord("hoohaa", 12345);
-      for (int i = 0; i < WordList.WordCount; i++)
-        Debug.Print($"group: {WordList[i].Group}  -- {WordList[i].WordText}");
+      int i = 0, j = 0;
+      foreach (AGIWord tmpWord in (IEnumerable<AGIWord>)WordList)
+      {
+        i++;
+      }
+      foreach (AGIWordGroup tmpGrp in (IEnumerable<AGIWordGroup>)WordList)
+      {
+        j++;
+      }
+      Debug.Print($"There are {i} words in {j} groups in this list.");
+      //for (int i = 0; i < WordList.WordCount; i++)
+      //  Debug.Print($"group: {WordList[i].Group}  -- {WordList[i].WordText}");
 
       //      WordList.Clear();
     }
@@ -272,39 +282,51 @@ namespace WinAGI_GDS
       };
       frmNew.Show();
     }
-    private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+    private void cmbResType_SelectedIndexChanged(object sender, EventArgs e)
     {
       //fill list box with resources for selected type
       if (GameLoaded)
       {
-        //lstResources.Anchor = AnchorStyles.None;
+        AGIResType selRes;
 
         // clear current list
         lstResources.Items.Clear();
+
+        selRes = (AGIResType)cmbResType.SelectedIndex;
+
         switch (cmbResType.SelectedIndex)
         {
         case 0: // game
+          selRes = rtGame;
           break;
         case 1: //logics
-          foreach (AGILogic tmpRes in Logics.Col.Values)
+          foreach (AGILogic tmpRes in Logics)
             lstResources.Items.Add(tmpRes);
+          selRes = rtLogic;
           break;
         case 2://pictures
-          foreach (AGIPicture tmpRes in Pictures.Col.Values)
+          foreach (AGIPicture tmpRes in Pictures)
             lstResources.Items.Add(tmpRes);
+          selRes = rtPicture;
           break;
         case 3: //sounds
-          foreach (AGISound tmpRes in Sounds.Col.Values)
+          foreach (AGISound tmpRes in Sounds)
             lstResources.Items.Add(tmpRes);
+          selRes = rtSound;
           break;
         case 4: //views
-          foreach (AGIView tmpRes in Views.Col.Values)
+          foreach (AGIView tmpRes in Views)
             lstResources.Items.Add(tmpRes);
+          selRes = rtView;
           break;
         case 5: //objects
+          selRes = rtObjects;
+          break;
         case 6: //words
+          selRes = rtWords;
           break;
         }
+        SelectResource(selRes, -1, true);
       }
     }
     private void lstResources_SelectedIndexChanged(object sender, EventArgs e)
@@ -319,7 +341,7 @@ namespace WinAGI_GDS
                 //root
           NewType = rtGame;
           NewNum = -1;
-          // no list items
+          // currently no list items
           break;
         case 1: //logics
                 //if nothing to select
@@ -1681,7 +1703,7 @@ Private void SelectPropFromList()
   lstProperty.Visible = false
   
   //set focus to property window
-  picProperties.SetFocus
+  picProperties.Focus()
   
   //force repaint
   PaintPropertyWindow
@@ -1795,7 +1817,7 @@ Private void SelectPropFromText()
   txtProperty.Visible = false
   
   //set focus to property window
-  picProperties.SetFocus
+  picProperties.Focus()
   
   //force repaint
   PaintPropertyWindow
@@ -1905,7 +1927,7 @@ Private void CheckCmd()
       frmNewO = Nothing
     } else {
       frmNewO.Show
-      frmNewO.fgObjects.SetFocus
+      frmNewO.fgObjects.Focus()
     }
       
   } else if ( UCase(JustFileName(Command$)) = "WORDS.TOK") {
@@ -1950,7 +1972,7 @@ Private void CheckCmd()
         frmNewO = Nothing
       } else {
         frmNewO.Show
-        frmNewO.fgObjects.SetFocus
+        frmNewO.fgObjects.Focus()
       }
       
     Case ".agp"
@@ -3458,7 +3480,7 @@ Private void cmbResType_KeyDown(KeyCode As Integer, Shift As Integer)
       KeyCode = 0
     
     Case 9  //tab
-      lstResources.SetFocus
+      lstResources.Focus()
       KeyCode = 0
     }
   }
@@ -3526,9 +3548,9 @@ Private void cmdBack_Click()
   //always set focus to the resource list
   Select Case Settings.ResListType
   Case 1
-    tvwResources.SetFocus
+    tvwResources.Focus()
   Case 2
-    lstResources.SetFocus
+    lstResources.Focus();
   }
 return;
 
@@ -3569,9 +3591,9 @@ Private void cmdBack_MouseUp(Button As Integer, Shift As Integer, X As Single, Y
   //always set focus to resource list
   Select Case Settings.ResListType
   Case 1
-    tvwResources.SetFocus
+    tvwResources.Focus();
   Case 2
-    lstResources.SetFocus
+    lstResources.Focus();
   }
 }
 
@@ -3597,9 +3619,9 @@ Private void cmdForward_Click()
   //always set focus to the resource list
   Select Case Settings.ResListType
   Case 1
-    tvwResources.SetFocus
+    tvwResources.Focus();
   Case 2
-    lstResources.SetFocus
+    lstResources.Focus();
   }
   
 return;
@@ -3642,9 +3664,9 @@ Private void cmdForward_MouseUp(Button As Integer, Shift As Integer, X As Single
   //always set focus to resource list
   Select Case Settings.ResListType
   Case 1
-    tvwResources.SetFocus
+    tvwResources.Focus();
   Case 2
-    lstResources.SetFocus
+    lstResources.Focus();
   }
 }
 
@@ -3779,9 +3801,9 @@ Private void fgWarnings_MouseDown(Button As Integer, Shift As Integer, X As Sing
       
       //make sure grid is the active control
       if (Me.ActiveControl Is Nothing) {
-        .SetFocus
+        .Focus();
       } else if ( Me.ActiveControl.Name != "fgWarnings") {
-        .SetFocus
+        .Focus();
       }
       //Debug.Assert Me.ActiveControl Is fgWarnings
       
@@ -3883,11 +3905,11 @@ Private void fsbProperty_Change()
   //cancel editing, if it is occurring
   if (txtProperty.Visible) {
     txtProperty.Visible = false
-    picProperties.SetFocus
+    picProperties.Focus();
   }
   if (lstProperty.Visible) {
     lstProperty.Visible = false
-    picProperties.SetFocus
+    picProperties.Focus();
   }
   
   //adjust propscroll Value
@@ -3907,7 +3929,7 @@ Private void lstProperty_DblClick()
   lstProperty.Visible = false
   PaintPropertyWindow
   
-  picProperties.SetFocus
+  picProperties.Focus();
 return;
 
 ErrHandler:
@@ -3929,7 +3951,7 @@ Private void lstProperty_KeyPress(KeyAscii As Integer)
     KeyAscii = 0
     SelectPropFromList
     lstProperty.Visible = false
-    picProperties.SetFocus
+    picProperties.Focus();
     PaintPropertyWindow
     return;
     
@@ -3937,7 +3959,7 @@ Private void lstProperty_KeyPress(KeyAscii As Integer)
     //cancel
     KeyAscii = 0
     lstProperty.Visible = false
-    picProperties.SetFocus
+    picProperties.Focus();
     PaintPropertyWindow
     return;
   }
@@ -4070,7 +4092,7 @@ Private void lstResources_KeyDown(KeyCode As Integer, Shift As Integer)
       KeyCode = 0
     
     Case 9  //tab
-      picProperties.SetFocus
+      picProperties.Focus();
       KeyCode = 0
     }
   } else if ( Shift = vbShiftMask + vbCtrlMask) {
@@ -4244,7 +4266,7 @@ Private void MDIForm_MouseDown(Button As Integer, Shift As Integer, X As Single,
     txtProperty.Visible = false
     PaintPropertyWindow
   }
-  picProperties.SetFocus
+  picProperties.Focus();
 return;
 
 ErrHandler:
@@ -4776,7 +4798,7 @@ Private void mnuTMenuEditor_Click()
   //show the menu editor form
   
   if (MEInUse) {
-    MenuEditor.SetFocus
+    MenuEditor.Focus();
     // if minimized,
     if (MenuEditor.WindowState = vbMinimized) {
       //restore it
@@ -4792,7 +4814,7 @@ Private void mnuTMenuEditor_Click()
       Unload MenuEditor
     } else {
       MenuEditor.Show
-      MenuEditor.SetFocus
+      MenuEditor.Focus();
     }
   }
   
@@ -4893,7 +4915,7 @@ Private void mnuTSnippets_Click()
   //if active form is an editor
   if (MDIMain.ActiveForm.Name = "frmLogicEdit" && MDIMain.ActiveForm.Name = "frmTextEdit") {
     //force focus to edit control
-    MDIMain.ActiveForm.rtfLogic.SetFocus
+    MDIMain.ActiveForm.rtfLogic.Focus();
   }
 return;
 
@@ -5227,7 +5249,7 @@ Private void picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
     if (PreviewWin.Visible) {
       SelectedProp = 0
       PaintPropertyWindow
-      PreviewWin.SetFocus
+      PreviewWin.Focus();
       KeyCode = 0
     }
   }
@@ -5382,14 +5404,14 @@ Private void picSplitH_MouseUp(Button As Integer, Shift As Integer, X As Single,
       //force focus back to mdi (use resource list)
       Select Case Settings.ResListType
       Case 1
-        tvwResources.SetFocus
+        tvwResources.Focus();
       Case 2
-        lstResources.SetFocus
+        lstResources.Focus();
       }
     } else {
       //force focus back to active form, if there is one
       if (!ActiveForm Is Nothing) {
-        ActiveForm.SetFocus
+        ActiveForm.Focus();
       }
     }
   }
@@ -5466,14 +5488,14 @@ Private void picSplitRes_MouseUp(Button As Integer, Shift As Integer, X As Singl
       //force focus back to mdi (use resource list)
       Select Case Settings.ResListType
       Case 1
-        tvwResources.SetFocus
+        tvwResources.Focus();
       Case 2
-        lstResources.SetFocus
+        lstResources.Focus();
       }
     } else {
       //force focus back to active form, if there is one
       if (!ActiveForm Is Nothing) {
-        ActiveForm.SetFocus
+        ActiveForm.Focus();
       }
     }
   }
@@ -5540,14 +5562,14 @@ Private void picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single,
       //force focus back to mdi (use resource list)
       Select Case Settings.ResListType
       Case 1
-        tvwResources.SetFocus
+        tvwResources.Focus();
       Case 2
-        lstResources.SetFocus
+        lstResources.Focus();
       }
     } else {
       //force focus back to active form, if there is one
       if (!ActiveForm Is Nothing) {
-        ActiveForm.SetFocus
+        ActiveForm.Focus();
       }
     }
   }
@@ -5923,7 +5945,7 @@ Private void tvwResources_KeyDown(KeyCode As Integer, Shift As Integer)
       KeyCode = 0
     
     Case 9  //tab
-      picProperties.SetFocus
+      picProperties.Focus();
       KeyCode = 0
     }
   } else if ( Shift = vbShiftMask + vbCtrlMask) {
@@ -6160,14 +6182,14 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
       if (!PreviewWin.Visible) {
         PreviewWin.Show
       }
-      PreviewWin.SetFocus
+      PreviewWin.Focus();
       //set control focus to picproperties
-      picProperties.SetFocus
+      picProperties.Focus();
     }
   }
   
   //force control focus to picProperties
-  picProperties.SetFocus
+  picProperties.Focus();
 
   tmpProp = Y \ PropRowHeight
   
@@ -6628,7 +6650,7 @@ Private void DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVa
   txtProperty.ZOrder
   txtProperty.Visible = true
   //select it
-  txtProperty.SetFocus
+  txtProperty.Focus();
   //move cursor to end
   txtProperty.SelStart = Len(txtProperty.Text)
 }
@@ -6748,7 +6770,7 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
   //set top index to the selected Value
   lstProperty.TopIndex = lstProperty.SelectedIndex
   //select it
-  lstProperty.SetFocus
+  lstProperty.Focus();
 return;
 
 ErrHandler:
@@ -8730,7 +8752,7 @@ public void PropMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVa
   //if property window doesn//t have focus,
   //make it so
   if (!MDIMain.ActiveControl Is picProperties) {
-    picProperties.SetFocus
+    picProperties.Focus();
   }
   
   //if nothing selected
@@ -8923,7 +8945,7 @@ Private void tvwResources_NodeClick(ByVal Node As MSComctlLib.Node)
       //if previn hidden on lostfocus, need to show it AFTER changing displayed resource
       if (PreviewWin.Visible) {
         //set form focus to preview
-        PreviewWin.SetFocus
+        PreviewWin.Focus();
         //set control focus to tvwlist
         PreviewWin.ZOrder
       }
@@ -8933,7 +8955,7 @@ Private void tvwResources_NodeClick(ByVal Node As MSComctlLib.Node)
   //if no active form
   if (!ActiveForm Is Nothing) {
     //set control focus to treeview
-    tvwResources.SetFocus
+    tvwResources.Focus();
   }
   
   On Error GoTo ErrHandler
@@ -8948,7 +8970,7 @@ Private void tvwResources_NodeClick(ByVal Node As MSComctlLib.Node)
     if (!PreviewWin.Visible && Settings.ShowPreview) {
       PreviewWin.Show
       //set form focus to preview
-      PreviewWin.SetFocus
+      PreviewWin.Focus();
       //set control focus to tvwlist
       PreviewWin.ZOrder
     }
@@ -8980,7 +9002,7 @@ Private void tvwResources_NodeClick(ByVal Node As MSComctlLib.Node)
   if (!PreviewWin.Visible && Settings.ShowPreview) {
     PreviewWin.Show
     //set form focus to preview
-    PreviewWin.SetFocus
+    PreviewWin.Focus();
     //set control focus to tvwlist
     PreviewWin.ZOrder
   }

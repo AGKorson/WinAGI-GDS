@@ -22,8 +22,7 @@ namespace WinAGI
     bool mMIDISet;
 
     //other
-    string strErrSource;
-    // Declare the delegate, and event
+    // Declare the event delegate, and event
     public delegate void SoundCompleteEventHandler(object sender, SoundCompleteEventArgs e);
     public event SoundCompleteEventHandler SoundComplete;
     public class SoundCompleteEventArgs
@@ -500,39 +499,27 @@ namespace WinAGI
         throw new Exception("lngError, strErrSrc, strError");
       }
     }
-    public void SetSound(AGISound CopySound)
+    public AGISound Clone()
     {
-      //copies sound data from CopySound into this sound
-      int i, j;
+      //copies sound data from this sound and returns a completely separate object reference
+      AGISound CopySound = new AGISound();
+      // copy base properties
       base.SetRes(CopySound);
       //add WinAGI items
-      mKey = CopySound.Key;
-      mTPQN = CopySound.TPQN;
-      //build regular tracks
-      for (i = 0; i <= 2; i++)
+      CopySound.mKey = mKey;
+      CopySound.mTPQN = mTPQN;
+      CopySound.mTracksSet = mTracksSet;
+      CopySound.mLength = mLength;
+      CopySound.mFormat = mFormat;
+
+      //never copy midiset; cloned sound will have to build it own?
+      CopySound.mMIDISet = false; // mMIDISet; ;
+      //clone the tracks
+      for (int i = 0; i < 4; i++)
       {
-        //set track properties
-        mTrack[i].mParent = this;
-        mTrack[i].Muted = CopySound[i].Muted;
-        mTrack[i].Visible = CopySound[i].Visible;
-        //copy notes
-        mTrack[i].Notes = CopySound[i].Notes;
-        mTrack[i].Instrument = CopySound[i].Instrument;
-      } //next i
-      //copy noise track
-      mTrack[3].mParent = this;
-      mTrack[3].Muted = CopySound[3].Muted;
-      mTrack[3].Visible = CopySound[3].Visible;
-      //copy notes
-      mTrack[3].Notes = CopySound[3].Notes;
-      //never build midi;
-      //first reference to MIDI will force rebuild
-      //at that time
-      mMIDISet = false;
-      //set track loaded property to true
-      mTracksSet = true;
-      //reset length
-      mLength = -1;
+        CopySound.mTrack[i] = mTrack[i].Clone(this);
+      }
+      return CopySound; 
     }
     public void Export(string ExportFile, SoundFormat FileFormat = SoundFormat.sfAGI, bool ResetDirty = true)
     {
