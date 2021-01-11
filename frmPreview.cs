@@ -751,10 +751,10 @@ namespace WinAGI_GDS
       //position the cel
       picCel.Top = -vsbView.Value;
     }
-    private void pnlPic_Resize(object sender, EventArgs e)
+    private void pnlCel_Resize(object sender, EventArgs e)
     {
       //position scrollbars
-      hsbPic.Top = pnlPicture.Height - hsbPic.Height;
+      hsbView.Top = pnlCel.Height - hsbView.Height;
       hsbView.Width = pnlCel.Width;
       vsbView.Left = pnlCel.Width - vsbView.Width;
       vsbView.Height = pnlCel.Height;
@@ -793,6 +793,32 @@ namespace WinAGI_GDS
       //return true
       return true;
     }
+
+    private void pnlCel_Paint(object sender, PaintEventArgs e)
+    {
+
+      //TODO: need to fix the background (pnlCel) grid drawing; when to draw it and how;
+      // currently the background is not matching the foreground; the offset calc isn't quite right
+      // also, need to make sure grid gets completely drawn when selecting transparency, turned 
+      // off when de-selecting, and correctly updated during resize, scroll, and new loop/cel 
+      // events
+
+      int offsetX, offsetY;
+      offsetX = (picCel.Left) % 10;
+      offsetY = (picCel.Top) % 10;
+
+      if (chkTrans.Checked) {
+        //DisableRedraw(pnlCel);
+        for (int i = 0; i <= pnlCel.Width + 1; i += 10) {
+          for (int j = 0; j < pnlCel.Height + 1; j += 10) {
+            //gc.DrawLine(pen, i, j, i, j);
+            e.Graphics.FillRectangle(Brushes.Black, new Rectangle(i + offsetX, j + offsetY, 1, 1));
+          }
+        }
+        //EnableRedraw(pnlCel);
+      }
+    }
+
     void cmbInst_Click(int Index)
     {
       //if changing,
@@ -893,10 +919,25 @@ namespace WinAGI_GDS
 
       // update ud caption
       udCel.Text = $"Cel {CurCel} / {agView[CurLoop].Cels.Count - 1}";
-      //set transparent color for the holder
+      //set transparent color for the toolbox image
       picTrans.Image = new Bitmap(picTrans.Width, picTrans.Height);
-      using Graphics g = Graphics.FromImage(picTrans.Image);
-      g.Clear(EGAColor[(int)agView[CurLoop][CurCel].TransColor]);
+      Graphics.FromImage(picTrans.Image).Clear(EGAColor[(int)agView[CurLoop][CurCel].TransColor]);
+
+      // create new image in the picture box that is desired size
+      picCel.Image = new Bitmap(picCel.Width, picCel.Height);
+      if (chkTrans.Checked) {
+        //DisableRedraw(pnlCel);
+        // draws single pixel dots spaced 10 pixels apart
+        using Graphics gc = Graphics.FromImage(picCel.Image);
+        //gc.Clear(Color.Red);
+        //gc.DrawLine(new Pen(Color.Black), 0, 0, picCel.Width, picCel.Height);
+        for (int i = 0; i <= picCel.Width + 1; i += 10) {
+          for (int j = 0; j < picCel.Height + 1; j += 10) {
+            gc.FillRectangle(Brushes.Black, new Rectangle(i, j, 1, 1));
+          }
+        }
+        //EnableRedraw(pnlCel);
+      }
       //copy view Image
       tgtW = agView[CurLoop][CurCel].Width * 2 * ViewScale;
       tgtH = agView[CurLoop][CurCel].Height * ViewScale;
@@ -925,9 +966,7 @@ namespace WinAGI_GDS
       // set transparency
       agView[CurLoop][CurCel].Transparency = blnTrans;
       //load the cel Image
-      ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, tgtX, tgtY, tgtW, tgtH, ViewScale);
-      //picCel.Refresh();
-      //pnlView.Refresh();
+      ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, tgtX, tgtY, tgtW, tgtH);
       //success
       return true;
     }
@@ -1075,16 +1114,17 @@ namespace WinAGI_GDS
     }
     void DrawTransGrid()
     {
-      return;
+      //return;
       // performance sucks- need to disable updating until all 
       // pixels are set, then do one refresh
       // also need to re-do implementation of when to redraw the grid
+      //DisableRedraw(pnlCel);
 
-
+      return;
       // draws single pixel dots spaced 10 pixels apart
       int offsetX, offsetY;
-      Pen pen = new Pen(Color.Black);
-      pen.Width = 1;
+      //Pen pen = new Pen(Color.Black);
+      //pen.Width = 1;
       using Graphics gc = picCel.CreateGraphics();
       using Graphics gp = pnlCel.CreateGraphics();
       //clear the cel holder
@@ -1099,10 +1139,12 @@ namespace WinAGI_GDS
       
       for (int i = 0; i <= pnlCel.Width + 1; i += 10) {
         for (int j = 0; j < pnlView.Height + 1; j += 10) {
-          gc.DrawLine(pen, i, j, i + 1, j + 1);
-          gp.DrawLine(pen, i + offsetX, j + offsetY, i + offsetX + 1, j + offsetY + 1);
+          //gc.DrawLine(pen, i, j, i, j);
+          gp.FillRectangle(Brushes.Black, new Rectangle(i + offsetX, j + offsetY, 1, 1));
         }
       }
+
+      //EnableRedraw(pnlCel);
     }
    void tmpPreview()
 {

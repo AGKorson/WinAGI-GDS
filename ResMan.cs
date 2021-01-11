@@ -10,6 +10,7 @@ using WinAGI;
 using static WinAGI.AGIGame;
 using static WinAGI.WinAGI;
 using static WinAGI.AGICommands;
+using System.Runtime.InteropServices;
 
 namespace WinAGI_GDS
 {
@@ -210,7 +211,7 @@ namespace WinAGI_GDS
     public const int ALPHACMDTEXT = 4000;
 #endregion
     //***************************************************
-    //ENUMERATIONS
+    // ENUMERATIONS
     //***************************************************
     #region
     public enum UndoNameID
@@ -449,7 +450,7 @@ namespace WinAGI_GDS
     }
     #endregion
     //***************************************************
-    //TYPE DEFINITIONS
+    // TYPE DEFINITIONS
     //***************************************************
     #region
     public struct tDefaultScale
@@ -635,7 +636,7 @@ namespace WinAGI_GDS
     }
     #endregion
     //***************************************************
-    //GLOBAL VARIABLES
+    // GLOBAL VARIABLES
     //***************************************************
     #region
     public static frmMDIMain MDIMain;
@@ -773,6 +774,16 @@ namespace WinAGI_GDS
     public static bool GWShowComment;
     public static double GWNameFrac, GWValFrac;
     #endregion
+    //***************************************************
+    // API DECLARATIONS
+    //***************************************************
+    [DllImport("user32.dll")]
+    public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, Int32 wParam, Int32 lParam);
+    public const int WM_SETREDRAW = 0xB;
+
+    //***************************************************
+    // GLOBAL STATIC FUNCTIONS
+    //***************************************************
     public static void AddToQueue(AGIResType ResType, int ResNum)
     {
       //adds this resource to the navigation queue
@@ -15594,19 +15605,19 @@ End Function
       //returns a string Value of an instrument
       return LoadResString(INSTRUMENTNAMETEXT + instrument);
     }
-    public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int tgtX, int tgtY, int tgtW, int tgtH, double scale = 1)
+    public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int tgtX, int tgtY, int tgtW, int tgtH)
     {
-      //to scale the picture without blurring, need to use NearestNeighbor interpolation
-      // that can't be set directly, so a graphics object is needed to draw the the picture
-      // also, the top row and left column pixels get halved; need to draw the picture twice
-      // to get those pixels to show full size
-      int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
-      bWidth = pic.Width;
-      bHeight = pic.Height;
-      // first, create new image in the picture box that is desired size
-      pic.Image = new Bitmap(bWidth, bHeight);
+      // draws the agi bitmap in target picture box using passed target size/location
+
+      // to scale the picture without blurring, use APIs; .NET's built-in scaling doesn't
+      // properly size the scaled image
+      int bWidth = pic.Width, bHeight = pic.Height;
+      //// first, create new image in the picture box that is desired size
+      //pic.Image = new Bitmap(bWidth, bHeight);
       // intialize a graphics object for the image just created
       using Graphics g = Graphics.FromImage(pic.Image);
+      //g.Clear(Color.Red);
+
       // Create a blank bitmap with the same dimensions
       Bitmap bmp = new Bitmap(agiBMP);
       //get handle to bitmap
@@ -15618,8 +15629,10 @@ End Function
       //get original object and select bitmap
       IntPtr pOrig = SelectObject(srcHdc, hbmp);
       //copy it
-      int rtn = StretchBlt(destHDC, tgtX, tgtY, tgtW, tgtH,
-          srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, SRCCOPY);
+      //int rtn = StretchBlt(destHDC, tgtX, tgtY, tgtW, tgtH,
+      //    srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, SRCCOPY);
+      int rtn = AlphaBlend(destHDC, tgtX, tgtY, tgtW, tgtH,
+          srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, new BLENDFUNCTION() { BlendOp = AC_SRC_OVER, BlendFlags = 0, SourceConstantAlpha = 255,  AlphaFormat = AC_SRC_ALPHA});
       //select original object
       IntPtr pNew = SelectObject(srcHdc, pOrig);
       //delete objects
@@ -15629,6 +15642,17 @@ End Function
       g.ReleaseHdc(destHDC);
       pic.Refresh();
 
+      //to scale the picture without blurring, need to use NearestNeighbor interpolation
+      // that can't be set directly, so a graphics object is needed to draw the the picture
+      // also, the top row and left column pixels get halved; need to draw the picture twice
+      // to get those pixels to show full size
+      //int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
+      //bWidth = pic.Width;
+      //bHeight = pic.Height;
+      //// first, create new image in the picture box that is desired size
+      //pic.Image = new Bitmap(bWidth, bHeight);
+      //// intialize a graphics object for the image just created
+      //using Graphics g = Graphics.FromImage(pic.Image);
       ////always clear the background first
       //g.Clear(pic.BackColor);
       //// set correct interpolation mode
@@ -15641,24 +15665,22 @@ End Function
     }
     public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1)
     {
-      // to scale the picture without blurring, need to use NearestNeighbor interpolation
-      // that can't be set directly, so a graphics object is needed to draw the the picture
-      // also, the top row and left column pixels get halved; need to draw the picture twice
-      // to get those pixels to show full size
+      // draws the agi bitmap in target picture box, using scale factor provided
 
+      // to scale the picture without blurring, use APIs; .NET's built-in scaling doesn't
+      // properly size the scaled image
       int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
       //// first, create new image in the picture box that is desired size
       pic.Image = new Bitmap(bWidth, bHeight);
       //intialize a graphics object for the image just created
       using Graphics g = Graphics.FromImage(pic.Image);
-
       // Create a blank bitmap with the same dimensions
       Bitmap bmp = new Bitmap(agiBMP);
       //get handle to bitmap
       IntPtr hbmp = bmp.GetHbitmap();
       //get handle to destination graphic
       IntPtr destHDC = g.GetHdc();
-      //get handle to source graphic
+      //get handle to source graphic, compatible with the destination
       IntPtr srcHdc = CreateCompatibleDC(destHDC);
       //get original object and select bitmap
       IntPtr pOrig = SelectObject(srcHdc, hbmp);
@@ -15675,6 +15697,11 @@ End Function
       pic.Refresh();
 
 
+      //int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
+      ////// first, create new image in the picture box that is desired size
+      //pic.Image = new Bitmap(bWidth, bHeight);
+      ////intialize a graphics object for the image just created
+      //using Graphics g = Graphics.FromImage(pic.Image);
       ////always clear the background first
       //g.Clear(pic.BackColor);
       //// set correct interpolation mode
@@ -15684,6 +15711,17 @@ End Function
       //g.DrawImage(agiBMP, 0, (int)scale / 2, bWidth, bHeight);
       //g.DrawImage(agiBMP, (int)scale, 0, bWidth, bHeight);
       //g.DrawImage(agiBMP, (int)scale, (int)scale / 2, bWidth, bHeight);
+    }
+  
+    public static void EnableRedraw(Control ctl)
+    {
+      _ = SendMessage(ctl.Handle, WM_SETREDRAW, 1, 0);
+      ctl.Refresh();
+    }
+    public static void DisableRedraw(Control ctl)
+    {
+      _ = SendMessage(ctl.Handle, WM_SETREDRAW, 0, 0);
+      ctl.Refresh();
     }
   }
 }

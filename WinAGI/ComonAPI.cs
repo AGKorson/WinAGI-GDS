@@ -120,7 +120,25 @@ namespace WinAGI
     [DllImport("gdi32.dll")]
     internal static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
     [DllImport("gdi32.dll")]
-    internal static extern int StretchBlt(IntPtr hDC, int X, int Y, int nWidth, int nHeight, IntPtr hSrcDC, int xSrc, int ySrc, int nSrWidth, int nSrHeight, int dwRop);
+    internal static extern int     StretchBlt(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, int dwRop);
+    [DllImport("msimg32.dll")]
+    internal static extern int TransparentBlt(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, int crTransparent);
+    internal struct BLENDFUNCTION
+    {
+      internal byte BlendOp;
+      internal byte BlendFlags;
+      internal byte SourceConstantAlpha;
+      internal byte AlphaFormat;
+    }
+    internal const int AC_SRC_OVER = 0x00;
+    internal const int AC_SRC_ALPHA = 0x01;
+    internal const int AC_SRC_NO_PREMULT_ALPHA = 0x01;
+    internal const int AC_SRC_NO_ALPHA = 0x02;
+    internal const int AC_DST_NO_PREMULT_ALPHA = 0x10;
+    internal const int AC_DST_NO_ALPHA = 0x20;
+
+    [DllImport("msimg32.dll")]
+    internal static extern int     AlphaBlend(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, BLENDFUNCTION ftn);
     [DllImport("gdi32.dll")]
     internal static extern int GetLastError();
     [DllImport("gdi32.dll")]
