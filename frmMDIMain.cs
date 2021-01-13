@@ -192,13 +192,13 @@ namespace WinAGI_GDS
     }
     private void frmMDIMain_Load(object sender, EventArgs e)
     {
-
       //what is resolution?
       MessageBox.Show($"Current DPI: {this.DeviceDpi}");
       // init the basic app functionality
       InitializeResMan();
       // read settings
       ReadSettings();
+      // set up object references
 
       if (Settings.ShowPreview)
       {

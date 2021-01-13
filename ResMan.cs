@@ -11,6 +11,7 @@ using static WinAGI.AGIGame;
 using static WinAGI.WinAGI;
 using static WinAGI.AGICommands;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace WinAGI_GDS
 {
@@ -209,7 +210,7 @@ namespace WinAGI_GDS
     public const int GLBUNDOTEXT = 2100;
     public const int INSTRUMENTNAMETEXT = 3000;
     public const int ALPHACMDTEXT = 4000;
-#endregion
+    #endregion
     //***************************************************
     // ENUMERATIONS
     //***************************************************
@@ -468,8 +469,8 @@ namespace WinAGI_GDS
       public int ObjSpeed;
       public int ObjPriority;  //16 means auto; 4-15 correspond to priority bands
       public int ObjRestriction;  //0 = no restriction
-                           //1 = restrict to water
-                           //2 = restrict to land
+                                  //1 = restrict to water
+                                  //2 = restrict to land
       public int Horizon;
       public bool IgnoreHorizon;
       public bool IgnoreBlocks;
@@ -640,7 +641,7 @@ namespace WinAGI_GDS
     //***************************************************
     #region
     public static frmMDIMain MDIMain;
-    
+
     public static string ProgramDir;
     public static string DefaultResDir; //this is the location that the file dialog box uses as the initial directory
     public static string CurGameFile;
@@ -650,7 +651,7 @@ namespace WinAGI_GDS
     public static frmPreview PreviewWin;
     //static public StatusBar MainStatusBar
     //static public CommonDialog MainDialog
-    //static public SaveDialog MainSaveDlg
+    //static public SaveDialog MDIMain.SaveDlg
     //static public frmCompStatus CompStatusWin
     //static public PictureBox NotePictures
     public static int SelResNum;
@@ -707,7 +708,7 @@ namespace WinAGI_GDS
     public static int DefUpdateVal;
     //mru variables
     public static string[] strMRU = new string[5]; // (4)
-                                            //clipboard variables
+                                                   //clipboard variables
     public static AGINotes SoundClipboard;
     public static int SoundCBMode;
     public static AGILoop ClipViewLoop;
@@ -747,7 +748,7 @@ namespace WinAGI_GDS
     public static bool ClosedLogics;
     public static int ReplaceCount;
     public static bool SearchStartDlg; //true if search started by clicking //find// or //find next//
-                                // on FindForm
+                                       // on FindForm
     internal static int SearchLogCount;
     internal static int SearchLogVal;
     //property window variables
@@ -797,14 +798,12 @@ namespace WinAGI_GDS
 
       int lngRes;
 
-     if (DontQueue)
-      {
+      if (DontQueue) {
         return;
       }
 
       //if resum is invalid, or if restype is invalid
-      if (ResType < 0 || (int)ResType > 4 || ResNum < 0 || ResNum > 255)
-      {
+      if (ResType < 0 || (int)ResType > 4 || ResNum < 0 || ResNum > 255) {
         //error
         //Debug.Assert false
         return;
@@ -814,10 +813,8 @@ namespace WinAGI_GDS
       lngRes = (int)ResType * 256 + ResNum;
 
       //don't add if the current resource matches
-      if (ResQueue.Count > 0)
-      {
-        if (ResQueue.Peek() == lngRes)
-        {
+      if (ResQueue.Count > 0) {
+        if (ResQueue.Peek() == lngRes) {
           return;
         }
       }
@@ -838,24 +835,20 @@ namespace WinAGI_GDS
       int i;
       //check to see if there are any overrides:
       intCount = ReadSettingLong(SettingsList, "ResDefOverrides", "Count", 0);
-      if (intCount == 0)
-      {
+      if (intCount == 0) {
         return;
       }
       //ok, get the overrides, and apply them
-      for (i = 1; i <= intCount; i++)
-      {
+      for (i = 1; i <= intCount; i++) {
         strIn = ReadSettingString(SettingsList, "ResDefOverrides", "Override" + i);
         //split it to get the def value and def name
         //(0)=group
         //(1)=index
         //(2)=newname
         strDef = strIn.Split(":");
-        if (strDef.Length == 3)
-        {
+        if (strDef.Length == 3) {
           //get the new name, if a valid entry
-          if (Val(strDef[1]) < LogicSourceSettings.ResDefByGrp((int)Val(strDef[0])).Length)
-          {
+          if (Val(strDef[1]) < LogicSourceSettings.ResDefByGrp((int)Val(strDef[0])).Length) {
             LogicSourceSettings.ResDef((int)Val(strDef[0]), (int)Val(strDef[1]), strDef[2]);
           }
         }
@@ -865,11 +858,10 @@ namespace WinAGI_GDS
       //default value
       //we check AFTER all overrides are made just in case a swap is desired- checking in
       //realtime would not allow a swap
-      if (!LogicSourceSettings.ValidateResDefs())
-      {
+      if (!LogicSourceSettings.ValidateResDefs()) {
         //if any were changed, re-write the WinAGI.config file
         SaveResDefOverrides();
-       }
+      }
     }
     public static void SaveResDefOverrides()
     {
@@ -884,15 +876,12 @@ namespace WinAGI_GDS
       //first, delete any previous overrides
       DeleteSettingSection(SettingsList, "ResDefOverrides");
       //now step through each type of define value; if name is not the default, then save it
-      for (j = 1; j <= 8; j++)
-      {
+      for (j = 1; j <= 8; j++) {
 
         //checks 27 variables
         dfTemp = LogicSourceSettings.ResDefByGrp(j);
-        for (i = 0; i < max[j]; i++)
-        {
-          if (dfTemp[i].Default != dfTemp[i].Name)
-          {
+        for (i = 0; i < max[j]; i++) {
+          if (dfTemp[i].Default != dfTemp[i].Name) {
             //save it
             intCount++;
             WriteAppSetting(SettingsList, "ResDefOverrides", "Override" + intCount, j + ":" + i + ":" + dfTemp[i].Name);
@@ -909,41 +898,29 @@ namespace WinAGI_GDS
       bool blnTimes = false, blnConsolas = false;
       //set default fonts
       //priority is consolas, courier new, arial, then times new roman
-      foreach (FontFamily font in System.Drawing.FontFamily.Families)
-      {
-        if (font.Name.Equals("Consolas", StringComparison.OrdinalIgnoreCase))
-        {
+      foreach (FontFamily font in System.Drawing.FontFamily.Families) {
+        if (font.Name.Equals("Consolas", StringComparison.OrdinalIgnoreCase)) {
           blnConsolas = true;
         }
-        if (font.Name.Equals("Courier New", StringComparison.OrdinalIgnoreCase))
-        {
+        if (font.Name.Equals("Courier New", StringComparison.OrdinalIgnoreCase)) {
           blnCourier = true;
         }
-        if (font.Name.Equals("Arial", StringComparison.OrdinalIgnoreCase))
-        {
+        if (font.Name.Equals("Arial", StringComparison.OrdinalIgnoreCase)) {
           blnArial = true;
         }
-        if (font.Name.Equals("Times New Roman", StringComparison.OrdinalIgnoreCase))
-        {
+        if (font.Name.Equals("Times New Roman", StringComparison.OrdinalIgnoreCase)) {
           blnTimes = true;
         }
       }
-      if (blnConsolas) 
-      {
+      if (blnConsolas) {
         DEFAULT_PFONTNAME = "Consolas";
-      } else if (blnCourier)
-      {
+      } else if (blnCourier) {
         DEFAULT_PFONTNAME = "Courier New";
-      } else if (blnArial)
-      {
+      } else if (blnArial) {
         DEFAULT_PFONTNAME = "Arial";
-      }
-      else if (blnTimes)
-      {
+      } else if (blnTimes) {
         DEFAULT_PFONTNAME = "Times New Roman";
-      }
-      else
-      {
+      } else {
         //use first font in list
         DEFAULT_PFONTNAME = System.Drawing.FontFamily.Families[0].Name;
       }
@@ -952,8 +929,7 @@ namespace WinAGI_GDS
       Settings.PFontName = DEFAULT_PFONTNAME;
       //set default color values by copying
       //from WinAGI game object
-      for (i = 0; i < 16; i++)
-      {
+      for (i = 0; i < 16; i++) {
         DefEGAColor[i] = EGAColorLong(i);
       }
       // initialize settings arrays
@@ -968,13 +944,79 @@ namespace WinAGI_GDS
       VGOptions.HAlign = 0;
       VGOptions.VAlign = 1;
       //default value for updating logics is //checked//
-      DefUpdateVal = 1; // vbChecked;
+      DefUpdateVal = 1;
       //initialize clipboard object if not already done
-      GlobalsClipboard = new TDefine[] { };
+      GlobalsClipboard = Array.Empty<TDefine>();
       //initialize code snippet array
-      CodeSnippets = new TDefine[] { };
-}
-   static void tmpwork()
+      CodeSnippets = Array.Empty<TDefine>();
+    }
+    public static void ExportLoop(AGILoop ThisLoop)
+    {
+      //export a loop as a gif
+      bool blnCanceled;
+      DialogResult rtn;
+      //show options form
+      frmViewGifOptions frmVGO = new frmViewGifOptions();
+      //set up form to export a view loop
+      frmVGO.InitForm(0, ThisLoop);
+      frmVGO.ShowDialog(MDIMain);
+      blnCanceled = frmVGO.Canceled;
+      //if not canceled, get a filename
+      if (!blnCanceled) {
+        //set up commondialog
+        MDIMain.SaveDlg.Title = "Export Loop GIF";
+        MDIMain.SaveDlg.DefaultExt = "gif";
+        MDIMain.SaveDlg.Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*";
+        MDIMain.SaveDlg.CheckPathExists = true;
+        MDIMain.SaveDlg.AddExtension = true;
+        MDIMain.SaveDlg.DefaultExt = "gif";
+        MDIMain.SaveDlg.FilterIndex = 1;
+        MDIMain.SaveDlg.FileName = "";
+        do {
+          DialogResult result = MDIMain.SaveDlg.ShowDialog();
+          //if canceled,
+          if (result == DialogResult.Cancel) {
+            //cancel the export
+            return;
+          }
+          //if file exists,
+          if (File.Exists(MDIMain.SaveDlg.FileName)) {
+            //verify replacement
+            rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", "Overwrite file?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+            if (rtn == DialogResult.Yes) {
+              break;
+            } else if (rtn == DialogResult.Cancel) {
+              blnCanceled = true;
+              break;
+            }
+          } else {
+            break;
+          }
+        } while (true);
+      }
+      //if NOT canceled, then export!
+      if (!blnCanceled) {
+        //show progress form
+        frmProgress.Load();
+        frmProgress.Text = "Exporting Loop as GIF";
+        frmProgress.lblProgress = "Depending in size of loop, this may take awhile. Please wait...";
+        frmProgress.pgbStatus.Visible = false;
+        frmProgress.Show(MDIMain);
+
+        //show wait cursor
+        MDIMain.UseWaitCursor = true;
+
+        MakeLoopGif(ThisLoop, VGOptions, MDIMain.SaveDlg.FileName);
+
+        //all done!
+        frmProgress.Unload();
+        MessageBox.Show(MDIMain, "Success!", "Export Loop as GIF", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        MDIMain.UseWaitCursor = false;
+      }
+      //done with the options form
+      frmVGO.Dispose();
+    }
+    static void tmpwork()
     {
       /*
 
@@ -1010,7 +1052,7 @@ public int ValidateID(string NewID, string OldID)
   On Error GoTo ErrHandler
   
   //ignore if it//s old id, or a different case of old id
- if (StrComp(NewID, OldID, vbTextCompare) = 0) {
+ if (StrComp(NewID, OldID, StringComparison.OrdinalIgnoreCase) = 0) {
     //it is OK
     ValidateID = 0
     Exit Function
@@ -1030,7 +1072,7 @@ public int ValidateID(string NewID, string OldID)
   
   //check against regular commands
   For i = 0 To Commands.Count
-   if (StrComp(NewID, Commands(i).Name, vbTextCompare) = 0) {
+   if (StrComp(NewID, Commands(i).Name, StringComparison.OrdinalIgnoreCase) = 0) {
       ValidateID = 3
       Exit Function
     }
@@ -1038,7 +1080,7 @@ public int ValidateID(string NewID, string OldID)
   
   //check against test commands
   For i = 0 To TestCommands.Count
-   if (StrComp(NewID, TestCommands(i).Name, vbTextCompare) = 0) {
+   if (StrComp(NewID, TestCommands(i).Name, StringComparison.OrdinalIgnoreCase) = 0) {
       ValidateID = 4
       Exit Function
     }
@@ -1063,7 +1105,7 @@ public int ValidateID(string NewID, string OldID)
   
 //////  //check against globals
 //////  For i = 1 To global count
-//////   if ((StrComp(NewID, globalname(i), vbTextCompare) = 0)) {
+//////   if ((StrComp(NewID, globalname(i), StringComparison.OrdinalIgnoreCase) = 0)) {
 //////      ValidateID = 7
 //////      Exit Function
 //////    }
@@ -1132,7 +1174,7 @@ public int ValidateID(string NewID, string OldID)
   //check against existing IDs
   For i = 0 To 1023
    if (IDefLookup(i).Type < 11) {
-     if (StrComp(NewID, IDefLookup(i).Name, vbTextCompare) = 0) {
+     if (StrComp(NewID, IDefLookup(i).Name, StringComparison.OrdinalIgnoreCase) = 0) {
         ValidateID = 15
         Exit Function
       }
@@ -1231,7 +1273,7 @@ public static void ChangeGameID(string NewID)
   On Error GoTo ErrHandler
 
   //if property file is linked to game ID
- if (StrComp(GameFile, GameDir + GameID + ".wag", vbTextCompare) = 0) {
+ if (StrComp(GameFile, GameDir + GameID + ".wag", StringComparison.OrdinalIgnoreCase) = 0) {
     //update mru value
     RenameMRU GameFile, GameDir + NewID + ".wag"
   }
@@ -1308,7 +1350,7 @@ public static int CheckLine(ref string strLine)
          if (AscB(Mid$(strLine, i + 1)) = 47) {
             //this line has a comment at the end
             blnInComment = true
-            Exit Do
+            break;
           }
         }
       }
@@ -1318,7 +1360,7 @@ public static int CheckLine(ref string strLine)
      if (!blnInQuote) {
         //this line has a comment starting here
         blnInComment = true
-        Exit Do
+        break;
       }
     }
     
@@ -1395,7 +1437,7 @@ public static void BuildGDefLookup()
       blnTry = false
     
       //splitline into name and Value
-      strSplitLine = Split(strLine, vbTab)
+      strSplitLine = Split(strLine, Keys.Tab)
       
       //if exactly two elements,
      if (UBound(strSplitLine) = 1) {
@@ -1406,7 +1448,7 @@ public static void BuildGDefLookup()
       //not a valid global.txt; check for defines.txt
       } else {
         //tabs need to be replaced with spaces first
-        strLine = Trim$(Replace(strLine, vbTab, " "))
+        strLine = Trim$(Replace(strLine, Keys.Tab, " "))
        if (Left$(strLine, 8) = "#define ") {
           //strip off the define statement
           strLine = Trim$(Right$(strLine, Len(strLine) - 8))
@@ -1467,7 +1509,7 @@ public static string DecodeSnippet(string SnipText)
   DecodeSnippet = Replace(SnipText, "%%", Chr(9))
   
   // carriage returns/new lines
-  DecodeSnippet = Replace(DecodeSnippet, "%n", vbCr)
+  DecodeSnippet = Replace(DecodeSnippet, "%n", Keys.Enter)
   
   //quote marks
   DecodeSnippet = Replace(DecodeSnippet, "%q", QUOTECHAR)
@@ -1512,17 +1554,17 @@ public static string EnCodeSnippet(string FullText)
       lngPos = lngPos + 2
     } else {
       //no more tabs for this line; get start of next line
-      lngPos = InStr(lngPos + 1, EnCodeSnippet, vbCr)
+      lngPos = InStr(lngPos + 1, EnCodeSnippet, Keys.Enter)
       //if none
      if (lngPos = 0) {
         //done
-        Exit Do
+        break;
       }
     }
   Loop While true
     
   // cr to %n
-  EnCodeSnippet = Replace(EnCodeSnippet, vbCr, "%n")
+  EnCodeSnippet = Replace(EnCodeSnippet, Keys.Enter, "%n")
   
   //re-insert percents
   EnCodeSnippet = Replace(EnCodeSnippet, Chr(9), "%")
@@ -1544,9 +1586,9 @@ public static void UpdateLEStatus()
       MDIMain.Toolbar1.Buttons("layout").Enabled = false
       //if using it, need to close it
      if (LEInUse) {
-        MsgBoxEx "The current layout editor file will be closed. " + vbCrLf + vbCrLf + _
-        "If you decide to use the layout editor again at a later" + vbCrLf + _
-        "time, you will need to rebuild the layout to update it. ", vbOKOnly + vbInformation + vbMsgBoxHelpButton, "Closing Layout Editor", WinAGIHelp, "htm\winagi\Layout_Editor.htm"
+        MsgBoxEx "The current layout editor file will be closed. " + Environment.NewLine + Environment.NewLine + _
+        "If you decide to use the layout editor again at a later" + Environment.NewLine + _
+        "time, you will need to rebuild the layout to update it. ", MessageBoxButtons.OK + MessageBoxIcon.Information + vbMsgBoxHelpButton, "Closing Layout Editor", WinAGIHelp, "htm\winagi\Layout_Editor.htm"
         //save it, if dirty
        if (LayoutEditor.IsDirty) {
           LayoutEditor.MenuClickSave
@@ -1667,12 +1709,12 @@ public static string LogTemplateText(string NewID, string NewDescription)
   //if no template file
  if (blnNoFile) {
     //something didn//t work; let user know
-    rtn = MsgBoxEx("The default logic template file (//deflog.txt//) is missing" + vbCrLf + _
-                   "from the WinAGI program directory. Using the WinAGI default" + vbCrLf + _
-                   "template instead.", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Missing Template File", WinAGIHelp, "htm\winagi\newres.htm#logtemplate")
+    rtn = MsgBoxEx("The default logic template file (//deflog.txt//) is missing" + Environment.NewLine + _
+                   "from the WinAGI program directory. Using the WinAGI default" + Environment.NewLine + _
+                   "template instead.", MessageBoxIcon.Information + MessageBoxButtons.OK + vbMsgBoxHelpButton, "Missing Template File", WinAGIHelp, "htm\winagi\newres.htm#logtemplate")
     strLogic = LoadResString(101)
     //insert line breaks
-    strLogic = Replace(strLogic, "|", vbCr)
+    strLogic = Replace(strLogic, "|", Keys.Enter)
   }
 
   // trap any other errors
@@ -1995,11 +2037,11 @@ public static void ChangeResDir(string NewResDir)
   //if the folder already exists,
  if (LenB(Dir(GameDir + NewResDir, vbDirectory)) != 0) {
     //ask if replace is OK?
-    rtn = MsgBox("Existing files in new directory will be overwritten by " + vbNewLine + _
-                 "resources with same name. Do you want to continue?", vbQuestion + vbYesNo, "Change Resource Directory")
+    rtn = MessageBox.Show("Existing files in new directory will be overwritten by " + Environment.NewLine + _
+                 "resources with same name. Do you want to continue?", MessageBoxIcon.Question + MessageBoxButtons.YesNo, "Change Resource Directory")
     
     //if no, do nothing; don't change resdir
-   if (rtn = vbYes) {
+   if (rtn = DialogResult.Yes) {
     
       //show progress form
       Load frmProgress
@@ -2012,14 +2054,14 @@ public static void ChangeResDir(string NewResDir)
       //move them
      if (!CopyFolder(ResDir, GameDir + NewResDir, true)) {
         //warn
-        MessageBox.Show("!all files were able to be moved. Check your old and new directories" + vbNewLine + "and manually move any remaining resources.", vbInformation, "File Move Error"
+        MessageBox.Show("!all files were able to be moved. Check your old and new directories" + Environment.NewLine + "and manually move any remaining resources.", MessageBoxIcon.Information, "File Move Error"
       }
       //change resdir
       ResDirName = NewResDir
       
       //done with progress form
       Unload frmProgress
-      MessageBox.Show("Done!", vbOKOnly + vbInformation, "Change Resource Directory"
+      MessageBox.Show("Done!", MessageBoxButtons.OK + MessageBoxIcon.Information, "Change Resource Directory"
     }
     
   } else {
@@ -2037,21 +2079,21 @@ public static void ChangeResDir(string NewResDir)
     
    if (!CopyFolder(ResDir, GameDir + NewResDir, true)) {
       //warn
-      MessageBox.Show("!all files were able to be moved. Check your old and new directories" + vbNewLine + "and manually move any remaining resources.", vbInformation, "File Move Error"
+      MessageBox.Show("!all files were able to be moved. Check your old and new directories" + Environment.NewLine + "and manually move any remaining resources.", MessageBoxIcon.Information, "File Move Error"
     }
     //change resdir
     ResDirName = NewResDir
     
     //done with progress form
     Unload frmProgress
-    MessageBox.Show("Done!", vbOKOnly + vbInformation, "Change Resource Directory"
+    MessageBox.Show("Done!", MessageBoxButtons.OK + MessageBoxIcon.Information, "Change Resource Directory"
   }
   
   //update the preview window, if previewing logics,
   UpdateSelection rtLogic, SelResNum, umPreview
   
   //reset cursor
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -2059,7 +2101,7 @@ ErrHandler:
   Resume Next
 }
 
-public static void ErrMsgBox(string ErrMsg1, string ErrMsg2, string ErrCaption)
+public static void ErrMessageBox.Show(string ErrMsg1, string ErrMsg2, string ErrCaption)
 
   //displays a messagebox showing ErrMsg and includes error passed as AGIErrObj
   //Debug.Assert Err.Number != 0
@@ -2074,12 +2116,12 @@ public static void ErrMsgBox(string ErrMsg1, string ErrMsg2, string ErrCaption)
     lngErrNum = Err.Number
   }
   
-  strErrMsg = ErrMsg1 + vbCrLf + vbCrLf + lngErrNum + ": " + Err.Description
+  strErrMsg = ErrMsg1 + Environment.NewLine + Environment.NewLine + lngErrNum + ": " + Err.Description
  if (Len(ErrMsg2) > 0) {
-    strErrMsg = strErrMsg + vbCrLf + vbCrLf + ErrMsg2
+    strErrMsg = strErrMsg + Environment.NewLine + Environment.NewLine + ErrMsg2
   }
   
-  MessageBox.Show(strErrMsg, vbCritical + vbOKOnly, ErrCaption
+  MessageBox.Show(strErrMsg, MessageBoxIcon.Critical + MessageBoxButtons.OK, ErrCaption
 }
 
 public static void ExportAllPicImgs()
@@ -2101,7 +2143,8 @@ public static void ExportAllPicImgs()
     // force image only
     frmPicExpOptions.SetForm 1
     frmPicExpOptions.Text = "Export All Picture Images"
-    frmPicExpOptions.Show vbModal, MDIMain
+    frmPicExpOptions.Show(MDIMain);
+    frmPicExpOptions.Modal = true;
     blnCanceled = frmPicExpOptions.Canceled
     lngZoom = CLng(frmPicExpOptions.txtZoom.Text)
     lngFormat = frmPicExpOptions.cmbFormat.SelectedIndex + 1
@@ -2165,7 +2208,7 @@ public static void ExportAllPicImgs()
   }
 
   //restore cursor
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
   
 return;
 
@@ -2302,7 +2345,7 @@ Private static void ExportImg(AGIPicture ExportPic, string ExportFile, int ImgFo
     Count = Count + 1
     //if only one Image being exported OR both are done
    if (ImgMode < 2 || Count = 2) {
-      Exit Do
+      break;
     }
   Loop While true
   
@@ -2316,91 +2359,6 @@ ErrHandler:
   Resume Next
 }
 
-public static void ExportLoop(AGILoop ThisLoop)
-
-  //export a loop as a gif
-  
-  bool blnCanceled;
-      int rtn;
-  
-  On Error GoTo ErrHandler
-  
-  //show options form
-  Load frmViewGifOptions
-    //set up form to export a view loop
-    frmViewGifOptions.InitForm 0, ThisLoop
-    frmViewGifOptions.Show vbModal, MDIMain
-    blnCanceled = frmViewGifOptions.Canceled
-    
-    //if not canceled, get a filename
-   if (!blnCanceled) {
-    
-      //set up commondialog
-        MainSaveDlg.DialogTitle = "Export Loop GIF"
-        MainSaveDlg.DefaultExt = "gif"
-        MainSaveDlg.Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*"
-        MainSaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-        MainSaveDlg.FilterIndex = 1
-        MainSaveDlg.FullName = ""
-        MainSaveDlg.hWndOwner = MDIMain.hWnd
-      
-      Do
-        On Error Resume Next
-        MainSaveDlg.ShowSaveAs
-        //if canceled,
-       if (Err.Number = cdlCancel) {
-          //cancel the export
-          blnCanceled = true
-          Exit Do
-        }
-        
-        //if file exists,
-       if (FileExists(MainSaveDlg.FullName)) {
-          //verify replacement
-          rtn = MsgBox(MainSaveDlg.FileName + " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
-          
-         if (rtn = vbYes) {
-            Exit Do
-          } else if ( rtn = vbCancel) {
-            blnCanceled = true
-            Exit Do
-          }
-        } else {
-          Exit Do
-        }
-      Loop While true
-      On Error GoTo ErrHandler
-    }
-    
-    //if NOT canceled, then export!
-   if (!blnCanceled) {
-      //show progress form
-      Load frmProgress
-        frmProgress.Text = "Exporting Loop as GIF"
-        frmProgress.lblProgress = "Depending in size of loop, this may take awhile. Please wait..."
-        frmProgress.pgbStatus.Visible = false
-        frmProgress.Show
-      
-      //show wait cursor
-      MDIMain.UseWaitCursor = true;
-
-      MakeLoopGif(ThisLoop, VGOptions, MainSaveDlg.FullName);
-      
-      //all done!
-      frmProgress.Unload();
-      MessageBox.Show("Success!", vbInformation + vbOKOnly, "Export Loop as GIF"
-      
-      Screen.MousePointer = vbDefault
-    }
-    
-    //done with the options form
-    Unload frmViewGifOptions
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
 
 public static bool CheckLogics()
 
@@ -2471,12 +2429,12 @@ public static bool CheckLogics()
   switch (Settings.CompileOnRun
   case 0 //ask for user input
     //get user//s response
-    rtn = MsgBoxEx("One or more logics have changed since you last compiled." + vbNewLine + _
-                   "Do you want to compile them before running?", vbQuestion + vbYesNoCancel, "Compile Before Running?", , , "Always take this action when compiling a game.", blnDontAsk)
+    rtn = MsgBoxEx("One or more logics have changed since you last compiled." + Environment.NewLine + _
+                   "Do you want to compile them before running?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Compile Before Running?", , , "Always take this action when compiling a game.", blnDontAsk)
    if (blnDontAsk) {
-     if (rtn = vbYes) {
+     if (rtn = DialogResult.Yes) {
         Settings.CompileOnRun = 2
-      } else if ( rtn = vbNo) {
+      } else if ( rtn = DialogResult.No) {
         Settings.CompileOnRun = 1
       }
       
@@ -2485,21 +2443,21 @@ public static bool CheckLogics()
     }
     
   case 1  //no
-    rtn = vbNo
+    rtn = DialogResult.No
     
   case 2 // yes
-      rtn = vbYes
+      rtn = DialogResult.Yes
   }
   
   switch (rtn
-  case vbCancel
+  case DialogResult.Cancel
     //return false, so run cmd is canceled
     CheckLogics = false
     
-  case vbNo
+  case DialogResult.No
     //ok to exit; check is complete
     CheckLogics = true
-  case vbYes
+  case DialogResult.Yes
     //if dirtylogics successfully compiled
     CheckLogics = CompileDirtyLogics(true)
   }
@@ -2514,47 +2472,48 @@ public static void CheckShortcuts(ref short KeyCode, ref short Shift)
 
   //check for game-wide shortcut keys
   switch (Shift
-  case 3 //vbCtrlMask + vbShiftMask
+  case 3 //CtrlMask + ShiftMask
     switch (KeyCode
-    case vbKeyA //add/remove resource
+    case Keys.A //add/remove resource
      if (MDIMain.mnuRInGame.Enabled) {
         AddOrRemoveRes
         KeyCode = 0
       }
       
-    case vbKeyB //compile to
+    case Keys.B //compile to
      if (MDIMain.mnuGCompileTo.Enabled) {
         //compile game to directory of user//s choice
         CompileAGIGame
         KeyCode = 0
       }
       
-    case vbKeyD //compile dirty logics
+    case Keys.D //compile dirty logics
      if (MDIMain.mnuGCompDirty.Enabled) {
         CompileDirtyLogics
         KeyCode = 0
       }
       
-    case vbKeyN //new game from blank
+    case Keys.N //new game from blank
      if (MDIMain.mnuGNBlank.Enabled) {
         //create new blank game
         NewAGIGame false
         KeyCode = 0
       }
       
-    case vbKeyR //rebuild VOL
+    case Keys.R //rebuild VOL
      if (MDIMain.mnuGRebuild.Enabled) {
         //rebuild volfiles only
         CompileAGIGame GameDir, true
         KeyCode = 0
       }
     
-    case vbKeyT //insert a snippet
+    case Keys.T //insert a snippet
      if (!MDIMain.ActiveForm Is Nothing) {
        if (MDIMain.ActiveForm.Name = "frmLogicEdit" || MDIMain.ActiveForm.Name = "frmTextEdit") {
           //open snippet manager
           SnipMode = 1
-          frmSnippets.Show vbModal, MDIMain
+          frmSnippets.Show(MDIMain);
+          frmSnippets.Modal = true;
           //force focus back to the editor
           MDIMain.ActiveForm.rtfLogic.Focus()
         }
@@ -2562,74 +2521,74 @@ public static void CheckShortcuts(ref short KeyCode, ref short Shift)
       
     }
     
-  case vbCtrlMask + vbAltMask
+  case CtrlMask + AltMask
     //import resources
       //but only if import menu is enabled
      if (MDIMain.mnuRImport.Enabled) {
         switch (KeyCode
-        case vbKey1
+        case Keys.1
           MDIMain.RILogic
-        case vbKey2
+        case Keys.2
           MDIMain.RIPicture
-        case vbKey3
+        case Keys.3
           MDIMain.RISound
-        case vbKey4
+        case Keys.4
           MDIMain.RIView
-        case vbKey5
+        case Keys.5
           MDIMain.RIObjects
-        case vbKey6
+        case Keys.6
           MDIMain.RIWords
         }
       }
     
-  case vbCtrlMask
+  case CtrlMask
     switch (KeyCode
-    case vbKey1
+    case Keys.1
       MDIMain.RNLogic
-    case vbKey2
+    case Keys.2
       MDIMain.RNPicture
-    case vbKey3
+    case Keys.3
       MDIMain.RNSound
-    case vbKey4
+    case Keys.4
       MDIMain.RNView
-    case vbKey5
+    case Keys.5
       MDIMain.RNObjects
-    case vbKey6
+    case Keys.6
       MDIMain.RNWords
-    case vbKey7
+    case Keys.7
       MDIMain.RNText
     }
     
-  case vbAltMask
+  case AltMask
     switch (KeyCode
-    case vbKey1
+    case Keys.1
       MDIMain.ROLogic
-    case vbKey2
+    case Keys.2
       MDIMain.ROPicture
-    case vbKey3
+    case Keys.3
       MDIMain.ROSound
-    case vbKey4
+    case Keys.4
       MDIMain.ROView
-    case vbKey5
+    case Keys.5
       MDIMain.ROObjects
-    case vbKey6
+    case Keys.6
       MDIMain.ROWords
-    case vbKey7
+    case Keys.7
       MDIMain.ROText
       
-    case vbKeyX //close game
+    case Keys.X //close game
      if (MDIMain.mnuGClose.Enabled) {
         MDIMain.mnuGClose_Click
         KeyCode = 0
       }
       
-    case vbKeyN //renumber
+    case Keys.N //renumber
      if (MDIMain.mnuRRenumber.Enabled) {
         MDIMain.mnuRRenumber_Click
         KeyCode = 0
       }
       
-    case vbKeyF1  //logic command help
+    case Keys.F1  //logic command help
       //select commands start page
       HtmlHelp HelpParent, WinAGIHelp, HH_HELP_CONTEXT, 1001
       KeyCode = 0
@@ -2683,7 +2642,8 @@ public static void ExportOnePicImg(AGIPicture ThisPicture)
   
     //save image only
     frmPicExpOptions.SetForm 1
-    frmPicExpOptions.Show vbModal, MDIMain
+    frmPicExpOptions.Show(MDIMain);
+    frmPicExpOptions.Modal = true;
     
     blnCanceled = frmPicExpOptions.Canceled
     lngZoom = CLng(frmPicExpOptions.txtZoom.Text)
@@ -2702,42 +2662,42 @@ public static void ExportOnePicImg(AGIPicture ThisPicture)
   //if not canceled, get a filename
  if (!blnCanceled) {
     //set up commondialog
-      MainSaveDlg.DialogTitle = "Save Picture Image As"
-      MainSaveDlg.DefaultExt = "bmp"
+      MDIMain.SaveDlg.DialogTitle = "Save Picture Image As"
+      MDIMain.SaveDlg.DefaultExt = "bmp"
      if (NoGDIPlus) {
-        MainSaveDlg.Filter = "BMP files (*.bmp)|*.bmp|All files (*.*)|*.*"
+        MDIMain.SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|All files (*.*)|*.*"
       } else {
-        MainSaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*"
+        MDIMain.SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*"
       }
-      MainSaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-      MainSaveDlg.FilterIndex = lngFormat
-      MainSaveDlg.FullName = ""
-      MainSaveDlg.hWndOwner = MDIMain.hWnd
+      MDIMain.SaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
+      MDIMain.SaveDlg.FilterIndex = lngFormat
+      MDIMain.SaveDlg.FullName = ""
+      MDIMain.SaveDlg.hWndOwner = MDIMain.hWnd
   
     Do
       On Error Resume Next
-      MainSaveDlg.ShowSaveAs
+      MDIMain.SaveDlg.ShowSaveAs
       //if canceled,
      if (Err.Number = cdlCancel) {
         //cancel the export
         Err.Clear
         blnCanceled = true
-        Exit Do
+        break;
       }
       
       //if file exists,
-     if (FileExists(MainSaveDlg.FullName)) {
+     if (FileExists(MDIMain.SaveDlg.FullName)) {
         //verify replacement
-        rtn = MsgBox(MainSaveDlg.FileName + " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
+        rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", MessageBoxButtons.YesNoCancel + MessageBoxIcon.Question, "Overwrite file?")
         
-       if (rtn = vbYes) {
-          Exit Do
-        } else if ( rtn = vbCancel) {
+       if (rtn = DialogResult.Yes) {
+          break;
+        } else if ( rtn = DialogResult.Cancel) {
           blnCanceled = true
-          Exit Do
+          break;
         }
       } else {
-        Exit Do
+        break;
       }
     Loop While true
     On Error GoTo ErrHandler
@@ -2756,13 +2716,13 @@ public static void ExportOnePicImg(AGIPicture ThisPicture)
       frmProgress.Show();
       frmProgress.Refresh();
     
-    ExportImg(ThisPicture, MainSaveDlg.FullName, lngFormat, lngMode, lngZoom);
+    ExportImg(ThisPicture, MDIMain.SaveDlg.FullName, lngFormat, lngMode, lngZoom);
       
     //all done!
     Unload frmProgress
-    MessageBox.Show("Success!", vbInformation + vbOKOnly, "Export Picture Image"
+    MessageBox.Show("Success!", MessageBoxIcon.Information + MessageBoxButtons.OK, "Export Picture Image"
     
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
   }
 }
 
@@ -2809,7 +2769,7 @@ public static string FindPrevCmd(ref string strText, ref int lngStartPos, ref in
   Do Until Len(strCmd) = 0
     //if this is the command we want, return it
    if (blnPrev) {
-      Exit Do
+      break;
     } else {
       //if a comma, advance the arg count
      if (strCmd = ",") {
@@ -2827,7 +2787,7 @@ public static string FindPrevCmd(ref string strText, ref int lngStartPos, ref in
       
       case 41, 59 To 62, 123, 125 //)//, //;//,<,=,>, //{//, //}//
         //always exit
-        Exit Do
+        break;
       }
     }
     
@@ -2836,19 +2796,19 @@ public static string FindPrevCmd(ref string strText, ref int lngStartPos, ref in
       switch (strCmd
       case "=="
         //always exit
-        Exit Do
+        break;
       case "!="
         //always exit
-        Exit Do
+        break;
       case "<=", "=<"
         //always exit
-        Exit Do
+        break;
       case ">=", "=>"
         //always exit
-        Exit Do
+        break;
       case "&&", "||", "++", "--"
         //always exit
-        Exit Do
+        break;
       }
     }
     
@@ -2885,7 +2845,7 @@ public static string FindPrevToken(ref string strLine, ref int lngStartPos, ref 
   
   //find start of line
  if (lngPos > 1) {
-    lngBOL = InStrRev(strLine, vbCr, lngPos) + 1
+    lngBOL = InStrRev(strLine, Keys.Enter, lngPos) + 1
   } else {
     lngBOL = 1
   }
@@ -2928,7 +2888,7 @@ public static string FindPrevToken(ref string strLine, ref int lngStartPos, ref 
         //end of a string
         blnInQuote = true
       }
-      Exit Do
+      break;
     }
     //keep looking
     lngPos = lngPos - 1
@@ -2958,7 +2918,7 @@ public static string FindPrevToken(ref string strLine, ref int lngStartPos, ref 
                 //shouldn//t be possible but just in case
                 //Debug.Assert true
                 blnInQuote = false
-                Exit Do
+                break;
               }
             Loop
           }
@@ -2980,7 +2940,7 @@ public static string FindPrevToken(ref string strLine, ref int lngStartPos, ref 
           //if a bad string is encountered it is possible
           // forlgPos to go past BOL
           //Debug.Assert blnInQuote
-          Exit Do
+          break;
         }
         intChar = AscW(Mid$(strLine, lngPos))
         //add the char
@@ -2993,7 +2953,7 @@ public static string FindPrevToken(ref string strLine, ref int lngStartPos, ref 
       case 32, 39, 40, 41, 44, 58, 59, 63, 91, 92, 93, 94, 96, 123, 125, 126
       //   //(),:;?[\]^`{}~
         //single character separators that ALWAYS mark end
-        Exit Do
+        break;
       case 33, 38, 42, 43, 45, 47, 60, 61, 62, 124
         //   !&*+-/<=>|
         //possible multi-char separators; only treat as
@@ -3002,12 +2962,12 @@ public static string FindPrevToken(ref string strLine, ref int lngStartPos, ref 
         case 33 // !  allowed: !=
          if (strToken != "=") {
             //it//s a separator
-            Exit Do
+            break;
           }
         case 38  // +  allowed: &&
          if (strToken != "&") {
             //it//s a separator
-            Exit Do
+            break;
           }
         case 42  // *  allowed: *=, *text
           switch (Asc(strToken)
@@ -3015,42 +2975,42 @@ public static string FindPrevToken(ref string strLine, ref int lngStartPos, ref 
             //it//s not a separator
           default:
             //it//s a separator
-            Exit Do
+            break;
           }
         case 43  // +  allowed: ++, +=
          if (strToken != "+" && strToken != "=") {
             //it//s a separator
-            Exit Do
+            break;
           }
         case 45  // -  allowed: --, -=
          if (strToken != "-" && strToken != "=") {
             //it//s a separator
-            Exit Do
+            break;
           }
         case 47  // /  allowed: /=
          if (strToken != "=") {
             //it//s a separator
-            Exit Do
+            break;
           }
         case 60  // <  allowed: <=
          if (strToken != "=") {
             //it//s a separator
-            Exit Do
+            break;
           }
         case 61  // =  allowed: =>, =<, ==
          if (strToken != ">" && strToken != ">" && strToken != "=") {
             //it//s a separator
-            Exit Do
+            break;
           }
         case 62  // >  allowed: >=
          if (strToken != "=") {
             //it//s a separator
-            Exit Do
+            break;
           }
         case 124 // |  allowed: ||
          if (strToken != "|") {
             //it//s a separator
-            Exit Do
+            break;
           }
         }
       }
@@ -3148,7 +3108,7 @@ public static int LogicCmd(string strCmd)
   }
   
   For k = i To j
-   if (StrComp(strCmd, LoadResString(ALPHACMDTEXT + k), vbTextCompare) = 0) {
+   if (StrComp(strCmd, LoadResString(ALPHACMDTEXT + k), StringComparison.OrdinalIgnoreCase) = 0) {
       LogicCmd = k
       Exit Function
     }
@@ -3262,11 +3222,11 @@ public static void SetLogicCompiledStatus(byte ResNum, bool Compiled)
   
   switch (Settings.ResListType
   case 1
-    MDIMain.tvwResources.Nodes("l" + ResNum).ForeColor = IIf(Compiled, vbBlack, vbRed)
+    MDIMain.tvwResources.Nodes("l" + ResNum).ForeColor = IIf(Compiled, Colors.Black, Colors.Red)
   case 2
     //only need to update if logics are selected
    if (MDIMain.cmbResType.SelectedIndex = 1) {
-      MDIMain.lstResources.ListItems("l" + ResNum).ForeColor = IIf(Compiled, vbBlack, vbRed)
+      MDIMain.lstResources.ListItems("l" + ResNum).ForeColor = IIf(Compiled, Colors.Black, Colors.Red)
     }
   }
 return;
@@ -3299,9 +3259,9 @@ public static void UpdateSelection(AGIResType ResType, int ResNum, UpdateModeTyp
         MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).Text = ResourceName(Logics(ResNum), true)
         //also set compiled status
        if (!Logics(ResNum).Compiled) {
-          MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).ForeColor = vbRed
+          MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).ForeColor = Colors.Red
         } else {
-          MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).ForeColor = vbBlack
+          MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).ForeColor = Colors.Black
         }
       case rtPicture
         MDIMain.tvwResources.Nodes("p" + CStr(ResNum)).Text = ResourceName(Pictures(ResNum), true)
@@ -3325,9 +3285,9 @@ public static void UpdateSelection(AGIResType ResType, int ResNum, UpdateModeTyp
           tmpItem.Text = ResourceName(Logics(ResNum), true)
           //also set compiled status
          if (!Logics(ResNum).Compiled) {
-            tmpItem.ForeColor = vbRed
+            tmpItem.ForeColor = Colors.Red
           } else {
-            tmpItem.ForeColor = vbBlack
+            tmpItem.ForeColor = Colors.Black
           }
         case rtPicture
           tmpItem = MDIMain.lstResources.ListItems("p" + CStr(ResNum))
@@ -3458,7 +3418,7 @@ public static void SetError(int lngErrLine, string strErrMsg, int LogicNumber, s
     }
     
     //try a message box instead
-    MessageBox.Show("ERROR in line " + CStr(lngErrLine + 1) + ": " + strErrMsg, vbOKOnly + vbCritical, "Compile Logic Error"
+    MessageBox.Show("ERROR in line " + CStr(lngErrLine + 1) + ": " + strErrMsg, MessageBoxButtons.OK + MessageBoxIcon.Critical, "Compile Logic Error"
     return;
   }
   
@@ -3493,7 +3453,7 @@ public static void SetError(int lngErrLine, string strErrMsg, int LogicNumber, s
       
 //////    On Error Resume Next
 //////      frmTemp.rtfLogic.GetViewRect i, rtn, pPos.X, pPos.Y
-//////     if (Err.Number != 0) { Exit Do
+//////     if (Err.Number != 0) { break;
       //GetViewRect gives an error here; says sub not defined;
       //makes no sense, because it works just fine in FindInLogics
       
@@ -3592,7 +3552,7 @@ public static int FindNextToken(string strText, ref int lngPos, ref strFindCmd =
   //if it doesn//t even exist in the text,
   //don't bother doing a search
  if (!blnNextToken) {
-   if (InStr(lngTknPos + 1, strText, strFindCmd, vbTextCompare) = 0) {
+   if (InStr(lngTknPos + 1, strText, strFindCmd, StringComparison.OrdinalIgnoreCase) = 0) {
       //not found
      if (UpdatePos) {
         lngPos = 0
@@ -3636,7 +3596,7 @@ public static int FindNextToken(string strText, ref int lngPos, ref strFindCmd =
       //if next char is a "/"
      if (Mid$(strText, lngTknPos + 1, 1) = "/") {
         //move to end of line
-        lngTknPos = InStr(lngTknPos, strText, vbCr) - 1
+        lngTknPos = InStr(lngTknPos, strText, Keys.Enter) - 1
        if (lngTknPos = -1) {
           lngTknPos = lngLen
         }
@@ -3645,7 +3605,7 @@ public static int FindNextToken(string strText, ref int lngPos, ref strFindCmd =
     case 91 //[
       //special case; "[" marks beginning of comment
       //move to end of line
-      lngTknPos = InStr(lngTknPos, strText, vbCr) - 1
+      lngTknPos = InStr(lngTknPos, strText, Keys.Enter) - 1
      if (lngTknPos = -1) {
         lngTknPos = lngLen
       }
@@ -3667,7 +3627,7 @@ public static int FindNextToken(string strText, ref int lngPos, ref strFindCmd =
           //not in a quote anymore
           blnInQuotes = false
           //exit
-          Exit Do
+          break;
         }
           
         //get next character
@@ -3679,7 +3639,7 @@ public static int FindNextToken(string strText, ref int lngPos, ref strFindCmd =
           lngTknPos = lngTknPos - 1
           //not in a quote anymore
           blnInQuotes = false
-          Exit Do
+          break;
         case 34 //if the next character is a quotation mark,
          if (!blnEmbed) {
             //reset quote flag
@@ -3786,7 +3746,7 @@ public static int FindNextToken(string strText, ref int lngPos, ref strFindCmd =
             //end  reached
             lngTknPos = lngLen
             //exit
-            Exit Do
+            break;
           }
             
           //get next character
@@ -3798,7 +3758,7 @@ public static int FindNextToken(string strText, ref int lngPos, ref strFindCmd =
             //end of token text found;
             //readjust lngpos
             lngTknPos = lngTknPos - 1
-            Exit Do
+            break;
           }
         Loop While true
       }
@@ -3815,7 +3775,7 @@ public static int FindNextToken(string strText, ref int lngPos, ref strFindCmd =
        if (ValidCmds) {
           //skip comments and cr
           switch (Left$(strToken, 2)
-          case "[", "//", vbCr
+          case "[", "//", Keys.Enter
           default:
             //return the cmd that was found
             strFindCmd = strToken
@@ -3835,7 +3795,7 @@ public static int FindNextToken(string strText, ref int lngPos, ref strFindCmd =
       }
       
       //if searching for a LE marker,
-     if (StrComp(strFindCmd, "##LE", vbTextCompare) = 0) {
+     if (StrComp(strFindCmd, "##LE", StringComparison.OrdinalIgnoreCase) = 0) {
         //if the comment is a layout editor exit marker
        if (lngTknPos - FindNextToken = 8) {
           strToken = Mid$(strText, FindNextToken, 4)
@@ -3851,7 +3811,7 @@ public static int FindNextToken(string strText, ref int lngPos, ref strFindCmd =
       
       //does this cmd match the search?
      if (LenB(strToken) = LenB(strFindCmd)) {
-       if (StrComp(strToken, strFindCmd, vbTextCompare) = 0) {
+       if (StrComp(strToken, strFindCmd, StringComparison.OrdinalIgnoreCase) = 0) {
           //this is it
          if (UpdatePos) {
             lngPos = lngTknPos
@@ -3921,7 +3881,7 @@ public static bool CheckSnippet(ref string SnipText, int IndentAmt)
             }
             //make sure it//s end of line
             blnSnipOK = (lngPos >= Len(SnipText))
-            Exit Do
+            break;
             
           // if it//s another comma
           case ","
@@ -3947,12 +3907,12 @@ public static bool CheckSnippet(ref string SnipText, int IndentAmt)
          if (strNext = ")") {
             //make sure it//s end of line
             blnSnipOK = (lngPos >= Len(SnipText))
-            Exit Do
+            break;
           }
           //otherise, if not a comma
          if (strNext != ",") {
             //no good
-            Exit Do
+            break;
           }
           //after comma, argument is next
           blnArgNext = true
@@ -3984,14 +3944,14 @@ public static bool CheckSnippet(ref string SnipText, int IndentAmt)
       }
       
       //if more than one line
-     if (InStr(1, strSnipValue, vbCr) > 0) {
+     if (InStr(1, strSnipValue, Keys.Enter) > 0) {
         //insert tabs
-        strSnipValue = Replace(strSnipValue, vbCr, vbCr + Space(IndentAmt))
+        strSnipValue = Replace(strSnipValue, Keys.Enter, Keys.Enter + Space(IndentAmt))
       }
       //shouldn//t be any line feeds, but check, just in case
-     if (InStr(1, strSnipValue, vbLf) > 0) {
+     if (InStr(1, strSnipValue, Keys.LineFeed) > 0) {
         //Debug.Assert false
-        strSnipValue = Replace(strSnipValue, vbLf, "")
+        strSnipValue = Replace(strSnipValue, Keys.LineFeed, "")
       }
       
       SnipText = strSnipValue
@@ -4183,7 +4143,7 @@ public static AGIExits ExtractExits(AGILogic ThisLogic)
     tmpExit = AnalyzeExit(strLogic, lngCmdLoc, lngLastPos)
     
     //find end of line by searching for crlf
-    j = InStr(lngCmdLoc, strLogic, vbCr)
+    j = InStr(lngCmdLoc, strLogic, Keys.Enter)
     //if no line end found, means we are on last line; set
     //j to a value of lngCmdLoc+1 so we get the last char of the line
    if (j = 0) { j = lngCmdLoc + 1
@@ -4356,7 +4316,7 @@ public static string ReplaceGlobal(string TextIn)
     //ignore blanks and comments (// or [)
    if (LenB(strLine) != 0 && Left$(strLine, 2) != "//" && Left$(strLine, 1) != ChrW$(91)) {
       //splitline into name and Value
-      strSplitLine = Split(strLine, vbTab)
+      strSplitLine = Split(strLine, Keys.Tab)
       
       //if exactly two elements,
      if (UBound(strSplitLine) = 1) {
@@ -4424,14 +4384,14 @@ public static void ExportAll()
      if (FileExists(tmpLog.SourceFile)) {
         //file exists; ask if it should be replaced
        if (!blnRepeat) {
-          Screen.MousePointer = vbDefault
+          MDIMain.UseWaitCursor = false;
           //ask if should be replaced?
-          rtn = MsgBoxEx("A source code file for " + tmpLog.ID + " already exists." + vbNewLine + "Do you want to replace it with the decompiled logic source?", vbQuestion + vbYesNo, "Export Logic", , , "Repeat this answer for all remaining logic resources", blnRepeat)
+          rtn = MsgBoxEx("A source code file for " + tmpLog.ID + " already exists." + Environment.NewLine + "Do you want to replace it with the decompiled logic source?", MessageBoxIcon.Question + MessageBoxButtons.YesNo, "Export Logic", , , "Repeat this answer for all remaining logic resources", blnRepeat)
           Screen.MousePointer = vbHourglass
         }
         
-        //if replacing (rtn = vbYes)
-       if (rtn = vbYes) {
+        //if replacing (rtn = DialogResult.Yes)
+       if (rtn = DialogResult.Yes) {
           //kill existing file
           Kill tmpLog.SourceFile
           //now save it
@@ -4503,7 +4463,7 @@ public static void ExportAll()
   
   //reenable main form
   MDIMain.Enabled = true
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -4526,31 +4486,31 @@ public static bool ExportObjects(AGIInventoryObjects ThisObjectsFile, bool InGam
   
   //set up commondialog
    if (InGame) {
-      MainSaveDlg.DialogTitle = "Export Inventory Objects File"
+      MDIMain.SaveDlg.DialogTitle = "Export Inventory Objects File"
     } else {
-      MainSaveDlg.DialogTitle = "Save Inventory Objects File As"
+      MDIMain.SaveDlg.DialogTitle = "Save Inventory Objects File As"
     }
     //if objectlist has a filename
    if (LenB(ThisObjectsFile.ResFile) != 0) {
       //use it
-      MainSaveDlg.FullName = ThisObjectsFile.ResFile
+      MDIMain.SaveDlg.FullName = ThisObjectsFile.ResFile
     } else {
       //use default name
-      MainSaveDlg.FullName = ResDir + "OBJECT"
+      MDIMain.SaveDlg.FullName = ResDir + "OBJECT"
     }
     .Filter = "WinAGI Inventory Objects Files (*.ago)|*.ago|OBJECT file|OBJECT|All files (*.*)|*.*"
    if (LCase$(Right$(.FullName, 4)) = ".ago") {
-      MainSaveDlg.FilterIndex = 1
+      MDIMain.SaveDlg.FilterIndex = 1
     } else {
-      MainSaveDlg.FilterIndex = 2
+      MDIMain.SaveDlg.FilterIndex = 2
     }
-    MainSaveDlg.DefaultExt = ""
-    MainSaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-    MainSaveDlg.hWndOwner = MDIMain.hWnd
+    MDIMain.SaveDlg.DefaultExt = ""
+    MDIMain.SaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
+    MDIMain.SaveDlg.hWndOwner = MDIMain.hWnd
   
   Do
     On Error Resume Next
-    MainSaveDlg.ShowSaveAs
+    MDIMain.SaveDlg.ShowSaveAs
     //if canceled,
    if (Err.Number = cdlCancel) {
       //exit without doing anything
@@ -4559,27 +4519,27 @@ public static bool ExportObjects(AGIInventoryObjects ThisObjectsFile, bool InGam
     On Error GoTo ErrHandler
     
     //get filename
-    strFileName = MainSaveDlg.FullName
+    strFileName = MDIMain.SaveDlg.FullName
     
     //if file exists,
    if (FileExists(strFileName)) {
       //verify replacement
-      rtn = MsgBox(MainSaveDlg.FileName + " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
+      rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", MessageBoxButtons.YesNoCancel + MessageBoxIcon.Question, "Overwrite file?")
       
-     if (rtn = vbYes) {
-        Exit Do
-      } else if ( rtn = vbCancel) {
+     if (rtn = DialogResult.Yes) {
+        break;
+      } else if ( rtn = DialogResult.Cancel) {
         Exit Function
       }
     } else {
-      Exit Do
+      break;
     }
   Loop While true
   
   //show wait cursor
   MDIMain.UseWaitCursor = true;
   
- if (LCase$(Right$(MainSaveDlg.FullName, 4)) = ".ago") {
+ if (LCase$(Right$(MDIMain.SaveDlg.FullName, 4)) = ".ago") {
     //export with new filename
     ThisObjectsFile.Export strFileName, 1, !InGame
   } else {
@@ -4588,11 +4548,11 @@ public static bool ExportObjects(AGIInventoryObjects ThisObjectsFile, bool InGam
   }
 
   //reset mouse pointer
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
   
   //if error,
  if (Err.Number != 0) {
-    ErrMsgBox "An error occurred while exporting this file:", "", "Export File Error"
+    ErrMsgBox("An error occurred while exporting this file:", "", "Export File Error"
   }
   
   ExportObjects = true
@@ -5022,7 +4982,7 @@ public static bool MakePicGif(AGIPicture GifPic, GifOptions GifOps, string Expor
       
       //if end is reached
      if (lngPicPos >= GifPic.Resource.Size) {
-        Exit Do
+        break;
       }
       
       //get the value at this pos, and determine if it//s
@@ -5064,7 +5024,7 @@ public static bool MakePicGif(AGIPicture GifPic, GifOptions GifOps, string Expor
     
     //if end is reached
    if (lngPicPos >= GifPic.Resource.Size) {
-      Exit Do
+      break;
     }
     
     //show pic drawn up to this point
@@ -5576,7 +5536,8 @@ public static bool ExportPicture(AGIPicture ThisPicture, bool InGame)
   Load frmPicExpOptions
   
     frmPicExpOptions.SetForm 0
-    frmPicExpOptions.Show vbModal, MDIMain
+    frmPicExpOptions.Show(MDIMain);
+      frmPicExpOptions.Modal = true;
     
     ExportImage = frmPicExpOptions.optImage.Value
     blnCanceled = frmPicExpOptions.Canceled
@@ -5603,21 +5564,21 @@ public static bool ExportPicture(AGIPicture ThisPicture, bool InGame)
  if (ExportImage) {
     //get a filename
     //set up commondialog
-      MainSaveDlg.DialogTitle = "Save Picture Image As"
-      MainSaveDlg.DefaultExt = "bmp"
+      MDIMain.SaveDlg.DialogTitle = "Save Picture Image As"
+      MDIMain.SaveDlg.DefaultExt = "bmp"
      if (NoGDIPlus) {
-        MainSaveDlg.Filter = "BMP files (*.bmp)|*.bmp|All files (*.*)|*.*"
+        MDIMain.SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|All files (*.*)|*.*"
       } else {
-        MainSaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*"
+        MDIMain.SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*"
       }
-      MainSaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-      MainSaveDlg.FilterIndex = lngFormat
-      MainSaveDlg.FullName = ""
-      MainSaveDlg.hWndOwner = MDIMain.hWnd
+      MDIMain.SaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
+      MDIMain.SaveDlg.FilterIndex = lngFormat
+      MDIMain.SaveDlg.FullName = ""
+      MDIMain.SaveDlg.hWndOwner = MDIMain.hWnd
   
     On Error Resume Next
     Do
-      MainSaveDlg.ShowSaveAs
+      MDIMain.SaveDlg.ShowSaveAs
       //if canceled,
      if (Err.Number = cdlCancel) {
         //exit without doing anything
@@ -5625,17 +5586,17 @@ public static bool ExportPicture(AGIPicture ThisPicture, bool InGame)
       }
       
       //if file exists,
-     if (FileExists(MainSaveDlg.FullName)) {
+     if (FileExists(MDIMain.SaveDlg.FullName)) {
         //verify replacement
-        rtn = MsgBox(MainSaveDlg.FileName + " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
+        rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", MessageBoxButtons.YesNoCancel + MessageBoxIcon.Question, "Overwrite file?")
         
-       if (rtn = vbYes) {
-          Exit Do
-        } else if ( rtn = vbCancel) {
+       if (rtn = DialogResult.Yes) {
+          break;
+        } else if ( rtn = DialogResult.Cancel) {
           Exit Function
         }
       } else {
-        Exit Do
+        break;
       }
     Loop While true
     On Error GoTo ErrHandler
@@ -5651,49 +5612,49 @@ public static bool ExportPicture(AGIPicture ThisPicture, bool InGame)
       frmProgress.Show
       frmProgress.Refresh
     
-    ExportImg ThisPicture, MainSaveDlg.FullName, lngFormat, lngMode, lngZoom
+    ExportImg ThisPicture, MDIMain.SaveDlg.FullName, lngFormat, lngMode, lngZoom
       
     //all done!
     Unload frmProgress
-    MessageBox.Show("Success!", vbInformation + vbOKOnly, "Export Picture Image"
+    MessageBox.Show("Success!", MessageBoxIcon.Information + MessageBoxButtons.OK, "Export Picture Image"
     
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     Exit Function
   } else {
     // export the agi resource
   
     //set up commondialog
      if (InGame) {
-        MainSaveDlg.DialogTitle = "Export Picture"
+        MDIMain.SaveDlg.DialogTitle = "Export Picture"
       } else {
-        MainSaveDlg.DialogTitle = "Save Picture As"
+        MDIMain.SaveDlg.DialogTitle = "Save Picture As"
       }
-      MainSaveDlg.Filter = "WinAGI Picture Files (*.agp)|*.agp|All files (*.*)|*.*"
-      MainSaveDlg.FilterIndex = ReadSettingLong(SettingsList, sPICTURES, sEXPFILTER, 1)
-      switch (MainSaveDlg.FilterIndex) {
+      MDIMain.SaveDlg.Filter = "WinAGI Picture Files (*.agp)|*.agp|All files (*.*)|*.*"
+      MDIMain.SaveDlg.FilterIndex = ReadSettingLong(SettingsList, sPICTURES, sEXPFILTER, 1)
+      switch (MDIMain.SaveDlg.FilterIndex) {
       case 1
-        MainSaveDlg.DefaultExt = "agp"
+        MDIMain.SaveDlg.DefaultExt = "agp"
       }
       
-      MainSaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
+      MDIMain.SaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
       
       //if Picture has a filename
      if (LenB(ThisPicture.Resource.ResFile) != 0) {
         //use it
-        MainSaveDlg.FullName = ThisPicture.Resource.ResFile
+        MDIMain.SaveDlg.FullName = ThisPicture.Resource.ResFile
       } else {
         //use default name
-        MainSaveDlg.FullName = ResDir + ThisPicture.ID
+        MDIMain.SaveDlg.FullName = ResDir + ThisPicture.ID
         switch (.FilterIndex
         case 1
-          MainSaveDlg.FullName = MainSaveDlg.FullName + ".agp"
+          MDIMain.SaveDlg.FullName = MDIMain.SaveDlg.FullName + ".agp"
         }
       }
-      MainSaveDlg.hWndOwner = MDIMain.hWnd
+      MDIMain.SaveDlg.hWndOwner = MDIMain.hWnd
   
     Do
       On Error Resume Next
-      MainSaveDlg.ShowSaveAs
+      MDIMain.SaveDlg.ShowSaveAs
       //if canceled,
      if (Err.Number = cdlCancel) {
         //exit without doing anything
@@ -5701,22 +5662,22 @@ public static bool ExportPicture(AGIPicture ThisPicture, bool InGame)
       }
       On Error GoTo ErrHandler
       //save filterindex
-      WriteAppSetting SettingsList, sPICTURES, sEXPFILTER, MainSaveDlg.FilterIndex
+      WriteAppSetting SettingsList, sPICTURES, sEXPFILTER, MDIMain.SaveDlg.FilterIndex
       //get filename
-      strFileName = MainSaveDlg.FullName
+      strFileName = MDIMain.SaveDlg.FullName
       
       //if file exists,
      if (FileExists(strFileName)) {
         //verify replacement
-        rtn = MsgBox(MainSaveDlg.FileName + " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
+        rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", MessageBoxButtons.YesNoCancel + MessageBoxIcon.Question, "Overwrite file?")
         
-       if (rtn = vbYes) {
-          Exit Do
-        } else if ( rtn = vbCancel) {
+       if (rtn = DialogResult.Yes) {
+          break;
+        } else if ( rtn = DialogResult.Cancel) {
           Exit Function
         }
       } else {
-        Exit Do
+        break;
       }
     Loop While true
     
@@ -5728,11 +5689,11 @@ public static bool ExportPicture(AGIPicture ThisPicture, bool InGame)
     
     //if error,
    if (Err.Number != 0) {
-      ErrMsgBox "An error occurred while exporting this file.", "", "Export File Error"
+      ErrMsgBox("An error occurred while exporting this file.", "", "Export File Error"
     }
     
     //reset mouse pointer
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
   }
   
   ExportPicture = true
@@ -5769,26 +5730,26 @@ public static bool ExportSound(AGISound ThisSound, bool InGame)
   sFmt = ThisSound.SndFormat
   
    if (InGame) {
-      MainSaveDlg.DialogTitle = "Export Sound"
+      MDIMain.SaveDlg.DialogTitle = "Export Sound"
     } else {
-      MainSaveDlg.DialogTitle = "Save Sound As"
+      MDIMain.SaveDlg.DialogTitle = "Save Sound As"
     }
     switch (sFmt
     case 1
-      MainSaveDlg.Filter = "WinAGI Sound Files (*.ags)|*.ags|MIDI Files (*.mid)|*.mid|AGI Sound Script Files (*.ass)|*.ass|All files (*.*)|*.*"
+      MDIMain.SaveDlg.Filter = "WinAGI Sound Files (*.ags)|*.ags|MIDI Files (*.mid)|*.mid|AGI Sound Script Files (*.ass)|*.ass|All files (*.*)|*.*"
     case 2
-      MainSaveDlg.Filter = "WinAGI Sound Files (*.ags)|*.ags|WAV Files (*.wav)|*.wav|All files (*.*)|*.*"
+      MDIMain.SaveDlg.Filter = "WinAGI Sound Files (*.ags)|*.ags|WAV Files (*.wav)|*.wav|All files (*.*)|*.*"
     case 3
-      MainSaveDlg.Filter = "WinAGI Sound Files (*.ags)|*.ags|MIDI Files (*.mid)|*.mid|All files (*.*)|*.*"
+      MDIMain.SaveDlg.Filter = "WinAGI Sound Files (*.ags)|*.ags|MIDI Files (*.mid)|*.mid|All files (*.*)|*.*"
     }
     
     //if Sound has a filename
    if (LenB(ThisSound.Resource.ResFile) != 0) {
       //use it
-      MainSaveDlg.FullName = ThisSound.Resource.ResFile
+      MDIMain.SaveDlg.FullName = ThisSound.Resource.ResFile
     } else {
       //id should be filename
-      MainSaveDlg.FullName = ResDir + ThisSound.ID
+      MDIMain.SaveDlg.FullName = ResDir + ThisSound.ID
     }
     
     //set filter index (if it//s the script option, change it to
@@ -5800,34 +5761,34 @@ public static bool ExportSound(AGISound ThisSound, bool InGame)
         lngFilter = 3
       }
     }
-    MainSaveDlg.FilterIndex = lngFilter
+    MDIMain.SaveDlg.FilterIndex = lngFilter
     
     //now set default extension
     switch (.FilterIndex
     case 1
-      MainSaveDlg.DefaultExt = "ags"
+      MDIMain.SaveDlg.DefaultExt = "ags"
     case 2
      if (sFmt = 2) {
-        MainSaveDlg.DefaultExt = "wav"
+        MDIMain.SaveDlg.DefaultExt = "wav"
       } else {
-        MainSaveDlg.DefaultExt = "mid"
+        MDIMain.SaveDlg.DefaultExt = "mid"
       }
     case 3
      if (sFmt = 1) {
-        MainSaveDlg.DefaultExt = "ass"
+        MDIMain.SaveDlg.DefaultExt = "ass"
       } else {
-        MainSaveDlg.DefaultExt = ""
+        MDIMain.SaveDlg.DefaultExt = ""
       }
     default:
-      MainSaveDlg.DefaultExt = ""
+      MDIMain.SaveDlg.DefaultExt = ""
     }
     
-    MainSaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-    MainSaveDlg.hWndOwner = MDIMain.hWnd  
+    MDIMain.SaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
+    MDIMain.SaveDlg.hWndOwner = MDIMain.hWnd  
   
   Do
     On Error Resume Next
-    MainSaveDlg.ShowSaveAs
+    MDIMain.SaveDlg.ShowSaveAs
     //if canceled,
    if (Err.Number = cdlCancel) {
       //exit without doing anything
@@ -5836,23 +5797,23 @@ public static bool ExportSound(AGISound ThisSound, bool InGame)
     On Error GoTo ErrHandler
     
     //save default filter index
-    WriteAppSetting SettingsList, sSOUNDS, sEXPFILTER, MainSaveDlg.FilterIndex
+    WriteAppSetting SettingsList, sSOUNDS, sEXPFILTER, MDIMain.SaveDlg.FilterIndex
     
     //get filename
-    strFileName = MainSaveDlg.FullName
+    strFileName = MDIMain.SaveDlg.FullName
       
     //if file exists,
    if (FileExists(strFileName)) {
       //verify replacement
-      rtn = MsgBox(MainSaveDlg.FileName + " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
+      rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", MessageBoxButtons.YesNoCancel + MessageBoxIcon.Question, "Overwrite file?")
       
-     if (rtn = vbYes) {
-        Exit Do
-      } else if ( rtn = vbCancel) {
+     if (rtn = DialogResult.Yes) {
+        break;
+      } else if ( rtn = DialogResult.Cancel) {
         Exit Function
       }
     } else {
-      Exit Do
+      break;
     }
   Loop While true
   
@@ -5864,10 +5825,10 @@ public static bool ExportSound(AGISound ThisSound, bool InGame)
   
 //////  switch (sFmt
 //////  case 1 //pc/pcjr
-//////    eFmt = MainSaveDlg.FilterIndex
+//////    eFmt = MDIMain.SaveDlg.FilterIndex
 //////
 //////  case 2 //IIgs PCM
-//////    switch (MainSaveDlg.FilterIndex
+//////    switch (MDIMain.SaveDlg.FilterIndex
 //////    case 1  //.ags
 //////      eFmt = sfAGI
 //////    case 2  //.wav
@@ -5877,7 +5838,7 @@ public static bool ExportSound(AGISound ThisSound, bool InGame)
 //////    }
 //////
 //////  case 3 //IIgs MIDI
-//////    switch (MainSaveDlg.FilterIndex
+//////    switch (MDIMain.SaveDlg.FilterIndex
 //////    case 1  //.ags
 //////      eFmt = sfAGI
 //////    case 2  //.mid
@@ -5893,11 +5854,11 @@ public static bool ExportSound(AGISound ThisSound, bool InGame)
   
   //if error,
  if (Err.Number != 0) {
-    ErrMsgBox "An error occurred while exporting this file.", "", "Export File Error"
+    ErrMsgBox("An error occurred while exporting this file.", "", "Export File Error"
   }
   
   //reset mouse pointer
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
   
   ExportSound = true
 Exit Function
@@ -5917,35 +5878,35 @@ public static bool ExportView(AGIView ThisView, bool InGame)
   
   //set up commondialog
    if (InGame) {
-      MainSaveDlg.DialogTitle = "Export View"
+      MDIMain.SaveDlg.DialogTitle = "Export View"
     } else {
-      MainSaveDlg.DialogTitle = "Save View As"
+      MDIMain.SaveDlg.DialogTitle = "Save View As"
     }
-    MainSaveDlg.Filter = "WinAGI View Files (*.agv)|*.agv|All files (*.*)|*.*"
-    MainSaveDlg.FilterIndex = ReadSettingLong(SettingsList, sVIEWS, sEXPFILTER, 1)
-   if (MainSaveDlg.FilterIndex = 1) {
-      MainSaveDlg.DefaultExt = "agv"
+    MDIMain.SaveDlg.Filter = "WinAGI View Files (*.agv)|*.agv|All files (*.*)|*.*"
+    MDIMain.SaveDlg.FilterIndex = ReadSettingLong(SettingsList, sVIEWS, sEXPFILTER, 1)
+   if (MDIMain.SaveDlg.FilterIndex = 1) {
+      MDIMain.SaveDlg.DefaultExt = "agv"
     }
     
-    MainSaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
+    MDIMain.SaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
     
     //if view has a filename
    if (LenB(ThisView.Resource.ResFile) != 0) {
       //use it
-      MainSaveDlg.FullName = ThisView.Resource.ResFile
+      MDIMain.SaveDlg.FullName = ThisView.Resource.ResFile
     } else {
       //use default name
-      MainSaveDlg.FullName = ResDir + ThisView.ID
+      MDIMain.SaveDlg.FullName = ResDir + ThisView.ID
       //add extension, if necessary
-     if (MainSaveDlg.FilterIndex = 1) {
-        MainSaveDlg.FullName += ".agv"
+     if (MDIMain.SaveDlg.FilterIndex = 1) {
+        MDIMain.SaveDlg.FullName += ".agv"
       }
     }
-    MainSaveDlg.hWndOwner = MDIMain.hWnd
+    MDIMain.SaveDlg.hWndOwner = MDIMain.hWnd
   
   Do
     On Error Resume Next
-    MainSaveDlg.ShowSaveAs
+    MDIMain.SaveDlg.ShowSaveAs
     //if canceled,
    if (Err.Number = cdlCancel) {
       //exit without doing anything
@@ -5954,22 +5915,22 @@ public static bool ExportView(AGIView ThisView, bool InGame)
     On Error GoTo ErrHandler
     
     //save default filter index
-    WriteAppSetting SettingsList, sVIEWS, sEXPFILTER, MainSaveDlg.FilterIndex
+    WriteAppSetting SettingsList, sVIEWS, sEXPFILTER, MDIMain.SaveDlg.FilterIndex
     //get filename
-    strFileName = MainSaveDlg.FullName
+    strFileName = MDIMain.SaveDlg.FullName
     
     //if file exists,
    if (FileExists(strFileName)) {
       //verify replacement
-      rtn = MsgBox(MainSaveDlg.FileName + " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
+      rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", MessageBoxButtons.YesNoCancel + MessageBoxIcon.Question, "Overwrite file?")
       
-     if (rtn = vbYes) {
-        Exit Do
-      } else if ( rtn = vbCancel) {
+     if (rtn = DialogResult.Yes) {
+        break;
+      } else if ( rtn = DialogResult.Cancel) {
         Exit Function
       }
     } else {
-      Exit Do
+      break;
     }
   Loop While true
   
@@ -5981,12 +5942,12 @@ public static bool ExportView(AGIView ThisView, bool InGame)
   
   //if error,
  if (Err.Number != 0) {
-    ErrMsgBox "An error occurred while exporting this file.", "", "Export File Error"
+    ErrMsgBox("An error occurred while exporting this file.", "", "Export File Error"
     Exit Function
   }
   
   //reset mouse pointer
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
   
   ExportView = true
 Exit Function
@@ -6004,31 +5965,31 @@ public static bool ExportWords(AGIWordList ThisWordList, bool InGame)
   
   //set up commondialog
    if (InGame) {
-      MainSaveDlg.DialogTitle = "Export Word List"
+      MDIMain.SaveDlg.DialogTitle = "Export Word List"
     } else {
-      MainSaveDlg.DialogTitle = "Save Word List As"
+      MDIMain.SaveDlg.DialogTitle = "Save Word List As"
     }
     //if the list has a filename
    if (LenB(ThisWordList.ResFile) != 0) {
       //use it
-      MainSaveDlg.FullName = ThisWordList.ResFile
+      MDIMain.SaveDlg.FullName = ThisWordList.ResFile
     } else {
       //use default name
-      MainSaveDlg.FullName = ResDir + "WORDS.TOK"
+      MDIMain.SaveDlg.FullName = ResDir + "WORDS.TOK"
     }
-    MainSaveDlg.Filter = "WinAGI Word List Files (*.agw)|*.agw|WORDS.TOK file|*.TOK|All files (*.*)|*.*"
+    MDIMain.SaveDlg.Filter = "WinAGI Word List Files (*.agw)|*.agw|WORDS.TOK file|*.TOK|All files (*.*)|*.*"
    if (LCase$(Right$(.FullName, 4)) = ".agw") {
-      MainSaveDlg.FilterIndex = 1
+      MDIMain.SaveDlg.FilterIndex = 1
     } else {
-      MainSaveDlg.FilterIndex = 2
+      MDIMain.SaveDlg.FilterIndex = 2
     }
-    MainSaveDlg.DefaultExt = ""
-    MainSaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
-    MainSaveDlg.hWndOwner = MDIMain.hWnd
+    MDIMain.SaveDlg.DefaultExt = ""
+    MDIMain.SaveDlg.Flags = cdlOFNHideReadOnly || cdlOFNPathMustExist || cdlOFNExplorer
+    MDIMain.SaveDlg.hWndOwner = MDIMain.hWnd
   
   Do
     On Error Resume Next
-    MainSaveDlg.ShowSaveAs
+    MDIMain.SaveDlg.ShowSaveAs
     //if canceled,
    if (Err.Number = cdlCancel) {
       //exit without doing anything
@@ -6037,27 +5998,27 @@ public static bool ExportWords(AGIWordList ThisWordList, bool InGame)
     On Error GoTo ErrHandler
     
     //get filename
-    strFileName = MainSaveDlg.FullName
+    strFileName = MDIMain.SaveDlg.FullName
     
     //if file exists,
    if (FileExists(strFileName)) {
       //verify replacement
-      rtn = MsgBox(MainSaveDlg.FileName + " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
+      rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", MessageBoxButtons.YesNoCancel + MessageBoxIcon.Question, "Overwrite file?")
       
-     if (rtn = vbYes) {
-        Exit Do
-      } else if ( rtn = vbCancel) {
+     if (rtn = DialogResult.Yes) {
+        break;
+      } else if ( rtn = DialogResult.Cancel) {
         Exit Function
       }
     } else {
-      Exit Do
+      break;
     }
   Loop While true
   
   //show wait cursor
   MDIMain.UseWaitCursor = true;
   
- if (LCase$(Right$(MainSaveDlg.FullName, 4)) = ".agw") {
+ if (LCase$(Right$(MDIMain.SaveDlg.FullName, 4)) = ".agw") {
     //save with new filename
     ThisWordList.Export strFileName, 1, !InGame
   } else {
@@ -6066,12 +6027,12 @@ public static bool ExportWords(AGIWordList ThisWordList, bool InGame)
   
   //if error,
  if (Err.Number != 0) {
-    ErrMsgBox "An error occurred while exporting this file:", "", "Export File Error"
+    ErrMsgBox("An error occurred while exporting this file:", "", "Export File Error"
     Exit Function
   }
   
   //reset mouse pointer
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 
   ExportWords = true
 Exit Function
@@ -6099,7 +6060,7 @@ public static bool NewObjects()
   frmNew.Show
   
   //restore cursor while getting resnum
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
   
 Exit Function
 
@@ -6167,7 +6128,7 @@ public static void OpenGlobals(bool ForceLoad = false)
       GEInUse = true
       
       //reset cursor
-      Screen.MousePointer = vbDefault
+      MDIMain.UseWaitCursor = false;
     }
   } else {
   //either a game is NOT loaded, OR we are forcing a load from file
@@ -6212,7 +6173,7 @@ public static void OpenGlobals(bool ForceLoad = false)
     frmNew.LoadGlobalDefines strFileName
     frmNew.Show
     
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
   }
 return;
 
@@ -6284,10 +6245,10 @@ ErrHandler:
  if (!blnError && !Quiet) {
     //some printers don't allow landscape printing
    if (Err.Number = 380) {
-      MessageBox.Show("The selected printer does not support the selected orientation." + vbNewLine + "Your output may not be formatted correctly.", vbCritical + vbInformation, "Printer Capability Error"
+      MessageBox.Show("The selected printer does not support the selected orientation." + Environment.NewLine + "Your output may not be formatted correctly.", MessageBoxIcon.Critical + MessageBoxIcon.Information, "Printer Capability Error"
       Exit Function
     } else {
-      ErrMsgBox "An error occurred accessing the printer:", "Print features may not work correctly.", "Printer Error"
+      ErrMsgBox("An error occurred accessing the printer:", "Print features may not work correctly.", "Printer Error"
     }
   }
   blnError = true
@@ -6311,16 +6272,16 @@ public static void UpdateResFile(AGIResType ResType, byte ResNum, string OldFile
      
     
       //import existing, or overwrite it?
-      rtn = MsgBox("There is already a source file with the name //" + Logics(ResNum).ID + _
-            LogicSourceSettings.SourceExt + "// in your source file directory." + vbCrLf + vbCrLf + _
+      rtn = MessageBox.Show("There is already a source file with the name //" + Logics(ResNum).ID + _
+            LogicSourceSettings.SourceExt + "// in your source file directory." + Environment.NewLine + Environment.NewLine + _
             "Do you want to import that file? Choose //NO// to replace that file with the current logic source.", _
-            vbYesNo, "Import Existing Source File?")
+            MessageBoxButtons.YesNo, "Import Existing Source File?")
     } else {
       //no existing file, so keep current source
-      rtn = vbNo
+      rtn = DialogResult.No
     }
     
-   if (rtn = vbYes) {
+   if (rtn = DialogResult.Yes) {
       //keep old file with new name as new name; basically import it by reloading, if currently loaded
        if (Logics[ResNum].Loaded) {
           Logics[ResNum].Unload
@@ -6521,7 +6482,8 @@ public static bool GetNewResID(AGIResType ResType, int ResNum, ref string ResID,
       On Error GoTo ErrHandler
       
       //get new values
-      frmEditDescription.Show vbModal, MDIMain
+      frmEditDescription.Show(MDIMain);
+      frmEditDescription.Modal = true;
       
       //if canceled,
      if (frmEditDescription.Canceled) {
@@ -6534,7 +6496,7 @@ public static bool GetNewResID(AGIResType ResType, int ResNum, ref string ResID,
       switch (ResType
       case rtObjects, rtWords
         //only have description, so no need to validate
-        Exit Do
+        break;
         
       default:
         //if ID changed (case sensitive check here - case matters for what gets displayed
@@ -6558,7 +6520,7 @@ public static bool GetNewResID(AGIResType ResType, int ResNum, ref string ResID,
           case 6 // ID is an argument marker
             strErrMsg = "Resource IDs cannot be argument markers"
           case 14 // ID contains improper character
-            strErrMsg = "Invalid character in resource ID: + vbnewline + !" + QUOTECHAR + "&//()*+,-/:;<=>?[\]^`{|}~ and spaces" + vbNewLine + "are not allowed."
+            strErrMsg = "Invalid character in resource ID: + vbnewline + !" + QUOTECHAR + "&//()*+,-/:;<=>?[\]^`{|}~ and spaces" + Environment.NewLine + "are not allowed."
           case 15 // ID matches existing ResourceID
             //only enforce if in a game
            if (InGame) {
@@ -6573,7 +6535,7 @@ public static bool GetNewResID(AGIResType ResType, int ResNum, ref string ResID,
           //if there is an error
           if (rtn != 0) {
             //error - show msgbox
-            MsgBoxEx strErrMsg, vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Change Resource ID", WinAGIHelp, "htm\winagi\Managing Resources.htm#resourceids"
+            MsgBoxEx strErrMsg, MessageBoxIcon.Information + MessageBoxButtons.OK + vbMsgBoxHelpButton, "Change Resource ID", WinAGIHelp, "htm\winagi\Managing Resources.htm#resourceids"
           } else {
             //make the change
             //update ID for the ingame resource
@@ -6587,11 +6549,11 @@ public static bool GetNewResID(AGIResType ResType, int ResNum, ref string ResID,
             case rtView
               Views(ResNum).ID = frmEditDescription.txtID.Text
             }
-            Exit Do
+            break;
           }
         } else {
           //if ID was exactly the same, no change needed
-          Exit Do
+          break;
         }
       }
     Loop While true
@@ -6659,7 +6621,7 @@ public static bool GetNewResID(AGIResType ResType, int ResNum, ref string ResID,
     case rtLogic, rtPicture, rtSound, rtView
      if (strOldID != ResID) {
         //if not just a change in text case
-       if (StrComp(strOldID, ResID, vbTextCompare) != 0) {
+       if (StrComp(strOldID, ResID, StringComparison.OrdinalIgnoreCase) != 0) {
           //update resource file if ID has changed
           //this also updates the treelist, and property window
           UpdateResFile ResType, ResNum, strOldResFile
@@ -6753,7 +6715,7 @@ public static void AddNewLogic(int NewLogicNumber, AGILogic NewLogic, bool blnTe
         strLogic = LogTemplateText(Logics(NewLogicNumber).ID, Logics(NewLogicNumber).Description)
       } else {
         //add default text
-        strLogic = "[ " + vbCr + "[ " + Logics(NewLogicNumber).ID + vbCr + "[ " + vbCr + vbCr + "return();" + vbCr + vbCr + "[*****" + vbCr + "[ messages         [  declared messages go here" + vbCr + "[*****"
+        strLogic = "[ " + Keys.Enter + "[ " + Logics(NewLogicNumber).ID + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****"
       }
       //for new resources, need to set the source text
       Logics[NewLogicNumber].SourceText = strLogic
@@ -6794,7 +6756,7 @@ public static void AddNewLogic(int NewLogicNumber, AGILogic NewLogic, bool blnTe
       Do Until tmpNode.Tag > NewLogicNumber
        if (tmpNode.Next Is Nothing) {
           tmpRel = tvwNext
-          Exit Do
+          break;
         }
         tmpNode = tmpNode.Next
       Loop
@@ -6805,7 +6767,7 @@ public static void AddNewLogic(int NewLogicNumber, AGILogic NewLogic, bool blnTe
     tmpNode.Tag = NewLogicNumber
     
    if (!Logics(NewLogicNumber).Compiled) {
-      tmpNode.ForeColor = vbRed
+      tmpNode.ForeColor = Colors.Red
     }
     
   case 2
@@ -6827,7 +6789,7 @@ public static void AddNewLogic(int NewLogicNumber, AGILogic NewLogic, bool blnTe
       }
       tmpListItem.Tag = NewLogicNumber
      if (!Logics(NewLogicNumber).Compiled) {
-        tmpListItem.ForeColor = vbRed
+        tmpListItem.ForeColor = Colors.Red
       }
       //expand column width if necessary
      if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
@@ -6903,50 +6865,50 @@ public static string NextMsg(string strText, ref int lngLoc, TDefine[] LDefList,
     //check against list of cmds with msg arguments:
     switch (Len(strCmd)
     case 3  //check for log
-     if (StrComp(strCmd, "log", vbTextCompare) = 0) {
+     if (StrComp(strCmd, "log", StringComparison.OrdinalIgnoreCase) = 0) {
         //get arg 0
         lngArg = 0
       }
     
     case 5 //check for print
-     if (StrComp(strCmd, "print", vbTextCompare) = 0) {
+     if (StrComp(strCmd, "print", StringComparison.OrdinalIgnoreCase) = 0) {
         //get arg 0
         lngArg = 0
       }
     
     case 7  //display or get.num
-     if (StrComp(strCmd, "display", vbTextCompare) = 0) {
+     if (StrComp(strCmd, "display", StringComparison.OrdinalIgnoreCase) = 0) {
         lngArg = 2
-      } else if ( StrComp(strCmd, "get.num", vbTextCompare) = 0) {
+      } else if ( StrComp(strCmd, "get.num", StringComparison.OrdinalIgnoreCase) = 0) {
         lngArg = 0
       }
     
     case 8  //print.at or set.menu
-     if (StrComp(strCmd, "print.at", vbTextCompare) = 0) {
+     if (StrComp(strCmd, "print.at", StringComparison.OrdinalIgnoreCase) = 0) {
         lngArg = 0
-      } else if ( StrComp(strCmd, "set.menu", vbTextCompare) = 0) {
+      } else if ( StrComp(strCmd, "set.menu", StringComparison.OrdinalIgnoreCase) = 0) {
         lngArg = 0
       }
     
     case 10 //set.string, get.string
-     if (StrComp(strCmd, "set.string", vbTextCompare) = 0) {
+     if (StrComp(strCmd, "set.string", StringComparison.OrdinalIgnoreCase) = 0) {
         lngArg = 1
-      } else if ( StrComp(strCmd, "get.string", vbTextCompare) = 0) {
+      } else if ( StrComp(strCmd, "get.string", StringComparison.OrdinalIgnoreCase) = 0) {
         lngArg = 1
       }
     
     case 11 //set.game.id
-     if (StrComp(strCmd, "set.game.id", vbTextCompare) = 0) {
+     if (StrComp(strCmd, "set.game.id", StringComparison.OrdinalIgnoreCase) = 0) {
         lngArg = 0
       }
       
     case 13 //set.menu.item
-     if (StrComp(strCmd, "set.menu.item", vbTextCompare) = 0) {
+     if (StrComp(strCmd, "set.menu.item", StringComparison.OrdinalIgnoreCase) = 0) {
         lngArg = 0
       }
       
     case 15 //set.cursor.char
-     if (StrComp(strCmd, "set.cursor.char", vbTextCompare) = 0) {
+     if (StrComp(strCmd, "set.cursor.char", StringComparison.OrdinalIgnoreCase) = 0) {
         lngArg = 0
       }
     }
@@ -6992,7 +6954,7 @@ public static string NextMsg(string strText, ref int lngLoc, TDefine[] LDefList,
        if (strCmd != ",") {
           //something not right; just ignore this command
           lngArg = -1
-          Exit Do
+          break;
         }
         //now get next arg
         strCmd = ""
@@ -7103,7 +7065,7 @@ public static string NextMsg(string strText, ref int lngLoc, TDefine[] LDefList,
             switch (LDefList(i).Type
             case atMsg
               //a msg define
-             if (StrComp(LDefList(i).Name, strCmd, vbTextCompare) = 0) {
+             if (StrComp(LDefList(i).Name, strCmd, StringComparison.OrdinalIgnoreCase) = 0) {
                 //we can//t assume loacal defines are valid
                 sngVal = Val(Right(LDefList(i).Value, Len(LDefList(i).Value) - 1))
                if ((Int(sngVal) = sngVal) && sngVal > 0 && sngVal < 256) {
@@ -7117,13 +7079,13 @@ public static string NextMsg(string strText, ref int lngLoc, TDefine[] LDefList,
               //a string
              if (LDefList(i).Type = atDefStr) {
                 //does it match?
-               if (StrComp(LDefList(i).Name, strCmd, vbTextCompare) = 0) {
+               if (StrComp(LDefList(i).Name, strCmd, StringComparison.OrdinalIgnoreCase) = 0) {
                   //but we can//t assume it//s a valid string
                  if (IsValidMsg(LDefList(i).Value)) {
                     //we don't replace the define value
                     //but just mark it as OK
                     blnDefFound = true
-                    Exit Do
+                    break;
                   }
                 }
               }
@@ -7135,7 +7097,7 @@ public static string NextMsg(string strText, ref int lngLoc, TDefine[] LDefList,
             switch (GDefLookup(i).Type
             case atMsg
               //a msg define
-             if (StrComp(GDefLookup(i).Name, strCmd, vbTextCompare) = 0) {
+             if (StrComp(GDefLookup(i).Name, strCmd, StringComparison.OrdinalIgnoreCase) = 0) {
                 //global defines are already validated
                 sngVal = Val(Right(strCmd, Len(strCmd) - 1))
                 //return the msg number
@@ -7146,12 +7108,12 @@ public static string NextMsg(string strText, ref int lngLoc, TDefine[] LDefList,
             case atDefStr
               //a string
              if (GDefLookup(i).Type = atDefStr) {
-               if (StrComp(GDefLookup(i).Name, strCmd, vbTextCompare) = 0) {
+               if (StrComp(GDefLookup(i).Name, strCmd, StringComparison.OrdinalIgnoreCase) = 0) {
                   //global defines are already validated
                   //we don't replace the define name
                   //but just mark it as OK
                   blnDefFound = true
-                  Exit Do
+                  break;
                 }
               }
             }
@@ -7162,12 +7124,12 @@ public static string NextMsg(string strText, ref int lngLoc, TDefine[] LDefList,
           // as they are the only resefs that could
           // apply)
           For i = 90 To 92
-           if (StrComp(RDefLookup(i).Name, strCmd, vbTextCompare) = 0) {
+           if (StrComp(RDefLookup(i).Name, strCmd, StringComparison.OrdinalIgnoreCase) = 0) {
               //reserved defines are already validated
               //we don't replace the define value
               //but just mark it as OK
               blnDefFound = true
-              Exit Do
+              break;
             }
           Next i
         Loop Until true
@@ -7312,7 +7274,7 @@ public static bool ReadMsgs(string strText, string[] Messages, int[] MsgUsed(), 
          if (LDefList(i).Type = atDefStr) {
            if (LDefList(i).Name = strCmd) {
               blnDefFound = true
-              Exit Do
+              break;
             }
           }
         Next i
@@ -7321,7 +7283,7 @@ public static bool ReadMsgs(string strText, string[] Messages, int[] MsgUsed(), 
          if (GDefLookup(i).Type = atDefStr) {
            if (GDefLookup(i).Name = strCmd) {
               blnDefFound = true
-              Exit Do
+              break;
             }
           }
         Next i
@@ -7330,7 +7292,7 @@ public static bool ReadMsgs(string strText, string[] Messages, int[] MsgUsed(), 
          if (LogicSourceSettings.ReservedDefines(atDefStr)(i).Type = atDefStr) {
            if (LogicSourceSettings.ReservedDefines(atDefStr)(i).Name = strCmd) {
               blnDefFound = true
-              Exit Do
+              break;
             }
           }
         Next i
@@ -7358,7 +7320,7 @@ public static bool ReadMsgs(string strText, string[] Messages, int[] MsgUsed(), 
       //if end of input
      if (lngConcat = 0) {
         //exit the loop since no more text left to process
-        Exit Do
+        break;
       }
       
      if (blnConcat) {
@@ -7380,12 +7342,12 @@ public static bool ReadMsgs(string strText, string[] Messages, int[] MsgUsed(), 
             Exit Function
           } else {
             //any other command means no concatenation needed
-            Exit Do
+            break;
           }
         }
       } else {
         //only carriage return, or comments allowed after a string
-       if (strCmd = vbCr || Left$(strCmd, 2) = "//" || Asc(strCmd) = 91) {
+       if (strCmd = Keys.Enter || Left$(strCmd, 2) = "//" || Asc(strCmd) = 91) {
           blnConcat = true
         } else {
           //stuff not allowed on line after msg declaration
@@ -7401,7 +7363,7 @@ public static bool ReadMsgs(string strText, string[] Messages, int[] MsgUsed(), 
     
     //check for end of input
    if (lngPos = 0) {
-      Exit Do
+      break;
     }
     
     //get next msg marker
@@ -7442,7 +7404,7 @@ public static void AddNewPicture(int NewPictureNumber, AGIPicture NewPicture)
       Do Until tmpNode.Tag > NewPictureNumber
        if (tmpNode.Next Is Nothing) {
           tmpRel = tvwNext
-          Exit Do
+          break;
         }
         tmpNode = tmpNode.Next
       Loop
@@ -7519,7 +7481,7 @@ public static void AddNewSound(int NewSoundNumber, AGISound NewSound)
       Do Until tmpNode.Tag > NewSoundNumber
        if (tmpNode.Next Is Nothing) {
           tmpRel = tvwNext
-          Exit Do
+          break;
         }
         tmpNode = tmpNode.Next
       Loop
@@ -7592,7 +7554,7 @@ public static void AddNewView(int NewViewNumber, AGISound NewView)
       Do Until tmpNode.Tag > NewViewNumber
        if (tmpNode.Next Is Nothing) {
           tmpRel = tvwNext
-          Exit Do
+          break;
         }
         tmpNode = tmpNode.Next
       Loop
@@ -7658,7 +7620,7 @@ public static DialogResult MsgBoxEx(string Prompt, MessageBoxButtons Buttons = M
 //vbOKCancel =            1 1-2
 //vbAbortRetryIgnore =    2 1-2-3
 //vbYesNoCancel =         3 1-2-3
-//vbYesNo =               4 1-2
+//MessageBoxButtons.YesNo =               4 1-2
 //vbRetryCancel =         5 1-2
 
 //vbApplicationModal =     0
@@ -7669,10 +7631,10 @@ public static DialogResult MsgBoxEx(string Prompt, MessageBoxButtons Buttons = M
 //vbDefaultButton3 =   0x200
 //vbDefaultButton4 =   0x300
 
-//vbCritical =          0x10
-//vbQuestion =          0x20
+//MessageBoxIcon.Critical =          0x10
+//MessageBoxIcon.Question =          0x20
 //vbExclamation =       0x30
-//vbInformation =       0x40
+//MessageBoxIcon.Information =       0x40
 
 //vbMsgBoxHelpButton =     0x4000
 //vbMsgBoxSetForeground = 0x10000  //?
@@ -7777,7 +7739,7 @@ public static DialogResult MsgBoxEx(string Prompt, MessageBoxButtons Buttons = M
     
     //set button captions
     switch (Buttons && 0x7
-    case vbOKOnly
+    case MessageBoxButtons.OK
       .Button1.Text = "OK"
       .Button1.Default = true
       
@@ -7805,7 +7767,7 @@ public static DialogResult MsgBoxEx(string Prompt, MessageBoxButtons Buttons = M
      
       lngButtonCount = 3
             
-    case vbYesNoCancel
+    case MessageBoxButtons.YesNoCancel
       .Button1.Text = "&Yes"
       .Button2.Text = "&No"
       .Button2.Visible = true
@@ -7818,7 +7780,7 @@ public static DialogResult MsgBoxEx(string Prompt, MessageBoxButtons Buttons = M
       
       lngButtonCount = 3
       
-    case vbYesNo
+    case MessageBoxButtons.YesNo
       .Button1.Text = "&Yes"
       .Button2.Text = "&No"
       .Button2.Visible = true
@@ -7869,7 +7831,8 @@ public static DialogResult MsgBoxEx(string Prompt, MessageBoxButtons Buttons = M
     }
     
     //show it
-    frmDialog.Show vbModal, MDIMain
+    frmDialog.Show(MDIMain);
+    frmDialog.Show.Modal = true;
     
     //get result
     MsgBoxEx = frmDialog.Result
@@ -8024,7 +7987,7 @@ public static void UpdateLayoutFile(EUReason Reason, int LogicNumber, AGIExits N
   Open strTempFile
   
   //write data to the file
-  Put intFile, 1, Join(stlLayout.AllLines, vbCr)
+  Put intFile, 1, Join(stlLayout.AllLines, Keys.Enter)
   //done with file
   Close intFile
   
@@ -8103,7 +8066,7 @@ public static AGIExit AnalyzeExit(string strSource, ref int lngLoc, int StartPos
     FindNextToken strSource, i, strLine
    if (strLine != ")") {
       //syntax not good
-      Exit Do
+      break;
     }
     
     //and then next token should be //;//
@@ -8115,7 +8078,7 @@ public static AGIExit AnalyzeExit(string strSource, ref int lngLoc, int StartPos
       blnGood = true
     } else {
       //syntax not good
-      Exit Do
+      break;
     }
     
   Loop Until true
@@ -8126,19 +8089,19 @@ public static AGIExit AnalyzeExit(string strSource, ref int lngLoc, int StartPos
    if (Left$(strLine, 1) = "[" || Left$(strLine, 2) = "//") {
       lngEnd = lngEnd - 1
     //if the next token is end line,
-    } else if ( strLine = vbCr) {
+    } else if ( strLine = Keys.Enter) {
       
     } else {
       //find the end, or a comment
       Do
         strLine = ""
         lngEnd = FindNextToken(strSource, i, strLine)
-       if (strLine = vbCr) {
+       if (strLine = Keys.Enter) {
           //end of line; exit
-          Exit Do
+          break;
         } else if ( Left$(strLine, 1) = "[" || Left$(strLine, 2) = "//") {
           //comment found; exit
-          Exit Do
+          break;
         }
       Loop While lngEnd < lngLen && lngEnd != 0
     }
@@ -8162,7 +8125,7 @@ public static AGIExit AnalyzeExit(string strSource, ref int lngLoc, int StartPos
         pos1 = pos3 + 1
       } else {
         //done search
-        Exit Do
+        break;
       }
     //if no //if// found, exit the loop
     Loop Until pos3 = 0
@@ -8171,7 +8134,7 @@ public static AGIExit AnalyzeExit(string strSource, ref int lngLoc, int StartPos
    if (pos1 = 0) {
       //this is an //other// exit
       eReason = erOther
-      Exit Do
+      break;
     }
     
     //now examine the //if// statement to determine exit Type
@@ -8189,7 +8152,7 @@ public static AGIExit AnalyzeExit(string strSource, ref int lngLoc, int StartPos
    if (strLine != "(") {
       //unknown
       eReason = erOther
-      Exit Do
+      break;
     }
     
     //expecting //v2//
@@ -8198,7 +8161,7 @@ public static AGIExit AnalyzeExit(string strSource, ref int lngLoc, int StartPos
    if (Logics.ConvertArg(Trim$(strLine), atVar) != "v2") {
       //other
       eReason = erOther
-      Exit Do
+      break;
     }
     
     //expecting //==//
@@ -8207,7 +8170,7 @@ public static AGIExit AnalyzeExit(string strSource, ref int lngLoc, int StartPos
    if (strLine != "==") {
       //other
       eReason = erOther
-      Exit Do
+      break;
     }
   
     //expecting valid exit reason
@@ -8226,7 +8189,7 @@ public static AGIExit AnalyzeExit(string strSource, ref int lngLoc, int StartPos
    if (strLine != ")") {
       //not a simple edge code test; call it unknown
       eReason = erOther
-      Exit Do
+      break;
     }
     
     //expecting "{"
@@ -8235,7 +8198,7 @@ public static AGIExit AnalyzeExit(string strSource, ref int lngLoc, int StartPos
    if (strLine != "{") {
       //not a simple edge code test; call it unknown
       eReason = erOther
-      Exit Do
+      break;
     }
     
     //expecting //new.room//
@@ -8299,7 +8262,7 @@ public static void NewWords()
   frmNew.Show
   
   //restore cursor while getting resnum
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -8650,14 +8613,14 @@ public static void DrawProp(PictureBox picProps, string PropID, string PropValue
   }
   
   //set forecolor depending on whether or not properties are enabled
-  lngForeColor = IIf(PropEnabled, vbBlack, RGB(0x80, 0x80, 0x80))
+  lngForeColor = IIf(PropEnabled, Colors.Black, RGB(0x80, 0x80, 0x80))
    
   //strip off any multilines
- if (InStr(1, PropValue, vbCr) != 0) {
-    PropValue = Left$(PropValue, InStr(1, PropValue, vbCr))
+ if (InStr(1, PropValue, Keys.Enter) != 0) {
+    PropValue = Left$(PropValue, InStr(1, PropValue, Keys.Enter))
   }
- if (InStr(1, PropValue, vbLf) != 0) {
-    PropValue = Left$(PropValue, InStr(1, PropValue, vbLf))
+ if (InStr(1, PropValue, Keys.LineFeed) != 0) {
+    PropValue = Left$(PropValue, InStr(1, PropValue, Keys.LineFeed))
   }
   
   With picProps
@@ -8667,7 +8630,7 @@ public static void DrawProp(PictureBox picProps, string PropID, string PropValue
   
     .CurrentX = 3
     .CurrentY = PropRowHeight * RowNum + 1
-    .ForeColor = IIf(blnIsSelected, vbWhite, vbBlack)
+    .ForeColor = IIf(blnIsSelected, vbWhite, Colors.Black)
     picProps.Print PropID;
     
     picProps.Line (PropSplitLoc, PropRowHeight * RowNum)-(picProps.Width, (RowNum + 1) * PropRowHeight), vbWhite, BF
@@ -8704,15 +8667,15 @@ public static bool ChangeIntVersion(string NewVersion)
   //if change is major
  if (Asc(NewVersion) != Asc(InterpreterVersion)) {
     //ask for confirmation
-    rtn = MsgBox("Changing the target interpreter version may create problems" + vbCrLf + _
-                 "with your logic resources, due to changes in the number of" + vbCrLf + _
-                 "commands, and their argument counts." + vbNewLine + vbNewLine + _
-                 "Also, your DIR and VOL files will need to be rebuilt to" + vbCrLf + _
-                 "make a major version change. " + vbNewLine + vbNewLine + _
-                 "Continue with version change?", vbQuestion + vbYesNo, _
+    rtn = MessageBox.Show("Changing the target interpreter version may create problems" + Environment.NewLine + _
+                 "with your logic resources, due to changes in the number of" + Environment.NewLine + _
+                 "commands, and their argument counts." + Environment.NewLine + Environment.NewLine + _
+                 "Also, your DIR and VOL files will need to be rebuilt to" + Environment.NewLine + _
+                 "make a major version change. " + Environment.NewLine + Environment.NewLine + _
+                 "Continue with version change?", MessageBoxIcon.Question + MessageBoxButtons.YesNo, _
                  "Change Interpreter Version")
     
-   if (rtn = vbNo) {
+   if (rtn = DialogResult.No) {
       //exit
       Exit Function
     }
@@ -8736,7 +8699,7 @@ public static bool ChangeIntVersion(string NewVersion)
     //if major error,
    if (Err.Number != 0) {
       //display error message
-      ErrMsgBox "Error during version change: ", "Original version has been restored.", "Change Interpreter Version"
+      ErrMsgBox("Error during version change: ", "Original version has been restored.", "Change Interpreter Version"
        GoTo ErrHandler
     }
     
@@ -8748,7 +8711,7 @@ public static bool ChangeIntVersion(string NewVersion)
     //check for errors and warnings
    if (CLng(CompStatusWin.lblErrors.Text) + CLng(CompStatusWin.lblWarnings.Text) > 0) {
       //msgbox to user
-      MessageBox.Show("Errors and/or warnings were generated during game compile.", vbInformation + vbOKOnly, "Compile Game Error"
+      MessageBox.Show("Errors and/or warnings were generated during game compile.", MessageBoxIcon.Information + MessageBoxButtons.OK, "Compile Game Error"
       
       //if errors
      if (CLng(CompStatusWin.lblErrors.Text) > 0) {
@@ -8764,7 +8727,7 @@ public static bool ChangeIntVersion(string NewVersion)
     } else {
       //everything is ok
       MessageBox.Show("Version change and rebuild completed successfully.", _
-             vbInformation + vbOKOnly, "Change Interpreter Version"
+             MessageBoxIcon.Information + MessageBoxButtons.OK, "Change Interpreter Version"
     }
     
     //unload the compile staus form
@@ -8773,14 +8736,14 @@ public static bool ChangeIntVersion(string NewVersion)
     
     //restore form state
     MDIMain.Enabled = true
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
   } else {
     //ask for confirmation
-    rtn = MsgBox("Changing the target interpreter version may create problems with your logic resources, " + _
-          "due to changes in the number of commands, and their argument counts." + vbNewLine + vbNewLine + _
-          "Continue with version change?", vbQuestion + vbYesNo, "Change Interpreter Version")
+    rtn = MessageBox.Show("Changing the target interpreter version may create problems with your logic resources, " + _
+          "due to changes in the number of commands, and their argument counts." + Environment.NewLine + Environment.NewLine + _
+          "Continue with version change?", MessageBoxIcon.Question + MessageBoxButtons.YesNo, "Change Interpreter Version")
     
-   if (rtn = vbNo) {
+   if (rtn = DialogResult.No) {
       //exit
       Exit Function
     }
@@ -8799,7 +8762,7 @@ ErrHandler:
 
   //restore form state
   MDIMain.Enabled = true
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
   
   //clean up any leftover files
  if (Asc(NewVersion) = 51 >= 3) {
@@ -8842,7 +8805,7 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
    if (LayoutEditor.IsDirty) {
      if (Len(strTemp) != 0) {
         //if globals is also open, then adjust message
-        strTemp = "Do you want to save the Global Defines list and " + vbNewLine + _
+        strTemp = "Do you want to save the Global Defines list and " + Environment.NewLine + _
                   "Layout Editor before compiling?"
       } else {
         strTemp = "Do you want to save the Global Defines list before compiling?"
@@ -8851,9 +8814,9 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
   }
       
  if (Len(strTemp) != 0) {
-    rtn = MsgBox(strTemp, vbYesNoCancel + vbQuestion, "Save Before Compile?")
+    rtn = MessageBox.Show(strTemp, MessageBoxButtons.YesNoCancel + MessageBoxIcon.Question, "Save Before Compile?")
     switch (rtn
-    case vbYes
+    case DialogResult.Yes
      if (LEInUse) {
        if (LayoutEditor.IsDirty) {
           LayoutEditor.MenuClickSave
@@ -8865,7 +8828,7 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
         }
       }
       
-    case vbCancel
+    case DialogResult.Cancel
       return;
     }
   }
@@ -8880,9 +8843,9 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
          if (Settings.SaveOnCompile = 0) {
             LogicEditors(i).Focus()
             //get user//s response
-            rtn = MsgBoxEx("Do you want to save this logic before compiling?", vbQuestion + vbYesNoCancel, "Update " + ResourceName(LogicEditors(i).LogicEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
+            rtn = MsgBoxEx("Do you want to save this logic before compiling?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Update " + ResourceName(LogicEditors(i).LogicEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
            if (blnDontAsk) {
-             if (rtn = vbYes) {
+             if (rtn = DialogResult.Yes) {
                 Settings.SaveOnCompile = 2
               } else {
                 Settings.SaveOnCompile = 1
@@ -8894,13 +8857,13 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
             
           } else {
             //if on automatic, always say yes
-            rtn = vbYes
+            rtn = DialogResult.Yes
           }
           
           switch (rtn
-          case vbCancel
+          case DialogResult.Cancel
             return;
-          case vbYes
+          case DialogResult.Yes
             //save it
             LogicEditors(i).MenuClickSave
           }
@@ -8917,9 +8880,9 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
        if (Settings.SaveOnCompile = 0) {
           PictureEditors(i).Focus()
           //get user//s response
-          rtn = MsgBoxEx("Do you want to save this picture before compiling?", vbQuestion + vbYesNoCancel, "Update " + ResourceName(PictureEditors(i).PicEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
+          rtn = MsgBoxEx("Do you want to save this picture before compiling?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Update " + ResourceName(PictureEditors(i).PicEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
-           if (rtn = vbYes) {
+           if (rtn = DialogResult.Yes) {
               Settings.SaveOnCompile = 2
             } else {
               Settings.SaveOnCompile = 1
@@ -8927,13 +8890,13 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
           }
         } else {
           //if on automatic, always say yes
-          rtn = vbYes
+          rtn = DialogResult.Yes
         }
       
         switch (rtn
-        case vbCancel
+        case DialogResult.Cancel
           return;
-        case vbYes
+        case DialogResult.Yes
           //save it
           PictureEditors(i).MenuClickSave
         }
@@ -8949,9 +8912,9 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
        if (Settings.SaveOnCompile = 0) {
           SoundEditors(i).Focus()
           //get user//s response
-          rtn = MsgBoxEx("Do you want to save this Sound before compiling?", vbQuestion + vbYesNoCancel, "Update " + ResourceName(SoundEditors(i).SoundEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
+          rtn = MsgBoxEx("Do you want to save this Sound before compiling?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Update " + ResourceName(SoundEditors(i).SoundEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
-           if (rtn = vbYes) {
+           if (rtn = DialogResult.Yes) {
               Settings.SaveOnCompile = 2
             } else {
               Settings.SaveOnCompile = 1
@@ -8959,13 +8922,13 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
           }
         } else {
           //if on automatic, always say yes
-          rtn = vbYes
+          rtn = DialogResult.Yes
         }
       
         switch (rtn
-        case vbCancel
+        case DialogResult.Cancel
           return;
-        case vbYes
+        case DialogResult.Yes
           //save it
           SoundEditors(i).MenuClickSave
         }
@@ -8981,9 +8944,9 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
        if (Settings.SaveOnCompile = 0) {
           ViewEditors(i).Focus()
           //get user//s response
-          rtn = MsgBoxEx("Do you want to save this View before compiling?", vbQuestion + vbYesNoCancel, "Update " + ResourceName(ViewEditors(i).ViewEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
+          rtn = MsgBoxEx("Do you want to save this View before compiling?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Update " + ResourceName(ViewEditors(i).ViewEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
-           if (rtn = vbYes) {
+           if (rtn = DialogResult.Yes) {
               Settings.SaveOnCompile = 2
             } else {
               Settings.SaveOnCompile = 1
@@ -8991,13 +8954,13 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
           }
         } else {
           //if on automatic, always say yes
-          rtn = vbYes
+          rtn = DialogResult.Yes
         }
       
         switch (rtn
-        case vbCancel
+        case DialogResult.Cancel
           return;
-        case vbYes
+        case DialogResult.Yes
           //save it
           ViewEditors(i).MenuClickSave
         }
@@ -9013,9 +8976,9 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
        if (Settings.SaveOnCompile = 0) {
           ObjectEditor.Focus()
           //get user//s response
-          rtn = MsgBoxEx("Do you want to save OBJECT file before compiling?", vbQuestion + vbYesNoCancel, "Update OBJECT File?", , , "Always take this action when compiling a game.", blnDontAsk)
+          rtn = MsgBoxEx("Do you want to save OBJECT file before compiling?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Update OBJECT File?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
-           if (rtn = vbYes) {
+           if (rtn = DialogResult.Yes) {
               Settings.SaveOnCompile = 2
             } else {
               Settings.SaveOnCompile = 1
@@ -9023,13 +8986,13 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
           }
         } else {
           //if on automatic, always say yes
-          rtn = vbYes
+          rtn = DialogResult.Yes
         }
       
         switch (rtn
-        case vbCancel
+        case DialogResult.Cancel
           return;
-        case vbYes
+        case DialogResult.Yes
           //save it
           ObjectEditor.MenuClickSave
         }
@@ -9045,9 +9008,9 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
        if (Settings.SaveOnCompile = 0) {
           WordEditor.Focus()
           //get user//s response
-          rtn = MsgBoxEx("Do you want to save WORDS.TOK file before compiling?", vbQuestion + vbYesNoCancel, "Update WORDS.TOK File?", , , "Always take this action when compiling a game.", blnDontAsk)
+          rtn = MsgBoxEx("Do you want to save WORDS.TOK file before compiling?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Update WORDS.TOK File?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
-           if (rtn = vbYes) {
+           if (rtn = DialogResult.Yes) {
               Settings.SaveOnCompile = 2
             } else {
               Settings.SaveOnCompile = 1
@@ -9055,13 +9018,13 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
           }
         } else {
           //if on automatic, always say yes
-          rtn = vbYes
+          rtn = DialogResult.Yes
         }
       
         switch (rtn
-        case vbCancel
+        case DialogResult.Cancel
           return;
-        case vbYes
+        case DialogResult.Yes
           //save it
           WordEditor.MenuClickSave
         }
@@ -9070,7 +9033,7 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
   }
     
   //set default to replace any existing game files
-  rtn = vbYes
+  rtn = DialogResult.Yes
   
   Do
     //if no directory was passed to the function
@@ -9083,21 +9046,21 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
         //if directory already contains game files,
        if (Dir(cDir(CompGameDir) + "*VOL.*") != "") {
           //verify
-          rtn = MsgBox("This directory already contains AGI game files. Existing files will be renamed so they will not be lost. Continue with compile?", vbQuestion + vbYesNoCancel, "Compile Game")
+          rtn = MessageBox.Show("This directory already contains AGI game files. Existing files will be renamed so they will not be lost. Continue with compile?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Compile Game")
           //if user said no
-         if (rtn = vbNo) {
+         if (rtn = DialogResult.No) {
             //reset directory
             CompGameDir = ""
           }
         }
       } else {
-        rtn = vbCancel
+        rtn = DialogResult.Cancel
       }
     }
-  Loop While rtn = vbNo
+  Loop While rtn = DialogResult.No
   
   //if canceled
- if (rtn = vbCancel) {
+ if (rtn = DialogResult.Cancel) {
     //exit
     return;
   }
@@ -9133,14 +9096,14 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
   //if major error,
  if (Err.Number != 0) {
     //restore cursor
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     //display error message
-    strTemp = "An error occurred while building game files. Original files have" + vbCrLf
-    strTemp = strTemp + "been restored, but you should check all files to make sure nothing" + vbCrLf
+    strTemp = "An error occurred while building game files. Original files have" + Environment.NewLine
+    strTemp = strTemp + "been restored, but you should check all files to make sure nothing" + Environment.NewLine
     strTemp = strTemp + "was lost or corrupted."
     
     //Error Information:
-    ErrMsgBox strTemp, "", IIf(RebuildOnly, "Rebuild VOL Files", "Compile Game Error")
+    ErrMsgBox(strTemp, "", IIf(RebuildOnly, "Rebuild VOL Files", "Compile Game Error")
     //show wait cursor again
     MDIMain.UseWaitCursor = true;
     
@@ -9228,7 +9191,7 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
     Err.Clear
     
     //restore cursor
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     //exit
     return;
   }
@@ -9267,7 +9230,7 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
   
     //restore form state
     MDIMain.Enabled = true
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     
     //exit
     return;
@@ -9278,10 +9241,10 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
   //check for errors and warnings
  if (CLng(CompStatusWin.lblErrors.Text) + CLng(CompStatusWin.lblWarnings.Text) > 0) {
     //restore cursor
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     
     //msgbox to user
-    MessageBox.Show("Warnings were generated during game compile.", vbInformation + vbOKOnly, "Compile Game"
+    MessageBox.Show("Warnings were generated during game compile.", MessageBoxIcon.Information + MessageBoxButtons.OK, "Compile Game"
     
     //show wait cursor again
     MDIMain.UseWaitCursor = true;
@@ -9299,11 +9262,11 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
     }
   } else {
     //restore cursor
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     
     //everything is ok
     MessageBox.Show(IIf(RebuildOnly, "Rebuild", "Compile") + " completed successfully.", _
-           vbInformation + vbOKOnly, IIf(RebuildOnly, "Rebuild VOL Files", "Compile Game")
+           MessageBoxIcon.Information + MessageBoxButtons.OK, IIf(RebuildOnly, "Rebuild VOL Files", "Compile Game")
     
     //show wait cursor again
     MDIMain.UseWaitCursor = true;
@@ -9317,7 +9280,7 @@ public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = fa
   
   //restore form state
   MDIMain.Enabled = true
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -9353,26 +9316,26 @@ public static bool CompileDirtyLogics(bool NoMsg = false)
         case 0  //ask user for input
           LogicEditors(i).Focus()
           //get user//s response
-          rtn = MsgBoxEx("Do you want to save this logic before compiling?", vbQuestion + vbYesNoCancel, "Update " + ResourceName(LogicEditors(i).LogicEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
+          rtn = MsgBoxEx("Do you want to save this logic before compiling?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Update " + ResourceName(LogicEditors(i).LogicEdit, true, true) + "?", , , "Always take this action when compiling a game.", blnDontAsk)
          if (blnDontAsk) {
-           if (rtn = vbYes) {
+           if (rtn = DialogResult.Yes) {
               Settings.SaveOnCompile = 2
-            } else if ( rtn = vbNo) {
+            } else if ( rtn = DialogResult.No) {
               Settings.SaveOnCompile = 1
             }
           }
         
         case 1  //no
-          rtn = vbNo
+          rtn = DialogResult.No
           
         case 2  //yes
-          rtn = vbYes
+          rtn = DialogResult.Yes
         }
         
         switch (rtn
-        case vbCancel
+        case DialogResult.Cancel
           Exit Function
-        case vbYes
+        case DialogResult.Yes
           //save it
           LogicEditors(i).MenuClickSave
         }
@@ -9445,14 +9408,14 @@ public static bool CompileDirtyLogics(bool NoMsg = false)
         switch (Settings.OpenOnErr
         case 0 //ask
           //restore cursor before showing msgbox
-          Screen.MousePointer = vbDefault
+          MDIMain.UseWaitCursor = false;
           //get user//s response
-          rtn = MsgBoxEx("An error occurred while attempting to compile " + ResourceName(tmpLogic, true, true) + ":" + vbNewLine + vbNewLine _
-                   + ErrString + vbNewLine + vbNewLine + "Do you want to open the logic at the location of the error?", vbQuestion + vbYesNo, "Update Logics?", , , "Always take this action when a compile error occurs.", blnDontAsk)
+          rtn = MsgBoxEx("An error occurred while attempting to compile " + ResourceName(tmpLogic, true, true) + ":" + Environment.NewLine + Environment.NewLine _
+                   + ErrString + Environment.NewLine + Environment.NewLine + "Do you want to open the logic at the location of the error?", MessageBoxIcon.Question + MessageBoxButtons.YesNo, "Update Logics?", , , "Always take this action when a compile error occurs.", blnDontAsk)
           //show wait cursor again
           MDIMain.UseWaitCursor = true;
          if (blnDontAsk) {
-           if (rtn = vbYes) {
+           if (rtn = DialogResult.Yes) {
               Settings.OpenOnErr = 2
             } else {
               Settings.OpenOnErr = 1
@@ -9460,21 +9423,21 @@ public static bool CompileDirtyLogics(bool NoMsg = false)
           }
           
         case 1 //always yes
-          rtn = vbYes
+          rtn = DialogResult.Yes
           
         case 2 //always no
-          rtn = vbNo
+          rtn = DialogResult.No
           //restore cursor before showing msgbox
-          Screen.MousePointer = vbDefault
-          MessageBox.Show("An error in your code has been detected in logic //" + ResourceName(tmpLogic, true, true) + "//:" + vbNewLine + vbNewLine _
-                     + "Line " + strErrInfo(0) + ", Error# " + strErrInfo(1), vbOKOnly + vbInformation, "Logic Compiler Error"
+          MDIMain.UseWaitCursor = false;
+          MessageBox.Show("An error in your code has been detected in logic //" + ResourceName(tmpLogic, true, true) + "//:" + Environment.NewLine + Environment.NewLine _
+                     + "Line " + strErrInfo(0) + ", Error# " + strErrInfo(1), MessageBoxButtons.OK + MessageBoxIcon.Information, "Logic Compiler Error"
           //show wait cursor again
           MDIMain.UseWaitCursor = true;
           
         }
         
         //if yes,
-       if (rtn = vbYes) {
+       if (rtn = DialogResult.Yes) {
           //set error info for this file
           SetError CLng(strErrInfo(0)), strErrInfo(2), tmpLogic.Number, strErrInfo(1)
           Err.Clear
@@ -9490,9 +9453,9 @@ public static bool CompileDirtyLogics(bool NoMsg = false)
         Exit For
       
       default:
-        Screen.MousePointer = vbDefault
+        MDIMain.UseWaitCursor = false;
         //some other error
-        ErrMsgBox "Error occurred during compilation: ", "", "Compile Error"
+        ErrMsgBox("Error occurred during compilation: ", "", "Compile Error"
         MDIMain.UseWaitCursor = true;
         blnErr = true
         Exit For
@@ -9505,11 +9468,11 @@ public static bool CompileDirtyLogics(bool NoMsg = false)
     //reset dirty status in resource list
     switch (Settings.ResListType
     case 1
-      MDIMain.tvwResources.Nodes("l" + CStr(tmpLogic.Number)).ForeColor = vbBlack
+      MDIMain.tvwResources.Nodes("l" + CStr(tmpLogic.Number)).ForeColor = Colors.Black
     case 2
       //only update if logics are listed
      if (MDIMain.cmbResType.SelectedIndex = 1) {
-        MDIMain.lstResources.ListItems("l" + CStr(tmpLogic.Number)).ForeColor = vbBlack
+        MDIMain.lstResources.ListItems("l" + CStr(tmpLogic.Number)).ForeColor = Colors.Black
       }
     }
     
@@ -9524,12 +9487,12 @@ public static bool CompileDirtyLogics(bool NoMsg = false)
   //if no error, finalize the compile operation
  if (!blnErr) {
     //restore cursor
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     CompStatusWin.Refresh
     //check for errors and warnings
    if (CLng(CompStatusWin.lblErrors.Text) + CLng(CompStatusWin.lblWarnings.Text) > 0) {
       //msgbox to user
-      MessageBox.Show("Errors and/or warnings were generated during logic compilation.", vbInformation + vbOKOnly, "Compile Logics"
+      MessageBox.Show("Errors and/or warnings were generated during logic compilation.", MessageBoxIcon.Information + MessageBoxButtons.OK, "Compile Logics"
       MDIMain.UseWaitCursor = true;
       //if errors
      if (CLng(CompStatusWin.lblErrors.Text) > 0) {
@@ -9545,7 +9508,7 @@ public static bool CompileDirtyLogics(bool NoMsg = false)
     } else {
       //everything is ok
      if (!NoMsg) {
-        MessageBox.Show("All logics compiled successfully.", vbInformation + vbOKOnly, "Compile Dirty Logics"
+        MessageBox.Show("All logics compiled successfully.", MessageBoxIcon.Information + MessageBoxButtons.OK, "Compile Dirty Logics"
       }
       MDIMain.UseWaitCursor = true;
       //return true
@@ -9567,7 +9530,7 @@ public static bool CompileDirtyLogics(bool NoMsg = false)
   
   //restore form state
   MDIMain.Enabled = true
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 Exit Function
 
 ErrHandler:
@@ -9626,7 +9589,7 @@ public static bool CompileLogic(frmLogicEdit LogicEditor, int LogicNumber)
       MainStatusBar.Panels("Status").Text = LogicEditor.Tag
     }
    if (Settings.NotifyCompSuccess) {
-      MsgBoxEx "Logic successfully compiled.", vbInformation + vbOKOnly, "Compile Logic", , , "Don//t show this message again", blnDontNotify
+      MsgBoxEx "Logic successfully compiled.", MessageBoxIcon.Information + MessageBoxButtons.OK, "Compile Logic", , , "Don//t show this message again", blnDontNotify
       //save the setting
       Settings.NotifyCompSuccess = !blnDontNotify
       //if hiding, update settings file
@@ -9655,9 +9618,9 @@ public static bool CompileLogic(frmLogicEdit LogicEditor, int LogicNumber)
 
    if (Settings.NotifyCompFail) {
       //restore cursor when showing error message
-      Screen.MousePointer = vbDefault
+      MDIMain.UseWaitCursor = false;
       
-      MsgBoxEx "Error detected in source. Unable to compile this logic." + vbCrLf + vbCrLf + "ERROR  in line " + strErrInfo(0) + ": " + strErrInfo(2), vbExclamation + vbOKOnly + vbMsgBoxHelpButton, "Logic Compiler", WinAGIHelp, "htm\winagi\compilererrors.htm#" + Left(strErrInfo(2), 4), "Do not show this message again", blnDontNotify
+      MsgBoxEx "Error detected in source. Unable to compile this logic." + Environment.NewLine + Environment.NewLine + "ERROR  in line " + strErrInfo(0) + ": " + strErrInfo(2), vbExclamation + MessageBoxButtons.OK + vbMsgBoxHelpButton, "Logic Compiler", WinAGIHelp, "htm\winagi\compilererrors.htm#" + Left(strErrInfo(2), 4), "Do not show this message again", blnDontNotify
       //save the setting
       Settings.NotifyCompFail = !blnDontNotify
       //if now hiding update settings file
@@ -9668,14 +9631,14 @@ public static bool CompileLogic(frmLogicEdit LogicEditor, int LogicNumber)
   
   case vbObjectError + 618 //not in a game
     //should NEVER get here, but...
-    MessageBox.Show("Only logics that are in a game can be compiled.", vbInformation + vbOKOnly, "Compile Error"
+    MessageBox.Show("Only logics that are in a game can be compiled.", MessageBoxIcon.Information + MessageBoxButtons.OK, "Compile Error"
   
   case vbObjectError + 546  //no data to compile
-    MessageBox.Show("Nothing to compile!", vbInformation + vbOKOnly, "Compile Error"
+    MessageBox.Show("Nothing to compile!", MessageBoxIcon.Information + MessageBoxButtons.OK, "Compile Error"
     
   default:
     //some other error
-    ErrMsgBox "Error occurred during compilation: ", "", "Compile Error"
+    ErrMsgBox("Error occurred during compilation: ", "", "Compile Error"
   }
   Err.Clear
   
@@ -9709,7 +9672,7 @@ public static string NewSourceName(AGILogic ThisLogic, bool InGame)
   On Error GoTo ErrHandler
   
   //set up commondialog
-  With MainSaveDlg
+  With MDIMain.SaveDlg
    if (InGame) {
       .DialogTitle = "Export Source"
     } else {
@@ -9741,7 +9704,7 @@ public static string NewSourceName(AGILogic ThisLogic, bool InGame)
   
   Do
     On Error Resume Next
-    MainSaveDlg.ShowSaveAs
+    MDIMain.SaveDlg.ShowSaveAs
     
     //if canceled,
    if (Err.Number = cdlCancel) {
@@ -9751,20 +9714,20 @@ public static string NewSourceName(AGILogic ThisLogic, bool InGame)
     On Error GoTo ErrHandler
     
     //get filename
-    strFileName = MainSaveDlg.FullName
+    strFileName = MDIMain.SaveDlg.FullName
     
     //if file exists,
    if (FileExists(strFileName)) {
       //verify replacement
-      rtn = MsgBox(MainSaveDlg.FileName + " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
+      rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", MessageBoxButtons.YesNoCancel + MessageBoxIcon.Question, "Overwrite file?")
       
-     if (rtn = vbYes) {
-        Exit Do
-      } else if ( rtn = vbCancel) {
+     if (rtn = DialogResult.Yes) {
+        break;
+      } else if ( rtn = DialogResult.Cancel) {
         Exit Function
       }
     } else {
-      Exit Do
+      break;
     }
   Loop While true
   
@@ -9794,7 +9757,7 @@ public static bool ExportLogic(byte LogicNumber)
   
   On Error GoTo ErrHandler
   
-  With MainSaveDlg
+  With MDIMain.SaveDlg
     //set cmndlg properties for logic source file
     .DialogTitle = "Export Logic File"
     .Filter = "Logic Files (*.agl)|*.agl|All files (*.*)|*.*"
@@ -9809,7 +9772,7 @@ public static bool ExportLogic(byte LogicNumber)
   
   On Error Resume Next
   Do
-    MainSaveDlg.ShowSaveAs
+    MDIMain.SaveDlg.ShowSaveAs
     //if canceled
    if (Err.Number = cdlCancel) {
       //exit without doing anything
@@ -9817,20 +9780,20 @@ public static bool ExportLogic(byte LogicNumber)
     }
     
     //get file name
-    strFileName = MainSaveDlg.FullName
+    strFileName = MDIMain.SaveDlg.FullName
     
     //if file exists,
    if (FileExists(strFileName)) {
       //verify replacement
-      rtn = MsgBox(MainSaveDlg.FileName + " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
+      rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", MessageBoxButtons.YesNoCancel + MessageBoxIcon.Question, "Overwrite file?")
       
-     if (rtn = vbYes) {
-        Exit Do
-      } else if ( rtn = vbCancel) {
+     if (rtn = DialogResult.Yes) {
+        break;
+      } else if ( rtn = DialogResult.Cancel) {
         Exit Function
       }
     } else {
-      Exit Do
+      break;
     }
   Loop While true
   
@@ -9844,7 +9807,7 @@ public static bool ExportLogic(byte LogicNumber)
   
   //if error,
  if (Err.Number != 0) {
-    ErrMsgBox "An error occurred while exporting this file: ", "", "Export File Error"
+    ErrMsgBox("An error occurred while exporting this file: ", "", "Export File Error"
     Exit Function
   }
   
@@ -9943,9 +9906,9 @@ public static void BuildResourceTree()
               tmpNode.Tag = i
               //load source to set compiled status
              if (Logics(i).Compiled) {
-                tmpNode.ForeColor = vbBlack
+                tmpNode.ForeColor = Colors.Black
               } else {
-                tmpNode.ForeColor = vbRed
+                tmpNode.ForeColor = Colors.Red
               }
             }
           Next i
@@ -10034,10 +9997,10 @@ Private int FindInClosedLogics(string FindText, FindDirection FindDir, bool Matc
     .Show vbModeless, MDIMain
     .Refresh
   End With
-  //Debug.Assert Screen.MousePointer != vbDefault
+  //Debug.Assert Screen.MousePointer != Cursors.Default
   
   //set comparison method for string search,
-  vbcComp = CLng(MatchCase) + 1 // CLng(true) + 1 = 0 = vbBinaryCompare; Clng(false) + 1 = 1 = vbTextCompare
+  vbcComp = CLng(MatchCase) + 1 // CLng(true) + 1 = 0 = vbBinaryCompare; Clng(false) + 1 = 1 = StringComparison.OrdinalIgnoreCase
   
   Do Until LogNum = -1
     //update the progress form
@@ -10058,11 +10021,11 @@ Private int FindInClosedLogics(string FindText, FindDirection FindDir, bool Matc
    if (FindDir = fdUp) {
      if (MatchWord) {
        if (FindWholeWord(1, Logics(LogNum).SourceText, FindText, MatchCase, true, SearchType) != 0) {
-          Exit Do
+          break;
         }
       } else {
        if (InStrRev(Logics(LogNum).SourceText, FindText, -1, vbcComp) != 0) {
-          Exit Do
+          break;
         }
       }
     } else {
@@ -10070,11 +10033,11 @@ Private int FindInClosedLogics(string FindText, FindDirection FindDir, bool Matc
      if (!GFindSynonym) {
        if (MatchWord) {
          if (FindWholeWord(1, Logics(LogNum).SourceText, FindText, MatchCase, false, SearchType) != 0) {
-            Exit Do
+            break;
           }
         } else {
          if (InStr(1, Logics(LogNum).SourceText, FindText, vbcComp) != 0) {
-            Exit Do
+            break;
           }
         }
       } else {
@@ -10085,7 +10048,7 @@ Private int FindInClosedLogics(string FindText, FindDirection FindDir, bool Matc
         //then we stop
         For i = 0 To WordEditor.WordsEdit.GroupN(GFindGrpNum).WordCount - 1
          if (InStr(1, Logics(LogNum).SourceText, QUOTECHAR + WordEditor.WordsEdit.GroupN(GFindGrpNum).Word(i) + QUOTECHAR, vbcComp) != 0) {
-            Exit Do
+            break;
           }
         Next i
       }
@@ -10120,7 +10083,7 @@ Private int FindInClosedLogics(string FindText, FindDirection FindDir, bool Matc
   //we need to force it back to hourglass
   //Debug.Assert Screen.MousePointer = vbHourglass
   OpenLogic LogNum, true
-  //Debug.Assert Screen.MousePointer = vbDefault
+  //Debug.Assert MDIMain.UseWaitCursor = false;
   Screen.MousePointer = vbHourglass
   
   //now locate this window
@@ -10135,7 +10098,7 @@ Private int FindInClosedLogics(string FindText, FindDirection FindDir, bool Matc
   //if not found (i = 0)
  if (i = 0) {
     //must have been an error
-    MessageBox.Show(QUOTECHAR + FindText + QUOTECHAR + " was found in logic " + CStr(LogNum) + " but an error occurred while opening the file. Try opening the logic manually and then try the search again.", vbInformation, "Find In Logic"
+    MessageBox.Show(QUOTECHAR + FindText + QUOTECHAR + " was found in logic " + CStr(LogNum) + " but an error occurred while opening the file. Try opening the logic manually and then try the search again.", MessageBoxIcon.Information, "Find In Logic"
     //unload logic
     Logics(LogNum).Unload
     //return -1
@@ -10177,51 +10140,50 @@ public static void NewAGIGame(bool UseTemplate)
  if (UseTemplate) {
     //have user choose a template
     Load frmTemplate
-    With frmTemplate
-      .SetForm
+      frmTemplate.SetForm
       //if no templates available,
-     if (.lstTemplates.ListCount = 0) {
-        MsgBoxEx "There are no templates available. Unable to create new game.", vbCritical + vbOKOnly + vbMsgBoxHelpButton, "No Templates Available", WinAGIHelp, "htm\winagi\Templates.htm"
+     if (frmTemplate.lstTemplates.ListCount = 0) {
+        MsgBoxEx "There are no templates available. Unable to create new game.", MessageBoxIcon.Critical + MessageBoxButtons.OK + vbMsgBoxHelpButton, "No Templates Available", WinAGIHelp, "htm\winagi\Templates.htm"
         Unload frmTemplate
         return;
       }
       
-      .Show vbModal, MDIMain
-     if (.Canceled) {
+      frmTemplate.Show(MDIMain);
+      frmTemplate.Show.Modal = true;
+     if (frmTemplate.Canceled) {
         Unload frmTemplate
         return;
       }
       strTemplateDir = App.Path + "\Templates\" + .lstTemplates.Text
-      strDescription = .txtDescription.Text
-      strVer = .lblVersion.Text
+      strDescription = frmTemplate.txtDescription.Text
+      strVer = frmTemplate.lblVersion.Text
       Unload frmTemplate
-    End With
   }
   
   Load frmGameProperties
-  With frmGameProperties
     //show new game form
-    .WindowFunction = gsNew
-    .SetForm
+    frmGameProperties.WindowFunction = gsNew
+    frmGameProperties.SetForm
     
     //if using template
    if (UseTemplate) {
       //version is preset based on template
-      For i = 0 To .cmbVersion.ListCount - 1
-       if (.cmbVersion.List(i) = strVer) {
-          .cmbVersion.SelectedIndex = i
+      For i = 0 To frmGameProperties.cmbVersion.ListCount - 1
+       if (frmGameProperties.cmbVersion.List(i) = strVer) {
+          frmGameProperties.cmbVersion.SelectedIndex = i
           Exit For
         }
       Next i
-      .cmbVersion.Enabled = false
+      frmGameProperties.cmbVersion.Enabled = false
       //default description
-      .txtGameDescription.Text = strDescription
+      frmGameProperties.txtGameDescription.Text = strDescription
     }
     
-    .Show vbModal, MDIMain
+    frmGameProperties.Show(MDIMain);
+    frmGameProperties.Show.Modal);
   
     //if canceled
-   if (.Canceled) {
+   if (frmGameProperties.Canceled) {
       //unload it
       Unload frmGameProperties
       //exit
@@ -10259,7 +10221,7 @@ public static void NewAGIGame(bool UseTemplate)
     On Error Resume Next
     
     //create new game  (newID, version, directory resouredirname and template info)
-    NewGame .txtGameID.Text, .cmbVersion.Text, .DisplayDir, .txtResDir.Text, strTemplateDir
+    NewGame frmGameProperties.txtGameID.Text, frmGameProperties.cmbVersion.Text, frmGameProperties.DisplayDir, frmGameProperties.txtResDir.Text, strTemplateDir
     
     //check for errors or warnings
     lngErr = Err.Number
@@ -10268,37 +10230,37 @@ public static void NewAGIGame(bool UseTemplate)
     On Error GoTo ErrHandler
    if (lngErr = 0 || lngErr = vbObjectError + 637) {
       //add rest of properties
-      GameDescription = .txtGameDescription.Text
-      GameAuthor = .txtGameAuthor.Text
-      GameVersion = .txtGameVersion.Text
-      GameAbout = .txtGameAbout.Text
+      GameDescription = frmGameProperties.txtGameDescription.Text
+      GameAuthor = frmGameProperties.txtGameAuthor.Text
+      GameVersion = frmGameProperties.txtGameVersion.Text
+      GameAbout = frmGameProperties.txtGameAbout.Text
       //set platform type if a file was provided
-     if (Len(.NewPlatformFile) > 0) {
-       if (.optDosBox.Value) {
+     if (Len(frmGameProperties.NewPlatformFile) > 0) {
+       if (frmGameProperties.optDosBox.Value) {
           PlatformType = 1
-          DosExec = .txtExec.Text
-          PlatformOpts = .txtOptions.Text
-        } else if ( .optScummVM.Value) {
+          DosExec = frmGameProperties.txtExec.Text
+          PlatformOpts = frmGameProperties.txtOptions.Text
+        } else if ( frmGameProperties.optScummVM.Value) {
           PlatformType = 2
-          PlatformOpts = .txtOptions.Text
-        } else if ( .optNAGI.Value) {
+          PlatformOpts = frmGameProperties.txtOptions.Text
+        } else if ( frmGameProperties.optNAGI.Value) {
           PlatformType = 3
-        } else if ( .optOther.Value) {
+        } else if ( frmGameProperties.optOther.Value) {
           PlatformType = 4
-          PlatformOpts = .txtOptions.Text
+          PlatformOpts = frmGameProperties.txtOptions.Text
         }
       } else {
         PlatformType = 0
       }
      if (PlatformType > 0) {
-        Platform = .NewPlatformFile
+        Platform = frmGameProperties.NewPlatformFile
       }
       
       //resdef
-      LogicSourceSettings.UseReservedNames = (.chkUseReserved.Value = vbChecked)
+      LogicSourceSettings.UseReservedNames = (frmGameProperties.chkUseReserved.Value = vbChecked)
       
       //layout editor
-      UseLE = (.chkUseLE.Value = vbChecked)
+      UseLE = (frmGameProperties.chkUseLE.Value = vbChecked)
       
       //force a save of the property file
       SaveProperties
@@ -10352,18 +10314,17 @@ public static void NewAGIGame(bool UseTemplate)
       //if warnings
      if (lngErr = vbObjectError + 637) {
         //warn about errors
-        MessageBox.Show("Some minor errors occurred during game creation. See errlog.txt in the game directory for details.", vbInformation, "Errors During Load"
+        MessageBox.Show("Some minor errors occurred during game creation. See errlog.txt in the game directory for details.", MessageBoxIcon.Information, "Errors During Load"
       }
     } else {
-      MessageBox.Show("Unable to create new game due to an error: " + vbNewLine + vbNewLine + strErr, vbInformation + vbOKOnly, "New AGI Game Error"
+      MessageBox.Show("Unable to create new game due to an error: " + Environment.NewLine + Environment.NewLine + strErr, MessageBoxIcon.Information + MessageBoxButtons.OK, "New AGI Game Error"
     }
     
     //unload game properties form
     Unload frmGameProperties
     
     //reset cursor
-    Screen.MousePointer = vbDefault
-  End With
+    MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -10423,7 +10384,7 @@ Private int NextClosedLogic(int OldLogNum)
       Next i
       //if good, then exit
      if (Closed) {
-        Exit Do
+        break;
       }
     } else {
       //not a valid logic;
@@ -10862,14 +10823,14 @@ public static void NewSound(string ImportSoundFile = "")
       tmpSound.Import ImportSoundFile
      if (Err.Number != 0) {
         //something wrong
-        ErrMsgBox "Error occurred while importing sound:", "", "Import Sound Error"
-        Exit Do
+        ErrMsgBox("Error occurred while importing sound:", "", "Import Sound Error"
+        break;
       }
       //now check to see if it//s a valid sound resource (by trying to reload it)
       tmpSound.Load
      if (Err.Number != 0) {
-        ErrMsgBox "Error reading Sound data:", "This is not a valid sound resource.", "Invalid Sound Resource"
-        Exit Do
+        ErrMsgBox("Error reading Sound data:", "This is not a valid sound resource.", "Invalid Sound Resource"
+        break;
       }
       On Error GoTo ErrHandler
     }
@@ -10878,53 +10839,52 @@ public static void NewSound(string ImportSoundFile = "")
    if (GameLoaded) {
       //get sound number
       //show add resource form
-      With frmGetResourceNum
-        .ResType = rtSound
+        frmGetResourceNum.ResType = rtSound
        if (LenB(ImportSoundFile) != 0) {
-          .WindowFunction = grImport
+          frmGetResourceNum.WindowFunction = grImport
         } else {
-          .WindowFunction = grAddNew
+          frmGetResourceNum.WindowFunction = grAddNew
         }
         //setup before loading so ghosts don't show up
-        .FormSetup
+        frmGetResourceNum.FormSetup
         //suggest ID based on filename
        if (Len(ImportSoundFile) > 0) {
-          .txtID.Text = Replace(FileNameNoExt(ImportSoundFile), " ", "")
+          frmGetResourceNum.txtID.Text = Replace(FileNameNoExt(ImportSoundFile), " ", "")
         }
         
         //restore cursor while getting resnum
-        Screen.MousePointer = vbDefault
-        .Show vbModal, MDIMain
+        MDIMain.UseWaitCursor = false;
+        frmGetResourceNum.Show(MDIMain);
+        frmGetResourceNum.Show.Modal);
         
         //show wait cursor again while finishing creating the new sound
         MDIMain.UseWaitCursor = true;
       
         //if canceled, release the temporary sound, restore cursor and exit method
-       if (.Canceled) {
+       if (frmGetResourceNum.Canceled) {
           tmpSound = Nothing
           //restore mousepointer, unload form and exit
           Unload frmGetResourceNum
-          Screen.MousePointer = vbDefault
+          MDIMain.UseWaitCursor = false;
           return;
         
         //if user wants sound added to current game
-        } else if ( !.DontImport) {
+        } else if ( !frmGetResourceNum.DontImport) {
           //add new id and description
-          tmpSound.ID = .txtID.Text
-          tmpSound.Description = .txtDescription.Text
+          tmpSound.ID = frmGetResourceNum.txtID.Text
+          tmpSound.Description = frmGetResourceNum.txtDescription.Text
         
           //add sound
           AddNewSound .NewResNum, tmpSound
           //reset tmpSound to point to the new game sound
           tmpSound = Nothing
-          tmpSound = Sounds(.NewResNum)
+          tmpSound = Sounds(frmGetResourceNum.NewResNum)
           
           //set flag
           blnInGame = true
         }
         
-        blnOpen = (.chkOpenRes.Value = vbChecked)
-      End With
+        blnOpen = (frmGetResourceNum.chkOpenRes.Value = vbChecked)
       
       //make sure resource form is unloaded
       Unload frmGetResourceNum
@@ -10961,7 +10921,7 @@ public static void NewSound(string ImportSoundFile = "")
   Loop Until true
   
   //restore mousepointer and exit
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -11004,7 +10964,7 @@ public static void NewTextFile()
   LogicEditors.Add frmNew
   
   //restore main form mousepointer and exit
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -11073,8 +11033,8 @@ public static void NewLogic(string ImportLogicFile = "")
       //if a compile error occurred,
      if (Err.Number = vbObjectError + 567) {
         //can//t open this resource
-        ErrMsgBox "An error occurred while trying to decompile this logic resource:", "Unable to open this logic.", "Invalid Logic Resource"
-        Exit Do
+        ErrMsgBox("An error occurred while trying to decompile this logic resource:", "Unable to open this logic.", "Invalid Logic Resource"
+        break;
         
       } else if ( Err.Number != 0) {
         //maybe we assumed source status incorrectly- try again
@@ -11084,8 +11044,8 @@ public static void NewLogic(string ImportLogicFile = "")
         //if STILL error
        if (Err.Number != 0) {
           //something wrong
-          ErrMsgBox "Unable to load this logic resource. It can//t be decompiled, and does not appear to be a text file.", "", "Invalid Logic Resource"
-          Exit Do
+          ErrMsgBox("Unable to load this logic resource. It can//t be decompiled, and does not appear to be a text file.", "", "Invalid Logic Resource"
+          break;
         }
       }
     }
@@ -11094,10 +11054,9 @@ public static void NewLogic(string ImportLogicFile = "")
    if (GameLoaded) {
       //get logic number
       //show add resource form
-      With frmGetResourceNum
-        .ResType = rtLogic
+        frmGetResourceNum.ResType = rtLogic
        if (blnImporting) {
-          .WindowFunction = grImport
+          frmGetResourceNum.WindowFunction = grImport
         } else {
           .WindowFunction = grAddNew
         }
@@ -11109,57 +11068,58 @@ public static void NewLogic(string ImportLogicFile = "")
         }
         
         //restore cursor while getting resnum
-        Screen.MousePointer = vbDefault
-        .Show vbModal, MDIMain
+        MDIMain.UseWaitCursor = false;
+        frmGetResourceNum.Show(MDIMain);
+        frmGetResourceNum.Show.Modal);
       
         //show wait cursor while resource is added
         MDIMain.UseWaitCursor = true;
         
         //if canceled, release the temporary logic, restore mousepointer and exit
-       if (.Canceled) {
+       if (frmGetResourceNum.Canceled) {
           tmpLogic = Nothing
           //restore mousepointer and exit
           Unload frmGetResourceNum
-          Screen.MousePointer = vbDefault
+          MDIMain.UseWaitCursor = false;
           return;
         
         //if user wants logic added to current game
-        } else if ( !.DontImport) {
+        } else if ( !frmGetResourceNum.DontImport) {
           //add ID and description to tmpLogic
-          tmpLogic.ID = .txtID.Text
-          tmpLogic.Description = .txtDescription.Text
+          tmpLogic.ID = frmGetResourceNum.txtID.Text
+          tmpLogic.Description = frmGetResourceNum.txtDescription.Text
           
           //add Logic
-          AddNewLogic .NewResNum, tmpLogic, (.chkRoom.Value = vbChecked), blnImporting
+          AddNewLogic frmGetResourceNum.NewResNum, tmpLogic, (frmGetResourceNum.chkRoom.Value = vbChecked), blnImporting
           //reset tmplogic to point to the new game logic
           tmpLogic = Nothing
-          tmpLogic = Logics(.NewResNum)
+          tmpLogic = Logics(frmGetResourceNum.NewResNum)
           
           //if using layout editor AND a room,
          if (UseLE && (.chkRoom.Value = vbChecked)) {
             //update editor and data file to show this room is now in the game
-            UpdateExitInfo euShowRoom, .NewResNum, Logics(.NewResNum)
+            UpdateExitInfo euShowRoom, frmGetResourceNum.NewResNum, Logics(frmGetResourceNum.NewResNum)
           }
   
           //if including picture
-         if (.chkIncludePic.Value = vbChecked) {
+         if (frmGetResourceNum.chkIncludePic.Value = vbChecked) {
             //if replacing an existing pic
-           if (Pictures.Exists(.NewResNum)) {
-              RemovePicture .NewResNum
+           if (Pictures.Exists(frmGetResourceNum.NewResNum)) {
+              RemovePicture frmGetResourceNum.NewResNum
             }
             AddNewPicture .NewResNum, Nothing
             //help user out if they chose a naming scheme
-           if (StrComp(Left(.txtID.Text, 3), "rm.", vbTextCompare) = 0 && Len(.txtID.Text) >= 4) {
+           if (StrComp(Left(frmGetResourceNum.txtID.Text, 3), "rm.", StringComparison.OrdinalIgnoreCase) = 0 && Len(frmGetResourceNum.txtID.Text) >= 4) {
               //change ID (if able)
-             if (ValidateID("pic." + Right(.txtID.Text, Len(.txtID.Text) - 3), Chr(255)) = 0) {
+             if (ValidateID("pic." + Right(frmGetResourceNum.txtID.Text, Len(frmGetResourceNumfrmGetResourceNum.txtID.Text) - 3), Chr(255)) = 0) {
                 //save old resfile name
                 strFile = ResDir + Pictures(.NewResNum).ID + ".agp"
                 //change this picture//s ID
-                Pictures(.NewResNum).ID = "pic." + Right(.txtID.Text, Len(.txtID.Text) - 3)
+                Pictures(.NewResNum).ID = "pic." + Right(frmGetResourceNum.txtID.Text, Len(frmGetResourceNum.txtID.Text) - 3)
                 //update the resfile, tree and properties
-                UpdateResFile rtPicture, .NewResNum, strFile
+                UpdateResFile rtPicture, frmGetResourceNum.NewResNum, strFile
                 //update lookup table
-                IDefLookup(768 + .NewResNum).Name = "pic." + Right(.txtID.Text, Len(.txtID.Text) - 3)
+                IDefLookup(768 + frmGetResourceNum.NewResNum).Name = "pic." + Right(frmGetResourceNum.txtID.Text, Len(frmGetResourceNum.txtID.Text) - 3)
               }
             }
             
@@ -11171,17 +11131,16 @@ public static void NewLogic(string ImportLogicFile = "")
           blnInGame = true
         } else {
           // not adding to game; still allowed to use template
-         if (.chkRoom.Value = vbChecked) {
+         if (frmGetResourceNum.chkRoom.Value = vbChecked) {
             //add template text
-            tmpLogic.SourceText = LogTemplateText(.txtID.Text, .txtDescription.Text)
+            tmpLogic.SourceText = LogTemplateText(frmGetResourceNum.txtID.Text, frmGetResourceNum.txtDescription.Text)
           } else {
             //add default text
-            tmpLogic.SourceText = "[ " + vbCr + "[ " + .txtID.Text + vbCr + "[ " + vbCr + vbCr + "return();" + vbCr + vbCr + "[*****" + vbCr + "[ messages         [  declared messages go here" + vbCr + "[*****"
+            tmpLogic.SourceText = "[ " + Keys.Enter + "[ " + frmGetResourceNum.txtID.Text + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****"
           }
         }
         
-        blnOpen = (.chkOpenRes.Value = vbChecked)
-      End With
+        blnOpen = (frmGetResourceNum.chkOpenRes.Value = vbChecked)
       
       //make sure resource form is unloaded
       Unload frmGetResourceNum
@@ -11216,7 +11175,7 @@ public static void NewLogic(string ImportLogicFile = "")
   Loop Until true
   
   //restore mousepointer and exit
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -11249,14 +11208,14 @@ public static void NewPicture(string ImportPictureFile = "")
       tmpPic.Import ImportPictureFile
      if (Err.Number != 0) {
         //something wrong
-        ErrMsgBox "Error while opening picture:", "Unable to load this picture resource.", "Invalid Picture Resource"
-        Exit Do
+        ErrMsgBox("Error while opening picture:", "Unable to load this picture resource.", "Invalid Picture Resource"
+        break;
       }
       //now check to see if it//s a valid picture resource (by trying to reload it)
       tmpPic.Load
      if (Err.Number != 0) {
-        ErrMsgBox "Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource"
-        Exit Do
+        ErrMsgBox("Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource"
+        break;
       }
       On Error GoTo ErrHandler
     }
@@ -11265,52 +11224,51 @@ public static void NewPicture(string ImportPictureFile = "")
    if (GameLoaded) {
       //get picture number
       //show add resource form
-      With frmGetResourceNum
-        .ResType = rtPicture
+        frmGetResourceNum.ResType = rtPicture
        if (LenB(ImportPictureFile) = 0) {
-          .WindowFunction = grAddNew
+          frmGetResourceNum.WindowFunction = grAddNew
         } else {
-          .WindowFunction = grImport
+          frmGetResourceNum.WindowFunction = grImport
         }
         //setup before loading so ghosts don't show up
-        .FormSetup
+        frmGetResourceNum.FormSetup
         //suggest ID based on filename
        if (Len(ImportPictureFile) > 0) {
-          .txtID.Text = Replace(FileNameNoExt(ImportPictureFile), " ", "")
+          frmGetResourceNum.txtID.Text = Replace(FileNameNoExt(ImportPictureFile), " ", "")
         }
         
         //restore cursor while getting resnum
-        Screen.MousePointer = vbDefault
-        .Show vbModal, MDIMain
+        MDIMain.UseWaitCursor = false;
+        frmGetResourceNum.Show(MDIMain);
+        frmGetResourceNum.Show.Modal = true;
         
         //show wait cursor while resource is added
         MDIMain.UseWaitCursor = true;
         
         //if canceled, release the temporary picture, restore cursor and exit method
-       if (.Canceled) {
+       if (frmGetResourceNum.Canceled) {
           tmpPic = Nothing
           //restore mousepointer and exit
           Unload frmGetResourceNum
-          Screen.MousePointer = vbDefault
+          MDIMain.UseWaitCursor = false;
           return;
         
         //if user wants picture added to current game
-        } else if ( !.DontImport) {
+        } else if ( !frmGetResourceNum.DontImport) {
           //add new id and description
-          tmpPic.ID = .txtID.Text
-          tmpPic.Description = .txtDescription.Text
+          tmpPic.ID = frmGetResourceNum.txtID.Text
+          tmpPic.Description = frmGetResourceNum.txtDescription.Text
         
           //add picture
-          AddNewPicture .NewResNum, tmpPic
+          AddNewPicture frmGetResourceNum.NewResNum, tmpPic
           //reset tmpPic to point to the new game picture
           tmpPic = Nothing
-          tmpPic = Pictures(.NewResNum)
+          tmpPic = Pictures(frmGetResourceNum.NewResNum)
           //set ingame flag
           blnInGame = true
         }
       
-        blnOpen = (.chkOpenRes.Value = vbChecked)
-      End With
+        blnOpen = (frmGetResourceNum.chkOpenRes.Value = vbChecked)
       
       //make sure resource form is unloaded
       Unload frmGetResourceNum
@@ -11346,7 +11304,7 @@ public static void NewPicture(string ImportPictureFile = "")
   Loop Until true
   
   //restore main form mousepointer and exit
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -11382,14 +11340,14 @@ public static void NewView(string ImportViewFile = "")
       tmpView.Import ImportViewFile
      if (Err.Number != 0) {
         //something wrong
-        ErrMsgBox "An error occurred during import:", "", "Import View Error"
-        Exit Do
+        ErrMsgBox("An error occurred during import:", "", "Import View Error"
+        break;
       }
       //now check to see if it//s a valid picture resource (by trying to reload it)
       tmpView.Load
      if (Err.Number != 0) {
-        ErrMsgBox "Error reading View data:", "This is not a valid view resource.", "Invalid View Resource"
-        Exit Do
+        ErrMsgBox("Error reading View data:", "This is not a valid view resource.", "Invalid View Resource"
+        break;
       }
       On Error GoTo ErrHandler
     }
@@ -11398,52 +11356,51 @@ public static void NewView(string ImportViewFile = "")
    if (GameLoaded) {
       //get view number
       //show add resource form
-      With frmGetResourceNum
-        .ResType = rtView
+        frmGetResourceNum.ResType = rtView
        if (LenB(ImportViewFile) != 0) {
-          .WindowFunction = grImport
+          frmGetResourceNum.WindowFunction = grImport
         } else {
-          .WindowFunction = grAddNew
+          frmGetResourceNum.WindowFunction = grAddNew
         }
         //setup before loading so ghosts don't show up
-        .FormSetup
+        frmGetResourceNum.FormSetup
         //suggest ID based on filename
        if (Len(ImportViewFile) > 0) {
-          .txtID.Text = Replace(FileNameNoExt(ImportViewFile), " ", "")
+          frmGetResourceNum.txtID.Text = Replace(FileNameNoExt(ImportViewFile), " ", "")
         }
       
         //restore cursor while getting resnum
-        Screen.MousePointer = vbDefault
-        .Show vbModal, MDIMain
+        MDIMain.UseWaitCursor = false;
+        frmGetResourceNum.Show(MDIMain);
+        frmGetResourceNum.Show.Modal = true;
         
         //show wait cursor while resource is added
         MDIMain.UseWaitCursor = true;
         
         //if canceled, release the temporary view, restore cursor and exit method
-       if (.Canceled) {
+       if (frmGetResourceNum.Canceled) {
           tmpView = Nothing
           //restore mousepointer and exit
           Unload frmGetResourceNum
-          Screen.MousePointer = vbDefault
+          MDIMain.UseWaitCursor = false;
           return;
         
         //if user wants view added to current game
-        } else if ( !.DontImport) {
+        } else if ( !frmGetResourceNum.DontImport) {
           //add new id and description
-          tmpView.ID = .txtID.Text
-          tmpView.Description = .txtDescription.Text
+          tmpView.ID = frmGetResourceNum.txtID.Text
+          tmpView.Description = frmGetResourceNum.txtDescription.Text
           
           //add view
-          AddNewView .NewResNum, tmpView
+          AddNewView frmGetResourceNum.NewResNum, tmpView
           //reset tmpView to point to the new game view
           tmpView = Nothing
-          tmpView = Views(.NewResNum)
+          tmpView = Views(frmGetResourceNum.NewResNum)
           //set ingame flag
           blnInGame = true
         }
         
-        blnOpen = (.chkOpenRes.Value = vbChecked)
-      End With
+        blnOpen = (frmGetResourceNum.chkOpenRes.Value = vbChecked)
       
       //make sure resource form is unloaded
       Unload frmGetResourceNum
@@ -11480,7 +11437,7 @@ public static void NewView(string ImportViewFile = "")
   Loop Until true
   
   //restore main form mousepointer and exit
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -11622,7 +11579,7 @@ public static void OpenWAG(string ThisGameFile = "")
     //if warnings
    if (blnWarnings) {
       //warn about errors
-      MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", vbInformation + vbOKOnly, "Errors During Load"
+      MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", MessageBoxIcon.Information + MessageBoxButtons.OK, "Errors During Load"
     }
     
     //build the lookup tables for logic tooltips
@@ -11643,7 +11600,7 @@ public static void OpenWAG(string ThisGameFile = "")
       strError = "A game is already loaded. Close it before opening another game."
     
     case 502
-      strError = "A file access error occurred while trying to open this game: " + vbNewLine + vbNewLine + strError
+      strError = "A file access error occurred while trying to open this game: " + Environment.NewLine + Environment.NewLine + strError
     
     case 524
       strError = "A critical game file (" + JustFileName(strError) + " is missing."
@@ -11687,11 +11644,11 @@ public static void OpenWAG(string ThisGameFile = "")
     Unload frmProgress
   
     //show error message
-    MessageBox.Show(strError, vbCritical + vbOKOnly, "Unable to Open Game"
+    MessageBox.Show(strError, MessageBoxIcon.Critical + MessageBoxButtons.OK, "Unable to Open Game"
   }
     
   //reset cursor
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
   
   //clear status bar
   MainStatusBar.Panels(1).Text = ""
@@ -11764,14 +11721,14 @@ public static void OpenDIR()
  if (LenB(Dir(ThisGameDir + "*.wag")) > 0) {
     //confirm the import
     strMsg = "This directory already has a WinAGI game file. Do you still want to import the game in this directory?"
-    strMsg = strMsg + vbCrLf + vbCrLf + "The existing WinAGI game file will be overwritten if it has the same name as the GameID found in this directory//s AGI VOL and DIR files."
+    strMsg = strMsg + Environment.NewLine + Environment.NewLine + "The existing WinAGI game file will be overwritten if it has the same name as the GameID found in this directory//s AGI VOL and DIR files."
     
-   if (MsgBox(strMsg, vbOKCancel + vbQuestion, "WinAGI Game File Already Exists") = vbCancel) {
+   if (MessageBox.Show(strMsg, vbOKCancel + MessageBoxIcon.Question, "WinAGI Game File Already Exists") = DialogResult.Cancel) {
       //get rid of progress form
       Unload frmProgress
   
       //reset cursor
-      Screen.MousePointer = vbDefault
+      MDIMain.UseWaitCursor = false;
       
       //clear status bar
       MainStatusBar.Panels(1).Text = ""
@@ -11856,7 +11813,7 @@ public static void OpenDIR()
     //did the resource directory change? (is this even possible?)
     //YES it is; if only one dir exists, and it has a different name,
     //it//s assumed to be the resource directory
-    strMsg = "Game file //" + GameID + ".wag//  has been created." + vbNewLine + vbNewLine
+    strMsg = "Game file //" + GameID + ".wag//  has been created." + Environment.NewLine + Environment.NewLine
    if (ResDirName != DefResDir) {
       strMsg = strMsg + "The existing subdirectory //" + ResDirName + "// will be used "
     } else {
@@ -11867,23 +11824,23 @@ public static void OpenDIR()
     "source directory for this game on the Game Properties dialog."
     
     //warn user that resource dir set to default
-    MessageBox.Show(strMsg, vbInformation, "Open Game"
+    MessageBox.Show(strMsg, MessageBoxIcon.Information, "Open Game"
     
     //does the game have an Amiga OBJECT file?
     //very rare, but we check for it anyway
    if (InventoryObjects.AmigaOBJ) {
-      MessageBox.Show("The OBJECT file for this game is formatted" + vbCrLf + _
-             "for the Amiga." + vbCrLf + vbCrLf + _
-             "If you intend to run this game on a DOS " + vbCrLf + _
-             "platform, you will need to convert the file" + vbCrLf + _
-             "to DOS format (use the Convert menu option" + vbCrLf + _
-             "on the OBJECT Editor//s Resource menu)", vbInformation + vbOKOnly, "Amiga OBJECT File detected"
+      MessageBox.Show("The OBJECT file for this game is formatted" + Environment.NewLine + _
+             "for the Amiga." + Environment.NewLine + Environment.NewLine + _
+             "If you intend to run this game on a DOS " + Environment.NewLine + _
+             "platform, you will need to convert the file" + Environment.NewLine + _
+             "to DOS format (use the Convert menu option" + Environment.NewLine + _
+             "on the OBJECT Editor//s Resource menu)", MessageBoxIcon.Information + MessageBoxButtons.OK, "Amiga OBJECT File detected"
     }
     
     //if warnings
    if (blnWarnings) {
       //warn about errors
-      MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", vbInformation + vbOKOnly, "Errors During Load"
+      MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", MessageBoxIcon.Information + MessageBoxButtons.OK, "Errors During Load"
     }
     
     //build the lookup tables for logic tooltips
@@ -11904,7 +11861,7 @@ public static void OpenDIR()
       strError = "A game is already loaded. Close it before opening another game."
     
     case 502
-      strError = "A file access error occurred while trying to open this game: " + vbNewLine + vbNewLine + strError
+      strError = "A file access error occurred while trying to open this game: " + Environment.NewLine + Environment.NewLine + strError
     
     case 524
       strError = "A critical game file (" + JustFileName(strError) + " is missing."
@@ -11933,12 +11890,12 @@ public static void OpenDIR()
     Unload frmProgress
   
     //show error message
-    MessageBox.Show(strError, vbCritical + vbOKOnly, "Unable to Open Game"
+    MessageBox.Show(strError, MessageBoxIcon.Critical + MessageBoxButtons.OK, "Unable to Open Game"
 
   }
     
   //reset cursor
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
   
   //clear status bar
   MainStatusBar.Panels(1).Text = ""
@@ -11985,7 +11942,7 @@ public static void OpenSound(byte ResNum, bool Quiet = false)
     SoundEditors(i).Focus()
     
     //set mousepointer to hourglass
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     return;
   }
 
@@ -11999,13 +11956,13 @@ public static void OpenSound(byte ResNum, bool Quiet = false)
     Sounds(ResNum).Load
    if (Err.Number != 0) {
      if (!Quiet) {
-        ErrMsgBox "An error occurred while loading Sound resource:", "", "Load Sound Error"
+        ErrMsgBox("An error occurred while loading Sound resource:", "", "Load Sound Error"
       }
       Err.Clear
       Unload frmNew
       
       //set mousepointer to default
-      Screen.MousePointer = vbDefault
+      MDIMain.UseWaitCursor = false;
       return;
     }
   }
@@ -12026,7 +11983,7 @@ public static void OpenSound(byte ResNum, bool Quiet = false)
     }
   } else {
    if (!Quiet) {
-      MessageBox.Show("WinAGI does not currently support editing of Aplle IIgs sounds.", vbInformation + vbOKOnly, "Can//t Edit Apple IIgs Sounds"
+      MessageBox.Show("WinAGI does not currently support editing of Aplle IIgs sounds.", MessageBoxIcon.Information + MessageBoxButtons.OK, "Can//t Edit Apple IIgs Sounds"
     }
   }
   
@@ -12036,7 +11993,7 @@ public static void OpenSound(byte ResNum, bool Quiet = false)
   }
   
   //reset main form mousepointer to default
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -12081,7 +12038,7 @@ public static void OpenTextFile(string strOpenFile, bool Quiet = false)
     LogicEditors(i).Focus()
     
     //restore mousepointer and exit
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     return;
   }
 
@@ -12093,10 +12050,10 @@ public static void OpenTextFile(string strOpenFile, bool Quiet = false)
     //file does not exist,
     Unload frmNew
    if (!Quiet) {
-      MessageBox.Show("File not found:" + vbNewLine + strOpenFile, , "File Open Error"
+      MessageBox.Show("File not found:" + Environment.NewLine + strOpenFile, , "File Open Error"
     }
     //restore mousepointer and exit
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     return;
   }
   
@@ -12135,17 +12092,17 @@ public static void OpenTextFile(string strOpenFile, bool Quiet = false)
   frmNew.Show
   
   //restore mousepointer and exit
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
   //show error msg
  if (!Quiet) {
-    ErrMsgBox "Error while trying to open text file: ", "", "File Open Error"
+    ErrMsgBox("Error while trying to open text file: ", "", "File Open Error"
   }
   Err.Clear
   //restore main form mousepointer and exit
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 }
 
 public static void OpenLogic(byte ResNum, bool Quiet = false)
@@ -12184,7 +12141,7 @@ public static void OpenLogic(byte ResNum, bool Quiet = false)
     LogicEditors(i).Focus()
   
     //restore mousepointer and exit
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     return;
   }
 
@@ -12217,7 +12174,7 @@ public static void OpenLogic(byte ResNum, bool Quiet = false)
   }
   
   //restore mousepointer and exit
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -12339,10 +12296,10 @@ public static string TokenFromCursor(RichEdAGI rtfLogic, bool NoComment = true, 
   Do Until lngPos = 1
     //always stop at a space
    if (Asc(Mid$(strToken, lngPos - 1)) = 32) {
-      Exit Do
+      break;
     } else {
      if (IsTokenChar(Asc(Mid$(strToken, lngPos - 1)), NoComment) != blnToken) {
-        Exit Do
+        break;
       }
     }
     
@@ -12376,10 +12333,10 @@ public static string TokenFromCursor(RichEdAGI rtfLogic, bool NoComment = true, 
   Do
     //always stop at a space
    if (Asc(Mid$(TokenFromCursor, lngPos + 1)) = 32) {
-      Exit Do
+      break;
     } else {
      if (IsTokenChar(Asc(Mid$(TokenFromCursor, lngPos + 1)), NoComment) != blnToken) {
-        Exit Do
+        break;
       }
     }
     
@@ -12443,7 +12400,7 @@ public static void OpenPicture(byte ResNum, bool Quiet = false)
     }
     PictureEditors(i).Focus()
     //restore mousepointer and exit
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     return;
   }
   
@@ -12456,12 +12413,12 @@ public static void OpenPicture(byte ResNum, bool Quiet = false)
     Pictures(ResNum).Load
    if (Err.Number != 0) {
      if (!Quiet) {
-        ErrMsgBox "An error occurred while loading logic resource:", "", "Logic Load Error"
+        ErrMsgBox("An error occurred while loading logic resource:", "", "Logic Load Error"
       }
       Err.Clear
       Unload frmNew
       //restore mousepointer and exit
-      Screen.MousePointer = vbDefault
+      MDIMain.UseWaitCursor = false;
       return;
     }
   }
@@ -12485,7 +12442,7 @@ public static void OpenPicture(byte ResNum, bool Quiet = false)
   }
   
   //restore mousepointer and exit
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -12523,7 +12480,7 @@ public static void OpenView(byte ResNum, bool Quiet = false)
     ViewEditors(i).Focus()
     
     //restore mousepointer and exit
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     return;
   }
   
@@ -12539,12 +12496,12 @@ public static void OpenView(byte ResNum, bool Quiet = false)
     Views(ResNum).Load
    if (Err.Number != 0) {
      if (!Quiet) {
-        ErrMsgBox "An error occurred while loading view resource:", "", "Logic Load Error"
+        ErrMsgBox("An error occurred while loading view resource:", "", "Logic Load Error"
       }
       Err.Clear
       Unload frmNew
       //restore mousepointer and exit
-      Screen.MousePointer = vbDefault
+      MDIMain.UseWaitCursor = false;
       return;
     }
     On Error GoTo ErrHandler
@@ -12569,7 +12526,7 @@ public static void OpenView(byte ResNum, bool Quiet = false)
   }
   
   //restore mousepointer and exit
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -12725,12 +12682,12 @@ public static bool CloseThisGame()
       //if dirty
      if (tmpLog.IsDirty) {
         //ask about saving
-        rtn = MsgBox(tmpLog.ID + " has changed. Do you want to save the changes?", vbQuestion + vbYesNoCancel, "Save Changes")
+        rtn = MessageBox.Show(tmpLog.ID + " has changed. Do you want to save the changes?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Save Changes")
         switch (rtn
-        case vbYes
+        case DialogResult.Yes
           //save the resource
           tmpLog.Save
-        case vbCancel
+        case DialogResult.Cancel
           //exit
           Exit Function
         }
@@ -12745,12 +12702,12 @@ public static bool CloseThisGame()
       //if dirty
      if (tmpPic.IsDirty) {
         //ask about saving
-        rtn = MsgBox(tmpPic.ID + " has changed. Do you want to save the changes?", vbQuestion + vbYesNoCancel, "Save Changes")
+        rtn = MessageBox.Show(tmpPic.ID + " has changed. Do you want to save the changes?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Save Changes")
         switch (rtn
-        case vbYes
+        case DialogResult.Yes
           //save the resource
           tmpPic.Save
-        case vbCancel
+        case DialogResult.Cancel
           //exit
           Exit Function
         }
@@ -12765,12 +12722,12 @@ public static bool CloseThisGame()
       //if dirty
      if (tmpSnd.IsDirty) {
         //ask about saving
-        rtn = MsgBox(tmpSnd.ID + " has changed. Do you want to save the changes?", vbQuestion + vbYesNoCancel, "Save Changes")
+        rtn = MessageBox.Show(tmpSnd.ID + " has changed. Do you want to save the changes?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Save Changes")
         switch (rtn
-        case vbYes
+        case DialogResult.Yes
           //save the resource
           tmpSnd.Save
-        case vbCancel
+        case DialogResult.Cancel
           //exit
           Exit Function
         }
@@ -12785,12 +12742,12 @@ public static bool CloseThisGame()
       //if dirty
      if (tmpView.IsDirty) {
         //ask about saving
-        rtn = MsgBox(tmpView.ID + " has changed. Do you want to save the changes?", vbQuestion + vbYesNoCancel, "Save Changes")
+        rtn = MessageBox.Show(tmpView.ID + " has changed. Do you want to save the changes?", MessageBoxIcon.Question + MessageBoxButtons.YesNoCancel, "Save Changes")
         switch (rtn
-        case vbYes
+        case DialogResult.Yes
           //save the resource
           tmpView.Save
-        case vbCancel
+        case DialogResult.Cancel
           //exit
           Exit Function
         }
@@ -13017,7 +12974,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
   MainStatusBar.Panels(1).Text = ""
   
   //set comparison method for string search,
-  vbcComp = CLng(MatchCase) + 1 // CLng(true) + 1 = 0 = vbBinaryCompare; Clng(false) + 1 = 1 = vbTextCompare
+  vbcComp = CLng(MatchCase) + 1 // CLng(true) + 1 = 0 = vbBinaryCompare; Clng(false) + 1 = 1 = StringComparison.OrdinalIgnoreCase
   
   //if replacing and new text is the same
  if (Replacing && (StrComp(FindText, ReplaceText, vbcComp) = 0)) {
@@ -13193,9 +13150,9 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
       //if nothing found (lngnextlogwin =-1)
      if (lngNextLogWin = -1) {
         //show msgbox and exit
-        MessageBox.Show("Search text not found.", vbInformation, "Find in Logic"
+        MessageBox.Show("Search text not found.", MessageBoxIcon.Information, "Find in Logic"
         //restore cursor
-        Screen.MousePointer = vbDefault
+        MDIMain.UseWaitCursor = false;
         return;
       }
     
@@ -13310,7 +13267,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
             //back at start; reset foundpos
             FoundPos = 0
             //exit loop
-            Exit Do
+            break;
           } else {
             //set flag to begin searching closed logics
             BeginClosedLogics = true
@@ -13319,7 +13276,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
           }
         } else {
           //exit loop; search text found
-          Exit Do
+          break;
         }
       } else {
         //searching up: if atstarting point exactly, or if above starting point
@@ -13331,7 +13288,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
             //back at start; reset foundpos
             FoundPos = 0
             //exit loop
-            Exit Do
+            break;
           } else {
             //set flag to begin searching closed logics
             BeginClosedLogics = true
@@ -13340,7 +13297,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
           }
         } else {
           //exit loop; search text found
-          Exit Do
+          break;
         }
       }
     }
@@ -13353,31 +13310,31 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
       case fdUp
         //if nothing was found yet
        if (!RestartSearch) {
-          rtn = MsgBox("Beginning of search scope reached. Do you want to continue from the end?", vbQuestion + vbYesNo, "Find in Logic")
-         if (rtn = vbNo) {
+          rtn = MessageBox.Show("Beginning of search scope reached. Do you want to continue from the end?", MessageBoxIcon.Question + MessageBoxButtons.YesNo, "Find in Logic")
+         if (rtn = DialogResult.No) {
             //reset cursor
-            Screen.MousePointer = vbDefault
+            MDIMain.UseWaitCursor = false;
             return;
           }
         } else {
           // if restartsearch is true, it means this is second time through;
           // since nothing found, just exit the loop
-          Exit Do
+          break;
         }
         
       case fdDown
         //if nothing found yet
        if (!RestartSearch) {
-          rtn = MsgBox("End of search scope reached. Do you want to continue from the beginning?", vbQuestion + vbYesNo, "Find in Logic")
-         if (rtn = vbNo) {
+          rtn = MessageBox.Show("End of search scope reached. Do you want to continue from the beginning?", MessageBoxIcon.Question + MessageBoxButtons.YesNo, "Find in Logic")
+         if (rtn = DialogResult.No) {
             //reset cursor
-            Screen.MousePointer = vbDefault
+            MDIMain.UseWaitCursor = false;
             return;
           }
         } else {
           // if resetsearch is true, means this is second time through;
           // since nothing found, just exit the loop
-          Exit Do
+          break;
         }
         
       case fdAll
@@ -13385,7 +13342,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
         // since nothing found, just exit the loop
        if (RestartSearch) {
           //not found; exit
-          Exit Do
+          break;
         }
       }
     
@@ -13393,7 +13350,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
       //if back on start, and search already reset
      if ((lngNextLogWin = SearchStartLog) && RestartSearch) {
         //not found- exit
-        Exit Do
+        break;
       }
     
      //increment logic number
@@ -13421,7 +13378,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
         //if nothing found (lngnextlogwin =-1 or -2)
        if (lngNextLogWin < 0) {
           FoundPos = 0
-          Exit Do
+          break;
         }
         
         // if search started in editor (by pressing F3 or using menu option)
@@ -13537,7 +13494,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
        if (blnFrmVis) {
           FindForm.Visible = false
         }
-        MessageBox.Show("The specified region has been searched. No more matches found.", vbInformation, "Find in Logic"
+        MessageBox.Show("The specified region has been searched. No more matches found.", MessageBoxIcon.Information, "Find in Logic"
        if (blnFrmVis) {
           FindForm.Visible = true
         }
@@ -13547,7 +13504,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
           FindForm.Visible = false
         }
         //show not found msg
-        MessageBox.Show("Search text not found.", vbInformation, "Find in Logic"
+        MessageBox.Show("Search text not found.", MessageBoxIcon.Information, "Find in Logic"
        if (blnFrmVis) {
           FindForm.Visible = true
         }
@@ -13571,7 +13528,7 @@ static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, 
   }
   
   //reset cursor
-  Screen.MousePointer = vbDefault
+  MDIMain.UseWaitCursor = false;
 return;
 
 ErrHandler:
@@ -13770,13 +13727,13 @@ public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bo
       .mnuRBar2.Visible = true
       .mnuRCustom1.Visible = true
       .mnuRCustom1.Enabled = true
-      .mnuRCustom1.Text = "R&epair Layout" + vbTab + "Alt+R"
+      .mnuRCustom1.Text = "R&epair Layout" + Keys.Tab + "Alt+R"
       .mnuRCustom2.Visible = true
       .mnuRCustom2.Enabled = true
      if (Settings.LEShowPics) {
-        .mnuRCustom2.Text = "Hide All &Pics" + vbTab + "Ctrl+Alt+H"
+        .mnuRCustom2.Text = "Hide All &Pics" + Keys.Tab + "Ctrl+Alt+H"
       } else {
-        .mnuRCustom2.Text = "Show All &Pics" + vbTab + "Ctrl+Alt+S"
+        .mnuRCustom2.Text = "Show All &Pics" + Keys.Tab + "Ctrl+Alt+S"
       }
       //hide description
       .mnuRDescription.Visible = false
@@ -13794,7 +13751,7 @@ public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bo
       .mnuRBar2.Visible = true
       .mnuRCustom1.Visible = true
       .mnuRCustom1.Enabled = true
-      .mnuRCustom1.Text = "Add from File..." + vbTab + "Alt+F"
+      .mnuRCustom1.Text = "Add from File..." + Keys.Tab + "Alt+F"
       
     case rtLogic
       //if the header
@@ -13821,15 +13778,15 @@ public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bo
         } else {
           .mnuRExport.Text = "Save &As..."
         }
-        .mnuRRenumber.Text = "&Renumber Logic" + vbTab + "Alt+N"
+        .mnuRRenumber.Text = "&Renumber Logic" + Keys.Tab + "Alt+N"
         //set custom menus
         .mnuRBar2.Visible = Editing
         .mnuRCustom1.Visible = Editing && InGame
         .mnuRCustom1.Enabled = true
-        .mnuRCustom1.Text = "Compile Source" + vbTab + "F8"
+        .mnuRCustom1.Text = "Compile Source" + Keys.Tab + "F8"
         .mnuRCustom2.Visible = Editing
         .mnuRCustom2.Enabled = true
-        .mnuRCustom2.Text = "Message Cleanup" + vbTab + "Alt+M"
+        .mnuRCustom2.Text = "Message Cleanup" + Keys.Tab + "Alt+M"
         .mnuRCustom3.Visible = Editing && InGame
         .mnuRCustom3.Enabled = true
         .mnuRCustom3.Text = "Logic Is a Room"
@@ -13866,18 +13823,18 @@ public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bo
         } else {
           .mnuRExport.Text = "Save &As..."
         }
-        .mnuRRenumber.Text = "&Renumber Picture" + vbTab + "Alt+N"
+        .mnuRRenumber.Text = "&Renumber Picture" + Keys.Tab + "Alt+N"
         .mnuRBar2.Visible = true
       
         //if editing
        if (Editing) {
           .mnuRCustom1.Visible = true
           .mnuRCustom1.Enabled = true
-          .mnuRCustom1.Text = "&Background..." + vbTab + "Ctrl+Alt+B"
+          .mnuRCustom1.Text = "&Background..." + Keys.Tab + "Ctrl+Alt+B"
         } else {
           .mnuRCustom1.Visible = true
           .mnuRCustom1.Enabled = true
-          .mnuRCustom1.Text = "Save Picture &Image As..." + vbTab + "Shift+Ctrl+S"
+          .mnuRCustom1.Text = "Save Picture &Image As..." + Keys.Tab + "Shift+Ctrl+S"
           .mnuRCustom2.Visible = false
           .mnuRCustom3.Visible = false
         }
@@ -13913,7 +13870,7 @@ public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bo
         } else {
           .mnuRExport.Text = "Save &As..."
         }
-        .mnuRRenumber.Text = "&Renumber Sound" + vbTab + "Alt+N"
+        .mnuRRenumber.Text = "&Renumber Sound" + Keys.Tab + "Alt+N"
       }
       
     case rtView
@@ -13940,7 +13897,7 @@ public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bo
         } else {
           .mnuRExport.Text = "Save &As..."
         }
-        .mnuRRenumber.Text = "&Renumber View" + vbTab + "Alt+N"
+        .mnuRRenumber.Text = "&Renumber View" + Keys.Tab + "Alt+N"
         //custom1 used for loop exporting
         .mnuRBar2.Visible = true
         .mnuRCustom1.Visible = true
@@ -13967,7 +13924,7 @@ public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bo
       .mnuRBar2.Visible = true
       .mnuRCustom2.Visible = true
       .mnuRCustom2.Enabled = true
-      .mnuRCustom2.Text = "Highlight Syntax" + vbTab + "Shift+Ctrl+H"
+      .mnuRCustom2.Text = "Highlight Syntax" + Keys.Tab + "Shift+Ctrl+H"
       .mnuRCustom3.Visible = false
       
     case rtWarnings
@@ -14005,7 +13962,7 @@ public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bo
       .mnuRBar2.Visible = Editing
       .mnuRCustom1.Visible = Editing
       .mnuRCustom1.Enabled = true
-      .mnuRCustom1.Text = "Merge from File..." + vbTab + "Alt+F"
+      .mnuRCustom1.Text = "Merge from File..." + Keys.Tab + "Alt+F"
       .mnuRDescription.Text = "&Description..."
       .mnuRDescription.Enabled = GameLoaded || Editing
       
@@ -14029,7 +13986,7 @@ public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bo
       .mnuRCustom2.Text = "Convert AMIGA Format to DOS"
       .mnuRCustom3.Visible = Editing
       .mnuRCustom3.Enabled = true
-      .mnuRCustom3.Text = "Encrypt File" + vbTab + "Shift+Ctrl+E"
+      .mnuRCustom3.Text = "Encrypt File" + Keys.Tab + "Shift+Ctrl+E"
       .mnuRDescription.Text = "&Description..."
       .mnuRDescription.Enabled = GameLoaded || Editing
       
@@ -14047,7 +14004,7 @@ public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bo
       }
       .mnuRCustom1.Visible = true
       .mnuRCustom1.Enabled = true
-      .mnuRCustom1.Text = "Change Background" + vbTab + "Alt+B"
+      .mnuRCustom1.Text = "Change Background" + Keys.Tab + "Alt+B"
     }
   End With
     
@@ -14475,7 +14432,7 @@ public static void ExpandSelection(RichEdAGI rtfLogic, bool blnInQuotes, bool Fo
        if (IsValidQuote(strLine, i)) {
           //starting quote found
           lngStart = lngStart - 1
-          Exit Do
+          break;
         }
         
       default:
@@ -14495,7 +14452,7 @@ public static void ExpandSelection(RichEdAGI rtfLogic, bool blnInQuotes, bool Fo
        if (IsValidQuote(strLine, i)) {
           //ending quote found
           lngEnd = lngEnd + 1
-          Exit Do
+          break;
         }
         
       default:
@@ -14534,7 +14491,7 @@ public static void ExpandSelection(RichEdAGI rtfLogic, bool blnInQuotes, bool Fo
         
       default:
         //everything else is no good
-        Exit Do
+        break;
       }
       i = i - 1
       lngStart = lngStart - 1
@@ -14550,7 +14507,7 @@ public static void ExpandSelection(RichEdAGI rtfLogic, bool blnInQuotes, bool Fo
         
       default:
         //everything else is no good
-        Exit Do
+        break;
       }
       j = j + 1
       lngEnd = lngEnd + 1
@@ -14913,14 +14870,13 @@ public static byte RenumberResource(byte OldResNum, AGIResType ResType)
   NewResNum = OldResNum
   
   //show renumber resoure form
-  With frmGetResourceNum
-    .ResType = ResType
-    .OldResNum = OldResNum
-    .WindowFunction = grRenumber
+    frmGetResourceNum.ResType = ResType
+    frmGetResourceNum.OldResNum = OldResNum
+    frmGetResourceNum.WindowFunction = grRenumber
     //setup before loading so ghosts don't show up
-    .FormSetup
-    .Show vbModal, MDIMain
-  End With
+    frmGetResourceNum.FormSetup
+    frmGetResourceNum.Show(MDIMain);
+    frmGetResourceNum.Show.Modal = true;
   
   //if user makes a choice AND number is different
  if (!frmGetResourceNum.Canceled && frmGetResourceNum.NewResNum != OldResNum) {
@@ -14991,7 +14947,7 @@ public static byte RenumberResource(byte OldResNum, AGIResType ResType)
        if (ResType = rtLogic) {
           //highlight in red if not compiled
          if (!Logics(NewResNum).Compiled) {
-            .SelectedItem.ForeColor = vbRed
+            .SelectedItem.ForeColor = Colors.Red
           }
         }
         
@@ -15039,7 +14995,7 @@ public static byte RenumberResource(byte OldResNum, AGIResType ResType)
          if (ResType = rtLogic) {
             //highlight in red if not compiled
            if (!Logics(NewResNum).Compiled) {
-              tmpListItem.ForeColor = vbRed
+              tmpListItem.ForeColor = Colors.Red
             }
           }
            
@@ -15063,10 +15019,10 @@ Exit Function
 ErrHandler:
   switch (Err.Number
   case vbObjectError + 564
-    MessageBox.Show("You attempted to change a resource to a number that is already in use. Try renumbering again, with an unused resource number.", vbInformation, "Renumber Resource Error"
+    MessageBox.Show("You attempted to change a resource to a number that is already in use. Try renumbering again, with an unused resource number.", MessageBoxIcon.Information, "Renumber Resource Error"
     
   default:
-    ErrMsgBox "Error while renumbering:", "Resource list may not display correct numbers. Close/reopen game to refresh.", "Renumber Resource Error"
+    ErrMsgBox("Error while renumbering:", "Resource list may not display correct numbers. Close/reopen game to refresh.", "Renumber Resource Error"
   }
   
   //unload the get resource number form
@@ -15084,10 +15040,10 @@ public static void ReplaceAll(string FindText, string ReplaceText, FindDirection
   //if search Type is defines, words or objects, the editor does progress status and msgs
   
   //if replacing and text is the same
- if ((StrComp(FindText, ReplaceText, IIf(MatchCase, vbBinaryCompare, vbTextCompare)) = 0)) {
+ if ((StrComp(FindText, ReplaceText, IIf(MatchCase, vbBinaryCompare, StringComparison.OrdinalIgnoreCase)) = 0)) {
     //restore mouse, reneable main form, and exit
-    //Debug.Assert Screen.MousePointer = vbDefault
-    Screen.MousePointer = vbDefault
+    //Debug.Assert MDIMain.UseWaitCursor = false;
+    MDIMain.UseWaitCursor = false;
     //Debug.Assert MDIMain.Enabled = true
     MDIMain.Enabled = true
     return;
@@ -15096,7 +15052,7 @@ public static void ReplaceAll(string FindText, string ReplaceText, FindDirection
   //find text can//t be blank
  if ((LenB(FindText) = 0)) {
     //restore mouse, reneable main form, and exit
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     MDIMain.Enabled = true
     return;
   }
@@ -15243,15 +15199,15 @@ public static void ReplaceAll(string FindText, string ReplaceText, FindDirection
    if (SearchType = rtNone) {
       //if found,
      if (ReplaceCount > 0) {
-        MessageBox.Show("The specified region has been searched. " + CStr(ReplaceCount) + " replacements were made.", vbInformation, "Replace All"
+        MessageBox.Show("The specified region has been searched. " + CStr(ReplaceCount) + " replacements were made.", MessageBoxIcon.Information, "Replace All"
       } else {
-        MessageBox.Show("Search text not found.", vbInformation, "Replace All"
+        MessageBox.Show("Search text not found.", MessageBoxIcon.Information, "Replace All"
       }
     }
     
     //enable form and reset cursor
     MDIMain.Enabled = true
-    Screen.MousePointer = vbDefault
+    MDIMain.UseWaitCursor = false;
     
     // have to set focus to main form in order get the child forms
     // to properly switch focus (the searching logic should always
@@ -15296,7 +15252,7 @@ Private static void ReplaceAllWords(string FindText, string ReplaceText, bool Ma
   }
   
   //set comparison method for string search,
-  vbcComp = CLng(MatchCase) + 1 // CLng(true) + 1 = 0 = vbBinaryCompare; Clng(false) + 1 = 1 = vbTextCompare
+  vbcComp = CLng(MatchCase) + 1 // CLng(true) + 1 = 0 = vbBinaryCompare; Clng(false) + 1 = 1 = StringComparison.OrdinalIgnoreCase
 
   //start at beginning
   FoundPos = 1
@@ -15331,7 +15287,7 @@ Private static void ReplaceAllWords(string FindText, string ReplaceText, bool Ma
           //if selected text does not match,
          if (LCase$(.Text) != LCase$(FindText)) {
             //error
-            MessageBox.Show("An error was encountered in the replace feature of the rich text" + vbNewLine + "editor. !all instances of search text have been replaced.", vbCritical + vbOKOnly, "Replace All Error"
+            MessageBox.Show("An error was encountered in the replace feature of the rich text" + Environment.NewLine + "editor. !all instances of search text have been replaced.", MessageBoxIcon.Critical + MessageBoxButtons.OK, "Replace All Error"
             return;
           }
           
@@ -15363,7 +15319,7 @@ Private static void ReplaceAllWords(string FindText, string ReplaceText, bool Ma
       //increment Count
       ReplaceCount = ReplaceCount + 1
     } else {
-      Exit Do
+      break;
     }
   Loop
   
@@ -15519,19 +15475,17 @@ End Function
     {
       // this function is just a handy way to get resource strings by number
       // instead of by stringkey
-      try
-      {
+      try {
         return ResManRes.ResourceManager.GetString(index.ToString());
       }
-      catch (Exception)
-      {
+      catch (Exception) {
         // return nothing if string doesn't exist
         return "";
       }
     }
     public static string InstrumentName(int instrument)
     {
-      
+
       //returns a string Value of an instrument
       return LoadResString(INSTRUMENTNAMETEXT + instrument);
     }
@@ -15562,7 +15516,7 @@ End Function
       //int rtn = StretchBlt(destHDC, tgtX, tgtY, tgtW, tgtH,
       //    srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, SRCCOPY);
       int rtn = AlphaBlend(destHDC, tgtX, tgtY, tgtW, tgtH,
-          srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, new BLENDFUNCTION() { BlendOp = AC_SRC_OVER, BlendFlags = 0, SourceConstantAlpha = 255,  AlphaFormat = AC_SRC_ALPHA});
+          srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, new BLENDFUNCTION() { BlendOp = AC_SRC_OVER, BlendFlags = 0, SourceConstantAlpha = 255, AlphaFormat = AC_SRC_ALPHA });
       //select original object
       IntPtr pNew = SelectObject(srcHdc, pOrig);
       //delete objects
@@ -15615,7 +15569,7 @@ End Function
       //get original object and select bitmap
       IntPtr pOrig = SelectObject(srcHdc, hbmp);
       //copy it
-      int rtn = StretchBlt(destHDC,  0, 0,bWidth, bHeight,
+      int rtn = StretchBlt(destHDC, 0, 0, bWidth, bHeight,
           srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, SRCCOPY);
       //select original object
       IntPtr pNew = SelectObject(srcHdc, pOrig);
@@ -15642,7 +15596,6 @@ End Function
       //g.DrawImage(agiBMP, (int)scale, 0, bWidth, bHeight);
       //g.DrawImage(agiBMP, (int)scale, (int)scale / 2, bWidth, bHeight);
     }
-  
     public static void EnableRedraw(Control ctl)
     {
       _ = SendMessage(ctl.Handle, WM_SETREDRAW, 1, 0);

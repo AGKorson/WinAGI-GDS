@@ -838,6 +838,7 @@ namespace WinAGI_GDS
       //export a loop as a gif
       //export a picture as bmp or gif
       ExportLoop(agView.Loops[CurLoop]);
+      
     }
 
     private void mnuRSavePicAs_Click(object sender, EventArgs e)
