@@ -606,12 +606,14 @@ namespace WinAGI_GDS
                 //if already on last cel
           if (CurCel == agView[CurLoop].Cels.Count - 1) {
             CurCel = 0;
+            DisplayCel();
           }
           break;
         case 3: // reverse loop
                 //if already on first cel
           if (CurCel == 0) {
             CurCel = agView[CurLoop].Cels.Count - 1;
+            DisplayCel();
           }
           break;
         default:
@@ -629,6 +631,12 @@ namespace WinAGI_GDS
       blnTrans = !blnTrans;
       //force update
       DisplayCel();
+      // show or hide panel grid as needed
+      if (blnTrans) {
+        DrawTransGrid();
+      } else {
+        pnlCel.CreateGraphics().Clear(BackColor);
+      }
     }
     private void dLoop_Click(object sender, EventArgs e)
     {
@@ -745,11 +753,17 @@ namespace WinAGI_GDS
     {
       //position the cel
       picCel.Left = -hsbView.Value;
+      if (blnTrans) {
+        DrawTransGrid();
+      }
     }
     private void vsbView_Scroll(object sender, ScrollEventArgs e)
     {
       //position the cel
       picCel.Top = -vsbView.Value;
+      if (blnTrans) {
+        DrawTransGrid();
+      }
     }
     private void pnlCel_Resize(object sender, EventArgs e)
     {
@@ -803,11 +817,11 @@ namespace WinAGI_GDS
       // off when de-selecting, and correctly updated during resize, scroll, and new loop/cel 
       // events
 
-      int offsetX, offsetY;
-      offsetX = (picCel.Left) % 10;
-      offsetY = (picCel.Top) % 10;
-
       if (chkTrans.Checked) {
+        int offsetX, offsetY;
+        offsetX = (picCel.Left) % 10;
+        offsetY = (picCel.Top) % 10;
+
         //DisableRedraw(pnlCel);
         for (int i = 0; i <= pnlCel.Width + 1; i += 10) {
           for (int j = 0; j < pnlCel.Height + 1; j += 10) {
@@ -819,7 +833,26 @@ namespace WinAGI_GDS
       }
     }
 
-    void cmbInst_Click(int Index)
+    private void mnuRLoopGIF_Click(object sender, EventArgs e)
+    {
+      //export a loop as a gif
+      //export a picture as bmp or gif
+      ExportLoop(agView.Loops[CurLoop]);
+    }
+
+    private void mnuRSavePicAs_Click(object sender, EventArgs e)
+    {
+      switch (PrevResType) {
+      case rtGame:
+        ExportAllPicImgs();
+        break;
+      case rtPicture:
+        ExportOnePicImg(agPic);
+        break;
+      }
+    }
+
+      void cmbInst_Click(int Index)
     {
       //if changing,
       if (agSound.Track(Index).Instrument != cmbInst[Index].SelectedIndex) {
@@ -893,6 +926,9 @@ namespace WinAGI_GDS
 
       if (blnViewHSB) {
         // set change and Max values for horizontal bar
+        //(LargeChange value can't exceed Max value, so force Max to high enough value;
+        hsbView.Maximum = pnlCel.Width;
+        // it will be calculated correctly later)
         hsbView.LargeChange = (int)(pnlCel.Width * LG_SCROLL);
         hsbView.SmallChange = (int)(pnlCel.Width * SM_SCROLL);
         // Max value: = desired actual Max + LargeChange - 1
@@ -900,6 +936,7 @@ namespace WinAGI_GDS
       }
       // repeeat for vertical scrollbar
       if (blnViewVSB) {
+        vsbView.Maximum = pnlCel.Height;
         vsbView.LargeChange = (int)(pnlCel.Height * LG_SCROLL);
         vsbView.SmallChange = (int)(pnlCel.Height * SM_SCROLL);
         vsbView.Maximum = picCel.Height - (pnlCel.Height - (blnViewHSB ? hsbView.Height : 0)) + PW_MARGIN + vsbView.LargeChange - 1;
@@ -985,7 +1022,7 @@ namespace WinAGI_GDS
           //stop motion
           tmrMotion.Enabled = false;
           //show play
-          cmdVPlay.BackgroundImage = imageList1.Images[9];
+          //cmdVPlay.BackgroundImage = imageList1.Images[8];
           return;
         } else {
           CurCel++;
@@ -995,7 +1032,7 @@ namespace WinAGI_GDS
         if (CurCel == 0) {
           //stop motion
           tmrMotion.Enabled = false;
-          cmdVPlay.BackgroundImage = imageList1.Images[9];
+          cmdVPlay.BackgroundImage = imageList1.Images[8];
           return;
         } else {
           CurCel--;
@@ -1114,39 +1151,25 @@ namespace WinAGI_GDS
     }
     void DrawTransGrid()
     {
-      //return;
-      // performance sucks- need to disable updating until all 
-      // pixels are set, then do one refresh
-      // also need to re-do implementation of when to redraw the grid
-      //DisableRedraw(pnlCel);
-
       return;
-      // draws single pixel dots spaced 10 pixels apart
-      int offsetX, offsetY;
-      //Pen pen = new Pen(Color.Black);
-      //pen.Width = 1;
-      using Graphics gc = picCel.CreateGraphics();
+      // redraws the grid of dots on the background panel to 
+      // align with grid on cel image
       using Graphics gp = pnlCel.CreateGraphics();
-      //clear the cel holder
-      //and background panel
-      //gc.Clear(picCel.BackColor);
-      //gp.Clear(pnlCel.BackColor);
-      //draw the background grid
-      offsetX = (picCel.Left) % 10;
-      offsetY = (picCel.Top) % 10;
-      //gc.DrawLine(pen, 0, 0, picCel.Width, picCel.Height);
-      //return;
-      
+      gp.Clear(BackColor);
+      int offsetX, offsetY;
+      offsetX = (picCel.Left) % 10;// + 4;
+      offsetY = (picCel.Top) % 10;// + 4;
+
+      //DisableRedraw(pnlCel);
       for (int i = 0; i <= pnlCel.Width + 1; i += 10) {
-        for (int j = 0; j < pnlView.Height + 1; j += 10) {
+        for (int j = 0; j < pnlCel.Height + 1; j += 10) {
           //gc.DrawLine(pen, i, j, i, j);
           gp.FillRectangle(Brushes.Black, new Rectangle(i + offsetX, j + offsetY, 1, 1));
         }
       }
-
       //EnableRedraw(pnlCel);
     }
-   void tmpPreview()
+    void tmpPreview()
 {
   /*
 
@@ -1206,34 +1229,6 @@ case 87, 119 //w//
   KeyAscii = 0
 }
 }
-}
-
-public void MenuClickCustom1()
-
-//export a loop as a gif
-//export a picture as bmp or gif
-
-bool blnCanceled; 
-  int rtn;
-
-On Error GoTo ErrHandler
-
-switch (PrevResType
-case rtGame
-ExportAllPicImgs
-
-case rtPicture
-ExportOnePicImg agPic
-
-case rtView
-
-ExportLoop agView.Loops(udLoop.Value)
-}
-return;
-
-ErrHandler:
-//Debug.Assert false
-Resume Next
 }
 
 void MenuClickFind(FindFormFunction ffValue = FindFormFunction.ffFindLogic)
