@@ -144,7 +144,7 @@ namespace WinAGI
       Close intFile
   
       //if CompileFile exists
-      if (FileExists(CompileFile)) {
+      if (File.Exists(CompileFile)) {
         //delete it
         Kill CompileFile
       }

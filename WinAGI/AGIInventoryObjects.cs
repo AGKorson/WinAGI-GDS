@@ -257,7 +257,7 @@ namespace WinAGI
   Close intFile
   
   'if CompileFile exists
-  if (FileExists(CompileFile)) {
+  if (File.Exists(CompileFile)) {
     'delete it
     Kill CompileFile
     Err.Clear
@@ -467,7 +467,7 @@ ErrHandler:
         }
         //build item name string
         strItem = "";
-        while (lngPos < bytData.Length) // Until (lngPos > UBound(bytData()))
+        while (lngPos < bytData.Length) 
         {
           if (bytData[lngPos] == 0)
           {

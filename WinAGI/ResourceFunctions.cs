@@ -1682,7 +1682,7 @@ namespace WinAGI
     internal static void WriteSndByte(byte ByteIn)
     {
       SndPlayer.mMIDIData[lngPos] = ByteIn;
-      lngPos = lngPos + 1;
+      lngPos++;;
       //if at end
       if (lngPos >= SndPlayer.mMIDIData.Length)
       {

@@ -253,7 +253,7 @@ namespace WinAGI_GDS
     case 1: //picture
       do {
         //increment data pointer
-        lngPos = lngPos + 1
+        lngPos++;
 
         //if end is reached
         if (lngPos >= ExportPic.Resource.Size) {
@@ -270,13 +270,13 @@ namespace WinAGI_GDS
         case 240:
           blnXYDraw = false
           blnVisOn = true
-          lngPos = lngPos + 1
+          lngPos++;
         case 241:
           blnXYDraw = false
           blnVisOn = false
         case 242:
           blnXYDraw = false
-          lngPos = lngPos + 1
+          lngPos++;
         case 243:
           blnXYDraw = false
         case 244:
@@ -291,12 +291,12 @@ namespace WinAGI_GDS
           lngPos = lngPos + 2
         case 249:
           blnXYDraw = false
-          lngPos = lngPos + 1
+          lngPos++;
         default:
           //skip second coordinate byte, unless
           //currently drawing X or Y lines
           if (!blnXYDraw) {
-            lngPos = lngPos + 1
+            lngPos++;
           }
         }
 

@@ -249,7 +249,7 @@ internal string StripComments(string strLine, ref string strComment, bool NoTrim
     while ( lngPos < strLine.Length) // Until lngPos >= strLine.Length
     {
       //get next character from string
-      lngPos = lngPos + 1
+      lngPos++;
       //if NOT inside a quotation,
       if (!blnInQuotes) {
         //check for comment characters at this position
@@ -758,7 +758,7 @@ internal int FindWholeWord(int lngStartPos, string strText, string strFind, _
     if (RevSearch) {
       lngPos = lngPos - 1
     } else {
-      lngPos = lngPos + 1
+      lngPos++;
     }
   } while (lngPos != 0); // Until lngPos = 0
   //if no position found,

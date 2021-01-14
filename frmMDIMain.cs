@@ -1812,7 +1812,7 @@ Private void SelectPropFromText()
     } else if ( Val(txtProperty) <= 0) {
       txtProperty.Text = 1
     }
-    InventoryObjects.MaxScreenObjects = CByte(txtProperty.Text)
+    InventoryObjects.MaxScreenObjects = (byte)txtProperty.Text)
     InventoryObjects.Save
   }
   
@@ -2595,7 +2595,7 @@ public void SelectedItemRenumber()
     //if ID changed because of renumbering
     if (Logics(SelResNum).ID != strOldID) {
       //if old default file exists
-      if (FileExists(ResDir + strOldID + LogicSourceSettings.SourceExt)) {
+      if (File.Exists(ResDir + strOldID + LogicSourceSettings.SourceExt)) {
         On Error Resume Next
         //rename it
         Name ResDir + strOldID + LogicSourceSettings.SourceExt As ResDir + Logics(SelResNum).ID + LogicSourceSettings.SourceExt
@@ -4685,7 +4685,7 @@ Private void mnuTCustom_Click(Index As Integer)
     //open as a url, not a file
     
     //create a temporary file that is the url
-    strTemp = TempFileName()
+    strTemp = Path.GetTempFileName()
     
     //open it
     intFile = FreeFile()

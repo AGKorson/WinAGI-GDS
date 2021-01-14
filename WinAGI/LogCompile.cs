@@ -1513,7 +1513,7 @@ namespace WinAGI
 
           Do
             //first, increment position
-            lngPos = lngPos + 1
+            lngPos++;
             //if past end of this line,
             if (lngPos > Len(strCurrentLine)) {
               //if can//t get another line,
@@ -1533,7 +1533,7 @@ namespace WinAGI
                 return;
               }
               //increment pointer(so it points to first character of line)
-              lngPos = lngPos + 1
+              lngPos++;
             }
 
             NextChar = Mid(strCurrentLine, lngPos, 1)
@@ -1620,14 +1620,14 @@ namespace WinAGI
             switch (Mid(strCurrentLine, lngPos + 1, 1)) {
             case "<", ">"
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return the two byte cmd (swap so we get ">=" and "<="
               // instead of "=>" and "=<"
               NextCommand = Mid(strCurrentLine, lngPos, 1) + NextCommand
 
             case "=" //"=="
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return the two byte cmd
               NextCommand = "=="
             } 
@@ -1639,11 +1639,11 @@ namespace WinAGI
             //special case; "+", "++" and "+=" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "+") {
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return shorthand increment
               NextCommand = "++"
             } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "=") {
-              lngPos = lngPos + 1
+              lngPos++;
               //return shorthand addition
               NextCommand = "+="
             }
@@ -1653,11 +1653,11 @@ namespace WinAGI
             //also check for "-##"
             if (Mid(strCurrentLine, lngPos + 1, 1) == "-") {
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return shorthand decrement
               NextCommand = "--"
             } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "=") {
-              lngPos = lngPos + 1
+              lngPos++;
               //return shorthand subtract
               NextCommand = "-="
             } else if ( Val(Mid(strCurrentLine, lngPos + 1)) != 0) {
@@ -1674,7 +1674,7 @@ namespace WinAGI
                   //add character
                   NextCommand = NextCommand + ChrW$(intChar)
                   //incrmeent position
-                  lngPos = lngPos + 1
+                  lngPos++;
                 }
               Loop
             }
@@ -1683,7 +1683,7 @@ namespace WinAGI
             //special case; "!" and "!=" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return not equal
               NextCommand = "!="
             }
@@ -1692,12 +1692,12 @@ namespace WinAGI
             //special case; "<", "<=" and "<>" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return less than or equal
               NextCommand = "<="
             } else if ( Mid(strCurrentLine, lngPos + 1, 1) == ">") {
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return not equal
               NextCommand = "<>"
             }
@@ -1706,12 +1706,12 @@ namespace WinAGI
             //special case; ">", ">=" and "><" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return greater than or equal
               NextCommand = ">="
             } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "<") {
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return not equal (//><// is same as //<>//)
               NextCommand = "<>"
             }
@@ -1720,29 +1720,29 @@ namespace WinAGI
             //special case; "*" and "*=" returned as separate commands;
             if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return shorthand multiplication
               NextCommand = "*="
             //since block commands are removed, check for the in order to provide a
             //meaningful error message
             } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "/") {
-              lngPos = lngPos + 1
+              lngPos++;
               NextCommand = "* /"
             }
             return;
           case 47 ///
             //special case; "/" , "//" and "/=" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
-              lngPos = lngPos + 1
+              lngPos++;
               //return shorthand division
               NextCommand = "/="
             } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "/") {
-              lngPos = lngPos + 1
+              lngPos++;
               NextCommand = "//"
             //since block commands are removed, check for the in order to provide a
             //meaningful error message
             } else if ( Mid(strCurrentLine, lngPos + 1, 1) == "*") {
-              lngPos = lngPos + 1
+              lngPos++;
               NextCommand = "/*"
             }
             return;
@@ -1750,7 +1750,7 @@ namespace WinAGI
             //special case; "|" and "||" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "|") {
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return double //|//
               NextCommand = "||"
             }
@@ -1759,7 +1759,7 @@ namespace WinAGI
             //special case; "&" and "&&" returned as separate commands
             if (Mid(strCurrentLine, lngPos + 1, 1) == "&") {
               //increment pointer
-              lngPos = lngPos + 1
+              lngPos++;
               //return double //&//
               NextCommand = "&&"
             }
@@ -1780,7 +1780,7 @@ namespace WinAGI
                 //add character
                 NextCommand = NextCommand + ChrW$(intChar)
                 //incrmeent position
-                lngPos = lngPos + 1
+                lngPos++;
               } 
             Loop
 
@@ -1797,7 +1797,7 @@ namespace WinAGI
               //reset pointer to next
               intChar = AscW(Mid(strCurrentLine, lngPos + 1, 1))
               //increment position
-              lngPos = lngPos + 1
+              lngPos++;
 
               //if last char was a slash, need to treat this next
               //character as special
@@ -2393,7 +2393,7 @@ namespace WinAGI
             if (LenB(strCurrentLine) != 0) {
               Do Until lngPos >= Len(strCurrentLine)
                 //get next character from string
-                lngPos = lngPos + 1
+                lngPos++;
                 //if NOT inside a quotation,
                 if (!blnInQuotes) {
                   //check for comment characters at this position
@@ -2532,7 +2532,7 @@ namespace WinAGI
               }
 
               //verify file exists
-              if (!FileExists(strIncludeFilename)) {
+              if (!File.Exists(strIncludeFilename)) {
                 strErrMsg = Replace(LoadResString(4050), ARG1, strIncludeFilename)
                 return;
               }
