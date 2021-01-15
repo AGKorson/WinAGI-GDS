@@ -80,6 +80,12 @@ namespace WinAGI_GDS
       this.UseWaitCursor = true;
       //clear resources
       ClearPreviewWin();
+      // if picture header selected
+      if (ResType == rtPicture && ResNum < 0) {
+        // show save all pics menu item
+        mnuRSavePicAs.Visible = true;
+        mnuRSep1.Visible = true;
+      }
       //if one of the four main resource types and not a header
       if ((int)ResType >= 0 && (int)ResType <= 3 && ResNum >= 0) {
         UpdateCaption(ResType, (byte)ResNum);
@@ -95,6 +101,9 @@ namespace WinAGI_GDS
           if (PreviewPic((byte)ResNum)) {
             //show it
             pnlPicture.Visible = true;
+            // show pic save as menu item
+            mnuRSavePicAs.Visible = true;
+            mnuRSep1.Visible = true;
           }
           break;
         case rtSound:
@@ -107,6 +116,9 @@ namespace WinAGI_GDS
           if (PreviewView((byte)ResNum)) {
             //show it
             pnlView.Visible = true;
+            // show loop export menu item
+            mnuRLoopGIF.Visible = true;
+            mnuRSep1.Visible = false;
           }
           break;
         }
@@ -172,6 +184,10 @@ namespace WinAGI_GDS
       PrevResType = rtNone;
       // default caption
       this.Text = "Preview";
+      // disable custom menus
+      mnuRSavePicAs.Visible = false;
+      mnuRLoopGIF.Visible = false;
+      mnuRSep1.Visible = false;
     }
     public void UpdateCaption(AGIResType ResType, byte ResNum)
     {
@@ -225,7 +241,7 @@ namespace WinAGI_GDS
       catch (Exception e) {
         //check for error
         //switch (Err.Number
-        //case vbObjectError + 688
+        //case WINAGI_ERR + 688
         //  ErrMsgBox "No source code found: ", "Unable to decode the logic resource.", "Preview Logic Error"
         //default:
         //  ErrMsgBox "Error while loading logic resource", "", "Preview Logic Error"
@@ -807,7 +823,6 @@ namespace WinAGI_GDS
       //return true
       return true;
     }
-
     private void pnlCel_Paint(object sender, PaintEventArgs e)
     {
 
@@ -832,15 +847,14 @@ namespace WinAGI_GDS
         //EnableRedraw(pnlCel);
       }
     }
-
     private void mnuRLoopGIF_Click(object sender, EventArgs e)
     {
-      //export a loop as a gif
-      //export a picture as bmp or gif
-      ExportLoop(agView.Loops[CurLoop]);
-      
+      if (PrevResType == rtView && agView != null) {
+        //export a loop as a gif
+        //export a picture as bmp or gif
+        ExportLoop(agView.Loops[CurLoop]);
+      }
     }
-
     private void mnuRSavePicAs_Click(object sender, EventArgs e)
     {
       switch (PrevResType) {
@@ -852,7 +866,6 @@ namespace WinAGI_GDS
         break;
       }
     }
-
       void cmbInst_Click(int Index)
     {
       //if changing,
@@ -1132,14 +1145,25 @@ namespace WinAGI_GDS
       vsbView.LargeChange = (int)(pnlCel.Height * LG_SCROLL);
       hsbView.SmallChange = (int)(pnlCel.Width * SM_SCROLL);
       vsbView.SmallChange = (int)(pnlCel.Height * SM_SCROLL);
+      hsbView.Top = pnlCel.Height - hsbView.Height;
+      vsbView.Left = pnlCel.Width - vsbView.Width;
+      fraVCorner.Width = vsbView.Width;
+      fraVCorner.Left = vsbView.Left;
+      fraVCorner.Height = hsbView.Height;
+      fraVCorner.Top = hsbView.Top;
       VTopMargin = 50;
       lngVAlign = 2;
-      //tsViewPrev.Items["VAlign"].ImageIndexImage = 8;
       //set picture scrollbar values
       hsbPic.LargeChange = (int)(pnlPicture.Width * LG_SCROLL);
       vsbPic.LargeChange = (int)(pnlPicImage.Height * LG_SCROLL);
       hsbPic.SmallChange = (int)(pnlPicImage.Width * SM_SCROLL);
       vsbPic.SmallChange = (int)(pnlPicImage.Height * SM_SCROLL);
+      hsbPic.Top = pnlPicImage.Height - hsbPic.Height;
+      vsbPic.Left = pnlPicImage.Width - vsbPic.Width;
+      fraPCorner.Width = vsbPic.Width;
+      fraPCorner.Left = vsbPic.Left;
+      fraPCorner.Height = hsbPic.Height;
+      fraPCorner.Top = hsbPic.Top;
       //set picture zoom
       udPZoom.Value = PicScale;
 
@@ -1149,6 +1173,8 @@ namespace WinAGI_GDS
       //set font
       rtfLogPrev.Font = new Font(Settings.PFontName, Settings.PFontSize);
       //rtfLogPrev.HighlightSyntax = false;
+
+      // 
     }
     void DrawTransGrid()
     {

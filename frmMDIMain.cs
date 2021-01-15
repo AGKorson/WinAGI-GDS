@@ -81,7 +81,7 @@ namespace WinAGI_GDS
       CompileLogicStatus += GameEvents_CompileLogicStatus;
       LoadGameStatus += GameEvents_LoadGameStatus;
 
-      //
+      //initialize the WinAGI engine
       InitWinAGI();
 
     }
@@ -194,21 +194,11 @@ namespace WinAGI_GDS
     {
       //what is resolution?
       MessageBox.Show($"Current DPI: {this.DeviceDpi}");
-      // init the basic app functionality
+      // initialize the basic app functionality
       InitializeResMan();
       // read settings
       ReadSettings();
       // set up object references
-
-      if (Settings.ShowPreview)
-      {
-        // show the preview window
-        PreviewWin = new frmPreview
-        {
-          MdiParent = this
-        };
-        PreviewWin.Show();
-      }
     }
     private void btnNewLogic_Click(object sender, EventArgs e)
     {

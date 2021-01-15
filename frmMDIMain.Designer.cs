@@ -1402,12 +1402,12 @@
       this.cmbResType.FormattingEnabled = true;
       this.cmbResType.Items.AddRange(new object[] {
             "agi",
-            "Logics",
-            "Pictures",
-            "Sounds",
-            "Views",
-            "Objects",
-            "Words"});
+            "LOGICS",
+            "PICTURES",
+            "SOUNDS",
+            "VIEWS",
+            "OBJECT",
+            "WORDS.TOK"});
       this.cmbResType.Location = new System.Drawing.Point(3, 24);
       this.cmbResType.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
       this.cmbResType.Name = "cmbResType";
@@ -1685,7 +1685,6 @@
     private ToolStripMenuItem btnNewSound;
     private ToolStripMenuItem btnNewView;
     private ListBox lstResources;
-    private ComboBox cmbResType;
     private Timer timer1;
     private ToolStripSplitButton toolStripSplitButton2;
     private ToolStripSplitButton toolStripSplitButton3;
@@ -1696,6 +1695,7 @@
     private FolderBrowserDialog FolderDlg;
     public OpenFileDialog OpenDlg;
     public SaveFileDialog SaveDlg;
+    public ComboBox cmbResType;
   }
 }
 

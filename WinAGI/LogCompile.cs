@@ -268,7 +268,7 @@ namespace WinAGI
           tmpLogRes.Unload
           tmpLogRes = Nothing
           stlInput = Nothing
-          if ((lngError && vbObjectError) == vbObjectError) {
+          if ((lngError && WINAGI_ERR) == WINAGI_ERR) {
             //pass it along
             throw new Exception("lngError, strErrSrc, strError
           } else {
@@ -1560,7 +1560,7 @@ namespace WinAGI
 
           //if error is an app specific error, just pass it along; otherwise create
           //an app specific error to encapsulate whatever happened
-          if ((lngError && vbObjectError) == vbObjectError) {
+          if ((lngError && WINAGI_ERR) == WINAGI_ERR) {
             //pass it along
             throw new Exception("lngError, strErrSrc, strError
           } else {
@@ -1840,7 +1840,7 @@ namespace WinAGI
 
           //if error is an app specific error, just pass it along; otherwise create
           //an app specific error to encapsulate whatever happened
-          If(lngError && vbObjectError) = vbObjectError) {
+          If(lngError && WINAGI_ERR) = WINAGI_ERR) {
             //pass it along
             throw new Exception("lngError, strErrSrc, strError
           } else {
@@ -5120,7 +5120,7 @@ namespace WinAGI
           strError = Err.Description
           strErrSrc = Err.Source
           lngError = Err.Number
-          If(lngError && vbObjectError) = vbObjectError) {
+          If(lngError && WINAGI_ERR) = WINAGI_ERR) {
             //pass it along
             throw new Exception("lngError, strErrSrc, strError
           } else {
@@ -5869,7 +5869,7 @@ namespace WinAGI
           lngError = Err.Number
           //if error is an app specific error, just pass it along; otherwise create
           //an app specific error to encapsulate whatever happened
-          if ((lngError && vbObjectError) == vbObjectError) {
+          if ((lngError && WINAGI_ERR) == WINAGI_ERR) {
             //pass it along
             throw new Exception("lngError, strErrSrc, strError
           } else {
