@@ -20,6 +20,7 @@ namespace WinAGI_GDS
     AGIView thisView;
     private int CurLoop = 0;
     private int CurCel = 0;
+    internal bool InGame;
 
     public frmViewEdit()
     {

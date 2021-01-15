@@ -16,6 +16,8 @@ namespace WinAGI_GDS
 {
   public partial class frmSoundEdit : Form
   {
+    internal bool InGame;
+
     public frmSoundEdit()
     {
       InitializeComponent();

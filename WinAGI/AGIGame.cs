@@ -150,56 +150,11 @@ namespace WinAGI
         }
       }
     }
-    public static uint EGAColorLong(int index)
-    {
-      //in VB (and other languages?) colors are four byte:
-      //         xxbbggrr,
-      // this is the format used by EGAColorLong
-
-      //in API calls, the red and blue values are reversed:
-      //         xxrrggbb
-      //(perhaps because of way CopyMemory works?)
-      //so API calls need to use EGARevColor instead
-
-      //validate index
-      if (index < 0 || index > 15)
-        //throw new Exception("index out of bounds");
-        throw new Exception("Subscript out of range");
-      return lngEGACol[index];
-    }
     public static EGAColors EGAColor
     { 
       get { return colorEGA; }
       //set { colorEGA = value; }
     }
-    public static void EGAColorSet(int index, uint newcolor)
-    {
-      //in VB (and other languages?) colors are four byte:
-      //         xxbbggrr,
-      // this is the format used by EGAColorLong
-
-      //in API calls, the red and blue values are reversed:
-      //         xxrrggbb
-      //(perhaps because of way CopyMemory works?)
-      //so API calls need to use EGARevColor instead
-
-      //validate index
-      if (index < 0 || index > 15)
-        //throw new Exception("index out of bounds");
-        throw new Exception("Subscript out of range");
-
-      //store the new color
-      lngEGACol[index] = newcolor;
-
-      //now invert red and blue components for revcolor
-      lngEGARevCol[index] = (uint)(newcolor + 0xFF000000) + ((newcolor + 0xFF) << 16) + (newcolor + 0xFF00) + ((newcolor + 0xFF0000) >> 16);
-
-      //if in a game, save the color in the game's WAG file
-      if (agGameLoaded)
-        WriteGameSetting("Palette", "Color" + index, "0x" + newcolor.ToString("X"));
-    }
-    public static uint[] EGARevColor
-    { get { return lngEGARevCol; } set { } }
     public static string GameAbout
     {
       get { return agAbout; }
@@ -2056,7 +2011,7 @@ namespace WinAGI
       //save palette colors
       for (i = 0; i < 16; i++)
          {
-        WriteGameSetting("Palette", "Color" + i, "0x" + lngEGACol[i].ToString("x8"));
+        WriteGameSetting("Palette", "Color" + i, "0x" + ColorTranslator.ToWin32(colorEGA[i]).ToString("x8"));
       }
 
       //if errors
@@ -2079,7 +2034,6 @@ namespace WinAGI
   public class EGAColors
   {
     Color[] colorEGA = new Color[16];
-    
     public Color this[int index]
     {
       get
@@ -2088,6 +2042,7 @@ namespace WinAGI
         {
           throw new IndexOutOfRangeException("bad color");
         }
+        var a = System.Drawing.Color.Black;
         return colorEGA[index];
       }
       set
@@ -2097,6 +2052,8 @@ namespace WinAGI
           throw new IndexOutOfRangeException("bad color");
         }
         colorEGA[index] = value;
+        WriteGameSetting("Palette", "Color" + index, "0x" + ColorTranslator.ToWin32(colorEGA[index]).ToString("x8"));
+
       }
     }
   }

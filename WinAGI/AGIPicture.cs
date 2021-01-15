@@ -815,10 +815,9 @@ namespace WinAGI
       for (i = 0; i < 16; i++)
       {
         ncp.Entries[i] = Color.FromArgb(255,
-        (int)((lngEGARevCol[i] & 0xFF0000) / 0x10000),
-        (int)((lngEGARevCol[i] & 0xFF00) / 0x100),
-        (int)(lngEGARevCol[i] % 0x100)
-          );
+        EGAColor[i].R,
+        EGAColor[i].G,
+        EGAColor[i].B);
       }
       // both bitmaps use same palette
       bmpVis.Palette = ncp;

@@ -21,6 +21,8 @@ namespace WinAGI_GDS
     Bitmap thisBMP;
     float zoom;
     bool picMode = false;
+    internal bool InGame;
+
     public frmPicEdit()
     {
       InitializeComponent();
@@ -89,7 +91,7 @@ namespace WinAGI_GDS
       }
       if (cmbTransCol.SelectedIndex < 16)
       {
-        thisBMP.MakeTransparent(Color.FromArgb((int)lngEGARevCol[cmbTransCol.SelectedIndex]));
+        thisBMP.MakeTransparent(EGAColor[cmbTransCol.SelectedIndex]);
       }
       ShowAGIBitmap(picVisual, thisBMP, zoom);
 

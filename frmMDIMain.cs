@@ -118,6 +118,9 @@ namespace WinAGI_GDS
         //let's open it
         this.UseWaitCursor = true;
         OpenGameWAG(OpenDlg.FileName);
+        PreviewWin = new frmPreview();
+        PreviewWin.MdiParent = this;
+        PreviewWin.Show();
         this.UseWaitCursor = false;
       }
       else
@@ -125,16 +128,6 @@ namespace WinAGI_GDS
         return;
       }
 
-      //if (SystemInformation.UserName == "agkor")
-      //{
-      //  // at home:
-      //  retval = OpenGameWAG(@"C:\Users\Andy\OneDrive\AGI Stuff\AGI Test Games\GRm\gr.wag");
-      //}
-      //else
-      //{
-      //  // at work:
-      //  retval = OpenGameWAG(@"C:\Users\d3m294\OneDrive - PNNL\Desktop\WinAGI\GR-IIGS\GR.wag");
-      //}
       if (retval == 0)
       {
         MessageBox.Show("Game opened with no errors or warnings.");
@@ -813,8 +806,8 @@ namespace WinAGI_GDS
       //RESFORMAT settings
       Settings.ShowResNum = ReadSettingBool(SettingsList, "ResFormat", "ShowResNum", DEFAULT_SHOWRESNUM);
       Settings.IncludeResNum = ReadSettingBool(SettingsList, "ResFormat", "IncludeResNum", DEFAULT_INCLUDERESNUM);
-      Settings.ResFormat.NameCase = (StringComparison)ReadSettingLong(SettingsList, "ResFormat", "NameCase", (int)DEFAULT_NAMECASE);
-      if ((int)Settings.ResFormat.NameCase < 1 || (int)Settings.ResFormat.NameCase > 3)
+      Settings.ResFormat.NameCase = ReadSettingLong(SettingsList, "ResFormat", "NameCase", (int)DEFAULT_NAMECASE);
+      if ((int)Settings.ResFormat.NameCase < 0 || (int)Settings.ResFormat.NameCase > 2)
       {
         Settings.ResFormat.NameCase = DEFAULT_NAMECASE;
       }

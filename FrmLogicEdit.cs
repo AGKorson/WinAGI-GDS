@@ -10,6 +10,7 @@ using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
 using static WinAGI.AGITestCommands;
 using static WinAGI.AGICommands;
+using static WinAGI_GDS.ResMan;
 
 namespace WinAGI_GDS
 {
@@ -17,6 +18,9 @@ namespace WinAGI_GDS
   {
     public AGILogic ThisLogic = new AGILogic { };
     public AGILogics aglogs = new AGILogics { };
+    internal ELogicFormMode FormMode;
+    internal bool InGame;
+
     public frmLogicEdit()
     {
       InitializeComponent();
