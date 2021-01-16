@@ -18,8 +18,6 @@ namespace WinAGI_GDS
       Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
       Application.EnableVisualStyles();
       Application.SetCompatibleTextRenderingDefault(false);
-      //initialize WinAGI?
-      //MessageBox.Show($"DPI: {Screen}")
       Application.Run(new frmMDIMain());
     }
   }

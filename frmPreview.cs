@@ -1283,7 +1283,7 @@ GLogFindLoc = flAll
 GFindSynonym = false
 
 //reset search flags
-FindForm.ResetSearch
+AGIFindForm.ResetSearch
 
 SearchForm = MDIMain
 
@@ -1323,9 +1323,9 @@ if (this.WindowState == WindowState.Minimized) {
 return;
 }
 //if findform is visible,
-if (FindForm.Visible) {
+if (AGIFindForm.Visible) {
 //hide it it
-FindForm.Visible = false
+AGIFindForm.Visible = false
 }
 cmbMotion.SelectedIndex = 0;
 sldSpeed.Value = 5;

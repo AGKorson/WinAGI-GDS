@@ -1992,7 +1992,7 @@ MA  02110-1301  USA
         catch (Exception) {
           return Default;
         }
-      } else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase)) {
+      } else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
         try {
           return Convert.ToInt32(Right(strValue, strValue.Length - 2), 16);
         }
@@ -2090,6 +2090,76 @@ MA  02110-1301  USA
 
 
       return ReadAppSetting(ConfigList, Section, Key, Default);
+    }
+    public static Color ReadSettingColor(List<string> ConfigList, string Section, string Key, Color Default)
+    {
+      //get the setting value; if it converts to long value, use it;
+      //if any kind of error, return the default value
+      string strValue = ReadAppSetting(ConfigList, Section, Key, "");
+      if (strValue.Length == 0) {
+        // for blank entries, replace with default
+        WriteAppSetting(ConfigList, Section, Key, ColorText(Default));
+        return Default;
+      }
+      // expected format is '0xrr, 0xgg, 0xbb'
+      string[] comp = strValue.Split(",");
+      if (comp.Length == 3) {
+        try {
+          int r, g, b;
+          r = Convert.ToInt32(comp[0].Trim(), 16) % 0xFF;
+          g = Convert.ToInt32(comp[1].Trim(), 16) % 0xFF;
+          b = Convert.ToInt32(comp[2].Trim(), 16) % 0xFF;
+          return Color.FromArgb(r, g, b);
+        }
+        catch (Exception) {
+          // for invalid entries, replace with default
+          WriteAppSetting(ConfigList, Section, Key, ColorText(Default));
+          return Default;
+        }
+      } else {
+        Color retColor = Default;
+        if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase) || Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
+          try {
+            // convert hex integer color value; assume it is '0xaarrggbb' or '&Haarrggbb';
+            // we can't just convert it to a number and then translate it;
+            // the translator expects colors to be in '0xaabbggrr' format
+            // also, we ignore the alpha; all colors are returned with only
+            // rgb components set; the alpha channel is always left to default
+
+            // assign to int number
+            int iColor = Convert.ToInt32(strValue, 16);
+            //parse it into rgb components
+            int r, g, b;
+            b = iColor % 0x100;
+            g = (iColor / 0x100) % 0x100;
+            r = (iColor / 0x10000) % 0x100;
+            retColor = Color.FromArgb(r, g, b);
+          }
+          catch (Exception) {
+            //keep default
+          }
+        } else {
+          if (int.TryParse(strValue, out int iColor)) {
+            // it might be a non-hex color number
+            try {
+              //parse it into rgb components
+              int r, g, b;
+              b = (int)(unchecked((uint)iColor) % 0xFF);
+              g = (int)(unchecked((uint)iColor) / 0x100 % 0xFF);
+              r = (int)(unchecked((uint)iColor) / 0x10000 % 0xFF);
+              retColor = Color.FromArgb(r, g, b);
+            }
+            catch (Exception) {
+              //keep default;
+            }
+          } else {
+            // not sure what it is; keep the default value
+          }
+        }
+        // for invalid entries, always replace with updated text
+        WriteAppSetting(ConfigList, Section, Key, ColorText(retColor));
+        return retColor;
+      }
     }
     public static void WriteProperty(string Section, string Key, string Value, string Group = "", bool ForceSave = false)
     {
@@ -2378,22 +2448,35 @@ MA  02110-1301  USA
     }
     internal static void RestoreDefaultColors()
     {
-      colorEGA[0] = ColorTranslator.FromOle(unchecked((int)0xff000000)); //black
-      colorEGA[1] = Color.FromArgb(unchecked((int)0xff0000A0)); //blue
-      colorEGA[2] = Color.FromArgb(unchecked((int)0xff00A000)); //green
-      colorEGA[3] = Color.FromArgb(unchecked((int)0xff00A0A0)); //cyan
-      colorEGA[4] = Color.FromArgb(unchecked((int)0xffA00000)); //red
-      colorEGA[5] = Color.FromArgb(unchecked((int)0xff8000A0)); //magenta
-      colorEGA[6] = Color.FromArgb(unchecked((int)0xffA05000)); //brown
-      colorEGA[7] = Color.FromArgb(unchecked((int)0xffA0A0A0)); //light gray
-      colorEGA[8] = Color.FromArgb(unchecked((int)0xff505050)); //dark gray
-      colorEGA[9] = Color.FromArgb(unchecked((int)0xff5050FF)); //light blue
-      colorEGA[10] = Color.FromArgb(unchecked((int)0xff00FF50)); //light green
-      colorEGA[11] = Color.FromArgb(unchecked((int)0xff50FFFF)); //light cyan
-      colorEGA[12] = Color.FromArgb(unchecked((int)0xffFF5050)); //light red
-      colorEGA[13] = Color.FromArgb(unchecked((int)0xffFF50FF)); //light magenta
-      colorEGA[14] = Color.FromArgb(unchecked((int)0xffFFFF50)); //yellow
-      colorEGA[15] = Color.FromArgb(unchecked((int)0xffFFFFFF)); //white
+      colorEGA[0] = Color.FromArgb(0, 0, 0);           // 000000 = black
+      colorEGA[1] = Color.FromArgb(0, 0, 0xA0);        // 0000A0 = blue
+      colorEGA[2] = Color.FromArgb(0, 0xA0, 0);        // 00A000 = green
+      colorEGA[3] = Color.FromArgb(0, 0xA0, 0xA0);     // 00A0A0 = cyan
+      colorEGA[4] = Color.FromArgb(0xA0, 0, 0);        // A00000 = red
+      colorEGA[5] = Color.FromArgb(0x80, 0, 0xA0);     // 8000A0 = magenta
+      colorEGA[6] = Color.FromArgb(0xA0, 0xA0, 0);     // A05000 = brown
+      colorEGA[7] = Color.FromArgb(0xA0, 0xA0, 0xA0);  // A0A0A0 = light gray
+      colorEGA[8] = Color.FromArgb(0x50, 0x50, 0x50);  // 505050 = dark gray
+      colorEGA[9] = Color.FromArgb(0x50, 0x50, 0xFF);  // 5050FF = light blue
+      colorEGA[10] = Color.FromArgb(0, 0xFF, 0x50);    // 00FF50 = light green
+      colorEGA[11] = Color.FromArgb(0x50, 0xFF, 0xFF); // 50FFFF = light cyan
+      colorEGA[12] = Color.FromArgb(0xFF, 0x50, 0x50); // FF5050 = light red
+      colorEGA[13] = Color.FromArgb(0xFF, 0x50, 0xFF); // FF50FF = light magenta
+      colorEGA[14] = Color.FromArgb(0xFF, 0xFF, 0x50); // FFFF50 = yellow
+      colorEGA[15] = Color.FromArgb(0xFF, 0xFF, 0xFF); // FFFFFF = white
+    }
+    public static string ColorText(Color aColor)
+    {
+      // converts aColor into a useful string value for storing in config files
+      return "0x" + aColor.R.ToString("x2") + ", 0x" + aColor.G.ToString("x2") + ", 0x" + aColor.B.ToString("x2");
+    }
+    public static string ColorText(int index)
+    {
+      // converts the egacolor for this index to string value
+      if (index < 0 || index > 15) {
+        throw new IndexOutOfRangeException("bad color");
+      }
+      return ColorText(colorEGA[index]);
     }
     public static bool IsValidGameDir(string strDir)
     {
@@ -2815,40 +2898,10 @@ MA  02110-1301  USA
       //     use res names property
       //     use layout editor
 
-      string strSection, strLine;
-
       //Palette: (make sure AGI defaults set first)
       RestoreDefaultColors();
       for (int i = 0; i < 16; i++) {
-        //validate it's a good number before writing it
-        strLine = ReadSettingString(agGameProps, "Palette", "Color" + i.ToString(), "0x" + ColorTranslator.ToWin32(EGAColor[i]).ToString("x8")).Trim();
-        switch (Left(strLine, 2)) {
-        case "0x":
-          // convert hex to int
-          try {
-            int num = Int32.Parse(strLine.Substring(2), NumberStyles.HexNumber);
-            EGAColor[i] = Color.FromArgb(num);
-          }
-          catch (Exception) {
-            // keep default
-          }
-          break;
-        case "&H":
-          // strip off '&H' and convert hex to int
-          try {
-            int num = Int32.Parse(strLine.Substring(2), NumberStyles.HexNumber);
-            EGAColor[i] = Color.FromArgb(num);
-          }
-          catch (Exception) {
-            // keep default
-          }
-          // update the file to current format
-          WriteGameSetting("Palette", "Color" + i.ToString(), "0x" + ColorTranslator.ToWin32(EGAColor[i]).ToString("x8"));
-          break;
-        default:
-          // no good; keep default
-          break;
-        }
+        EGAColor[i] = ReadSettingColor(agGameProps, "Palette", "Color" + i.ToString(), EGAColor[i]);
       }
       //description
       agDescription = ReadSettingString(agGameProps, "General", "Description");

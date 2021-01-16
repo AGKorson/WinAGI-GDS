@@ -534,116 +534,6 @@ internal byte AGIVal(int IntIn)
 }
 
 
-internal string CompactPath(string LongPath, int MaxLength = 40)
-{
-  //this method will ensure LongPath is compacted
-  //to be less than MaxLength characters long, if possible
-  //by eliminating directories and replacing them with ellipse(...)
-  
-  string[] strDirs()
-  int i, lngLength
-  int lngUbound
-  bool blnPathOnly
-  
-  On Error GoTo ErrHandler
-  
-  //if already fits,
-  if (LongPath.Length <= MaxLength) {
-    //return entire path
-    CompactPath = LongPath
-    return
-  }
-  
-  //if no subdirectories
-  if (InStr(1, LongPath, "\\") == 0) {
-    //return truncated path
-    CompactPath = Left(LongPath, MaxLength - 3) + "..."
-    return
-  }
-  
-  //if not a valid path (i.e.doesn//t start with a drive letter, and a colon and a backslash
-  if (AscW(LongPath.toLower()) < 97 || AscW(LongPath.ToLower()) > 122 || Mid(LongPath, 2, 1) != ":" || Mid(LongPath, 3, 1) != "\\") {
-    //return truncated path
-    CompactPath = Left(LongPath, MaxLength - 3) + "..."
-    return
-  }
-  
-  //if path ends with //\//
-  if (Right(LongPath, 1) == "\\") {
-    //strip it off temporarily
-    LongPath = Left(LongPath, LongPath.Length - 1)
-    //reduce maxlength by one so the //\// can be re-added
-    MaxLength = MaxLength - 1
-    //set flag
-    blnPathOnly = true
-  }
-  
-  //split into elements
-  strDirs = Split(LongPath, "\\")
-  
-  //get upperbound
-  lngUbound = UBound(strDirs)
-  
-  //if name is too long (longer than Max length minus drive and //\...\//
-  if (strDirs(lngUbound).Length > MaxLength - strDirs(0).Length - 5) {
-    //if only two elements
-    if (lngUbound == 1) {
-      //add drive and enough of name to just fit with a trailing ellipsis
-      CompactPath = strDirs(0) + "\\" + Left(strDirs(lngUbound), MaxLength - strDirs(0).Length - 4) + "..."
-    } else {
-      //if REALLY short, so that even the ellipses won//t fit
-      if (MaxLength - strDirs(0).Length - 8 < 2) {
-        //just return string, truncated
-        CompactPath = Left(LongPath, MaxLength - 3) + "..."
-      } else {
-        //add drive and //\..\// and enough of name to just fit with a trailing ellipsis
-        CompactPath = strDirs(0) + "\...\" + Left(strDirs(lngUbound), MaxLength - strDirs(0).Length - 8) + "..."
-      }
-    }
-    //if path only,
-    if (blnPathOnly) {
-      //add trailing backslash
-      CompactPath = CompactPath + "\\"
-    }
-    return
-  }
-    
-  //adjust maxlength to allow for the drive letter, and //\...\// and name (strDirs(lngUbound))
-  MaxLength = MaxLength - strDirs(0).Length - 5 - strDirs(lngUbound).Length
-  
-  //add directories until too long
-  i = lngUbound - 1
-  
-  For i = lngUbound - 1 To 1 Step -1
-    //if remaining space left for path is not at least four characters (x..\)
-    if (CompactPath.Length >= MaxLength - 4) {
-      Exit For
-    }
-    
-    //is there room for entire directory?
-    if (strDirs(i).Length <= MaxLength - CompactPath.Length - 1) {
-      //add entire directory
-      CompactPath = strDirs(i) + "\\" + CompactPath
-    } else {
-      //add two dots to end of path so it adds up to maxlength
-      CompactPath = Left(strDirs(i), MaxLength - CompactPath.Length - 3) + "..\" + CompactPath
-    }
-  Next i
-  
-  //add ellipse and name
-  CompactPath = strDirs(0) + "\...\" + CompactPath + strDirs(lngUbound)
-  //if path only,
-  if (blnPathOnly) {
-    //add trailing backslash
-    CompactPath = CompactPath + "\\"
-  }
-return
-
-ErrHandler:
-  //Debug.Assert false
-  //just return string, truncated
-  CompactPath = Left(LongPath, MaxLength - 3) + "..."
-}
 
 internal int vCint(double InputNum)
 {  
@@ -776,6 +666,37 @@ internal int vClng(double InputNum)
   vClng = Int(InputNum) + CLng(InputNum - Int(InputNum) + 1) - 1
 }
       */
+    }
+    internal static string CompactPath(string LongPath, int MaxLength = 40)
+    {
+      //this method will ensure LongPath is compacted
+      //to be less than MaxLength characters long, if possible
+      //by eliminating directories and replacing them with ellipse(...)
+
+      string strDir, strFile;
+
+      //if already fits,
+      if (LongPath.Length <= MaxLength) {
+        //return entire path
+        return LongPath;
+      }
+      //if no subdirectories
+      if (!LongPath.Contains("\\")) {
+        //return truncated path
+        return Left(LongPath, MaxLength - 3) + "...";
+      }
+      // position of last backslash
+      int lngPos = LongPath.LastIndexOf('\\');
+      // split into two strings
+      strDir = Left(LongPath, lngPos);
+      strFile = Right(LongPath, LongPath.Length - lngPos - 1);
+      // if file name is too long
+      if (strFile.Length > MaxLength - 4) {
+        // return truncated filename
+        return Left(strFile, MaxLength - 3) + "...";
+      }
+      //truncate directory, pad with ... and return combined dir/filename
+      return Left(strDir, MaxLength - 4) + "...\\" + strFile;
     }
     internal static string ShortFileName(string strLongFileName)
     {

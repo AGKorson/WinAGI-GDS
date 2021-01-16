@@ -20,11 +20,13 @@ namespace WinAGI_GDS
     public AGILogics aglogs = new AGILogics { };
     internal ELogicFormMode FormMode;
     internal bool InGame;
+    public bool ListDirty = false;
 
     public frmLogicEdit()
     {
       InitializeComponent();
     }
+
 
     private void rtfLogic_DoubleClick(object sender, EventArgs e)
     {

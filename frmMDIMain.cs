@@ -68,6 +68,7 @@ namespace WinAGI_GDS
     int ListItemHeight;
     bool NoPaint;
     bool CanSelect;
+    private bool splashDone;
 
     public frmMDIMain()
     {
@@ -92,6 +93,43 @@ namespace WinAGI_GDS
     private void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e)
     {
       Debug.Print($"Loading Status: {e.lStatus} - Type: {e.ResType} - Number: {e.ResNum} Msg: {e.ErrString}");
+      //update the load ProgressWin form
+      bool blnNoWAG = false;
+      switch (e.lStatus) {
+      case ELStatus.lsDecompiling:
+        ProgressWin.lblProgress.Text = "Validating AGI game files ...";
+        blnNoWAG = true;
+        break;
+
+      case ELStatus.lsPropertyFile:
+        if (blnNoWAG) {
+          ProgressWin.lblProgress.Text = "Creating game property file ...";
+        } else {
+          ProgressWin.lblProgress.Text = "Loading game property file ...";
+        }
+        break;
+
+      case ELStatus.lsResources:
+        switch (e.ResType) {
+        case AGIResType.rtLogic:
+        case AGIResType.rtPicture:
+        case AGIResType.rtView:
+        case AGIResType.rtSound:
+          ProgressWin.lblProgress.Text = "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum;
+          break;
+        case AGIResType.rtWords:
+          ProgressWin.lblProgress.Text = "Validating WORDS.TOK file";
+          break;
+        case AGIResType.rtObjects:
+          ProgressWin.lblProgress.Text = "Validating OBJECT file";
+          break;
+        }
+        break;
+      case ELStatus.lsFinalizing:
+        ProgressWin.lblProgress.Text = "Configuring WinAGI";
+        break;
+      }
+      ProgressWin.Refresh();
     }
     private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e)
     {
@@ -113,31 +151,21 @@ namespace WinAGI_GDS
       OpenDlg.DefaultExt = "wag";
       OpenDlg.Filter = "WinAGI Game Files (*.wag)|*.wag|All files|*.*";
       DialogResult result = OpenDlg.ShowDialog(this);
-      if (result == DialogResult.OK)
-      {
+      if (result == DialogResult.OK) {
         //let's open it
         this.UseWaitCursor = true;
-        OpenGameWAG(OpenDlg.FileName);
-        PreviewWin = new frmPreview();
-        PreviewWin.MdiParent = this;
-        PreviewWin.Show();
+        Refresh();
+        OpenWAG(OpenDlg.FileName);
         this.UseWaitCursor = false;
-      }
-      else
-      {
+      } else {
         return;
       }
 
-      if (retval == 0)
-      {
+      if (retval == 0) {
         MessageBox.Show("Game opened with no errors or warnings.");
-      }
-      else if (retval == WINAGI_ERR + 636)
-      {
+      } else if (retval == WINAGI_ERR + 636) {
         MessageBox.Show("Game opened, with warnings.");
-      }
-      else
-      {
+      } else {
         MessageBox.Show($"opengame result: {(retval - WINAGI_ERR).ToString()}");
       }
     }
@@ -159,8 +187,7 @@ namespace WinAGI_GDS
     }
     private void mnuWMinimize_Click(object sender, EventArgs e)
     {
-      foreach (Form childForm in MdiChildren)
-      {
+      foreach (Form childForm in MdiChildren) {
         childForm.WindowState = FormWindowState.Minimized;
       }
     }
@@ -178,34 +205,166 @@ namespace WinAGI_GDS
     {
       // cancel it? and do whatever is shown?
       System.Windows.Forms.ToolStripSplitButton btnSender = (System.Windows.Forms.ToolStripSplitButton)sender;
-      if (btnSender.IsOnDropDown)
-      {
+      if (btnSender.IsOnDropDown) {
         MessageBox.Show("on dropdown");
       }
     }
     private void frmMDIMain_Load(object sender, EventArgs e)
     {
+      bool blnLastLoad;
+
       //what is resolution?
       MessageBox.Show($"Current DPI: {this.DeviceDpi}");
+
+      CalcWidth = MIN_WIDTH;
+      CalcHeight = MIN_HEIGHT;
+      // show wait cursor
+      UseWaitCursor = true;
+      Refresh();
+//      //initialize GDI plus
+//      InitGDIPlus();
+
+//        //screen twips
+//        ScreenTWIPSX = Screen.TwipsPerPixelX
+//        ScreenTWIPSY = Screen.TwipsPerPixelY
+
+//      //need to calculate height of top margin (for use by logic editor in displaying tips)
+//      lngMainTopBorder = (this.Height - this.ScaleHeight - this.StatusBar1.Height - (this.Width - this.ScaleWidth) / 2) / ScreenTWIPSY;
+//      lngMainLeftBorder = (this.Width - this.ScaleWidth) / ScreenTWIPSY / 2;
+//        //and also need border values to facilitate positioning of the warnings list
+//        WLOffsetH = this.Height - this.ScaleHeight;
+//        WLOffsetW = this.Width - this.ScaleWidth;
+
+        //set preview window, status bar and other dialog objects
+        PreviewWin = new frmPreview();
+        MainStatusBar = statusStrip1;
+//      ViewClipboard = picViewCB;
+        SoundClipboard = new AGINotes();
+//      NotePictures = picNotes;
+//        WordsClipboard = new WordsUndo();
+        AGIFindForm = new frmFind();
+
+        //hide rsource and warning panels until needed
+        pnlResources.Visible = false;
+        pnlWarnings.Visible = false;
+//      //get listitem height
+//      ListItemHeight = SendMessage(lstProperty.hWnd, LB_GETITEMHEIGHT, 0, 0)
+//      //if not successful
+//      if (ListItemHeight = 0) {
+//        //use default
+//        ListItemHeight = 13
+//      }
+        //set property window to 3 so startup doesn//t trip during resize events
+        PropRowCount = 3;
+//      //set property window split location based on longest word
+//      PropSplitLoc = picProperties.TextWidth(" Use Res Names ");
+//      picProperties.Top = picResources.ScaleHeight - (4 * PropRowHeight);
+
+
+      //background color for previewing views is set to default
+      PrevWinBColor = SystemColors.Control;
+      //set selected prop
+      SelectedProp = 1;
+
       // initialize the basic app functionality
       InitializeResMan();
-      // read settings
-      ReadSettings();
-      // set up object references
+      ProgramDir = CDir(JustPath(Application.ExecutablePath));
+      DefaultResDir = ProgramDir;
+      //set browser start dir to program dir
+      BrowserStartDir = ProgramDir;
+
+      //get game settings and set initial window positions
+      //this happens after all the stuff above because
+      //Readsettings affects things that need to be initialized first
+      if (!ReadSettings()) {
+        //problem with settings
+        MessageBox.Show("Fatal error: Unable to read program settings", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        this.Close();
+        return;
+      }
+      frmSplash splash = null;
+      //show splash screen, if applicable
+      if (Settings.ShowSplashScreen) {
+        Visible = true;
+        Refresh();
+        splash = new frmSplash();
+        splash.Show(this);
+        splash.Refresh();
+      }
+      //enable timer
+      timer1.Interval = 1750;
+      timer1.Enabled = true;
+
+      LogicEditors = new List<frmLogicEdit>();
+      ViewEditors = new List<frmViewEdit>();
+      PictureEditors = new List<frmPicEdit>();
+      SoundEditors = new List<frmSoundEdit>();
+
+      //build the lookup table for reserved defines
+      BuildRDefLookup();
+      //default to an empty globals list
+      GDefLookup = Array.Empty<TDefine>();
+      //if using snippets
+      if (Settings.Snippets) {
+        //build snippet table
+        BuildSnippets();
+      }
+      //get reference to temporary directory
+      //TempFileDir = GetTempFileDir()
+      WinAGIHelp = ProgramDir + "WinAGI.chm";
+//      mnuHContents.Text = "Contents" + Keys.Tab + "F1";
+
+      //initialize resource treelist by using clear method
+      ClearResourceList();
+
+      //retrieve user//s preferred AGI colors
+      GetDefaultColors();
+
+      //let the system catch up
+      Refresh();
+
+//      //establish printer margins (don't need to show error msg if printer isn't available)
+//      UpdatePrinterCaps(Printer.Orientation, true);
+
+      if (Settings.ShowSplashScreen) {
+        //dont close unless ~1.75 seconds passed
+        while (!splashDone)
+        {
+          Application.DoEvents();
+        }
+        splash.Close();
+      }
+
+      //check for command string
+      CheckCmd();
+
+      //was a game loaded when app was last closed
+      blnLastLoad = ReadSettingBool(SettingsList, sMRULIST, "LastLoad", false);
+
+
+      //if nothing loaded AND autoreload is set AND something was loaded last time program ended,
+      if (!GameLoaded && this.ActiveMdiChild == null && Settings.AutoOpen && blnLastLoad) {
+        //open mru1
+        OpenMRUGame(1);
+      }
+      //show the form
+      //if no printers,
+      if (NoPrinter && !Settings.SkipPrintWarning) {
+//        MsgBoxEx("There are no printers available, so printing functions will be disabled.", vbInformation + vbOKOnly, "WinAGI GDS", , , "Don//t show this warning again.", Settings.SkipPrintWarning
+      }
+      if (Settings.SkipPrintWarning) {
+        WriteAppSetting(SettingsList, sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning);
+      }
+      UseWaitCursor = false;
     }
     private void btnNewLogic_Click(object sender, EventArgs e)
     {
       if (!GameLoaded) return;
 
-      //lets try to load a logic!
-      Logics[5].Load();
-      MessageBox.Show($"Logic 0 ({Logics[5].ID}) is loaded: {Logics[5].Loaded}");
-      // assign it to new logic form!
       frmLogicEdit frmNew = new frmLogicEdit
       {
         MdiParent = this
       };
-      frmNew.rtfLogic.Text = Logics[5].SourceText;
       frmNew.Show();
     }
     private void btnNewPicture_Click(object sender, EventArgs e)
@@ -245,12 +404,10 @@ namespace WinAGI_GDS
       //  Debug.Print($"Group {WordList.GroupN(i).GroupNum}: {WordList.GroupN(i).GroupName} ({WordList.GroupN(i).WordCount} words)");
       //}
       int i = 0, j = 0;
-      foreach (AGIWord tmpWord in (IEnumerable<AGIWord>)WordList)
-      {
+      foreach (AGIWord tmpWord in (IEnumerable<AGIWord>)WordList) {
         i++;
       }
-      foreach (AGIWordGroup tmpGrp in (IEnumerable<AGIWordGroup>)WordList)
-      {
+      foreach (AGIWordGroup tmpGrp in (IEnumerable<AGIWordGroup>)WordList) {
         j++;
       }
       Debug.Print($"There are {i} words in {j} groups in this list.");
@@ -271,8 +428,7 @@ namespace WinAGI_GDS
     private void cmbResType_SelectedIndexChanged(object sender, EventArgs e)
     {
       //fill list box with resources for selected type
-      if (GameLoaded)
-      {
+      if (GameLoaded) {
         AGIResType selRes;
 
         // clear current list
@@ -280,8 +436,7 @@ namespace WinAGI_GDS
 
         selRes = (AGIResType)cmbResType.SelectedIndex;
 
-        switch (cmbResType.SelectedIndex)
-        {
+        switch (cmbResType.SelectedIndex) {
         case 0: // game
           selRes = rtGame;
           break;
@@ -317,12 +472,10 @@ namespace WinAGI_GDS
     }
     private void lstResources_SelectedIndexChanged(object sender, EventArgs e)
     {
-      if (GameLoaded)
-      {
+      if (GameLoaded) {
 
         AGIResType NewType = rtGame; int NewNum = 0;
-        switch (cmbResType.SelectedIndex)
-        {
+        switch (cmbResType.SelectedIndex) {
         case 0: //game
                 //root
           NewType = rtGame;
@@ -331,8 +484,7 @@ namespace WinAGI_GDS
           break;
         case 1: //logics
                 //if nothing to select
-          if (lstResources.SelectedItem == null)
-          {
+          if (lstResources.SelectedItem == null) {
             //just exit
             return;
           }
@@ -345,8 +497,7 @@ namespace WinAGI_GDS
           break;
         case 2: //pictures
           //if nothing to select
-          if (lstResources.SelectedItem == null)
-          {
+          if (lstResources.SelectedItem == null) {
             //just exit
             return;
           }
@@ -359,8 +510,7 @@ namespace WinAGI_GDS
           break;
         case 3: //sounds
           //if nothing to select
-          if (lstResources.SelectedItem == null)
-          {
+          if (lstResources.SelectedItem == null) {
             //just exit
             return;
           }
@@ -373,8 +523,7 @@ namespace WinAGI_GDS
           break;
         case 4: //views
                 //if nothing to select
-          if (lstResources.SelectedItem == null)
-          {
+          if (lstResources.SelectedItem == null) {
             //just exit
             return;
           }
@@ -397,23 +546,16 @@ namespace WinAGI_GDS
           NewNum = -1;
           break;
         }
-        if (!DontQueue)
-        {
+        if (!DontQueue) {
           SelectResource(NewType, NewNum);
         }
       }
     }
     private void timer1_Tick(object sender, EventArgs e)
     {
-      //if (SelectedView != null)
-      //{
-      //  curCel++;
-      //  if (curCel == SelectedView[0].Cels.Count)
-      //  {
-      //    curCel = 0;
-      //  }
-      //  ShowAGIBitmap(picView, SelectedView[0][curCel].CelBMP, 5);
-      //}
+      // used by splash screen
+      splashDone = true;
+      timer1.Enabled = false;
     }
     private void lstResources_DoubleClick(object sender, EventArgs e)
     {
@@ -435,8 +577,7 @@ namespace WinAGI_GDS
       SelResNum = NewResNum;
 
       //get number of rows to display based on new selection
-      switch (SelResType)
-      {
+      switch (SelResType) {
       case AGIResType.rtNone:
         //nothing to show
         PropRows = 0;
@@ -446,13 +587,10 @@ namespace WinAGI_GDS
         PropRows = 10;
         break;
       case AGIResType.rtLogic:
-        if (SelResNum == -1)
-        {
+        if (SelResNum == -1) {
           //logic header
           PropRows = 3;
-        }
-        else
-        {
+        } else {
           //logic
           SelResType = AGIResType.rtLogic;
           //show logic properties
@@ -460,13 +598,10 @@ namespace WinAGI_GDS
         }
         break;
       case AGIResType.rtPicture:
-        if (SelResNum == -1)
-        {
+        if (SelResNum == -1) {
           //picture header
           PropRows = 1;
-        }
-        else
-        {
+        } else {
           //pictures
           SelResType = AGIResType.rtPicture;
           //show id, number, description
@@ -474,13 +609,10 @@ namespace WinAGI_GDS
         }
         break;
       case AGIResType.rtSound:
-        if (SelResNum == -1)
-        {
+        if (SelResNum == -1) {
           //sound header
           PropRows = 1;
-        }
-        else
-        {
+        } else {
           //sounds
           SelResType = AGIResType.rtSound;
           //show id, number, description
@@ -488,13 +620,10 @@ namespace WinAGI_GDS
         }
         break;
       case AGIResType.rtView:
-        if (SelResNum == -1)
-        {
+        if (SelResNum == -1) {
           //view header
           PropRows = 1;
-        }
-        else
-        {
+        } else {
           //views
           SelResType = rtView;
           //show id, number, description
@@ -512,11 +641,9 @@ namespace WinAGI_GDS
       }
 
       //if previewing
-      if (Settings.ShowPreview)
-      {
+      if (Settings.ShowPreview) {
         //if update is requested
-        if (Settings.ShowPreview && UpdatePreview)
-        {
+        if (Settings.ShowPreview && UpdatePreview) {
           // load the preview item
           NoPaint = true;
           PreviewWin.LoadPreview(SelResType, SelResNum);
@@ -524,21 +651,17 @@ namespace WinAGI_GDS
       }
 
       //if resource list is visible,
-      if (Settings.ResListType >= 0)
-      {
+      if (Settings.ResListType >= 0) {
         //add selected resource to navigation queue
 
         //update property window
         PaintPropertyWindow();
 
-        if (SelResNum < 0)
-        {
+        if (SelResNum < 0) {
           //add headers and non-regular resources by type
           //by 4/type
           AddToQueue((AGIResType)4, (int)SelResType);
-        }
-        else
-        {
+        } else {
           // add regular resourses by type/number
           AddToQueue(SelResType, SelResNum);
         }
@@ -549,17 +672,12 @@ namespace WinAGI_GDS
         cmdBack.Enabled = ResQueue.Count >= 2;
 
         //if a logic is selected, and layout editor is active form
-        if (SelResType == AGIResType.rtLogic)
-        {
+        if (SelResType == AGIResType.rtLogic) {
           //if syncing the layout editor and the treeview list
-          if (Settings.LESync)
-          {
-            if (this.ActiveMdiChild != null)
-            {
-              if (this.ActiveMdiChild is frmLayout)
-              {
-                if (Logics[(byte)SelResNum].IsRoom)
-                {
+          if (Settings.LESync) {
+            if (this.ActiveMdiChild != null) {
+              if (this.ActiveMdiChild is frmLayout) {
+                if (Logics[(byte)SelResNum].IsRoom) {
                   //if option to sync is set
                   LayoutEditor.SelectRoom(SelResNum);
                 }
@@ -569,7 +687,6 @@ namespace WinAGI_GDS
         }
       }
     }
-
     private void btnNewView_Click(object sender, EventArgs e)
     {
       // show editor form
@@ -594,8 +711,7 @@ namespace WinAGI_GDS
       int ResNum;
       string strKey = "";
       // make sure queue has something
-      if (ResQueue.Count == 0)
-      {
+      if (ResQueue.Count == 0) {
         return;
       }
       //disable queue addition
@@ -606,11 +722,9 @@ namespace WinAGI_GDS
       ResNum = qval % 256;
 
       //if a header or top level
-      if ((int)ResType == 4)
-      {
+      if ((int)ResType == 4) {
         //resnum indicates type
-        switch (Settings.ResListType)
-        {
+        switch (Settings.ResListType) {
         case 1:
           //With tvwResources
           //  Select Case ResNum
@@ -629,8 +743,7 @@ namespace WinAGI_GDS
           break;
         case 2:
           //for listbox, need to select correct type in combo
-          switch (ResNum)
-          {
+          switch (ResNum) {
           case (int)rtGame: //root
             cmbResType.SelectedIndex = 0;
             //then force selection change
@@ -658,36 +771,29 @@ namespace WinAGI_GDS
           break;
         }
 
-      }
-      else
-      {
+      } else {
         //does the resource still exist?
-        switch ((int)ResType)
-        {
+        switch ((int)ResType) {
         case (int)rtLogic:
-          if (!Logics.Exists((byte)ResNum))
-          {
+          if (!Logics.Exists((byte)ResNum)) {
             return;
           }
           strKey = "l" + ResNum;
           break;
         case (int)rtPicture:
-          if (!Pictures.Exists((byte)ResNum))
-          {
+          if (!Pictures.Exists((byte)ResNum)) {
             return;
           }
           strKey = "p" + ResNum;
           break;
         case (int)rtSound:
-          if (!Sounds.Exists((byte)ResNum))
-          {
+          if (!Sounds.Exists((byte)ResNum)) {
             return;
           }
           strKey = "s" + ResNum;
           break;
         case (int)rtView:
-          if (!Views.Exists((byte)ResNum))
-          {
+          if (!Views.Exists((byte)ResNum)) {
             return;
           }
           strKey = "v" + ResNum;
@@ -695,16 +801,14 @@ namespace WinAGI_GDS
         }
 
         //if no key
-        if (strKey.Length == 0)
-        {
+        if (strKey.Length == 0) {
           //this resource doesn't exist anymore - probably
           //deleted
           return;
         }
 
         //select this resource
-        switch (Settings.ResListType)
-        {
+        switch (Settings.ResListType) {
         case 1:
           //tvwResources.SelectedItem = tvwResources.Nodes(strKey)
           //tvwResources_NodeClick tvwResources.SelectedItem
@@ -758,8 +862,7 @@ namespace WinAGI_GDS
       Settings.HidePreview = ReadSettingBool(SettingsList, sGENERAL, "HidePreview", DEFAULT_HIDEPREVIEW);
       Settings.ResListType = ReadSettingLong(SettingsList, sGENERAL, "ResListType", DEFAULT_RESLISTTYPE);
       //validate treetype
-      if (Settings.ResListType < 0 || Settings.ResListType > 2)
-      {
+      if (Settings.ResListType < 0 || Settings.ResListType > 2) {
         //use default
         Settings.ResListType = DEFAULT_RESLISTTYPE;
         WriteAppSetting(SettingsList, sGENERAL, "ResListType", Settings.ResListType.ToString(), "");
@@ -774,12 +877,10 @@ namespace WinAGI_GDS
       //(DefResDir is not an element of settings; it//s a WinAGI property)
       DefResDir = ReadSettingString(SettingsList, sGENERAL, "DefResDir", "src").Trim();
       //validate directory
-      if (DefResDir == "")
-      {
+      if (DefResDir == "") {
         DefResDir = "src";
-      }
-      else if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) //     !#$%&'()+,-;=@[]^`{}~
-      {
+      } else if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) //     !#$%&'()+,-;=@[]^`{}~
+        {
         //invalid character; reset to default
         DefResDir = "src";
       }
@@ -797,18 +898,16 @@ namespace WinAGI_GDS
         Settings.MaxVol0Size = 1047552;
       MaxVol0Size = Settings.MaxVol0Size;
       //get help window parent
-      if (!ReadSettingBool(SettingsList, sGENERAL, "DockHelpWindow", true))
-      {  
+      if (!ReadSettingBool(SettingsList, sGENERAL, "DockHelpWindow", true)) {
         //HelpParent = GetDesktopWindow();
         //if (HelpParent = 0)
-        //HelpParent = Me.hWnd;
+        //HelpParent = this.hWnd;
       }
       //RESFORMAT settings
       Settings.ShowResNum = ReadSettingBool(SettingsList, "ResFormat", "ShowResNum", DEFAULT_SHOWRESNUM);
       Settings.IncludeResNum = ReadSettingBool(SettingsList, "ResFormat", "IncludeResNum", DEFAULT_INCLUDERESNUM);
       Settings.ResFormat.NameCase = ReadSettingLong(SettingsList, "ResFormat", "NameCase", (int)DEFAULT_NAMECASE);
-      if ((int)Settings.ResFormat.NameCase < 0 || (int)Settings.ResFormat.NameCase > 2)
-      {
+      if ((int)Settings.ResFormat.NameCase < 0 || (int)Settings.ResFormat.NameCase > 2) {
         Settings.ResFormat.NameCase = DEFAULT_NAMECASE;
       }
       Settings.ResFormat.Separator = Left(ReadSettingString(SettingsList, "ResFormat", "Separator", DEFAULT_SEPARATOR), 1);
@@ -837,16 +936,16 @@ namespace WinAGI_GDS
         Settings.LEGrid = 0.05;
       Settings.LEZoom = ReadSettingLong(SettingsList, sLAYOUT, "Zoom", DEFAULT_LEZOOM);
       //get editor colors
-      Settings.LEColors.Room.Edge = ReadSettingLong(SettingsList, sLAYOUT, "RoomEdgeColor", DEFAULT_LEROOM_EDGE, true);
-      Settings.LEColors.Room.Fill = ReadSettingLong(SettingsList, sLAYOUT, "RoomFillColor", DEFAULT_LEROOM_FILL, true);
-      Settings.LEColors.TransPt.Edge = ReadSettingLong(SettingsList, sLAYOUT, "TransEdgeColor", DEFAULT_LETRANSPT_EDGE, true);
-      Settings.LEColors.TransPt.Fill = ReadSettingLong(SettingsList, sLAYOUT, "TransFillColor", DEFAULT_LETRANSPT_FILL, true);
-      Settings.LEColors.ErrPt.Edge = ReadSettingLong(SettingsList, sLAYOUT, "ErrEdgeColor", DEFAULT_LEERR_EDGE, true);
-      Settings.LEColors.ErrPt.Fill = ReadSettingLong(SettingsList, sLAYOUT, "ErrFillColor", DEFAULT_LEERR_FILL, true);
-      Settings.LEColors.Cmt.Edge = ReadSettingLong(SettingsList, sLAYOUT, "CmtEdgeColor", DEFAULT_LECMT_EDGE, true);
-      Settings.LEColors.Cmt.Fill = ReadSettingLong(SettingsList, sLAYOUT, "CmtFillColor", DEFAULT_LECMT_FILL, true);
-      Settings.LEColors.Edge = ReadSettingLong(SettingsList, sLAYOUT, "ExitEdgeColor", DEFAULT_LEEXIT_EDGE, true);
-      Settings.LEColors.Other = ReadSettingLong(SettingsList, sLAYOUT, "ExitOtherColor", DEFAULT_LEEXIT_OTHERS, true);
+      Settings.LEColors.Room.Edge = ReadSettingColor(SettingsList, sLAYOUT, "RoomEdgeColor", DEFAULT_LEROOM_EDGE);
+      Settings.LEColors.Room.Fill = ReadSettingColor(SettingsList, sLAYOUT, "RoomFillColor", DEFAULT_LEROOM_FILL);
+      Settings.LEColors.TransPt.Edge = ReadSettingColor(SettingsList, sLAYOUT, "TransEdgeColor", DEFAULT_LETRANSPT_EDGE);
+      Settings.LEColors.TransPt.Fill = ReadSettingColor(SettingsList, sLAYOUT, "TransFillColor", DEFAULT_LETRANSPT_FILL);
+      Settings.LEColors.ErrPt.Edge = ReadSettingColor(SettingsList, sLAYOUT, "ErrEdgeColor", DEFAULT_LEERR_EDGE);
+      Settings.LEColors.ErrPt.Fill = ReadSettingColor(SettingsList, sLAYOUT, "ErrFillColor", DEFAULT_LEERR_FILL);
+      Settings.LEColors.Cmt.Edge = ReadSettingColor(SettingsList, sLAYOUT, "CmtEdgeColor", DEFAULT_LECMT_EDGE);
+      Settings.LEColors.Cmt.Fill = ReadSettingColor(SettingsList, sLAYOUT, "CmtFillColor", DEFAULT_LECMT_FILL);
+      Settings.LEColors.Edge = ReadSettingColor(SettingsList, sLAYOUT, "ExitEdgeColor", DEFAULT_LEEXIT_EDGE);
+      Settings.LEColors.Other = ReadSettingColor(SettingsList, sLAYOUT, "ExitOtherColor", DEFAULT_LEEXIT_OTHERS);
       //LOGICS
       Settings.HighlightLogic = ReadSettingBool(SettingsList, sLOGICS, "HighlightLogic", DEFAULT_HILITELOG);
       Settings.HighlightText = ReadSettingBool(SettingsList, sLOGICS, "HighlightText", DEFAULT_HILITETEXT);
@@ -861,10 +960,8 @@ namespace WinAGI_GDS
       Settings.UseTxt = ReadSettingBool(SettingsList, sLOGICS, "UseTxt", DEFAULT_USETXT);
       Settings.EFontName = ReadSettingString(SettingsList, sLOGICS, "EditorFontName", DEFAULT_EFONTNAME);
       i = 0;
-      foreach (FontFamily font in System.Drawing.FontFamily.Families)
-      {
-        if (font.Name.Equals(Settings.EFontName, StringComparison.OrdinalIgnoreCase))
-        {
+      foreach (FontFamily font in System.Drawing.FontFamily.Families) {
+        if (font.Name.Equals(Settings.EFontName, StringComparison.OrdinalIgnoreCase)) {
           //found
           i = 1;
           break;
@@ -880,10 +977,8 @@ namespace WinAGI_GDS
         Settings.EFontSize = 24;
       Settings.PFontName = ReadSettingString(SettingsList, sLOGICS, "PreviewFontName", DEFAULT_PFONTNAME);
       i = 0;
-      foreach (FontFamily font in System.Drawing.FontFamily.Families)
-      {
-        if (font.Name.Equals(Settings.PFontName, StringComparison.OrdinalIgnoreCase))
-        {
+      foreach (FontFamily font in System.Drawing.FontFamily.Families) {
+        if (font.Name.Equals(Settings.PFontName, StringComparison.OrdinalIgnoreCase)) {
           //found
           i = 1;
           break;
@@ -928,12 +1023,12 @@ namespace WinAGI_GDS
       Settings.Snippets = ReadSettingBool(SettingsList, sLOGICS, "Snippets", DEFAULT_SNIPPETS);
 
       //SYNTAXHIGHLIGHTFORMAT
-      Settings.HColor[0] = ReadSettingLong(SettingsList, sSHFORMAT, "NormalColor", DEFAULT_HNRMCOLOR, true);
-      Settings.HColor[1] = ReadSettingLong(SettingsList, sSHFORMAT, "KeywordColor", DEFAULT_HKEYCOLOR, true);
-      Settings.HColor[2] = ReadSettingLong(SettingsList, sSHFORMAT, "IdentifierColor", DEFAULT_HIDTCOLOR, true);
-      Settings.HColor[3] = ReadSettingLong(SettingsList, sSHFORMAT, "StringColor", DEFAULT_HSTRCOLOR, true);
-      Settings.HColor[4] = ReadSettingLong(SettingsList, sSHFORMAT, "CommentColor", DEFAULT_HCMTCOLOR, true);
-      Settings.HColor[5] = ReadSettingLong(SettingsList, sSHFORMAT, "BackColor", DEFAULT_HBKGCOLOR, true);
+      Settings.HColor[0] = ReadSettingColor(SettingsList, sSHFORMAT, "NormalColor", DEFAULT_HNRMCOLOR);
+      Settings.HColor[1] = ReadSettingColor(SettingsList, sSHFORMAT, "KeywordColor", DEFAULT_HKEYCOLOR);
+      Settings.HColor[2] = ReadSettingColor(SettingsList, sSHFORMAT, "IdentifierColor", DEFAULT_HIDTCOLOR);
+      Settings.HColor[3] = ReadSettingColor(SettingsList, sSHFORMAT, "StringColor", DEFAULT_HSTRCOLOR);
+      Settings.HColor[4] = ReadSettingColor(SettingsList, sSHFORMAT, "CommentColor", DEFAULT_HCMTCOLOR);
+      Settings.HColor[5] = ReadSettingColor(SettingsList, sSHFORMAT, "BackColor", DEFAULT_HBKGCOLOR);
       Settings.HBold[0] = ReadSettingBool(SettingsList, sSHFORMAT, "NormalBold", DEFAULT_HNRMBOLD);
       Settings.HBold[1] = ReadSettingBool(SettingsList, sSHFORMAT, "KeywordBold", DEFAULT_HKEYBOLD);
       Settings.HBold[2] = ReadSettingBool(SettingsList, sSHFORMAT, "IdentifierBold", DEFAULT_HIDTBOLD);
@@ -1058,12 +1153,9 @@ namespace WinAGI_GDS
       LogicSourceSettings.SpecialSyntax = ReadSettingBool(SettingsList, sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
       LogicSourceSettings.ReservedAsText = ReadSettingBool(SettingsList, sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
       LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
-      if (Settings.UseTxt)
-      {
+      if (Settings.UseTxt) {
         LogicSourceSettings.SourceExt = ".txt";
-      }
-      else
-      {
+      } else {
         LogicSourceSettings.SourceExt = ".lgc";
       }
 
@@ -1080,74 +1172,62 @@ namespace WinAGI_GDS
 
       //get main window position
       sngLeft = ReadSettingSingle(SettingsList, sPOSITION, "Left", Screen.PrimaryScreen.Bounds.Width * 0.15);
-      if (sngLeft < 0)
-      {
+      if (sngLeft < 0) {
         sngLeft = 0;
-      } else if (sngLeft > Screen.PrimaryScreen.Bounds.Width * 0.85) 
-      {
+      } else if (sngLeft > Screen.PrimaryScreen.Bounds.Width * 0.85) {
         sngLeft = Screen.PrimaryScreen.Bounds.Width * 0.85;
       }
       sngTop = ReadSettingSingle(SettingsList, sPOSITION, "Top", Screen.PrimaryScreen.Bounds.Height * 0.15);
-      if (sngTop < 0)
-      {
+      if (sngTop < 0) {
         sngTop = 0;
-      } else if ( sngTop > Screen.PrimaryScreen.Bounds.Height * 0.85) 
-      {
+      } else if (sngTop > Screen.PrimaryScreen.Bounds.Height * 0.85) {
         sngTop = Screen.PrimaryScreen.Bounds.Height * 0.85;
       }
       sngWidth = ReadSettingSingle(SettingsList, sPOSITION, "Width", Screen.PrimaryScreen.Bounds.Width * 0.7);
-      if (sngWidth <= Screen.PrimaryScreen.Bounds.Width * 0.2)
-      {
+      if (sngWidth <= Screen.PrimaryScreen.Bounds.Width * 0.2) {
         sngWidth = Screen.PrimaryScreen.Bounds.Width * 0.2;
-      } 
-      if (sngWidth > Screen.PrimaryScreen.Bounds.Width)
-      {
+      }
+      if (sngWidth > Screen.PrimaryScreen.Bounds.Width) {
         sngWidth = Screen.PrimaryScreen.Bounds.Width;
       }
       sngHeight = ReadSettingSingle(SettingsList, sPOSITION, "Height", Screen.PrimaryScreen.Bounds.Height * 0.7);
-      if (sngHeight <= Screen.PrimaryScreen.Bounds.Height * 0.2)
-      {
+      if (sngHeight <= Screen.PrimaryScreen.Bounds.Height * 0.2) {
         sngHeight = Screen.PrimaryScreen.Bounds.Height * 0.2;
-      } else if (sngHeight > Screen.PrimaryScreen.Bounds.Height)
-      {
+      } else if (sngHeight > Screen.PrimaryScreen.Bounds.Height) {
         sngHeight = Screen.PrimaryScreen.Bounds.Height;
       }
       //now move the form
       MDIMain.Bounds = new Rectangle((int)sngLeft, (int)sngTop, (int)sngWidth, (int)sngHeight);
-        //if maximized
-        if (blnMax)
-        {
-          //maximize window
-          WindowState = FormWindowState.Maximized;
-        }
+      //if maximized
+      if (blnMax) {
+        //maximize window
+        WindowState = FormWindowState.Maximized;
+      }
       //get resource window width
       sngProp = ReadSettingSingle(SettingsList, sPOSITION, "ResourceWidth", MIN_SPLIT_V * 1.5);
-      if (sngProp < MIN_SPLIT_V)
-      {
+      if (sngProp < MIN_SPLIT_V) {
         sngProp = MIN_SPLIT_V;
-      }
-      else if (sngProp > MDIMain.Bounds.Width - MIN_SPLIT_V)
-      {
+      } else if (sngProp > MDIMain.Bounds.Width - MIN_SPLIT_V) {
         sngProp = MDIMain.Bounds.Width - MIN_SPLIT_V;
       }
       //set width
       pnlResources.Width = (int)sngProp;
 
-      ////get mru settings
-      //Settings.AutoOpen = ReadSettingBool(SettingsList, sMRULIST, "AutoOpen", DEFAULT_AUTOOPEN)
-      //For i = 1 To 4
-      //  strMRU(i) = ReadSettingString(SettingsList, sMRULIST, "MRUGame" + CStr(i), "")
-      //  //if one exists
-      //  if (LenB(strMRU(i)) != 0) {
-      //    //add it to menu
-      //    Controls("mnuGMRU" + CStr(i)).Caption = CompactPath(strMRU(i), 60)
-      //    Controls("mnuGMRU" + CStr(i)).Visible = true
-      //    mnuGMRUBar.Visible = true
-      //  Else
-      //    //stop loading list at first blank
-      //    Exit For
-      //  }
-      //Next i
+      //get mru settings
+      Settings.AutoOpen = ReadSettingBool(SettingsList, sMRULIST, "AutoOpen", DEFAULT_AUTOOPEN);
+      for (i = 1; i <= 4; i++) {
+        strMRU[i] = ReadSettingString(SettingsList, sMRULIST, "MRUGame" + i, "");
+        //if one exists
+        if (strMRU[i].Length != 0) {
+          //add it to menu
+          mnuGame.DropDownItems["mnuGMRU" + i].Text = CompactPath(strMRU[i], 60);
+          mnuGame.DropDownItems["mnuGMRU" + i].Visible = true;
+          mnuGMRUBar.Visible = true;
+        } else { 
+          //stop loading list at first blank
+          break;
+        }
+      }
 
       ////get tools info
       //blnTools = false;
@@ -1170,23 +1250,19 @@ namespace WinAGI_GDS
 
       //error warning settings
       lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn0", 0);
-      for (i = 1; i <= 30; i++)
-      {
+      for (i = 1; i <= 30; i++) {
         LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << i)) == (1 << i));
       }
       lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn1", 0);
-      for (i = 31; i <= 60; i++)
-      {
+      for (i = 31; i <= 60; i++) {
         LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 30))) == 1 << (i - 30));
       }
       lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn2", 0);
-      for (i = 61; i <= 90; i++)
-      {
+      for (i = 61; i <= 90; i++) {
         LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 60))) == 1 << (i - 60));
       }
       lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn3", 0);
-      for (i = 91; i < WARNCOUNT; i++)
-      {
+      for (i = 91; i < WARNCOUNT; i++) {
         LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 90))) == 1 << (i - 90));
       }
 
@@ -1195,7 +1271,7 @@ namespace WinAGI_GDS
       ////if error not yet encountered
       ////Debug.Assert false
       //if (!blnErrors) {
-      //  MsgBox "An error occurred while reading settings from the config file. Check the config file carefully to correct any errors.", vbInformation + vbOKOnly, "Read Settings Error"
+      //  MessageBox.Show( "An error occurred while reading settings from the config file. Check the config file carefully to correct any errors.", vbInformation + vbOKOnly, "Read Settings Error"
       //  blnErrors = true
       //  //Debug.Assert false
       //}
@@ -1204,13 +1280,10 @@ namespace WinAGI_GDS
     {  //saves game settings to config file
       int i, lngCompVal;
       //if main form is maximized
-      if (MDIMain.WindowState == FormWindowState.Maximized)
-      {
+      if (MDIMain.WindowState == FormWindowState.Maximized) {
         //save Max Value only
         WriteAppSetting(SettingsList, sPOSITION, "WindowMax", true);
-      }
-      else
-      {
+      } else {
         //save all window settings
         WriteAppSetting(SettingsList, sPOSITION, "Top", MDIMain.Top.ToString());
         WriteAppSetting(SettingsList, sPOSITION, "Left", MDIMain.Left.ToString());
@@ -1221,8 +1294,7 @@ namespace WinAGI_GDS
       //save other position settings
       WriteAppSetting(SettingsList, sPOSITION, "PropRowCount", PropRowCount);
       //save mru settings
-      for (i = 1; i < 5; i++)
-      {
+      for (i = 1; i < 5; i++) {
         WriteAppSetting(SettingsList, sMRULIST, "MRUGame" + i, strMRU[i]);
       }
       //save resource pane width
@@ -1231,31 +1303,146 @@ namespace WinAGI_GDS
       WriteAppSetting(SettingsList, sGENERAL, "DockHelpWindow", HelpParent == (int)this.Handle);
       // for warnings, create a bitfield to mark which are being ignored
       lngCompVal = 0;
-      for (i = 1; i <= 30; i++)
-      {
+      for (i = 1; i <= 30; i++) {
         lngCompVal |= (LogicSourceSettings.IgnoreWarning(5000 + i) ? 1 << i : 0);
       }
       WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn0", lngCompVal);
       lngCompVal = 0;
-      for (i = 1; i <= 30; i++)
-      {
+      for (i = 1; i <= 30; i++) {
         lngCompVal |= (LogicSourceSettings.IgnoreWarning(5030 + i) ? 1 << i : 0);
       }
       WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn1", lngCompVal);
       lngCompVal = 0;
-      for (i = 1; i <= 30; i++)
-      {
+      for (i = 1; i <= 30; i++) {
         lngCompVal |= (LogicSourceSettings.IgnoreWarning(5060 + i) ? 1 << i : 0);
       }
       WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn2", lngCompVal);
       lngCompVal = 0;
-      for (i = 1; i < (WARNCOUNT % 30); i++)
-      {
+      for (i = 1; i < (WARNCOUNT % 30); i++) {
         lngCompVal |= (LogicSourceSettings.IgnoreWarning(5090 + i) ? 1 << i : 0);
       }
       WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn3", lngCompVal);
       //save to file
       SaveSettingList(SettingsList);
+    }
+    void CheckCmd()
+    {
+      return;
+      /*
+      string[] args = Environment.GetCommandLineArgs();
+      frmObjectEdit frmNewO;
+      frmWordsEdit frmNewW;
+
+      if (args.Length == 0) {
+        return;
+      }
+      //only first arg is used; extras are ignored
+
+      //ensure no quotes
+      if (args[0][0] == '"') {
+        args[0] = Mid(args[0], 2, args[0].Length - 2);
+      }
+
+      //check for OBJECT or WORDS.TOK file:
+      if (JustFileName(args[0]).Equals("OBJECT", StringComparison.OrdinalIgnoreCase)) {
+        //open a object resource
+        frmNewO = new frmObjectEdit();
+        try {
+          frmNewO.LoadObjects(args[0]);
+          frmNewO.Show();
+        }
+        catch (Exception) {
+          frmNewO.Close();
+        }
+
+      } else if (JustFileName(args[0]).Equals("WORDS.TOK", StringComparison.OrdinalIgnoreCase)) {
+        //open a word resource
+        frmNewW = new frmWordsEdit();
+        try {
+          frmNewW.LoadWords(args[0]);
+          frmNewW.Show();
+        }
+        catch (Exception) {
+          frmNewW.Close();
+        }
+      } else {
+        //check for a file
+        switch (Right(args[0], 4).ToLower()) {
+        case ".wag":
+          //open a game
+          OpenWAG(args[0]);
+          break;
+        case ".wal":
+          //layout files can't be opened by command line anymore
+          //////      //open a game; then open layout editor
+          break;
+        case ".lgc":
+        case ".agl":
+          //open a logic source text file or logic resource
+          try {
+            NewLogic(args[0]);
+            NewLogic(args[0]);
+          }
+          catch (Exception) {
+            //ignore any error
+          }
+          break;
+        case ".ago":
+          //open a object resource
+          frmNewO = new frmObjectEdit();
+          try {
+            frmNewO.LoadObjects(args[0]);
+            frmNewO.Show();
+          }
+          catch (Exception) {
+            frmNewO.Close();
+          }
+          break;
+        case ".agp":
+          //open a picture resource
+          try {
+            NewPicture(args[0]);
+          }
+          catch (Exception) {
+            //ignore errors
+          }
+          break;
+        case ".ags":
+          //open a sound resource
+          try {
+            NewSound(args[0]);
+          }
+          catch (Exception) {
+            //ignore errors
+          }
+          break;
+        case ".agv":
+          //open a view resource
+          try {
+            NewView(args[0]);
+          }
+          catch (Exception) {
+            //ignore errors
+          }
+          break;
+        case ".agw":
+          //open a word resource
+          frmNewW = new frmWordsEdit();
+          try {
+            frmNewW.LoadWords(args[0]);
+            frmNewW.Show();
+          }
+          catch (Exception) {
+            frmNewW.Close();
+          }
+          break;
+
+        default:
+          //ignore anything else
+          break;
+        }
+      }
+      */
     }
     void working()
     {
@@ -1403,7 +1590,7 @@ public void BeginFind()
   //
   //that//s why each search form checks for changes, and
   //sets the global values, instead of doing it once inside
-  //the FindForm code
+  //the AGIFindForm code
   
   //always reset the synonym search
   GFindSynonym = false
@@ -1411,7 +1598,7 @@ public void BeginFind()
   //ensure this form is the search form
   //Debug.Assert SearchForm Is Me
   
-  Select Case FindForm.FormAction
+  Select Case AGIFindForm.FormAction
   Case faFind
     FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
   
@@ -1567,12 +1754,12 @@ public void SearchForID(Optional ffValue As FindFormFunction = ffFindLogic)
   GFindSynonym = false
   
   //reset search flags
-  FindForm.ResetSearch
+  AGIFindForm.ResetSearch
   
   SearchForm = MDIMain
   
   //display find form
-  With FindForm
+  With AGIFindForm
     .SetForm ffFindLogic, true
     .Show , MDIMain
   End With
@@ -1880,127 +2067,6 @@ ErrHandler:
 }
 
 
-Private void CheckCmd()
-
-  Dim strCmdLine As String
-  Dim frmNewO As frmObjectEdit
-  Dim frmNewW As frmWordsEdit
-  
-  On Error GoTo ErrHandler
-  
-  if (LenB(Command$) = 0) {
-    //just adjust menus, and exit
-    AdjustMenus rtNone, false, false, false
-    return;
-  }
-  
-  //ensure no quotes
-  if (Asc(Command$) = 34) {
-    strCmdLine = Mid$(Command$, 2, Len(Command$) - 2)
-  } else {
-    strCmdLine = Command$
-  }
-  
-  //check for OBJECT or WORDS.TOK file:
-  if (UCase(JustFileName(Command$)) = "OBJECT") {
-    //open a object resource
-    frmNewO = New frmObjectEdit
-    Load frmNewO
-    
-    On Error Resume Next
-    frmNewO.LoadObjects strCmdLine
-    if (Err.Number != 0) {
-      frmNewO = Nothing
-    } else {
-      frmNewO.Show
-      frmNewO.fgObjects.Focus()
-    }
-      
-  } else if ( UCase(JustFileName(Command$)) = "WORDS.TOK") {
-    //open a word resource
-    frmNewW = New frmWordsEdit
-    Load frmNewW
-    
-    On Error Resume Next
-    frmNewW.LoadWords strCmdLine
-    if (Err.Number != 0) {
-      frmNewW = Nothing
-    } else {
-      frmNewW.Show
-    }
-      
-  } else {
-    //check for a file
-    Select Case LCase$(Right$(strCmdLine, 4))
-    Case ".wag"
-      //open a game
-      OpenWAG strCmdLine
-      
-    Case ".wal"
-      //layout files can//t be opened by command line anymore
-//////      //open a game; then open layout editor
-      
-    Case ".lgc"
-      //open a logic source text file
-      NewLogic strCmdLine
-    Case ".agl"
-      //open a logic resource
-      NewLogic strCmdLine
-  
-    Case ".ago"
-      //open a object resource
-      frmNewO = New frmObjectEdit
-      Load frmNewO
-      
-      On Error Resume Next
-      frmNewO.LoadObjects strCmdLine
-      if (Err.Number != 0) {
-        frmNewO = Nothing
-      } else {
-        frmNewO.Show
-        frmNewO.fgObjects.Focus()
-      }
-      
-    Case ".agp"
-      //open a picture resource
-      NewPicture strCmdLine
-      
-    Case ".ags"
-      //open a sound resource
-      NewSound strCmdLine
-      
-    Case ".agv"
-      //open a view resource
-      NewView strCmdLine
-      
-    Case ".agw"
-      //open a word resource
-      frmNewW = New frmWordsEdit
-      Load frmNewW
-      
-      On Error Resume Next
-      frmNewW.LoadWords strCmdLine
-      if (Err.Number != 0) {
-        frmNewW = Nothing
-      } else {
-        frmNewW.Show
-      }
-      
-    default:
-      //not sure what was clicked; just ignore it...
-      AdjustMenus rtNone, false, false, false
-    }
-  }
-  
-  frmNewO = Nothing
-  frmNewW = Nothing
-return;
-
-ErrHandler:
-  //if an error is encountered, just update menus, and exit
-  Err.Clear
-  AdjustMenus rtNone, false, false, false
-}
 
 Private void EditResource(ByVal ResType As AGIResType, ByVal ResNum As Long)
 
@@ -2457,7 +2523,7 @@ public void SelectedItemExport()
     
   Case rtLogic
     //first, do source
-    if (MsgBox("Do you want to export the source code for this logic?", vbQuestion + vbYesNo, "Export Logic") = vbYes) {
+    if (MessageBox.Show(("Do you want to export the source code for this logic?", vbQuestion + vbYesNo, "Export Logic") = vbYes) {
       //get a filename for the export
       strExportName = NewSourceName(Logics(SelResNum), true)
       
@@ -2469,7 +2535,7 @@ public void SelectedItemExport()
     }
     
     //then do resource
-    if (MsgBox("Do you want to export the compiled logic resource?", vbQuestion + vbYesNo, "Export Logic") = vbYes) {
+    if (MessageBox.Show(("Do you want to export the compiled logic resource?", vbQuestion + vbYesNo, "Export Logic") = vbYes) {
       ExportLogic Logics(SelResNum).Number
     }
       
@@ -2683,7 +2749,7 @@ public void SelectedItemPrint()
   Case rtWords
     //if nothing to print,
     if (VocabularyWords.WordCount = 0) {
-      MsgBox "There are no words in this word list to print.", vbInformation + vbOKOnly, "Print Word List"
+      MessageBox.Show( "There are no words in this word list to print.", vbInformation + vbOKOnly, "Print Word List"
       return;
     }
   
@@ -2701,85 +2767,6 @@ ErrHandler:
 }
 
 
-public void ShowResTree()
-
-  Dim lngSplitLoc As Long
-  
-  On Error GoTo ErrHandler
-  
-  lngSplitLoc = picResources.ScaleHeight - picProperties.Height - SPLIT_HEIGHT
-  if (lngSplitLoc < tvwResources.Top) {
-    lngSplitLoc = tvwResources.Top + 1
-  }
-    
-  Select Case Settings.ResListType
-  Case 0 //no tree
-    //shouldn//t get here, but
-    return;
-  Case 1 //treeview list
-    tvwResources.Visible = true
-    cmbResType.Visible = false
-    lstResources.Visible = false
-    //set tree height
-    tvwResources.Height = lngSplitLoc - tvwResources.Top
-    //set tree width
-    tvwResources.Width = picResources.ScaleWidth - (SPLIT_WIDTH / ScreenTWIPSX)
-    tvwResources.Font.Name = Settings.PFontName
-    tvwResources.Font.Size = Settings.PFontSize
-    //set pic font to match (so text width can be calculated)
-    picResources.Font.Name = Settings.PFontName
-    picResources.Font.Size = Settings.PFontSize
-    
-  Case 2 //combo/list boxes
-    tvwResources.Visible = false
-    
-    //set combo and listbox height/width
-    cmbResType.Visible = true
-    cmbResType.Width = picResources.ScaleWidth - (SPLIT_WIDTH / ScreenTWIPSX)
-    cmbResType.Font.Name = Settings.EFontName
-    cmbResType.Font.Size = Settings.EFontSize
-    
-    lstResources.Top = cmbResType.Top + cmbResType.Height + 2
-    lstResources.Height = lngSplitLoc - lstResources.Top
-    lstResources.Visible = true
-    lstResources.Width = cmbResType.Width
-    lstResources.Font.Name = Settings.PFontName
-    lstResources.Font.Size = Settings.PFontSize
-    //set pic font to match (so text width can be calculated)
-    picResources.Font.Name = Settings.PFontName
-    picResources.Font.Size = Settings.PFontSize
-    
-  }
-  
-  //show and position the resource list panels
-  picLeft.Visible = true
-  picResources.Visible = true
-  if (picWarnings.Visible) {
-    picResources.Height = Me.ScaleHeight + lngMainLeftBorder + picWarnings.Height
-  } else {
-    picResources.Height = picLeft.Height
-  }
-  // and the splitter
-  picSplitV.Visible = true
-  picSplitV.Height = picResources.Height
-  UpdateSplitV picResources.Width - SPLIT_WIDTH, true
-  
-  // property window is now visible, so repaint it
-  PaintPropertyWindow
-
-  //if the warnings window is also shown, need to adjust it
-  if (picWarnings.Visible) {
-    picWarnings.Left = picResources.Width
-    picWarnings.Width = picBottom.Width - picWarnings.Left
-    picSplitH.Left = picWarnings.Left + 30
-    picSplitH.Width = picWarnings.Width - 60
-  }
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
 
 public void ShowWarningList()
 
@@ -2905,7 +2892,7 @@ public void UpdateSplitH(ByVal SplitHLoc As Single, Optional ByVal Force As Bool
   
   //set the main bottom panel to match warnings panel (effing status bar moves when we do this)
   picBottom.Height = picWarnings.Height
-  Me.StatusBar1.Top = picBottom.Top + picBottom.Height
+  this.StatusBar1.Top = picBottom.Top + picBottom.Height
 return;
 
 ErrHandler:
@@ -3079,7 +3066,7 @@ Private void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType 
       
       //restore cursor before showing msgbox
       Screen.MousePointer = vbDefault
-      rtn = MsgBox("An error occurred while attempting to add " + strID + ":" + vbNewLine + vbNewLine _
+      rtn = MessageBox.Show(("An error occurred while attempting to add " + strID + ":" + vbNewLine + vbNewLine _
                    + ErrString, vbOKOnly + vbInformation, "Resource Error")
       //show wait cursor again
       WaitCursor
@@ -3179,14 +3166,14 @@ ErrHandler:
 
 Private void agGameEvents_LoadStatus(lStatus As WinAGI.ELStatus, ResType As WinAGI.AGIResType, ResNum As Byte, ErrString As String)
   
-  //update the load progress form
+  //update the load ProgressWin form
   
   Dim strWarnings() As String, strErrInfo() As String, i As Long
   Dim blnNoWAG As Boolean
   
   On Error GoTo ErrHandler
   
-  With frmProgress
+  With ProgressWin
     Select Case lStatus
     Case lsDecompiling
       .lblProgress.Caption = "Validating AGI game files ..."
@@ -3786,12 +3773,12 @@ Private void fgWarnings_MouseDown(Button As Integer, Shift As Integer, X As Sing
       }
       
       //make sure grid is the active control
-      if (Me.ActiveControl Is Nothing) {
+      if (this.ActiveControl Is Nothing) {
         .Focus();
-      } else if ( Me.ActiveControl.Name != "fgWarnings") {
+      } else if ( this.ActiveControl.Name != "fgWarnings") {
         .Focus();
       }
-      //Debug.Assert Me.ActiveControl Is fgWarnings
+      //Debug.Assert this.ActiveControl Is fgWarnings
       
       //if no warnings, don't show menu
       //(easy check is if first row is blank)
@@ -3856,7 +3843,7 @@ Private void fgWarnings_MouseMove(Button As Integer, Shift As Integer, X As Sing
 //  }
 //
 //  //subitem(1) is text of the warning; but the column index is 2
-//  if (Me.TextWidth(tmpItem.SubItems(1)) > lvWarnings.ColumnHeaders(2).Width) {
+//  if (this.TextWidth(tmpItem.SubItems(1)) > lvWarnings.ColumnHeaders(2).Width) {
 //    tmpItem.ListSubItems(1).ToolTipText = tmpItem.ListSubItems(1).Text
 //  } else {
 //    tmpItem.ListSubItems(1).ToolTipText = ""
@@ -4266,8 +4253,8 @@ Private void mnuCWAll_Click()
 
   On Error Resume Next
   
-  //Debug.Assert Me.ActiveControl Is Me.fgWarnings
-  if (Me.ActiveControl Is Me.fgWarnings) {
+  //Debug.Assert this.ActiveControl Is this.fgWarnings
+  if (this.ActiveControl Is this.fgWarnings) {
     With fgWarnings
       //dismiss all warnings (i.e. clear the grid)
       .Clear
@@ -4289,8 +4276,8 @@ Private void mnuCWDismiss_Click()
 
   On Error Resume Next
   
-  //Debug.Assert Me.ActiveControl Is Me.fgWarnings
-  if (Me.ActiveControl Is Me.fgWarnings) {
+  //Debug.Assert this.ActiveControl Is this.fgWarnings
+  if (this.ActiveControl Is this.fgWarnings) {
     DismissWarning
   }
 }
@@ -4337,7 +4324,7 @@ Private void mnuEdit_Click()
 
 //////  On Error GoTo ErrHandler
 //////
-//////  Me.ActiveForm.SetEditMenu
+//////  this.ActiveForm.SetEditMenu
 //////return;
 //////
 //////ErrHandler:
@@ -4544,8 +4531,8 @@ Private void mnuCWHelp_Click()
 
   On Error Resume Next
   
-  //Debug.Assert Me.ActiveControl Is Me.fgWarnings
-  if (Me.ActiveControl Is Me.fgWarnings) {
+  //Debug.Assert this.ActiveControl Is this.fgWarnings
+  if (this.ActiveControl Is this.fgWarnings) {
     HelpWarning
   }
 }
@@ -4578,8 +4565,8 @@ Private void mnuCWIgnore_Click()
 
   On Error Resume Next
   
-  //Debug.Assert Me.ActiveControl Is Me.fgWarnings
-  if (Me.ActiveControl Is Me.fgWarnings) {
+  //Debug.Assert this.ActiveControl Is this.fgWarnings
+  if (this.ActiveControl Is this.fgWarnings) {
     IgnoreWarning
   }
 }
@@ -4679,7 +4666,7 @@ Private void mnuTCustom_Click(Index As Integer)
     
     On Error Resume Next
     Name strTemp As strTemp + ".url"
-    rtn = ShellExecute(Me.hWnd, "open", strTemp + ".url", "", "", SW_SHOWNORMAL)
+    rtn = ShellExecute(this.hWnd, "open", strTemp + ".url", "", "", SW_SHOWNORMAL)
     Kill strTemp + ".url"
   } else {
     //execute the command stored in the tag property
@@ -4709,38 +4696,38 @@ Private void mnuTCustom_Click(Index As Integer)
       strFile = mnuTCustom(Index).Tag
     }
       
-    rtn = ShellExecute(Me.hWnd, "open", strFile, "", "", SW_SHOWNORMAL)
+    rtn = ShellExecute(this.hWnd, "open", strFile, "", "", SW_SHOWNORMAL)
     
     if (rtn <= 32) {
       //error - display a msg to user
       Select Case rtn
       //regular WinExec() codes
       Case 2 //#define SE_ERR_FNF              2       // file not found
-        MsgBox "Sorry, the file was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "File !Found"
+        MessageBox.Show( "Sorry, the file was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "File !Found"
       Case 3 //#define SE_ERR_PNF              3       // path not found
-        MsgBox "Sorry, the path in this file name was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Path !Found"
+        MessageBox.Show( "Sorry, the path in this file name was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Path !Found"
       Case 5 //#define SE_ERR_ACCESSDENIED     5       // access denied
-        MsgBox "Sorry, this file could not be accessed." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Access Denied"
+        MessageBox.Show( "Sorry, this file could not be accessed." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Access Denied"
       Case 8 //#define SE_ERR_OOM              8       // out of memory
-        MsgBox "Holy CRAP! You are out of memory!" + vbNewLine + "You might want to free up some memory before trying to open this file/program.", vbInformation + vbOKOnly, "Out of Memory"
+        MessageBox.Show( "Holy CRAP! You are out of memory!" + vbNewLine + "You might want to free up some memory before trying to open this file/program.", vbInformation + vbOKOnly, "Out of Memory"
       Case 32 //#define SE_ERR_DLLNOTFOUND              32
-        MsgBox "Sorry, a supporting DLL for this file/program was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DLL !Found"
+        MessageBox.Show( "Sorry, a supporting DLL for this file/program was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DLL !Found"
       //
       //error values for ShellExecute() beyond the regular WinExec() codes
       Case 26 //#define SE_ERR_SHARE                    26
-        MsgBox "Sorry, a share violation occurred." + vbNewLine + "Please address the file share issue, then try again.", vbInformation + vbOKOnly, "Share Violation"
+        MessageBox.Show( "Sorry, a share violation occurred." + vbNewLine + "Please address the file share issue, then try again.", vbInformation + vbOKOnly, "Share Violation"
       Case 27 //#define SE_ERR_ASSOCINCOMPLETE          27
-        MsgBox "Sorry, unable to determine the correct association for this file." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Incomplete Association"
+        MessageBox.Show( "Sorry, unable to determine the correct association for this file." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Incomplete Association"
       Case 28 //#define SE_ERR_DDETIMEOUT               28
-        MsgBox "Sorry, a DDE timeout error occurred." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Timeout Error"
+        MessageBox.Show( "Sorry, a DDE timeout error occurred." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Timeout Error"
       Case 29 //#define SE_ERR_DDEFAIL                  29
-        MsgBox "Sorry, DDE failed; unable to open this file/program." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Failure"
+        MessageBox.Show( "Sorry, DDE failed; unable to open this file/program." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Failure"
       Case 30 //#define SE_ERR_DDEBUSY                  30
-        MsgBox "Sorry, DDE was not able to open this file/program." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Busy Error"
+        MessageBox.Show( "Sorry, DDE was not able to open this file/program." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Busy Error"
       Case 31 //#define SE_ERR_NOASSOC                  31
-        MsgBox "Sorry, an association was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Association !Found"
+        MessageBox.Show( "Sorry, an association was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Association !Found"
       default:
-        MsgBox "Sorry, an error occurred when trying to open this tool entry." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Unknown Error"
+        MessageBox.Show( "Sorry, an error occurred when trying to open this tool entry." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Unknown Error"
       }
     }
     
@@ -5630,7 +5617,7 @@ Private void StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
           MsgBoxEx Panel.Text, vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Logic Compile Error", WinAGIHelp, "htm\winagi\compilererrors.htm#" + CStr(lngErrNum)
         } else {
           //no error info, so don't show help
-          MsgBox Panel.Text, vbInformation + vbOKOnly, "Logic Editor Status"
+          MessageBox.Show( Panel.Text, vbInformation + vbOKOnly, "Logic Editor Status"
         }
       }
     }
@@ -6286,7 +6273,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
 //////          //if string returned,
 //////          if (LenB(strNewDir) != 0) {
 //////            //change game directory
-//////            ChangeGameDir cDir(strNewDir)
+//////            ChangeGameDir CDir(strNewDir)
 //////          }
 //////        }
         
@@ -6795,21 +6782,21 @@ Private void MDIForm_Resize()
   }
   
   //don't resize unless form is NOT minimized, and not resized too small
-  if (Me.WindowState != vbMinimized && Me.Visible) {
+  if (this.WindowState != vbMinimized && this.Visible) {
     //resize horizontally
     if (picWarnings.Visible && ScaleWidth > MIN_WIDTH) {
-      picWarnings.Width = Me.Width - WLOffsetW - picResources.Width + 60
+      picWarnings.Width = this.Width - WLOffsetW - picResources.Width + 60
       picSplitH.Width = picWarnings.Width - 60
     }
     //resize vertically
     if (picResources.Visible) {
-      if (Me.Height - WLOffsetH + 60 + picWarnings.Height > 100) {
-        picResources.Height = Me.Height - WLOffsetH + 60 + picWarnings.Height
+      if (this.Height - WLOffsetH + 60 + picWarnings.Height > 100) {
+        picResources.Height = this.Height - WLOffsetH + 60 + picWarnings.Height
       }
       picSplitV.Height = picResources.Height
     }
     if (picWarnings.Visible) {
-      picWarnings.Top = Me.Height - WLOffsetH + Me.Toolbar1.Height + 60
+      picWarnings.Top = this.Height - WLOffsetH + this.Toolbar1.Height + 60
       picSplitH.Top = picWarnings.Top
     }
   }
@@ -6854,11 +6841,11 @@ Private void MDIForm_Unload(Cancel As Integer)
   NotePictures = Nothing
   SoundClipboard = Nothing
   MainStatusBar = Nothing
-  MainDialog = Nothing
-  MainSaveDlg = Nothing
+  OpenDlg = Nothing
+  SaveDlg = Nothing
   ViewClipboard = Nothing
   WordsClipboard = Nothing
-  FindForm = Nothing
+  AGIFindForm = Nothing
   SearchForm = Nothing
   
   //reset parent for controls that were moved to the form
@@ -6979,267 +6966,6 @@ public void mnuGOpen_Click()
   
   //open a game - user will get chance to select wag file in OpenWAG()
   OpenWAG
-}
-Private void MDIForm_Load()
-  Dim rtn As Long, i As Long
-  Dim lngBeginLoad As Long, lngEndLoad As Long
-  Dim blnLastLoad As Boolean
-  
-  On Error Resume Next
-    
-  CalcWidth = MIN_WIDTH
-  CalcHeight = MIN_HEIGHT
-  
-  //show wait cursor
-  WaitCursor
-
-  //initialize GDI plus
-  InitGDIPlus
-  
-  //init extchar table
-  InitExtChars
-  
-  //if no screen fonts available
-  if (Screen.FontCount = 0) {
-    //problem with fonts
-    MsgBox "Fatal error: Unable to initialize screen fonts.", vbCritical + vbOKOnly, "Fatal Error"
-    Unload Me
-    return;
-  }
-  
-  //screen twips
-  ScreenTWIPSX = Screen.TwipsPerPixelX
-  ScreenTWIPSY = Screen.TwipsPerPixelY
-
-  //need to calculate height of top margin (for use by logic editor in displaying tips)
-  lngMainTopBorder = (Me.Height - Me.ScaleHeight - Me.StatusBar1.Height - (Me.Width - Me.ScaleWidth) / 2) / ScreenTWIPSY
-  lngMainLeftBorder = (Me.Width - Me.ScaleWidth) / ScreenTWIPSY / 2
-  
-  //and also need border values to facilitate positioning of the warnings list
-  WLOffsetH = Me.Height - Me.ScaleHeight
-  WLOffsetW = Me.Width - Me.ScaleWidth
-  
-  //assign game events object
-  agGameEvents = GameEvents
-  //if error
-  if (Err.Number != 0) {
-    //problem with objects
-    ErrMsgBox "Fatal error: ", "", "Fatal Error"
-    Unload Me
-    return;
-  }
-  
-  On Error GoTo ErrHandler
-  
-  //set preview window, status bar and other dialog objects
-  PreviewWin = New frmPreview
-  MainStatusBar = StatusBar1
-  MainDialog = CommonDialog1
-  MainSaveDlg = SaveDialog1
-  ViewClipboard = picViewCB
-  SoundClipboard = New AGINotes
-  NotePictures = picNotes
-  WordsClipboard = New WordsUndo
-  FindForm = New frmFind
-  
-  //set parent for property text box, and splitters, to the main form
-  rtn = SetParent(txtProperty.hWnd, Me.hWnd)
-  rtn = SetParent(picSplitV.hWnd, Me.hWnd)
-  rtn = SetParent(picSplitH.hWnd, Me.hWnd)
-  rtn = SetParent(picSplitHIcon.hWnd, Me.hWnd)
-  rtn = SetParent(picSplitVIcon.hWnd, Me.hWnd)
-  
-  //set parent for the resource and warning containers to the main form
-  rtn = SetParent(picResources.hWnd, Me.hWnd)
-  rtn = SetParent(picWarnings.hWnd, Me.hWnd)
-  //initial position of resource and warning containers
-  With picResources
-    .Top = picLeft.Top
-    .Left = picLeft.Left
-    .Width = picLeft.Width
-    .Height = picBottom.Top + picBottom.Height - .Top
-  End With
-  With picWarnings
-    .Left = picLeft.Left + picLeft.Width
-    .Top = picBottom.Top
-    .Width = picBottom.Width - picLeft.Width
-    .Height = picBottom.Height
-  End With
-  //hide them both (and the containers) until needed
-  picLeft.Visible = false
-  picResources.Visible = false
-  picBottom.Visible = false
-  picWarnings.Visible = false
-
-  //set splitwidth/height
-  picSplitV.Width = SPLIT_WIDTH
-  picSplitVIcon.Width = SPLIT_WIDTH
-  picSplitH.Height = 60
-  picSplitHIcon.Height = 60
-  picSplitRes.Height = SPLIT_HEIGHT
-  picSplitResIcon.Height = SPLIT_HEIGHT
-  
-  //get listitem height
-  ListItemHeight = SendMessage(lstProperty.hWnd, LB_GETITEMHEIGHT, 0, 0)
-  //if not successful
-  if (ListItemHeight = 0) {
-    //use default
-    ListItemHeight = 13
-  }
-  //set property window to 3 so startup doesn//t trip during resize events
-  PropRowCount = 3
-  //set property window split location based on longest word
-  PropSplitLoc = picProperties.TextWidth(" Use Res Names ")
-  picProperties.Top = picResources.ScaleHeight - (4 * PropRowHeight)
-  
-  //background color for previewing views is set to default
-  PrevWinBColor = &H8000000F
-  
-  //reset vertical position of split and spliticon
-  picSplitV.Top = Toolbar1.Height
-  picSplitVIcon.Top = Toolbar1.Height
-  
-  //set selected prop
-  SelectedProp = 1
-    
-  //initialize resource manager
-  InitializeResMan
-  
-  ProgramDir = cDir(App.Path)
-  DefaultResDir = ProgramDir
-  
-  //set browser start dir to current dir? or program dir?
-//  BrowserStartDir = CurDir$()
-  BrowserStartDir = ProgramDir
-  
-  
-  //get game settings and set initial window positions
-  //this happens after all the stuff above because
-  //Readsettings affects things that need to be initialized first
-  if (!ReadSettings()) {
-    //problem with settings
-    MsgBox "Fatal error: Unable to read program settings", vbCritical + vbOKOnly, "Fatal Error"
-    Unload Me
-    return;
-  }
-  
-  //show splash screen, if applicable
-  if (Settings.ShowSplashScreen) {
-    MDIMain.Visible = true
-    SafeDoEvents
-    Load frmSplash
-    frmSplash.Show vbModeless, Me
-    frmSplash.Refresh
-    SafeDoEvents
-  }
-  
-  //set tick Count at start of load
-  lngBeginLoad = GetTickCount()
-  
-  LogicEditors = New Collection
-  ViewEditors = New Collection
-  PictureEditors = New Collection
-  SoundEditors = New Collection
-  
-  //build the lookup table for reserved defines
-  BuildRDefLookup
-  
-  //default to an empty globals list
-  ReDim GDefLookup(0)
-  
-  //if using snippets
-  if (Settings.Snippets) {
-    //build snippet table
-    BuildSnippets
-  }
-  
-  //get reference to temporary directory
-  TempFileDir = GetTempFileDir()
-  
-  WinAGIHelp = ProgramDir + "WinAGI.chm"
-  
-  AdjustMenus rtNone, false, false, false
-  //Debug.Assert MainStatusBar.Panels.Count = 4
-  
-  mnuHContents.Caption = "Contents" + vbTab + "F1"
-  mnuEFind.Caption = "Find" + vbTab + "Ctrl+F"
-  mnuEFindAgain.Caption = "Find Next" + vbTab + "F3"
-  
-  //build resource treelist by using clear method
-  ClearResourceList
-
-  if (Settings.ShowSplashScreen) {
-    //dont close unless ~1.75 seconds passed
-    lngEndLoad = GetTickCount()
-    Do Until (lngEndLoad - lngBeginLoad) >= 1750
-      lngEndLoad = GetTickCount()
-    Loop
-    Unload frmSplash
-  }
-  
-  //retrieve user//s preferred AGI colors
-  GetDefaultColors();
-  
-  //can//t seem to get the splitters to show up on top without using zorder in code
-  //not sure why
-  picSplitV.ZOrder 0
-  picSplitH.ZOrder 0
-  picSplitVIcon.ZOrder 0
-  picSplitHIcon.ZOrder 0
-  
-  //let the system catch up
-  SafeDoEvents
-  
-  //get property window bitmap dc references
-  DropDownDC = picDropDown.hDC
-  DropOverDC = picDropOver.hDC
-  DropDlgDC = picDropDlg.hDC
-  
-  //establish printer margins (don't need to show error msg if printer isn//t available)
-  UpdatePrinterCaps Printer.Orientation, true
-  
-  //check for command string
-  CheckCmd
-  
-  //was a game loaded when app was last closed
-  blnLastLoad = ReadSettingBool(SettingsList, sMRULIST, "LastLoad", false)
-  
-  //if nothing loaded AND autoreload is set AND something was loaded last time program ended,
-  if (!GameLoaded && ActiveForm Is Nothing && Settings.AutoOpen && blnLastLoad) {
-    //open mru1
-    OpenMRUGame 1
-  }
-  
-#if (DEBUGMODE != 1) {
-  //subclass propwindow
-  PrevPropWndProc = SetWindowLong(picProperties.hWnd, GWL_WNDPROC, AddressOf PropWndProc)
-  //subclass the flexgrid
-  PrevFGWndProc = SetWindowLong(fgWarnings.hWnd, GWL_WNDPROC, AddressOf ScrollWndProc)
-#}
-  //show the form
-  Show
-  
-  //if no printers,
-  if (NoPrinter && !Settings.SkipPrintWarning) {
-    MsgBoxEx "There are no printers available, so printing functions will be disabled.", vbInformation + vbOKOnly, "WinAGI GDS", , , "Don//t show this warning again.", Settings.SkipPrintWarning
-  }
-  if (Settings.SkipPrintWarning) {
-    WriteAppSetting(SettingsList, sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning
-  }
-  
-  //set the navigation list picbox parameters
-  NLRowHeight = 1.15 * picNavList.TextHeight("")
-  picNavList.Height = 5.261 * NLRowHeight
-  picNavList.Top = 0 + Me.Toolbar1.Height / ScreenTWIPSY + cmdBack.Top + cmdBack.Height / 2 - picNavList.Height / 2
-  SetParent picNavList.hWnd, MDIMain.hWnd
-  
-  Screen.MousePointer = vbDefault
-
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
 }
 
 Private void mnuRDescription_Click()
@@ -7475,7 +7201,7 @@ void mnuGRun_Click()
   //check if any logics are dirty;
   if (CheckLogics()) {
     //run the program if check is OK
-    rtn = ShellExecute(Me.hWnd, "open", Platform, strParams, JustPath(Platform, true), SW_SHOWNORMAL)
+    rtn = ShellExecute(this.hWnd, "open", Platform, strParams, JustPath(Platform, true), SW_SHOWNORMAL)
     if (rtn <= 32) {
     
       Select Case rtn
@@ -7664,7 +7390,7 @@ Private void mnuRILogic_Click()
   On Error GoTo ErrHandler
   
   //get import file name
-  With MainDialog
+  With OpenDlg
     .Flags = cdlOFNHideReadOnly
     .DialogTitle = "Import Logic"
     .DefaultExt = ""
@@ -7684,7 +7410,7 @@ Private void mnuRILogic_Click()
     if (ActiveForm.Name = "frmLogicEdit") {
       if (ActiveForm.InGame) {
         //ask user if this is supposed to replace the existing logic
-        if (MsgBox("Do you want to replace the logic you are currently editing?", vbYesNo, "Import Logic") = vbYes) {
+        if (MessageBox.Show(("Do you want to replace the logic you are currently editing?", vbYesNo, "Import Logic") = vbYes) {
           //use the active form//s import function
           ActiveForm.MenuClickImport
           return;
@@ -7694,7 +7420,7 @@ Private void mnuRILogic_Click()
   }
   
   //import new logic
-  NewLogic MainDialog.FileName
+  NewLogic OpenDlg.FileName
 return;
 
 ErrHandler:
@@ -7735,15 +7461,15 @@ Private void mnuRIObjects_Click()
     
     //a game is loaded; find out if user wants this OBJECT file to replace existing
     if (GameLoaded) {
-      if (MsgBox("Do you want to replace the existing OBJECT file with this one?", vbQuestion + vbYesNo, "Replace OBJECT File") = vbYes) {
+      if (MessageBox.Show(("Do you want to replace the existing OBJECT file with this one?", vbQuestion + vbYesNo, "Replace OBJECT File") = vbYes) {
         //if existing object file is being edited
         if (OEInUse) {
           //if it is dirty,
           if (ObjectEditor.IsDirty) {
             //warn user
-            rtn = MsgBox("Do you want to save your changes and export the existing object file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
+            rtn = MessageBox.Show(("Do you want to save your changes and export the existing object file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
           } else {
-            rtn = MsgBox("Do you want to export the existing object file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
+            rtn = MessageBox.Show(("Do you want to export the existing object file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
           }
           
           //if cancel
@@ -7817,7 +7543,7 @@ Private void mnuRIPicture_Click()
   On Error GoTo ErrHandler
   
   //get import file name
-  With MainDialog
+  With OpenDlg
     .Flags = cdlOFNHideReadOnly
     .DialogTitle = "Import Picture"
     .DefaultExt = ""
@@ -7837,7 +7563,7 @@ Private void mnuRIPicture_Click()
     if (ActiveForm.Name = "frmPictureEdit") {
       if (ActiveForm.InGame) {
         //ask user if this is supposed to replace existing picture
-        if (MsgBox("Do you want to replace the picture you are currently editing?", vbYesNo, "Import Picture") = vbYes) {
+        if (MessageBox.Show(("Do you want to replace the picture you are currently editing?", vbYesNo, "Import Picture") = vbYes) {
           //use the active form//s import function
           ActiveForm.MenuClickImport
           return;
@@ -7847,7 +7573,7 @@ Private void mnuRIPicture_Click()
   }
   
   //import the new picture,and open it for editing
-  NewPicture MainDialog.FileName
+  NewPicture OpenDlg.FileName
 return;
 
 ErrHandler:
@@ -7864,7 +7590,7 @@ Private void mnuRISound_Click()
 
   On Error GoTo ErrHandler
   
-  With MainDialog
+  With OpenDlg
     .Flags = cdlOFNHideReadOnly
     .DialogTitle = "Import Sound"
     .DefaultExt = ""
@@ -7884,7 +7610,7 @@ Private void mnuRISound_Click()
     if (ActiveForm.Name = "frmSoundEdit") {
       if (ActiveForm.InGame) {
         //ask user if this is supposed to replace existing sound
-        if (MsgBox("Do you want to replace the sound you are currently editing?", vbYesNo, "Import Sound") = vbYes) {
+        if (MessageBox.Show(("Do you want to replace the sound you are currently editing?", vbYesNo, "Import Sound") = vbYes) {
           //use the active form//s import function
           ActiveForm.MenuClickImport
           return;
@@ -7894,7 +7620,7 @@ Private void mnuRISound_Click()
   }
   
   //import a new sound
-  NewSound MainDialog.FileName
+  NewSound OpenDlg.FileName
 return;
 
 ErrHandler:
@@ -7910,7 +7636,7 @@ Private void mnuRIView_Click()
   
   On Error GoTo ErrHandler
   
-  With MainDialog
+  With OpenDlg
     .Flags = cdlOFNHideReadOnly
     .DialogTitle = "Import View"
     .DefaultExt = ""
@@ -7930,7 +7656,7 @@ Private void mnuRIView_Click()
     if (ActiveForm.Name = "frmViewEdit") {
       if (ActiveForm.InGame) {
         //ask user if this is supposed to replace existing view
-        if (MsgBox("Do you want to replace the view you are currently editing?", vbYesNo, "Import View") = vbYes) {
+        if (MessageBox.Show(("Do you want to replace the view you are currently editing?", vbYesNo, "Import View") = vbYes) {
           //use the active form//s import function
           ActiveForm.MenuClickImport
           return;
@@ -7940,7 +7666,7 @@ Private void mnuRIView_Click()
   }
   
   //import new view
-  NewView MainDialog.FileName
+  NewView OpenDlg.FileName
 return;
 
 ErrHandler:
@@ -7976,15 +7702,15 @@ Private void mnuRIWords_Click()
     
     //a game is loaded; find out if user wants this words file to replace existing
     if (GameLoaded) {
-      if (MsgBox("Do you want to replace the existing WORDS.TOK file with this one?", vbQuestion + vbYesNo, "Replace WORDS.TOK File") = vbYes) {
+      if (MessageBox.Show(("Do you want to replace the existing WORDS.TOK file with this one?", vbQuestion + vbYesNo, "Replace WORDS.TOK File") = vbYes) {
         //if existing words file is being edited
         if (WEInUse) {
           //if it is dirty,
           if (WordEditor.IsDirty) {
             //warn user
-            rtn = MsgBox("Do you want to save your changes and export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
+            rtn = MessageBox.Show(("Do you want to save your changes and export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
           } else {
-            rtn = MsgBox("Do you want to export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
+            rtn = MessageBox.Show(("Do you want to export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
           }
           
           //if cancel
@@ -8073,15 +7799,15 @@ Private void mnuRNObjects_Click()
   
   //a game is loaded; find out if user wants this object file to replace existing
   if (GameLoaded) {
-    if (MsgBox("Do you want to replace the existing OBJECT file with this one?", vbQuestion + vbYesNo, "Replace OBJECT File") = vbYes) {
+    if (MessageBox.Show(("Do you want to replace the existing OBJECT file with this one?", vbQuestion + vbYesNo, "Replace OBJECT File") = vbYes) {
       //if existing object file is being edited
       if (OEInUse) {
         //if it is dirty,
         if (ObjectEditor.IsDirty) {
           //warn user
-          rtn = MsgBox("Do you want to save your changes and export the existing OBJECT file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
+          rtn = MessageBox.Show(("Do you want to save your changes and export the existing OBJECT file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
         } else {
-          rtn = MsgBox("Do you want to export the existing OBJECT file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
+          rtn = MessageBox.Show(("Do you want to export the existing OBJECT file before you replace it?", vbQuestion + vbYesNoCancel, "Replace OBJECT File")
         }
         
         //if cancel
@@ -8180,15 +7906,15 @@ Private void mnuRNWords_Click()
   
   //a game is loaded; find out if user wants this words file to replace existing
   if (GameLoaded) {
-    if (MsgBox("Do you want to replace the existing WORDS.TOK file with this one?", vbQuestion + vbYesNo, "Replace WORDS.TOK File") = vbYes) {
+    if (MessageBox.Show(("Do you want to replace the existing WORDS.TOK file with this one?", vbQuestion + vbYesNo, "Replace WORDS.TOK File") = vbYes) {
       //if existing words file is being edited
       if (WEInUse) {
         //if it is dirty,
         if (WordEditor.IsDirty) {
           //warn user
-          rtn = MsgBox("Do you want to save your changes and export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
+          rtn = MessageBox.Show(("Do you want to save your changes and export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
         } else {
-          rtn = MsgBox("Do you want to export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
+          rtn = MessageBox.Show(("Do you want to export the existing WORDS.TOK file before you replace it?", vbQuestion + vbYesNoCancel, "Replace WORDS.TOK File")
         }
         
         //if cancel
@@ -8358,7 +8084,7 @@ Private void mnuROText_Click()
   }
   
   //show dialog
-  With MainDialog
+  With OpenDlg
     .Flags = cdlOFNHideReadOnly
     .DialogTitle = "Open Text File"
     .DefaultExt = "txt"
@@ -9003,90 +8729,61 @@ ErrHandler:
 
 
 
-public void ClearResourceList()
-  
-  On Error GoTo ErrHandler
-  
-  //reset the navigation queue
-  ResetQueue
-  
-  //don't add to queue while clearing
-  DontQueue = true
-  
-  //list type determines clear actions
-  Select Case Settings.ResListType
-  Case 0 //none
-  
-  Case 1 //tree
-    With tvwResources
-      if (.Nodes.Count > 0) {
-        //always collapse first
-        .Nodes(1).Expanded = false
-      
-        //clear the treelist
-        .Nodes.Clear
-      }
-      
-      //add the base nodes
-      .Nodes.Add , , , ""
-      .Nodes.Add 1, tvwChild, sLOGICS, sLOGICS
-      .Nodes.Add 1, tvwChild, sPICTURES, sPICTURES
-      .Nodes.Add 1, tvwChild, sSOUNDS, sSOUNDS
-      .Nodes.Add 1, tvwChild, sVIEWS, sVIEWS
-      .Nodes.Add 1, tvwChild, "Objects", "Objects"
-      .Nodes.Add 1, tvwChild, "Words", "Words"
-      .Nodes(1).Expanded = true
-    End With
-    
-    //reset the navigation queue
-    ResetQueue
-    
-    //select resource root
-    //deselect property
-    SelectedProp = 1
-    PaintPropertyWindow
-    
-  Case 2 //box
-    With cmbResType
-      //if nothing added yet
-      if (.ListCount = 0) {
-        if (GameLoaded) {
-          .List(0) = GameID
-        } else {
-          .List(0) = "AGIGame"
-        }
-        .List(1) = "LOGICS"
-        .List(2) = "PICTURES"
-        .List(3) = "SOUNDS"
-        .List(4) = "VIEWS"
-        .List(5) = "Objects"
-        .List(6) = "Words"
-      }
-      //select top item (game level)
-      .SelectedIndex = 0
-    End With
-    
-    //select resource root
-    //deselect property
-    SelectedProp = 1
-    PaintPropertyWindow
-  }
-  
-  //allow queuing
-  DontQueue = false
-  
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
 
       */
     }
+    public void ClearResourceList()
+    {
+      //reset the navigation queue
+      ResetQueue();
+      //don't add to queue while clearing
+      DontQueue = true;
+      //list type determines clear actions
+      switch (Settings.ResListType) {
+      case 0: //none
+        break;
+      case 1: //tree
+        if (tvwResources.Nodes.Count > 0) {
+          //always collapse first
+          tvwResources.Nodes[0].Collapse();
+          //clear the treelist
+          tvwResources.Nodes.Clear();
+        }
+        //add the base nodes
+        tvwResources.Nodes.Add(GameLoaded ? GameID : "AGIGame");
+        tvwResources.Nodes[0].Nodes.Add(sLOGICS, sLOGICS);
+        tvwResources.Nodes[0].Nodes.Add(sPICTURES, sPICTURES);
+        tvwResources.Nodes[0].Nodes.Add(sSOUNDS, sSOUNDS);
+        tvwResources.Nodes[0].Nodes.Add(sVIEWS, sVIEWS);
+        tvwResources.Nodes[0].Nodes.Add("Objects", "Objects");
+        tvwResources.Nodes[0].Nodes.Add("Words", "Words");
+        tvwResources.Nodes[0].Expand();
+        //select resource root
+        //deselect property
+        SelectedProp = 1;
+        PaintPropertyWindow();
+        break;
+      case 2: //combo/list box
+        if (GameLoaded) {
+          cmbResType.Items[0] = GameID;
+        } else {
+          cmbResType.Items[0] = "AGIGame";
+        }
+        //select top item (game level)
+        cmbResType.SelectedIndex = 0;
+        //select resource root
+        //deselect property
+        SelectedProp = 1;
+        PaintPropertyWindow();
+        break;
+      }
+      //allow queuing
+      DontQueue = false;
+    }
     public void PaintPropertyWindow()
     {
-      /*
+  //*//
+  /*
         Dim i As Long
         Dim rtn As Long
         Dim lngPosY As Long
@@ -9312,6 +9009,45 @@ ErrHandler:
         //Debug.Assert false
         Resume Next
       */
+    }
+    public void ShowResTree()
+    {
+      int lngSplitLoc;
+      lngSplitLoc = pnlResources.Height - lstProperties.Height - SPLIT_HEIGHT;
+      if (lngSplitLoc < tvwResources.Top) {
+        lngSplitLoc = tvwResources.Top + 1;
+      }
+
+      switch (Settings.ResListType) {
+      case 0: //no tree
+              //shouldn//t get here, but
+        return;
+
+      case 1: //treeview list
+        tvwResources.Visible = true;
+        cmbResType.Visible = false;
+        lstResources.Visible = false;
+        //set tree height
+        tvwResources.Height = lngSplitLoc - tvwResources.Top;
+        //set tree width
+        tvwResources.Font = new Font(Settings.PFontName, Settings.PFontSize);
+        break;
+      case 2: //combo/list boxes
+        tvwResources.Visible = false;
+
+        //set combo and listbox height/width
+        cmbResType.Visible = true;
+        cmbResType.Font = new Font(Settings.EFontName, Settings.EFontSize);
+        lstResources.Top = cmbResType.Top + cmbResType.Height + 2;
+        lstResources.Visible = true;
+        lstResources.Font = new Font(Settings.PFontName, Settings.PFontSize);
+        break;
+      }
+
+      //show and position the resource list panels
+      pnlResources.Visible = true;
+      // property window is now visible, so repaint it
+      PaintPropertyWindow();
     }
 
     private void frmMDIMain_FormClosing(object sender, FormClosingEventArgs e)
