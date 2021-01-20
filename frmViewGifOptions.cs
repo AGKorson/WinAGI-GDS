@@ -256,7 +256,7 @@ namespace WinAGI_GDS
         lngPos++;
 
         //if end is reached
-        if (lngPos >= ExportPic.Resource.Size) {
+        if (lngPos >= ExportPic.Size) {
           //reset to beginning of picture
           lngPos = -1
           Exit Do
@@ -264,7 +264,7 @@ namespace WinAGI_GDS
 
         //get the value at this pos, and determine if it//s
         //a draw command
-        bytCmd = ExportPic.Resource.Data(lngPos)
+        bytCmd = ExportPic.Data(lngPos)
 
         switch (bytCmd) {
         case 240:

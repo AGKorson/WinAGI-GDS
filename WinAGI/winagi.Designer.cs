@@ -943,7 +943,7 @@ namespace WinAGI_GDS.WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4099: Nothing allowed on line after message declaration.
+        ///   Looks up a localized string similar to 4099: null allowed on line after message declaration.
         /// </summary>
         internal static string _4099 {
             get {

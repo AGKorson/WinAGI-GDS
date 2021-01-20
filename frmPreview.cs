@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
 using WinAGI;
 using static WinAGI.WinAGI;
 using static WinAGI.AGIGame;
@@ -26,7 +27,7 @@ namespace WinAGI_GDS
     const int MIN_WIDTH = 100;
 
     bool blnNoUpdate;
-    double sngOffsetX, sngOffsetY;
+    int intOffsetX, intOffsetY;
     AGIResType PrevResType;
 
     //logic preview
@@ -78,8 +79,11 @@ namespace WinAGI_GDS
     {
       //show wait cursor
       this.UseWaitCursor = true;
-      //clear resources
-      ClearPreviewWin();
+      //if changing restype, or showing a header
+      if (SelResType != ResType || ResNum == -1) {
+        //clear resources
+        ClearPreviewWin();
+      }
       // if picture header selected
       if (ResType == rtPicture && ResNum < 0) {
         // show save all pics menu item
@@ -167,7 +171,7 @@ namespace WinAGI_GDS
         tmrSound.Enabled = false;
         //reset progress bar
         picProgress.Width = 0;
-        cmdStop.Enabled = false;
+        btnStop.Enabled = false;
       }
       //unload logic
       if (agLogic != null) {
@@ -345,7 +349,7 @@ namespace WinAGI_GDS
       //set scrollbars if necessary
       SetPScrollbars();
     }
-    private void cmdPlay_Click(object sender, EventArgs e)
+    private void btnPlay_Click(object sender, EventArgs e)
     {
       int i;
       //if nothing to play
@@ -354,8 +358,8 @@ namespace WinAGI_GDS
         return;
       }
       //disable play and enable stop
-      cmdStop.Enabled = true;
-      cmdPlay.Enabled = false;
+      btnStop.Enabled = true;
+      btnPlay.Enabled = false;
       //disable other controls while sound is playing
       for (i = 0; i < 3; i++) {
         chkTrack[i].Enabled = false;
@@ -373,7 +377,7 @@ namespace WinAGI_GDS
         //disable timer
         tmrSound.Enabled = false;
         //reset buttons
-        cmdStop.Enabled = false;
+        btnStop.Enabled = false;
         picProgress.Width = 0;
         //////  Settings.NoMIDI = true
       }
@@ -406,11 +410,11 @@ namespace WinAGI_GDS
     public void StopSoundPreview()
     {
       //disable stop and enable play
-      cmdPlay.Enabled = !Settings.NoMIDI;
+      btnPlay.Enabled = !Settings.NoMIDI;
       //cmdPlay.Focus()   //DON'T do this - setting focus to a control also
       //sets focus to the form, which creates an unending
       //cycle of getfocus/lostfocus
-      cmdStop.Enabled = false;
+      btnStop.Enabled = false;
       if (agSound != null) {
         //stop sound
         agSound.StopSound();
@@ -570,7 +574,7 @@ namespace WinAGI_GDS
       }
       //set length
       lblLength.Text = "Sound clip length: " + agSound.Length.ToString("0.0") + " seconds";
-      cmdPlay.Enabled = !Settings.NoMIDI;
+      btnPlay.Enabled = !Settings.NoMIDI;
       return true;
     }
     private void cmdReset_Click(object sender, EventArgs e)
@@ -583,8 +587,8 @@ namespace WinAGI_GDS
     private void This_SoundComplete(object sender, SoundCompleteEventArgs e)
     {
       //disable stop and enable play
-      cmdPlay.Enabled = !Settings.NoMIDI;
-      cmdStop.Enabled = false;
+      btnPlay.Enabled = !Settings.NoMIDI;
+      btnStop.Enabled = false;
       tmrSound.Enabled = false;
       picProgress.Width = pnlProgressBar.Width;
       picProgress.Refresh();
@@ -825,13 +829,6 @@ namespace WinAGI_GDS
     }
     private void pnlCel_Paint(object sender, PaintEventArgs e)
     {
-
-      //TODO: need to fix the background (pnlCel) grid drawing; when to draw it and how;
-      // currently the background is not matching the foreground; the offset calc isn't quite right
-      // also, need to make sure grid gets completely drawn when selecting transparency, turned 
-      // off when de-selecting, and correctly updated during resize, scroll, and new loop/cel 
-      // events
-
       if (chkTrans.Checked) {
         int offsetX, offsetY;
         offsetX = (picCel.Left) % 10;
@@ -866,7 +863,7 @@ namespace WinAGI_GDS
         break;
       }
     }
-      void cmbInst_Click(int Index)
+    void cmbInst_Click(int Index)
     {
       //if changing,
       if (agSound.Track(Index).Instrument != cmbInst[Index].SelectedIndex) {
@@ -961,6 +958,136 @@ namespace WinAGI_GDS
       DontDraw = false;
       return;
     }
+    private void frmPreview_Activated(object sender, EventArgs e)
+    {
+      //if findform is visible,
+      if (AGIFindForm.Visible) {
+        //hide it it
+        AGIFindForm.Visible = false;
+      }
+      //cmbMotion.SelectedIndex = 0;
+      //sldSpeed.Value = 5;
+      //hsbView.Minimum = -PW_MARGIN;
+
+      //no need to adjust statusstrip; the default works for preview form
+
+    }
+    private void frmPreview_Deactivate(object sender, EventArgs e)
+    {
+      //if previewing a sound,
+      if (SelResType == rtSound) {
+        StopSoundPreview();
+      }
+
+      //stop cycling
+      if (tmrMotion.Enabled) {
+        //show play
+        tmrMotion.Enabled = false;
+        cmdVPlay.BackgroundImage = imageList1.Images[9];
+      }
+    }
+    private void frmPreview_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+    {
+      Debug.Print($"Main - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
+    }
+    private void frmPreview_KeyPress(object sender, KeyPressEventArgs e)
+    {
+
+      KeyHandler(e);
+      e.Handled = true;
+    }
+    private void btnStop_Click(object sender, EventArgs e)
+    {
+      //stop sounds
+      StopSoundPreview();
+    }
+    private void frmPreview_KeyDown(object sender, KeyEventArgs e)
+    {
+      Keys KeyCode = e.KeyCode;
+
+      //check for global shortcut keys
+      CheckShortcuts(e);
+
+      // if handled as a shortcut, exit
+      if (e.Handled) {
+        return;
+      }
+
+      // check keys based on SHIFT/CTRL/ALT status:
+      if (!e.Shift && !e.Control && !e.Alt) {
+        //none (no SHIFT, CTRL, ALT)
+        switch (KeyCode) {
+        case Keys.Delete:
+          //if a resource is selected
+          if (SelResType == rtLogic ||
+                SelResType == rtPicture ||
+                SelResType == rtSound ||
+                SelResType == rtView) {
+            //call remove from game method
+            MDIMain.RemoveSelectedRes();
+            e.Handled = true;
+          }
+          break;
+        case Keys.F1:
+          MenuClickHelp();
+          e.Handled = true;
+          break;
+        case Keys.F3:
+          // nothing?
+          break;
+        }
+      } else if (e.Shift && e.Control & !e.Alt) {
+        // SHIFT + CTRL
+        switch (KeyCode) {
+        case Keys.S: //Shift+Ctrl+S//
+          if (SelResType == rtPicture) {
+            //save Image as ...
+            mnuRSavePicAs_Click(null, null);
+          }
+          e.Handled = true;
+          break;
+        }
+      } else if (!e.Shift && e.Control && !e.Alt) {
+        switch (KeyCode) {
+        case Keys.F: //Ctrl+F (Find)
+          if (SelResType == rtLogic ||
+                SelResType == rtPicture ||
+                SelResType == rtSound ||
+                SelResType == rtView) {
+            //find this resid
+            MDIMain.SearchForID();
+          }
+          e.Handled = true;
+          break;
+        }
+      }
+      // if not handled, send it to main form to check for 
+      // navigation keys
+    }
+    private void imgPicture_DoubleClick(object sender, EventArgs e)
+    {
+      //open picture for editing
+      OpenPicture((byte)SelResNum);
+    }
+    private void picCel_DoubleClick(object sender, EventArgs e)
+    {
+      //open view for editing
+      OpenView((byte)SelResNum);
+    }
+    void picCel_MouseDown(object sender, MouseEventArgs e)
+    {
+      //if either scrollbar is visible,
+      if (hsbView.Visible || vsbView.Visible) {
+        //set dragView mode
+        blnDraggingView = true;
+
+        //set pointer to custom
+        pnlView.Cursor = Cursors.Hand;
+        //save x and Y offsets
+        intOffsetX = e.X;
+        intOffsetY = e.Y;
+      }
+    }
     public bool DisplayCel()
     {
       //this function copies the bitmap Image
@@ -980,8 +1107,6 @@ namespace WinAGI_GDS
         //DisableRedraw(pnlCel);
         // draws single pixel dots spaced 10 pixels apart
         using Graphics gc = Graphics.FromImage(picCel.Image);
-        //gc.Clear(Color.Red);
-        //gc.DrawLine(new Pen(Color.Black), 0, 0, picCel.Width, picCel.Height);
         for (int i = 0; i <= picCel.Width + 1; i += 10) {
           for (int j = 0; j < picCel.Height + 1; j += 10) {
             gc.FillRectangle(Brushes.Black, new Rectangle(i, j, 1, 1));
@@ -1020,6 +1145,97 @@ namespace WinAGI_GDS
       ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, tgtX, tgtY, tgtW, tgtH);
       //success
       return true;
+    }
+    private void imgPicture_Validated(object sender, EventArgs e)
+    {
+      Debug.Print("validate - did it work?");
+    }
+    private void pnlPicture_Leave(object sender, EventArgs e)
+    {
+      Debug.Print("pnlpic leave - did it work?");
+    }
+    private void imgPicture_MouseLeave(object sender, EventArgs e)
+    {
+      // clear the status bar
+      MainStatusBar.Items["StatusPanel1"].Text = "";
+    }
+    private void imgPicture_MouseDown(object sender, MouseEventArgs e)
+    {
+      //if either scrollbar is visible,
+      if (hsbPic.Visible || vsbPic.Visible) {
+        //set dragpic mode
+        blnDraggingPic = true;
+        //set pointer to custom
+        imgPicture.Cursor = Cursors.Hand;
+        //save x and Y offsets
+        intOffsetX = e.X;
+        intOffsetY = e.Y;
+      }
+    }
+    private void imgPicture_MouseUp(object sender, MouseEventArgs e)
+    {
+      //if dragging
+      if (blnDraggingPic) {
+        //cancel dragmode
+        blnDraggingPic = false;
+        // reset cursor
+        imgPicture.Cursor = Cursors.Default;
+      }
+    }
+    private void imgPicture_MouseMove(object sender, MouseEventArgs e)
+    {
+      // if mouse button is down and either or both scrollbars are
+      // visible, scroll the image;
+      // if mouse button is up, show coordinates
+
+      if (e.Button == MouseButtons.Left) {
+        int tmpX, tmpY;
+
+        //always clear statusbar
+        MainStatusBar.Items["StatusPanel1"].Text = "";
+
+        //if not active form
+        if (MDIMain.ActiveMdiChild != this) {
+          return;
+        }
+
+        //if dragging picture
+        if (blnDraggingPic) {
+          //get new scrollbar positions
+          tmpX = intOffsetX - e.X;
+          tmpY = intOffsetY - e.Y;
+          //if vertical scrollbar is visible
+          if (vsbPic.Visible) {
+            //limit positions to valid values
+            if (tmpY < vsbPic.Minimum) {
+              tmpY = vsbPic.Minimum;
+            } else if (tmpY > vsbPic.Maximum) {
+              tmpY = vsbPic.Maximum;
+            }
+            //set vertical scrollbar
+            vsbPic.Value = tmpY;
+          }
+          //if horizontal scrollbar is visible
+          if (hsbPic.Visible) {
+            //limit positions to valid values
+            if (tmpX < hsbPic.Minimum) {
+              tmpX = hsbPic.Minimum;
+            } else if (tmpX > hsbPic.Maximum) {
+              tmpX = hsbPic.Maximum;
+            }
+            //set horizontal scrollbar
+            hsbPic.Value = tmpX;
+          }
+          //move the image to this location
+          Debug.Print($"new location: {new Point(-tmpX, -tmpY)}");
+          imgPicture.Location = new Point(-tmpX, -tmpY);
+        }
+      } else if (e.Button == MouseButtons.Right) {
+
+      } else if (e.Button == MouseButtons.None) {
+        // show coordinates in statusbar
+        MainStatusBar.Items["StatusPanel1"].Text = $"X: {e.X / 2 / PicScale}    Y: {e.Y / PicScale}";
+      }
     }
     private void tmrMotion_Tick(object sender, EventArgs e)
     {
@@ -1068,8 +1284,71 @@ namespace WinAGI_GDS
       //redisplay length (it may have changed)
       lblLength.Text = "Sound clip length: " + agSound.Length.ToString("0.0") + " seconds";
       //enable play button if at least one track is NOT muted AND midi not disabled AND length>0
-      cmdPlay.Enabled = (chkTrack[0].Checked || chkTrack[1].Checked || chkTrack[2].Checked || chkTrack[3].Checked) && !Settings.NoMIDI && (agSound.Length > 0);
+      btnPlay.Enabled = (chkTrack[0].Checked || chkTrack[1].Checked || chkTrack[2].Checked || chkTrack[3].Checked) && !Settings.NoMIDI && (agSound.Length > 0);
     }
+    private void picCel_MouseUp(object sender, MouseEventArgs e)
+    {
+      //if dragging
+      if (blnDraggingView) {
+        //cancel dragmode
+        blnDraggingView = false;
+        picCel.Cursor = Cursors.Default;
+      }
+    }
+
+    private void rtfLogPrev_DoubleClick(object sender, EventArgs e)
+    {
+      //open logic for editing
+      OpenLogic((byte)SelResNum);
+    }
+
+    private void rtfLogPrev_KeyDown(object sender, KeyEventArgs e)
+    {
+      if (e.Handled = true) {
+        return;
+      }
+
+      switch (e.Modifiers) {
+      case Keys.None:
+        switch (e.KeyCode) {
+        case Keys.Delete:
+          //it should be caught by Form_KeyDown
+          // but just in case, ignore it
+          e.Handled = true;
+          break;
+        }
+        break;
+      case Keys.Control://    vbCtrlMask
+        switch (e.KeyCode) {
+        case Keys.A:
+          //*//  rtfLogPrev.Range.SelectRange();
+          break;
+        case Keys.C:
+          //*//  rtfLogPrev.Selection.Range.Copy();
+          break;
+        }
+        break;
+      }
+      e.Handled = true;
+    }
+
+    private void rtfLogPrev_MouseDown(object sender, MouseEventArgs e)
+    {
+      //with right mouse click, show the context menu, but only
+      //allow user to copy text, if some was selected
+      if (e.Button == MouseButtons.Right) {
+        //*//
+        /*   if (rtfLogPrev.Selection.Range.Length > 0) {
+                 MDIMain.mnuLPCopy.Enabled = true;
+             } else {
+                 MDIMain.mnuLPCopy.Enabled = false;
+             }
+             MDIMain.mnuLPSelectAll.Visible = true;
+             PopupMenu(mnuLPPopup, 0, X, Y);
+        */
+      }
+    }
+
     private void frmPreview_Load(object sender, EventArgs e)
     {
       int i;
@@ -1178,14 +1457,15 @@ namespace WinAGI_GDS
     }
     void DrawTransGrid()
     {
+      //*// grid function takes way too much time
       return;
       // redraws the grid of dots on the background panel to 
       // align with grid on cel image
       using Graphics gp = pnlCel.CreateGraphics();
       gp.Clear(BackColor);
       int offsetX, offsetY;
-      offsetX = (picCel.Left) % 10;// + 4;
-      offsetY = (picCel.Top) % 10;// + 4;
+      offsetX = (picCel.Left) % 10;
+      offsetY = (picCel.Top) % 10;
 
       //DisableRedraw(pnlCel);
       for (int i = 0; i <= pnlCel.Width + 1; i += 10) {
@@ -1196,552 +1476,160 @@ namespace WinAGI_GDS
       }
       //EnableRedraw(pnlCel);
     }
-    void tmpPreview()
-{
-  /*
-
-
-public void KeyHandler(ByRef short KeyAscii)
-
-switch (SelResType
-case rtPicture
-switch (KeyAscii
-case 43 //+//
-  //zoom in
-  if (udPZoom.Value < 4) {
-    udPZoom.Value = udPZoom.Value + 1
-  }
-  KeyAscii = 0
-
-case 45 //-//
-  //zoom out
-  if (udPZoom.Value > 1) {
-    udPZoom.Value = udPZoom.Value - 1
-  }
-  KeyAscii = 0
-}
-case rtView
-switch (KeyAscii
-case 32 // //
- //toggle play/pause
-  cmdVPlay_Click
-
-case 43 //+//
-  //zoom in
-  ZoomPrev 1
-  KeyAscii = 0
-case 45 //-//
-  //zoom out
-  ZoomPrev -1
-  KeyAscii = 0
-case 65, 97 //a//
-  if (CurCel > 0) {
-    CurCel = CurCel - 1
-  }
-  KeyAscii = 0
-case 83, 115 //s//
-  if (CurCel < agView[CurLoop].Count - 1) {
-    CurCel = CurCel + 1
-  }
-  KeyAscii = 0
-case 81, 113 //q//
-  if (udLoop.Value > 0) {
-    udLoop.Value = udLoop.Value - 1
-  }
-  KeyAscii = 0
-case 87, 119 //w//
-  if (udLoop.Value < udLoop.Maximum) {
-    udLoop.Value = udLoop.Value + 1
-  }
-  KeyAscii = 0
-}
-}
-}
-
-void MenuClickFind(FindFormFunction ffValue = FindFormFunction.ffFindLogic)
-
-On Error GoTo ErrHandler
-
-//don't need the find form; just go directly to the find function
-
-//set form defaults
-switch (SelResType) {
-case rtLogic:
-GFindText = Logics(SelResNum).ID
-case rtPicture:
-GFindText = Pictures[SelResNum).ID
-case rtSound:
-GFindText = Sounds(SelResNum).ID
-case rtView:
-GFindText = Views(SelResNum).ID
-}
-
-GFindDir = fdAll
-GMatchWord = true
-GMatchcase = true
-GLogFindLoc = flAll
-GFindSynonym = false
-
-//reset search flags
-AGIFindForm.ResetSearch
-
-SearchForm = MDIMain
-
-FindInLogic GFindText, GFindDir, GMatchWord, GMatchcase, GLogFindLoc
-return;
-
-ErrHandler:
-//Debug.Assert false
-Resume Next
-}
-public void MenuClickHelp()
-
-string strTopic;
-
-On Error GoTo ErrHandler
-
-//show preview window help
-strTopic = "htm\winagi\preview.htm"
-switch (SelResType
-case rtLogic, rtPicture, rtSound, rtView
-strTopic = strTopic + "#" + ResTypeName(SelResType)
-}
-
-//show preview window help
-HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, strTopic
-return;
-
-ErrHandler:
-//Debug.Assert false
-Resume Next
-}
-
-void Form_Activate()
-//if minimized, exit
-//(to deal with occasional glitch causing focus to lock up)
-if (this.WindowState == WindowState.Minimized) {
-return;
-}
-//if findform is visible,
-if (AGIFindForm.Visible) {
-//hide it it
-AGIFindForm.Visible = false
-}
-cmbMotion.SelectedIndex = 0;
-sldSpeed.Value = 5;
-hsbView.Minimum = -PW_MARGIN;
-}
-void Form_Deactivate()
-
-//if previewing a sound,
-if (SelResType = rtSound) {
-StopSoundPreview();
-}
-
-//stop cycling
-if (tmrMotion.Enabled) {
-  //show play
-  tmrMotion.Enabled = false;
-  cmdVPlay.BackgroundImage = imageList1.Images[9];
-}
-}
-
-void Form_KeyDown(object sender, EventArgs e)
-
-//detect and respond to keyboard shortcuts
-//
-//BLAST! with the rtf window for previewing logics, the key
-//preview feature doesn//t work; so we have to catch the
-//keypress in the rtf control, then send it BACK to the form!
-
-//check for global shortcut keys
-CheckShortcuts KeyCode, Shift
-if (KeyCode = 0) {
-return;
-}
-
-if (Shift = 0) {
-//no shift, ctrl, alt
-switch (KeyCode
-case vbKeyDelete
-  //if a resource is selected
-  switch (SelResType
-  case rtLogic, rtPicture, rtSound, rtView
-    //call remove from game method
-    MDIMain.RemoveSelectedRes
-    KeyCode = 0
-  }
-
-case vbKeyF1
-  MenuClickHelp
-  KeyCode = 0
-
-case vbKeyF3
-
-}
-} else if (Shift = vbShiftMask + vbCtrlMask) {
-switch (KeyCode
-case vbKeyS //Shift+Ctrl+S//
-  if (SelResType = rtPicture) {
-    //save Image as ...
-    MenuClickCustom1
-  }
-}
-
-} else if (Shift = vbCtrlMask) {
-switch (KeyCode
-case vbKeyF //Ctrl+F (Find)
-  switch (SelResType
-  case rtLogic, rtPicture, rtSound, rtView
-    //find this resid
-    MDIMain.SearchForID
-  }
-}
-}
-}
-
-void Form_KeyPress(object sender, EventArgs e)
-
-On Error GoTo ErrHandler
-
-KeyHandler KeyAscii
-return;
-
-ErrHandler:
-//Debug.Assert false
-Resume Next
-}
-void hsbView_Change()
-{
-//if not updating
-if (!blnNoUpdate) {
-//position viewholder
-picCel.Left = -hsbView.Value;
-}
-}
-void hsbView_Scroll()
-
-hsbView_Change();
-}
-void imgPicture_DblClick()
-
-//open picture for editing
-OpenPicture(SelResNum);
-}
-
-void imgPicture_LostFocus()
-
-//clear statusbar
-MainStatusBar.Panels(1).Text = ""
-}
-
-void imgPicture_MouseDown(object sender, EventArgs e)
-
-int rtn
-
-//if either scrollbar is visible,
-if (hsbPic.Visible || vsbPic.Visible) {
-//set dragpic mode
-blnDraggingPic = true;
-
-//set pointer to custom
-pnlPicture.MousePointer = vbCustom
-rtn = SetCapture(pnlPicture.hWnd)
-//save x and Y offsets
-sngOffsetX = X;
-sngOffsetY = Y;
-}
-}
-
-
-void imgPicture_MouseMove(object sender, EventArgs e)
-
-//display coords in statusbar
-
-int pX, pY
-pX = X / 2 / PicScale
-pY = Y / PicScale
-MainStatusBar.Panels(1).Text = "X: " + pX + "    Y: " + pY
-}
-void Label6_MouseMove(object sender, EventArgs e)
-
-//always clear statusbar
-MainStatusBar.Panels(1).Text = ""
-}
-void Form_Resize()
-
-if (ScaleWidth < MIN_WIDTH) {
-CalcWidth = MIN_WIDTH
-} else {
-CalcWidth = ScaleWidth
-}
-if (ScaleHeight < MIN_HEIGHT) {
-CalcHeight = MIN_HEIGHT
-} else {
-CalcHeight = ScaleHeight
-}
-
-//if not minimized
-if (this.WindowState != vbMinimized) {
-
-switch (SelResType
-case rtLogic
-    pnlLogic.Width = CalcWidth
-    pnlLogic.Height = CalcHeight
-
-case rtPicture
-    pnlPicture.Width = CalcWidth
-    pnlPicture.Height = CalcHeight
-
-case rtSound
-    pnlSound.Width = CalcWidth
-    pnlSound.Height = CalcHeight
-
-case rtView
-    pnlView.Width = CalcWidth
-    pnlView.Height = CalcHeight
-
-default:
-  //no action needed, as there is no preview
-}
-}
-}
-void picCel_DblClick()
-
-//open view for editing
-OpenView SelResNum
-}
-void picCel_MouseDown(object sender, EventArgs e)
-
-int rtn
-
-//ensure flyout toolbars are hidden
-tlbHAlign.Visible = false
-tlbVAlign.Visible = false
-
-//if either scrollbar is visible,
-if (hsbView.Visible || vsbView.Visible) {
-//set dragView mode
-blnDraggingView = true
-
-//set pointer to custom
-pnlView.MousePointer = vbCustom
-rtn = SetCapture(pnlView.hWnd)
-//save x and Y offsets
-sngOffsetX = X
-sngOffsetY = Y
-}
-}
-void picPicture_MouseMove(object sender, EventArgs e)
-
-float tmpX, tmpY;
-
-//always clear statusbar
-MainStatusBar.Panels(1).Text = ""
-
-//if not active form
-if (!MDIMain.ActiveForm Is Me) {
-return;
-}
-
-//if dragging picture
-if (blnDraggingPic) {
-//get new scrollbar positions
-tmpX = sngOffsetX - X
-tmpY = sngOffsetY - Y + fraPHeader.Height
-
-//if vertical scrollbar is visible
-if (vsbPic.Visible) {
-  //limit positions to valid values
-  if (tmpY < vsbPic.Minimum) {
-    tmpY = vsbPic.Minimum
-  } else if (tmpY > vsbPic.Maximum) {
-    tmpY = vsbPic.Maximum
-  }
-  //set vertical scrollbar
-  vsbPic.Value = tmpY
-}
-
-//if horizontal scrollbar is visible
-if (hsbPic.Visible) {
-  //limit positions to valid values
-  if (tmpX < hsbPic.Minimum) {
-    tmpX = hsbPic.Minimum
-  } else if (tmpX > hsbPic.Maximum) {
-    tmpX = hsbPic.Maximum
-  }
-  //set horizontal scrollbar
-  hsbPic.Value = tmpX
-}
-}
-}
-void picPicture_MouseUp(object sender, EventArgs e)
-
-int rtn
-
-//if dragging
-if (blnDraggingPic) {
-//cancel dragmode
-blnDraggingPic = false
-//release mouse capture
-rtn = ReleaseCapture()
-pnlPicture.MousePointer = vbDefault
-}
-}
-
-
-void picSound_DblClick()
-
-//open sound for editing, if standard agi
-
-OpenSound SelResNum
-}
-void picView_DblClick()
-
-//let user change background color
-Load frmPalette
-frmPalette.SetForm 1
-frmPalette.Show vbModal, MDIMain
-pnlView.BackColor = PrevWinBColor
-picViewHolder.BackColor = PrevWinBColor
-//toolbars stay default gray, but that//s OK
-
-//force redraw of cel
-DisplayCel
-if (blnTrans) {
-DrawTransGrid
-}
-}
-void picView_MouseMove(object sender, EventArgs e)
-
-float tmpX, tmpY;
-
-On Error GoTo ErrHandler
-
-//if not active form
-if (!MDIMain.ActiveForm Is Me) {
-return;
-}
-
-//if dragging picture
-if (blnDraggingView) {
-//get new scrollbar positions
-tmpX = sngOffsetX - X
-tmpY = sngOffsetY - Y + 2 * fraToolbar.Height
-
-//if vertical scrollbar is visible
-if (vsbView.Visible) {
-  //limit positions to valid values
-  if (tmpY < vsbView.Minimum) {
-    tmpY = vsbView.Minimum
-  } else if (tmpY > vsbView.Maximum) {
-    tmpY = vsbView.Maximum
-  }
-  //set vertical scrollbar
-  vsbView.Value = tmpY
-}
-
-//if horizontal scrollbar is visible
-if (hsbView.Visible) {
-  //limit positions to valid values
-  if (tmpX < hsbView.Minimum) {
-    tmpX = hsbView.Minimum
-  } else if (tmpX > hsbView.Maximum) {
-    tmpX = hsbView.Maximum
-  }
-  //set horizontal scrollbar
-  hsbView.Value = tmpX
-}
-}
-return;
-
-ErrHandler:
-//Debug.Assert false
-Resume Next
-}
-
-void picView_MouseUp(object sender, EventArgs e)
-
-int rtn
-
-//if dragging
-if (blnDraggingView) {
-//cancel dragmode
-blnDraggingView = false
-//release mouse capture
-rtn = ReleaseCapture()
-pnlView.MousePointer = vbDefault
-}
-}
-
-void picViewHolder_DblClick()
-
-picView_DblClick();
-}
-
-void rtfLogPrev_DblClick(object sender, EventArgs e)
-
-//open logic for editing
-OpenLogic(SelResNum);
-}
-void rtfLogPrev_KeyDown(object sender, EventArgs e)
-
-//BLAST! with the rtf window for previewing logics, the key
-//preview feature doesn//t work; so we have to catch the
-//keypress in the rtf control, then send it BACK to the form!
-Form_KeyDown KeyCode, Shift
-
-if (KeyCode = 0) {
-return;
-}
-
-switch (Shift
-case 0
-switch (KeyCode
-case vbKeyDelete
-  //it should be caught by Form_KeyDown
-  // but just in case, ignore it
-  KeyCode = 0
-}
-
-case vbCtrlMask
-switch (KeyCode
-case vbKeyA
-  rtfLogPrev.Range.SelectRange
-case vbKeyC
-  rtfLogPrev.Selection.Range.Copy
-}
-}
-
-KeyCode = 0
-Shift = 0
-
-}
-void rtfLogPrev_MouseDown(object sender, EventArgs e)
-
-//with right mouse click, show the context menu, but only
-//allow user to copy text, if some was selected
-On Error GoTo ErrHandler
-
-if (Button = vbRightButton) {
-With MDIMain
-  if (rtfLogPrev.Selection.Range.Length > 0) {
-    .mnuLPCopy.Enabled = true
-  } else {
-    .mnuLPCopy.Enabled = false
-  }
-  .mnuLPSelectAll.Visible = true
-  PopupMenu .mnuLPPopup, 0, X, Y
-endwith
-}
-return;
-
-ErrHandler:
-//Debug.Assert false
-Resume Next
-}
-
-  */
-}
+    public void KeyHandler(KeyPressEventArgs e)
+    {
+      switch (SelResType) {
+      case rtPicture:
+        switch ((int)e.KeyChar) {
+        case 43: //+//
+                 //zoom in
+          if (udPZoom.Value < 4) {
+            udPZoom.Value++;
+          }
+          break;
+        case 45: //-//
+                 //zoom out
+          if (udPZoom.Value > 1) {
+            udPZoom.Value--;
+          }
+          break;
+        }
+        break;
+      case rtView:
+        switch ((int)e.KeyChar) {
+        case 32: // //
+                 //toggle play/pause
+          cmdVPlay_Click(null, null);
+          break;
+        case 43: //+//
+                 //zoom in
+          ZoomPrev(1);
+          break;
+        case 45: //-//
+                 //zoom out
+          ZoomPrev(-1);
+          break;
+        case 65:
+        case 97: //a//
+          dCel_Click(null, null);
+          break;
+        case 83:
+        case 115: //s//
+          uCel_Click(null, null);
+          break;
+        case 81:
+        case 113: //q//
+          dLoop_Click(null, null);
+          break;
+        case 87:
+        case 119: //w//
+          uLoop_Click(null, null);
+          break;
+        }
+        break;
+      }
+    }
+    void MenuClickFind(FindFormFunction ffValue = FindFormFunction.ffFindLogic)
+    {
+      //don't need the find form; just go directly to the find function
+
+      //set form defaults
+      switch (SelResType) {
+      case rtLogic:
+        GFindText = Logics[(byte)SelResNum].ID;
+        break;
+      case rtPicture:
+        GFindText = Pictures[(byte)SelResNum].ID;
+        break;
+      case rtSound:
+        GFindText = Sounds[(byte)SelResNum].ID;
+        break;
+      case rtView:
+        GFindText = Views[(byte)SelResNum].ID;
+        break;
+      }
+      GFindDir = FindDirection.fdAll;
+      GMatchWord = true;
+      GMatchCase = true;
+      GLogFindLoc = FindLocation.flAll;
+      GFindSynonym = false;
+
+      //reset search flags
+      AGIFindForm.ResetSearch();
+      SearchForm = MDIMain;
+
+      FindInLogic(GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc);
+    }
+    void MenuClickHelp()
+    {
+      string strTopic;
+      //show preview window help
+      strTopic = "htm\\winagi\\preview.htm";
+      if (SelResType == rtLogic ||
+          SelResType == rtPicture ||
+          SelResType == rtSound ||
+          SelResType == rtView) {
+        strTopic += "#" + ResTypeName[(int)SelResType];
+      }
+      //show preview window help
+      HtmlHelpS(HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, strTopic);
+    }
+    void pnlSound_DoubleClick(object sender, EventArgs e)
+    {
+      //open sound for editing, if standard agi
+      OpenSound((byte)SelResNum);
+    }
+    void pnlView_DoubleClick(object sender, EventArgs e)
+    {
+      //let user change background color
+      frmPalette NewPallete = new frmPalette(1);
+      NewPallete.ShowDialog(MDIMain);
+      pnlView.BackColor = PrevWinBColor;
+      picCel.BackColor = PrevWinBColor;
+      //toolbars stay default gray, but that's OK
+
+      //force redraw of cel
+      DisplayCel();
+      if (blnTrans) {
+        DrawTransGrid();
+      }
+    }
+    void picCel_MouseMove(object sender, MouseEventArgs e)
+    {
+      int tmpX, tmpY;
+      //if not active form
+      if (MDIMain.ActiveMdiChild != this) {
+        return;
+      }
+      //if dragging picture
+      if (blnDraggingView) {
+        //get new scrollbar positions
+        tmpX = intOffsetX - e.X;
+        tmpY = intOffsetY - e.Y + 2;
+
+        //if vertical scrollbar is visible
+        if (vsbView.Visible) {
+          //limit positions to valid values
+          if (tmpY < vsbView.Minimum) {
+            tmpY = vsbView.Minimum;
+          } else if (tmpY > vsbView.Maximum) {
+            tmpY = vsbView.Maximum;
+          }
+          //set vertical scrollbar
+          vsbView.Value = tmpY;
+        }
+        //if horizontal scrollbar is visible
+        if (hsbView.Visible) {
+          //limit positions to valid values
+          if (tmpX < hsbView.Minimum) {
+            tmpX = hsbView.Minimum;
+          } else if (tmpX > hsbView.Maximum) {
+            tmpX = hsbView.Maximum;
+          }
+          //set horizontal scrollbar
+          hsbView.Value = tmpX;
+        }
+      }
+    }
   }
 }

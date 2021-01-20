@@ -448,34 +448,6 @@ namespace WinAGI
             mRData.AllData = ExpandV3ResData(mRData.AllData, lngExpandedSize);
             // update size
             intSize = lngExpandedSize;
-
-            ////if expanding a logic
-            //if (mResType == AGIResType.rtLogic) {
-            //  int lngMsgStart;
-            //  byte NumMessages;
-            //  int lngPos, lngMsgEnd, EncryptionStart, i;
-            //  //need to toggle encryption of message section
-            //  //(since compressed version three logics don't
-            //  //have their message sections encrypted)
-            //  //
-            //  //get start of msg section
-            //  lngMsgStart = mRData[1] * 256 + mRData[0] + 2;
-
-            //  //read in number of messages
-            //  NumMessages = mRData[lngMsgStart];
-            //  if (NumMessages > 0) {
-            //    //retrieve and adjust end of message section
-            //    lngMsgEnd = lngMsgStart + 256 * mRData[lngMsgStart + 2] + mRData[lngMsgStart + 1];
-            //    //set start of encryption (at end of msg section table)
-            //    EncryptionStart = lngMsgStart + 3 + NumMessages * 2;
-            //    //mark start of encrypted data (to align encryption string)
-            //    //step through all bytes and toggle encryption
-            //    for (lngPos = EncryptionStart; lngPos <= lngMsgEnd; lngPos++) {
-            //      mRData[lngPos] = (byte)(mRData[lngPos] ^ bytEncryptKey[(lngPos - EncryptionStart) % 11]);
-            //    }
-            //  }
-            //}
-
           }
         }
       }

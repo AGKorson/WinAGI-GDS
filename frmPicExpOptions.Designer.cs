@@ -41,8 +41,8 @@ namespace WinAGI_GDS
       this.lblScale = new System.Windows.Forms.Label();
       this.udZoom = new System.Windows.Forms.NumericUpDown();
       this.lblBoth = new System.Windows.Forms.Label();
-      this.OKButton = new System.Windows.Forms.Button();
-      this.CancelButton = new System.Windows.Forms.Button();
+      this.btnOK = new System.Windows.Forms.Button();
+      this.btnCancel = new System.Windows.Forms.Button();
       this.fraChoice.SuspendLayout();
       this.fraImage.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.udZoom)).BeginInit();
@@ -52,18 +52,21 @@ namespace WinAGI_GDS
       // 
       this.fraChoice.Controls.Add(this.optImage);
       this.fraChoice.Controls.Add(this.optResource);
-      this.fraChoice.Location = new System.Drawing.Point(16, 14);
+      this.fraChoice.Location = new System.Drawing.Point(30, 30);
+      this.fraChoice.Margin = new System.Windows.Forms.Padding(6);
       this.fraChoice.Name = "fraChoice";
-      this.fraChoice.Size = new System.Drawing.Size(265, 49);
+      this.fraChoice.Padding = new System.Windows.Forms.Padding(6);
+      this.fraChoice.Size = new System.Drawing.Size(492, 105);
       this.fraChoice.TabIndex = 0;
       this.fraChoice.TabStop = false;
       // 
       // optImage
       // 
       this.optImage.AutoSize = true;
-      this.optImage.Location = new System.Drawing.Point(144, 18);
+      this.optImage.Location = new System.Drawing.Point(267, 38);
+      this.optImage.Margin = new System.Windows.Forms.Padding(6);
       this.optImage.Name = "optImage";
-      this.optImage.Size = new System.Drawing.Size(98, 19);
+      this.optImage.Size = new System.Drawing.Size(191, 36);
       this.optImage.TabIndex = 1;
       this.optImage.TabStop = true;
       this.optImage.Text = "Picture Image";
@@ -73,9 +76,10 @@ namespace WinAGI_GDS
       // optResource
       // 
       this.optResource.AutoSize = true;
-      this.optResource.Location = new System.Drawing.Point(16, 18);
+      this.optResource.Location = new System.Drawing.Point(30, 38);
+      this.optResource.Margin = new System.Windows.Forms.Padding(6);
       this.optResource.Name = "optResource";
-      this.optResource.Size = new System.Drawing.Size(95, 19);
+      this.optResource.Size = new System.Drawing.Size(185, 36);
       this.optResource.TabIndex = 0;
       this.optResource.TabStop = true;
       this.optResource.Text = "AGI Resource";
@@ -87,9 +91,11 @@ namespace WinAGI_GDS
       this.fraImage.Controls.Add(this.optBoth);
       this.fraImage.Controls.Add(this.optPriority);
       this.fraImage.Controls.Add(this.optVisual);
-      this.fraImage.Location = new System.Drawing.Point(16, 72);
+      this.fraImage.Location = new System.Drawing.Point(30, 154);
+      this.fraImage.Margin = new System.Windows.Forms.Padding(6);
       this.fraImage.Name = "fraImage";
-      this.fraImage.Size = new System.Drawing.Size(161, 89);
+      this.fraImage.Padding = new System.Windows.Forms.Padding(6);
+      this.fraImage.Size = new System.Drawing.Size(299, 190);
       this.fraImage.TabIndex = 1;
       this.fraImage.TabStop = false;
       this.fraImage.Text = "Image to export";
@@ -97,9 +103,10 @@ namespace WinAGI_GDS
       // optBoth
       // 
       this.optBoth.AutoSize = true;
-      this.optBoth.Location = new System.Drawing.Point(24, 62);
+      this.optBoth.Location = new System.Drawing.Point(45, 132);
+      this.optBoth.Margin = new System.Windows.Forms.Padding(6);
       this.optBoth.Name = "optBoth";
-      this.optBoth.Size = new System.Drawing.Size(50, 19);
+      this.optBoth.Size = new System.Drawing.Size(95, 36);
       this.optBoth.TabIndex = 2;
       this.optBoth.TabStop = true;
       this.optBoth.Text = "Both";
@@ -109,9 +116,10 @@ namespace WinAGI_GDS
       // optPriority
       // 
       this.optPriority.AutoSize = true;
-      this.optPriority.Location = new System.Drawing.Point(24, 40);
+      this.optPriority.Location = new System.Drawing.Point(45, 85);
+      this.optPriority.Margin = new System.Windows.Forms.Padding(6);
       this.optPriority.Name = "optPriority";
-      this.optPriority.Size = new System.Drawing.Size(103, 19);
+      this.optPriority.Size = new System.Drawing.Size(200, 36);
       this.optPriority.TabIndex = 1;
       this.optPriority.TabStop = true;
       this.optPriority.Text = "Priority Picture";
@@ -122,9 +130,10 @@ namespace WinAGI_GDS
       // optVisual
       // 
       this.optVisual.AutoSize = true;
-      this.optVisual.Location = new System.Drawing.Point(24, 18);
+      this.optVisual.Location = new System.Drawing.Point(45, 38);
+      this.optVisual.Margin = new System.Windows.Forms.Padding(6);
       this.optVisual.Name = "optVisual";
-      this.optVisual.Size = new System.Drawing.Size(96, 19);
+      this.optVisual.Size = new System.Drawing.Size(188, 36);
       this.optVisual.TabIndex = 0;
       this.optVisual.TabStop = true;
       this.optVisual.Text = "Visual Picture";
@@ -141,34 +150,38 @@ namespace WinAGI_GDS
             "GIF",
             "TIF",
             "PNG"});
-      this.cmbFormat.Location = new System.Drawing.Point(16, 180);
+      this.cmbFormat.Location = new System.Drawing.Point(30, 384);
+      this.cmbFormat.Margin = new System.Windows.Forms.Padding(6);
       this.cmbFormat.Name = "cmbFormat";
-      this.cmbFormat.Size = new System.Drawing.Size(161, 23);
+      this.cmbFormat.Size = new System.Drawing.Size(296, 40);
       this.cmbFormat.TabIndex = 2;
       // 
       // lblFormat
       // 
       this.lblFormat.AutoSize = true;
-      this.lblFormat.Location = new System.Drawing.Point(16, 164);
+      this.lblFormat.Location = new System.Drawing.Point(30, 350);
+      this.lblFormat.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
       this.lblFormat.Name = "lblFormat";
-      this.lblFormat.Size = new System.Drawing.Size(84, 15);
+      this.lblFormat.Size = new System.Drawing.Size(167, 32);
       this.lblFormat.TabIndex = 3;
       this.lblFormat.Text = "Image Format:";
       // 
       // lblScale
       // 
       this.lblScale.AutoSize = true;
-      this.lblScale.Location = new System.Drawing.Point(200, 120);
+      this.lblScale.Location = new System.Drawing.Point(371, 256);
+      this.lblScale.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
       this.lblScale.Name = "lblScale";
-      this.lblScale.Size = new System.Drawing.Size(37, 15);
+      this.lblScale.Size = new System.Drawing.Size(74, 32);
       this.lblScale.TabIndex = 4;
       this.lblScale.Text = "Scale:";
       // 
       // udZoom
       // 
-      this.udZoom.Location = new System.Drawing.Point(243, 118);
+      this.udZoom.Location = new System.Drawing.Point(451, 252);
+      this.udZoom.Margin = new System.Windows.Forms.Padding(6);
       this.udZoom.Name = "udZoom";
-      this.udZoom.Size = new System.Drawing.Size(71, 23);
+      this.udZoom.Size = new System.Drawing.Size(132, 39);
       this.udZoom.TabIndex = 5;
       this.udZoom.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
       this.udZoom.Value = new decimal(new int[] {
@@ -179,43 +192,46 @@ namespace WinAGI_GDS
       // 
       // lblBoth
       // 
-      this.lblBoth.Location = new System.Drawing.Point(200, 160);
+      this.lblBoth.Location = new System.Drawing.Point(371, 341);
+      this.lblBoth.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
       this.lblBoth.Name = "lblBoth";
-      this.lblBoth.Size = new System.Drawing.Size(177, 49);
+      this.lblBoth.Size = new System.Drawing.Size(329, 105);
       this.lblBoth.TabIndex = 6;
       this.lblBoth.Text = "File name for the Priority Screen will be the same as the Visual Screen with \"_P\"" +
     " appended.";
       // 
-      // OKButton
+      // btnOK
       // 
-      this.OKButton.Location = new System.Drawing.Point(312, 12);
-      this.OKButton.Name = "OKButton";
-      this.OKButton.Size = new System.Drawing.Size(81, 25);
-      this.OKButton.TabIndex = 7;
-      this.OKButton.Text = "OK";
-      this.OKButton.UseVisualStyleBackColor = true;
-      this.OKButton.Click += new System.EventHandler(this.OKButton_Click);
+      this.btnOK.Location = new System.Drawing.Point(579, 26);
+      this.btnOK.Margin = new System.Windows.Forms.Padding(6);
+      this.btnOK.Name = "btnOK";
+      this.btnOK.Size = new System.Drawing.Size(150, 53);
+      this.btnOK.TabIndex = 7;
+      this.btnOK.Text = "OK";
+      this.btnOK.UseVisualStyleBackColor = true;
+      this.btnOK.Click += new System.EventHandler(this.OKButton_Click);
       // 
-      // CancelButton
+      // btnCancel
       // 
-      this.CancelButton.Location = new System.Drawing.Point(312, 44);
-      this.CancelButton.Name = "CancelButton";
-      this.CancelButton.Size = new System.Drawing.Size(81, 25);
-      this.CancelButton.TabIndex = 8;
-      this.CancelButton.Text = "Cancel";
-      this.CancelButton.UseVisualStyleBackColor = true;
-      this.CancelButton.Click += new System.EventHandler(this.CancelButton_Click);
+      this.btnCancel.Location = new System.Drawing.Point(579, 94);
+      this.btnCancel.Margin = new System.Windows.Forms.Padding(6);
+      this.btnCancel.Name = "btnCancel";
+      this.btnCancel.Size = new System.Drawing.Size(150, 53);
+      this.btnCancel.TabIndex = 8;
+      this.btnCancel.Text = "Cancel";
+      this.btnCancel.UseVisualStyleBackColor = true;
+      this.btnCancel.Click += new System.EventHandler(this.CancelButton_Click);
       // 
       // frmPicExpOptions
       // 
-      this.AcceptButton = this.OKButton;
-      this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+      this.AcceptButton = this.btnOK;
+      this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.CancelButton = this.CancelButton;
-      this.ClientSize = new System.Drawing.Size(405, 229);
+      this.CancelButton = this.btnCancel;
+      this.ClientSize = new System.Drawing.Size(752, 489);
       this.ControlBox = false;
-      this.Controls.Add(this.CancelButton);
-      this.Controls.Add(this.OKButton);
+      this.Controls.Add(this.btnCancel);
+      this.Controls.Add(this.btnOK);
       this.Controls.Add(this.lblBoth);
       this.Controls.Add(this.udZoom);
       this.Controls.Add(this.lblScale);
@@ -225,6 +241,7 @@ namespace WinAGI_GDS
       this.Controls.Add(this.fraChoice);
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
       this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+      this.Margin = new System.Windows.Forms.Padding(6);
       this.MaximizeBox = false;
       this.MinimizeBox = false;
       this.Name = "frmPicExpOptions";
@@ -250,8 +267,8 @@ namespace WinAGI_GDS
     private System.Windows.Forms.Label lblFormat;
     private System.Windows.Forms.Label lblScale;
     private System.Windows.Forms.Label lblBoth;
-    private System.Windows.Forms.Button OKButton;
-    private System.Windows.Forms.Button CancelButton;
+    private System.Windows.Forms.Button btnOK;
+    private System.Windows.Forms.Button btnCancel;
     public System.Windows.Forms.RadioButton optPriority;
     public System.Windows.Forms.RadioButton optVisual;
     public System.Windows.Forms.ComboBox cmbFormat;

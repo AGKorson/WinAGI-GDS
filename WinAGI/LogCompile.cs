@@ -143,7 +143,7 @@ namespace WinAGI
           //add include files (extchars handled automatically)
           if (!AddIncludes(stlSource)) {
             //dereference objects
-            stlInput = Nothing
+            stlInput = null
             //return error
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
@@ -158,7 +158,7 @@ namespace WinAGI
           //if nothing to compile, throw an error
           if (stlInput.Count == 0) {
             //dereference objects
-            stlInput = Nothing
+            stlInput = null
             //return error
             strErrMsg = LoadResString(4159)
             lngErrLine = 0
@@ -169,7 +169,7 @@ namespace WinAGI
           //strip out all comments
           if (!RemoveComments()) {
             //dereference objects
-            stlInput = Nothing
+            stlInput = null
             //return error
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
@@ -179,7 +179,7 @@ namespace WinAGI
           //read labels
           if (!ReadLabels()) {
             //dereference objects
-            stlInput = Nothing
+            stlInput = null
             //return error
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
@@ -189,7 +189,7 @@ namespace WinAGI
           //enumerate and replace all the defines
           if (!ReadDefines()) {
             //dereference objects
-            stlInput = Nothing
+            stlInput = null
             //return error
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
@@ -199,7 +199,7 @@ namespace WinAGI
           //read predefined messages
           if (!ReadMsgs()) {
             //dereference objects
-            stlInput = Nothing
+            stlInput = null
             //return error
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
@@ -220,8 +220,8 @@ namespace WinAGI
           if (!blnCompiled) {
             //dereference objects
             tmpLogRes.Unload
-            tmpLogRes = Nothing
-            stlInput = Nothing
+            tmpLogRes = null
+            stlInput = null
             //return error
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
             return;
@@ -231,8 +231,8 @@ namespace WinAGI
           if (!WriteMsgs()) {
             //dereference objects
             tmpLogRes.Unload
-            tmpLogRes = Nothing
-            stlInput = Nothing
+            tmpLogRes = null
+            stlInput = null
             //return error
             On Error GoTo 0
             throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
@@ -241,7 +241,7 @@ namespace WinAGI
 
           With SourceLogic
             //assign resource data
-            .Resource.AllData = tmpLogRes.AllData
+            .AllData = tmpLogRes.AllData
 
             //update compiled crc
             SourceLogic.CompiledCRC = SourceLogic.CRC
@@ -252,8 +252,8 @@ namespace WinAGI
 
           //dereference objects
           tmpLogRes.Unload
-          tmpLogRes = Nothing
-          stlInput = Nothing
+          tmpLogRes = null
+          stlInput = null
 
         return;
 
@@ -266,8 +266,8 @@ namespace WinAGI
 
           //dereference objects
           tmpLogRes.Unload
-          tmpLogRes = Nothing
-          stlInput = Nothing
+          tmpLogRes = null
+          stlInput = null
           if ((lngError && WINAGI_ERR) == WINAGI_ERR) {
             //pass it along
             throw new Exception("lngError, strErrSrc, strError
@@ -2596,7 +2596,7 @@ namespace WinAGI
             lngLine = lngLine + 1
           Loop Until lngLine >= lngLineCount
           //done
-          IncludeLines = Nothing
+          IncludeLines = null
           //return success
           AddIncludes = true
         return;

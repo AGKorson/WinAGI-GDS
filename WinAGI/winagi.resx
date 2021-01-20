@@ -412,7 +412,7 @@
     <value>4098: NOT operator not allowed before variable comparisons</value>
   </data>
   <data name="4099" xml:space="preserve">
-    <value>4099: Nothing allowed on line after message declaration</value>
+    <value>4099: null allowed on line after message declaration</value>
   </data>
   <data name="4100" xml:space="preserve">
     <value>4100: OR operator must be within brackets</value>

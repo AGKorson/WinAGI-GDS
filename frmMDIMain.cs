@@ -51,7 +51,7 @@ namespace WinAGI_GDS
     double mTX, mTY, NLRowHeight;
     int NLOffset, NLRow;
 
-    public int LastIndex;
+    public string LastNodeName;
     bool MDIHasFocus;
     bool ForcePreview;
     bool KeepFocus;
@@ -67,17 +67,42 @@ namespace WinAGI_GDS
     int PropScroll;
     int ListItemHeight;
     bool NoPaint;
-    bool CanSelect;
+    bool AllowSelect;
     private bool splashDone;
-
+    //tracks status of caps/num/ins
+    static bool CapsLock = false;
+    static bool NumLock = false;
+    static bool InsertLock = false;
+    public void OnIdle(object sender, EventArgs e)
+    {
+      // Update the panels when the program is idle.
+      bool newCapsLock = (((ushort)GetKeyState(0x14 /*VK_CAPITAL*/)) & 0xffff) != 0;
+      bool newNumLock = (((ushort)GetKeyState(0x90 /*VK_NUMLOCK*/)) & 0xffff) != 0;
+      bool newInsertLock = (((ushort)GetKeyState(0x2D /*VK_INSERT*/)) & 0xffff) != 0;
+      if (newCapsLock != CapsLock) {
+        CapsLock = newCapsLock;
+        if (CapsLockLabel != null) {
+          CapsLockLabel.Text = CapsLock ? "CAP" : "";
+        }
+      }
+      if (newNumLock != NumLock) {
+        NumLock = newNumLock;
+        if (NumLockLabel != null) {
+          NumLockLabel.Text = NumLock ? "NUM" : "";
+        }
+      }
+      if (newInsertLock != InsertLock) {
+        InsertLock = newInsertLock;
+        if (InsertLockLabel != null) {
+          InsertLockLabel.Text = InsertLock ? "INS" : "";
+        }
+      }
+    }
     public frmMDIMain()
     {
       InitializeComponent();
 
-      // save pointer to main form
-      MDIMain = this;
-
-      //attach events
+      //attach  AGI game events
       CompileGameStatus += GameEvents_CompileGameStatus;
       CompileLogicStatus += GameEvents_CompileLogicStatus;
       LoadGameStatus += GameEvents_LoadGameStatus;
@@ -85,6 +110,11 @@ namespace WinAGI_GDS
       //initialize the WinAGI engine
       InitWinAGI();
 
+      //use idle time to update caps/num/ins
+      Application.Idle += new System.EventHandler(OnIdle);
+
+      // save pointer to main form
+      MDIMain = this;
     }
     private void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e)
     {
@@ -92,7 +122,6 @@ namespace WinAGI_GDS
     }
     private void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e)
     {
-      Debug.Print($"Loading Status: {e.lStatus} - Type: {e.ResType} - Number: {e.ResNum} Msg: {e.ErrString}");
       //update the load ProgressWin form
       bool blnNoWAG = false;
       switch (e.lStatus) {
@@ -146,7 +175,7 @@ namespace WinAGI_GDS
     private void btnOpenGame_Click(object sender, EventArgs e)
     {
       int retval = 0;
-      //ok, let's try to open a game!
+      //open a game!
       OpenDlg.InitialDirectory = Environment.SpecialFolder.Desktop.ToString();
       OpenDlg.DefaultExt = "wag";
       OpenDlg.Filter = "WinAGI Game Files (*.wag)|*.wag|All files|*.*";
@@ -160,7 +189,6 @@ namespace WinAGI_GDS
       } else {
         return;
       }
-
       if (retval == 0) {
         MessageBox.Show("Game opened with no errors or warnings.");
       } else if (retval == WINAGI_ERR + 636) {
@@ -168,6 +196,8 @@ namespace WinAGI_GDS
       } else {
         MessageBox.Show($"opengame result: {(retval - WINAGI_ERR).ToString()}");
       }
+      MDIHasFocus = true;
+      tvwResources.Focus();
     }
     private void mnuWCascade_Click(object sender, EventArgs e)
     {
@@ -214,52 +244,57 @@ namespace WinAGI_GDS
       bool blnLastLoad;
 
       //what is resolution?
-      MessageBox.Show($"Current DPI: {this.DeviceDpi}");
+      Debug.Print($"DeviceDPI: {this.DeviceDpi}");
+      Debug.Print($"AutoScaleFactor: {this.AutoScaleFactor}");
+      Debug.Print($"AutoscaleDimensions: {this.AutoScaleDimensions}");
 
       CalcWidth = MIN_WIDTH;
       CalcHeight = MIN_HEIGHT;
       // show wait cursor
       UseWaitCursor = true;
       Refresh();
-//      //initialize GDI plus
-//      InitGDIPlus();
+      //      //initialize GDI plus
+      //      InitGDIPlus();
 
-//        //screen twips
-//        ScreenTWIPSX = Screen.TwipsPerPixelX
-//        ScreenTWIPSY = Screen.TwipsPerPixelY
+      //        //screen twips
+      //        ScreenTWIPSX = Screen.TwipsPerPixelX
+      //        ScreenTWIPSY = Screen.TwipsPerPixelY
 
-//      //need to calculate height of top margin (for use by logic editor in displaying tips)
-//      lngMainTopBorder = (this.Height - this.ScaleHeight - this.StatusBar1.Height - (this.Width - this.ScaleWidth) / 2) / ScreenTWIPSY;
-//      lngMainLeftBorder = (this.Width - this.ScaleWidth) / ScreenTWIPSY / 2;
-//        //and also need border values to facilitate positioning of the warnings list
-//        WLOffsetH = this.Height - this.ScaleHeight;
-//        WLOffsetW = this.Width - this.ScaleWidth;
+      //      //need to calculate height of top margin (for use by logic editor in displaying tips)
+      //      lngMainTopBorder = (this.Height - this.ScaleHeight - this.StatusBar1.Height - (this.Width - this.ScaleWidth) / 2) / ScreenTWIPSY;
+      //      lngMainLeftBorder = (this.Width - this.ScaleWidth) / ScreenTWIPSY / 2;
+      //        //and also need border values to facilitate positioning of the warnings list
+      //        WLOffsetH = this.Height - this.ScaleHeight;
+      //        WLOffsetW = this.Width - this.ScaleWidth;
 
-        //set preview window, status bar and other dialog objects
-        PreviewWin = new frmPreview();
-        MainStatusBar = statusStrip1;
-//      ViewClipboard = picViewCB;
-        SoundClipboard = new AGINotes();
-//      NotePictures = picNotes;
-//        WordsClipboard = new WordsUndo();
-        AGIFindForm = new frmFind();
+      //set preview window, status bar and other dialog objects
+      PreviewWin = new frmPreview();
+      MainStatusBar = statusStrip1;
+      //      ViewClipboard = picViewCB;
+      SoundClipboard = new AGINotes();
+      //      NotePictures = picNotes;
+      //        WordsClipboard = new WordsUndo();
+      AGIFindForm = new frmFind();
 
-        //hide rsource and warning panels until needed
-        pnlResources.Visible = false;
-        pnlWarnings.Visible = false;
-//      //get listitem height
-//      ListItemHeight = SendMessage(lstProperty.hWnd, LB_GETITEMHEIGHT, 0, 0)
-//      //if not successful
-//      if (ListItemHeight = 0) {
-//        //use default
-//        ListItemHeight = 13
-//      }
-        //set property window to 3 so startup doesn//t trip during resize events
-        PropRowCount = 3;
-//      //set property window split location based on longest word
-//      PropSplitLoc = picProperties.TextWidth(" Use Res Names ");
-//      picProperties.Top = picResources.ScaleHeight - (4 * PropRowHeight);
-
+      //hide rsource and warning panels until needed
+      pnlResources.Visible = false;
+      pnlWarnings.Visible = false;
+      //      //get listitem height
+      //      ListItemHeight = SendMessage(lstProperty.hWnd, LB_GETITEMHEIGHT, 0, 0)
+      //      //if not successful
+      //      if (ListItemHeight = 0) {
+      //        //use default
+      //        ListItemHeight = 13
+      //      }
+      //set property window to 3 so startup doesn't trip during resize events
+      PropRowCount = 3;
+      //set property window split location based on longest word
+      Size szText = TextRenderer.MeasureText(" Use Res Names ", new Font("MS Sans Serif", 8));
+      PropSplitLoc = szText.Width;
+      PropRowHeight = szText.Height + 2;
+      //set initial position of property panel
+      pnlProp.Top = pnlResources.Height - (4 * PropRowHeight);
+      //PropRowHeight = 17;
 
       //background color for previewing views is set to default
       PrevWinBColor = SystemColors.Control;
@@ -312,7 +347,7 @@ namespace WinAGI_GDS
       //get reference to temporary directory
       //TempFileDir = GetTempFileDir()
       WinAGIHelp = ProgramDir + "WinAGI.chm";
-//      mnuHContents.Text = "Contents" + Keys.Tab + "F1";
+      //      mnuHContents.Text = "Contents" + Keys.Tab + "F1";
 
       //initialize resource treelist by using clear method
       ClearResourceList();
@@ -323,13 +358,12 @@ namespace WinAGI_GDS
       //let the system catch up
       Refresh();
 
-//      //establish printer margins (don't need to show error msg if printer isn't available)
-//      UpdatePrinterCaps(Printer.Orientation, true);
+      //      //establish printer margins (don't need to show error msg if printer isn't available)
+      //      UpdatePrinterCaps(Printer.Orientation, true);
 
       if (Settings.ShowSplashScreen) {
         //dont close unless ~1.75 seconds passed
-        while (!splashDone)
-        {
+        while (!splashDone) {
           Application.DoEvents();
         }
         splash.Close();
@@ -345,12 +379,12 @@ namespace WinAGI_GDS
       //if nothing loaded AND autoreload is set AND something was loaded last time program ended,
       if (!GameLoaded && this.ActiveMdiChild == null && Settings.AutoOpen && blnLastLoad) {
         //open mru1
-        OpenMRUGame(1);
+        OpenMRUGame(0);
       }
       //show the form
       //if no printers,
       if (NoPrinter && !Settings.SkipPrintWarning) {
-//        MsgBoxEx("There are no printers available, so printing functions will be disabled.", vbInformation + vbOKOnly, "WinAGI GDS", , , "Don//t show this warning again.", Settings.SkipPrintWarning
+        //        MsgBoxEx("There are no printers available, so printing functions will be disabled.", vbInformation + vbOKOnly, "WinAGI GDS", , , "Don//t show this warning again.", Settings.SkipPrintWarning
       }
       if (Settings.SkipPrintWarning) {
         WriteAppSetting(SettingsList, sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning);
@@ -435,29 +469,43 @@ namespace WinAGI_GDS
         lstResources.Items.Clear();
 
         selRes = (AGIResType)cmbResType.SelectedIndex;
-
+        ListViewItem tmpItem;
         switch (cmbResType.SelectedIndex) {
         case 0: // game
           selRes = rtGame;
           break;
         case 1: //logics
-          foreach (AGILogic tmpRes in Logics)
-            lstResources.Items.Add(tmpRes);
+          foreach (AGILogic tmpRes in Logics) {
+            tmpItem = lstResources.Items.Add(ResourceName(tmpRes, true), "l" + tmpRes.Number);
+            tmpItem.Tag = tmpRes;
+            //set color based on compiled status;
+            if (tmpRes.Compiled) {
+              tmpItem.ForeColor = Color.Black;
+            } else {
+              tmpItem.ForeColor = Color.Red;
+            }
+          }
           selRes = rtLogic;
           break;
         case 2://pictures
-          foreach (AGIPicture tmpRes in Pictures)
-            lstResources.Items.Add(tmpRes);
+          foreach (AGIPicture tmpRes in Pictures) {
+            tmpItem = lstResources.Items.Add(ResourceName(tmpRes, true), "p" + tmpRes.Number);
+            tmpItem.Tag = tmpRes;
+          }
           selRes = rtPicture;
           break;
         case 3: //sounds
-          foreach (AGISound tmpRes in Sounds)
-            lstResources.Items.Add(tmpRes);
+          foreach (AGISound tmpRes in Sounds) {
+            tmpItem = lstResources.Items.Add(ResourceName(tmpRes, true), "s" + tmpRes.Number);
+            tmpItem.Tag = tmpRes;
+          }
           selRes = rtSound;
           break;
         case 4: //views
-          foreach (AGIView tmpRes in Views)
-            lstResources.Items.Add(tmpRes);
+          foreach (AGIView tmpRes in Views) {
+            tmpItem = lstResources.Items.Add(ResourceName(tmpRes, true), "v" + tmpRes.Number);
+            tmpItem.Tag = tmpRes;
+          }
           selRes = rtView;
           break;
         case 5: //objects
@@ -484,12 +532,12 @@ namespace WinAGI_GDS
           break;
         case 1: //logics
                 //if nothing to select
-          if (lstResources.SelectedItem == null) {
+          if (lstResources.SelectedItems.Count == 0) {
             //just exit
             return;
           }
           NewType = rtLogic;
-          AGIResource tmp = (AGIResource)(lstResources.SelectedItem);
+          AGIResource tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
           NewNum = tmp.Number;
           //show id, number, description, compiled status, isroom
           PropRows = 8;
@@ -497,12 +545,12 @@ namespace WinAGI_GDS
           break;
         case 2: //pictures
           //if nothing to select
-          if (lstResources.SelectedItem == null) {
+          if (lstResources.SelectedItems.Count == 0) {
             //just exit
             return;
           }
           NewType = rtPicture;
-          tmp = (AGIResource)(lstResources.SelectedItem);
+          tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
           NewNum = tmp.Number;
           //show id, number, description
           PropRows = 6;
@@ -510,12 +558,12 @@ namespace WinAGI_GDS
           break;
         case 3: //sounds
           //if nothing to select
-          if (lstResources.SelectedItem == null) {
+          if (lstResources.SelectedItems.Count == 0) {
             //just exit
             return;
           }
           NewType = rtSound;
-          tmp = (AGIResource)(lstResources.SelectedItem);
+          tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
           NewNum = tmp.Number;
           //show id, number, description
           PropRows = 6;
@@ -523,12 +571,12 @@ namespace WinAGI_GDS
           break;
         case 4: //views
                 //if nothing to select
-          if (lstResources.SelectedItem == null) {
+          if (lstResources.SelectedItems.Count == 0) {
             //just exit
             return;
           }
           NewType = rtView;
-          tmp = (AGIResource)(lstResources.SelectedItem);
+          tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
           NewNum = tmp.Number;
           //show id, number, description
           PropRows = 7;
@@ -572,12 +620,8 @@ namespace WinAGI_GDS
       SelectedProp = 0;
       //  fsbProperty.Value = 0;
 
-      //update selection properties
-      SelResType = NewResType;
-      SelResNum = NewResNum;
-
       //get number of rows to display based on new selection
-      switch (SelResType) {
+      switch (NewResType) {
       case AGIResType.rtNone:
         //nothing to show
         PropRows = 0;
@@ -587,46 +631,38 @@ namespace WinAGI_GDS
         PropRows = 10;
         break;
       case AGIResType.rtLogic:
-        if (SelResNum == -1) {
+        if (NewResNum == -1) {
           //logic header
           PropRows = 3;
         } else {
-          //logic
-          SelResType = AGIResType.rtLogic;
           //show logic properties
           PropRows = 8;
         }
         break;
       case AGIResType.rtPicture:
-        if (SelResNum == -1) {
+        if (NewResNum == -1) {
           //picture header
           PropRows = 1;
         } else {
-          //pictures
-          SelResType = AGIResType.rtPicture;
-          //show id, number, description
+          //show picture properties
           PropRows = 6;
         }
         break;
       case AGIResType.rtSound:
-        if (SelResNum == -1) {
+        if (NewResNum == -1) {
           //sound header
           PropRows = 1;
         } else {
-          //sounds
-          SelResType = AGIResType.rtSound;
-          //show id, number, description
+          //show sound properties
           PropRows = 6;
         }
         break;
       case AGIResType.rtView:
-        if (SelResNum == -1) {
+        if (NewResNum == -1) {
           //view header
           PropRows = 1;
         } else {
-          //views
-          SelResType = rtView;
-          //show id, number, description
+          //show view properties
           PropRows = 7;
         }
         break;
@@ -646,16 +682,19 @@ namespace WinAGI_GDS
         if (Settings.ShowPreview && UpdatePreview) {
           // load the preview item
           NoPaint = true;
-          PreviewWin.LoadPreview(SelResType, SelResNum);
+          PreviewWin.LoadPreview(NewResType, NewResNum);
         }
       }
+
+      //update selection properties
+      SelResType = NewResType;
+      SelResNum = NewResNum;
 
       //if resource list is visible,
       if (Settings.ResListType >= 0) {
         //add selected resource to navigation queue
-
-        //update property window
-        PaintPropertyWindow();
+        //force update property window
+        picProperties.Refresh();
 
         if (SelResNum < 0) {
           //add headers and non-regular resources by type
@@ -696,7 +735,6 @@ namespace WinAGI_GDS
       };
       frmNew.Show();
     }
-
     void SelectFromQueue()
     {
       //selects the node/resource from the current queue position
@@ -725,21 +763,14 @@ namespace WinAGI_GDS
       if ((int)ResType == 4) {
         //resnum indicates type
         switch (Settings.ResListType) {
-        case 1:
-          //With tvwResources
-          //  Select Case ResNum
-          //  Case rtGame
-          //    .SelectedItem = .Nodes(1)
-          //  Case rtObjects
-          //    .SelectedItem = .Nodes(6)
-          //  Case rtWords
-          //    .SelectedItem = .Nodes(7)
-          //  Case Else
-          //    //header
-          //    .SelectedItem = .Nodes(ResNum + 2)
-          //  End Select
-          //  tvwResources_NodeClick .SelectedItem
-          //End With
+        case 1: // header; number indicates which header
+          if (ResNum == 0) {
+            tvwResources.SelectedNode = RootNode;
+          } else {
+            tvwResources.SelectedNode = HdrNode[ResNum - 1];
+          }
+          // then call the node click to finish selection
+          tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
           break;
         case 2:
           //for listbox, need to select correct type in combo
@@ -763,7 +794,7 @@ namespace WinAGI_GDS
             //(resnum+1 matches desired listindex)
             cmbResType.SelectedIndex = ResNum + 1;
             //reset the listbox
-            lstResources.SelectedIndex = -1;
+            lstResources.SelectedItems.Clear();//  .SelectedIndex = -1;
             //then force selection change
             SelectResource((AGIResType)ResNum, -1);
             break;
@@ -810,8 +841,9 @@ namespace WinAGI_GDS
         //select this resource
         switch (Settings.ResListType) {
         case 1:
-          //tvwResources.SelectedItem = tvwResources.Nodes(strKey)
-          //tvwResources_NodeClick tvwResources.SelectedItem
+          //tvwResources.SelectedNode = tvwResources.Nodes(strKey)
+          // then call the node click to finish selection
+          tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
           break;
         case 2:
           //(restype+1 matches desired listindex)
@@ -1215,15 +1247,15 @@ namespace WinAGI_GDS
 
       //get mru settings
       Settings.AutoOpen = ReadSettingBool(SettingsList, sMRULIST, "AutoOpen", DEFAULT_AUTOOPEN);
-      for (i = 1; i <= 4; i++) {
-        strMRU[i] = ReadSettingString(SettingsList, sMRULIST, "MRUGame" + i, "");
+      for (i = 0; i < 4; i++) {
+        strMRU[i] = ReadSettingString(SettingsList, sMRULIST, "MRUGame" + (i + 1), "");
         //if one exists
         if (strMRU[i].Length != 0) {
           //add it to menu
           mnuGame.DropDownItems["mnuGMRU" + i].Text = CompactPath(strMRU[i], 60);
           mnuGame.DropDownItems["mnuGMRU" + i].Visible = true;
           mnuGMRUBar.Visible = true;
-        } else { 
+        } else {
           //stop loading list at first blank
           break;
         }
@@ -1241,7 +1273,7 @@ namespace WinAGI_GDS
       //      MDIMain.mnuTCustom(i).Caption = strCaption
       //      MDIMain.mnuTCustom(i).Tag = strTool
       //      blnTools = true;
-      //    Else
+      //    } else {
       //      Settings.Visible = false
       //    }
       //}
@@ -1294,13 +1326,13 @@ namespace WinAGI_GDS
       //save other position settings
       WriteAppSetting(SettingsList, sPOSITION, "PropRowCount", PropRowCount);
       //save mru settings
-      for (i = 1; i < 5; i++) {
-        WriteAppSetting(SettingsList, sMRULIST, "MRUGame" + i, strMRU[i]);
+      for (i = 0; i < 4; i++) {
+        WriteAppSetting(SettingsList, sMRULIST, "MRUGame" + (i + 1), strMRU[i]);
       }
       //save resource pane width
       WriteAppSetting(SettingsList, sPOSITION, "ResourceWidth", pnlResources.Width);
       //save other general settings
-      WriteAppSetting(SettingsList, sGENERAL, "DockHelpWindow", HelpParent == (int)this.Handle);
+      WriteAppSetting(SettingsList, sGENERAL, "DockHelpWindow", HelpParent == this.Handle);
       // for warnings, create a bitfield to mark which are being ignored
       lngCompVal = 0;
       for (i = 1; i <= 30; i++) {
@@ -1324,6 +1356,295 @@ namespace WinAGI_GDS
       WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn3", lngCompVal);
       //save to file
       SaveSettingList(SettingsList);
+    }
+    private void tvwResources_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+    {
+      // select it first, so property box paint events work correctly
+      tvwResources.SelectedNode = e.Node;
+
+      // show the preview for this node
+      //if previewing
+      if (Settings.ShowPreview) {
+        if (ActiveMdiChild != PreviewWin && (Settings.ShiftPreview && ForcePreview)) {
+          //if previn hidden on lostfocus, need to show it AFTER changing displayed resource
+          if (PreviewWin.Visible) {
+            //set form focus to preview
+            PreviewWin.Activate();
+            //set control focus to tvwlist
+            tvwResources.Focus();
+          }
+        }
+      }
+      //if no active form
+      if (MdiChildren.Length == 0) {
+        //set control focus to treeview
+        tvwResources.Focus();
+      }
+      //if nothing selected
+      if (e.Node == null) {
+        return;
+      }
+      //if not changed from previous number
+      if (LastNodeName == e.Node.Name) {
+        if (!PreviewWin.Visible && Settings.ShowPreview) {
+          PreviewWin.Show();
+          //set form focus to preview
+          PreviewWin.Activate();
+          //set control focus to tvwlist
+          tvwResources.Focus();
+        }
+        //don't need to change anything
+        return;
+      }
+      //save current index as last index
+      LastNodeName = e.Node.Name;
+      //now select it
+      if (e.Node == RootNode) {
+        //it//s the game node
+        SelectResource(rtGame, -1);
+      } else if (e.Node.Parent == RootNode) {
+        //it//s a resource header
+        SelectResource((AGIResType)e.Node.Index, -1);
+      } else {
+        //it's a resource
+        SelectResource((AGIResType)e.Node.Parent.Index, (int)e.Node.Tag);
+      }
+      //after selection, force preview window to show and
+      //move up, if those settings are active
+      if (!PreviewWin.Visible && Settings.ShowPreview) {
+        PreviewWin.Show();
+        //set form focus to preview
+        PreviewWin.Activate();
+        //set control focus to tvwlist
+        tvwResources.Focus();
+      }
+    }
+    private void tvwResources_AfterCollapse(object sender, TreeViewEventArgs e)
+    {
+      //when collapsing, select the collapsed node
+      tvwResources_NodeMouseClick(sender, new TreeNodeMouseClickEventArgs(e.Node, MouseButtons.None, 0, 0, 0));
+    }
+    private void tvwResources_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+    {
+      //if not the same as the current item
+      if (e.Node != tvwResources.SelectedNode) {
+        //select it
+        tvwResources_NodeMouseClick(null, e);
+      }
+      //edit the selected item
+      //*//    EditResource(SelResType, SelResNum);
+    }
+    public void HideResTree()
+    {
+      //first hide the resource panel and associated elements
+      pnlResources.Visible = false;
+      splitResource.Visible = false;
+      ////if the warnings list is still visible, adjust it so it fits correctly
+      //if (picWarnings.Visible) {
+      //  picWarnings.Left = picBottom.Left
+      //  picWarnings.Width = picBottom.Width
+      //  picSplitH.Left = picBottom.Left + 30
+      //  picSplitH.Width = picBottom.Width - 60
+      //}
+    }
+    private void btnCloseGame_Click(object sender, EventArgs e)
+    {
+      //if a game is loaded
+      if (GameLoaded) {
+        CloseThisGame();
+      }
+    }
+    private void picProperties_Paint(object sender, PaintEventArgs e)
+    {
+      //
+      int i, lngPosY = 0;
+      byte bSelResNum = (byte)SelResNum;
+      Graphics gProp = e.Graphics;
+      //clear the picture box
+      gProp.Clear(Color.White);
+
+      //if no game loaded, or nothing selected
+      if ((!GameLoaded)) {
+        //set proprows to zero
+        PropRows = 0;
+      }
+      //if more than propwinheight
+      if (PropRows > PropRowCount) {
+        //show scrollbar
+        picProperties.Width = pnlProp.Width - fsbProperty.Width;
+        fsbProperty.Maximum = PropRows - PropRowCount;
+        fsbProperty.Visible = true;
+        //if current scroll position is too high
+        if (PropScroll > PropRows - PropRowCount) {
+          //reset propscroll
+          PropScroll = 0;
+          fsbProperty.Value = 0;
+        }
+      } else {
+        //reset to top and hide scrollbar
+        PropScroll = 0;
+        fsbProperty.Value = 0;
+        fsbProperty.Visible = false;
+        picProperties.Width = pnlProp.Width;
+      }
+      // create brushes and pens for drawing the various elements
+      SolidBrush brushProp = new SolidBrush(PropGray);// Color.FromArgb(236, 233, 216));//  SystemColors.ButtonFace);
+      Pen penProp = new Pen(Color.Black, 1);
+      Font fontProp = new Font("MS Sans Serif", 8);
+      //draw property header cell
+      gProp.FillRectangle(brushProp, 1, 1, PropSplitLoc - 1, PropRowHeight - 2);
+      brushProp.Color = Color.Black;
+      gProp.DrawString("Property", fontProp, brushProp, 3, 1);
+      gProp.DrawLine(penProp, 1, PropRowHeight - 1, PropSplitLoc, PropRowHeight - 1);
+      //reset canselect flag
+      AllowSelect = false;
+      //if a property is selected //and picProperty has focus,
+      if (SelectedProp > 0) {
+        //if there is an active control
+        if (MDIMain.ActiveControl == picProperties) {
+          //allow selection
+          AllowSelect = true;
+        }
+      }
+      //if something selected
+      if (PropRows > 0) {
+        switch (SelResType) {
+        case rtGame: //  1  //root
+          DrawProp(gProp, "GameID", GameID, 1, AllowSelect, SelectedProp, PropScroll, GameLoaded);
+          DrawProp(gProp, "Author", GameAuthor, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded);
+          DrawProp(gProp, "GameDir", GameDir, 3, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfDialog);
+          DrawProp(gProp, "ResDir", ResDirName, 4, AllowSelect, SelectedProp, PropScroll, GameLoaded);
+          DrawProp(gProp, "IntVer", InterpreterVersion, 5, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
+          DrawProp(gProp, "Description", GameDescription, 6, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
+          DrawProp(gProp, "GameVer", GameVersion, 7, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
+          DrawProp(gProp, "GameAbout", GameAbout, 8, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
+          DrawProp(gProp, "LayoutEditor", UseLE.ToString(), 9, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
+          DrawProp(gProp, "LastEdit", LastEdit.ToString("MM/DD/YY h:Nn AM/PM"), 10, AllowSelect, SelectedProp, PropScroll, false);
+          break;
+        case rtLogic: // 2 //logic resource header
+          if (SelResNum == -1) {
+            DrawProp(gProp, "Count", Logics.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+            DrawProp(gProp, "GlobalDef", "(List)", 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "UseResNames", LogicSourceSettings.UseReservedNames.ToString(), 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
+          } else {
+            DrawProp(gProp, "Number", Logics[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "ID", Logics[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Description", Logics[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            if (Logics[bSelResNum].Number == 0) {
+              DrawProp(gProp, "IsRoom", Logics[bSelResNum].IsRoom.ToString(), 4, AllowSelect, SelectedProp, PropScroll, false);
+            } else {
+              DrawProp(gProp, "IsRoom", Logics[bSelResNum].IsRoom.ToString(), 4, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
+            }
+            DrawProp(gProp, "Compiled", Logics[bSelResNum].Compiled.ToString(), 5, AllowSelect, SelectedProp, PropScroll, false);
+            //if compiled state doesn't match correct tree color, fix it now
+            if (Settings.ResListType == 1) {
+              tvwResources.SelectedNode.ForeColor = Logics[bSelResNum].Compiled ? Color.Black : Color.Red;
+            } else {
+              lstResources.SelectedItems[0].ForeColor = Logics[bSelResNum].Compiled ? Color.Black : Color.Red;
+            }
+            DrawProp(gProp, "Volume", Logics[bSelResNum].Volume >= 0 ? Logics[bSelResNum].Volume.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "LOC", Logics[bSelResNum].Loc >= 0 ? Logics[bSelResNum].Loc.ToString() : "Error", 7, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Size", Logics[bSelResNum].Size > 0 ? Logics[bSelResNum].Size.ToString() : "Error", 8, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+          }
+          break;
+        case rtPicture: //3 //picture resource header
+          if (SelResNum == -1) {
+            DrawProp(gProp, "Count", Pictures.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+          } else {
+            DrawProp(gProp, "Number", Pictures[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "ID", Pictures[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Description", Pictures[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Volume", Pictures[bSelResNum].Volume >= 0 ? Pictures[bSelResNum].Volume.ToString() : "Error", 4, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "LOC", Pictures[bSelResNum].Loc >= 0 ? Pictures[bSelResNum].Loc.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Size", Pictures[bSelResNum].Size > 0 ? Pictures[bSelResNum].Size.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+          }
+          break;
+        case rtSound: //4 //sound resource header
+          if (SelResNum == -1) {
+            DrawProp(gProp, "Count", Sounds.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+          } else {
+            DrawProp(gProp, "Number", Sounds[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "ID", Sounds[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Description", Sounds[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Volume", Sounds[bSelResNum].Volume >= 0 ? Sounds[bSelResNum].Volume.ToString() : "Error", 4, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "LOC", Sounds[bSelResNum].Loc >= 0 ? Sounds[bSelResNum].Loc.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Size", Sounds[bSelResNum].Size > 0 ? Sounds[bSelResNum].Size.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+          }
+          break;
+        case rtView: //5 //view resource header
+          if (SelResNum == -1) {
+            DrawProp(gProp, "Count", Views.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+          } else {
+            DrawProp(gProp, "Number", Views[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "ID", Views[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Description", Views[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            //viewdescription only accessible if view is loaded
+            bool bLoaded = Views[bSelResNum].Loaded;
+            if (!bLoaded) {
+              Views[bSelResNum].Load();
+            }
+            DrawProp(gProp, "View Desc", Views[bSelResNum].ViewDescription, 4, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
+            if (!bLoaded) {
+              Views[bSelResNum].Unload();
+            }
+            DrawProp(gProp, "Volume", Views[bSelResNum].Volume >= 0 ? Views[bSelResNum].Volume.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "LOC", Views[bSelResNum].Loc >= 0 ? Views[bSelResNum].Loc.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Size", Views[bSelResNum].Size > 0 ? Views[bSelResNum].Size.ToString() : "Error", 7, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+          }
+          break;
+        case rtObjects: // 6  //objects
+          DrawProp(gProp, "Obj Count", (InvObjects.Count - 1).ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+          DrawProp(gProp, "Description", InvObjects.Description, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
+          DrawProp(gProp, "Encrypted", InvObjects.Encrypted.ToString(), 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
+          DrawProp(gProp, "Max Obj", InvObjects.MaxScreenObjects.ToString(), 4, AllowSelect, SelectedProp, PropScroll, GameLoaded);
+          break;
+        case rtWords: //7  //words
+          DrawProp(gProp, "Group Count", WordList.GroupCount.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+          DrawProp(gProp, "Word Count", WordList.WordCount.ToString(), 2, AllowSelect, SelectedProp, PropScroll, false);
+          DrawProp(gProp, "Description", WordList.Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
+          break;
+        }
+      }
+      //if property edit box or list box is visible,
+      if (lstProperty.Visible) {
+        switch (lstProperty.Tag) {
+        case "INTVER":
+          lngPosY = (4 - PropScroll) * PropRowHeight;
+          break;
+        case "OBJENCRYPT":
+          lngPosY = (3 - PropScroll) * PropRowHeight;
+          break;
+        case "ISROOM":
+          lngPosY = (6 - PropScroll) * PropRowHeight;
+          break;
+        case "USERESNAMES":
+          lngPosY = (3 - PropScroll) * PropRowHeight;
+          break;
+        }
+        //move it to correct position
+        if (lngPosY < picProperties.Height - lstProperty.Height) {
+          lstProperty.Location = new Point(picProperties.Left + PropSplitLoc, picProperties.Top + lngPosY);
+        } else {
+          lstProperty.Location = new Point(picProperties.Left + PropSplitLoc, picProperties.Top + picProperties.Height - lstProperty.Height);
+        }
+      }
+      // draw the grid lines
+      gProp.DrawLine(penProp, PropSplitLoc, 0, PropSplitLoc, PropRowHeight - 1);
+      //draw Value header cell
+      brushProp.Color = PropGray;
+      gProp.FillRectangle(brushProp, PropSplitLoc + 2, 1, picProperties.Width - 2, PropRowHeight - 2);
+      brushProp.Color = Color.Black;
+      gProp.DrawString("Value", fontProp, brushProp, PropSplitLoc + 4, 1);
+      gProp.DrawLine(penProp, PropSplitLoc + 2, PropRowHeight - 1, picProperties.Width - 1, PropRowHeight - 1);
+      gProp.DrawLine(penProp, picProperties.Width - 1, 0, picProperties.Width - 1, PropRowHeight - 1);
+      //draw vertical line separating columns
+      penProp.Color = LtGray;
+      gProp.DrawLine(penProp, PropSplitLoc, PropRowHeight, PropSplitLoc, picProperties.Height - 1);
+      gProp.DrawLine(penProp, picProperties.Width - 1, PropRowHeight, picProperties.Width - 1, picProperties.Height - 1);
+      //draw horizontal lines separating rows
+      for (i = 2; i <= PropRowCount + 1; i++) {
+        gProp.DrawLine(penProp, 0, i * PropRowHeight - 1, picProperties.Width - 1, i * PropRowHeight - 1);
+      }
     }
     void CheckCmd()
     {
@@ -1444,13 +1765,297 @@ namespace WinAGI_GDS
       }
       */
     }
+    internal void mnuGClose_Click(object sender, EventArgs e)
+    {
+
+    }
+    internal void mnuRRenumber_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRILogic_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRIObjects_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRIPicture_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRISound_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRIView_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRIWords_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRNLogic_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRNObjects_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRNPicture_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRNSound_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRNText_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRNView_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuRNWords_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuROLogic_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuROObjects_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuROPicture_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuROSound_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuROText_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    internal void mnuROView_Click(object sender, EventArgs e)
+    {
+      
+    }
+
+    internal void mnuROWords_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    private void frmMDIMain_KeyPress(object sender, KeyPressEventArgs e)
+    {
+      // after processing key press for the main form, pass it 
+      // to preview window, if it's active
+
+      //*//
+      Debug.Print($"Keypress: {e.KeyChar}");
+
+      if (!e.Handled) {
+        //
+        if (ActiveMdiChild == PreviewWin) {
+          PreviewWin.KeyHandler(e);
+        }
+      }
+    }
+
+    private void tvwResources_AfterSelect(object sender, TreeViewEventArgs e)
+    {
+      // probably due to navigation - 
+
+      //if not changed from previous number
+      if (LastNodeName != e.Node.Name) {
+        // force it to select by using node-click
+        tvwResources_NodeMouseClick(sender, new TreeNodeMouseClickEventArgs(e.Node, MouseButtons.None, 0, 0, 0));
+      }
+    }
+
+    private void frmMDIMain_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+    {
+      Debug.Print($"Main - PreviewKeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
+    }
+
+    private void frmMDIMain_KeyDown(object sender, KeyEventArgs e)
+    {
+      Debug.Print($"Main - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
+    }
+
+    public void RemoveSelectedRes()
+    {
+      //*//
+
+      /*
+  //removes a resource from the game
+
+  Dim rtn As VbMsgBoxResult
+  Dim blnDontAsk As Boolean
+  Dim strID As String
+  
+  switch (SelResType
+  case rtLogic
+    strID = Logics(SelResNum).ID
+    
+  case rtPicture
+    strID = Pictures(SelResNum).ID
+    
+  case rtSound
+    strID = Sounds(SelResNum).ID
+    
+  case rtView
+    strID = Views(SelResNum).ID
+    
+  default:
+    //Debug.Assert false
+    return;
+  }
+    
+  //ask if resource should be exported first
+  if (Settings.AskExport) {
+    rtn = MsgBoxEx("Do you want to export //" + strID + "// before" + vbNewLine + "removing it from your game?", _
+                        vbQuestion + vbYesNoCancel, "Export " + ResTypeName(SelResType) + " Before Removal", , , _
+                        "Don//t ask this question again", blnDontAsk)
+  
+    //save the setting
+    Settings.AskExport = !blnDontAsk
+    //if now hiding, update settings file
+    if (!Settings.AskExport) {
+      WriteAppSetting(SettingsList, sGENERAL, "AskExport", Settings.AskExport
+    }
+  } else {
+    //dont ask; assume no
+    rtn = vbNo
+  }
+  
+  //if canceled,
+  switch (rtn
+  case vbCancel
+    return;
+  case vbYes
+    //export it
+    SelectedItemExport
+  case vbNo
+    //nothing to do
+  }
+  
+  //confirm removal
+  if (Settings.AskRemove) {
+    rtn = MsgBoxEx("Removing //" + strID + "// from your game." + vbCrLf + vbCrLf + "Select OK to proceed, or Cancel to keep it in game.", _
+                    vbQuestion + vbOKCancel, "Remove " + ResTypeName(SelResType) + " From Game", , , _
+                    "Don//t ask this question again", blnDontAsk)
+  
+    //save the setting
+    Settings.AskRemove = !blnDontAsk
+    //if now hiding, update settings file
+    if (!Settings.AskRemove) {
+      WriteAppSetting(SettingsList, sGENERAL, "AskRemove", Settings.AskRemove
+    }
+  } else {
+    //assume OK
+    rtn = vbOK
+  }
+  
+  //if canceled,
+  if (rtn = vbCancel) {
+    return;
+  }
+
+  //now remove the resource
+  switch (SelResType
+  case rtView
+    //remove the view
+    RemoveView SelResNum
+    
+  case rtLogic
+    //remove the logic
+    RemoveLogic SelResNum
+    
+  case rtPicture
+    //remove the picture
+    RemovePicture SelResNum
+    
+  case rtSound
+    //remove the sound
+    RemoveSound SelResNum
+  */
+    }
     void working()
     {
       /*
 
+  
+}
 
 
      */
+    }
+    public void SearchForID(FindFormFunction ffValue = FindFormFunction.ffFindLogic)
+    {
+      //set search form defaults
+      switch (SelResType) {
+      case rtLogic:
+        GFindText = Logics[(byte)SelResNum].ID;
+        break;
+      case rtPicture:
+        GFindText = Pictures[(byte)SelResNum].ID;
+        break;
+      case rtSound:
+        GFindText = Sounds[(byte)SelResNum].ID;
+        break;
+      case rtView:
+        GFindText = Views[(byte)SelResNum].ID;
+        break;
+      }
+
+      GFindDir = FindDirection.fdAll;
+      GMatchWord = true;
+      GMatchCase = true;
+      GLogFindLoc = FindLocation.flAll;
+      GFindSynonym = false;
+
+      //reset search flags
+      AGIFindForm.ResetSearch();
+
+      SearchForm = MDIMain;
+
+      //display find form
+      AGIFindForm.SetForm(FindFormFunction.ffFindLogic, true);
+      AGIFindForm.Show(MDIMain);
+
+      // decided to stick with just showing the form, instead of
+      // automatically starting a search
+
+      //////  FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
     }
     void tmpFormMain()
     {
@@ -1493,7 +2098,7 @@ public void AddError(ByVal LineNum As Long, ByVal ErrNum As Long, ByVal ErrorTex
     For i = 2 To 6
       .Col = i
       .CellFontBold = true
-      .CellForeColor = vbRed
+      .CellForeColor = Color.Red
     Next i
     
     //save restype in row data tag
@@ -1543,14 +2148,14 @@ public void AddWarning(ByRef WarningText As String, ByVal ResType As AGIResType,
   
   With fgWarnings
     //add it to the grid
-    Select Case ResType
-    Case rtLogic
+    switch (ResType
+    case rtLogic
       .AddItem JustPath(strWarning(3), true) + vbTab + vbTab + strWarning(0) + vbTab + strWarning(1) + vbTab + CStr(ResNumber) + vbTab + strWarning(2) + vbTab + IIf(Len(strWarning(3)) != 0, JustFileName(strWarning(3)), Logics(ResNumber).ID)
-    Case rtPicture
+    case rtPicture
       .AddItem " " + vbTab + vbTab + strWarning(0) + vbTab + strWarning(1) + vbTab + "--" + vbTab + strWarning(2) + vbTab + Pictures(ResNumber).ID
-    Case rtSound
+    case rtSound
       .AddItem " " + vbTab + vbTab + strWarning(0) + vbTab + strWarning(1) + vbTab + "--" + vbTab + strWarning(2) + vbTab + Sounds(ResNumber).ID
-    Case rtView
+    case rtView
       .AddItem " " + vbTab + vbTab + strWarning(0) + vbTab + strWarning(1) + vbTab + "--" + vbTab + strWarning(2) + vbTab + Views(ResNumber).ID
     }
     
@@ -1598,14 +2203,14 @@ public void BeginFind()
   //ensure this form is the search form
   //Debug.Assert SearchForm Is Me
   
-  Select Case AGIFindForm.FormAction
-  Case faFind
+  switch (AGIFindForm.FormAction
+  case faFind
     FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
   
-  Case faReplace
+  case faReplace
     FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc, true, GReplaceText
      
-  Case faReplaceAll
+  case faReplaceAll
     ReplaceAll GFindText, GReplaceText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
   }
 return;
@@ -1729,51 +2334,6 @@ ErrHandler:
   Resume Next
 }
 
-public void SearchForID(Optional ffValue As FindFormFunction = ffFindLogic)
-
-  On Error GoTo ErrHandler
-  
-//////  //don't need the find form; just go directly to the find function
-//////
-  //set search form defaults
-  Select Case SelResType
-  Case rtLogic
-    GFindText = Logics(SelResNum).ID
-  Case rtPicture
-    GFindText = Pictures(SelResNum).ID
-  Case rtSound
-    GFindText = Sounds(SelResNum).ID
-  Case rtView
-    GFindText = Views(SelResNum).ID
-  }
-  
-  GFindDir = fdAll
-  GMatchWord = true
-  GMatchCase = true
-  GLogFindLoc = flAll
-  GFindSynonym = false
-  
-  //reset search flags
-  AGIFindForm.ResetSearch
-  
-  SearchForm = MDIMain
-  
-  //display find form
-  With AGIFindForm
-    .SetForm ffFindLogic, true
-    .Show , MDIMain
-  End With
-  
-// decided to stick with just showing the form, instead of
-// automatically starting a search
-
-//////  FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
 
 Private void SelectPropFromList()
 
@@ -1788,47 +2348,47 @@ Private void SelectPropFromList()
   }
   
   //restore previously selected prop
-  Select Case lstProperty.Tag
-  Case "INTVER"
+  switch (lstProperty.Tag
+  case "INTVER"
     SelectedProp = 4
-  Case "OBJENCRYPT"
+  case "OBJENCRYPT"
     SelectedProp = 3
-  Case "ISROOM"
+  case "ISROOM"
     SelectedProp = 6
-  Case "USERESNAMES"
+  case "USERESNAMES"
     SelectedProp = 4
-  Case "USELE"
+  case "USELE"
     SelectedProp = 9
   }
   
   //save property that was edited
-  Select Case lstProperty.Tag
-  Case "INTVER"
+  switch (lstProperty.Tag
+  case "INTVER"
     //determine if a change was made:
     //if there is a change to make
     if (InterpreterVersion != lstProperty.Text) {
       //make change to version
       ChangeIntVersion lstProperty.Text
       //check if change in version affected ID
-      Select Case Settings.ResListType
-      Case 1
+      switch (Settings.ResListType
+      case 1
         if (tvwResources.Nodes(1).Text != GameID) {
           tvwResources.Nodes(1).Text = GameID
         }
-      Case 2
+      case 2
         if (cmbResType.List(0) != GameID) {
           cmbResType.List(0) = GameID
         }
       }
     }
   
-  Case "USERESNAMES"
+  case "USERESNAMES"
     //determine if a change was made
     if (CBool(lstProperty.SelectedIndex) != LogicSourceSettings.UseReservedNames) {
       LogicSourceSettings.UseReservedNames = CBool(lstProperty.SelectedIndex)
     }
       
-  Case "USELE"
+  case "USELE"
     //determine if a change was made
     if (CBool(lstProperty.SelectedIndex) != UseLE) {
       UseLE = CBool(lstProperty.SelectedIndex)
@@ -1836,14 +2396,14 @@ Private void SelectPropFromList()
       UpdateLEStatus
     }
     
-  Case "OBJENCRYPT"
+  case "OBJENCRYPT"
     //determine if a change was made
-    if (CBool(lstProperty.SelectedIndex) != InventoryObjects.Encrypted) {
-      InventoryObjects.Encrypted = CBool(lstProperty.SelectedIndex)
-      InventoryObjects.Save
+    if (CBool(lstProperty.SelectedIndex) != InvObjects.Encrypted) {
+      InvObjects.Encrypted = CBool(lstProperty.SelectedIndex)
+      InvObjects.Save
     }
   
-  Case "ISROOM"
+  case "ISROOM"
     //determine if a change was made
     if (CBool(lstProperty.SelectedIndex) != Logics(SelResNum).IsRoom) {
       WaitCursor
@@ -1892,32 +2452,32 @@ Private void SelectPropFromText()
   On Error GoTo ErrHandler
   
   //restore selected property
-  Select Case txtProperty.Tag
-  Case "GAMEID"
+  switch (txtProperty.Tag
+  case "GAMEID"
     SelectedProp = 1
-  Case "GAMEAUTHOR"
+  case "GAMEAUTHOR"
     SelectedProp = 2
-  Case "RESDIR"
+  case "RESDIR"
     SelectedProp = 4
-  Case "GAMEDESC"
+  case "GAMEDESC"
     SelectedProp = 6
-  Case "GAMEVER"
+  case "GAMEVER"
     SelectedProp = 7
-  Case "GAMEABOUT"
+  case "GAMEABOUT"
     SelectedProp = 8
-  Case "WORDSDESC"
+  case "WORDSDESC"
     SelectedProp = 3
-  Case "OBJDESC"
+  case "OBJDESC"
     SelectedProp = 2
-  Case "VIEWDESC"
+  case "VIEWDESC"
     SelectedProp = 4
-  Case "MAXOBJ"
+  case "MAXOBJ"
     SelectedProp = 4
   }
     
   //save property that was edited
-  Select Case txtProperty.Tag
-  Case "GAMEID"
+  switch (txtProperty.Tag
+  case "GAMEID"
     //new game id
     
     //if new id is valid (not zero-length) AND changed
@@ -1925,33 +2485,33 @@ Private void SelectPropFromText()
       ChangeGameID txtProperty.Text
     }
     
-  Case "RESDIR"
+  case "RESDIR"
     //if changed
     if (LCase(txtProperty.Text) != LCase(ResDirName)) {
       ChangeResDir txtProperty.Text
     }
   
-  Case "GAMEAUTHOR"
+  case "GAMEAUTHOR"
     GameAuthor = txtProperty.Text
   
-  Case "GAMEDESC"
+  case "GAMEDESC"
     GameDescription = txtProperty.Text
     
-  Case "GAMEVER"
+  case "GAMEVER"
     GameVersion = txtProperty.Text
   
-  Case "GAMEABOUT"
+  case "GAMEABOUT"
     GameAbout = txtProperty.Text
     
-  Case "WORDSDESC"
-    VocabularyWords.Description = txtProperty.Text
-    VocabularyWords.Save
+  case "WORDSDESC"
+    WordList.Description = txtProperty.Text
+    WordList.Save
     
-  Case "OBJDESC"
-    InventoryObjects.Description = txtProperty.Text
-    InventoryObjects.Save
+  case "OBJDESC"
+    InvObjects.Description = txtProperty.Text
+    InvObjects.Save
   
-  Case "VIEWDESC"
+  case "VIEWDESC"
     //viewdescription only available if view is loaded
     With Views(SelResNum)
       if (!.Loaded) {
@@ -1975,15 +2535,15 @@ Private void SelectPropFromText()
       }
     Next
     
-  Case "MAXOBJ"
+  case "MAXOBJ"
     //validate Max val
     if (Val(txtProperty) > 255) {
       txtProperty.Text = 255
     } else if ( Val(txtProperty) <= 0) {
       txtProperty.Text = 1
     }
-    InventoryObjects.MaxScreenObjects = (byte)txtProperty.Text)
-    InventoryObjects.Save
+    InvObjects.MaxScreenObjects = (byte)txtProperty.Text)
+    InvObjects.Save
   }
   
   //hide textbox
@@ -2072,40 +2632,40 @@ Private void EditResource(ByVal ResType As AGIResType, ByVal ResNum As Long)
 
   //edits a resource; called by the resource lists
   
-  Select Case ResType
-  Case rtGame  //root
+  switch (ResType
+  case rtGame  //root
     //same as clicking on game properties
     mnuGProperties_Click
   
-  Case rtLogic
+  case rtLogic
     //resource header has no action
     if (ResNum >= 0) {
       OpenLogic ResNum
     }
     
-  Case rtPicture
+  case rtPicture
      //resource header has no action
     if (ResNum >= 0) {
       OpenPicture ResNum
     }
     
-  Case rtSound
+  case rtSound
     //resource header has no action
     if (ResNum >= 0) {
       OpenSound ResNum
     }
     
-  Case rtView
+  case rtView
     //resource header has no action
     if (ResNum >= 0) {
       OpenView ResNum
     }
     
-  Case rtObjects
+  case rtObjects
     //same as open
     mnuROObjects_Click
   
-  Case rtWords
+  case rtWords
     //same as open
     mnuROWords_Click
   
@@ -2115,22 +2675,6 @@ Private void EditResource(ByVal ResType As AGIResType, ByVal ResNum As Long)
 public void GRun()
   //tie function
   mnuGRun_Click
-}
-
-public void HideResTree()
-
-  //first hide the resource panel and associated elements
-  picResources.Visible = false
-  picLeft.Visible = false
-  picSplitV.Visible = false
-
-  //if the warnings list is still visible, adjust it so it fits correctly
-  if (picWarnings.Visible) {
-    picWarnings.Left = picBottom.Left
-    picWarnings.Width = picBottom.Width
-    picSplitH.Left = picBottom.Left + 30
-    picSplitH.Width = picBottom.Width - 60
-  }
 }
 
 public void HideWarningList()
@@ -2147,8 +2691,8 @@ public void PrintResources()
   On Error GoTo ErrHandler
   
   //check for an open editor that matches resource being previewed
-  Select Case SelResType
-  Case rtLogic
+  switch (SelResType
+  case rtLogic
     //if any logic editor matches this resource
     For i = 1 To LogicEditors.Count
       if (LogicEditors(i).FormMode = fmLogic) {
@@ -2160,7 +2704,7 @@ public void PrintResources()
       }
     Next i
     
-  Case rtPicture
+  case rtPicture
     //if any Picture editor matches this resource
     For i = 1 To PictureEditors.Count
       if (PictureEditors(i).PicNumber = SelResNum) {
@@ -2170,7 +2714,7 @@ public void PrintResources()
       }
     Next i
     
-  Case rtSound
+  case rtSound
     //if any Sound editor matches this resource
     For i = 1 To SoundEditors.Count
       if (SoundEditors(i).SoundNumber = SelResNum) {
@@ -2180,7 +2724,7 @@ public void PrintResources()
       }
     Next i
     
-  Case rtView
+  case rtView
     //if any View editor matches this resource
     For i = 1 To ViewEditors.Count
       if (ViewEditors(i).ViewNumber = SelResNum) {
@@ -2190,7 +2734,7 @@ public void PrintResources()
       }
     Next i
     
-  Case rtWords
+  case rtWords
     //if editing words
     if (WEInUse) {
       //use word editor
@@ -2198,7 +2742,7 @@ public void PrintResources()
       return;
     }
   
-  Case rtObjects
+  case rtObjects
     //if editing objects,
     if (OEInUse) {
       //use Objects Editor
@@ -2225,106 +2769,6 @@ public void RDescription()
   mnuRDescription_Click
 }
 
-public void RILogic()
-  //tie function
-  mnuRILogic_Click
-}
-
-public void RIObjects()
-  //tie function
-  mnuRIObjects_Click
-}
-
-public void RIPicture()
-  //tie function
-  mnuRIPicture_Click
-}
-
-public void RISound()
-  //tie function
-  mnuRISound_Click
-}
-
-public void RIView()
-  //tie function
-  mnuRIView_Click
-}
-
-
-public void RIWords()
-  //tie function
-  mnuRIWords_Click
-}
-
-public void RNLogic()
-  //tie function
-  mnuRNLogic_Click
-}
-
-public void RNObjects()
-  //tie function
-  mnuRNObjects_Click
-}
-
-public void RNPicture()
-  //tie function
-  mnuRNPicture_Click
-}
-
-public void RNSound()
-  //tie function
-  mnuRNSound_Click
-}
-
-
-public void RNView()
-  //tie function
-  mnuRNView_Click
-}
-
-public void RNWords()
-  //tie function
-  mnuRNWords_Click
-}
-
-public void ROLogic()
-  //tie function
-  mnuROLogic_Click
-}
-
-public void ROObjects()
-  //tie function
-  mnuROObjects_Click
-}
-
-public void ROPicture()
-  //tie function
-  mnuROPicture_Click
-}
-
-public void ROSound()
-  //tie function
-  mnuROSound_Click
-}
-
-public void ROText()
-  //tie function
-  mnuROText_Click
-}
-public void RNText()
-  //tie function
-  mnuRNText_Click
-}
-public void ROView()
-  //tie function
-  mnuROView_Click
-}
-
-public void ROWords()
-  //tie function
-  mnuROWords_Click
-}
-
 Private void SelectedItemDescription(ByVal FirstProp As Long)
 
   Dim strID As String, strTempD As String
@@ -2338,8 +2782,8 @@ Private void SelectedItemDescription(ByVal FirstProp As Long)
   
   //is there an open editor for this resource?
   //if so, use that editor//s renumber function
-  Select Case SelResType
-  Case rtLogic
+  switch (SelResType
+  case rtLogic
     //step through logiceditors
     foreach (frm In LogicEditors
       if (frm.LogicNumber = SelResNum) {
@@ -2347,7 +2791,7 @@ Private void SelectedItemDescription(ByVal FirstProp As Long)
         return;
       }
     Next
-  Case rtPicture
+  case rtPicture
     //step through pictureeditors
     foreach (frm In PictureEditors
       if (frm.PicNumber = SelResNum) {
@@ -2355,7 +2799,7 @@ Private void SelectedItemDescription(ByVal FirstProp As Long)
         return;
       }
     Next
-  Case rtSound
+  case rtSound
     //step through soundeditors
     foreach (frm In SoundEditors
       if (frm.SoundNumber = SelResNum) {
@@ -2363,7 +2807,7 @@ Private void SelectedItemDescription(ByVal FirstProp As Long)
         return;
       }
     Next
-  Case rtView
+  case rtView
     //step through Vieweditors
     foreach (frm In ViewEditors
       if (frm.ViewNumber = SelResNum) {
@@ -2375,26 +2819,26 @@ Private void SelectedItemDescription(ByVal FirstProp As Long)
   
   //Debug.Assert FirstProp > 0 && FirstProp < 3
   //set current values
-  Select Case SelResType
-  Case rtObjects
-    strTempD = InventoryObjects.Description
+  switch (SelResType
+  case rtObjects
+    strTempD = InvObjects.Description
     
-  Case rtWords
-    strTempD = VocabularyWords.Description
+  case rtWords
+    strTempD = WordList.Description
     
-  Case rtLogic
+  case rtLogic
     strID = Logics(SelResNum).ID
     strTempD = Logics(SelResNum).Description
     
-  Case rtPicture
+  case rtPicture
     strID = Pictures(SelResNum).ID
     strTempD = Pictures(SelResNum).Description
     
-  Case rtSound
+  case rtSound
     strID = Sounds(SelResNum).ID
     strTempD = Sounds(SelResNum).Description
     
-  Case rtView
+  case rtView
     strID = Views(SelResNum).ID
     strTempD = Views(SelResNum).Description
   }
@@ -2405,104 +2849,6 @@ return;
 ErrHandler:
   //Debug.Assert false
   Resume Next
-}
-
-public void RemoveSelectedRes()
-
-  //removes a resource from the game
-
-  Dim rtn As VbMsgBoxResult
-  Dim blnDontAsk As Boolean
-  Dim strID As String
-  
-  Select Case SelResType
-  Case rtLogic
-    strID = Logics(SelResNum).ID
-    
-  Case rtPicture
-    strID = Pictures(SelResNum).ID
-    
-  Case rtSound
-    strID = Sounds(SelResNum).ID
-    
-  Case rtView
-    strID = Views(SelResNum).ID
-    
-  default:
-    //Debug.Assert false
-    return;
-  }
-    
-  //ask if resource should be exported first
-  if (Settings.AskExport) {
-    rtn = MsgBoxEx("Do you want to export //" + strID + "// before" + vbNewLine + "removing it from your game?", _
-                        vbQuestion + vbYesNoCancel, "Export " + ResTypeName(SelResType) + " Before Removal", , , _
-                        "Don//t ask this question again", blnDontAsk)
-  
-    //save the setting
-    Settings.AskExport = !blnDontAsk
-    //if now hiding, update settings file
-    if (!Settings.AskExport) {
-      WriteAppSetting(SettingsList, sGENERAL, "AskExport", Settings.AskExport
-    }
-  } else {
-    //dont ask; assume no
-    rtn = vbNo
-  }
-  
-  //if canceled,
-  Select Case rtn
-  Case vbCancel
-    return;
-  Case vbYes
-    //export it
-    SelectedItemExport
-  Case vbNo
-    //nothing to do
-  }
-  
-  //confirm removal
-  if (Settings.AskRemove) {
-    rtn = MsgBoxEx("Removing //" + strID + "// from your game." + vbCrLf + vbCrLf + "Select OK to proceed, or Cancel to keep it in game.", _
-                    vbQuestion + vbOKCancel, "Remove " + ResTypeName(SelResType) + " From Game", , , _
-                    "Don//t ask this question again", blnDontAsk)
-  
-    //save the setting
-    Settings.AskRemove = !blnDontAsk
-    //if now hiding, update settings file
-    if (!Settings.AskRemove) {
-      WriteAppSetting(SettingsList, sGENERAL, "AskRemove", Settings.AskRemove
-    }
-  } else {
-    //assume OK
-    rtn = vbOK
-  }
-  
-  //if canceled,
-  if (rtn = vbCancel) {
-    return;
-  }
-
-  //now remove the resource
-  Select Case SelResType
-  Case rtView
-    //remove the view
-    RemoveView SelResNum
-    
-  Case rtLogic
-    //remove the logic
-    RemoveLogic SelResNum
-    
-  Case rtPicture
-    //remove the picture
-    RemovePicture SelResNum
-    
-  Case rtSound
-    //remove the sound
-    RemoveSound SelResNum
-  
-  }
-  
 }
 
 public void SelectedItemExport()
@@ -2516,12 +2862,12 @@ public void SelectedItemExport()
   //only game resources can be selected; game resources never have a resource file
   //default filename is always resource ID and restype extension
   
-  Select Case SelResType
-  Case rtGame
+  switch (SelResType
+  case rtGame
     //export all?
     ExportAll
     
-  Case rtLogic
+  case rtLogic
     //first, do source
     if (MessageBox.Show(("Do you want to export the source code for this logic?", vbQuestion + vbYesNo, "Export Logic") = vbYes) {
       //get a filename for the export
@@ -2539,20 +2885,20 @@ public void SelectedItemExport()
       ExportLogic Logics(SelResNum).Number
     }
       
-  Case rtPicture
+  case rtPicture
     ExportPicture Pictures(SelResNum), true
     
-  Case rtSound
+  case rtSound
     ExportSound Sounds(SelResNum), true
     
-  Case rtView
+  case rtView
     ExportView Views(SelResNum), true
     
-  Case rtObjects
-    ExportObjects InventoryObjects, true
+  case rtObjects
+    ExportObjects InvObjects, true
     
-  Case rtWords
-    ExportWords VocabularyWords, true
+  case rtWords
+    ExportWords WordList, true
     
   default:
     //should never get here for other resource types
@@ -2579,8 +2925,8 @@ public void SelectedItemRenumber()
   
   //is there an open editor for this resource?
   //if so, use that editor//s renumber function
-  Select Case SelResType
-  Case rtLogic
+  switch (SelResType
+  case rtLogic
     //step through logiceditors
     foreach (frm In LogicEditors
       if (frm.LogicNumber = SelResNum) {
@@ -2588,7 +2934,7 @@ public void SelectedItemRenumber()
         return;
       }
     Next
-  Case rtPicture
+  case rtPicture
     //step through pictureeditors
     foreach (frm In PictureEditors
       if (frm.PicNumber = SelResNum) {
@@ -2596,7 +2942,7 @@ public void SelectedItemRenumber()
         return;
       }
     Next
-  Case rtSound
+  case rtSound
     //step through soundeditors
     foreach (frm In SoundEditors
       if (frm.SoundNumber = SelResNum) {
@@ -2604,7 +2950,7 @@ public void SelectedItemRenumber()
         return;
       }
     Next
-  Case rtView
+  case rtView
     //step through Vieweditors
     foreach (frm In ViewEditors
       if (frm.ViewNumber = SelResNum) {
@@ -2654,7 +3000,7 @@ public void SelectedItemRenumber()
     //if using layout editor
     if (UseLE) {
       //update layout
-      UpdateExitInfo euRenumberRoom, OldResNum, Nothing, NewResNum
+      UpdateExitInfo euRenumberRoom, OldResNum, null, NewResNum
     }
   }
 return;
@@ -2669,8 +3015,8 @@ public void SelectedItemPrint()
   
   On Error GoTo ErrHandler
   
-  Select Case SelResType
-  Case rtLogic
+  switch (SelResType
+  case rtLogic
     //load logic if necessary
     blnLoaded = Logics(SelResNum).Loaded
     if (!blnLoaded) {
@@ -2688,7 +3034,7 @@ public void SelectedItemPrint()
       Logics(SelResNum).Unload
     }
     
-  Case rtPicture
+  case rtPicture
     //load picture if necessary
     blnLoaded = Pictures(SelResNum).Loaded
     if (!blnLoaded) {
@@ -2705,7 +3051,7 @@ public void SelectedItemPrint()
       Pictures(SelResNum).Unload
     }
   
-  Case rtSound
+  case rtSound
     //load sound if necessary
     blnLoaded = Sounds(SelResNum).Loaded
     if (!blnLoaded) {
@@ -2722,7 +3068,7 @@ public void SelectedItemPrint()
       Sounds(SelResNum).Unload
     }
     
-  Case rtView
+  case rtView
     //load view if necessary
     blnLoaded = Views(SelResNum).Loaded
     if (!blnLoaded) {
@@ -2739,22 +3085,22 @@ public void SelectedItemPrint()
       Views(SelResNum).Unload
     }
   
-  Case rtObjects
+  case rtObjects
     Load frmPrint
-    frmPrint.SetMode rtObjects, InventoryObjects, , true
+    frmPrint.SetMode rtObjects, InvObjects, , true
     KeepFocus = true
     frmPrint.Show vbModal, Me
     KeepFocus = false
    
-  Case rtWords
+  case rtWords
     //if nothing to print,
-    if (VocabularyWords.WordCount = 0) {
+    if (WordList.WordCount = 0) {
       MessageBox.Show( "There are no words in this word list to print.", vbInformation + vbOKOnly, "Print Word List"
       return;
     }
   
     Load frmPrint
-    frmPrint.SetMode rtWords, VocabularyWords, , true
+    frmPrint.SetMode rtWords, WordList, , true
     KeepFocus = true
     frmPrint.Show vbModal, Me
     KeepFocus = false
@@ -2820,12 +3166,12 @@ Private void UpdateSplitRes(ByVal SplitResLoc As Single)
     return;
   }
   
-  Select Case Settings.ResListType
-  Case 0
-  Case 1 //tree
+  switch (Settings.ResListType
+  case 0
+  case 1 //tree
     //set tree height
     tvwResources.Height = SplitResLoc - tvwResources.Top
-  Case 2 //box
+  case 2 //box
     //set listbox height
     lstResources.Height = SplitResLoc - lstResources.Top
   }
@@ -2938,12 +3284,12 @@ public void UpdateSplitV(ByVal SplitVLoc As Single, Optional ByVal Force As Bool
   //set rescource list width
   picResources.Width = SplitVLoc + SPLIT_WIDTH
   
-  Select Case Settings.ResListType
-  Case 0
-  Case 1 //tree
+  switch (Settings.ResListType
+  case 0
+  case 1 //tree
     //set resource tree width
     tvwResources.Width = picResources.ScaleWidth - (SPLIT_WIDTH / ScreenTWIPSX)
-  Case 2 //box
+  case 2 //box
     //set combo and listbox width
     cmbResType.Width = picResources.ScaleWidth - (SPLIT_WIDTH / ScreenTWIPSX)
     lstResources.Width = cmbResType.Width
@@ -2984,50 +3330,50 @@ Private void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType 
   On Error GoTo ErrHandler
   
   //if compiling form not loaded,
-  if (CompStatusWin Is Nothing) {
+  if (CompStatusWin = null) {
     //should never get here?
     return;
   }
 
   With CompStatusWin
-    Select Case cStatus
-    Case csCompWords
+    switch (cStatus
+    case csCompWords
       .lblStatus.Caption = "Compiling WORDS.TOK..."
       
-    Case csCompObjects
+    case csCompObjects
       .lblStatus.Caption = "Compiling OBJECT"
       
-    Case csAddResource
-      Select Case ResType
-      Case rtLogic
+    case csAddResource
+      switch (ResType
+      case rtLogic
         .lblStatus.Caption = "Adding " + ResourceName(Logics(ResNum), true, true)
         SetLogicCompiledStatus ResNum, true
         
-      Case rtPicture
+      case rtPicture
         .lblStatus.Caption = "Adding " + ResourceName(Pictures(ResNum), true, true)
-      Case rtSound
+      case rtSound
         .lblStatus.Caption = "Adding " + ResourceName(Sounds(ResNum), true, true)
-      Case rtView
+      case rtView
         .lblStatus.Caption = "Adding " + ResourceName(Views(ResNum), true, true)
       }
       
-    Case csDoneAdding
+    case csDoneAdding
       .lblStatus.Caption = "Copying VOL files"
       
-    Case csCompileComplete
-      Select Case CompStatusWin.WindowFunction
-      Case 0        //if full compile
+    case csCompileComplete
+      switch (CompStatusWin.WindowFunction
+      case 0        //if full compile
         .lblStatus.Caption = "Compile complete"
-      Case 1
+      case 1
         .lblStatus.Caption = "Rebuild complete"
-      Case 2
+      case 2
         .lblStatus.Caption = "All logics compiled"
       }
       
       //set progressbar to full Value
       .pgbStatus.Value = .pgbStatus.Max
       
-    Case csWarning
+    case csWarning
       //the warning will contain four elements separated by a "\":
       //type~number\warningtext\line\module~
       //for nonlogics, number, line and module are a double dash
@@ -3045,18 +3391,18 @@ Private void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType 
         AddWarning ErrString, ResType, ResNum
       }
       
-    Case csResError
+    case csResError
       .lblStatus.Caption = "Compiler error"
       //need to increment error counter, and store this error
       .lblErrors.Caption = .lblErrors.Caption + 1
-      Select Case ResType
-      Case rtLogic
+      switch (ResType
+      case rtLogic
         strID = ResourceName(Logics(ResNum), true, true)
-      Case rtPicture
+      case rtPicture
         strID = ResourceName(Pictures(ResNum), true, true)
-      Case rtSound
+      case rtSound
         strID = ResourceName(Sounds(ResNum), true, true)
-      Case rtView
+      case rtView
         strID = ResourceName(Views(ResNum), true, true)
       }
       
@@ -3072,7 +3418,7 @@ Private void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType 
       WaitCursor
       return;
       
-    Case csLogicError
+    case csLogicError
       //always cancel compile on error
       .CompCanceled = true
       CancelCompile
@@ -3097,8 +3443,8 @@ Private void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType 
       strErrInfo() = Split(ErrString, "|")
       
       //determine user response to the error
-      Select Case Settings.OpenOnErr
-      Case 0 //ask
+      switch (Settings.OpenOnErr
+      case 0 //ask
         //restore cursor before showing msgbox
         Screen.MousePointer = vbDefault
         //get user//s response
@@ -3117,10 +3463,10 @@ Private void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType 
           
         }
         
-      Case 1 //always yes
+      case 1 //always yes
         rtn = vbYes
         
-      Case 2 //always no
+      case 2 //always no
         rtn = vbNo
         //restore cursor before showing msgbox
         Screen.MousePointer = vbDefault
@@ -3142,7 +3488,7 @@ Private void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType 
       
       return;
       
-    Case csCanceled
+    case csCanceled
       //user canceled...
       .CompCanceled = true
       CancelCompile
@@ -3174,31 +3520,31 @@ Private void agGameEvents_LoadStatus(lStatus As WinAGI.ELStatus, ResType As WinA
   On Error GoTo ErrHandler
   
   With ProgressWin
-    Select Case lStatus
-    Case lsDecompiling
+    switch (lStatus
+    case lsDecompiling
       .lblProgress.Caption = "Validating AGI game files ..."
        blnNoWAG = true
        
-    Case lsPropertyFile
+    case lsPropertyFile
       if (blnNoWAG) {
         .lblProgress.Caption = "Creating game property file ..."
       } else {
         .lblProgress.Caption = "Loading game property file ..."
       }
       
-    Case lsResources
-      Select Case ResType
-      Case rtLogic, rtPicture, rtView, rtSound
+    case lsResources
+      switch (ResType
+      case rtLogic, rtPicture, rtView, rtSound
         .lblProgress.Caption = "Validating Resources: " + ResTypeName(ResType) + " " + ResNum
       
-      Case rtWords
+      case rtWords
         .lblProgress.Caption = "Validating WORDS.TOK file"
       
-      Case rtObjects
+      case rtObjects
         .lblProgress.Caption = "Validating OBJECT file"
       }
       
-    Case lsFinalizing
+    case lsFinalizing
       .lblProgress.Caption = "Configuring WinAGI"
     
     }
@@ -3226,7 +3572,7 @@ Private void agGameEvents_LogCompWarning(Warning As String, LogNum As Byte)
   //if part of a full game compile, the status form is visible
   
   //if compiling form not loaded,
-  if (CompStatusWin Is Nothing) {
+  if (CompStatusWin = null) {
     //nothing to do
     return;
   }
@@ -3251,13 +3597,13 @@ Private void cmbResType_Click()
     //always clear the list
     .Clear
     
-    Select Case cmbResType.SelectedIndex
-    Case 0 //root
+    switch (cmbResType.SelectedIndex
+    case 0 //root
       NewType = rtGame
       NewNum = -1
       //no listitems
     
-    Case 1 //logics
+    case 1 //logics
       //add logics
       if (Logics.Count > 0) {
         For i = 0 To 255
@@ -3267,9 +3613,9 @@ Private void cmbResType_Click()
             tmpItem.Tag = i
             //load source to set compiled status
             if (Logics(i).Compiled) {
-              tmpItem.ForeColor = vbBlack
+              tmpItem.ForeColor = Color.Black
             } else {
-              tmpItem.ForeColor = vbRed
+              tmpItem.ForeColor = Color.Red
             }
             // check for max width
             if (picResources.TextWidth(tmpItem.Text) > lngWidth) {
@@ -3284,7 +3630,7 @@ Private void cmbResType_Click()
       NewType = rtLogic
       NewNum = -1
     
-    Case 2 //pictures
+    case 2 //pictures
       if (Pictures.Count > 0) {
         For i = 0 To 255
           //if a valid resource
@@ -3304,7 +3650,7 @@ Private void cmbResType_Click()
       NewType = rtPicture
       NewNum = -1
     
-    Case 3 //sounds
+    case 3 //sounds
       if (Sounds.Count > 0) {
         For i = 0 To 255
           //if a valid resource
@@ -3324,7 +3670,7 @@ Private void cmbResType_Click()
       NewType = rtSound
       NewNum = -1
           
-    Case 4 //views
+    case 4 //views
       if (Views.Count > 0) {
         For i = 0 To 255
           //if a valid resource
@@ -3344,12 +3690,12 @@ Private void cmbResType_Click()
       NewType = rtView
       NewNum = -1
     
-    Case 5 //objects
+    case 5 //objects
       NewType = rtObjects
       NewNum = -1
       //no listitems
   
-    Case 6 //words
+    case 6 //words
       NewType = rtWords
       NewNum = -1
       //no listitems
@@ -3387,12 +3733,12 @@ Private void cmbResType_GotFocus()
     
     //only update menu if no editor is open; if there
     //is an editor open, it will own menus
-    if (ActiveForm Is Nothing) {
-      Select Case SelResType
-      Case rtGame, rtNone
+    if (ActiveForm = null) {
+      switch (SelResType
+      case rtGame, rtNone
         AdjustMenus rtGame, true, false, false
         
-      Case rtLogic, rtPicture, rtSound, rtView
+      case rtLogic, rtPicture, rtSound, rtView
         if (SelResNum = -1) {
           //resource header
           AdjustMenus rtNone, true, false, false
@@ -3401,10 +3747,10 @@ Private void cmbResType_GotFocus()
           AdjustMenus SelResType, true, false, false
         }
         
-      Case rtObjects
+      case rtObjects
         AdjustMenus rtObjects, true, false, false
         
-      Case rtWords
+      case rtWords
         AdjustMenus rtWords, true, false, false
         
       }
@@ -3441,8 +3787,8 @@ Private void cmbResType_KeyDown(KeyCode As Integer, Shift As Integer)
   
   if (Shift = 0) {
     //no shift, ctrl, alt
-    Select Case KeyCode
-    Case vbKeyF1
+    switch (KeyCode
+    case Keys.F1
       //if using preview window
       if (Settings.ShowPreview) {
         frmPreview.MenuClickHelp
@@ -3452,7 +3798,7 @@ Private void cmbResType_KeyDown(KeyCode As Integer, Shift As Integer)
       }
       KeyCode = 0
     
-    Case 9  //tab
+    case 9  //tab
       lstResources.Focus()
       KeyCode = 0
     }
@@ -3475,11 +3821,11 @@ Private void cmbResType_LostFocus()
   
   if (!Settings.ShowPreview) {
     MDIHasFocus = false
-    if (!ActiveControl Is Nothing) {
+    if (!ActiveControl = null) {
       //if active control is still resource list
       //then an open form may have been clicked
       if (ActiveControl.Name = "lstResources" && !KeepFocus) {
-        if (!ActiveForm Is Nothing) {
+        if (!ActiveForm = null) {
           //reset menus for active form
           ActiveForm.Activate
         }
@@ -3519,10 +3865,10 @@ Private void cmdBack_Click()
   }
   
   //always set focus to the resource list
-  Select Case Settings.ResListType
-  Case 1
+  switch (Settings.ResListType
+  case 1
     tvwResources.Focus()
-  Case 2
+  case 2
     lstResources.Focus();
   }
 return;
@@ -3562,10 +3908,10 @@ ErrHandler:
 Private void cmdBack_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //always set focus to resource list
-  Select Case Settings.ResListType
-  Case 1
+  switch (Settings.ResListType
+  case 1
     tvwResources.Focus();
-  Case 2
+  case 2
     lstResources.Focus();
   }
 }
@@ -3590,10 +3936,10 @@ Private void cmdForward_Click()
   }
   
   //always set focus to the resource list
-  Select Case Settings.ResListType
-  Case 1
+  switch (Settings.ResListType
+  case 1
     tvwResources.Focus();
-  Case 2
+  case 2
     lstResources.Focus();
   }
   
@@ -3635,10 +3981,10 @@ ErrHandler:
 Private void cmdForward_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //always set focus to resource list
-  Select Case Settings.ResListType
-  Case 1
+  switch (Settings.ResListType
+  case 1
     tvwResources.Focus();
-  Case 2
+  case 2
     lstResources.Focus();
   }
 }
@@ -3712,8 +4058,8 @@ Private void fgWarnings_KeyDown(KeyCode As Integer, Shift As Integer)
   Dim i As Long, j As Long, strText As String
   
   if (Shift = vbCtrlMask) {
-    Select Case KeyCode
-    Case vbKeyC
+    switch (KeyCode
+    case Keys.C
       //add everything collected to clipboard
       //  with tabs separating items on a row
       //  and carriage returns separating rows
@@ -3739,7 +4085,7 @@ Private void fgWarnings_KeyDown(KeyCode As Integer, Shift As Integer)
         Clipboard.SetText strText, vbCFText
       End With
       
-    Case vbKeyA
+    case Keys.A
       With fgWarnings
         .Row = 1
         .Col = 2
@@ -3773,7 +4119,7 @@ Private void fgWarnings_MouseDown(Button As Integer, Shift As Integer, X As Sing
       }
       
       //make sure grid is the active control
-      if (this.ActiveControl Is Nothing) {
+      if (this.ActiveControl = null) {
         .Focus();
       } else if ( this.ActiveControl.Name != "fgWarnings") {
         .Focus();
@@ -3825,8 +4171,8 @@ Private void fgWarnings_MouseMove(Button As Integer, Shift As Integer, X As Sing
   
   On Error GoTo ErrHandler
   
-  Select Case Button
-  Case vbLeftButton
+  switch (Button
+  case vbLeftButton
     //always reset rowsel to row; so only one row at a time
     With fgWarnings
       if (.Row != .MouseRow && .MouseRow != 0) {
@@ -3838,7 +4184,7 @@ Private void fgWarnings_MouseMove(Button As Integer, Shift As Integer, X As Sing
   
 //  //is mouse over an item?
 //  tmpItem = lvWarnings.HitTest(x, y)
-//  if (tmpItem Is Nothing) {
+//  if (tmpItem = null) {
 //    return;
 //  }
 //
@@ -3918,8 +4264,8 @@ Private void lstProperty_GotFocus()
 Private void lstProperty_KeyPress(KeyAscii As Integer)
 
   //trap enter key
-  Select Case KeyAscii
-  Case 10, 13 //enter key or ctrl-enter key combination
+  switch (KeyAscii
+  case 10, 13 //enter key or ctrl-enter key combination
     //save choice
     KeyAscii = 0
     SelectPropFromList
@@ -3928,7 +4274,7 @@ Private void lstProperty_KeyPress(KeyAscii As Integer)
     PaintPropertyWindow
     return;
     
-  Case 27 //esc key
+  case 27 //esc key
     //cancel
     KeyAscii = 0
     lstProperty.Visible = false
@@ -3960,7 +4306,7 @@ Private void lstResources_DblClick()
   On Error Resume Next
   
   //if there is a node under the double-clicked location
-  if (!lstResources.HitTest(mTX, mTY) Is Nothing) {
+  if (!lstResources.HitTest(mTX, mTY) = null) {
     //if not the same as the current item
     if (lstResources.HitTest(mTX, mTY).Index != lstResources.SelectedItem.Index) {
       //select it
@@ -3990,12 +4336,12 @@ Private void lstResources_GotFocus()
     
     //only update menu if no editor is open; if there
     //is an editor open, it will own menus
-    if (ActiveForm Is Nothing) {
-      Select Case SelResType
-      Case rtGame, rtNone
+    if (ActiveForm = null) {
+      switch (SelResType
+      case rtGame, rtNone
         AdjustMenus rtGame, true, false, false
         
-      Case rtLogic, rtPicture, rtSound, rtView
+      case rtLogic, rtPicture, rtSound, rtView
         if (SelResNum = -1) {
           //resource header
           AdjustMenus rtNone, true, false, false
@@ -4004,10 +4350,10 @@ Private void lstResources_GotFocus()
           AdjustMenus SelResType, true, false, false
         }
         
-      Case rtObjects
+      case rtObjects
         AdjustMenus rtObjects, true, false, false
         
-      Case rtWords
+      case rtWords
         AdjustMenus rtWords, true, false, false
         
       }
@@ -4044,17 +4390,17 @@ Private void lstResources_KeyDown(KeyCode As Integer, Shift As Integer)
   
   if (Shift = 0) {
     //no shift, ctrl, alt
-    Select Case KeyCode
-    Case vbKeyDelete
+    switch (KeyCode
+    case Keys.Delete
       //if a resource is selected
-      Select Case SelResType
-      Case rtLogic, rtPicture, rtSound, rtView
+      switch (SelResType
+      case rtLogic, rtPicture, rtSound, rtView
         //call remove from game method
         RemoveSelectedRes
         KeyCode = 0
       }
       
-    Case vbKeyF1
+    case Keys.F1
       //if using preview window
       if (Settings.ShowPreview) {
         frmPreview.MenuClickHelp
@@ -4064,23 +4410,23 @@ Private void lstResources_KeyDown(KeyCode As Integer, Shift As Integer)
       }
       KeyCode = 0
     
-    Case 9  //tab
+    case 9  //tab
       picProperties.Focus();
       KeyCode = 0
     }
   } else if ( Shift = vbShiftMask + vbCtrlMask) {
     //Shift+Ctrl//
     if (Settings.ShowPreview) {
-      if (SelResType = rtPicture && KeyCode = vbKeyS) {
+      if (SelResType = rtPicture && KeyCode = Keys.S) {
         //save Image as ...
         frmPreview.MenuClickCustom1
       }
     }
   } else if ( Shift = vbCtrlMask) {
-    Select Case KeyCode
-    Case vbKeyF //Ctrl+F (Find)
-      Select Case SelResType
-      Case rtLogic, rtPicture, rtSound, rtView
+    switch (KeyCode
+    case Keys.F //Ctrl+F (Find)
+      switch (SelResType
+      case rtLogic, rtPicture, rtSound, rtView
         //find this resid
         SearchForID
       }
@@ -4100,8 +4446,8 @@ Private void lstResources_KeyPress(KeyAscii As Integer)
   On Error GoTo ErrHandler
   
   //enter key is same as double-click
-  Select Case KeyAscii
-  Case 13 //return key
+  switch (KeyAscii
+  case 13 //return key
     //edit the selected resource
     EditResource SelResType, SelResNum
     KeyAscii = 0
@@ -4130,11 +4476,11 @@ Private void lstResources_LostFocus()
   
   if (!Settings.ShowPreview) {
     MDIHasFocus = false
-    if (!ActiveControl Is Nothing) {
+    if (!ActiveControl = null) {
       //if active control is still resource list
       //then an open form may have been clicked
       if (ActiveControl.Name = "lstResources" && !KeepFocus) {
-        if (!ActiveForm Is Nothing) {
+        if (!ActiveForm = null) {
           //reset menus for active form
           ActiveForm.Activate
         }
@@ -4171,20 +4517,20 @@ Private void lstResources_MouseDown(Button As Integer, Shift As Integer, X As Si
   //if right clicked
   if (Button = vbRightButton) {
     //res type determines action
-    Select Case cmbResType.SelectedIndex
-    Case 0, 5, 6 //root, objects, words
+    switch (cmbResType.SelectedIndex
+    case 0, 5, 6 //root, objects, words
       //need doevents so form activation occurs BEFORE popup
       //otherwise, errors will be generated because of menu
       //adjustments that are made in the form_activate event
       SafeDoEvents
       PopupMenu mnuResource, , X + lstResources.Left, Y + picResources.Top
 
-    Case 1 To 4 //lpsv
+    case 1 To 4 //lpsv
       // get the item under the cursor
       tmpItem = lstResources.HitTest(X, Y)
       
       //if nothing, just exit
-      if (tmpItem Is Nothing) {
+      if (tmpItem = null) {
         return;
       }
       
@@ -4286,7 +4632,7 @@ Private void mnuCWPrint_Click()
 
   //print the list
   Load frmPrint
-  frmPrint.SetMode rtWarnings, Nothing
+  frmPrint.SetMode rtWarnings, null
   frmPrint.Show vbModal, Me
   
 }
@@ -4347,7 +4693,7 @@ Private void mnuEReplace_Click()
 }
 
 
-Private void mnuGCompDirty_Click()
+Private void mnuGCompileDirty_Click()
 
   //compile dirty
   CompileDirtyLogics
@@ -4365,10 +4711,16 @@ Private void mnuGImport_Click()
   OpenDIR
 }
 
+Private void mnuGMRU0_Click()
+
+  OpenMRUGame 0
+}
+
 Private void mnuGMRU1_Click()
 
   OpenMRUGame 1
 }
+
 
 Private void mnuGMRU2_Click()
 
@@ -4379,12 +4731,6 @@ Private void mnuGMRU2_Click()
 Private void mnuGMRU3_Click()
 
   OpenMRUGame 3
-}
-
-
-Private void mnuGMRU4_Click()
-
-  OpenMRUGame 4
 }
 
 
@@ -4473,12 +4819,12 @@ Private void mnuGProperties_Click()
     if (InterpreterVersion != .cmbVersion.Text) {
       ChangeIntVersion .cmbVersion.Text
       //check if change in version affected ID
-      Select Case Settings.ResListType
-      Case 1
+      switch (Settings.ResListType
+      case 1
         if (tvwResources.Nodes(1).Text != GameID) {
           tvwResources.Nodes(1).Text = GameID
         }
-      Case 2
+      case 2
         if (cmbResType.List(0) != GameID) {
           cmbResType.List(0) = GameID
         }
@@ -4700,31 +5046,31 @@ Private void mnuTCustom_Click(Index As Integer)
     
     if (rtn <= 32) {
       //error - display a msg to user
-      Select Case rtn
+      switch (rtn
       //regular WinExec() codes
-      Case 2 //#define SE_ERR_FNF              2       // file not found
+      case 2 //#define SE_ERR_FNF              2       // file not found
         MessageBox.Show( "Sorry, the file was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "File !Found"
-      Case 3 //#define SE_ERR_PNF              3       // path not found
+      case 3 //#define SE_ERR_PNF              3       // path not found
         MessageBox.Show( "Sorry, the path in this file name was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Path !Found"
-      Case 5 //#define SE_ERR_ACCESSDENIED     5       // access denied
+      case 5 //#define SE_ERR_ACCESSDENIED     5       // access denied
         MessageBox.Show( "Sorry, this file could not be accessed." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Access Denied"
-      Case 8 //#define SE_ERR_OOM              8       // out of memory
+      case 8 //#define SE_ERR_OOM              8       // out of memory
         MessageBox.Show( "Holy CRAP! You are out of memory!" + vbNewLine + "You might want to free up some memory before trying to open this file/program.", vbInformation + vbOKOnly, "Out of Memory"
-      Case 32 //#define SE_ERR_DLLNOTFOUND              32
+      case 32 //#define SE_ERR_DLLNOTFOUND              32
         MessageBox.Show( "Sorry, a supporting DLL for this file/program was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DLL !Found"
       //
       //error values for ShellExecute() beyond the regular WinExec() codes
-      Case 26 //#define SE_ERR_SHARE                    26
+      case 26 //#define SE_ERR_SHARE                    26
         MessageBox.Show( "Sorry, a share violation occurred." + vbNewLine + "Please address the file share issue, then try again.", vbInformation + vbOKOnly, "Share Violation"
-      Case 27 //#define SE_ERR_ASSOCINCOMPLETE          27
+      case 27 //#define SE_ERR_ASSOCINCOMPLETE          27
         MessageBox.Show( "Sorry, unable to determine the correct association for this file." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Incomplete Association"
-      Case 28 //#define SE_ERR_DDETIMEOUT               28
+      case 28 //#define SE_ERR_DDETIMEOUT               28
         MessageBox.Show( "Sorry, a DDE timeout error occurred." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Timeout Error"
-      Case 29 //#define SE_ERR_DDEFAIL                  29
+      case 29 //#define SE_ERR_DDEFAIL                  29
         MessageBox.Show( "Sorry, DDE failed; unable to open this file/program." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Failure"
-      Case 30 //#define SE_ERR_DDEBUSY                  30
+      case 30 //#define SE_ERR_DDEBUSY                  30
         MessageBox.Show( "Sorry, DDE was not able to open this file/program." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Busy Error"
-      Case 31 //#define SE_ERR_NOASSOC                  31
+      case 31 //#define SE_ERR_NOASSOC                  31
         MessageBox.Show( "Sorry, an association was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Association !Found"
       default:
         MessageBox.Show( "Sorry, an error occurred when trying to open this tool entry." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Unknown Error"
@@ -4842,11 +5188,11 @@ Private void mnuTResDef_Click()
           if (rtn >= 8 && rtn <= 13) {
             //override
             .CellFontBold = true
-            .CellForeColor = vbRed
+            .CellForeColor = Color.Red
           } else {
             //normal
             .CellFontBold = false
-            .CellForeColor = vbBlack
+            .CellForeColor = Color.Black
           }
         Next i
         
@@ -5044,30 +5390,30 @@ Private void picNavList_Paint()
         .CurrentX = 0.15 * .TextHeight("")
         
         //print the id
-        Select Case Int(ResQueue(i + NLOffset - 2) / 256)
-        Case rtLogic
+        switch (Int(ResQueue(i + NLOffset - 2) / 256)
+        case rtLogic
           picNavList.Print Logics(ResQueue(i + NLOffset - 2) Mod 256).ID
-        Case rtPicture
+        case rtPicture
           picNavList.Print Pictures(ResQueue(i + NLOffset - 2) Mod 256).ID
-        Case rtSound
+        case rtSound
           picNavList.Print Sounds(ResQueue(i + NLOffset - 2) Mod 256).ID
-        Case rtView
+        case rtView
           picNavList.Print Views(ResQueue(i + NLOffset - 2) Mod 256).ID
-        Case 4
-          Select Case ResQueue(i + NLOffset - 2) Mod 256
-          Case rtGame
+        case 4
+          switch (ResQueue(i + NLOffset - 2) Mod 256
+          case rtGame
             picNavList.Print GameID
-          Case rtLogic
+          case rtLogic
             picNavList.Print "LOGICS"
-          Case rtPicture
+          case rtPicture
             picNavList.Print "PICTURES"
-          Case rtSound
+          case rtSound
             picNavList.Print "SOUNDS"
-          Case rtView
+          case rtView
             picNavList.Print "VIEWS"
-          Case rtObjects
+          case rtObjects
             picNavList.Print "OBJECTS"
-          Case rtWords
+          case rtWords
             picNavList.Print "WORDS"
           }
         }
@@ -5111,24 +5457,24 @@ Private void picProperties_GotFocus()
     
     //set menus based on currently selected item
     
-    Select Case SelResType
-    Case rtGame  //root
+    switch (SelResType
+    case rtGame  //root
       AdjustMenus rtGame, true, false, false
       
-    Case 2 To 5 //resource header
+    case 2 To 5 //resource header
       AdjustMenus rtNone, true, false, false
       
-    Case rtLogic, rtPicture, rtSound, rtView  //logic, picture, sound, view
+    case rtLogic, rtPicture, rtSound, rtView  //logic, picture, sound, view
       if (SelResNum = -1) {
         AdjustMenus rtNone, true, false, false
       } else {
         AdjustMenus SelResType, true, false, false
       }
     
-    Case rtObjects  //objects
+    case rtObjects  //objects
       AdjustMenus rtObjects, true, false, false
       
-    Case rtWords  //words
+    case rtWords  //words
       AdjustMenus rtWords, true, false, false
     }
   }
@@ -5140,39 +5486,39 @@ Private void picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
   On Error GoTo ErrHandler
   
   //always check for help key
-  if (KeyCode = vbKeyF1 && Shift = 0) {
+  if (KeyCode = Keys.F1 && Shift = 0) {
     //show property window help, depending on what resource or header is selected
     
-    Select Case SelResType
-    Case rtGame
+    switch (SelResType
+    case rtGame
       //root
       strHelp = "#gameprop"
       
-    Case rtLogic
+    case rtLogic
       if (SelResNum = -1) {
         strHelp = "#logicsprop"
       } else {
         strHelp = "#logicprop"
       }
       
-    Case rtPicture, rtSound
+    case rtPicture, rtSound
       if (SelResNum = -1) {
         strHelp = "#hdrsprop"
       } else {
         strHelp = "#picsndprop"
       }
       
-    Case rtView
+    case rtView
       if (SelResNum = -1) {
         strHelp = "#hdrsprop"
       } else {
         strHelp = "#viewprop"
       }
       
-    Case rtObjects
+    case rtObjects
       strHelp = "#objprop"
       
-    Case rtWords
+    case rtWords
       strHelp = "#wordsprop"
     }
       
@@ -5186,8 +5532,8 @@ Private void picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
     return;
   }
   
-  Select Case KeyCode
-  Case 38 //up arrow
+  switch (KeyCode
+  case 38 //up arrow
     //decrement selected prop
     if (SelectedProp > 1) {
       SelectedProp = SelectedProp - 1
@@ -5200,7 +5546,7 @@ Private void picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
       PaintPropertyWindow
     }
     
-  Case 40 //down arrow
+  case 40 //down arrow
     //increment selected prop
     if (SelectedProp < PropRows) {
       SelectedProp = SelectedProp + 1
@@ -5213,11 +5559,11 @@ Private void picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
       PaintPropertyWindow
     }
   
-  Case 10, 13 //enter or ctrl-enter
+  case 10, 13 //enter or ctrl-enter
     //call mouse down, using selected item//s //Y// Value
     picProperties_MouseDown 0, 0, picProperties.Width - 1, (SelectedProp - PropScroll) * PropRowHeight
   
-  Case 9  //tab
+  case 9  //tab
     //if preview window is in use, switch to it
     if (PreviewWin.Visible) {
       SelectedProp = 0
@@ -5256,14 +5602,14 @@ Private void picProperties_LostFocus()
     MDIHasFocus = false
     
     //make sure something is active
-    if (ActiveControl Is Nothing) {
+    if (ActiveControl = null) {
       return;
     }
         
     //if active control is still picProperties
     //then an open form must have been clicked
     if (ActiveControl.Name = "picProperties") {
-      if (!ActiveForm Is Nothing) {
+      if (!ActiveForm = null) {
         //reset menus for active form
         ActiveForm.Activate
       }
@@ -5375,15 +5721,15 @@ Private void picSplitH_MouseUp(Button As Integer, Shift As Integer, X As Single,
     //if focus came from MDI
     if (MDIHasFocus) {
       //force focus back to mdi (use resource list)
-      Select Case Settings.ResListType
-      Case 1
+      switch (Settings.ResListType
+      case 1
         tvwResources.Focus();
-      Case 2
+      case 2
         lstResources.Focus();
       }
     } else {
       //force focus back to active form, if there is one
-      if (!ActiveForm Is Nothing) {
+      if (!ActiveForm = null) {
         ActiveForm.Focus();
       }
     }
@@ -5459,15 +5805,15 @@ Private void picSplitRes_MouseUp(Button As Integer, Shift As Integer, X As Singl
     //if focus came from MDI
     if (MDIHasFocus) {
       //force focus back to mdi (use resource list)
-      Select Case Settings.ResListType
-      Case 1
+      switch (Settings.ResListType
+      case 1
         tvwResources.Focus();
-      Case 2
+      case 2
         lstResources.Focus();
       }
     } else {
       //force focus back to active form, if there is one
-      if (!ActiveForm Is Nothing) {
+      if (!ActiveForm = null) {
         ActiveForm.Focus();
       }
     }
@@ -5533,15 +5879,15 @@ Private void picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single,
     //if focus came from MDI
     if (MDIHasFocus) {
       //force focus back to mdi (use resource list)
-      Select Case Settings.ResListType
-      Case 1
+      switch (Settings.ResListType
+      case 1
         tvwResources.Focus();
-      Case 2
+      case 2
         lstResources.Focus();
       }
     } else {
       //force focus back to active form, if there is one
-      if (!ActiveForm Is Nothing) {
+      if (!ActiveForm = null) {
         ActiveForm.Focus();
       }
     }
@@ -5551,7 +5897,7 @@ Private void picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single,
 Private void picWarnings_Paint()
 
   //draw that darn line?
-  picWarnings.Line (0, 30)-Step(picWarnings.Width, 0), vbBlack
+  picWarnings.Line (0, 30)-Step(picWarnings.Width, 0), Color.Black
   
 }
 
@@ -5602,13 +5948,13 @@ Private void StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
   On Error GoTo ErrHandler
   
   //if no active form
-  if (ActiveForm Is Nothing) {
+  if (ActiveForm = null) {
     return;
   }
   
-  Select Case ActiveForm.Name
-  Case "frmPreview"
-  Case "frmLogicEdit"
+  switch (ActiveForm.Name
+  case "frmPreview"
+  case "frmLogicEdit"
     if (Panel.Key = "Status") {
       if (LenB(Panel.Text) != 0) {
         if (Asc(Panel.Text) = 69) {
@@ -5622,9 +5968,9 @@ Private void StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
       }
     }
     
-  Case "frmPictureEdit"
-    Select Case Panel.Key
-    Case "Scale"
+  case "frmPictureEdit"
+    switch (Panel.Key
+    case "Scale"
       if (StatusMouseBtn = vbRightButton) {
         //if not at min
         if (ActiveForm.ScaleFactor > 1) {
@@ -5638,14 +5984,14 @@ Private void StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
       }
       //redraw pictures
       ActiveForm.ResizePictures
-    Case "Anchor"
+    case "Anchor"
       With MDIMain
         .mnuLPCopy.Enabled = true
         .mnuLPCopy.Tag = "A"
         .mnuLPSelectAll.Visible = false
         PopupMenu .mnuLPPopup, 0, .StatusBar1.Left + sbX, .StatusBar1.Top + sbY
       End With
-    Case "Block"
+    case "Block"
       With MDIMain
         .mnuLPCopy.Enabled = true
         .mnuLPCopy.Tag = "B"
@@ -5655,9 +6001,9 @@ Private void StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
       
     }
     
-  Case "frmSoundEdit"
-    Select Case Panel.Key
-    Case "Scale"
+  case "frmSoundEdit"
+    switch (Panel.Key
+    case "Scale"
       if (StatusMouseBtn = vbRightButton) {
         ActiveForm.ZoomScale -1
       } else {
@@ -5665,9 +6011,9 @@ Private void StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
       }
     }
   
-  Case "frmViewEdit"
-    Select Case Panel.Key
-    Case "Scale"
+  case "frmViewEdit"
+    switch (Panel.Key
+    case "Scale"
       if (StatusMouseBtn = vbRightButton) {
         //zoom in
         ActiveForm.ZoomCel 0
@@ -5677,18 +6023,18 @@ Private void StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
       }
     }
     
-  Case "frmTextEdit"
-  Case "frmObjectEdit"
-    Select Case Panel.Key
-    Case "Encrypt"
+  case "frmTextEdit"
+  case "frmObjectEdit"
+    switch (Panel.Key
+    case "Encrypt"
       //toggle encryption
       ActiveForm.MenuClickCustom3
     }
     
-  Case "frmWordsEdit"
-  Case "frmLayout"
-    Select Case Panel.Key
-    Case "Scale"
+  case "frmWordsEdit"
+  case "frmLayout"
+    switch (Panel.Key
+    case "Scale"
       if (StatusMouseBtn = vbRightButton) {
         ActiveForm.ChangeScale 1
       } else {
@@ -5769,12 +6115,12 @@ Private void Toolbar1_ButtonMenuClick(ByVal ButtonMenu As MSComctlLib.ButtonMenu
   //change parent button tag to match button index-1
   ButtonMenu.Parent.Tag = ButtonMenu.Index - 1
   
-  Select Case ButtonMenu.Parent.Key
-  Case "new_r"
+  switch (ButtonMenu.Parent.Key
+  case "new_r"
     i = 18
-  Case "open_r"
+  case "open_r"
     i = 22
-  Case "import_r"
+  case "import_r"
     i = 14
   }
   
@@ -5810,18 +6156,6 @@ ErrHandler:
   Resume Next
 }
 
-Private void tvwResources_Collapse(ByVal Node As MSComctlLib.Node)
-
-  //when collapsing, select the collapsed node
-  On Error GoTo ErrHandler
-  
-  tvwResources_NodeClick Node
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
 
 Private void tvwResources_GotFocus()
   
@@ -5841,27 +6175,27 @@ Private void tvwResources_GotFocus()
     
     //only update menu if no editor is open; if there
     //is an editor open, it will own menus
-    if (ActiveForm Is Nothing) {
+    if (ActiveForm = null) {
       //if no node selected, select first node
-      if (tvwResources.SelectedItem Is Nothing) {
+      if (tvwResources.SelectedItem = null) {
         tvwResources.SelectedItem = tvwResources.Nodes(1)
       }
       
-      Select Case SelResType
-      Case rtGame
+      switch (SelResType
+      case rtGame
         AdjustMenus rtGame, true, false, false
         
-      Case rtLogic, rtPicture, rtSound, rtView
+      case rtLogic, rtPicture, rtSound, rtView
         if (SelResNum = -1) {
           AdjustMenus rtNone, true, false, false
         } else {
           AdjustMenus SelResType, true, false, false
         }
         
-      Case rtObjects  //objects
+      case rtObjects  //objects
         AdjustMenus rtObjects, true, false, false
         
-      Case rtWords  //words
+      case rtWords  //words
         AdjustMenus rtWords, true, false, false
         
       }
@@ -5897,17 +6231,17 @@ Private void tvwResources_KeyDown(KeyCode As Integer, Shift As Integer)
   
   if (Shift = 0) {
     //no shift, ctrl, alt
-    Select Case KeyCode
-    Case vbKeyDelete
+    switch (KeyCode
+    case Keys.Delete
       //if a resource is selected
-      Select Case SelResType
-      Case rtLogic, rtPicture, rtSound, rtView
+      switch (SelResType
+      case rtLogic, rtPicture, rtSound, rtView
         //call remove from game method
         RemoveSelectedRes
         KeyCode = 0
       }
       
-    Case vbKeyF1
+    case Keys.F1
       //if using preview window
       if (Settings.ShowPreview) {
         frmPreview.MenuClickHelp
@@ -5917,23 +6251,23 @@ Private void tvwResources_KeyDown(KeyCode As Integer, Shift As Integer)
       }
       KeyCode = 0
     
-    Case 9  //tab
+    case 9  //tab
       picProperties.Focus();
       KeyCode = 0
     }
   } else if ( Shift = vbShiftMask + vbCtrlMask) {
     //Shift+Ctrl//
     if (Settings.ShowPreview) {
-      if (SelResType = rtPicture && KeyCode = vbKeyS) {
+      if (SelResType = rtPicture && KeyCode = Keys.S) {
         //save Image as ...
         frmPreview.MenuClickCustom1
       }
     }
   } else if ( Shift = vbCtrlMask) {
-    Select Case KeyCode
-    Case vbKeyF //Ctrl+F (Find)
-      Select Case SelResType
-      Case rtLogic, rtPicture, rtSound, rtView
+    switch (KeyCode
+    case Keys.F //Ctrl+F (Find)
+      switch (SelResType
+      case rtLogic, rtPicture, rtSound, rtView
         //find this resid
         SearchForID
       }
@@ -5952,10 +6286,10 @@ Private void tvwResources_KeyPress(KeyAscii As Integer)
   On Error GoTo ErrHandler
   
   //enter key is same as double-click
-  Select Case KeyAscii
-  Case 13 //return key
+  switch (KeyAscii
+  case 13 //return key
     //if a node is active
-    //Debug.Assert !tvwResources.SelectedItem Is Nothing
+    //Debug.Assert !tvwResources.SelectedItem = null
     //edit the selected resource
     EditResource SelResType, SelResNum
     KeyAscii = 0
@@ -5983,11 +6317,11 @@ Private void tvwResources_LostFocus()
   
   if (!Settings.ShowPreview) {
     MDIHasFocus = false
-    if (!ActiveControl Is Nothing) {
+    if (!ActiveControl = null) {
       //if active control is still tvwResources
       //then an open form may have been clicked
       if (ActiveControl.Name = "tvwResources" && !KeepFocus) {
-        if (!ActiveForm Is Nothing) {
+        if (!ActiveForm = null) {
           //reset menus for active form
           ActiveForm.Activate
         }
@@ -6043,8 +6377,8 @@ ErrHandler:
 Private void txtProperty_KeyPress(KeyAscii As Integer)
   
   //trap enter key
-  Select Case KeyAscii
-  Case 10 //ctrl-enter key combination
+  switch (KeyAscii
+  case 10 //ctrl-enter key combination
     //if not description or about
     if (txtProperty.Tag != "GAMEDESC" && txtProperty.Tag != "GAMEABOUT") {
       //save the property value
@@ -6053,13 +6387,13 @@ Private void txtProperty_KeyPress(KeyAscii As Integer)
       return;
     }
   
-  Case 13 //enter key
+  case 13 //enter key
     //save the prop value
     KeyAscii = 0
     SelectPropFromText
     return;
     
-  Case 27 //esc key
+  case 27 //esc key
     //cancel
     KeyAscii = 0
     txtProperty.Visible = false
@@ -6067,28 +6401,28 @@ Private void txtProperty_KeyPress(KeyAscii As Integer)
     return;
     
   default:
-    Select Case txtProperty.Tag
-    Case "MAXOBJ"
+    switch (txtProperty.Tag
+    case "MAXOBJ"
       //limit to numbers only
       if (KeyAscii < 48 && KeyAscii > 57) {
         KeyAscii = 0
       }
       
-    Case "GAMEID"
+    case "GAMEID"
       //validate- cant have  "\/:*?<>| or extended chars
-      Select Case KeyAscii
-      Case 32, 34, 42, 47, 58, 60, 62, 63, 92, 124, Is > 127
+      switch (KeyAscii
+      case 32, 34, 42, 47, 58, 60, 62, 63, 92, 124, Is > 127
         KeyAscii = 0
         
       //force upper case
-      Case 97 To 122 // if (KeyAscii >= 97 && KeyAscii <= 122) {
+      case 97 To 122 // if (KeyAscii >= 97 && KeyAscii <= 122) {
         KeyAscii = KeyAscii - 32
       }
       
-    Case "RESDIR"
+    case "RESDIR"
       //validate- cant have  "\/:*?<>|
-      Select Case KeyAscii
-      Case 32, 34, 42, 47, 58, 60, 62, 63, 92, 124
+      switch (KeyAscii
+      case 32, 34, 42, 47, 58, 60, 62, 63, 92, 124
         KeyAscii = 0
       }
       
@@ -6180,13 +6514,13 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
   }
   
   //if past limit for selected item
-  Select Case SelResType
-  Case rtGame //root - 10 props
+  switch (SelResType
+  case rtGame //root - 10 props
     if (tmpProp > 10) {
       return;
     }
     
-  Case rtLogic
+  case rtLogic
     if (SelResNum = -1) {
       //logic header 4 props
       if (tmpProp > 4) {
@@ -6200,7 +6534,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
       }
     }
     
-  Case rtPicture, rtSound
+  case rtPicture, rtSound
     if (SelResNum = -1) {
       //other resource headers - 1 property
       if (tmpProp > 1) {
@@ -6214,7 +6548,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
       }
     }
     
-  Case rtView
+  case rtView
     if (SelResNum = -1) {
       //other resource headers - 1 property
       if (tmpProp > 1) {
@@ -6228,13 +6562,13 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
       }
     }
     
-  Case rtObjects
+  case rtObjects
     //OBJECT - 4 props
     if (tmpProp > 4) {
       return;
     }
     
-  Case rtWords
+  case rtWords
     //WORDS.TOK - 3 props;
     if (tmpProp > 3) {
       return;
@@ -6244,17 +6578,17 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
   //if property selected was clicked
   if (tmpProp = SelectedProp) {
     //check which property
-    Select Case SelResType
-    Case rtGame //root
-      Select Case SelectedProp
-      Case 1  //gameid
+    switch (SelResType
+    case rtGame //root
+      switch (SelectedProp
+      case 1  //gameid
         //display textbox
         DisplayPropertyEditBox PropSplitLoc + 3, PropRowHeight + 1, picProperties.Width - PropSplitLoc - 4, PropRowHeight - 2, "GAMEID", 0
-      Case 2  //gameauthor
+      case 2  //gameauthor
         //display textbox
         DisplayPropertyEditBox PropSplitLoc + 3, (2 - PropScroll) * PropRowHeight + 1, picProperties.Width - PropSplitLoc - 4, PropRowHeight - 2, "GAMEAUTHOR", 0
       
-      Case 3  //gamedir
+      case 3  //gamedir
         //game dir is now read only
         
 //////        //if button clicked or dblclicked
@@ -6277,11 +6611,11 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
 //////          }
 //////        }
         
-      Case 4  //resdir
+      case 4  //resdir
         //display textbox
         DisplayPropertyEditBox PropSplitLoc + 3, (4 - PropScroll) * PropRowHeight + 1, picProperties.Width - PropSplitLoc - 4, PropRowHeight - 2, "RESDIR", 0
       
-      Case 5  //int version
+      case 5  //int version
         if ((X > picProperties.Width - 17) && blnDblClick) {
           //copy pressed dropdown picture
           rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (5 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
@@ -6289,7 +6623,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
           DisplayPropertyListBox PropSplitLoc, (5 - PropScroll) * PropRowHeight, picProperties.Width - PropSplitLoc - 17, ListItemHeight * 4, "INTVER"
         }
         
-      Case 6  //Description
+      case 6  //Description
         //if button clicked
         if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
           //copy pressed dropover picture
@@ -6299,7 +6633,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
           rtn = BringWindowToTop(txtProperty.hWnd)
         }
           
-      Case 7  //game version
+      case 7  //game version
         //if button clicked
         if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
           //copy pressed dropover picture
@@ -6309,7 +6643,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
           rtn = BringWindowToTop(txtProperty.hWnd)
         }
           
-      Case 8  //game about
+      case 8  //game about
         //if button clicked
         if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
           //copy pressed dropover picture
@@ -6319,7 +6653,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
           rtn = BringWindowToTop(txtProperty.hWnd)
         }
         
-      Case 9  //use Layout Editor
+      case 9  //use Layout Editor
         //if dblclicking AND on actual property
         if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
           //toggle useresdef
@@ -6336,16 +6670,16 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
           DisplayPropertyListBox PropSplitLoc, (9 - PropScroll) * PropRowHeight, picProperties.Width - PropSplitLoc - 17, ListItemHeight * 2, "USELE"
         }
       
-      Case 10  //last edit date
+      case 10  //last edit date
         //read only
         
       }
       
-    Case rtLogic
+    case rtLogic
       if (SelResNum = -1) {
         // logic header
-        Select Case SelectedProp
-        Case 2  //globals
+        switch (SelectedProp
+        case 2  //globals
           //if button is clicked
           if ((X > picProperties.Width - 17) && blnDblClick) {
             //copy pressed dropdialog picture
@@ -6355,7 +6689,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
             mnuTGlobals_Click
           }
           
-        Case 3  //use reserved defines
+        case 3  //use reserved defines
           //if dblclicking AND on actual property
           if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
             //toggle useresdef
@@ -6373,8 +6707,8 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
       } else {
         //logic resource
         //if selected prop is 1,2,3
-        Select Case SelectedProp
-        Case 1, 2, 3
+        switch (SelectedProp
+        case 1, 2, 3
           //if button is clicked or doubleclicking
           if (X > picProperties.Width - 17 && blnDblClick) {
             //copy pressed dropdialog picture
@@ -6390,7 +6724,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
             rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 0, 0, SRCCOPY)
           }
         
-        Case 4  //isroom (used to be 6)
+        case 4  //isroom (used to be 6)
           //if dblclicking AND on actual property
           if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
             //toggle isroom
@@ -6428,7 +6762,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
         }
       }
       
-    Case rtPicture
+    case rtPicture
       //header is readonly
       if (SelResNum >= 0) {
         //pictures, sounds
@@ -6450,7 +6784,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
         }
       }
       
-    Case rtSound
+    case rtSound
       //header is readonly
       if (SelResNum >= 0) {
         //pictures, sounds
@@ -6472,14 +6806,14 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
         }
       }
       
-    Case rtView
+    case rtView
       //header is readonly
       if (SelResNum >= 0) {
         //views
         //if button is clicked or doubleclicking
         if (X > picProperties.Width - 17 && blnDblClick) {
-          Select Case SelectedProp
-          Case 1  //number
+          switch (SelectedProp
+          case 1  //number
             //copy pressed dropdialog picture
             rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
             //use selected item method
@@ -6487,7 +6821,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
             //reset dropdialog button
             rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (tmpProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 0, 0, SRCCOPY)
             
-          Case 2, 3 //id/desc
+          case 2, 3 //id/desc
             //copy pressed dropdialog picture
             rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
             //use selected item method (remember to adjust selprop by 1)
@@ -6495,7 +6829,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
            //reset dropdialog button
             rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (tmpProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 0, 0, SRCCOPY)
             
-          Case 4  //view desc
+          case 4  //view desc
             //if text box is visible, don't do anything
             if (!txtProperty.Visible) {
               //copy pressed dropdover picture
@@ -6507,9 +6841,9 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
         }
       }
       
-    Case rtObjects
-      Select Case SelectedProp
-      Case 2 // description
+    case rtObjects
+      switch (SelectedProp
+      case 2 // description
         //if button clicked
         if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
           //copy pressed dropover picture
@@ -6517,17 +6851,17 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
           //display edit box
           DisplayPropertyEditBox picProperties.Width, 0, 2 * picProperties.Width, picProperties.Height, "OBJDESC", 1
         }
-      Case 3  //encryption
+      case 3  //encryption
         //if dblclicking AND on actual property
         if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
           //toggle encryption
-          InventoryObjects.Encrypted = !InventoryObjects.Encrypted
-          InventoryObjects.Save
+          InvObjects.Encrypted = !InvObjects.Encrypted
+          InvObjects.Save
           PaintPropertyWindow
           //if the editor is open,
-          if (!ObjectEditor Is Nothing) {
+          if (!ObjectEditor = null) {
             //set its encryption status to match
-            ObjectEditor.ObjectsEdit.Encrypted = InventoryObjects.Encrypted
+            ObjectEditor.ObjectsEdit.Encrypted = InvObjects.Encrypted
           }
           
         //if button is clicked
@@ -6538,13 +6872,13 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
           DisplayPropertyListBox PropSplitLoc, (3 - PropScroll) * PropRowHeight, picProperties.Width - PropSplitLoc - 17, ListItemHeight * 2, "OBJENCRYPT"
         }
         
-      Case 4  //Max screen objects
+      case 4  //Max screen objects
         DisplayPropertyEditBox PropSplitLoc + 3, (4 - PropScroll) * PropRowHeight + 1, picProperties.Width - PropSplitLoc - 4, PropRowHeight - 2, "MAXOBJ", 0
       }
             
-    Case rtWords
-      Select Case SelectedProp
-      Case 3 //description
+    case rtWords
+      switch (SelectedProp
+      case 3 //description
         //if button clicked
         if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
           //copy pressed dropover picture
@@ -6586,24 +6920,24 @@ Private void DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVa
   txtProperty.Width = nWidth * ScreenTWIPSX
   txtProperty.Height = nHeight * ScreenTWIPSY
   
-  Select Case strProp
-  Case "GAMEID"
+  switch (strProp
+  case "GAMEID"
     txtProperty.Text = GameID
-  Case "GAMEDESC"
+  case "GAMEDESC"
     txtProperty.Text = GameDescription
-  Case "GAMEAUTHOR"
+  case "GAMEAUTHOR"
     txtProperty.Text = GameAuthor
-  Case "WORDSDESC"
-    txtProperty.Text = VocabularyWords.Description
-  Case "OBJDESC"
-    txtProperty.Text = InventoryObjects.Description
-  Case "GAMEVER"
+  case "WORDSDESC"
+    txtProperty.Text = WordList.Description
+  case "OBJDESC"
+    txtProperty.Text = InvObjects.Description
+  case "GAMEVER"
     txtProperty.Text = GameVersion
-  Case "GAMEABOUT"
+  case "GAMEABOUT"
     txtProperty.Text = GameAbout
-  Case "RESDIR"
+  case "RESDIR"
     txtProperty.Text = ResDirName
-  Case "VIEWDESC"
+  case "VIEWDESC"
     if (!Views(SelResNum).Loaded) {
       Views(SelResNum).Load
       txtProperty.Text = Replace(Views(SelResNum).ViewDescription, vbLf, vbNewLine)
@@ -6612,8 +6946,8 @@ Private void DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVa
       txtProperty.Text = Replace(Views(SelResNum).ViewDescription, vbLf, vbNewLine)
     }
     
-  Case "MAXOBJ"
-    txtProperty.Text = InventoryObjects.MaxScreenObjects
+  case "MAXOBJ"
+    txtProperty.Text = InvObjects.MaxScreenObjects
   }
   
   //pass property to textbox tag
@@ -6652,8 +6986,8 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
   //clear the list box
   lstProperty.Clear
   
-  Select Case strProp
-  Case "INTVER"
+  switch (strProp
+  case "INTVER"
     //load versions
     strVersions(0) = "2.089"
     strVersions(1) = "2.272"
@@ -6685,19 +7019,19 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
       }
     Next i
     
-  Case "OBJENCRYPT"
+  case "OBJENCRYPT"
     //load choices
     lstProperty.AddItem "false"
     lstProperty.AddItem "true"
     
     //select entry matching current Value
-    if (InventoryObjects.Encrypted) {
+    if (InvObjects.Encrypted) {
       lstProperty.SelectedIndex = 1
     } else {
       lstProperty.SelectedIndex = 0
     }
     
-  Case "ISROOM"
+  case "ISROOM"
     //load choices
     lstProperty.AddItem "false"
     lstProperty.AddItem "true"
@@ -6709,7 +7043,7 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
       lstProperty.SelectedIndex = 0
     }
     
-  Case "USERESNAMES"
+  case "USERESNAMES"
     //load choices
     lstProperty.AddItem "false"
     lstProperty.AddItem "true"
@@ -6721,7 +7055,7 @@ Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVa
       lstProperty.SelectedIndex = 0
     }
     
-  Case "USELE"
+  case "USELE"
     //load choices
     lstProperty.AddItem "false"
     lstProperty.AddItem "true"
@@ -6827,26 +7161,26 @@ Private void MDIForm_Unload(Cancel As Integer)
   Next
   
   //ensure all global objects are set to nothing
-  ClipViewLoop = Nothing
-  ClipViewCel = Nothing
-  LogicEditors = Nothing
-  ViewEditors = Nothing
-  PictureEditors = Nothing
-  SoundEditors = Nothing
-  LayoutEditor = Nothing
-  ObjectEditor = Nothing
-  WordEditor = Nothing
-  GlobalsEditor = Nothing
-  PreviewWin = Nothing
-  NotePictures = Nothing
-  SoundClipboard = Nothing
-  MainStatusBar = Nothing
-  OpenDlg = Nothing
-  SaveDlg = Nothing
-  ViewClipboard = Nothing
-  WordsClipboard = Nothing
-  AGIFindForm = Nothing
-  SearchForm = Nothing
+  ClipViewLoop = null
+  ClipViewCel = null
+  LogicEditors = null
+  ViewEditors = null
+  PictureEditors = null
+  SoundEditors = null
+  LayoutEditor = null
+  ObjectEditor = null
+  WordEditor = null
+  GlobalsEditor = null
+  PreviewWin = null
+  NotePictures = null
+  SoundClipboard = null
+  MainStatusBar = null
+  OpenDlg = null
+  SaveDlg = null
+  ViewClipboard = null
+  WordsClipboard = null
+  AGIFindForm = null
+  SearchForm = null
   
   //reset parent for controls that were moved to the form
   rtn = SetParent(picResources.hWnd, picLeft.hWnd)
@@ -6975,7 +7309,7 @@ Private void mnuRDescription_Click()
   On Error GoTo ErrHandler
   
   //if no form is active
-  if (ActiveForm Is Nothing) {
+  if (ActiveForm = null) {
     //can only mean that Settings.ShowPreview is false,
     //AND Settings.ResListType is non-zero, AND no editor window are open
     //use selected item method (remember to adjust selprop by 1)
@@ -6994,8 +7328,8 @@ Private void mnuRDescription_Click()
     } else {
       
       //check for an open editor that matches resource being previewed
-      Select Case SelResType
-      Case rtLogic
+      switch (SelResType
+      case rtLogic
         //if any logic editor matches this resource
         For i = 1 To LogicEditors.Count
           if (LogicEditors(i).FormMode = fmLogic) {
@@ -7007,7 +7341,7 @@ Private void mnuRDescription_Click()
           }
         Next i
         
-      Case rtPicture
+      case rtPicture
         //if any Picture editor matches this resource
         For i = 1 To PictureEditors.Count
           if (PictureEditors(i).PicNumber = SelResNum) {
@@ -7017,7 +7351,7 @@ Private void mnuRDescription_Click()
           }
         Next i
         
-      Case rtSound
+      case rtSound
         //if any Sound editor matches this resource
         For i = 1 To SoundEditors.Count
           if (SoundEditors(i).SoundNumber = SelResNum) {
@@ -7027,7 +7361,7 @@ Private void mnuRDescription_Click()
           }
         Next i
         
-      Case rtView
+      case rtView
         //if any View editor matches this resource
         For i = 1 To ViewEditors.Count
           if (ViewEditors(i).ViewNumber = SelResNum) {
@@ -7037,7 +7371,7 @@ Private void mnuRDescription_Click()
           }
         Next i
         
-      Case rtWords
+      case rtWords
         //if using editor
         if (WEInUse) {
           //use word editor
@@ -7045,7 +7379,7 @@ Private void mnuRDescription_Click()
           return;
         }
         
-      Case rtObjects
+      case rtObjects
         //if using editor
         if (OEInUse) {
           //use Objects Editor
@@ -7059,11 +7393,11 @@ Private void mnuRDescription_Click()
       }
       
       //if no open editor is found, use the selected item method
-      Select Case SelResType
-      Case rtObjects, rtWords
+      switch (SelResType
+      case rtObjects, rtWords
         //always select description
         SelectedItemDescription 2
-      Case rtLogic, rtPicture, rtSound, rtView
+      case rtLogic, rtPicture, rtSound, rtView
         //if id or desc selected, use it, otherwise default to id
         if (SelectedProp = 2 && SelectedProp = 3) {
           //(remember to adjust selprop by 1)
@@ -7173,8 +7507,8 @@ void mnuGRun_Click()
   }
   
   //load selected platform
-  Select Case PlatformType
-  Case 1 //DosBox
+  switch (PlatformType
+  case 1 //DosBox
     //verify target exists?
     if (Len(Dir(GameDir + DosExec)) = 0) {
       MsgBoxEx "The DOS executable file //" + DosExec + "// is missing from the" + vbNewLine + "game directory. Aborting DosBox session.", vbCritical + vbOKOnly + vbMsgBoxHelpButton, "Missing DOS Executable File", WinAGIHelp, "htm\winagi\Properties.htm#platform"
@@ -7184,15 +7518,15 @@ void mnuGRun_Click()
     // (need -noautoexec option as mandatory setting to avoid virtual C-drive assignment issues)
     strParams = Chr$(34) + GameDir + DosExec + Chr$(34) + " -noautoexec " + PlatformOpts
     
-  Case 2 //ScummVM
+  case 2 //ScummVM
     //scummvm parameters: --path=gamedir agi
     strParams = "--path=""" + JustPath(GameDir, true) + """ agi " + PlatformOpts
     
-  Case 3 //NAGI
+  case 3 //NAGI
     //no parameters for nagi; just run the program
     strParams = ""
     
-  Case 4 //other
+  case 4 //other
     //run with whatever is in Platform and PlatformOpts
     strParams = PlatformOpts
     
@@ -7204,51 +7538,51 @@ void mnuGRun_Click()
     rtn = ShellExecute(this.hWnd, "open", Platform, strParams, JustPath(Platform, true), SW_SHOWNORMAL)
     if (rtn <= 32) {
     
-      Select Case rtn
+      switch (rtn
       //regular WinExec() codes
-      Case 2 //#define SE_ERR_FNF              2       // file not found
+      case 2 //#define SE_ERR_FNF              2       // file not found
         strErrType = "(File !Found)"
-      Case 3 //#define SE_ERR_PNF              3       // path not found
+      case 3 //#define SE_ERR_PNF              3       // path not found
         strErrType = "(Path !Found)"
-      Case 5 //#define SE_ERR_ACCESSDENIED     5       // access denied
+      case 5 //#define SE_ERR_ACCESSDENIED     5       // access denied
         strErrType = "(Access Denied)"
-      Case 8 //#define SE_ERR_OOM              8       // out of memory
+      case 8 //#define SE_ERR_OOM              8       // out of memory
         strErrType = "(Out of Memory)"
-      Case 32 //#define SE_ERR_DLLNOTFOUND              32
+      case 32 //#define SE_ERR_DLLNOTFOUND              32
         strErrType = "(DLL !Found)"
       //
       //error values for ShellExecute() beyond the regular WinExec() codes
-      Case 26 //#define SE_ERR_SHARE                    26
+      case 26 //#define SE_ERR_SHARE                    26
         strErrType = "(Share Violation)"
-      Case 27 //#define SE_ERR_ASSOCINCOMPLETE          27
+      case 27 //#define SE_ERR_ASSOCINCOMPLETE          27
         strErrType = "(Incomplete Association)"
-      Case 28 //#define SE_ERR_DDETIMEOUT               28
+      case 28 //#define SE_ERR_DDETIMEOUT               28
         strErrType = "(DDE Timeout Error)"
-      Case 29 //#define SE_ERR_DDEFAIL                  29
+      case 29 //#define SE_ERR_DDEFAIL                  29
         strErrType = "(DDE Failure)"
-      Case 30 //#define SE_ERR_DDEBUSY                  30
+      case 30 //#define SE_ERR_DDEBUSY                  30
         strErrType = "(DDE Busy Error)"
-      Case 31 //#define SE_ERR_NOASSOC                  31
+      case 31 //#define SE_ERR_NOASSOC                  31
         strErrType = "(Association !Found)"
       default:
         strErrType = "(Unknown Error)"
       }
       
       //message also depends on platform type
-      Select Case PlatformType
-      Case 1 //DosBox
+      switch (PlatformType
+      case 1 //DosBox
         strErrTitle = "DosBox Error"
         strErrMsg = "DosBox"
         
-      Case 2 //ScummVM
+      case 2 //ScummVM
         strErrTitle = "ScummVM Error"
         strErrMsg = "ScummVM"
         
-      Case 3 //NAGI
+      case 3 //NAGI
         strErrTitle = "NAGI Error"
         strErrMsg = "NAGI"
         
-      Case 4 //other
+      case 4 //other
         strErrTitle = "Run AGI Game Error"
         strErrMsg = "this program"
       }
@@ -7297,7 +7631,7 @@ Private void mnuRExport_Click()
   On Error GoTo ErrHandler
     
   //if no form is active
-  if (ActiveForm Is Nothing) {
+  if (ActiveForm = null) {
     //can only mean that Settings.ShowPreview is false,
     //AND Settings.ResListType is non-zero, AND no editor window are open
     //use selected item method
@@ -7309,8 +7643,8 @@ Private void mnuRExport_Click()
       ActiveForm.MenuClickExport
     } else {
       //check for an open editor that matches resource being previewed
-      Select Case SelResType
-      Case rtLogic
+      switch (SelResType
+      case rtLogic
         //if any logic editor matches this resource
         For i = 1 To LogicEditors.Count
           if (LogicEditors(i).FormMode = fmLogic) {
@@ -7322,7 +7656,7 @@ Private void mnuRExport_Click()
           }
         Next i
         
-      Case rtPicture
+      case rtPicture
         //if any Picture editor matches this resource
         For i = 1 To PictureEditors.Count
           if (PictureEditors(i).PicNumber = SelResNum) {
@@ -7332,7 +7666,7 @@ Private void mnuRExport_Click()
           }
         Next i
         
-      Case rtSound
+      case rtSound
         //if any Sound editor matches this resource
         For i = 1 To SoundEditors.Count
           if (SoundEditors(i).SoundNumber = SelResNum) {
@@ -7342,7 +7676,7 @@ Private void mnuRExport_Click()
           }
         Next i
         
-      Case rtView
+      case rtView
         //if any View editor matches this resource
         For i = 1 To ViewEditors.Count
           if (ViewEditors(i).ViewNumber = SelResNum) {
@@ -7352,7 +7686,7 @@ Private void mnuRExport_Click()
           }
         Next i
         
-      Case rtWords
+      case rtWords
         //if using editor
         if (WEInUse) {
           //use word editor
@@ -7360,7 +7694,7 @@ Private void mnuRExport_Click()
           return;
         }
         
-      Case rtObjects
+      case rtObjects
         //if using editor
         if (OEInUse) {
           //use Objects Editor
@@ -7368,7 +7702,7 @@ Private void mnuRExport_Click()
           return;
         }
       
-      Case rtGame
+      case rtGame
         ExportAll
         return;
         
@@ -7405,7 +7739,7 @@ Private void mnuRILogic_Click()
     DefaultResDir = JustPath(.FileName)
   End With
   
-  if (!ActiveForm Is Nothing) {
+  if (!ActiveForm = null) {
     //if a logic editor is currently open AND it is in a game
     if (ActiveForm.Name = "frmLogicEdit") {
       if (ActiveForm.InGame) {
@@ -7432,7 +7766,7 @@ ErrHandler:
   //Debug.Assert false
   Resume Next
 }
-Private void mnuRInGame_Click()
+Private void mnuRAddRemove_Click()
 
   AddOrRemoveRes
 }
@@ -7510,9 +7844,9 @@ Private void mnuRIObjects_Click()
         ObjectEditor.IsDirty = false
         
         //copy this object list into game object and save
-        InventoryObjects.SetObjects ObjectEditor.ObjectsEdit
-        InventoryObjects.IsDirty = true
-        InventoryObjects.Save
+        InvObjects.SetObjects ObjectEditor.ObjectsEdit
+        InvObjects.IsDirty = true
+        InvObjects.Save
         
         //if previewing the objects
         if (SelResType = rtObjects) {
@@ -7558,7 +7892,7 @@ Private void mnuRIPicture_Click()
     DefaultResDir = JustPath(.FileName)
   End With
 
-  if (!ActiveForm Is Nothing) {
+  if (!ActiveForm = null) {
     //if a picture editor is currently open AND it is in a game
     if (ActiveForm.Name = "frmPictureEdit") {
       if (ActiveForm.InGame) {
@@ -7605,7 +7939,7 @@ Private void mnuRISound_Click()
     DefaultResDir = JustPath(.FileName)
   End With
   
-  if (!ActiveForm Is Nothing) {
+  if (!ActiveForm = null) {
     //if a sound editor is currently open AND it is in a game
     if (ActiveForm.Name = "frmSoundEdit") {
       if (ActiveForm.InGame) {
@@ -7651,7 +7985,7 @@ Private void mnuRIView_Click()
     DefaultResDir = JustPath(.FileName)
   End With
   
-  if (!ActiveForm Is Nothing) {
+  if (!ActiveForm = null) {
     //if a view editor is currently open AND it is in a game
     if (ActiveForm.Name = "frmViewEdit") {
       if (ActiveForm.InGame) {
@@ -7750,10 +8084,10 @@ Private void mnuRIWords_Click()
         WordEditor.Caption = "Words Editor - " + GameID
         
         //force dirty status by clearing
-        VocabularyWords.Clear
+        WordList.Clear
         //copy this word list into game word and save
-        VocabularyWords.SetWords WordEditor.WordsEdit
-        VocabularyWords.Save
+        WordList.SetWords WordEditor.WordsEdit
+        WordList.Save
         
         //if previewing the words
         if (SelResType = rtWords) {
@@ -7848,9 +8182,9 @@ Private void mnuRNObjects_Click()
       ObjectEditor.IsDirty = false
       
       //copy this word list into game word and save
-      InventoryObjects.SetObjects ObjectEditor.ObjectsEdit
-      InventoryObjects.IsDirty = true
-      InventoryObjects.Save
+      InvObjects.SetObjects ObjectEditor.ObjectsEdit
+      InvObjects.IsDirty = true
+      InvObjects.Save
       
       //if previewing the object
       if (SelResType = rtObjects) {
@@ -7954,10 +8288,10 @@ Private void mnuRNWords_Click()
       WordEditor.Caption = "Words Editor - " + GameID
       
       //force dirty status by clearing
-      VocabularyWords.Clear
+      WordList.Clear
       //copy this word list into game word and save
-      VocabularyWords.SetWords WordEditor.WordsEdit
-      VocabularyWords.Save
+      WordList.SetWords WordEditor.WordsEdit
+      WordList.Save
       
       //if previewing the words
       if (SelResType = rtWords) {
@@ -8164,7 +8498,7 @@ Private void mnuRPrint_Click()
   On Error GoTo ErrHandler
   
   //if no form is active
-  if (ActiveForm Is Nothing) {
+  if (ActiveForm = null) {
     //can only mean that Settings.ShowPreview is false,
     //AND Settings.ResListType is non-zero, AND no editor window are open
     //use selected item method
@@ -8195,7 +8529,7 @@ public void mnuRRenumber_Click()
   On Error GoTo ErrHandler
   
   //if no form is active
-  if (ActiveForm Is Nothing) {
+  if (ActiveForm = null) {
     //can only mean that Settings.ShowPreview is false,
     //AND Settings.ResListType is non-zero, AND no editor window are open
     //use selected item method
@@ -8209,8 +8543,8 @@ public void mnuRRenumber_Click()
     } else {
   //Debug.Assert SelResNum >= 0 && SelResNum <= 255
       //check for an open editor that matches resource being previewed
-      Select Case SelResType
-      Case rtLogic
+      switch (SelResType
+      case rtLogic
         //if any logic editor matches this resource
         For i = 1 To LogicEditors.Count
           //verify the editor is a logic editor, not a text editor
@@ -8223,7 +8557,7 @@ public void mnuRRenumber_Click()
           }
         Next i
         
-      Case rtPicture
+      case rtPicture
         //if any Picture editor matches this resource
         For i = 1 To PictureEditors.Count
           if (PictureEditors(i).PicNumber = SelResNum && PictureEditors(i).InGame) {
@@ -8233,7 +8567,7 @@ public void mnuRRenumber_Click()
           }
         Next i
         
-      Case rtSound
+      case rtSound
         //if any Sound editor matches this resource
         For i = 1 To SoundEditors.Count
           if (SoundEditors(i).SoundNumber = SelResNum && SoundEditors(i).InGame) {
@@ -8243,7 +8577,7 @@ public void mnuRRenumber_Click()
           }
         Next i
         
-      Case rtView
+      case rtView
         //if any View editor matches this resource
         For i = 1 To ViewEditors.Count
           if (ViewEditors(i).ViewNumber = SelResNum && ViewEditors(i).InGame) {
@@ -8309,7 +8643,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuGNBlank_Click()
+Private void mnuGNewBlank_Click()
 
   //create new blank game
   NewAGIGame false
@@ -8340,82 +8674,82 @@ Private void Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
   On Error GoTo ErrHandler
   
   //determine which button is pressed:
-  Select Case Button.Key
-  Case "open"
+  switch (Button.Key
+  case "open"
     mnuGOpen_Click
     
-  Case "close"
+  case "close"
       mnuGClose_Click
       
-  Case "run"
+  case "run"
     mnuGRun_Click
     
-  Case "print"
+  case "print"
     mnuRPrint_Click
     
-  Case "new_r"
-    Select Case Val(Button.Tag)
-    Case 0
+  case "new_r"
+    switch (Val(Button.Tag)
+    case 0
       mnuRNLogic_Click
-    Case 1
+    case 1
       mnuRNPicture_Click
-    Case 2
+    case 2
       mnuRNSound_Click
-    Case 3
+    case 3
       mnuRNView_Click
     }
     
-  Case "open_r"
-    Select Case Val(Button.Tag)
-    Case 0
+  case "open_r"
+    switch (Val(Button.Tag)
+    case 0
       mnuROLogic_Click
-    Case 1
+    case 1
       mnuROPicture_Click
-    Case 2
+    case 2
       mnuROSound_Click
-    Case 3
+    case 3
       mnuROView_Click
     }
       
-  Case "import_r"
-    Select Case Val(Button.Tag)
-    Case 0
+  case "import_r"
+    switch (Val(Button.Tag)
+    case 0
       mnuRILogic_Click
-    Case 1
+    case 1
       mnuRIPicture_Click
-    Case 2
+    case 2
       mnuRISound_Click
-    Case 3
+    case 3
       mnuRIView_Click
     }
   
-  Case "worded"
+  case "worded"
     mnuROWords_Click
     
-  Case "objed"
+  case "objed"
     mnuROObjects_Click
     
-  Case "save"
+  case "save"
       mnuRSave_Click
       
-  Case "remove"
-      mnuRInGame_Click
+  case "remove"
+      mnuRAddRemove_Click
   
-  Case "export"
+  case "export"
       mnuRExport_Click
   
-  Case "layout"
+  case "layout"
     mnuTLayout_Click
     
-  Case "menu"
+  case "menu"
     mnuTMenuEditor_Click
     
-  Case "globals"
+  case "globals"
     OpenGlobals
     
-  Case "help"
+  case "help"
     //if a form is active
-    if (!ActiveForm Is Nothing) {
+    if (!ActiveForm = null) {
       On Error Resume Next
       ActiveForm.MenuClickHelp
       if (Err.Number != 0) {
@@ -8435,23 +8769,6 @@ ErrHandler:
   Err.Clear
   Resume Next
 }
-Private void tvwResources_DblClick()
-
-  On Error Resume Next
-  
-  //if there is a node under the double-clicked location
-  if (!tvwResources.HitTest(mTX, mTY) Is Nothing) {
-    //if not the same as the current item
-    if (tvwResources.HitTest(mTX, mTY).Index != tvwResources.SelectedItem.Index) {
-      //select it
-      tvwResources_NodeClick tvwResources.HitTest(mTX, mTY)
-    }
-    
-    //edit the selected item
-    EditResource SelResType, SelResNum
-  }
-}
-
 public void PropMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
   
   On Error Resume Next
@@ -8532,8 +8849,8 @@ public void MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xP
     }
   End With
   
-  Select Case lngTarget
-  Case 1 // warnings list
+  switch (lngTarget
+  case 1 // warnings list
   
     With fgWarnings
       Lstep = 4
@@ -8573,17 +8890,17 @@ Private void tvwResources_MouseDown(Button As Integer, Shift As Integer, X As Si
     //get the node being clicked
     tmpNode = tvwResources.HitTest(X, Y)
     //if nothing
-    if (tmpNode Is Nothing) {
+    if (tmpNode = null) {
       //exit
       return;
     }
     
     //if root or heading
-    Select Case tmpNode.Index
-    Case 1 //root
+    switch (tmpNode.Index
+    case 1 //root
       return;
       
-    Case 2 To 7 //resource header, word, obj
+    case 2 To 7 //resource header, word, obj
       //force preview on right mouse click
       ForcePreview = true
       //select and display the selected item
@@ -8647,89 +8964,6 @@ ErrHandler:
   //Debug.Assert false
   Resume Next
 }
-Private void tvwResources_NodeClick(ByVal Node As MSComctlLib.Node)
-
-  On Error Resume Next
-  
-  //if previewing
-  if (Settings.ShowPreview) {
-    if (!ActiveForm Is PreviewWin && (Settings.ShiftPreview && ForcePreview)) {
-      //if previn hidden on lostfocus, need to show it AFTER changing displayed resource
-      if (PreviewWin.Visible) {
-        //set form focus to preview
-        PreviewWin.Focus();
-        //set control focus to tvwlist
-        PreviewWin.ZOrder
-      }
-    }
-  }
-  
-  //if no active form
-  if (!ActiveForm Is Nothing) {
-    //set control focus to treeview
-    tvwResources.Focus();
-  }
-  
-  On Error GoTo ErrHandler
-  
-  //if nothing selected
-  if (tvwResources.SelectedItem Is Nothing) {
-    return;
-  }
-  
-  //if not changed from previous number
-  if (LastIndex = tvwResources.SelectedItem.Index) {
-    if (!PreviewWin.Visible && Settings.ShowPreview) {
-      PreviewWin.Show
-      //set form focus to preview
-      PreviewWin.Focus();
-      //set control focus to tvwlist
-      PreviewWin.ZOrder
-    }
-
-    //don't need to change anything
-    return;
-  }
-  
-  With tvwResources
-    //save current index as last index
-    LastIndex = .SelectedItem.Index
-    
-    //now select it
-  
-    if (.SelectedItem.Parent Is Nothing) {
-      //it//s the game node
-      MDIMain.SelectResource rtGame, -1
-    } else if ( .SelectedItem.Parent.Parent Is Nothing) {
-      //it//s a resource header
-      MDIMain.SelectResource .SelectedItem.Index - 2, -1
-    } else {
-      //it//s a resource
-      MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
-    }
-  End With
-  
-  //after selection, force preview window to show and
-  //move up, if those settings are active
-  if (!PreviewWin.Visible && Settings.ShowPreview) {
-    PreviewWin.Show
-    //set form focus to preview
-    PreviewWin.Focus();
-    //set control focus to tvwlist
-    PreviewWin.ZOrder
-  }
-
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-
-
-
       */
     }
     public void ClearResourceList()
@@ -8750,7 +8984,7 @@ ErrHandler:
           tvwResources.Nodes.Clear();
         }
         //add the base nodes
-        tvwResources.Nodes.Add(GameLoaded ? GameID : "AGIGame");
+        tvwResources.Nodes.Add("root", GameLoaded ? GameID : "AGIGame");
         tvwResources.Nodes[0].Nodes.Add(sLOGICS, sLOGICS);
         tvwResources.Nodes[0].Nodes.Add(sPICTURES, sPICTURES);
         tvwResources.Nodes[0].Nodes.Add(sSOUNDS, sSOUNDS);
@@ -8758,10 +8992,16 @@ ErrHandler:
         tvwResources.Nodes[0].Nodes.Add("Objects", "Objects");
         tvwResources.Nodes[0].Nodes.Add("Words", "Words");
         tvwResources.Nodes[0].Expand();
-        //select resource root
-        //deselect property
-        SelectedProp = 1;
-        PaintPropertyWindow();
+        // save reference to nodes for ease of acess
+        RootNode = tvwResources.Nodes[0];
+        HdrNode = new TreeNode[6];
+        for (int i = 0; i < 6; i++) {
+          HdrNode[i] = RootNode.Nodes[i];
+        }
+        ////select resource root
+        ////deselect property
+        //SelectedProp = 1;
+        //PaintPropertyWindow();
         break;
       case 2: //combo/list box
         if (GameLoaded) {
@@ -8771,256 +9011,31 @@ ErrHandler:
         }
         //select top item (game level)
         cmbResType.SelectedIndex = 0;
-        //select resource root
-        //deselect property
-        SelectedProp = 1;
-        PaintPropertyWindow();
+        ////select resource root
+        ////deselect property
+        //SelectedProp = 1;
+        //PaintPropertyWindow();
         break;
       }
       //allow queuing
       DontQueue = false;
     }
-    public void PaintPropertyWindow()
-    {
-  //*//
-  /*
-        Dim i As Long
-        Dim rtn As Long
-        Dim lngPosY As Long
-
-        On Error GoTo ErrHandler
-
-        //if resource panel is NOT visible, just exit
-        if (!MDIMain.picResources.Visible) {
-          return;
-        }
-
-        //clear the picture box
-        picProperties.Cls
-
-        //if no game loaded, or nothing selected
-        if ((!GameLoaded)) {
-          //set proprows to zero
-          PropRows = 0
-        }
-
-        //if more than propwinheight
-        if (PropRows > PropRowCount) {
-          //show scrollbar
-          picProperties.Width = ((picResources.Width - SPLIT_WIDTH) / ScreenTWIPSX) - fsbProperty.Width
-          With fsbProperty
-            .Height = picProperties.Height
-            .Max = PropRows - PropRowCount
-            .Visible = true
-            .Left = picProperties.Left + picProperties.Width - 2
-            //if current scroll position is too high
-            if (PropScroll > PropRows - PropRowCount) {
-              //reset propscroll
-              PropScroll = 0 //PropRows - PropRowCount + 1
-              .Value = 0
-            }
-          End With
-
-        Else
-          //reset to top and hide scrollbar
-          PropScroll = 0
-          fsbProperty.Value = 0
-          fsbProperty.Visible = false
-          picProperties.Width = (picResources.Width - SPLIT_WIDTH) / ScreenTWIPSX
-        }
-
-        //draw property header cell
-        picProperties.Line (1, 1)-(PropSplitLoc - 1, PropRowHeight - 2), RGB(236, 233, 216), BF
-        picProperties.ForeColor = vbBlack
-        picProperties.CurrentX = 3
-        picProperties.CurrentY = 1
-        picProperties.Print "Property"
-        picProperties.Line (1, PropRowHeight - 1)-(PropSplitLoc, PropRowHeight - 1), vbBlack
-
-        //reset canselect flag
-        CanSelect = false
-
-        //if a property is selected //and picProperty has focus,
-        if (SelectedProp > 0) {
-          //if there is an active control
-          if (!MDIMain.ActiveControl Is Nothing) {
-            if (MDIMain.ActiveControl.Name = "picProperties") {
-              //allow selection
-              CanSelect = true
-            }
-          }
-        }
-
-        //if something selected
-        if (PropRows > 0) {
-          Select Case SelResType
-          Case rtGame //  Case 1  //root
-            DrawProp picProperties, "GameID", GameID, 1, CanSelect, SelectedProp, PropScroll, GameLoaded
-            DrawProp picProperties, "Author", GameAuthor, 2, CanSelect, SelectedProp, PropScroll, GameLoaded
-            DrawProp picProperties, "GameDir", GameDir, 3, CanSelect, SelectedProp, PropScroll, false, bfDialog
-            DrawProp picProperties, "ResDir", ResDirName, 4, CanSelect, SelectedProp, PropScroll, GameLoaded
-            DrawProp picProperties, "IntVer", InterpreterVersion, 5, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDown
-            DrawProp picProperties, "Description", GameDescription, 6, CanSelect, SelectedProp, PropScroll, GameLoaded, bfOver
-            DrawProp picProperties, "GameVer", GameVersion, 7, CanSelect, SelectedProp, PropScroll, GameLoaded, bfOver
-            DrawProp picProperties, "GameAbout", GameAbout, 8, CanSelect, SelectedProp, PropScroll, GameLoaded, bfOver
-            DrawProp picProperties, "LayoutEditor", UseLE, 9, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDown
-            DrawProp picProperties, "LastEdit", format$(LastEdit, "MM/DD/YY h:Nn AM/PM"), 10, CanSelect, SelectedProp, PropScroll, false
-
-          Case rtLogic // 2 //logic resource header
-            if (SelResNum = -1) {
-              DrawProp picProperties, "Count", Logics.Count, 1, CanSelect, SelectedProp, PropScroll, false //GameLoaded
-              DrawProp picProperties, "GlobalDef", "(List)", 2, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-              DrawProp picProperties, "UseResNames", CStr(LogicSourceSettings.UseReservedNames), 3, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDown
-            Else
-              With Logics(SelResNum)
-                DrawProp picProperties, "Number", .Number, 1, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                DrawProp picProperties, "ID", .ID, 2, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                DrawProp picProperties, "Description", .Description, 3, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                if (.Number = 0) {
-                  DrawProp picProperties, "IsRoom", CStr(.IsRoom), 4, CanSelect, SelectedProp, PropScroll, false
-                Else
-                  DrawProp picProperties, "IsRoom", CStr(.IsRoom), 4, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDown
-                }
-                DrawProp picProperties, "Compiled", .Compiled, 5, CanSelect, SelectedProp, PropScroll, false
-                //if compiled state doesn//t match correct tree color, fix it now
-                if (.Compiled) {
-                  if (Settings.ResListType = 1) {
-                    tvwResources.SelectedItem.ForeColor = vbBlack
-                  Else
-                    lstResources.SelectedItem.ForeColor = vbBlack
-                  }
-                Else
-                  if (Settings.ResListType = 1) {
-                    tvwResources.SelectedItem.ForeColor = vbRed
-                  Else
-                    lstResources.SelectedItem.ForeColor = vbRed
-                  }
-                }
-                DrawProp picProperties, "Volume", IIf(.Resource.Volume >= 0, CStr(.Resource.Volume), "Error"), 6, CanSelect, SelectedProp, PropScroll, false, bfNone
-                DrawProp picProperties, "LOC", IIf(.Resource.Loc >= 0, CStr(.Resource.Loc), "Error"), 7, CanSelect, SelectedProp, PropScroll, false, bfNone
-                DrawProp picProperties, "Size", IIf(.Resource.Size > 0, CStr(.Resource.Size), "Error"), 8, CanSelect, SelectedProp, PropScroll, false, bfNone
-              End With
-            }
-
-          Case rtPicture //3 //picture resource header
-            if (SelResNum = -1) {
-              DrawProp picProperties, "Count", Pictures.Count, 1, CanSelect, SelectedProp, PropScroll, false //GameLoaded
-            Else
-              With Pictures(SelResNum)
-                DrawProp picProperties, "Number", .Number, 1, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                DrawProp picProperties, "ID", .ID, 2, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                DrawProp picProperties, "Description", .Description, 3, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                DrawProp picProperties, "Volume", IIf(.Resource.Volume >= 0, CStr(.Resource.Volume), "Error"), 4, CanSelect, SelectedProp, PropScroll, false, bfNone
-                DrawProp picProperties, "LOC", IIf(.Resource.Loc >= 0, CStr(.Resource.Loc), "Error"), 5, CanSelect, SelectedProp, PropScroll, false, bfNone
-                DrawProp picProperties, "Size", IIf(.Resource.Size > 0, CStr(.Resource.Size), "Error"), 6, CanSelect, SelectedProp, PropScroll, false, bfNone
-              End With
-            }
-
-          Case rtSound //4 //sound resource header
-            if (SelResNum = -1) {
-              DrawProp picProperties, "Count", Sounds.Count, 1, CanSelect, SelectedProp, PropScroll, false //GameLoaded
-            Else
-              With Sounds(SelResNum)
-                DrawProp picProperties, "Number", .Number, 1, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                DrawProp picProperties, "ID", .ID, 2, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                DrawProp picProperties, "Description", .Description, 3, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                DrawProp picProperties, "Volume", IIf(.Resource.Volume >= 0, CStr(.Resource.Volume), "Error"), 4, CanSelect, SelectedProp, PropScroll, false, bfNone
-                DrawProp picProperties, "LOC", IIf(.Resource.Loc >= 0, CStr(.Resource.Loc), "Error"), 5, CanSelect, SelectedProp, PropScroll, false, bfNone
-                DrawProp picProperties, "Size", IIf(.Resource.Size > 0, CStr(.Resource.Size), "Error"), 6, CanSelect, SelectedProp, PropScroll, false, bfNone
-              End With
-            }
-
-          Case rtView //5 //view resource header
-            if (SelResNum = -1) {
-              DrawProp picProperties, "Count", Views.Count, 1, CanSelect, SelectedProp, PropScroll, false //GameLoaded
-            Else
-              With Views(SelResNum)
-                DrawProp picProperties, "Number", .Number, 1, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                DrawProp picProperties, "ID", .ID, 2, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                DrawProp picProperties, "Description", .Description, 3, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDialog
-                //viewdescription only accessible if view is loaded
-                if (!.Loaded) {
-                  .Load
-                  DrawProp picProperties, "View Desc", .ViewDescription, 4, CanSelect, SelectedProp, PropScroll, GameLoaded, bfOver
-                  .Unload
-                Else
-                  DrawProp picProperties, "View Desc", .ViewDescription, 4, CanSelect, SelectedProp, PropScroll, GameLoaded, bfOver
-                }
-                DrawProp picProperties, "Volume", IIf(.Resource.Volume >= 0, CStr(.Resource.Volume), "Error"), 5, CanSelect, SelectedProp, PropScroll, false, bfNone
-                DrawProp picProperties, "LOC", IIf(.Resource.Loc >= 0, CStr(.Resource.Loc), "Error"), 6, CanSelect, SelectedProp, PropScroll, false, bfNone
-                DrawProp picProperties, "Size", IIf(.Resource.Size > 0, CStr(.Resource.Size), "Error"), 7, CanSelect, SelectedProp, PropScroll, false, bfNone
-              End With
-            }
-
-          Case rtObjects // 6  //objects
-            DrawProp picProperties, "Obj Count", InventoryObjects.Count - 1, 1, CanSelect, SelectedProp, PropScroll, false //GameLoaded
-            DrawProp picProperties, "Description", InventoryObjects.Description, 2, CanSelect, SelectedProp, PropScroll, GameLoaded, bfOver
-            DrawProp picProperties, "Encrypted", CStr(InventoryObjects.Encrypted), 3, CanSelect, SelectedProp, PropScroll, GameLoaded, bfDown
-            DrawProp picProperties, "Max Obj", InventoryObjects.MaxScreenObjects, 4, CanSelect, SelectedProp, PropScroll, GameLoaded
-
-          Case rtWords //7  //words
-            DrawProp picProperties, "Group Count", VocabularyWords.GroupCount, 1, CanSelect, SelectedProp, PropScroll, false //GameLoaded
-            DrawProp picProperties, "Word Count", VocabularyWords.WordCount, 2, CanSelect, SelectedProp, PropScroll, false // GameLoaded
-            DrawProp picProperties, "Description", VocabularyWords.Description, 3, CanSelect, SelectedProp, PropScroll, GameLoaded, bfOver
-          End Select
-        }
-
-        //if property edit box or list box is visible,
-        if (lstProperty.Visible) {
-          Select Case lstProperty.Tag
-          Case "INTVER"
-            lngPosY = (4 - PropScroll) * PropRowHeight
-          Case "OBJENCRYPT"
-            lngPosY = (3 - PropScroll) * PropRowHeight
-          Case "ISROOM"
-            lngPosY = (6 - PropScroll) * PropRowHeight
-          Case "USERESNAMES"
-            lngPosY = (3 - PropScroll) * PropRowHeight
-          End Select
-
-          //move it to correct position
-          if (lngPosY < picProperties.Height - lstProperty.Height) {
-            lstProperty.Move picProperties.Left + PropSplitLoc, picProperties.Top + lngPosY
-          Else
-            lstProperty.Move picProperties.Left + PropSplitLoc, picProperties.Top + picProperties.Height - lstProperty.Height
-          }
-        }
-
-        picProperties.Line (PropSplitLoc, 0)-(PropSplitLoc, PropRowHeight - 1), vbBlack
-        //draw Value header cell
-        picProperties.Line (PropSplitLoc + 2, 1)-(picProperties.Width - 2, PropRowHeight - 2), DKGray, BF
-        picProperties.CurrentX = PropSplitLoc + 4
-        picProperties.CurrentY = 1
-        picProperties.Print "Value"
-        picProperties.Line (PropSplitLoc + 2, PropRowHeight - 1)-(picProperties.Width - 1, PropRowHeight - 1), vbBlack
-        picProperties.Line (picProperties.Width - 1, 0)-(picProperties.Width - 1, PropRowHeight - 1), vbBlack
-
-        //draw vertical line separating columns
-        picProperties.Line (PropSplitLoc, PropRowHeight)-(PropSplitLoc, picProperties.Height - 1), LtGray
-        picProperties.Line (picProperties.Width - 1, PropRowHeight)-(picProperties.Width - 1, picProperties.Height - 1), LtGray
-        //draw horizontal lines separating rows
-        For i = 2 To PropRowCount + 1
-          picProperties.Line (0, i * PropRowHeight - 1)-(picProperties.Width - 1, i * PropRowHeight - 1), LtGray
-        Next i
-      return;
-
-      ErrHandler:
-        //ignore error, and try to continue
-        //Debug.Assert false
-        Resume Next
-      */
-    }
     public void ShowResTree()
     {
-      int lngSplitLoc;
-      lngSplitLoc = pnlResources.Height - lstProperties.Height - SPLIT_HEIGHT;
+
+      // need to make sure resource list (tree or listbox)
+      // is set to proper height based on current number of
+      // rows in the properties window
+      pnlProp.Height = PropRowHeight * PropRowCount + 2;
+      pnlProp.Top = pnlResources.Height - pnlProp.Height;
+      int lngSplitLoc = pnlResources.Height - pnlProp.Height;
       if (lngSplitLoc < tvwResources.Top) {
         lngSplitLoc = tvwResources.Top + 1;
       }
 
       switch (Settings.ResListType) {
       case 0: //no tree
-              //shouldn//t get here, but
+              //shouldn't get here, but
         return;
 
       case 1: //treeview list
@@ -9029,27 +9044,25 @@ ErrHandler:
         lstResources.Visible = false;
         //set tree height
         tvwResources.Height = lngSplitLoc - tvwResources.Top;
-        //set tree width
+        //change font to match current preview font
         tvwResources.Font = new Font(Settings.PFontName, Settings.PFontSize);
         break;
       case 2: //combo/list boxes
         tvwResources.Visible = false;
-
-        //set combo and listbox height/width
+        //set combo and listbox height, and set fonts
         cmbResType.Visible = true;
         cmbResType.Font = new Font(Settings.EFontName, Settings.EFontSize);
         lstResources.Top = cmbResType.Top + cmbResType.Height + 2;
+        lstResources.Height = lngSplitLoc - lstResources.Top;
         lstResources.Visible = true;
         lstResources.Font = new Font(Settings.PFontName, Settings.PFontSize);
         break;
       }
-
       //show and position the resource list panels
       pnlResources.Visible = true;
-      // property window is now visible, so repaint it
-      PaintPropertyWindow();
+      splitResource.Visible = true;
+      picProperties.Refresh();
     }
-
     private void frmMDIMain_FormClosing(object sender, FormClosingEventArgs e)
     {
       // save app settings

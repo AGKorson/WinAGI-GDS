@@ -16,5 +16,15 @@ namespace WinAGI_GDS
     {
       InitializeComponent();
     }
+
+    internal void ResetSearch()
+    {
+      throw new NotImplementedException();
+    }
+
+    internal void SetForm(ResMan.FindFormFunction ffFindLogic, bool v)
+    {
+      throw new NotImplementedException();
+    }
   }
 }

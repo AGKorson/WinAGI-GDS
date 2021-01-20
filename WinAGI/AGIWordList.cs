@@ -1173,7 +1173,7 @@ namespace WinAGI
       mLoaded = true;
       return true;
     }
-    WGrpEnum GetEnumerator()
+    public WGrpEnum GetEnumerator()
     {
       return new WGrpEnum(mGroupCol);
     }
@@ -1186,7 +1186,7 @@ namespace WinAGI
       return (IEnumerator<AGIWordGroup>)GetEnumerator();
     }
   }
-    internal class WGrpEnum : IEnumerator<AGIWordGroup>
+    public class WGrpEnum : IEnumerator<AGIWordGroup>
   {
     public SortedList<int, AGIWordGroup> _groups;
     int position = -1;

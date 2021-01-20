@@ -1361,7 +1361,6 @@ namespace WinAGI
           }
         }
       }
-
       //get gameID
       agGameID = ReadSettingString(agGameProps, "General", "GameID", "");
 

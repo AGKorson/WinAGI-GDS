@@ -1401,7 +1401,6 @@ namespace WinAGI
       if (SndPlayer.blnPlaying)
       {
         rtn = mciSendString("close all", null, 0, (IntPtr)null);
-        // reset global object? frmSndSubclass.agSndToPlay = Nothing
         SndPlayer.blnPlaying = false;
       }
     }

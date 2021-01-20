@@ -818,6 +818,7 @@ namespace WinAGI
         EGAColor[i].R,
         EGAColor[i].G,
         EGAColor[i].B);
+        // ncp.Entries[i] = EGAColor[i];
       }
       // both bitmaps use same palette
       bmpVis.Palette = ncp;

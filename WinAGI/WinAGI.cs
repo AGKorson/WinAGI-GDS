@@ -2106,9 +2106,9 @@ MA  02110-1301  USA
       if (comp.Length == 3) {
         try {
           int r, g, b;
-          r = Convert.ToInt32(comp[0].Trim(), 16) % 0xFF;
-          g = Convert.ToInt32(comp[1].Trim(), 16) % 0xFF;
-          b = Convert.ToInt32(comp[2].Trim(), 16) % 0xFF;
+          r = Convert.ToInt32(comp[0].Trim(), 16) % 0x100;
+          g = Convert.ToInt32(comp[1].Trim(), 16) % 0x100;
+          b = Convert.ToInt32(comp[2].Trim(), 16) % 0x100;
           return Color.FromArgb(r, g, b);
         }
         catch (Exception) {
@@ -2144,9 +2144,9 @@ MA  02110-1301  USA
             try {
               //parse it into rgb components
               int r, g, b;
-              b = (int)(unchecked((uint)iColor) % 0xFF);
-              g = (int)(unchecked((uint)iColor) / 0x100 % 0xFF);
-              r = (int)(unchecked((uint)iColor) / 0x10000 % 0xFF);
+              b = (int)(unchecked((uint)iColor) % 0x100);
+              g = (int)(unchecked((uint)iColor) / 0x100 % 0x100);
+              r = (int)(unchecked((uint)iColor) / 0x10000 % 0x100);
               retColor = Color.FromArgb(r, g, b);
             }
             catch (Exception) {
@@ -2454,7 +2454,7 @@ MA  02110-1301  USA
       colorEGA[3] = Color.FromArgb(0, 0xA0, 0xA0);     // 00A0A0 = cyan
       colorEGA[4] = Color.FromArgb(0xA0, 0, 0);        // A00000 = red
       colorEGA[5] = Color.FromArgb(0x80, 0, 0xA0);     // 8000A0 = magenta
-      colorEGA[6] = Color.FromArgb(0xA0, 0xA0, 0);     // A05000 = brown
+      colorEGA[6] = Color.FromArgb(0xA0, 0x50, 0);     // A05000 = brown
       colorEGA[7] = Color.FromArgb(0xA0, 0xA0, 0xA0);  // A0A0A0 = light gray
       colorEGA[8] = Color.FromArgb(0x50, 0x50, 0x50);  // 505050 = dark gray
       colorEGA[9] = Color.FromArgb(0x50, 0x50, 0xFF);  // 5050FF = light blue

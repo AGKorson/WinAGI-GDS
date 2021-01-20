@@ -12,7 +12,6 @@ namespace WinAGI
     bool mViewSet; //flag to note loops loaded from res data
     internal AGILoops mLoopCol;
     string mViewDesc;
-    string strErrSource;
     public AGIView() : base(AGIResType.rtView, "NewView")
     {
       //initialize
