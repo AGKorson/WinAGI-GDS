@@ -2324,5 +2324,14 @@ End Function
         return "";
       }
     }
+    internal static List<string> SplitLines(string strText)
+    {
+      // splits the input text into lines, by CR, LF, or CRLF
+      // strategy is to replace CRLFs with CRs, then LFs with CRs,
+      // and then slpit by CRs
+      List<string> retval = new List<string>();
+      retval.AddRange(strText.Replace("\n\r", "\n").Replace('\r', '\n').Split('\n'));
+      return retval;
+    }
   }
 }

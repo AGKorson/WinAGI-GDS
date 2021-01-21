@@ -9,6 +9,8 @@ using static WinAGI.AGIGame;
 using static WinAGI.AGILogicSourceSettings;
 using static WinAGI.AGICommands;
 using static WinAGI.ArgTypeEnum;
+using static WinAGI.LogicErrorLevel;
+using static WinAGI.WinAGIRes;
 
 namespace WinAGI
 {
@@ -29,7 +31,7 @@ namespace WinAGI
       internal int Loc;
     }
 
-    internal static AGIResource tmpLogRes;
+    internal static AGILogic tmpLogRes;
     internal static byte[] mbytData;
     internal const int MAX_BLOCK_DEPTH = 64; //used by LogDecode functions too
     internal const int MAX_LABELS = 255;
@@ -55,8 +57,8 @@ namespace WinAGI
     internal static bool blnNewRoom;
     internal static string[] strIncludeFile;
     internal static int lngIncludeOffset; //to correct line number due to added include lines
-    internal static string[] stlInput;  //the entire text to be compiled; includes the
-                                        //original logic text, includes, and defines
+    internal static List<string> stlInput = new List<string>();  //the entire text to be compiled; includes the
+                                                                 //original logic text, includes, and defines
     internal static int lngLine;
     internal static int lngPos;
     internal static string strCurrentLine;
@@ -75,208 +77,138 @@ namespace WinAGI
 
     internal static void CompileLogic(AGILogic SourceLogic)
     {
-      /*
-          //this function compiles the sourcetext that is passed
-          //the function returns a Value of true if successful; it returns false
-          //and sets information about the error if an error in the source text is found
+      //this function compiles the sourcetext that is passed
+      //the function returns a Value of true if successful; it returns false
+      //and sets information about the error if an error in the source text is found
 
-          //note that when errors are returned, line is adjusted because
-          //editor rows(lines) start at //1//, but the compiler starts at line //0//
+      //note that when errors are returned, line is adjusted because
+      //editor rows(lines) start at //1//, but the compiler starts at line //0//
 
-          bool blnCompiled
-          string[] stlSource
-          Dim DateTime dtFileMod
-          Dim strInput
+      bool blnCompiled;
+      List<string> stlSource = new List<string>();
 
-          //set error info to success as default
-          blnError = false
-          lngErrLine = -1
-          strErrMsg = ""
-          strModule = ""
-          strModFileName = ""
-          intCtlCount = 0
+      //set error info to success as default
+      blnError = false;
+      lngErrLine = -1;
+      strErrMsg = "";
+      strModule = "";
+      strModFileName = "";
+      intCtlCount = 0;
 
-          On Error Resume Next
-          //initialize global defines
-          //get datemodified property
-          dtFileMod = FileLastMod(agGameDir + "globals.txt")
-          if (CRC32(StrConv(CStr(dtFileMod), vbFromUnicode)) != agGlobalCRC) {
-            GetGlobalDefines
-          }
+      //initialize global defines
+      //get datemodified property
+      DateTime dtFileMod = File.GetLastWriteTime(agGameDir + "globals.txt");
+      if (CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString())) != agGlobalCRC) {
+        GetGlobalDefines();
+      }
+      //if ids not set yet
+      if (!blnSetIDs) {
+        SetResourceIDs();
+      }
 
-          //if ids not set yet
-          if (!blnSetIDs) {
-            SetResourceIDs
-          }
+      //insert current values for reserved defines that can change values
+      //agResDef[0].Value = "ego"  //this one doesn't change
+      agResDef[1].Value = "\"" + agGameVersion + "\"";
+      agResDef[2].Value = "\"" + agAbout + "\"";
+      agResDef[3].Value = "\"" + agGameID + "\"";
+      if (agInvObj.Loaded) {
+        //Count of ACTUAL useable objects is one less than inventory object Count
+        //because the first object ('?') is just a placeholder
+        agResDef[4].Value = (agInvObj.Count - 1).ToString();
+      } else {
+        agResDef[4].Value = "-1";
+      }
 
-          On Error GoTo ErrHandler
+      //get source text by lines as a list of strings
+      stlSource = SplitLines(SourceLogic.SourceText);
+      bytLogComp = SourceLogic.Number;
+      strLogCompID = SourceLogic.ID;
 
-          //insert current values for reserved defines that can change values
-          //agResDef(0).Value = "ego"  //this one doesn//t change
-          agResDef(1).Value = QUOTECHAR + agMainGame.GameVersion + QUOTECHAR
-          agResDef(2).Value = QUOTECHAR + agMainGame.GameAbout + QUOTECHAR
-          agResDef(3).Value = QUOTECHAR + agMainGame.GameID + QUOTECHAR
-          //Debug.Assert agInvObj.Loaded
-          if (agInvObj.Loaded) {
-            //Count of ACTUAL useable objects is one less than inventory object Count
-            //because the first object (//?//) is just a placeholder
-            agResDef(4).Value = agInvObj.Count - 1
-          } else {
-            agResDef(4).Value = -1
-          }
+      //reset error info
+      lngErrLine = -1;
+      strErrMsg = "";
+      strModule = "";
+      strModFileName = "";
 
-          //convert back to correct byte values
-          strInput = StrConv(ExtCharTobyte(SourceLogic.SourceText), vbUnicode)
-          //assign to source stringlist
-          stlSource = New StringList
-          stlSource.Assign strInput
+      //add include files (extchars handled automatically)
+      if (!AddIncludes(stlSource)) {
+        //dereference objects
+        //return error
+        throw new Exception("635, LogCompile, " + (lngErrLine + 1).ToString() + " | " + strModule + " | " + strErrMsg);
+      }
 
-          bytLogComp = SourceLogic.Number
-          strLogCompID = SourceLogic.ID
+      //remove any blank lines from end
+      while (stlInput[stlInput.Count - 1].Length == 0 && stlInput.Count > 0) { // Until Len(stlInput(stlInput.Count - 1)) != 0 || stlInput.Count = 0
 
-          //reset error info
-          lngErrLine = -1
-          strErrMsg = ""
-          strModule = ""
-          strModFileName = ""
+        stlInput.RemoveAt(stlInput.Count - 1);
+      }
 
-          //add include files (extchars handled automatically)
-          if (!AddIncludes(stlSource)) {
-            //dereference objects
-            stlInput = null
-            //return error
-            On Error GoTo 0
-            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
-            return;
-          }
+      //if nothing to compile, throw an error
+      if (stlInput.Count == 0) {
+        //dereference objects
+        //return error
+        strErrMsg = LoadResString(4159);
+        lngErrLine = 0;
+        throw new Exception("635, LogCompile, " + (lngErrLine + 1).ToString() + " | " + strModule + " | " + strErrMsg);
+      }
 
-          //remove any blank lines from end
-          Do Until Len(stlInput(stlInput.Count - 1)) != 0 || stlInput.Count = 0
-            stlInput.Delete stlInput.Count - 1
-          Loop
+      //strip out all comments
+      if (!RemoveComments()) {
+        //return error
+        throw new Exception("635, LogCompile, " + (lngErrLine + 1).ToString() + " | " + strModule + " | " + strErrMsg);
+      }
 
-          //if nothing to compile, throw an error
-          if (stlInput.Count == 0) {
-            //dereference objects
-            stlInput = null
-            //return error
-            strErrMsg = LoadResString(4159)
-            lngErrLine = 0
-            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
-            return;
-          }
+      //read labels
+      if (!ReadLabels()) {
+        //return error
+        throw new Exception("635, LogCompile, " + (lngErrLine + 1).ToString() + " | " + strModule + " | " + strErrMsg);
+      }
 
-          //strip out all comments
-          if (!RemoveComments()) {
-            //dereference objects
-            stlInput = null
-            //return error
-            On Error GoTo 0
-            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
-            return;
-          }
+      //enumerate and replace all the defines
+      if (!ReadDefines()) {
+        //return error
+        throw new Exception("635, LogCompile, " + (lngErrLine + 1).ToString() + " | " + strModule + " | " + strErrMsg);
+      }
+      //read predefined messages
+      if (!ReadMsgs()) {
+        //return error
+        throw new Exception("635, LogCompile, " + (lngErrLine + 1).ToString() + " | " + strModule + " | " + strErrMsg);
+      }
 
-          //read labels
-          if (!ReadLabels()) {
-            //dereference objects
-            stlInput = null
-            //return error
-            On Error GoTo 0
-            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
-            return;
-          }
+      //assign temporary resource object
+      tmpLogRes = new AGILogic();
+      // and clear the data
+      tmpLogRes.Data.Clear();
+      //write a word as a place holder for offset to msg section start
+      tmpLogRes.WriteWord(0, 0);
 
-          //enumerate and replace all the defines
-          if (!ReadDefines()) {
-            //dereference objects
-            stlInput = null
-            //return error
-            On Error GoTo 0
-            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
-            return;
-          }
+      //run agi compiler
+      blnCompiled = CompileAGI();
 
-          //read predefined messages
-          if (!ReadMsgs()) {
-            //dereference objects
-            stlInput = null
-            //return error
-            On Error GoTo 0
-            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
-            return;
-          }
+      //compile commands
+      if (!blnCompiled) {
+        tmpLogRes.Unload();
+        //return error
+        throw new Exception("635, LogCompile, " + (lngErrLine + 1).ToString() + " | " + strModule + " | " + strErrMsg);
+      }
+      //write message section
+      if (!WriteMsgs()) {
+        tmpLogRes.Unload();
+        //return error
+        throw new Exception("635, LogCompile, " + (lngErrLine + 1).ToString() + " | " + strModule + " | " + strErrMsg);
+      }
 
-          //assign temporary resource object
-          tmpLogRes = New AGIResource
-          tmpLogRes.NewResource
+      //assign resource data
+      SourceLogic.Data.AllData = tmpLogRes.Data.AllData;
 
-          //write a word as a place holder for offset to msg section start
-          tmpLogRes.WriteWord 0, 0
+      //update compiled crc
+      SourceLogic.CompiledCRC = SourceLogic.CRC;
+      // and write the new crc values to property file
+      WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CRC32", "0x" + SourceLogic.CRC, "Logics");
+      WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CompCRC32", "0x" + SourceLogic.CompiledCRC);
 
-          //use agi compiler
-          blnCompiled = CompileAGI()
-
-          //compile commands
-          if (!blnCompiled) {
-            //dereference objects
-            tmpLogRes.Unload
-            tmpLogRes = null
-            stlInput = null
-            //return error
-            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
-            return;
-          }
-
-          //write message section
-          if (!WriteMsgs()) {
-            //dereference objects
-            tmpLogRes.Unload
-            tmpLogRes = null
-            stlInput = null
-            //return error
-            On Error GoTo 0
-            throw new Exception("635, "LogCompile", CStr(lngErrLine + 1) + "|" + strModule + "|" + strErrMsg
-            return;
-          }
-
-          With SourceLogic
-            //assign resource data
-            .AllData = tmpLogRes.AllData
-
-            //update compiled crc
-            SourceLogic.CompiledCRC = SourceLogic.CRC
-            // and write the new crc values to property file
-            WriteGameSetting("Logic" + CStr(.Number), "CRC32", "0x" + Hex$(.CRC), "Logics"
-            WriteGameSetting("Logic" + CStr(.Number), "CompCRC32", "0x" + Hex$(.CompiledCRC)
-          End With
-
-          //dereference objects
-          tmpLogRes.Unload
-          tmpLogRes = null
-          stlInput = null
-
-        return;
-
-        ErrHandler:
-          //if error is an app specific error, just pass it along; otherwise create
-          //an app specific error to encapsulate whatever happened
-          strError = Err.Description
-          strErrSrc = Err.Source
-          lngError = Err.Number
-
-          //dereference objects
-          tmpLogRes.Unload
-          tmpLogRes = null
-          stlInput = null
-          if ((lngError && WINAGI_ERR) == WINAGI_ERR) {
-            //pass it along
-            throw new Exception("lngError, strErrSrc, strError
-          } else {
-            //return error
-            On Error GoTo 0
-            throw new Exception("634, "LogCompile", "-1||" + Replace(LoadResString(591), ARG1, CStr(lngError) + ":" + strError)
-          }
-      */
+      //done with the temp resource
+      tmpLogRes.Unload();
     }
     internal static void SetResourceIDs()
     {
@@ -821,6 +753,143 @@ namespace WinAGI
       //error/invalid - return -1
       return -1;
     }
+    static internal bool AddIncludes(List<string> stlLogicText)
+    {
+      //this function uses the logic text that is passed to the compiler
+      //to create the input text that is parsed.
+      //it copies the lines from the logic text to the input text, and
+      //replaces any include file lines with the actual lines from the
+      //include file (include file lines are given a //header// to identify
+      //them as include lines)
+      List<string> IncludeLines;
+      string strIncludeFilename;
+      string strIncludePath;
+      string strIncludeText;
+      int CurIncludeLine;   // current line in IncludeLines (the include file)
+      int intFileCount = 0;
+      int i;
+      int lngLineCount;
+
+
+      stlInput = new List<string>();
+      IncludeLines = new List<string>(); //only temporary,
+      lngLine = 0;
+      lngLineCount = stlLogicText.Count;
+
+      //module is always main module
+      strModule = "";
+      strModFileName = "";
+
+      //step through all lines
+      do {
+        //set errline
+        lngErrLine = lngLine;
+        //check this line for include statement
+        string strLine = stlLogicText[lngLine].Trim().ToLower();
+        if (Left(strLine, 8) == "#include") {
+          //proper format requires a space after //include//
+          if (Mid(strLine, 9, 1) != " ") {
+            //generate error
+            strErrMsg = LoadResString(4103);
+            return false;
+          }
+          //build include filename
+          strIncludeFilename = Right(strLine, strLine.Length - 9).Trim();
+          //check for a filename
+          if (strIncludeFilename.Length == 0) {
+            strErrMsg = LoadResString(4060);
+            return false;
+          }
+
+          //check for correct quotes used 
+          if (Left(strIncludeFilename, 1) == QUOTECHAR && Right(strIncludeFilename, 1) != QUOTECHAR ||
+             Right(strIncludeFilename, 1) == QUOTECHAR && Left(strIncludeFilename, 1) != QUOTECHAR) {
+            if (agMainLogSettings.ErrorLevel == leHigh) {
+              //return error: improper use of quote marks
+              strErrMsg = LoadResString(4059);
+              return false;
+            } else {// leMedium, leLow
+                    //assume quotes are needed
+              if (strIncludeFilename[0] != '"') {
+                strIncludeFilename = QUOTECHAR + strIncludeFilename;
+              }
+              if (strIncludeFilename[strIncludeFilename.Length - 1] != '"') {
+                strIncludeFilename += QUOTECHAR;
+              }
+              //set warning
+              AddWarning(5028, LoadResString(5028).Replace(ARG1, strIncludeFilename));
+            }
+          }
+          //if quotes,
+          if (Left(strIncludeFilename, 1) == QUOTECHAR) {
+            //strip off quotes
+            strIncludeFilename = Mid(strIncludeFilename, 2, strIncludeFilename.Length - 2);
+          }
+          //if filename doesnt include a path,
+          if (JustPath(strIncludeFilename, true).Length == 0) {
+            //use resource dir for this include file
+            strIncludeFilename = agResDir + strIncludeFilename;
+          }
+          //verify file exists
+          if (!File.Exists(strIncludeFilename)) {
+            strErrMsg = LoadResString(4050).Replace(ARG1, strIncludeFilename);
+            return false;
+          }
+          //now open the include file, and get the text
+          try {
+            using FileStream fsInclude = new FileStream(strIncludeFilename, FileMode.Open);
+            using StreamReader srInclude = new StreamReader(fsInclude);
+            strIncludeText = srInclude.ReadToEnd();
+            srInclude.Dispose();
+            fsInclude.Dispose();
+          }
+          catch (Exception) {
+            strErrMsg = LoadResString(4055).Replace(ARG1, strIncludeFilename);
+            return false;
+          }
+          //assign text to stringlist
+          IncludeLines = SplitLines(strIncludeText);
+
+          //if there are any lines,
+          if (IncludeLines.Count > 0) {
+            //save file name to allow for error checking
+            Array.Resize(ref strIncludeFile, intFileCount);
+            strIncludeFile[intFileCount] = strIncludeFilename;
+            intFileCount++;
+
+            //add all these lines into this position
+            for (CurIncludeLine = 0; CurIncludeLine < IncludeLines.Count; CurIncludeLine++) {
+              //verify the include file contains no includes
+              if (Left(IncludeLines[CurIncludeLine].Trim(), 2) == "#I") {
+                strErrMsg = LoadResString(4061);
+                lngErrLine = CurIncludeLine;
+                return false;
+              }
+              //include filenumber and line number from includefile
+              stlInput.Add("#I" + (intFileCount - 1).ToString() + ":" + CurIncludeLine.ToString() + "#" + IncludeLines[CurIncludeLine]);
+            }
+          }
+          //add a blank line as a place holder for the //include// line
+          //(to keep line counts accurate when calculating line number for errors)
+          stlInput.Add("");
+        } else {
+          //not an include line
+          //check for any instances of #I, since these will
+          //interfere with include line handling
+          if (Left(stlLogicText[lngLine], 2).Equals("#i", StringComparison.OrdinalIgnoreCase)) {
+            strErrMsg = LoadResString(4069);
+            return false;
+          }
+          //copy the line by itself
+          stlInput.Add(stlLogicText[lngLine]);
+        }
+        lngLine++;
+      }
+      while (lngLine < lngLineCount); // Until lngLine >= lngLineCount
+      //done
+      //return success
+      return true;
+    } //endfunction
 
     static void tmp_LogCompile()
     {
@@ -2443,169 +2512,6 @@ namespace WinAGI
           Err.Clear
         } //endfunction
 
-        static internal bool AddIncludes(string[] stlLogicText)
-        {
-      //this function uses the logic text that is passed to the compiler
-          //to create the input text that is parsed.
-          //it copies the lines from the logic text to the input text, and
-          //replaces any include file lines with the actual lines from the
-          //include file (include file lines are given a //header// to identify
-          //them as include lines)
-
-
-          string[] IncludeLines
-          string strIncludeFilename
-          string strIncludePath
-          string strIncludeText
-          int CurIncludeLine   // current line in IncludeLines (the include file)
-          int intFileCount
-          int i
-          int lngLineCount
-
-
-          On Error GoTo ErrHandler
-
-
-          stlInput = New StringList
-          IncludeLines = New StringList //only temporary,
-
-
-          lngLine = 0
-          lngLineCount = stlLogicText.Count
-
-          //module is always main module
-          strModule = ""
-          strModFileName = ""
-
-          //step through all lines
-          Do
-            //set errline
-            lngErrLine = lngLine
-            //check this line for include statement
-            if (Left(stlLogicText(lngLine), 8) == "#include") {
-              //proper format requires a space after //include//
-              if (Mid(stlLogicText(lngLine), 9, 1) != " ") {
-                //generate error
-                strErrMsg = LoadResString(4103)
-                return;
-              }
-              //build include filename
-              strIncludeFilename = Trim$(Right(stlLogicText(lngLine), Len(stlLogicText(lngLine)) - 9))
-
-              //check for a filename
-              if (LenB(strIncludeFilename) == 0) {
-                strErrMsg = LoadResString(4060)
-                return;
-              }
-
-              //if quotes aren//t used correctly
-              if (Left(strIncludeFilename, 1) == QUOTECHAR && Right(strIncludeFilename, 1) != QUOTECHAR || _
-                 Right(strIncludeFilename, 1) == QUOTECHAR && Left(strIncludeFilename, 1) != QUOTECHAR) {
-                if (agiMainLogSettings.ErrorLevel == ) {
-                case leHigh
-                  //return error: improper use of quote marks
-                  strErrMsg = LoadResString(4059)
-                  return;
-                case leMedium, leLow
-                  //assume quotes are needed
-                  if (AscW(strIncludeFilename) != 34) {
-                    strIncludeFilename = QUOTECHAR + strIncludeFilename
-                  }
-                  if (AscW(Right(strIncludeFilename, 1)) != 34) {
-                    strIncludeFilename = strIncludeFilename + QUOTECHAR
-                  }
-                  //set warning
-                  AddWarning 5028, Replace(LoadResString(5028), ARG1, strIncludeFilename)
-                } 
-              }
-
-              //if quotes,
-              if (Left(strIncludeFilename, 1) == QUOTECHAR) {
-                //strip off quotes
-                strIncludeFilename = Mid(strIncludeFilename, 2, Len(strIncludeFilename) - 2)
-              }
-
-              //if filename doesnt include a path,
-              if (LenB(JustPath(strIncludeFilename, true)) == 0) {
-                //get full path name to include file
-                strIncludeFilename = agResDir + strIncludeFilename
-              }
-
-              //verify file exists
-              if (!File.Exists(strIncludeFilename)) {
-                strErrMsg = Replace(LoadResString(4050), ARG1, strIncludeFilename)
-                return;
-              }
-        //****
-        //      cant check for open includes; they are in a different application
-        //****
-
-              On Error Resume Next
-              //now open the include file, and get the text
-              intFile = FreeFile()
-              Open strIncludeFilename binary
-              strIncludeText = string$(LOF(intFile), 0)
-              Get intFile, 1, strIncludeText
-              Close intFile
-              //check for error,
-              if (Err.Number<> 0) {
-                strErrMsg = Replace(LoadResString(4055), ARG1, strIncludeFilename)
-                return;
-              }
-
-
-              On Error GoTo ErrHandler
-
-              //assign text to stringlist
-              IncludeLines = New StringList
-              IncludeLines.Assign strIncludeText
-
-              //if there are any lines,
-              if (IncludeLines.Count > 0) {
-                //save file name to allow for error checking
-                intFileCount = intFileCount + 1
-                ReDim Preserve strIncludeFile(intFileCount)
-                strIncludeFile(intFileCount) = strIncludeFilename
-
-                //add all these lines into this position
-                For CurIncludeLine = 0 To IncludeLines.Count - 1
-                  //verify the include file contains no includes
-                  if (Left(Trim$(IncludeLines(CurIncludeLine)), 2) == "#i") {
-                    strErrMsg = LoadResString(4061)
-                    lngErrLine = CurIncludeLine
-                    return;
-                  }
-                  //include filenumber and line number from includefile
-                  stlInput.Add "#I" + CStr(intFileCount) + ":" + CStr(CurIncludeLine) + "#" + IncludeLines(CurIncludeLine)
-                Next CurIncludeLine
-              }
-              //add a blank line as a place holder for the //include// line
-              //(to keep line counts accurate when calculating line number for errors)
-              stlInput.Add ""
-            } else {
-              //not an include line
-              //check for any instances of #I, since these will
-              //interfere with include line handling
-              if (Left(stlLogicText(lngLine), 2) == "#i") {
-                strErrMsg = LoadResString(4069)
-                return;
-              }
-              //copy the line by itself
-              stlInput.Add stlLogicText(lngLine)
-            }
-            lngLine = lngLine + 1
-          Loop Until lngLine >= lngLineCount
-          //done
-          IncludeLines = null
-          //return success
-          AddIncludes = true
-        return;
-
-        ErrHandler:
-          //unknown error
-          strErrMsg = Replace(Replace(LoadResString(4115), ARG1, CStr(Err.Number)), ARG2, "AddIncludes")
-          Err.Clear
-        } //endfunction
 
 
 
@@ -3132,7 +3038,7 @@ namespace WinAGI
 
           //only add if not ignoring
           if (!agNoCompWarn(WarningNum - 5000)) {
-            evWarn = CStr(WarningNum) + "|" + WarningText + "|" + CStr(lngErrLine + 1) + "|" + _
+            evWarn = CStr(WarningNum) + "|" + WarningText + "|" + (lngErrLine +1).ToString() + "|" + _
                          IIf(LenB(strModule) != 0, strModule, "")
             agGameEvents.RaiseEvent_LogCompWarning evWarn, bytLogComp
           }

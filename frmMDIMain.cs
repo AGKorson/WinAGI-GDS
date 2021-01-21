@@ -13,6 +13,7 @@ using static WinAGI.WinAGI;
 using static WinAGI.AGIResType;
 using System.Diagnostics;
 using static WinAGI_GDS.ResMan;
+using static WinAGI_GDS.ResManRes;
 
 namespace WinAGI_GDS
 {
@@ -194,7 +195,7 @@ namespace WinAGI_GDS
       } else if (retval == WINAGI_ERR + 636) {
         MessageBox.Show("Game opened, with warnings.");
       } else {
-        MessageBox.Show($"opengame result: {LoadResString(retval - WINAGI_ERR).ToString()}");
+        MessageBox.Show($"opengame result: {ResManRes.LoadResString(retval - WINAGI_ERR).ToString()}");
       }
       MDIHasFocus = true;
       tvwResources.Focus();
@@ -268,7 +269,10 @@ namespace WinAGI_GDS
       //        WLOffsetW = this.Width - this.ScaleWidth;
 
       //set preview window, status bar and other dialog objects
-      PreviewWin = new frmPreview();
+      PreviewWin = new frmPreview
+      {
+        MdiParent = MDIMain
+      };
       MainStatusBar = statusStrip1;
       //      ViewClipboard = picViewCB;
       SoundClipboard = new AGINotes();
@@ -1412,7 +1416,6 @@ namespace WinAGI_GDS
       //after selection, force preview window to show and
       //move up, if those settings are active
       if (!PreviewWin.Visible && Settings.ShowPreview) {
-        //!!!!!! make sure it's set up first!!!! //*//
         PreviewWin.Show();
         //set form focus to preview
         PreviewWin.Activate();

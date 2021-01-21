@@ -2953,4 +2953,21 @@ MA  02110-1301  USA
       bwDIR.Dispose();
     }
   }
+
+  internal partial class WinAGIRes
+  {
+    public static string LoadResString(int index)
+    {
+      // this function is just a handy way to get resource strings by number
+      // instead of by stringkey
+      try {
+        return ResourceManager.GetString(index.ToString());
+      }
+      catch (Exception) {
+        // return nothing if string doesn't exist
+        return "";
+      }
+    }
+
+  }
 }

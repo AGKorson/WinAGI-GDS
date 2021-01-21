@@ -15,6 +15,7 @@ using static WinAGI.ArgTypeEnum;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Drawing.Imaging;
+using static WinAGI_GDS.ResManRes;
 
 namespace WinAGI_GDS
 {
@@ -1604,12 +1605,6 @@ namespace WinAGI_GDS
         }
         // show selection in preview, if needed
         if (Settings.ShowPreview) {
-          // !!!!! only create new if it doesn't already exist; and do this in main form load???? //*//
-          // show the preview window
-          PreviewWin = new frmPreview
-          {
-            MdiParent = MDIMain
-          };
           PreviewWin.Show();
         }
         //set default directory
@@ -14488,18 +14483,6 @@ namespace WinAGI_GDS
       }
       return retval;
     }
-    public static string LoadResString(int index)
-    {
-      // this function is just a handy way to get resource strings by number
-      // instead of by stringkey
-      try {
-        return ResManRes.ResourceManager.GetString(index.ToString());
-      }
-      catch (Exception) {
-        // return nothing if string doesn't exist
-        return "";
-      }
-    }
     public static string InstrumentName(int instrument)
     {
 
@@ -14612,5 +14595,20 @@ namespace WinAGI_GDS
       _ = SendMessage(ctl.Handle, WM_SETREDRAW, 0, 0);
       ctl.Refresh();
     }
+  }
+  internal partial class ResManRes  {
+    public static string LoadResString(int index)
+    {
+      // this function is just a handy way to get resource strings by number
+      // instead of by stringkey
+      try {
+        return ResourceManager.GetString(index.ToString());
+      }
+      catch (Exception) {
+        // return nothing if string doesn't exist
+        return "";
+      }
+    }
+
   }
 }

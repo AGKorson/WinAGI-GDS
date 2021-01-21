@@ -22,7 +22,7 @@ namespace WinAGI_GDS {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-  internal class ResManRes
+  internal partial class ResManRes
   {
 
     private static global::System.Resources.ResourceManager resourceMan;
@@ -39,7 +39,7 @@ namespace WinAGI_GDS {
       {
         if (object.ReferenceEquals(resourceMan, null))
         {
-          global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI_GDS.ResMan", typeof(ResMan).Assembly);
+          global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI_GDS.ResMan", typeof(ResManRes).Assembly);
           resourceMan = temp;
         }
         return resourceMan;

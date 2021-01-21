@@ -1184,7 +1184,7 @@ namespace WinAGI_GDS
     }
     private void imgPicture_MouseMove(object sender, MouseEventArgs e)
     {
-      // if mouse button is down and either or both scrollbars are
+      // if left mouse button is down and either or both scrollbars are
       // visible, scroll the image;
       // if mouse button is up, show coordinates
 
@@ -1204,10 +1204,10 @@ namespace WinAGI_GDS
           //if vertical scrollbar is visible
           if (vsbPic.Visible) {
             // adjust scroll bars by amount of delta from 
-            // starting offset (subract from hsb values, since
+            // starting offset (subract from scrollbar value, since
             // scrollbar value = - picture offset)
             tmpVVal = vsbPic.Value - (e.Y - intOffsetY);
-            //limit positions to valid values
+            //limit to valid values
             if (tmpVVal < vsbPic.Minimum) {
               tmpVVal = vsbPic.Minimum;
             } else if (tmpVVal > (vsbPic.Maximum - vsbPic.LargeChange)) {
@@ -1607,39 +1607,66 @@ namespace WinAGI_GDS
     }
     void picCel_MouseMove(object sender, MouseEventArgs e)
     {
-      int tmpX, tmpY;
-      //if not active form
-      if (MDIMain.ActiveMdiChild != this) {
-        return;
-      }
-      //if dragging picture
-      if (blnDraggingView) {
-        //get new scrollbar positions
-        tmpX = intOffsetX - e.X;
-        tmpY = intOffsetY - e.Y + 2;
+      // if left mouse button is down and either or both scrollbars are
+      // visible, scroll the image;
+      // if mouse button is up, show coordinates
 
-        //if vertical scrollbar is visible
-        if (vsbView.Visible) {
-          //limit positions to valid values
-          if (tmpY < vsbView.Minimum) {
-            tmpY = vsbView.Minimum;
-          } else if (tmpY > vsbView.Maximum) {
-            tmpY = vsbView.Maximum;
-          }
-          //set vertical scrollbar
-          vsbView.Value = tmpY;
+      if (e.Button == MouseButtons.Left) {
+        int tmpHVal = 0, tmpVVal = 0;
+        int DX = 0, DY = 0;
+
+        //if not active form
+        if (MDIMain.ActiveMdiChild != this) {
+          return;
         }
-        //if horizontal scrollbar is visible
-        if (hsbView.Visible) {
-          //limit positions to valid values
-          if (tmpX < hsbView.Minimum) {
-            tmpX = hsbView.Minimum;
-          } else if (tmpX > hsbView.Maximum) {
-            tmpX = hsbView.Maximum;
+
+        //if dragging view
+        if (blnDraggingView) {
+          //if vertical scrollbar is visible
+          if (vsbView.Visible) {
+            // adjust scroll bars by amount of delta from 
+            // starting offset (subract from scrollbar value, since
+            // scrollbar value = - picture offset)
+            tmpVVal = vsbView.Value - (e.Y - intOffsetY);
+            //limit to valid values
+            if (tmpVVal < vsbView.Minimum) {
+              tmpVVal = vsbView.Minimum;
+            } else if (tmpVVal > (vsbView.Maximum - vsbView.LargeChange)) {
+              tmpVVal = vsbView.Maximum - vsbView.LargeChange;
+            }
+            // adjust if it changed
+            DY = tmpVVal - vsbView.Value;
+            if (DY != 0) {
+              //set vertical scrollbar
+              vsbView.Value = tmpVVal;
+            }
           }
-          //set horizontal scrollbar
-          hsbView.Value = tmpX;
+          //repeat for horizontal scrollbar
+          if (hsbView.Visible) {
+            tmpHVal = hsbView.Value - (e.X - intOffsetX);
+            //limit positions to valid values
+            if (tmpHVal < hsbView.Minimum) {
+              tmpHVal = hsbView.Minimum;
+            } else if (tmpHVal > (hsbView.Maximum - hsbView.LargeChange)) {
+              tmpHVal = hsbView.Maximum - hsbView.LargeChange;
+            }
+            DX = tmpHVal - hsbView.Value;
+            if (DX != 0) {
+              //set horizontal scrollbar
+              hsbView.Value = tmpHVal;
+            }
+          }
+          //move the image to this location
+          if (DX != 0 || DY != 0) {
+            picCel.Location = new Point(-tmpHVal, -tmpVVal);
+          }
+          // NEVER update offset; it's always relative to original starting point of the drag
         }
+      } else if (e.Button == MouseButtons.Right) {
+
+      } else if (e.Button == MouseButtons.None) {
+        //// show coordinates in statusbar
+        //MainStatusBar.Items["StatusPanel1"].Text = $"X: {e.X / 2 / ViewScale}    Y: {e.Y / ViewScale}";
       }
     }
   }
