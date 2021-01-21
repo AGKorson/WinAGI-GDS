@@ -194,7 +194,7 @@ namespace WinAGI_GDS
       } else if (retval == WINAGI_ERR + 636) {
         MessageBox.Show("Game opened, with warnings.");
       } else {
-        MessageBox.Show($"opengame result: {(retval - WINAGI_ERR).ToString()}");
+        MessageBox.Show($"opengame result: {LoadResString(retval - WINAGI_ERR).ToString()}");
       }
       MDIHasFocus = true;
       tvwResources.Focus();
@@ -1412,6 +1412,7 @@ namespace WinAGI_GDS
       //after selection, force preview window to show and
       //move up, if those settings are active
       if (!PreviewWin.Visible && Settings.ShowPreview) {
+        //!!!!!! make sure it's set up first!!!! //*//
         PreviewWin.Show();
         //set form focus to preview
         PreviewWin.Activate();

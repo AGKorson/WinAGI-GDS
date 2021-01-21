@@ -35,7 +35,12 @@ namespace WinAGI_GDS
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(481, 349);
+      this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
       this.Name = "frmSplash";
+      this.ShowIcon = false;
+      this.ShowInTaskbar = false;
+      this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
+      this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
       this.Text = "Form1";
       this.ResumeLayout(false);
 

@@ -1604,6 +1604,7 @@ namespace WinAGI_GDS
         }
         // show selection in preview, if needed
         if (Settings.ShowPreview) {
+          // !!!!! only create new if it doesn't already exist; and do this in main form load???? //*//
           // show the preview window
           PreviewWin = new frmPreview
           {
