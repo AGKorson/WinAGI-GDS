@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI;
-using WinAGI_GDS.WinAGI;
+using static WinAGI.WinAGI;
 
 namespace WinAGI_GDS
 {

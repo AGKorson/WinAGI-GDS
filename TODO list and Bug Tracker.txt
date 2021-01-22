@@ -1,0 +1,14 @@
+﻿      
+      
+      
+      
+      
+      // Linq feature makes it easy to check for invalid characters
+      // Any applies the test inside to each element of the source
+      // so testList.Any(checkItem.Op) returns true if checkItem.Op is true
+      // for any element in testList!
+      // to get control chars, I use a pre-built string
+      if ((CTRL_CHARS + " !\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~").Any(DefName.Contains)) {
+        // bad
+        return 13;
+      }

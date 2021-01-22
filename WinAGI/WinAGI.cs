@@ -1215,14 +1215,15 @@ MA  02110-1301  USA
             return 12;
         }
       }
-      // I am not sure exactly how this works, but it does; uses LINQ?
-      // Any seems to apply the test inside to each element of the source
+      // Linq feature makes it easy to check for invalid characters
+      // Any applies the test inside to each element of the source
       // so testList.Any(checkItem.Op) returns true if checkItem.Op is true
       // for any element in testList!
       // to get control chars, I use a pre-built string
-      if ((CTRL_CHARS + " !\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~").Any(DefName.Contains))
+      if ((CTRL_CHARS + " !\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~").Any(DefName.Contains)) {
         // bad
         return 13;
+      }
       // if no error conditions, it's OK
       return 0;
     }

@@ -76,7 +76,7 @@ namespace WinAGI
     internal const string ARG2 = "%2";
     internal const string ARG3 = "%3";
     internal const string sAPPNAME = "WinAGI Game Development System 2.1";
-    internal const string COPYRIGHT_YEAR = "2020";
+    internal const string COPYRIGHT_YEAR = "2021";
     //constants used to build bitmaps
     internal const int BI_RGB = 0;
     internal const int DIB_RGB_COLORS = 0;

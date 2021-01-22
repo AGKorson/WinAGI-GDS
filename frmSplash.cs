@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinAGI;
+using static WinAGI.WinAGI;
 
 namespace WinAGI_GDS
 {
@@ -15,6 +17,10 @@ namespace WinAGI_GDS
     public frmSplash()
     {
       InitializeComponent();
-    }
+
+      // set version information
+      lblVersion.Text = "Version " + Application.ProductVersion;
+      lblCopyright.Text += COPYRIGHT_YEAR;
+  }
   }
 }
