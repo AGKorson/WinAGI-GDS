@@ -14,10 +14,33 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <COMReference Include="tom.dll">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>8cc497c9-a1df-11ce-8098-00aa0047be5d</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+    </COMReference>
+    <COMReference Include="stdole.dll">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>2</VersionMajor>
+      <Guid>00020430-0000-0000-c000-000000000046</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+    </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\..\..\OneDrive\AGI Stuff\WinAGI GDS Files\WinAGI v2-1-1\Resources\winagi.jpg">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="16.7.30328.74" />
   </ItemGroup>
 
   <ItemGroup>

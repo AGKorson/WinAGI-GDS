@@ -17,8 +17,16 @@ namespace WinAGI
     }
     internal SortedList<byte, AGILogic> Col
     { get; private set; }
-    public AGILogic this[byte index]
-    { get { return Col[index]; } }
+    public AGILogic this[int index]
+    {
+      get
+      {
+        //validate index
+        if (index < 0 || index > 255)
+          throw new IndexOutOfRangeException();
+        return Col[(byte)index];
+      }
+    }
     public byte Count
     { get { return (byte)Col.Count; } private set { } }
     public byte Max
@@ -57,7 +65,8 @@ namespace WinAGI
         agResource = new AGILogic();
         //proposed ID will be default
         strID = "Logic" + ResNum;
-      } else {
+      }
+      else {
         //clone the passed logic
         agResource = NewLogic.Clone();
         //get proposed id

@@ -670,9 +670,9 @@ namespace WinAGI_GDS
     public static int ScreenTWIPSX;
     public static int ScreenTWIPSY;
     //navigation queue
-    //public static int[] ResQueue;
-    //public static int ResQPtr;
-    public static Stack<int> ResQueue = new Stack<int>();
+    public static int[] ResQueue;
+    public static int ResQPtr = -1;
+    //public static Stack<int> ResQueue = new Stack<int>();
     public static bool DontQueue;
     //editor variables
     public static List<frmLogicEdit> LogicEditors;
@@ -731,7 +731,7 @@ namespace WinAGI_GDS
     //default colors
     public static Color[] DefEGAColor = new Color[16];
     //find/replace variables
-    public static frmFind AGIFindForm;
+    public static frmFind FindingForm;
     public static Form SearchForm;
     //global copy of search parameters used by the find form
     public static string GFindText;
@@ -753,7 +753,7 @@ namespace WinAGI_GDS
     public static bool ClosedLogics;
     public static int ReplaceCount;
     public static bool SearchStartDlg; //true if search started by clicking //find// or //find next//
-                                       // on AGIFindForm
+                                       // on FindingForm
     internal static int SearchLogCount;
     internal static int SearchLogVal;
     //property window variables
@@ -805,29 +805,30 @@ namespace WinAGI_GDS
       if (DontQueue) {
         return;
       }
-
       //if resum is invalid, or if restype is invalid
       if (ResType < 0 || (int)ResType > 4 || ResNum < 0 || ResNum > 255) {
         //error
         //Debug.Assert false
         return;
       }
-
       //build combined number/resource
       lngRes = (int)ResType * 256 + ResNum;
-
-      //don't add if the current resource matches
-      if (ResQueue.Count > 0) {
-        if (ResQueue.Peek() == lngRes) {
+      if (ResQPtr >= 0) {
+        //don't add if the current resource matches
+        if (ResQueue[ResQPtr] == lngRes) {
           return;
         }
       }
       //add the res info
-      ResQueue.Push(lngRes);
+      ResQPtr++;
+      Array.Resize(ref ResQueue, ResQPtr + 1);
+      ResQueue[ResQPtr] = lngRes;
+
     }
     public static void ResetQueue()
     {
-      ResQueue = new Stack<int>();
+      ResQueue = Array.Empty<int>();
+      ResQPtr = -1;
       MDIMain.cmdBack.Enabled = false;
       MDIMain.cmdForward.Enabled = false;
     }
@@ -875,7 +876,7 @@ namespace WinAGI_GDS
       int[] max = new int[] { 0, 27, 18, 5, 9, 5, 9, 16, 6 };
       TDefine[] dfTemp;
       //need to make string comparisons case sensitive, in case user
-      //wants to change case of a define (even though it really doesn//t matter; compiler is not case sensitive)
+      //wants to change case of a define (even though it really doesn't matter; compiler is not case sensitive)
 
       //first, delete any previous overrides
       DeleteSettingSection(SettingsList, "ResDefOverrides");
@@ -918,13 +919,17 @@ namespace WinAGI_GDS
       }
       if (blnConsolas) {
         DEFAULT_PFONTNAME = "Consolas";
-      } else if (blnCourier) {
+      }
+      else if (blnCourier) {
         DEFAULT_PFONTNAME = "Courier New";
-      } else if (blnArial) {
+      }
+      else if (blnArial) {
         DEFAULT_PFONTNAME = "Arial";
-      } else if (blnTimes) {
+      }
+      else if (blnTimes) {
         DEFAULT_PFONTNAME = "Times New Roman";
-      } else {
+      }
+      else {
         //use first font in list
         DEFAULT_PFONTNAME = System.Drawing.FontFamily.Families[0].Name;
       }
@@ -989,11 +994,13 @@ namespace WinAGI_GDS
             rtn = MessageBox.Show(MDIMain.SaveDlg.FileName + " already exists. Do you want to overwrite it?", "Overwrite file?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
             if (rtn == DialogResult.Yes) {
               break;
-            } else if (rtn == DialogResult.Cancel) {
+            }
+            else if (rtn == DialogResult.Cancel) {
               blnCanceled = true;
               break;
             }
-          } else {
+          }
+          else {
             break;
           }
         } while (true);
@@ -1102,7 +1109,8 @@ namespace WinAGI_GDS
         bytData[79] = 0;
         //at this point, numbering is not absolute, so we need to begin tracking the data position
         lngPos = 80;
-      } else {
+      }
+      else {
         //at this point, numbering is not absolute, so we need to begin tracking the data position
         lngPos = 61;
       }
@@ -1128,7 +1136,8 @@ namespace WinAGI_GDS
         lngPos++;
         if (GifOps.Transparency) {
           bytData[lngPos] = (byte)GifLoop.Cels[i].TransColor;
-        } else {
+        }
+        else {
           bytData[lngPos] = 0;
         }
         lngPos++;
@@ -1156,19 +1165,23 @@ namespace WinAGI_GDS
                 if (((hVal < hPad) && (GifOps.VAlign == 1)) || ((hVal > celH - 1) && (GifOps.VAlign == 0))) {
                   //use a transparent pixel
                   bytCelData[lngCelPos] = bytTrans;
-                } else {
+                }
+                else {
                   if (((wVal < wPad) && (GifOps.HAlign == 1)) || ((wVal > celW - 1) && (GifOps.HAlign == 0))) {
                     //use a transparent pixel
                     bytCelData[lngCelPos] = bytTrans;
-                  } else {
+                  }
+                  else {
                     if (GifOps.HAlign == 1) {
                       pX = (byte)(wVal - wPad);
-                    } else {
+                    }
+                    else {
                       pX = wVal;
                     }
                     if (GifOps.VAlign == 1) {
                       pY = (byte)(hVal - hPad);
-                    } else {
+                    }
+                    else {
                       pY = hVal;
                     }
                     //use the actual pixel (adjusted for padding, if aligned to bottom or left)
@@ -1212,7 +1225,8 @@ namespace WinAGI_GDS
         do {
           if (bytCmpData.Length - lngInPos > 255) {
             intChunkSize = 255;
-          } else {
+          }
+          else {
             intChunkSize = (short)(bytCmpData.Length - lngInPos);
           }
           //write chunksize
@@ -1276,9 +1290,11 @@ namespace WinAGI_GDS
       lngFormat = frmPEO.cmbFormat.SelectedIndex + 1;
       if (frmPEO.optVisual.Checked) {
         lngMode = 0;
-      } else if (frmPEO.optPriority.Checked) {
+      }
+      else if (frmPEO.optPriority.Checked) {
         lngMode = 1;
-      } else {
+      }
+      else {
         lngMode = 2;
       }
       //done with the options form
@@ -1355,7 +1371,8 @@ namespace WinAGI_GDS
         if (Count == 0 && ImgMode != 1) {
           //save vis as temporary BMP
           ExportBMP = ResizeAGIBitmap(ExportPic.VisualBMP, ImgZoom);
-        } else {
+        }
+        else {
           //save vis as temporary BMP
           ExportBMP = ResizeAGIBitmap(ExportPic.PriorityBMP, ImgZoom);
         }
@@ -1440,9 +1457,11 @@ namespace WinAGI_GDS
       lngFormat = frmPEO.cmbFormat.SelectedIndex + 1;
       if (frmPEO.optVisual.Checked) {
         lngMode = 0;
-      } else if (frmPEO.optPriority.Checked) {
+      }
+      else if (frmPEO.optPriority.Checked) {
         lngMode = 1;
-      } else {
+      }
+      else {
         lngMode = 2;
       }
       //done with the options form
@@ -1452,7 +1471,8 @@ namespace WinAGI_GDS
       MDIMain.SaveDlg.DefaultExt = "bmp";
       if (NoGDIPlus) {
         MDIMain.SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|All files (*.*)|*.*";
-      } else {
+      }
+      else {
         MDIMain.SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*";
       }
       MDIMain.SaveDlg.OverwritePrompt = true;
@@ -1469,12 +1489,9 @@ namespace WinAGI_GDS
         MDIMain.UseWaitCursor = false;
       }
     }
-    public static void OpenWAG(string ThisGameFile = "")
+    public static void OpenWAGFile(string ThisGameFile = "")
     {
-      string strError = "";
-      bool blnWarnings = false;
-      bool blnLoaded = false;
-      int lngErr;
+      // opens a wag file for editing
       //if no game file passed,
       if (ThisGameFile.Length == 0) {
         //get a wag file to open
@@ -1492,11 +1509,101 @@ namespace WinAGI_GDS
         // use the selected file
         ThisGameFile = MDIMain.OpenDlg.FileName;
       }
+
+      //now open this game file
+      OpenGame(0, ThisGameFile);
+    }
+    public static void OpenDIR()
+    {
+      string strMsg;
+      string ThisGameDir;
+
+      //get a directory for importing
+      MDIMain.FolderDlg.Description = "Select the directory of the game you wish to import:";
+      DialogResult result = MDIMain.FolderDlg.ShowDialog(MDIMain);
+      if (result == DialogResult.OK) {
+        //if not canceled;
+        ThisGameDir = MDIMain.FolderDlg.SelectedPath;
+        //if still nothing (user canceled),
+        if (ThisGameDir.Length == 0) {
+          //user canceled
+          return;
+        }
+        //ensure trailing backslash
+        ThisGameDir = CDir(ThisGameDir);
+
+        //if a game file exists
+        if (File.Exists(ThisGameDir + "*.wag")) {
+          //confirm the import
+          strMsg = "This directory already has a WinAGI game file. Do you still want to import the game in this directory?" +
+                   Environment.NewLine + Environment.NewLine + "The existing WinAGI game file will be overwritten if it has the same name as the GameID found in this directory//s AGI VOL and DIR files.";
+
+          if (MessageBox.Show(strMsg, "WinAGI Game File Already Exists", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.Cancel) {
+            //then exit
+            return;
+          }
+        }
+        // open the game in this directory
+        if (OpenGame(1, ThisGameDir)) {
+          // if not loaded,
+          if (!GameLoaded) {
+            // user canceled close of currently open game, or
+            //must have encountered error;
+            return;
+          }
+
+          //set default directory
+          BrowserStartDir = GameDir;
+
+          //set default text file directory to game source file directory
+          DefaultResDir = GameDir + ResDirName + "\\";
+
+          //did the resource directory change? (is this even possible?)
+          //YES it is; if only one dir exists, and it has a different name,
+          //it's assumed to be the resource directory
+          strMsg = "Game file '" + GameID + ".wag'  has been created." + Environment.NewLine + Environment.NewLine;
+          if (ResDirName != DefResDir) {
+            strMsg = strMsg + "The existing subdirectory '" + ResDirName + "' will be used ";
+          }
+          else {
+            strMsg = strMsg + "The subdirectory '" + ResDirName + "' has been created ";
+          }
+          strMsg = strMsg + "to store logic " +
+          "source files and exported resources. You can change the " +
+          "source directory for this game on the Game Properties dialog.";
+
+          //warn user that resource dir set to default
+          MessageBox.Show(strMsg, "Import Game", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+          //does the game have an Amiga OBJECT file?
+          //very rare, but we check for it anyway
+          if (InvObjects.AmigaOBJ) {
+            MessageBox.Show("The OBJECT file for this game is formatted" + Environment.NewLine +
+                   "for the Amiga." + Environment.NewLine + Environment.NewLine +
+                   "If you intend to run this game on a DOS " + Environment.NewLine +
+                   "platform, you will need to convert the file" + Environment.NewLine +
+                   "to DOS format (use the Convert menu option" + Environment.NewLine +
+                   "on the OBJECT Editor's Resource menu)", "Amiga OBJECT File detected", MessageBoxButtons.OK, MessageBoxIcon.Information);
+          }
+        }
+      }
+    }
+    public static bool OpenGame(int mode, string gameSource)
+    {
+      // opens a game by directory or wag file depending on mode
+      // mode 0 == open source as a wag file
+      // mode 1 == open source as a sierra game directory;
+
+      string strError = "";
+      bool blnWarnings = false;
+      bool blnLoaded = false;
+      int lngErr;
+
       //if a game is currently open,
       if (GameLoaded) {
         //close game, if user allows
         if (!CloseThisGame()) {
-          return;
+          return false;
         }
       }
       //all resource editors should now be closed
@@ -1509,13 +1616,18 @@ namespace WinAGI_GDS
       ProgressWin.lblProgress.Text = "Checking WinAGI Game file ...";
       ProgressWin.StartPosition = FormStartPosition.CenterParent;
       ProgressWin.pgbStatus.Visible = false;
-      ProgressWin.Show();
+      ProgressWin.Show(MDIMain);
       ProgressWin.Refresh();
       //show loading msg in status bar
-      MainStatusBar.Items[1].Text = "Loading game; please wait...";
+      MainStatusBar.Items[1].Text = (mode == 0 ? "Loading" : "Importing") + " game; please wait...";
       try {
-        //and load the game!
-        OpenGameWAG(ThisGameFile);
+        //and load the game/dir
+        if (mode == 0) {
+          OpenGameWAG(gameSource);
+        }
+        else {
+          OpenGameDIR(gameSource);
+        }
         blnLoaded = true;
       }
       catch (Exception e) {
@@ -1576,7 +1688,7 @@ namespace WinAGI_GDS
       }
       // if loaded OK, 
       if (blnLoaded) {
-        ProgressWin.lblProgress.Text = "Game loaded successfully, setting up editors";
+        ProgressWin.lblProgress.Text = "Game " + (mode == 0 ? "loaded" : "imported") + " successfully, setting up editors";
         ProgressWin.Refresh();
         MDIMain.Text = "WinAGI GDS - " + GameID;
         //build resource list
@@ -1593,7 +1705,7 @@ namespace WinAGI_GDS
           MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
           //update selected resource
           MDIMain.SelectResource(rtGame, -1);
-          //set LastIndex property
+          //set LastNodeName property
           MDIMain.LastNodeName = RootNode.Name;
           break;
         case 2:
@@ -1610,9 +1722,9 @@ namespace WinAGI_GDS
         //set default directory
         BrowserStartDir = GameDir;
         //add wag file to mru
-        AddToMRU(ThisGameFile);
+        AddToMRU(GameFile);
         //store game file name
-        CurGameFile = ThisGameFile;
+        CurGameFile = GameFile;
         //set default text file directory to game source file directory
         DefaultResDir = GameDir + ResDirName + "\\";
         // after a game loads, colors may be different
@@ -1621,7 +1733,7 @@ namespace WinAGI_GDS
         //if warnings
         if (blnWarnings) {
           //warn about errors
-          MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", "Errors During Load", MessageBoxButtons.OK, MessageBoxIcon.Information);
+          MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", "Errors During " + (mode == 0 ? "Load" : "Import"), MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         //build the lookup tables for logic tooltips
         BuildIDefLookup();
@@ -1631,16 +1743,18 @@ namespace WinAGI_GDS
         RDefLookup[91].Value = QUOTECHAR + GameAbout + QUOTECHAR;
         RDefLookup[92].Value = QUOTECHAR + GameID + QUOTECHAR;
         RDefLookup[93].Value = (InvObjects.Count - 1).ToString();
-      } else {
+      }
+      else {
         //done with ProgressWin form
         ProgressWin.Close();
         //show error message
-        MessageBox.Show(strError, "Unable to Open Game", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        MessageBox.Show(strError, "Unable to " + (mode == 0 ? "Open" : "Import") + " Game", MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
       //reset cursor
       MDIMain.UseWaitCursor = false;
       //clear status bar
       MainStatusBar.Items[1].Text = "";
+      return blnLoaded;
     }
     public static bool CloseThisGame()
     {
@@ -1751,12 +1865,12 @@ namespace WinAGI_GDS
       }
       //always clear and hide warning list if it is showing
       if (MDIMain.pnlWarnings.Visible) {
-        //*//        MDIMain.ClearWarnings(-1, rtLogic);
-        //*//        MDIMain.HideWarningList();
+        MDIMain.ClearWarnings(-1, rtLogic);
+        MDIMain.pnlWarnings.Visible = false;
       }
       //always hide find dialog if it's showing
-      if (AGIFindForm.Visible) {
-        AGIFindForm.Visible = false;
+      if (FindingForm.Visible) {
+        FindingForm.Visible = false;
       }
       if (Settings.ShowPreview) {
         //clear preview window
@@ -1862,7 +1976,7 @@ namespace WinAGI_GDS
       LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
       //update caption
       MDIMain.Text = "WinAGI GDS";
-      //reset index marker so selection of resources
+      //reset node marker so selection of resources
       //works correctly first time after another game loaded
       MDIMain.LastNodeName = "";
       //reset default text location to program dir
@@ -1894,7 +2008,8 @@ namespace WinAGI_GDS
                 //load source to set compiled status
                 if (Logics[(byte)i].Compiled) {
                   tmpNode.ForeColor = Color.Black;
-                } else {
+                }
+                else {
                   tmpNode.ForeColor = Color.Red;
                 }
               }
@@ -2053,7 +2168,8 @@ namespace WinAGI_GDS
           CodeSnippets[lngAdded].Value = DecodeSnippet(CodeSnippets[lngAdded].Value);
           //count it as added
           lngAdded++;
-        } else {
+        }
+        else {
           //one or both of name/value are blank - not a
           //valid snippet so ignore it
         }
@@ -2092,47 +2208,43 @@ namespace WinAGI_GDS
     {
       int i;
 
-      //if a game is currently open,
-      if (GameLoaded) {
-        //close game, if user allows
-        if (!CloseThisGame()) {
-          return;
-        }
-      }
-
       //skip if this MRU is blank (probably due to user manually editing
       //the config file)
-      if (strMRU[Index].Length > 0) {
-        //attempt to open this game
-        OpenWAG(strMRU[Index]);
+      if (strMRU[Index].Length == 0) {
+        return;
       }
-      //if not successful
-      if (!GameLoaded) {
-        //step through previous mru entries
-        for (i = Index + 1; i < 4; i++) {
-          //move this mru entry up
-          strMRU[i - 1] = strMRU[i];
-          //if blank
-          if (strMRU[i].Length == 0) {
-            //hide this mru item
-            MDIMain.Controls["mnuGMRU" + (i + 1)].Visible = false;
-          } else {
-            //change this mru item
-            MDIMain.Controls["mnuGMRU" + (i + 1)].Text = CompactPath(strMRU[i], 60);
+      //attempt to open this game
+      if (OpenGame(0, strMRU[Index])) {
+        //if not successful
+        if (!GameLoaded) {
+          //step through previous mru entries
+          for (i = Index + 1; i < 4; i++) {
+            //move this mru entry up
+            strMRU[i - 1] = strMRU[i];
+            //if blank
+            if (strMRU[i].Length == 0) {
+              //hide this mru item
+              MDIMain.Controls["mnuGMRU" + (i + 1)].Visible = false;
+            }
+            else {
+              //change this mru item
+              MDIMain.Controls["mnuGMRU" + (i + 1)].Text = CompactPath(strMRU[i], 60);
+            }
+          }
+          //remove last entry
+          strMRU[3] = "";
+          MDIMain.mnuGMRU3.Visible = false;
+
+          //if none left
+          if (strMRU[0].Length == 0) {
+            //hide bar too
+            MDIMain.mnuGMRUBar.Visible = false;
           }
         }
-        //remove last entry
-        strMRU[3] = "";
-        MDIMain.mnuGMRU3.Visible = false;
-
-        //if none left
-        if (strMRU[0].Length == 0) {
-          //hide bar too
-          MDIMain.mnuGMRUBar.Visible = false;
+        else {
+          //reset browser start dir to this dir
+          BrowserStartDir = JustPath(strMRU[Index]);
         }
-      } else {
-        //reset browser start dir to this dir
-        BrowserStartDir = JustPath(strMRU[Index]);
       }
     }
     public static void AddToMRU(string NewWAGFile)
@@ -2172,7 +2284,8 @@ namespace WinAGI_GDS
           //update menu
           MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Text = CompactPath(strMRU[j], 60);
           MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = true;
-        } else {
+        }
+        else {
           //hide it
           MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = false;
         }
@@ -2216,7 +2329,8 @@ namespace WinAGI_GDS
           tmpDef.Type = atNum;
           tmpDef.Value = i.ToString();
           IDefLookup[i] = tmpDef;
-        } else {
+        }
+        else {
           tmpBlank.Value = i.ToString();
           IDefLookup[i] = tmpBlank;
         }
@@ -2234,7 +2348,8 @@ namespace WinAGI_GDS
           tmpDef.Type = atNum;
           tmpDef.Value = i.ToString();
           IDefLookup[i + 256] = tmpDef;
-        } else {
+        }
+        else {
           tmpBlank.Value = i.ToString();
           IDefLookup[i + 256] = tmpBlank;
         }
@@ -2251,7 +2366,8 @@ namespace WinAGI_GDS
           tmpDef.Type = atNum;
           tmpDef.Value = i.ToString();
           IDefLookup[i + 512] = tmpDef;
-        } else {
+        }
+        else {
           tmpBlank.Value = i.ToString();
           IDefLookup[i + 512] = tmpBlank;
         }
@@ -2268,7 +2384,8 @@ namespace WinAGI_GDS
           tmpDef.Type = atNum;
           tmpDef.Value = i.ToString();
           IDefLookup[i + 768] = tmpDef;
-        } else {
+        }
+        else {
           tmpBlank.Value = i.ToString();
           IDefLookup[i + 768] = tmpBlank;
         }
@@ -2290,7 +2407,7 @@ namespace WinAGI_GDS
       //we don't have to worry about errors (we just ignore them)
       //or order (add them as they are in the file)
       //or duplicate ("just leave it!!!") :-)
-      //or resdef overrides (it//s actually easier for the tootip function anyway)
+      //or resdef overrides (it's actually easier for the tootip function anyway)
       string strFileName;
       string strLine;
       string[] strSplitLine;
@@ -2336,7 +2453,8 @@ namespace WinAGI_GDS
               blnTry = true;
 
               //not a valid global.txt; check for defines.txt
-            } else {
+            }
+            else {
               //tabs need to be replaced with spaces first
               strLine = strLine.Replace((char)Keys.Tab, ' ').Trim();
               if (Left(strLine, 8).Equals("#define ", StringComparison.OrdinalIgnoreCase)) {
@@ -2382,9 +2500,11 @@ namespace WinAGI_GDS
     {
       if (IsNumeric(strValue)) {
         return atNum;
-      } else if (strValue[0] == 34) {
+      }
+      else if (strValue[0] == 34) {
         return atDefStr;
-      } else {
+      }
+      else {
         switch ((int)strValue.ToLower()[0]) {
         case 99: //"c"
           return atCtrl;
@@ -3005,7 +3125,7 @@ namespace WinAGI_GDS
 
     if (CLng(CompStatusWin.lblWarnings.Text) > 0) {
      if (!MDIMain.picWarnings.Visible) {
-        MDIMain.ShowWarningList
+        MDIMain.pnlWarnings.Visible = true;
       }
     }
     } else {
@@ -3153,7 +3273,7 @@ namespace WinAGI_GDS
         //add it to warning list
         MDIMain.AddError strErrInfo(0), Val(Left(strErrInfo(2), 4)), Right(strErrInfo(2), Len(strErrInfo(2)) - 6), tmpLogic.Number, strErrInfo(1)
        if (!MDIMain.picWarnings.Visible) {
-          MDIMain.ShowWarningList
+          MDIMain.pnlWarnings.Visible = true;
         }
 
         //determine user response to the error
@@ -3254,7 +3374,7 @@ namespace WinAGI_GDS
 
      if (CLng(CompStatusWin.lblWarnings.Text) > 0) {
        if (!MDIMain.picWarnings.Visible) {
-          MDIMain.ShowWarningList
+          MDIMain.pnlWarnings.Visible = true;
         }
       }
     } else {
@@ -3423,10 +3543,10 @@ namespace WinAGI_GDS
       }
 
       //resdef
-      LogicSourceSettings.UseReservedNames = (frmGameProperties.chkUseReserved.Value = vbChecked)
+      LogicSourceSettings.UseReservedNames = (frmGameProperties.chkUseReserved.Checked)
 
       //layout editor
-      UseLE = (frmGameProperties.chkUseLE.Value = vbChecked)
+      UseLE = (frmGameProperties.chkUseLE.Checked)
 
       //force a save of the property file
       SaveProperties
@@ -3527,7 +3647,7 @@ namespace WinAGI_GDS
 
     On Error GoTo ErrHandler
 
-    //ignore if it//s old id, or a different case of old id
+    //ignore if it's old id, or a different case of old id
     if (StrComp(NewID, OldID, StringComparison.OrdinalIgnoreCase) = 0) {
     //it is OK
     ValidateID = 0
@@ -3887,7 +4007,7 @@ namespace WinAGI_GDS
     }
 
     //step through all resources
-    //(use globals list; it//s going to be much faster)
+    //(use globals list; it's going to be much faster)
 
     For i = 0 To 1023
     if (IDefLookup(i).Name = strToken) {
@@ -3904,82 +4024,6 @@ namespace WinAGI_GDS
     //Debug.Assert false
     Resume Next
     }
-
-    public static string LogTemplateText(string NewID, string NewDescription)
-
-    On Error GoTo ErrHandler
-
-    string strLogic;
-    DialogResult rtn;
-      bool blnNoFile;
-
-    //first, get the default file, if there is one
-    if (File.Exists(ProgramDir + "deflog.txt")) {
-    On Error Resume Next
-    intFile = FreeFile()
-    Open ProgramDir + "deflog.txt"
-    strLogic = String$(LOF(intFile), 0)
-    Get intFile, 1, strLogic
-    Close intFile
-    if (Err.Number != 0) {
-      // problem with the file
-      blnNoFile = true
-    }
-    } else {
-    // no file
-    blnNoFile = true
-    }
-
-    //if no template file
-    if (blnNoFile) {
-    //something didn//t work; let user know
-    rtn = MsgBoxEx("The default logic template file (//deflog.txt//) is missing" + Environment.NewLine + _
-                   "from the WinAGI program directory. Using the WinAGI default" + Environment.NewLine + _
-                   "template instead.", MessageBoxIcon.Information + MessageBoxButtons.OK + vbMsgBoxHelpButton, "Missing Template File", WinAGIHelp, "htm\winagi\newres.htm#logtemplate")
-    strLogic = LoadResString(101)
-    //insert line breaks
-    strLogic = Replace(strLogic, "|", Keys.Enter)
-    }
-
-    // trap any other errors
-    On Error GoTo ErrHandler
-
-    //substitute correct values for the various place holders
-
-    //add the tabs
-    strLogic = Replace(strLogic, "~", Space$(Settings.LogicTabWidth))
-
-    //id:
-    strLogic = Replace(strLogic, "%id", NewID)
-
-    //description
-    strLogic = Replace(strLogic, "%desc", NewDescription)
-
-    //horizon is a PicTest setting, which should always be retrieved everytime
-    //it is used to make sure it//s current
-    strLogic = Replace(strLogic, "%h", ReadSettingLong(SettingsList, sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON))
-
-    //if using reserved names, insert them
-    if (LogicSourceSettings.UseReservedNames) {
-    //f5, v0, f2, f4, v9
-    strLogic = Replace(strLogic, "f5", LogicSourceSettings.ReservedDefines(atFlag)(5).Name)
-    strLogic = Replace(strLogic, "f2", LogicSourceSettings.ReservedDefines(atFlag)(2).Name)
-    strLogic = Replace(strLogic, "f4", LogicSourceSettings.ReservedDefines(atFlag)(4).Name)
-    strLogic = Replace(strLogic, "v0", LogicSourceSettings.ReservedDefines(atVar)(0).Name)
-    strLogic = Replace(strLogic, "v9", LogicSourceSettings.ReservedDefines(atVar)(9).Name)
-    }
-
-    //return the formatted text
-    LogTemplateText = strLogic
-    Exit Function
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
-
-
-
 
     public static void ChangeResDir(string NewResDir)
 
@@ -4058,28 +4102,6 @@ namespace WinAGI_GDS
     Resume Next
     }
 
-    public static void ErrMessageBox.Show(string ErrMsg1, string ErrMsg2, string ErrCaption)
-
-    //displays a messagebox showing ErrMsg and includes error passed as AGIErrObj
-    //Debug.Assert Err.Number != 0
-
-    int lngErrNum;
-     string strErrMsg;
-
-    //determine if ErrNum is an AGI number:
-    if ((Err.Number && WINAGI_ERR) = WINAGI_ERR) {
-    lngErrNum = Err.Number - WINAGI_ERR
-    } else {
-    lngErrNum = Err.Number
-    }
-
-    strErrMsg = ErrMsg1 + Environment.NewLine + Environment.NewLine + lngErrNum + ": " + Err.Description
-    if (Len(ErrMsg2) > 0) {
-    strErrMsg = strErrMsg + Environment.NewLine + Environment.NewLine + ErrMsg2
-    }
-
-    MessageBox.Show(strErrMsg, MessageBoxIcon.Critical + MessageBoxButtons.OK, ErrCaption
-    }
 
 
 
@@ -4453,59 +4475,59 @@ namespace WinAGI_GDS
       case 33, 38, 42, 43, 45, 47, 60, 61, 62, 124
         //   !&*+-/<=>|
         //possible multi-char separators; only treat as
-        //a separator if it//s not part of a two-char token
+        //a separator if it's not part of a two-char token
         switch (intChar
         case 33 // !  allowed: !=
          if (strToken != "=") {
-            //it//s a separator
+            //it's a separator
             break;
           }
         case 38  // +  allowed: &&
          if (strToken != "&") {
-            //it//s a separator
+            //it's a separator
             break;
           }
         case 42  // *  allowed: *=, *text
           switch (Asc(strToken)
           case 35 To 37, 46, 48 To 57, 61, 64 To 90, 95, 97 To 122
-            //it//s not a separator
+            //it's not a separator
           default:
-            //it//s a separator
+            //it's a separator
             break;
           }
         case 43  // +  allowed: ++, +=
          if (strToken != "+" && strToken != "=") {
-            //it//s a separator
+            //it's a separator
             break;
           }
         case 45  // -  allowed: --, -=
          if (strToken != "-" && strToken != "=") {
-            //it//s a separator
+            //it's a separator
             break;
           }
         case 47  // /  allowed: /=
          if (strToken != "=") {
-            //it//s a separator
+            //it's a separator
             break;
           }
         case 60  // <  allowed: <=
          if (strToken != "=") {
-            //it//s a separator
+            //it's a separator
             break;
           }
         case 61  // =  allowed: =>, =<, ==
          if (strToken != ">" && strToken != ">" && strToken != "=") {
-            //it//s a separator
+            //it's a separator
             break;
           }
         case 62  // >  allowed: >=
          if (strToken != "=") {
-            //it//s a separator
+            //it's a separator
             break;
           }
         case 124 // |  allowed: ||
          if (strToken != "|") {
-            //it//s a separator
+            //it's a separator
             break;
           }
         }
@@ -5021,7 +5043,7 @@ namespace WinAGI_GDS
     blnNextToken = (LenB(strFindCmd) = 0)
 
     //quick check for the search string;
-    //if it doesn//t even exist in the text,
+    //if it doesn't even exist in the text,
     //don't bother doing a search
     if (!blnNextToken) {
     if (InStr(lngTknPos + 1, strText, strFindCmd, StringComparison.OrdinalIgnoreCase) = 0) {
@@ -5344,18 +5366,18 @@ namespace WinAGI_GDS
        if (blnArgNext) {
           switch (strNext
           case ")"
-            //if it//s closing parentheses AND at least one arg added
+            //if it's closing parentheses AND at least one arg added
            if (lngArgCount > 0) {
               //last arg value missing; assume empty string
               lngArgCount = lngArgCount + 1
               ReDim Preserve strArgs(lngArgCount - 1)
               strArgs(lngArgCount - 1) = ""
             }
-            //make sure it//s end of line
+            //make sure it's end of line
             blnSnipOK = (lngPos >= Len(SnipText))
             break;
 
-          // if it//s another comma
+          // if it's another comma
           case ","
             //assume empty string argument
             lngArgCount = lngArgCount + 1
@@ -5375,9 +5397,9 @@ namespace WinAGI_GDS
 
         } else {
           //next arg must be a comma or closing parenthesis
-          //if it//s closing parenthesis
+          //if it's closing parenthesis
          if (strNext = ")") {
-            //make sure it//s end of line
+            //make sure it's end of line
             blnSnipOK = (lngPos >= Len(SnipText))
             break;
           }
@@ -5633,7 +5655,7 @@ namespace WinAGI_GDS
     if (Left$(strLine, 4) = "##LE") {
       //strip off leader to expose exit id number
       strLine = Right$(strLine, Len(strLine) - 4)
-      //note we can ignore the trailing //##// marker; Val function doesn//t care if they are there
+      //note we can ignore the trailing //##// marker; Val function doesn't care if they are there
     } else {
       //not an exit marker; reset the string
       strLine = ""
@@ -5718,8 +5740,8 @@ namespace WinAGI_GDS
 
     //WTF is this about logic not being in game? I should be working with
     //the actual ingame logic, right?  OH, I remember - if this is called from
-    //a logic editor, it//s the copy of the object, not the object; at least
-    //it was; I think it//s now the actual game logic; need to check that
+    //a logic editor, it's the copy of the object, not the object; at least
+    //it was; I think it's now the actual game logic; need to check that
 
     //Debug.Assert ThisLogic Is Logics(ThisLogic.Number)
     //Debug.Assert ThisLogic.InGame
@@ -5939,7 +5961,7 @@ namespace WinAGI_GDS
     return;
 
     ErrHandler:
-    //ignore the system bitmap error for pictures, since it doesn//t affect exporting
+    //ignore the system bitmap error for pictures, since it doesn't affect exporting
     if (Err.Number = WINAGI_ERR + 610) {
     Err.Clear
     Resume Next
@@ -6151,7 +6173,7 @@ namespace WinAGI_GDS
         break;
       }
 
-      //get the value at this pos, and determine if it//s
+      //get the value at this pos, and determine if it's
       //a draw command
       bytCmd = GifPic.Data(lngPicPos)
 
@@ -6361,7 +6383,7 @@ namespace WinAGI_GDS
     //if the error is because of trying to write to an array that is full,
     //expand it by 64K then try again
     if (Err.Number = 9) {
-    //make sure it//s because lngPos is past array boundary
+    //make sure it's because lngPos is past array boundary
     if (lngPos > UBound(bytData[))) {
       ReDim Preserve bytData[UBound(bytData[)) + 65536)
       Resume
@@ -6387,7 +6409,7 @@ namespace WinAGI_GDS
     ////  //caller is responsible for verifying overwrite is ok or not
     ////
     ////  //assumption is that calling function won//t pass invalid filename, or call
-    ////  //this function if picture doesn//t have valid data
+    ////  //this function if picture doesn't have valid data
     ////
     ////  int i, j, zh, zv;
     ////  string strTempFile;
@@ -6822,7 +6844,7 @@ namespace WinAGI_GDS
       MDIMain.SaveDlg.FullName = ResDir + ThisSound.ID
     }
 
-    //set filter index (if it//s the script option, change it to
+    //set filter index (if it's the script option, change it to
     //default ags for non-PC/PCjr sounds
     lngFilter = ReadSettingLong(SettingsList, sSOUNDS, sEXPFILTER, 1)
     switch (sFmt
@@ -7149,7 +7171,7 @@ namespace WinAGI_GDS
 
     //if a game is loaded and NOT forcing...
     //   open editor if not yet in use
-    //   or switch to it if it//s already open
+    //   or switch to it if it's already open
     if (GameLoaded && !ForceLoad) {
     if (GEInUse) {
       GlobalsEditor.Focus()
@@ -7326,36 +7348,31 @@ namespace WinAGI_GDS
     }
 
     public static void UpdateResFile(AGIResType ResType, byte ResNum, string OldFileName)
-
+      {
     //updates ingame id for resource files and the resource tree
-    Node tmpNode;
+    TreeNode tmpNode;
 
     DialogResult rtn;
 
-    On Error GoTo ErrHandler
-
-    switch (ResType
-    case rtLogic
+    switch (ResType) {
+    case rtLogic:
     //if a file with this name already exists
-    if (File.Exists(ResDir + Logics(ResNum).ID + LogicSourceSettings.SourceExt)) {
-      //make sure the change is not just a change in text case
-
-
+    if (File.Exists(ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt)) {
       //import existing, or overwrite it?
-      rtn = MessageBox.Show("There is already a source file with the name //" + Logics(ResNum).ID + _
-            LogicSourceSettings.SourceExt + "// in your source file directory." + Environment.NewLine + Environment.NewLine + _
-            "Do you want to import that file? Choose //NO// to replace that file with the current logic source.", _
-            MessageBoxButtons.YesNo, "Import Existing Source File?")
+      rtn = MessageBox.Show("There is already a source file with the name '" + Logics[ResNum].ID + 
+            LogicSourceSettings.SourceExt + "' in your source file directory." + Environment.NewLine + Environment.NewLine + 
+            "Do you want to import that file? Choose 'NO' to replace that file with the current logic source.", 
+            "Import Existing Source File?", MessageBoxButtons.YesNo);
     } else {
       //no existing file, so keep current source
-      rtn = DialogResult.No
+      rtn = DialogResult.No;
     }
 
-    if (rtn = DialogResult.Yes) {
+    if (rtn == DialogResult.Yes) {
       //keep old file with new name as new name; basically import it by reloading, if currently loaded
        if (Logics[ResNum].Loaded) {
-          Logics[ResNum].Unload
-          Logics[ResNum].Load
+          Logics[ResNum].Unload();
+          Logics[ResNum].Load();
         }
 
       //now update preview window, if previewing
@@ -7659,7 +7676,7 @@ namespace WinAGI_GDS
     GetNewResID = true
 
     //save replace flag value
-    blnReplace = (frmEditDescription.chkUpdate.Value = vbChecked)
+    blnReplace = (frmEditDescription.chkUpdate.Checked)
 
     //save state of update logic flag
     DefUpdateVal = frmEditDescription.chkUpdate.Value
@@ -7716,7 +7733,7 @@ namespace WinAGI_GDS
         //if OK to update in all logics, do so
        if (blnReplace) {
           //reset search flags
-          AGIFindForm.ResetSearch
+          FindingForm.ResetSearch
 
           //now replace the ID
           ReplaceAll strOldID, ResID, fdAll, true, true, flAll, ResType
@@ -7752,134 +7769,6 @@ namespace WinAGI_GDS
     }
     }
     Exit Function
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
-
-
-    public static void AddNewLogic(int NewLogicNumber, AGILogic NewLogic, bool blnTemplate, bool Importing)
-
-    Node tmpNode;
-     TreeRelationshipConstants tmpRel;
-
-    string strLogic;
-    int i;
-
-    On Error GoTo ErrHandler
-    //add to logic collection in game
-    Logics.Add NewLogicNumber, NewLogic
-
-    if (Err.Number != 0) {
-    ////Debug.Print "why the heck doesn//t the !@#$ error handler work???"
-    GoTo ErrHandler
-    }
-
-    //if not importing, we need to add boilerplate text
-    if (!Importing) {
-      //if using template,
-     if (blnTemplate) {
-        //add template text to logic source
-        strLogic = LogTemplateText(Logics(NewLogicNumber).ID, Logics(NewLogicNumber).Description)
-      } else {
-        //add default text
-        strLogic = "[ " + Keys.Enter + "[ " + Logics(NewLogicNumber).ID + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****"
-      }
-      //for new resources, need to set the source text
-      Logics[NewLogicNumber].SourceText = strLogic
-    }
-
-    //always save source to new name
-    Logics[NewLogicNumber].SaveSource
-
-    //if NOT importing AND default (not using template), compile the text
-    if (!Importing && !blnTemplate) {
-      Logics[NewLogicNumber].Compile
-    }
-
-
-    //set isroom status based on template
-    if (NewLogicNumber != 0) {
-      Logics[NewLogicNumber].IsRoom = blnTemplate
-    }
-
-    //if using layout editor AND isroom
-    if (UseLE && Logics(NewLogicNumber).IsRoom) {
-    //update layout editor and layout data file to show this room is in the game
-    UpdateExitInfo euAddRoom, NewLogicNumber, Logics(NewLogicNumber)
-    }
-
-    //add to resource list
-    switch (Settings.ResListType
-    case 1
-    tmpNode = MDIMain.tvwResources.Nodes(2)
-    //if no logics
-    if (tmpNode.Children = 0) {
-      //add it as first logic
-      tmpRel = tvwChild
-    } else {
-      //find place to insert this logic
-      tmpNode = tmpNode.Child
-      tmpRel = tvwPrevious
-      Do Until tmpNode.Tag > NewLogicNumber
-       if (tmpNode.Next = null) {
-          tmpRel = tvwNext
-          break;
-        }
-        tmpNode = tmpNode.Next
-      Loop
-    }
-
-    //add to tree
-    tmpNode = MDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "l" + CStr(NewLogicNumber), ResourceName(Logics(NewLogicNumber), true))
-    tmpNode.Tag = NewLogicNumber
-
-    if (!Logics(NewLogicNumber).Compiled) {
-      tmpNode.ForeColor = Colors.Red
-    }
-
-    case 2
-    //only update if logics are being listed
-    if (MDIMain.cmbResType.SelectedIndex = 1) {
-      //find a place to insert this logic in the box list
-     if (Logics.Count = 0) {
-        //add it as first item
-        tmpListItem = MDIMain.lstResources.ListItems.Add(, "l" + CStr(NewLogicNumber), ResourceName(Logics(NewLogicNumber), true))
-      } else {
-        //find a place to add it
-        For i = 1 To MDIMain.lstResources.ListItems.Count
-         if (CLng(MDIMain.lstResources.ListItems(i).Tag) > NewLogicNumber) {
-            Exit For
-          }
-        Next i
-        //i is index position we are looking for
-        tmpListItem = MDIMain.lstResources.ListItems.Add(i, "l" + CStr(NewLogicNumber), ResourceName(Logics(NewLogicNumber), true))
-      }
-      tmpListItem.Tag = NewLogicNumber
-     if (!Logics(NewLogicNumber).Compiled) {
-        tmpListItem.ForeColor = Colors.Red
-      }
-      //expand column width if necessary
-     if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
-        MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
-      }
-    }
-
-    }
-    //update the logic tooltip lookup table
-    IDefLookup[NewLogicNumber].Name = Logics(NewLogicNumber).ID
-    IDefLookup[NewLogicNumber].Type = atNum
-    //then let open logic editors know
-    if (LogicEditors.Count > 0) {
-    For i = 1 To LogicEditors.Count
-      LogicEditors(i).ListDirty = true
-    Next i
-    }
-
-    //last index is no longer accurate; reset
-    MDIMain.LastIndex = -1
-    return;
 
     ErrHandler:
     //Debug.Assert false
@@ -8037,19 +7926,19 @@ namespace WinAGI_GDS
       Loop Until lngArg <= 0
     }
 
-    //if not found, maybe it//s a string assignment (s##="text"; or strdefine="text";)
+    //if not found, maybe it's a string assignment (s##="text"; or strdefine="text";)
     if (lngArg = -1) {
       //is it a defined string?
       For i = 0 To UBound(StrDefs())
        if (LCase(strCmd) = LCase(StrDefs(i))) {
           //good to go - we don't care what s##
-          //just that it//s a valid define value
+          //just that it's a valid define value
           lngArg = 0
           Exit For
         }
       Next i
 
-      //if not found as a define, maybe it//s a string marker (s##)
+      //if not found as a define, maybe it's a string marker (s##)
      if (lngArg = -1 && Asc(LCase(strCmd)) = 115) {
         //strip off the //s//; if rest of cmd is a valid string number
         //then we found one!
@@ -8087,14 +7976,14 @@ namespace WinAGI_GDS
             Exit Function
           }
         } else {
-          //false alarm! it//s probably a string arg used in another
+          //false alarm! it's probably a string arg used in another
           //command
           lngArg = -1
         }
       }
     }
 
-    //if we have a valid command and found it//s arg value, continue
+    //if we have a valid command and found it's arg value, continue
     if (lngArg != -1) {
       //strcmd is now the msg argument we are looking for;
       //it might be a message marker (//m##//) or it might be
@@ -8103,18 +7992,18 @@ namespace WinAGI_GDS
 
       //first, is it a valid message string? if not,
      if (!IsValidMsg(strCmd)) {
-        //does it start with a dbl quote? if so, it//s a malformed string
+        //does it start with a dbl quote? if so, it's a malformed string
        if (Asc(strCmd) = 34) {
           lngLoc = -lngLoc
           NextMsg = "2"
           Exit Function
         }
 
-        //it//s not a string (good or bad);
+        //it's not a string (good or bad);
         //might be a message marker or a define value
         //check for message marker first
        if (LCase(Left(strCmd, 1)) = "m") {
-          //if it//s a non-zero number, less than 256, it//s good
+          //if it's a non-zero number, less than 256, it's good
          if (IsNumeric(Right(strCmd, Len(strCmd) - 1))) {
             sngVal = Val(Right(strCmd, Len(strCmd) - 1))
            if ((Int(sngVal) = sngVal) && sngVal > 0 && sngVal < 256) {
@@ -8149,7 +8038,7 @@ namespace WinAGI_GDS
              if (LDefList(i).Type = atDefStr) {
                 //does it match?
                if (StrComp(LDefList(i).Name, strCmd, StringComparison.OrdinalIgnoreCase) = 0) {
-                  //but we can//t assume it//s a valid string
+                  //but we can//t assume it's a valid string
                  if (IsValidMsg(LDefList(i).Value)) {
                     //we don't replace the define value
                     //but just mark it as OK
@@ -8215,7 +8104,7 @@ namespace WinAGI_GDS
       }
 
       //strCmd is validated to be a good string;
-      //now check for concatenation (unless it//s a define)
+      //now check for concatenation (unless it's a define)
      if (blnDefFound) {
         lngNext = 0
       } else {
@@ -8328,14 +8217,14 @@ namespace WinAGI_GDS
 
     //msgval should be string
     if (!IsValidMsg(strCmd)) {
-      //does it start with a dbl quote? if so, it//s a malformed string
+      //does it start with a dbl quote? if so, it's a malformed string
      if (Asc(strCmd) = 34) {
         Messages(0) = "5"
         Messages(1) = CStr(lngPos)
         Exit Function
       }
 
-      //it//s not a good (or bad) string;
+      //it's not a good (or bad) string;
       //try replacing with define (locals, then globals, then reserved
       blnDefFound = false
       Do
@@ -8368,7 +8257,7 @@ namespace WinAGI_GDS
       Loop Until true
 
       //if it was replaced, we accept whatever was used as
-      //the define name; if not replaced, it//s error
+      //the define name; if not replaced, it's error
      if (!blnDefFound) {
         //not a string, and not a msg marker - IDK what it is!
         Messages(0) = "3"
@@ -8402,10 +8291,10 @@ namespace WinAGI_GDS
           //toggle concat flag
           blnConcat = false
         } else {
-          //it//s not a valid string, but we
+          //it's not a valid string, but we
           //do need to see if its an INVALID string
          if (Asc(strCmd) = 34) {
-            //it//s bad!
+            //it's bad!
             Messages(0) = "3"
             Messages(1) = CStr(lngPos)
             Exit Function
@@ -8517,8 +8406,8 @@ namespace WinAGI_GDS
     Next i
     }
 
-    //last index is no longer accurate; reset
-    MDIMain.LastIndex = -1
+    //last node marker is no longer accurate; reset
+    MDIMain.LastNodeName = "";
     return;
 
     ErrHandler:
@@ -8594,8 +8483,8 @@ namespace WinAGI_GDS
     Next i
     }
 
-    //last index is no longer accurate; reset
-    MDIMain.LastIndex = -1
+    //last node marker is no longer accurate; reset
+    MDIMain.LastNodeName = "";
     }
     public static void AddNewView(int NewViewNumber, AGISound NewView)
 
@@ -8667,8 +8556,8 @@ namespace WinAGI_GDS
     Next i
     }
 
-    //last index is no longer accurate; reset
-    MDIMain.LastIndex = -1
+    //last node marker is no longer accurate; reset
+    MDIMain.LastNodeName = "";
     return;
 
     ErrHandler:
@@ -8905,7 +8794,7 @@ namespace WinAGI_GDS
     //get result
     MsgBoxEx = frmDialog.Result
     //get check box status
-    Checked = (frmDialog.Check1.Value = vbChecked)
+    Checked = (frmDialog.Check1.Checked)
 
     //unload the form
     Unload frmDialog
@@ -8930,9 +8819,9 @@ namespace WinAGI_GDS
     //the file is opened.
 
     //renumbering is a bit easier; we just add the renumber
-    //entry, without doing anything else; while it//s possible
+    //entry, without doing anything else; while it's possible
     //that extra, unnecessary renumbering actions can happen
-    //with this approach, it//s worth it; it//s a lot harder
+    //with this approach, it's worth it; it's a lot harder
     //to examine the file, and try to figure out chains of
     //renumbering that might be simplified
 
@@ -9731,7 +9620,7 @@ namespace WinAGI_GDS
 
      if (CLng(CompStatusWin.lblWarnings.Text) > 0) {
        if (!MDIMain.picWarnings.Visible) {
-          MDIMain.ShowWarningList
+          MDIMain.pnlWarnings.Visible = true;
         }
       }
     } else {
@@ -9803,7 +9692,7 @@ namespace WinAGI_GDS
 
     On Error Resume Next
 
-    //set flag so compiling doesn//t cause unnecessary updates in preview window
+    //set flag so compiling doesn't cause unnecessary updates in preview window
     Compiling = true
 
     if (!LogicEditor = null) {
@@ -9821,7 +9710,7 @@ namespace WinAGI_GDS
     MDIMain.fgWarnings.Refresh
 
     //unlike other resources, the ingame logic is referenced directly
-    //when being edited; so, it//s possible that the logic might get closed
+    //when being edited; so, it's possible that the logic might get closed
     //such as when changing which logic is being previewed;
     //SO, we need to make sure the logic is loaded BEFORE compiling
     if (!Logics(LogicNumber).Loaded) {
@@ -9864,7 +9753,7 @@ namespace WinAGI_GDS
     With MDIMain
       .AddError strErrInfo(0), Val(Left(strErrInfo(2), 4)), Right(strErrInfo(2), Len(strErrInfo(2)) - 6), LogicNumber, strErrInfo(1)
      if (!.picWarnings.Visible) {
-        .ShowWarningList
+        .pnlWarnings.Visible = true;
       }
     End With
 
@@ -9911,7 +9800,7 @@ namespace WinAGI_GDS
 
     //there isn//t an //ExportLogicSource// method, because
     //managing source code separate from the actual
-    //logic resource is tricky; it//s easier for
+    //logic resource is tricky; it's easier for
     //the logic editor and preview window to manage
     //exporting source separately
     //
@@ -10049,7 +9938,7 @@ namespace WinAGI_GDS
     }
     Loop While true
 
-    //need to make sure it//s loaded
+    //need to make sure it's loaded
     blnLoaded = Logics(LogicNumber).Loaded
     if (!blnLoaded) {
     Logics(LogicNumber).Load
@@ -10289,7 +10178,7 @@ namespace WinAGI_GDS
       For i = 1 To WinCount
         //if editor(i) is for this logic
        if (LogWin(i) = OldLogNum) {
-          //it//s not closed; it//s open for editing
+          //it's not closed; it's open for editing
           Closed = false
           Exit For
         }
@@ -10581,17 +10470,17 @@ namespace WinAGI_GDS
       //remove it from resource list
       .Nodes.Remove .Nodes("l" + CStr(LogicNum)).Index
 
-      //update selection to whatever is now the selected node
-      MDIMain.LastIndex = -1
+    //last node marker is no longer accurate; reset
+      MDIMain.LastNodeName = "";
 
      if (.SelectedItem.Parent = null) {
-        //it//s the game node
+        //it's the game node
         MDIMain.SelectResource rtGame, -1
       } else if ( .SelectedItem.Parent.Parent = null) {
-        //it//s a resource header
+        //it's a resource header
         MDIMain.SelectResource .SelectedItem.Index - 2, -1
       } else {
-        //it//s a resource
+        //it's a resource
         MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
       }
     End With
@@ -10690,7 +10579,7 @@ namespace WinAGI_GDS
         ErrMsgBox("Error occurred while importing sound:", "", "Import Sound Error"
         break;
       }
-      //now check to see if it//s a valid sound resource (by trying to reload it)
+      //now check to see if it's a valid sound resource (by trying to reload it)
       tmpSound.Load
      if (Err.Number != 0) {
         ErrMsgBox("Error reading Sound data:", "This is not a valid sound resource.", "Invalid Sound Resource"
@@ -10746,7 +10635,7 @@ namespace WinAGI_GDS
           blnInGame = true
         }
 
-        blnOpen = (frmGetResourceNum.chkOpenRes.Value = vbChecked)
+        blnOpen = (frmGetResourceNum.chkOpenRes.Checked)
 
       //make sure resource form is unloaded
       Unload frmGetResourceNum
@@ -10834,214 +10723,6 @@ namespace WinAGI_GDS
     Resume Next
     }
 
-    public static void NewLogic(string ImportLogicFile = "")
-    //creates a new logic resource and opens an editor
-
-    frmLogicEdit frmNew;
-      boolblnInGame;
-    AGILogic tmpLogic;
-      bool blnOpen;
-
-     string strFile;
-    bool blnSource, blnImporting;
-
-    On Error GoTo ErrHandler
-
-    //show wait cursor
-    MDIMain.UseWaitCursor = true;
-
-    Do
-    //create temporary logic
-    tmpLogic = New AGILogic
-
-    //if an import filename passed,
-    if (LenB(ImportLogicFile) != 0) {
-      blnImporting = true
-
-      //open file to see if it is sourcecode or compiled logic
-      intFile = FreeFile()
-      Open ImportLogicFile
-      strFile = String$(LOF(intFile), 32)
-      Get intFile, 1, strFile
-      Close intFile
-
-      //if logic appears to be compiled logic:
-      //(check for existence of characters <8)
-     if (InStr(1, strFile, ChrW$(0)) != 0) {
-        blnSource = false
-      } else if ( InStr(1, strFile, ChrW$(1)) != 0) {
-        blnSource = false
-      } else if ( InStr(1, strFile, ChrW$(2)) != 0) {
-        blnSource = false
-      } else if ( InStr(1, strFile, ChrW$(3)) != 0) {
-        blnSource = false
-      } else if ( InStr(1, strFile, ChrW$(4)) != 0) {
-        blnSource = false
-      } else if ( InStr(1, strFile, ChrW$(5)) != 0) {
-        blnSource = false
-      } else if ( InStr(1, strFile, ChrW$(6)) != 0) {
-        blnSource = false
-      } else if ( InStr(1, strFile, ChrW$(7)) != 0) {
-        blnSource = false
-      } else {
-        //probably source code
-        blnSource = true
-      }
-
-      //import the logic
-      //(and check for error)
-      On Error Resume Next
-      tmpLogic.Import ImportLogicFile, blnSource
-      //if a compile error occurred,
-     if (Err.Number = WINAGI_ERR + 567) {
-        //can//t open this resource
-        ErrMsgBox("An error occurred while trying to decompile this logic resource:", "Unable to open this logic.", "Invalid Logic Resource"
-        break;
-
-      } else if ( Err.Number != 0) {
-        //maybe we assumed source status incorrectly- try again
-        Err.Clear
-        tmpLogic.Import ImportLogicFile, !blnSource
-
-        //if STILL error
-       if (Err.Number != 0) {
-          //something wrong
-          ErrMsgBox("Unable to load this logic resource. It can//t be decompiled, and does not appear to be a text file.", "", "Invalid Logic Resource"
-          break;
-        }
-      }
-    }
-
-    //if a game is loaded,
-    if (GameLoaded) {
-      //get logic number
-      //show add resource form
-        frmGetResourceNum.ResType = rtLogic
-       if (blnImporting) {
-          frmGetResourceNum.WindowFunction = grImport
-        } else {
-          .WindowFunction = grAddNew
-        }
-        //setup before loading so ghosts don't show up
-        .FormSetup
-        //suggest ID based on filename
-       if (Len(ImportLogicFile) > 0) {
-          .txtID.Text = Replace(FileNameNoExt(ImportLogicFile), " ", "")
-        }
-
-        //restore cursor while getting resnum
-        MDIMain.UseWaitCursor = false;
-        frmGetResourceNum.ShowDialog(MDIMain);
-        //show wait cursor while resource is added
-        MDIMain.UseWaitCursor = true;
-
-        //if canceled, release the temporary logic, restore mousepointer and exit
-       if (frmGetResourceNum.Canceled) {
-          tmpLogic = null
-          //restore mousepointer and exit
-          Unload frmGetResourceNum
-          MDIMain.UseWaitCursor = false;
-          return;
-
-        //if user wants logic added to current game
-        } else if ( !frmGetResourceNum.DontImport) {
-          //add ID and description to tmpLogic
-          tmpLogic.ID = frmGetResourceNum.txtID.Text
-          tmpLogic.Description = frmGetResourceNum.txtDescription.Text
-
-          //add Logic
-          AddNewLogic frmGetResourceNum.NewResNum, tmpLogic, (frmGetResourceNum.chkRoom.Value = vbChecked), blnImporting
-          //reset tmplogic to point to the new game logic
-          tmpLogic = null
-          tmpLogic = Logics(frmGetResourceNum.NewResNum)
-
-          //if using layout editor AND a room,
-         if (UseLE && (.chkRoom.Value = vbChecked)) {
-            //update editor and data file to show this room is now in the game
-            UpdateExitInfo euShowRoom, frmGetResourceNum.NewResNum, Logics(frmGetResourceNum.NewResNum)
-          }
-
-          //if including picture
-         if (frmGetResourceNum.chkIncludePic.Value = vbChecked) {
-            //if replacing an existing pic
-           if (Pictures.Exists(frmGetResourceNum.NewResNum)) {
-              RemovePicture frmGetResourceNum.NewResNum
-            }
-            AddNewPicture .NewResNum, null
-            //help user out if they chose a naming scheme
-           if (StrComp(Left(frmGetResourceNum.txtID.Text, 3), "rm.", StringComparison.OrdinalIgnoreCase) = 0 && Len(frmGetResourceNum.txtID.Text) >= 4) {
-              //change ID (if able)
-             if (ValidateID("pic." + Right(frmGetResourceNum.txtID.Text, Len(frmGetResourceNumfrmGetResourceNum.txtID.Text) - 3), Chr(255)) = 0) {
-                //save old resfile name
-                strFile = ResDir + Pictures(.NewResNum).ID + ".agp"
-                //change this picture//s ID
-                Pictures(.NewResNum).ID = "pic." + Right(frmGetResourceNum.txtID.Text, Len(frmGetResourceNum.txtID.Text) - 3)
-                //update the resfile, tree and properties
-                UpdateResFile rtPicture, frmGetResourceNum.NewResNum, strFile
-                //update lookup table
-                IDefLookup(768 + frmGetResourceNum.NewResNum).Name = "pic." + Right(frmGetResourceNum.txtID.Text, Len(frmGetResourceNum.txtID.Text) - 3)
-              }
-            }
-
-            //pic is still loaded so we need to unload it now
-            Pictures(.NewResNum).Unload
-          }
-
-          //set ingame flag
-          blnInGame = true
-        } else {
-          // not adding to game; still allowed to use template
-         if (frmGetResourceNum.chkRoom.Value = vbChecked) {
-            //add template text
-            tmpLogic.SourceText = LogTemplateText(frmGetResourceNum.txtID.Text, frmGetResourceNum.txtDescription.Text)
-          } else {
-            //add default text
-            tmpLogic.SourceText = "[ " + Keys.Enter + "[ " + frmGetResourceNum.txtID.Text + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****"
-          }
-        }
-
-        blnOpen = (frmGetResourceNum.chkOpenRes.Value = vbChecked)
-
-      //make sure resource form is unloaded
-      Unload frmGetResourceNum
-    }
-
-    //only open if user wants it open (or if not in a game or if opening/not importing)
-    if (blnOpen || !GameLoaded || !blnInGame) {
-      //open a new logic editing window
-      frmNew = New frmLogicEdit
-
-      //pass the logic to the editor
-     if (frmNew.EditLogic(tmpLogic)) {
-        //show the form
-        frmNew.Show
-        //add form to collection
-        LogicEditors.Add frmNew
-      } else {
-        frmNew = null
-      }
-    }
-
-    if (GameLoaded) {
-      //save openres value
-      Settings.OpenNew = blnOpen
-    }
-
-    //if logic was added to game
-    if (blnInGame) {
-      //unload it
-      Logics(tmpLogic.Number).Unload
-    }
-    Loop Until true
-
-    //restore mousepointer and exit
-    MDIMain.UseWaitCursor = false;
-    return;
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
 
     public static void NewPicture(string ImportPictureFile = "")
     //creates a new picture resource and opens an editor
@@ -11071,7 +10752,7 @@ namespace WinAGI_GDS
         ErrMsgBox("Error while opening picture:", "Unable to load this picture resource.", "Invalid Picture Resource"
         break;
       }
-      //now check to see if it//s a valid picture resource (by trying to reload it)
+      //now check to see if it's a valid picture resource (by trying to reload it)
       tmpPic.Load
      if (Err.Number != 0) {
         ErrMsgBox("Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource"
@@ -11126,7 +10807,7 @@ namespace WinAGI_GDS
           blnInGame = true
         }
 
-        blnOpen = (frmGetResourceNum.chkOpenRes.Value = vbChecked)
+        blnOpen = (frmGetResourceNum.chkOpenRes.Checked)
 
       //make sure resource form is unloaded
       Unload frmGetResourceNum
@@ -11201,7 +10882,7 @@ namespace WinAGI_GDS
         ErrMsgBox("An error occurred during import:", "", "Import View Error"
         break;
       }
-      //now check to see if it//s a valid picture resource (by trying to reload it)
+      //now check to see if it's a valid picture resource (by trying to reload it)
       tmpView.Load
      if (Err.Number != 0) {
         ErrMsgBox("Error reading View data:", "This is not a valid view resource.", "Invalid View Resource"
@@ -11256,7 +10937,7 @@ namespace WinAGI_GDS
           blnInGame = true
         }
 
-        blnOpen = (frmGetResourceNum.chkOpenRes.Value = vbChecked)
+        blnOpen = (frmGetResourceNum.chkOpenRes.Checked)
 
       //make sure resource form is unloaded
       Unload frmGetResourceNum
@@ -11302,247 +10983,6 @@ namespace WinAGI_GDS
     }
 
 
-    public static void OpenDIR()
-
-    Dim strError
-    bool blnWarnings;
-    int lngErr, i;
-    string strMsg;
-    string ThisGameDir;
-
-    On Error GoTo ErrHandler
-
-    //get a directory for importing
-    ThisGameDir = GetNewDir(MDIMain.hWnd, "Select the directory of the game you wish to import:")
-
-    //if still nothing (user canceled),
-    if (LenB(ThisGameDir) = 0) {
-    //user canceled
-    return;
-    }
-
-    //ensure trailing backslash
-    ThisGameDir = CDir(ThisGameDir)
-
-    //if a game is currently open,
-    if (GameLoaded) {
-    //close game, if user allows
-    if (!CloseThisGame()) {
-      return;
-    }
-    }
-
-    //all resource editors should now be closed
-    //Debug.Assert !WEInUse
-    //Debug.Assert !OEInUse
-    //Debug.Assert !MEInUse
-    //Debug.Assert !GEInUse
-
-    //show wait cursor
-    MDIMain.UseWaitCursor = true;
-
-    //show load progress bar
-    Load ProgressWin
-    With ProgressWin
-    .Text = "Importing Game"
-    .lblProgress.Text = "Importing AGI Game ..."
-    .pgbStatus.Visible = false
-    .Show
-    .Move MDIMain.Left + (MDIMain.Width - .Width) / 2, MDIMain.Top + (MDIMain.Height - .Height) / 2
-    .Refresh
-    End With
-
-    //show loading msg in status bar
-    MainStatusBar.Panels(1).Text = "Importing game; please wait..."
-
-    //if a game file exists
-    if (LenB(Dir(ThisGameDir + "*.wag")) > 0) {
-    //confirm the import
-    strMsg = "This directory already has a WinAGI game file. Do you still want to import the game in this directory?"
-    strMsg = strMsg + Environment.NewLine + Environment.NewLine + "The existing WinAGI game file will be overwritten if it has the same name as the GameID found in this directory//s AGI VOL and DIR files."
-
-    if (MessageBox.Show(strMsg, vbOKCancel + MessageBoxIcon.Question, "WinAGI Game File Already Exists") = DialogResult.Cancel) {
-      //get rid of progress form
-      Unload ProgressWin
-
-      //reset cursor
-      MDIMain.UseWaitCursor = false;
-
-      //clear status bar
-      MainStatusBar.Panels(1).Text = ""
-
-      //then exit
-      return;
-    }
-    }
-
-    //inline error trapping
-    On Error Resume Next
-
-    //import the game in this directory
-    OpenGameDir ThisGameDir
-
-    //catch any errors/warnings that were returned
-    lngErr = Err.Number
-    strError = Err.Description
-    Err.Clear
-    On Error GoTo ErrHandler
-
-    blnWarnings = (lngErr = WINAGI_ERR + 636)
-
-    switch (lngErr
-    case 0, WINAGI_ERR + 636 //no error, or warnings only
-    //loaded ok; maybe with warning
-    ProgressWin.lblProgress.Text = "Game loaded successfully, setting up editors"
-
-    MDIMain.Text = "WinAGI GDS - " + GameID
-
-    //build resource list
-    BuildResourceTree
-
-    switch (Settings.ResListType
-    case 1 //tree
-      //select root
-      MDIMain.tvwResources.Nodes(1).Selected = true
-      //update selected resource
-      MDIMain.SelectResource rtGame, -1
-      //set LastIndex property
-      MDIMain.LastIndex = 1
-    case 2
-      //select root
-      MDIMain.cmbResType.SelectedIndex = 0
-      //update selected resource
-      MDIMain.SelectResource rtGame, -1
-    }
-
-    //set default directory
-    BrowserStartDir = GameDir
-
-    //add game file to mru
-    AddToMRU GameDir + GameID + ".wag"
-
-    //adjust menus
-    AdjustMenus rtGame, true, false, false
-
-    //show preview window
-    if (Settings.ShowPreview) {
-      Load PreviewWin
-      PreviewWin.Show
-    }
-
-    // show resource tree pane
-    if (Settings.ResListType != 0) {
-      MDIMain.ShowResTree
-    }
-
-    //set default text file directory to game source file directory
-    DefaultResDir = GameDir + ResDirName + "\"
-
-    // after a game loads, colors may be different
-    //update local copy of colors
-    //(used to speed up color matching)
-    For i = 0 To 15
-      lngEGACol(i) = EGAColorLong(i)
-    Next i
-
-    //done with progress form
-    Unload ProgressWin
-
-    //did the resource directory change? (is this even possible?)
-    //YES it is; if only one dir exists, and it has a different name,
-    //it//s assumed to be the resource directory
-    strMsg = "Game file //" + GameID + ".wag//  has been created." + Environment.NewLine + Environment.NewLine
-    if (ResDirName != DefResDir) {
-      strMsg = strMsg + "The existing subdirectory //" + ResDirName + "// will be used "
-    } else {
-      strMsg = strMsg + "The subdirectory //" + ResDirName + "// has been created "
-    }
-    strMsg = strMsg + "to store logic " + _
-    "source files and exported resources. You can change the " + _
-    "source directory for this game on the Game Properties dialog."
-
-    //warn user that resource dir set to default
-    MessageBox.Show(strMsg, MessageBoxIcon.Information, "Open Game"
-
-    //does the game have an Amiga OBJECT file?
-    //very rare, but we check for it anyway
-    if (InvObjects.AmigaOBJ) {
-      MessageBox.Show("The OBJECT file for this game is formatted" + Environment.NewLine + _
-             "for the Amiga." + Environment.NewLine + Environment.NewLine + _
-             "If you intend to run this game on a DOS " + Environment.NewLine + _
-             "platform, you will need to convert the file" + Environment.NewLine + _
-             "to DOS format (use the Convert menu option" + Environment.NewLine + _
-             "on the OBJECT Editor//s Resource menu)", MessageBoxIcon.Information + MessageBoxButtons.OK, "Amiga OBJECT File detected"
-    }
-
-    //if warnings
-    if (blnWarnings) {
-      //warn about errors
-      MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", MessageBoxIcon.Information + MessageBoxButtons.OK, "Errors During Load"
-    }
-
-    //build the lookup tables for logic tooltips
-    BuildIDefLookup
-    BuildGDefLookup
-    //update the reserved lookup values
-    RDefLookup(90).Value = QUOTECHAR + GameVersion + QUOTECHAR
-    RDefLookup(91).Value = QUOTECHAR + GameAbout + QUOTECHAR
-    RDefLookup(92).Value = QUOTECHAR + GameID + QUOTECHAR
-    RDefLookup(93).Value = InvObjects.Count - 1
-
-    default:
-    ProgressWin.lblProgress.Text = "Error encountered, game not loaded"
-
-    //error
-    switch (lngErr - WINAGI_ERR
-    case 501
-      strError = "A game is already loaded. Close it before opening another game."
-
-    case 502
-      strError = "A file access error occurred while trying to open this game: " + Environment.NewLine + Environment.NewLine + strError
-
-    case 524
-      strError = "A critical game file (" + JustFileName(strError) + " is missing."
-    case 541
-      strError = ChrW$(39) + ThisGameDir + "// is not a valid AGI game directory."
-
-    case 542
-      strError = ChrW$(39) + Left$(strError, Len(strError) - 31) + "// is an invalid directory file."
-
-    case 543
-      //invalid interpreter version - couldn//t find correct version from the AGI
-      //files; current error string is sufficient
-
-    case 545
-      //resource loading error; current error string is sufficient
-
-    case 597
-      strError = "WinAGI GDS only supports version 2 and 3 of AGI."
-
-    default:
-      //can//t get any other errors
-      //Debug.Assert false
-    }
-
-    //done with progress form
-    Unload ProgressWin
-
-    //show error message
-    MessageBox.Show(strError, MessageBoxIcon.Critical + MessageBoxButtons.OK, "Unable to Open Game"
-
-    }
-
-    //reset cursor
-    MDIMain.UseWaitCursor = false;
-
-    //clear status bar
-    MainStatusBar.Panels(1).Text = ""
-    return;
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
 
     public static void OpenTextFile(string strOpenFile, bool Quiet = false)
     //this method opens a text editor window
@@ -12160,99 +11600,7 @@ namespace WinAGI_GDS
     Resume Next
     }
 
-    public static void RemovePicture(byte PicNum)
-    //removes a picture from the game, and updates
-    //preview and resource windows
-    //
-    //and deletes resource file from source directory
 
-    int i;
-     string strPicFile;
-
-    On Error GoTo ErrHandler
-
-    strPicFile = ResDir + Pictures(PicNum).ID + ".agp"
-
-    if (!Pictures.Exists(PicNum)) {
-    //raise error
-    On Error GoTo 0: Err.Raise WINAGI_ERR + 502, "ResMan", "Invalid Picture number passed to RemovePicture (picture does not exist)"
-    return;
-    }
-
-    //remove it from game
-    Pictures.Remove PicNum
-
-    switch (Settings.ResListType
-    case 1
-    With MDIMain.tvwResources
-      //remove it from resource list
-      .Nodes.Remove MDIMain.tvwResources.Nodes("p" + CStr(PicNum)).Index
-
-      //update selection to whatever is now the selected node
-      MDIMain.LastIndex = -1
-
-     if (.SelectedItem.Parent = null) {
-        //it//s the game node
-        MDIMain.SelectResource rtGame, -1
-      } else if ( .SelectedItem.Parent.Parent = null) {
-        //it//s a resource header
-        MDIMain.SelectResource .SelectedItem.Index - 2, -1
-      } else {
-        //it//s a resource
-        MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
-      }
-    End With
-
-    case 2
-    //only need to remove if pictures are listed
-    if (MDIMain.cmbResType.SelectedIndex = 2) {
-      //remove it
-      MDIMain.lstResources.ListItems.Remove MDIMain.lstResources.ListItems("p" + CStr(PicNum)).Index
-      //use click event to update
-      MDIMain.lstResources_Click
-      MDIMain.lstResources.SelectedItem.Selected = true
-    }
-    }
-
-    //if an editor is open
-    For i = 1 To PictureEditors.Count
-    if (PictureEditors(i).InGame && PictureEditors(i).PicNumber = PicNum) {
-      //set number to -1 to force close
-      PictureEditors(i).PicNumber = -1
-      //close it
-      Unload PictureEditors(i)
-      Exit For
-    }
-    Next i
-
-    //disposition any existing resource file
-    if (File.Exists(strPicFile)) {
-    KillCopyFile strPicFile, Settings.RenameDelRes
-    }
-
-    //update the logic tooltip lookup table
-    With IDefLookup(PicNum + 768)
-    .Name = ""
-    .Value = ""
-    .Type = 11 //set to a value > highest type
-    End With
-    //then let open logic editors know
-    if (LogicEditors.Count > 0) {
-    For i = 1 To LogicEditors.Count
-      LogicEditors(i).ListDirty = true
-    Next i
-    }
-    return;
-
-    ErrHandler:
-    //if error is invalid resid,
-    if (Err.Number = WINAGI_ERR + 617) {
-    //pass it along
-    On Error GoTo 0: Err.Raise Err.Number, Err.Source, Err.Description
-    return;
-    }
-    Resume Next
-    }
     public static void RemoveSound(byte SndNum)
     //removes a view from the game, and updates
     //preview and resource windows
@@ -12281,17 +11629,17 @@ namespace WinAGI_GDS
       //remove it from resource list
       .Nodes.Remove MDIMain.tvwResources.Nodes("s" + CStr(SndNum)).Index
 
-      //update selection to whatever is now the selected node
-      MDIMain.LastIndex = -1
+    //last node marker is no longer accurate; reset
+      MDIMain.LastNodeName = "";
 
      if (.SelectedItem.Parent = null) {
-        //it//s the game node
+        //it's the game node
         MDIMain.SelectResource rtGame, -1
       } else if ( .SelectedItem.Parent.Parent = null) {
-        //it//s a resource header
+        //it's a resource header
         MDIMain.SelectResource .SelectedItem.Index - 2, -1
       } else {
-        //it//s a resource
+        //it's a resource
         MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
       }
     End With
@@ -12376,17 +11724,17 @@ namespace WinAGI_GDS
       //remove it from resource list
       .Nodes.Remove MDIMain.tvwResources.Nodes("v" + CStr(ViewNum)).Index
 
-      //update selection to whatever is now the selected node
-      MDIMain.LastIndex = -1
+    //last node marker is no longer accurate; reset
+      MDIMain.LastNodeName = "";
 
      if (.SelectedItem.Parent = null) {
-        //it//s the game node
+        //it's the game node
         MDIMain.SelectResource rtGame, -1
       } else if ( .SelectedItem.Parent.Parent = null) {
-        //it//s a resource header
+        //it's a resource header
         MDIMain.SelectResource .SelectedItem.Index - 2, -1
       } else {
-        //it//s a resource
+        //it's a resource
         MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
       }
     End With
@@ -12465,7 +11813,7 @@ namespace WinAGI_GDS
       Loop
       FileCopy ResFile, strOldName
     }
-    //kill the file in source directory (if it//s not there, error just gets ignored...)
+    //kill the file in source directory (if it's not there, error just gets ignored...)
     Kill ResFile
     }
 
@@ -12553,7 +11901,7 @@ namespace WinAGI_GDS
           tvwRel = tvwPrevious
         }
 
-        //put the resource in it//s new location
+        //put the resource in it's new location
         .Nodes.Add(tmpNode.Index, tvwRel, strResType + CStr(NewResNum), strCaption).Selected = true
         .SelectedItem.Tag = NewResNum
         .SelectedItem.EnsureVisible
@@ -12565,17 +11913,17 @@ namespace WinAGI_GDS
           }
         }
 
-        //update by re-selecting
-        MDIMain.LastIndex = -1
+    //last node marker is no longer accurate; reset
+        MDIMain.LastNodeName = "";
 
        if (.SelectedItem.Parent = null) {
-          //it//s the game node
+          //it's the game node
           MDIMain.SelectResource rtGame, -1
         } else if ( .SelectedItem.Parent.Parent = null) {
-          //it//s a resource header
+          //it's a resource header
           MDIMain.SelectResource .SelectedItem.Index - 2, -1
         } else {
-          //it//s a resource
+          //it's a resource
           MDIMain.SelectResource .SelectedItem.Parent.Index - 2, CLng(.SelectedItem.Tag)
         }
       End With
@@ -12646,7 +11994,7 @@ namespace WinAGI_GDS
     }
 
     public static void ReplaceAll(string FindText, string ReplaceText, FindDirection FindDir, bool MatchWord, bool MatchCase, FindLocation LogicLoc, AGIResType SearchType = AGIResType.rtNone)
-    // replace all doesn//t use or need direction
+    // replace all doesn't use or need direction
     int i, LogNum;
 
     On Error GoTo ErrHandler
@@ -12722,7 +12070,7 @@ namespace WinAGI_GDS
     //which are text files or !InGame
 
     //if replacing globals, don't use the progress form
-    //it//s already being used to track the globals being searched
+    //it's already being used to track the globals being searched
     if (SearchType != rtGlobals) {
       //show progress form
       Load ProgressWin
@@ -12825,12 +12173,12 @@ namespace WinAGI_GDS
 
     // have to set focus to main form in order get the child forms
     // to properly switch focus (the searching logic should always
-    // get the focus after a replace all; not the AGIFindForm)
+    // get the focus after a replace all; not the FindingForm)
     MDIMain.Focus()
     }
 
     //reset search flags
-    AGIFindForm.ResetSearch
+    FindingForm.ResetSearch
 
     return;
 
@@ -12944,9 +12292,11 @@ namespace WinAGI_GDS
     Resume Next
     }
 
-
-
+*/
+    }
     public static void UpdateExitInfo(EUReason Reason, int LogicNumber, AGILogic ThisLogic, int NewNum = 0)
+      {
+      /*
     //   frmMDIMain|SelectedItemRenumber:  UpdateExitInfo euRenumberRoom, OldResNum, null, NewResNum
     //  frmMDIMain|lstProperty_LostFocus:  UpdateExitInfo Reason, SelResNum, Logics(SelResNum) //showroom or removeroom
     //frmMDIMain|picProperties_MouseDown:  UpdateExitInfo Reason, SelResNum, Logics(SelResNum) //showroom or removeroom
@@ -13054,7 +12404,6 @@ namespace WinAGI_GDS
     //Debug.Assert false
     Resume Next
     ParseExits = null
-    }
       */
     }
     public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bool IsDirty)
@@ -13080,10 +12429,11 @@ namespace WinAGI_GDS
       MainStatusBar.Items.Clear();
       if (Editing) {
         MainStatusBar.Tag = (NewMode.ToString());
-      } else {
+      }
+      else {
         MainStatusBar.Tag = "";
       }
-//*//
+      //*//
 
       /*
       //if editing,
@@ -13346,6 +12696,297 @@ namespace WinAGI_GDS
           break;
         }
       } */
+    }
+    public static void AddNewLogic(int NewLogicNumber, AGILogic NewLogic, bool blnTemplate, bool Importing)
+    {
+      string strLogic;
+      int i;
+
+      //add to logic collection in game
+      Logics.Add((byte)NewLogicNumber, NewLogic);
+
+      //if not importing, we need to add boilerplate text
+      if (!Importing) {
+        //if using template,
+        if (blnTemplate) {
+          //add template text to logic source
+          strLogic = LogTemplateText(Logics[NewLogicNumber].ID, Logics[NewLogicNumber].Description);
+        }
+        else {
+          //add default text
+          strLogic = "[ " + Keys.Enter + "[ " + Logics[NewLogicNumber].ID + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****";
+        }
+        //for new resources, need to set the source text
+        Logics[NewLogicNumber].SourceText = strLogic;
+      }
+      //always save source to new name
+      Logics[NewLogicNumber].SaveSource();
+
+      //if NOT importing AND default (not using template), compile the text
+      if (!Importing && !blnTemplate) {
+        Logics[NewLogicNumber].Compile();
+      }
+      //set isroom status based on template
+      if (NewLogicNumber != 0) {
+        Logics[NewLogicNumber].IsRoom = blnTemplate;
+      }
+      //if using layout editor AND isroom
+      if (UseLE && Logics[NewLogicNumber].IsRoom) {
+        //update layout editor and layout data file to show this room is in the game
+        UpdateExitInfo(EUReason.euAddRoom, NewLogicNumber, Logics[NewLogicNumber]);
+      }
+      //add to resource list
+      switch (Settings.ResListType) {
+      case 1:
+        TreeNode tmpNode;
+        int lngPos;
+        tmpNode = HdrNode[0];
+        //find place to insert this logic
+        for (lngPos = 0; lngPos < HdrNode[0].Nodes.Count; lngPos++) {
+          if ((int)tmpNode.Tag > NewLogicNumber) {
+            break;
+          }
+        }
+        //add to tree
+        tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sLOGICS].Nodes.Insert(lngPos, "l" + NewLogicNumber, ResourceName(Logics[NewLogicNumber], true));
+        tmpNode.Tag = NewLogicNumber;
+        //load source to set compiled status
+        if (Logics[NewLogicNumber].Compiled) {
+          tmpNode.ForeColor = Color.Black;
+        }
+        else {
+          tmpNode.ForeColor = Color.Red;
+        }
+        break;
+      case 2:
+        //only update if logics are being listed
+        if (MDIMain.cmbResType.SelectedIndex == 1) {
+          ListViewItem tmpListItem;
+          //find a place to insert this logic in the box list
+          //find a place to add it
+          for (i = 0; i < MDIMain.lstResources.Items.Count; i++) {
+            if ((int)MDIMain.lstResources.Items[i].Tag > NewLogicNumber) {
+              break;
+            }
+          }
+          //i is index position we are looking for
+          tmpListItem = MDIMain.lstResources.Items.Insert(i, "l" + NewLogicNumber.ToString(), ResourceName(Logics[NewLogicNumber], true), 0);
+          tmpListItem.Tag = NewLogicNumber.ToString();
+          if (!Logics[NewLogicNumber].Compiled) {
+            tmpListItem.ForeColor = Color.Red;
+          }
+        }
+        // //expand column width if necessary
+        //if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
+        //   MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
+        // }
+        break;
+      }
+      //update the logic tooltip lookup table
+      IDefLookup[NewLogicNumber].Name = Logics[NewLogicNumber].ID;
+      IDefLookup[NewLogicNumber].Type = atNum;
+      //then let open logic editors know
+      if (LogicEditors.Count > 0) {
+        for (i = 0; 0 < LogicEditors.Count; i++) {
+          LogicEditors[i].ListDirty = true;
+        }
+      }
+
+      //last node marker is no longer accurate; reset
+      MDIMain.LastNodeName = "";
+    }
+    public static void NewLogic(string ImportLogicFile = "")
+    {
+      //creates a new logic resource and opens an editor
+
+      frmLogicEdit frmNew;
+      bool blnInGame = false;
+      AGILogic tmpLogic;
+      bool blnOpen = false;
+
+      string strFile = "";
+      bool blnSource = false, blnImporting = false;
+
+      //show wait cursor
+      MDIMain.UseWaitCursor = true;
+
+      do {
+        //create temporary logic
+        tmpLogic = new AGILogic();
+
+        //if an import filename passed,
+        if (ImportLogicFile.Length != 0) {
+          blnImporting = true;
+          //open file to see if it is sourcecode or compiled logic
+          try {
+            using FileStream fsNewLog = new FileStream(ImportLogicFile, FileMode.Open);
+            using StreamReader srNewLog = new StreamReader(fsNewLog);
+            strFile = srNewLog.ReadToEnd();
+            srNewLog.Dispose();
+            fsNewLog.Dispose();
+          }
+          catch (Exception) {
+            // ignore errors; import method will have to handle it
+          }
+
+          //check if logic is a compiled logic:
+          //(check for existence of characters <8)
+          string lChars = "";
+          for (int i = 1; i <= 8; i++) {
+            lChars += ((char)i).ToString();
+            blnSource = !strFile.Any(lChars.Contains);
+          }
+          //import the logic
+          //(and check for error)
+          try {
+            tmpLogic.Import(ImportLogicFile, blnSource);
+          }
+          catch (Exception e) {
+            //if a compile error occurred,
+            if (e.HResult == WINAGI_ERR + 567) {
+              //can't open this resource
+              ErrMsgBox(e, "An error occurred while trying to decompile this logic resource:", "Unable to open this logic.", "Invalid Logic Resource");
+              break;
+            }
+            else {
+              //maybe we assumed source status incorrectly- try again
+              try {
+                tmpLogic.Import(ImportLogicFile, !blnSource);
+              }
+              catch (Exception) {
+                //if STILL error
+                //something wrong
+                ErrMsgBox(e, "Unable to load this logic resource. It can't be decompiled, and does not appear to be a text file.", "", "Invalid Logic Resource");
+              }
+            }
+          }
+        }
+        // get resource number, id , description
+        frmGetResourceNum GetResNum = new frmGetResourceNum();
+        //if a game is loaded,
+        if (GameLoaded) {
+          //get logic number
+          //show add resource form
+          GetResNum.ResType = rtLogic;
+          if (blnImporting) {
+            GetResNum.WindowFunction = EGetRes.grImport;
+          }
+          else {
+            GetResNum.WindowFunction = EGetRes.grAddNew;
+          }
+          //setup before loading so ghosts don't show up
+          GetResNum.FormSetup();
+          //suggest ID based on filename
+          if (ImportLogicFile.Length > 0) {
+            GetResNum.txtID.Text = FileNameNoExt(ImportLogicFile).Replace(" ", "");
+          }
+          //restore cursor while getting resnum
+          MDIMain.UseWaitCursor = false;
+          GetResNum.ShowDialog(MDIMain);
+          //show wait cursor while resource is added
+          MDIMain.UseWaitCursor = true;
+
+          //if canceled, release the temporary logic, restore mousepointer and exit
+          if (GetResNum.Canceled) {
+            tmpLogic = null;
+            //restore mousepointer and exit
+            GetResNum.Close();
+            MDIMain.UseWaitCursor = false;
+            return;
+          }
+          //if user wants logic added to current game
+          else if (!GetResNum.DontImport) {
+            //add ID and description to tmpLogic
+            tmpLogic.ID = GetResNum.txtID.Text;
+            tmpLogic.Description = GetResNum.txtDescription.Text;
+
+            //add Logic
+            AddNewLogic(GetResNum.NewResNum, tmpLogic, (GetResNum.chkRoom.Checked), blnImporting);
+            //reset tmplogic to point to the new game logic
+            tmpLogic = null;
+            tmpLogic = Logics[GetResNum.NewResNum];
+
+            //if using layout editor AND a room,
+            if (UseLE && (GetResNum.chkRoom.Checked)) {
+              //update editor and data file to show this room is now in the game
+              UpdateExitInfo(EUReason.euShowRoom, GetResNum.NewResNum, Logics[GetResNum.NewResNum]);
+            }
+            //if including picture
+            if (GetResNum.chkIncludePic.Checked) {
+              //if replacing an existing pic
+              if (Pictures.Exists(GetResNum.NewResNum)) {
+                RemovePicture(GetResNum.NewResNum);
+              }
+              AddNewPicture(GetResNum.NewResNum, null);
+              //help user out if they chose a naming scheme
+              if (Left(GetResNum.txtID.Text, 3).Equals("rm.", StringComparison.OrdinalIgnoreCase) && GetResNum.txtID.Text.Length >= 4) {
+                //change ID (if able)
+                if (ValidateID("pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3), (char)255) == 0) {
+                  //save old resfile name
+                  strFile = ResDir + Pictures[GetResNum.NewResNum].ID + ".agp";
+                  //change this picture//s ID
+                  Pictures[GetResNum.NewResNum].ID = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
+                  //update the resfile, tree and properties
+                  UpdateResFile(rtPicture, GetResNum.NewResNum, strFile);
+                  //update lookup table
+                  IDefLookup[768 + GetResNum.NewResNum].Name = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
+                }
+              }
+              //pic is still loaded so we need to unload it now
+              Pictures[GetResNum.NewResNum].Unload();
+            }
+            //set ingame flag
+            blnInGame = true;
+          }
+          else {
+            // not adding to game; still allowed to use template
+            if (GetResNum.chkRoom.Checked) {
+              //add template text
+              tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
+            }
+            else {
+              //add default text
+              tmpLogic.SourceText = "[ " + Keys.Enter + "[ " + GetResNum.txtID.Text + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****";
+            }
+          }
+
+          blnOpen = (GetResNum.chkOpenRes.Checked);
+
+          //make sure resource form is unloaded
+          GetResNum.Close();
+        }
+
+        //only open if user wants it open (or if not in a game or if opening/not importing)
+        if (blnOpen || !GameLoaded || !blnInGame) {
+          //open a new logic editing window
+          frmNew = new frmLogicEdit
+          {
+            MdiParent = MDIMain
+          };
+          //pass the logic to the editor
+          if (frmNew.EditLogic(tmpLogic)) {
+            //show the form
+            frmNew.Show();
+            //add form to collection
+            LogicEditors.Add(frmNew);
+          }
+          else {
+            frmNew.Close();
+          }
+        }
+        if (GameLoaded) {
+          //save openres value
+          Settings.OpenNew = blnOpen;
+        }
+        //if logic was added to game
+        if (blnInGame) {
+          //unload it
+          Logics[tmpLogic.Number].Unload();
+        }
+      } while (false); // Until true
+
+      //restore mousepointer and exit
+      MDIMain.UseWaitCursor = false;
     }
     public static void OpenLogic(byte ResNum, bool Quiet = false)
     {
@@ -13693,6 +13334,67 @@ namespace WinAGI_GDS
     Resume Next
       */
     }
+    public static string LogTemplateText(string NewID, string NewDescription)
+    {
+      string strLogic = "";
+      bool blnNoFile = false;
+      //first, get the default file, if there is one
+      if (File.Exists(ProgramDir + "deflog.txt")) {
+        try {
+          using FileStream fsLogTempl = new FileStream(ProgramDir + "deflog.txt", FileMode.Open);
+          using StreamReader srLogTempl = new StreamReader(fsLogTempl);
+          strLogic = srLogTempl.ReadToEnd();
+        }
+        catch (Exception) {
+          // problem with the file
+          blnNoFile = true;
+        }
+      }
+      else {
+        // no file
+        blnNoFile = true;
+      }
+      //if no template file
+      if (blnNoFile) {
+        //something didn't work; let user know
+        //DialogResult rtn = MsgBoxEx("The default logic template file ('deflog.txt') is missing" + Environment.NewLine +
+        //               "from the WinAGI program directory. Using the WinAGI default" + Environment.NewLine +
+        //               "template instead.", "Missing Template File", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        ////      WinAGIHelp, "htm\winagi\newres.htm#logtemplate")
+        strLogic = LoadResString(101);
+        //insert line breaks
+        strLogic = strLogic.Replace('|', (char)Keys.Enter);
+      }
+
+      try {
+        //substitute correct values for the various place holders
+        //add the tabs
+        strLogic = strLogic.Replace("~", MultStr(" ", Settings.LogicTabWidth));
+        //id:
+        strLogic = strLogic.Replace("%id", NewID);
+        //description
+        strLogic = strLogic.Replace("%desc", NewDescription);
+
+        //horizon is a PicTest setting, which should always be retrieved everytime
+        //it is used to make sure it's current
+        strLogic = strLogic.Replace("%h", ReadSettingLong(SettingsList, sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON).ToString());
+
+        //if using reserved names, insert them
+        if (LogicSourceSettings.UseReservedNames) {
+          //f5, v0, f2, f4, v9
+          strLogic = strLogic.Replace("f5", LogicSourceSettings.ReservedDefines(atFlag)[5].Name);
+          strLogic = strLogic.Replace("f2", LogicSourceSettings.ReservedDefines(atFlag)[2].Name);
+          strLogic = strLogic.Replace("f4", LogicSourceSettings.ReservedDefines(atFlag)[4].Name);
+          strLogic = strLogic.Replace("v0", LogicSourceSettings.ReservedDefines(atVar)[0].Name);
+          strLogic = strLogic.Replace("v9", LogicSourceSettings.ReservedDefines(atVar)[9].Name);
+        }
+      }
+      catch (Exception) {
+        //ignore errors return whatever is left
+      }
+      //return the formatted text
+      return strLogic;
+    }
     public static void CheckShortcuts(KeyEventArgs e)
     {
       //*// shouldn't need this anymore; key assignments included in menu definitions
@@ -13963,7 +13665,7 @@ namespace WinAGI_GDS
         // selected - if nothing selected, search starts one character
         // before cursor (in case cursor is right in front of the
         // word being searched for); if there is a selection, search
-        // starts at cursor location if selection doesn//t match search
+        // starts at cursor location if selection doesn't match search
         // text; if selected text matches, then the saved search start
         // is set to current location, but the current search start has
         // to start one character AFTER search start AND sets FirstFind
@@ -14024,7 +13726,7 @@ namespace WinAGI_GDS
           //increment saved start position
           SearchPos = SearchStartPos + 1
         } else {
-          //selection doesn//t match; if this is a new search
+          //selection doesn't match; if this is a new search
          if (blnNewSearch) {
             //use beginning of selection
             SearchPos = LogicEditors(lngFirstLogWin).rtfLogic.Selection.Range.StartPos + 1
@@ -14396,31 +14098,31 @@ namespace WinAGI_GDS
       //if something previously found (firstfind=true)
      if (FirstFind) {
         //search complete; no new instances found
-        blnFrmVis = AGIFindForm.Visible
+        blnFrmVis = FindingForm.Visible
        if (blnFrmVis) {
-          AGIFindForm.Visible = false
+          FindingForm.Visible = false
         }
         MessageBox.Show("The specified region has been searched. No more matches found.", MessageBoxIcon.Information, "Find in Logic"
        if (blnFrmVis) {
-          AGIFindForm.Visible = true
+          FindingForm.Visible = true
         }
       } else {
-        blnFrmVis = AGIFindForm.Visible
+        blnFrmVis = FindingForm.Visible
        if (blnFrmVis) {
-          AGIFindForm.Visible = false
+          FindingForm.Visible = false
         }
         //show not found msg
         MessageBox.Show("Search text not found.", MessageBoxIcon.Information, "Find in Logic"
        if (blnFrmVis) {
-          AGIFindForm.Visible = true
+          FindingForm.Visible = true
         }
       }
 
       //restore focus to correct form
      if (SearchStartDlg) {
-        //assume it//s visible
-        //Debug.Assert AGIFindForm.Visible
-        //it//s already got focus
+        //assume it's visible
+        //Debug.Assert FindingForm.Visible
+        //it's already got focus
       } else {
         //set focus to searchform
        if (SearchForm != null) {
@@ -14430,7 +14132,7 @@ namespace WinAGI_GDS
     }
 
     //reset search flags
-    AGIFindForm.ResetSearch
+    FindingForm.ResetSearch
     }
 
     //reset cursor
@@ -14441,6 +14143,28 @@ namespace WinAGI_GDS
     //Debug.Assert false
     Resume Next
       */
+    }
+    public static void ErrMsgBox(Exception e, string ErrMsg1, string ErrMsg2, string ErrCaption)
+    {
+      //displays a messagebox showing ErrMsg and includes error passed as AGIErrObj
+      //Debug.Assert Err.Number != 0
+
+      int lngErrNum;
+      string strErrMsg;
+
+      //determine if ErrNum is an AGI number:
+      if ((e.HResult & WINAGI_ERR) == WINAGI_ERR) {
+        lngErrNum = e.HResult - WINAGI_ERR;
+      }
+      else {
+        lngErrNum = e.HResult;
+      }
+
+      strErrMsg = ErrMsg1 + Environment.NewLine + Environment.NewLine + lngErrNum + ": " + e.Message;
+      if (ErrMsg2.Length > 0) {
+        strErrMsg = strErrMsg + Environment.NewLine + Environment.NewLine + ErrMsg2;
+      }
+      MessageBox.Show(MDIMain, strErrMsg, ErrCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
     public static void GetDefaultColors()
     {
@@ -14475,7 +14199,8 @@ namespace WinAGI_GDS
           break;
         }
         return retval + Settings.ResFormat.Separator + ThisResource.Number.ToString(Settings.ResFormat.NumFormat);
-      } else {
+      }
+      else {
         if (Settings.IncludeResNum && IsInGame && !NoNumber) {
           retval = ThisResource.Number + " - ";
         }
@@ -14596,7 +14321,8 @@ namespace WinAGI_GDS
       ctl.Refresh();
     }
   }
-  internal partial class ResManRes  {
+  internal partial class ResManRes
+  {
     public static string LoadResString(int index)
     {
       // this function is just a handy way to get resource strings by number

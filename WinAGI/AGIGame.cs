@@ -744,7 +744,7 @@ namespace WinAGI
         //pic offset is 8 + 3*logmax
         tmpMax = agLogs.Max + 1;
         if (tmpMax == 0) {
-          // always put at least one; even if it//s all FFs
+          // always put at least one; even if it's all FFs
           tmpMax = 1;
         }
         bwDIR.Write((short)(8 + 3 * tmpMax));

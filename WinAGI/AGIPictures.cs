@@ -16,8 +16,16 @@ namespace WinAGI
     }
     internal SortedList<byte, AGIPicture> Col
     { get; private set; }
-    public AGIPicture this[byte index]
-    { get { return Col[index]; } }
+    public AGIPicture this[int index]
+    {
+      get
+      {
+        //validate index
+        if (index < 0 || index > 255)
+          throw new IndexOutOfRangeException();
+        return Col[(byte)index];
+      }
+    }
     public byte Count
     { get { return (byte)Col.Count; } private set { } }
     public byte Max
@@ -46,21 +54,18 @@ namespace WinAGI
       int intNextNum = 1;
       string strID, strBaseID;
       //if this Picture already exists
-      if (Exists(ResNum))
-      {
+      if (Exists(ResNum)) {
         //resource already exists
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
       //if no object was passed
-      if ((NewPicture == null))
-      {
+      if ((NewPicture == null)) {
         //create new picture object
         agResource = new AGIPicture();
         //proposed ID will be default
         strID = "Picture" + ResNum;
       }
-      else
-      {
+      else {
         //clone the passed picture
         agResource = NewPicture.Clone();
         //get proposed id
@@ -68,8 +73,7 @@ namespace WinAGI
       }
       // validate id
       strBaseID = strID;
-      while (!IsUniqueResID(strID))
-      {
+      while (!IsUniqueResID(strID)) {
         intNextNum++;
         strID = strBaseID + "_" + intNextNum;
       }
@@ -90,8 +94,7 @@ namespace WinAGI
       //removes a picture from the game file
 
       // if the resource exists
-      if (Col.ContainsKey(Index))
-      {
+      if (Col.ContainsKey(Index)) {
         //need to clear the directory file first
         UpdateDirFile(Col[Index], true);
         Col.Remove(Index);
@@ -107,13 +110,11 @@ namespace WinAGI
       bool blnUnload = false;
       string strSection, strID, strBaseID;
       //if no change
-      if (OldPic == NewPic)
-      {
+      if (OldPic == NewPic) {
         return;
       }
       //verify new number is not in collection
-      if (Col.Keys.Contains(NewPic))
-      {
+      if (Col.Keys.Contains(NewPic)) {
         //number already in use
         throw new Exception("669, LoadResString(669)");
       }
@@ -121,8 +122,7 @@ namespace WinAGI
       tmpPic = Col[OldPic];
 
       //if not loaded,
-      if (!tmpPic.Loaded)
-      {
+      if (!tmpPic.Loaded) {
         tmpPic.Load();
         blnUnload = true;
       }
@@ -138,12 +138,10 @@ namespace WinAGI
       UpdateDirFile(tmpPic, true);
 
       //if id is default
-      if (tmpPic.ID.Equals("Picture" + OldPic, StringComparison.OrdinalIgnoreCase))
-      {
+      if (tmpPic.ID.Equals("Picture" + OldPic, StringComparison.OrdinalIgnoreCase)) {
         //change default ID to new ID
         strID = strBaseID = "Picture" + NewPic;
-        while (!IsUniqueResID(strID))
-        {
+        while (!IsUniqueResID(strID)) {
           intNextNum++;
           strID = strBaseID + "_" + intNextNum;
         }
@@ -169,8 +167,7 @@ namespace WinAGI
       tmpPic.WritePropState = false;
 
       //unload if necessary
-      if (blnUnload)
-      {
+      if (blnUnload) {
         tmpPic.Unload();
       }
     }
@@ -179,8 +176,7 @@ namespace WinAGI
       //called by the resource loading method for the initial loading of
       //resources into logics collection
       //if this Logic number is already in the game
-      if (agPics.Exists(bytResNum))
-      {
+      if (agPics.Exists(bytResNum)) {
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
       //create new logic object
@@ -215,12 +211,10 @@ namespace WinAGI
     {
       get
       {
-        try
-        {
+        try {
           return _pictures.Values[position];
         }
-        catch (IndexOutOfRangeException)
-        {
+        catch (IndexOutOfRangeException) {
 
           throw new InvalidOperationException();
         }

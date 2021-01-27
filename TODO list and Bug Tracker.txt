@@ -12,3 +12,12 @@
         // bad
         return 13;
       }
+
+      to print text:
+      use graphics.DrawString
+
+      to get height/width of text:
+     //set property window split location based on longest word
+      Size szText = TextRenderer.MeasureText(" Use Res Names ", new Font("MS Sans Serif", 8));
+      PropSplitLoc = szText.Width;
+      PropRowHeight = szText.Height + 2;

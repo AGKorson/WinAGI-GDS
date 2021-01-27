@@ -18,12 +18,16 @@ namespace WinAGI
     { "number", "variable", "flag", "message", "object", 
       "inventory item", "string", "word", "controller" };
     internal static string agSrcExt = ".lgc";
+    internal const int MAX_CMDS = 182;
     internal static byte agNumCmds;
-    internal static CommandStruct[] agCmds = new CommandStruct[183]; //182 
+    internal static CommandStruct[] agCmds = new CommandStruct[MAX_CMDS];
+    // last command 'adjust.ego.x.y', is not supported so its' not added
+    // to the list of commands
     internal static string strErrSource = "WinAGI.agiCommandInfo";
     static AGICommands()
     {
-      agNumCmds = 182;   // not counting return()
+      // default is to make all 182 commands visible
+      agNumCmds = MAX_CMDS;
 
       //agi commands:
       agCmds[0].Name = "return";
@@ -839,18 +843,21 @@ namespace WinAGI
 
       agCmds[181].Name = "release.key";
       agCmds[181].ArgType = Array.Empty<ArgTypeEnum>();
-
-      agCmds[182].Name = "adj.ego.move.to.x.y";
-      agCmds[182].ArgType = new ArgTypeEnum[2];
-      agCmds[182].ArgType[0] = ArgTypeEnum.atNum;
-      agCmds[182].ArgType[1] = ArgTypeEnum.atNum;
+      
+      // currently, this command is not supported, and 
+      // can never be accessed
+      //agCmds[182].Name = "adj.ego.move.to.x.y";
+      //agCmds[182].ArgType = new ArgTypeEnum[2];
+      //agCmds[182].ArgType[0] = ArgTypeEnum.atNum;
+      //agCmds[182].ArgType[1] = ArgTypeEnum.atNum;
 
       AssignReservedDefines();
     }
     public static CommandStruct AGICommand(byte index)
     {
-      //validate index
-      if (index > agNumCmds)
+      //validate index (this gets limited based on which
+      // game version is active)
+      if (index >= agNumCmds)
       {
         throw new IndexOutOfRangeException();
       }
@@ -916,19 +923,20 @@ namespace WinAGI
       }
       // adjust number of available commands
       if (verNum <= 2.089)
-        agNumCmds = 155;
+        agNumCmds = 156; // 155;
       else if (verNum <= 2.272)
-        agNumCmds = 161;
+        agNumCmds = 162; // 161;
       else if (verNum <= 2.44)
-        agNumCmds = 169;
+        agNumCmds = 170; // 169;
       else if (verNum <= 2.917)
-        agNumCmds = 173;
+        agNumCmds = 174; // 173;
       else if (verNum <= 2.936)
-        agNumCmds = 175;
+        agNumCmds = 176; // 175;
       else if (verNum <= 3.002086)
-        agNumCmds = 177;
+        agNumCmds = 178; // 177;
       else
-        agNumCmds = 181;
+        // all are available
+        agNumCmds = MAX_CMDS; // 181;
     }
   }
 }

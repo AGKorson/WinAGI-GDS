@@ -262,7 +262,7 @@ namespace WinAGI_GDS
           Exit Do
         }
 
-        //get the value at this pos, and determine if it//s
+        //get the value at this pos, and determine if it's
         //a draw command
         bytCmd = ExportPic.Data(lngPos)
 

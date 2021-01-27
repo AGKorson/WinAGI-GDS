@@ -882,12 +882,12 @@ ErrHandler:
       //     string, dependent on the offset of the last
       //     byte from a multiple of 11 (the length of "Avis Durgan")
       //     the function will return a Value of 1
-      //if the last character doesn//t properly decrypt to Chr$(0)
+      //if the last character doesn't properly decrypt to Chr$(0)
       //the function returns an error Value (2)
       //Note: the last byte is passed by Value so it can be temporarily
       //modified during the check
 
-      //if it//s a zero,
+      //if it's a zero,
       if (bytLast == 0)
       {
         //return unencrypted

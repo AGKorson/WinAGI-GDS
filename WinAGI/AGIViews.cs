@@ -16,8 +16,16 @@ namespace WinAGI
     }
     internal SortedList<byte, AGIView> Col
     { get; private set; }
-    public AGIView this[byte index]
-    { get { return Col[index]; } }
+    public AGIView this[int index]
+    {
+      get
+      {
+        //validate index
+        if (index < 0 || index > 255)
+          throw new IndexOutOfRangeException();
+        return Col[(byte)index];
+      }
+    }
     public byte Count
     { get { return (byte)Col.Count; } private set { } }
     public byte Max
@@ -46,21 +54,18 @@ namespace WinAGI
       int intNextNum = 1;
       string strID, strBaseID;
       //if this view already exists
-      if (Exists(ResNum))
-      {
+      if (Exists(ResNum)) {
         //resource already exists
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
       //if no object was passed
-      if ((NewView == null))
-      {
+      if ((NewView == null)) {
         //create new view resource
         agResource = new AGIView();
         //proposed ID will be default
         strID = "View" + ResNum;
       }
-      else
-      {
+      else {
         //clone the passed view
         agResource = NewView.Clone();
 
@@ -69,8 +74,7 @@ namespace WinAGI
       }
       // validate id
       strBaseID = strID;
-      while (!IsUniqueResID(strID))
-      {
+      while (!IsUniqueResID(strID)) {
         intNextNum++;
         strID = strBaseID + "_" + intNextNum;
       }
@@ -91,8 +95,7 @@ namespace WinAGI
       //removes a view from the game file
 
       // if the resource exists
-      if (Col.ContainsKey(Index))
-      {
+      if (Col.ContainsKey(Index)) {
         //need to clear the directory file first
         UpdateDirFile(Col[Index], true);
         Col.Remove(Index);
@@ -108,13 +111,11 @@ namespace WinAGI
       bool blnUnload = false;
       string strSection, strID, strBaseID;
       //if no change
-      if (OldView == NewView)
-      {
+      if (OldView == NewView) {
         return;
       }
       //verify new number is not in collection
-      if (Col.Keys.Contains(NewView))
-      {
+      if (Col.Keys.Contains(NewView)) {
         //number already in use
         throw new Exception("669, LoadResString(669)");
       }
@@ -122,8 +123,7 @@ namespace WinAGI
       tmpView = Col[OldView];
 
       //if not loaded,
-      if (!tmpView.Loaded)
-      {
+      if (!tmpView.Loaded) {
         tmpView.Load();
         blnUnload = true;
       }
@@ -139,12 +139,10 @@ namespace WinAGI
       UpdateDirFile(tmpView, true);
 
       //if id is default
-      if (tmpView.ID.Equals("View" + OldView, StringComparison.OrdinalIgnoreCase))
-      {
+      if (tmpView.ID.Equals("View" + OldView, StringComparison.OrdinalIgnoreCase)) {
         //change default ID to new ID
         strID = strBaseID = "View" + NewView;
-        while (!IsUniqueResID(strID))
-        {
+        while (!IsUniqueResID(strID)) {
           intNextNum++;
           strID = strBaseID + "_" + intNextNum;
         }
@@ -170,8 +168,7 @@ namespace WinAGI
       tmpView.WritePropState = false;
 
       //unload if necessary
-      if (blnUnload)
-      {
+      if (blnUnload) {
         tmpView.Unload();
       }
     }
@@ -180,8 +177,7 @@ namespace WinAGI
       //called by the resource loading method for the initial loading of
       //resources into logics collection
       //if this Logic number is already in the game
-      if (agViews.Exists(bytResNum))
-      {
+      if (agViews.Exists(bytResNum)) {
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
       //create new logic object
@@ -219,12 +215,10 @@ namespace WinAGI
     {
       get
       {
-        try
-        {
+        try {
           return _views.Values[position];
         }
-        catch (IndexOutOfRangeException)
-        {
+        catch (IndexOutOfRangeException) {
 
           throw new InvalidOperationException();
         }

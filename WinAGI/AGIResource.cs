@@ -620,7 +620,7 @@ namespace WinAGI
         //error
         throw new Exception(" 604, strErrSource, LoadResString(604)");
       }
-      //if file doesn//t exist
+      //if file doesn't exist
       if (!File.Exists(ImportFile)) {
         //error
         throw new Exception("LoadResString(524), ImportFile)");
@@ -885,7 +885,7 @@ namespace WinAGI
         mlngCurPos = Pos;
       }
       byte bRetVal = mRData[mlngCurPos];
-      mlngCurPos += 1;
+      mlngCurPos++;
 
       //set end of resource Value
       mblnEORes = (mlngCurPos == mRData.Length);

@@ -238,7 +238,7 @@ namespace WinAGI
                   }
                   else
                   {
-                    //set it//s DIR file values to FFs
+                    //set it's DIR file values to FFs
                     bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
                     bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
                     bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
@@ -266,7 +266,7 @@ namespace WinAGI
                   }
                   else
                   {
-                    //set it//s DIR file values to FFs
+                    //set it's DIR file values to FFs
                     bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
                     bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
                     bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
@@ -294,7 +294,7 @@ namespace WinAGI
                   }
                   else
                   {
-                    //set it//s DIR file values to FFs
+                    //set it's DIR file values to FFs
                     bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
                     bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
                     bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
@@ -323,7 +323,7 @@ namespace WinAGI
                   }
                   else
                   {
-                    //set it//s DIR file values to FFs
+                    //set it's DIR file values to FFs
                     bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
                     bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
                     bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
@@ -402,7 +402,7 @@ namespace WinAGI
           RecordLogEvent(LogEventType.leWarning, strResID + " was skipped due to file access error (" + eRes.Data[0] + ")");
           break;
         case 505: //Invalid resource location (%1) in %2.
-          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped because it//s location (" + eRes.Data[0] + ") in the VOL file(" + eRes.Data[1] + ") is invalid.");
+          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped because it's location (" + eRes.Data[0] + ") in the VOL file(" + eRes.Data[1] + ") is invalid.");
           break;
         case 506: //Invalid resource data at %1 in %2.
           RecordLogEvent(LogEventType.leWarning, strResID + " was skipped because it does not have a valid resource header");
@@ -411,7 +411,7 @@ namespace WinAGI
           RecordLogEvent(LogEventType.leWarning, strResID + " was skipped due to resource data error (" + eRes.Data[0] + ")");
           break;
         case 606: //Can//t load resource: file not found (%1)
-          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped because it//s VOL file (" + eRes.Data[0] + ") is missing.");
+          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped because it's VOL file (" + eRes.Data[0] + ") is missing.");
           break;
         case 646:
         case 648:
@@ -426,23 +426,11 @@ namespace WinAGI
     }
     internal static byte[] DecompressPicture(byte[] bytOriginalData)
     {
-      short intPosIn, intPosOut;
-      byte bytCurComp, bytBuffer, bytCurUncomp;
-      bool blnOffset;
-      int lngTempSize, lngTempCurPos;
+      short intPosIn = 0;
+      byte bytCurComp, bytBuffer = 0, bytCurUncomp;
+      bool blnOffset = false;
+      int lngTempCurPos = 0;
       byte[] bytExpandedData = new byte[MAX_RES_SIZE];// Array.Empty<byte>();
-
-      //temporarily set size to max
-      lngTempSize = MAX_RES_SIZE;
-      //Array.Resize(ref bytExpandedData, MAX_RES_SIZE);
-
-      //reset variables
-      intPosIn = 0;
-      intPosOut = 0;
-      blnOffset = false;
-      bytBuffer = 0;
-      lngTempCurPos = 0;
-
       //decompress the picture
       do
       {
@@ -589,7 +577,7 @@ namespace WinAGI
           }
           //retreive the character Value
           strChar = strDat[0];
-          //now send out decoded data (it//s backwards in the string, so
+          //now send out decoded data (it's backwards in the string, so
           //start at end and work back to beginning)
           for (i = 0; i < strDat.Length; i++)
           {
@@ -635,7 +623,7 @@ namespace WinAGI
       AGIColors mTransColor;
       int lngByteCount = 0;
       byte bytChunkColor, bytNextColor;
-      byte bytOut, blnErr;
+      byte bytOut;
       bool blnFirstChunk;
       int lngMirrorCount = 0;
       int i, j;
@@ -710,7 +698,7 @@ namespace WinAGI
         while (lngByteCount < lngMirrorCount)
         {    //add a zero
           bytTempRLE[lngByteCount] = 0;
-          lngByteCount += 1;
+          lngByteCount++;
         }
       }
 

@@ -187,6 +187,7 @@
       this.toolStripSplitButton4 = new System.Windows.Forms.ToolStripSplitButton();
       this.pnlResources = new System.Windows.Forms.Panel();
       this.lstResources = new System.Windows.Forms.ListView();
+      this.picNavList = new System.Windows.Forms.PictureBox();
       this.lstProperty = new System.Windows.Forms.ListBox();
       this.pnlProp = new System.Windows.Forms.Panel();
       this.fsbProperty = new System.Windows.Forms.VScrollBar();
@@ -197,9 +198,17 @@
       this.tvwResources = new System.Windows.Forms.TreeView();
       this.splitResource = new System.Windows.Forms.Splitter();
       this.pnlWarnings = new System.Windows.Forms.Panel();
+      this.fgWarnings = new System.Windows.Forms.DataGridView();
+      this.colResType = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.colIDK = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.colWarning = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.colDesc = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.colLogic = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.colLIne = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.colModule = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.splitWarning = new System.Windows.Forms.Splitter();
       this.imageList1 = new System.Windows.Forms.ImageList(this.components);
-      this.timer1 = new System.Windows.Forms.Timer(this.components);
+      this.tmrNavList = new System.Windows.Forms.Timer(this.components);
       this.FolderDlg = new System.Windows.Forms.FolderBrowserDialog();
       this.OpenDlg = new System.Windows.Forms.OpenFileDialog();
       this.SaveDlg = new System.Windows.Forms.SaveFileDialog();
@@ -209,8 +218,11 @@
       this.statusStrip1.SuspendLayout();
       this.toolStrip1.SuspendLayout();
       this.pnlResources.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.picNavList)).BeginInit();
       this.pnlProp.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.picProperties)).BeginInit();
+      this.pnlWarnings.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.fgWarnings)).BeginInit();
       this.SuspendLayout();
       // 
       // menuStrip1
@@ -229,6 +241,7 @@
       this.menuStrip1.Size = new System.Drawing.Size(1283, 44);
       this.menuStrip1.TabIndex = 0;
       this.menuStrip1.Text = "menuStrip1";
+      this.menuStrip1.UseWaitCursor = true;
       this.menuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.menuStrip1_ItemClicked);
       // 
       // mnuGame
@@ -288,6 +301,7 @@
       this.mnuGOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
       this.mnuGOpen.Size = new System.Drawing.Size(522, 44);
       this.mnuGOpen.Text = "&Open Game";
+      this.mnuGOpen.Click += new System.EventHandler(this.mnuGOpen_Click);
       // 
       // mnuGImport
       // 
@@ -295,6 +309,7 @@
       this.mnuGImport.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
       this.mnuGImport.Size = new System.Drawing.Size(522, 44);
       this.mnuGImport.Text = "&Import Game";
+      this.mnuGImport.Click += new System.EventHandler(this.mnuGImport_Click);
       // 
       // mnuGClose
       // 
@@ -374,29 +389,37 @@
       // 
       this.mnuGMRU0.Name = "mnuGMRU0";
       this.mnuGMRU0.Size = new System.Drawing.Size(522, 44);
+      this.mnuGMRU0.Tag = "0";
       this.mnuGMRU0.Text = "mru1";
       this.mnuGMRU0.Visible = false;
+      this.mnuGMRU0.Click += new System.EventHandler(this.mnuGMRU_Click);
       // 
       // mnuGMRU1
       // 
       this.mnuGMRU1.Name = "mnuGMRU1";
       this.mnuGMRU1.Size = new System.Drawing.Size(522, 44);
+      this.mnuGMRU1.Tag = "1";
       this.mnuGMRU1.Text = "mru2";
       this.mnuGMRU1.Visible = false;
+      this.mnuGMRU1.Click += new System.EventHandler(this.mnuGMRU_Click);
       // 
       // mnuGMRU2
       // 
       this.mnuGMRU2.Name = "mnuGMRU2";
       this.mnuGMRU2.Size = new System.Drawing.Size(522, 44);
+      this.mnuGMRU2.Tag = "2";
       this.mnuGMRU2.Text = "mru3";
       this.mnuGMRU2.Visible = false;
+      this.mnuGMRU2.Click += new System.EventHandler(this.mnuGMRU_Click);
       // 
       // mnuGMRU3
       // 
       this.mnuGMRU3.Name = "mnuGMRU3";
       this.mnuGMRU3.Size = new System.Drawing.Size(522, 44);
+      this.mnuGMRU3.Tag = "3";
       this.mnuGMRU3.Text = "mru4";
       this.mnuGMRU3.Visible = false;
+      this.mnuGMRU3.Click += new System.EventHandler(this.mnuGMRU_Click);
       // 
       // mnuGSep5
       // 
@@ -409,6 +432,7 @@
       this.mnuGExit.ShortcutKeyDisplayString = "Alt+F4";
       this.mnuGExit.Size = new System.Drawing.Size(522, 44);
       this.mnuGExit.Text = "E&xit";
+      this.mnuGExit.Click += new System.EventHandler(this.mnuGExit_Click);
       // 
       // mnuResources
       // 
@@ -1017,7 +1041,6 @@
       this.btnNewRes.Name = "btnNewRes";
       this.btnNewRes.Size = new System.Drawing.Size(75, 52);
       this.btnNewRes.Text = "&New Resource";
-      this.btnNewRes.DropDownOpening += new System.EventHandler(this.btnNewRes_DropDownOpening);
       // 
       // btnNewLogic
       // 
@@ -1066,6 +1089,7 @@
       this.statusStrip1.Size = new System.Drawing.Size(1283, 46);
       this.statusStrip1.TabIndex = 2;
       this.statusStrip1.Text = "statusStrip1";
+      this.statusStrip1.UseWaitCursor = true;
       // 
       // StatusPanel1
       // 
@@ -1142,6 +1166,7 @@
       this.toolStrip1.Size = new System.Drawing.Size(1283, 62);
       this.toolStrip1.TabIndex = 3;
       this.toolStrip1.Text = "toolStrip1";
+      this.toolStrip1.UseWaitCursor = true;
       this.toolStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.toolStrip1_ItemClicked);
       // 
       // btnOpenGame
@@ -1164,7 +1189,7 @@
       this.btnCloseGame.Name = "btnCloseGame";
       this.btnCloseGame.Size = new System.Drawing.Size(52, 52);
       this.btnCloseGame.Text = "&Close";
-      this.btnCloseGame.Click += new System.EventHandler(this.btnCloseGame_Click);
+      this.btnCloseGame.Click += new System.EventHandler(this.mnuGClose_Click);
       // 
       // btnRun
       // 
@@ -1214,6 +1239,7 @@
       this.btnOpenLogic.Name = "btnOpenLogic";
       this.btnOpenLogic.Size = new System.Drawing.Size(286, 44);
       this.btnOpenLogic.Text = "Open Logic";
+      this.btnOpenLogic.Click += new System.EventHandler(this.btnOpenLogic_Click);
       // 
       // btnOpenPicture
       // 
@@ -1222,6 +1248,7 @@
       this.btnOpenPicture.Name = "btnOpenPicture";
       this.btnOpenPicture.Size = new System.Drawing.Size(286, 44);
       this.btnOpenPicture.Text = "Open Picture";
+      this.btnOpenPicture.Click += new System.EventHandler(this.btnOpenPicture_Click);
       // 
       // btnOpenSound
       // 
@@ -1230,6 +1257,7 @@
       this.btnOpenSound.Name = "btnOpenSound";
       this.btnOpenSound.Size = new System.Drawing.Size(286, 44);
       this.btnOpenSound.Text = "Open Sound";
+      this.btnOpenSound.Click += new System.EventHandler(this.btnOpenSound_Click);
       // 
       // btnOpenView
       // 
@@ -1238,6 +1266,7 @@
       this.btnOpenView.Name = "btnOpenView";
       this.btnOpenView.Size = new System.Drawing.Size(286, 44);
       this.btnOpenView.Text = "Open View";
+      this.btnOpenView.Click += new System.EventHandler(this.btnOpenView_Click);
       // 
       // btnImportRes
       // 
@@ -1260,6 +1289,7 @@
       this.btnImportLogic.Name = "btnImportLogic";
       this.btnImportLogic.Size = new System.Drawing.Size(298, 44);
       this.btnImportLogic.Text = "Import Logic";
+      this.btnImportLogic.Click += new System.EventHandler(this.btnImportLogic_Click);
       // 
       // btnImportPicture
       // 
@@ -1267,6 +1297,7 @@
       this.btnImportPicture.Name = "btnImportPicture";
       this.btnImportPicture.Size = new System.Drawing.Size(298, 44);
       this.btnImportPicture.Text = "Import Picture";
+      this.btnImportPicture.Click += new System.EventHandler(this.btnImportPicture_Click);
       // 
       // btnImportSound
       // 
@@ -1274,6 +1305,7 @@
       this.btnImportSound.Name = "btnImportSound";
       this.btnImportSound.Size = new System.Drawing.Size(298, 44);
       this.btnImportSound.Text = "Import Sound";
+      this.btnImportSound.Click += new System.EventHandler(this.btnImportSound_Click);
       // 
       // btnImportView
       // 
@@ -1281,6 +1313,7 @@
       this.btnImportView.Name = "btnImportView";
       this.btnImportView.Size = new System.Drawing.Size(298, 44);
       this.btnImportView.Text = "Import View";
+      this.btnImportView.Click += new System.EventHandler(this.btnImportView_Click);
       // 
       // btnSep2
       // 
@@ -1422,6 +1455,7 @@
       // pnlResources
       // 
       this.pnlResources.Controls.Add(this.lstResources);
+      this.pnlResources.Controls.Add(this.picNavList);
       this.pnlResources.Controls.Add(this.lstProperty);
       this.pnlResources.Controls.Add(this.pnlProp);
       this.pnlResources.Controls.Add(this.cmdForward);
@@ -1434,6 +1468,8 @@
       this.pnlResources.Name = "pnlResources";
       this.pnlResources.Size = new System.Drawing.Size(314, 629);
       this.pnlResources.TabIndex = 16;
+      this.pnlResources.UseWaitCursor = true;
+      this.pnlResources.Resize += new System.EventHandler(this.pnlResources_Resize);
       // 
       // lstResources
       // 
@@ -1450,7 +1486,22 @@
       this.lstResources.Size = new System.Drawing.Size(314, 370);
       this.lstResources.TabIndex = 24;
       this.lstResources.UseCompatibleStateImageBehavior = false;
+      this.lstResources.UseWaitCursor = true;
       this.lstResources.View = System.Windows.Forms.View.Details;
+      // 
+      // picNavList
+      // 
+      this.picNavList.BackColor = System.Drawing.SystemColors.Window;
+      this.picNavList.Location = new System.Drawing.Point(75, 21);
+      this.picNavList.Name = "picNavList";
+      this.picNavList.Size = new System.Drawing.Size(148, 155);
+      this.picNavList.TabIndex = 24;
+      this.picNavList.TabStop = false;
+      this.picNavList.UseWaitCursor = true;
+      this.picNavList.Visible = false;
+      this.picNavList.Paint += new System.Windows.Forms.PaintEventHandler(this.picNavList_Paint);
+      this.picNavList.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picNavList_MouseMove);
+      this.picNavList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picNavList_MouseUp);
       // 
       // lstProperty
       // 
@@ -1460,6 +1511,7 @@
       this.lstProperty.Name = "lstProperty";
       this.lstProperty.Size = new System.Drawing.Size(193, 36);
       this.lstProperty.TabIndex = 26;
+      this.lstProperty.UseWaitCursor = true;
       this.lstProperty.Visible = false;
       // 
       // pnlProp
@@ -1472,6 +1524,7 @@
       this.pnlProp.Name = "pnlProp";
       this.pnlProp.Size = new System.Drawing.Size(314, 166);
       this.pnlProp.TabIndex = 26;
+      this.pnlProp.UseWaitCursor = true;
       // 
       // fsbProperty
       // 
@@ -1481,6 +1534,7 @@
       this.fsbProperty.Name = "fsbProperty";
       this.fsbProperty.Size = new System.Drawing.Size(24, 166);
       this.fsbProperty.TabIndex = 24;
+      this.fsbProperty.UseWaitCursor = true;
       // 
       // picProperties
       // 
@@ -1493,6 +1547,7 @@
       this.picProperties.Size = new System.Drawing.Size(285, 166);
       this.picProperties.TabIndex = 25;
       this.picProperties.TabStop = false;
+      this.picProperties.UseWaitCursor = true;
       this.picProperties.Paint += new System.Windows.Forms.PaintEventHandler(this.picProperties_Paint);
       // 
       // cmdForward
@@ -1504,6 +1559,9 @@
       this.cmdForward.Size = new System.Drawing.Size(160, 51);
       this.cmdForward.TabIndex = 3;
       this.cmdForward.UseVisualStyleBackColor = true;
+      this.cmdForward.UseWaitCursor = true;
+      this.cmdForward.Click += new System.EventHandler(this.cmdForward_Click);
+      this.cmdForward.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cmdForward_MouseDown);
       // 
       // cmdBack
       // 
@@ -1514,11 +1572,14 @@
       this.cmdBack.Size = new System.Drawing.Size(160, 51);
       this.cmdBack.TabIndex = 2;
       this.cmdBack.UseVisualStyleBackColor = true;
+      this.cmdBack.UseWaitCursor = true;
+      this.cmdBack.Click += new System.EventHandler(this.cmdBack_Click);
+      this.cmdBack.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cmdBack_MouseDown);
       // 
       // cmbResType
       // 
       this.cmbResType.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.cmbResType.Cursor = System.Windows.Forms.Cursors.Default;
+      this.cmbResType.Cursor = System.Windows.Forms.Cursors.WaitCursor;
       this.cmbResType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
       this.cmbResType.FormattingEnabled = true;
       this.cmbResType.Items.AddRange(new object[] {
@@ -1534,6 +1595,7 @@
       this.cmbResType.Name = "cmbResType";
       this.cmbResType.Size = new System.Drawing.Size(314, 40);
       this.cmbResType.TabIndex = 0;
+      this.cmbResType.UseWaitCursor = true;
       this.cmbResType.Visible = false;
       this.cmbResType.SelectedIndexChanged += new System.EventHandler(this.cmbResType_SelectedIndexChanged);
       // 
@@ -1564,6 +1626,7 @@
             treeNode7});
       this.tvwResources.Size = new System.Drawing.Size(314, 391);
       this.tvwResources.TabIndex = 24;
+      this.tvwResources.UseWaitCursor = true;
       this.tvwResources.Visible = false;
       this.tvwResources.AfterCollapse += new System.Windows.Forms.TreeViewEventHandler(this.tvwResources_AfterCollapse);
       this.tvwResources.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwResources_AfterSelect);
@@ -1578,27 +1641,120 @@
       this.splitResource.Size = new System.Drawing.Size(4, 629);
       this.splitResource.TabIndex = 18;
       this.splitResource.TabStop = false;
+      this.splitResource.UseWaitCursor = true;
       this.splitResource.Visible = false;
       // 
       // pnlWarnings
       // 
+      this.pnlWarnings.Controls.Add(this.fgWarnings);
       this.pnlWarnings.Dock = System.Windows.Forms.DockStyle.Bottom;
-      this.pnlWarnings.Location = new System.Drawing.Point(318, 690);
+      this.pnlWarnings.Location = new System.Drawing.Point(318, 564);
       this.pnlWarnings.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
       this.pnlWarnings.Name = "pnlWarnings";
-      this.pnlWarnings.Size = new System.Drawing.Size(965, 45);
+      this.pnlWarnings.Size = new System.Drawing.Size(965, 171);
       this.pnlWarnings.TabIndex = 20;
+      this.pnlWarnings.UseWaitCursor = true;
       this.pnlWarnings.Visible = false;
+      // 
+      // fgWarnings
+      // 
+      this.fgWarnings.AllowUserToAddRows = false;
+      this.fgWarnings.AllowUserToDeleteRows = false;
+      this.fgWarnings.AllowUserToResizeRows = false;
+      this.fgWarnings.BorderStyle = System.Windows.Forms.BorderStyle.None;
+      this.fgWarnings.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+      this.fgWarnings.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.colResType,
+            this.colIDK,
+            this.colWarning,
+            this.colDesc,
+            this.colLogic,
+            this.colLIne,
+            this.colModule});
+      this.fgWarnings.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.fgWarnings.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
+      this.fgWarnings.Location = new System.Drawing.Point(0, 0);
+      this.fgWarnings.Name = "fgWarnings";
+      this.fgWarnings.ReadOnly = true;
+      this.fgWarnings.RowHeadersVisible = false;
+      this.fgWarnings.RowHeadersWidth = 82;
+      this.fgWarnings.RowTemplate.Height = 41;
+      this.fgWarnings.RowTemplate.ReadOnly = true;
+      this.fgWarnings.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+      this.fgWarnings.ShowCellErrors = false;
+      this.fgWarnings.ShowEditingIcon = false;
+      this.fgWarnings.ShowRowErrors = false;
+      this.fgWarnings.Size = new System.Drawing.Size(965, 171);
+      this.fgWarnings.StandardTab = true;
+      this.fgWarnings.TabIndex = 0;
+      this.fgWarnings.UseWaitCursor = true;
+      // 
+      // colResType
+      // 
+      this.colResType.HeaderText = "restype";
+      this.colResType.MinimumWidth = 10;
+      this.colResType.Name = "colResType";
+      this.colResType.ReadOnly = true;
+      this.colResType.Width = 200;
+      // 
+      // colIDK
+      // 
+      this.colIDK.HeaderText = "idontknow";
+      this.colIDK.MinimumWidth = 10;
+      this.colIDK.Name = "colIDK";
+      this.colIDK.ReadOnly = true;
+      this.colIDK.Width = 200;
+      // 
+      // colWarning
+      // 
+      this.colWarning.HeaderText = "Warning";
+      this.colWarning.MinimumWidth = 10;
+      this.colWarning.Name = "colWarning";
+      this.colWarning.ReadOnly = true;
+      this.colWarning.Width = 200;
+      // 
+      // colDesc
+      // 
+      this.colDesc.HeaderText = "Description";
+      this.colDesc.MinimumWidth = 10;
+      this.colDesc.Name = "colDesc";
+      this.colDesc.ReadOnly = true;
+      this.colDesc.Width = 200;
+      // 
+      // colLogic
+      // 
+      this.colLogic.HeaderText = "Logic#";
+      this.colLogic.MinimumWidth = 10;
+      this.colLogic.Name = "colLogic";
+      this.colLogic.ReadOnly = true;
+      this.colLogic.Width = 200;
+      // 
+      // colLIne
+      // 
+      this.colLIne.HeaderText = "Line#";
+      this.colLIne.MinimumWidth = 10;
+      this.colLIne.Name = "colLIne";
+      this.colLIne.ReadOnly = true;
+      this.colLIne.Width = 200;
+      // 
+      // colModule
+      // 
+      this.colModule.HeaderText = "Module";
+      this.colModule.MinimumWidth = 10;
+      this.colModule.Name = "colModule";
+      this.colModule.ReadOnly = true;
+      this.colModule.Width = 200;
       // 
       // splitWarning
       // 
       this.splitWarning.Dock = System.Windows.Forms.DockStyle.Bottom;
-      this.splitWarning.Location = new System.Drawing.Point(318, 686);
+      this.splitWarning.Location = new System.Drawing.Point(318, 560);
       this.splitWarning.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
       this.splitWarning.Name = "splitWarning";
       this.splitWarning.Size = new System.Drawing.Size(965, 4);
       this.splitWarning.TabIndex = 22;
       this.splitWarning.TabStop = false;
+      this.splitWarning.UseWaitCursor = true;
       this.splitWarning.Visible = false;
       // 
       // imageList1
@@ -1633,10 +1789,10 @@
       this.imageList1.Images.SetKeyName(24, "globals");
       this.imageList1.Images.SetKeyName(25, "help");
       // 
-      // timer1
+      // tmrNavList
       // 
-      this.timer1.Interval = 125;
-      this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+      this.tmrNavList.Interval = 125;
+      this.tmrNavList.Tick += new System.EventHandler(this.SplashTimer);
       // 
       // FolderDlg
       // 
@@ -1673,6 +1829,7 @@
       this.Margin = new System.Windows.Forms.Padding(6);
       this.Name = "frmMDIMain";
       this.Text = "WinAGI GDS";
+      this.UseWaitCursor = true;
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMDIMain_FormClosing);
       this.Load += new System.EventHandler(this.frmMDIMain_Load);
       this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmMDIMain_KeyDown);
@@ -1686,8 +1843,11 @@
       this.toolStrip1.ResumeLayout(false);
       this.toolStrip1.PerformLayout();
       this.pnlResources.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.picNavList)).EndInit();
       this.pnlProp.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.picProperties)).EndInit();
+      this.pnlWarnings.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.fgWarnings)).EndInit();
       this.ResumeLayout(false);
       this.PerformLayout();
 
@@ -1845,14 +2005,13 @@
     private ToolStripMenuItem btnNewPicture;
     private ToolStripMenuItem btnNewSound;
     private ToolStripMenuItem btnNewView;
-    private Timer timer1;
+    private Timer tmrNavList;
     private ToolStripSplitButton toolStripSplitButton2;
     private ToolStripSplitButton toolStripSplitButton3;
     private ToolStripSplitButton toolStripSplitButton4;
     public Button cmdForward;
     public Button cmdBack;
     internal Panel pnlResources;
-    private FolderBrowserDialog FolderDlg;
     public OpenFileDialog OpenDlg;
     public SaveFileDialog SaveDlg;
     public ComboBox cmbResType;
@@ -1868,7 +2027,6 @@
     private Panel pnlProp;
     private VScrollBar fsbProperty;
     public ListBox lstProperty;
-    private ListView lstResources;
     public ImageList imlPropButtons;
     public ToolStripMenuItem mnuRAddRemove;
     public ToolStripMenuItem mnuGCompileTo;
@@ -1885,6 +2043,17 @@
     private ToolStripStatusLabel NumLockLabel;
     private ToolStripStatusLabel InsertLockLabel;
     private ToolStripStatusLabel StatusPanel1;
+    private DataGridView fgWarnings;
+    private DataGridViewTextBoxColumn colResType;
+    private DataGridViewTextBoxColumn colIDK;
+    private DataGridViewTextBoxColumn colWarning;
+    private DataGridViewTextBoxColumn colDesc;
+    private DataGridViewTextBoxColumn colLogic;
+    private DataGridViewTextBoxColumn colLIne;
+    private DataGridViewTextBoxColumn colModule;
+    private PictureBox picNavList;
+    public FolderBrowserDialog FolderDlg;
+    public ListView lstResources;
   }
 }
 

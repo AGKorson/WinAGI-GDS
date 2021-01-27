@@ -12,7 +12,7 @@ namespace WinAGI
     {
       strErrSource = "AGITestCommands";
 
-      agNumTestCmds = 19; //not counting return.false()
+      agNumTestCmds = 20;
 
       agTestCmds[0].Name = "return.false";
       agTestCmds[0].ArgType = Array.Empty<ArgTypeEnum>();
@@ -120,7 +120,7 @@ namespace WinAGI
     public static CommandStruct TestCmd(byte index)
     {
       //validate index
-      if (index > agNumTestCmds)
+      if (index >= agNumTestCmds)
       {
         throw new IndexOutOfRangeException();
       }

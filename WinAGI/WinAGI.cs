@@ -1793,10 +1793,10 @@ MA  02110-1301  USA
         // delete current file
         File.Delete(strFileName);
         // now copy new to final destination
-        File.Move(TempFile, strFileName);
+        File.Move( TempFile, strFileName);
 
         //add filename back
-        ConfigList.Insert(0, TempFile);
+        ConfigList.Insert(0, strFileName);
       }
       catch (Exception) {
         // do we care if there is a file error?
@@ -1995,7 +1995,10 @@ MA  02110-1301  USA
         }
       } else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
         try {
-          return Convert.ToInt32(Right(strValue, strValue.Length - 2), 16);
+          int retval = Convert.ToInt32(Right(strValue, strValue.Length - 2), 16);
+          //write the value in correct format
+          WriteGameSetting(Section, Key, "0x" + retval.ToString("x8"));
+          return retval;
         }
         catch (Exception) {
           return Default;
@@ -2023,9 +2026,12 @@ MA  02110-1301  USA
         catch (Exception) {
           return Default;
         }
-      } else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase)) {
+      } else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
         try {
-          return Convert.ToUInt32(Right(strValue, strValue.Length - 2), 16);
+          UInt32 retval = Convert.ToUInt32(Right(strValue, strValue.Length - 2), 16);
+          //write the value in correct format
+          WriteGameSetting(Section, Key, "0x" + retval.ToString("x8"));
+          return retval;
         }
         catch (Exception) {
           return Default;
@@ -2263,8 +2269,6 @@ MA  02110-1301  USA
 
       int i;
       string strLine;
-      int lngPos;
-      string strCheck;
       int lngSection, lenKey;
       //find the section we are looking for (skip 1st line; it's the filename)
       lngSection = FindSettingSection(ConfigList, Section);

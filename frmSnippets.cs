@@ -21,16 +21,16 @@ namespace WinAGI_GDS
       /*
 Option Explicit
 
-  Private lngSnip As Long, blnAddSnip As Boolean
+  lngSnip As Long, blnAddSnip As Boolean
 
-  Private blnDblClick As Boolean
+  blnDblClick As Boolean
   
-  Private CalcWidth As Long, CalcHeight As Long
-  Private Const MIN_HEIGHT = 3510
-  Private Const MIN_WIDTH = 8790
+  CalcWidth As Long, CalcHeight As Long
+  Const MIN_HEIGHT = 3510
+  Const MIN_WIDTH = 8790
 
 
-Private Function CheckName(ByVal NewName As String, Optional SkipID As Long = -1) As Boolean
+Function CheckName(ByVal NewName As String, Optional SkipID As Long = -1) As Boolean
 
   Dim i As Long
   
@@ -45,7 +45,7 @@ Private Function CheckName(ByVal NewName As String, Optional SkipID As Long = -1
   CheckName = True
 End Function
 
-Public Sub InitForm()
+public Sub InitForm()
 
   Dim i As Long
   
@@ -112,7 +112,7 @@ ErrHandler:
   Resume Next
 End Sub
 
-Private Sub cmdAdd_Click()
+Sub cmdAdd_Click()
 
   'add new snip with blank value to end
   
@@ -149,14 +149,14 @@ ErrHandler:
   Resume Next
 End Sub
 
-Private Sub cmdCancel_Click()
+Sub cmdCancel_Click()
 
   'cancel- nothing to do except close
   Unload Me
 End Sub
 
 
-Private Sub cmdDelete_Click()
+Sub cmdDelete_Click()
   Dim i As Long
   
   'if not editing (controls are locked)
@@ -216,7 +216,7 @@ Private Sub cmdDelete_Click()
   End If
 End Sub
 
-Private Sub cmdEditSave_Click()
+Sub cmdEditSave_Click()
 
   Dim lngPos As Long, lngSpace As Long
   Dim strValue As String
@@ -311,7 +311,7 @@ ErrHandler:
   Resume Next
 End Sub
 
-Private Sub cmdSave_Click()
+Sub cmdSave_Click()
 
   'save the list
   
@@ -370,7 +370,7 @@ Private Sub cmdSave_Click()
 End Sub
 
 
-Private Sub Form_Activate()
+Sub Form_Activate()
 
   'if coming from a logic editor
   If frmMDIMain.ActiveForm.Name = "frmLogicEdit" Or frmMDIMain.ActiveForm.Name = "frmTextEdit" Then
@@ -390,7 +390,7 @@ Private Sub Form_Activate()
   End If
 End Sub
 
-Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
 
   'always check for help first
   If Shift = 0 And KeyCode = vbKeyF1 Then
@@ -402,14 +402,14 @@ Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
 
 End Sub
 
-Private Sub Form_Load()
+Sub Form_Load()
   
   'initialize the form
   InitForm
   
 End Sub
 
-Private Sub Form_Resize()
+Sub Form_Resize()
 
   On Error GoTo ErrHandler
   
@@ -454,13 +454,13 @@ ErrHandler:
   Resume Next
 End Sub
 
-Private Sub lstSnippets_DblClick()
+Sub lstSnippets_DblClick()
 
   'begin editing
   cmdEditSave_Click
 End Sub
 
-Private Sub lstSnippets_ItemClick(ByVal Item As MSComctlLib.ListItem)
+Sub lstSnippets_ItemClick(ByVal Item As MSComctlLib.ListItem)
 
   'select a snippet
   Dim i As Long
@@ -504,7 +504,7 @@ ErrHandler:
 End Sub
 
 
-Private Sub rtfSnipValue_DblClick(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As RichEditAGI.Range)
+Sub rtfSnipValue_DblClick(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As RichEditAGI.Range)
 
   'if not editing (control is locked)
   If rtfSnipValue.Locked Then
@@ -523,7 +523,7 @@ Private Sub rtfSnipValue_DblClick(Button As Integer, Shift As Integer, X As Long
   
 End Sub
 
-Private Sub rtfSnipValue_KeyDown(KeyCode As Integer, Shift As Integer)
+Sub rtfSnipValue_KeyDown(KeyCode As Integer, Shift As Integer)
 
   'detect and respond to keyboard shortcuts
   
@@ -619,7 +619,7 @@ ErrHandler:
   Resume Next
 End Sub
 
-Private Sub rtfSnipValue_KeyPress(KeyAscii As Integer)
+Sub rtfSnipValue_KeyPress(KeyAscii As Integer)
 
   Select Case KeyAscii
   Case 9  'TAB
@@ -631,14 +631,14 @@ Private Sub rtfSnipValue_KeyPress(KeyAscii As Integer)
 End Sub
 
 
-Private Sub rtfSnipValue_LostFocus()
+Sub rtfSnipValue_LostFocus()
 
   'if nothing, don't allow saving
   cmdEditSave.Enabled = Len(Trim(rtfSnipValue.Text))
   
 End Sub
 
-Private Sub rtfSnipValue_SelectionChanged()
+Sub rtfSnipValue_SelectionChanged()
 
   With rtfSnipValue.Selection.Range
     'if selected something by dbl-click
@@ -657,7 +657,7 @@ Private Sub rtfSnipValue_SelectionChanged()
 End Sub
 
 
-Private Sub txtSnipName_DblClick()
+Sub txtSnipName_DblClick()
 
   'if not editing (control is locked)
   If txtSnipName.Locked Then

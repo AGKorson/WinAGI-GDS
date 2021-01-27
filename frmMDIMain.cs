@@ -49,8 +49,8 @@ namespace WinAGI_GDS
     //MouseButtonConstants StatusMouseBtn; 
     double sbX, sbY;
     double mPX, mPY;
-    double mTX, mTY, NLRowHeight;
-    int NLOffset, NLRow;
+    double mTX, mTY;
+    int NLOffset, NLRow, NLRowHeight;
 
     public string LastNodeName;
     bool MDIHasFocus;
@@ -74,6 +74,7 @@ namespace WinAGI_GDS
     static bool CapsLock = false;
     static bool NumLock = false;
     static bool InsertLock = false;
+
     public void OnIdle(object sender, EventArgs e)
     {
       // Update the panels when the program is idle.
@@ -134,7 +135,8 @@ namespace WinAGI_GDS
       case ELStatus.lsPropertyFile:
         if (blnNoWAG) {
           ProgressWin.lblProgress.Text = "Creating game property file ...";
-        } else {
+        }
+        else {
           ProgressWin.lblProgress.Text = "Loading game property file ...";
         }
         break;
@@ -185,16 +187,19 @@ namespace WinAGI_GDS
         //let's open it
         this.UseWaitCursor = true;
         Refresh();
-        OpenWAG(OpenDlg.FileName);
+        OpenWAGFile(OpenDlg.FileName);
         this.UseWaitCursor = false;
-      } else {
+      }
+      else {
         return;
       }
       if (retval == 0) {
         MessageBox.Show("Game opened with no errors or warnings.");
-      } else if (retval == WINAGI_ERR + 636) {
+      }
+      else if (retval == WINAGI_ERR + 636) {
         MessageBox.Show("Game opened, with warnings.");
-      } else {
+      }
+      else {
         MessageBox.Show($"opengame result: {ResManRes.LoadResString(retval - WINAGI_ERR).ToString()}");
       }
       MDIHasFocus = true;
@@ -232,14 +237,6 @@ namespace WinAGI_GDS
       // disable the close item if no windows
       mnuWClose.Enabled = (this.MdiChildren.Length != 0);
     }
-    private void btnNewRes_DropDownOpening(object sender, EventArgs e)
-    {
-      // cancel it? and do whatever is shown?
-      System.Windows.Forms.ToolStripSplitButton btnSender = (System.Windows.Forms.ToolStripSplitButton)sender;
-      if (btnSender.IsOnDropDown) {
-        MessageBox.Show("on dropdown");
-      }
-    }
     private void frmMDIMain_Load(object sender, EventArgs e)
     {
       bool blnLastLoad;
@@ -251,22 +248,17 @@ namespace WinAGI_GDS
 
       CalcWidth = MIN_WIDTH;
       CalcHeight = MIN_HEIGHT;
-      // show wait cursor
-      UseWaitCursor = true;
-      Refresh();
-      //      //initialize GDI plus
-      //      InitGDIPlus();
-
-      //        //screen twips
-      //        ScreenTWIPSX = Screen.TwipsPerPixelX
-      //        ScreenTWIPSY = Screen.TwipsPerPixelY
-
       //      //need to calculate height of top margin (for use by logic editor in displaying tips)
       //      lngMainTopBorder = (this.Height - this.ScaleHeight - this.StatusBar1.Height - (this.Width - this.ScaleWidth) / 2) / ScreenTWIPSY;
       //      lngMainLeftBorder = (this.Width - this.ScaleWidth) / ScreenTWIPSY / 2;
       //        //and also need border values to facilitate positioning of the warnings list
       //        WLOffsetH = this.Height - this.ScaleHeight;
       //        WLOffsetW = this.Width - this.ScaleWidth;
+
+      // toolbar stuff;
+      btnNewRes.DefaultItem = btnNewLogic;
+      btnOpenRes.DefaultItem = btnOpenLogic;
+      btnImportRes.DefaultItem = btnImportLogic;
 
       //set preview window, status bar and other dialog objects
       PreviewWin = new frmPreview
@@ -278,7 +270,7 @@ namespace WinAGI_GDS
       SoundClipboard = new AGINotes();
       //      NotePictures = picNotes;
       //        WordsClipboard = new WordsUndo();
-      AGIFindForm = new frmFind();
+      FindingForm = new frmFind();
 
       //hide rsource and warning panels until needed
       pnlResources.Visible = false;
@@ -298,7 +290,6 @@ namespace WinAGI_GDS
       PropRowHeight = szText.Height + 2;
       //set initial position of property panel
       pnlProp.Top = pnlResources.Height - (4 * PropRowHeight);
-      //PropRowHeight = 17;
 
       //background color for previewing views is set to default
       PrevWinBColor = SystemColors.Control;
@@ -307,6 +298,7 @@ namespace WinAGI_GDS
 
       // initialize the basic app functionality
       InitializeResMan();
+
       ProgramDir = CDir(JustPath(Application.ExecutablePath));
       DefaultResDir = ProgramDir;
       //set browser start dir to program dir
@@ -330,9 +322,9 @@ namespace WinAGI_GDS
         splash.Show(this);
         splash.Refresh();
       }
-      //enable timer
-      timer1.Interval = 1750;
-      timer1.Enabled = true;
+      //enable timer; it starts out as splash screen timer
+      tmrNavList.Interval = 1750;
+      tmrNavList.Enabled = true;
 
       LogicEditors = new List<frmLogicEdit>();
       ViewEditors = new List<frmViewEdit>();
@@ -356,7 +348,13 @@ namespace WinAGI_GDS
       //initialize resource treelist by using clear method
       ClearResourceList();
 
-      //retrieve user//s preferred AGI colors
+      // set navlist parameters
+      //set property window split location based on longest word
+      szText = TextRenderer.MeasureText(" Logic 1 ", new Font(Settings.PFontName, Settings.PFontSize));
+      NLRowHeight = szText.Height + 2;
+      picNavList.Height = NLRowHeight * 5;
+      picNavList.Top = (cmdBack.Top + cmdBack.Height / 2) - picNavList.Height / 2;
+      //retrieve user's preferred AGI colors
       GetDefaultColors();
 
       //let the system catch up
@@ -397,42 +395,34 @@ namespace WinAGI_GDS
     }
     private void btnNewLogic_Click(object sender, EventArgs e)
     {
-      if (!GameLoaded) return;
+      MessageBox.Show("new logic...");
+      btnNewRes.DefaultItem = btnNewLogic;
+      btnNewRes.Image = btnNewLogic.Image;
 
-      frmLogicEdit frmNew = new frmLogicEdit
-      {
-        MdiParent = this
-      };
-      frmNew.Show();
+      //create new logic and enter edit mode
+      NewLogic();
+
+      //if (!GameLoaded)
+      //  return;
+      //frmLogicEdit frmNew = new frmLogicEdit { MdiParent = this };
+      //frmNew.Show();
     }
     private void btnNewPicture_Click(object sender, EventArgs e)
     {
-      frmPicEdit frmNew = new frmPicEdit
-      {
-        MdiParent = this
-      };
-      frmNew.Show();
+      MessageBox.Show("new picture...");
+      btnNewRes.DefaultItem = btnNewPicture;
+      btnNewRes.Image = btnNewPicture.Image;
+      //create new picture and enter edit mode
+      NewPicture();
+
+      //if (!GameLoaded)
+      //  return;
+      //frmPicEdit frmNew = new frmPicEdit { MdiParent = this };
+      //frmNew.Show();
     }
     private void btnOjects_Click(object sender, EventArgs e)
     {
       //let's test object list
-      InvObjects.Add("test object 1", 44);
-      InvObjects.Add("test object 1", 44);
-      InvObjects.Add("test object 1", 44);
-      InvObjects.Add("test object 2", 44);
-
-      // change some
-      InvObjects[99].Room = 44;
-      InvObjects[99].ItemName = "ta da!";
-      InvObjects[100].ItemName = "ta da!";
-      InvObjects[99].ItemName = "?";
-
-      //then remove some
-      InvObjects.Remove(134);
-      InvObjects.Remove(132);
-      InvObjects.Remove(133);
-      InvObjects.Remove(132);
-      InvObjects.Remove(131);
     }
     private void btnWords_Click(object sender, EventArgs e)
     {
@@ -456,12 +446,20 @@ namespace WinAGI_GDS
     }
     private void btnNewSound_Click(object sender, EventArgs e)
     {
-      // show editor form
-      frmSoundEdit frmNew = new frmSoundEdit
-      {
-        MdiParent = this
-      };
-      frmNew.Show();
+      //update default button image
+      btnNewRes.DefaultItem = btnNewSound;
+      btnNewRes.Image = btnNewSound.Image;
+
+      //create new logic and enter edit mode
+      NewSound();
+
+      //if (!GameLoaded) return;
+      //// show editor form
+      //frmSoundEdit frmNew = new frmSoundEdit
+      //{
+      //  MdiParent = this
+      //};
+      //frmNew.Show();
     }
     private void cmbResType_SelectedIndexChanged(object sender, EventArgs e)
     {
@@ -480,12 +478,13 @@ namespace WinAGI_GDS
           break;
         case 1: //logics
           foreach (AGILogic tmpRes in Logics) {
-            tmpItem = lstResources.Items.Add(ResourceName(tmpRes, true), "l" + tmpRes.Number);
+            tmpItem = lstResources.Items.Add("l" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
             //set color based on compiled status;
             if (tmpRes.Compiled) {
               tmpItem.ForeColor = Color.Black;
-            } else {
+            }
+            else {
               tmpItem.ForeColor = Color.Red;
             }
           }
@@ -493,21 +492,21 @@ namespace WinAGI_GDS
           break;
         case 2://pictures
           foreach (AGIPicture tmpRes in Pictures) {
-            tmpItem = lstResources.Items.Add(ResourceName(tmpRes, true), "p" + tmpRes.Number);
+            tmpItem = lstResources.Items.Add("p" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
           }
           selRes = rtPicture;
           break;
         case 3: //sounds
           foreach (AGISound tmpRes in Sounds) {
-            tmpItem = lstResources.Items.Add(ResourceName(tmpRes, true), "s" + tmpRes.Number);
+            tmpItem = lstResources.Items.Add("s" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
           }
           selRes = rtSound;
           break;
         case 4: //views
           foreach (AGIView tmpRes in Views) {
-            tmpItem = lstResources.Items.Add(ResourceName(tmpRes, true), "v" + tmpRes.Number);
+            tmpItem = lstResources.Items.Add("v" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
           }
           selRes = rtView;
@@ -603,11 +602,33 @@ namespace WinAGI_GDS
         }
       }
     }
-    private void timer1_Tick(object sender, EventArgs e)
+    private void SplashTimer(object sender, EventArgs e)
     {
       // used by splash screen
       splashDone = true;
-      timer1.Enabled = false;
+      tmrNavList.Enabled = false;
+      // re-assign timer to navlist
+      tmrNavList.Tick -= new System.EventHandler(SplashTimer);
+      tmrNavList.Tick += new System.EventHandler(NavListTimer);
+      tmrNavList.Interval = 200;
+    }
+    private void NavListTimer(object sender, EventArgs e)
+    {
+      //scroll the navlist
+      if (NLRow < 0) {
+        //scroll up
+        if (NLOffset > 3) {
+          NLOffset--;
+          picNavList_Paint(sender, new PaintEventArgs(picNavList.CreateGraphics(), picNavList.Bounds));
+        }
+      }
+      else {
+        //scroll down
+        if (NLOffset < ResQueue.Length - 3) {
+          NLOffset++;
+          picNavList_Paint(sender, new PaintEventArgs(picNavList.CreateGraphics(), picNavList.Bounds));
+        }
+      }
     }
     private void lstResources_DoubleClick(object sender, EventArgs e)
     {
@@ -638,7 +659,8 @@ namespace WinAGI_GDS
         if (NewResNum == -1) {
           //logic header
           PropRows = 3;
-        } else {
+        }
+        else {
           //show logic properties
           PropRows = 8;
         }
@@ -647,7 +669,8 @@ namespace WinAGI_GDS
         if (NewResNum == -1) {
           //picture header
           PropRows = 1;
-        } else {
+        }
+        else {
           //show picture properties
           PropRows = 6;
         }
@@ -656,7 +679,8 @@ namespace WinAGI_GDS
         if (NewResNum == -1) {
           //sound header
           PropRows = 1;
-        } else {
+        }
+        else {
           //show sound properties
           PropRows = 6;
         }
@@ -665,7 +689,8 @@ namespace WinAGI_GDS
         if (NewResNum == -1) {
           //view header
           PropRows = 1;
-        } else {
+        }
+        else {
           //show view properties
           PropRows = 7;
         }
@@ -704,7 +729,8 @@ namespace WinAGI_GDS
           //add headers and non-regular resources by type
           //by 4/type
           AddToQueue((AGIResType)4, (int)SelResType);
-        } else {
+        }
+        else {
           // add regular resourses by type/number
           AddToQueue(SelResType, SelResNum);
         }
@@ -712,7 +738,7 @@ namespace WinAGI_GDS
         //always disable forward button
         cmdForward.Enabled = false;
         //enable back button if at least two in queue
-        cmdBack.Enabled = ResQueue.Count >= 2;
+        cmdBack.Enabled = ResQPtr > 1;
 
         //if a logic is selected, and layout editor is active form
         if (SelResType == AGIResType.rtLogic) {
@@ -732,6 +758,14 @@ namespace WinAGI_GDS
     }
     private void btnNewView_Click(object sender, EventArgs e)
     {
+      btnNewRes.DefaultItem = btnNewView;
+      // update default button function
+      btnNewRes.Image = btnNewView.Image;
+
+      //create new view and enter edit mode
+      NewView();
+
+    if (!GameLoaded) return;
       // show editor form
       frmViewEdit frmNew = new frmViewEdit
       {
@@ -753,25 +787,25 @@ namespace WinAGI_GDS
       int ResNum;
       string strKey = "";
       // make sure queue has something
-      if (ResQueue.Count == 0) {
+      if (ResQPtr < 0) {
         return;
       }
       //disable queue addition
       DontQueue = true;
       //extract restype and number from the resqueue
-      int qval = ResQueue.Pop();
-      ResType = (AGIResType)(qval / 256);
-      ResNum = qval % 256;
+      ResType = (AGIResType)(ResQueue[ResQPtr] / 256);
+      ResNum = ResQueue[ResQPtr] % 256;
 
       //if a header or top level
       if ((int)ResType == 4) {
         //resnum indicates type
         switch (Settings.ResListType) {
         case 1: // header; number indicates which header
-          if (ResNum == 0) {
+          if (ResNum == (int)rtGame) {
             tvwResources.SelectedNode = RootNode;
-          } else {
-            tvwResources.SelectedNode = HdrNode[ResNum - 1];
+          }
+          else {
+            tvwResources.SelectedNode = HdrNode[ResNum];
           }
           // then call the node click to finish selection
           tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
@@ -806,28 +840,29 @@ namespace WinAGI_GDS
           break;
         }
 
-      } else {
+      }
+      else {
         //does the resource still exist?
-        switch ((int)ResType) {
-        case (int)rtLogic:
+        switch (ResType) {
+        case rtLogic:
           if (!Logics.Exists((byte)ResNum)) {
             return;
           }
           strKey = "l" + ResNum;
           break;
-        case (int)rtPicture:
+        case rtPicture:
           if (!Pictures.Exists((byte)ResNum)) {
             return;
           }
           strKey = "p" + ResNum;
           break;
-        case (int)rtSound:
+        case rtSound:
           if (!Sounds.Exists((byte)ResNum)) {
             return;
           }
           strKey = "s" + ResNum;
           break;
-        case (int)rtView:
+        case rtView:
           if (!Views.Exists((byte)ResNum)) {
             return;
           }
@@ -845,9 +880,9 @@ namespace WinAGI_GDS
         //select this resource
         switch (Settings.ResListType) {
         case 1:
-          //tvwResources.SelectedNode = tvwResources.Nodes(strKey)
+          tvwResources.SelectedNode = HdrNode[(int)ResType].Nodes[strKey];
           // then call the node click to finish selection
-          tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
+          //         tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
           break;
         case 2:
           //(restype+1 matches desired listindex)
@@ -871,7 +906,6 @@ namespace WinAGI_GDS
       double sngTop, sngLeft;
       double sngWidth, sngHeight;
       int i, lngNoCompVal;
-      bool blnTools;
       string strCaption, strTool;
       bool blnErrors, blnMax;
 
@@ -910,13 +944,14 @@ namespace WinAGI_GDS
       Settings.AskRemove = ReadSettingBool(SettingsList, sGENERAL, "AskRemove", DEFAULT_ASKREMOVE);
       Settings.OpenNew = ReadSettingBool(SettingsList, sGENERAL, "OpenNew", DEFAULT_OPENNEW);
       Settings.RenameDelRes = ReadSettingBool(SettingsList, sGENERAL, "RenameDelRes", DEFAULT_RENAMEDELRES);
-      //(DefResDir is not an element of settings; it//s a WinAGI property)
+      //(DefResDir is not an element of settings; it's a WinAGI property)
       DefResDir = ReadSettingString(SettingsList, sGENERAL, "DefResDir", "src").Trim();
       //validate directory
       if (DefResDir == "") {
         DefResDir = "src";
-      } else if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) //     !#$%&'()+,-;=@[]^`{}~
-        {
+      }
+      else if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) //     !#$%&'()+,-;=@[]^`{}~
+      {
         //invalid character; reset to default
         DefResDir = "src";
       }
@@ -1191,7 +1226,8 @@ namespace WinAGI_GDS
       LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
       if (Settings.UseTxt) {
         LogicSourceSettings.SourceExt = ".txt";
-      } else {
+      }
+      else {
         LogicSourceSettings.SourceExt = ".lgc";
       }
 
@@ -1210,13 +1246,15 @@ namespace WinAGI_GDS
       sngLeft = ReadSettingSingle(SettingsList, sPOSITION, "Left", Screen.PrimaryScreen.Bounds.Width * 0.15);
       if (sngLeft < 0) {
         sngLeft = 0;
-      } else if (sngLeft > Screen.PrimaryScreen.Bounds.Width * 0.85) {
+      }
+      else if (sngLeft > Screen.PrimaryScreen.Bounds.Width * 0.85) {
         sngLeft = Screen.PrimaryScreen.Bounds.Width * 0.85;
       }
       sngTop = ReadSettingSingle(SettingsList, sPOSITION, "Top", Screen.PrimaryScreen.Bounds.Height * 0.15);
       if (sngTop < 0) {
         sngTop = 0;
-      } else if (sngTop > Screen.PrimaryScreen.Bounds.Height * 0.85) {
+      }
+      else if (sngTop > Screen.PrimaryScreen.Bounds.Height * 0.85) {
         sngTop = Screen.PrimaryScreen.Bounds.Height * 0.85;
       }
       sngWidth = ReadSettingSingle(SettingsList, sPOSITION, "Width", Screen.PrimaryScreen.Bounds.Width * 0.7);
@@ -1229,7 +1267,8 @@ namespace WinAGI_GDS
       sngHeight = ReadSettingSingle(SettingsList, sPOSITION, "Height", Screen.PrimaryScreen.Bounds.Height * 0.7);
       if (sngHeight <= Screen.PrimaryScreen.Bounds.Height * 0.2) {
         sngHeight = Screen.PrimaryScreen.Bounds.Height * 0.2;
-      } else if (sngHeight > Screen.PrimaryScreen.Bounds.Height) {
+      }
+      else if (sngHeight > Screen.PrimaryScreen.Bounds.Height) {
         sngHeight = Screen.PrimaryScreen.Bounds.Height;
       }
       //now move the form
@@ -1243,7 +1282,8 @@ namespace WinAGI_GDS
       sngProp = ReadSettingSingle(SettingsList, sPOSITION, "ResourceWidth", MIN_SPLIT_V * 1.5);
       if (sngProp < MIN_SPLIT_V) {
         sngProp = MIN_SPLIT_V;
-      } else if (sngProp > MDIMain.Bounds.Width - MIN_SPLIT_V) {
+      }
+      else if (sngProp > MDIMain.Bounds.Width - MIN_SPLIT_V) {
         sngProp = MDIMain.Bounds.Width - MIN_SPLIT_V;
       }
       //set width
@@ -1259,7 +1299,8 @@ namespace WinAGI_GDS
           mnuGame.DropDownItems["mnuGMRU" + i].Text = CompactPath(strMRU[i], 60);
           mnuGame.DropDownItems["mnuGMRU" + i].Visible = true;
           mnuGMRUBar.Visible = true;
-        } else {
+        }
+        else {
           //stop loading list at first blank
           break;
         }
@@ -1319,7 +1360,8 @@ namespace WinAGI_GDS
       if (MDIMain.WindowState == FormWindowState.Maximized) {
         //save Max Value only
         WriteAppSetting(SettingsList, sPOSITION, "WindowMax", true);
-      } else {
+      }
+      else {
         //save all window settings
         WriteAppSetting(SettingsList, sPOSITION, "Top", MDIMain.Top.ToString());
         WriteAppSetting(SettingsList, sPOSITION, "Left", MDIMain.Left.ToString());
@@ -1404,12 +1446,14 @@ namespace WinAGI_GDS
       LastNodeName = e.Node.Name;
       //now select it
       if (e.Node == RootNode) {
-        //it//s the game node
+        //it's the game node
         SelectResource(rtGame, -1);
-      } else if (e.Node.Parent == RootNode) {
-        //it//s a resource header
+      }
+      else if (e.Node.Parent == RootNode) {
+        //it's a resource header
         SelectResource((AGIResType)e.Node.Index, -1);
-      } else {
+      }
+      else {
         //it's a resource
         SelectResource((AGIResType)e.Node.Parent.Index, (int)e.Node.Tag);
       }
@@ -1451,13 +1495,6 @@ namespace WinAGI_GDS
       //  picSplitH.Width = picBottom.Width - 60
       //}
     }
-    private void btnCloseGame_Click(object sender, EventArgs e)
-    {
-      //if a game is loaded
-      if (GameLoaded) {
-        CloseThisGame();
-      }
-    }
     private void picProperties_Paint(object sender, PaintEventArgs e)
     {
       //
@@ -1484,7 +1521,8 @@ namespace WinAGI_GDS
           PropScroll = 0;
           fsbProperty.Value = 0;
         }
-      } else {
+      }
+      else {
         //reset to top and hide scrollbar
         PropScroll = 0;
         fsbProperty.Value = 0;
@@ -1530,20 +1568,23 @@ namespace WinAGI_GDS
             DrawProp(gProp, "Count", Logics.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
             DrawProp(gProp, "GlobalDef", "(List)", 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
             DrawProp(gProp, "UseResNames", LogicSourceSettings.UseReservedNames.ToString(), 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
-          } else {
+          }
+          else {
             DrawProp(gProp, "Number", Logics[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
             DrawProp(gProp, "ID", Logics[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
             DrawProp(gProp, "Description", Logics[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
             if (Logics[bSelResNum].Number == 0) {
               DrawProp(gProp, "IsRoom", Logics[bSelResNum].IsRoom.ToString(), 4, AllowSelect, SelectedProp, PropScroll, false);
-            } else {
+            }
+            else {
               DrawProp(gProp, "IsRoom", Logics[bSelResNum].IsRoom.ToString(), 4, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
             }
             DrawProp(gProp, "Compiled", Logics[bSelResNum].Compiled.ToString(), 5, AllowSelect, SelectedProp, PropScroll, false);
             //if compiled state doesn't match correct tree color, fix it now
             if (Settings.ResListType == 1) {
               tvwResources.SelectedNode.ForeColor = Logics[bSelResNum].Compiled ? Color.Black : Color.Red;
-            } else {
+            }
+            else {
               lstResources.SelectedItems[0].ForeColor = Logics[bSelResNum].Compiled ? Color.Black : Color.Red;
             }
             DrawProp(gProp, "Volume", Logics[bSelResNum].Volume >= 0 ? Logics[bSelResNum].Volume.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
@@ -1554,7 +1595,8 @@ namespace WinAGI_GDS
         case rtPicture: //3 //picture resource header
           if (SelResNum == -1) {
             DrawProp(gProp, "Count", Pictures.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-          } else {
+          }
+          else {
             DrawProp(gProp, "Number", Pictures[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
             DrawProp(gProp, "ID", Pictures[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
             DrawProp(gProp, "Description", Pictures[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
@@ -1566,7 +1608,8 @@ namespace WinAGI_GDS
         case rtSound: //4 //sound resource header
           if (SelResNum == -1) {
             DrawProp(gProp, "Count", Sounds.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-          } else {
+          }
+          else {
             DrawProp(gProp, "Number", Sounds[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
             DrawProp(gProp, "ID", Sounds[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
             DrawProp(gProp, "Description", Sounds[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
@@ -1578,7 +1621,8 @@ namespace WinAGI_GDS
         case rtView: //5 //view resource header
           if (SelResNum == -1) {
             DrawProp(gProp, "Count", Views.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-          } else {
+          }
+          else {
             DrawProp(gProp, "Number", Views[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
             DrawProp(gProp, "ID", Views[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
             DrawProp(gProp, "Description", Views[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
@@ -1628,7 +1672,8 @@ namespace WinAGI_GDS
         //move it to correct position
         if (lngPosY < picProperties.Height - lstProperty.Height) {
           lstProperty.Location = new Point(picProperties.Left + PropSplitLoc, picProperties.Top + lngPosY);
-        } else {
+        }
+        else {
           lstProperty.Location = new Point(picProperties.Left + PropSplitLoc, picProperties.Top + picProperties.Height - lstProperty.Height);
         }
       }
@@ -1695,7 +1740,7 @@ namespace WinAGI_GDS
         switch (Right(args[0], 4).ToLower()) {
         case ".wag":
           //open a game
-          OpenWAG(args[0]);
+          OpenWAGFile(args[0]);
           break;
         case ".wal":
           //layout files can't be opened by command line anymore
@@ -1771,7 +1816,11 @@ namespace WinAGI_GDS
     }
     internal void mnuGClose_Click(object sender, EventArgs e)
     {
-
+      //if closed ok,
+      if (CloseThisGame()) {
+        //reset last item in  holder
+        LastNodeName = "";
+      }
     }
     internal void mnuRRenumber_Click(object sender, EventArgs e)
     {
@@ -1810,7 +1859,8 @@ namespace WinAGI_GDS
 
     internal void mnuRNLogic_Click(object sender, EventArgs e)
     {
-
+      //create new logic and enter edit mode
+      NewLogic();
     }
 
     internal void mnuRNObjects_Click(object sender, EventArgs e)
@@ -1820,12 +1870,14 @@ namespace WinAGI_GDS
 
     internal void mnuRNPicture_Click(object sender, EventArgs e)
     {
-
+      //create new picture and enter edit mode
+      NewPicture();
     }
 
     internal void mnuRNSound_Click(object sender, EventArgs e)
     {
-
+      //create new logic and enter edit mode
+      NewSound();
     }
 
     internal void mnuRNText_Click(object sender, EventArgs e)
@@ -1835,7 +1887,8 @@ namespace WinAGI_GDS
 
     internal void mnuRNView_Click(object sender, EventArgs e)
     {
-
+      //create new view and enter edit mode
+      NewView();
     }
 
     internal void mnuRNWords_Click(object sender, EventArgs e)
@@ -1870,7 +1923,7 @@ namespace WinAGI_GDS
 
     internal void mnuROView_Click(object sender, EventArgs e)
     {
-      
+
     }
 
     internal void mnuROWords_Click(object sender, EventArgs e)
@@ -2013,16 +2066,6 @@ namespace WinAGI_GDS
     RemoveSound SelResNum
   */
     }
-    void working()
-    {
-      /*
-
-  
-}
-
-
-     */
-    }
     public void SearchForID(FindFormFunction ffValue = FindFormFunction.ffFindLogic)
     {
       //set search form defaults
@@ -2048,19 +2091,491 @@ namespace WinAGI_GDS
       GFindSynonym = false;
 
       //reset search flags
-      AGIFindForm.ResetSearch();
+      FindingForm.ResetSearch();
 
       SearchForm = MDIMain;
 
       //display find form
-      AGIFindForm.SetForm(FindFormFunction.ffFindLogic, true);
-      AGIFindForm.Show(MDIMain);
+      FindingForm.SetForm(FindFormFunction.ffFindLogic, true);
+      FindingForm.Show(MDIMain);
 
       // decided to stick with just showing the form, instead of
       // automatically starting a search
 
       //////  FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
     }
+    public void AddError(int LineNum, int ErrNum, string ErrorText, int ResNumber, string Module)
+    {
+      //Error  Description  ResNum  Line  Module
+      //4118      Blah          1     34    Logic1
+
+      int i, lngNewRow;
+      string[] rowdata = new string[7] {
+        JustPath(Module, true),
+        "",
+        ErrNum.ToString(),
+        ErrorText,
+        ResNumber.ToString(),
+        LineNum.ToString(),
+        (Module.Length != 0 ? JustFileName(Module) : Logics[(byte)ResNumber].ID) };
+
+      //add it to the grid
+      lngNewRow = fgWarnings.Rows.Add(rowdata);
+      //make it bold/red
+      fgWarnings.Rows[lngNewRow].DefaultCellStyle.ForeColor = Color.Red;
+      fgWarnings.Rows[lngNewRow].DefaultCellStyle.Font = new Font(fgWarnings.Rows[lngNewRow].DefaultCellStyle.Font, FontStyle.Bold);
+
+      //save restype in row data tag
+      fgWarnings.Rows[lngNewRow].Tag = rtLogic.ToString();
+
+      //always make it visible
+      if (!fgWarnings.Rows[lngNewRow].Displayed) {
+        fgWarnings.FirstDisplayedScrollingRowIndex = lngNewRow;
+      }
+
+      //if not already visible, show the list
+      if (!pnlWarnings.Visible) {
+        pnlWarnings.Visible = true;
+      }
+    }
+    public void AddWarning(string WarningText, AGIResType ResType, int ResNumber)
+    {
+      //Warning  Description  ResNum  Line  Module
+      //4118      Blah          1     34    Logic1
+      //--        Picture Blah  1     --    Picture1
+      //
+      //Text        1           2     3     4             smallicon=(type+1)
+
+      //parse the text, and add it
+      //WarningsText is in format:
+      //  number(255)warningtext(255)line(255)module
+      //
+      //number and line only have meaning for logic warnings
+      string[] strWarning, rowdata;
+      int lngNewRow;
+      //split the warning text into its elements
+      strWarning = WarningText.Split("|");
+      //assign it to row data
+      rowdata = new string[7] {
+        "",
+        "",
+        strWarning[0],
+        strWarning[1],
+        "--",
+        strWarning[2],
+        "" };
+
+      switch (ResType) {
+      case rtLogic:
+        rowdata[0] = JustPath(strWarning[3], true);
+        rowdata[4] = ResNumber.ToString();
+        rowdata[6] = strWarning[3].Length != 0 ? JustFileName(strWarning[3]) : Logics[ResNumber].ID;
+        break;
+      case rtPicture:
+        rowdata[6] = Pictures[ResNumber].ID;
+        break;
+      case rtSound:
+        rowdata[6] = Sounds[ResNumber].ID;
+        break;
+      case rtView:
+        rowdata[6] = Views[ResNumber].ID;
+        break;
+      }
+
+      //add it to the grid
+      lngNewRow = fgWarnings.Rows.Add(rowdata);
+      //make it bold/red
+      fgWarnings.Rows[lngNewRow].DefaultCellStyle.ForeColor = Color.Red;
+      fgWarnings.Rows[lngNewRow].DefaultCellStyle.Font = new Font(fgWarnings.Rows[lngNewRow].DefaultCellStyle.Font, FontStyle.Bold);
+
+      //save restype in row data tag
+      fgWarnings.Rows[lngNewRow].Tag = ResType.ToString();
+
+      //always make it visible
+      if (!fgWarnings.Rows[lngNewRow].Displayed) {
+        fgWarnings.FirstDisplayedScrollingRowIndex = lngNewRow;
+      }
+
+      //if not already visible, show the list
+      if (!pnlWarnings.Visible) {
+        pnlWarnings.Visible = true;
+      }
+    }
+
+    private void pnlResources_Resize(object sender, EventArgs e)
+    {
+      // resize the navigation buttons
+      cmdBack.Width = pnlResources.Width / 2;
+      cmdForward.Width = pnlResources.Width / 2;
+      cmdForward.Left = pnlResources.Width / 2;
+    }
+
+    private void cmdBack_Click(object sender, EventArgs e)
+    {
+      // if resqptr is not at beginning, go back one
+      // and select that resource
+      if (ResQPtr > 0) {
+        //back up one
+        ResQPtr--;
+        //select this node if still present
+        SelectFromQueue();
+
+        //adjust the buttons for availability
+        cmdBack.Enabled = (ResQPtr > 0);
+        cmdForward.Enabled = true;
+      }
+
+      //always set focus to the resource list
+      switch (Settings.ResListType) {
+      case 1:
+        tvwResources.Focus();
+        break;
+      case 2:
+        lstResources.Focus();
+        break;
+      }
+    }
+
+    private void cmdBack_MouseDown(object sender, MouseEventArgs e)
+    {
+      int rtn;
+      //if right button, show list of resources on nav stack
+      if (e.Button == MouseButtons.Right) {
+        //set left edge of list to match this button
+        picNavList.Left = cmdBack.Left;
+        picNavList.Width = cmdBack.Width;
+        //show it
+        picNavList.Visible = true;
+        //set mouse capture to the list picture
+        picNavList.Capture = true;
+        //picNavList.Parent = MDIMain;
+        //offset is current queue position
+        NLOffset = ResQPtr;
+      }
+    }
+
+    private void cmdForward_Click(object sender, EventArgs e)
+    {
+      // if resqptr is not at end, go forward one
+      // and select that resource
+      if (ResQPtr < ResQueue.Length - 1) {
+        //go forward one
+        ResQPtr++;
+        //select this node if still present
+        SelectFromQueue();
+
+        //adjust the buttons for availability
+        cmdBack.Enabled = true;
+        cmdForward.Enabled = ResQPtr < ResQueue.Length - 1;
+      }
+
+      //always set focus to the resource list
+      switch (Settings.ResListType) {
+      case 1:
+        tvwResources.Focus();
+        break;
+      case 2:
+        lstResources.Focus();
+        break;
+      }
+    }
+
+    private void cmdForward_MouseDown(object sender, MouseEventArgs e)
+    {
+      //if right button, show list of resources on nav stack
+      if (e.Button == MouseButtons.Right) {
+        //set left edge of list to match this button
+        picNavList.Left = cmdForward.Left;
+        picNavList.Width = cmdForward.Width;
+        //show it
+        picNavList.Visible = true;
+        //set mouse capture to the list picture
+        picNavList.Capture = true;
+        //offset is current queue position
+        NLOffset = ResQPtr;
+      }
+    }
+
+    private void picNavList_MouseMove(object sender, MouseEventArgs e)
+    {
+      //POINTAPI mPos;
+      //int rtn;
+      int SelRow;
+
+      if (e.Button != MouseButtons.Right) {
+        return;
+      }
+
+      // if selrow has changed, repaint
+      //// get mouse pos
+      //rtn = GetCursorPos(mPos);
+      ////convert to client coordinates
+      //rtn = ScreenToClient(picNavList.hWnd, mPos);
+      // determine which row is under cursor
+      SelRow = (int)(e.Location.Y / NLRowHeight - 0.13);
+
+      //if on a new row
+      if (SelRow != NLRow) {
+        //if both values still offscreen
+        if ((SelRow < 0 && NLRow < 0) && (SelRow > 4 && NLRow > 4)) {
+          //just update the selected row
+          NLRow = SelRow;
+          //no need to repaint
+          return;
+        }
+
+        //need to update and repaint
+        NLRow = SelRow;
+        picNavList_Paint(sender, new PaintEventArgs(picNavList.CreateGraphics(), picNavList.Bounds));
+      }
+
+      //if not on the list
+      if (SelRow < 0 && SelRow > 4) {
+        //enable autoscrolling
+        tmrNavList.Enabled = true;
+      }
+      else {
+        //no scrolling
+        tmrNavList.Enabled = false;
+      }
+    }
+
+    private void picNavList_Paint(object sender, PaintEventArgs e)
+    {
+
+      int i, rtn;
+      SolidBrush hbrush = new SolidBrush(Color.FromArgb(0xFFE0E0));
+      SolidBrush bbrush = new SolidBrush(Color.Black);
+      Font nlFont = new Font(Settings.PFontName, Settings.PFontSize);
+      //draw list of resources on stack, according to current
+      // offset; whatever is selected is also highlight
+
+      //start with a clean slate
+      e.Graphics.Clear(picNavList.BackColor);
+
+      PointF nlPoint = new PointF();
+      //print five lines
+      for (i = 0; i < 5; i++) {
+        if (i + NLOffset - 2 > 0 && i + NLOffset - 2 <= ResQueue.Length - 1) {
+          //if this row is highlighted (under cursor and valid)
+          if (i == NLRow) {
+            e.Graphics.FillRectangle(hbrush, 0, (int)((i + 0.035) * NLRowHeight), picNavList.Width, (int)NLRowHeight);
+          }
+          ////set x and y positions for the printed id
+          nlPoint.X = 1;
+          nlPoint.Y = NLRowHeight * i;
+
+          //print the id
+          switch ((AGIResType)(ResQueue[i + NLOffset - 2] / 256)) {
+          case rtLogic:
+            e.Graphics.DrawString(Logics[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+            break;
+          case rtPicture:
+            e.Graphics.DrawString(Pictures[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+            break;
+          case rtSound:
+            e.Graphics.DrawString(Sounds[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+            break;
+          case rtView:
+            e.Graphics.DrawString(Views[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+            break;
+          case (AGIResType)4:
+            switch (ResQueue[i + NLOffset - 2] % 256) {
+            case 9:
+              // rtGame
+              e.Graphics.DrawString(GameID, nlFont, bbrush, nlPoint);
+              break;
+            case 0:
+              // rtLogic
+              e.Graphics.DrawString("LOGICS", nlFont, bbrush, nlPoint);
+              break;
+            case 1:
+              // rtPicture
+              e.Graphics.DrawString("PICTURES", nlFont, bbrush, nlPoint);
+              break;
+            case 2:
+              // rtSound
+              e.Graphics.DrawString("SOUNDS", nlFont, bbrush, nlPoint);
+              break;
+            case 3:
+              //rtView
+              e.Graphics.DrawString("VIEWS", nlFont, bbrush, nlPoint);
+              break;
+            case 4:
+              //rtObjects
+              e.Graphics.DrawString("OBJECTS", nlFont, bbrush, nlPoint);
+              break;
+            case 5:
+              // rtWords
+              e.Graphics.DrawString("WORDS", nlFont, bbrush, nlPoint);
+              break;
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    private void picNavList_MouseUp(object sender, MouseEventArgs e)
+    {
+      int newPtr;
+      picNavList.Visible = false;
+      tmrNavList.Enabled = false;
+
+      //get new ptr value; exit if it's invalid
+      newPtr = NLOffset + NLRow - 2;
+      Debug.Print($" new resQ: {newPtr}");
+      return;
+
+      if (newPtr < 0) {
+        return;
+      }
+      else if (newPtr > ResQueue.Length - 1) {
+        return;
+      }
+
+      //if selected row (including offset)
+      //is different than current queue position
+      if (newPtr != ResQPtr) {
+        // move to the offset
+        ResQPtr = newPtr;
+        SelectFromQueue();
+        //adjust the buttons for availability
+        cmdBack.Enabled = ResQPtr > 0;
+        cmdForward.Enabled = ResQPtr < (ResQueue.Length - 1);
+      }
+    }
+
+    private void mnuGMRU_Click(object sender, EventArgs e)
+    {
+      int index;
+      // open the mru game assigned to this menu item
+      int.TryParse(((ToolStripMenuItem)sender).Tag.ToString(), out index);
+      OpenMRUGame(index);
+    }
+
+    private void mnuGExit_Click(object sender, EventArgs e)
+    {
+      // shut it all down
+      this.Close();
+    }
+
+    private void btnImportLogic_Click(object sender, EventArgs e)
+    {
+      MessageBox.Show("Import logic...");
+      btnImportRes.DefaultItem = btnImportLogic;
+      btnImportRes.Image = btnImportLogic.Image;
+    }
+
+    private void btnImportPicture_Click(object sender, EventArgs e)
+    {
+      MessageBox.Show("Import picture...");
+      btnImportRes.DefaultItem = btnImportPicture;
+      btnImportRes.Image = btnImportPicture.Image;
+    }
+
+    private void btnImportSound_Click(object sender, EventArgs e)
+    {
+      MessageBox.Show("Import sound...");
+      btnImportRes.DefaultItem = btnImportSound;
+      btnImportRes.Image = btnImportSound.Image;
+    }
+
+    private void btnImportView_Click(object sender, EventArgs e)
+    {
+      MessageBox.Show("Import view...");
+      btnImportRes.DefaultItem = btnImportView;
+      btnImportRes.Image = btnImportView.Image;
+    }
+
+    private void btnOpenLogic_Click(object sender, EventArgs e)
+    {
+      MessageBox.Show("Open logic...");
+      btnOpenRes.DefaultItem = btnOpenLogic;
+      btnOpenRes.Image = btnOpenLogic.Image;
+    }
+
+    private void btnOpenPicture_Click(object sender, EventArgs e)
+    {
+      MessageBox.Show("Open picture...");
+      btnOpenRes.DefaultItem = btnOpenPicture;
+      btnOpenRes.Image = btnOpenPicture.Image;
+    }
+
+    private void btnOpenSound_Click(object sender, EventArgs e)
+    {
+      MessageBox.Show("Open sound...");
+      btnOpenRes.DefaultItem = btnOpenSound;
+      btnOpenRes.Image = btnOpenSound.Image;
+    }
+
+    private void btnOpenView_Click(object sender, EventArgs e)
+    {
+      MessageBox.Show("Open view...");
+      btnOpenRes.DefaultItem = btnOpenView;
+      btnOpenRes.Image = btnOpenView.Image;
+    }
+
+    private void mnuGImport_Click(object sender, EventArgs e)
+    {
+      //import a game by directory
+      OpenDIR();
+    }
+
+    private void mnuGOpen_Click(object sender, EventArgs e)
+    {
+      //open a game - user will get chance to select wag file in OpenWAGFile()
+      OpenWAGFile();
+    }
+
+    public void ClearWarnings(int ResNum, AGIResType ResType)
+    {
+      //Warning  Description  ResNum  Line  Module
+      //4118      Blah          1     34    Logic1
+      //--        Picture Blah  --    --    Picture1
+      //
+      //Text        1           2     3     4             rowdata=type
+
+
+      //delete all lines from the grid that have the given resnum and restype
+      //if resnum is -1, clear all
+
+      //if restype is -1, it means clear all
+      if (ResNum == -1) {
+        fgWarnings.Rows.Clear();
+      }
+      else {
+        //find the matching lines (by type/number)
+        for (int i = fgWarnings.Rows.Count - 1; i >= 0; i--) {
+          if ((int)fgWarnings.Rows[i].Cells[4].Value == ResNum && (AGIResType)fgWarnings.Rows[i].Tag == ResType) {
+            fgWarnings.Rows.RemoveAt(i);
+          }
+        }
+      }
+    }
+    public void DismissWarning(int row)
+    {
+      //remove a row to dismiss the warning
+      fgWarnings.Rows.RemoveAt(row);
+    }
+    public void HelpWarning()
+    {
+      string strTopic, strNum;
+      //show help for the warning (or error) that is selected
+
+      strNum = (string)fgWarnings.SelectedRows[0].Cells[2].Value;
+      if (Val(strNum) > 5000) {
+        strTopic = @"htm\winagi\compilerwarnings.htm";
+      }
+      else {
+        strTopic = @"htm\winagi\compilererrors.htm";
+      }
+      strTopic = strTopic + "#" + strNum;
+
+      //show warning help
+      HtmlHelpS(HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, strTopic);
+    }
+
     void tmpFormMain()
     {
       /*
@@ -2082,110 +2597,6 @@ namespace WinAGI_GDS
 //    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-Option Explicit
-
-public void AddError(ByVal LineNum As Long, ByVal ErrNum As Long, ByVal ErrorText As String, ByVal ResNumber As Long, ByVal Module As String)
-
-//Error  Description  ResNum  Line  Module
-//4118      Blah          1     34    Logic1
-  
-  On Error GoTo ErrHandler
-  
-  Dim i As Long, lngNewRow As Long
-  
-  //add it to the grid
-  With fgWarnings
-    .AddItem JustPath(Module, true) + vbTab + vbTab + ErrNum + vbTab + ErrorText + vbTab + CStr(ResNumber) + vbTab + LineNum + vbTab + IIf(Len(Module) != 0, JustFileName(Module), Logics(ResNumber).ID)
-    //make it bold/red
-    lngNewRow = .Rows - 1
-    .Row = lngNewRow
-    For i = 2 To 6
-      .Col = i
-      .CellFontBold = true
-      .CellForeColor = Color.Red
-    Next i
-    
-    //save restype in row data tag
-    .RowData(lngNewRow) = rtLogic
-    .Col = 0
-  
-    //if it//s the first added (first row is blank), need to remove first row
-    if (Len(.TextMatrix(1, 2)) = 0) {
-      .RemoveItem 1
-      lngNewRow = 1
-    }
-    
-    //always make it visible
-    if (!.RowIsVisible(lngNewRow)) {
-      .TopRow = lngNewRow
-    }
-  End With
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-public void AddWarning(ByRef WarningText As String, ByVal ResType As AGIResType, ByVal ResNumber As Long)
-
-//Warning  Description  ResNum  Line  Module
-//4118      Blah          1     34    Logic1
-//--        Picture Blah  1     --    Picture1
-//
-//Text        1           2     3     4             smallicon=(type+1)
-
-
-
-  //parse the text, and add it
-  //WarningsText is in format:
-  //  number(255)warningtext(255)line(255)module
-  //
-  //number and line only have meaning for logic warnings
-  
-  
-  Dim strWarning() As String
-  
-  On Error GoTo ErrHandler
-  
-  //split the warning text into its elements
-  strWarning = Split(WarningText, "|")
-  
-  With fgWarnings
-    //add it to the grid
-    switch (ResType
-    case rtLogic
-      .AddItem JustPath(strWarning(3), true) + vbTab + vbTab + strWarning(0) + vbTab + strWarning(1) + vbTab + CStr(ResNumber) + vbTab + strWarning(2) + vbTab + IIf(Len(strWarning(3)) != 0, JustFileName(strWarning(3)), Logics(ResNumber).ID)
-    case rtPicture
-      .AddItem " " + vbTab + vbTab + strWarning(0) + vbTab + strWarning(1) + vbTab + "--" + vbTab + strWarning(2) + vbTab + Pictures(ResNumber).ID
-    case rtSound
-      .AddItem " " + vbTab + vbTab + strWarning(0) + vbTab + strWarning(1) + vbTab + "--" + vbTab + strWarning(2) + vbTab + Sounds(ResNumber).ID
-    case rtView
-      .AddItem " " + vbTab + vbTab + strWarning(0) + vbTab + strWarning(1) + vbTab + "--" + vbTab + strWarning(2) + vbTab + Views(ResNumber).ID
-    }
-    
-    //save restype in row data tag
-    .RowData(.Rows - 1) = ResType
-    .Row = fgWarnings.Rows - 1
-    .Col = 1
-  
-    //if it//s the first added, need to remove first row
-    if (Len(.TextMatrix(1, 2)) = 0) {
-      .RemoveItem 1
-    }
-  End With
-  
-    //if not already visible, show the list
-    if (!picWarnings.Visible) {
-      ShowWarningList
-    }
-
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
 public void BeginFind()
 
   //used by SearchForID function
@@ -2199,7 +2610,7 @@ public void BeginFind()
   //
   //that//s why each search form checks for changes, and
   //sets the global values, instead of doing it once inside
-  //the AGIFindForm code
+  //the FindingForm code
   
   //always reset the synonym search
   GFindSynonym = false
@@ -2207,7 +2618,7 @@ public void BeginFind()
   //ensure this form is the search form
   //Debug.Assert SearchForm Is Me
   
-  switch (AGIFindForm.FormAction
+  switch (FindingForm.FormAction
   case faFind
     FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
   
@@ -2224,122 +2635,10 @@ ErrHandler:
   Resume Next
 }
 
-public void ClearWarnings(ByVal ResNum As Long, ByVal ResType As AGIResType)
-
-//Warning  Description  ResNum  Line  Module
-//4118      Blah          1     34    Logic1
-//--        Picture Blah  --    --    Picture1
-//
-//Text        1           2     3     4             rowdata=type
 
 
-  //delete all lines from the grid that have the given resnum and restype
-  //if resnum is -1, clear all
-  
-  Dim i As Long
-  
-  On Error GoTo ErrHandler
-  
-  With fgWarnings
-    //if restype is -1, it means clear all
-    if (ResNum = -1) {
-      .Clear
-      For i = .Rows To 3 Step -1
-        .RemoveItem 1
-      Next i
-    } else {
-      //find the matching lines (by type/number)
-      For i = .Rows - 1 To 1 Step -1
-        if (CLng(Val(.TextMatrix(i, 4))) = ResNum && .RowData(i) = ResType) {
-          if (.Rows = 2) {
-            .Clear
-          } else {
-            .RemoveItem i
-          }
-        }
-      Next i
-    }
-    
-    //always restore column headers
-    .TextMatrix(0, 2) = "Warning"
-    .TextMatrix(0, 3) = "Description"
-    .TextMatrix(0, 4) = "Logic#"
-    .TextMatrix(0, 5) = "Line#"
-    .TextMatrix(0, 6) = "Module"
 
-    .Refresh
-  End With
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-public void DismissWarning()
-
-  //Debug.Assert fgWarnings.Row > 0
-  
-  Dim lngWarning As Long, i As Long
-  
-  On Error GoTo ErrHandler
-  
-  //remove the current row to dismiss the current warning
-  
-  With fgWarnings
-    if (.Rows = 2) {
-      .Clear
-    } else {
-      .RemoveItem fgWarnings.Row
-    }
-  
-    //always restore column headers
-    .TextMatrix(0, 2) = "Warning"
-    .TextMatrix(0, 3) = "Description"
-    .TextMatrix(0, 4) = "Logic#"
-    .TextMatrix(0, 5) = "Line#"
-    .TextMatrix(0, 6) = "Module"
-  End With
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-public void HelpWarning()
-
-  //Debug.Assert fgWarnings.Row > 0
-  
-  Dim strTopic As String, strNum As String
-  
-  On Error GoTo ErrHandler
-  
-  //show help for the warning (or error) that is selected
-  
-  With fgWarnings
-    if (.Row > 0) {
-      strNum = .TextMatrix(.Row, 2)
-      if (Val(strNum) > 5000) {
-        strTopic = "htm\winagi\compilerwarnings.htm"
-      } else {
-        strTopic = "htm\winagi\compilererrors.htm"
-      }
-      strTopic = strTopic + "#" + strNum
-    }
-  End With
-  
-  //show warning help
-  HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, strTopic
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-Private void SelectPropFromList()
+void SelectPropFromList()
 
   Dim i As Long
   Dim Reason As EUReason
@@ -2451,7 +2750,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void SelectPropFromText()
+void SelectPropFromText()
   
   On Error GoTo ErrHandler
   
@@ -2632,7 +2931,7 @@ ErrHandler:
 
 
 
-Private void EditResource(ByVal ResType As AGIResType, ByVal ResNum As Long)
+void EditResource(ByVal ResType As AGIResType, ByVal ResNum As Long)
 
   //edits a resource; called by the resource lists
   
@@ -2683,13 +2982,13 @@ public void GRun()
 
 public void HideWarningList()
 
-    picWarnings.Visible = false
+    pnlWarnings.Visible = false;
     picBottom.Visible = false
     picSplitH.Visible = false
 }
 
 public void PrintResources()
-
+{
   Dim i As Long
   
   On Error GoTo ErrHandler
@@ -2773,8 +3072,8 @@ public void RDescription()
   mnuRDescription_Click
 }
 
-Private void SelectedItemDescription(ByVal FirstProp As Long)
-
+void SelectedItemDescription(ByVal FirstProp As Long)
+{
   Dim strID As String, strTempD As String
   Dim frm As Form
   
@@ -2856,7 +3155,7 @@ ErrHandler:
 }
 
 public void SelectedItemExport()
-  
+ { 
   //exports the resource currently being previewed
   
   Dim strExportName As String
@@ -2915,7 +3214,8 @@ ErrHandler:
   Resume Next
 }
 public void SelectedItemRenumber()
-  //renumber the selected resource
+{
+      renumber the selected resource
   
   Dim NewResNum As Byte, OldResNum As Byte
   Dim strOldID As String
@@ -2983,11 +3283,11 @@ public void SelectedItemRenumber()
     return;
   }
   
-  //remember to set lastindex Value to -1;
+  //remember to set LastNode Value to "";
   //since indices change, it is possible the
   //the index of the newly selected resource
   //could match an existing resource index
-  LastIndex = -1
+  LastNodeName = "";
   
   //if a logic was renumbered
   if (SelResType = rtLogic) {
@@ -3116,33 +3416,12 @@ ErrHandler:
   Resume Next
 }
 
-
-
-public void ShowWarningList()
-
-  picWarnings.Visible = true
-  //force resize
-  picBottom.Visible = true
-  picSplitH.Visible = true
-  //if the resource panel is showing, need to adjust
-  //position of warning list
-  if (picResources.Visible) {
-    picWarnings.Move picResources.Width, picBottom.Top, CalcWidth + 60
-    picSplitH.Move picWarnings.Left + 30, picWarnings.Top, picWarnings.Width - 60
-  } else {
-    picWarnings.Move 0, picBottom.Top, picBottom.Width
-    picSplitH.Move 30, picBottom.Top, picBottom.Width - 60
-  }
-  UpdateSplitH picBottom.Top, true
-  UpdateSplitV picLeft.Width - SPLIT_WIDTH, true
-}
-
 public void TMenu()
   //tie function
   mnuTMenuEditor_Click
 }
 
-Private void UpdateSplitRes(ByVal SplitResLoc As Single)
+void UpdateSplitRes(ByVal SplitResLoc As Single)
 
   Dim OldHeight As Single
   
@@ -3325,7 +3604,7 @@ ErrHandler:
 }
 
 
-Private void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType As WinAGI.AGIResType, ResNum As Byte, ErrString As String)
+void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType As WinAGI.AGIResType, ResNum As Byte, ErrString As String)
 
   Dim rtn As VbMsgBoxResult
   Dim strID As String, blnDontAsk As Boolean
@@ -3437,7 +3716,7 @@ Private void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType 
       With MDIMain
         .AddError strErrInfo(0), Val(Left(strErrInfo(2), 4)), Right(strErrInfo(2), Len(strErrInfo(2)) - 6), ResNum, strErrInfo(1)
         if (!.picWarnings.Visible) {
-          .ShowWarningList
+          .pnlWarnings.Visible = true;
         }
       End With
       
@@ -3514,7 +3793,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void agGameEvents_LoadStatus(lStatus As WinAGI.ELStatus, ResType As WinAGI.AGIResType, ResNum As Byte, ErrString As String)
+void agGameEvents_LoadStatus(lStatus As WinAGI.ELStatus, ResType As WinAGI.AGIResType, ResNum As Byte, ErrString As String)
   
   //update the load ProgressWin form
   
@@ -3564,12 +3843,12 @@ ErrHandler:
 }
 
 
-Private void agGameEvents_LogCompWarning(Warning As String, LogNum As Byte)
+void agGameEvents_LogCompWarning(Warning As String, LogNum As Byte)
 
   //should only happen when a logic is being compiled;
   //add this warning to the list
   
-  //(it//s up to compiling function to manage clearing the list
+  //(it's up to compiling function to manage clearing the list
   //prior to compiling a new logic
   AddWarning Warning, rtLogic, CLng(LogNum)
 
@@ -3589,7 +3868,7 @@ Private void agGameEvents_LogCompWarning(Warning As String, LogNum As Byte)
   
 }
 
-Private void cmbResType_Click()
+void cmbResType_Click()
 
   Dim i As Long, tmpItem As ListItem
   Dim NewType As AGIResType, NewNum As Long
@@ -3719,7 +3998,7 @@ ErrHandler:
 }
 
 
-Private void cmbResType_GotFocus()
+void cmbResType_GotFocus()
 
   //if not using preview window then focus
   //events must be tracked
@@ -3769,7 +4048,7 @@ Resume Next
 }
 
 
-Private void cmbResType_KeyDown(KeyCode As Integer, Shift As Integer)
+void cmbResType_KeyDown(KeyCode As Integer, Shift As Integer)
 
   Dim strTopic As String
   
@@ -3816,7 +4095,7 @@ ErrHandler:
 }
 
 
-Private void cmbResType_LostFocus()
+void cmbResType_LostFocus()
 
   //if not using the preview window, then
   //focus events must be tracked
@@ -3850,66 +4129,7 @@ ErrHandler:
 }
 
 
-Private void cmdBack_Click()
-
-  On Error GoTo ErrHandler
-  
-  // if resqptr is not at beginning, go back one
-  // and select that resource
-  //Debug.Assert ResQPtr > 1
-  if (ResQPtr > 1) {
-    //back up one
-    ResQPtr = ResQPtr - 1
-    //select this node if still present
-    SelectFromQueue
-    
-    //adjust the buttons for availability
-    cmdBack.Enabled = ResQPtr > 1
-    cmdForward.Enabled = true
-  }
-  
-  //always set focus to the resource list
-  switch (Settings.ResListType
-  case 1
-    tvwResources.Focus()
-  case 2
-    lstResources.Focus();
-  }
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-Private void cmdBack_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  Dim rtn As Long, i As Long
-  
-  On Error GoTo ErrHandler
-  
-  //if right button, show list of resources on nav stack
-  
-  if (Button = vbRightButton) {
-    //set left edge of list to match this button
-    picNavList.Left = cmdBack.Left * ScreenTWIPSY
-    picNavList.Width = cmdBack.Width * ScreenTWIPSX
-    //show it
-    picNavList.Visible = true
-    //set mouse capture to the list picture
-    rtn = SetCapture(picNavList.hWnd)
-    //offset is current queue position
-    NLOffset = ResQPtr
-  }
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-Private void cmdBack_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void cmdBack_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //always set focus to resource list
   switch (Settings.ResListType
@@ -3920,69 +4140,7 @@ Private void cmdBack_MouseUp(Button As Integer, Shift As Integer, X As Single, Y
   }
 }
 
-
-Private void cmdForward_Click()
-
-  On Error GoTo ErrHandler
-  
-  // if resqptr is not at end, go forward one
-  // and select that resource
-  //Debug.Assert ResQPtr < UBound(ResQueue)
-  if (ResQPtr < UBound(ResQueue)) {
-    //go forward one
-    ResQPtr = ResQPtr + 1
-    //select this node if still present
-    SelectFromQueue
-    
-    //adjust the buttons for availability
-    cmdBack.Enabled = true
-    cmdForward.Enabled = ResQPtr < UBound(ResQueue)
-  }
-  
-  //always set focus to the resource list
-  switch (Settings.ResListType
-  case 1
-    tvwResources.Focus();
-  case 2
-    lstResources.Focus();
-  }
-  
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-Private void cmdForward_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  Dim rtn As Long, i As Long
-  
-  On Error GoTo ErrHandler
-  
-  //if right button, show list of resources on nav stack
-  
-  if (Button = vbRightButton) {
-    //set left edge of list to match this button
-    picNavList.Left = cmdForward.Left * ScreenTWIPSY
-    picNavList.Width = cmdForward.Width * ScreenTWIPSX
-    //show it
-    picNavList.Visible = true
-    //set mouse capture to the list picture
-    rtn = SetCapture(picNavList.hWnd)
-    //offset is current queue position
-    NLOffset = ResQPtr
-  }
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-Private void cmdForward_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void cmdForward_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //always set focus to resource list
   switch (Settings.ResListType
@@ -3993,13 +4151,13 @@ Private void cmdForward_MouseUp(Button As Integer, Shift As Integer, X As Single
   }
 }
 
-Private void cmdWLClose_Click()
+void cmdWLClose_Click()
 
   //hide the warning list window
-  HideWarningList
+  pnlWarnings.Visible = false;
 }
 
-Private void fgWarnings_DblClick()
+void fgWarnings_DblClick()
 
   Dim lngRow As Long, lngErrLine As Long, lngLogicNo As Long
   Dim strErrMsg As String, strModule As String, rtRes As AGIResType
@@ -4056,7 +4214,7 @@ ErrHandler:
 }
 
 
-Private void fgWarnings_KeyDown(KeyCode As Integer, Shift As Integer)
+void fgWarnings_KeyDown(KeyCode As Integer, Shift As Integer)
 
   //allow select all and copy
   Dim i As Long, j As Long, strText As String
@@ -4075,7 +4233,7 @@ Private void fgWarnings_KeyDown(KeyCode As Integer, Shift As Integer)
           //multiple rows selected
           For i = .Row To .RowSel
             For j = .Col To .ColSel
-              strText = strText + .TextMatrix(i, j) + vbTab
+              strText = strText + .TextMatrix(i, j) + "\t"
             Next j
             //strip off last tab and add carriage return
             strText = Left$(strText, Len(strText) - 1) + vbCr
@@ -4100,7 +4258,7 @@ Private void fgWarnings_KeyDown(KeyCode As Integer, Shift As Integer)
   }
 }
 
-Private void fgWarnings_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void fgWarnings_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim lngRow As Long, rtRes As AGIResType
   
@@ -4169,7 +4327,7 @@ ErrHandler:
 }
 
 
-Private void fgWarnings_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void fgWarnings_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //set tooltip if current warning doesnt fit
   
@@ -4206,7 +4364,7 @@ ErrHandler:
 }
 
 
-Private void fgWarnings_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void fgWarnings_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   if (Button = vbLeftButton) {
     With fgWarnings
@@ -4223,7 +4381,7 @@ Private void fgWarnings_MouseUp(Button As Integer, Shift As Integer, X As Single
 }
 
 
-Private void fsbProperty_Change()
+void fsbProperty_Change()
 
   //cancel editing, if it is occurring
   if (txtProperty.Visible) {
@@ -4242,7 +4400,7 @@ Private void fsbProperty_Change()
   PaintPropertyWindow
 }
 
-Private void lstProperty_DblClick()
+void lstProperty_DblClick()
   
   On Error GoTo ErrHandler
   
@@ -4260,12 +4418,12 @@ ErrHandler:
   Resume Next
 }
 
-Private void lstProperty_GotFocus()
+void lstProperty_GotFocus()
     
   picProperties.Refresh
 }
 
-Private void lstProperty_KeyPress(KeyAscii As Integer)
+void lstProperty_KeyPress(KeyAscii As Integer)
 
   //trap enter key
   switch (KeyAscii
@@ -4288,7 +4446,7 @@ Private void lstProperty_KeyPress(KeyAscii As Integer)
   }
 }
 
-Private void lstProperty_LostFocus()
+void lstProperty_LostFocus()
 
   On Error GoTo ErrHandler
   
@@ -4305,7 +4463,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void lstResources_DblClick()
+void lstResources_DblClick()
 
   On Error Resume Next
   
@@ -4322,7 +4480,7 @@ Private void lstResources_DblClick()
   }
 }
 
-Private void lstResources_GotFocus()
+void lstResources_GotFocus()
 
   //if not using preview window then focus
   //events must be tracked
@@ -4372,7 +4530,7 @@ Resume Next
 }
 
 
-Private void lstResources_KeyDown(KeyCode As Integer, Shift As Integer)
+void lstResources_KeyDown(KeyCode As Integer, Shift As Integer)
 
   Dim strTopic As String
   
@@ -4445,7 +4603,7 @@ ErrHandler:
 }
 
 
-Private void lstResources_KeyPress(KeyAscii As Integer)
+void lstResources_KeyPress(KeyAscii As Integer)
 
   On Error GoTo ErrHandler
   
@@ -4471,7 +4629,7 @@ ErrHandler:
 }
 
 
-Private void lstResources_LostFocus()
+void lstResources_LostFocus()
 
   //if not using the preview window, then
   //focus events must be tracked
@@ -4507,7 +4665,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void lstResources_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void lstResources_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim tmpItem As ListItem
   Dim NewNum As Long
@@ -4574,7 +4732,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void MDIForm_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void MDIForm_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   On Error GoTo ErrHandler
   
@@ -4599,7 +4757,7 @@ ErrHandler:
 
 
 
-Private void mnuCWAll_Click()
+void mnuCWAll_Click()
 
   On Error Resume Next
   
@@ -4622,17 +4780,17 @@ Private void mnuCWAll_Click()
   }
 }
 
-Private void mnuCWDismiss_Click()
+void mnuCWDismiss_Click()
 
   On Error Resume Next
   
   //Debug.Assert this.ActiveControl Is this.fgWarnings
   if (this.ActiveControl Is this.fgWarnings) {
-    DismissWarning
+    DismissWarning(fgWarnings.SelectedRows[0].Index);
   }
 }
 
-Private void mnuCWPrint_Click()
+void mnuCWPrint_Click()
 
   //print the list
   Load frmPrint
@@ -4641,13 +4799,13 @@ Private void mnuCWPrint_Click()
   
 }
 
-Private void mnuECustom1_Click()
+void mnuECustom1_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickECustom1
 }
-Private void mnuECustom2_Click()
+void mnuECustom2_Click()
   
   On Error Resume Next
   
@@ -4655,17 +4813,17 @@ Private void mnuECustom2_Click()
 }
 
 
-Private void mnuECustom3_Click()
+void mnuECustom3_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickECustom3
 }
 
-Private void mnuEdit_Click()
+void mnuEdit_Click()
 
 
-// this doesn//t work; VB can//t change visible status
+// this doesn't work; VB can//t change visible status
 // of menu items from inside the click event of the
 // parent menu. This really sucks, because it would
 // be MUCH SIMPLER to manage the edit menu from here
@@ -4682,14 +4840,14 @@ Private void mnuEdit_Click()
 //////  Resume Next
 }
 
-Private void mnuERedo_Click()
+void mnuERedo_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickRedo
 }
 
-Private void mnuEReplace_Click()
+void mnuEReplace_Click()
 
   On Error Resume Next
   
@@ -4697,48 +4855,42 @@ Private void mnuEReplace_Click()
 }
 
 
-Private void mnuGCompileDirty_Click()
+void mnuGCompileDirty_Click()
 
   //compile dirty
   CompileDirtyLogics
 }
 
-Private void mnuGCompileTo_Click()
+void mnuGCompileTo_Click()
 
   //compile game to directory of user//s choice
   CompileAGIGame
 }
 
-Private void mnuGImport_Click()
-
-  //import a game by directory
-  OpenDIR
-}
-
-Private void mnuGMRU0_Click()
+void mnuGMRU_Click()
 
   OpenMRUGame 0
 }
 
-Private void mnuGMRU1_Click()
+void mnuGMRU1_Click()
 
   OpenMRUGame 1
 }
 
 
-Private void mnuGMRU2_Click()
+void mnuGMRU2_Click()
 
   OpenMRUGame 2
 }
 
 
-Private void mnuGMRU3_Click()
+void mnuGMRU3_Click()
 
   OpenMRUGame 3
 }
 
 
-Private void mnuGProperties_Click()
+void mnuGProperties_Click()
   
   Dim rtn As VbMsgBoxResult
   
@@ -4877,7 +5029,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuCWHelp_Click()
+void mnuCWHelp_Click()
 
   On Error Resume Next
   
@@ -4887,7 +5039,7 @@ Private void mnuCWHelp_Click()
   }
 }
 
-Private void mnuHIndex_Click()
+void mnuHIndex_Click()
 
   //open the help file, with index displayed
   
@@ -4898,20 +5050,20 @@ Private void mnuHIndex_Click()
    hWndHelp = HtmlHelp(HelpParent, WinAGIHelp, HH_DISPLAY_INDEX, 0)
 }
 
-Private void mnuHLogic_Click()
+void mnuHLogic_Click()
     
   //select commands start page
   HtmlHelp HelpParent, WinAGIHelp, HH_HELP_CONTEXT, 1001
 }
 
 
-Private void mnuHReference_Click()
+void mnuHReference_Click()
 
   //select reference start page
   HtmlHelp HelpParent, WinAGIHelp, HH_HELP_CONTEXT, 1002
 }
 
-Private void mnuCWIgnore_Click()
+void mnuCWIgnore_Click()
 
   On Error Resume Next
   
@@ -4921,7 +5073,7 @@ Private void mnuCWIgnore_Click()
   }
 }
 
-Private void mnuLPCopy_Click()
+void mnuLPCopy_Click()
 
   On Error Resume Next
   
@@ -4938,7 +5090,7 @@ Private void mnuLPCopy_Click()
   }
 }
 
-Private void mnuLPSelectAll_Click()
+void mnuLPSelectAll_Click()
 
   //selects all the text in the preview logic window
   
@@ -4948,7 +5100,7 @@ Private void mnuLPSelectAll_Click()
 
 }
 
-Private void mnuRBar0_Click()
+void mnuRBar0_Click()
 
   //used in context menus only;
   //purpose is to open the selected
@@ -4965,34 +5117,34 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuTBCopy_Click()
+void mnuTBCopy_Click()
 
   // select the //copy// command
   TBCmd = 2
 }
 
-Private void mnuTBCut_Click()
+void mnuTBCut_Click()
 
   // select the //cut// command
   TBCmd = 1
 }
 
 
-Private void mnuTBPaste_Click()
+void mnuTBPaste_Click()
 
   // select the //paste// command
   TBCmd = 3
 }
 
 
-Private void mnuTBSelectAll_Click()
+void mnuTBSelectAll_Click()
 
   // select the //selectall// command
   TBCmd = 4
 }
 
 
-Private void mnuTCustom_Click(Index As Integer)
+void mnuTCustom_Click(Index As Integer)
   
   Dim rtn As Long
   Dim strTemp As String
@@ -5025,7 +5177,7 @@ Private void mnuTCustom_Click(Index As Integer)
     //save the old path, so it can be restored once we//re done
     OldPath = CurDir$()
     
-    //if a game is open, assume it//s the current directory;
+    //if a game is open, assume it's the current directory;
     //otherwise, assume program directory is current directory
     if (GameLoaded) {
       ChDrive GameDir
@@ -5087,14 +5239,14 @@ Private void mnuTCustom_Click(Index As Integer)
   }
 }
 
-Private void mnuTCustomize_Click()
+void mnuTCustomize_Click()
 
   KeepFocus = true
   frmTools.Show vbModal, Me
   KeepFocus = false
 }
 
-Private void mnuTGlobals_Click()
+void mnuTGlobals_Click()
   On Error GoTo ErrHandler
   
   //open the game//s globals
@@ -5108,13 +5260,13 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuTLayout_Click()
+void mnuTLayout_Click()
 
   //open the layout editor
   OpenLayout
 }
 
-Private void mnuTMenuEditor_Click()
+void mnuTMenuEditor_Click()
 
   On Error GoTo ErrHandler
   
@@ -5148,7 +5300,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuTPalette_Click()
+void mnuTPalette_Click()
 
   //show the palette form
   Load frmPalette
@@ -5156,7 +5308,7 @@ Private void mnuTPalette_Click()
   frmPalette.Show vbModal, MDIMain
 }
 
-Private void mnuTResDef_Click()
+void mnuTResDef_Click()
 
   //edit reserved define values
   
@@ -5216,7 +5368,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuTSettings_Click()
+void mnuTSettings_Click()
   //show wait cursor
   WaitCursor
   
@@ -5228,7 +5380,7 @@ Private void mnuTSettings_Click()
   Screen.MousePointer = vbDefault
 }
 
-Private void mnuTSnippets_Click()
+void mnuTSnippets_Click()
 
   On Error GoTo ErrHandler
   
@@ -5247,19 +5399,19 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuWArrange_Click()
+void mnuWArrange_Click()
   
   //arrange icons
   MDIMain.Arrange vbArrangeIcons
 }
 
-Private void mnuWCascade_Click()
+void mnuWCascade_Click()
 
   //cascade windows
   MDIMain.Arrange vbCascade
 }
 
-Private void mnuWMinimize_Click()
+void mnuWMinimize_Click()
 
   Dim frm As Form
   
@@ -5276,163 +5428,19 @@ Private void mnuWMinimize_Click()
   
 }
 
-Private void mnuWTileH_Click()
+void mnuWTileH_Click()
 
   //tile horizontal
   MDIMain.Arrange vbTileHorizontal
 }
 
-Private void mnuWTileV_Click()
+void mnuWTileV_Click()
 
   //tile vertically
   MDIMain.Arrange vbTileVertical
 }
 
-Private void picNavList_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  Dim mPos As POINTAPI, SelRow As Long
-  Dim rtn As Long
-  
-  if (Button != vbRightButton) {
-    return;
-  }
-  
-  // if selrow has changed, repaint
-  With picNavList
-    // get mouse pos
-    rtn = GetCursorPos(mPos)
-    //convert to client coordinates
-    rtn = ScreenToClient(.hWnd, mPos)
-    // determine which row is under cursor
-    SelRow = Int(mPos.Y / NLRowHeight - 0.13)
-    
-    //if on a new row
-    if (SelRow != NLRow) {
-    //if both values still offscreen
-      if ((SelRow < 0 && NLRow < 0) && (SelRow > 4 && NLRow > 4)) {
-        //just update the selected row
-        NLRow = SelRow
-        //no need to repaint
-        return;
-      }
-      
-      //need to update and repaint
-      NLRow = SelRow
-      picNavList_Paint
-    }
-    
-    //if not on the list
-    if (SelRow < 0 && SelRow > 4) {
-      //enable autoscrolling
-      tmrNavList.Enabled = true
-    } else {
-      //no scrolling
-      tmrNavList.Enabled = false
-    }
-  End With
-}
-
-Private void picNavList_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  Dim newPtr As Long
-  
-  On Error GoTo ErrHandler
-  
-  picNavList.Visible = false
-  tmrNavList.Enabled = false
-  
-  //get new ptr value; exit if it//s invalid
-  newPtr = NLOffset + NLRow - 2
-  if (newPtr < 0) {
-    return;
-  } else if ( newPtr > UBound(ResQueue())) {
-    return;
-  }
-  
-  //if selected row (including offset)
-  //is different than current queue position
-  if (newPtr != ResQPtr) {
-    // move to the offset
-    ResQPtr = newPtr
-    SelectFromQueue
-    //adjust the buttons for availability
-    cmdBack.Enabled = ResQPtr > 1
-    cmdForward.Enabled = ResQPtr < UBound(ResQueue)
-  }
-  
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-Private void picNavList_Paint()
-  
-  Dim i As Long, rtn As Long
-  
-  On Error GoTo ErrHandler
-  
-  //draw list of resources on stack, according to current
-  // offset; whatever is selected is also highlight
-  
-  With picNavList
-    //start with a clean slate
-    .Cls
-    
-    //print five lines
-    For i = 0 To 4
-      
-      if (i + NLOffset - 2 > 0 && i + NLOffset - 2 <= UBound(ResQueue())) {
-        //if this row is highlighted (under cursor and valid)
-        if (i = NLRow) {
-          picNavList.Line (0, (i + 0.035) * NLRowHeight)-Step(.Width, NLRowHeight), &HFFE0E0, BF
-        }
-        //set x and y positions for the printed id
-        .CurrentY = (1.15 * i + 0.15) * .TextHeight("")
-        .CurrentX = 0.15 * .TextHeight("")
-        
-        //print the id
-        switch (Int(ResQueue(i + NLOffset - 2) / 256)
-        case rtLogic
-          picNavList.Print Logics(ResQueue(i + NLOffset - 2) Mod 256).ID
-        case rtPicture
-          picNavList.Print Pictures(ResQueue(i + NLOffset - 2) Mod 256).ID
-        case rtSound
-          picNavList.Print Sounds(ResQueue(i + NLOffset - 2) Mod 256).ID
-        case rtView
-          picNavList.Print Views(ResQueue(i + NLOffset - 2) Mod 256).ID
-        case 4
-          switch (ResQueue(i + NLOffset - 2) Mod 256
-          case rtGame
-            picNavList.Print GameID
-          case rtLogic
-            picNavList.Print "LOGICS"
-          case rtPicture
-            picNavList.Print "PICTURES"
-          case rtSound
-            picNavList.Print "SOUNDS"
-          case rtView
-            picNavList.Print "VIEWS"
-          case rtObjects
-            picNavList.Print "OBJECTS"
-          case rtWords
-            picNavList.Print "WORDS"
-          }
-        }
-      }
-    Next i
-  End With
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-
-
-Private void picProperties_GotFocus()
+void picProperties_GotFocus()
   
   //if nothing selected, exit
   if (SelResType = rtNone) {
@@ -5483,7 +5491,7 @@ Private void picProperties_GotFocus()
     }
   }
 }
-Private void picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
+void picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
   
   Dim strHelp As String
   
@@ -5583,7 +5591,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void picProperties_KeyPress(KeyAscii As Integer)
+void picProperties_KeyPress(KeyAscii As Integer)
 
   On Error GoTo ErrHandler
   
@@ -5597,7 +5605,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void picProperties_LostFocus()
+void picProperties_LostFocus()
   
   //if not using the preview window, then
   //focus events must be tracked
@@ -5639,7 +5647,7 @@ Private void picProperties_LostFocus()
   NoPaint = false
 }
 
-Private void picResources_Resize()
+void picResources_Resize()
 
   //update resource panels, if visible
   if (picResources.Visible) {
@@ -5655,7 +5663,7 @@ Private void picResources_Resize()
   }
 }
 
-Private void picSplitH_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picSplitH_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //begin split operation
   picSplitHIcon.Width = picSplitH.Width
@@ -5667,7 +5675,7 @@ Private void picSplitH_MouseDown(Button As Integer, Shift As Integer, X As Singl
 }
 
 
-Private void picSplitH_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picSplitH_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim Pos As Single
   
@@ -5695,7 +5703,7 @@ Private void picSplitH_MouseMove(Button As Integer, Shift As Integer, X As Singl
 }
 
 
-Private void picSplitH_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picSplitH_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim Pos As Single
   //if splitting
@@ -5741,7 +5749,7 @@ Private void picSplitH_MouseUp(Button As Integer, Shift As Integer, X As Single,
 }
 
 
-Private void picSplitH_Paint()
+void picSplitH_Paint()
 
   //draw a line across bottom row of pixels to act as a border for the grid
   
@@ -5750,7 +5758,7 @@ Private void picSplitH_Paint()
 
 }
 
-Private void picSplitRes_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picSplitRes_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //begin split operation
   picSplitResIcon.Width = picSplitRes.Width
@@ -5762,7 +5770,7 @@ Private void picSplitRes_MouseDown(Button As Integer, Shift As Integer, X As Sin
 }
 
 
-Private void picSplitRes_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picSplitRes_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim tmpHeight As Long
   
@@ -5782,7 +5790,7 @@ Private void picSplitRes_MouseMove(Button As Integer, Shift As Integer, X As Sin
 }
 
 
-Private void picSplitRes_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picSplitRes_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim tmpHeight As Long
   
@@ -5825,7 +5833,7 @@ Private void picSplitRes_MouseUp(Button As Integer, Shift As Integer, X As Singl
 }
 
 
-Private void picSplitV_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picSplitV_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
   
   //begin split operation
   picSplitVIcon.Height = picSplitV.Height
@@ -5837,7 +5845,7 @@ Private void picSplitV_MouseDown(Button As Integer, Shift As Integer, X As Singl
 }
 
 
-Private void picSplitV_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picSplitV_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim Pos As Single
   
@@ -5857,7 +5865,7 @@ Private void picSplitV_MouseMove(Button As Integer, Shift As Integer, X As Singl
 }
 
 
-Private void picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim Pos As Single
   
@@ -5875,7 +5883,7 @@ Private void picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single,
       Pos = MAX_SPLIT_V
     }
     
-    //redraw! (don't adjust for splitpos; it//s builtin to the splitting process)
+    //redraw! (don't adjust for splitpos; it's builtin to the splitting process)
     UpdateSplitV Pos
     
     PaintPropertyWindow
@@ -5898,14 +5906,14 @@ Private void picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single,
   }
 }
 
-Private void picWarnings_Paint()
+void picWarnings_Paint()
 
   //draw that darn line?
   picWarnings.Line (0, 30)-Step(picWarnings.Width, 0), Color.Black
   
 }
 
-Private void picWarnings_Resize()
+void picWarnings_Resize()
 
   On Error GoTo ErrHandler
   
@@ -5938,14 +5946,14 @@ ErrHandler:
 }
 
 
-Private void StatusBar1_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void StatusBar1_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   StatusMouseBtn = Button
   sbX = X
   sbY = Y
 }
 
-Private void StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
+void StatusBar1_PanelClick(ByVal Panel As MSComctlLib.Panel)
   
   Dim lngErrNum As Long
   
@@ -6053,14 +6061,14 @@ ErrHandler:
   Resume Next
 }
 
-Private void StatusBar1_PanelDblClick(ByVal Panel As MSComctlLib.Panel)
+void StatusBar1_PanelDblClick(ByVal Panel As MSComctlLib.Panel)
   //same as click
   StatusBar1_PanelClick Panel
   
 }
 
 
-Private void tmrFlash_Timer()
+void tmrFlash_Timer()
 
   //flash the main status bar, panel 1 three times;
   
@@ -6085,32 +6093,7 @@ Private void tmrFlash_Timer()
   
 }
 
-Private void tmrNavList_Timer()
-
-  //scroll the navlist
-  
-  On Error GoTo ErrHandler
-  
-  if (NLRow < 0) {
-    //scroll up
-    if (NLOffset > 3) {
-     NLOffset = NLOffset - 1
-     picNavList_Paint
-    }
-  } else {
-    //scroll down
-    if (NLOffset < UBound(ResQueue()) - 2) {
-     NLOffset = NLOffset + 1
-     picNavList_Paint
-    }
-  }
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-Private void Toolbar1_ButtonMenuClick(ByVal ButtonMenu As MSComctlLib.ButtonMenu)
+void Toolbar1_ButtonMenuClick(ByVal ButtonMenu As MSComctlLib.ButtonMenu)
 
   //new, open, import default resource has been changed
   
@@ -6136,7 +6119,7 @@ Private void Toolbar1_ButtonMenuClick(ByVal ButtonMenu As MSComctlLib.ButtonMenu
   
 }
 
-Private void tvwResources_Click()
+void tvwResources_Click()
 
   On Error GoTo ErrHandler
   
@@ -6161,7 +6144,7 @@ ErrHandler:
 }
 
 
-Private void tvwResources_GotFocus()
+void tvwResources_GotFocus()
   
   //if not using preview window then focus
   //events must be tracked
@@ -6213,7 +6196,7 @@ ErrHandler:
 Resume Next
 }
 
-Private void tvwResources_KeyDown(KeyCode As Integer, Shift As Integer)
+void tvwResources_KeyDown(KeyCode As Integer, Shift As Integer)
 
   Dim strTopic As String
   
@@ -6285,7 +6268,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void tvwResources_KeyPress(KeyAscii As Integer)
+void tvwResources_KeyPress(KeyAscii As Integer)
 
   On Error GoTo ErrHandler
   
@@ -6312,7 +6295,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void tvwResources_LostFocus()
+void tvwResources_LostFocus()
   
   //if not using the preview window, then
   //focus events must be tracked
@@ -6345,7 +6328,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void txtProperty_Change()
+void txtProperty_Change()
 
   Dim tmpSS As Long
   
@@ -6378,7 +6361,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void txtProperty_KeyPress(KeyAscii As Integer)
+void txtProperty_KeyPress(KeyAscii As Integer)
   
   //trap enter key
   switch (KeyAscii
@@ -6434,7 +6417,7 @@ Private void txtProperty_KeyPress(KeyAscii As Integer)
   }
 }
 
-Private void txtProperty_LostFocus()
+void txtProperty_LostFocus()
   
   On Error GoTo ErrHandler
   
@@ -6451,7 +6434,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void picProperties_DblClick()
+void picProperties_DblClick()
   
   //set dblclick mode (to allow properties to be toggled)
   PropDblClick = true
@@ -6460,7 +6443,7 @@ Private void picProperties_DblClick()
   picProperties_MouseDown 0, 0, mPX, mPY
 }
 
-Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picProperties_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
   
   Dim tmpProp As Long
   Dim rtn As Long, blnDblClick As Boolean
@@ -6745,7 +6728,7 @@ Private void picProperties_MouseDown(Button As Integer, Shift As Integer, X As S
               }
               PaintPropertyWindow
               
-              //update the logic editor if it//s open
+              //update the logic editor if it's open
               For i = 1 To LogicEditors.Count
                 if (LogicEditors(i).LogicNumber = SelResNum) {
                   LogicEditors(i).LogicEdit.IsRoom = Logics(SelResNum).IsRoom
@@ -6908,7 +6891,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal strProp As String, ByVal lngBorderStyle As Long)
+void DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal strProp As String, ByVal lngBorderStyle As Long)
   //moves the edit box to appropriate position
   //preloads it with appropriate prop Value
   
@@ -6967,7 +6950,7 @@ Private void DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVa
 }
 
 
-Private void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal strProp As String)
+void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal strProp As String)
   //moves the list box to appropriate position
   //preloads it with appropriate prop Value
   
@@ -7090,18 +7073,18 @@ ErrHandler:
 }
 
 
-Private void picProperties_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picProperties_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
   //cache the Y Value
   mPY = Y
 }
 
-Private void picProperties_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void picProperties_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
 //  PaintPropertyWindow
 }
 
 
-Private void MDIForm_Resize()
+void MDIForm_Resize()
 
   On Error GoTo ErrHandler
   
@@ -7146,7 +7129,7 @@ ErrHandler:
 }
 
 
-Private void MDIForm_Unload(Cancel As Integer)
+void MDIForm_Unload(Cancel As Integer)
   
   Dim frm As Form
   Dim rtn As Long
@@ -7183,7 +7166,7 @@ Private void MDIForm_Unload(Cancel As Integer)
   SaveDlg = null
   ViewClipboard = null
   WordsClipboard = null
-  AGIFindForm = null
+  FindingForm = null
   SearchForm = null
   
   //reset parent for controls that were moved to the form
@@ -7216,21 +7199,21 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuEClear_Click()
+void mnuEClear_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickClear
 }
 
-Private void mnuECopy_Click()
+void mnuECopy_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickCopy
 }
 
-Private void mnuECut_Click()
+void mnuECut_Click()
   
   On Error Resume Next
   
@@ -7238,49 +7221,49 @@ Private void mnuECut_Click()
 }
 
 
-Private void mnuEDelete_Click()
+void mnuEDelete_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickDelete
 }
 
-Private void mnuEFind_Click()
+void mnuEFind_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickFind
 }
 
-Private void mnuEFindAgain_Click()
+void mnuEFindAgain_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickFindAgain
 }
 
-Private void mnuEInsert_Click()
+void mnuEInsert_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickInsert
 }
 
-Private void mnuEPaste_Click()
+void mnuEPaste_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickPaste
 }
 
-Private void mnuESelectAll_Click()
+void mnuESelectAll_Click()
 
   On Error Resume Next
   
   ActiveForm.MenuClickSelectAll
 }
 
-Private void mnuEUndo_Click()
+void mnuEUndo_Click()
   //undo an action
   
   On Error Resume Next
@@ -7288,25 +7271,19 @@ Private void mnuEUndo_Click()
   ActiveForm.MenuClickUndo
 }
 
-Private void mnuGCompile_Click()
+void mnuGCompile_Click()
 
   //compile game in default directory
   CompileAGIGame GameDir
 }
 
-Private void mnuGExit_Click()
+void mnuGExit_Click()
 
   //unload
   Unload Me
 }
 
-public void mnuGOpen_Click()
-  
-  //open a game - user will get chance to select wag file in OpenWAG()
-  OpenWAG
-}
-
-Private void mnuRDescription_Click()
+void mnuRDescription_Click()
 
   Dim i As Long
   
@@ -7422,70 +7399,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void MDIForm_QueryUnload(Cancel As Integer, UnloadMode As Integer)
-  
-  Dim frm As Form, i As Long
-  Dim blnLastLoad As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  //is a game loaded?
-  blnLastLoad = GameLoaded
-  if (blnLastLoad) {
-    //close open game (get cancel flag, in case user cancels)
-    Cancel = !CloseThisGame()
-  }
-  
-  //if error,
-  if (Err.Number != 0) {
-    //warn, and allow closing
-   ErrMsgBox "An error occurred while trying to close:", "", "Critical Error"
-    //allow canceling
-    Cancel = false
-  }
-  
-  if (Cancel) {
-    return;
-  }
-  
-  //unload any remaining open forms
-  foreach (frm In Forms
-    //if an editor
-    if (frm.Name != "MDIMain" && frm.Name != "frmPreview") {
-      if (frm.MDIChild) {
-        //store current form Count
-        i = Forms.Count
-        //unload the form
-        Unload frm
-        //if Count did not decrease
-        if (i = Forms.Count) {
-          //user canceled
-          Cancel = true
-          //force refresh by adjusting form width by one pixel
-          //this ensures main form border is adjusted after the
-          //resource picbox is hidden
-          On Error Resume Next
-          MDIMain.Width = MDIMain.Width - ScreenTWIPSX
-          MDIMain.Width = MDIMain.Width + ScreenTWIPSX
-          return;
-        }
-      }
-    }
-  Next
-  
-  //write lastload status
-  WriteAppSetting(SettingsList, sMRULIST, "LastLoad", blnLastLoad
-  
-  //save settings to register
-  SaveSettings
-  
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
-Private void mnuGRebuild_Click()
+void mnuGRebuild_Click()
 
   //rebuild volfiles only
   CompileAGIGame GameDir, true
@@ -7605,14 +7519,14 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuRCustom1_Click()
+void mnuRCustom1_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickCustom1
 }
 
-Private void mnuRCustom2_Click()
+void mnuRCustom2_Click()
 
   On Error Resume Next
   
@@ -7620,7 +7534,7 @@ Private void mnuRCustom2_Click()
 }
 
 
-Private void mnuRCustom3_Click()
+void mnuRCustom3_Click()
 
   On Error Resume Next
   
@@ -7628,7 +7542,7 @@ Private void mnuRCustom3_Click()
 }
 
 
-Private void mnuRExport_Click()
+void mnuRExport_Click()
   
   Dim i As Long
   
@@ -7723,7 +7637,7 @@ return;
 ErrHandler:
   Resume Next
 }
-Private void mnuRILogic_Click()
+void mnuRILogic_Click()
 
   On Error GoTo ErrHandler
   
@@ -7770,12 +7684,12 @@ ErrHandler:
   //Debug.Assert false
   Resume Next
 }
-Private void mnuRAddRemove_Click()
+void mnuRAddRemove_Click()
 
   AddOrRemoveRes
 }
 
-Private void mnuRIObjects_Click()
+void mnuRIObjects_Click()
   
   //imports an object file
   //if a game is loaded, ask if it should
@@ -7876,7 +7790,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuRIPicture_Click()
+void mnuRIPicture_Click()
 
   On Error GoTo ErrHandler
   
@@ -7924,7 +7838,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuRISound_Click()
+void mnuRISound_Click()
 
   On Error GoTo ErrHandler
   
@@ -7970,7 +7884,7 @@ ErrHandler:
   //Debug.Assert false
   Resume Next
 }
-Private void mnuRIView_Click()
+void mnuRIView_Click()
   
   On Error GoTo ErrHandler
   
@@ -8016,7 +7930,7 @@ ErrHandler:
   //Debug.Assert false
   Resume Next
 }
-Private void mnuRIWords_Click()
+void mnuRIWords_Click()
   
   //open a word file
   //if a game is loaded, ask if it should
@@ -8116,12 +8030,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuRNLogic_Click()
-  //create new logic and enter edit mode
-  NewLogic
-  
-}
-Private void mnuRNObjects_Click()
+void mnuRNObjects_Click()
   
   //create a new object file
   //if a game is loaded, ask if it should
@@ -8204,31 +8113,13 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuRNPicture_Click()
-  
-  //create new picture and enter edit mode
-  NewPicture
-}
-
-Private void mnuRNSound_Click()
-
-  //create new logic and enter edit mode
-  NewSound
-}
-
-Private void mnuRNText_Click()
+void mnuRNText_Click()
   //create new text file
   NewTextFile
   
 }
 
-Private void mnuRNView_Click()
-  //create new view and enter edit mode
-  NewView
-  
-}
-
-Private void mnuRNWords_Click()
+void mnuRNWords_Click()
 
   //create a new word list file
   //if a game is loaded, ask if it should
@@ -8311,7 +8202,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuROLogic_Click()
+void mnuROLogic_Click()
   //open a logic for editing
   
   //if a game is loaded
@@ -8340,7 +8231,7 @@ Private void mnuROLogic_Click()
   }
 }
 
-Private void mnuROObjects_Click()
+void mnuROObjects_Click()
 
   //open the current object list for editing
   
@@ -8353,7 +8244,7 @@ Private void mnuROObjects_Click()
   }
 }
 
-Private void mnuROPicture_Click()
+void mnuROPicture_Click()
   //open a picture for editing
   
   //if a game is loaded
@@ -8382,7 +8273,7 @@ Private void mnuROPicture_Click()
   }
 }
 
-Private void mnuROSound_Click()
+void mnuROSound_Click()
   //open a sound for editing
   
   //if a game is loaded
@@ -8412,7 +8303,7 @@ Private void mnuROSound_Click()
 }
 
 
-Private void mnuROText_Click()
+void mnuROText_Click()
   
   On Error GoTo ErrHandler
   
@@ -8453,7 +8344,7 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuROView_Click()
+void mnuROView_Click()
   //open a view for editing
   
   //if a game is loaded
@@ -8482,7 +8373,7 @@ Private void mnuROView_Click()
   }
 }
 
-Private void mnuROWords_Click()
+void mnuROWords_Click()
 
   //opens the current word list for editing
     
@@ -8495,7 +8386,7 @@ Private void mnuROWords_Click()
   }
 }
 
-Private void mnuRPrint_Click()
+void mnuRPrint_Click()
   
   Dim i As Long
   
@@ -8592,7 +8483,7 @@ public void mnuRRenumber_Click()
         Next i
         
       default: //words, objects, text, game or none
-        //renumber doesn//t apply
+        //renumber doesn't apply
         
       }
       
@@ -8606,14 +8497,14 @@ ErrHandler:
   Resume Next
 }
 
-Private void mnuRSave_Click()
+void mnuRSave_Click()
   
   On Error Resume Next
   
   ActiveForm.MenuClickSave
 }
 
-Private void mnuHAbout_Click()
+void mnuHAbout_Click()
 
 
   frmAbout.Left = MDIMain.Left + (MDIMain.Width - frmAbout.Width) / 2
@@ -8630,30 +8521,13 @@ public void mnuHContents_Click()
    hWndHelp = HtmlHelp(HelpParent, WinAGIHelp, HH_DISPLAY_TOC, 0)
 }
 
-public void mnuGClose_Click()
-
-  On Error GoTo ErrHandler
-  
-  //if closed ok,
-  if (CloseThisGame()) {
-    //reset index holder
-    LastIndex = -1
-  }
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  ErrMsgBox "Error on close: ", "", "Close Game Error"
-  Resume Next
-}
-
-Private void mnuGNewBlank_Click()
+void mnuGNewBlank_Click()
 
   //create new blank game
   NewAGIGame false
 }
 
-Private void mnuGNTemplate_Click()
+void mnuGNTemplate_Click()
 
   //create new game using template
   NewAGIGame true
@@ -8665,7 +8539,7 @@ Private void mnuGNTemplate_Click()
 
 
 
-Private void mnuWiClose_Click()
+void mnuWiClose_Click()
 
   //make sure this is not preview window
   if (MDIMain.ActiveForm.Name != "frmPreview") {
@@ -8673,7 +8547,7 @@ Private void mnuWiClose_Click()
   }
 }
 
-Private void Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
+void Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
 
   On Error GoTo ErrHandler
   
@@ -8690,18 +8564,6 @@ Private void Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
     
   case "print"
     mnuRPrint_Click
-    
-  case "new_r"
-    switch (Val(Button.Tag)
-    case 0
-      mnuRNLogic_Click
-    case 1
-      mnuRNPicture_Click
-    case 2
-      mnuRNSound_Click
-    case 3
-      mnuRNView_Click
-    }
     
   case "open_r"
     switch (Val(Button.Tag)
@@ -8782,7 +8644,7 @@ public void PropMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVa
     return;
   }
   
-  //if property window doesn//t have focus,
+  //if property window doesn't have focus,
   //make it so
   if (!MDIMain.ActiveControl Is picProperties) {
     picProperties.Focus();
@@ -8879,7 +8741,7 @@ public void MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xP
 
 
 
-Private void tvwResources_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+void tvwResources_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   Dim tmpNode As Node
   
@@ -9010,7 +8872,8 @@ ErrHandler:
       case 2: //combo/list box
         if (GameLoaded) {
           cmbResType.Items[0] = GameID;
-        } else {
+        }
+        else {
           cmbResType.Items[0] = "AGIGame";
         }
         //select top item (game level)
@@ -9069,8 +8932,38 @@ ErrHandler:
     }
     private void frmMDIMain_FormClosing(object sender, FormClosingEventArgs e)
     {
-      // save app settings
+      //is a game loaded?
+      bool blnLastLoad = GameLoaded;
+      if (blnLastLoad) {
+        //close open game (get cancel flag, in case user cancels)
+        try {
+          e.Cancel = !CloseThisGame();
+        }
+        catch (Exception ex) {
+          ErrMsgBox(ex, "An error occurred while trying to close:", "", "Critical Error");
+        }
+      }
+      if (e.Cancel) {
+        return;
+      }
+      //unload any remaining open forms
+      foreach (Form frm in this.MdiChildren) {
+        //store current form Count
+        int i = MdiChildren.Length;
+        //unload the form
+        frm.Close();
+        //if Count did not decrease
+        if (i == MdiChildren.Length) {
+          //user canceled
+          e.Cancel = true;
+          return;
+        }
+      }
+      //write lastload status
+      WriteAppSetting(SettingsList, sMRULIST, "LastLoad", blnLastLoad);
+      //save settings to register
       SaveSettings();
+
       // drop the global reference
       MDIMain = null;
     }

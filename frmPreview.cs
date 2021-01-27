@@ -326,9 +326,9 @@ namespace WinAGI_GDS
         DisplayPicture();
         return true;
       }
-      catch (Exception e) {
-        ////error occurred,
-        //ErrMsgBox("Error while loading picture resource: ", "", "Preview Picture Error");
+      catch (Exception ex) {
+        //error occurred,
+        ErrMsgBox(ex, "Error while loading picture resource: ", "", "Preview Picture Error");
         return false;
       }
     }
@@ -961,9 +961,9 @@ namespace WinAGI_GDS
     private void frmPreview_Activated(object sender, EventArgs e)
     {
       //if findform is visible,
-      if (AGIFindForm.Visible) {
+      if (FindingForm.Visible) {
         //hide it it
-        AGIFindForm.Visible = false;
+        FindingForm.Visible = false;
       }
       //cmbMotion.SelectedIndex = 0;
       //sldSpeed.Value = 5;
@@ -1566,7 +1566,7 @@ namespace WinAGI_GDS
       GFindSynonym = false;
 
       //reset search flags
-      AGIFindForm.ResetSearch();
+      FindingForm.ResetSearch();
       SearchForm = MDIMain;
 
       FindInLogic(GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc);
