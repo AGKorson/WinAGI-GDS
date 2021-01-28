@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   public static class AGITestCommands
   {
@@ -117,17 +117,10 @@ namespace WinAGI
 
       strErrSource = "WinAGI.agiTestCommands";
     }
-    public static CommandStruct TestCmd(byte index)
+    public static CommandStruct[] TestCommands
     {
-      //validate index
-      if (index >= agNumTestCmds)
-      {
-        throw new IndexOutOfRangeException();
-      }
-
-      return agTestCmds[index];
+      get { return agTestCmds; }
     }
-
     public static byte Count
     { get { return agNumTestCmds; } private set { } }
   }

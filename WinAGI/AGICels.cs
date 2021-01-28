@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static WinAGI.WinAGI;
-using static WinAGI.AGIGame;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGIGame;
 using System.Collections;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   class AGICels : IEnumerable<AGICel>
   {

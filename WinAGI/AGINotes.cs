@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   public class AGINotes : IEnumerable<AGINote>
   {

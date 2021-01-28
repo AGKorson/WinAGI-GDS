@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WinAGI;
-using static WinAGI.WinAGI;
+using WinAGI.Engine;
+using static WinAGI.Engine.WinAGI;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   public class AGILoop
   {

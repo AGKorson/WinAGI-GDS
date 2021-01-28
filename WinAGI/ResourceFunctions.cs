@@ -4,14 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using static WinAGI.WinAGI;
-using static WinAGI.AGILogicSourceSettings;
-using static WinAGI.AGICommands;
-using static WinAGI.AGIGame;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGILogicSourceSettings;
+using static WinAGI.Engine.AGICommands;
+using static WinAGI.Engine.AudioPlayer;
+using WinAGI.Common;
+using static WinAGI.Common.API;
+using static WinAGI.Common.WinAGI;
+using static WinAGI.Engine.AGIGame;
 using System.Windows.Forms;
-using static WinAGI.AudioPlayer;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   public static partial class WinAGI
   {

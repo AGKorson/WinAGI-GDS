@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WinAGI.Editor.WinAGI {
+namespace WinAGI.Engine {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace WinAGI.Editor.WinAGI {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class winagi {
+    internal class EngineResources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal winagi() {
+        internal EngineResources() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace WinAGI.Editor.WinAGI {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI.Editor.WinAGI.winagi", typeof(winagi).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI.Editor.WinAGI.EngineResources", typeof(EngineResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -943,7 +943,7 @@ namespace WinAGI.Editor.WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4099: null allowed on line after message declaration.
+        ///   Looks up a localized string similar to 4099: Nothing allowed on line after message declaration.
         /// </summary>
         internal static string _4099 {
             get {

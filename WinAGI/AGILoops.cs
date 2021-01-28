@@ -4,10 +4,10 @@ using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static WinAGI.WinAGI;
-using static WinAGI.AGIGame;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGIGame;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   public class AGILoops : IEnumerable<AGILoop>
   {

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Linq;
-using static WinAGI.AGICommands;
-using static WinAGI.AGITestCommands;
-using static WinAGI.ArgTypeEnum;
-using static WinAGI.AGIGame;
-using static WinAGI.WinAGI;
+using static WinAGI.Engine.AGICommands;
+using static WinAGI.Engine.AGITestCommands;
+using static WinAGI.Engine.ArgTypeEnum;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Common.WinAGI;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   // should this be public? or internal?
   public class AGILogicSourceSettings

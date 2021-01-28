@@ -1,14 +1,15 @@
 ﻿using System;
 using System.ComponentModel;
-using static WinAGI.WinAGI;
-using static WinAGI.AGIGame;
-using static WinAGI.AGILogicSourceSettings;
-using static WinAGI.AGICommands;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.AGILogicSourceSettings;
+using static WinAGI.Engine.AGICommands;
+using static WinAGI.Common.WinAGI;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   public class AGILogic : AGIResource
   {

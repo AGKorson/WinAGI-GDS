@@ -1,4 +1,4 @@
-﻿namespace WinAGI_GDS
+﻿namespace WinAGI.Editor
 {
     partial class frmLogicEdit
     {
@@ -276,7 +276,6 @@
       this.rtfLogic.TabIndex = 2;
       this.rtfLogic.Text = "";
       this.rtfLogic.WordWrap = false;
-      this.rtfLogic.DoubleClick += new System.EventHandler(this.rtfLogic_DoubleClick);
       // 
       // frmLogicEdit
       // 

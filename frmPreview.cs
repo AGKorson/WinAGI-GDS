@@ -8,14 +8,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
-using WinAGI;
-using static WinAGI.WinAGI;
-using static WinAGI.AGIGame;
-using static WinAGI.AGIResType;
-using static WinAGI_GDS.ResMan;
-using static WinAGI.AGISound;
+using WinAGI.Engine;
+using WinAGI.Common;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.AGIResType;
+using static WinAGI.Editor.ResMan;
+using static WinAGI.Engine.AGISound;
 
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
   public partial class frmPreview : Form
   {
@@ -84,6 +85,12 @@ namespace WinAGI_GDS
         //clear resources
         ClearPreviewWin();
       }
+      // always unload previous resources
+      agLogic?.Unload();
+      agPic?.Unload();
+      agSound?.Unload(); //TODO: do I need to stop playing and unhook sounds?
+      agView?.Unload();
+
       // if picture header selected
       if (ResType == rtPicture && ResNum < 0) {
         // show save all pics menu item
@@ -1583,7 +1590,7 @@ namespace WinAGI_GDS
         strTopic += "#" + ResTypeName[(int)SelResType];
       }
       //show preview window help
-      HtmlHelpS(HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, strTopic);
+      API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, strTopic);
     }
     void pnlSound_DoubleClick(object sender, EventArgs e)
     {

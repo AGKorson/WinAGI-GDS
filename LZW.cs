@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
   public static class LZW
   {

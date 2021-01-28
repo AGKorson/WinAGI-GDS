@@ -7,10 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using WinAGI;
-using static WinAGI.WinAGI;
+using WinAGI.Engine;
+using static WinAGI.Engine.WinAGI;
 
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
   public partial class frmSplash : Form
   {
@@ -20,7 +20,7 @@ namespace WinAGI_GDS
 
       // set version information
       lblVersion.Text = "Version " + Application.ProductVersion;
-      lblCopyright.Text += COPYRIGHT_YEAR;
+      lblCopyright.Text += Common.WinAGI.COPYRIGHT_YEAR;
   }
   }
 }

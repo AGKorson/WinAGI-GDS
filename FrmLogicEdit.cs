@@ -5,14 +5,14 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using WinAGI;
-using static WinAGI.WinAGI;
-using static WinAGI.AGIGame;
-using static WinAGI.AGITestCommands;
-using static WinAGI.AGICommands;
-using static WinAGI_GDS.ResMan;
+using WinAGI.Engine;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.AGITestCommands;
+using static WinAGI.Engine.AGICommands;
+using static WinAGI.Editor.ResMan;
 
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
   public partial class frmLogicEdit : Form
   {

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
-using static WinAGI.WinAGI;
-using static WinAGI.ArgTypeEnum;
-namespace WinAGI
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.ArgTypeEnum;
+
+namespace WinAGI.Engine
 {
   public static class AGICommands
   {
@@ -21,7 +22,7 @@ namespace WinAGI
     internal const int MAX_CMDS = 182;
     internal static byte agNumCmds;
     internal static CommandStruct[] agCmds = new CommandStruct[MAX_CMDS];
-    // last command 'adjust.ego.x.y', is not supported so its' not added
+    // last command 'adjust.ego.x.y', is not supported so it's not added
     // to the list of commands
     internal static string strErrSource = "WinAGI.agiCommandInfo";
     static AGICommands()
@@ -853,16 +854,9 @@ namespace WinAGI
 
       AssignReservedDefines();
     }
-    public static CommandStruct AGICommand(byte index)
+    public static CommandStruct[] Commands
     {
-      //validate index (this gets limited based on which
-      // game version is active)
-      if (index >= agNumCmds)
-      {
-        throw new IndexOutOfRangeException();
-      }
-
-      return agCmds[index];
+      get { return agCmds;  }
     }
     public static byte Count
     { get { return agNumCmds; } private set { } }

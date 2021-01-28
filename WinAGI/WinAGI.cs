@@ -4,11 +4,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using static WinAGI.AGIGame;
-using static WinAGI.AGICommands;
-using static WinAGI.AGITestCommands;
+using static WinAGI.Common.WinAGI;
+using static WinAGI.Engine.AGIGame;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   using System.Diagnostics;
   using System.Drawing;
@@ -206,16 +205,13 @@ MA  02110-1301  USA
   public static partial class WinAGI
   {
     // this class is for all the global stuff that was previously in separate modules in VB6
-    internal static uint[] CRC32Table = new uint[256];
-    internal static bool CRC32Loaded;
-
     ////arrays which will be treated as constants
     ////rev colors have red and blue components switched
     ////so api functions using colors work correctly
     //internal static uint[] lngEGARevCol = new uint[16]; //15
     //internal static uint[] lngEGACol = new uint[16]; //15;
     internal static EGAColors colorEGA = new EGAColors();
-    internal static byte[] bytEncryptKey = { (byte)'A', (byte)'v', (byte)'i',
+    internal static readonly byte[] bytEncryptKey = { (byte)'A', (byte)'v', (byte)'i',
                              (byte)'s', (byte)' ', (byte)'D',
                              (byte)'u', (byte)'r', (byte)'g',
                              (byte)'a', (byte)'n' }; //' = "Avis Durgan"
@@ -243,8 +239,6 @@ MA  02110-1301  USA
     internal const int MAX_VOLSIZE = 1047552;
     //MAX_VOLSIZE = 1047552  '= 1024 * 1023
     internal const string WORD_SEPARATOR = " | ";
-    internal static readonly string CTRL_CHARS;
-    internal static readonly string NEWLINE = Environment.NewLine;
     //current version
     internal const string WINAGI_VERSION = "3.0.1";
     // old versions
@@ -324,6 +318,17 @@ MA  02110-1301  USA
     internal static int lngError = 0;
     internal static string strError = "";
     internal static string strErrSrc = "";
+    static WinAGI()
+    {
+      // initialize all winagi stuff here
+      RestoreDefaultColors();
+      CRC32Setup();
+      //get max vol size
+      agMaxVolSize = 1023 * 1024;
+
+      //set max vol0 size
+      agMaxVol0 = agMaxVolSize;
+    }
     internal static void InitWinAGI()
     {
       // calling this forces the module to load and initialize!
@@ -335,455 +340,6 @@ MA  02110-1301  USA
 
       ////set max vol0 size
       //agMaxVol0 = agMaxVolSize;
-    }
-    static WinAGI()
-    {
-      // initialize all winagi stuff here
-      RestoreDefaultColors();
-      CRC32Setup();
-      //get max vol size
-      agMaxVolSize = 1023 * 1024;
-
-      //set max vol0 size
-      agMaxVol0 = agMaxVolSize;
-
-      for (int i = 1; i < 32; i++)
-        CTRL_CHARS += ((char)i).ToString();
-    }
-    internal static string Right(string strIn, int length)
-    {
-      if (length >= strIn.Length)
-        return strIn;
-      else
-        return strIn.Substring(strIn.Length - length);
-    }
-    internal static string Left(string strIn, int length)
-    {
-      if (length >= strIn.Length)
-        return strIn;
-      else
-        return strIn.Substring(0, length);
-    }
-    internal static string Mid(string strIn, int pos, int length)
-    {
-      // mimic VB mid function; if length is too long, return
-      // max amount
-      if (pos + length > strIn.Length)
-        return strIn.Substring(pos, strIn.Length - pos);
-      return strIn.Substring(pos, length);
-    }
-    internal static string MultStr(string strIn, int NumCopies)
-    {
-      return new StringBuilder(strIn.Length * NumCopies).Insert(0, strIn, NumCopies).ToString();
-      //string retval = "";
-      //for (int i = 1; i <= NumCopies; i++)
-      //  retval += strIn;
-      //return retval;
-    }
-    /// <summary>
-    /// Extension method that works out if a string is numeric or not
-    /// </summary>
-    /// <param name="str">string that may be a number</param>
-    /// <returns>true if numeric, false if not</returns>
-    internal static bool IsNumeric(string str)
-    {
-      if (Double.TryParse(str, out _)) {
-        return true;
-      }
-      return false;
-    }
-    /// <summary>
-    /// Extension that mimics the VB Val() function; returns 0
-    /// if the string is non-numeric
-    /// </summary>
-    /// <param name="strIn">The string that will be converted to a number</param>
-    /// <returns>Returns a double value of strIn; if strIn can't be converted
-    /// to a double, it returns 0</returns>
-    internal static double Val(string strIn)
-    {
-      if (double.TryParse(strIn, out double dResult)) {
-        //return this value
-        return dResult;
-      }
-      // not a valid number; return 0
-      return 0;
-    }
-    /// <summary>
-    /// Confirms that a directory has a terminating backslash,
-    /// adding one if necessary
-    /// </summary>
-    /// <param name="strDirIn"></param>
-    /// <returns></returns>
-    internal static string CDir(string strDirIn)
-    {
-      //this function ensures a trailing "\" is included on strDirIn
-      if (strDirIn.Length != 0)
-        if (!strDirIn.EndsWith(@"\"))
-          return strDirIn + @"\";
-        else
-          return strDirIn;
-      else
-        return strDirIn;
-    }
-    internal static string JustFileName(string strFullPathName)
-    {
-      //will extract just the file name by removing the path info
-      string[] strSplitName;
-
-      //On Error Resume Next
-
-      strSplitName = strFullPathName.Split(@"\");
-      if (strSplitName.Length == 1)
-        return strFullPathName;
-      else
-        return strSplitName[strSplitName.Length - 1];
-    }
-    internal static string JustPath(string strFullPathName, bool NoSlash = false)
-    {  //will extract just the path name by removing the filename
-       //if optional NoSlash is true, the trailing backslash will be dropped
-
-      // if nothing
-      if (strFullPathName.Length == 0) {
-        return "";
-      }
-
-      //split into directories and filename
-      string[] strSplitName = strFullPathName.Split("\\");
-      //if no splits,
-      if (strSplitName.Length == 1) {
-        //return empty- no path information in this string
-        return "";
-      } else {
-        //eliminate last entry (which is filename)
-        Array.Resize(ref strSplitName, strSplitName.Length - 1);
-        //rebuild name
-        string sReturn = String.Join("\\", strSplitName);
-        if (!NoSlash) {
-          sReturn += "\\";
-        }
-        return sReturn;
-      }
-      //if slash should be added,
-    }
-    internal static string FileNameNoExt(string FileName)
-    {
-      //returns a filename without the extension
-      //if FileName includes a path, the path is also removed
-      string strOut = JustFileName(FileName);
-      int i = strOut.LastIndexOf(".");
-      if (i <= 0) {
-        return strOut;
-      } else {
-        return Left(strOut, i - 1);
-      }
-    }
-    internal static uint CRC32(byte[] DataIn)
-    {
-      //calculates the CRC32 for an input array of bytes
-      //a special table is necessary; the table is loaded
-      //at program startup
-
-      //the CRC is calculated according to the following equation:
-      //
-      //  CRC[i] = LSHR8(CRC[i-1]) Xor CRC32Table[(CRC[i-1] && 0xFF) Xor DataIn[i])
-      //
-      //initial Value of CRC is 0xFFFFFFFF; iterate the equation
-      //for each byte of data; then end by XORing final result with 0xFFFFFFFF
-
-      int i;
-      //initial Value
-      uint result = 0xffffffff;
-
-      //if table not loaded
-      if (!CRC32Loaded)
-        CRC32Setup();
-
-      //iterate CRC equation
-      for (i = 0; i < DataIn.Length; i++)
-        result = (result >> 8) ^ CRC32Table[(result & 0xFF) ^ DataIn[i]];
-
-      //xor to create final answer
-      return result ^ 0xFFFFFFFF;
-    }
-    internal static void CRC32Setup()
-    {
-      //build the CRC table
-      uint z;
-      uint index;
-      for (index = 0; index < 256; index++) {
-        CRC32Table[index] = index;
-        for (z = 8; z != 0; z--) {
-          if ((CRC32Table[index] & 1) == 1) {
-            CRC32Table[index] = (CRC32Table[index] >> 1) ^ 0xEDB88320;
-          } else {
-            CRC32Table[index] = CRC32Table[index] >> 1;
-          }
-        }
-      }
-
-      //set flag
-      CRC32Loaded = true;
-
-      // keep the real values until I'm sure the calculated table is
-      // 100% correct
-
-      //CRC32Table[0] = 0x0;
-      //CRC32Table[1] = 0x77073096;
-      //CRC32Table[2] = 0xEE0E612C;
-      //CRC32Table[3] = 0x990951BA;
-      //CRC32Table[4] = 0x76DC419;
-      //CRC32Table[5] = 0x706AF48F;
-      //CRC32Table[6] = 0xE963A535;
-      //CRC32Table[7] = 0x9E6495A3;
-      //CRC32Table[8] = 0xEDB8832;
-      //CRC32Table[9] = 0x79DCB8A4;
-      //CRC32Table[10] = 0xE0D5E91E;
-      //CRC32Table[11] = 0x97D2D988;
-      //CRC32Table[12] = 0x9B64C2B;
-      //CRC32Table[13] = 0x7EB17CBD;
-      //CRC32Table[14] = 0xE7B82D07;
-      //CRC32Table[15] = 0x90BF1D91;
-      //CRC32Table[16] = 0x1DB71064;
-      //CRC32Table[17] = 0x6AB020F2;
-      //CRC32Table[18] = 0xF3B97148;
-      //CRC32Table[19] = 0x84BE41DE;
-      //CRC32Table[20] = 0x1ADAD47D;
-      //CRC32Table[21] = 0x6DDDE4EB;
-      //CRC32Table[22] = 0xF4D4B551;
-      //CRC32Table[23] = 0x83D385C7;
-      //CRC32Table[24] = 0x136C9856;
-      //CRC32Table[25] = 0x646BA8C0;
-      //CRC32Table[26] = 0xFD62F97A;
-      //CRC32Table[27] = 0x8A65C9EC;
-      //CRC32Table[28] = 0x14015C4F;
-      //CRC32Table[29] = 0x63066CD9;
-      //CRC32Table[30] = 0xFA0F3D63;
-      //CRC32Table[31] = 0x8D080DF5;
-      //CRC32Table[32] = 0x3B6E20C8;
-      //CRC32Table[33] = 0x4C69105E;
-      //CRC32Table[34] = 0xD56041E4;
-      //CRC32Table[35] = 0xA2677172;
-      //CRC32Table[36] = 0x3C03E4D1;
-      //CRC32Table[37] = 0x4B04D447;
-      //CRC32Table[38] = 0xD20D85FD;
-      //CRC32Table[39] = 0xA50AB56B;
-      //CRC32Table[40] = 0x35B5A8FA;
-      //CRC32Table[41] = 0x42B2986C;
-      //CRC32Table[42] = 0xDBBBC9D6;
-      //CRC32Table[43] = 0xACBCF940;
-      //CRC32Table[44] = 0x32D86CE3;
-      //CRC32Table[45] = 0x45DF5C75;
-      //CRC32Table[46] = 0xDCD60DCF;
-      //CRC32Table[47] = 0xABD13D59;
-      //CRC32Table[48] = 0x26D930AC;
-      //CRC32Table[49] = 0x51DE003A;
-      //CRC32Table[50] = 0xC8D75180;
-      //CRC32Table[51] = 0xBFD06116;
-      //CRC32Table[52] = 0x21B4F4B5;
-      //CRC32Table[53] = 0x56B3C423;
-      //CRC32Table[54] = 0xCFBA9599;
-      //CRC32Table[55] = 0xB8BDA50F;
-      //CRC32Table[56] = 0x2802B89E;
-      //CRC32Table[57] = 0x5F058808;
-      //CRC32Table[58] = 0xC60CD9B2;
-      //CRC32Table[59] = 0xB10BE924;
-      //CRC32Table[60] = 0x2F6F7C87;
-      //CRC32Table[61] = 0x58684C11;
-      //CRC32Table[62] = 0xC1611DAB;
-      //CRC32Table[63] = 0xB6662D3D;
-      //CRC32Table[64] = 0x76DC4190;
-      //CRC32Table[65] = 0x1DB7106;
-      //CRC32Table[66] = 0x98D220BC;
-      //CRC32Table[67] = 0xEFD5102A;
-      //CRC32Table[68] = 0x71B18589;
-      //CRC32Table[69] = 0x6B6B51F;
-      //CRC32Table[70] = 0x9FBFE4A5;
-      //CRC32Table[71] = 0xE8B8D433;
-      //CRC32Table[72] = 0x7807C9A2;
-      //CRC32Table[73] = 0xF00F934;
-      //CRC32Table[74] = 0x9609A88E;
-      //CRC32Table[75] = 0xE10E9818;
-      //CRC32Table[76] = 0x7F6A0DBB;
-      //CRC32Table[77] = 0x86D3D2D;
-      //CRC32Table[78] = 0x91646C97;
-      //CRC32Table[79] = 0xE6635C01;
-      //CRC32Table[80] = 0x6B6B51F4;
-      //CRC32Table[81] = 0x1C6C6162;
-      //CRC32Table[82] = 0x856530D8;
-      //CRC32Table[83] = 0xF262004E;
-      //CRC32Table[84] = 0x6C0695ED;
-      //CRC32Table[85] = 0x1B01A57B;
-      //CRC32Table[86] = 0x8208F4C1;
-      //CRC32Table[87] = 0xF50FC457;
-      //CRC32Table[88] = 0x65B0D9C6;
-      //CRC32Table[89] = 0x12B7E950;
-      //CRC32Table[90] = 0x8BBEB8EA;
-      //CRC32Table[91] = 0xFCB9887C;
-      //CRC32Table[92] = 0x62DD1DDF;
-      //CRC32Table[93] = 0x15DA2D49;
-      //CRC32Table[94] = 0x8CD37CF3;
-      //CRC32Table[95] = 0xFBD44C65;
-      //CRC32Table[96] = 0x4DB26158;
-      //CRC32Table[97] = 0x3AB551CE;
-      //CRC32Table[98] = 0xA3BC0074;
-      //CRC32Table[99] = 0xD4BB30E2;
-      //CRC32Table[100] = 0x4ADFA541;
-      //CRC32Table[101] = 0x3DD895D7;
-      //CRC32Table[102] = 0xA4D1C46D;
-      //CRC32Table[103] = 0xD3D6F4FB;
-      //CRC32Table[104] = 0x4369E96A;
-      //CRC32Table[105] = 0x346ED9FC;
-      //CRC32Table[106] = 0xAD678846;
-      //CRC32Table[107] = 0xDA60B8D0;
-      //CRC32Table[108] = 0x44042D73;
-      //CRC32Table[109] = 0x33031DE5;
-      //CRC32Table[110] = 0xAA0A4C5F;
-      //CRC32Table[111] = 0xDD0D7CC9;
-      //CRC32Table[112] = 0x5005713C;
-      //CRC32Table[113] = 0x270241AA;
-      //CRC32Table[114] = 0xBE0B1010;
-      //CRC32Table[115] = 0xC90C2086;
-      //CRC32Table[116] = 0x5768B525;
-      //CRC32Table[117] = 0x206F85B3;
-      //CRC32Table[118] = 0xB966D409;
-      //CRC32Table[119] = 0xCE61E49F;
-      //CRC32Table[120] = 0x5EDEF90E;
-      //CRC32Table[121] = 0x29D9C998;
-      //CRC32Table[122] = 0xB0D09822;
-      //CRC32Table[123] = 0xC7D7A8B4;
-      //CRC32Table[124] = 0x59B33D17;
-      //CRC32Table[125] = 0x2EB40D81;
-      //CRC32Table[126] = 0xB7BD5C3B;
-      //CRC32Table[127] = 0xC0BA6CAD;
-      //CRC32Table[128] = 0xEDB88320;
-      //CRC32Table[129] = 0x9ABFB3B6;
-      //CRC32Table[130] = 0x3B6E20C;
-      //CRC32Table[131] = 0x74B1D29A;
-      //CRC32Table[132] = 0xEAD54739;
-      //CRC32Table[133] = 0x9DD277AF;
-      //CRC32Table[134] = 0x4DB2615;
-      //CRC32Table[135] = 0x73DC1683;
-      //CRC32Table[136] = 0xE3630B12;
-      //CRC32Table[137] = 0x94643B84;
-      //CRC32Table[138] = 0xD6D6A3E;
-      //CRC32Table[139] = 0x7A6A5AA8;
-      //CRC32Table[140] = 0xE40ECF0B;
-      //CRC32Table[141] = 0x9309FF9D;
-      //CRC32Table[142] = 0xA00AE27;
-      //CRC32Table[143] = 0x7D079EB1;
-      //CRC32Table[144] = 0xF00F9344;
-      //CRC32Table[145] = 0x8708A3D2;
-      //CRC32Table[146] = 0x1E01F268;
-      //CRC32Table[147] = 0x6906C2FE;
-      //CRC32Table[148] = 0xF762575D;
-      //CRC32Table[149] = 0x806567CB;
-      //CRC32Table[150] = 0x196C3671;
-      //CRC32Table[151] = 0x6E6B06E7;
-      //CRC32Table[152] = 0xFED41B76;
-      //CRC32Table[153] = 0x89D32BE0;
-      //CRC32Table[154] = 0x10DA7A5A;
-      //CRC32Table[155] = 0x67DD4ACC;
-      //CRC32Table[156] = 0xF9B9DF6F;
-      //CRC32Table[157] = 0x8EBEEFF9;
-      //CRC32Table[158] = 0x17B7BE43;
-      //CRC32Table[159] = 0x60B08ED5;
-      //CRC32Table[160] = 0xD6D6A3E8;
-      //CRC32Table[161] = 0xA1D1937E;
-      //CRC32Table[162] = 0x38D8C2C4;
-      //CRC32Table[163] = 0x4FDFF252;
-      //CRC32Table[164] = 0xD1BB67F1;
-      //CRC32Table[165] = 0xA6BC5767;
-      //CRC32Table[166] = 0x3FB506DD;
-      //CRC32Table[167] = 0x48B2364B;
-      //CRC32Table[168] = 0xD80D2BDA;
-      //CRC32Table[169] = 0xAF0A1B4C;
-      //CRC32Table[170] = 0x36034AF6;
-      //CRC32Table[171] = 0x41047A60;
-      //CRC32Table[172] = 0xDF60EFC3;
-      //CRC32Table[173] = 0xA867DF55;
-      //CRC32Table[174] = 0x316E8EEF;
-      //CRC32Table[175] = 0x4669BE79;
-      //CRC32Table[176] = 0xCB61B38C;
-      //CRC32Table[177] = 0xBC66831A;
-      //CRC32Table[178] = 0x256FD2A0;
-      //CRC32Table[179] = 0x5268E236;
-      //CRC32Table[180] = 0xCC0C7795;
-      //CRC32Table[181] = 0xBB0B4703;
-      //CRC32Table[182] = 0x220216B9;
-      //CRC32Table[183] = 0x5505262F;
-      //CRC32Table[184] = 0xC5BA3BBE;
-      //CRC32Table[185] = 0xB2BD0B28;
-      //CRC32Table[186] = 0x2BB45A92;
-      //CRC32Table[187] = 0x5CB36A04;
-      //CRC32Table[188] = 0xC2D7FFA7;
-      //CRC32Table[189] = 0xB5D0CF31;
-      //CRC32Table[190] = 0x2CD99E8B;
-      //CRC32Table[191] = 0x5BDEAE1D;
-      //CRC32Table[192] = 0x9B64C2B0;
-      //CRC32Table[193] = 0xEC63F226;
-      //CRC32Table[194] = 0x756AA39C;
-      //CRC32Table[195] = 0x26D930A;
-      //CRC32Table[196] = 0x9C0906A9;
-      //CRC32Table[197] = 0xEB0E363F;
-      //CRC32Table[198] = 0x72076785;
-      //CRC32Table[199] = 0x5005713;
-      //CRC32Table[200] = 0x95BF4A82;
-      //CRC32Table[201] = 0xE2B87A14;
-      //CRC32Table[202] = 0x7BB12BAE;
-      //CRC32Table[203] = 0xCB61B38;
-      //CRC32Table[204] = 0x92D28E9B;
-      //CRC32Table[205] = 0xE5D5BE0D;
-      //CRC32Table[206] = 0x7CDCEFB7;
-      //CRC32Table[207] = 0xBDBDF21;
-      //CRC32Table[208] = 0x86D3D2D4;
-      //CRC32Table[209] = 0xF1D4E242;
-      //CRC32Table[210] = 0x68DDB3F8;
-      //CRC32Table[211] = 0x1FDA836E;
-      //CRC32Table[212] = 0x81BE16CD;
-      //CRC32Table[213] = 0xF6B9265B;
-      //CRC32Table[214] = 0x6FB077E1;
-      //CRC32Table[215] = 0x18B74777;
-      //CRC32Table[216] = 0x88085AE6;
-      //CRC32Table[217] = 0xFF0F6A70;
-      //CRC32Table[218] = 0x66063BCA;
-      //CRC32Table[219] = 0x11010B5C;
-      //CRC32Table[220] = 0x8F659EFF;
-      //CRC32Table[221] = 0xF862AE69;
-      //CRC32Table[222] = 0x616BFFD3;
-      //CRC32Table[223] = 0x166CCF45;
-      //CRC32Table[224] = 0xA00AE278;
-      //CRC32Table[225] = 0xD70DD2EE;
-      //CRC32Table[226] = 0x4E048354;
-      //CRC32Table[227] = 0x3903B3C2;
-      //CRC32Table[228] = 0xA7672661;
-      //CRC32Table[229] = 0xD06016F7;
-      //CRC32Table[230] = 0x4969474D;
-      //CRC32Table[231] = 0x3E6E77DB;
-      //CRC32Table[232] = 0xAED16A4A;
-      //CRC32Table[233] = 0xD9D65ADC;
-      //CRC32Table[234] = 0x40DF0B66;
-      //CRC32Table[235] = 0x37D83BF0;
-      //CRC32Table[236] = 0xA9BCAE53;
-      //CRC32Table[237] = 0xDEBB9EC5;
-      //CRC32Table[238] = 0x47B2CF7F;
-      //CRC32Table[239] = 0x30B5FFE9;
-      //CRC32Table[240] = 0xBDBDF21C;
-      //CRC32Table[241] = 0xCABAC28A;
-      //CRC32Table[242] = 0x53B39330;
-      //CRC32Table[243] = 0x24B4A3A6;
-      //CRC32Table[244] = 0xBAD03605;
-      //CRC32Table[245] = 0xCDD70693;
-      //CRC32Table[246] = 0x54DE5729;
-      //CRC32Table[247] = 0x23D967BF;
-      //CRC32Table[248] = 0xB3667A2E;
-      //CRC32Table[249] = 0xC4614AB8;
-      //CRC32Table[250] = 0x5D681B02;
-      //CRC32Table[251] = 0x2A6F2B94;
-      //CRC32Table[252] = 0xB40BBE37;
-      //CRC32Table[253] = 0xC30C8EA1;
-      //CRC32Table[254] = 0x5A05DF1B;
-      //CRC32Table[255] = 0x2D02EF8D;
-
     }
     internal static void AssignReservedDefines()
     {
@@ -1122,7 +678,7 @@ MA  02110-1301  USA
         //save crc for this file
         //get datemodified property
         dtFileMod = File.GetLastWriteTime(AGIGame.agGameDir + "globals.txt");
-        agGlobalCRC = WinAGI.CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString()));
+        agGlobalCRC = CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString()));
       }
     }
     internal static int ValidateDefName(string DefName)
@@ -1151,7 +707,7 @@ MA  02110-1301  USA
       if (DefName.Length == 0)
         return 1;
       // name cant be numeric
-      if (WinAGI.IsNumeric(DefName))
+      if (IsNumeric(DefName))
         return 2;
       // check against regular commands
       for (i = 0; i <= AGICommands.agCmds.Length; i++) {
@@ -1219,8 +775,7 @@ MA  02110-1301  USA
       // Any applies the test inside to each element of the source
       // so testList.Any(checkItem.Op) returns true if checkItem.Op is true
       // for any element in testList!
-      // to get control chars, I use a pre-built string
-      if ((CTRL_CHARS + " !\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~").Any(DefName.Contains)) {
+      if ((INVALID_DEFNAME_CHARS).Any(DefName.Contains)) {
         // bad
         return 13;
       }
@@ -2957,22 +2512,17 @@ MA  02110-1301  USA
       bwVOL.Dispose();
       bwDIR.Dispose();
     }
-  }
-
-  internal partial class WinAGIRes
-  {
     public static string LoadResString(int index)
     {
       // this function is just a handy way to get resource strings by number
       // instead of by stringkey
       try {
-        return ResourceManager.GetString(index.ToString());
+        return EngineResources.ResourceManager.GetString(index.ToString());
       }
       catch (Exception) {
         // return nothing if string doesn't exist
         return "";
       }
     }
-
   }
 }

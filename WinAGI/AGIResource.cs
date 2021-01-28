@@ -1,10 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
-using static WinAGI.WinAGI;
-using static WinAGI.AGIGame;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Common.WinAGI;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   //public abstract class AGIResource
   public class AGIResource

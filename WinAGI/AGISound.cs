@@ -1,14 +1,16 @@
 ﻿using System;
 using System.ComponentModel;
-using static WinAGI.WinAGI;
-using static WinAGI.AGIGame;
-using static WinAGI.AGILogicSourceSettings;
-using static WinAGI.AGICommands;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.AGILogicSourceSettings;
+using static WinAGI.Engine.AGICommands;
+using WinAGI.Common;
+using static WinAGI.Common.WinAGI;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.IO;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   public class AGISound : AGIResource
   {
@@ -1400,7 +1402,7 @@ namespace WinAGI
       //if playing
       if (SndPlayer.blnPlaying)
       {
-        rtn = mciSendString("close all", null, 0, (IntPtr)null);
+        rtn = API.mciSendString("close all", null, 0, (IntPtr)null);
         SndPlayer.blnPlaying = false;
       }
     }

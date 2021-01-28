@@ -4,14 +4,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using static WinAGI.WinAGI;
-using static WinAGI.AGILogicSourceSettings;
-using static WinAGI.AGICommands;
-using static WinAGI.AGIGame;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGILogicSourceSettings;
+using static WinAGI.Engine.AGICommands;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Common.WinAGI;
 using System.Drawing;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
+  //***************************************************
+  // AGIGame Class
+  //
+  // the overarching class that exposes AGI game 
+  // components for reading/editing; also includes
+  // a
+  //
+  //***************************************************
   public static partial class AGIGame
   {
     //AGIGame agMainGame;
@@ -21,7 +30,7 @@ namespace WinAGI
 
     internal static List<string> agGameProps = new List<string> { };
 
-    static readonly string strErrSource = "WinAGI.AGIGame";
+    static readonly string strErrSource = "WinAGI.Engine.AGIGame";
 
     //game compile variables
     internal static bool agCompGame = false;
@@ -106,24 +115,16 @@ namespace WinAGI
 
         string NewDir = value;
 
-        //validate- cant have  \/:*?<>|
-
         NewDir = NewDir.Trim();
 
         if (NewDir.Length == 0) {
           //throw new Exception("380, strErrSource, "Invalid property Value"
           throw new Exception("Invalid property Value");
         }
-        if ("\\/:*?<>|".Any(NewDir.Contains))
-          //throw new Exception("380, strErrSource, "Invalid property Value"
-          throw new Exception("Invalid property Value");
-
-        // ? space should be OK in a directory!
-        //if (NewDir.IndexOf(" ") != 0) {
-        //  //throw new Exception("380, strErrSource, "Invalid property Value"
-        //  throw new Exception("Invalid property Value");
-        //}
-
+        if (NewDir.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
+            //throw new Exception("380, strErrSource, "Invalid property Value"
+            throw new Exception("Invalid property Value");
+        }
         //save new resdir name
         agDefResDir = NewDir;
 
@@ -241,17 +242,17 @@ namespace WinAGI
 
         if (agGameLoaded)
           //validate gamedir
-          if (Directory.Exists(WinAGI.CDir(value))) //, vbDirectory) 
+          if (Directory.Exists(CDir(value))) //, vbDirectory) 
                                                     //return error
                                                     //throw new Exception("630, strErrSource, Replace(LoadResString(630), ARG1, NewDir)
                                                     //return;
             throw new System.NotImplementedException();
 
         //change the directory
-        agGameDir = WinAGI.CDir(value);
+        agGameDir = CDir(value);
 
         //update gamefile name
-        agGameFile = agGameDir + WinAGI.JustFileName(agGameFile);
+        agGameFile = agGameDir + JustFileName(agGameFile);
 
         //update resdir
         agResDir = agGameDir + agResDirName + @"\";

@@ -6,19 +6,31 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Resources;
-using WinAGI;
-using static WinAGI.AGIGame;
-using static WinAGI.WinAGI;
-using static WinAGI.AGICommands;
-using static WinAGI.AGIResType;
-using static WinAGI.ArgTypeEnum;
+using WinAGI.Engine;
+using WinAGI.Common;
+using static WinAGI.Common.API;
+using static WinAGI.Common.WinAGI;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGICommands;
+using static WinAGI.Engine.AGITestCommands;
+using static WinAGI.Engine.AGIResType;
+using static WinAGI.Engine.ArgTypeEnum;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Drawing.Imaging;
-using static WinAGI_GDS.ResManRes;
 
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
+  //***************************************************
+  // Resource Manager Class
+  //
+  // contains global constants, structures, enumerations
+  // methods, functions, that are used by the user 
+  // interface
+  //
+  //***************************************************
+
   public static class ResMan
   {
     //***************************************************
@@ -454,7 +466,7 @@ namespace WinAGI_GDS
     }
     #endregion
     //***************************************************
-    // TYPE DEFINITIONS
+    // STRUCTS
     //***************************************************
     #region
     public struct tDefaultScale
@@ -2049,7 +2061,7 @@ namespace WinAGI_GDS
         break;
       }
       //// always update the property window
-      //MDIMain.PaintPropertyWindow();
+      MDIMain.picProperties.Refresh();
       return;
     }
     public static void BuildRDefLookup()
@@ -3340,7 +3352,7 @@ namespace WinAGI_GDS
     //reset dirty status in resource list
     switch (Settings.ResListType
     case 1
-      MDIMain.tvwResources.Nodes("l" + CStr(tmpLogic.Number)).ForeColor = Colors.Black
+      MDIMain.tvwResources.Nodes["l" + CStr(tmpLogic.Number)).ForeColor = Colors.Black
     case 2
       //only update if logics are listed
      if (MDIMain.cmbResType.SelectedIndex = 1) {
@@ -3569,7 +3581,7 @@ namespace WinAGI_GDS
       switch (Settings.ResListType
       case 1
         //select root
-        MDIMain.tvwResources.Nodes(1).Selected = true
+        MDIMain.tvwResources.Nodes[1).Selected = true
         //force update
         MDIMain.SelectResource rtGame, -1
       case 2
@@ -3618,171 +3630,91 @@ namespace WinAGI_GDS
     Resume Next
       */
     }
+    public static int ValidateID(string NewID, string OldID)
+    {
+      //validates if a resource ID is agreeable or not
+      //returns zero if ok;
+      //error Value if not
+
+      //1 = no ID
+      //2 = ID is numeric
+      //3 = ID is command
+      //4 = ID is test command
+      //5 = ID is a compiler keyword
+      //6 = ID is an argument marker
+      //////  //7 = ID is globally defined
+      //////  //8 = ID is reserved variable name
+      //////  //9 = ID is reserved flag name
+      //////  //10 = ID is reserved number constant
+      //////  //11 = ID is reserved object constant
+      //////  //12 = ID is reserved message constant
+      //////  //13 = ID is reserved string constant
+      //14 = ID contains improper character
+      //15 = ID matches existing ResourceID (not OldID)
+
+      //ignore if it's old id, or a different case of old id
+      if (NewID.Equals(OldID, StringComparison.OrdinalIgnoreCase)) {
+        //it is OK
+        return 0;
+      }
+
+      //if no name,
+      if (NewID.Length == 0) {
+        return 1;
+      }
+
+      //name cant be numeric
+      if (IsNumeric(NewID)) {
+        return 2;
+      }
+
+      //check against regular commands
+      for (int i = 0; i < AGICommands.Count; i++) {
+        if (NewID.Equals(Commands[i].Name, StringComparison.OrdinalIgnoreCase)) {
+          return 3;
+        }
+      }
+
+      //check against test commands
+      for (int i = 0; i < AGITestCommands.Count; i++) {
+        if (NewID.Equals(TestCommands[i].Name, StringComparison.OrdinalIgnoreCase)) {
+          return 4;
+        }
+      }
+
+      //check against keywords
+      if (NewID.ToLower() == "if" || NewID.ToLower() == "else" || NewID.ToLower() == "goto") {
+        return 5;
+      }
+
+      //check against variable/flag/controller/string/message names
+      // if the name starts with any of these letters
+      if ("vfmoiswc".Any(NewID.ToLower().StartsWith)) {
+        if (IsNumeric(Right(NewID, NewID.Length - 1))) {
+          return 6;
+        }
+      }
+
+      //check name against improper character list
+      if (NewID.IndexOfAny(INVALID_ID_CHARS.ToArray()) >= 0) {
+        //if (INVALID_ID_CHARS.Any(NewID.Contains)) {
+        return 14;
+      }
+
+      //check against existing IDs
+      for (int i = 0; i < 1024; i++) {
+        if ((int)IDefLookup[i].Type < 11) {
+          if (NewID.Equals(IDefLookup[i].Name, StringComparison.OrdinalIgnoreCase)) {
+            return 15;
+          }
+        }
+      }
+      //ok - 
+      return 0;
+    }
     static void tmpResMan()
     {
       /*
-    public int ValidateID(string NewID, string OldID)
-    //validates if a resource ID is agreeable or not
-    //returns zero if ok;
-    //error Value if not
-
-    //1 = no ID
-    //2 = ID is numeric
-    //3 = ID is command
-    //4 = ID is test command
-    //5 = ID is a compiler keyword
-    //6 = ID is an argument marker
-    //////  //7 = ID is globally defined
-    //////  //8 = ID is reserved variable name
-    //////  //9 = ID is reserved flag name
-    //////  //10 = ID is reserved number constant
-    //////  //11 = ID is reserved object constant
-    //////  //12 = ID is reserved message constant
-    //////  //13 = ID is reserved string constant
-    //14 = ID contains improper character
-    //15 = ID matches existing ResourceID (not OldID)
-
-    int i;
-    TDefine[] tmpDefines;
-
-    On Error GoTo ErrHandler
-
-    //ignore if it's old id, or a different case of old id
-    if (StrComp(NewID, OldID, StringComparison.OrdinalIgnoreCase) = 0) {
-    //it is OK
-    ValidateID = 0
-    Exit Function
-    }
-
-    //if no name,
-    if (LenB(NewID) = 0) {
-    ValidateID = 1
-    Exit Function
-    }
-
-    //name cant be numeric
-    if (IsNumeric(NewID)) {
-    ValidateID = 2
-    Exit Function
-    }
-
-    //check against regular commands
-    For i = 0 To Commands.Count
-    if (StrComp(NewID, Commands(i).Name, StringComparison.OrdinalIgnoreCase) = 0) {
-      ValidateID = 3
-      Exit Function
-    }
-    Next i
-
-    //check against test commands
-    For i = 0 To TestCommands.Count
-    if (StrComp(NewID, TestCommands(i).Name, StringComparison.OrdinalIgnoreCase) = 0) {
-      ValidateID = 4
-      Exit Function
-    }
-    Next i
-
-    //check against keywords
-    switch (LCase$(NewID)
-    case "if", "else", "goto"
-    ValidateID = 5
-    Exit Function
-    }
-
-    //check against variable/flag/controller/string/message names
-    switch (Asc(LCase$(NewID))
-    //     v    f    m    o    i    s    w    c
-    case 118, 102, 109, 111, 105, 115, 119, 99
-    if (IsNumeric(Right$(NewID, Len(NewID) - 1))) {
-      ValidateID = 6
-      Exit Function
-    }
-    }
-
-    //////  //check against globals
-    //////  For i = 1 To global count
-    //////   if ((StrComp(NewID, globalname(i), StringComparison.OrdinalIgnoreCase) = 0)) {
-    //////      ValidateID = 7
-    //////      Exit Function
-    //////    }
-    //////  Next i
-
-    ////// if (LogicSourceSettings.UseReservedNames) {
-    //////    //check against reserved names
-    //////    tmpDefines = LogicSourceSettings.ReservedDefines(atVar)
-    //////    For i = 0 To UBound(tmpDefines)
-    //////     if (NewID = tmpDefines(i).Name) {
-    //////        ValidateID = 8
-    //////        Exit Function
-    //////      }
-    //////    Next i
-    //////    tmpDefines = LogicSourceSettings.ReservedDefines(atFlag)
-    //////    For i = 0 To UBound(tmpDefines)
-    //////     if (NewID = tmpDefines(i).Name) {
-    //////        ValidateID = 9
-    //////        Exit Function
-    //////      }
-    //////    Next i
-    //////    tmpDefines = LogicSourceSettings.ReservedDefines(atNum)
-    //////    For i = 0 To UBound(tmpDefines)
-    //////     if (NewID = tmpDefines(i).Name) {
-    //////        ValidateID = 10
-    //////        Exit Function
-    //////      }
-    //////    Next i
-    //////    tmpDefines = LogicSourceSettings.ReservedDefines(atSObj)
-    //////    For i = 0 To UBound(tmpDefines)
-    //////     if (NewID = tmpDefines(i).Name) {
-    //////        ValidateID = 11
-    //////        Exit Function
-    //////      }
-    //////    Next i
-    //////    tmpDefines = LogicSourceSettings.ReservedDefines(atDefStr)
-    //////    For i = 0 To UBound(tmpDefines)
-    //////     if (NewID = tmpDefines(i).Name) {
-    //////        ValidateID = 12
-    //////        Exit Function
-    //////      }
-    //////    Next i
-    //////    tmpDefines = LogicSourceSettings.ReservedDefines(atStr)
-    //////    For i = 0 To UBound(tmpDefines)
-    //////     if (NewID = tmpDefines(i).Name) {
-    //////        ValidateID = 13
-    //////        Exit Function
-    //////      }
-    //////    Next i
-    //////  }
-
-    //check name against improper character list
-    For i = 1 To Len(NewID)
-    switch (Asc(Mid$(NewID, i, 1))
-    //                                                                            1         1         1
-    //        3       4    4    5         6         7         8         9         0         1         2
-    //        234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
-    //NOT OK  x!"   &//()*+,- /          :;<=>?                           [\]^ `                          {|}~x
-    //    OK     #$%        . 0123456789      @ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz    
-    case 32 To 34, 38 To 45, 47, 58 To 63, 91 To 94, 96, Is >= 123
-      ValidateID = 14
-      Exit Function
-    }
-    Next i
-
-    //check against existing IDs
-    For i = 0 To 1023
-    if (IDefLookup(i).Type < 11) {
-     if (StrComp(NewID, IDefLookup(i).Name, StringComparison.OrdinalIgnoreCase) = 0) {
-        ValidateID = 15
-        Exit Function
-      }
-    }
-    Next i
-
-    Exit Function
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
 
 
     public static void ChangeGameID(string NewID)
@@ -3809,7 +3741,7 @@ namespace WinAGI_GDS
     //update resource list
     switch (Settings.ResListType
     case 1
-    MDIMain.tvwResources.Nodes(1).Text = GameID
+    MDIMain.tvwResources.Nodes[1).Text = GameID
     case 2
     MDIMain.cmbResType.List(0) = GameID
     }
@@ -4716,7 +4648,7 @@ namespace WinAGI_GDS
 
     switch (Settings.ResListType
     case 1
-    MDIMain.tvwResources.Nodes("l" + ResNum).ForeColor = IIf(Compiled, Colors.Black, Colors.Red)
+    MDIMain.tvwResources.Nodes["l" + ResNum).ForeColor = IIf(Compiled, Colors.Black, Colors.Red)
     case 2
     //only need to update if logics are selected
     if (MDIMain.cmbResType.SelectedIndex = 1) {
@@ -4730,99 +4662,6 @@ namespace WinAGI_GDS
     Resume Next
     }
 
-    public static void UpdateSelection(AGIResType ResType, int ResNum, UpdateModeType UpDateMode)
-
-    //updates the resource list, property box, and preview window for a given resource
-
-    On Error GoTo ErrHandler
-
-    if (ResNum < 0 || ResNum > 255) {
-    return;
-    }
-
-    switch (Settings.ResListType
-    case 0 //no tree
-    //do nothing
-
-    case 1 //treeview list
-    //if updating tree OR updating a logic
-    if (((UpDateMode && umResList) || ResType = rtLogic)) {
-      //update the node for this resource
-      switch (ResType
-      case rtLogic
-        MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).Text = ResourceName(Logics(ResNum), true)
-        //also set compiled status
-       if (!Logics(ResNum).Compiled) {
-          MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).ForeColor = Colors.Red
-        } else {
-          MDIMain.tvwResources.Nodes("l" + CStr(ResNum)).ForeColor = Colors.Black
-        }
-      case rtPicture
-        MDIMain.tvwResources.Nodes("p" + CStr(ResNum)).Text = ResourceName(Pictures(ResNum), true)
-      case rtSound
-        MDIMain.tvwResources.Nodes("s" + CStr(ResNum)).Text = ResourceName(Sounds(ResNum), true)
-      case rtView
-        MDIMain.tvwResources.Nodes("v" + CStr(ResNum)).Text = ResourceName(Views(ResNum), true)
-      }
-    }
-
-    case 2 //combo/list boxes
-    //only update if current type is listed
-    if (MDIMain.cmbResType.SelectedIndex - 1 = ResType) {
-      //if updating tree OR updating a logic (because color of
-      //logic text might need updating)
-     if (((UpDateMode && umResList) || ResType = rtLogic)) {
-        //update the node for this resource
-        switch (ResType
-        case rtLogic
-          tmpItem = MDIMain.lstResources.ListItems("l" + CStr(ResNum))
-          tmpItem.Text = ResourceName(Logics(ResNum), true)
-          //also set compiled status
-         if (!Logics(ResNum).Compiled) {
-            tmpItem.ForeColor = Colors.Red
-          } else {
-            tmpItem.ForeColor = Colors.Black
-          }
-        case rtPicture
-          tmpItem = MDIMain.lstResources.ListItems("p" + CStr(ResNum))
-          tmpItem.Text = ResourceName(Pictures(ResNum), true)
-        case rtSound
-          tmpItem = MDIMain.lstResources.ListItems("s" + CStr(ResNum))
-          tmpItem.Text = ResourceName(Sounds(ResNum), true)
-        case rtView
-          tmpItem = MDIMain.lstResources.ListItems("v" + CStr(ResNum))
-          tmpItem.Text = ResourceName(Views(ResNum), true)
-        }
-        //expand column width if necessary
-       if (1.2 * MDIMain.picResources.TextWidth(tmpItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
-          MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpItem.Text)
-        }
-      }
-    }
-    }
-
-    //if the selected item matches the update item
-    if (SelResType = ResType && SelResNum = ResNum) {
-    //if updating properties OR updating tree AND tree is visible
-    if (((UpDateMode && umProperty) || (UpDateMode && umResList)) && Settings.ResListType != 0) {
-      //redraw property window
-      MDIMain.PaintPropertyWindow
-    }
-
-    //if updating preview
-    if ((UpDateMode && umPreview) && Settings.ShowPreview) {
-      //redraw the preview
-      PreviewWin.LoadPreview ResType, ResNum
-    } else if ( Settings.ShowPreview) {
-      PreviewWin.UpdateCaption ResType, ResNum
-    }
-    }
-    return;
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
 
     public static void SetError(int lngErrLine, string strErrMsg, int LogicNumber, string strModule, bool blnWarning = false)
     //this procedure uses errinfo to open the file
@@ -7347,125 +7186,6 @@ namespace WinAGI_GDS
     Resume Next
     }
 
-    public static void UpdateResFile(AGIResType ResType, byte ResNum, string OldFileName)
-      {
-    //updates ingame id for resource files and the resource tree
-    TreeNode tmpNode;
-
-    DialogResult rtn;
-
-    switch (ResType) {
-    case rtLogic:
-    //if a file with this name already exists
-    if (File.Exists(ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt)) {
-      //import existing, or overwrite it?
-      rtn = MessageBox.Show("There is already a source file with the name '" + Logics[ResNum].ID + 
-            LogicSourceSettings.SourceExt + "' in your source file directory." + Environment.NewLine + Environment.NewLine + 
-            "Do you want to import that file? Choose 'NO' to replace that file with the current logic source.", 
-            "Import Existing Source File?", MessageBoxButtons.YesNo);
-    } else {
-      //no existing file, so keep current source
-      rtn = DialogResult.No;
-    }
-
-    if (rtn == DialogResult.Yes) {
-      //keep old file with new name as new name; basically import it by reloading, if currently loaded
-       if (Logics[ResNum].Loaded) {
-          Logics[ResNum].Unload();
-          Logics[ResNum].Load();
-        }
-
-      //now update preview window, if previewing
-     if (Settings.ShowPreview) {
-       if (SelResType = rtLogic && SelResNum = ResNum) {
-          PreviewWin.LoadPreview rtLogic, ResNum
-        }
-      }
-    } else {
-      //if there is a file with the new ResID, rename it first
-      On Error Resume Next
-      //delete existing .OLD file (if there is one)
-      Kill ResDir + Logics(ResNum).ID + LogicSourceSettings.SourceExt + ".OLD"
-      //rename old file with new ResID as .OLD
-      File.Move(ResDir + Logics(ResNum).ID + LogicSourceSettings.SourceExt, ResDir + Logics(ResNum).ID + LogicSourceSettings.SourceExt + ".OLD"
-      On Error GoTo ErrHandler
-      //then, if there is a file with the previous ID
-      //save it with the new ID
-     if (File.Exists(OldFileName)) {
-        File.Move(OldFileName, ResDir + Logics(ResNum).ID + LogicSourceSettings.SourceExt
-      } else {
-        Logics(ResNum).SaveSource
-      }
-    }
-
-    //if layouteditor is open
-    if (LEInUse) {
-      //redraw to ensure correct ID is displayed
-      LayoutEditor.DrawLayout
-    }
-
-    case rtPicture
-    //if autoexporting
-    if (Settings.AutoExport) {
-      //if a file with this name already exists
-     if (File.Exists(ResDir + Pictures(ResNum).ID + ".agp")) {
-        //rename it
-        File.Move(ResDir + Pictures(ResNum).ID + ".agp", ResDir + Pictures(ResNum).ID + ".agp" + ".OLD"
-      }
-
-     if (File.Exists(OldFileName)) {
-        //rename resource file, if it exists
-        File.Move(OldFileName, ResDir + Pictures(ResNum).ID + ".agp"
-      } else {
-        //save it
-        Pictures(ResNum).Export ResDir + Pictures(ResNum).ID + ".agp"
-      }
-    }
-
-    case rtSound
-    //if autoexporting
-    if (Settings.AutoExport) {
-      //if a file with this name already exists
-     if (File.Exists(ResDir + Sounds(ResNum).ID + ".ags")) {
-        //rename it
-        File.Move(ResDir + Sounds(ResNum).ID + ".ags", ResDir + Sounds(ResNum).ID + ".ags" + ".OLD"
-      }
-
-     if (File.Exists(OldFileName)) {
-        //rename resource file, if it exists
-        File.Move(OldFileName, ResDir + Sounds(ResNum).ID + ".ags"
-      } else {
-        Sounds(ResNum).Export ResDir + Sounds(ResNum).ID + ".ags"
-      }
-    }
-
-    case rtView
-    //if autoexporting
-    if (Settings.AutoExport) {
-      //if a file with this name already exists
-     if (File.Exists(ResDir + Views(ResNum).ID + ".agv")) {
-        //rename it
-        File.Move(ResDir + Views(ResNum).ID + ".agv", ResDir + Views(ResNum).ID + ".agv" + ".OLD"
-      }
-
-      //check to see if old file exists
-     if (File.Exists(OldFileName)) {
-        //rename resource file, if it exists
-        File.Move(OldFileName, ResDir + Views(ResNum).ID + ".agv"
-      } else {
-        Views(ResNum).Export ResDir + Views(ResNum).ID + ".agv"
-      }
-    }
-    }
-
-    //update property window and resource list
-    UpdateSelection ResType, ResNum, umProperty || umResList
-    return;
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
     public static void ChangeResDescription(AGIResType ResType, byte ResNum, string Description)
 
     //updates ingame description
@@ -7483,20 +7203,20 @@ namespace WinAGI_GDS
     WordList.Save
 
     case rtLogic
-    Logics(ResNum).Description = Description
-    Logics(ResNum).Save
+    Logics[ResNum].Description = Description
+    Logics[ResNum].Save
 
     case rtPicture
-    Pictures(ResNum).Description = Description
-    Pictures(ResNum).Save
+    Pictures[ResNum].Description = Description
+    Pictures[ResNum].Save
 
     case rtSound
-    Sounds(ResNum).Description = Description
-    Sounds(ResNum).Save
+    Sounds[ResNum].Description = Description
+    Sounds[ResNum].Save
 
     case rtView
-    Views(ResNum).Description = Description
-    Views(ResNum).Save
+    Views[ResNum].Description = Description
+    Views[ResNum].Save
     }
 
     //update prop window
@@ -7540,13 +7260,13 @@ namespace WinAGI_GDS
     switch (ResType
     case rtLogic
       //save old sourcefile name
-      strOldResFile = ResDir + Logics(ResNum).ID + LogicSourceSettings.SourceExt
+      strOldResFile = ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt
     case rtPicture
-      strOldResFile = ResDir + Pictures(ResNum).ID + ".agp"
+      strOldResFile = ResDir + Pictures[ResNum].ID + ".agp"
     case rtSound
-      strOldResFile = ResDir + Sounds(ResNum).ID + ".ags"
+      strOldResFile = ResDir + Sounds[ResNum].ID + ".ags"
     case rtView
-      strOldResFile = ResDir + Views(ResNum).ID + ".agv"
+      strOldResFile = ResDir + Views[ResNum].ID + ".agv"
     }
     }
 
@@ -7627,13 +7347,13 @@ namespace WinAGI_GDS
             //update ID for the ingame resource
             switch (ResType
             case rtLogic
-              Logics(ResNum).ID = frmEditDescription.txtID.Text
+              Logics[ResNum].ID = frmEditDescription.txtID.Text
             case rtPicture
-              Pictures(ResNum).ID = frmEditDescription.txtID.Text
+              Pictures[ResNum].ID = frmEditDescription.txtID.Text
             case rtSound
-              Sounds(ResNum).ID = frmEditDescription.txtID.Text
+              Sounds[ResNum].ID = frmEditDescription.txtID.Text
             case rtView
-              Views(ResNum).ID = frmEditDescription.txtID.Text
+              Views[ResNum].ID = frmEditDescription.txtID.Text
             }
             break;
           }
@@ -7661,13 +7381,13 @@ namespace WinAGI_GDS
         //update the description
         switch (ResType
         case rtLogic
-          Logics(ResNum).Description = Description
+          Logics[ResNum].Description = Description
         case rtPicture
-          Pictures(ResNum).Description = Description
+          Pictures[ResNum].Description = Description
         case rtSound
-          Sounds(ResNum).Description = Description
+          Sounds[ResNum].Description = Description
         case rtView
-          Views(ResNum).Description = Description
+          Views[ResNum].Description = Description
         }
       }
     }
@@ -8336,234 +8056,7 @@ namespace WinAGI_GDS
     Resume Next
     }
 
-    public static void AddNewPicture(int NewPictureNumber, AGIPicture NewPicture)
 
-    Node tmpNode;
-     TreeRelationshipConstants tmpRel;
-    int i
-
-    On Error GoTo ErrHandler
-
-    //add picture to game collection
-    Pictures.Add NewPictureNumber, NewPicture
-
-    //add to resource list
-    switch (Settings.ResListType
-    case 1
-    tmpNode = MDIMain.tvwResources.Nodes(3)
-    //if no sounds
-    if (tmpNode.Children = 0) {
-      //add it as first picture
-      tmpRel = tvwChild
-    } else {
-      //find place to insert this picture
-      tmpNode = tmpNode.Child
-      tmpRel = tvwPrevious
-      Do Until tmpNode.Tag > NewPictureNumber
-       if (tmpNode.Next = null) {
-          tmpRel = tvwNext
-          break;
-        }
-        tmpNode = tmpNode.Next
-      Loop
-    }
-
-    //add it to tree
-    MDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "p" + CStr(NewPictureNumber), ResourceName(Pictures(NewPictureNumber), true)).Tag = NewPictureNumber
-
-    case 2
-    //only update if pictures are being listed
-    if (MDIMain.cmbResType.SelectedIndex = 2) {
-      //if no pictures yet
-     if (Pictures.Count = 0) {
-        //add it as first item
-        tmpListItem = MDIMain.lstResources.ListItems.Add(, "p" + CStr(NewPictureNumber), ResourceName(Pictures(NewPictureNumber), true))
-      } else {
-        //find a place to add it
-        For i = 1 To MDIMain.lstResources.ListItems.Count
-         if (CLng(MDIMain.lstResources.ListItems(i).Tag) > NewPictureNumber) {
-            Exit For
-          }
-        Next i
-        //i is index position we are looking for
-        tmpListItem = MDIMain.lstResources.ListItems.Add(i, "p" + CStr(NewPictureNumber), ResourceName(Pictures(NewPictureNumber), true))
-      }
-      tmpListItem.Tag = NewPictureNumber
-      //expand column width if necessary
-     if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
-        MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
-      }
-    }
-    }
-
-    //update the logic tooltip lookup table
-    IDefLookup[NewPictureNumber + 768].Name = Pictures(NewPictureNumber).ID
-    IDefLookup[NewPictureNumber + 768].Type = atNum
-    //then let open logic editors know
-    if (LogicEditors.Count > 0) {
-    For i = 1 To LogicEditors.Count
-      LogicEditors(i).ListDirty = true
-    Next i
-    }
-
-    //last node marker is no longer accurate; reset
-    MDIMain.LastNodeName = "";
-    return;
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
-
-    public static void AddNewSound(int NewSoundNumber, AGISound NewSound)
-
-    Node tmpNode;
-      TreeRelationshipConstants tmpRel;
-    int i;
-
-    //add sound to game collection
-    Sounds.Add NewSoundNumber, NewSound
-
-    switch (Settings.ResListType
-    case 1
-    //add to treelist
-    tmpNode = MDIMain.tvwResources.Nodes(4)
-    //if no sounds
-    if (tmpNode.Children = 0) {
-      //add it as first sound
-      tmpRel = tvwChild
-    } else {
-      //find place to insert this sound
-      tmpNode = tmpNode.Child
-      tmpRel = tvwPrevious
-      Do Until tmpNode.Tag > NewSoundNumber
-       if (tmpNode.Next = null) {
-          tmpRel = tvwNext
-          break;
-        }
-        tmpNode = tmpNode.Next
-      Loop
-    }
-
-    //add it to tree
-    MDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "s" + CStr(NewSoundNumber), ResourceName(Sounds(NewSoundNumber), true)).Tag = NewSoundNumber
-
-    case 2
-    //only update if sounds are being updated
-    if (MDIMain.cmbResType.SelectedIndex = 3) {
-      //if no sounds yet
-     if (Sounds.Count = 0) {
-        //add it as first item
-        tmpListItem = MDIMain.lstResources.ListItems.Add(, "s" + CStr(NewSoundNumber), ResourceName(Sounds(NewSoundNumber), true))
-      } else {
-        //find a place to add it
-        For i = 1 To MDIMain.lstResources.ListItems.Count
-         if (CLng(MDIMain.lstResources.ListItems(i).Tag) > NewSoundNumber) {
-            Exit For
-          }
-        Next i
-        //i is index position we are looking for
-        tmpListItem = MDIMain.lstResources.ListItems.Add(i, "s" + CStr(NewSoundNumber), ResourceName(Sounds(NewSoundNumber), true))
-      }
-      tmpListItem.Tag = NewSoundNumber
-      //expand column width if necessary
-     if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
-        MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
-      }
-    }
-    }
-
-    //update the logic tooltip lookup table
-    IDefLookup[NewSoundNumber + 512].Name = Sounds(NewSoundNumber).ID
-    IDefLookup[NewSoundNumber + 512].Type = atNum
-    //then let open logic editors know
-    if (LogicEditors.Count > 0) {
-    For i = 1 To LogicEditors.Count
-      LogicEditors(i).ListDirty = true
-    Next i
-    }
-
-    //last node marker is no longer accurate; reset
-    MDIMain.LastNodeName = "";
-    }
-    public static void AddNewView(int NewViewNumber, AGISound NewView)
-
-    Node tmpNode;
-     TreeRelationshipConstants tmpRel;
-    int i
-
-    On Error GoTo ErrHandler
-
-    //add view to game collection
-    Views.Add NewViewNumber, NewView
-
-    switch (Settings.ResListType
-    case 1
-    //add to treelist
-    tmpNode = MDIMain.tvwResources.Nodes(5)
-    //if no views
-    if (tmpNode.Children = 0) {
-      //add it as first view
-      tmpRel = tvwChild
-    } else {
-      //find place to insert this view
-      tmpNode = tmpNode.Child
-      tmpRel = tvwPrevious
-      Do Until tmpNode.Tag > NewViewNumber
-       if (tmpNode.Next = null) {
-          tmpRel = tvwNext
-          break;
-        }
-        tmpNode = tmpNode.Next
-      Loop
-    }
-
-    //add it to tree
-    MDIMain.tvwResources.Nodes.Add(tmpNode.Index, tmpRel, "v" + CStr(NewViewNumber), ResourceName(Views(NewViewNumber), true)).Tag = NewViewNumber
-
-    case 2
-    //only update if views are being displayed
-    if (MDIMain.cmbResType.SelectedIndex = 4) {
-      //if no views yet
-     if (Views.Count = 0) {
-        //add it as first item
-        tmpListItem = MDIMain.lstResources.ListItems.Add(, "v" + CStr(NewViewNumber), ResourceName(Views(NewViewNumber), true))
-      } else {
-        //find a place to add it
-        For i = 1 To MDIMain.lstResources.ListItems.Count
-         if (CLng(MDIMain.lstResources.ListItems(i).Tag) > NewViewNumber) {
-            Exit For
-          }
-        Next i
-        //i is index position we are looking for
-        tmpListItem = MDIMain.lstResources.ListItems.Add(i, "v" + CStr(NewViewNumber), ResourceName(Views(NewViewNumber), true))
-      }
-      tmpListItem.Tag = NewViewNumber
-      //expand column width if necessary
-     if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
-        MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
-      }
-    }
-    }
-
-    //update the logic tooltip lookup table
-    IDefLookup[NewViewNumber + 256].Name = Views(NewViewNumber).ID
-    IDefLookup[NewViewNumber + 256].Type = atNum
-    //then let open logic editors know
-    if (LogicEditors.Count > 0) {
-    For i = 1 To LogicEditors.Count
-      LogicEditors(i).ListDirty = true
-    Next i
-    }
-
-    //last node marker is no longer accurate; reset
-    MDIMain.LastNodeName = "";
-    return;
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
 
     public static DialogResult MsgBoxEx(string Prompt, MessageBoxButtons Buttons = MessageBoxButtonsOKOnly, Optional Title, string HelpFile = "", string HelpTopic = "", string CheckString = "", ref bool Checked = false)
     //Title has to be a non-declared type for the IsMissing function to work
@@ -10468,7 +9961,7 @@ namespace WinAGI_GDS
     case 1
     With MDIMain.tvwResources
       //remove it from resource list
-      .Nodes.Remove .Nodes("l" + CStr(LogicNum)).Index
+      .Nodes.Remove .Nodes["l" + CStr(LogicNum)).Index
 
     //last node marker is no longer accurate; reset
       MDIMain.LastNodeName = "";
@@ -10538,148 +10031,6 @@ namespace WinAGI_GDS
     Resume Next
     }
 
-
-
-    public static void NewSound(string ImportSoundFile = "")
-    //creates a new sound resource and opens and editor
-
-    frmSoundEdit frmNew;
-      bool blnInGame;
-    AGISound tmpSound;
-      bool blnOpen;
-
-    On Error GoTo ErrHandler
-
-    //show wait cursor
-    MDIMain.UseWaitCursor = true;
-
-    Do
-    //create temporary sound
-    tmpSound = New AGISound
-    //set default instrument settings;
-    //if a sound is being imported, these may be overridden...
-    With tmpSound
-      .Track(0).Instrument = Settings.DefInst0
-      .Track(1).Instrument = Settings.DefInst1
-      .Track(2).Instrument = Settings.DefInst2
-      .Track(0).Muted = Settings.DefMute0
-      .Track(1).Muted = Settings.DefMute1
-      .Track(2).Muted = Settings.DefMute2
-      .Track(3).Muted = Settings.DefMute3
-    End With
-
-    //if an import filename was passed
-    if (LenB(ImportSoundFile) != 0) {
-      //import the sound
-      //(and check for error)
-      On Error Resume Next
-      tmpSound.Import ImportSoundFile
-     if (Err.Number != 0) {
-        //something wrong
-        ErrMsgBox("Error occurred while importing sound:", "", "Import Sound Error"
-        break;
-      }
-      //now check to see if it's a valid sound resource (by trying to reload it)
-      tmpSound.Load
-     if (Err.Number != 0) {
-        ErrMsgBox("Error reading Sound data:", "This is not a valid sound resource.", "Invalid Sound Resource"
-        break;
-      }
-      On Error GoTo ErrHandler
-    }
-
-    //if a game is loaded
-    if (GameLoaded) {
-      //get sound number
-      //show add resource form
-        frmGetResourceNum.ResType = rtSound
-       if (LenB(ImportSoundFile) != 0) {
-          frmGetResourceNum.WindowFunction = grImport
-        } else {
-          frmGetResourceNum.WindowFunction = grAddNew
-        }
-        //setup before loading so ghosts don't show up
-        frmGetResourceNum.FormSetup
-        //suggest ID based on filename
-       if (Len(ImportSoundFile) > 0) {
-          frmGetResourceNum.txtID.Text = Replace(FileNameNoExt(ImportSoundFile), " ", "")
-        }
-
-        //restore cursor while getting resnum
-        MDIMain.UseWaitCursor = false;
-        frmGetResourceNum.ShowDialog(MDIMain);
-        //show wait cursor again while finishing creating the new sound
-        MDIMain.UseWaitCursor = true;
-
-        //if canceled, release the temporary sound, restore cursor and exit method
-       if (frmGetResourceNum.Canceled) {
-          tmpSound = null
-          //restore mousepointer, unload form and exit
-          Unload frmGetResourceNum
-          MDIMain.UseWaitCursor = false;
-          return;
-
-        //if user wants sound added to current game
-        } else if ( !frmGetResourceNum.DontImport) {
-          //add new id and description
-          tmpSound.ID = frmGetResourceNum.txtID.Text
-          tmpSound.Description = frmGetResourceNum.txtDescription.Text
-
-          //add sound
-          AddNewSound .NewResNum, tmpSound
-          //reset tmpSound to point to the new game sound
-          tmpSound = null
-          tmpSound = Sounds(frmGetResourceNum.NewResNum)
-
-          //set flag
-          blnInGame = true
-        }
-
-        blnOpen = (frmGetResourceNum.chkOpenRes.Checked)
-
-      //make sure resource form is unloaded
-      Unload frmGetResourceNum
-    }
-
-    //only open if user wants it open (or if not in a game or if opening/not importing)
-    if (blnOpen || !GameLoaded || !blnInGame) {
-
-      //open a new sound editing window
-      frmNew = New frmSoundEdit
-
-      //pass the sound to the editor
-     if (frmNew.EditSound(tmpSound)) {
-        //show form
-        frmNew.Show
-        //add to collection
-        SoundEditors.Add frmNew
-      } else {
-        //error
-        frmNew = null
-      }
-    }
-
-    if (GameLoaded) {
-      //save openres value
-      Settings.OpenNew = blnOpen
-    }
-
-    //if added to a game
-    if (blnInGame) {
-      //unload it
-      Sounds(tmpSound.Number).Unload
-    }
-    Loop Until true
-
-    //restore mousepointer and exit
-    MDIMain.UseWaitCursor = false;
-    return;
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
-
     public static void NewTextFile()
     //opens a new text editor
 
@@ -10724,263 +10075,6 @@ namespace WinAGI_GDS
     }
 
 
-    public static void NewPicture(string ImportPictureFile = "")
-    //creates a new picture resource and opens an editor
-
-    frmPictureEdit frmNew;
-      bool blnInGame;
-    AGIPicture tmpPic;
-      bool blnOpen;
-
-    On Error GoTo ErrHandler
-
-    //show wait cursor
-    MDIMain.UseWaitCursor = true;
-
-    Do
-    //create temporary picture
-    tmpPic = New AGIPicture
-
-    //if an import filename was passed
-    if (LenB(ImportPictureFile) != 0) {
-      //import the picture
-      //(and check for error)
-      On Error Resume Next
-      tmpPic.Import ImportPictureFile
-     if (Err.Number != 0) {
-        //something wrong
-        ErrMsgBox("Error while opening picture:", "Unable to load this picture resource.", "Invalid Picture Resource"
-        break;
-      }
-      //now check to see if it's a valid picture resource (by trying to reload it)
-      tmpPic.Load
-     if (Err.Number != 0) {
-        ErrMsgBox("Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource"
-        break;
-      }
-      On Error GoTo ErrHandler
-    }
-
-    //if a game is loaded
-    if (GameLoaded) {
-      //get picture number
-      //show add resource form
-        frmGetResourceNum.ResType = rtPicture
-       if (LenB(ImportPictureFile) = 0) {
-          frmGetResourceNum.WindowFunction = grAddNew
-        } else {
-          frmGetResourceNum.WindowFunction = grImport
-        }
-        //setup before loading so ghosts don't show up
-        frmGetResourceNum.FormSetup
-        //suggest ID based on filename
-       if (Len(ImportPictureFile) > 0) {
-          frmGetResourceNum.txtID.Text = Replace(FileNameNoExt(ImportPictureFile), " ", "")
-        }
-
-        //restore cursor while getting resnum
-        MDIMain.UseWaitCursor = false;
-        frmGetResourceNum.ShowDialog(MDIMain);
-        //show wait cursor while resource is added
-        MDIMain.UseWaitCursor = true;
-
-        //if canceled, release the temporary picture, restore cursor and exit method
-       if (frmGetResourceNum.Canceled) {
-          tmpPic = null
-          //restore mousepointer and exit
-          Unload frmGetResourceNum
-          MDIMain.UseWaitCursor = false;
-          return;
-
-        //if user wants picture added to current game
-        } else if ( !frmGetResourceNum.DontImport) {
-          //add new id and description
-          tmpPic.ID = frmGetResourceNum.txtID.Text
-          tmpPic.Description = frmGetResourceNum.txtDescription.Text
-
-          //add picture
-          AddNewPicture frmGetResourceNum.NewResNum, tmpPic
-          //reset tmpPic to point to the new game picture
-          tmpPic = null
-          tmpPic = Pictures(frmGetResourceNum.NewResNum)
-          //set ingame flag
-          blnInGame = true
-        }
-
-        blnOpen = (frmGetResourceNum.chkOpenRes.Checked)
-
-      //make sure resource form is unloaded
-      Unload frmGetResourceNum
-    }
-
-    //only open if user wants it open (or if not in a game or if opening/not importing)
-    if (blnOpen || !GameLoaded || !blnInGame) {
-      //open a new picture editing window
-      frmNew = New frmPictureEdit
-
-      //pass the picture to the editor
-     if (frmNew.EditPicture(tmpPic)) {
-        //show form
-        frmNew.Show
-        //add to collection
-        PictureEditors.Add frmNew
-      } else {
-        //error
-        frmNew = null
-      }
-    }
-
-    if (GameLoaded) {
-      //save openres value
-      Settings.OpenNew = blnOpen
-    }
-
-    //if added to a game
-    if (blnInGame) {
-      //unload it
-      Pictures(tmpPic.Number).Unload
-    }
-    Loop Until true
-
-    //restore main form mousepointer and exit
-    MDIMain.UseWaitCursor = false;
-    return;
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
-    public static void NewView(string ImportViewFile = "")
-    //creates a new view editor with a view that is
-    //not attached to a game
-
-    frmViewEdit frmNew;
-      bool blnInGame;
-    AGISound tmpView;
-      bool blnOpen;
-
-    On Error GoTo ErrHandler
-
-    //show wait cursor
-    MDIMain.UseWaitCursor = true;
-
-    Do
-    //create temporary view
-    tmpView = New AGIView
-    //set first cel to default height/width
-    tmpView.Loops(0).Cels(0).Height = Settings.DefCelH
-    tmpView.Loops(0).Cels(0).Width = Settings.DefCelW
-
-    //if an import filename was passed
-    if (LenB(ImportViewFile) != 0) {
-      //import the view
-      //(and check for error)
-      On Error Resume Next
-      tmpView.Import ImportViewFile
-     if (Err.Number != 0) {
-        //something wrong
-        ErrMsgBox("An error occurred during import:", "", "Import View Error"
-        break;
-      }
-      //now check to see if it's a valid picture resource (by trying to reload it)
-      tmpView.Load
-     if (Err.Number != 0) {
-        ErrMsgBox("Error reading View data:", "This is not a valid view resource.", "Invalid View Resource"
-        break;
-      }
-      On Error GoTo ErrHandler
-    }
-
-    //if a game is loaded
-    if (GameLoaded) {
-      //get view number
-      //show add resource form
-        frmGetResourceNum.ResType = rtView
-       if (LenB(ImportViewFile) != 0) {
-          frmGetResourceNum.WindowFunction = grImport
-        } else {
-          frmGetResourceNum.WindowFunction = grAddNew
-        }
-        //setup before loading so ghosts don't show up
-        frmGetResourceNum.FormSetup
-        //suggest ID based on filename
-       if (Len(ImportViewFile) > 0) {
-          frmGetResourceNum.txtID.Text = Replace(FileNameNoExt(ImportViewFile), " ", "")
-        }
-
-        //restore cursor while getting resnum
-        MDIMain.UseWaitCursor = false;
-        frmGetResourceNum.ShowDialog(MDIMain);
-        //show wait cursor while resource is added
-        MDIMain.UseWaitCursor = true;
-
-        //if canceled, release the temporary view, restore cursor and exit method
-       if (frmGetResourceNum.Canceled) {
-          tmpView = null
-          //restore mousepointer and exit
-          Unload frmGetResourceNum
-          MDIMain.UseWaitCursor = false;
-          return;
-
-        //if user wants view added to current game
-        } else if ( !frmGetResourceNum.DontImport) {
-          //add new id and description
-          tmpView.ID = frmGetResourceNum.txtID.Text
-          tmpView.Description = frmGetResourceNum.txtDescription.Text
-
-          //add view
-          AddNewView frmGetResourceNum.NewResNum, tmpView
-          //reset tmpView to point to the new game view
-          tmpView = null
-          tmpView = Views(frmGetResourceNum.NewResNum)
-          //set ingame flag
-          blnInGame = true
-        }
-
-        blnOpen = (frmGetResourceNum.chkOpenRes.Checked)
-
-      //make sure resource form is unloaded
-      Unload frmGetResourceNum
-    }
-
-    //only open if user wants it open (or if not in a game or if opening/not importing)
-    if (blnOpen || !GameLoaded || !blnInGame) {
-      //open a new view editing window
-      frmNew = New frmViewEdit
-
-      //pass the view to the editor
-     if (frmNew.EditView(tmpView)) {
-        //show form
-        frmNew.Show
-        frmNew.Refresh
-        //add to collection
-        ViewEditors.Add frmNew
-      } else {
-        //error
-        frmNew = null
-      }
-    }
-
-    if (GameLoaded) {
-      //save openres value
-      Settings.OpenNew = blnOpen
-    }
-
-    //if added to game
-    if (blnInGame) {
-      //unload the game resource
-      Views(tmpView.Number).Unload
-    }
-    Loop Until true
-
-    //restore main form mousepointer and exit
-    MDIMain.UseWaitCursor = false;
-    return;
-
-    ErrHandler:
-    //Debug.Assert false
-    Resume Next
-    }
 
 
 
@@ -11600,7 +10694,6 @@ namespace WinAGI_GDS
     Resume Next
     }
 
-
     public static void RemoveSound(byte SndNum)
     //removes a view from the game, and updates
     //preview and resource windows
@@ -11627,7 +10720,7 @@ namespace WinAGI_GDS
     case 1
     With MDIMain.tvwResources
       //remove it from resource list
-      .Nodes.Remove MDIMain.tvwResources.Nodes("s" + CStr(SndNum)).Index
+      .Nodes.Remove MDIMain.tvwResources.Nodes["s" + CStr(SndNum)).Index
 
     //last node marker is no longer accurate; reset
       MDIMain.LastNodeName = "";
@@ -11722,7 +10815,7 @@ namespace WinAGI_GDS
     case 1
     With MDIMain.tvwResources
       //remove it from resource list
-      .Nodes.Remove MDIMain.tvwResources.Nodes("v" + CStr(ViewNum)).Index
+      .Nodes.Remove MDIMain.tvwResources.Nodes["v" + CStr(ViewNum)).Index
 
     //last node marker is no longer accurate; reset
       MDIMain.LastNodeName = "";
@@ -11791,31 +10884,6 @@ namespace WinAGI_GDS
     Resume Next
     }
 
-    public static void KillCopyFile(string ResFile, bool KeepOld)
-
-    string strOldName;
-      int lngNextNum;
-      string strName, strExt;
-
-    On Error Resume Next
-
-    if (File.Exists(ResFile)) {
-    if (KeepOld) {
-      strName = Left(ResFile, Len(ResFile) - 4)
-      strExt = Right(ResFile, 4)
-      lngNextNum = 1
-      //assign proposed rename
-      strOldName = strName + "_OLD" + strExt
-      //Validate it
-      Do Until !File.Exists(strOldName)
-        lngNextNum = lngNextNum + 1
-        strOldName = strName + "_OLD_" + CStr(lngNextNum) + strExt
-      Loop
-      FileCopy ResFile, strOldName
-    }
-    //kill the file in source directory (if it's not there, error just gets ignored...)
-    Kill ResFile
-    }
 
     }
     public static byte RenumberResource(byte OldResNum, AGIResType ResType)
@@ -11880,12 +10948,12 @@ namespace WinAGI_GDS
         .Nodes.Remove strResType + CStr(OldResNum)
 
         //start with first node of this Type
-        tmpNode = .Nodes(ResType + 2).Child
+        tmpNode = .Nodes[ResType + 2).Child
 
         //if there are no nodes
        if (tmpNode = null) {
           //add first child
-          tmpNode = .Nodes(ResType + 2)
+          tmpNode = .Nodes[ResType + 2)
           tvwRel = tvwChild
         //if this node belongs at end of list
         } else if ( NewResNum > tmpNode.LastSibling.Tag) {
@@ -12294,8 +11362,250 @@ namespace WinAGI_GDS
 
 */
     }
+    public static void UpdateSelection(AGIResType ResType, int ResNum, UpdateModeType UpDateMode)
+    {
+      //updates the resource list, property box, and preview window for a given resource
+      if (ResNum < 0 | ResNum > 255) {
+        return;
+      }
+
+      switch (Settings.ResListType) {
+      case 0: //no tree
+              //do nothing
+        break;
+      case 1: //treeview list
+              //if updating tree OR updating a logic
+        if ((UpDateMode & UpdateModeType.umResList) == UpdateModeType.umResList || ResType == rtLogic) {
+          //update the node for this resource
+          switch (ResType) {
+          case rtLogic:
+            HdrNode[0].Nodes["l" + ResNum.ToString()].Text = ResourceName(Logics[ResNum], true);
+            //also set compiled status
+            if (!Logics[ResNum].Compiled) {
+              HdrNode[0].Nodes["l" + ResNum.ToString()].ForeColor = Color.Red;
+            }
+            else {
+              HdrNode[0].Nodes["l" + ResNum.ToString()].ForeColor = Color.Black;
+            }
+            break;
+          case rtPicture:
+            HdrNode[1].Nodes["p" + ResNum.ToString()].Text = ResourceName(Pictures[ResNum], true);
+            break;
+          case rtSound:
+            HdrNode[2].Nodes["s" + ResNum.ToString()].Text = ResourceName(Sounds[ResNum], true);
+            break;
+          case rtView:
+            HdrNode[3].Nodes["v" + ResNum.ToString()].Text = ResourceName(Views[ResNum], true);
+            break;
+          }
+        }
+        break;
+      case 2: //combo/list boxes
+              //only update if current type is listed
+        if (MDIMain.cmbResType.SelectedIndex - 1 == (int)ResType) {
+          //if updating tree OR updating a logic (because color of
+          //logic text might need updating)
+          if ((UpDateMode & UpdateModeType.umResList) == UpdateModeType.umResList || ResType == rtLogic) {
+            //update the node for this resource
+            switch (ResType) {
+            case rtLogic:
+              ListViewItem tmpItem = MDIMain.lstResources.Items["l" + ResNum.ToString()];
+              tmpItem.Text = ResourceName(Logics[ResNum], true);
+              //also set compiled status
+              if (!Logics[ResNum].Compiled) {
+                tmpItem.ForeColor = Color.Red;
+              }
+              else {
+                tmpItem.ForeColor = Color.Black;
+              }
+              break;
+            case rtPicture:
+              MDIMain.lstResources.Items["p" + ResNum.ToString()].Text = ResourceName(Pictures[ResNum], true);
+              break;
+            case rtSound:
+              MDIMain.lstResources.Items["s" + ResNum.ToString()].Text = ResourceName(Sounds[ResNum], true);
+              break;
+            case rtView:
+              MDIMain.lstResources.Items["v" + ResNum.ToString()].Text = ResourceName(Views[ResNum], true);
+              break;
+            }
+            // //expand column width if necessary
+            //if (1.2 * MDIMain.picResources.TextWidth(tmpItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
+            //   MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpItem.Text)
+          }
+        }
+        break;
+      }//switch
+
+      //if the selected item matches the update item
+      if (SelResType == ResType && SelResNum == ResNum) {
+        //if updating properties OR updating tree AND tree is visible
+        if (((UpDateMode & UpdateModeType.umProperty) == UpdateModeType.umProperty || (UpDateMode & UpdateModeType.umResList) == UpdateModeType.umProperty) && Settings.ResListType != 0) {
+          //redraw property window
+          MDIMain.picProperties.Refresh();
+        }
+
+        //if updating preview
+        if ((UpDateMode & UpdateModeType.umPreview) == UpdateModeType.umPreview && Settings.ShowPreview) {
+          //redraw the preview
+          PreviewWin.LoadPreview(ResType, ResNum);
+        }
+        else if (Settings.ShowPreview) {
+          PreviewWin.UpdateCaption(ResType, (byte)ResNum);
+        }
+      }
+    }
+    public static void UpdateResFile(AGIResType ResType, byte ResNum, string OldFileName)
+    {
+      //updates ingame id for resource files and the resource tree
+      DialogResult rtn;
+
+      switch (ResType) {
+      case rtLogic:
+        //if a file with this name already exists
+        if (File.Exists(ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt)) {
+          //import existing, or overwrite it?
+          rtn = MessageBox.Show("There is already a source file with the name '" + Logics[ResNum].ID +
+                LogicSourceSettings.SourceExt + "' in your source file directory." + Environment.NewLine + Environment.NewLine +
+                "Do you want to import that file? Choose 'NO' to replace that file with the current logic source.",
+                "Import Existing Source File?", MessageBoxButtons.YesNo);
+        }
+        else {
+          //no existing file, so keep current source
+          rtn = DialogResult.No;
+        }
+
+        if (rtn == DialogResult.Yes) {
+          //keep old file with new name as new name; basically import it by reloading, if currently loaded
+          if (Logics[ResNum].Loaded) {
+            Logics[ResNum].Unload();
+            Logics[ResNum].Load();
+          }
+
+          //now update preview window, if previewing
+          if (Settings.ShowPreview) {
+            if (SelResType == rtLogic && SelResNum == ResNum) {
+              PreviewWin.LoadPreview(rtLogic, ResNum);
+            }
+          }
+        }
+        else {
+          //if there is a file with the new ResID, rename it first
+          try {
+            //delete existing .OLD file (if there is one)
+            if (File.Exists(ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt + ".OLD")) {
+              {
+                File.Delete(ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt + ".OLD");
+              }
+              //rename old file with new ResID as .OLD
+              File.Move(ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt, ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt + ".OLD");
+              //then, if there is a file with the previous ID
+              //save it with the new ID
+              if (File.Exists(OldFileName)) {
+                File.Move(OldFileName, ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt);
+              }
+              else {
+                Logics[ResNum].SaveSource();
+              }
+            }
+          }
+          catch (Exception) {
+            //
+          }
+        }
+        //if layouteditor is open
+        if (LEInUse) {
+          //redraw to ensure correct ID is displayed
+          LayoutEditor.DrawLayout();
+        }
+        break;
+      case rtPicture:
+        //if autoexporting
+        if (Settings.AutoExport) {
+          try {
+            //if a file with this name already exists
+            if (File.Exists(ResDir + Pictures[ResNum].ID + ".agp")) {
+              // rename it, (remove existing old file first)
+              if (File.Exists(ResDir + Pictures[ResNum].ID + ".agp" + ".OLD")) {
+                File.Delete(ResDir + Pictures[ResNum].ID + ".agp" + ".OLD");
+              }
+              File.Move(ResDir + Pictures[ResNum].ID + ".agp", ResDir + Pictures[ResNum].ID + ".agp" + ".OLD");
+            }
+
+            if (File.Exists(OldFileName)) {
+              //rename resource file, if it exists
+              File.Move(OldFileName, ResDir + Pictures[ResNum].ID + ".agp");
+            }
+            else {
+              //save it
+              Pictures[ResNum].Export(ResDir + Pictures[ResNum].ID + ".agp");
+            }
+          }
+          catch (Exception) {
+            //
+          }
+        }
+        break;
+      case rtSound:
+        //if autoexporting
+        if (Settings.AutoExport) {
+          try {
+            //if a file with this name already exists
+            if (File.Exists(ResDir + Sounds[ResNum].ID + ".ags")) {
+              // rename it, (remove existing old file first)
+              if (File.Exists(ResDir + Sounds[ResNum].ID + ".ags" + ".OLD")) {
+                File.Delete(ResDir + Sounds[ResNum].ID + ".ags" + ".OLD");
+              }
+              File.Move(ResDir + Sounds[ResNum].ID + ".ags", ResDir + Sounds[ResNum].ID + ".ags" + ".OLD");
+            }
+
+            if (File.Exists(OldFileName)) {
+              //rename resource file, if it exists
+              File.Move(OldFileName, ResDir + Sounds[ResNum].ID + ".ags");
+            }
+            else {
+              Sounds[ResNum].Export(ResDir + Sounds[ResNum].ID + ".ags");
+            }
+          }
+          catch (Exception) {
+            //
+          }
+        }
+        break;
+      case rtView:
+        //if autoexporting
+        if (Settings.AutoExport) {
+          try {
+            //if a file with this name already exists
+            if (File.Exists(ResDir + Views[ResNum].ID + ".agv")) {
+              // rename it, (remove existing old file first)
+              if (File.Exists(ResDir + Views[ResNum].ID + ".agv" + ".OLD")) {
+                File.Delete(ResDir + Views[ResNum].ID + ".agv" + ".OLD");
+              }
+              File.Move(ResDir + Views[ResNum].ID + ".agv", ResDir + Views[ResNum].ID + ".agv" + ".OLD");
+            }
+
+            //check to see if old file exists
+            if (File.Exists(OldFileName)) {
+              //rename resource file, if it exists
+              File.Move(OldFileName, ResDir + Views[ResNum].ID + ".agv");
+            }
+            else {
+              Views[ResNum].Export(ResDir + Views[ResNum].ID + ".agv");
+            }
+          }
+          catch (Exception) {
+            //
+          }
+        }
+        break;
+      }//switch
+
+      //update property window and resource list
+      UpdateSelection(ResType, ResNum, UpdateModeType.umProperty | UpdateModeType.umResList);
+    }
     public static void UpdateExitInfo(EUReason Reason, int LogicNumber, AGILogic ThisLogic, int NewNum = 0)
-      {
+    {
       /*
     //   frmMDIMain|SelectedItemRenumber:  UpdateExitInfo euRenumberRoom, OldResNum, null, NewResNum
     //  frmMDIMain|lstProperty_LostFocus:  UpdateExitInfo Reason, SelResNum, Logics(SelResNum) //showroom or removeroom
@@ -12738,17 +12048,15 @@ namespace WinAGI_GDS
       //add to resource list
       switch (Settings.ResListType) {
       case 1:
-        TreeNode tmpNode;
-        int lngPos;
-        tmpNode = HdrNode[0];
+        TreeNode tmpNode = HdrNode[0];
         //find place to insert this logic
-        for (lngPos = 0; lngPos < HdrNode[0].Nodes.Count; lngPos++) {
-          if ((int)tmpNode.Tag > NewLogicNumber) {
+        for (int lngPos = 0; lngPos < HdrNode[0].Nodes.Count; lngPos++) {
+          if ((int)tmpNode.Nodes[lngPos].Tag > NewLogicNumber) {
             break;
           }
         }
         //add to tree
-        tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sLOGICS].Nodes.Insert(lngPos, "l" + NewLogicNumber, ResourceName(Logics[NewLogicNumber], true));
+        tmpNode = HdrNode[0].Nodes.Insert(lngPos, "l" + NewLogicNumber, ResourceName(Logics[NewLogicNumber], true));
         tmpNode.Tag = NewLogicNumber;
         //load source to set compiled status
         if (Logics[NewLogicNumber].Compiled) {
@@ -12763,14 +12071,13 @@ namespace WinAGI_GDS
         if (MDIMain.cmbResType.SelectedIndex == 1) {
           ListViewItem tmpListItem;
           //find a place to insert this logic in the box list
-          //find a place to add it
           for (i = 0; i < MDIMain.lstResources.Items.Count; i++) {
             if ((int)MDIMain.lstResources.Items[i].Tag > NewLogicNumber) {
               break;
             }
           }
           //i is index position we are looking for
-          tmpListItem = MDIMain.lstResources.Items.Insert(i, "l" + NewLogicNumber.ToString(), ResourceName(Logics[NewLogicNumber], true), 0);
+          tmpListItem = MDIMain.lstResources.Items.Insert(i, "l" + NewLogicNumber, ResourceName(Logics[NewLogicNumber], true), 0);
           tmpListItem.Tag = NewLogicNumber.ToString();
           if (!Logics[NewLogicNumber].Compiled) {
             tmpListItem.ForeColor = Color.Red;
@@ -12795,6 +12102,151 @@ namespace WinAGI_GDS
       //last node marker is no longer accurate; reset
       MDIMain.LastNodeName = "";
     }
+    public static void AddNewPicture(int NewPictureNumber, AGIPicture NewPicture)
+    {
+      int lngPos = 0;
+      //add picture to game collection
+      Pictures.Add((byte)NewPictureNumber, NewPicture);
+
+      switch (Settings.ResListType) {
+      case 1:
+        //find place to insert this picture
+        for (lngPos = 0; lngPos < HdrNode[1].Nodes.Count; lngPos++) {
+          if ((int)HdrNode[1].Nodes[lngPos].Tag > NewPictureNumber) {
+            break;
+          }
+        }
+        //add it to tree
+        HdrNode[1].Nodes.Insert(lngPos, "p" + NewPictureNumber, ResourceName(Pictures[NewPictureNumber], true)).Tag = NewPictureNumber;
+        break;
+      case 2:
+        //only update if pictures are being listed
+        if (MDIMain.cmbResType.SelectedIndex == 2) {
+          //find a place to add it
+          for (lngPos = 0; lngPos < MDIMain.lstResources.Items.Count; lngPos++) {
+            if ((int)MDIMain.lstResources.Items[lngPos].Tag > NewPictureNumber) {
+              break;
+            }
+          }
+          //i is index position we are looking for
+          MDIMain.lstResources.Items.Insert(lngPos, "p" + NewPictureNumber, ResourceName(Pictures[NewPictureNumber], true)).Tag = NewPictureNumber;
+          // //expand column width if necessary
+          //if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
+          //   MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
+          // }
+        }
+        break;
+      }
+
+      //update the logic tooltip lookup table
+      IDefLookup[NewPictureNumber + 768].Name = Pictures[NewPictureNumber].ID;
+      IDefLookup[NewPictureNumber + 768].Type = atNum;
+      //then let open logic editors know
+      if (LogicEditors.Count > 0) {
+        for (int i = 0; i < LogicEditors.Count; i++) {
+          LogicEditors[i].ListDirty = true;
+        }
+      }
+
+      //last node marker is no longer accurate; reset
+      MDIMain.LastNodeName = "";
+    }
+    public static void AddNewSound(int NewSoundNumber, AGISound NewSound)
+    {
+      int lngPos = 0;
+      //add sound to game collection
+      Sounds.Add((byte)NewSoundNumber, NewSound);
+
+      switch (Settings.ResListType) {
+      case 1:
+        //find place to insert this sound
+        for (lngPos = 0; lngPos < HdrNode[2].Nodes.Count; lngPos++) {
+          if ((int)HdrNode[2].Nodes[lngPos].Tag > NewSoundNumber) {
+            break;
+          }
+        }
+        //add it to tree
+        HdrNode[2].Nodes.Insert(lngPos, "s" + NewSoundNumber, ResourceName(Sounds[NewSoundNumber], true)).Tag = NewSoundNumber;
+        break;
+      case 2:
+        //only update if sounds are being updated
+        if (MDIMain.cmbResType.SelectedIndex == 3) {
+          //find a place to add it
+          for (lngPos = 0; lngPos < MDIMain.lstResources.Items.Count; lngPos++) {
+            if ((int)MDIMain.lstResources.Items[lngPos].Tag > NewSoundNumber) {
+              break;
+            }
+          }
+          //i is index position we are looking for
+          MDIMain.lstResources.Items.Insert(lngPos, "s" + NewSoundNumber, ResourceName(Sounds[NewSoundNumber], true)).Tag = NewSoundNumber;
+          // //expand column width if necessary
+          //if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
+          //   MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
+          // }
+        }
+        break;
+      }
+
+      //update the logic tooltip lookup table
+      IDefLookup[NewSoundNumber + 512].Name = Sounds[NewSoundNumber].ID;
+      IDefLookup[NewSoundNumber + 512].Type = atNum;
+      //then let open logic editors know
+      if (LogicEditors.Count > 0) {
+        for (int i = 0; i < LogicEditors.Count; i++) {
+          LogicEditors[i].ListDirty = true;
+        }
+      }
+
+      //last node marker is no longer accurate; reset
+      MDIMain.LastNodeName = "";
+    }
+    public static void AddNewView(int NewViewNumber, AGIView NewView)
+    {
+      int lngPos = 0;
+      //add view to game collection
+      Views.Add((byte)NewViewNumber, NewView);
+
+      switch (Settings.ResListType) {
+      case 1:
+        //find place to insert this view
+        for (lngPos = 0; lngPos < HdrNode[3].Nodes.Count; lngPos++) {
+          if ((int)HdrNode[3].Nodes[lngPos].Tag > NewViewNumber) {
+            break;
+          }
+        }
+        //add it to tree
+        HdrNode[3].Nodes.Insert(lngPos, "v" + NewViewNumber, ResourceName(Views[NewViewNumber], true)).Tag = NewViewNumber;
+        break;
+      case 2:
+        //only update if views are being displayed
+        if (MDIMain.cmbResType.SelectedIndex == 4) {
+          //find a place to add it
+          for (lngPos = 1; lngPos < MDIMain.lstResources.Items.Count; lngPos++) {
+            if ((int)MDIMain.lstResources.Items[lngPos].Tag > NewViewNumber) {
+              break;
+            }
+          }
+          //i is index position we are looking for
+          MDIMain.lstResources.Items.Insert(lngPos, "v" + NewViewNumber, ResourceName(Views[NewViewNumber], true)).Tag = NewViewNumber;
+          // //expand column width if necessary
+          //if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
+          //   MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
+        }
+        break;
+      }
+      //update the logic tooltip lookup table
+      IDefLookup[NewViewNumber + 256].Name = Views[NewViewNumber].ID;
+      IDefLookup[NewViewNumber + 256].Type = atNum;
+      //then let open logic editors know
+      if (LogicEditors.Count > 0) {
+        for (int i = 1; i < LogicEditors.Count; i++) {
+          LogicEditors[i].ListDirty = true;
+        }
+      }
+
+      //last node marker is no longer accurate; reset
+      MDIMain.LastNodeName = "";
+    }
     public static void NewLogic(string ImportLogicFile = "")
     {
       //creates a new logic resource and opens an editor
@@ -12810,182 +12262,589 @@ namespace WinAGI_GDS
       //show wait cursor
       MDIMain.UseWaitCursor = true;
 
-      do {
-        //create temporary logic
-        tmpLogic = new AGILogic();
+      //create temporary logic
+      tmpLogic = new AGILogic();
 
-        //if an import filename passed,
-        if (ImportLogicFile.Length != 0) {
-          blnImporting = true;
-          //open file to see if it is sourcecode or compiled logic
-          try {
-            using FileStream fsNewLog = new FileStream(ImportLogicFile, FileMode.Open);
-            using StreamReader srNewLog = new StreamReader(fsNewLog);
-            strFile = srNewLog.ReadToEnd();
-            srNewLog.Dispose();
-            fsNewLog.Dispose();
-          }
-          catch (Exception) {
-            // ignore errors; import method will have to handle it
-          }
-
-          //check if logic is a compiled logic:
-          //(check for existence of characters <8)
-          string lChars = "";
-          for (int i = 1; i <= 8; i++) {
-            lChars += ((char)i).ToString();
-            blnSource = !strFile.Any(lChars.Contains);
-          }
-          //import the logic
-          //(and check for error)
-          try {
-            tmpLogic.Import(ImportLogicFile, blnSource);
-          }
-          catch (Exception e) {
-            //if a compile error occurred,
-            if (e.HResult == WINAGI_ERR + 567) {
-              //can't open this resource
-              ErrMsgBox(e, "An error occurred while trying to decompile this logic resource:", "Unable to open this logic.", "Invalid Logic Resource");
-              break;
-            }
-            else {
-              //maybe we assumed source status incorrectly- try again
-              try {
-                tmpLogic.Import(ImportLogicFile, !blnSource);
-              }
-              catch (Exception) {
-                //if STILL error
-                //something wrong
-                ErrMsgBox(e, "Unable to load this logic resource. It can't be decompiled, and does not appear to be a text file.", "", "Invalid Logic Resource");
-              }
-            }
-          }
+      //if an import filename passed,
+      if (ImportLogicFile.Length != 0) {
+        blnImporting = true;
+        //open file to see if it is sourcecode or compiled logic
+        try {
+          using FileStream fsNewLog = new FileStream(ImportLogicFile, FileMode.Open);
+          using StreamReader srNewLog = new StreamReader(fsNewLog);
+          strFile = srNewLog.ReadToEnd();
+          srNewLog.Dispose();
+          fsNewLog.Dispose();
         }
-        // get resource number, id , description
-        frmGetResourceNum GetResNum = new frmGetResourceNum();
-        //if a game is loaded,
-        if (GameLoaded) {
-          //get logic number
-          //show add resource form
-          GetResNum.ResType = rtLogic;
-          if (blnImporting) {
-            GetResNum.WindowFunction = EGetRes.grImport;
-          }
-          else {
-            GetResNum.WindowFunction = EGetRes.grAddNew;
-          }
-          //setup before loading so ghosts don't show up
-          GetResNum.FormSetup();
-          //suggest ID based on filename
-          if (ImportLogicFile.Length > 0) {
-            GetResNum.txtID.Text = FileNameNoExt(ImportLogicFile).Replace(" ", "");
-          }
-          //restore cursor while getting resnum
-          MDIMain.UseWaitCursor = false;
-          GetResNum.ShowDialog(MDIMain);
-          //show wait cursor while resource is added
-          MDIMain.UseWaitCursor = true;
+        catch (Exception) {
+          // ignore errors; import method will have to handle it
+        }
 
-          //if canceled, release the temporary logic, restore mousepointer and exit
-          if (GetResNum.Canceled) {
-            tmpLogic = null;
-            //restore mousepointer and exit
-            GetResNum.Close();
+        //check if logic is a compiled logic:
+        //(check for existence of characters <8)
+        string lChars = "";
+        for (int i = 1; i <= 8; i++) {
+          lChars += ((char)i).ToString();
+          blnSource = !strFile.Any(lChars.Contains);
+        }
+        //import the logic
+        //(and check for error)
+        try {
+          tmpLogic.Import(ImportLogicFile, blnSource);
+        }
+        catch (Exception e) {
+          //if a compile error occurred,
+          if (e.HResult == WINAGI_ERR + 567) {
+            //can't open this resource
+            ErrMsgBox(e, "An error occurred while trying to decompile this logic resource:", "Unable to open this logic.", "Invalid Logic Resource");
+            //restore main form mousepointer and exit
             MDIMain.UseWaitCursor = false;
             return;
           }
-          //if user wants logic added to current game
-          else if (!GetResNum.DontImport) {
-            //add ID and description to tmpLogic
-            tmpLogic.ID = GetResNum.txtID.Text;
-            tmpLogic.Description = GetResNum.txtDescription.Text;
-
-            //add Logic
-            AddNewLogic(GetResNum.NewResNum, tmpLogic, (GetResNum.chkRoom.Checked), blnImporting);
-            //reset tmplogic to point to the new game logic
-            tmpLogic = null;
-            tmpLogic = Logics[GetResNum.NewResNum];
-
-            //if using layout editor AND a room,
-            if (UseLE && (GetResNum.chkRoom.Checked)) {
-              //update editor and data file to show this room is now in the game
-              UpdateExitInfo(EUReason.euShowRoom, GetResNum.NewResNum, Logics[GetResNum.NewResNum]);
-            }
-            //if including picture
-            if (GetResNum.chkIncludePic.Checked) {
-              //if replacing an existing pic
-              if (Pictures.Exists(GetResNum.NewResNum)) {
-                RemovePicture(GetResNum.NewResNum);
-              }
-              AddNewPicture(GetResNum.NewResNum, null);
-              //help user out if they chose a naming scheme
-              if (Left(GetResNum.txtID.Text, 3).Equals("rm.", StringComparison.OrdinalIgnoreCase) && GetResNum.txtID.Text.Length >= 4) {
-                //change ID (if able)
-                if (ValidateID("pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3), (char)255) == 0) {
-                  //save old resfile name
-                  strFile = ResDir + Pictures[GetResNum.NewResNum].ID + ".agp";
-                  //change this picture//s ID
-                  Pictures[GetResNum.NewResNum].ID = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
-                  //update the resfile, tree and properties
-                  UpdateResFile(rtPicture, GetResNum.NewResNum, strFile);
-                  //update lookup table
-                  IDefLookup[768 + GetResNum.NewResNum].Name = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
-                }
-              }
-              //pic is still loaded so we need to unload it now
-              Pictures[GetResNum.NewResNum].Unload();
-            }
-            //set ingame flag
-            blnInGame = true;
-          }
           else {
-            // not adding to game; still allowed to use template
-            if (GetResNum.chkRoom.Checked) {
-              //add template text
-              tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
+            //maybe we assumed source status incorrectly- try again
+            try {
+              tmpLogic.Import(ImportLogicFile, !blnSource);
             }
-            else {
-              //add default text
-              tmpLogic.SourceText = "[ " + Keys.Enter + "[ " + GetResNum.txtID.Text + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****";
+            catch (Exception) {
+              //if STILL error
+              //something wrong
+              ErrMsgBox(e, "Unable to load this logic resource. It can't be decompiled, and does not appear to be a text file.", "", "Invalid Logic Resource");
+              //restore main form mousepointer and exit
+              MDIMain.UseWaitCursor = false;
+              return;
             }
           }
+        }
+      }
+      //if a game is loaded,
+      if (GameLoaded) {
+        // get logic number, id , description
+        frmGetResourceNum GetResNum = new frmGetResourceNum();
+        GetResNum.ResType = rtLogic;
+        if (blnImporting) {
+          GetResNum.WindowFunction = EGetRes.grImport;
+        }
+        else {
+          GetResNum.WindowFunction = EGetRes.grAddNew;
+        }
+        //setup before loading so ghosts don't show up
+        GetResNum.FormSetup();
+        //suggest ID based on filename
+        if (ImportLogicFile.Length > 0) {
+          GetResNum.txtID.Text = FileNameNoExt(ImportLogicFile).Replace(" ", "");
+        }
+        //restore cursor while getting resnum
+        MDIMain.UseWaitCursor = false;
+        GetResNum.ShowDialog(MDIMain);
+        //show wait cursor while resource is added
+        MDIMain.UseWaitCursor = true;
 
-          blnOpen = (GetResNum.chkOpenRes.Checked);
-
-          //make sure resource form is unloaded
+        //if canceled, release the temporary logic, restore mousepointer and exit
+        if (GetResNum.Canceled) {
+          tmpLogic = null;
+          //restore mousepointer and exit
           GetResNum.Close();
+          MDIMain.UseWaitCursor = false;
+          return;
         }
+        //if user wants logic added to current game
+        else if (!GetResNum.DontImport) {
+          //add ID and description to tmpLogic
+          tmpLogic.ID = GetResNum.txtID.Text;
+          tmpLogic.Description = GetResNum.txtDescription.Text;
 
-        //only open if user wants it open (or if not in a game or if opening/not importing)
-        if (blnOpen || !GameLoaded || !blnInGame) {
-          //open a new logic editing window
-          frmNew = new frmLogicEdit
-          {
-            MdiParent = MDIMain
-          };
-          //pass the logic to the editor
-          if (frmNew.EditLogic(tmpLogic)) {
-            //show the form
-            frmNew.Show();
-            //add form to collection
-            LogicEditors.Add(frmNew);
+          //add Logic
+          AddNewLogic(GetResNum.NewResNum, tmpLogic, (GetResNum.chkRoom.Checked), blnImporting);
+          //reset tmplogic to point to the new game logic
+          tmpLogic = Logics[GetResNum.NewResNum];
+
+          //if using layout editor AND a room,
+          if (UseLE && (GetResNum.chkRoom.Checked)) {
+            //update editor and data file to show this room is now in the game
+            UpdateExitInfo(EUReason.euShowRoom, GetResNum.NewResNum, Logics[GetResNum.NewResNum]);
+          }
+          //if including picture
+          if (GetResNum.chkIncludePic.Checked) {
+            //if replacing an existing pic
+            if (Pictures.Exists(GetResNum.NewResNum)) {
+              RemovePicture(GetResNum.NewResNum);
+            }
+            AddNewPicture(GetResNum.NewResNum, null);
+            //help user out if they chose a naming scheme
+            if (Left(GetResNum.txtID.Text, 3).Equals("rm.", StringComparison.OrdinalIgnoreCase) && GetResNum.txtID.Text.Length >= 4) {
+              //change ID (if able)
+              if (ValidateID("pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3), "") == 0) {
+                //save old resfile name
+                strFile = ResDir + Pictures[GetResNum.NewResNum].ID + ".agp";
+                //change this picture//s ID
+                Pictures[GetResNum.NewResNum].ID = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
+                //update the resfile, tree and properties
+                UpdateResFile(rtPicture, GetResNum.NewResNum, strFile);
+                //update lookup table
+                IDefLookup[768 + GetResNum.NewResNum].Name = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
+              }
+            }
+            //pic is still loaded so we need to unload it now
+            Pictures[GetResNum.NewResNum].Unload();
+          }
+          //set ingame flag
+          blnInGame = true;
+        }
+        else {
+          // not adding to game; still allowed to use template
+          if (GetResNum.chkRoom.Checked) {
+            //add template text
+            tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
           }
           else {
-            frmNew.Close();
+            //add default text
+            tmpLogic.SourceText = "[ " + Keys.Enter + "[ " + GetResNum.txtID.Text + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****";
           }
         }
-        if (GameLoaded) {
-          //save openres value
-          Settings.OpenNew = blnOpen;
+
+        blnOpen = (GetResNum.chkOpenRes.Checked);
+
+        //make sure resource form is unloaded
+        GetResNum.Close();
+      }
+
+      //only open if user wants it open (or if not in a game or if opening/not importing)
+      if (blnOpen || !GameLoaded || !blnInGame) {
+        //open a new logic editing window
+        frmNew = new frmLogicEdit
+        {
+          MdiParent = MDIMain
+        };
+        //pass the logic to the editor
+        if (frmNew.EditLogic(tmpLogic)) {
+          //show the form
+          frmNew.Show();
+          //add form to collection
+          LogicEditors.Add(frmNew);
         }
-        //if logic was added to game
-        if (blnInGame) {
-          //unload it
-          Logics[tmpLogic.Number].Unload();
+        else {
+          frmNew.Close();
         }
-      } while (false); // Until true
+      }
+      if (GameLoaded) {
+        //save openres value
+        Settings.OpenNew = blnOpen;
+      }
+      //if logic was added to game
+      if (blnInGame) {
+        //unload it
+        Logics[tmpLogic.Number].Unload();
+      }
 
       //restore mousepointer and exit
+      MDIMain.UseWaitCursor = false;
+    }
+    public static void NewPicture(string ImportPictureFile = "")
+    {
+      //creates a new picture resource and opens an editor
+
+      frmPicEdit frmNew;
+      bool blnInGame = false;
+      AGIPicture tmpPic;
+      bool blnOpen = false;
+
+      //show wait cursor
+      MDIMain.UseWaitCursor = true;
+
+      //create temporary picture
+      tmpPic = new AGIPicture();
+
+      //if an import filename was passed
+      if (ImportPictureFile.Length != 0) {
+        //import the picture
+        //(and check for error)
+        try {
+          tmpPic.Import(ImportPictureFile);
+        }
+        catch (Exception e) {
+          //something wrong
+          ErrMsgBox(e, "Error while importing picture:", "Unable to load this picture resource.", "Import Picture Error");
+          //restore main form mousepointer and exit
+          MDIMain.UseWaitCursor = false;
+          return;
+        }
+        try {
+          //now check to see if it's a valid picture resource (by trying to reload it)
+          tmpPic.Load();
+        }
+        catch (Exception e) {
+          ErrMsgBox(e, "Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource");
+          //restore main form mousepointer and exit
+          MDIMain.UseWaitCursor = false;
+          return;
+        }
+      }
+
+      //if a game is loaded
+      if (GameLoaded) {
+        // get picture number, id , description
+        frmGetResourceNum GetResNum = new frmGetResourceNum
+        {
+          ResType = rtPicture
+        };
+        if (ImportPictureFile.Length == 0) {
+          GetResNum.WindowFunction = EGetRes.grAddNew;
+        }
+        else {
+          GetResNum.WindowFunction = EGetRes.grImport;
+        }
+        //setup before loading so ghosts don't show up
+        GetResNum.FormSetup();
+        //suggest ID based on filename
+        if (ImportPictureFile.Length > 0) {
+          GetResNum.txtID.Text = FileNameNoExt(ImportPictureFile).Replace(" ", "");
+        }
+        //restore cursor while getting resnum
+        MDIMain.UseWaitCursor = false;
+        GetResNum.ShowDialog(MDIMain);
+        //show wait cursor while resource is added
+        MDIMain.UseWaitCursor = true;
+
+        //if canceled, release the temporary picture, restore cursor and exit method
+        if (GetResNum.Canceled) {
+          //restore mousepointer and exit
+          GetResNum.Close();
+          MDIMain.UseWaitCursor = false;
+          return;
+        }
+        //if user wants picture added to current game
+        else if (!GetResNum.DontImport) {
+          //add new id and description
+          tmpPic.ID = GetResNum.txtID.Text;
+          tmpPic.Description = GetResNum.txtDescription.Text;
+
+          //add picture
+          AddNewPicture(GetResNum.NewResNum, tmpPic);
+          //reset tmpPic to point to the new game picture
+          tmpPic = Pictures[GetResNum.NewResNum];
+          //set ingame flag
+          blnInGame = true;
+        }
+
+        blnOpen = (GetResNum.chkOpenRes.Checked);
+
+        //make sure resource form is unloaded
+        GetResNum.Close();
+      }
+
+      //only open if user wants it open (or if not in a game or if opening/not importing)
+      if (blnOpen || !GameLoaded || !blnInGame) {
+        //open a new picture editing window
+        frmNew = new frmPicEdit()
+        {
+          MdiParent = MDIMain
+        };
+        //pass the picture to the editor
+        if (frmNew.EditPicture(tmpPic)) {
+          //show form
+          frmNew.Show();
+          //add to collection
+          PictureEditors.Add(frmNew);
+        }
+        else {
+          //error
+          frmNew.Close();
+        }
+      }
+
+      if (GameLoaded) {
+        //save openres value
+        Settings.OpenNew = blnOpen;
+      }
+
+      //if added to a game
+      if (blnInGame) {
+        //unload it
+        Pictures[tmpPic.Number].Unload();
+      }
+
+      //restore main form mousepointer and exit
+      MDIMain.UseWaitCursor = false;
+    }
+    public static void NewSound(string ImportSoundFile = "")
+    {
+      //creates a new sound resource and opens and editor
+
+      frmSoundEdit frmNew;
+      bool blnInGame = false;
+      AGISound tmpSound;
+      bool blnOpen = false;
+
+      //show wait cursor
+      MDIMain.UseWaitCursor = true;
+
+      //create temporary sound
+      tmpSound = new AGISound();
+      //set default instrument settings;
+      //if a sound is being imported, these may be overridden...
+      tmpSound.Track(0).Instrument = Settings.DefInst0;
+      tmpSound.Track(1).Instrument = Settings.DefInst1;
+      tmpSound.Track(2).Instrument = Settings.DefInst2;
+      tmpSound.Track(0).Muted = Settings.DefMute0;
+      tmpSound.Track(1).Muted = Settings.DefMute1;
+      tmpSound.Track(2).Muted = Settings.DefMute2;
+      tmpSound.Track(3).Muted = Settings.DefMute3;
+
+      //if an import filename was passed
+      if (ImportSoundFile.Length != 0) {
+        //import the sound
+        //(and check for error)
+        try {
+          tmpSound.Import(ImportSoundFile);
+        }
+        catch (Exception e) {
+          //something wrong
+          ErrMsgBox(e, "Error occurred while importing sound:", "Unable to load this sound resource", "Import Sound Error");
+          MDIMain.UseWaitCursor = false;
+          return;
+        }
+        try {
+          //now check to see if it's a valid sound resource (by trying to reload it)
+          tmpSound.Load();
+        }
+        catch (Exception e) {
+          ErrMsgBox(e, "Error reading Sound data:", "This is not a valid sound resource.", "Invalid Sound Resource");
+            MDIMain.UseWaitCursor = false;
+          return;
+        }
+        // only PC sounds are editable
+        if (tmpSound.SndFormat != 0) {
+          MessageBox.Show("Error reading Picture data:" + NEWLINE + NEWLINE + "This is not a valid picture resource.", "Invalid Picture Resource", MessageBoxButtons.OK, MessageBoxIcon.Error);
+          //restore main form mousepointer and exit
+          MDIMain.UseWaitCursor = false;
+          return;
+        }
+      }
+
+      //if a game is loaded
+      if (GameLoaded) {
+        // get picture number, id , description
+        frmGetResourceNum GetResNum = new frmGetResourceNum
+        {
+          ResType = rtSound
+        };
+        if (ImportSoundFile.Length == 0) {
+          GetResNum.WindowFunction = EGetRes.grAddNew;
+        }
+        else {
+          GetResNum.WindowFunction = EGetRes.grImport;
+        }
+        //setup before loading so ghosts don't show up
+        GetResNum.FormSetup();
+        //suggest ID based on filename
+        if (ImportSoundFile.Length > 0) {
+          GetResNum.txtID.Text = FileNameNoExt(ImportSoundFile).Replace(" ", "");
+        }
+
+        //restore cursor while getting resnum
+        MDIMain.UseWaitCursor = false;
+        GetResNum.ShowDialog(MDIMain);
+        //show wait cursor again while finishing creating the new sound
+        MDIMain.UseWaitCursor = true;
+
+        //if canceled, release the temporary sound, restore cursor and exit method
+        if (GetResNum.Canceled) {
+          //restore mousepointer, unload form and exit
+          GetResNum.Close();
+          MDIMain.UseWaitCursor = false;
+          return;
+        }
+        //if user wants sound added to current game
+        else if (!GetResNum.DontImport) {
+          //add new id and description
+          tmpSound.ID = GetResNum.txtID.Text;
+          tmpSound.Description = GetResNum.txtDescription.Text;
+
+          //add sound
+          AddNewSound(GetResNum.NewResNum, tmpSound);
+          //reset tmpSound to point to the new game sound
+          tmpSound = Sounds[GetResNum.NewResNum];
+
+          //set flag
+          blnInGame = true;
+        }
+
+        blnOpen = (GetResNum.chkOpenRes.Checked);
+
+        //make sure resource form is unloaded
+        GetResNum.Close();
+      }
+
+      //only open if user wants it open (or if not in a game or if opening/not importing)
+      if (blnOpen || !GameLoaded || !blnInGame) {
+
+        //open a new sound editing window
+        frmNew = new frmSoundEdit()
+        {
+          MdiParent = MDIMain
+        };
+        //pass the sound to the editor
+        if (frmNew.EditSound(tmpSound)) {
+          //show form
+          frmNew.Show();
+          //add to collection
+          SoundEditors.Add(frmNew);
+        }
+        else {
+          //error
+          frmNew.Close();
+        }
+      }
+
+      if (GameLoaded) {
+        //save openres value
+        Settings.OpenNew = blnOpen;
+      }
+
+      //if added to a game
+      if (blnInGame) {
+        //unload it
+        Sounds[tmpSound.Number].Unload();
+      }
+
+      //restore mousepointer and exit
+      MDIMain.UseWaitCursor = false;
+    }
+    public static void NewView(string ImportViewFile = "")
+    {
+      //creates a new view editor with a view that is
+      //not attached to a game
+
+      frmViewEdit frmNew;
+      bool blnInGame = false;
+      AGIView tmpView;
+      bool blnOpen = false;
+
+      //show wait cursor
+      MDIMain.UseWaitCursor = true;
+
+      //create temporary view
+      tmpView = new AGIView();
+
+      //if an import filename was passed
+      if (ImportViewFile.Length != 0) {
+        //import the view
+        //(and check for error)
+        try {
+          tmpView.Import(ImportViewFile);
+        }
+        catch (Exception e) {
+          //something wrong
+          ErrMsgBox(e, "An error occurred during import:", "", "Import View Error");
+          //restore main form mousepointer and exit
+          MDIMain.UseWaitCursor = false;
+          return;
+        }
+        try {
+          //now check to see if it's a valid picture resource (by trying to reload it)
+          tmpView.Load();
+        }
+        catch (Exception e) {
+          ErrMsgBox(e, "Error reading View data:", "This is not a valid view resource.", "Invalid View Resource");
+          //restore main form mousepointer and exit
+          MDIMain.UseWaitCursor = false;
+          return;
+        }
+      }
+      else {
+        // for new view, add first cel with default height/width
+        tmpView.Loops.Add(0);
+        tmpView[0].Cels.Add(0);
+        tmpView[0][0].Height = Settings.DefCelH;
+        tmpView[0][0].Width = Settings.DefCelW;
+      }
+
+      //if a game is loaded
+      if (GameLoaded) {
+        // get picture number, id , description
+        frmGetResourceNum GetResNum = new frmGetResourceNum
+        {
+          ResType = rtView
+        };
+        if (ImportViewFile.Length == 0) {
+          GetResNum.WindowFunction = EGetRes.grAddNew;
+        }
+        else {
+          GetResNum.WindowFunction = EGetRes.grImport;
+        }
+        //setup before loading so ghosts don't show up
+        GetResNum.FormSetup();
+        //suggest ID based on filename
+        if (ImportViewFile.Length > 0) {
+          GetResNum.txtID.Text = FileNameNoExt(ImportViewFile).Replace(" ", "");
+        }
+        //restore cursor while getting resnum
+        MDIMain.UseWaitCursor = false;
+        GetResNum.ShowDialog(MDIMain);
+        //show wait cursor while resource is added
+        MDIMain.UseWaitCursor = true;
+
+        //if canceled, release the temporary view, restore cursor and exit method
+        if (GetResNum.Canceled) {
+          tmpView = null;
+          //restore mousepointer and exit
+          GetResNum.Close();
+          MDIMain.UseWaitCursor = false;
+          return;
+        }
+        //if user wants view added to current game
+        else if (!GetResNum.DontImport) {
+          //add new id and description
+          tmpView.ID = GetResNum.txtID.Text;
+          tmpView.Description = GetResNum.txtDescription.Text;
+
+          //add view
+          AddNewView(GetResNum.NewResNum, tmpView);
+          //reset tmpView to point to the new game view
+          tmpView = Views[GetResNum.NewResNum];
+          //set ingame flag
+          blnInGame = true;
+        }
+
+        blnOpen = (GetResNum.chkOpenRes.Checked);
+
+        //make sure resource form is unloaded
+        GetResNum.Close();
+      }
+
+      //only open if user wants it open (or if not in a game or if opening/not importing)
+      if (blnOpen || !GameLoaded || !blnInGame) {
+        //open a new view editing window
+        frmNew = new frmViewEdit()
+        {
+          MdiParent = MDIMain
+        };
+        //pass the view to the editor
+        if (frmNew.EditView(tmpView)) {
+          //show form
+          frmNew.Show();
+          //add to collection
+          ViewEditors.Add(frmNew);
+        }
+        else {
+          //error
+          frmNew.Close();
+        }
+      }
+
+      if (GameLoaded) {
+        //save openres value
+        Settings.OpenNew = blnOpen;
+      }
+
+      //if added to game
+      if (blnInGame) {
+        //unload the game resource
+        Views[tmpView.Number].Unload();
+      }
+
+      //restore main form mousepointer and exit
       MDIMain.UseWaitCursor = false;
     }
     public static void OpenLogic(byte ResNum, bool Quiet = false)
@@ -13034,13 +12893,13 @@ namespace WinAGI_GDS
     frmNew = New frmLogicEdit
 
     //if the resource is not loaded,
-    blnLoaded = Logics(ResNum).Loaded
+    blnLoaded = Logics[ResNum].Loaded
     if (!blnLoaded) {
-    Logics(ResNum).Load
+    Logics[ResNum].Load
     }
 
     //load the logic into the editor
-    if (frmNew.EditLogic(Logics(ResNum))) {
+    if (frmNew.EditLogic(Logics[ResNum])) {
     //show the form
     frmNew.Show
 
@@ -13055,7 +12914,7 @@ namespace WinAGI_GDS
 
     //unload if necessary
     if (!blnLoaded) {
-    Logics(ResNum).Unload
+    Logics[ResNum].Unload
     }
 
     //restore mousepointer and exit
@@ -13108,9 +12967,9 @@ namespace WinAGI_GDS
     frmNew = New frmPictureEdit
 
     //if the resource is not loaded
-    blnLoaded = Pictures(ResNum).Loaded
+    blnLoaded = Pictures[ResNum].Loaded
     if (!blnLoaded) {
-    Pictures(ResNum).Load
+    Pictures[ResNum].Load
     if (Err.Number != 0) {
      if (!Quiet) {
         ErrMsgBox("An error occurred while loading logic resource:", "", "Logic Load Error"
@@ -13124,7 +12983,7 @@ namespace WinAGI_GDS
     }
 
     //load Picture into editor
-    if (frmNew.EditPicture(Pictures(ResNum))) {
+    if (frmNew.EditPicture(Pictures[ResNum])) {
     //show the form
     frmNew.Show
 
@@ -13138,7 +12997,7 @@ namespace WinAGI_GDS
 
     //unload if necessary
     if (!blnLoaded) {
-    Pictures(ResNum).Unload
+    Pictures[ResNum].Unload
     }
 
     //restore mousepointer and exit
@@ -13195,10 +13054,10 @@ namespace WinAGI_GDS
     frmNew = New frmSoundEdit
 
     //if the resource is not loaded,
-    blnLoaded = Sounds(ResNum).Loaded
+    blnLoaded = Sounds[ResNum].Loaded
     if (!blnLoaded) {
     //load the Sound
-    Sounds(ResNum).Load
+    Sounds[ResNum].Load
     if (Err.Number != 0) {
      if (!Quiet) {
         ErrMsgBox("An error occurred while loading Sound resource:", "", "Load Sound Error"
@@ -13213,9 +13072,9 @@ namespace WinAGI_GDS
     }
 
     //check format
-    if (Sounds(ResNum).SndFormat == 1) {
+    if (Sounds[ResNum].SndFormat == 1) {
     //load the Sound into the editor
-    if (frmNew.EditSound(Sounds(ResNum))) {
+    if (frmNew.EditSound(Sounds[ResNum])) {
       //show the form
       frmNew.Show
 
@@ -13234,7 +13093,7 @@ namespace WinAGI_GDS
 
     //unload if necessary
     if (!blnLoaded) {
-    Sounds(ResNum).Unload
+    Sounds[ResNum].Unload
     }
 
     //reset main form mousepointer to default
@@ -13288,12 +13147,12 @@ namespace WinAGI_GDS
     frmNew = New frmViewEdit
 
     //if the resource is not loaded
-    blnLoaded = Views(ResNum).Loaded
+    blnLoaded = Views[ResNum].Loaded
     if (!blnLoaded) {
     //use inline error handling
     On Error Resume Next
     //load the view
-    Views(ResNum).Load
+    Views[ResNum].Load
     if (Err.Number != 0) {
      if (!Quiet) {
         ErrMsgBox("An error occurred while loading view resource:", "", "Logic Load Error"
@@ -13308,7 +13167,7 @@ namespace WinAGI_GDS
     }
 
     //load view into editor
-    if (frmNew.EditView(Views(ResNum))) {
+    if (frmNew.EditView(Views[ResNum])) {
     //show form
     frmNew.Show
 
@@ -13322,7 +13181,7 @@ namespace WinAGI_GDS
 
     //unload if necessary
     if (!blnLoaded) {
-    Views(ResNum).Unload
+    Views[ResNum].Unload
     }
 
     //restore mousepointer and exit
@@ -13333,6 +13192,80 @@ namespace WinAGI_GDS
     //Debug.Assert false
     Resume Next
       */
+    }
+    public static void RemovePicture(byte PicNum)
+    {
+      //removes a picture from the game, and updates
+      //preview and resource windows
+      //and deletes resource file from source directory
+      if (!Pictures.Exists(PicNum)) {
+        //raise error
+        throw new Exception("WINAGIERR + 502, ResMan, Invalid Picture number passed to RemovePicture (picture does not exist)");
+      }
+
+      string strPicFile = ResDir + Pictures[PicNum].ID + ".agp";
+      //remove it from game
+      Pictures.Remove(PicNum);
+
+      switch (Settings.ResListType) {
+      case 1:
+        //remove it from resource list
+        MDIMain.tvwResources.Nodes.RemoveAt(MDIMain.tvwResources.Nodes["p" + PicNum.ToString()].Index);
+        //update selection to whatever is now the selected node
+        MDIMain.LastNodeName = "";
+        if (MDIMain.tvwResources.SelectedNode == RootNode) {
+          //it's the game node
+          MDIMain.SelectResource(rtGame, -1);
+        }
+        else if (MDIMain.tvwResources.SelectedNode.Parent == RootNode) {
+          //it's a resource header
+          MDIMain.SelectResource((AGIResType)(MDIMain.tvwResources.SelectedNode.Index), -1);
+        }
+        else {
+          //it's a resource
+          MDIMain.SelectResource((AGIResType)MDIMain.tvwResources.SelectedNode.Parent.Index, (int)MDIMain.tvwResources.SelectedNode.Tag);
+        }
+        break;
+      case 2:
+        //only need to remove if pictures are listed
+        if (MDIMain.cmbResType.SelectedIndex == 2) {
+          //remove it
+          MDIMain.lstResources.Items.RemoveAt(MDIMain.lstResources.Items["p" + PicNum.ToString()].Index);
+          //use click event to update?
+          //MDIMain.lstResources_Click(null, null);
+          //MDIMain.lstResources.SelectedItems[0].Selected = true;
+        }
+        break;
+      }
+
+      //if an editor is open
+      for (int i = 0; i < PictureEditors.Count; i++) {
+        if (PictureEditors[i].InGame && PictureEditors[i].PicNumber == PicNum) {
+          //set number to -1 to force close
+          PictureEditors[i].PicNumber = -1;
+          //close it
+          PictureEditors[i].Close();
+          break;
+        }
+      }
+
+      //disposition any existing resource file
+      if (File.Exists(strPicFile)) {
+        KillCopyFile(strPicFile, Settings.RenameDelRes);
+      }
+
+      //update the logic tooltip lookup table
+
+      IDefLookup[PicNum + 768].Name = "";
+      IDefLookup[PicNum + 768].Value = "";
+      IDefLookup[PicNum + 768].Type = (ArgTypeEnum)11; //set to a value > highest type
+
+      //then let open logic editors know
+      if (LogicEditors.Count > 0) {
+        for (int i = 1; i < LogicEditors.Count; i++) {
+          LogicEditors[i].ListDirty = true;
+        }
+      }
     }
     public static string LogTemplateText(string NewID, string NewDescription)
     {
@@ -14144,6 +14077,38 @@ namespace WinAGI_GDS
     Resume Next
       */
     }
+    public static void KillCopyFile(string ResFile, bool KeepOld)
+    {
+      string strOldName;
+      int lngNextNum;
+      string strName, strExt;
+
+      // ignore any errors - if it deletes, that's great; if not
+      // we don't really care...
+      try {
+        if (File.Exists(ResFile)) {
+          if (KeepOld) {
+            strName = Left(ResFile, ResFile.Length - 4);
+            strExt = Right(ResFile, 4);
+            lngNextNum = 1;
+            //assign proposed rename
+            strOldName = strName + "_OLD" + strExt;
+            //Validate it
+            while (File.Exists(strOldName)) {
+              lngNextNum++;
+              strOldName = strName + "_OLD_" + lngNextNum.ToString() + strExt;
+            }
+            File.Move(ResFile, strOldName);
+            return;
+          }
+          // if not keeping old, just delete current file
+          File.Delete(ResFile);
+        }
+      }
+      catch (Exception) {
+        //ignore
+      }
+    }
     public static void ErrMsgBox(Exception e, string ErrMsg1, string ErrMsg2, string ErrCaption)
     {
       //displays a messagebox showing ErrMsg and includes error passed as AGIErrObj
@@ -14312,29 +14277,25 @@ namespace WinAGI_GDS
     }
     public static void EnableRedraw(Control ctl)
     {
-      _ = SendMessage(ctl.Handle, WM_SETREDRAW, 1, 0);
+      _ = API.SendMessage(ctl.Handle, API.WM_SETREDRAW, 1, 0);
       ctl.Refresh();
     }
     public static void DisableRedraw(Control ctl)
     {
-      _ = SendMessage(ctl.Handle, WM_SETREDRAW, 0, 0);
+      _ = API.SendMessage(ctl.Handle, API.WM_SETREDRAW, 0, 0);
       ctl.Refresh();
     }
-  }
-  internal partial class ResManRes
-  {
     public static string LoadResString(int index)
     {
       // this function is just a handy way to get resource strings by number
       // instead of by stringkey
       try {
-        return ResourceManager.GetString(index.ToString());
+        return Editor.EditorResources.ResourceManager.GetString(index.ToString());
       }
       catch (Exception) {
         // return nothing if string doesn't exist
         return "";
       }
     }
-
   }
 }

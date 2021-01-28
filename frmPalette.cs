@@ -7,12 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using WinAGI;
-using WinAGI_GDS;
-using static WinAGI.WinAGI;
-using static WinAGI.AGIGame;
+using WinAGI.Engine;
+using WinAGI.Editor;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGIGame;
 
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
   public partial class frmPalette : Form
   {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   public class CompileGameEventArgs
   {

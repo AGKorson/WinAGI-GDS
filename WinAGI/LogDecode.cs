@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WinAGI;
-using static WinAGI.AGIGame;
-using static WinAGI.LogicErrorLevel;
-using static WinAGI.ArgTypeEnum;
-using static WinAGI.AGICommands;
-using static WinAGI.AGITestCommands;
+using WinAGI.Engine;
+using WinAGI.Common;
+using static WinAGI.Common.WinAGI;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.LogicErrorLevel;
+using static WinAGI.Engine.ArgTypeEnum;
+using static WinAGI.Engine.AGICommands;
+using static WinAGI.Engine.AGITestCommands;
 using System.Diagnostics;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   public static partial class WinAGI
   {

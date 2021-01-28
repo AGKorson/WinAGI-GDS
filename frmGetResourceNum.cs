@@ -7,10 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using WinAGI;
-using static WinAGI_GDS.ResMan;
-
-namespace WinAGI_GDS
+using static WinAGI.Editor.ResMan;
+using WinAGI.Engine;
+using static WinAGI.Engine.AGIResType;
+namespace WinAGI.Editor
 {
   public partial class frmGetResourceNum : Form
   {

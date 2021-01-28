@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static WinAGI.AGIGame;
+using static WinAGI.Engine.AGIGame;
 using System.IO;
 
-namespace WinAGI
+namespace WinAGI.Engine
 {
   public static partial class WinAGI
   {

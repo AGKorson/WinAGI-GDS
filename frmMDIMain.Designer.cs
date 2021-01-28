@@ -1,4 +1,4 @@
-﻿namespace WinAGI_GDS
+﻿namespace WinAGI.Editor
 {
   using System.Windows.Forms;
   partial class frmMDIMain
@@ -237,8 +237,7 @@
       this.menuStrip1.Location = new System.Drawing.Point(0, 0);
       this.menuStrip1.MdiWindowListItem = this.mnuWindow;
       this.menuStrip1.Name = "menuStrip1";
-      this.menuStrip1.Padding = new System.Windows.Forms.Padding(11, 4, 0, 4);
-      this.menuStrip1.Size = new System.Drawing.Size(1283, 44);
+      this.menuStrip1.Size = new System.Drawing.Size(642, 24);
       this.menuStrip1.TabIndex = 0;
       this.menuStrip1.Text = "menuStrip1";
       this.menuStrip1.UseWaitCursor = true;
@@ -268,7 +267,7 @@
             this.mnuGSep5,
             this.mnuGExit});
       this.mnuGame.Name = "mnuGame";
-      this.mnuGame.Size = new System.Drawing.Size(96, 36);
+      this.mnuGame.Size = new System.Drawing.Size(50, 20);
       this.mnuGame.Text = "&Game";
       // 
       // mnuGNew
@@ -277,14 +276,14 @@
             this.mnuGNewTemplate,
             this.mnuGNewBlank});
       this.mnuGNew.Name = "mnuGNew";
-      this.mnuGNew.Size = new System.Drawing.Size(522, 44);
+      this.mnuGNew.Size = new System.Drawing.Size(261, 22);
       this.mnuGNew.Text = "&New Game";
       // 
       // mnuGNewTemplate
       // 
       this.mnuGNewTemplate.Name = "mnuGNewTemplate";
       this.mnuGNewTemplate.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-      this.mnuGNewTemplate.Size = new System.Drawing.Size(392, 44);
+      this.mnuGNewTemplate.Size = new System.Drawing.Size(196, 22);
       this.mnuGNewTemplate.Text = "From &Template";
       // 
       // mnuGNewBlank
@@ -292,14 +291,14 @@
       this.mnuGNewBlank.Name = "mnuGNewBlank";
       this.mnuGNewBlank.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.N)));
-      this.mnuGNewBlank.Size = new System.Drawing.Size(392, 44);
+      this.mnuGNewBlank.Size = new System.Drawing.Size(196, 22);
       this.mnuGNewBlank.Text = "&Blank";
       // 
       // mnuGOpen
       // 
       this.mnuGOpen.Name = "mnuGOpen";
       this.mnuGOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-      this.mnuGOpen.Size = new System.Drawing.Size(522, 44);
+      this.mnuGOpen.Size = new System.Drawing.Size(261, 22);
       this.mnuGOpen.Text = "&Open Game";
       this.mnuGOpen.Click += new System.EventHandler(this.mnuGOpen_Click);
       // 
@@ -307,7 +306,7 @@
       // 
       this.mnuGImport.Name = "mnuGImport";
       this.mnuGImport.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.I)));
-      this.mnuGImport.Size = new System.Drawing.Size(522, 44);
+      this.mnuGImport.Size = new System.Drawing.Size(261, 22);
       this.mnuGImport.Text = "&Import Game";
       this.mnuGImport.Click += new System.EventHandler(this.mnuGImport_Click);
       // 
@@ -315,20 +314,20 @@
       // 
       this.mnuGClose.Name = "mnuGClose";
       this.mnuGClose.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.X)));
-      this.mnuGClose.Size = new System.Drawing.Size(522, 44);
+      this.mnuGClose.Size = new System.Drawing.Size(261, 22);
       this.mnuGClose.Text = "C&lose Game";
       this.mnuGClose.Click += new System.EventHandler(this.mnuGClose_Click);
       // 
       // mnuGSep1
       // 
       this.mnuGSep1.Name = "mnuGSep1";
-      this.mnuGSep1.Size = new System.Drawing.Size(519, 6);
+      this.mnuGSep1.Size = new System.Drawing.Size(258, 6);
       // 
       // mnuGCompile
       // 
       this.mnuGCompile.Name = "mnuGCompile";
       this.mnuGCompile.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B)));
-      this.mnuGCompile.Size = new System.Drawing.Size(522, 44);
+      this.mnuGCompile.Size = new System.Drawing.Size(261, 22);
       this.mnuGCompile.Text = "&Compile Game";
       // 
       // mnuGCompileTo
@@ -336,7 +335,7 @@
       this.mnuGCompileTo.Name = "mnuGCompileTo";
       this.mnuGCompileTo.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.B)));
-      this.mnuGCompileTo.Size = new System.Drawing.Size(522, 44);
+      this.mnuGCompileTo.Size = new System.Drawing.Size(261, 22);
       this.mnuGCompileTo.Text = "Compile &To ...";
       // 
       // mnuGRebuild
@@ -344,7 +343,7 @@
       this.mnuGRebuild.Name = "mnuGRebuild";
       this.mnuGRebuild.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.R)));
-      this.mnuGRebuild.Size = new System.Drawing.Size(522, 44);
+      this.mnuGRebuild.Size = new System.Drawing.Size(261, 22);
       this.mnuGRebuild.Text = "Rebuild &VOL Files";
       // 
       // mnuGCompileDirty
@@ -352,43 +351,43 @@
       this.mnuGCompileDirty.Name = "mnuGCompileDirty";
       this.mnuGCompileDirty.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.D)));
-      this.mnuGCompileDirty.Size = new System.Drawing.Size(522, 44);
+      this.mnuGCompileDirty.Size = new System.Drawing.Size(261, 22);
       this.mnuGCompileDirty.Text = "Complile &Dirty Logics";
       // 
       // mnuGSep2
       // 
       this.mnuGSep2.Name = "mnuGSep2";
-      this.mnuGSep2.Size = new System.Drawing.Size(519, 6);
+      this.mnuGSep2.Size = new System.Drawing.Size(258, 6);
       // 
       // mnuGRun
       // 
       this.mnuGRun.Name = "mnuGRun";
       this.mnuGRun.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R)));
-      this.mnuGRun.Size = new System.Drawing.Size(522, 44);
+      this.mnuGRun.Size = new System.Drawing.Size(261, 22);
       this.mnuGRun.Text = "&Run";
       // 
       // mnuGSep3
       // 
       this.mnuGSep3.Name = "mnuGSep3";
-      this.mnuGSep3.Size = new System.Drawing.Size(519, 6);
+      this.mnuGSep3.Size = new System.Drawing.Size(258, 6);
       // 
       // mnuGProperties
       // 
       this.mnuGProperties.Name = "mnuGProperties";
       this.mnuGProperties.ShortcutKeys = System.Windows.Forms.Keys.F4;
-      this.mnuGProperties.Size = new System.Drawing.Size(522, 44);
+      this.mnuGProperties.Size = new System.Drawing.Size(261, 22);
       this.mnuGProperties.Text = "&Properties ...";
       // 
       // mnuGMRUBar
       // 
       this.mnuGMRUBar.Name = "mnuGMRUBar";
-      this.mnuGMRUBar.Size = new System.Drawing.Size(519, 6);
+      this.mnuGMRUBar.Size = new System.Drawing.Size(258, 6);
       this.mnuGMRUBar.Visible = false;
       // 
       // mnuGMRU0
       // 
       this.mnuGMRU0.Name = "mnuGMRU0";
-      this.mnuGMRU0.Size = new System.Drawing.Size(522, 44);
+      this.mnuGMRU0.Size = new System.Drawing.Size(261, 22);
       this.mnuGMRU0.Tag = "0";
       this.mnuGMRU0.Text = "mru1";
       this.mnuGMRU0.Visible = false;
@@ -397,7 +396,7 @@
       // mnuGMRU1
       // 
       this.mnuGMRU1.Name = "mnuGMRU1";
-      this.mnuGMRU1.Size = new System.Drawing.Size(522, 44);
+      this.mnuGMRU1.Size = new System.Drawing.Size(261, 22);
       this.mnuGMRU1.Tag = "1";
       this.mnuGMRU1.Text = "mru2";
       this.mnuGMRU1.Visible = false;
@@ -406,7 +405,7 @@
       // mnuGMRU2
       // 
       this.mnuGMRU2.Name = "mnuGMRU2";
-      this.mnuGMRU2.Size = new System.Drawing.Size(522, 44);
+      this.mnuGMRU2.Size = new System.Drawing.Size(261, 22);
       this.mnuGMRU2.Tag = "2";
       this.mnuGMRU2.Text = "mru3";
       this.mnuGMRU2.Visible = false;
@@ -415,7 +414,7 @@
       // mnuGMRU3
       // 
       this.mnuGMRU3.Name = "mnuGMRU3";
-      this.mnuGMRU3.Size = new System.Drawing.Size(522, 44);
+      this.mnuGMRU3.Size = new System.Drawing.Size(261, 22);
       this.mnuGMRU3.Tag = "3";
       this.mnuGMRU3.Text = "mru4";
       this.mnuGMRU3.Visible = false;
@@ -424,13 +423,13 @@
       // mnuGSep5
       // 
       this.mnuGSep5.Name = "mnuGSep5";
-      this.mnuGSep5.Size = new System.Drawing.Size(519, 6);
+      this.mnuGSep5.Size = new System.Drawing.Size(258, 6);
       // 
       // mnuGExit
       // 
       this.mnuGExit.Name = "mnuGExit";
       this.mnuGExit.ShortcutKeyDisplayString = "Alt+F4";
-      this.mnuGExit.Size = new System.Drawing.Size(522, 44);
+      this.mnuGExit.Size = new System.Drawing.Size(261, 22);
       this.mnuGExit.Text = "E&xit";
       this.mnuGExit.Click += new System.EventHandler(this.mnuGExit_Click);
       // 
@@ -450,7 +449,7 @@
             this.toolStripSeparator4,
             this.mnuRPrint});
       this.mnuResources.Name = "mnuResources";
-      this.mnuResources.Size = new System.Drawing.Size(140, 36);
+      this.mnuResources.Size = new System.Drawing.Size(72, 20);
       this.mnuResources.Text = "&Resources";
       // 
       // mnuRNew
@@ -468,14 +467,14 @@
       this.mnuRNew.Image = ((System.Drawing.Image)(resources.GetObject("mnuRNew.Image")));
       this.mnuRNew.ImageTransparentColor = System.Drawing.Color.Magenta;
       this.mnuRNew.Name = "mnuRNew";
-      this.mnuRNew.Size = new System.Drawing.Size(610, 44);
+      this.mnuRNew.Size = new System.Drawing.Size(305, 22);
       this.mnuRNew.Text = "&New Resource";
       // 
       // mnuRNLogic
       // 
       this.mnuRNLogic.Name = "mnuRNLogic";
       this.mnuRNLogic.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D1)));
-      this.mnuRNLogic.Size = new System.Drawing.Size(404, 44);
+      this.mnuRNLogic.Size = new System.Drawing.Size(200, 22);
       this.mnuRNLogic.Text = "&Logic";
       this.mnuRNLogic.Click += new System.EventHandler(this.mnuRNLogic_Click);
       // 
@@ -483,7 +482,7 @@
       // 
       this.mnuRNPicture.Name = "mnuRNPicture";
       this.mnuRNPicture.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D2)));
-      this.mnuRNPicture.Size = new System.Drawing.Size(404, 44);
+      this.mnuRNPicture.Size = new System.Drawing.Size(200, 22);
       this.mnuRNPicture.Text = "&Picture";
       this.mnuRNPicture.Click += new System.EventHandler(this.mnuRNPicture_Click);
       // 
@@ -491,7 +490,7 @@
       // 
       this.mnuRNSound.Name = "mnuRNSound";
       this.mnuRNSound.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D3)));
-      this.mnuRNSound.Size = new System.Drawing.Size(404, 44);
+      this.mnuRNSound.Size = new System.Drawing.Size(200, 22);
       this.mnuRNSound.Text = "&Sound";
       this.mnuRNSound.Click += new System.EventHandler(this.mnuRNSound_Click);
       // 
@@ -499,20 +498,20 @@
       // 
       this.mnuRNView.Name = "mnuRNView";
       this.mnuRNView.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D4)));
-      this.mnuRNView.Size = new System.Drawing.Size(404, 44);
+      this.mnuRNView.Size = new System.Drawing.Size(200, 22);
       this.mnuRNView.Text = "&View";
       this.mnuRNView.Click += new System.EventHandler(this.mnuRNView_Click);
       // 
       // toolStripSeparator6
       // 
       this.toolStripSeparator6.Name = "toolStripSeparator6";
-      this.toolStripSeparator6.Size = new System.Drawing.Size(401, 6);
+      this.toolStripSeparator6.Size = new System.Drawing.Size(197, 6);
       // 
       // mnuRNObjects
       // 
       this.mnuRNObjects.Name = "mnuRNObjects";
       this.mnuRNObjects.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D5)));
-      this.mnuRNObjects.Size = new System.Drawing.Size(404, 44);
+      this.mnuRNObjects.Size = new System.Drawing.Size(200, 22);
       this.mnuRNObjects.Text = "&OBJECT File";
       this.mnuRNObjects.Click += new System.EventHandler(this.mnuRNObjects_Click);
       // 
@@ -520,20 +519,20 @@
       // 
       this.mnuRNWords.Name = "mnuRNWords";
       this.mnuRNWords.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D6)));
-      this.mnuRNWords.Size = new System.Drawing.Size(404, 44);
+      this.mnuRNWords.Size = new System.Drawing.Size(200, 22);
       this.mnuRNWords.Text = "&WORDS.TOK File";
       this.mnuRNWords.Click += new System.EventHandler(this.mnuRNWords_Click);
       // 
       // toolStripSeparator5
       // 
       this.toolStripSeparator5.Name = "toolStripSeparator5";
-      this.toolStripSeparator5.Size = new System.Drawing.Size(401, 6);
+      this.toolStripSeparator5.Size = new System.Drawing.Size(197, 6);
       // 
       // mnuRNText
       // 
       this.mnuRNText.Name = "mnuRNText";
       this.mnuRNText.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D7)));
-      this.mnuRNText.Size = new System.Drawing.Size(404, 44);
+      this.mnuRNText.Size = new System.Drawing.Size(200, 22);
       this.mnuRNText.Text = "&Text File";
       this.mnuRNText.Click += new System.EventHandler(this.mnuRNText_Click);
       // 
@@ -553,14 +552,14 @@
       this.mnuROpen.ImageTransparentColor = System.Drawing.Color.Magenta;
       this.mnuROpen.Name = "mnuROpen";
       this.mnuROpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-      this.mnuROpen.Size = new System.Drawing.Size(610, 44);
+      this.mnuROpen.Size = new System.Drawing.Size(305, 22);
       this.mnuROpen.Text = "&Open Resource";
       // 
       // mnuROLogic
       // 
       this.mnuROLogic.Name = "mnuROLogic";
       this.mnuROLogic.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.D1)));
-      this.mnuROLogic.Size = new System.Drawing.Size(396, 44);
+      this.mnuROLogic.Size = new System.Drawing.Size(196, 22);
       this.mnuROLogic.Text = "&Logic";
       this.mnuROLogic.Click += new System.EventHandler(this.mnuROLogic_Click);
       // 
@@ -568,7 +567,7 @@
       // 
       this.mnuROPicture.Name = "mnuROPicture";
       this.mnuROPicture.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.D2)));
-      this.mnuROPicture.Size = new System.Drawing.Size(396, 44);
+      this.mnuROPicture.Size = new System.Drawing.Size(196, 22);
       this.mnuROPicture.Text = "&Picture";
       this.mnuROPicture.Click += new System.EventHandler(this.mnuROPicture_Click);
       // 
@@ -576,7 +575,7 @@
       // 
       this.mnuROSound.Name = "mnuROSound";
       this.mnuROSound.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.D3)));
-      this.mnuROSound.Size = new System.Drawing.Size(396, 44);
+      this.mnuROSound.Size = new System.Drawing.Size(196, 22);
       this.mnuROSound.Text = "&Sound";
       this.mnuROSound.Click += new System.EventHandler(this.mnuROSound_Click);
       // 
@@ -584,20 +583,20 @@
       // 
       this.mnuROView.Name = "mnuROView";
       this.mnuROView.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.D4)));
-      this.mnuROView.Size = new System.Drawing.Size(396, 44);
+      this.mnuROView.Size = new System.Drawing.Size(196, 22);
       this.mnuROView.Text = "&View";
       this.mnuROView.Click += new System.EventHandler(this.mnuROView_Click);
       // 
       // toolStripSeparator13
       // 
       this.toolStripSeparator13.Name = "toolStripSeparator13";
-      this.toolStripSeparator13.Size = new System.Drawing.Size(393, 6);
+      this.toolStripSeparator13.Size = new System.Drawing.Size(193, 6);
       // 
       // mnuROObjects
       // 
       this.mnuROObjects.Name = "mnuROObjects";
       this.mnuROObjects.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.D5)));
-      this.mnuROObjects.Size = new System.Drawing.Size(396, 44);
+      this.mnuROObjects.Size = new System.Drawing.Size(196, 22);
       this.mnuROObjects.Text = "&OBJECT File";
       this.mnuROObjects.Click += new System.EventHandler(this.mnuROObjects_Click);
       // 
@@ -605,20 +604,20 @@
       // 
       this.mnuROWords.Name = "mnuROWords";
       this.mnuROWords.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.D6)));
-      this.mnuROWords.Size = new System.Drawing.Size(396, 44);
+      this.mnuROWords.Size = new System.Drawing.Size(196, 22);
       this.mnuROWords.Text = "&WORDS.TOK File";
       this.mnuROWords.Click += new System.EventHandler(this.mnuROWords_Click);
       // 
       // toolStripSeparator14
       // 
       this.toolStripSeparator14.Name = "toolStripSeparator14";
-      this.toolStripSeparator14.Size = new System.Drawing.Size(393, 6);
+      this.toolStripSeparator14.Size = new System.Drawing.Size(193, 6);
       // 
       // mnuROText
       // 
       this.mnuROText.Name = "mnuROText";
       this.mnuROText.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.D7)));
-      this.mnuROText.Size = new System.Drawing.Size(396, 44);
+      this.mnuROText.Size = new System.Drawing.Size(196, 22);
       this.mnuROText.Text = "&Text File";
       this.mnuROText.Click += new System.EventHandler(this.mnuROText_Click);
       // 
@@ -633,7 +632,7 @@
             this.mnuRIObjects,
             this.mnuRIWords});
       this.mnuRImport.Name = "mnuRImport";
-      this.mnuRImport.Size = new System.Drawing.Size(610, 44);
+      this.mnuRImport.Size = new System.Drawing.Size(305, 22);
       this.mnuRImport.Text = "&Import Resource";
       // 
       // mnuRILogic
@@ -641,7 +640,7 @@
       this.mnuRILogic.Name = "mnuRILogic";
       this.mnuRILogic.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.D1)));
-      this.mnuRILogic.Size = new System.Drawing.Size(449, 44);
+      this.mnuRILogic.Size = new System.Drawing.Size(223, 22);
       this.mnuRILogic.Text = "&Logic";
       this.mnuRILogic.Click += new System.EventHandler(this.mnuRILogic_Click);
       // 
@@ -650,7 +649,7 @@
       this.mnuRIPicture.Name = "mnuRIPicture";
       this.mnuRIPicture.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.D2)));
-      this.mnuRIPicture.Size = new System.Drawing.Size(449, 44);
+      this.mnuRIPicture.Size = new System.Drawing.Size(223, 22);
       this.mnuRIPicture.Text = "&Picture";
       this.mnuRIPicture.Click += new System.EventHandler(this.mnuRIPicture_Click);
       // 
@@ -659,7 +658,7 @@
       this.mnuRISound.Name = "mnuRISound";
       this.mnuRISound.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.D3)));
-      this.mnuRISound.Size = new System.Drawing.Size(449, 44);
+      this.mnuRISound.Size = new System.Drawing.Size(223, 22);
       this.mnuRISound.Text = "&Sound";
       this.mnuRISound.Click += new System.EventHandler(this.mnuRISound_Click);
       // 
@@ -668,21 +667,21 @@
       this.mnuRIView.Name = "mnuRIView";
       this.mnuRIView.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.D4)));
-      this.mnuRIView.Size = new System.Drawing.Size(449, 44);
+      this.mnuRIView.Size = new System.Drawing.Size(223, 22);
       this.mnuRIView.Text = "&View";
       this.mnuRIView.Click += new System.EventHandler(this.mnuRIView_Click);
       // 
       // toolStripSeparator15
       // 
       this.toolStripSeparator15.Name = "toolStripSeparator15";
-      this.toolStripSeparator15.Size = new System.Drawing.Size(446, 6);
+      this.toolStripSeparator15.Size = new System.Drawing.Size(220, 6);
       // 
       // mnuRIObjects
       // 
       this.mnuRIObjects.Name = "mnuRIObjects";
       this.mnuRIObjects.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.D5)));
-      this.mnuRIObjects.Size = new System.Drawing.Size(449, 44);
+      this.mnuRIObjects.Size = new System.Drawing.Size(223, 22);
       this.mnuRIObjects.Text = "&OBJECT File";
       this.mnuRIObjects.Click += new System.EventHandler(this.mnuRIObjects_Click);
       // 
@@ -691,14 +690,14 @@
       this.mnuRIWords.Name = "mnuRIWords";
       this.mnuRIWords.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt) 
             | System.Windows.Forms.Keys.D6)));
-      this.mnuRIWords.Size = new System.Drawing.Size(449, 44);
+      this.mnuRIWords.Size = new System.Drawing.Size(223, 22);
       this.mnuRIWords.Text = "&WORDS.TOK File";
       this.mnuRIWords.Click += new System.EventHandler(this.mnuRIWords_Click);
       // 
       // toolStripSeparator2
       // 
       this.toolStripSeparator2.Name = "toolStripSeparator2";
-      this.toolStripSeparator2.Size = new System.Drawing.Size(607, 6);
+      this.toolStripSeparator2.Size = new System.Drawing.Size(302, 6);
       // 
       // mnuRSave
       // 
@@ -706,34 +705,34 @@
       this.mnuRSave.ImageTransparentColor = System.Drawing.Color.Magenta;
       this.mnuRSave.Name = "mnuRSave";
       this.mnuRSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-      this.mnuRSave.Size = new System.Drawing.Size(610, 44);
+      this.mnuRSave.Size = new System.Drawing.Size(305, 22);
       this.mnuRSave.Text = "&Save Resource";
       // 
       // mnuRExport
       // 
       this.mnuRExport.Name = "mnuRExport";
       this.mnuRExport.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-      this.mnuRExport.Size = new System.Drawing.Size(610, 44);
+      this.mnuRExport.Size = new System.Drawing.Size(305, 22);
       this.mnuRExport.Text = "&Export Resource";
       // 
       // toolStripSeparator3
       // 
       this.toolStripSeparator3.Name = "toolStripSeparator3";
-      this.toolStripSeparator3.Size = new System.Drawing.Size(607, 6);
+      this.toolStripSeparator3.Size = new System.Drawing.Size(302, 6);
       // 
       // mnuRAddRemove
       // 
       this.mnuRAddRemove.Name = "mnuRAddRemove";
       this.mnuRAddRemove.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.A)));
-      this.mnuRAddRemove.Size = new System.Drawing.Size(610, 44);
+      this.mnuRAddRemove.Size = new System.Drawing.Size(305, 22);
       this.mnuRAddRemove.Text = "Remove Resource from &Game";
       // 
       // mnuRRenumber
       // 
       this.mnuRRenumber.Name = "mnuRRenumber";
       this.mnuRRenumber.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.N)));
-      this.mnuRRenumber.Size = new System.Drawing.Size(610, 44);
+      this.mnuRRenumber.Size = new System.Drawing.Size(305, 22);
       this.mnuRRenumber.Text = "&Renumber Resource";
       this.mnuRRenumber.Click += new System.EventHandler(this.mnuRRenumber_Click);
       // 
@@ -743,13 +742,13 @@
       this.mnuRIDDesc.ImageTransparentColor = System.Drawing.Color.Magenta;
       this.mnuRIDDesc.Name = "mnuRIDDesc";
       this.mnuRIDDesc.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D)));
-      this.mnuRIDDesc.Size = new System.Drawing.Size(610, 44);
+      this.mnuRIDDesc.Size = new System.Drawing.Size(305, 22);
       this.mnuRIDDesc.Text = "I&D/Description ...";
       // 
       // toolStripSeparator4
       // 
       this.toolStripSeparator4.Name = "toolStripSeparator4";
-      this.toolStripSeparator4.Size = new System.Drawing.Size(607, 6);
+      this.toolStripSeparator4.Size = new System.Drawing.Size(302, 6);
       // 
       // mnuRPrint
       // 
@@ -757,7 +756,7 @@
       this.mnuRPrint.ImageTransparentColor = System.Drawing.Color.Magenta;
       this.mnuRPrint.Name = "mnuRPrint";
       this.mnuRPrint.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
-      this.mnuRPrint.Size = new System.Drawing.Size(610, 44);
+      this.mnuRPrint.Size = new System.Drawing.Size(305, 22);
       this.mnuRPrint.Text = "&Print";
       // 
       // mnuTools
@@ -782,47 +781,47 @@
             this.mnuTCustomize});
       this.mnuTools.MergeIndex = 1;
       this.mnuTools.Name = "mnuTools";
-      this.mnuTools.Size = new System.Drawing.Size(89, 36);
+      this.mnuTools.Size = new System.Drawing.Size(46, 20);
       this.mnuTools.Text = "&Tools";
       // 
       // mnuTSettings
       // 
       this.mnuTSettings.Name = "mnuTSettings";
       this.mnuTSettings.ShortcutKeys = System.Windows.Forms.Keys.F2;
-      this.mnuTSettings.Size = new System.Drawing.Size(469, 44);
+      this.mnuTSettings.Size = new System.Drawing.Size(234, 22);
       this.mnuTSettings.Text = "&Settings";
       // 
       // mnuTSep1
       // 
       this.mnuTSep1.Name = "mnuTSep1";
-      this.mnuTSep1.Size = new System.Drawing.Size(466, 6);
+      this.mnuTSep1.Size = new System.Drawing.Size(231, 6);
       // 
       // mnuTLayout
       // 
       this.mnuTLayout.Name = "mnuTLayout";
       this.mnuTLayout.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.L)));
-      this.mnuTLayout.Size = new System.Drawing.Size(469, 44);
+      this.mnuTLayout.Size = new System.Drawing.Size(234, 22);
       this.mnuTLayout.Text = "Room &Layout Editor";
       // 
       // mnuTMenuEditor
       // 
       this.mnuTMenuEditor.Name = "mnuTMenuEditor";
       this.mnuTMenuEditor.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.M)));
-      this.mnuTMenuEditor.Size = new System.Drawing.Size(469, 44);
+      this.mnuTMenuEditor.Size = new System.Drawing.Size(234, 22);
       this.mnuTMenuEditor.Text = "&Menu Editor";
       // 
       // mnuTGlobals
       // 
       this.mnuTGlobals.Name = "mnuTGlobals";
       this.mnuTGlobals.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G)));
-      this.mnuTGlobals.Size = new System.Drawing.Size(469, 44);
+      this.mnuTGlobals.Size = new System.Drawing.Size(234, 22);
       this.mnuTGlobals.Text = "&Global Defines ...";
       // 
       // mnuReserved
       // 
       this.mnuReserved.Name = "mnuReserved";
       this.mnuReserved.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.W)));
-      this.mnuReserved.Size = new System.Drawing.Size(469, 44);
+      this.mnuReserved.Size = new System.Drawing.Size(234, 22);
       this.mnuReserved.Text = "&Reserved Defines ...";
       // 
       // mnuTSnippets
@@ -830,7 +829,7 @@
       this.mnuTSnippets.Name = "mnuTSnippets";
       this.mnuTSnippets.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.T)));
-      this.mnuTSnippets.Size = new System.Drawing.Size(469, 44);
+      this.mnuTSnippets.Size = new System.Drawing.Size(234, 22);
       this.mnuTSnippets.Text = "Code &Snippets ...";
       // 
       // mnuTPalette
@@ -838,60 +837,60 @@
       this.mnuTPalette.Name = "mnuTPalette";
       this.mnuTPalette.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.P)));
-      this.mnuTPalette.Size = new System.Drawing.Size(469, 44);
+      this.mnuTPalette.Size = new System.Drawing.Size(234, 22);
       this.mnuTPalette.Text = "Color &Palette ...";
       // 
       // mnuTSep2
       // 
       this.mnuTSep2.Name = "mnuTSep2";
-      this.mnuTSep2.Size = new System.Drawing.Size(466, 6);
+      this.mnuTSep2.Size = new System.Drawing.Size(231, 6);
       // 
       // mnuTCustom1
       // 
       this.mnuTCustom1.Name = "mnuTCustom1";
-      this.mnuTCustom1.Size = new System.Drawing.Size(469, 44);
+      this.mnuTCustom1.Size = new System.Drawing.Size(234, 22);
       this.mnuTCustom1.Text = "tool1";
       // 
       // mnuTCustom2
       // 
       this.mnuTCustom2.Name = "mnuTCustom2";
-      this.mnuTCustom2.Size = new System.Drawing.Size(469, 44);
+      this.mnuTCustom2.Size = new System.Drawing.Size(234, 22);
       this.mnuTCustom2.Text = "tool2";
       // 
       // mnuTCustom3
       // 
       this.mnuTCustom3.Name = "mnuTCustom3";
-      this.mnuTCustom3.Size = new System.Drawing.Size(469, 44);
+      this.mnuTCustom3.Size = new System.Drawing.Size(234, 22);
       this.mnuTCustom3.Text = "tool3";
       // 
       // mnuTCustom4
       // 
       this.mnuTCustom4.Name = "mnuTCustom4";
-      this.mnuTCustom4.Size = new System.Drawing.Size(469, 44);
+      this.mnuTCustom4.Size = new System.Drawing.Size(234, 22);
       this.mnuTCustom4.Text = "tool4";
       // 
       // mnuTCustom5
       // 
       this.mnuTCustom5.Name = "mnuTCustom5";
-      this.mnuTCustom5.Size = new System.Drawing.Size(469, 44);
+      this.mnuTCustom5.Size = new System.Drawing.Size(234, 22);
       this.mnuTCustom5.Text = "tool5";
       // 
       // mnuTCustom6
       // 
       this.mnuTCustom6.Name = "mnuTCustom6";
-      this.mnuTCustom6.Size = new System.Drawing.Size(469, 44);
+      this.mnuTCustom6.Size = new System.Drawing.Size(234, 22);
       this.mnuTCustom6.Text = "tool6";
       // 
       // mnuTSep3
       // 
       this.mnuTSep3.Name = "mnuTSep3";
-      this.mnuTSep3.Size = new System.Drawing.Size(466, 6);
+      this.mnuTSep3.Size = new System.Drawing.Size(231, 6);
       // 
       // mnuTCustomize
       // 
       this.mnuTCustomize.Name = "mnuTCustomize";
       this.mnuTCustomize.ShortcutKeys = System.Windows.Forms.Keys.F6;
-      this.mnuTCustomize.Size = new System.Drawing.Size(469, 44);
+      this.mnuTCustomize.Size = new System.Drawing.Size(234, 22);
       this.mnuTCustomize.Text = "&Customize Tool Menu ...";
       // 
       // mnuWindow
@@ -905,54 +904,54 @@
             this.toolStripSeparator8,
             this.mnuWClose});
       this.mnuWindow.Name = "mnuWindow";
-      this.mnuWindow.Size = new System.Drawing.Size(121, 36);
+      this.mnuWindow.Size = new System.Drawing.Size(63, 20);
       this.mnuWindow.Text = "&Window";
       this.mnuWindow.DropDownOpening += new System.EventHandler(this.mnuWindow_DropDownOpening);
       // 
       // mnuWCascade
       // 
       this.mnuWCascade.Name = "mnuWCascade";
-      this.mnuWCascade.Size = new System.Drawing.Size(302, 44);
+      this.mnuWCascade.Size = new System.Drawing.Size(150, 22);
       this.mnuWCascade.Text = "Cascade";
       this.mnuWCascade.Click += new System.EventHandler(this.mnuWCascade_Click);
       // 
       // mnuWTileV
       // 
       this.mnuWTileV.Name = "mnuWTileV";
-      this.mnuWTileV.Size = new System.Drawing.Size(302, 44);
+      this.mnuWTileV.Size = new System.Drawing.Size(150, 22);
       this.mnuWTileV.Text = "Tile Vertical";
       this.mnuWTileV.Click += new System.EventHandler(this.mnuWTileV_Click);
       // 
       // mnuWTileH
       // 
       this.mnuWTileH.Name = "mnuWTileH";
-      this.mnuWTileH.Size = new System.Drawing.Size(302, 44);
+      this.mnuWTileH.Size = new System.Drawing.Size(150, 22);
       this.mnuWTileH.Text = "Tile Horizontal";
       this.mnuWTileH.Click += new System.EventHandler(this.mnuWTileH_Click);
       // 
       // mnuWArrange
       // 
       this.mnuWArrange.Name = "mnuWArrange";
-      this.mnuWArrange.Size = new System.Drawing.Size(302, 44);
+      this.mnuWArrange.Size = new System.Drawing.Size(150, 22);
       this.mnuWArrange.Text = "Arrange Icons";
       this.mnuWArrange.Click += new System.EventHandler(this.mnuWArrange_Click);
       // 
       // mnuWMinimize
       // 
       this.mnuWMinimize.Name = "mnuWMinimize";
-      this.mnuWMinimize.Size = new System.Drawing.Size(302, 44);
+      this.mnuWMinimize.Size = new System.Drawing.Size(150, 22);
       this.mnuWMinimize.Text = "Minimize All";
       this.mnuWMinimize.Click += new System.EventHandler(this.mnuWMinimize_Click);
       // 
       // toolStripSeparator8
       // 
       this.toolStripSeparator8.Name = "toolStripSeparator8";
-      this.toolStripSeparator8.Size = new System.Drawing.Size(299, 6);
+      this.toolStripSeparator8.Size = new System.Drawing.Size(147, 6);
       // 
       // mnuWClose
       // 
       this.mnuWClose.Name = "mnuWClose";
-      this.mnuWClose.Size = new System.Drawing.Size(302, 44);
+      this.mnuWClose.Size = new System.Drawing.Size(150, 22);
       this.mnuWClose.Text = "Close Window";
       this.mnuWClose.Click += new System.EventHandler(this.mnuWClose_Click);
       // 
@@ -967,50 +966,50 @@
             this.mnuHSep2,
             this.mnuHAbout});
       this.mnuHelp.Name = "mnuHelp";
-      this.mnuHelp.Size = new System.Drawing.Size(84, 36);
+      this.mnuHelp.Size = new System.Drawing.Size(44, 20);
       this.mnuHelp.Text = "&Help";
       // 
       // mnuHContents
       // 
       this.mnuHContents.Name = "mnuHContents";
       this.mnuHContents.ShortcutKeys = System.Windows.Forms.Keys.F1;
-      this.mnuHContents.Size = new System.Drawing.Size(472, 44);
+      this.mnuHContents.Size = new System.Drawing.Size(238, 22);
       this.mnuHContents.Text = "&Contents";
       // 
       // mnuHIndex
       // 
       this.mnuHIndex.Name = "mnuHIndex";
-      this.mnuHIndex.Size = new System.Drawing.Size(472, 44);
+      this.mnuHIndex.Size = new System.Drawing.Size(238, 22);
       this.mnuHIndex.Text = "&Index";
       // 
       // mnuHSep1
       // 
       this.mnuHSep1.Name = "mnuHSep1";
-      this.mnuHSep1.Size = new System.Drawing.Size(469, 6);
+      this.mnuHSep1.Size = new System.Drawing.Size(235, 6);
       // 
       // mnuHCommands
       // 
       this.mnuHCommands.Name = "mnuHCommands";
       this.mnuHCommands.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F1)));
-      this.mnuHCommands.Size = new System.Drawing.Size(472, 44);
+      this.mnuHCommands.Size = new System.Drawing.Size(238, 22);
       this.mnuHCommands.Text = "&Logic Commands Help";
       // 
       // mnuHReference
       // 
       this.mnuHReference.Name = "mnuHReference";
       this.mnuHReference.ShortcutKeys = System.Windows.Forms.Keys.F11;
-      this.mnuHReference.Size = new System.Drawing.Size(472, 44);
+      this.mnuHReference.Size = new System.Drawing.Size(238, 22);
       this.mnuHReference.Text = "AGI &Reference";
       // 
       // mnuHSep2
       // 
       this.mnuHSep2.Name = "mnuHSep2";
-      this.mnuHSep2.Size = new System.Drawing.Size(469, 6);
+      this.mnuHSep2.Size = new System.Drawing.Size(235, 6);
       // 
       // mnuHAbout
       // 
       this.mnuHAbout.Name = "mnuHAbout";
-      this.mnuHAbout.Size = new System.Drawing.Size(472, 44);
+      this.mnuHAbout.Size = new System.Drawing.Size(238, 22);
       this.mnuHAbout.Text = "&About WinAGI GDS...";
       // 
       // contextMenuStrip1
@@ -1019,12 +1018,12 @@
       this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1});
       this.contextMenuStrip1.Name = "contextMenuStrip1";
-      this.contextMenuStrip1.Size = new System.Drawing.Size(164, 42);
+      this.contextMenuStrip1.Size = new System.Drawing.Size(112, 26);
       // 
       // toolStripMenuItem1
       // 
       this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-      this.toolStripMenuItem1.Size = new System.Drawing.Size(163, 38);
+      this.toolStripMenuItem1.Size = new System.Drawing.Size(111, 22);
       this.toolStripMenuItem1.Text = "menu1";
       // 
       // btnNewRes
@@ -1039,14 +1038,14 @@
       this.btnNewRes.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
       this.btnNewRes.Margin = new System.Windows.Forms.Padding(2, 2, 2, 4);
       this.btnNewRes.Name = "btnNewRes";
-      this.btnNewRes.Size = new System.Drawing.Size(75, 52);
+      this.btnNewRes.Size = new System.Drawing.Size(64, 52);
       this.btnNewRes.Text = "&New Resource";
       // 
       // btnNewLogic
       // 
       this.btnNewLogic.Image = ((System.Drawing.Image)(resources.GetObject("btnNewLogic.Image")));
       this.btnNewLogic.Name = "btnNewLogic";
-      this.btnNewLogic.Size = new System.Drawing.Size(275, 44);
+      this.btnNewLogic.Size = new System.Drawing.Size(138, 22);
       this.btnNewLogic.Text = "New Logic";
       this.btnNewLogic.Click += new System.EventHandler(this.btnNewLogic_Click);
       // 
@@ -1054,7 +1053,7 @@
       // 
       this.btnNewPicture.Image = ((System.Drawing.Image)(resources.GetObject("btnNewPicture.Image")));
       this.btnNewPicture.Name = "btnNewPicture";
-      this.btnNewPicture.Size = new System.Drawing.Size(275, 44);
+      this.btnNewPicture.Size = new System.Drawing.Size(138, 22);
       this.btnNewPicture.Text = "New Picture";
       this.btnNewPicture.Click += new System.EventHandler(this.btnNewPicture_Click);
       // 
@@ -1062,7 +1061,7 @@
       // 
       this.btnNewSound.Image = ((System.Drawing.Image)(resources.GetObject("btnNewSound.Image")));
       this.btnNewSound.Name = "btnNewSound";
-      this.btnNewSound.Size = new System.Drawing.Size(275, 44);
+      this.btnNewSound.Size = new System.Drawing.Size(138, 22);
       this.btnNewSound.Text = "New Sound";
       this.btnNewSound.Click += new System.EventHandler(this.btnNewSound_Click);
       // 
@@ -1070,7 +1069,7 @@
       // 
       this.btnNewView.Image = ((System.Drawing.Image)(resources.GetObject("btnNewView.Image")));
       this.btnNewView.Name = "btnNewView";
-      this.btnNewView.Size = new System.Drawing.Size(275, 44);
+      this.btnNewView.Size = new System.Drawing.Size(138, 22);
       this.btnNewView.Text = "New View";
       this.btnNewView.Click += new System.EventHandler(this.btnNewView_Click);
       // 
@@ -1083,10 +1082,10 @@
             this.CapsLockLabel,
             this.NumLockLabel,
             this.InsertLockLabel});
-      this.statusStrip1.Location = new System.Drawing.Point(0, 735);
+      this.statusStrip1.Location = new System.Drawing.Point(0, 344);
       this.statusStrip1.Name = "statusStrip1";
-      this.statusStrip1.Padding = new System.Windows.Forms.Padding(2, 0, 26, 0);
-      this.statusStrip1.Size = new System.Drawing.Size(1283, 46);
+      this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
+      this.statusStrip1.Size = new System.Drawing.Size(642, 46);
       this.statusStrip1.TabIndex = 2;
       this.statusStrip1.Text = "statusStrip1";
       this.statusStrip1.UseWaitCursor = true;
@@ -1094,12 +1093,12 @@
       // StatusPanel1
       // 
       this.StatusPanel1.Name = "StatusPanel1";
-      this.StatusPanel1.Size = new System.Drawing.Size(0, 36);
+      this.StatusPanel1.Size = new System.Drawing.Size(0, 41);
       // 
       // springLabel
       // 
       this.springLabel.Name = "springLabel";
-      this.springLabel.Size = new System.Drawing.Size(1033, 36);
+      this.springLabel.Size = new System.Drawing.Size(406, 41);
       this.springLabel.Spring = true;
       // 
       // CapsLockLabel
@@ -1110,7 +1109,7 @@
             | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom)));
       this.CapsLockLabel.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
       this.CapsLockLabel.Name = "CapsLockLabel";
-      this.CapsLockLabel.Size = new System.Drawing.Size(74, 36);
+      this.CapsLockLabel.Size = new System.Drawing.Size(74, 41);
       this.CapsLockLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
       // 
       // NumLockLabel
@@ -1121,7 +1120,7 @@
             | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom)));
       this.NumLockLabel.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
       this.NumLockLabel.Name = "NumLockLabel";
-      this.NumLockLabel.Size = new System.Drawing.Size(74, 36);
+      this.NumLockLabel.Size = new System.Drawing.Size(74, 41);
       this.NumLockLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
       // 
       // InsertLockLabel
@@ -1132,7 +1131,7 @@
             | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom)));
       this.InsertLockLabel.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
       this.InsertLockLabel.Name = "InsertLockLabel";
-      this.InsertLockLabel.Size = new System.Drawing.Size(74, 36);
+      this.InsertLockLabel.Size = new System.Drawing.Size(74, 41);
       // 
       // toolStrip1
       // 
@@ -1160,10 +1159,10 @@
             this.btnGlobals,
             this.btnSep5,
             this.btnHelp});
-      this.toolStrip1.Location = new System.Drawing.Point(0, 44);
+      this.toolStrip1.Location = new System.Drawing.Point(0, 24);
       this.toolStrip1.Name = "toolStrip1";
-      this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 2, 4, 2);
-      this.toolStrip1.Size = new System.Drawing.Size(1283, 62);
+      this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 1, 2, 1);
+      this.toolStrip1.Size = new System.Drawing.Size(642, 60);
       this.toolStrip1.TabIndex = 3;
       this.toolStrip1.Text = "toolStrip1";
       this.toolStrip1.UseWaitCursor = true;
@@ -1229,7 +1228,7 @@
       this.btnOpenRes.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
       this.btnOpenRes.Margin = new System.Windows.Forms.Padding(2, 2, 2, 4);
       this.btnOpenRes.Name = "btnOpenRes";
-      this.btnOpenRes.Size = new System.Drawing.Size(75, 52);
+      this.btnOpenRes.Size = new System.Drawing.Size(64, 52);
       this.btnOpenRes.Text = "Open Resource";
       // 
       // btnOpenLogic
@@ -1237,7 +1236,7 @@
       this.btnOpenLogic.Image = ((System.Drawing.Image)(resources.GetObject("btnOpenLogic.Image")));
       this.btnOpenLogic.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
       this.btnOpenLogic.Name = "btnOpenLogic";
-      this.btnOpenLogic.Size = new System.Drawing.Size(286, 44);
+      this.btnOpenLogic.Size = new System.Drawing.Size(143, 22);
       this.btnOpenLogic.Text = "Open Logic";
       this.btnOpenLogic.Click += new System.EventHandler(this.btnOpenLogic_Click);
       // 
@@ -1246,7 +1245,7 @@
       this.btnOpenPicture.Image = ((System.Drawing.Image)(resources.GetObject("btnOpenPicture.Image")));
       this.btnOpenPicture.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
       this.btnOpenPicture.Name = "btnOpenPicture";
-      this.btnOpenPicture.Size = new System.Drawing.Size(286, 44);
+      this.btnOpenPicture.Size = new System.Drawing.Size(143, 22);
       this.btnOpenPicture.Text = "Open Picture";
       this.btnOpenPicture.Click += new System.EventHandler(this.btnOpenPicture_Click);
       // 
@@ -1255,7 +1254,7 @@
       this.btnOpenSound.Image = ((System.Drawing.Image)(resources.GetObject("btnOpenSound.Image")));
       this.btnOpenSound.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
       this.btnOpenSound.Name = "btnOpenSound";
-      this.btnOpenSound.Size = new System.Drawing.Size(286, 44);
+      this.btnOpenSound.Size = new System.Drawing.Size(143, 22);
       this.btnOpenSound.Text = "Open Sound";
       this.btnOpenSound.Click += new System.EventHandler(this.btnOpenSound_Click);
       // 
@@ -1264,7 +1263,7 @@
       this.btnOpenView.Image = ((System.Drawing.Image)(resources.GetObject("btnOpenView.Image")));
       this.btnOpenView.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
       this.btnOpenView.Name = "btnOpenView";
-      this.btnOpenView.Size = new System.Drawing.Size(286, 44);
+      this.btnOpenView.Size = new System.Drawing.Size(143, 22);
       this.btnOpenView.Text = "Open View";
       this.btnOpenView.Click += new System.EventHandler(this.btnOpenView_Click);
       // 
@@ -1280,14 +1279,14 @@
       this.btnImportRes.ImageTransparentColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(233)))), ((int)(((byte)(216)))));
       this.btnImportRes.Margin = new System.Windows.Forms.Padding(2, 2, 2, 4);
       this.btnImportRes.Name = "btnImportRes";
-      this.btnImportRes.Size = new System.Drawing.Size(75, 52);
+      this.btnImportRes.Size = new System.Drawing.Size(64, 52);
       this.btnImportRes.Text = "Import Resource";
       // 
       // btnImportLogic
       // 
       this.btnImportLogic.Image = ((System.Drawing.Image)(resources.GetObject("btnImportLogic.Image")));
       this.btnImportLogic.Name = "btnImportLogic";
-      this.btnImportLogic.Size = new System.Drawing.Size(298, 44);
+      this.btnImportLogic.Size = new System.Drawing.Size(150, 22);
       this.btnImportLogic.Text = "Import Logic";
       this.btnImportLogic.Click += new System.EventHandler(this.btnImportLogic_Click);
       // 
@@ -1295,7 +1294,7 @@
       // 
       this.btnImportPicture.Image = ((System.Drawing.Image)(resources.GetObject("btnImportPicture.Image")));
       this.btnImportPicture.Name = "btnImportPicture";
-      this.btnImportPicture.Size = new System.Drawing.Size(298, 44);
+      this.btnImportPicture.Size = new System.Drawing.Size(150, 22);
       this.btnImportPicture.Text = "Import Picture";
       this.btnImportPicture.Click += new System.EventHandler(this.btnImportPicture_Click);
       // 
@@ -1303,7 +1302,7 @@
       // 
       this.btnImportSound.Image = ((System.Drawing.Image)(resources.GetObject("btnImportSound.Image")));
       this.btnImportSound.Name = "btnImportSound";
-      this.btnImportSound.Size = new System.Drawing.Size(298, 44);
+      this.btnImportSound.Size = new System.Drawing.Size(150, 22);
       this.btnImportSound.Text = "Import Sound";
       this.btnImportSound.Click += new System.EventHandler(this.btnImportSound_Click);
       // 
@@ -1311,7 +1310,7 @@
       // 
       this.btnImportView.Image = ((System.Drawing.Image)(resources.GetObject("btnImportView.Image")));
       this.btnImportView.Name = "btnImportView";
-      this.btnImportView.Size = new System.Drawing.Size(298, 44);
+      this.btnImportView.Size = new System.Drawing.Size(150, 22);
       this.btnImportView.Text = "Import View";
       this.btnImportView.Click += new System.EventHandler(this.btnImportView_Click);
       // 
@@ -1463,10 +1462,10 @@
       this.pnlResources.Controls.Add(this.cmbResType);
       this.pnlResources.Controls.Add(this.tvwResources);
       this.pnlResources.Dock = System.Windows.Forms.DockStyle.Left;
-      this.pnlResources.Location = new System.Drawing.Point(0, 106);
-      this.pnlResources.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+      this.pnlResources.Location = new System.Drawing.Point(0, 84);
+      this.pnlResources.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
       this.pnlResources.Name = "pnlResources";
-      this.pnlResources.Size = new System.Drawing.Size(314, 629);
+      this.pnlResources.Size = new System.Drawing.Size(157, 260);
       this.pnlResources.TabIndex = 16;
       this.pnlResources.UseWaitCursor = true;
       this.pnlResources.Resize += new System.EventHandler(this.pnlResources_Resize);
@@ -1479,11 +1478,12 @@
       this.lstResources.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
       this.lstResources.FullRowSelect = true;
       this.lstResources.HideSelection = false;
-      this.lstResources.Location = new System.Drawing.Point(0, 87);
+      this.lstResources.Location = new System.Drawing.Point(0, 44);
+      this.lstResources.Margin = new System.Windows.Forms.Padding(2);
       this.lstResources.MultiSelect = false;
       this.lstResources.Name = "lstResources";
       this.lstResources.ShowGroups = false;
-      this.lstResources.Size = new System.Drawing.Size(314, 370);
+      this.lstResources.Size = new System.Drawing.Size(158, 132);
       this.lstResources.TabIndex = 24;
       this.lstResources.UseCompatibleStateImageBehavior = false;
       this.lstResources.UseWaitCursor = true;
@@ -1492,9 +1492,10 @@
       // picNavList
       // 
       this.picNavList.BackColor = System.Drawing.SystemColors.Window;
-      this.picNavList.Location = new System.Drawing.Point(75, 21);
+      this.picNavList.Location = new System.Drawing.Point(38, 10);
+      this.picNavList.Margin = new System.Windows.Forms.Padding(2);
       this.picNavList.Name = "picNavList";
-      this.picNavList.Size = new System.Drawing.Size(148, 155);
+      this.picNavList.Size = new System.Drawing.Size(74, 78);
       this.picNavList.TabIndex = 24;
       this.picNavList.TabStop = false;
       this.picNavList.UseWaitCursor = true;
@@ -1506,10 +1507,11 @@
       // lstProperty
       // 
       this.lstProperty.FormattingEnabled = true;
-      this.lstProperty.ItemHeight = 32;
-      this.lstProperty.Location = new System.Drawing.Point(53, 432);
+      this.lstProperty.ItemHeight = 15;
+      this.lstProperty.Location = new System.Drawing.Point(26, 216);
+      this.lstProperty.Margin = new System.Windows.Forms.Padding(2);
       this.lstProperty.Name = "lstProperty";
-      this.lstProperty.Size = new System.Drawing.Size(193, 36);
+      this.lstProperty.Size = new System.Drawing.Size(98, 19);
       this.lstProperty.TabIndex = 26;
       this.lstProperty.UseWaitCursor = true;
       this.lstProperty.Visible = false;
@@ -1520,9 +1522,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
       this.pnlProp.Controls.Add(this.fsbProperty);
       this.pnlProp.Controls.Add(this.picProperties);
-      this.pnlProp.Location = new System.Drawing.Point(0, 458);
+      this.pnlProp.Location = new System.Drawing.Point(0, 175);
+      this.pnlProp.Margin = new System.Windows.Forms.Padding(2);
       this.pnlProp.Name = "pnlProp";
-      this.pnlProp.Size = new System.Drawing.Size(314, 166);
+      this.pnlProp.Size = new System.Drawing.Size(157, 83);
       this.pnlProp.TabIndex = 26;
       this.pnlProp.UseWaitCursor = true;
       // 
@@ -1530,11 +1533,13 @@
       // 
       this.fsbProperty.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.fsbProperty.Location = new System.Drawing.Point(288, 0);
+      this.fsbProperty.LargeChange = 3;
+      this.fsbProperty.Location = new System.Drawing.Point(144, 0);
       this.fsbProperty.Name = "fsbProperty";
-      this.fsbProperty.Size = new System.Drawing.Size(24, 166);
+      this.fsbProperty.Size = new System.Drawing.Size(24, 83);
       this.fsbProperty.TabIndex = 24;
       this.fsbProperty.UseWaitCursor = true;
+      this.fsbProperty.Scroll += new System.Windows.Forms.ScrollEventHandler(this.fsbProperty_Scroll);
       // 
       // picProperties
       // 
@@ -1543,8 +1548,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
       this.picProperties.BackColor = System.Drawing.SystemColors.Window;
       this.picProperties.Location = new System.Drawing.Point(0, 0);
+      this.picProperties.Margin = new System.Windows.Forms.Padding(2);
       this.picProperties.Name = "picProperties";
-      this.picProperties.Size = new System.Drawing.Size(285, 166);
+      this.picProperties.Size = new System.Drawing.Size(142, 83);
       this.picProperties.TabIndex = 25;
       this.picProperties.TabStop = false;
       this.picProperties.UseWaitCursor = true;
@@ -1553,10 +1559,9 @@
       // cmdForward
       // 
       this.cmdForward.Image = ((System.Drawing.Image)(resources.GetObject("cmdForward.Image")));
-      this.cmdForward.Location = new System.Drawing.Point(160, 0);
-      this.cmdForward.Margin = new System.Windows.Forms.Padding(6);
+      this.cmdForward.Location = new System.Drawing.Point(80, 0);
       this.cmdForward.Name = "cmdForward";
-      this.cmdForward.Size = new System.Drawing.Size(160, 51);
+      this.cmdForward.Size = new System.Drawing.Size(80, 26);
       this.cmdForward.TabIndex = 3;
       this.cmdForward.UseVisualStyleBackColor = true;
       this.cmdForward.UseWaitCursor = true;
@@ -1567,9 +1572,8 @@
       // 
       this.cmdBack.Image = ((System.Drawing.Image)(resources.GetObject("cmdBack.Image")));
       this.cmdBack.Location = new System.Drawing.Point(0, 0);
-      this.cmdBack.Margin = new System.Windows.Forms.Padding(6);
       this.cmdBack.Name = "cmdBack";
-      this.cmdBack.Size = new System.Drawing.Size(160, 51);
+      this.cmdBack.Size = new System.Drawing.Size(80, 26);
       this.cmdBack.TabIndex = 2;
       this.cmdBack.UseVisualStyleBackColor = true;
       this.cmdBack.UseWaitCursor = true;
@@ -1590,10 +1594,10 @@
             "VIEWS",
             "OBJECT",
             "WORDS.TOK"});
-      this.cmbResType.Location = new System.Drawing.Point(0, 43);
-      this.cmbResType.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
+      this.cmbResType.Location = new System.Drawing.Point(0, -5);
+      this.cmbResType.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
       this.cmbResType.Name = "cmbResType";
-      this.cmbResType.Size = new System.Drawing.Size(314, 40);
+      this.cmbResType.Size = new System.Drawing.Size(159, 23);
       this.cmbResType.TabIndex = 0;
       this.cmbResType.UseWaitCursor = true;
       this.cmbResType.Visible = false;
@@ -1605,8 +1609,8 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
       this.tvwResources.HideSelection = false;
-      this.tvwResources.Location = new System.Drawing.Point(0, 51);
-      this.tvwResources.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
+      this.tvwResources.Location = new System.Drawing.Point(0, 26);
+      this.tvwResources.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
       this.tvwResources.Name = "tvwResources";
       treeNode1.Name = "logics";
       treeNode1.Text = "Logics";
@@ -1624,7 +1628,7 @@
       treeNode7.Text = "AGIGAME";
       this.tvwResources.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
             treeNode7});
-      this.tvwResources.Size = new System.Drawing.Size(314, 391);
+      this.tvwResources.Size = new System.Drawing.Size(100, 144);
       this.tvwResources.TabIndex = 24;
       this.tvwResources.UseWaitCursor = true;
       this.tvwResources.Visible = false;
@@ -1635,10 +1639,10 @@
       // 
       // splitResource
       // 
-      this.splitResource.Location = new System.Drawing.Point(314, 106);
-      this.splitResource.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+      this.splitResource.Location = new System.Drawing.Point(157, 84);
+      this.splitResource.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
       this.splitResource.Name = "splitResource";
-      this.splitResource.Size = new System.Drawing.Size(4, 629);
+      this.splitResource.Size = new System.Drawing.Size(2, 260);
       this.splitResource.TabIndex = 18;
       this.splitResource.TabStop = false;
       this.splitResource.UseWaitCursor = true;
@@ -1648,10 +1652,10 @@
       // 
       this.pnlWarnings.Controls.Add(this.fgWarnings);
       this.pnlWarnings.Dock = System.Windows.Forms.DockStyle.Bottom;
-      this.pnlWarnings.Location = new System.Drawing.Point(318, 564);
-      this.pnlWarnings.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+      this.pnlWarnings.Location = new System.Drawing.Point(159, 258);
+      this.pnlWarnings.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
       this.pnlWarnings.Name = "pnlWarnings";
-      this.pnlWarnings.Size = new System.Drawing.Size(965, 171);
+      this.pnlWarnings.Size = new System.Drawing.Size(483, 86);
       this.pnlWarnings.TabIndex = 20;
       this.pnlWarnings.UseWaitCursor = true;
       this.pnlWarnings.Visible = false;
@@ -1674,6 +1678,7 @@
       this.fgWarnings.Dock = System.Windows.Forms.DockStyle.Fill;
       this.fgWarnings.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
       this.fgWarnings.Location = new System.Drawing.Point(0, 0);
+      this.fgWarnings.Margin = new System.Windows.Forms.Padding(2);
       this.fgWarnings.Name = "fgWarnings";
       this.fgWarnings.ReadOnly = true;
       this.fgWarnings.RowHeadersVisible = false;
@@ -1684,7 +1689,7 @@
       this.fgWarnings.ShowCellErrors = false;
       this.fgWarnings.ShowEditingIcon = false;
       this.fgWarnings.ShowRowErrors = false;
-      this.fgWarnings.Size = new System.Drawing.Size(965, 171);
+      this.fgWarnings.Size = new System.Drawing.Size(483, 86);
       this.fgWarnings.StandardTab = true;
       this.fgWarnings.TabIndex = 0;
       this.fgWarnings.UseWaitCursor = true;
@@ -1748,10 +1753,10 @@
       // splitWarning
       // 
       this.splitWarning.Dock = System.Windows.Forms.DockStyle.Bottom;
-      this.splitWarning.Location = new System.Drawing.Point(318, 560);
-      this.splitWarning.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+      this.splitWarning.Location = new System.Drawing.Point(159, 256);
+      this.splitWarning.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
       this.splitWarning.Name = "splitWarning";
-      this.splitWarning.Size = new System.Drawing.Size(965, 4);
+      this.splitWarning.Size = new System.Drawing.Size(483, 2);
       this.splitWarning.TabIndex = 22;
       this.splitWarning.TabStop = false;
       this.splitWarning.UseWaitCursor = true;
@@ -1812,9 +1817,9 @@
       // 
       // frmMDIMain
       // 
-      this.AutoScaleDimensions = new System.Drawing.SizeF(192F, 192F);
+      this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-      this.ClientSize = new System.Drawing.Size(1283, 781);
+      this.ClientSize = new System.Drawing.Size(642, 390);
       this.Controls.Add(this.splitWarning);
       this.Controls.Add(this.pnlWarnings);
       this.Controls.Add(this.splitResource);
@@ -1826,7 +1831,6 @@
       this.IsMdiContainer = true;
       this.KeyPreview = true;
       this.MainMenuStrip = this.menuStrip1;
-      this.Margin = new System.Windows.Forms.Padding(6);
       this.Name = "frmMDIMain";
       this.Text = "WinAGI GDS";
       this.UseWaitCursor = true;
@@ -2022,7 +2026,6 @@
     public ToolStripMenuItem mnuGMRU1;
     public ToolStripMenuItem mnuGMRU2;
     public ToolStripMenuItem mnuGMRU3;
-    private PictureBox picProperties;
     public ToolStripMenuItem mnuGame;
     private Panel pnlProp;
     private VScrollBar fsbProperty;
@@ -2054,6 +2057,7 @@
     private PictureBox picNavList;
     public FolderBrowserDialog FolderDlg;
     public ListView lstResources;
+    public PictureBox picProperties;
   }
 }
 

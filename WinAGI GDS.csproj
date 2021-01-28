@@ -3,9 +3,9 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
-    <RootNamespace>WinAGI_GDS</RootNamespace>
+    <RootNamespace>WinAGI.Editor</RootNamespace>
     <UseWindowsForms>true</UseWindowsForms>
-    <StartupObject>WinAGI_GDS.Program</StartupObject>
+    <StartupObject>WinAGI.Editor.Program</StartupObject>
     <ApplicationIcon>fWinAGI32.ico</ApplicationIcon>
     <Authors>Andrew Korson</Authors>
     <Company />
@@ -44,15 +44,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
+    <Compile Update="EditorResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
+      <DependentUpon>EditorResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="ResMan.Designer.cs">
+    <Compile Update="WinAGI\EngineResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>ResMan.resx</DependentUpon>
+      <DependentUpon>EngineResources.resx</DependentUpon>
     </Compile>
     <Compile Update="WinAGI\winagi.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -62,13 +62,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
+    <EmbeddedResource Update="EditorResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <LastGenOutput>EditorResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Update="ResMan.resx">
+    <EmbeddedResource Update="WinAGI\EngineResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ResMan.Designer.cs</LastGenOutput>
+      <LastGenOutput>EngineResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="WinAGI\winagi.resx">
       <Generator>ResXFileCodeGenerator</Generator>

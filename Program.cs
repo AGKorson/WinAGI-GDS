@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
   static class Program
   {

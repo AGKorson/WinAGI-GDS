@@ -7,15 +7,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using WinAGI;
-using static WinAGI.AGIGame;
-using static WinAGI.WinAGI;
-using static WinAGI.AGIResType;
+using WinAGI.Engine;
+using WinAGI.Common;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGIResType;
+using static WinAGI.Common.WinAGI;
 using System.Diagnostics;
-using static WinAGI_GDS.ResMan;
-using static WinAGI_GDS.ResManRes;
+using static WinAGI.Editor.ResMan;
 
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
   public partial class frmMDIMain : Form
   {
@@ -78,9 +79,9 @@ namespace WinAGI_GDS
     public void OnIdle(object sender, EventArgs e)
     {
       // Update the panels when the program is idle.
-      bool newCapsLock = (((ushort)GetKeyState(0x14 /*VK_CAPITAL*/)) & 0xffff) != 0;
-      bool newNumLock = (((ushort)GetKeyState(0x90 /*VK_NUMLOCK*/)) & 0xffff) != 0;
-      bool newInsertLock = (((ushort)GetKeyState(0x2D /*VK_INSERT*/)) & 0xffff) != 0;
+      bool newCapsLock = (((ushort)API.GetKeyState(0x14 /*VK_CAPITAL*/)) & 0xffff) != 0;
+      bool newNumLock = (((ushort)API.GetKeyState(0x90 /*VK_NUMLOCK*/)) & 0xffff) != 0;
+      bool newInsertLock = (((ushort)API.GetKeyState(0x2D /*VK_INSERT*/)) & 0xffff) != 0;
       if (newCapsLock != CapsLock) {
         CapsLock = newCapsLock;
         if (CapsLockLabel != null) {
@@ -200,7 +201,7 @@ namespace WinAGI_GDS
         MessageBox.Show("Game opened, with warnings.");
       }
       else {
-        MessageBox.Show($"opengame result: {ResManRes.LoadResString(retval - WINAGI_ERR).ToString()}");
+        MessageBox.Show($"opengame result: {ResMan.LoadResString(retval - WINAGI_ERR)}");
       }
       MDIHasFocus = true;
       tvwResources.Focus();
@@ -274,6 +275,9 @@ namespace WinAGI_GDS
 
       //hide rsource and warning panels until needed
       pnlResources.Visible = false;
+      tvwResources.Left = 0;
+      tvwResources.Width = pnlResources.Width;
+      fsbProperty.Left = pnlResources.Width - fsbProperty.Width;
       pnlWarnings.Visible = false;
       //      //get listitem height
       //      ListItemHeight = SendMessage(lstProperty.hWnd, LB_GETITEMHEIGHT, 0, 0)
@@ -414,11 +418,6 @@ namespace WinAGI_GDS
       btnNewRes.Image = btnNewPicture.Image;
       //create new picture and enter edit mode
       NewPicture();
-
-      //if (!GameLoaded)
-      //  return;
-      //frmPicEdit frmNew = new frmPicEdit { MdiParent = this };
-      //frmNew.Show();
     }
     private void btnOjects_Click(object sender, EventArgs e)
     {
@@ -1513,7 +1512,10 @@ namespace WinAGI_GDS
       if (PropRows > PropRowCount) {
         //show scrollbar
         picProperties.Width = pnlProp.Width - fsbProperty.Width;
-        fsbProperty.Maximum = PropRows - PropRowCount;
+        // note that in .NET, the actual highest value attainable in a
+        // scrollbar is NOT the Maximum value; it's Maximum - LargeChange + 1!!
+        // that seems really dumb, but it's what happens...
+        fsbProperty.Maximum = PropRows - PropRowCount + fsbProperty.LargeChange;
         fsbProperty.Visible = true;
         //if current scroll position is too high
         if (PropScroll > PropRows - PropRowCount) {
@@ -2528,6 +2530,26 @@ namespace WinAGI_GDS
       OpenWAGFile();
     }
 
+    private void fsbProperty_Scroll(object sender, ScrollEventArgs e)
+    {
+      //cancel editing, if it is occurring
+      //if (txtProperty.Visible) {
+      //  txtProperty.Visible = false;
+      //  picProperties.Focus();
+      //}
+      if (lstProperty.Visible) {
+        lstProperty.Visible = false;
+        picProperties.Focus();
+      }
+
+      //adjust propscroll Value
+      PropScroll = fsbProperty.Value;
+
+  //redraw
+      picProperties.Refresh();
+
+    }
+
     public void ClearWarnings(int ResNum, AGIResType ResType)
     {
       //Warning  Description  ResNum  Line  Module
@@ -2573,7 +2595,7 @@ namespace WinAGI_GDS
       strTopic = strTopic + "#" + strNum;
 
       //show warning help
-      HtmlHelpS(HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, strTopic);
+      API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, strTopic);
     }
 
     void tmpFormMain()
@@ -2675,8 +2697,8 @@ void SelectPropFromList()
       //check if change in version affected ID
       switch (Settings.ResListType
       case 1
-        if (tvwResources.Nodes(1).Text != GameID) {
-          tvwResources.Nodes(1).Text = GameID
+        if (tvwResources.Nodes[1).Text != GameID) {
+          tvwResources.Nodes[1).Text = GameID
         }
       case 2
         if (cmbResType.List(0) != GameID) {
@@ -4381,25 +4403,6 @@ void fgWarnings_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As S
 }
 
 
-void fsbProperty_Change()
-
-  //cancel editing, if it is occurring
-  if (txtProperty.Visible) {
-    txtProperty.Visible = false
-    picProperties.Focus();
-  }
-  if (lstProperty.Visible) {
-    lstProperty.Visible = false
-    picProperties.Focus();
-  }
-  
-  //adjust propscroll Value
-  PropScroll = fsbProperty.Value
-  
-  //redraw
-  PaintPropertyWindow
-}
-
 void lstProperty_DblClick()
   
   On Error GoTo ErrHandler
@@ -4977,8 +4980,8 @@ void mnuGProperties_Click()
       //check if change in version affected ID
       switch (Settings.ResListType
       case 1
-        if (tvwResources.Nodes(1).Text != GameID) {
-          tvwResources.Nodes(1).Text = GameID
+        if (tvwResources.Nodes[1).Text != GameID) {
+          tvwResources.Nodes[1).Text = GameID
         }
       case 2
         if (cmbResType.List(0) != GameID) {
@@ -6165,7 +6168,7 @@ void tvwResources_GotFocus()
     if (ActiveForm = null) {
       //if no node selected, select first node
       if (tvwResources.SelectedItem = null) {
-        tvwResources.SelectedItem = tvwResources.Nodes(1)
+        tvwResources.SelectedItem = tvwResources.Nodes[1)
       }
       
       switch (SelResType

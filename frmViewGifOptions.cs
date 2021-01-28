@@ -7,12 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using WinAGI;
-using static WinAGI_GDS.ResMan;
-using static WinAGI.WinAGI;
-using static WinAGI.AGIGame;
+using WinAGI.Engine;
+using static WinAGI.Editor.ResMan;
+using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.AGIGame;
 
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
   public partial class frmViewGifOptions : Form
   {

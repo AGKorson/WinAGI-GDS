@@ -1,5 +1,5 @@
 ﻿
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
   partial class frmSnippets
   {

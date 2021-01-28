@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace WinAGI_GDS
+namespace WinAGI.Editor
 {
   public partial class frmSnippets : Form
   {
