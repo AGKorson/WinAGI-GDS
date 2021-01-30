@@ -764,7 +764,7 @@ namespace WinAGI.Editor
       //create new view and enter edit mode
       NewView();
 
-    if (!GameLoaded) return;
+      if (!GameLoaded) return;
       // show editor form
       frmViewEdit frmNew = new frmViewEdit
       {
@@ -1236,7 +1236,7 @@ namespace WinAGI.Editor
         PropRowCount = MIN_SPLIT_RES;
       if (PropRowCount > 9)
         PropRowCount = MAX_SPLIT_RES;
-      //  UpdateSplitRes picResources.ScaleHeight - ((PropRowCount + 1) * PropRowHeight) - SPLIT_HEIGHT
+      UpdateSplitRes(pnlResources.Height - ((PropRowCount + 1) * PropRowHeight) - SPLIT_HEIGHT);
 
       //get main window state
       blnMax = ReadSettingBool(SettingsList, sPOSITION, "WindowMax");
@@ -1497,11 +1497,15 @@ namespace WinAGI.Editor
     private void picProperties_Paint(object sender, PaintEventArgs e)
     {
       //
-      int i, lngPosY = 0;
+      int i;
       byte bSelResNum = (byte)SelResNum;
-      Graphics gProp = e.Graphics;
-      //clear the picture box
-      gProp.Clear(Color.White);
+      //Graphics gProp = e.Graphics;
+      Graphics gProp = picProperties.CreateGraphics();
+      gProp.Clear(Color.Bisque);
+      Graphics gProp1 = e.Graphics;
+      gProp1.Clip = new Region(picProperties.Bounds);
+      gProp1.Clear(Color.Aqua);
+      return;
 
       //if no game loaded, or nothing selected
       if ((!GameLoaded)) {
@@ -1514,8 +1518,9 @@ namespace WinAGI.Editor
         picProperties.Width = pnlProp.Width - fsbProperty.Width;
         // note that in .NET, the actual highest value attainable in a
         // scrollbar is NOT the Maximum value; it's Maximum - LargeChange + 1!!
-        // that seems really dumb, but it's what happens...
-        fsbProperty.Maximum = PropRows - PropRowCount + fsbProperty.LargeChange;
+        // that seems really dumb, but it's what happens... SO, 
+        //Max(propertysetting) = Max(desired) + LargeChange - 1
+        fsbProperty.Maximum = PropRows - PropRowCount + fsbProperty.LargeChange - 1;
         fsbProperty.Visible = true;
         //if current scroll position is too high
         if (PropScroll > PropRows - PropRowCount) {
@@ -1534,6 +1539,9 @@ namespace WinAGI.Editor
       // create brushes and pens for drawing the various elements
       SolidBrush brushProp = new SolidBrush(PropGray);// Color.FromArgb(236, 233, 216));//  SystemColors.ButtonFace);
       Pen penProp = new Pen(Color.Black, 1);
+      gProp.DrawLine(penProp, 0, 0, picProperties.Width, picProperties.Height);
+      return;
+
       Font fontProp = new Font("MS Sans Serif", 8);
       //draw property header cell
       gProp.FillRectangle(brushProp, 1, 1, PropSplitLoc - 1, PropRowHeight - 2);
@@ -1554,6 +1562,7 @@ namespace WinAGI.Editor
       if (PropRows > 0) {
         switch (SelResType) {
         case rtGame: //  1  //root
+          Debug.Print($"propscroll:{PropScroll}");
           DrawProp(gProp, "GameID", GameID, 1, AllowSelect, SelectedProp, PropScroll, GameLoaded);
           DrawProp(gProp, "Author", GameAuthor, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded);
           DrawProp(gProp, "GameDir", GameDir, 3, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfDialog);
@@ -1563,7 +1572,7 @@ namespace WinAGI.Editor
           DrawProp(gProp, "GameVer", GameVersion, 7, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
           DrawProp(gProp, "GameAbout", GameAbout, 8, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
           DrawProp(gProp, "LayoutEditor", UseLE.ToString(), 9, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
-          DrawProp(gProp, "LastEdit", LastEdit.ToString("MM/DD/YY h:Nn AM/PM"), 10, AllowSelect, SelectedProp, PropScroll, false);
+          DrawProp(gProp, "LastEdit", LastEdit.ToString("G"), 10, AllowSelect, SelectedProp, PropScroll, false);
           break;
         case rtLogic: // 2 //logic resource header
           if (SelResNum == -1) {
@@ -1657,6 +1666,7 @@ namespace WinAGI.Editor
       }
       //if property edit box or list box is visible,
       if (lstProperty.Visible) {
+        int lngPosY;
         switch (lstProperty.Tag) {
         case "INTVER":
           lngPosY = (4 - PropScroll) * PropRowHeight;
@@ -1671,13 +1681,13 @@ namespace WinAGI.Editor
           lngPosY = (3 - PropScroll) * PropRowHeight;
           break;
         }
-        //move it to correct position
-        if (lngPosY < picProperties.Height - lstProperty.Height) {
-          lstProperty.Location = new Point(picProperties.Left + PropSplitLoc, picProperties.Top + lngPosY);
-        }
-        else {
-          lstProperty.Location = new Point(picProperties.Left + PropSplitLoc, picProperties.Top + picProperties.Height - lstProperty.Height);
-        }
+        ////move it to correct position
+        //if (lngPosY < picProperties.Height - lstProperty.Height) {
+        //  lstProperty.Location = new Point(picProperties.Left + PropSplitLoc, picProperties.Top + lngPosY);
+        //}
+        //else {
+        //  lstProperty.Location = new Point(picProperties.Left + PropSplitLoc, picProperties.Top + picProperties.Height - lstProperty.Height);
+        //}
       }
       // draw the grid lines
       gProp.DrawLine(penProp, PropSplitLoc, 0, PropSplitLoc, PropRowHeight - 1);
@@ -1691,6 +1701,7 @@ namespace WinAGI.Editor
       //draw vertical line separating columns
       penProp.Color = LtGray;
       gProp.DrawLine(penProp, PropSplitLoc, PropRowHeight, PropSplitLoc, picProperties.Height - 1);
+      Debug.Print($"edge: {picProperties.Width - 1}");
       gProp.DrawLine(penProp, picProperties.Width - 1, PropRowHeight, picProperties.Width - 1, picProperties.Height - 1);
       //draw horizontal lines separating rows
       for (i = 2; i <= PropRowCount + 1; i++) {
@@ -2541,13 +2552,20 @@ namespace WinAGI.Editor
         lstProperty.Visible = false;
         picProperties.Focus();
       }
-
+      if (e.Type != ScrollEventType.EndScroll) {
+        return;
+      }
       //adjust propscroll Value
       PropScroll = fsbProperty.Value;
-
-  //redraw
+      Debug.Print($"scroll: {fsbProperty.Value}");
+      //redraw
       picProperties.Refresh();
 
+    }
+
+    private void fsbProperty_ValueChanged(object sender, EventArgs e)
+    {
+      //Debug.Print($"val chg: {fsbProperty.Value}");
     }
 
     public void ClearWarnings(int ResNum, AGIResType ResType)
@@ -3443,63 +3461,6 @@ public void TMenu()
   mnuTMenuEditor_Click
 }
 
-void UpdateSplitRes(ByVal SplitResLoc As Single)
-
-  Dim OldHeight As Single
-  
-  On Error GoTo ErrHandler
-  
-  //if minimized
-  if ((MDIMain.WindowState = vbMinimized)) {
-    return;
-  }
-  
-  if (SplitResLoc < tvwResources.Top) {
-    SplitResLoc = tvwResources.Top + 1
-  }
-  
-  //resize split + spliticon to match width
-  picSplitRes.Width = picResources.ScaleWidth
-  picSplitResIcon.Width = picResources.ScaleWidth
-    
-  //get current split pos
-  OldHeight = tvwResources.Top + tvwResources.Height
-  
-  //if no change
-  if (OldHeight = SplitResLoc) {
-    //nothing needs changing
-    return;
-  }
-  
-  switch (Settings.ResListType
-  case 0
-  case 1 //tree
-    //set tree height
-    tvwResources.Height = SplitResLoc - tvwResources.Top
-  case 2 //box
-    //set listbox height
-    lstResources.Height = SplitResLoc - lstResources.Top
-  }
-
-  //move property box to bottom (picResources scale is pixels)
-  picProperties.Top = SplitResLoc + SPLIT_HEIGHT
-  if (picResources.ScaleHeight - picProperties.Top > 65) {
-    picProperties.Height = picResources.ScaleHeight - picProperties.Top
-  }
-  
-  //move scrollbar
-  fsbProperty.Top = picProperties.Top
-  fsbProperty.Height = picProperties.Height
-  
-  //position the splitter
-  picSplitRes.Top = SplitResLoc
-  picSplitRes.ZOrder
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
-}
 
 public void UpdateSplitH(ByVal SplitHLoc As Single, Optional ByVal Force As Boolean = false)
   
@@ -5650,22 +5611,6 @@ void picProperties_LostFocus()
   NoPaint = false
 }
 
-void picResources_Resize()
-
-  //update resource panels, if visible
-  if (picResources.Visible) {
-    UpdateSplitRes picResources.ScaleHeight - picProperties.Height - SPLIT_HEIGHT
-    //redraw propertybox
-    PaintPropertyWindow
-  }
-  //update navigation buttons, if visible
-  if (cmdBack.Visible) {
-    cmdBack.Width = picResources.ScaleWidth / 2
-    cmdForward.Width = cmdBack.Width
-    cmdForward.Left = cmdBack.Width
-  }
-}
-
 void picSplitH_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
   //begin split operation
@@ -6580,26 +6525,6 @@ void picProperties_MouseDown(Button As Integer, Shift As Integer, X As Single, Y
       
       case 3  //gamedir
         //game dir is now read only
-        
-//////        //if button clicked or dblclicked
-//////        if ((X > picProperties.Width - 17) && blnDblClick) {
-//////          //copy pressed dropdialog picture
-//////          rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (3 - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
-//////
-//////          //reset browser start dir to game dir
-//////           BrowserStartDir = GameDir
-//////          //get a directory from which to load a game
-//////          strNewDir = GetNewDir(MDIMain.hWnd, "Select a new directory for this game:")
-//////
-//////          //restore dropdialog button
-//////          rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (3 - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 0, 0, SRCCOPY)
-//////
-//////          //if string returned,
-//////          if (LenB(strNewDir) != 0) {
-//////            //change game directory
-//////            ChangeGameDir CDir(strNewDir)
-//////          }
-//////        }
         
       case 4  //resdir
         //display textbox
@@ -8835,6 +8760,59 @@ ErrHandler:
 }
       */
     }
+    void UpdateSplitRes(int SplitResLoc)
+    {
+      int OldHeight;
+
+      //if minimized
+      if ((MDIMain.WindowState == FormWindowState.Minimized)) {
+        return;
+      }
+
+      if (SplitResLoc < tvwResources.Top) {
+        SplitResLoc = tvwResources.Top + 1;
+      }
+
+      ////resize split + spliticon to match width
+      //picSplitRes.Width = picResources.ScaleWidth
+      //picSplitResIcon.Width = picResources.ScaleWidth
+
+      //get current split pos
+      OldHeight = tvwResources.Top + tvwResources.Height;
+
+      //if no change
+      if (OldHeight == SplitResLoc) {
+        //nothing needs changing
+        return;
+      }
+
+      switch (Settings.ResListType) {
+      case 0:
+        break;
+      case 1: //tree
+              //set tree height
+        tvwResources.Height = SplitResLoc - tvwResources.Top;
+        break;
+      case 2: //box
+              //set listbox height
+        lstResources.Height = SplitResLoc - lstResources.Top;
+        break;
+      }
+
+      //move property box to bottom
+      pnlProp.Top = SplitResLoc + SPLIT_HEIGHT;
+      if (pnlResources.Height - pnlProp.Top > 65) {
+        pnlProp.Height = pnlResources.Height - pnlProp.Top;
+      }
+
+      ////move scrollbar
+      //fsbProperty.Top = pnlProp.Top;
+      //fsbProperty.Height = pnlProp.Height;
+
+      ////position the splitter
+      //picSplitRes.Top = SplitResLoc
+      //picSplitRes.ZOrder
+    }
     public void ClearResourceList()
     {
       //reset the navigation queue
@@ -8895,8 +8873,8 @@ ErrHandler:
 
       // need to make sure resource list (tree or listbox)
       // is set to proper height based on current number of
-      // rows in the properties window
-      pnlProp.Height = PropRowHeight * PropRowCount + 2;
+      // rows in the properties window (including 
+      pnlProp.Height = PropRowHeight * (PropRowCount + 1) + 2;
       pnlProp.Top = pnlResources.Height - pnlProp.Height;
       int lngSplitLoc = pnlResources.Height - pnlProp.Height;
       if (lngSplitLoc < tvwResources.Top) {
