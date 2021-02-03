@@ -44,7 +44,7 @@ namespace WinAGI.Engine
   }
 
   // 
-  public static partial class AGIGame
+  public partial class AGIGame
   {
     // Declare the delegate.
     internal delegate void CompileGameEventHandler(object sender, CompileGameEventArgs e);

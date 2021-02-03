@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Reflection;
 using WinAGI.Engine;
 using WinAGI.Common;
 using static WinAGI.Engine.AGIGame;
@@ -118,6 +119,16 @@ namespace WinAGI.Editor
 
       // save pointer to main form
       MDIMain = this;
+
+      // set resource list and property controls to default location
+      tvwResources.Width = splResource.Panel1.Width;
+      tvwResources.Height = splResource.Panel1.Height - cmdBack.Height;
+      cmbResType.Width = splResource.Panel1.Width;
+      lstResources.Width = splResource.Panel1.Width;
+      lstResources.Height = splResource.Panel1.Height - cmdBack.Height - cmbResType.Height;
+      picProperties.Width = splResource.Panel2.Width;
+      picProperties.Height = splResource.Panel2.Height;
+      fsbProperty.Height = splResource.Panel2.Height;
     }
     private void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e)
     {
@@ -186,10 +197,10 @@ namespace WinAGI.Editor
       DialogResult result = OpenDlg.ShowDialog(this);
       if (result == DialogResult.OK) {
         //let's open it
-        this.UseWaitCursor = true;
+//        this.UseWaitCursor = true;
         Refresh();
         OpenWAGFile(OpenDlg.FileName);
-        this.UseWaitCursor = false;
+//        this.UseWaitCursor = false;
       }
       else {
         return;
@@ -276,8 +287,8 @@ namespace WinAGI.Editor
       //hide rsource and warning panels until needed
       pnlResources.Visible = false;
       tvwResources.Left = 0;
-      tvwResources.Width = pnlResources.Width;
-      fsbProperty.Left = pnlResources.Width - fsbProperty.Width;
+      tvwResources.Width = splResource.Width;
+      fsbProperty.Left = splResource.Width - fsbProperty.Width;
       pnlWarnings.Visible = false;
       //      //get listitem height
       //      ListItemHeight = SendMessage(lstProperty.hWnd, LB_GETITEMHEIGHT, 0, 0)
@@ -286,14 +297,14 @@ namespace WinAGI.Editor
       //        //use default
       //        ListItemHeight = 13
       //      }
-      //set property window to 3 so startup doesn't trip during resize events
-      PropRowCount = 3;
       //set property window split location based on longest word
       Size szText = TextRenderer.MeasureText(" Use Res Names ", new Font("MS Sans Serif", 8));
       PropSplitLoc = szText.Width;
       PropRowHeight = szText.Height + 2;
-      //set initial position of property panel
-      pnlProp.Top = pnlResources.Height - (4 * PropRowHeight);
+      ////set initial position of property panel
+      splResource.SplitterIncrement = PropRowHeight;
+      splResource.Panel2MinSize = 3 * PropRowHeight;
+      splResource.SplitterDistance = splResource.Height - splResource.Margin.Top - splResource.Margin.Bottom - splResource.SplitterWidth - 3 * PropRowHeight;
 
       //background color for previewing views is set to default
       PrevWinBColor = SystemColors.Control;
@@ -395,7 +406,7 @@ namespace WinAGI.Editor
       if (Settings.SkipPrintWarning) {
         WriteAppSetting(SettingsList, sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning);
       }
-      UseWaitCursor = false;
+//      UseWaitCursor = false;
     }
     private void btnNewLogic_Click(object sender, EventArgs e)
     {
@@ -642,7 +653,6 @@ namespace WinAGI.Editor
 
       //reset selprop
       SelectedProp = 0;
-      //  fsbProperty.Value = 0;
 
       //get number of rows to display based on new selection
       switch (NewResType) {
@@ -653,54 +663,65 @@ namespace WinAGI.Editor
       case AGIResType.rtGame:
         //show gameid, gameauthor, description,etc
         PropRows = 10;
+        propertyGrid1.SelectedObject = paGame;
         break;
       case AGIResType.rtLogic:
         if (NewResNum == -1) {
           //logic header
           PropRows = 3;
+          propertyGrid1.SelectedObject = Logics;
         }
         else {
           //show logic properties
           PropRows = 8;
+          propertyGrid1.SelectedObject = Logics[NewResNum];
         }
         break;
       case AGIResType.rtPicture:
         if (NewResNum == -1) {
           //picture header
+          propertyGrid1.SelectedObject = Pictures;
           PropRows = 1;
         }
         else {
           //show picture properties
           PropRows = 6;
+          propertyGrid1.SelectedObject = Pictures[NewResNum];
         }
         break;
       case AGIResType.rtSound:
         if (NewResNum == -1) {
           //sound header
           PropRows = 1;
+          propertyGrid1.SelectedObject = Sounds;
         }
         else {
           //show sound properties
           PropRows = 6;
+          propertyGrid1.SelectedObject = Sounds[NewResNum];
         }
         break;
       case AGIResType.rtView:
         if (NewResNum == -1) {
           //view header
           PropRows = 1;
+          propertyGrid1.SelectedObject = Views;
         }
         else {
           //show view properties
           PropRows = 7;
+          propertyGrid1.SelectedObject = Views[NewResNum];
         }
         break;
       case AGIResType.rtObjects:
         //show object Count, description, encryption, and Max screen objects
         PropRows = 4;
+        propertyGrid1.SelectedObject = InvObjects;
         break;
       case AGIResType.rtWords:
         //show group Count and word Count and description
         PropRows = 3;
+        propertyGrid1.SelectedObject = WordList;
         break;
       }
 
@@ -1219,6 +1240,7 @@ namespace WinAGI.Editor
 
       //DECOMPILER
       LogicSourceSettings.ShowAllMessages = ReadSettingBool(SettingsList, sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
+      LogicSourceSettings.MsgsByNumber = ReadSettingBool(SettingsList, sDECOMPILER, "MsgsByNum", DEFAULT_MSGSBYNUM);
       LogicSourceSettings.ElseAsGoto = ReadSettingBool(SettingsList, sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
       LogicSourceSettings.SpecialSyntax = ReadSettingBool(SettingsList, sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
       LogicSourceSettings.ReservedAsText = ReadSettingBool(SettingsList, sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
@@ -1234,9 +1256,8 @@ namespace WinAGI.Editor
       PropRowCount = ReadSettingLong(SettingsList, sPOSITION, "PropRowCount", 4);
       if (PropRowCount < 3)
         PropRowCount = MIN_SPLIT_RES;
-      if (PropRowCount > 9)
+      if (PropRowCount > 10)
         PropRowCount = MAX_SPLIT_RES;
-      UpdateSplitRes(pnlResources.Height - ((PropRowCount + 1) * PropRowHeight) - SPLIT_HEIGHT);
 
       //get main window state
       blnMax = ReadSettingBool(SettingsList, sPOSITION, "WindowMax");
@@ -1499,23 +1520,21 @@ namespace WinAGI.Editor
       //
       int i;
       byte bSelResNum = (byte)SelResNum;
-      //Graphics gProp = e.Graphics;
-      Graphics gProp = picProperties.CreateGraphics();
-      gProp.Clear(Color.Bisque);
-      Graphics gProp1 = e.Graphics;
-      gProp1.Clip = new Region(picProperties.Bounds);
-      gProp1.Clear(Color.Aqua);
-      return;
+      // always expand the clipping region so the entire surface
+      // gets repainted
+      e.Graphics.ResetClip();
+      Graphics gProp = e.Graphics;
 
       //if no game loaded, or nothing selected
       if ((!GameLoaded)) {
         //set proprows to zero
         PropRows = 0;
       }
-      //if more than propwinheight
+      //
+      PropRowCount = (int)(gProp.ClipBounds.Height / PropRowHeight) - 1;
       if (PropRows > PropRowCount) {
         //show scrollbar
-        picProperties.Width = pnlProp.Width - fsbProperty.Width;
+        picProperties.Width = splResource.Width - fsbProperty.Width;
         // note that in .NET, the actual highest value attainable in a
         // scrollbar is NOT the Maximum value; it's Maximum - LargeChange + 1!!
         // that seems really dumb, but it's what happens... SO, 
@@ -1534,15 +1553,13 @@ namespace WinAGI.Editor
         PropScroll = 0;
         fsbProperty.Value = 0;
         fsbProperty.Visible = false;
-        picProperties.Width = pnlProp.Width;
+        picProperties.Width = splResource.Width;
       }
       // create brushes and pens for drawing the various elements
       SolidBrush brushProp = new SolidBrush(PropGray);// Color.FromArgb(236, 233, 216));//  SystemColors.ButtonFace);
       Pen penProp = new Pen(Color.Black, 1);
-      gProp.DrawLine(penProp, 0, 0, picProperties.Width, picProperties.Height);
-      return;
-
       Font fontProp = new Font("MS Sans Serif", 8);
+
       //draw property header cell
       gProp.FillRectangle(brushProp, 1, 1, PropSplitLoc - 1, PropRowHeight - 2);
       brushProp.Color = Color.Black;
@@ -2215,14 +2232,6 @@ namespace WinAGI.Editor
       }
     }
 
-    private void pnlResources_Resize(object sender, EventArgs e)
-    {
-      // resize the navigation buttons
-      cmdBack.Width = pnlResources.Width / 2;
-      cmdForward.Width = pnlResources.Width / 2;
-      cmdForward.Left = pnlResources.Width / 2;
-    }
-
     private void cmdBack_Click(object sender, EventArgs e)
     {
       // if resqptr is not at beginning, go back one
@@ -2593,6 +2602,111 @@ namespace WinAGI.Editor
         }
       }
     }
+
+    private void splResource_Panel1_Resize(object sender, EventArgs e)
+    {
+      // resize the navigation buttons
+      cmdBack.Width = splResource.Width / 2;
+      cmdForward.Width = splResource.Width / 2;
+      cmdForward.Left = splResource.Width / 2;
+    }
+
+    private void picProperties_Resize(object sender, EventArgs e)
+    {
+      picProperties.Invalidate();
+    }
+
+    private void picProperties_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+    {
+      string strHelp = "";
+      //always check for help key
+      if (e.KeyCode == Keys.F1 && e.Modifiers == 0) {
+        //show property window help, depending on what resource or header is selected
+
+        switch (SelResType) {
+        case rtGame:
+          //root
+          strHelp = "#gameprop";
+          break;
+        case rtLogic:
+          if (SelResNum == -1) {
+            strHelp = "#logicsprop";
+          }
+          else {
+            strHelp = "#logicprop";
+          }
+          break;
+        case rtPicture:
+        case rtSound:
+          if (SelResNum == -1) {
+            strHelp = "#hdrsprop";
+          }
+          else {
+            strHelp = "#picsndprop";
+          }
+          break;
+        case rtView:
+          if (SelResNum == -1) {
+            strHelp = "#hdrsprop";
+          }
+          else {
+            strHelp = "#viewprop";
+          }
+          break;
+        case rtObjects:
+          strHelp = "#objprop";
+          break;
+        case rtWords:
+          strHelp = "#wordsprop";
+          break;
+        }
+        API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, @"htm\winagi\restree.htm" + strHelp);
+        return;
+      }
+
+      switch (e.KeyCode) {
+      case Keys.Up: //up arrow
+                    //decrement selected prop
+        if (SelectedProp > 1) {
+          SelectedProp--;
+          //adjust scroll if necessary
+          if (SelectedProp - PropScroll == 0) {
+            //scroll up
+            fsbProperty.Value--;
+          }
+          //repaint property window
+          picProperties.Invalidate();
+        }
+        break;
+      case Keys.Down: //down arrow
+                      //increment selected prop
+        if (SelectedProp < PropRows) {
+          SelectedProp++;
+          //adjust scroll if necessary
+          if (SelectedProp - PropScroll >= PropRowCount) {
+            //scroll up
+            fsbProperty.Value++;
+          }
+          //repaint property window
+          picProperties.Invalidate();
+        }
+        break;
+      case Keys.Enter: //enter or ctrl-enter
+                       //edit the selected item
+        break;
+
+      case Keys.Tab:  //tab
+                      //if preview window is in use, switch to it
+        if (PreviewWin.Visible) {
+          SelectedProp = 0;
+          picProperties.Invalidate();
+          PreviewWin.Focus();
+        }
+        break;
+      }
+      return;
+    }
+
     public void DismissWarning(int row)
     {
       //remove a row to dismiss the warning
@@ -5454,105 +5568,6 @@ void picProperties_GotFocus()
       AdjustMenus rtWords, true, false, false
     }
   }
-}
-void picProperties_KeyDown(KeyCode As Integer, Shift As Integer)
-  
-  Dim strHelp As String
-  
-  On Error GoTo ErrHandler
-  
-  //always check for help key
-  if (KeyCode = Keys.F1 && Shift = 0) {
-    //show property window help, depending on what resource or header is selected
-    
-    switch (SelResType
-    case rtGame
-      //root
-      strHelp = "#gameprop"
-      
-    case rtLogic
-      if (SelResNum = -1) {
-        strHelp = "#logicsprop"
-      } else {
-        strHelp = "#logicprop"
-      }
-      
-    case rtPicture, rtSound
-      if (SelResNum = -1) {
-        strHelp = "#hdrsprop"
-      } else {
-        strHelp = "#picsndprop"
-      }
-      
-    case rtView
-      if (SelResNum = -1) {
-        strHelp = "#hdrsprop"
-      } else {
-        strHelp = "#viewprop"
-      }
-      
-    case rtObjects
-      strHelp = "#objprop"
-      
-    case rtWords
-      strHelp = "#wordsprop"
-    }
-      
-    
-    HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\restree.htm" + strHelp
-  }
-  
-  //check for global shortcut keys
-  CheckShortcuts KeyCode, Shift
-  if (KeyCode = 0) {
-    return;
-  }
-  
-  switch (KeyCode
-  case 38 //up arrow
-    //decrement selected prop
-    if (SelectedProp > 1) {
-      SelectedProp = SelectedProp - 1
-      //adjust scroll if necessary
-      if (SelectedProp - PropScroll = 0) {
-        //scroll up
-        fsbProperty.Value = fsbProperty.Value - 1
-      }
-      //repaint property window
-      PaintPropertyWindow
-    }
-    
-  case 40 //down arrow
-    //increment selected prop
-    if (SelectedProp < PropRows) {
-      SelectedProp = SelectedProp + 1
-      //adjust scroll if necessary
-      if (SelectedProp - PropScroll = PropRowCount) {
-        //scroll up
-        fsbProperty.Value = fsbProperty.Value + 1
-      }
-      //repaint property window
-      PaintPropertyWindow
-    }
-  
-  case 10, 13 //enter or ctrl-enter
-    //call mouse down, using selected item//s //Y// Value
-    picProperties_MouseDown 0, 0, picProperties.Width - 1, (SelectedProp - PropScroll) * PropRowHeight
-  
-  case 9  //tab
-    //if preview window is in use, switch to it
-    if (PreviewWin.Visible) {
-      SelectedProp = 0
-      PaintPropertyWindow
-      PreviewWin.Focus();
-      KeyCode = 0
-    }
-  }
-return;
-
-ErrHandler:
-  //Debug.Assert false
-  Resume Next
 }
 
 void picProperties_KeyPress(KeyAscii As Integer)
@@ -8799,11 +8814,11 @@ ErrHandler:
         break;
       }
 
-      //move property box to bottom
-      pnlProp.Top = SplitResLoc + SPLIT_HEIGHT;
-      if (pnlResources.Height - pnlProp.Top > 65) {
-        pnlProp.Height = pnlResources.Height - pnlProp.Top;
-      }
+      ////move property box to bottom
+      //pnlProp.Top = SplitResLoc + SPLIT_HEIGHT;
+      //if (pnlResources.Height - pnlProp.Top > 65) {
+      //  pnlProp.Height = pnlResources.Height - pnlProp.Top;
+      //}
 
       ////move scrollbar
       //fsbProperty.Top = pnlProp.Top;
@@ -8874,12 +8889,12 @@ ErrHandler:
       // need to make sure resource list (tree or listbox)
       // is set to proper height based on current number of
       // rows in the properties window (including 
-      pnlProp.Height = PropRowHeight * (PropRowCount + 1) + 2;
-      pnlProp.Top = pnlResources.Height - pnlProp.Height;
-      int lngSplitLoc = pnlResources.Height - pnlProp.Height;
-      if (lngSplitLoc < tvwResources.Top) {
-        lngSplitLoc = tvwResources.Top + 1;
-      }
+      //pnlProp.Height = PropRowHeight * (PropRowCount + 1) + 2;
+      //pnlProp.Top = pnlResources.Height - pnlProp.Height;
+      //int lngSplitLoc = pnlResources.Height - pnlProp.Height;
+      //if (lngSplitLoc < tvwResources.Top) {
+      //  lngSplitLoc = tvwResources.Top + 1;
+      //}
 
       switch (Settings.ResListType) {
       case 0: //no tree
@@ -8891,7 +8906,7 @@ ErrHandler:
         cmbResType.Visible = false;
         lstResources.Visible = false;
         //set tree height
-        tvwResources.Height = lngSplitLoc - tvwResources.Top;
+        //tvwResources.Height = lngSplitLoc - tvwResources.Top;
         //change font to match current preview font
         tvwResources.Font = new Font(Settings.PFontName, Settings.PFontSize);
         break;
@@ -8901,7 +8916,7 @@ ErrHandler:
         cmbResType.Visible = true;
         cmbResType.Font = new Font(Settings.EFontName, Settings.EFontSize);
         lstResources.Top = cmbResType.Top + cmbResType.Height + 2;
-        lstResources.Height = lngSplitLoc - lstResources.Top;
+        //lstResources.Height = lngSplitLoc - lstResources.Top;
         lstResources.Visible = true;
         lstResources.Font = new Font(Settings.PFontName, Settings.PFontSize);
         break;

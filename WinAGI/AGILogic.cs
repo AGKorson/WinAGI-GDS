@@ -471,6 +471,7 @@ namespace WinAGI.Engine
       { 
         if (!mLoaded)
         {
+          return "";
           throw new Exception("563, strErrSource, LoadResString(563)");
         }
         return mSourceText;

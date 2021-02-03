@@ -664,8 +664,13 @@ namespace WinAGI.Engine
         blnMsgUsed[ArgNum] = true;
         //if this message exists,
         if (blnMsgExists[ArgNum]) {
-          //begin by using entire message as the chunk to add to current line
-          return stlMsgs[ArgNum - 1];
+          if (agMainLogSettings.MsgsByNumber) {
+            return "m" + ArgNum;
+          }
+          else {
+            //use string value of  message as the chunk to add to current line
+            return stlMsgs[ArgNum - 1];
+          }
         }
         else {
           //message doesn't exist

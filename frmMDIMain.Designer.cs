@@ -188,16 +188,17 @@
       this.toolStripSplitButton3 = new System.Windows.Forms.ToolStripSplitButton();
       this.toolStripSplitButton4 = new System.Windows.Forms.ToolStripSplitButton();
       this.pnlResources = new System.Windows.Forms.Panel();
+      this.splResource = new System.Windows.Forms.SplitContainer();
+      this.tvwResources = new System.Windows.Forms.TreeView();
+      this.cmdBack = new System.Windows.Forms.Button();
+      this.cmdForward = new System.Windows.Forms.Button();
       this.lstResources = new System.Windows.Forms.ListView();
+      this.cmbResType = new System.Windows.Forms.ComboBox();
+      this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
+      this.picProperties = new System.Windows.Forms.PictureBox();
+      this.fsbProperty = new System.Windows.Forms.VScrollBar();
       this.picNavList = new System.Windows.Forms.PictureBox();
       this.lstProperty = new System.Windows.Forms.ListBox();
-      this.pnlProp = new System.Windows.Forms.Panel();
-      this.fsbProperty = new System.Windows.Forms.VScrollBar();
-      this.picProperties = new System.Windows.Forms.PictureBox();
-      this.cmdForward = new System.Windows.Forms.Button();
-      this.cmdBack = new System.Windows.Forms.Button();
-      this.cmbResType = new System.Windows.Forms.ComboBox();
-      this.tvwResources = new System.Windows.Forms.TreeView();
       this.splitResource = new System.Windows.Forms.Splitter();
       this.pnlWarnings = new System.Windows.Forms.Panel();
       this.fgWarnings = new System.Windows.Forms.DataGridView();
@@ -220,9 +221,12 @@
       this.statusStrip1.SuspendLayout();
       this.toolStrip1.SuspendLayout();
       this.pnlResources.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.picNavList)).BeginInit();
-      this.pnlProp.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.splResource)).BeginInit();
+      this.splResource.Panel1.SuspendLayout();
+      this.splResource.Panel2.SuspendLayout();
+      this.splResource.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.picProperties)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.picNavList)).BeginInit();
       this.pnlWarnings.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.fgWarnings)).BeginInit();
       this.SuspendLayout();
@@ -243,7 +247,6 @@
       this.menuStrip1.Size = new System.Drawing.Size(1284, 44);
       this.menuStrip1.TabIndex = 0;
       this.menuStrip1.Text = "menuStrip1";
-      this.menuStrip1.UseWaitCursor = true;
       this.menuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.menuStrip1_ItemClicked);
       // 
       // mnuGame
@@ -1085,13 +1088,12 @@
             this.CapsLockLabel,
             this.NumLockLabel,
             this.InsertLockLabel});
-      this.statusStrip1.Location = new System.Drawing.Point(0, 734);
+      this.statusStrip1.Location = new System.Drawing.Point(0, 710);
       this.statusStrip1.Name = "statusStrip1";
       this.statusStrip1.Padding = new System.Windows.Forms.Padding(2, 0, 26, 0);
       this.statusStrip1.Size = new System.Drawing.Size(1284, 46);
       this.statusStrip1.TabIndex = 2;
       this.statusStrip1.Text = "statusStrip1";
-      this.statusStrip1.UseWaitCursor = true;
       // 
       // StatusPanel1
       // 
@@ -1168,7 +1170,6 @@
       this.toolStrip1.Size = new System.Drawing.Size(1284, 62);
       this.toolStrip1.TabIndex = 3;
       this.toolStrip1.Text = "toolStrip1";
-      this.toolStrip1.UseWaitCursor = true;
       this.toolStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.toolStrip1_ItemClicked);
       // 
       // btnOpenGame
@@ -1456,158 +1457,44 @@
       // 
       // pnlResources
       // 
-      this.pnlResources.Controls.Add(this.lstResources);
-      this.pnlResources.Controls.Add(this.picNavList);
-      this.pnlResources.Controls.Add(this.lstProperty);
-      this.pnlResources.Controls.Add(this.pnlProp);
-      this.pnlResources.Controls.Add(this.cmdForward);
-      this.pnlResources.Controls.Add(this.cmdBack);
-      this.pnlResources.Controls.Add(this.cmbResType);
-      this.pnlResources.Controls.Add(this.tvwResources);
+      this.pnlResources.Controls.Add(this.splResource);
       this.pnlResources.Dock = System.Windows.Forms.DockStyle.Left;
       this.pnlResources.Location = new System.Drawing.Point(0, 106);
       this.pnlResources.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
       this.pnlResources.Name = "pnlResources";
-      this.pnlResources.Size = new System.Drawing.Size(314, 628);
+      this.pnlResources.Size = new System.Drawing.Size(314, 604);
       this.pnlResources.TabIndex = 16;
-      this.pnlResources.UseWaitCursor = true;
-      this.pnlResources.Resize += new System.EventHandler(this.pnlResources_Resize);
       // 
-      // lstResources
+      // splResource
       // 
-      this.lstResources.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.lstResources.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-      this.lstResources.FullRowSelect = true;
-      this.lstResources.HideSelection = false;
-      this.lstResources.Location = new System.Drawing.Point(-400, 88);
-      this.lstResources.Margin = new System.Windows.Forms.Padding(4);
-      this.lstResources.MultiSelect = false;
-      this.lstResources.Name = "lstResources";
-      this.lstResources.ShowGroups = false;
-      this.lstResources.Size = new System.Drawing.Size(628, 370);
-      this.lstResources.TabIndex = 24;
-      this.lstResources.UseCompatibleStateImageBehavior = false;
-      this.lstResources.UseWaitCursor = true;
-      this.lstResources.View = System.Windows.Forms.View.Details;
+      this.splResource.Cursor = System.Windows.Forms.Cursors.Default;
+      this.splResource.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.splResource.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
+      this.splResource.Location = new System.Drawing.Point(0, 0);
+      this.splResource.Name = "splResource";
+      this.splResource.Orientation = System.Windows.Forms.Orientation.Horizontal;
       // 
-      // picNavList
+      // splResource.Panel1
       // 
-      this.picNavList.BackColor = System.Drawing.SystemColors.Window;
-      this.picNavList.Location = new System.Drawing.Point(76, 20);
-      this.picNavList.Margin = new System.Windows.Forms.Padding(4);
-      this.picNavList.Name = "picNavList";
-      this.picNavList.Size = new System.Drawing.Size(148, 156);
-      this.picNavList.TabIndex = 24;
-      this.picNavList.TabStop = false;
-      this.picNavList.UseWaitCursor = true;
-      this.picNavList.Visible = false;
-      this.picNavList.Paint += new System.Windows.Forms.PaintEventHandler(this.picNavList_Paint);
-      this.picNavList.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picNavList_MouseMove);
-      this.picNavList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picNavList_MouseUp);
+      this.splResource.Panel1.Controls.Add(this.tvwResources);
+      this.splResource.Panel1.Controls.Add(this.cmdBack);
+      this.splResource.Panel1.Controls.Add(this.cmdForward);
+      this.splResource.Panel1.Controls.Add(this.lstResources);
+      this.splResource.Panel1.Controls.Add(this.cmbResType);
+      this.splResource.Panel1.Cursor = System.Windows.Forms.Cursors.Default;
+      this.splResource.Panel1.Resize += new System.EventHandler(this.splResource_Panel1_Resize);
       // 
-      // lstProperty
+      // splResource.Panel2
       // 
-      this.lstProperty.FormattingEnabled = true;
-      this.lstProperty.ItemHeight = 32;
-      this.lstProperty.Location = new System.Drawing.Point(52, 432);
-      this.lstProperty.Margin = new System.Windows.Forms.Padding(4);
-      this.lstProperty.Name = "lstProperty";
-      this.lstProperty.Size = new System.Drawing.Size(192, 4);
-      this.lstProperty.TabIndex = 26;
-      this.lstProperty.UseWaitCursor = true;
-      this.lstProperty.Visible = false;
-      // 
-      // pnlProp
-      // 
-      this.pnlProp.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.pnlProp.Controls.Add(this.fsbProperty);
-      this.pnlProp.Controls.Add(this.picProperties);
-      this.pnlProp.Location = new System.Drawing.Point(0, 458);
-      this.pnlProp.Margin = new System.Windows.Forms.Padding(4);
-      this.pnlProp.Name = "pnlProp";
-      this.pnlProp.Size = new System.Drawing.Size(314, 166);
-      this.pnlProp.TabIndex = 26;
-      this.pnlProp.UseWaitCursor = true;
-      // 
-      // fsbProperty
-      // 
-      this.fsbProperty.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.fsbProperty.LargeChange = 3;
-      this.fsbProperty.Location = new System.Drawing.Point(202, 0);
-      this.fsbProperty.Name = "fsbProperty";
-      this.fsbProperty.Size = new System.Drawing.Size(24, 166);
-      this.fsbProperty.TabIndex = 24;
-      this.fsbProperty.UseWaitCursor = true;
-      this.fsbProperty.Scroll += new System.Windows.Forms.ScrollEventHandler(this.fsbProperty_Scroll);
-      this.fsbProperty.ValueChanged += new System.EventHandler(this.fsbProperty_ValueChanged);
-      // 
-      // picProperties
-      // 
-      this.picProperties.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.picProperties.BackColor = System.Drawing.SystemColors.Window;
-      this.picProperties.Location = new System.Drawing.Point(0, 0);
-      this.picProperties.Margin = new System.Windows.Forms.Padding(4);
-      this.picProperties.Name = "picProperties";
-      this.picProperties.Size = new System.Drawing.Size(284, 166);
-      this.picProperties.TabIndex = 25;
-      this.picProperties.TabStop = false;
-      this.picProperties.UseWaitCursor = true;
-      this.picProperties.Paint += new System.Windows.Forms.PaintEventHandler(this.picProperties_Paint);
-      // 
-      // cmdForward
-      // 
-      this.cmdForward.Image = ((System.Drawing.Image)(resources.GetObject("cmdForward.Image")));
-      this.cmdForward.Location = new System.Drawing.Point(160, 0);
-      this.cmdForward.Margin = new System.Windows.Forms.Padding(6);
-      this.cmdForward.Name = "cmdForward";
-      this.cmdForward.Size = new System.Drawing.Size(160, 52);
-      this.cmdForward.TabIndex = 3;
-      this.cmdForward.UseVisualStyleBackColor = true;
-      this.cmdForward.UseWaitCursor = true;
-      this.cmdForward.Click += new System.EventHandler(this.cmdForward_Click);
-      this.cmdForward.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cmdForward_MouseDown);
-      // 
-      // cmdBack
-      // 
-      this.cmdBack.Image = ((System.Drawing.Image)(resources.GetObject("cmdBack.Image")));
-      this.cmdBack.Location = new System.Drawing.Point(0, 0);
-      this.cmdBack.Margin = new System.Windows.Forms.Padding(6);
-      this.cmdBack.Name = "cmdBack";
-      this.cmdBack.Size = new System.Drawing.Size(160, 52);
-      this.cmdBack.TabIndex = 2;
-      this.cmdBack.UseVisualStyleBackColor = true;
-      this.cmdBack.UseWaitCursor = true;
-      this.cmdBack.Click += new System.EventHandler(this.cmdBack_Click);
-      this.cmdBack.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cmdBack_MouseDown);
-      // 
-      // cmbResType
-      // 
-      this.cmbResType.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.cmbResType.Cursor = System.Windows.Forms.Cursors.WaitCursor;
-      this.cmbResType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-      this.cmbResType.FormattingEnabled = true;
-      this.cmbResType.Items.AddRange(new object[] {
-            "agi",
-            "LOGICS",
-            "PICTURES",
-            "SOUNDS",
-            "VIEWS",
-            "OBJECT",
-            "WORDS.TOK"});
-      this.cmbResType.Location = new System.Drawing.Point(-400, 44);
-      this.cmbResType.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.cmbResType.Name = "cmbResType";
-      this.cmbResType.Size = new System.Drawing.Size(628, 40);
-      this.cmbResType.TabIndex = 0;
-      this.cmbResType.UseWaitCursor = true;
-      this.cmbResType.Visible = false;
-      this.cmbResType.SelectedIndexChanged += new System.EventHandler(this.cmbResType_SelectedIndexChanged);
+      this.splResource.Panel2.Controls.Add(this.propertyGrid1);
+      this.splResource.Panel2.Controls.Add(this.picProperties);
+      this.splResource.Panel2.Controls.Add(this.fsbProperty);
+      this.splResource.Panel2.Cursor = System.Windows.Forms.Cursors.Default;
+      this.splResource.Size = new System.Drawing.Size(314, 604);
+      this.splResource.SplitterDistance = 258;
+      this.splResource.SplitterWidth = 8;
+      this.splResource.TabIndex = 0;
+      this.splResource.TabStop = false;
       // 
       // tvwResources
       // 
@@ -1634,36 +1521,163 @@
       treeNode7.Text = "AGIGAME";
       this.tvwResources.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
             treeNode7});
-      this.tvwResources.Size = new System.Drawing.Size(196, 392);
-      this.tvwResources.TabIndex = 24;
-      this.tvwResources.UseWaitCursor = true;
+      this.tvwResources.Size = new System.Drawing.Size(299, 181);
+      this.tvwResources.TabIndex = 25;
       this.tvwResources.Visible = false;
       this.tvwResources.AfterCollapse += new System.Windows.Forms.TreeViewEventHandler(this.tvwResources_AfterCollapse);
       this.tvwResources.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwResources_AfterSelect);
       this.tvwResources.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvwResources_NodeMouseClick);
       this.tvwResources.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvwResources_NodeMouseDoubleClick);
       // 
+      // cmdBack
+      // 
+      this.cmdBack.Image = ((System.Drawing.Image)(resources.GetObject("cmdBack.Image")));
+      this.cmdBack.Location = new System.Drawing.Point(0, 0);
+      this.cmdBack.Margin = new System.Windows.Forms.Padding(6);
+      this.cmdBack.Name = "cmdBack";
+      this.cmdBack.Size = new System.Drawing.Size(160, 52);
+      this.cmdBack.TabIndex = 2;
+      this.cmdBack.UseVisualStyleBackColor = true;
+      this.cmdBack.Click += new System.EventHandler(this.cmdBack_Click);
+      this.cmdBack.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cmdBack_MouseDown);
+      // 
+      // cmdForward
+      // 
+      this.cmdForward.Image = ((System.Drawing.Image)(resources.GetObject("cmdForward.Image")));
+      this.cmdForward.Location = new System.Drawing.Point(160, 0);
+      this.cmdForward.Margin = new System.Windows.Forms.Padding(6);
+      this.cmdForward.Name = "cmdForward";
+      this.cmdForward.Size = new System.Drawing.Size(160, 52);
+      this.cmdForward.TabIndex = 3;
+      this.cmdForward.UseVisualStyleBackColor = true;
+      this.cmdForward.Click += new System.EventHandler(this.cmdForward_Click);
+      this.cmdForward.MouseDown += new System.Windows.Forms.MouseEventHandler(this.cmdForward_MouseDown);
+      // 
+      // lstResources
+      // 
+      this.lstResources.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.lstResources.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+      this.lstResources.FullRowSelect = true;
+      this.lstResources.HideSelection = false;
+      this.lstResources.Location = new System.Drawing.Point(0, 92);
+      this.lstResources.Margin = new System.Windows.Forms.Padding(4);
+      this.lstResources.MultiSelect = false;
+      this.lstResources.Name = "lstResources";
+      this.lstResources.ShowGroups = false;
+      this.lstResources.Size = new System.Drawing.Size(299, 153);
+      this.lstResources.TabIndex = 27;
+      this.lstResources.UseCompatibleStateImageBehavior = false;
+      this.lstResources.View = System.Windows.Forms.View.Details;
+      this.lstResources.SelectedIndexChanged += new System.EventHandler(this.lstResources_SelectedIndexChanged);
+      this.lstResources.DoubleClick += new System.EventHandler(this.lstResources_DoubleClick);
+      // 
+      // cmbResType
+      // 
+      this.cmbResType.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.cmbResType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.cmbResType.FormattingEnabled = true;
+      this.cmbResType.Items.AddRange(new object[] {
+            "agi",
+            "LOGICS",
+            "PICTURES",
+            "SOUNDS",
+            "VIEWS",
+            "OBJECT",
+            "WORDS.TOK"});
+      this.cmbResType.Location = new System.Drawing.Point(0, 52);
+      this.cmbResType.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
+      this.cmbResType.Name = "cmbResType";
+      this.cmbResType.Size = new System.Drawing.Size(308, 40);
+      this.cmbResType.TabIndex = 26;
+      this.cmbResType.Visible = false;
+      this.cmbResType.SelectedIndexChanged += new System.EventHandler(this.cmbResType_SelectedIndexChanged);
+      // 
+      // propertyGrid1
+      // 
+      this.propertyGrid1.CommandsVisibleIfAvailable = false;
+      this.propertyGrid1.HelpVisible = false;
+      this.propertyGrid1.Location = new System.Drawing.Point(27, 31);
+      this.propertyGrid1.Name = "propertyGrid1";
+      this.propertyGrid1.PropertySort = System.Windows.Forms.PropertySort.NoSort;
+      this.propertyGrid1.Size = new System.Drawing.Size(224, 255);
+      this.propertyGrid1.TabIndex = 28;
+      this.propertyGrid1.ToolbarVisible = false;
+      // 
+      // picProperties
+      // 
+      this.picProperties.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.picProperties.BackColor = System.Drawing.SystemColors.Window;
+      this.picProperties.Location = new System.Drawing.Point(0, 0);
+      this.picProperties.Margin = new System.Windows.Forms.Padding(4);
+      this.picProperties.Name = "picProperties";
+      this.picProperties.Size = new System.Drawing.Size(226, 214);
+      this.picProperties.TabIndex = 25;
+      this.picProperties.TabStop = false;
+      this.picProperties.Paint += new System.Windows.Forms.PaintEventHandler(this.picProperties_Paint);
+      this.picProperties.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.picProperties_PreviewKeyDown);
+      this.picProperties.Resize += new System.EventHandler(this.picProperties_Resize);
+      // 
+      // fsbProperty
+      // 
+      this.fsbProperty.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.fsbProperty.LargeChange = 3;
+      this.fsbProperty.Location = new System.Drawing.Point(0, 0);
+      this.fsbProperty.Name = "fsbProperty";
+      this.fsbProperty.Size = new System.Drawing.Size(24, 100);
+      this.fsbProperty.TabIndex = 24;
+      this.fsbProperty.Scroll += new System.Windows.Forms.ScrollEventHandler(this.fsbProperty_Scroll);
+      this.fsbProperty.ValueChanged += new System.EventHandler(this.fsbProperty_ValueChanged);
+      // 
+      // picNavList
+      // 
+      this.picNavList.BackColor = System.Drawing.SystemColors.Window;
+      this.picNavList.Location = new System.Drawing.Point(721, 131);
+      this.picNavList.Margin = new System.Windows.Forms.Padding(4);
+      this.picNavList.Name = "picNavList";
+      this.picNavList.Size = new System.Drawing.Size(148, 156);
+      this.picNavList.TabIndex = 24;
+      this.picNavList.TabStop = false;
+      this.picNavList.Visible = false;
+      this.picNavList.Paint += new System.Windows.Forms.PaintEventHandler(this.picNavList_Paint);
+      this.picNavList.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picNavList_MouseMove);
+      this.picNavList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picNavList_MouseUp);
+      // 
+      // lstProperty
+      // 
+      this.lstProperty.FormattingEnabled = true;
+      this.lstProperty.ItemHeight = 32;
+      this.lstProperty.Location = new System.Drawing.Point(344, 506);
+      this.lstProperty.Margin = new System.Windows.Forms.Padding(4);
+      this.lstProperty.Name = "lstProperty";
+      this.lstProperty.Size = new System.Drawing.Size(192, 36);
+      this.lstProperty.TabIndex = 26;
+      this.lstProperty.Visible = false;
+      // 
       // splitResource
       // 
       this.splitResource.Location = new System.Drawing.Point(314, 106);
       this.splitResource.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
       this.splitResource.Name = "splitResource";
-      this.splitResource.Size = new System.Drawing.Size(4, 628);
+      this.splitResource.Size = new System.Drawing.Size(4, 604);
       this.splitResource.TabIndex = 18;
       this.splitResource.TabStop = false;
-      this.splitResource.UseWaitCursor = true;
       this.splitResource.Visible = false;
       // 
       // pnlWarnings
       // 
       this.pnlWarnings.Controls.Add(this.fgWarnings);
       this.pnlWarnings.Dock = System.Windows.Forms.DockStyle.Bottom;
-      this.pnlWarnings.Location = new System.Drawing.Point(318, 562);
+      this.pnlWarnings.Location = new System.Drawing.Point(318, 538);
       this.pnlWarnings.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
       this.pnlWarnings.Name = "pnlWarnings";
       this.pnlWarnings.Size = new System.Drawing.Size(966, 172);
       this.pnlWarnings.TabIndex = 20;
-      this.pnlWarnings.UseWaitCursor = true;
       this.pnlWarnings.Visible = false;
       // 
       // fgWarnings
@@ -1714,7 +1728,6 @@
       this.fgWarnings.Size = new System.Drawing.Size(966, 172);
       this.fgWarnings.StandardTab = true;
       this.fgWarnings.TabIndex = 0;
-      this.fgWarnings.UseWaitCursor = true;
       // 
       // colResType
       // 
@@ -1775,13 +1788,12 @@
       // splitWarning
       // 
       this.splitWarning.Dock = System.Windows.Forms.DockStyle.Bottom;
-      this.splitWarning.Location = new System.Drawing.Point(318, 558);
+      this.splitWarning.Location = new System.Drawing.Point(318, 534);
       this.splitWarning.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
       this.splitWarning.Name = "splitWarning";
       this.splitWarning.Size = new System.Drawing.Size(966, 4);
       this.splitWarning.TabIndex = 22;
       this.splitWarning.TabStop = false;
-      this.splitWarning.UseWaitCursor = true;
       this.splitWarning.Visible = false;
       // 
       // imageList1
@@ -1841,7 +1853,9 @@
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(192F, 192F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-      this.ClientSize = new System.Drawing.Size(1284, 780);
+      this.ClientSize = new System.Drawing.Size(1284, 756);
+      this.Controls.Add(this.lstProperty);
+      this.Controls.Add(this.picNavList);
       this.Controls.Add(this.splitWarning);
       this.Controls.Add(this.pnlWarnings);
       this.Controls.Add(this.splitResource);
@@ -1856,7 +1870,6 @@
       this.Margin = new System.Windows.Forms.Padding(6);
       this.Name = "frmMDIMain";
       this.Text = "WinAGI GDS";
-      this.UseWaitCursor = true;
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMDIMain_FormClosing);
       this.Load += new System.EventHandler(this.frmMDIMain_Load);
       this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmMDIMain_KeyDown);
@@ -1870,9 +1883,12 @@
       this.toolStrip1.ResumeLayout(false);
       this.toolStrip1.PerformLayout();
       this.pnlResources.ResumeLayout(false);
-      ((System.ComponentModel.ISupportInitialize)(this.picNavList)).EndInit();
-      this.pnlProp.ResumeLayout(false);
+      this.splResource.Panel1.ResumeLayout(false);
+      this.splResource.Panel2.ResumeLayout(false);
+      ((System.ComponentModel.ISupportInitialize)(this.splResource)).EndInit();
+      this.splResource.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.picProperties)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.picNavList)).EndInit();
       this.pnlWarnings.ResumeLayout(false);
       ((System.ComponentModel.ISupportInitialize)(this.fgWarnings)).EndInit();
       this.ResumeLayout(false);
@@ -2041,8 +2057,6 @@
     internal Panel pnlResources;
     public OpenFileDialog OpenDlg;
     public SaveFileDialog SaveDlg;
-    public ComboBox cmbResType;
-    public TreeView tvwResources;
     public Panel pnlWarnings;
     public ToolStripSeparator mnuGMRUBar;
     public ToolStripMenuItem mnuGMRU0;
@@ -2050,7 +2064,6 @@
     public ToolStripMenuItem mnuGMRU2;
     public ToolStripMenuItem mnuGMRU3;
     public ToolStripMenuItem mnuGame;
-    private Panel pnlProp;
     private VScrollBar fsbProperty;
     public ListBox lstProperty;
     public ImageList imlPropButtons;
@@ -2079,8 +2092,13 @@
     private DataGridViewTextBoxColumn colModule;
     private PictureBox picNavList;
     public FolderBrowserDialog FolderDlg;
-    public ListView lstResources;
     public PictureBox picProperties;
+    private SplitContainer splResource;
+    public TreeView tvwResources;
+    public ListView lstResources;
+    public ComboBox cmbResType;
+    private SplitContainer splitContainer1;
+    private PropertyGrid propertyGrid1;
   }
 }
 

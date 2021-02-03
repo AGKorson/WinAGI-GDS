@@ -14,6 +14,7 @@ namespace WinAGI.Engine
   {
     private bool agElseAsGoto;
     private bool agShowMsgs;
+    private bool agMsgsByNum;
     private bool agSpecialSyntax;
     public LogicErrorLevel ErrorLevel
     { get; set; }
@@ -359,6 +360,17 @@ namespace WinAGI.Engine
       set
       {
         agShowMsgs = value;
+      }
+    }
+    public bool MsgsByNumber
+    {
+      get
+      {
+        return agMsgsByNum;
+      }
+      set
+      {
+        agMsgsByNum = value;
       }
     }
     public bool ValidateResDefs()

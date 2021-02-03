@@ -149,6 +149,7 @@ namespace WinAGI.Editor
     public const bool DEFAULT_GESHOWCMT = true;
     // default settings - decompile
     public const bool DEFAULT_SHOWALLMSGS = true;
+    public const bool DEFAULT_MSGSBYNUM = false;
     public const bool DEFAULT_ELSEASGOTO = false;
     public const bool DEFAULT_SPECIALSYNTAX = true;
     public const bool DEFAULT_SHOWRESVARS = true;
@@ -469,6 +470,21 @@ namespace WinAGI.Editor
     // STRUCTS
     //***************************************************
     #region
+    //property accessors
+    public struct PropAccGame
+    {
+      public string GameID;
+      public string Author;
+      public string GameDir;
+      public string ResDir;
+      public string IntVer;
+      public string Description;
+      public string GameVer;
+      public string GameAbout;
+      public string LayoutEditor;
+      public string LastEdit;
+    }
+    public static PropAccGame paGame;
     public struct tDefaultScale
     {
       public int Edit;
@@ -1766,6 +1782,11 @@ namespace WinAGI.Editor
       MDIMain.UseWaitCursor = false;
       //clear status bar
       MainStatusBar.Items[1].Text = "";
+
+      paGame.Author = GameAuthor;
+      paGame.GameID = GameID;
+      paGame.GameDir = GameDir;
+
       return blnLoaded;
     }
     public static bool CloseThisGame()

@@ -202,8 +202,48 @@ MA  02110-1301  USA
     public ArgTypeEnum[] ArgType; //7
   }
   #endregion
+  //***************************************************
+  //
+  // this class exposes all the static variables and 
+  // methods that the engine uses
+  //
+  //***************************************************
   public static partial class WinAGI
   {
+        // exposed game properties, methods, objects
+    internal static AGILogicSourceSettings agMainLogSettings = new AGILogicSourceSettings();
+    internal static string agTemplateDir = "";
+
+    //temp file location
+    internal static string TempFileDir = "";
+    public const int WINAGI_ERR = 0x100000;
+
+    public static EGAColors DefaultColors
+    {
+      get { return defaultColorEGA; }
+      //set { colorEGA = value; }
+    }
+    public static string TemplateDir
+    {
+      get { return agTemplateDir; }
+      set
+      {
+        // directory has to exist
+        if (!Directory.Exists(value))
+          throw new Exception("Replace(LoadResString(630), ARG1, NewDir)");
+
+        agTemplateDir = CDir(value);
+      }
+    }
+
+
+
+
+
+
+
+
+
     // this class is for all the global stuff that was previously in separate modules in VB6
     ////arrays which will be treated as constants
     ////rev colors have red and blue components switched
