@@ -1,6 +1,8 @@
 ﻿      
       
-      
+      ***check WORDS.TOK opening function; it is missing a check to make sure the file exists,
+      and creates a zero length file during the load attempt. ; if one doesn't
+      the user should be told that, and (if in game) given option to create a new one; 
       
       
       // Linq feature makes it easy to check for invalid characters

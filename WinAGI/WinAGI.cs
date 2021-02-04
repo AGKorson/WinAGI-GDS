@@ -235,28 +235,261 @@ MA  02110-1301  USA
         agTemplateDir = CDir(value);
       }
     }
+    public static void NewGame(string NewID, string NewVersion, string NewGameDir, string NewResDir, string TemplateDir = "")
+    {
+
+      //creates a new game in NewGameDir
+      //if a template directory is passed,
+      //use the resources from that template directory
+
+      string strGameWAG, strTmplResDir, strTempDir;
+      int i, lngDirCount;
+      bool blnWarnings = false;
+      List<string> stlGlobals;
+      //if a game is already open,
+      if (agGameLoaded) {
+        //can't open a game if one is already open
+        throw new Exception("501, strErrSource, LoadResString(501)");
+      }
+      //if not a valid directory
+      if (!Directory.Exists(NewGameDir)) {
+        //raise error
+        throw new Exception("630, strErrSource, Replace(LoadResString(630), ARG1, NewGameDir)");
+      }
+
+      //if a game already exists
+      if (Directory.GetFiles(NewGameDir, "*.wag").Length != 0) {
+        //game file exists;
+        throw new Exception("687, strErrSource, LoadResString(687)");
+      }
+      if (IsValidGameDir(CDir(NewGameDir))) {
+        //game files exist;
+        ClearGameState();
+        throw new Exception("687, strErrSource, LoadResString(687)");
+      }
+      //set game directory
+      agGameDir = CDir(NewGameDir);
+      //ensure resdir is valid
+      if (NewResDir.Length == 0) {
+        //if blank use default
+        NewResDir = agDefResDir;
+      }
+      //if using template
+      if (TemplateDir.Length != 0) {
+        //template should include dir files, vol files, words.tok and object;
+        // also globals list and layout, and source directory with logic source files
+        TemplateDir = CDir(TemplateDir);
+        // should be exactly one wag file
+        if (Directory.GetFiles(TemplateDir, "*.wag").Length != 1) {
+          //raise error
+          throw new Exception("630, strErrSource, LoadResString(630)");
+        }
+        // get file name (it's first[and only] element)
+        strGameWAG = Directory.GetFiles(TemplateDir, "*.wag")[0];
+        // should only be one subdirectory; if there's more than one, 
+        //it's on the user to figure it out; we use the first one found
+        // as resource directory
+        if (Directory.GetDirectories(TemplateDir).Length == 0) {
+          //no resource directory; we will build a default
+          strTmplResDir = "";
+        }
+        else {
+          // retrieve name of the first directory
+          strTmplResDir = Directory.GetDirectories(TemplateDir)[0];
+        }
+        //copy all files from the templatedir into gamedir
+        if (!DirectoryCopy(TemplateDir, agGameDir, true)) {
+          throw new Exception("683, strErrSource, Replace(LoadResString(683), ARG1, Err.Description)");
+        }
+
+        // open the game in the newly created directory
+        try {
+          //open game with template id
+          OpenGameWAG(agGameDir + strGameWAG);
+        }
+        catch (Exception) {
+          throw new Exception("684, strErrSource, Replace(LoadResString(684), ARG1, Err.Description)");
+        }
+        //we need to rename the resdir
+        //(have to do this AFTER load, because loading will keep the current
+        //resdir that's in the WAG file)
+        if (NewResDir != strTmplResDir) {
+          //we need to change it
+          DirectoryInfo resDir = new DirectoryInfo(agGameDir + strTmplResDir);
+          resDir.MoveTo(agGameDir + NewResDir);
+        }
+        //then change the resource directory property
+        agResDirName = NewResDir;
+        //update the actual resdir
+        agResDir = agGameDir + agResDirName + @"\";
+        //change gameid
+        GameID = NewID;
+        //update global file header
+        stlGlobals = OpenSettingList(agGameDir + "globals.txt", false);
+        if (stlGlobals.Count > 3) {
+          if (Left(stlGlobals[2].Trim(), 1) == "[") {
+            stlGlobals[2] = "[ global defines file for " + NewID;
+          }
+          //save it
+          SaveSettingList(stlGlobals);
+        }
+      }
+      else
+      //if not using template,
+      {
+        //validate new version
+        if (IntVersions.Contains(NewVersion)) {
+          //ok; set version
+          agIntVersion = NewVersion;
+          //set version3 flag
+          agIsVersion3 = (Val(NewVersion) > 3);
+        }
+        else {
+          if (Val(NewVersion) < 2 || Val(NewVersion) > 3) {
+            //not a version 2 or 3 game
+            throw new Exception("597, strErrSource, LoadResString(597)");
+          }
+          else {
+            //unsupported version 2 or 3 game
+            throw new Exception("543, strErrSource, LoadResString(543)");
+          }
+        }
+
+        //set game id (limit to 6 characters for v2, and 5 characters for v3
+        //(don't use the GameID property; gameloaded flag is not set yet
+        //so using GameID property will cause error)
+        if (agIsVersion3) {
+          agGameID = Left(NewID, 5).ToUpper();
+        }
+        else {
+          agGameID = Left(NewID, 6).ToUpper();
+        }
+
+        //create empty property file
+        agGameFile = agGameDir + agGameID + ".wag";
+        if (File.Exists(agGameFile)) {
+          File.Delete(agGameFile);
+        }
+        agGameProps = OpenSettingList(agGameFile);
+        agGameProps.Add("#");
+        agGameProps.Add("# WinAGI Game Property File for " + agGameID);
+        agGameProps.Add("#");
+        agGameProps.Add("[General]");
+        agGameProps.Add("");
+        agGameProps.Add("[Palette]");
+        agGameProps.Add("");
+        agGameProps.Add("[WORDS.TOK]");
+        agGameProps.Add("");
+        agGameProps.Add("[OBJECT]");
+        agGameProps.Add("");
+        agGameProps.Add("[::BEGIN Logics::]");
+        agGameProps.Add("[::END Logics::]");
+        agGameProps.Add("");
+        agGameProps.Add("[::BEGIN Pictures::]");
+        agGameProps.Add("[::END Pictures::]");
+        agGameProps.Add("");
+        agGameProps.Add("[::BEGIN Sounds::]");
+        agGameProps.Add("[::END Sounds::]");
+        agGameProps.Add("");
+        agGameProps.Add("[::BEGIN Views::]");
+        agGameProps.Add("[::END Views::]");
+        agGameProps.Add("");
+        //add WinAGI version
+        WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION);
+        //set the resource directory name so it can be set up
+        ResDirName = NewResDir;
+        //create default resource directories
+        byte[] bytDirData = new byte[768];
+        for (i = 0; i < 768; i++) bytDirData[i] = 0xff;
+
+        if (agIsVersion3) {
+          byte[] bytDirHdr = new byte[8] { 8, 0, 8, 3, 8, 6, 8, 9 };
+          using FileStream fsDIR = new FileStream(agGameDir + agGameID + "DIR", FileMode.OpenOrCreate);
+          fsDIR.Write(bytDirHdr);
+          for (i = 0; i < 4; i++) {
+            fsDIR.Write(bytDirData);
+          }
+        }
+        else {
+          FileStream fsDIR = new FileStream(agGameDir + "LOGDIR", FileMode.OpenOrCreate);
+          fsDIR.Write(bytDirData);
+          fsDIR = new FileStream(agGameDir + "PICDIR", FileMode.OpenOrCreate);
+          fsDIR.Write(bytDirData);
+          fsDIR = new FileStream(agGameDir + "SNDDIR", FileMode.OpenOrCreate);
+          fsDIR.Write(bytDirData);
+          fsDIR = new FileStream(agGameDir + "VIEWDIR", FileMode.OpenOrCreate);
+          fsDIR.Write(bytDirData);
+          fsDIR.Dispose();
+        }
+        //create default vocabulary word list
+        agVocabWords = new AGIWordList();
+        //use loaded argument to force load of the new wordlist
+        agVocabWords.Init(true);
+        agVocabWords.Save();
+        //create inventory objects list
+        agInvObj = new AGIInventoryObjects();
+        //use loaded argument to force load of new inventory list
+        agInvObj.Init(true);
+        agInvObj.Save();
+
+        //commands based on AGI version
+        CorrectCommands(agIntVersion);
+
+        //add logic zero
+        agLogs.Add(0);
+        agLogs[0].Clear();
+        agLogs[0].Save();
+        agLogs[0].Unload();
+
+        //force id reset
+        blnSetIDs = false;
+
+        //set open flag, so properties can be updated
+        agGameLoaded = true;
+      }
+
+      //set resource directory
+      //ensure resource directory exists
+      if (!Directory.Exists(agGameDir + agResDirName)) {
+        if (Directory.CreateDirectory(agGameDir + agResDirName) == null) {
+          //note the problem in the error log as a warning
+          RecordLogEvent(LogEventType.leWarning, "Can't create " + agResDir);
+          //use main directory
+          agResDir = agGameDir;
+          //set warning flag
+          blnWarnings = true;
+        }
+      }
+      //save gameID, version, directory resource name to the property file;
+      //rest of properties need to be set by the calling function
+      WriteGameSetting("General", "GameID", agGameID);
+      WriteGameSetting("General", "Interpreter", agIntVersion);
+      WriteGameSetting("General", "ResDir", agResDirName);
+
+      //save palette colors
+      for (i = 0; i < 16; i++) {
+        WriteGameSetting("Palette", "Color" + i, ColorText(i));
+      }
+
+      //if errors
+      if (blnWarnings) {
+        throw new Exception("637, strErrSource, LoadResString(637)");
+      }
+      return;
+    }
 
 
 
 
 
 
-
-
-
-    // this class is for all the global stuff that was previously in separate modules in VB6
-    ////arrays which will be treated as constants
-    ////rev colors have red and blue components switched
-    ////so api functions using colors work correctly
-    //internal static uint[] lngEGARevCol = new uint[16]; //15
-    //internal static uint[] lngEGACol = new uint[16]; //15;
-    internal static EGAColors colorEGA = new EGAColors();
+    // arrays that hold constant values
+    #region
     internal static readonly byte[] bytEncryptKey = { (byte)'A', (byte)'v', (byte)'i',
                              (byte)'s', (byte)' ', (byte)'D',
                              (byte)'u', (byte)'r', (byte)'g',
                              (byte)'a', (byte)'n' }; //' = "Avis Durgan"
 
-    // string arrays that are 'enums'
     public static readonly string[] ResTypeAbbrv = { "LOG", "PIC", "SND", "VIEW" };
     public static readonly string[] ResTypeName = { "Logic", "Picture", "Sound", "View" };
     public static readonly string[] IntVersions = new string[16]
@@ -265,8 +498,9 @@ MA  02110-1301  USA
       "2.915", "2.917", "2.936",
       "3.002086", "3.002098", "3.002102", "3.002107", "3.002149"
     };
-
+    #endregion
     //game constants
+    #region
     internal const int MAX_RES_SIZE = 65530;
     internal const int MAX_LOOPS = 255;
     internal const int MAX_CELS = 255;
@@ -276,8 +510,7 @@ MA  02110-1301  USA
     internal const int MAX_CEL_HEIGHT = 168;
     internal const int MAX_GROUP_NUM = 65535;
     internal const int MAX_WORD_GROUPS = 65535;
-    internal const int MAX_VOLSIZE = 1047552;
-    //MAX_VOLSIZE = 1047552  '= 1024 * 1023
+    internal const int MAX_VOLSIZE = 1047552;// '= 1024 * 1023
     internal const string WORD_SEPARATOR = " | ";
     //current version
     internal const string WINAGI_VERSION = "3.0.1";
@@ -329,8 +562,12 @@ MA  02110-1301  USA
     internal const int PT_BKSZ = 21;
     internal const int PT_SIZE = 254;
     internal const int PT_ALL = 255;
-
-    //predefined arguments
+    #endregion
+    //global variables
+    #region
+    internal static AGIGame theGame = new AGIGame(); // reference pointer to the current game in the engine
+    internal static EGAColors colorEGA = new EGAColors();
+    internal static EGAColors defaultColorEGA = new EGAColors();
     internal static bool agResAsText;  //if true, reserved variables and flags show up as text when decompiling
                                        //not used if agUseRes is FALSE
     internal static bool agUseRes;     //if true, predefined variables and flags are used during compilation
@@ -358,16 +595,17 @@ MA  02110-1301  USA
     internal static int lngError = 0;
     internal static string strError = "";
     internal static string strErrSrc = "";
+    #endregion
     static WinAGI()
     {
       // initialize all winagi stuff here
       RestoreDefaultColors();
       CRC32Setup();
-      //get max vol size
-      agMaxVolSize = 1023 * 1024;
+      //get default max vol sizes
+      theGame.agMaxVolSize = 1023 * 1024;
 
       //set max vol0 size
-      agMaxVol0 = agMaxVolSize;
+      theGame.agMaxVol0 = theGame.agMaxVolSize;
     }
     internal static void InitWinAGI()
     {

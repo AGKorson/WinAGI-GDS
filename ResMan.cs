@@ -812,9 +812,6 @@ namespace WinAGI.Editor
     public static bool NoGDIPlus = false;
     #endregion
     //***************************************************
-    // API DECLARATIONS
-    //***************************************************
-    //***************************************************
     // GLOBAL STATIC FUNCTIONS
     //***************************************************
     public static void AddToQueue(AGIResType ResType, int ResNum)
