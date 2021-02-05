@@ -394,7 +394,7 @@ namespace WinAGI.Editor
 
 
       //if nothing loaded AND autoreload is set AND something was loaded last time program ended,
-      if (!EditGame.GameLoaded && this.ActiveMdiChild == null && Settings.AutoOpen && blnLastLoad) {
+      if (EditGame == null && this.ActiveMdiChild == null && Settings.AutoOpen && blnLastLoad) {
         //open mru1
         OpenMRUGame(0);
       }
@@ -653,7 +653,7 @@ namespace WinAGI.Editor
 
       //reset selprop
       SelectedProp = 0;
-
+      propertyGrid1.SelectedObject = null;
       //get number of rows to display based on new selection
       switch (NewResType) {
       case AGIResType.rtNone:
@@ -663,65 +663,65 @@ namespace WinAGI.Editor
       case AGIResType.rtGame:
         //show gameid, gameauthor, description,etc
         PropRows = 10;
-        propertyGrid1.SelectedObject = paGame;
+        //propertyGrid1.SelectedObject = paGame;
         break;
       case AGIResType.rtLogic:
         if (NewResNum == -1) {
           //logic header
           PropRows = 3;
-          propertyGrid1.SelectedObject = EditGame.Logics;
+          //propertyGrid1.SelectedObject = EditGame.Logics;
         }
         else {
           //show logic properties
           PropRows = 8;
-          propertyGrid1.SelectedObject = EditGame.Logics[NewResNum];
+          //propertyGrid1.SelectedObject = EditGame.Logics[NewResNum];
         }
         break;
       case AGIResType.rtPicture:
         if (NewResNum == -1) {
           //picture header
-          propertyGrid1.SelectedObject = EditGame.Pictures;
+          //propertyGrid1.SelectedObject = EditGame.Pictures;
           PropRows = 1;
         }
         else {
           //show picture properties
           PropRows = 6;
-          propertyGrid1.SelectedObject = EditGame.Pictures[NewResNum];
+          //propertyGrid1.SelectedObject = EditGame.Pictures[NewResNum];
         }
         break;
       case AGIResType.rtSound:
         if (NewResNum == -1) {
           //sound header
           PropRows = 1;
-          propertyGrid1.SelectedObject = EditGame.Sounds;
+          //propertyGrid1.SelectedObject = EditGame.Sounds;
         }
         else {
           //show sound properties
           PropRows = 6;
-          propertyGrid1.SelectedObject = EditGame.Sounds[NewResNum];
+          //propertyGrid1.SelectedObject = EditGame.Sounds[NewResNum];
         }
         break;
       case AGIResType.rtView:
         if (NewResNum == -1) {
           //view header
           PropRows = 1;
-          propertyGrid1.SelectedObject = EditGame.Views;
+          //propertyGrid1.SelectedObject = EditGame.Views;
         }
         else {
           //show view properties
           PropRows = 7;
-          propertyGrid1.SelectedObject = EditGame.Views[NewResNum];
+          //propertyGrid1.SelectedObject = EditGame.Views[NewResNum];
         }
         break;
       case AGIResType.rtObjects:
         //show object Count, description, encryption, and Max screen objects
         PropRows = 4;
-        propertyGrid1.SelectedObject = EditGame.InvObjects;
+        //propertyGrid1.SelectedObject = EditGame.InvObjects;
         break;
       case AGIResType.rtWords:
         //show group Count and word Count and description
         PropRows = 3;
-        propertyGrid1.SelectedObject = EditGame.WordList;
+        //propertyGrid1.SelectedObject = EditGame.WordList;
         break;
       }
 
@@ -988,7 +988,7 @@ namespace WinAGI.Editor
         Settings.MaxVol0Size = 32768;
       if (Settings.MaxVol0Size > 1047552)
         Settings.MaxVol0Size = 1047552;
-      EditGame.MaxVol0Size = Settings.MaxVol0Size;
+      DefMaxVol0Size = Settings.MaxVol0Size;
       //get help window parent
       if (!GameSettings.GetSetting(sGENERAL, "DockHelpWindow", true)) {
         //HelpParent = GetDesktopWindow();
@@ -1106,11 +1106,12 @@ namespace WinAGI.Editor
         Settings.WarnMsgs = 0;
       if (Settings.WarnMsgs > 2)
         Settings.WarnMsgs = 2;
-      EditGame.LogicSourceSettings.ErrorLevel = (LogicErrorLevel)GameSettings.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
-      if (EditGame.LogicSourceSettings.ErrorLevel < 0)
-        EditGame.LogicSourceSettings.ErrorLevel = 0;
-      if ((int)EditGame.LogicSourceSettings.ErrorLevel > 2)
-        EditGame.LogicSourceSettings.ErrorLevel = (LogicErrorLevel)2;
+      // TODO: when loading a game, need to set error level? NO!! error level is global!!!!!!
+      Settings.ErrorLevel = (LogicErrorLevel)GameSettings.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
+      if (Settings.ErrorLevel < 0)
+        Settings.ErrorLevel = LogicErrorLevel.leLow;
+      if ((int)Settings.ErrorLevel > 2)
+        Settings.ErrorLevel = LogicErrorLevel.leHigh; 
       Settings.DefUseResDef = GameSettings.GetSetting(sLOGICS, "DefUseResDef", DEFAULT_DEFUSERESDEF);
       Settings.Snippets = GameSettings.GetSetting(sLOGICS, "Snippets", DEFAULT_SNIPPETS);
 
@@ -1240,17 +1241,19 @@ namespace WinAGI.Editor
       Settings.ShowGrid = GameSettings.GetSetting(sVIEWS, "ShowEditGrid", DEFAULT_SHOWGRID);
 
       //DECOMPILER
-      EditGame.LogicSourceSettings.ShowAllMessages = GameSettings.GetSetting(sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
-      EditGame.LogicSourceSettings.MsgsByNumber = GameSettings.GetSetting(sDECOMPILER, "MsgsByNum", DEFAULT_MSGSBYNUM);
-      EditGame.LogicSourceSettings.ElseAsGoto = GameSettings.GetSetting(sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
-      EditGame.LogicSourceSettings.SpecialSyntax = GameSettings.GetSetting(sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
-      EditGame.LogicSourceSettings.ReservedAsText = GameSettings.GetSetting(sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
-      EditGame.LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
+      // TODO: decompiler settings are global; eventually I should add game properties that
+      // allow per-game setting of these properties...
+      Compiler.ShowAllMessages = GameSettings.GetSetting(sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
+      Compiler.MsgsByNumber = GameSettings.GetSetting(sDECOMPILER, "MsgsByNum", DEFAULT_MSGSBYNUM);
+      Compiler.ElseAsGoto = GameSettings.GetSetting(sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
+      Compiler.SpecialSyntax = GameSettings.GetSetting(sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
+      Compiler.ReservedAsText = GameSettings.GetSetting(sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
+      Compiler.UseReservedNames = Settings.DefUseResDef;
       if (Settings.UseTxt) {
-        EditGame.LogicSourceSettings.SourceExt = ".txt";
+        Compiler.SourceExt = ".txt";
       }
       else {
-        EditGame.LogicSourceSettings.SourceExt = ".lgc";
+        Compiler.SourceExt = ".lgc";
       }
 
       //get property window height
@@ -1349,19 +1352,19 @@ namespace WinAGI.Editor
       //error warning settings
       lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn0", 0);
       for (i = 1; i <= 30; i++) {
-        EditGame.LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << i)) == (1 << i));
+        Compiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << i)) == (1 << i));
       }
       lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn1", 0);
       for (i = 31; i <= 60; i++) {
-        EditGame.LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 30))) == 1 << (i - 30));
+        Compiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 30))) == 1 << (i - 30));
       }
       lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn2", 0);
       for (i = 61; i <= 90; i++) {
-        EditGame.LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 60))) == 1 << (i - 60));
+        Compiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 60))) == 1 << (i - 60));
       }
       lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn3", 0);
       for (i = 91; i < WARNCOUNT; i++) {
-        EditGame.LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 90))) == 1 << (i - 90));
+        Compiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 90))) == 1 << (i - 90));
       }
       return true;
     }
@@ -1394,22 +1397,22 @@ namespace WinAGI.Editor
       // for warnings, create a bitfield to mark which are being ignored
       lngCompVal = 0;
       for (i = 1; i <= 30; i++) {
-        lngCompVal |= (EditGame.LogicSourceSettings.IgnoreWarning(5000 + i) ? 1 << i : 0);
+        lngCompVal |= (Compiler.IgnoreWarning(5000 + i) ? 1 << i : 0);
       }
       GameSettings.WriteSetting(sLOGICS, "NoCompWarn0", lngCompVal);
       lngCompVal = 0;
       for (i = 1; i <= 30; i++) {
-        lngCompVal |= (EditGame.LogicSourceSettings.IgnoreWarning(5030 + i) ? 1 << i : 0);
+        lngCompVal |= (Compiler.IgnoreWarning(5030 + i) ? 1 << i : 0);
       }
       GameSettings.WriteSetting(sLOGICS, "NoCompWarn1", lngCompVal);
       lngCompVal = 0;
       for (i = 1; i <= 30; i++) {
-        lngCompVal |= (EditGame.LogicSourceSettings.IgnoreWarning(5060 + i) ? 1 << i : 0);
+        lngCompVal |= (Compiler.IgnoreWarning(5060 + i) ? 1 << i : 0);
       }
       GameSettings.WriteSetting(sLOGICS, "NoCompWarn2", lngCompVal);
       lngCompVal = 0;
       for (i = 1; i < (WARNCOUNT % 30); i++) {
-        lngCompVal |= (EditGame.LogicSourceSettings.IgnoreWarning(5090 + i) ? 1 << i : 0);
+        lngCompVal |= (Compiler.IgnoreWarning(5090 + i) ? 1 << i : 0);
       }
       GameSettings.WriteSetting(sLOGICS, "NoCompWarn3", lngCompVal);
       //save to file
@@ -1587,7 +1590,7 @@ namespace WinAGI.Editor
           if (SelResNum == -1) {
             DrawProp(gProp, "Count", EditGame.Logics.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
             DrawProp(gProp, "GlobalDef", "(List)", 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "UseResNames", EditGame.LogicSourceSettings.UseReservedNames.ToString(), 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
+            DrawProp(gProp, "UseResNames", Compiler.UseReservedNames.ToString(), 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
           }
           else {
             DrawProp(gProp, "Number", EditGame.Logics[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
@@ -8786,7 +8789,7 @@ ErrHandler:
           tvwResources.Nodes.Clear();
         }
         //add the base nodes
-        tvwResources.Nodes.Add("root", EditGame.GameLoaded ? EditGame.GameID : "AGIGame");
+        tvwResources.Nodes.Add("root", "AGIGame");
         tvwResources.Nodes[0].Nodes.Add(sLOGICS, sLOGICS);
         tvwResources.Nodes[0].Nodes.Add(sPICTURES, sPICTURES);
         tvwResources.Nodes[0].Nodes.Add(sSOUNDS, sSOUNDS);

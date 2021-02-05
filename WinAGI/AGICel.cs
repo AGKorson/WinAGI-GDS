@@ -14,6 +14,7 @@ namespace WinAGI.Engine
     internal byte mWidth;
     internal byte mHeight;
     internal AGIColors mTransColor;
+    internal EGAColors colorEGA;
     internal byte[,] mCelData;
     internal int mIndex;
     internal bool blnCelBMPSet;  //means cel bitmap needs to be rebuilt
@@ -26,61 +27,31 @@ namespace WinAGI.Engine
     bool mMirrored;
     string strErrSource;
     AGIView mParent;
-    public byte[,] AllCelData
+    public AGICel()
     {
-      get
-      {
-        //returns the entire array of cel data
-        //flips the data if the cel is mirrored, and
-        //not the primary loop
-        byte[,] tmpData;
-        int i, j;
-        if (mSetMirror)
-        {
-          //need to flip the data
-          tmpData = new byte[mWidth, mHeight];
-          for (i = 0; i < mWidth; i++)
-          {
-            for (j = 0; j < mHeight; j++)
-            {
-              //copy backwards
-              tmpData[mWidth - 1 - i, j] = mCelData[i, j];
-            }
-          }
-          //return temp data
-          return tmpData;
-        }
-        else
-        {
-          //fine to return as is
-          return mCelData;
+      strErrSource = "WINAGI.AGICel";
+      mCelData = new byte[1, 1];
+      mWidth = 1;
+      mHeight = 1;
+      // use default colors
+      colorEGA = defaultColorEGA;
+    }
+    internal AGICel(AGIView parent)
+    {
+      strErrSource = "WINAGI.AGICel";
+      mCelData = new byte[1, 1];
+      mWidth = 1;
+      mHeight = 1;
+      mParent = parent;
+      //if parent view is part of a game, use the game's colors
+      if (mParent != null) {
+        if (mParent.parent != null) {
+          colorEGA = mParent.parent.colorEGA;
         }
       }
-      set
-      {
-        //this method allows the entire cel data
-        //to be set as an array
-        //validate dimensions match height/width
-        if (value.GetUpperBound(0) != mWidth - 1)
-        {
-          //invalid data
-          throw new Exception("614, strErrSource, LoadResString(614)");
-        }
-        if (value.GetUpperBound(1) != mHeight - 1)
-        {
-          //invalid data
-          throw new Exception("614, strErrSource, LoadResString(614)");
-        }
-        //set the celdata
-        mCelData = value;
-        //if there is a parent object
-        if (mParent != null)
-        {
-          //set dirty flag
-          mParent.IsDirty = true;
-        }
-        //note change
-        mCelChanged = true;
+      // if not assigned to parent, use default
+      if (colorEGA == null) {
+        colorEGA = defaultColorEGA;
       }
     }
     public byte this[byte xPos, byte yPos] //CelData
@@ -141,6 +112,63 @@ namespace WinAGI.Engine
           //set dirty flag
           mParent.IsDirty = true;
         }
+      }
+    }
+    public byte[,] AllCelData
+    {
+      get
+      {
+        //returns the entire array of cel data
+        //flips the data if the cel is mirrored, and
+        //not the primary loop
+        byte[,] tmpData;
+        int i, j;
+        if (mSetMirror)
+        {
+          //need to flip the data
+          tmpData = new byte[mWidth, mHeight];
+          for (i = 0; i < mWidth; i++)
+          {
+            for (j = 0; j < mHeight; j++)
+            {
+              //copy backwards
+              tmpData[mWidth - 1 - i, j] = mCelData[i, j];
+            }
+          }
+          //return temp data
+          return tmpData;
+        }
+        else
+        {
+          //fine to return as is
+          return mCelData;
+        }
+      }
+      set
+      {
+        //this method allows the entire cel data
+        //to be set as an array
+        //validate dimensions match height/width
+        if (value.GetUpperBound(0) != mWidth - 1)
+        {
+          //invalid data
+          throw new Exception("614, strErrSource, LoadResString(614)");
+        }
+        if (value.GetUpperBound(1) != mHeight - 1)
+        {
+          //invalid data
+          throw new Exception("614, strErrSource, LoadResString(614)");
+        }
+        //set the celdata
+        mCelData = value;
+        //if there is a parent object
+        if (mParent != null)
+        {
+          //set dirty flag
+          mParent.IsDirty = true;
+        }
+        //note change
+        mCelChanged = true;
       }
     }
     void ClearBMP()
@@ -213,9 +241,9 @@ namespace WinAGI.Engine
           for (i = 0; i < 16; i++)
           {
             ncp.Entries[i] = Color.FromArgb((mTransparency && i == (int)mTransColor) ? 0 : 255,
-            EGAColor[i].R,
-            EGAColor[i].G,
-            EGAColor[i].B);
+            colorEGA[i].R,
+            colorEGA[i].G,
+            colorEGA[i].B);
           }
           // set the new palette
           mCelBMP.Palette = ncp;
@@ -504,21 +532,6 @@ namespace WinAGI.Engine
           }
         }
       }
-    }
-    public AGICel()
-    {
-      strErrSource = "WINAGI.AGICel";
-      mCelData = new byte[1, 1];
-      mWidth = 1;
-      mHeight = 1;
-    }
-    internal AGICel(AGIView parent)
-    {
-      strErrSource = "WINAGI.AGICel";
-      mCelData = new byte[1, 1];
-      mWidth = 1;
-      mHeight = 1;
-      mParent = parent;
     }
   }
 }

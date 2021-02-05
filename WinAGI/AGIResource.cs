@@ -34,7 +34,7 @@ namespace WinAGI.Engine
     */
     protected RData mRData = new RData(0);
     protected bool mInGame;
-    protected AGIGame parent;
+    internal AGIGame parent;
     protected bool mIsDirty;
     protected byte mResNum;
     protected string mDescription;
@@ -149,19 +149,16 @@ namespace WinAGI.Engine
       {
         //returns the size of the resource on the volume
         if (mInGame) {
-          // is established during game load, so just return it
+          //if not established yet
+          if (mSizeInVol == -1) {
+            //get Value
+            mSizeInVol = GetSizeInVOL();
+            //if valid Value not returned,
+            if (mSizeInVol == -1) {
+              throw new Exception(" 625, strErrSource, LoadResString(625)");
+            }
+          }
           return mSizeInVol;
-          ////if not established yet
-          //if (mSizeInVol == -1)
-          //{
-          //  //get Value
-          //  mSizeInVol = GetSizeInVOL(mVolume, mLoc);
-          //  //if valid Value not returned,
-          //  if (mSizeInVol == -1)
-          //  {
-          //    throw new Exception(" 625, strErrSource, LoadResString(625)");
-          //  }
-          //}
         } else {
           return -1;
         }
@@ -172,6 +169,63 @@ namespace WinAGI.Engine
         //after saving a resource to a VOL file
         mSizeInVol = value;
       }
+    }
+    internal int GetSizeInVOL()
+    {
+      //returns the size of this resource in its VOL file
+      //inputs are the volume filename and offset to beginning
+      //of resource
+
+      //if an error occurs while trying to read the size of this
+      //resource, the function returns -1
+      byte bytHigh, bytLow;
+      int lngV3Offset;
+      string strVolFile;
+      //any file access errors
+      //result in invalid size
+
+      //if version 3
+      if (parent.agIsVersion3) {
+        //adjusts header so compressed size is retrieved
+        lngV3Offset = 2;
+        //set filename
+        strVolFile = parent.agGameDir + parent.agGameID + "VOL." + mVolume;
+      }
+      else {
+        lngV3Offset = 0;
+        //set filename
+        strVolFile = parent.agGameDir + "VOL." + mVolume;
+      }
+      try {
+        //open the volume file
+        fsVOL = new FileStream(strVolFile, FileMode.Open);
+        brVOL = new BinaryReader(fsVOL);
+        //verify enough room to get length of resource
+        if (fsVOL.Length >= mLoc + 5 + lngV3Offset) {
+          //get size low and high bytes
+          fsVOL.Seek(mLoc, SeekOrigin.Begin);
+          bytLow = brVOL.ReadByte();
+          bytHigh = brVOL.ReadByte();
+          //verify this is a proper resource
+          if ((bytLow == 0x12) && (bytHigh == 0x34)) {
+            //now get the low and high bytes of the size
+            fsVOL.Seek(1, SeekOrigin.Current);
+            bytLow = brVOL.ReadByte();
+            bytHigh = brVOL.ReadByte();
+            fsVOL.Dispose();
+            brVOL.Dispose();
+            return (int)bytHigh * 256 + bytLow;
+          }
+        }
+      }
+      catch (Exception) {
+        // treat all errors the same
+      }
+      // if size not found,
+      //ensure file is closed, and return -1
+      fsVOL.Dispose();
+      brVOL.Dispose();
+      return -1;
     }
     public int V3Compressed
     { get; internal set; }// 0 = not compressed; 1 = picture compress; 2 = LZW compress
@@ -271,7 +325,7 @@ namespace WinAGI.Engine
           //save ID
           mResID = NewID;
           //reset compiler list of ids
-          blnSetIDs = false;
+          Compiler.blnSetIDs = false;
         }
       }
     }
@@ -1059,71 +1113,42 @@ namespace WinAGI.Engine
       //pass it along
       OnPropertyChanged("Data");
     }
-  }
-  public class RData
-  {
-    internal delegate void RDataChangedEventHandler(object sender, RDataChangedEventArgs e);
-    internal event RDataChangedEventHandler PropertyChanged;
-    byte[] mbytData = Array.Empty<byte>();
-    public class RDataChangedEventArgs
+    internal bool IsUniqueResID(string checkID)
     {
-      public RDataChangedEventArgs(int size)
-      {
-        //
+      // check all resids
+      foreach (AGIResource tmpRes in parent.agLogs.Col.Values) {
+        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase)) {
+          return false;
+        }
       }
-      public int Size { get; }
+      foreach (AGIResource tmpRes in parent.agPics.Col.Values) {
+        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase)) {
+          return false;
+        }
+      }
+      foreach (AGIResource tmpRes in parent.agSnds.Col.Values) {
+        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase)) {
+          return false;
+        }
+      }
+      foreach (AGIResource tmpRes in parent.agViews.Col.Values) {
+        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase)) {
+          return false;
+        }
+      }
+      // not found; must be unique
+      return true;
     }
-    protected void OnPropertyChanged(int size)
+    internal string UniqueResFile(AGIResType ResType)
     {
-      PropertyChanged?.Invoke(this, new RDataChangedEventArgs(size));
-    }
-    public byte this[int index]
-    {
-      get
-      {
-        return mbytData[index];
+      int intNo = 0;
+      string retval;
+      do {
+        intNo++;
+        retval = parent.agResDir + "New" + ResTypeName[(int)ResType] + intNo + ".ag" + ResTypeName[(int)ResType][0];
       }
-      set
-      {
-        mbytData[index] = value;
-        OnPropertyChanged(mbytData.Length);
-      }
-    }
-    public byte[] AllData
-    {
-      get
-      {
-        return mbytData;
-      }
-      set
-      {
-        mbytData = value;
-        OnPropertyChanged(mbytData.Length);
-      }
-    }
-    public int Length { get { return mbytData.Length; } private set { } }
-    public void ReSize(int newSize)
-    {
-      if (newSize < 0) {
-        //error 
-        throw new IndexOutOfRangeException();
-      }
-      if (newSize != mbytData.Length) {
-        Array.Resize(ref mbytData, newSize);
-        OnPropertyChanged(mbytData.Length);
-      }
-    }
-    public void Clear()
-    {
-      //reset to an empty array
-      mbytData = Array.Empty<byte>();
-      OnPropertyChanged(mbytData.Length);
-    }
-    public RData(int Size)
-    {
-      mbytData = new byte[Size];
-      // raise change event
-      OnPropertyChanged(Size);
+      while (File.Exists(retval));
+      return retval;
     }
   }
 }

@@ -2,8 +2,8 @@
 using System.ComponentModel;
 using static WinAGI.Engine.WinAGI;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.AGILogicSourceSettings;
 using static WinAGI.Engine.AGICommands;
+using static WinAGI.Engine.Compiler;
 using static WinAGI.Common.WinAGI;
 using System.IO;
 using System.Linq;

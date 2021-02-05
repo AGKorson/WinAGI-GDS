@@ -75,7 +75,7 @@ namespace WinAGI.Engine
       }
       // validate id
       strBaseID = strID;
-      while (!IsUniqueResID(strID)) {
+      while (!NewPicture.IsUniqueResID(strID)) {
         intNextNum++;
         strID = strBaseID + "_" + intNextNum;
       }
@@ -143,7 +143,7 @@ namespace WinAGI.Engine
       if (tmpPic.ID.Equals("Picture" + OldPic, StringComparison.OrdinalIgnoreCase)) {
         //change default ID to new ID
         strID = strBaseID = "Picture" + NewPic;
-        while (!IsUniqueResID(strID)) {
+        while (!tmpPic.IsUniqueResID(strID)) {
           intNextNum++;
           strID = strBaseID + "_" + intNextNum;
         }

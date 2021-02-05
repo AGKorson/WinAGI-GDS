@@ -74,7 +74,7 @@ namespace WinAGI.Engine
       }
       // validate id
       strBaseID = strID;
-      while (!IsUniqueResID(strID))
+      while (!NewSound.IsUniqueResID(strID))
       {
         intNextNum++;
         strID = strBaseID + "_" + intNextNum;
@@ -148,7 +148,7 @@ namespace WinAGI.Engine
       {
         //change default ID to new ID
         strID = strBaseID = "Sound" + NewSound;
-        while (!IsUniqueResID(strID))
+        while (!tmpSound.IsUniqueResID(strID))
         {
           intNextNum++;
           strID = strBaseID + "_" + intNextNum;

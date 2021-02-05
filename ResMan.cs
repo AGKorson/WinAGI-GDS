@@ -594,6 +594,7 @@ namespace WinAGI.Editor
       public int CompileOnRun;  // //0 = ask; 1 = no; 2 = yes
       public int LogicUndo;  //
       public int WarnMsgs;  //  //0 = ask; 1 = keep all; 2 = keep only used
+      public LogicErrorLevel ErrorLevel; //default error level for new games
       public bool DefUseResDef;  //default value for UseResDef
       public bool Snippets;  // determines if Snippets are used in logic/text code
       //pictures
@@ -879,8 +880,8 @@ namespace WinAGI.Editor
         strDef = strIn.Split(":");
         if (strDef.Length == 3) {
           //get the new name, if a valid entry
-          if (Val(strDef[1]) < EditGame.LogicSourceSettings.ResDefByGrp((int)Val(strDef[0])).Length) {
-            EditGame.LogicSourceSettings.ResDef((int)Val(strDef[0]), (int)Val(strDef[1]), strDef[2]);
+          if (Val(strDef[1]) < Compiler.ResDefByGrp((int)Val(strDef[0])).Length) {
+            Compiler.ResDef((int)Val(strDef[0]), (int)Val(strDef[1]), strDef[2]);
           }
         }
       }
@@ -889,7 +890,7 @@ namespace WinAGI.Editor
       //default value
       //we check AFTER all overrides are made just in case a swap is desired- checking in
       //realtime would not allow a swap
-      if (!EditGame.LogicSourceSettings.ValidateResDefs()) {
+      if (!Compiler.ValidateResDefs()) {
         //if any were changed, re-write the WinAGI.config file
         SaveResDefOverrides();
       }
@@ -910,7 +911,7 @@ namespace WinAGI.Editor
       for (j = 1; j <= 8; j++) {
 
         //checks 27 variables
-        dfTemp = EditGame.LogicSourceSettings.ResDefByGrp(j);
+        dfTemp = Compiler.ResDefByGrp(j);
         for (i = 0; i < max[j]; i++) {
           if (dfTemp[i].Default != dfTemp[i].Name) {
             //save it
@@ -924,7 +925,9 @@ namespace WinAGI.Editor
     }
     public static void InitializeResMan()
     {
-      int i;
+      //initialize main WinAGI functions
+      InitWinAGI();
+
       bool blnCourier = false, blnArial = false;
       bool blnTimes = false, blnConsolas = false;
       //set default fonts
@@ -962,11 +965,6 @@ namespace WinAGI.Editor
       DEFAULT_EFONTNAME = DEFAULT_PFONTNAME;
       Settings.EFontName = DEFAULT_EFONTNAME;
       Settings.PFontName = DEFAULT_PFONTNAME;
-      //set default color values by copying
-      //from WinAGI game object
-      for (i = 0; i < 16; i++) {
-        DefEGAColor[i] = EditGame.EGAColor[i];
-      }
       // initialize settings arrays
       Settings.HBold = new bool[5];
       Settings.HItalic = new bool[5];
@@ -1626,7 +1624,7 @@ namespace WinAGI.Editor
       int lngErr;
 
       //if a game is currently open,
-      if (EditGame.GameLoaded) {
+      if (EditGame != null) {
         //close game, if user allows
         if (!CloseThisGame()) {
           return false;
@@ -1649,6 +1647,7 @@ namespace WinAGI.Editor
       try {
         //and load the game/dir
         if (mode == 0) {
+          EditGame = new AGIGame();
           EditGame.OpenGameWAG(gameSource);
         }
         else {
@@ -2004,7 +2003,7 @@ namespace WinAGI.Editor
       //change them to match preferred defaults
       GetDefaultColors();
       // restore default resdef
-      EditGame.LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
+      Compiler.UseReservedNames = Settings.DefUseResDef;
       //update caption
       MDIMain.Text = "WinAGI GDS";
       //reset node marker so selection of resources
@@ -2092,43 +2091,43 @@ namespace WinAGI.Editor
       // step through each type of define value, add it to list
 
       //27 variables
-      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(1);
+      tmpDef = Compiler.ResDefByGrp(1);
       for (i = 0; i < 27; i++) {
         RDefLookup[i] = tmpDef[i];
       }
       //18 flags
-      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(2);
+      tmpDef = Compiler.ResDefByGrp(2);
       for (i = 0; i < 18; i++) {
         RDefLookup[i + 27] = tmpDef[i];
       }
       //5 edge codes
-      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(3);
+      tmpDef = Compiler.ResDefByGrp(3);
       for (i = 0; i < 5; i++) {
         RDefLookup[i + 45] = tmpDef[i];
       }
       //9 directions
-      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(4);
+      tmpDef = Compiler.ResDefByGrp(4);
       for (i = 0; i < 9; i++) {
         RDefLookup[i + 50] = tmpDef[i];
       }
       //5 video modes
-      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(5);
+      tmpDef = Compiler.ResDefByGrp(5);
       for (i = 0; i < 5; i++) {
         RDefLookup[i + 59] = tmpDef[i];
       }
       //9 computer types
-      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(6);
+      tmpDef = Compiler.ResDefByGrp(6);
       for (i = 0; i < 9; i++) {
         RDefLookup[i + 64] = tmpDef[i];
       }
       //16 colors
-      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(7);
+      tmpDef = Compiler.ResDefByGrp(7);
       for (i = 0; i < 16; i++) {
         RDefLookup[i + 73] = tmpDef[i];
       }
-      //6 others
-      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(8);
-      for (i = 0; i < 6; i++) {
+      //one other
+      tmpDef = Compiler.ResDefByGrp(8);
+      for (i = 0; i < 1; i++) {
         RDefLookup[i + 89] = tmpDef[i];
       }
       //then let open logic editors know
@@ -2441,7 +2440,7 @@ namespace WinAGI.Editor
           strLine = srGlobal.ReadLine();
           //trim it - also, skip comments
           string a = "";
-          strLine = StripComments(strLine, ref a, false);
+          strLine = Compiler.StripComments(strLine, ref a, false);
           //ignore blanks
           if (strLine.Length != 0) {
             //even though new format is to match standard #define format,
@@ -11459,10 +11458,10 @@ namespace WinAGI.Editor
       switch (ResType) {
       case rtLogic:
         //if a file with this name already exists
-        if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt)) {
+        if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt)) {
           //import existing, or overwrite it?
           rtn = MessageBox.Show("There is already a source file with the name '" + EditGame.Logics[ResNum].ID +
-                EditGame.LogicSourceSettings.SourceExt + "' in your source file directory." + Environment.NewLine + Environment.NewLine +
+                Compiler.SourceExt + "' in your source file directory." + Environment.NewLine + Environment.NewLine +
                 "Do you want to import that file? Choose 'NO' to replace that file with the current logic source.",
                 "Import Existing Source File?", MessageBoxButtons.YesNo);
         }
@@ -11489,16 +11488,16 @@ namespace WinAGI.Editor
           //if there is a file with the new ResID, rename it first
           try {
             //delete existing .OLD file (if there is one)
-            if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt + ".OLD")) {
+            if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt + ".OLD")) {
               {
-                File.Delete(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt + ".OLD");
+                File.Delete(EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt + ".OLD");
               }
               //rename old file with new ResID as .OLD
-              File.Move(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt, EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt + ".OLD");
+              File.Move(EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt, EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt + ".OLD");
               //then, if there is a file with the previous ID
               //save it with the new ID
               if (File.Exists(OldFileName)) {
-                File.Move(OldFileName, EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt);
+                File.Move(OldFileName, EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt);
               }
               else {
                 EditGame.Logics[ResNum].SaveSource();
@@ -12006,7 +12005,7 @@ namespace WinAGI.Editor
     public static void AddNewLogic(int NewLogicNumber, AGILogic NewLogic, bool blnTemplate, bool Importing)
     {
       string strLogic;
-      int i;
+      int lngPos = 0;
 
       //add to logic collection in game
       EditGame.Logics.Add((byte)NewLogicNumber, NewLogic);
@@ -12049,7 +12048,7 @@ namespace WinAGI.Editor
       case 1:
         TreeNode tmpNode = HdrNode[0];
         //find place to insert this logic
-        for (int lngPos = 0; lngPos < HdrNode[0].Nodes.Count; lngPos++) {
+        for (lngPos = 0; lngPos < HdrNode[0].Nodes.Count; lngPos++) {
           if ((int)tmpNode.Nodes[lngPos].Tag > NewLogicNumber) {
             break;
           }
@@ -12070,13 +12069,13 @@ namespace WinAGI.Editor
         if (MDIMain.cmbResType.SelectedIndex == 1) {
           ListViewItem tmpListItem;
           //find a place to insert this logic in the box list
-          for (i = 0; i < MDIMain.lstResources.Items.Count; i++) {
-            if ((int)MDIMain.lstResources.Items[i].Tag > NewLogicNumber) {
+          for (lngPos = 0; lngPos < MDIMain.lstResources.Items.Count; lngPos++) {
+            if ((int)MDIMain.lstResources.Items[lngPos].Tag > NewLogicNumber) {
               break;
             }
           }
           //i is index position we are looking for
-          tmpListItem = MDIMain.lstResources.Items.Insert(i, "l" + NewLogicNumber, ResourceName(EditGame.Logics[NewLogicNumber], true), 0);
+          tmpListItem = MDIMain.lstResources.Items.Insert(lngPos, "l" + NewLogicNumber, ResourceName(EditGame.Logics[NewLogicNumber], true), 0);
           tmpListItem.Tag = NewLogicNumber.ToString();
           if (!EditGame.Logics[NewLogicNumber].Compiled) {
             tmpListItem.ForeColor = Color.Red;
@@ -12093,7 +12092,7 @@ namespace WinAGI.Editor
       IDefLookup[NewLogicNumber].Type = atNum;
       //then let open logic editors know
       if (LogicEditors.Count > 0) {
-        for (i = 0; 0 < LogicEditors.Count; i++) {
+        for (int i = 0; i < LogicEditors.Count; i++) {
           LogicEditors[i].ListDirty = true;
         }
       }
@@ -13312,13 +13311,13 @@ namespace WinAGI.Editor
         strLogic = strLogic.Replace("%h", GameSettings.GetSetting(sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON).ToString());
 
         //if using reserved names, insert them
-        if (EditGame.LogicSourceSettings.UseReservedNames) {
+        if (Compiler.UseReservedNames) {
           //f5, v0, f2, f4, v9
-          strLogic = strLogic.Replace("f5", EditGame.LogicSourceSettings.ReservedDefines(atFlag)[5].Name);
-          strLogic = strLogic.Replace("f2", EditGame.LogicSourceSettings.ReservedDefines(atFlag)[2].Name);
-          strLogic = strLogic.Replace("f4", EditGame.LogicSourceSettings.ReservedDefines(atFlag)[4].Name);
-          strLogic = strLogic.Replace("v0", EditGame.LogicSourceSettings.ReservedDefines(atVar)[0].Name);
-          strLogic = strLogic.Replace("v9", EditGame.LogicSourceSettings.ReservedDefines(atVar)[9].Name);
+          strLogic = strLogic.Replace("f5", Compiler.ReservedDefines(atFlag)[5].Name);
+          strLogic = strLogic.Replace("f2", Compiler.ReservedDefines(atFlag)[2].Name);
+          strLogic = strLogic.Replace("f4", Compiler.ReservedDefines(atFlag)[4].Name);
+          strLogic = strLogic.Replace("v0", Compiler.ReservedDefines(atVar)[0].Name);
+          strLogic = strLogic.Replace("v9", Compiler.ReservedDefines(atVar)[9].Name);
         }
       }
       catch (Exception) {
@@ -14133,8 +14132,11 @@ namespace WinAGI.Editor
     public static void GetDefaultColors()
     {
       // reads default custom colors from winagi.confg
-      for (int i = 0; i < 16; i++) {
-        EditGame.EGAColor[i] = GameSettings.GetSetting(sDEFCOLORS, "DefEGAColor" + i, EditGame.EGAColor[i]);
+      for (int i = 0; i < 16; i++) {  //TODO: is this right? use original value as default-default?
+        // this is all wrong - need set of colors for the App to use; those colors get set to 
+        //   -  the default colors (which should be set by reading winagi.config file) when no game loaded
+        //   - to the game colors when a game is loaded
+        DefaultColors[i] = GameSettings.GetSetting(sDEFCOLORS, "DefEGAColor" + i, DefaultColors[i]);
       }
 
     }

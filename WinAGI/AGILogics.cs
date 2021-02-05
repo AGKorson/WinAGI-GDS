@@ -77,7 +77,7 @@ namespace WinAGI.Engine
       }
       // validate id
       strBaseID = strID;
-      while (!IsUniqueResID(strID)) {
+      while (!NewLogic.IsUniqueResID(strID)) {
         intNextNum++;
         strID = strBaseID + "_" + intNextNum;
       }
@@ -145,7 +145,7 @@ namespace WinAGI.Engine
       if (tmpLogic.ID.Equals("Logic" + OldLogic, StringComparison.OrdinalIgnoreCase)) {
         //change default ID to new ID
         strID = strBaseID = "Logic" + NewLogic;
-        while (!IsUniqueResID(strID)) {
+        while (!tmpLogic.IsUniqueResID(strID)) {
           intNextNum++;
           strID = strBaseID + "_" + intNextNum;
         }
@@ -212,18 +212,16 @@ namespace WinAGI.Engine
       //if in a game
       if (parent.agGameLoaded) {
         //initialize global defines
-        //get datemodified property
-        DateTime dtFileMod = File.GetLastWriteTime(parent.agGameDir + "globals.txt");
-        if (CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString())) != agGlobalCRC) {
-          parent.GetGlobalDefines();
+        if (!parent.GlobalDefines.IsSet) {
+          parent.GlobalDefines.GetGlobalDefines();
         }
         //if ids not set yet
-        if (!blnSetIDs) {
-          SetResourceIDs();
+        if (!Compiler.blnSetIDs) {
+          Compiler.SetResourceIDs(parent);
         }
       }
       //convert argument
-      ConvertArgument(ref ArgIn, ArgType, ref VarOrNum);
+      Compiler.ConvertArgument(ref ArgIn, ArgType, ref VarOrNum);
       //return it
       return ArgIn.ToLower();
     }

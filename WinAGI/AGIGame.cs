@@ -7,7 +7,7 @@ using System.IO;
 using static WinAGI.Engine.WinAGI;
 using static WinAGI.Engine.AGICommands;
 using static WinAGI.Common.WinAGI;
-using System.Drawing;
+using static WinAGI.Engine.Compiler;
 
 namespace WinAGI.Engine
 {
@@ -39,13 +39,13 @@ namespace WinAGI.Engine
     internal AGIInventoryObjects agInvObj;
     internal AGIWordList agVocabWords;
     internal GlobalList agGlobals;
-
+    internal EGAColors colorEGA = new EGAColors();
     internal string agGameDir = "";
     internal string agResDir = "";
     internal string agResDirName = "";
     internal string agGameID = "";
     internal string agAuthor = "";
-    internal DateTime agLastEdit; 
+    internal DateTime agLastEdit;
     internal string agDescription = "";
     internal string agIntVersion = "";
     internal bool agIsVersion3 = false;
@@ -95,6 +95,11 @@ namespace WinAGI.Engine
     { get => agInvObj; set { } }
     public GlobalList GlobalDefines
     { get => agGlobals; set { } }
+    public EGAColors EGAColor
+    {
+      get { return colorEGA; }
+      //set { colorEGA = value; }
+    }
     public bool GameLoaded
     { get => agGameLoaded; set { } }
     public void CancelCompile()
@@ -126,11 +131,6 @@ namespace WinAGI.Engine
           //              WriteGameSetting("General", "DOSExec", agDOSExec
         }
       }
-    }
-    public EGAColors EGAColor
-    {
-      get { return colorEGA; }
-      //set { colorEGA = value; }
     }
     public string GameAbout
     {
@@ -361,6 +361,26 @@ namespace WinAGI.Engine
           WriteGameSetting("General", "GameVersion", agGameVersion);
       }
     }
+    public TDefine[] ReservedGameDefines()
+    {
+    //internal static TDefine[] agResDef = new TDefine[6];    //5 //defines for ego, gamever, gameabout, gameid, invobj Count
+                                                            //returns the reserved defines that are game-specific
+    TDefine[] tmpDefines = new TDefine[44];
+      tmpDefines[0].Name = agResObj[3].Name;
+      tmpDefines[0].Value = "\"" + GameID + "\"";
+      tmpDefines[0].Type = ArgTypeEnum.atDefStr;
+      tmpDefines[1].Name = agResObj[1].Name;
+      tmpDefines[1].Value = "\"" + agGameVersion + "\"";
+      tmpDefines[1].Type = ArgTypeEnum.atDefStr;
+      tmpDefines[2].Name = agResObj[2].Name;
+      tmpDefines[2].Value = "\"" + GameAbout + "\"";
+      tmpDefines[2].Type = ArgTypeEnum.atDefStr;
+
+      tmpDefines[44].Name = agResObj[4].Name;
+      tmpDefines[44].Value = agInvObj.Count.ToString();
+      tmpDefines[0].Type = ArgTypeEnum.atNum;
+      return tmpDefines;
+    }
     public void CloseGame()
     {
       //if no game is currently loaded
@@ -383,7 +403,7 @@ namespace WinAGI.Engine
 
 
       //restore default AGI colors
-      RestoreDefaultColors();
+      ResetDefaultColors();
 
       //write date of last edit
       WriteGameSetting("General", "LastEdit", agLastEdit.ToString());
@@ -979,20 +999,6 @@ namespace WinAGI.Engine
         }
       }
     }
-    public AGILogicSourceSettings LogicSourceSettings
-    {
-      get
-      {
-        return agMainLogSettings;
-      }
-      set
-      {
-        agMainLogSettings = value;
-
-        //change date of last edit
-        agLastEdit = DateTime.Now;
-      }
-    }
     public int MaxVol0Size
     {
       get { return agMaxVol0; }
@@ -1002,7 +1008,7 @@ namespace WinAGI.Engine
         if (value < 32768) {
           agMaxVol0 = 32768;
         }
-        else if (value != MAX_VOLSIZE) {
+        else if (value >= MAX_VOLSIZE) {
           agMaxVol0 = MAX_VOLSIZE;
         }
         else {
@@ -1362,7 +1368,7 @@ namespace WinAGI.Engine
         agLogs[0].Unload();
 
         //force id reset
-        blnSetIDs = false;
+        Compiler.blnSetIDs = false;
 
         //set open flag, so properties can be updated
         agGameLoaded = true;
@@ -1388,7 +1394,7 @@ namespace WinAGI.Engine
 
       //save palette colors
       for (i = 0; i < 16; i++) {
-        WriteGameSetting("Palette", "Color" + i, ColorText(i));
+        WriteGameSetting("Palette", "Color" + i, colorEGA.ColorText(i));
       }
 
       //if errors
@@ -1500,6 +1506,11 @@ namespace WinAGI.Engine
       agPlatformFile = "";
       agPlatformOpts = "";
       agDOSExec = "";
+
+      // colors
+      for (int i = 0; i < 16; i++) {
+        colorEGA[i] = DefaultColors[i];
+      }
     }
     public int OpenGameWAG(string GameWAG)
     {
@@ -1543,7 +1554,7 @@ namespace WinAGI.Engine
       //open the property file (file has to already exist)
       try {
         agGameProps = new SettingsList(agGameFile);
-        agGameProps.Open(false);
+        agGameProps.Open(false); //TODO: it should open by default
       }
       catch (Exception) {
         //// reset game variables
@@ -1678,7 +1689,7 @@ namespace WinAGI.Engine
         //  } else {
         //    //if opening by directory, extract resources from the VOL
         //    //files load resources
-        blnWarnings = ExtractResources();
+        blnWarnings = ExtractResources(this);
         //  }
       }
       catch (Exception e) {
@@ -1725,15 +1736,7 @@ namespace WinAGI.Engine
       Raise_LoadGameEvent(ELStatus.lsFinalizing, AGIResType.rtNone, 0, "");
       // adust commands based on AGI version
       CorrectCommands(agIntVersion);
-      //clear other game properties
-      agAuthor = "";
-      agDescription = "";
-      agGameVersion = "";
-      agAbout = "";
-      agPlatformType = 0;
-      agPlatformFile = "";
-      agPlatformOpts = "";
-      agDOSExec = "";
+      // reset edit time
       agLastEdit = new DateTime();
       try {
         //get rest of game properties
@@ -1745,7 +1748,7 @@ namespace WinAGI.Engine
         blnWarnings = true;
       }
       //force id reset
-      blnSetIDs = false;
+      Compiler.blnSetIDs = false;
       //we've established that the game can be opened
       //so set the loaded flag now
       agGameLoaded = true;
@@ -1920,7 +1923,7 @@ namespace WinAGI.Engine
       //     use layout editor
 
       //Palette: (make sure AGI defaults set first)
-      RestoreDefaultColors();
+      ResetDefaultColors();
       for (int i = 0; i < 16; i++) {
         EGAColor[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), EGAColor[i]);
       }
@@ -1955,7 +1958,7 @@ namespace WinAGI.Engine
       agPlatformOpts = agGameProps.GetSetting("General", "PlatformOpts", "");
 
       //use res names property (use current value, if one not found in property file)
-      agUseRes = agGameProps.GetSetting("General", "UseResNames", agUseRes);
+      Compiler.UseReservedNames = agGameProps.GetSetting("General", "UseResNames", Compiler.UseReservedNames);
 
       // use layout editor property
       agUseLE = agGameProps.GetSetting("General", "UseLE", false);
@@ -1972,31 +1975,6 @@ namespace WinAGI.Engine
       fsVOL.Dispose();
       bwVOL.Dispose();
       bwDIR.Dispose();
-    }
-  }
-  public class EGAColors
-  {
-    Color[] colorEGA = new Color[16];
-    public Color this[int index]
-    {
-      get
-      {
-        if (index < 0 || index > 15) {
-          throw new IndexOutOfRangeException("bad color");
-        }
-        return colorEGA[index];
-      }
-      set
-      {
-        if (index < 0 || index > 15) {
-          throw new IndexOutOfRangeException("bad color");
-        }
-        colorEGA[index] = value;
-        //// if color for a game is changed, how to let the game object know???
-        //if (agGameLoaded) {
-        //  WriteGameSetting("Palette", "Color" + index, ColorText(index));
-        //}
-      }
     }
   }
 }

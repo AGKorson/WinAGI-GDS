@@ -45,9 +45,9 @@ namespace WinAGI.Engine
         //update status
         Raise_CompileGameEvent(ECStatus.csAddResource, ResType, CurResNum, "");
         //check for cancellation
-        if (!agCompGame)
+        if (!tmpGameRes.parent.agCompGame)
         {
-          CompleteCancel();
+          tmpGameRes.parent.CompleteCancel();
           return;
         }
 
@@ -77,9 +77,9 @@ namespace WinAGI.Engine
                 //note it
                 Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, "Unable to load " + tmpGameRes.ID + " (" + e.Message + ")");
                 //check for cancellation
-                if (!agCompGame)
+                if (!tmpGameRes.parent.agCompGame)
                 {
-                  CompleteCancel();
+                  tmpGameRes.parent.CompleteCancel();
                   // make sure unloaded
                   tmpGameRes.Unload();
                   // and stop compiling
@@ -140,9 +140,9 @@ namespace WinAGI.Engine
                     //note the error
                     Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, strMsg);
                     //check for cancellation
-                    if (!agCompGame)
+                    if (!tmpGameRes.parent.agCompGame)
                     {
-                      CompleteCancel();
+                      tmpGameRes.parent.CompleteCancel();
                       // make sure unloaded
                       tmpGameRes.Unload();
                       //and stop compiling
@@ -190,9 +190,9 @@ namespace WinAGI.Engine
               //note the warning
               Raise_CompileGameEvent(ECStatus.csWarning, ResType, CurResNum, "--|" + strMsg + "|--|--");
               //check for cancellation
-              if (!agCompGame)
+              if (!tmpGameRes.parent.agCompGame)
               {
-                CompleteCancel();
+                tmpGameRes.parent.CompleteCancel();
                 // unload if needed
                 if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
                 // then stop compiling
@@ -206,7 +206,7 @@ namespace WinAGI.Engine
               try
               {
                 //compile it
-                CompileLogic(tmpLog);
+                Compiler.CompileLogic(tmpLog);
               }
               catch (Exception e)
               {
@@ -216,9 +216,9 @@ namespace WinAGI.Engine
                                             //raise compile event
                     Raise_CompileGameEvent(ECStatus.csLogicError, ResType, CurResNum, e.Message);
                     //check for cancellation
-                    if (!agCompGame)
+                    if (!tmpGameRes.parent.agCompGame)
                     {
-                      CompleteCancel();
+                    tmpGameRes.parent.CompleteCancel();
                       // unload if needed
                       if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
                       // then stop compiling
@@ -230,9 +230,9 @@ namespace WinAGI.Engine
                     //any other error; note it
                     Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, "Unable to compile Logic (" + e.Message + ")");
                     //check for cancellation
-                    if (!agCompGame)
+                    if (!tmpGameRes.parent.agCompGame)
                     {
-                      CompleteCancel();
+                    tmpGameRes.parent.CompleteCancel();
                       // unload if needed
                       if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
                       // then stop compiling
@@ -248,7 +248,7 @@ namespace WinAGI.Engine
           try
           {
             //validate vol and loc
-            ValidateVolAndLoc(tmpGameRes.Size);
+            ValidateVolAndLoc(tmpGameRes);
           }
           catch (Exception e)
           {
@@ -258,7 +258,7 @@ namespace WinAGI.Engine
             lngError = e.HResult;
 
             //clean up compiler
-            CompleteCancel(true);
+            tmpGameRes.parent.CompleteCancel(true);
 
             //unload resource, if applicable
             if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
@@ -292,9 +292,9 @@ namespace WinAGI.Engine
             //note it
             Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, "Unable to add Logic resource to VOL file (" + e.Message + ")");
             //check for cancellation
-            if (!agCompGame)
+            if (!tmpGameRes.parent.agCompGame)
             {
-              CompleteCancel();
+              tmpGameRes.parent.CompleteCancel();
               //unload resource, if applicable
               if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
               // then stop compiling
@@ -312,7 +312,6 @@ namespace WinAGI.Engine
         if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
       }
     }
-
     internal static void AddToVol(AGIResource AddRes, bool Version3, bool NewVOL = false, sbyte lngVol = -1, int lngLoc = -1)
     {
       //this method will add a resource to a VOL file
@@ -382,7 +381,7 @@ namespace WinAGI.Engine
         Array.Resize(ref ResHeader, 7);
         ResHeader[5] = ResHeader[3];
         ResHeader[6] = ResHeader[4];
-        strID = agGameID;
+        strID = AddRes.parent.agGameID;
       }
       else
       {
@@ -394,14 +393,14 @@ namespace WinAGI.Engine
       {
         //save the resource into the vol file
         //get as file number
-        fsVOL = new FileStream(agGameDir + strID + "VOL." + lngVol.ToString(), FileMode.Open);
+        fsVOL = new FileStream(AddRes.parent.agGameDir + strID + "VOL." + lngVol.ToString(), FileMode.Open);
         bwVOL = new BinaryWriter(fsVOL);
       }
       try
       {
         fsVOL.Seek(lngLoc, SeekOrigin.Begin);
         //add header to vol file
-        bwVOL.Write(ResHeader, 0, agIsVersion3 ? 7 : 5);
+        bwVOL.Write(ResHeader, 0, AddRes.parent.agIsVersion3 ? 7 : 5);
         // add resource data to vol file
         bwVOL.Write(AddRes.Data.AllData, 0, AddRes.Data.Length);
       }
@@ -512,10 +511,10 @@ namespace WinAGI.Engine
       AGIResType NewResType;
       byte NewResNum;
       //set header size, max# of VOL files and ID string depending on version
-      if (agIsVersion3)
+      if (NewResource.parent.agIsVersion3)
       {
         lngHeader = 7;
-        strID = agGameID;
+        strID = NewResource.parent.agGameID;
         lngMaxVol = 15;
       }
       else
@@ -529,7 +528,7 @@ namespace WinAGI.Engine
       NewResNum = NewResource.Number;
       NewResSize = NewResource.Size + lngHeader;
       //build array of all resources, sorted by VOL order (except the one being loaded)
-      foreach (AGILogic tmpRes in agLogs.Col.Values)
+      foreach (AGILogic tmpRes in NewResource.parent.agLogs.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtLogic || tmpRes.Number != NewResNum)
@@ -538,7 +537,7 @@ namespace WinAGI.Engine
           AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
         }
       }
-      foreach (AGIPicture tmpRes in agPics.Col.Values)
+      foreach (AGIPicture tmpRes in NewResource.parent.agPics.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtPicture || tmpRes.Number != NewResNum)
@@ -547,7 +546,7 @@ namespace WinAGI.Engine
           AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
         }
       }
-      foreach (AGISound tmpRes in agSnds.Col.Values)
+      foreach (AGISound tmpRes in NewResource.parent.agSnds.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtSound || tmpRes.Number != NewResNum)
@@ -556,7 +555,7 @@ namespace WinAGI.Engine
           AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
         }
       }
-      foreach (AGIView tmpRes in agViews.Col.Values)
+      foreach (AGIView tmpRes in NewResource.parent.agViews.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtView || tmpRes.Number != NewResNum)
@@ -602,90 +601,6 @@ namespace WinAGI.Engine
       //if no room in any VOL file, raise an error
       throw new Exception("593,ResourceFunctions.FindFreeVOLSpace, LoadResString(593)");
     }
-    internal static int GetSizeInVOL(sbyte bytVol, int lngLoc)
-    {
-      //returns the size of this resource in its VOL file
-      //inputs are the volume filename and offset to beginning
-      //of resource
-
-      //if an error occurs while trying to read the size of this
-      //resource, the function returns -1
-      byte bytHigh, bytLow;
-      int lngV3Offset;
-      string strVolFile;
-
-  //any file access errors
-  //result in invalid size
-
-      //if version 3
-      if (agIsVersion3)
-      {
-        //adjusts header so compressed size is retrieved
-        lngV3Offset = 2;
-        //set filename
-        strVolFile = agGameDir + agGameID + "VOL." + bytVol;
-      }
-      else
-      {
-        lngV3Offset = 0;
-        //set filename
-        strVolFile = agGameDir + "VOL." + bytVol;
-      }
-
-      try
-      {
-        //open the volume file
-        fsVOL = new FileStream(strVolFile, FileMode.Open);
-        brVOL = new BinaryReader(fsVOL);
-        //verify enough room to get length of resource
-        if (fsVOL.Length >= lngLoc + 5)
-        {
-          //get size low and high bytes
-          fsVOL.Seek(lngLoc, SeekOrigin.Begin);
-          bytLow = brVOL.ReadByte();
-          bytHigh = brVOL.ReadByte();
-          //verify this is a proper resource
-          if ((bytLow == 0x12) && (bytHigh == 0x34))
-          {
-            //now get the low and high bytes of the size
-            fsVOL.Seek(1, SeekOrigin.Current);
-            bytLow = brVOL.ReadByte();
-            bytHigh = brVOL.ReadByte();
-            fsVOL.Dispose();
-            brVOL.Dispose();
-            return (int)bytHigh * 256 + bytLow;
-          }
-        }
-      }
-      catch (Exception)
-      {
-        // treat all errors the same
-      }
-      // if size not found,
-      //ensure file is closed, and return -1
-      fsVOL.Dispose();
-      brVOL.Dispose();
-      return -1;
-    }
-    //private static void SetSizeInVol(AGIResource ThisResource, int NewSizeInVol)
-    //{
-    //  //sets the size of the resource
-    //  switch (ThisResource.ResType)
-    //  {
-    //    case AGIResType.rtLogic:
-    //      agLogs[ThisResource.Number].SizeInVOL = NewSizeInVol;
-    //      break;
-    //    case AGIResType.rtPicture:
-    //      agPics[ThisResource.Number].SizeInVOL = NewSizeInVol;
-    //      break;
-    //    case AGIResType.rtSound:
-    //      agSnds[ThisResource.Number].SizeInVOL = NewSizeInVol;
-    //      break;
-    //    case AGIResType.rtView:
-    //      agViews[ThisResource.Number].SizeInVOL = NewSizeInVol;
-    //      break;
-    //  }
-    //}
     internal static void UpdateDirFile(AGIResource UpdateResource, bool Remove = false)
     {
       //this method updates the DIR file with the volume and location
@@ -731,28 +646,28 @@ namespace WinAGI.Engine
       switch (UpdateResource.ResType)
       {
         case AGIResType.rtLogic:
-          intMax = agLogs.Max;
+          intMax = UpdateResource.parent.agLogs.Max;
             break;
         case AGIResType.rtPicture:
-          intMax = agPics.Max;
+          intMax = UpdateResource.parent.agPics.Max;
           break;
       case AGIResType.rtSound:
-          intMax = agSnds.Max;
+          intMax = UpdateResource.parent.agSnds.Max;
           break;
       case AGIResType.rtView:
-          intMax = agViews.Max;
+          intMax = UpdateResource.parent.agViews.Max;
           break;
       }
 
       //open the correct dir file, store in a temp array
       //if version3
-      if (agIsVersion3)
+      if (UpdateResource.parent.agIsVersion3)
       {
-        strDirFile = agGameDir + agGameID + "DIR";
+        strDirFile = UpdateResource.parent.agGameDir + UpdateResource.parent.agGameID + "DIR";
       }
       else
       {
-        strDirFile = agGameDir + ResTypeAbbrv[(int)UpdateResource.ResType] + "DIR";
+        strDirFile = UpdateResource.parent.agGameDir + ResTypeAbbrv[(int)UpdateResource.ResType] + "DIR";
       }
       try
       {
@@ -767,7 +682,7 @@ namespace WinAGI.Engine
         throw new Exception("can't open DIR for updating");
       }
       //calculate old max and offset (for v3 files)
-      if (agIsVersion3)
+      if (UpdateResource.parent.agIsVersion3)
       {
         //calculate directory offset
         switch (UpdateResource.ResType)
@@ -821,7 +736,7 @@ namespace WinAGI.Engine
       {
         //must be shrinking
         //if v2, just redim the array
-        if (!agIsVersion3)
+        if (!UpdateResource.parent.agIsVersion3)
         {
           Array.Resize(ref bytDIR, (intMax + 1) * 3);
         }
@@ -885,7 +800,7 @@ namespace WinAGI.Engine
         Array.Resize(ref bytDIR, bytDIR.Length + 3 * (intMax - intOldMax));
 
         //if v2, add ffs to fill gap up to the last entry
-        if (!agIsVersion3) {
+        if (!UpdateResource.parent.agIsVersion3) {
           lngStart = lngDirEnd;
           lngStop = lngDirEnd + 3 * (intMax - intOldMax - 1) - 1;
           for (i = lngStart; i <= lngStop; i++)
@@ -967,7 +882,7 @@ namespace WinAGI.Engine
         fsDIR.Write(bytDIR, 0, bytDIR.Length);
       }
     }
-    private static void ValidateVolAndLoc(int ResSize)
+    private static void ValidateVolAndLoc(AGIResource resource)
     {
       //this method ensures current vol has room for resource with given size
       //if not, it closes current vol file, and opens next one
@@ -976,10 +891,10 @@ namespace WinAGI.Engine
 
       int i = 0, lngMaxVol = 0;
       //this ressource doesn't fit (goes past end, OR if it's vol 0, and it exceeds vol0 size)
-      if (lngCurrentLoc + ResSize > MAX_VOLSIZE || (lngCurrentVol == 0 && (lngCurrentLoc + ResSize > agMaxVol0))) 
+      if (lngCurrentLoc + resource.Size > MAX_VOLSIZE || (lngCurrentVol == 0 && (lngCurrentLoc + resource.Size > resource.parent.agMaxVol0))) 
       {
         //set maxvol count to 4 or 15, depending on version
-        if (agIsVersion3)
+        if (resource.parent.agIsVersion3)
         {
           lngMaxVol = 15;
         }
@@ -1010,7 +925,7 @@ namespace WinAGI.Engine
             throw new Exception("640, VolManager.ValidateVolAndLoc, LoadResString(640)");
           }
           //is there room at the end of this file?
-          if ((i > 0 && (fsVOL.Length + ResSize <= MAX_VOLSIZE)) || (fsVOL.Length + ResSize <= agMaxVol0))
+          if ((i > 0 && (fsVOL.Length + resource.Size <= MAX_VOLSIZE)) || (fsVOL.Length + resource.Size <= resource.parent.agMaxVol0))
           {
             //if so, set pointer to end of the file, and exit
             lngCurrentVol = (sbyte)i;

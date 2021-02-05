@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using static WinAGI.Engine.WinAGI;
-using static WinAGI.Engine.AGILogicSourceSettings;
 using static WinAGI.Engine.AGICommands;
 using static WinAGI.Engine.AudioPlayer;
 using WinAGI.Common;
-using static WinAGI.Common.API;
 using static WinAGI.Common.WinAGI;
 using static WinAGI.Engine.AGIGame;
-using System.Windows.Forms;
 
 namespace WinAGI.Engine
 {
@@ -39,7 +34,7 @@ namespace WinAGI.Engine
     //public Declare int mciSendString Lib "winmm.dll" Alias "mciSendStringA" (string lpstrCommand, string lpstrReturnString, int uReturnLength, int hwndCallback)
     public const int MM_MCINOTIFY = 0x3B9;
     public const int MCI_NOTIFY_SUCCESSFUL = 0x1;
-    internal static bool ExtractResources()
+    internal static bool ExtractResources(AGIGame game)
     {
       //gets the resources from VOL files, and adds them to the game
 
@@ -63,27 +58,23 @@ namespace WinAGI.Engine
       Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtNone, 0, "");
 
       //if version 3
-      if (AGIGame.agIsVersion3)
-      {
+      if (game.agIsVersion3) {
         //get ID
-        strID = agGameID;
+        strID = game.agGameID;
         //get combined dir Volume
-        strDirFile = agGameDir + agGameID + "DIR";
+        strDirFile = game.agGameDir + game.agGameID + "DIR";
         //verify it exists
-        if (!File.Exists(strDirFile))
-        {
+        if (!File.Exists(strDirFile)) {
           throw new Exception("524, LoadResString(524), ARG1, strDirFile)");
         }
-        try
-        {
+        try {
           //open the file, load it into buffer, and close it
           fsDIR = new FileStream(strDirFile, FileMode.Open);
           bytBuffer = new byte[fsDIR.Length];
           fsDIR.Read(bytBuffer);
           fsDIR.Dispose();
         }
-        catch (Exception)
-        {
+        catch (Exception) {
           throw new Exception("502LoadResString(502)");
         }
 
@@ -94,63 +85,55 @@ namespace WinAGI.Engine
         }
 
       }
-      else
-      {
+      else {
         //no id
         strID = "";
       }
 
       //step through all four resource types
-      for (bytResType = 0; bytResType <= AGIResType.rtView; bytResType++)
-      {
+      for (bytResType = 0; bytResType <= AGIResType.rtView; bytResType++) {
         //if version 3
-        if (agIsVersion3)
-        {
+        if (game.agIsVersion3) {
           //calculate offset and size of each dir component
-          switch (bytResType)
-          {
-            case AGIResType.rtLogic:
-              lngDirOffset = bytBuffer[0] + bytBuffer[1] * 256;
-              lngDirSize = bytBuffer[2] + bytBuffer[3] * 256 - lngDirOffset;
-              break;
-            case AGIResType.rtPicture:
-              lngDirOffset = bytBuffer[2] + bytBuffer[3] * 256;
-              lngDirSize = bytBuffer[4] + bytBuffer[5] * 256 - lngDirOffset;
-              break;
-            case AGIResType.rtView:
-              lngDirOffset = bytBuffer[4] + bytBuffer[5] * 256;
-              lngDirSize = bytBuffer[6] + bytBuffer[7] * 256 - lngDirOffset;
-              break;
-            case AGIResType.rtSound:
-              lngDirOffset = bytBuffer[6] + bytBuffer[7] * 256;
-              lngDirSize = bytBuffer.Length - lngDirOffset;
-              break;
-            default:
-              break;
+          switch (bytResType) {
+          case AGIResType.rtLogic:
+            lngDirOffset = bytBuffer[0] + bytBuffer[1] * 256;
+            lngDirSize = bytBuffer[2] + bytBuffer[3] * 256 - lngDirOffset;
+            break;
+          case AGIResType.rtPicture:
+            lngDirOffset = bytBuffer[2] + bytBuffer[3] * 256;
+            lngDirSize = bytBuffer[4] + bytBuffer[5] * 256 - lngDirOffset;
+            break;
+          case AGIResType.rtView:
+            lngDirOffset = bytBuffer[4] + bytBuffer[5] * 256;
+            lngDirSize = bytBuffer[6] + bytBuffer[7] * 256 - lngDirOffset;
+            break;
+          case AGIResType.rtSound:
+            lngDirOffset = bytBuffer[6] + bytBuffer[7] * 256;
+            lngDirSize = bytBuffer.Length - lngDirOffset;
+            break;
+          default:
+            break;
           }
         }
-        else
-        {
+        else {
           //no offset for version 2
           lngDirOffset = 0;
           //get name of resource dir file
-          strDirFile = agGameDir + ResTypeAbbrv[(int)bytResType] + "DIR";
+          strDirFile = game.agGameDir + ResTypeAbbrv[(int)bytResType] + "DIR";
           //verify it exists
-          if (!File.Exists(strDirFile))
-          {
+          if (!File.Exists(strDirFile)) {
             throw new Exception("524, LoadResString(524), ARG1, strDirFile");
           }
 
-          try
-          {
+          try {
             //open the file, load it into buffer, and close it
             fsDIR = new FileStream(strDirFile, FileMode.Open);
             bytBuffer = new byte[fsDIR.Length];
             fsDIR.Read(bytBuffer);
             fsDIR.Dispose();
           }
-          catch (Exception)
-          {
+          catch (Exception) {
             throw new Exception("502LoadResString(502)");
           }
 
@@ -159,47 +142,38 @@ namespace WinAGI.Engine
         }
 
         //if invalid dir information, return false
-        if ((lngDirOffset < 0) || (lngDirSize < 0))
-        {
+        if ((lngDirOffset < 0) || (lngDirSize < 0)) {
           throw new Exception(" 542, LoadResString(542), ARG1, strDirFile");
         }
 
         //if at least one resource,
-        if (lngDirSize >= 3)
-        {
-          if (lngDirOffset + lngDirSize > bytBuffer.Length)
-          {
+        if (lngDirSize >= 3) {
+          if (lngDirOffset + lngDirSize > bytBuffer.Length) {
             throw new Exception(" 542, LoadResString(542), ARG1, strDirFile");
           }
         }
 
         //max size of useable directory is 768 (256*3)
-        if (lngDirSize > 768)
-        {
+        if (lngDirSize > 768) {
           //warning- file might be invalid
           blnWarnings = true;
-          if (agIsVersion3)
-          {
-            RecordLogEvent(LogEventType.leWarning, ResTypeAbbrv[(int)bytResType] + " portion of DIR file is larger than expected; it may be corrupted");
+          if (game.agIsVersion3) {
+            game.RecordLogEvent(LogEventType.leWarning, ResTypeAbbrv[(int)bytResType] + " portion of DIR file is larger than expected; it may be corrupted");
           }
-          else
-          {
-            RecordLogEvent(LogEventType.leWarning, ResTypeAbbrv[(int)bytResType] + "DIR file is larger than expected; it may be corrupted");
+          else {
+            game.RecordLogEvent(LogEventType.leWarning, ResTypeAbbrv[(int)bytResType] + "DIR file is larger than expected; it may be corrupted");
           }
           //assume the max for now
           intResCount = 256;
         }
-        else
-        {
+        else {
           intResCount = lngDirSize / 3;
         }
 
         //if this resource type has entries,
-        if (intResCount > 0)
-        {
+        if (intResCount > 0) {
           //use error handler to check for bad resources
-          for (i = 0; i < intResCount; i++)
-          {
+          for (i = 0; i < intResCount; i++) {
 
             Raise_LoadGameEvent(ELStatus.lsResources, bytResType, (byte)i, "");
 
@@ -209,155 +183,132 @@ namespace WinAGI.Engine
             byte2 = bytBuffer[lngDirOffset + bytResNum * 3 + 1];
             byte3 = bytBuffer[lngDirOffset + bytResNum * 3 + 2];
             //ignore any 0xFFFFFF sequences,
-            if (byte1 != 0xff)
-            {
+            if (byte1 != 0xff) {
               //extract volume and location
               bytVol = (sbyte)(byte1 >> 4);
-              strVolFile = agGameDir + strID + "VOL." + bytVol.ToString();
+              strVolFile = game.agGameDir + strID + "VOL." + bytVol.ToString();
               lngLoc = ((byte1 % 16) << 16) + (byte2 << 8) + byte3;
               strResID = ResTypeName[(int)bytResType] + bytResNum.ToString();
               //add a resource of this res type
-              switch (bytResType)
-              {
-                case AGIResType.rtLogic:  //logic
-                  try
-                  {
-                    agLogs.LoadLogic(bytResNum, bytVol, lngLoc);
-                  }
-                  catch (Exception e)
-                  {
-                    //deal with load errors
-                    RecordLoadError(strResID, e);
-                    blnWarnings = true;
-                  }
-                  //make sure it was added before attempting to set property state
-                  if (agLogs.Exists(bytResNum))
-                  {
-                    ////when new resources are added, status is set to dirty; for initial load,
-                    ////need to reset them to false
-                    //agLogs[bytResNum].WritePropState = false;
-                    agLogs[bytResNum].IsDirty = false;
+              switch (bytResType) {
+              case AGIResType.rtLogic:  //logic
+                try {
+                  game.agLogs.LoadLogic(bytResNum, bytVol, lngLoc);
+                }
+                catch (Exception e) {
+                  //deal with load errors
+                  RecordLoadError(game, strResID, e);
+                  blnWarnings = true;
+                }
+                //make sure it was added before attempting to set property state
+                if (game.agLogs.Exists(bytResNum)) {
+                  ////when new resources are added, status is set to dirty; for initial load,
+                  ////need to reset them to false
+                  //agLogs[bytResNum].WritePropState = false;
+                  game.agLogs[bytResNum].IsDirty = false;
 
-                  }
-                  else
-                  {
-                    //set it's DIR file values to FFs
-                    bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                    bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                    bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                    blnDirtyDIR = true;
-                  }
-                  break;
-                case AGIResType.rtPicture:  //picture
-                  try
-                  {
-                    agPics.LoadPicture(bytResNum, bytVol, lngLoc);
-                  }
-                  catch (Exception e)
-                  {
-                    //deal with load errors
-                    RecordLoadError(strResID, e);
-                    blnWarnings = true;
-                  }
-                  //make sure it was added before attempting to set property state
-                  if (agPics.Exists(bytResNum))
-                  {
-                    //when new resources are added, status is set to dirty; for initial load,
-                    //need to reset them to false
-                    agPics[bytResNum].WritePropState = false;
-                    agPics[bytResNum].IsDirty = false;
-                  }
-                  else
-                  {
-                    //set it's DIR file values to FFs
-                    bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                    bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                    bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                    blnDirtyDIR = true;
-                  }
-                  break;
-                case AGIResType.rtSound:  //sound
-                  try
-                  {
-                    agSnds.LoadSound(bytResNum, bytVol, lngLoc);
-                  }
-                  catch (Exception e)
-                  {
-                    //deal with load errors
-                    RecordLoadError(strResID, e);
-                    blnWarnings = true;
-                  }
-                  //make sure it was added before attempting to set property state
-                  if (agSnds.Exists(bytResNum))
-                  {
-                    //when new resources are added, status is set to dirty; for initial load,
-                    //need to reset them to false
-                    agSnds[bytResNum].WritePropState = false;
-                    agSnds[bytResNum].IsDirty = false;
-                  }
-                  else
-                  {
-                    //set it's DIR file values to FFs
-                    bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                    bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                    bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                    blnDirtyDIR = true;
-                  }
-                  break;
+                }
+                else {
+                  //set it's DIR file values to FFs
+                  bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
+                  bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
+                  bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
+                  blnDirtyDIR = true;
+                }
+                break;
+              case AGIResType.rtPicture:  //picture
+                try {
+                  game.agPics.LoadPicture(bytResNum, bytVol, lngLoc);
+                }
+                catch (Exception e) {
+                  //deal with load errors
+                  RecordLoadError(game, strResID, e);
+                  blnWarnings = true;
+                }
+                //make sure it was added before attempting to set property state
+                if (game.agPics.Exists(bytResNum)) {
+                  //when new resources are added, status is set to dirty; for initial load,
+                  //need to reset them to false
+                  game.agPics[bytResNum].WritePropState = false;
+                  game.agPics[bytResNum].IsDirty = false;
+                }
+                else {
+                  //set it's DIR file values to FFs
+                  bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
+                  bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
+                  bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
+                  blnDirtyDIR = true;
+                }
+                break;
+              case AGIResType.rtSound:  //sound
+                try {
+                  game.agSnds.LoadSound(bytResNum, bytVol, lngLoc);
+                }
+                catch (Exception e) {
+                  //deal with load errors
+                  RecordLoadError(game, strResID, e);
+                  blnWarnings = true;
+                }
+                //make sure it was added before attempting to set property state
+                if (game.agSnds.Exists(bytResNum)) {
+                  //when new resources are added, status is set to dirty; for initial load,
+                  //need to reset them to false
+                  game.agSnds[bytResNum].WritePropState = false;
+                  game.agSnds[bytResNum].IsDirty = false;
+                }
+                else {
+                  //set it's DIR file values to FFs
+                  bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
+                  bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
+                  bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
+                  blnDirtyDIR = true;
+                }
+                break;
 
-                case AGIResType.rtView:  //view
-                  try
-                  {
-                    agViews.LoadView(bytResNum, bytVol, lngLoc);
-                  }
-                  catch (Exception e)
-                  {
-                    //deal with load errors
-                    RecordLoadError(strResID, e);
-                    blnWarnings = true;
-                  }
-                  //make sure it was added before attempting to set property state
-                  if (agViews.Exists(bytResNum))
-                  {
-                    //when new resources are added, status is set to dirty; for initial load,
-                    //need to reset them to false
-                    agViews[bytResNum].WritePropState = false;
-                    agViews[bytResNum].IsDirty = false;
-                  }
-                  else
-                  {
-                    //set it's DIR file values to FFs
-                    bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                    bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                    bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                    blnDirtyDIR = true;
-                  }
-                  break;
-                default:
-                  break;
+              case AGIResType.rtView:  //view
+                try {
+                  game.agViews.LoadView(bytResNum, bytVol, lngLoc);
+                }
+                catch (Exception e) {
+                  //deal with load errors
+                  RecordLoadError(game, strResID, e);
+                  blnWarnings = true;
+                }
+                //make sure it was added before attempting to set property state
+                if (game.agViews.Exists(bytResNum)) {
+                  //when new resources are added, status is set to dirty; for initial load,
+                  //need to reset them to false
+                  game.agViews[bytResNum].WritePropState = false;
+                  game.agViews[bytResNum].IsDirty = false;
+                }
+                else {
+                  //set it's DIR file values to FFs
+                  bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
+                  bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
+                  bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
+                  blnDirtyDIR = true;
+                }
+                break;
+              default:
+                break;
               }
             }
           }
 
           //if a v2 DIR was modified, save it
-          if (!agIsVersion3 && blnDirtyDIR)
-          {
-            try
-            {
+          if (!game.agIsVersion3 && blnDirtyDIR) {
+            try {
               //save the new DIR file
-              if (File.Exists(strDirFile + ".OLD"))
-              {
+              if (File.Exists(strDirFile + ".OLD")) {
                 File.Delete(strDirFile + ".OLD");
                 File.Move(strDirFile, strDirFile + ".OLD");
               }
-              using (fsDIR = new FileStream(strDirFile, FileMode.Open))
-              {
+              using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
                 fsDIR.Write(bytBuffer);
                 fsDIR.Dispose();
               }
             }
-            catch (Exception)
-            {
+            catch (Exception) {
               //error!
             }
             //reset the dirty flag
@@ -367,25 +318,20 @@ namespace WinAGI.Engine
       }
 
       //if a V3 DIR file was modified, save it
-      if (agIsVersion3 && blnDirtyDIR)
-      {
+      if (game.agIsVersion3 && blnDirtyDIR) {
         //save the new DIR file
-        try
-        {
+        try {
           //save the new DIR file
-          if (File.Exists(strDirFile + ".OLD"))
-          {
+          if (File.Exists(strDirFile + ".OLD")) {
             File.Delete(strDirFile + ".OLD");
             File.Move(strDirFile, strDirFile + ".OLD");
           }
-          using (fsDIR = new FileStream(strDirFile, FileMode.Open))
-          {
+          using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
             fsDIR.Write(bytBuffer);
             fsDIR.Dispose();
           }
         }
-        catch (Exception)
-        {
+        catch (Exception) {
           //error!
         }
       }
@@ -393,38 +339,37 @@ namespace WinAGI.Engine
       //return any warning codes
       return blnWarnings;
     }
-    internal static void RecordLoadError(string strResID, Exception eRes)
+    internal static void RecordLoadError(AGIGame game, string strID, Exception eRes)
     {
       // called when error encountered while trying to extract resources
       // during game load
 
       //if error was invalid resource data, invalid LOC value, or missing VOL file
-      switch (eRes.HResult)
-      {
-        case 502: //Error %1 occurred while trying to access %2.
-          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped due to file access error (" + eRes.Data[0] + ")");
-          break;
-        case 505: //Invalid resource location (%1) in %2.
-          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped because it's location (" + eRes.Data[0] + ") in the VOL file(" + eRes.Data[1] + ") is invalid.");
-          break;
-        case 506: //Invalid resource data at %1 in %2.
-          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped because it does not have a valid resource header");
-          break;
-        case 507: //Error %1 while reading resource in %2.
-          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped due to resource data error (" + eRes.Data[0] + ")");
-          break;
-        case 606: //Can//t load resource: file not found (%1)
-          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped because it's VOL file (" + eRes.Data[0] + ") is missing.");
-          break;
-        case 646:
-        case 648:
-        case 650:
-        case 652: //unhandled error in LoadLog|Pic|Snd|View
-          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped due to an error while loading (" + eRes.Message + ")");
-          break;
-        default: //any other unhandled error
-          RecordLogEvent(LogEventType.leWarning, strResID + " was skipped due to an error while loading (" + eRes.Message + ")");
-          break;
+      switch (eRes.HResult) {
+      case 502: //Error %1 occurred while trying to access %2.
+        game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped due to file access error (" + eRes.Data[0] + ")");
+        break;
+      case 505: //Invalid resource location (%1) in %2.
+        game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped because it's location (" + eRes.Data[0] + ") in the VOL file(" + eRes.Data[1] + ") is invalid.");
+        break;
+      case 506: //Invalid resource data at %1 in %2.
+        game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped because it does not have a valid resource header");
+        break;
+      case 507: //Error %1 while reading resource in %2.
+        game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped due to resource data error (" + eRes.Data[0] + ")");
+        break;
+      case 606: //Can//t load resource: file not found (%1)
+        game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped because it's VOL file (" + eRes.Data[0] + ") is missing.");
+        break;
+      case 646:
+      case 648:
+      case 650:
+      case 652: //unhandled error in LoadLog|Pic|Snd|View
+        game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped due to an error while loading (" + eRes.Message + ")");
+        break;
+      default: //any other unhandled error
+        game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped due to an error while loading (" + eRes.Message + ")");
+        break;
       }
     }
     internal static byte[] DecompressPicture(byte[] bytOriginalData)
@@ -435,15 +380,13 @@ namespace WinAGI.Engine
       int lngTempCurPos = 0;
       byte[] bytExpandedData = new byte[MAX_RES_SIZE];// Array.Empty<byte>();
       //decompress the picture
-      do
-      {
+      do {
         //get current compressed byte
         bytCurComp = bytOriginalData[intPosIn];
         intPosIn++;
 
         //if currently offset,
-        if (blnOffset)
-        {
+        if (blnOffset) {
           //adjust buffer byte
           bytBuffer = (byte)(bytBuffer + (bytCurComp >> 4));
           //extract uncompressed byte
@@ -451,8 +394,7 @@ namespace WinAGI.Engine
           //shift buffer back
           bytBuffer = (byte)(bytCurComp << 4);
         }
-        else
-        {
+        else {
           //byte is not compressed
           bytCurUncomp = bytCurComp;
         }
@@ -461,19 +403,16 @@ namespace WinAGI.Engine
         lngTempCurPos++;
 
         //check if byte sets or restores offset
-        if (((bytCurUncomp == 0xF0) || (bytCurUncomp == 0xF2)) && (intPosIn < bytOriginalData.Length))
-        {
+        if (((bytCurUncomp == 0xF0) || (bytCurUncomp == 0xF2)) && (intPosIn < bytOriginalData.Length)) {
           //if currently offset
-          if (blnOffset)
-          {
+          if (blnOffset) {
             //write rest of buffer byte
             bytExpandedData[lngTempCurPos] = (byte)(bytBuffer >> 4);
             lngTempCurPos++;
             //restore offset
             blnOffset = false;
           }
-          else
-          {
+          else {
             //get next byte
             bytCurComp = bytOriginalData[intPosIn];
             intPosIn++;
@@ -530,8 +469,7 @@ namespace WinAGI.Engine
       strChar = (char)0;
       //first code for  SIERRA resouces should always be 256
       //if first code is NOT 256
-      if (intOldCode != 256)
-      {
+      if (intOldCode != 256) {
         intPrefix = Array.Empty<uint>();
         bytAppend = Array.Empty<byte>();
         throw new Exception("559, Replace(LoadResString(559), ARG1, CStr(Err.Number))");
@@ -541,11 +479,9 @@ namespace WinAGI.Engine
       intNewCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
 
       //continue extracting data, until all bytes are read (or end code is reached)
-      while ((intPosIn <= lngOriginalSize) && (intNewCode != 0x101))
-      {
+      while ((intPosIn <= lngOriginalSize) && (intNewCode != 0x101)) {
         //if new code is 0x100,(256)
-        if (intNewCode == 0x100)
-        {
+        if (intNewCode == 0x100) {
           //Restart LZW process (should tables be flushed?)
           intNextCode = 258;
           intCodeSize = NewCodeSize(START_BITS);
@@ -559,22 +495,19 @@ namespace WinAGI.Engine
           //now get next code
           intNewCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
         }
-        else
-        {
+        else {
           // This code checks for the special STRING+character+STRING+character+STRING
           // case which generates an undefined code.  It handles it by decoding
           // the last code, and adding a single Character to the end of the decode string.
           // (new_code will ONLY return a next_code Value if the condition exists;
           // it should otherwise return a known code, or a ascii Value)
-          if ((intNewCode >= intNextCode))
-          {
+          if ((intNewCode >= intNextCode)) {
             //decode the string using old code
             strDat = DecodeString(intOldCode);
             //append the character code
             strDat += strChar;
           }
-          else
-          {
+          else {
             //decode the string using new code
             strDat = DecodeString(intNewCode);
           }
@@ -582,14 +515,12 @@ namespace WinAGI.Engine
           strChar = strDat[0];
           //now send out decoded data (it's backwards in the string, so
           //start at end and work back to beginning)
-          for (i = 0; i < strDat.Length; i++)
-          {
+          for (i = 0; i < strDat.Length; i++) {
             bytTempData[intPosOut] = (byte)strDat[i];
             intPosOut++;
           }
           //if no more room in the current bit-code table,
-          if ((intNextCode > lngMaxCode))
-          {
+          if ((intNextCode > lngMaxCode)) {
             //get new code size (in number of bits per code)
             intCodeSize = NewCodeSize(intCodeSize + 1);
           }
@@ -640,28 +571,24 @@ namespace WinAGI.Engine
       //(include one byte for ending zero)
       bytTempRLE = new byte[mHeight * mWidth + 1];
       //step through each row
-      for (j = 0; j < mHeight; j++)
-      {
+      for (j = 0; j < mHeight; j++) {
         //get first pixel color
         bytChunkColor = (byte)mCelData[0, j];
         bytChunkLen = 1;
         blnFirstChunk = true;
         //step through rest of pixels in this row
-        for (i = 1; i < mWidth; i++)
-        {
+        for (i = 1; i < mWidth; i++) {
           //get next pixel color
           bytNextColor = (byte)mCelData[i, j];
           //if different from current chunk
-          if ((bytNextColor != bytChunkColor) || (bytChunkLen == 0xF))
-          {
+          if ((bytNextColor != bytChunkColor) || (bytChunkLen == 0xF)) {
             //write chunk
             bytTempRLE[lngByteCount] = (byte)((int)bytChunkColor * 0x10 + bytChunkLen);
             //increment Count
             lngByteCount++;
 
             //if this is NOT first chunk or NOT transparent)
-            if (!blnFirstChunk || (bytChunkColor != (byte)mTransColor))
-            {
+            if (!blnFirstChunk || (bytChunkColor != (byte)mTransColor)) {
               //increment lngMirorCount for any chunks
               //after the first, and also for the first
               //if it is NOT transparent color
@@ -673,15 +600,13 @@ namespace WinAGI.Engine
             //reset length
             bytChunkLen = 1;
           }
-          else
-          {
+          else {
             //increment chunk length
             bytChunkLen++;
           }
         }
         //if last chunk is NOT transparent
-        if (bytChunkColor != (byte)mTransColor)
-        {
+        if (bytChunkColor != (byte)mTransColor) {
           //add last chunk
           bytTempRLE[lngByteCount] = (byte)(bytChunkColor * 0x10 + bytChunkLen);
           //increment Count
@@ -695,11 +620,9 @@ namespace WinAGI.Engine
         lngMirrorCount++;
         //if mirroring
       }
-      if (blnMirror)
-      {
+      if (blnMirror) {
         //add zeros to make room
-        while (lngByteCount < lngMirrorCount)
-        {    //add a zero
+        while (lngByteCount < lngMirrorCount) {    //add a zero
           bytTempRLE[lngByteCount] = 0;
           lngByteCount++;
         }
@@ -717,16 +640,13 @@ namespace WinAGI.Engine
 
       string retval = "";
 
-      while (intCode > 255)
-      {
+      while (intCode > 255) {
         //if code Value exceeds table size,
-        if (intCode > TABLE_SIZE)
-        {
+        if (intCode > TABLE_SIZE) {
           //Debug.Print "FATAL ERROR as  Invalid code (" + CStr(intCode) + ") in DecodeString."
           return retval;
         }
-        else
-        {
+        else {
           //build string
           retval = (char)bytAppend[intCode - 257] + retval;
           intCode = intPrefix[intCode - 257];
@@ -765,8 +685,7 @@ namespace WinAGI.Engine
       //this ensures that the eight bits read from the input stream
       //will fit in the buffer (which is a long integer==4 bytes==32 bits)
       //also stop reading data if end of data stream is reached)
-      while ((lngBitsInBuffer <= 24) && (intPosIn < lngOriginalSize))
-      {
+      while ((lngBitsInBuffer <= 24) && (intPosIn < lngOriginalSize)) {
         //get next byte
         lngWord = bytData[intPosIn];
         intPosIn++;
@@ -810,15 +729,13 @@ namespace WinAGI.Engine
       const int MAXBITS = 12;
       int retval;
 
-      if (intVal == MAXBITS)
-      {
+      if (intVal == MAXBITS) {
         retval = 11;
         //this makes no sense!!!!
         //as written, it means max code size is really 11, not
         //12; an attempt to set it to 12 keeps it at 11???
       }
-      else
-      {
+      else {
         retval = intVal;
         lngMaxCode = (1 << retval) - 2;
       }
@@ -835,20 +752,16 @@ namespace WinAGI.Engine
       int lngStart, lngEnd;
 
       //calculate track Count
-      if (!SoundIn[0].Muted && SoundIn[0].Notes.Count > 0)
-      {
+      if (!SoundIn[0].Muted && SoundIn[0].Notes.Count > 0) {
         lngTrackCount = 1;
       }
-      if (!SoundIn[1].Muted && SoundIn[1].Notes.Count > 0)
-      {
+      if (!SoundIn[1].Muted && SoundIn[1].Notes.Count > 0) {
         lngTrackCount++;
       }
-      if (!SoundIn[2].Muted && SoundIn[2].Notes.Count > 0)
-      {
+      if (!SoundIn[2].Muted && SoundIn[2].Notes.Count > 0) {
         lngTrackCount++;
       }
-      if (!SoundIn[3].Muted && SoundIn[3].Notes.Count > 0)
-      {
+      if (!SoundIn[3].Muted && SoundIn[3].Notes.Count > 0) {
         //add two tracks if noise is not muted
         //because the white noise and periodic noise
         //are written as two separate tracks
@@ -872,8 +785,7 @@ namespace WinAGI.Engine
                          //mode 1 = multiple tracks, all start at zero
                          //mode 2 = multiple tracks, independent start times
                          //if no tracks,
-      if (lngTrackCount == 0)
-      {
+      if (lngTrackCount == 0) {
         //need to build a //null// set of data!!!
 
         Array.Resize(ref SndPlayer.mMIDIData, 38);
@@ -920,11 +832,9 @@ namespace WinAGI.Engine
       WriteSndWord(30);
 
       //write the sound tracks
-      for (i = 0; i < 3; i++)
-      {
+      for (i = 0; i < 3; i++) {
         //if adding this instrument,
-        if (!SoundIn[i].Muted && SoundIn[i].Notes.Count > 0)
-        {
+        if (!SoundIn[i].Muted && SoundIn[i].Notes.Count > 0) {
           WriteSndByte(77); //"M"
           WriteSndByte(84); //"T"
           WriteSndByte(114); //"r"
@@ -953,11 +863,9 @@ namespace WinAGI.Engine
           WriteSndByte(0);
 
           //step through notes in this track (5 bytes at a time)
-          for (j = 0; j <= SoundIn[i].Notes.Count - 1; j++)
-          {
+          for (j = 0; j <= SoundIn[i].Notes.Count - 1; j++) {
             //calculate note to play
-            if (SoundIn[i].Notes[j].FreqDivisor > 0)
-            {
+            if (SoundIn[i].Notes[j].FreqDivisor > 0) {
               //middle C is 261.6 HZ; from midi specs,
               //middle C is a note with a Value of 60
               //this requires a shift in freq of approx. 36.376
@@ -969,14 +877,12 @@ namespace WinAGI.Engine
               //
               //(bytNote can never be <44 or >164)
               //in case note is too high,
-              if (bytNote > 127)
-              {
+              if (bytNote > 127) {
                 bytNote = 127;
               }
               bytVol = (byte)(127 * (15 - SoundIn[i].Notes[j].Attenuation) / 15);
             }
-            else
-            {
+            else {
               bytNote = 0;
               bytVol = 0;
             }
@@ -1024,14 +930,12 @@ namespace WinAGI.Engine
       //harpsichord does a good job of imitating the tone noise, with frequency adjusted empirically
 
       //if adding noise track,
-      if (!SoundIn[3].Muted && SoundIn[3].Notes.Count > 0)
-      {
+      if (!SoundIn[3].Muted && SoundIn[3].Notes.Count > 0) {
         //because there are two types of noise, must use two channels
         //one uses seashore (white noise)
         //other uses harpsichord (tone noise)
 
-        for (i = 0; i < 2; i++)
-        {
+        for (i = 0; i < 2; i++) {
           //0 means add tone
           //1 means add white noise
 
@@ -1049,24 +953,23 @@ namespace WinAGI.Engine
           //write the set instrument byte
           WriteSndByte((byte)(0xC0 + lngWriteTrack));
           //write the instrument number
-          switch (i)
-          {
-            case 0:  //tone
-              WriteSndByte(6); //harpsichord seems to be good simulation for tone
-              break;
-            case 1:  //white noise
-              WriteSndByte(122); //seashore seems to be good simulation for white noise
-                                 //crank up the volume
-              WriteSndByte(0);
-              WriteSndByte((byte)(0xB0 + lngWriteTrack));
-              WriteSndByte(7);
-              WriteSndByte(127);
-              //set legato
-              WriteSndByte(0);
-              WriteSndByte((byte)(0xB0 + lngWriteTrack));
-              WriteSndByte(68);
-              WriteSndByte(127);
-              break;
+          switch (i) {
+          case 0:  //tone
+            WriteSndByte(6); //harpsichord seems to be good simulation for tone
+            break;
+          case 1:  //white noise
+            WriteSndByte(122); //seashore seems to be good simulation for white noise
+                               //crank up the volume
+            WriteSndByte(0);
+            WriteSndByte((byte)(0xB0 + lngWriteTrack));
+            WriteSndByte(7);
+            WriteSndByte(127);
+            //set legato
+            WriteSndByte(0);
+            WriteSndByte((byte)(0xB0 + lngWriteTrack));
+            WriteSndByte(68);
+            WriteSndByte(127);
+            break;
           }
 
           //write a slight delay note with no volume to start
@@ -1084,8 +987,7 @@ namespace WinAGI.Engine
 
           //0 - add periodic
           //1 - add white noise
-          for (j = 0; j < SoundIn[3].Notes.Count; j++)
-          {
+          for (j = 0; j < SoundIn[3].Notes.Count; j++) {
             //add duration to tickcount
             lngTickCount = lngTickCount + SoundIn[3].Notes[j].Duration;
             //Fourth byte: noise freq and type
@@ -1108,39 +1010,33 @@ namespace WinAGI.Engine
             //AGINote contains bits 2-1-0 only
             //
             //if this note matches desired type
-            if ((SoundIn[3].Notes[j].FreqDivisor & 4) == 4 * i)
-            {
+            if ((SoundIn[3].Notes[j].FreqDivisor & 4) == 4 * i) {
               //if using borrow function:
-              if ((SoundIn[3].Notes[j].FreqDivisor & 3) == 3)
-              {
+              if ((SoundIn[3].Notes[j].FreqDivisor & 3) == 3) {
                 //get frequency from channel 3
                 intFreq = GetTrack3Freq(SoundIn[2], lngTickCount);
               }
-              else
-              {
+              else {
                 //get frequency from bits 0 and 1
                 intFreq = (int)(2330.4296875 / (1 << (SoundIn[3].Notes[j].FreqDivisor & 3)));
               }
 
               //convert to midi note
-              if ((SoundIn[3].Notes[j].FreqDivisor & 4) == 4)
-              {
+              if ((SoundIn[3].Notes[j].FreqDivisor & 4) == 4) {
                 //for white noise, 96 is my best guess to imitate noise
                 //BUT... 96 causes some notes to come out negative;
                 //80 is max Value that ensures all AGI freq values convert
                 //to positive MIDI note values
                 bytNote = (byte)((Math.Log10(intFreq) / LOG10_1_12) - 80);
               }
-              else
-              {
+              else {
                 //for periodic noise, 64 is my best guess to imitate noise
                 bytNote = (byte)((Math.Log10(intFreq) / LOG10_1_12) - 64);
               }
               //get volume
               bytVol = (byte)(127 * (15 - SoundIn[3].Notes[j].Attenuation) / 15);
             }
-            else
-            {
+            else {
               //write a blank
               bytNote = 0;
               bytVol = 0;
@@ -1258,8 +1154,7 @@ namespace WinAGI.Engine
       //null sounds will start with 0xFC in first four bytes
       // (and nothing else), so ANY file starting with 0xFC
       // is considered empty
-      if (midiIn[2] == 0xFC)
-      {
+      if (midiIn[2] == 0xFC) {
         //assume no sound
         midiOut = new byte[26];
         midiOut[21] = 4;
@@ -1276,8 +1171,7 @@ namespace WinAGI.Engine
       lngOutPos = 22;
       //move the data over, one byte at a time
       lngInPos = 2;
-      do
-      {
+      do {
         //get next byte of input data
         bytIn = midiIn[lngInPos];
         //add it to output
@@ -1288,12 +1182,10 @@ namespace WinAGI.Engine
         //is greater than 0x7F, it will cause a hiccup in modern midi
         //players
         lngTime = bytIn;
-        if ((bytIn & 0x80) == 0x80)
-        {
+        if ((bytIn & 0x80) == 0x80) {
           //treat 0xFC as an end mark, even if found in time position
           //0xF8 also appears to cause an end
-          if ((bytIn == 0xFC) || (bytIn == 0xF8))
-          {
+          if ((bytIn == 0xFC) || (bytIn == 0xF8)) {
             //backup one to cancel this byte
             lngOutPos--;
             break;
@@ -1325,14 +1217,12 @@ namespace WinAGI.Engine
         }
         lngInPos++;
         //err check
-        if (lngInPos >= midiIn.Length)
-        {
+        if (lngInPos >= midiIn.Length) {
           break;
         }
         bytIn = midiIn[lngInPos];
         //next byte is a controller (>=0x80) OR a running status (<0x80)
-        if (bytIn >= 0x80)
-        {
+        if (bytIn >= 0x80) {
           //it's a command
           bytCmd = (byte)(bytIn / 16);
           bytChannel = (byte)(bytIn & 0xF);
@@ -1352,8 +1242,7 @@ namespace WinAGI.Engine
           // sounds; so if encountered, immediately stop processing
           // sometimes extra 0xD and 0xB commands follow a 0xFC,
           // but they cause hiccups in modern midi programs
-          if (bytIn == 0xFC)
-          {
+          if (bytIn == 0xFC) {
             //back up so last time value gets overwritten
             lngOutPos--;
             break;
@@ -1363,8 +1252,7 @@ namespace WinAGI.Engine
           midiOut[lngOutPos] = bytIn;
           lngOutPos++;
         }
-        else
-        {
+        else {
           //it's a running status -
           //back up one so next byte is event data
           lngInPos--;
@@ -1372,136 +1260,126 @@ namespace WinAGI.Engine
         //increment tick count
         lngTicks = lngTicks + lngTime;
         //next comes event data; number of data points depends on command
-        switch (bytCmd)
-        {
-          case 8:
+        switch (bytCmd) {
+        case 8:
+        case 9:
+        case 0xA:
+        case 0xB:
+        case 0xE:
+          //these all take two bytes of data
+          //get next byte
+          lngInPos++;
+          //err check
+          if (lngInPos >= midiIn.Length) {
+            break;
+          }
+          bytIn = midiIn[lngInPos];
+          //add it to output
+          midiOut[lngOutPos] = bytIn;
+          lngOutPos++;
+          //get next byte
+          lngInPos++;
+          //err check
+          if (lngInPos >= midiIn.Length) {
+            break;
+          }
+          bytIn = midiIn[lngInPos];
+          //add it to output
+          midiOut[lngOutPos] = bytIn;
+          lngOutPos++;
+          break;
+        case 0xC:
+        case 0xD:
+          //only one byte for program change, channel pressure
+          //get next byte
+          lngInPos++;
+          //err check
+          if (lngInPos >= midiIn.Length) {
+            break;
+          }
+          bytIn = midiIn[lngInPos];
+          //add it to output
+          midiOut[lngOutPos] = bytIn;
+          lngOutPos++;
+          break;
+        case 0xF: //system messages
+                  //depends on submsg (channel value) - only expected value is 0xC
+          switch (bytChannel) {
+          case 0:
+            //variable; go until 0xF7 found
+            do {
+              //get next byte
+              lngInPos++;
+              //err check
+              if (lngInPos >= midiIn.Length) {
+                break;
+              }
+              bytIn = midiIn[lngInPos];
+              //add it to output
+              midiOut[lngOutPos] = bytIn;
+              lngOutPos++;
+            }
+            while (bytIn != 0xF7);
+            break;
+          case 1:
+          case 4:
+          case 5:
           case 9:
+          case 0xD:
+            //all undefined- indicates an error
+            //back up so last time value gets overwritten
+            lngOutPos--;
+            break;
+          case 2: //song position
+                  //this uses two bytes
+                  //get next byte
+            lngInPos++;
+            //err check
+            if (lngInPos >= midiIn.Length) {
+              break;
+            }
+            bytIn = midiIn[lngInPos];
+            //add it to output
+            midiOut[lngOutPos] = bytIn;
+            lngOutPos++;
+            //get next byte
+            lngInPos++;
+            //err check
+            if (lngInPos >= midiIn.Length) {
+              break;
+            }
+            bytIn = midiIn[lngInPos];
+            //add it to output
+            midiOut[lngOutPos] = bytIn;
+            lngOutPos++;
+            break;
+          case 3: //song select
+                  //this uses one byte
+                  //get next byte
+            lngInPos++;
+            //err check
+            if (lngInPos >= midiIn.Length) {
+              break;
+            }
+            bytIn = midiIn[lngInPos];
+            //add it to output
+            midiOut[lngOutPos] = bytIn;
+            lngOutPos++;
+            break;
+          case 6:
+          case 7:
+          case 8:
           case 0xA:
           case 0xB:
           case 0xE:
-            //these all take two bytes of data
-            //get next byte
-            lngInPos++;
-            //err check
-            if (lngInPos >= midiIn.Length)
-            {
-              break;
-            }
-            bytIn = midiIn[lngInPos];
-            //add it to output
-            midiOut[lngOutPos] = bytIn;
-            lngOutPos++;
-            //get next byte
-            lngInPos++;
-            //err check
-            if (lngInPos >= midiIn.Length)
-            {
-              break;
-            }
-            bytIn = midiIn[lngInPos];
-            //add it to output
-            midiOut[lngOutPos] = bytIn;
-            lngOutPos++;
+          case 0xF:
+            //these all have no bytes of data
+            // but only 0xFC is expected; it gets
+            // checked above, though, so it doesn't
+            // get checked here
             break;
-          case 0xC:
-          case 0xD:
-            //only one byte for program change, channel pressure
-            //get next byte
-            lngInPos++;
-            //err check
-            if (lngInPos >= midiIn.Length)
-            {
-              break;
-            }
-            bytIn = midiIn[lngInPos];
-            //add it to output
-            midiOut[lngOutPos] = bytIn;
-            lngOutPos++;
-            break;
-          case 0xF: //system messages
-                    //depends on submsg (channel value) - only expected value is 0xC
-            switch (bytChannel)
-            {
-              case 0:
-                //variable; go until 0xF7 found
-                do
-                {
-                  //get next byte
-                  lngInPos++;
-                  //err check
-                  if (lngInPos >= midiIn.Length)
-                  {
-                    break;
-                  }
-                  bytIn = midiIn[lngInPos];
-                  //add it to output
-                  midiOut[lngOutPos] = bytIn;
-                  lngOutPos++;
-                }
-                while (bytIn != 0xF7);
-                break;
-              case 1:
-              case 4:
-              case 5:
-              case 9:
-              case 0xD:
-                //all undefined- indicates an error
-                //back up so last time value gets overwritten
-                lngOutPos--;
-                break;
-              case 2: //song position
-                //this uses two bytes
-                //get next byte
-                lngInPos++;
-                //err check
-                if (lngInPos >= midiIn.Length)
-                {
-                  break;
-                }
-                bytIn = midiIn[lngInPos];
-                //add it to output
-                midiOut[lngOutPos] = bytIn;
-                lngOutPos++;
-                //get next byte
-                lngInPos++;
-                //err check
-                if (lngInPos >= midiIn.Length)
-                {
-                  break;
-                }
-                bytIn = midiIn[lngInPos];
-                //add it to output
-                midiOut[lngOutPos] = bytIn;
-                lngOutPos++;
-                break;
-              case 3: //song select
-                //this uses one byte
-                //get next byte
-                lngInPos++;
-                //err check
-                if (lngInPos >= midiIn.Length)
-                {
-                  break;
-                }
-                bytIn = midiIn[lngInPos];
-                //add it to output
-                midiOut[lngOutPos] = bytIn;
-                lngOutPos++;
-                break;
-              case 6:
-              case 7:
-              case 8:
-              case 0xA:
-              case 0xB:
-              case 0xE:
-              case 0xF:
-                //these all have no bytes of data
-                // but only 0xFC is expected; it gets
-                // checked above, though, so it doesn't
-                // get checked here
-                break;
-            }
-            break;
+          }
+          break;
         }
         //move to next byte (which should be another time value)
         lngInPos++;
@@ -1509,8 +1387,7 @@ namespace WinAGI.Engine
       while (lngInPos < midiIn.Length); //Loop Until lngInPos >= midiIn.Length
 
       //resize output array to remove any extra potential bytes
-      if (lngOutPos + 4 < midiOut.Length)
-      {
+      if (lngOutPos + 4 < midiOut.Length) {
         Array.Resize(ref midiOut, lngOutPos + 4);
       }
       //add end of track data
@@ -1563,7 +1440,7 @@ namespace WinAGI.Engine
       //the WAV file header
       SndPlayer.mMIDIData = new byte[44 + lngSize];
       SndPlayer.mMIDIData[0] = 82;
-     SndPlayer.mMIDIData[1] = 73;
+      SndPlayer.mMIDIData[1] = 73;
       SndPlayer.mMIDIData[2] = 70;
       SndPlayer.mMIDIData[3] = 70;
       SndPlayer.mMIDIData[4] = (byte)((lngSize + 36) & 0xFF);
@@ -1608,8 +1485,7 @@ namespace WinAGI.Engine
       SndPlayer.mMIDIData[43] = (byte)(((lngSize - 2) / 0x1000000) & 0xFF);
       lngPos = 44;
       //copy data from sound resource, beginning at pos 2
-      for (i = 54; i < bData.Length; i++)
-      {
+      for (i = 54; i < bData.Length; i++) {
         //copy this one over
         SndPlayer.mMIDIData[lngPos] = bData[i];
         lngPos++;
@@ -1621,18 +1497,15 @@ namespace WinAGI.Engine
       //writes variable delta times!!
       int i;
       i = LongIn << 21; //LngSHR(LongIn, 21)
-      if ((i > 0))
-      {
+      if ((i > 0)) {
         WriteSndByte((byte)((i & 127) | 128));
       }
       i = LongIn << 14; //LngSHR(LongIn, 14)
-      if (i > 0)
-      {
+      if (i > 0) {
         WriteSndByte((byte)((i & 127) | 128));
       }
       i = LongIn << 7; //LngSHR(LongIn, 7)
-      if ((i > 0))
-      {
+      if ((i > 0)) {
         WriteSndByte((byte)((i & 127) | 128));
       }
       WriteSndByte((byte)(LongIn & 127));
@@ -1656,13 +1529,11 @@ namespace WinAGI.Engine
       //then use that frequency for noise channel
       int lngTickCount = 0;
       //step through notes in this track (5 bytes at a time)
-      for (int i = 0; i < Track3.Notes.Count; i++)
-      {
+      for (int i = 0; i < Track3.Notes.Count; i++) {
         //add duration
         lngTickCount += Track3.Notes[i].Duration;
         //if equal to or past current tick Count
-        if (lngTickCount >= lngTarget)
-        {
+        if (lngTickCount >= lngTarget) {
           //this is the frequency we want
           return Track3.Notes[i].FreqDivisor;
         }
@@ -1673,151 +1544,12 @@ namespace WinAGI.Engine
     internal static void WriteSndByte(byte ByteIn)
     {
       SndPlayer.mMIDIData[lngPos] = ByteIn;
-      lngPos++;;
+      lngPos++; ;
       //if at end
-      if (lngPos >= SndPlayer.mMIDIData.Length)
-      {
+      if (lngPos >= SndPlayer.mMIDIData.Length) {
         //jack it up
         Array.Resize(ref SndPlayer.mMIDIData, lngPos + 256);
       }
-    }
-    internal static bool IsUniqueResID(string checkID)
-    {
-      // check all resids
-      foreach (AGIResource tmpRes in agLogs.Col.Values)
-      {
-        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase))
-        {
-          return false;
-        }
-      }
-      foreach (AGIResource tmpRes in agPics.Col.Values)
-      {
-        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase))
-        {
-          return false;
-        }
-      }
-      foreach (AGIResource tmpRes in agSnds.Col.Values)
-      {
-        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase))
-        {
-          return false;
-        }
-      }
-      foreach (AGIResource tmpRes in agViews.Col.Values)
-      {
-        if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase))
-        {
-          return false;
-        }
-      }
-      // not found; must be unique
-      return true;
-    }
-    internal static string UniqueResFile(AGIResType ResType)
-    {
-      int intNo = 0;
-      string retval;
-      do
-      {
-        intNo++;
-        retval = agResDir + "New" + ResTypeName[(int)ResType] + intNo + ".ag" + ResTypeName[(int)ResType][0];
-      }
-      while (File.Exists(retval));// Until Dir(UniqueResFile) = ""
-      return retval;
-    }
-  }
-  internal class AudioPlayer : NativeWindow, IDisposable
-  {
-    IntPtr piFormHandle = IntPtr.Zero;
-    internal bool blnPlaying;
-    internal byte PlaySndResNum;
-    internal AGISound agSndToPlay;
-    internal byte[] mMIDIData;
-    internal AudioPlayer()
-    {
-      CreateParams cpSndPlayer = new CreateParams
-      {
-        //Style = 1
-      };
-      this.CreateHandle(cpSndPlayer);
-      piFormHandle = this.Handle;
-    }
-    internal void PlaySound(AGISound SndRes)
-    {
-      string strTempFile, strShortFile;
-      int rtn;
-      string strID, strMode;
-      StringBuilder strError = new StringBuilder(255);
-      //no spaces allowed in id
-      strID = SndRes.ID.Replace(" ", "_");
-      //create MIDI sound file
-      strTempFile = Path.GetTempFileName();
-      FileStream fsMidi = new FileStream(strTempFile, FileMode.Open);
-      fsMidi.Write(SndRes.MIDIData);
-      fsMidi.Dispose();
-      //convert to shortname
-      strShortFile = ShortFileName(strTempFile);
-      //if midi (format 1 or 3)
-      if (SndRes.SndFormat == 1 || SndRes.SndFormat == 3)
-      {
-        strMode = "sequencer";
-      }
-      else
-      {
-        strMode = "waveaudio";
-      }
-      //open midi file and assign alias
-      rtn = mciSendString("open " + strShortFile + " type " + strMode + " alias " + strID, null, 0, IntPtr.Zero);
-      //check for error
-      if (rtn != 0)
-      {
-        rtn = mciGetErrorString(rtn, strError, 255);
-        //return the error
-        throw new Exception("678, SndSubclass " + strError.ToString());
-      }
-      //set playing flag and number of sound being played
-      blnPlaying = true;
-      PlaySndResNum = SndRes.Number;
-      agSndToPlay = SndRes;
-      //play the file
-      rtn = mciSendString("play " + strID + " notify", null, 0, this.Handle);
-      //check for errors
-      if (rtn != 0)
-      {
-        rtn = mciGetErrorString(rtn, strError, 255);
-        //reset playing flag
-        blnPlaying = false;
-        agSndToPlay = null;
-        //close sound
-        rtn = mciSendString("close all", null, 0, (IntPtr)0);
-        //return the error
-        throw new Exception("628, SndSubclass " + strError.ToString());
-      }
-    }
-    public void Dispose()
-    {
-      this.DestroyHandle();
-    }
-    protected override void WndProc(ref Message m)
-    {
-      bool blnSuccess;
-      //check for mci msg
-      switch (m.Msg)
-      {
-        case MM_MCINOTIFY:
-          //determine success status
-          blnSuccess = m.WParam.ToInt32() == MCI_NOTIFY_SUCCESSFUL;
-          //close the sound
-          _ = mciSendString("close all", null, 0, (IntPtr)null);
-          //raise the 'done' event
-          agSnds[PlaySndResNum].Raise_SoundCompleteEvent(blnSuccess);
-          //reset the flag
-          blnPlaying = false;
-          break;
-      }
-      base.WndProc(ref m);
     }
   }
 }

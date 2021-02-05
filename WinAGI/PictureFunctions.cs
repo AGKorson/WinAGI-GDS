@@ -15,7 +15,7 @@ namespace WinAGI.Engine
   {
     //picture resource global variables
     private static byte[] VisBuildData, PriBuildData, agPicData;
-    //private static int lngPos;
+    private static int lngPos;
     private static int lngEndPos;
     private static short bytIn;
     private static PenStatus CurrentPen, SavePen;

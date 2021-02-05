@@ -8,7 +8,6 @@ using WinAGI.Common;
 using static WinAGI.Common.WinAGI;
 using static WinAGI.Engine.WinAGI;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.AGILogicSourceSettings;
 using static WinAGI.Engine.AGICommands;
 using static WinAGI.Engine.AGITestCommands;
 using static WinAGI.Engine.ArgTypeEnum;
@@ -16,7 +15,7 @@ using static WinAGI.Engine.LogicErrorLevel;
 
 namespace WinAGI.Engine
 {
-  public static partial class WinAGI
+  public static partial class Compiler
   {
     // reminder: the compiler is not case sensitive
     //EXCEPT strings in messages; they ARE case sensitive
@@ -78,7 +77,7 @@ namespace WinAGI.Engine
     internal static string[] strSndID;
     internal static string[] strViewID;
 
-    internal static void CompileLogic(AGILogic SourceLogic, AGIGame game)
+    internal static void CompileLogic(AGILogic SourceLogic)
     {
       //this function compiles the sourcetext that is passed
       //the function returns a Value of true if successful; it returns false
@@ -90,7 +89,7 @@ namespace WinAGI.Engine
       bool blnCompiled;
       List<string> stlSource = new List<string>();
 
-      compGame = game;
+      compGame = SourceLogic.parent;
 
       //set error info to success as default
       blnError = false;
@@ -111,16 +110,16 @@ namespace WinAGI.Engine
 
       //insert current values for reserved defines that can change values
       //agResDef[0].Value = "ego"  //this one doesn't change
-      agResDef[1].Value = "\"" + compGame.agGameVersion + "\"";
-      agResDef[2].Value = "\"" + compGame.agAbout + "\"";
-      agResDef[3].Value = "\"" + compGame.agGameID + "\"";
+      agResObj[1].Value = "\"" + compGame.agGameVersion + "\"";
+      agResObj[2].Value = "\"" + compGame.agAbout + "\"";
+      agResObj[3].Value = "\"" + compGame.agGameID + "\"";
       if (compGame.agInvObj.Loaded) {
         //Count of ACTUAL useable objects is one less than inventory object Count
         //because the first object ('?') is just a placeholder
-        agResDef[4].Value = (compGame.agInvObj.Count - 1).ToString();
+        agResObj[4].Value = (compGame.agInvObj.Count - 1).ToString();
       }
       else {
-        agResDef[4].Value = "-1";
+        agResObj[4].Value = "-1";
       }
 
       //get source text by lines as a list of strings
@@ -620,7 +619,7 @@ namespace WinAGI.Engine
       }
 
       //lastly, if using reserved names,
-      if (agUseRes) {
+      if (UseReservedNames) {
         //last of all, check reserved names
         switch (ArgType) {
         case atNum:
@@ -665,8 +664,8 @@ namespace WinAGI.Engine
             }
           }// i
            //check against invobj Count
-          if (strArgIn == agResDef[4].Name) {
-            strArgIn = agResDef[4].Value;
+          if (strArgIn == agResObj[4].Name) {
+            strArgIn = agResObj[4].Value;
             //reset VarOrNum flag
             blnVarOrNum = false;
             return true;
@@ -700,21 +699,21 @@ namespace WinAGI.Engine
           break;
         case atMsg:
           for (i = 1; i <= 3; i++) { //for gamever and gameabout and gameid
-            if (strArgIn == agResDef[i].Name) {
-              strArgIn = agResDef[i].Value;
+            if (strArgIn == agResObj[i].Name) {
+              strArgIn = agResObj[i].Value;
               return true;
             }
           }
           break;
         case atSObj:
-          if (strArgIn == agResDef[0].Name) {
-            strArgIn = agResDef[0].Value;
+          if (strArgIn == agResObj[0].Name) {
+            strArgIn = agResObj[0].Value;
             return true;
           }
           break;
         case atStr:
-          if (strArgIn == agResDef[5].Name) {
-            strArgIn = agResDef[5].Value;
+          if (strArgIn == agResObj[5].Name) {
+            strArgIn = agResObj[5].Value;
             return true;
           }
           break;
@@ -816,7 +815,7 @@ namespace WinAGI.Engine
           //check for correct quotes used 
           if (Left(strIncludeFilename, 1) == QUOTECHAR && Right(strIncludeFilename, 1) != QUOTECHAR ||
              Right(strIncludeFilename, 1) == QUOTECHAR && Left(strIncludeFilename, 1) != QUOTECHAR) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               //return error: improper use of quote marks
               strErrMsg = LoadResString(4059);
               return false;
@@ -936,7 +935,7 @@ namespace WinAGI.Engine
     static internal void CheckResFlagUse(byte ArgVal)
     {
       //if error level is low, don't do anything
-      if (agMainLogSettings.ErrorLevel == leLow) {
+      if (ErrorLevel == leLow) {
         return;
       }
       if (ArgVal == 2 ||
@@ -963,7 +962,7 @@ namespace WinAGI.Engine
     static internal void CheckResVarUse(byte ArgNum, byte ArgVal)
     {
       //if error level is low, don't do anything
-      if (agMainLogSettings.ErrorLevel == leLow) {
+      if (ErrorLevel == leLow) {
         return;
       }
 
@@ -1040,7 +1039,7 @@ namespace WinAGI.Engine
       //is for a variable, to false if it is for a number
 
       // max number of invobjs; (not sure why using this value instead of agInvOb.Count...)
-      int max = int.Parse(agResDef[4].Value);
+      int max = int.Parse(agResObj[4].Value);
       string strArg;
       int lngArg = 0;
       int i;
@@ -1090,8 +1089,8 @@ namespace WinAGI.Engine
           }
           //convert it to 2s-compliment unsigned value by adding it to 256
           strArg = (256 + Val(strArg)).ToString();
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             //show warning
             AddWarning(5098);
           }
@@ -1123,7 +1122,7 @@ namespace WinAGI.Engine
         if (lngArg == -1) {
           blnError = true;
           //if high errlevel
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             //use 1-based arg values
             strErrMsg = LoadResString(4136).Replace(ARG1, (ArgPos + 1).ToString());
           }
@@ -1136,14 +1135,14 @@ namespace WinAGI.Engine
         else {
           //if outside expected bounds (controllers should be limited to 0-49)
           if (lngArg > 49) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               //generate error
               blnError = true;
               //use 1-based arg values
               strErrMsg = LoadResString(4136).Replace(ARG1, (ArgPos + 1).ToString());
               return -1;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               //generate warning
               AddWarning(5060);
             }
@@ -1162,14 +1161,14 @@ namespace WinAGI.Engine
 
         //check against max screen object Value
         if (lngArg > compGame.agInvObj.MaxScreenObjects) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             //generate error
             blnError = true;
             strErrMsg = LoadResString(4119).Replace(ARG1, (compGame.agInvObj.MaxScreenObjects).ToString());
             return -1;
 
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             //generate warning
             AddWarning(5006, LoadResString(5006).Replace(ARG1, compGame.agInvObj.MaxScreenObjects.ToString()));
           }
@@ -1181,7 +1180,7 @@ namespace WinAGI.Engine
         if (lngArg == -1) {
           blnError = true;
           //if high errlevel
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             //for version 2.089, 2.272, and 3.002149 only 12 strings
             switch (compGame.agIntVersion) {
             case "2.089":
@@ -1204,7 +1203,7 @@ namespace WinAGI.Engine
         else {
           //if outside expected bounds (strings should be limited to 0-23)
           if ((lngArg > 23) || (lngArg > 11 && (compGame.agIntVersion == "2.089" || compGame.agIntVersion == "2.272" || compGame.agIntVersion == "3.002149"))) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               //generate error
               blnError = true;
               //for version 2.089, 2.272, and 3.002149 only 12 strings
@@ -1221,7 +1220,7 @@ namespace WinAGI.Engine
               }
 
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               //generate warning
               //for version 2.089, 2.272, and 3.002149 only 12 strings
               switch (compGame.agIntVersion) {
@@ -1244,7 +1243,7 @@ namespace WinAGI.Engine
         if (lngArg == -1) {
           blnError = true;
           //if high error level
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             //use 1-based arg values
             strErrMsg = LoadResString(4090).Replace(ARG1, (ArgPos + 1).ToString());
           }
@@ -1256,14 +1255,14 @@ namespace WinAGI.Engine
         else {
           //if outside expected bounds (words should be limited to 0-9)
           if (lngArg > 9) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               //generate error
               blnError = true;
               //use 1-based arg values
               strErrMsg = LoadResString(4090).Replace(ARG1, (ArgPos + 1).ToString());
               return -1;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               //generate warning
               AddWarning(5008);
               break;
@@ -1285,35 +1284,35 @@ namespace WinAGI.Engine
           }
           //m0 is not allowed
           if (lngArg == 0) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               blnError = true;
               strErrMsg = LoadResString(4107);
               return -1;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               //generate warning
               AddWarning(5091, LoadResString(5091).Replace(ARG1, lngArg.ToString()));
               //make this a null msg
               blnMsg[lngArg] = true;
               strMsg[lngArg] = "";
-              // }else if (agMainLogSettings.ErrorLevel == leLow) {
+              // }else if (ErrorLevel == leLow) {
               //ignore; it will be handled when writing messages
             }
           }
           //verify msg exists
           if (!blnMsg[lngArg]) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               blnError = true;
               strErrMsg = LoadResString(4113).Replace(ARG1, lngArg.ToString());
               return -1;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               //generate warning
               AddWarning(5090, LoadResString(5090).Replace(ARG1, lngArg.ToString()));
               //make this a null msg
               blnMsg[lngArg] = true;
               strMsg[lngArg] = "";
-              // }else if (agMainLogSettings.ErrorLevel == leLow) {
+              // }else if (ErrorLevel == leLow) {
               //ignore; WinAGI adds a null value, so no error will occur
             }
           }
@@ -1408,16 +1407,16 @@ namespace WinAGI.Engine
 
           //if object is not unique
           if (!compGame.agInvObj[(byte)lngArg].Unique) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               blnError = true;
               //use 1-based arg values
               strErrMsg = LoadResString(4036).Replace(ARG1, (ArgPos + 1).ToString());
               return -1;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               //set warning
               AddWarning(5003, LoadResString(5003).Replace(ARG1, (ArgPos + 1).ToString()));
-              //} else if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else if (ErrorLevel == leLow) {
               //no action
             }
           }
@@ -1428,33 +1427,33 @@ namespace WinAGI.Engine
         //* // 
         //if (lngArg >= agInvObj.Count) {  //???? why did I change this???? 
         if (lngArg > max) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             blnError = true;
             //use 1-based arg values
             strErrMsg = LoadResString(4112).Replace(ARG1, (ArgPos + 1).ToString());
             return -1;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             //set warning
             //use 1-based arg values
             AddWarning(5005, LoadResString(5005).Replace(ARG1, (ArgPos + 1).ToString()));
-            //if (agMainLogSettings.ErrorLevel == leLow) {
+            //if (ErrorLevel == leLow) {
             //no action
           }
         }
         else {
           //if object is a question mark, raise error/warning
           if (compGame.agInvObj[(byte)lngArg].ItemName == "?") {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               blnError = true;
               //use 1-based arg values
               strErrMsg = LoadResString(4111).Replace(ARG1, (ArgPos + 1).ToString());
               return -1;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               //set warning
               AddWarning(5004);
-              //if (agMainLogSettings.ErrorLevel == leLow) {
+              //if (ErrorLevel == leLow) {
               //no action
             }
           }
@@ -1496,7 +1495,7 @@ namespace WinAGI.Engine
             if (strArg == "i" || strArg == "a" || strArg == "I" || strArg == "A") {
               lngArg = 0;
               //add warning
-              if (agMainLogSettings.ErrorLevel == leHigh || agMainLogSettings.ErrorLevel == leMedium) {
+              if (ErrorLevel == leHigh || ErrorLevel == leMedium) {
                 AddWarning(5108, LoadResString(5108).Replace(ARG1, strArg));
               }
             }
@@ -1514,13 +1513,13 @@ namespace WinAGI.Engine
         //if there is an error
         if (blnError) {
           //if arg value=-1 OR high level,
-          if (agMainLogSettings.ErrorLevel == leHigh || (lngArg == -1)) {
+          if (ErrorLevel == leHigh || (lngArg == -1)) {
             //argument is already 1-based for said tests
             strErrMsg = LoadResString(4114).Replace(ARG1, strArg);
             return -1;
           }
           else {
-            if (agMainLogSettings.ErrorLevel == leMedium) {
+            if (ErrorLevel == leMedium) {
               //set warning
               AddWarning(5019, LoadResString(5019).Replace(ARG1, strArg));
               blnError = false;
@@ -1529,13 +1528,13 @@ namespace WinAGI.Engine
         }
         //check for group 0
         if (lngArg == 0) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4035).Replace(ARG1, strArg);
             return -1;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5083, LoadResString(5083).Replace(ARG1, strArg));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             // no action 
           }
         }
@@ -2005,19 +2004,19 @@ namespace WinAGI.Engine
             //the next required element is
             lngQuoteAdded = lngLine;
 
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               //error
               blnError = true;
               strErrMsg = LoadResString(4080);
               return "";
             }
-            else if (agMainLogSettings.ErrorLevel == leHigh) {
+            else if (ErrorLevel == leHigh) {
               //add quote
               strTextContinue += QUOTECHAR;
               //set warning
               AddWarning(5002);
             }
-            else if (agMainLogSettings.ErrorLevel == leLow) {
+            else if (ErrorLevel == leLow) {
               //just add quote
               strTextContinue += QUOTECHAR;
             }
@@ -2193,9 +2192,9 @@ namespace WinAGI.Engine
           tdNewDefine.Name = Left(strCurrentLine, strCurrentLine.IndexOf(" ") - 1).Trim();
           tdNewDefine.Value = Right(strCurrentLine, strCurrentLine.Length - strCurrentLine.IndexOf(" ")).Trim();
           //validate define name
-          rtn = ValidateDefName(tdNewDefine.Name);
+          rtn = compGame.agGlobals.ValidateDefName(tdNewDefine.Name);
           //name error 7-12  are only warnings if error level is medium or low
-          if (agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leMedium) {
             //check for name warnings
             switch (rtn) {
             case 7:
@@ -2214,7 +2213,7 @@ namespace WinAGI.Engine
               break;
             }
           }
-          else if (agMainLogSettings.ErrorLevel == leLow) {
+          else if (ErrorLevel == leLow) {
             //check for warnings
             if (rtn >= 7 && rtn <= 12) {
               //reset return error code
@@ -2269,9 +2268,9 @@ namespace WinAGI.Engine
           }
 
           //validate define Value
-          rtn = ValidateDefValue(tdNewDefine);
+          rtn = compGame.agGlobals.ValidateDefValue(tdNewDefine);
           //Value errors 4,5,6 are only warnings if error level is medium or low
-          if (agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leMedium) {
             //if Value error is due to missing quotes
             switch (rtn) {
             case 4:  //string Value missing quotes
@@ -2301,7 +2300,7 @@ namespace WinAGI.Engine
               break;
             }
           }
-          else if (agMainLogSettings.ErrorLevel == leLow) {
+          else if (ErrorLevel == leLow) {
             //if Value error is due to missing quotes
             switch (rtn) {
             case 4:
@@ -2368,15 +2367,15 @@ namespace WinAGI.Engine
             if (tdNewDefine.Value == tdDefines[i].Value) {
               //numeric duplicates aren't a concern
               if (!IsNumeric(tdNewDefine.Value)) {
-                if (agMainLogSettings.ErrorLevel == leHigh) {
+                if (ErrorLevel == leHigh) {
                   //set error
                   strErrMsg = LoadResString(4023).Replace(ARG1, tdDefines[i].Value).Replace(ARG2, tdDefines[i].Name);
                   return false;
                 }
-                else if (agMainLogSettings.ErrorLevel == leMedium) {
+                else if (ErrorLevel == leMedium) {
                   //set warning
                   AddWarning(5033, LoadResString(5033).Replace(ARG1, tdNewDefine.Value).Replace(ARG2, tdDefines[i].Name));
-                  //} else if (agMainLogSettings.ErrorLevel == leLow) {
+                  //} else if (ErrorLevel == leLow) {
                   //   //do nothing
                 }
               }
@@ -2529,7 +2528,7 @@ namespace WinAGI.Engine
             //the next required element is
             lngQuoteAdded = lngLine;
 
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               blnError = true;
               strErrMsg = LoadResString(4051);
               return false;
@@ -2543,7 +2542,7 @@ namespace WinAGI.Engine
                 strCmd += QUOTECHAR;
               }
               //warn if medium
-              if (agMainLogSettings.ErrorLevel == leMedium) {
+              if (ErrorLevel == leMedium) {
                 //set warning
                 AddWarning(5002);
               }
@@ -2760,8 +2759,8 @@ namespace WinAGI.Engine
               //check for return.false() command
               if (bytTestCmd == 0) {
                 //warn user that it's not compatible with AGI Studio
-                if (agMainLogSettings.ErrorLevel == leHigh ||
-                    agMainLogSettings.ErrorLevel == leMedium) {
+                if (ErrorLevel == leHigh ||
+                    ErrorLevel == leMedium) {
                   //generate warning
                   AddWarning(5081);
                   //} else {// leLow
@@ -3027,13 +3026,13 @@ namespace WinAGI.Engine
         //for div.n(vA, B) only, check for divide-by-zero
         if (CmdNum == 167) {
           if (ArgVal[1] == 0) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               strErrMsg = LoadResString(4149);
               return false;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               AddWarning(5030);
-              //} else  if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else  if (ErrorLevel == leLow) {
               //  no action
             }
           }
@@ -3053,13 +3052,13 @@ namespace WinAGI.Engine
         //new.room(A)
         //validate that this logic exists
         if (!compGame.agLogs.Exists(ArgVal[0])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4120);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5053);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             // no action
           }
         }
@@ -3075,13 +3074,13 @@ namespace WinAGI.Engine
         //load.logics(A)
         //validate that logic exists
         if (!compGame.agLogs.Exists(ArgVal[0])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4121).Replace(ARG1, ArgVal[0].ToString());
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5013);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //// no action
           }
         }
@@ -3090,37 +3089,37 @@ namespace WinAGI.Engine
         //call(A)
         //calling logic0 is a BAD idea
         if (ArgVal[0] == 0) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4118);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5010);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //recursive calling is BAD
         if (ArgVal[0] == bytLogComp) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4117);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5089);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //validate that logic exists
         if (!compGame.agLogs.Exists(ArgVal[0])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4156).Replace(ARG1, (ArgVal[0]).ToString());
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5076);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3129,13 +3128,13 @@ namespace WinAGI.Engine
         //load.view(A)
         //validate that view exists
         if (!compGame.agViews.Exists(ArgVal[0])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4122).Replace(ARG1, (ArgVal[0]).ToString());
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5015);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3144,13 +3143,13 @@ namespace WinAGI.Engine
         //discard.view(A)
         //validate that view exists
         if (!compGame.agViews.Exists(ArgVal[0])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4123).Replace(ARG1, ArgVal[0].ToString());
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5024);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3159,13 +3158,13 @@ namespace WinAGI.Engine
         //position(oA, X,Y)
         //check x/y against limits
         if (ArgVal[1] > 159 || ArgVal[2] > 167) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4128);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5023);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3173,24 +3172,24 @@ namespace WinAGI.Engine
       else if (CmdNum == 39) { //get.posn
                                //neither variable arg should be a reserved Value
         if (ArgVal[1] <= 26 || ArgVal[2] <= 26) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
       }
       else if (CmdNum == 41) { //set.view(oA, B)
                                //validate that view exists
-        if (!agViews.Exists(ArgVal[1])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+        if (!compGame.agViews.Exists(ArgVal[1])) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4124).Replace(ARG1, (ArgVal[1]).ToString());
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5037);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3203,10 +3202,10 @@ namespace WinAGI.Engine
         //variable arg is second
         //variable arg should not be a reserved Value
         if (ArgVal[1] <= 26) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3215,13 +3214,13 @@ namespace WinAGI.Engine
         //set.priority(oA, B)
         //check priority Value
         if (ArgVal[1] > 15) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4125);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5050);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3231,10 +3230,10 @@ namespace WinAGI.Engine
         //variable is second argument
         //variable arg should not be a reserved Value
         if (ArgVal[1] <= 26) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3245,7 +3244,7 @@ namespace WinAGI.Engine
         //>=167 will cause AGI to freeze/crash
 
         //validate horizon Value
-        if (agMainLogSettings.ErrorLevel == leHigh) {
+        if (ErrorLevel == leHigh) {
           if (ArgVal[0] >= 167) {
             strErrMsg = LoadResString(4126);
             return false;
@@ -3257,7 +3256,7 @@ namespace WinAGI.Engine
             AddWarning(5041);
           }
         }
-        else if (agMainLogSettings.ErrorLevel == leMedium) {
+        else if (ErrorLevel == leMedium) {
           if (ArgVal[0] >= 167) {
             AddWarning(5043);
           }
@@ -3267,7 +3266,7 @@ namespace WinAGI.Engine
           else if (ArgVal[0] < 16) {
             AddWarning(5041);
           }
-          //} else if (agMainLogSettings.ErrorLevel == leLow) {
+          //} else if (ErrorLevel == leLow) {
           //  //no action
         }
       }
@@ -3275,10 +3274,10 @@ namespace WinAGI.Engine
         //object.on.water, object.on.land, object.on.anything
         //warn if used on ego
         if (ArgVal[0] == 0) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5082);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3288,10 +3287,10 @@ namespace WinAGI.Engine
         //variable is third arg
         //variable arg should not be a reserved Value
         if (ArgVal[2] <= 26) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3300,10 +3299,10 @@ namespace WinAGI.Engine
         //end.of.loop, reverse.loop
         //flag arg should not be a reserved Value
         if (ArgVal[1] <= 15) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5078, LoadResString(5078).Replace(ARG1, agCmds[CmdNum].Name));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3314,31 +3313,31 @@ namespace WinAGI.Engine
         //move.obj(oA, X,Y,STEP,fDONE)
         //validate the target position
         if (ArgVal[1] > 159 || ArgVal[2] > 167) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4127);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5062);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //check for ego object
         if (ArgVal[0] == 0) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5045);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //flag arg should not be a reserved Value
         if (ArgVal[4] <= 15) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5078, LoadResString(5078).Replace(ARG1, agCmds[CmdNum].Name));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3348,10 +3347,10 @@ namespace WinAGI.Engine
       else if (CmdNum == 82) { //move.obj.v
                                //flag arg should not be a reserved Value
         if (ArgVal[4] <= 15) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5078, LoadResString(5078).Replace(ARG1, agCmds[CmdNum].Name));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3362,28 +3361,28 @@ namespace WinAGI.Engine
         //follow.ego(oA, DISTANCE, fDONE)
         //validate distance value
         if (ArgVal[1] <= 1) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5102);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //check for ego object
         if (ArgVal[0] == 0) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5027);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //flag arg should not be a reserved Value
         if (ArgVal[2] <= 15) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5078, LoadResString(5078).Replace(ARG1, agCmds[CmdNum].Name));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3393,10 +3392,10 @@ namespace WinAGI.Engine
       else if (CmdNum == 86) { //set.dir(oA, vB)
                                //check for ego object
         if (ArgVal[0] == 0) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5026);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3406,10 +3405,10 @@ namespace WinAGI.Engine
         //variable is second arg
         //variable arg should not be a reserved Value
         if (ArgVal[1] <= 26) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3420,25 +3419,25 @@ namespace WinAGI.Engine
         //also check that
         if (ArgVal[0] > 159 || ArgVal[1] > 167 || ArgVal[2] > 159 || ArgVal[3] > 167) {
           //bad number
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4129);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5020);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         if ((ArgVal[2] - ArgVal[0] < 2) || (ArgVal[3] - ArgVal[1] < 2)) {
           //won't work
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4129);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5051);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3446,14 +3445,14 @@ namespace WinAGI.Engine
       else if (CmdNum == 98) {
         //load.sound(A)
         //validate the sound exists
-        if (!agSnds.Exists(ArgVal[0])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+        if (!compGame.agSnds.Exists(ArgVal[0])) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4130).Replace(ARG1, ArgVal[0].ToString());
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5014);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3461,14 +3460,14 @@ namespace WinAGI.Engine
       else if (CmdNum == 99) {
         //sound(A)
         //validate the sound exists
-        if (!agSnds.Exists(ArgVal[0])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+        if (!compGame.agSnds.Exists(ArgVal[0])) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4137).Replace(ARG1, ArgVal[0].ToString());
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5084);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3477,13 +3476,13 @@ namespace WinAGI.Engine
         //display(ROW,COL,mC)
         //check row/col against limits
         if (ArgVal[0] > 24 || ArgVal[1] > 39) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4131);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5059);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3492,22 +3491,22 @@ namespace WinAGI.Engine
         //clear.lines(TOP,BTM,C)
         //top must be >btm; both must be <=24
         if (ArgVal[0] > 24 || ArgVal[1] > 24 || ArgVal[0] > ArgVal[1]) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4132);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5011);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //color value should be 0 or 15 //(but it doesn't hurt to be anything else)
         if (ArgVal[2] > 0 && ArgVal[2] != 15) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5100);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3516,13 +3515,13 @@ namespace WinAGI.Engine
         //set.text.attribute(A,B)
         //should be limited to valid color values (0-15)
         if (ArgVal[0] > 15 || ArgVal[1] > 15) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4133);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5029);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3532,11 +3531,11 @@ namespace WinAGI.Engine
         //shouldn't normally have more than a few shakes; zero is BAD
         if (ArgVal[0] == 0) {
           //error!
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             strErrMsg = LoadResString(4134);
             return false;
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3544,19 +3543,19 @@ namespace WinAGI.Engine
           //could be a palette change?
           if (ArgVal[0] >= 100 && ArgVal[0] <= 109) {
             //separate warning
-            if (agMainLogSettings.ErrorLevel == leHigh ||
-                agMainLogSettings.ErrorLevel == leMedium) {
+            if (ErrorLevel == leHigh ||
+                ErrorLevel == leMedium) {
               AddWarning(5058);
-              //} else if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else if (ErrorLevel == leLow) {
               //  //no action
             }
           }
           else {
             //warning
-            if (agMainLogSettings.ErrorLevel == leHigh ||
-                agMainLogSettings.ErrorLevel == leMedium) {
+            if (ErrorLevel == leHigh ||
+                ErrorLevel == leMedium) {
               AddWarning(5057);
-              //} else if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else if (ErrorLevel == leLow) {
               //  //no action
             }
           }
@@ -3567,37 +3566,37 @@ namespace WinAGI.Engine
                                 //input and status should not be equal
                                 //input and status should be <top or >=top+21
         if (ArgVal[0] > 3) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4135);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5044);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         if (ArgVal[1] > 24 || ArgVal[2] > 24) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5099);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         if (ArgVal[1] == ArgVal[2]) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5048);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         if ((ArgVal[1] >= ArgVal[0] && ArgVal[1] <= ArgVal[0] + 20) || (ArgVal[2] >= ArgVal[0] && ArgVal[2] <= ArgVal[0] + 20)) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5049);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3606,10 +3605,10 @@ namespace WinAGI.Engine
                                 //warn user if setting input prompt to unusually long value
         if (ArgVal[0] == 0) {
           if (strMsg[ArgVal[1]].Length > 10) {
-            if (agMainLogSettings.ErrorLevel == leHigh ||
-                agMainLogSettings.ErrorLevel == leMedium) {
+            if (ErrorLevel == leHigh ||
+                ErrorLevel == leMedium) {
               AddWarning(5096);
-              //} else if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else if (ErrorLevel == leLow) {
               //  //no action
             }
           }
@@ -3619,29 +3618,29 @@ namespace WinAGI.Engine
         //get.string(sA, mB, ROW,COL,LEN)
         //if row>24, both row/col are ignored; if col>39, gets weird; len is limited automatically to <=40
         if (ArgVal[2] > 24) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5052);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         if (ArgVal[3] > 39) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4004);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5080);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         if (ArgVal[4] > 40) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5056);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3653,13 +3652,13 @@ namespace WinAGI.Engine
         intCtlCount++;
         //must be ascii or key code, (Arg0 can be 1 to mean joystick)
         if (ArgVal[0] > 0 && ArgVal[1] > 0 && ArgVal[0] != 1) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4154);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5065);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3668,13 +3667,13 @@ namespace WinAGI.Engine
           if (ArgVal[0] == 8 || ArgVal[0] == 13 || ArgVal[0] == 32) {
             //ascii codes for bkspace, enter, spacebar
             //bad
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               strErrMsg = LoadResString(4155);
               return false;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               AddWarning(5066);
-              //} else if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else if (ErrorLevel == leLow) {
               //  //no action
             }
           }
@@ -3685,13 +3684,13 @@ namespace WinAGI.Engine
               (ArgVal[1] >= 75 && ArgVal[1] <= 77) ||
               (ArgVal[1] >= 79 && ArgVal[1] <= 83)) {
             //ascii codes - bad
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               strErrMsg = LoadResString(4155);
               return false;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               AddWarning(5066);
-              //} else if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else if (ErrorLevel == leLow) {
               //  //no action
             }
           }
@@ -3705,60 +3704,60 @@ namespace WinAGI.Engine
         //PRI must be 0, or >=3 AND <=15
         //MGN must be 0-3, or >3 (ha ha, or ANY value...)
         //validate view
-        if (!agViews.Exists(ArgVal[0])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+        if (!compGame.agViews.Exists(ArgVal[0])) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4138).Replace(ARG1, (ArgVal[0]).ToString());
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5064);
             //dont need to check loops or cels
             blnWarned = true;
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         if (!blnWarned) {
           //try to load view to test loop + cel
           try {
-            blnUnload = !agViews[ArgVal[0]].Loaded;
+            blnUnload = !compGame.agViews[ArgVal[0]].Loaded;
             //if error trying to get loaded status, ignore for now
             //it'll show up again when trying to load or access
             //loop property and be handled there
             if (blnUnload) {
-              agViews[ArgVal[0]].Load();
+              compGame.agViews[ArgVal[0]].Load();
             }
             //validate loop
-            if (ArgVal[1] >= agViews[ArgVal[0]].Loops.Count) {
-              if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ArgVal[1] >= compGame.agViews[ArgVal[0]].Loops.Count) {
+              if (ErrorLevel == leHigh) {
                 strErrMsg = LoadResString(4139).Replace(ARG1, ArgVal[1].ToString()).Replace(ARG2, ArgVal[0].ToString());
                 if (blnUnload) {
-                  agViews[ArgVal[0]].Unload();
+                  compGame.agViews[ArgVal[0]].Unload();
                 }
                 return false;
               }
-              else if (agMainLogSettings.ErrorLevel == leMedium) {
+              else if (ErrorLevel == leMedium) {
                 AddWarning(5085);
                 //dont need to check cel
                 blnWarned = true;
-                //} else if (agMainLogSettings.ErrorLevel == leLow) {
+                //} else if (ErrorLevel == leLow) {
                 //  //no action
               }
             }
             //if loop was valid, check cel
             if (!blnWarned) {
               //validate cel
-              if (ArgVal[2] >= agViews[ArgVal[0]].Loops[ArgVal[1]].Cels.Count) {
-                if (agMainLogSettings.ErrorLevel == leHigh) {
+              if (ArgVal[2] >= compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels.Count) {
+                if (ErrorLevel == leHigh) {
                   strErrMsg = LoadResString(4140).Replace(ARG1, ArgVal[2].ToString()).Replace(ARG2, ArgVal[1].ToString()).Replace(ARG3, ArgVal[0].ToString());
                   if (blnUnload) {
-                    agViews[ArgVal[0]].Unload();
+                    compGame.agViews[ArgVal[0]].Unload();
                   }
                   return false;
                 }
-                else if (agMainLogSettings.ErrorLevel == leMedium) {
+                else if (ErrorLevel == leMedium) {
                   AddWarning(5086);
-                  //} else if (agMainLogSettings.ErrorLevel == leLow) {
+                  //} else if (ErrorLevel == leLow) {
                   //  //no action
                 }
               }
@@ -3769,48 +3768,48 @@ namespace WinAGI.Engine
             AddWarning(5021, LoadResString(5021).Replace(ARG1, ArgVal[0].ToString()));
           }
           if (blnUnload) {
-            agViews[ArgVal[0]].Unload();
+            compGame.agViews[ArgVal[0]].Unload();
           }
         }
         //x,y must be within limits
         if (ArgVal[3] > 159 || ArgVal[4] > 167) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4141);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5038);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //PRI should be <=15
         if (ArgVal[5] > 15) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4142);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5079);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //PRI should be 0 OR >=4 (but doesn't raise an error; only a warning)
         if (ArgVal[5] < 4 && ArgVal[5] != 0) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-          agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+          ErrorLevel == leMedium) {
             AddWarning(5079);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //MGN values >15 will only use lower nibble
         if (ArgVal[6] > 15) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-          agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+          ErrorLevel == leMedium) {
             AddWarning(5101);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3818,79 +3817,79 @@ namespace WinAGI.Engine
       else if (CmdNum == 129) {
         //show.obj(VIEW)
         //validate view
-        if (!agViews.Exists(ArgVal[0])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+        if (!compGame.agViews.Exists(ArgVal[0])) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4144).Replace(ARG1, ArgVal[0].ToString());
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5061);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
       }
       else if (CmdNum == 127 || CmdNum == 176 || CmdNum == 178) {
         //init.disk, hide.mouse, show.mouse
-        if (agMainLogSettings.ErrorLevel == leHigh ||
-            agMainLogSettings.ErrorLevel == leMedium) {
+        if (ErrorLevel == leHigh ||
+            ErrorLevel == leMedium) {
           AddWarning(5087, LoadResString(5087).Replace(ARG1, agCmds[CmdNum].Name));
-          //} else if (agMainLogSettings.ErrorLevel == leLow) {
+          //} else if (ErrorLevel == leLow) {
           //  //no action
         }
       }
       else if (CmdNum == 175 || CmdNum == 179 || CmdNum == 180) {
         //discard.sound, fence.mouse, mouse.posn
-        if (agMainLogSettings.ErrorLevel == leHigh) {
+        if (ErrorLevel == leHigh) {
           strErrMsg = LoadResString(4152).Replace(ARG1, agCmds[CmdNum].Name);
           return false;
         }
-        else if (agMainLogSettings.ErrorLevel == leMedium) {
+        else if (ErrorLevel == leMedium) {
           AddWarning(5088, LoadResString(5088).Replace(ARG1, agCmds[CmdNum].Name));
-          //} else if (agMainLogSettings.ErrorLevel == leLow) {
+          //} else if (ErrorLevel == leLow) {
           //  //no action
         }
       }
       else if (CmdNum == 130) { //random(LOWER,UPPER,vRESULT)
                                 //lower should be < upper
         if (ArgVal[0] > ArgVal[1]) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4145);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5054);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //lower=upper means result=lower=upper
         if (ArgVal[0] == ArgVal[1]) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-          agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+          ErrorLevel == leMedium) {
             AddWarning(5106);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //if lower=upper+1, means div by 0!
         if (ArgVal[0] == ArgVal[1] + 1) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4158);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5107);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //variable arg should not be a reserved Value
         if (ArgVal[2] <= 26) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-          agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+          ErrorLevel == leMedium) {
             AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3899,19 +3898,19 @@ namespace WinAGI.Engine
                                 //raise warning/error if in other than logic0
         if (bytLogComp != 0) {
           //warn
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-          agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+          ErrorLevel == leMedium) {
             AddWarning(5039);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //check for absurdly low Value for script size
         if (ArgVal[0] < 10) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-          agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+          ErrorLevel == leMedium) {
             AddWarning(5009);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3919,13 +3918,13 @@ namespace WinAGI.Engine
       else if (CmdNum == 147) { //reposition.to(oA, B,C)
                                 //validate the new position
         if (ArgVal[1] > 159 || ArgVal[2] > 167) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4128);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5023);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3937,35 +3936,35 @@ namespace WinAGI.Engine
         //height must be >=2 (but interpreter checks for this error)
 
         //validate that logic exists
-        if (!agLogs.Exists(ArgVal[0])) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+        if (!compGame.agLogs.Exists(ArgVal[0])) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4153).Replace(ARG1, ArgVal[0].ToString());
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5040);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //validate that height is not too small
         if (ArgVal[2] < 2) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5046);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         //validate size of window
         if (ArgVal[1] + ArgVal[2] > 23) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4146);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5063);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -3979,45 +3978,45 @@ namespace WinAGI.Engine
         //maxwidth=1 crashes AGI
         //col + maxwidth <=39
         if (ArgVal[1] > 22) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4147);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5067);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
         switch (ArgVal[3]) {
         case 0: //maxwidth=0 defaults to 30
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5105);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
           break;
         case 1: //maxwidth=1 crashes AGI
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4043);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5103);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
           break;
         default:
           if (ArgVal[3] > 36) { //maxwidth >36 won't work
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               strErrMsg = LoadResString(4043);
               return false;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               AddWarning(5104);
-              //} else if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else if (ErrorLevel == leLow) {
               //  //no action
             }
           }
@@ -4025,13 +4024,13 @@ namespace WinAGI.Engine
         }
         //col>2 and col + maxwidth <=39
         if (ArgVal[2] < 2 || ArgVal[2] + ArgVal[3] > 39) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4148);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5068);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -4046,11 +4045,11 @@ namespace WinAGI.Engine
            ArgVal[2] > 24 || ArgVal[3] > 39 ||
            ArgVal[2] < ArgVal[0] || ArgVal[3] < ArgVal[1]) {
           //invalid items
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4150);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             //if due to pos2 < pos1
             if (ArgVal[2] < ArgVal[0] || ArgVal[3] < ArgVal[1]) {
               AddWarning(5069);
@@ -4060,17 +4059,17 @@ namespace WinAGI.Engine
                ArgVal[2] > 24 || ArgVal[3] > 39) {
               AddWarning(5070);
             }
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
 
         //color value should be 0 or 15 //(but it doesn't hurt to be anything else)
         if (ArgVal[4] > 0 && ArgVal[4] != 15) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-           agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+           ErrorLevel == leMedium) {
             AddWarning(5100);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -4080,11 +4079,11 @@ namespace WinAGI.Engine
         //should only be called in logic0
         //raise warning if in other than logic0
         if (bytLogComp != 0) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-           agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+           ErrorLevel == leMedium) {
             //set warning
             AddWarning(5047);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -4092,10 +4091,10 @@ namespace WinAGI.Engine
       else if (CmdNum == 174) { //set.pri.base(A)
                                 //calling set.pri.base with Value >167 doesn't make sense
         if (ArgVal[0] > 167) {
-          if (agMainLogSettings.ErrorLevel == leHigh ||
-              agMainLogSettings.ErrorLevel == leMedium) {
+          if (ErrorLevel == leHigh ||
+              ErrorLevel == leMedium) {
             AddWarning(5071);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  //no action
           }
         }
@@ -4134,25 +4133,25 @@ namespace WinAGI.Engine
         //validate that all are within bounds, and that x1<=x2 and y1<=y2
         if (ArgVal[1] > 159 || ArgVal[2] > 167 || ArgVal[3] > 159 || ArgVal[4] > 167) {
           //bad number
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4151);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5072);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  no action 
           }
         }
         if ((ArgVal[1] > ArgVal[3]) || (ArgVal[2] > ArgVal[4])) {
           //won't work
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4151);
             return false;
           }
-          else if (agMainLogSettings.ErrorLevel == leMedium) {
+          else if (ErrorLevel == leMedium) {
             AddWarning(5073);
-            //} else if (agMainLogSettings.ErrorLevel == leLow) {
+            //} else if (ErrorLevel == leLow) {
             //  no action 
           }
         }
@@ -4183,13 +4182,13 @@ namespace WinAGI.Engine
         EXTCHARS += ((char)i).ToString();
       }
       //if LOW error detection, EXIT
-      if (agMainLogSettings.ErrorLevel == leLow) {
+      if (ErrorLevel == leLow) {
         return true;
       }
       //check for invalid codes (8,9,10,13)
       if ((BADCHARS).Any(strMsg.Contains)) {
         //warn user
-        if (agMainLogSettings.ErrorLevel == leHigh) {
+        if (ErrorLevel == leHigh) {
           strErrMsg = LoadResString(4005);
           //blnError = true;
           return false;
@@ -4203,7 +4202,7 @@ namespace WinAGI.Engine
 
         //extended characters
         if ((EXTCHARS).Any(strMsg.Contains)) {
-          if (agMainLogSettings.ErrorLevel == leHigh) {
+          if (ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4006);
             //blnError = true;
             return false;
@@ -4422,7 +4421,7 @@ namespace WinAGI.Engine
               strErrMsg = LoadResString(4109).Replace(ARG1, MAX_LABELS.ToString());
               return false;
             }
-            rtn = ValidateDefName(strLabel);
+            rtn = compGame.agGlobals.ValidateDefName(strLabel);
             //numbers are ok for labels
             if (rtn == 2) {
               rtn = 0;
@@ -4557,15 +4556,15 @@ namespace WinAGI.Engine
           }
           //if last position in resource is two bytes from start of block
           if (tmpLogRes.Size == BlockStartDataLoc[BlockDepth] + 2) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               strErrMsg = LoadResString(4049);
               //blnError = false; //why not set error flag?
               return false;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               //set warning
               AddWarning(5001);
-              //} else if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else if (ErrorLevel == leLow) {
               //  no action
             }
           }
@@ -4643,12 +4642,12 @@ namespace WinAGI.Engine
         case "goto":
           //if last command was a new room, warn user
           if (blnNewRoom) {
-            if (agMainLogSettings.ErrorLevel == leHigh ||
-                agMainLogSettings.ErrorLevel == leMedium) {
+            if (ErrorLevel == leHigh ||
+                ErrorLevel == leMedium) {
               //set warning
               AddWarning(5095);
             }
-            else if (agMainLogSettings.ErrorLevel == leLow) {
+            else if (ErrorLevel == leLow) {
               //no action
             }
             blnNewRoom = false;
@@ -4767,11 +4766,11 @@ namespace WinAGI.Engine
           else {
             //if last command was a new room (and not followed by return), warn user
             if (blnNewRoom && strNextCmd != "return") {
-              if (agMainLogSettings.ErrorLevel == leHigh ||
-                  agMainLogSettings.ErrorLevel == leMedium) {
+              if (ErrorLevel == leHigh ||
+                  ErrorLevel == leMedium) {
                 //set warning
                 AddWarning(5095);
-                //} else if (agMainLogSettings.ErrorLevel == leHigh) {
+                //} else if (ErrorLevel == leHigh) {
                 //  //no action
               }
               blnNewRoom = false;
@@ -4890,14 +4889,14 @@ namespace WinAGI.Engine
       }//loop
 
       if (!blnLastCmdRtn) {
-        if (agMainLogSettings.ErrorLevel == leHigh) {
+        if (ErrorLevel == leHigh) {
           //error
           strErrMsg = LoadResString(4102);
           //blnError = false; //why not set error flag?
           return false;
         }
-        else if (agMainLogSettings.ErrorLevel == leMedium ||
-                 agMainLogSettings.ErrorLevel == leLow) {
+        else if (ErrorLevel == leMedium ||
+                 ErrorLevel == leLow) {
           //add the missing return code
           tmpLogRes.WriteByte(0);
           //and a warning
@@ -4934,10 +4933,10 @@ namespace WinAGI.Engine
 
       //blank msgs normally not allowed
       if (strMsgIn.Length == 0) {
-        if (agMainLogSettings.ErrorLevel == leHigh ||
-            agMainLogSettings.ErrorLevel == leMedium) {
+        if (ErrorLevel == leHigh ||
+            ErrorLevel == leMedium) {
           AddWarning(5074);
-          //if (agMainLogSettings.ErrorLevel == leLow) {
+          //if (ErrorLevel == leLow) {
           //allow it
         }
       }
@@ -5001,14 +5000,14 @@ namespace WinAGI.Engine
         //just not supported in this agi version
         for (int retval = agNumCmds; retval < MAX_CMDS; retval++) {
           if (strCmdName.Equals(agCmds[retval].Name, StringComparison.OrdinalIgnoreCase)) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               //error; return cmd Value of 254 so compiler knows to raise error
               return 254;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               //add warning
               AddWarning(5075, LoadResString(5075).Replace(ARG1, strCmdName));
-              //} else if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else if (ErrorLevel == leLow) {
               //  //don't worry about command validity; return the extracted command num
             }
           }
@@ -5223,14 +5222,14 @@ namespace WinAGI.Engine
         //     s# = "<string>"
         //get string variable number
         intArg1 = VariableValue(strArg1);
-        if (agMainLogSettings.ErrorLevel != leLow) {
+        if (ErrorLevel != leLow) {
           //for version 2.089, 2.272, and 3.002149 only 12 strings
-          switch (agIntVersion) {
+          switch (compGame.agIntVersion) {
           case "2.089":
           case "2.272":
           case "3.002149":
             if (intArg1 > 11) {
-              if (agMainLogSettings.ErrorLevel == leHigh) {
+              if (ErrorLevel == leHigh) {
                 //use 1-based arg values
                 strErrMsg = LoadResString(4079).Replace(ARG1, "1").Replace(ARG2, "11");
                 blnError = true;
@@ -5244,7 +5243,7 @@ namespace WinAGI.Engine
           //for all other versions, limit is 24 strings
           default:
             if (intArg1 > 23) {
-              if (agMainLogSettings.ErrorLevel == leHigh) {
+              if (ErrorLevel == leHigh) {
                 strErrMsg = LoadResString(4079).Replace(ARG1, "1").Replace(ARG2, "23");
                 blnError = true;
                 return false;
@@ -5442,8 +5441,8 @@ namespace WinAGI.Engine
             }
             //convert it to 2s-compliment unsigned value by adding it to 256
             strArg2 = (256 + Val(strArg2)).ToString();
-            if (agMainLogSettings.ErrorLevel == leHigh ||
-                agMainLogSettings.ErrorLevel == leMedium) {
+            if (ErrorLevel == leHigh ||
+                ErrorLevel == leMedium) {
               //show warning
               AddWarning(5098);
             }
@@ -5499,14 +5498,14 @@ namespace WinAGI.Engine
             //check in CompileAGI works correctly
             lngPos--;
             //this is a simple assign (with a variable being assigned to itself!!)
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               strErrMsg = LoadResString(4084);
               blnError = true;
               return false;
             }
-            else if (agMainLogSettings.ErrorLevel == leMedium) {
+            else if (ErrorLevel == leMedium) {
               AddWarning(5036);
-              //} else if (agMainLogSettings.ErrorLevel == leLow) {
+              //} else if (ErrorLevel == leLow) {
               //  //allow it
             }
             // assign.v

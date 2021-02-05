@@ -18,7 +18,6 @@ namespace WinAGI.Engine
     internal static readonly string[] agArgTypName = new string[9]
     { "number", "variable", "flag", "message", "object", 
       "inventory item", "string", "word", "controller" };
-    internal static string agSrcExt = ".lgc";
     internal const int MAX_CMDS = 182;
     internal static byte agNumCmds;
     internal static CommandStruct[] agCmds = new CommandStruct[MAX_CMDS];
@@ -852,7 +851,6 @@ namespace WinAGI.Engine
       //agCmds[182].ArgType[0] = ArgTypeEnum.atNum;
       //agCmds[182].ArgType[1] = ArgTypeEnum.atNum;
 
-      AssignReservedDefines();
     }
     public static CommandStruct[] Commands
     {

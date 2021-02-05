@@ -23,3 +23,7 @@
       Size szText = TextRenderer.MeasureText(" Use Res Names ", new Font("MS Sans Serif", 8));
       PropSplitLoc = szText.Width;
       PropRowHeight = szText.Height + 2;
+
+      changing to game object NOT being static; - need to re-check almost everything; specifically
+       - reserved defines; most are static, and in the Compiler class; game-specific ones need to be  re-coded
+

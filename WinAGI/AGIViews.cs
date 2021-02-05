@@ -76,7 +76,7 @@ namespace WinAGI.Engine
       }
       // validate id
       strBaseID = strID;
-      while (!IsUniqueResID(strID)) {
+      while (!NewView.IsUniqueResID(strID)) {
         intNextNum++;
         strID = strBaseID + "_" + intNextNum;
       }
@@ -144,7 +144,7 @@ namespace WinAGI.Engine
       if (tmpView.ID.Equals("View" + OldView, StringComparison.OrdinalIgnoreCase)) {
         //change default ID to new ID
         strID = strBaseID = "View" + NewView;
-        while (!IsUniqueResID(strID)) {
+        while (!tmpView.IsUniqueResID(strID)) {
           intNextNum++;
           strID = strBaseID + "_" + intNextNum;
         }

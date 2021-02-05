@@ -11,11 +11,12 @@ using static WinAGI.Engine.LogicErrorLevel;
 using static WinAGI.Engine.ArgTypeEnum;
 using static WinAGI.Engine.AGICommands;
 using static WinAGI.Engine.AGITestCommands;
+using static WinAGI.Engine.WinAGI;
 using System.Diagnostics;
 
 namespace WinAGI.Engine
 {
-  public static partial class WinAGI
+  public static partial class Compiler
   {
     internal struct BlockType
     {
@@ -52,6 +53,15 @@ namespace WinAGI.Engine
 
     static bool blnWarning;
     static string strWarning;
+
+    internal static TDefine[] agResVar = new TDefine[27];    //26 //text name of built in variables
+    internal static TDefine[] agResFlag = new TDefine[18];   //17) //text name of built in flags
+    internal static TDefine[] agEdgeCodes = new TDefine[5]; //4 //text of edge codes
+    internal static TDefine[] agEgoDir = new TDefine[9];    //8 //text of ego direction codes
+    internal static TDefine[] agVideoMode = new TDefine[5]; //4 //text of video mode codes
+    internal static TDefine[] agCompType = new TDefine[9];  //8 //computer type values
+    internal static TDefine[] agResObj = new TDefine[1]; // just ego object6];  
+    internal static TDefine[] agResColor = new TDefine[16];  //15 //predefined color values
 
     internal static List<string> DecodeLogic(byte[] bytData, bool DecryptMsg)
     {
@@ -155,7 +165,7 @@ namespace WinAGI.Engine
             // convert to negative number
             tmpBlockLen -= 0x10000;
           }
-          if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!agMainLogSettings.ElseAsGoto)) {
+          if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!Compiler.ElseAsGoto)) {
             Block[bytBlockDepth].IsIf = false;
             Block[bytBlockDepth].IsOutside = false;
             if ((tmpBlockLen + lngPos > Block[bytBlockDepth - 1].EndPos) || (tmpBlockLen < 0) || (Block[bytBlockDepth].Length <= 3)) {
@@ -163,7 +173,7 @@ namespace WinAGI.Engine
             }
             else {
               stlOutput.Add(MultStr("  ", bytBlockDepth) + D_TKN_ENDIF);
-              if (agMainLogSettings.ElseAsGoto) {
+              if (Compiler.ElseAsGoto) {
                 stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + D_TKN_GOTO);
               }
               else {
@@ -181,7 +191,7 @@ namespace WinAGI.Engine
             lngLabelLoc = tmpBlockLen + lngPos;
             //label already verified in FindLabels; add warning if necessary
             if (lngLabelLoc > bytData.Length - 2) {
-              switch (agMainLogSettings.ErrorLevel) {
+              switch (ErrorLevel) {
               //case leHigh - high level handled in FindLabels
               case leMedium:
                 //set warning
@@ -220,11 +230,11 @@ namespace WinAGI.Engine
           //if this command is not within range of expected commands for targeted interpretr version,
           if (bytCurData > AGICommands.Count - 1) { //this byte is a command
             //show warning
-            AddDecodeWarning("this command not valid for selected interpreter version (" + agIntVersion + ")");
+            AddDecodeWarning("this command not valid for selected interpreter version (" + compGame.agIntVersion + ")");
           }
           bytCmd = bytCurData;
           string strCurrentLine = MultStr("  ", bytBlockDepth);
-          if (agMainLogSettings.SpecialSyntax && (bytCmd >= 0x1 && bytCmd <= 0xB) || (bytCmd >= 0xA5 && bytCmd <= 0xA8)) {
+          if (Compiler.SpecialSyntax && (bytCmd >= 0x1 && bytCmd <= 0xB) || (bytCmd >= 0xA5 && bytCmd <= 0xA8)) {
             strCurrentLine += AddSpecialCmd(bytData, bytCmd);
           }
           else {
@@ -235,17 +245,17 @@ namespace WinAGI.Engine
               lngPos++;
               strArg = ArgValue(bytCurData, agCmds[bytCmd].ArgType[intArg]);
               //if showing reserved names && using reserved defines
-              if (agResAsText && agUseRes) {
+              if (ReservedAsText && UseReservedNames) {
                 //some commands use resources as arguments; substitute as appropriate
                 switch (bytCmd) {
                 case 122: //add.to.pic,    1st arg (V)
                   if (intArg == 0) {
-                    if (agViews.Exists(bytCurData)) {
-                      strArg = agViews[bytCurData].ID;
+                    if (compGame.agViews.Exists(bytCurData)) {
+                      strArg = compGame.agViews[bytCurData].ID;
                     }
                     else {
                       //view doesn't exist
-                      switch (agMainLogSettings.ErrorLevel) {
+                      switch (ErrorLevel) {
                       case leHigh:
                       case leMedium:
                         //set warning
@@ -259,12 +269,12 @@ namespace WinAGI.Engine
                   }
                   break;
                 case 22:  //call,          only arg (L)
-                  if (agLogs.Exists(bytCurData)) {
-                    strArg = agLogs[bytCurData].ID;
+                  if (compGame.agLogs.Exists(bytCurData)) {
+                    strArg = compGame.agLogs[bytCurData].ID;
                   }
                   else {
                     //logic doesn't exist
-                    switch (agMainLogSettings.ErrorLevel) {
+                    switch (ErrorLevel) {
                     case leHigh:
                     case leMedium:
                       //set warning
@@ -277,12 +287,12 @@ namespace WinAGI.Engine
                   }
                   break;
                 case 175: //discard.sound, only arg (S)
-                  if (agSnds.Exists(bytCurData)) {
-                    strArg = agSnds[bytCurData].ID;
+                  if (compGame.agSnds.Exists(bytCurData)) {
+                    strArg = compGame.agSnds[bytCurData].ID;
                   }
                   else {
                     //sound doesn't exist
-                    switch (agMainLogSettings.ErrorLevel) {
+                    switch (ErrorLevel) {
                     case leHigh:
                     case leMedium:
                       //set warning
@@ -295,12 +305,12 @@ namespace WinAGI.Engine
                   }
                   break;
                 case 32:  //discard.view,  only arg (V)
-                  if (agViews.Exists(bytCurData)) {
-                    strArg = agViews[bytCurData].ID;
+                  if (compGame.agViews.Exists(bytCurData)) {
+                    strArg = compGame.agViews[bytCurData].ID;
                   }
                   else {
                     //view doesn't exist
-                    switch (agMainLogSettings.ErrorLevel) {
+                    switch (ErrorLevel) {
                     case leHigh:
                     case leMedium:
                       //set warning
@@ -313,12 +323,12 @@ namespace WinAGI.Engine
                   }
                   break;
                 case 20:  //load.logics,   only arg (L)
-                  if (agLogs.Exists(bytCurData)) {
-                    strArg = agLogs[bytCurData].ID;
+                  if (compGame.agLogs.Exists(bytCurData)) {
+                    strArg = compGame.agLogs[bytCurData].ID;
                   }
                   else {
                     //logic doesn't exist
-                    switch (agMainLogSettings.ErrorLevel) {
+                    switch (ErrorLevel) {
                     case leHigh:
                     case leMedium:
                       //set warning
@@ -331,12 +341,12 @@ namespace WinAGI.Engine
                   }
                   break;
                 case 98:  //load.sound,    only arg (S)
-                  if (agSnds.Exists(bytCurData)) {
-                    strArg = agSnds[bytCurData].ID;
+                  if (compGame.agSnds.Exists(bytCurData)) {
+                    strArg = compGame.agSnds[bytCurData].ID;
                   }
                   else {
                     //sound doesn't exist
-                    switch (agMainLogSettings.ErrorLevel) {
+                    switch (ErrorLevel) {
                     case leHigh:
                     case leMedium:
                       //set warning
@@ -349,12 +359,12 @@ namespace WinAGI.Engine
                   }
                   break;
                 case 30:  //load.view,     only arg (V)
-                  if (agViews.Exists(bytCurData)) {
-                    strArg = agViews[bytCurData].ID;
+                  if (compGame.agViews.Exists(bytCurData)) {
+                    strArg = compGame.agViews[bytCurData].ID;
                   }
                   else {
                     //view doesn't exist
-                    switch (agMainLogSettings.ErrorLevel) {
+                    switch (ErrorLevel) {
                     case leHigh:
                     case leMedium:
                       //set warning
@@ -367,12 +377,12 @@ namespace WinAGI.Engine
                   }
                   break;
                 case 18:  //new.room,      only arg (L)
-                  if (agLogs.Exists(bytCurData)) {
-                    strArg = agLogs[bytCurData].ID;
+                  if (compGame.agLogs.Exists(bytCurData)) {
+                    strArg = compGame.agLogs[bytCurData].ID;
                   }
                   else {
                     //logic doesn't exist
-                    switch (agMainLogSettings.ErrorLevel) {
+                    switch (ErrorLevel) {
                     case leHigh:
                     case leMedium:
                       //set warning
@@ -386,12 +396,12 @@ namespace WinAGI.Engine
                   break;
                 case 41:  //set.view,      2nd arg (V)
                   if (intArg == 1) {
-                    if (agViews.Exists(bytCurData)) {
-                      strArg = agViews[bytCurData].ID;
+                    if (compGame.agViews.Exists(bytCurData)) {
+                      strArg = compGame.agViews[bytCurData].ID;
                     }
                     else {
                       //view doesn't exist
-                      switch (agMainLogSettings.ErrorLevel) {
+                      switch (ErrorLevel) {
                       case leHigh:
                       case leMedium:
                         //set warning
@@ -405,12 +415,12 @@ namespace WinAGI.Engine
                   }
                   break;
                 case 129: //show.obj,      only arg (V)
-                  if (agViews.Exists(bytCurData)) {
-                    strArg = agViews[bytCurData].ID;
+                  if (compGame.agViews.Exists(bytCurData)) {
+                    strArg = compGame.agViews[bytCurData].ID;
                   }
                   else {
                     //view doesn't exist
-                    switch (agMainLogSettings.ErrorLevel) {
+                    switch (ErrorLevel) {
                     case leHigh:
                     case leMedium:
                       //set warning
@@ -424,12 +434,12 @@ namespace WinAGI.Engine
                   break;
                 case 99:  //sound,         1st arg (S)
                   if (intArg == 0) {
-                    if (agSnds.Exists(bytCurData)) {
-                      strArg = agSnds[bytCurData].ID;
+                    if (compGame.agSnds.Exists(bytCurData)) {
+                      strArg = compGame.agSnds[bytCurData].ID;
                     }
                     else {
                       //sound doesn't exist
-                      switch (agMainLogSettings.ErrorLevel) {
+                      switch (ErrorLevel) {
                       case leHigh:
                       case leMedium:
                         //set warning
@@ -444,12 +454,12 @@ namespace WinAGI.Engine
                   break;
                 case 150: //trace.info,    1st arg (L)
                   if (intArg == 0) {
-                    if (agLogs.Exists(bytCurData)) {
-                      strArg = agLogs[bytCurData].ID;
+                    if (compGame.agLogs.Exists(bytCurData)) {
+                      strArg = compGame.agLogs[bytCurData].ID;
                     }
                     else {
                       //logic doesn't exist
-                      switch (agMainLogSettings.ErrorLevel) {
+                      switch (ErrorLevel) {
                       case leHigh:
                       case leMedium:
                         //set warning
@@ -597,7 +607,7 @@ namespace WinAGI.Engine
     {
       //if not showing reserved names (or if not using reserved defines)
       // AND not a msg (always substitute msgs)
-      if ((!agResAsText || !agUseRes) && ArgType != ArgTypeEnum.atMsg) {
+      if ((!ReservedAsText || !UseReservedNames) && ArgType != ArgTypeEnum.atMsg) {
         //return simple Value
         return agArgTypPref[(int)ArgType] + ArgNum;
       }
@@ -653,7 +663,7 @@ namespace WinAGI.Engine
           return agResFlag[ArgNum].Name;
           //check for special case of f20 (only if version 3.002102 or higher)
         }
-        else if (ArgNum == 20 && Val(agIntVersion) >= 3.002102) {
+        else if (ArgNum == 20 && Val(compGame.agIntVersion) >= 3.002102) {
           return agResFlag[17].Name;
         }
         else {
@@ -664,7 +674,7 @@ namespace WinAGI.Engine
         blnMsgUsed[ArgNum] = true;
         //if this message exists,
         if (blnMsgExists[ArgNum]) {
-          if (agMainLogSettings.MsgsByNumber) {
+          if (Compiler.MsgsByNumber) {
             return "m" + ArgNum;
           }
           else {
@@ -674,7 +684,7 @@ namespace WinAGI.Engine
         }
         else {
           //message doesn't exist
-          switch (agMainLogSettings.ErrorLevel) {
+          switch (ErrorLevel) {
           case leHigh:
             strError = "Undefined message (" + ArgNum + ")  at position " + lngPos;
             return "";
@@ -699,32 +709,32 @@ namespace WinAGI.Engine
           return "o" + ArgNum;
         }
       case ArgTypeEnum.atIObj:
-        //if a game is loaded AND OBJECT file is loaded,
-        if (agGameLoaded && agInvObj.Loaded) {
-          if (ArgNum < agInvObj.Count) {
+        //if a game is loaded AND OBJECT file is loaded,  TODO: shouldn't a game always be loaded to compile a logic?
+        if (compGame.agGameLoaded && compGame.agInvObj.Loaded) {
+          if (ArgNum < compGame.agInvObj.Count) {
             //if object is unique
-            if (agInvObj[ArgNum].Unique) {
+            if (compGame.agInvObj[ArgNum].Unique) {
               //double check if item is a question mark
-              if (agInvObj[ArgNum].ItemName == "?") {
+              if (compGame.agInvObj[ArgNum].ItemName == "?") {
                 //use the inventory item number, and post a warning
                 AddDecodeWarning("reference to invalid inventory object ('?')");
                 return "i" + ArgNum;
               }
               else {
                 //a unique, non-questionmark item- use it's string Value
-                return QUOTECHAR + agInvObj[ArgNum].ItemName.Replace(QUOTECHAR, "\"") + QUOTECHAR;
+                return QUOTECHAR + compGame.agInvObj[ArgNum].ItemName.Replace(QUOTECHAR, "\"") + QUOTECHAR;
               }
             }
             else {
               //use obj number instead
-              if (agMainLogSettings.ErrorLevel != leLow) {
-                AddDecodeWarning("non-unique object: '" + agInvObj[ArgNum].ItemName + "'");
+              if (ErrorLevel != leLow) {
+                AddDecodeWarning("non-unique object: '" + compGame.agInvObj[ArgNum].ItemName + "'");
               }
               return "i" + ArgNum;
             }
           }
           else {
-            switch (agMainLogSettings.ErrorLevel) {
+            switch (ErrorLevel) {
             case leHigh:
               strError = ("Invalid inventory item (" + ArgNum + ")");
               return "";
@@ -746,7 +756,7 @@ namespace WinAGI.Engine
         }
       case ArgTypeEnum.atStr:
         if (ArgNum == 0) {
-          return agResDef[5].Name;
+          return agResObj[5].Name;
         }
         else {
           //not a reserved data type
@@ -958,7 +968,7 @@ namespace WinAGI.Engine
             strLine = MultStr("  ", bytBlockDepth) + "    ";
           }
           bytCmd = bytCurByte;
-          if (agMainLogSettings.SpecialSyntax && (bytCmd >= 1 && bytCmd <= 6)) {
+          if (Compiler.SpecialSyntax && (bytCmd >= 1 && bytCmd <= 6)) {
             //get first argument
             bytCurByte = bytData[lngPos];
             lngPos++;
@@ -981,15 +991,15 @@ namespace WinAGI.Engine
               for (intArg1Val = 1; intArg1Val <= bytNumSaidArgs; intArg1Val++) {
                 lngWordGroupNum = 256 * bytData[lngPos + 1] + bytData[lngPos];
                 lngPos += 2;
-                //if a game is loaded,
-                if (agGameLoaded) {
+                //if a game is loaded, TODO: shouldn't a game always be loaded to compile a logic?
+                if (compGame.agGameLoaded) {
                   //enable error trapping to catch any nonexistent words
                   try {
                     //if word exists,
-                    strLine = strLine + QUOTECHAR + agVocabWords.GroupN(lngWordGroupNum).GroupName + QUOTECHAR;
+                    strLine = strLine + QUOTECHAR + compGame.agVocabWords.GroupN(lngWordGroupNum).GroupName + QUOTECHAR;
                   }
                   catch (Exception) {
-                    switch (agMainLogSettings.ErrorLevel) {
+                    switch (ErrorLevel) {
                     case leHigh:
                       //raise error
                       strError = "unknown word group (" + lngWordGroupNum + ") at position " + lngPos;
@@ -1103,7 +1113,7 @@ namespace WinAGI.Engine
           Block[bytBlockDepth].Length = 256 * bytData[lngPos + 1] + bytData[lngPos];
           lngPos += 2;
           //check for length of zero
-          if (Block[bytBlockDepth].Length == 0 && agMainLogSettings.ErrorLevel == leMedium) {
+          if (Block[bytBlockDepth].Length == 0 && ErrorLevel == leMedium) {
             //set warning text
             AddDecodeWarning("this block contains no commands");
           }
@@ -1111,7 +1121,7 @@ namespace WinAGI.Engine
           //validate end pos
           Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
           if (Block[bytBlockDepth].EndPos >= bytData.Length - 1) {
-            switch (agMainLogSettings.ErrorLevel) {
+            switch (ErrorLevel) {
             //if error level is high, SkipToEndIf catches this condition
             case leMedium:
               //adjust to end
@@ -1132,7 +1142,7 @@ namespace WinAGI.Engine
             //this is an abnormal situation
             //if error level is high; this would have been
             //caught in SkipToEndIf;
-            if (agMainLogSettings.ErrorLevel == leMedium) {
+            if (ErrorLevel == leMedium) {
               //set warning text
               AddDecodeWarning("Block end outside of nested block (" + Block[bytBlockDepth].JumpPos + ") at position " + lngPos);
             }
@@ -1226,7 +1236,7 @@ namespace WinAGI.Engine
           lngPos += 2;
           //check length of block
           if (Block[bytBlockDepth].Length == 0) {
-            if (agMainLogSettings.ErrorLevel == leHigh) {
+            if (ErrorLevel == leHigh) {
               //consider zero block lengths as error
               strError = "Encountered command block of length 0 at position " + lngPos;
               return false;
@@ -1237,7 +1247,7 @@ namespace WinAGI.Engine
             //block is outside the previous block nest;
             //
             //this is an abnormal situation;
-            switch (agMainLogSettings.ErrorLevel) {
+            switch (ErrorLevel) {
             case leHigh:
               //error
               strError = "Block end outside of nested block (" + Block[bytBlockDepth].JumpPos + ") at position" + lngPos;
@@ -1348,7 +1358,7 @@ namespace WinAGI.Engine
           //  - this block is identified as an IF block
           //  - this is NOT the main block
           //  - the flag to set elses as gotos is turned off
-          if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!agMainLogSettings.ElseAsGoto)) {
+          if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!Compiler.ElseAsGoto)) {
             //this block is now in the 'else' part, so reset flag
             Block[bytBlockDepth].IsIf = false;
             Block[bytBlockDepth].IsOutside = false;
@@ -1378,7 +1388,7 @@ namespace WinAGI.Engine
             LabelLoc = tmpBlockLength + lngPos;
             if (LabelLoc > bytData.Length - 2) {
               //if error level is high (medium and low are handled in DecodeLogic)
-              if (agMainLogSettings.ErrorLevel == leHigh) {
+              if (ErrorLevel == leHigh) {
                 strError = "Goto destination past end of logic (" + LabelLoc + ")" + "at position " + lngPos;
                 return false;
               }
@@ -1449,7 +1459,7 @@ namespace WinAGI.Engine
       stlOut.Add(D_TKN_COMMENT + "Messages");
       for (lngMsg = 1; lngMsg <= stlMsgs.Count; lngMsg++) {
         Debug.Print($"Msg Num: {lngMsg}  MsgExists:{blnMsgExists[lngMsg].ToString()}  MsgUsed:{blnMsgUsed[lngMsg]}");
-        if (blnMsgExists[lngMsg] && ((agMainLogSettings.ShowAllMessages) || !blnMsgUsed[lngMsg])) {
+        if (blnMsgExists[lngMsg] && ((Compiler.ShowAllMessages) || !blnMsgUsed[lngMsg])) {
           stlOut.Add(D_TKN_MESSAGE.Replace(ARG1, lngMsg.ToString()).Replace(ARG2, stlMsgs[lngMsg - 1]));
         }
       }
@@ -1604,7 +1614,7 @@ namespace WinAGI.Engine
           if (Block[CurBlock].IsOutside) {
             //add an else
             stlIn.Add(MultStr("  ", bytBlockDepth) + D_TKN_ENDIF);
-            if (agMainLogSettings.ElseAsGoto) {
+            if (Compiler.ElseAsGoto) {
               stlIn.Add(MultStr("  ", bytBlockDepth - 1) + D_TKN_GOTO);
             }
             else {
