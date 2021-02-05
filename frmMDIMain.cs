@@ -390,11 +390,11 @@ namespace WinAGI.Editor
       CheckCmd();
 
       //was a game loaded when app was last closed
-      blnLastLoad = ReadSettingBool(SettingsList, sMRULIST, "LastLoad", false);
+      blnLastLoad = GameSettings.GetSetting(sMRULIST, "LastLoad", false);
 
 
       //if nothing loaded AND autoreload is set AND something was loaded last time program ended,
-      if (!GameLoaded && this.ActiveMdiChild == null && Settings.AutoOpen && blnLastLoad) {
+      if (!EditGame.GameLoaded && this.ActiveMdiChild == null && Settings.AutoOpen && blnLastLoad) {
         //open mru1
         OpenMRUGame(0);
       }
@@ -404,7 +404,7 @@ namespace WinAGI.Editor
         //        MsgBoxEx("There are no printers available, so printing functions will be disabled.", vbInformation + vbOKOnly, "WinAGI GDS", , , "Don//t show this warning again.", Settings.SkipPrintWarning
       }
       if (Settings.SkipPrintWarning) {
-        WriteAppSetting(SettingsList, sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning);
+        GameSettings.WriteSetting(sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning);
       }
 //      UseWaitCursor = false;
     }
@@ -442,10 +442,10 @@ namespace WinAGI.Editor
       //  Debug.Print($"Group {WordList.GroupN(i).GroupNum}: {WordList.GroupN(i).GroupName} ({WordList.GroupN(i).WordCount} words)");
       //}
       int i = 0, j = 0;
-      foreach (AGIWord tmpWord in (IEnumerable<AGIWord>)WordList) {
+      foreach (AGIWord tmpWord in (IEnumerable<AGIWord>)EditGame.WordList) {
         i++;
       }
-      foreach (AGIWordGroup tmpGrp in (IEnumerable<AGIWordGroup>)WordList) {
+      foreach (AGIWordGroup tmpGrp in (IEnumerable<AGIWordGroup>)EditGame.WordList) {
         j++;
       }
       Debug.Print($"There are {i} words in {j} groups in this list.");
@@ -474,7 +474,7 @@ namespace WinAGI.Editor
     private void cmbResType_SelectedIndexChanged(object sender, EventArgs e)
     {
       //fill list box with resources for selected type
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
         AGIResType selRes;
 
         // clear current list
@@ -487,7 +487,7 @@ namespace WinAGI.Editor
           selRes = rtGame;
           break;
         case 1: //logics
-          foreach (AGILogic tmpRes in Logics) {
+          foreach (AGILogic tmpRes in EditGame.Logics) {
             tmpItem = lstResources.Items.Add("l" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
             //set color based on compiled status;
@@ -501,21 +501,21 @@ namespace WinAGI.Editor
           selRes = rtLogic;
           break;
         case 2://pictures
-          foreach (AGIPicture tmpRes in Pictures) {
+          foreach (AGIPicture tmpRes in EditGame.Pictures) {
             tmpItem = lstResources.Items.Add("p" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
           }
           selRes = rtPicture;
           break;
         case 3: //sounds
-          foreach (AGISound tmpRes in Sounds) {
+          foreach (AGISound tmpRes in EditGame.Sounds) {
             tmpItem = lstResources.Items.Add("s" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
           }
           selRes = rtSound;
           break;
         case 4: //views
-          foreach (AGIView tmpRes in Views) {
+          foreach (AGIView tmpRes in EditGame.Views) {
             tmpItem = lstResources.Items.Add("v" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
           }
@@ -533,7 +533,7 @@ namespace WinAGI.Editor
     }
     private void lstResources_SelectedIndexChanged(object sender, EventArgs e)
     {
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
 
         AGIResType NewType = rtGame; int NewNum = 0;
         switch (cmbResType.SelectedIndex) {
@@ -669,59 +669,59 @@ namespace WinAGI.Editor
         if (NewResNum == -1) {
           //logic header
           PropRows = 3;
-          propertyGrid1.SelectedObject = Logics;
+          propertyGrid1.SelectedObject = EditGame.Logics;
         }
         else {
           //show logic properties
           PropRows = 8;
-          propertyGrid1.SelectedObject = Logics[NewResNum];
+          propertyGrid1.SelectedObject = EditGame.Logics[NewResNum];
         }
         break;
       case AGIResType.rtPicture:
         if (NewResNum == -1) {
           //picture header
-          propertyGrid1.SelectedObject = Pictures;
+          propertyGrid1.SelectedObject = EditGame.Pictures;
           PropRows = 1;
         }
         else {
           //show picture properties
           PropRows = 6;
-          propertyGrid1.SelectedObject = Pictures[NewResNum];
+          propertyGrid1.SelectedObject = EditGame.Pictures[NewResNum];
         }
         break;
       case AGIResType.rtSound:
         if (NewResNum == -1) {
           //sound header
           PropRows = 1;
-          propertyGrid1.SelectedObject = Sounds;
+          propertyGrid1.SelectedObject = EditGame.Sounds;
         }
         else {
           //show sound properties
           PropRows = 6;
-          propertyGrid1.SelectedObject = Sounds[NewResNum];
+          propertyGrid1.SelectedObject = EditGame.Sounds[NewResNum];
         }
         break;
       case AGIResType.rtView:
         if (NewResNum == -1) {
           //view header
           PropRows = 1;
-          propertyGrid1.SelectedObject = Views;
+          propertyGrid1.SelectedObject = EditGame.Views;
         }
         else {
           //show view properties
           PropRows = 7;
-          propertyGrid1.SelectedObject = Views[NewResNum];
+          propertyGrid1.SelectedObject = EditGame.Views[NewResNum];
         }
         break;
       case AGIResType.rtObjects:
         //show object Count, description, encryption, and Max screen objects
         PropRows = 4;
-        propertyGrid1.SelectedObject = InvObjects;
+        propertyGrid1.SelectedObject = EditGame.InvObjects;
         break;
       case AGIResType.rtWords:
         //show group Count and word Count and description
         PropRows = 3;
-        propertyGrid1.SelectedObject = WordList;
+        propertyGrid1.SelectedObject = EditGame.WordList;
         break;
       }
 
@@ -766,7 +766,7 @@ namespace WinAGI.Editor
           if (Settings.LESync) {
             if (this.ActiveMdiChild != null) {
               if (this.ActiveMdiChild is frmLayout) {
-                if (Logics[(byte)SelResNum].IsRoom) {
+                if (EditGame.Logics[(byte)SelResNum].IsRoom) {
                   //if option to sync is set
                   LayoutEditor.SelectRoom(SelResNum);
                 }
@@ -785,7 +785,7 @@ namespace WinAGI.Editor
       //create new view and enter edit mode
       NewView();
 
-      if (!GameLoaded) return;
+      if (!EditGame.GameLoaded) return;
       // show editor form
       frmViewEdit frmNew = new frmViewEdit
       {
@@ -865,25 +865,25 @@ namespace WinAGI.Editor
         //does the resource still exist?
         switch (ResType) {
         case rtLogic:
-          if (!Logics.Exists((byte)ResNum)) {
+          if (!EditGame.Logics.Exists((byte)ResNum)) {
             return;
           }
           strKey = "l" + ResNum;
           break;
         case rtPicture:
-          if (!Pictures.Exists((byte)ResNum)) {
+          if (!EditGame.Pictures.Exists((byte)ResNum)) {
             return;
           }
           strKey = "p" + ResNum;
           break;
         case rtSound:
-          if (!Sounds.Exists((byte)ResNum)) {
+          if (!EditGame.Sounds.Exists((byte)ResNum)) {
             return;
           }
           strKey = "s" + ResNum;
           break;
         case rtView:
-          if (!Views.Exists((byte)ResNum)) {
+          if (!EditGame.Views.Exists((byte)ResNum)) {
             return;
           }
           strKey = "v" + ResNum;
@@ -930,42 +930,43 @@ namespace WinAGI.Editor
       bool blnErrors, blnMax;
 
       //open the program settings  file
-      SettingsList = OpenSettingList(ProgramDir + "winagi.config");
+      GameSettings = new SettingsList(ProgramDir + "winagi.config");
+      GameSettings.Open();
       //don't have to worry about missing file; defaults will be added automatically
       //GENERAL settings
-      Settings.ShowSplashScreen = ReadSettingBool(SettingsList, sGENERAL, "ShowSplashScreen", DEFAULT_SHOWSPLASHSCREEN);
-      Settings.SkipPrintWarning = ReadSettingBool(SettingsList, sGENERAL, "SkipPrintWarning", DEFAULT_SKIPPRINTWARNING);
-      Settings.WarnCompile = ReadSettingBool(SettingsList, sGENERAL, "WarnCompile", DEFAULT_WARNCOMPILE);
-      Settings.NotifyCompSuccess = ReadSettingBool(SettingsList, sGENERAL, "NotifyCompSuccess", DEFAULT_NOTIFYCOMPSUCCESS);
-      Settings.NotifyCompWarn = ReadSettingBool(SettingsList, sGENERAL, "NotifyCompWarn", DEFAULT_NOTIFYCOMPWARN);
-      Settings.NotifyCompFail = ReadSettingBool(SettingsList, sGENERAL, "NotifyCompFail", DEFAULT_NOTIFYCOMPFAIL);
-      Settings.WarnDupGName = ReadSettingBool(SettingsList, sGENERAL, "WarnDupGName", DEFAULT_WARNDUPGNAME);
-      Settings.WarnDupGVal = ReadSettingBool(SettingsList, sGENERAL, "WarnDupGVal", DEFAULT_WARNDUPGVAL);
-      Settings.WarnInvalidStrVal = ReadSettingBool(SettingsList, sGENERAL, "WarnInvalidStrVal", DEFAULT_WARNSTRVAL);
-      Settings.WarnInvalidCtlVal = ReadSettingBool(SettingsList, sGENERAL, "WarnInvalidCtlVal", DEFAULT_WARNCTLVAL);
-      Settings.WarnResOvrd = ReadSettingBool(SettingsList, sGENERAL, "WarnResOvrd", DEFAULT_WARNRESOVRD);
-      Settings.WarnDupObj = ReadSettingBool(SettingsList, sGENERAL, "WarnDupObj", DEFAULT_WARNDUPOBJ);
-      Settings.WarnItem0 = ReadSettingBool(SettingsList, sGENERAL, "WarnItem0", DEFAULT_WARNITEM0);
-      Settings.DelBlankG = ReadSettingLong(SettingsList, sGENERAL, "DelBlankG", DEFAULT_DELBLANKG);
-      Settings.ShowPreview = ReadSettingBool(SettingsList, sGENERAL, "ShowPreview", DEFAULT_SHOWPREVIEW);
-      Settings.ShiftPreview = ReadSettingBool(SettingsList, sGENERAL, "ShiftPreview", DEFAULT_SHIFTPREVIEW);
-      Settings.HidePreview = ReadSettingBool(SettingsList, sGENERAL, "HidePreview", DEFAULT_HIDEPREVIEW);
-      Settings.ResListType = ReadSettingLong(SettingsList, sGENERAL, "ResListType", DEFAULT_RESLISTTYPE);
+      Settings.ShowSplashScreen = GameSettings.GetSetting(sGENERAL, "ShowSplashScreen", DEFAULT_SHOWSPLASHSCREEN);
+      Settings.SkipPrintWarning = GameSettings.GetSetting(sGENERAL, "SkipPrintWarning", DEFAULT_SKIPPRINTWARNING);
+      Settings.WarnCompile = GameSettings.GetSetting(sGENERAL, "WarnCompile", DEFAULT_WARNCOMPILE);
+      Settings.NotifyCompSuccess = GameSettings.GetSetting(sGENERAL, "NotifyCompSuccess", DEFAULT_NOTIFYCOMPSUCCESS);
+      Settings.NotifyCompWarn = GameSettings.GetSetting(sGENERAL, "NotifyCompWarn", DEFAULT_NOTIFYCOMPWARN);
+      Settings.NotifyCompFail = GameSettings.GetSetting(sGENERAL, "NotifyCompFail", DEFAULT_NOTIFYCOMPFAIL);
+      Settings.WarnDupGName = GameSettings.GetSetting(sGENERAL, "WarnDupGName", DEFAULT_WARNDUPGNAME);
+      Settings.WarnDupGVal = GameSettings.GetSetting(sGENERAL, "WarnDupGVal", DEFAULT_WARNDUPGVAL);
+      Settings.WarnInvalidStrVal = GameSettings.GetSetting(sGENERAL, "WarnInvalidStrVal", DEFAULT_WARNSTRVAL);
+      Settings.WarnInvalidCtlVal = GameSettings.GetSetting(sGENERAL, "WarnInvalidCtlVal", DEFAULT_WARNCTLVAL);
+      Settings.WarnResOvrd = GameSettings.GetSetting(sGENERAL, "WarnResOvrd", DEFAULT_WARNRESOVRD);
+      Settings.WarnDupObj = GameSettings.GetSetting(sGENERAL, "WarnDupObj", DEFAULT_WARNDUPOBJ);
+      Settings.WarnItem0 = GameSettings.GetSetting(sGENERAL, "WarnItem0", DEFAULT_WARNITEM0);
+      Settings.DelBlankG = GameSettings.GetSetting(sGENERAL, "DelBlankG", DEFAULT_DELBLANKG);
+      Settings.ShowPreview = GameSettings.GetSetting(sGENERAL, "ShowPreview", DEFAULT_SHOWPREVIEW);
+      Settings.ShiftPreview = GameSettings.GetSetting(sGENERAL, "ShiftPreview", DEFAULT_SHIFTPREVIEW);
+      Settings.HidePreview = GameSettings.GetSetting(sGENERAL, "HidePreview", DEFAULT_HIDEPREVIEW);
+      Settings.ResListType = GameSettings.GetSetting(sGENERAL, "ResListType", DEFAULT_RESLISTTYPE);
       //validate treetype
       if (Settings.ResListType < 0 || Settings.ResListType > 2) {
         //use default
         Settings.ResListType = DEFAULT_RESLISTTYPE;
-        WriteAppSetting(SettingsList, sGENERAL, "ResListType", Settings.ResListType.ToString(), "");
+        GameSettings.WriteSetting(sGENERAL, "ResListType", Settings.ResListType.ToString(), "");
       }
-      Settings.AutoExport = ReadSettingBool(SettingsList, sGENERAL, "AutoExport", DEFAULT_AUTOEXPORT);
-      Settings.AutoUpdateDefines = ReadSettingLong(SettingsList, sLOGICS, "AutoUpdateDefines", DEFAULT_AUTOUPDATEDEFINES);
-      Settings.AutoUpdateResDefs = ReadSettingLong(SettingsList, sLOGICS, "AutoUpdateResDefs", DEFAULT_AUTOUPDATERESDEFS);
-      Settings.AskExport = ReadSettingBool(SettingsList, sGENERAL, "AskExport", DEFAULT_ASKEXPORT);
-      Settings.AskRemove = ReadSettingBool(SettingsList, sGENERAL, "AskRemove", DEFAULT_ASKREMOVE);
-      Settings.OpenNew = ReadSettingBool(SettingsList, sGENERAL, "OpenNew", DEFAULT_OPENNEW);
-      Settings.RenameDelRes = ReadSettingBool(SettingsList, sGENERAL, "RenameDelRes", DEFAULT_RENAMEDELRES);
+      Settings.AutoExport = GameSettings.GetSetting(sGENERAL, "AutoExport", DEFAULT_AUTOEXPORT);
+      Settings.AutoUpdateDefines = GameSettings.GetSetting(sLOGICS, "AutoUpdateDefines", DEFAULT_AUTOUPDATEDEFINES);
+      Settings.AutoUpdateResDefs = GameSettings.GetSetting(sLOGICS, "AutoUpdateResDefs", DEFAULT_AUTOUPDATERESDEFS);
+      Settings.AskExport = GameSettings.GetSetting(sGENERAL, "AskExport", DEFAULT_ASKEXPORT);
+      Settings.AskRemove = GameSettings.GetSetting(sGENERAL, "AskRemove", DEFAULT_ASKREMOVE);
+      Settings.OpenNew = GameSettings.GetSetting(sGENERAL, "OpenNew", DEFAULT_OPENNEW);
+      Settings.RenameDelRes = GameSettings.GetSetting(sGENERAL, "RenameDelRes", DEFAULT_RENAMEDELRES);
       //(DefResDir is not an element of settings; it's a WinAGI property)
-      DefResDir = ReadSettingString(SettingsList, sGENERAL, "DefResDir", "src").Trim();
+      DefResDir = GameSettings.GetSetting(sGENERAL, "DefResDir", "src").Trim();
       //validate directory
       if (DefResDir == "") {
         DefResDir = "src";
@@ -975,81 +976,81 @@ namespace WinAGI.Editor
         //invalid character; reset to default
         DefResDir = "src";
       }
-      Settings.MaxSO = ReadSettingLong(SettingsList, sGENERAL, "MaxSO", DEFAULT_MAXSO);
+      Settings.MaxSO = GameSettings.GetSetting(sGENERAL, "MaxSO", DEFAULT_MAXSO);
       if (Settings.MaxSO > 255)
         Settings.MaxSO = 255;
       if (Settings.MaxSO < 1)
         Settings.MaxSO = 1;
       //(maxvolsize is an AGIGame property, not a WinAGI setting)  ? but this is the default value if one is
       //not provided in a game, right?
-      Settings.MaxVol0Size = ReadSettingLong(SettingsList, sGENERAL, "MaxVol0", 1047552);
+      Settings.MaxVol0Size = GameSettings.GetSetting(sGENERAL, "MaxVol0", 1047552);
       if (Settings.MaxVol0Size < 32768)
         Settings.MaxVol0Size = 32768;
       if (Settings.MaxVol0Size > 1047552)
         Settings.MaxVol0Size = 1047552;
-      MaxVol0Size = Settings.MaxVol0Size;
+      EditGame.MaxVol0Size = Settings.MaxVol0Size;
       //get help window parent
-      if (!ReadSettingBool(SettingsList, sGENERAL, "DockHelpWindow", true)) {
+      if (!GameSettings.GetSetting(sGENERAL, "DockHelpWindow", true)) {
         //HelpParent = GetDesktopWindow();
         //if (HelpParent = 0)
         //HelpParent = this.hWnd;
       }
       //RESFORMAT settings
-      Settings.ShowResNum = ReadSettingBool(SettingsList, "ResFormat", "ShowResNum", DEFAULT_SHOWRESNUM);
-      Settings.IncludeResNum = ReadSettingBool(SettingsList, "ResFormat", "IncludeResNum", DEFAULT_INCLUDERESNUM);
-      Settings.ResFormat.NameCase = ReadSettingLong(SettingsList, "ResFormat", "NameCase", (int)DEFAULT_NAMECASE);
+      Settings.ShowResNum = GameSettings.GetSetting("ResFormat", "ShowResNum", DEFAULT_SHOWRESNUM);
+      Settings.IncludeResNum = GameSettings.GetSetting("ResFormat", "IncludeResNum", DEFAULT_INCLUDERESNUM);
+      Settings.ResFormat.NameCase = GameSettings.GetSetting("ResFormat", "NameCase", (int)DEFAULT_NAMECASE);
       if ((int)Settings.ResFormat.NameCase < 0 || (int)Settings.ResFormat.NameCase > 2) {
         Settings.ResFormat.NameCase = DEFAULT_NAMECASE;
       }
-      Settings.ResFormat.Separator = Left(ReadSettingString(SettingsList, "ResFormat", "Separator", DEFAULT_SEPARATOR), 1);
-      Settings.ResFormat.NumFormat = ReadSettingString(SettingsList, "ResFormat", "NumFormat", DEFAULT_NUMFORMAT);
+      Settings.ResFormat.Separator = Left(GameSettings.GetSetting("ResFormat", "Separator", DEFAULT_SEPARATOR), 1);
+      Settings.ResFormat.NumFormat = GameSettings.GetSetting("ResFormat", "NumFormat", DEFAULT_NUMFORMAT);
       //GLOBAL EDITOR
-      Settings.GlobalUndo = ReadSettingLong(SettingsList, "Globals", "GlobalUndo", DEFAULT_GLBUNDO);
-      Settings.GEShowComment = ReadSettingBool(SettingsList, "Globals", "ShowCommentColumn", DEFAULT_GESHOWCMT);
-      Settings.GENameFrac = ReadSettingSingle(SettingsList, "Globals", "GENameFrac", 0);
-      Settings.GEValFrac = ReadSettingSingle(SettingsList, "Globals", "GEValFrac", 0);
+      Settings.GlobalUndo = GameSettings.GetSetting("Globals", "GlobalUndo", DEFAULT_GLBUNDO);
+      Settings.GEShowComment = GameSettings.GetSetting("Globals", "ShowCommentColumn", DEFAULT_GESHOWCMT);
+      Settings.GENameFrac = GameSettings.GetSetting("Globals", "GENameFrac", 0);
+      Settings.GEValFrac = GameSettings.GetSetting("Globals", "GEValFrac", 0);
 
       //get overrides of reserved defines, if there are any
       GetResDefOverrides();
 
       //LAYOUT
-      Settings.DefUseLE = ReadSettingBool(SettingsList, sLAYOUT, "DefUseLE", DEFAULT_DEFUSELE);
-      Settings.LEPages = ReadSettingBool(SettingsList, sLAYOUT, "PageBoundaries", DEFAULT_LEPAGES);
-      Settings.LEDelPicToo = ReadSettingLong(SettingsList, sLAYOUT, "DelPicToo", DEFAULT_LEWARNDELETE);
-      Settings.LEShowPics = ReadSettingBool(SettingsList, sLAYOUT, "ShowPics", DEFAULT_LESHOWPICS);
-      Settings.LESync = ReadSettingBool(SettingsList, sLAYOUT, "Sync", DEFAULT_LESYNC);
-      Settings.LEUseGrid = ReadSettingBool(SettingsList, sLAYOUT, "UseGrid", DEFAULT_LEUSEGRID);
-      Settings.LEGrid = ReadSettingSingle(SettingsList, sLAYOUT, "GridSize", DEFAULT_LEGRID);
+      Settings.DefUseLE = GameSettings.GetSetting(sLAYOUT, "DefUseLE", DEFAULT_DEFUSELE);
+      Settings.LEPages = GameSettings.GetSetting(sLAYOUT, "PageBoundaries", DEFAULT_LEPAGES);
+      Settings.LEDelPicToo = GameSettings.GetSetting(sLAYOUT, "DelPicToo", DEFAULT_LEWARNDELETE);
+      Settings.LEShowPics = GameSettings.GetSetting(sLAYOUT, "ShowPics", DEFAULT_LESHOWPICS);
+      Settings.LESync = GameSettings.GetSetting(sLAYOUT, "Sync", DEFAULT_LESYNC);
+      Settings.LEUseGrid = GameSettings.GetSetting(sLAYOUT, "UseGrid", DEFAULT_LEUSEGRID);
+      Settings.LEGrid = GameSettings.GetSetting(sLAYOUT, "GridSize", DEFAULT_LEGRID);
       Settings.LEGrid = Math.Round(Settings.LEGrid, 2);
       if (Settings.LEGrid > 1)
         Settings.LEGrid = 1;
       if (Settings.LEGrid < 0.05)
         Settings.LEGrid = 0.05;
-      Settings.LEZoom = ReadSettingLong(SettingsList, sLAYOUT, "Zoom", DEFAULT_LEZOOM);
+      Settings.LEZoom = GameSettings.GetSetting(sLAYOUT, "Zoom", DEFAULT_LEZOOM);
       //get editor colors
-      Settings.LEColors.Room.Edge = ReadSettingColor(SettingsList, sLAYOUT, "RoomEdgeColor", DEFAULT_LEROOM_EDGE);
-      Settings.LEColors.Room.Fill = ReadSettingColor(SettingsList, sLAYOUT, "RoomFillColor", DEFAULT_LEROOM_FILL);
-      Settings.LEColors.TransPt.Edge = ReadSettingColor(SettingsList, sLAYOUT, "TransEdgeColor", DEFAULT_LETRANSPT_EDGE);
-      Settings.LEColors.TransPt.Fill = ReadSettingColor(SettingsList, sLAYOUT, "TransFillColor", DEFAULT_LETRANSPT_FILL);
-      Settings.LEColors.ErrPt.Edge = ReadSettingColor(SettingsList, sLAYOUT, "ErrEdgeColor", DEFAULT_LEERR_EDGE);
-      Settings.LEColors.ErrPt.Fill = ReadSettingColor(SettingsList, sLAYOUT, "ErrFillColor", DEFAULT_LEERR_FILL);
-      Settings.LEColors.Cmt.Edge = ReadSettingColor(SettingsList, sLAYOUT, "CmtEdgeColor", DEFAULT_LECMT_EDGE);
-      Settings.LEColors.Cmt.Fill = ReadSettingColor(SettingsList, sLAYOUT, "CmtFillColor", DEFAULT_LECMT_FILL);
-      Settings.LEColors.Edge = ReadSettingColor(SettingsList, sLAYOUT, "ExitEdgeColor", DEFAULT_LEEXIT_EDGE);
-      Settings.LEColors.Other = ReadSettingColor(SettingsList, sLAYOUT, "ExitOtherColor", DEFAULT_LEEXIT_OTHERS);
+      Settings.LEColors.Room.Edge = GameSettings.GetSetting(sLAYOUT, "RoomEdgeColor", DEFAULT_LEROOM_EDGE);
+      Settings.LEColors.Room.Fill = GameSettings.GetSetting(sLAYOUT, "RoomFillColor", DEFAULT_LEROOM_FILL);
+      Settings.LEColors.TransPt.Edge = GameSettings.GetSetting(sLAYOUT, "TransEdgeColor", DEFAULT_LETRANSPT_EDGE);
+      Settings.LEColors.TransPt.Fill = GameSettings.GetSetting(sLAYOUT, "TransFillColor", DEFAULT_LETRANSPT_FILL);
+      Settings.LEColors.ErrPt.Edge = GameSettings.GetSetting(sLAYOUT, "ErrEdgeColor", DEFAULT_LEERR_EDGE);
+      Settings.LEColors.ErrPt.Fill = GameSettings.GetSetting(sLAYOUT, "ErrFillColor", DEFAULT_LEERR_FILL);
+      Settings.LEColors.Cmt.Edge = GameSettings.GetSetting(sLAYOUT, "CmtEdgeColor", DEFAULT_LECMT_EDGE);
+      Settings.LEColors.Cmt.Fill = GameSettings.GetSetting(sLAYOUT, "CmtFillColor", DEFAULT_LECMT_FILL);
+      Settings.LEColors.Edge = GameSettings.GetSetting(sLAYOUT, "ExitEdgeColor", DEFAULT_LEEXIT_EDGE);
+      Settings.LEColors.Other = GameSettings.GetSetting(sLAYOUT, "ExitOtherColor", DEFAULT_LEEXIT_OTHERS);
       //LOGICS
-      Settings.HighlightLogic = ReadSettingBool(SettingsList, sLOGICS, "HighlightLogic", DEFAULT_HILITELOG);
-      Settings.HighlightText = ReadSettingBool(SettingsList, sLOGICS, "HighlightText", DEFAULT_HILITETEXT);
-      Settings.LogicTabWidth = ReadSettingLong(SettingsList, sLOGICS, "TabWidth", DEFAULT_LOGICTABWIDTH);
+      Settings.HighlightLogic = GameSettings.GetSetting(sLOGICS, "HighlightLogic", DEFAULT_HILITELOG);
+      Settings.HighlightText = GameSettings.GetSetting(sLOGICS, "HighlightText", DEFAULT_HILITETEXT);
+      Settings.LogicTabWidth = GameSettings.GetSetting(sLOGICS, "TabWidth", DEFAULT_LOGICTABWIDTH);
       if (Settings.LogicTabWidth < 1)
         Settings.LogicTabWidth = 1;
       if (Settings.LogicTabWidth > 32)
         Settings.LogicTabWidth = 32;
-      Settings.MaximizeLogics = ReadSettingBool(SettingsList, sLOGICS, "MaximizeLogics", DEFAULT_MAXIMIZELOGICS);
-      Settings.AutoQuickInfo = ReadSettingBool(SettingsList, sLOGICS, "AutoQuickInfo", DEFAULT_AUTOQUICKINFO);
-      Settings.ShowDefTips = ReadSettingBool(SettingsList, sLOGICS, "ShowDefTips", DEFAULT_SHOWDEFTIPS);
-      Settings.UseTxt = ReadSettingBool(SettingsList, sLOGICS, "UseTxt", DEFAULT_USETXT);
-      Settings.EFontName = ReadSettingString(SettingsList, sLOGICS, "EditorFontName", DEFAULT_EFONTNAME);
+      Settings.MaximizeLogics = GameSettings.GetSetting(sLOGICS, "MaximizeLogics", DEFAULT_MAXIMIZELOGICS);
+      Settings.AutoQuickInfo = GameSettings.GetSetting(sLOGICS, "AutoQuickInfo", DEFAULT_AUTOQUICKINFO);
+      Settings.ShowDefTips = GameSettings.GetSetting(sLOGICS, "ShowDefTips", DEFAULT_SHOWDEFTIPS);
+      Settings.UseTxt = GameSettings.GetSetting(sLOGICS, "UseTxt", DEFAULT_USETXT);
+      Settings.EFontName = GameSettings.GetSetting(sLOGICS, "EditorFontName", DEFAULT_EFONTNAME);
       i = 0;
       foreach (FontFamily font in System.Drawing.FontFamily.Families) {
         if (font.Name.Equals(Settings.EFontName, StringComparison.OrdinalIgnoreCase)) {
@@ -1061,12 +1062,12 @@ namespace WinAGI.Editor
       // not found?
       if (i == 1)
         Settings.EFontName = DEFAULT_EFONTNAME;
-      Settings.EFontSize = ReadSettingLong(SettingsList, sLOGICS, "EditorFontSize", DEFAULT_EFONTSIZE);
+      Settings.EFontSize = GameSettings.GetSetting(sLOGICS, "EditorFontSize", DEFAULT_EFONTSIZE);
       if (Settings.EFontSize < 8)
         Settings.EFontSize = 8;
       if (Settings.EFontSize > 24)
         Settings.EFontSize = 24;
-      Settings.PFontName = ReadSettingString(SettingsList, sLOGICS, "PreviewFontName", DEFAULT_PFONTNAME);
+      Settings.PFontName = GameSettings.GetSetting(sLOGICS, "PreviewFontName", DEFAULT_PFONTNAME);
       i = 0;
       foreach (FontFamily font in System.Drawing.FontFamily.Families) {
         if (font.Name.Equals(Settings.PFontName, StringComparison.OrdinalIgnoreCase)) {
@@ -1077,77 +1078,77 @@ namespace WinAGI.Editor
       }
       if (i == 1)
         Settings.PFontName = DEFAULT_PFONTNAME;
-      Settings.PFontSize = ReadSettingLong(SettingsList, sLOGICS, "PreviewFontSize", DEFAULT_PFONTSIZE);
+      Settings.PFontSize = GameSettings.GetSetting(sLOGICS, "PreviewFontSize", DEFAULT_PFONTSIZE);
       if (Settings.PFontSize < 6)
         Settings.PFontSize = 6;
       if (Settings.PFontSize > 36)
         Settings.PFontSize = 36;
-      Settings.OpenOnErr = ReadSettingLong(SettingsList, sLOGICS, "OpenOnErr", DEFAULT_OPENONERR);
+      Settings.OpenOnErr = GameSettings.GetSetting(sLOGICS, "OpenOnErr", DEFAULT_OPENONERR);
       if (Settings.OpenOnErr < 0)
         Settings.OpenOnErr = 0;
       if (Settings.OpenOnErr > 2)
         Settings.OpenOnErr = 2;
-      Settings.SaveOnCompile = ReadSettingLong(SettingsList, sLOGICS, "SaveOnComp", DEFAULT_SAVEONCOMP);
+      Settings.SaveOnCompile = GameSettings.GetSetting(sLOGICS, "SaveOnComp", DEFAULT_SAVEONCOMP);
       if (Settings.SaveOnCompile < 0)
         Settings.SaveOnCompile = 0;
       if (Settings.SaveOnCompile > 2)
         Settings.SaveOnCompile = 2;
-      Settings.CompileOnRun = ReadSettingLong(SettingsList, sLOGICS, "CompOnRun", DEFAULT_COMPONRUN);
+      Settings.CompileOnRun = GameSettings.GetSetting(sLOGICS, "CompOnRun", DEFAULT_COMPONRUN);
       if (Settings.CompileOnRun < 0)
         Settings.CompileOnRun = 0;
       if (Settings.CompileOnRun > 2)
         Settings.CompileOnRun = 2;
-      Settings.LogicUndo = ReadSettingLong(SettingsList, sLOGICS, "LogicUndo", DEFAULT_LOGICUNDO);
+      Settings.LogicUndo = GameSettings.GetSetting(sLOGICS, "LogicUndo", DEFAULT_LOGICUNDO);
       if (Settings.LogicUndo < -1)
         Settings.LogicUndo = -1;
-      Settings.WarnMsgs = ReadSettingLong(SettingsList, sLOGICS, "WarnMsgs", DEFAULT_WARNMSGS);
+      Settings.WarnMsgs = GameSettings.GetSetting(sLOGICS, "WarnMsgs", DEFAULT_WARNMSGS);
       if (Settings.WarnMsgs < 0)
         Settings.WarnMsgs = 0;
       if (Settings.WarnMsgs > 2)
         Settings.WarnMsgs = 2;
-      LogicSourceSettings.ErrorLevel = (LogicErrorLevel)ReadSettingLong(SettingsList, sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
-      if (LogicSourceSettings.ErrorLevel < 0)
-        LogicSourceSettings.ErrorLevel = 0;
-      if ((int)LogicSourceSettings.ErrorLevel > 2)
-        LogicSourceSettings.ErrorLevel = (LogicErrorLevel)2;
-      Settings.DefUseResDef = ReadSettingBool(SettingsList, sLOGICS, "DefUseResDef", DEFAULT_DEFUSERESDEF);
-      Settings.Snippets = ReadSettingBool(SettingsList, sLOGICS, "Snippets", DEFAULT_SNIPPETS);
+      EditGame.LogicSourceSettings.ErrorLevel = (LogicErrorLevel)GameSettings.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
+      if (EditGame.LogicSourceSettings.ErrorLevel < 0)
+        EditGame.LogicSourceSettings.ErrorLevel = 0;
+      if ((int)EditGame.LogicSourceSettings.ErrorLevel > 2)
+        EditGame.LogicSourceSettings.ErrorLevel = (LogicErrorLevel)2;
+      Settings.DefUseResDef = GameSettings.GetSetting(sLOGICS, "DefUseResDef", DEFAULT_DEFUSERESDEF);
+      Settings.Snippets = GameSettings.GetSetting(sLOGICS, "Snippets", DEFAULT_SNIPPETS);
 
       //SYNTAXHIGHLIGHTFORMAT
-      Settings.HColor[0] = ReadSettingColor(SettingsList, sSHFORMAT, "NormalColor", DEFAULT_HNRMCOLOR);
-      Settings.HColor[1] = ReadSettingColor(SettingsList, sSHFORMAT, "KeywordColor", DEFAULT_HKEYCOLOR);
-      Settings.HColor[2] = ReadSettingColor(SettingsList, sSHFORMAT, "IdentifierColor", DEFAULT_HIDTCOLOR);
-      Settings.HColor[3] = ReadSettingColor(SettingsList, sSHFORMAT, "StringColor", DEFAULT_HSTRCOLOR);
-      Settings.HColor[4] = ReadSettingColor(SettingsList, sSHFORMAT, "CommentColor", DEFAULT_HCMTCOLOR);
-      Settings.HColor[5] = ReadSettingColor(SettingsList, sSHFORMAT, "BackColor", DEFAULT_HBKGCOLOR);
-      Settings.HBold[0] = ReadSettingBool(SettingsList, sSHFORMAT, "NormalBold", DEFAULT_HNRMBOLD);
-      Settings.HBold[1] = ReadSettingBool(SettingsList, sSHFORMAT, "KeywordBold", DEFAULT_HKEYBOLD);
-      Settings.HBold[2] = ReadSettingBool(SettingsList, sSHFORMAT, "IdentifierBold", DEFAULT_HIDTBOLD);
-      Settings.HBold[3] = ReadSettingBool(SettingsList, sSHFORMAT, "StringBold", DEFAULT_HSTRBOLD);
-      Settings.HBold[4] = ReadSettingBool(SettingsList, sSHFORMAT, "CommentBold", DEFAULT_HCMTBOLD);
-      Settings.HItalic[0] = ReadSettingBool(SettingsList, sSHFORMAT, "NormalItalic", DEFAULT_HNRMITALIC);
-      Settings.HItalic[1] = ReadSettingBool(SettingsList, sSHFORMAT, "KeywordItalic", DEFAULT_HKEYITALIC);
-      Settings.HItalic[2] = ReadSettingBool(SettingsList, sSHFORMAT, "IdentifierItalic", DEFAULT_HIDTITALIC);
-      Settings.HItalic[3] = ReadSettingBool(SettingsList, sSHFORMAT, "StringItalic", DEFAULT_HSTRITALIC);
-      Settings.HItalic[4] = ReadSettingBool(SettingsList, sSHFORMAT, "CommentItalic", DEFAULT_HCMTITALIC);
+      Settings.HColor[0] = GameSettings.GetSetting(sSHFORMAT, "NormalColor", DEFAULT_HNRMCOLOR);
+      Settings.HColor[1] = GameSettings.GetSetting(sSHFORMAT, "KeywordColor", DEFAULT_HKEYCOLOR);
+      Settings.HColor[2] = GameSettings.GetSetting(sSHFORMAT, "IdentifierColor", DEFAULT_HIDTCOLOR);
+      Settings.HColor[3] = GameSettings.GetSetting(sSHFORMAT, "StringColor", DEFAULT_HSTRCOLOR);
+      Settings.HColor[4] = GameSettings.GetSetting(sSHFORMAT, "CommentColor", DEFAULT_HCMTCOLOR);
+      Settings.HColor[5] = GameSettings.GetSetting(sSHFORMAT, "BackColor", DEFAULT_HBKGCOLOR);
+      Settings.HBold[0] = GameSettings.GetSetting(sSHFORMAT, "NormalBold", DEFAULT_HNRMBOLD);
+      Settings.HBold[1] = GameSettings.GetSetting(sSHFORMAT, "KeywordBold", DEFAULT_HKEYBOLD);
+      Settings.HBold[2] = GameSettings.GetSetting(sSHFORMAT, "IdentifierBold", DEFAULT_HIDTBOLD);
+      Settings.HBold[3] = GameSettings.GetSetting(sSHFORMAT, "StringBold", DEFAULT_HSTRBOLD);
+      Settings.HBold[4] = GameSettings.GetSetting(sSHFORMAT, "CommentBold", DEFAULT_HCMTBOLD);
+      Settings.HItalic[0] = GameSettings.GetSetting(sSHFORMAT, "NormalItalic", DEFAULT_HNRMITALIC);
+      Settings.HItalic[1] = GameSettings.GetSetting(sSHFORMAT, "KeywordItalic", DEFAULT_HKEYITALIC);
+      Settings.HItalic[2] = GameSettings.GetSetting(sSHFORMAT, "IdentifierItalic", DEFAULT_HIDTITALIC);
+      Settings.HItalic[3] = GameSettings.GetSetting(sSHFORMAT, "StringItalic", DEFAULT_HSTRITALIC);
+      Settings.HItalic[4] = GameSettings.GetSetting(sSHFORMAT, "CommentItalic", DEFAULT_HCMTITALIC);
 
       //PICTURES
-      Settings.PicScale.Edit = ReadSettingLong(SettingsList, sPICTURES, "EditorScale", DEFAULT_PICSCALE_EDIT);
+      Settings.PicScale.Edit = GameSettings.GetSetting(sPICTURES, "EditorScale", DEFAULT_PICSCALE_EDIT);
       if (Settings.PicScale.Edit < 1)
         Settings.PicScale.Edit = 1;
       if (Settings.PicScale.Edit > 4)
         Settings.PicScale.Edit = 4;
-      Settings.PicScale.Preview = ReadSettingLong(SettingsList, sPICTURES, "PreviewScale", DEFAULT_PICSCALE_PREVIEW);
+      Settings.PicScale.Preview = GameSettings.GetSetting(sPICTURES, "PreviewScale", DEFAULT_PICSCALE_PREVIEW);
       if (Settings.PicScale.Preview < 1)
         Settings.PicScale.Preview = 1;
       if (Settings.PicScale.Preview > 4)
         Settings.PicScale.Preview = 4;
-      Settings.PicUndo = ReadSettingLong(SettingsList, sPICTURES, "PicUndo", DEFAULT_PICUNDO);
+      Settings.PicUndo = GameSettings.GetSetting(sPICTURES, "PicUndo", DEFAULT_PICUNDO);
       if (Settings.PicUndo < -1)
         Settings.PicUndo = -1;
-      Settings.ShowBands = ReadSettingBool(SettingsList, sPICTURES, "ShowBands", DEFAULT_SHOWBANDS);
-      Settings.SplitWindow = ReadSettingBool(SettingsList, sPICTURES, "SplitWindow", DEFAULT_SPLITWINDOW);
-      Settings.CursorMode = (EPicCursorMode)ReadSettingLong(SettingsList, sPICTURES, "CursorMode", DEFAULT_CURSORMODE);
+      Settings.ShowBands = GameSettings.GetSetting(sPICTURES, "ShowBands", DEFAULT_SHOWBANDS);
+      Settings.SplitWindow = GameSettings.GetSetting(sPICTURES, "SplitWindow", DEFAULT_SPLITWINDOW);
+      Settings.CursorMode = (EPicCursorMode)GameSettings.GetSetting(sPICTURES, "CursorMode", DEFAULT_CURSORMODE);
 
       //PICTEST
       //these settings get loaded with each picedit form (and the logic template, which uses
@@ -1155,136 +1156,136 @@ namespace WinAGI.Editor
       //retrieve them here
 
       //SOUNDS
-      Settings.ShowKybd = ReadSettingBool(SettingsList, sSOUNDS, "ShowKeyboard", DEFAULT_SHOWKYBD);
-      Settings.ShowNotes = ReadSettingBool(SettingsList, sSOUNDS, "ShowNotes", DEFAULT_SHOWNOTES);
-      Settings.OneTrack = ReadSettingBool(SettingsList, sSOUNDS, "OneTrack", DEFAULT_ONETRACK);
-      Settings.SndUndo = ReadSettingLong(SettingsList, sSOUNDS, "SndUndo", DEFAULT_SNDUNDO);
+      Settings.ShowKybd = GameSettings.GetSetting(sSOUNDS, "ShowKeyboard", DEFAULT_SHOWKYBD);
+      Settings.ShowNotes = GameSettings.GetSetting(sSOUNDS, "ShowNotes", DEFAULT_SHOWNOTES);
+      Settings.OneTrack = GameSettings.GetSetting(sSOUNDS, "OneTrack", DEFAULT_ONETRACK);
+      Settings.SndUndo = GameSettings.GetSetting(sSOUNDS, "SndUndo", DEFAULT_SNDUNDO);
       if (Settings.SndUndo < -1)
         Settings.SndUndo = -1;
-      Settings.SndZoom = ReadSettingLong(SettingsList, sSOUNDS, "Zoom", DEFAULT_SNDZOOM);
+      Settings.SndZoom = GameSettings.GetSetting(sSOUNDS, "Zoom", DEFAULT_SNDZOOM);
       if (Settings.SndZoom < 1)
         Settings.SndZoom = 1;
       if (Settings.SndZoom > 3)
         Settings.SndZoom = 3;
-      Settings.NoMIDI = ReadSettingBool(SettingsList, sSOUNDS, "NoMIDI", DEFAULT_NOMIDI);
-      i = ReadSettingLong(SettingsList, sSOUNDS, "Instrument0", DEFAULT_DEFINST);
+      Settings.NoMIDI = GameSettings.GetSetting(sSOUNDS, "NoMIDI", DEFAULT_NOMIDI);
+      i = GameSettings.GetSetting(sSOUNDS, "Instrument0", DEFAULT_DEFINST);
       if (i > 255)
         i = 255;
       if (i < 0)
         i = 0;
       Settings.DefInst0 = (byte)i;
-      i = ReadSettingLong(SettingsList, sSOUNDS, "Instrument1", DEFAULT_DEFINST);
+      i = GameSettings.GetSetting(sSOUNDS, "Instrument1", DEFAULT_DEFINST);
       if (i > 255)
         i = 255;
       if (i < 0)
         i = 0;
       Settings.DefInst1 = (byte)i;
-      i = ReadSettingLong(SettingsList, sSOUNDS, "Instrument2", DEFAULT_DEFINST);
+      i = GameSettings.GetSetting(sSOUNDS, "Instrument2", DEFAULT_DEFINST);
       if (i > 255)
         i = 255;
       if (i < 0)
         i = 0;
       Settings.DefInst2 = (byte)i;
-      Settings.DefMute0 = ReadSettingBool(SettingsList, sSOUNDS, "Mute0", DEFAULT_DEFMUTE);
-      Settings.DefMute1 = ReadSettingBool(SettingsList, sSOUNDS, "Mute1", DEFAULT_DEFMUTE);
-      Settings.DefMute2 = ReadSettingBool(SettingsList, sSOUNDS, "Mute2", DEFAULT_DEFMUTE);
-      Settings.DefMute3 = ReadSettingBool(SettingsList, sSOUNDS, "Mute3", DEFAULT_DEFMUTE);
+      Settings.DefMute0 = GameSettings.GetSetting(sSOUNDS, "Mute0", DEFAULT_DEFMUTE);
+      Settings.DefMute1 = GameSettings.GetSetting(sSOUNDS, "Mute1", DEFAULT_DEFMUTE);
+      Settings.DefMute2 = GameSettings.GetSetting(sSOUNDS, "Mute2", DEFAULT_DEFMUTE);
+      Settings.DefMute3 = GameSettings.GetSetting(sSOUNDS, "Mute3", DEFAULT_DEFMUTE);
 
       //VIEWS
-      Settings.ViewScale.Edit = ReadSettingLong(SettingsList, sVIEWS, "EditorScale", DEFAULT_VIEWSCALE_EDIT);
+      Settings.ViewScale.Edit = GameSettings.GetSetting(sVIEWS, "EditorScale", DEFAULT_VIEWSCALE_EDIT);
       if (Settings.ViewScale.Edit < 1)
         Settings.ViewScale.Edit = 1;
       if (Settings.ViewScale.Edit > 10)
         Settings.ViewScale.Edit = 10;
-      Settings.ViewScale.Preview = ReadSettingLong(SettingsList, sVIEWS, "PreviewScale", DEFAULT_VIEWSCALE_PREVIEW);
+      Settings.ViewScale.Preview = GameSettings.GetSetting(sVIEWS, "PreviewScale", DEFAULT_VIEWSCALE_PREVIEW);
       if (Settings.ViewScale.Preview < 1)
         Settings.ViewScale.Preview = 1;
       if (Settings.ViewScale.Preview > 10)
         Settings.ViewScale.Preview = 10;
-      Settings.ViewAlignH = ReadSettingLong(SettingsList, sVIEWS, "AlignH", DEFAULT_VIEWALIGNH);
+      Settings.ViewAlignH = GameSettings.GetSetting(sVIEWS, "AlignH", DEFAULT_VIEWALIGNH);
       if (Settings.ViewAlignH < 0)
         Settings.ViewAlignH = 0;
       if (Settings.ViewAlignH > 2)
         Settings.ViewAlignH = 2;
-      Settings.ViewAlignV = ReadSettingLong(SettingsList, sVIEWS, "AlignV", DEFAULT_VIEWALIGNV);
+      Settings.ViewAlignV = GameSettings.GetSetting(sVIEWS, "AlignV", DEFAULT_VIEWALIGNV);
       if (Settings.ViewAlignV < 0)
         Settings.ViewAlignV = 0;
       if (Settings.ViewAlignV > 2)
         Settings.ViewAlignV = 2;
-      Settings.ViewUndo = ReadSettingLong(SettingsList, sVIEWS, "ViewUndo", DEFAULT_VIEWUNDO);
+      Settings.ViewUndo = GameSettings.GetSetting(sVIEWS, "ViewUndo", DEFAULT_VIEWUNDO);
       if (Settings.ViewUndo < -1)
         Settings.ViewUndo = -1;
-      i = ReadSettingLong(SettingsList, sVIEWS, "DefaultCelHeight", DEFAULT_DEFCELH);
+      i = GameSettings.GetSetting(sVIEWS, "DefaultCelHeight", DEFAULT_DEFCELH);
       if (i < 1)
         i = 1;
       if (i > 167)
         i = 167;
       Settings.DefCelH = (byte)i;
-      i = ReadSettingLong(SettingsList, sVIEWS, "DefaultCelWidth", DEFAULT_DEFCELW);
+      i = GameSettings.GetSetting(sVIEWS, "DefaultCelWidth", DEFAULT_DEFCELW);
       if (i < 1) i = 1;
       if (i > 167)
         i = 160;
       Settings.DefCelW = (byte)i;
-      Settings.DefVColor1 = ReadSettingLong(SettingsList, sVIEWS, "Color1", (int)DEFAULT_DEFVCOLOR1);
+      Settings.DefVColor1 = GameSettings.GetSetting(sVIEWS, "Color1", (int)DEFAULT_DEFVCOLOR1);
       if (Settings.DefVColor1 < 0)
         Settings.DefVColor1 = 0;
       if (Settings.DefVColor1 > 15)
         Settings.DefVColor1 = 15;
-      Settings.DefVColor2 = ReadSettingLong(SettingsList, sVIEWS, "Color2", (int)DEFAULT_DEFVCOLOR2);
+      Settings.DefVColor2 = GameSettings.GetSetting(sVIEWS, "Color2", (int)DEFAULT_DEFVCOLOR2);
       if (Settings.DefVColor2 < 0)
         Settings.DefVColor2 = 0;
       if (Settings.DefVColor2 > 15)
         Settings.DefVColor2 = 15;
-      Settings.ShowVEPrev = ReadSettingBool(SettingsList, sVIEWS, "ShowVEPreview", DEFAULT_SHOWVEPREV);
-      Settings.ShowGrid = ReadSettingBool(SettingsList, sVIEWS, "ShowEditGrid", DEFAULT_SHOWGRID);
+      Settings.ShowVEPrev = GameSettings.GetSetting(sVIEWS, "ShowVEPreview", DEFAULT_SHOWVEPREV);
+      Settings.ShowGrid = GameSettings.GetSetting(sVIEWS, "ShowEditGrid", DEFAULT_SHOWGRID);
 
       //DECOMPILER
-      LogicSourceSettings.ShowAllMessages = ReadSettingBool(SettingsList, sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
-      LogicSourceSettings.MsgsByNumber = ReadSettingBool(SettingsList, sDECOMPILER, "MsgsByNum", DEFAULT_MSGSBYNUM);
-      LogicSourceSettings.ElseAsGoto = ReadSettingBool(SettingsList, sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
-      LogicSourceSettings.SpecialSyntax = ReadSettingBool(SettingsList, sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
-      LogicSourceSettings.ReservedAsText = ReadSettingBool(SettingsList, sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
-      LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
+      EditGame.LogicSourceSettings.ShowAllMessages = GameSettings.GetSetting(sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
+      EditGame.LogicSourceSettings.MsgsByNumber = GameSettings.GetSetting(sDECOMPILER, "MsgsByNum", DEFAULT_MSGSBYNUM);
+      EditGame.LogicSourceSettings.ElseAsGoto = GameSettings.GetSetting(sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
+      EditGame.LogicSourceSettings.SpecialSyntax = GameSettings.GetSetting(sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
+      EditGame.LogicSourceSettings.ReservedAsText = GameSettings.GetSetting(sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
+      EditGame.LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
       if (Settings.UseTxt) {
-        LogicSourceSettings.SourceExt = ".txt";
+        EditGame.LogicSourceSettings.SourceExt = ".txt";
       }
       else {
-        LogicSourceSettings.SourceExt = ".lgc";
+        EditGame.LogicSourceSettings.SourceExt = ".lgc";
       }
 
       //get property window height
-      PropRowCount = ReadSettingLong(SettingsList, sPOSITION, "PropRowCount", 4);
+      PropRowCount = GameSettings.GetSetting(sPOSITION, "PropRowCount", 4);
       if (PropRowCount < 3)
         PropRowCount = MIN_SPLIT_RES;
       if (PropRowCount > 10)
         PropRowCount = MAX_SPLIT_RES;
 
       //get main window state
-      blnMax = ReadSettingBool(SettingsList, sPOSITION, "WindowMax");
+      blnMax = GameSettings.GetSetting(sPOSITION, "WindowMax", false);
 
       //get main window position
-      sngLeft = ReadSettingSingle(SettingsList, sPOSITION, "Left", Screen.PrimaryScreen.Bounds.Width * 0.15);
+      sngLeft = GameSettings.GetSetting(sPOSITION, "Left", Screen.PrimaryScreen.Bounds.Width * 0.15);
       if (sngLeft < 0) {
         sngLeft = 0;
       }
       else if (sngLeft > Screen.PrimaryScreen.Bounds.Width * 0.85) {
         sngLeft = Screen.PrimaryScreen.Bounds.Width * 0.85;
       }
-      sngTop = ReadSettingSingle(SettingsList, sPOSITION, "Top", Screen.PrimaryScreen.Bounds.Height * 0.15);
+      sngTop = GameSettings.GetSetting(sPOSITION, "Top", Screen.PrimaryScreen.Bounds.Height * 0.15);
       if (sngTop < 0) {
         sngTop = 0;
       }
       else if (sngTop > Screen.PrimaryScreen.Bounds.Height * 0.85) {
         sngTop = Screen.PrimaryScreen.Bounds.Height * 0.85;
       }
-      sngWidth = ReadSettingSingle(SettingsList, sPOSITION, "Width", Screen.PrimaryScreen.Bounds.Width * 0.7);
+      sngWidth = GameSettings.GetSetting(sPOSITION, "Width", Screen.PrimaryScreen.Bounds.Width * 0.7);
       if (sngWidth <= Screen.PrimaryScreen.Bounds.Width * 0.2) {
         sngWidth = Screen.PrimaryScreen.Bounds.Width * 0.2;
       }
       if (sngWidth > Screen.PrimaryScreen.Bounds.Width) {
         sngWidth = Screen.PrimaryScreen.Bounds.Width;
       }
-      sngHeight = ReadSettingSingle(SettingsList, sPOSITION, "Height", Screen.PrimaryScreen.Bounds.Height * 0.7);
+      sngHeight = GameSettings.GetSetting(sPOSITION, "Height", Screen.PrimaryScreen.Bounds.Height * 0.7);
       if (sngHeight <= Screen.PrimaryScreen.Bounds.Height * 0.2) {
         sngHeight = Screen.PrimaryScreen.Bounds.Height * 0.2;
       }
@@ -1299,7 +1300,7 @@ namespace WinAGI.Editor
         WindowState = FormWindowState.Maximized;
       }
       //get resource window width
-      sngProp = ReadSettingSingle(SettingsList, sPOSITION, "ResourceWidth", MIN_SPLIT_V * 1.5);
+      sngProp = GameSettings.GetSetting(sPOSITION, "ResourceWidth", MIN_SPLIT_V * 1.5);
       if (sngProp < MIN_SPLIT_V) {
         sngProp = MIN_SPLIT_V;
       }
@@ -1310,9 +1311,9 @@ namespace WinAGI.Editor
       pnlResources.Width = (int)sngProp;
 
       //get mru settings
-      Settings.AutoOpen = ReadSettingBool(SettingsList, sMRULIST, "AutoOpen", DEFAULT_AUTOOPEN);
+      Settings.AutoOpen = GameSettings.GetSetting(sMRULIST, "AutoOpen", DEFAULT_AUTOOPEN);
       for (i = 0; i < 4; i++) {
-        strMRU[i] = ReadSettingString(SettingsList, sMRULIST, "MRUGame" + (i + 1), "");
+        strMRU[i] = GameSettings.GetSetting(sMRULIST, "MRUGame" + (i + 1), "");
         //if one exists
         if (strMRU[i].Length != 0) {
           //add it to menu
@@ -1329,8 +1330,8 @@ namespace WinAGI.Editor
       ////get tools info
       //blnTools = false;
       //for (i = 1; i <= 6; i++) {
-      //  strCaption = ReadSettingString(SettingsList, sTOOLS, "Caption" + CStr(i), "");
-      //  strTool = ReadSettingString(SettingsList, sTOOLS, "Source" + CStr(i), "");
+      //  strCaption = GameSettings.GetSetting(sTOOLS, "Caption" + CStr(i), "");
+      //  strTool = GameSettings.GetSetting(sTOOLS, "Source" + CStr(i), "");
       //  //update tools menu
       //  With MDIMain.mnuTCustom(i)
       //    if (strCaption.Length > 0 && strTool.Length > 0) {
@@ -1346,32 +1347,23 @@ namespace WinAGI.Editor
       //MDIMain.mnuTBar1.Visible = blnTools
 
       //error warning settings
-      lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn0", 0);
+      lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn0", 0);
       for (i = 1; i <= 30; i++) {
-        LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << i)) == (1 << i));
+        EditGame.LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << i)) == (1 << i));
       }
-      lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn1", 0);
+      lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn1", 0);
       for (i = 31; i <= 60; i++) {
-        LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 30))) == 1 << (i - 30));
+        EditGame.LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 30))) == 1 << (i - 30));
       }
-      lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn2", 0);
+      lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn2", 0);
       for (i = 61; i <= 90; i++) {
-        LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 60))) == 1 << (i - 60));
+        EditGame.LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 60))) == 1 << (i - 60));
       }
-      lngNoCompVal = ReadSettingLong(SettingsList, sLOGICS, "NoCompWarn3", 0);
+      lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn3", 0);
       for (i = 91; i < WARNCOUNT; i++) {
-        LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 90))) == 1 << (i - 90));
+        EditGame.LogicSourceSettings.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 90))) == 1 << (i - 90));
       }
-
       return true;
-
-      ////if error not yet encountered
-      ////Debug.Assert false
-      //if (!blnErrors) {
-      //  MessageBox.Show( "An error occurred while reading settings from the config file. Check the config file carefully to correct any errors.", vbInformation + vbOKOnly, "Read Settings Error"
-      //  blnErrors = true
-      //  //Debug.Assert false
-      //}
     }
     public void SaveSettings()
     {  //saves game settings to config file
@@ -1379,49 +1371,49 @@ namespace WinAGI.Editor
       //if main form is maximized
       if (MDIMain.WindowState == FormWindowState.Maximized) {
         //save Max Value only
-        WriteAppSetting(SettingsList, sPOSITION, "WindowMax", true);
+        GameSettings.WriteSetting(sPOSITION, "WindowMax", true);
       }
       else {
         //save all window settings
-        WriteAppSetting(SettingsList, sPOSITION, "Top", MDIMain.Top.ToString());
-        WriteAppSetting(SettingsList, sPOSITION, "Left", MDIMain.Left.ToString());
-        WriteAppSetting(SettingsList, sPOSITION, "Width", MDIMain.Width.ToString());
-        WriteAppSetting(SettingsList, sPOSITION, "Height", MDIMain.Height.ToString());
-        WriteAppSetting(SettingsList, sPOSITION, "WindowMax", false.ToString());
+        GameSettings.WriteSetting(sPOSITION, "Top", MDIMain.Top.ToString());
+        GameSettings.WriteSetting(sPOSITION, "Left", MDIMain.Left.ToString());
+        GameSettings.WriteSetting(sPOSITION, "Width", MDIMain.Width.ToString());
+        GameSettings.WriteSetting(sPOSITION, "Height", MDIMain.Height.ToString());
+        GameSettings.WriteSetting(sPOSITION, "WindowMax", false.ToString());
       }
       //save other position settings
-      WriteAppSetting(SettingsList, sPOSITION, "PropRowCount", PropRowCount);
+      GameSettings.WriteSetting(sPOSITION, "PropRowCount", PropRowCount);
       //save mru settings
       for (i = 0; i < 4; i++) {
-        WriteAppSetting(SettingsList, sMRULIST, "MRUGame" + (i + 1), strMRU[i]);
+        GameSettings.WriteSetting(sMRULIST, "MRUGame" + (i + 1), strMRU[i]);
       }
       //save resource pane width
-      WriteAppSetting(SettingsList, sPOSITION, "ResourceWidth", pnlResources.Width);
+      GameSettings.WriteSetting(sPOSITION, "ResourceWidth", pnlResources.Width);
       //save other general settings
-      WriteAppSetting(SettingsList, sGENERAL, "DockHelpWindow", HelpParent == this.Handle);
+      GameSettings.WriteSetting(sGENERAL, "DockHelpWindow", HelpParent == this.Handle);
       // for warnings, create a bitfield to mark which are being ignored
       lngCompVal = 0;
       for (i = 1; i <= 30; i++) {
-        lngCompVal |= (LogicSourceSettings.IgnoreWarning(5000 + i) ? 1 << i : 0);
+        lngCompVal |= (EditGame.LogicSourceSettings.IgnoreWarning(5000 + i) ? 1 << i : 0);
       }
-      WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn0", lngCompVal);
+      GameSettings.WriteSetting(sLOGICS, "NoCompWarn0", lngCompVal);
       lngCompVal = 0;
       for (i = 1; i <= 30; i++) {
-        lngCompVal |= (LogicSourceSettings.IgnoreWarning(5030 + i) ? 1 << i : 0);
+        lngCompVal |= (EditGame.LogicSourceSettings.IgnoreWarning(5030 + i) ? 1 << i : 0);
       }
-      WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn1", lngCompVal);
+      GameSettings.WriteSetting(sLOGICS, "NoCompWarn1", lngCompVal);
       lngCompVal = 0;
       for (i = 1; i <= 30; i++) {
-        lngCompVal |= (LogicSourceSettings.IgnoreWarning(5060 + i) ? 1 << i : 0);
+        lngCompVal |= (EditGame.LogicSourceSettings.IgnoreWarning(5060 + i) ? 1 << i : 0);
       }
-      WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn2", lngCompVal);
+      GameSettings.WriteSetting(sLOGICS, "NoCompWarn2", lngCompVal);
       lngCompVal = 0;
       for (i = 1; i < (WARNCOUNT % 30); i++) {
-        lngCompVal |= (LogicSourceSettings.IgnoreWarning(5090 + i) ? 1 << i : 0);
+        lngCompVal |= (EditGame.LogicSourceSettings.IgnoreWarning(5090 + i) ? 1 << i : 0);
       }
-      WriteAppSetting(SettingsList, sLOGICS, "NoCompWarn3", lngCompVal);
+      GameSettings.WriteSetting(sLOGICS, "NoCompWarn3", lngCompVal);
       //save to file
-      SaveSettingList(SettingsList);
+      GameSettings.Save();
     }
     private void tvwResources_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
     {
@@ -1526,7 +1518,7 @@ namespace WinAGI.Editor
       Graphics gProp = e.Graphics;
 
       //if no game loaded, or nothing selected
-      if ((!GameLoaded)) {
+      if ((!EditGame.GameLoaded)) {
         //set proprows to zero
         PropRows = 0;
       }
@@ -1580,104 +1572,104 @@ namespace WinAGI.Editor
         switch (SelResType) {
         case rtGame: //  1  //root
           Debug.Print($"propscroll:{PropScroll}");
-          DrawProp(gProp, "GameID", GameID, 1, AllowSelect, SelectedProp, PropScroll, GameLoaded);
-          DrawProp(gProp, "Author", GameAuthor, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded);
-          DrawProp(gProp, "GameDir", GameDir, 3, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfDialog);
-          DrawProp(gProp, "ResDir", ResDirName, 4, AllowSelect, SelectedProp, PropScroll, GameLoaded);
-          DrawProp(gProp, "IntVer", InterpreterVersion, 5, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
-          DrawProp(gProp, "Description", GameDescription, 6, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
-          DrawProp(gProp, "GameVer", GameVersion, 7, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
-          DrawProp(gProp, "GameAbout", GameAbout, 8, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
-          DrawProp(gProp, "LayoutEditor", UseLE.ToString(), 9, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
-          DrawProp(gProp, "LastEdit", LastEdit.ToString("G"), 10, AllowSelect, SelectedProp, PropScroll, false);
+          DrawProp(gProp, "GameID", EditGame.GameID, 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded);
+          DrawProp(gProp, "Author", EditGame.GameAuthor, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded);
+          DrawProp(gProp, "GameDir", EditGame.GameDir, 3, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfDialog);
+          DrawProp(gProp, "ResDir", EditGame.ResDirName, 4, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded);
+          DrawProp(gProp, "IntVer", EditGame.InterpreterVersion, 5, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
+          DrawProp(gProp, "Description", EditGame.GameDescription, 6, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
+          DrawProp(gProp, "GameVer", EditGame.GameVersion, 7, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
+          DrawProp(gProp, "GameAbout", EditGame.GameAbout, 8, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
+          DrawProp(gProp, "LayoutEditor", EditGame.UseLE.ToString(), 9, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
+          DrawProp(gProp, "LastEdit", EditGame.LastEdit.ToString("G"), 10, AllowSelect, SelectedProp, PropScroll, false);
           break;
         case rtLogic: // 2 //logic resource header
           if (SelResNum == -1) {
-            DrawProp(gProp, "Count", Logics.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-            DrawProp(gProp, "GlobalDef", "(List)", 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "UseResNames", LogicSourceSettings.UseReservedNames.ToString(), 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
+            DrawProp(gProp, "Count", EditGame.Logics.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+            DrawProp(gProp, "GlobalDef", "(List)", 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "UseResNames", EditGame.LogicSourceSettings.UseReservedNames.ToString(), 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
           }
           else {
-            DrawProp(gProp, "Number", Logics[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "ID", Logics[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "Description", Logics[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            if (Logics[bSelResNum].Number == 0) {
-              DrawProp(gProp, "IsRoom", Logics[bSelResNum].IsRoom.ToString(), 4, AllowSelect, SelectedProp, PropScroll, false);
+            DrawProp(gProp, "Number", EditGame.Logics[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "ID", EditGame.Logics[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Description", EditGame.Logics[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            if (EditGame.Logics[bSelResNum].Number == 0) {
+              DrawProp(gProp, "IsRoom", EditGame.Logics[bSelResNum].IsRoom.ToString(), 4, AllowSelect, SelectedProp, PropScroll, false);
             }
             else {
-              DrawProp(gProp, "IsRoom", Logics[bSelResNum].IsRoom.ToString(), 4, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
+              DrawProp(gProp, "IsRoom", EditGame.Logics[bSelResNum].IsRoom.ToString(), 4, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
             }
-            DrawProp(gProp, "Compiled", Logics[bSelResNum].Compiled.ToString(), 5, AllowSelect, SelectedProp, PropScroll, false);
+            DrawProp(gProp, "Compiled", EditGame.Logics[bSelResNum].Compiled.ToString(), 5, AllowSelect, SelectedProp, PropScroll, false);
             //if compiled state doesn't match correct tree color, fix it now
             if (Settings.ResListType == 1) {
-              tvwResources.SelectedNode.ForeColor = Logics[bSelResNum].Compiled ? Color.Black : Color.Red;
+              tvwResources.SelectedNode.ForeColor = EditGame.Logics[bSelResNum].Compiled ? Color.Black : Color.Red;
             }
             else {
-              lstResources.SelectedItems[0].ForeColor = Logics[bSelResNum].Compiled ? Color.Black : Color.Red;
+              lstResources.SelectedItems[0].ForeColor = EditGame.Logics[bSelResNum].Compiled ? Color.Black : Color.Red;
             }
-            DrawProp(gProp, "Volume", Logics[bSelResNum].Volume >= 0 ? Logics[bSelResNum].Volume.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-            DrawProp(gProp, "LOC", Logics[bSelResNum].Loc >= 0 ? Logics[bSelResNum].Loc.ToString() : "Error", 7, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-            DrawProp(gProp, "Size", Logics[bSelResNum].Size > 0 ? Logics[bSelResNum].Size.ToString() : "Error", 8, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Volume", EditGame.Logics[bSelResNum].Volume >= 0 ? EditGame.Logics[bSelResNum].Volume.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "LOC", EditGame.Logics[bSelResNum].Loc >= 0 ? EditGame.Logics[bSelResNum].Loc.ToString() : "Error", 7, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Size", EditGame.Logics[bSelResNum].Size > 0 ? EditGame.Logics[bSelResNum].Size.ToString() : "Error", 8, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
           }
           break;
         case rtPicture: //3 //picture resource header
           if (SelResNum == -1) {
-            DrawProp(gProp, "Count", Pictures.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+            DrawProp(gProp, "Count", EditGame.Pictures.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
           }
           else {
-            DrawProp(gProp, "Number", Pictures[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "ID", Pictures[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "Description", Pictures[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "Volume", Pictures[bSelResNum].Volume >= 0 ? Pictures[bSelResNum].Volume.ToString() : "Error", 4, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-            DrawProp(gProp, "LOC", Pictures[bSelResNum].Loc >= 0 ? Pictures[bSelResNum].Loc.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-            DrawProp(gProp, "Size", Pictures[bSelResNum].Size > 0 ? Pictures[bSelResNum].Size.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Number", EditGame.Pictures[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "ID", EditGame.Pictures[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Description", EditGame.Pictures[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Volume", EditGame.Pictures[bSelResNum].Volume >= 0 ? EditGame.Pictures[bSelResNum].Volume.ToString() : "Error", 4, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "LOC", EditGame.Pictures[bSelResNum].Loc >= 0 ? EditGame.Pictures[bSelResNum].Loc.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Size", EditGame.Pictures[bSelResNum].Size > 0 ? EditGame.Pictures[bSelResNum].Size.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
           }
           break;
         case rtSound: //4 //sound resource header
           if (SelResNum == -1) {
-            DrawProp(gProp, "Count", Sounds.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+            DrawProp(gProp, "Count", EditGame.Sounds.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
           }
           else {
-            DrawProp(gProp, "Number", Sounds[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "ID", Sounds[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "Description", Sounds[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "Volume", Sounds[bSelResNum].Volume >= 0 ? Sounds[bSelResNum].Volume.ToString() : "Error", 4, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-            DrawProp(gProp, "LOC", Sounds[bSelResNum].Loc >= 0 ? Sounds[bSelResNum].Loc.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-            DrawProp(gProp, "Size", Sounds[bSelResNum].Size > 0 ? Sounds[bSelResNum].Size.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Number", EditGame.Sounds[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "ID", EditGame.Sounds[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Description", EditGame.Sounds[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Volume", EditGame.Sounds[bSelResNum].Volume >= 0 ? EditGame.Sounds[bSelResNum].Volume.ToString() : "Error", 4, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "LOC", EditGame.Sounds[bSelResNum].Loc >= 0 ? EditGame.Sounds[bSelResNum].Loc.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Size", EditGame.Sounds[bSelResNum].Size > 0 ? EditGame.Sounds[bSelResNum].Size.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
           }
           break;
         case rtView: //5 //view resource header
           if (SelResNum == -1) {
-            DrawProp(gProp, "Count", Views.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+            DrawProp(gProp, "Count", EditGame.Views.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
           }
           else {
-            DrawProp(gProp, "Number", Views[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "ID", Views[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
-            DrawProp(gProp, "Description", Views[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Number", EditGame.Views[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "ID", EditGame.Views[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
+            DrawProp(gProp, "Description", EditGame.Views[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
             //viewdescription only accessible if view is loaded
-            bool bLoaded = Views[bSelResNum].Loaded;
+            bool bLoaded = EditGame.Views[bSelResNum].Loaded;
             if (!bLoaded) {
-              Views[bSelResNum].Load();
+              EditGame.Views[bSelResNum].Load();
             }
-            DrawProp(gProp, "View Desc", Views[bSelResNum].ViewDescription, 4, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
+            DrawProp(gProp, "View Desc", EditGame.Views[bSelResNum].ViewDescription, 4, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
             if (!bLoaded) {
-              Views[bSelResNum].Unload();
+              EditGame.Views[bSelResNum].Unload();
             }
-            DrawProp(gProp, "Volume", Views[bSelResNum].Volume >= 0 ? Views[bSelResNum].Volume.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-            DrawProp(gProp, "LOC", Views[bSelResNum].Loc >= 0 ? Views[bSelResNum].Loc.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-            DrawProp(gProp, "Size", Views[bSelResNum].Size > 0 ? Views[bSelResNum].Size.ToString() : "Error", 7, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Volume", EditGame.Views[bSelResNum].Volume >= 0 ? EditGame.Views[bSelResNum].Volume.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "LOC", EditGame.Views[bSelResNum].Loc >= 0 ? EditGame.Views[bSelResNum].Loc.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
+            DrawProp(gProp, "Size", EditGame.Views[bSelResNum].Size > 0 ? EditGame.Views[bSelResNum].Size.ToString() : "Error", 7, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
           }
           break;
         case rtObjects: // 6  //objects
-          DrawProp(gProp, "Obj Count", (InvObjects.Count - 1).ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-          DrawProp(gProp, "Description", InvObjects.Description, 2, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
-          DrawProp(gProp, "Encrypted", InvObjects.Encrypted.ToString(), 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfDown);
-          DrawProp(gProp, "Max Obj", InvObjects.MaxScreenObjects.ToString(), 4, AllowSelect, SelectedProp, PropScroll, GameLoaded);
+          DrawProp(gProp, "Obj Count", (EditGame.InvObjects.Count - 1).ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+          DrawProp(gProp, "Description", EditGame.InvObjects.Description, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
+          DrawProp(gProp, "Encrypted", EditGame.InvObjects.Encrypted.ToString(), 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
+          DrawProp(gProp, "Max Obj", EditGame.InvObjects.MaxScreenObjects.ToString(), 4, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded);
           break;
         case rtWords: //7  //words
-          DrawProp(gProp, "Group Count", WordList.GroupCount.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-          DrawProp(gProp, "Word Count", WordList.WordCount.ToString(), 2, AllowSelect, SelectedProp, PropScroll, false);
-          DrawProp(gProp, "Description", WordList.Description, 3, AllowSelect, SelectedProp, PropScroll, GameLoaded, EButtonFace.bfOver);
+          DrawProp(gProp, "Group Count", EditGame.WordList.GroupCount.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
+          DrawProp(gProp, "Word Count", EditGame.WordList.WordCount.ToString(), 2, AllowSelect, SelectedProp, PropScroll, false);
+          DrawProp(gProp, "Description", EditGame.WordList.Description, 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
           break;
         }
       }
@@ -1856,111 +1848,90 @@ namespace WinAGI.Editor
     {
 
     }
-
     internal void mnuRILogic_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuRIObjects_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuRIPicture_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuRISound_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuRIView_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuRIWords_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuRNLogic_Click(object sender, EventArgs e)
     {
       //create new logic and enter edit mode
       NewLogic();
     }
-
     internal void mnuRNObjects_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuRNPicture_Click(object sender, EventArgs e)
     {
       //create new picture and enter edit mode
       NewPicture();
     }
-
     internal void mnuRNSound_Click(object sender, EventArgs e)
     {
       //create new logic and enter edit mode
       NewSound();
     }
-
     internal void mnuRNText_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuRNView_Click(object sender, EventArgs e)
     {
       //create new view and enter edit mode
       NewView();
     }
-
     internal void mnuRNWords_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuROLogic_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuROObjects_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuROPicture_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuROSound_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuROText_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuROView_Click(object sender, EventArgs e)
     {
 
     }
-
     internal void mnuROWords_Click(object sender, EventArgs e)
     {
 
     }
-
     private void frmMDIMain_KeyPress(object sender, KeyPressEventArgs e)
     {
       // after processing key press for the main form, pass it 
@@ -1976,7 +1947,6 @@ namespace WinAGI.Editor
         }
       }
     }
-
     private void tvwResources_AfterSelect(object sender, TreeViewEventArgs e)
     {
       // probably due to navigation - 
@@ -1987,17 +1957,14 @@ namespace WinAGI.Editor
         tvwResources_NodeMouseClick(sender, new TreeNodeMouseClickEventArgs(e.Node, MouseButtons.None, 0, 0, 0));
       }
     }
-
     private void frmMDIMain_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
     {
       Debug.Print($"Main - PreviewKeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
     }
-
     private void frmMDIMain_KeyDown(object sender, KeyEventArgs e)
     {
       Debug.Print($"Main - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
     }
-
     public void RemoveSelectedRes()
     {
       //*//
@@ -2037,7 +2004,7 @@ namespace WinAGI.Editor
     Settings.AskExport = !blnDontAsk
     //if now hiding, update settings file
     if (!Settings.AskExport) {
-      WriteAppSetting(SettingsList, sGENERAL, "AskExport", Settings.AskExport
+      GameSettings.WriteSetting(sGENERAL, "AskExport", Settings.AskExport
     }
   } else {
     //dont ask; assume no
@@ -2065,7 +2032,7 @@ namespace WinAGI.Editor
     Settings.AskRemove = !blnDontAsk
     //if now hiding, update settings file
     if (!Settings.AskRemove) {
-      WriteAppSetting(SettingsList, sGENERAL, "AskRemove", Settings.AskRemove
+      GameSettings.WriteSetting(sGENERAL, "AskRemove", Settings.AskRemove
     }
   } else {
     //assume OK
@@ -2101,16 +2068,16 @@ namespace WinAGI.Editor
       //set search form defaults
       switch (SelResType) {
       case rtLogic:
-        GFindText = Logics[(byte)SelResNum].ID;
+        GFindText = EditGame.Logics[(byte)SelResNum].ID;
         break;
       case rtPicture:
-        GFindText = Pictures[(byte)SelResNum].ID;
+        GFindText = EditGame.Pictures[(byte)SelResNum].ID;
         break;
       case rtSound:
-        GFindText = Sounds[(byte)SelResNum].ID;
+        GFindText = EditGame.Sounds[(byte)SelResNum].ID;
         break;
       case rtView:
-        GFindText = Views[(byte)SelResNum].ID;
+        GFindText = EditGame.Views[(byte)SelResNum].ID;
         break;
       }
 
@@ -2147,7 +2114,7 @@ namespace WinAGI.Editor
         ErrorText,
         ResNumber.ToString(),
         LineNum.ToString(),
-        (Module.Length != 0 ? JustFileName(Module) : Logics[(byte)ResNumber].ID) };
+        (Module.Length != 0 ? JustFileName(Module) : EditGame.Logics[(byte)ResNumber].ID) };
 
       //add it to the grid
       lngNewRow = fgWarnings.Rows.Add(rowdata);
@@ -2199,16 +2166,16 @@ namespace WinAGI.Editor
       case rtLogic:
         rowdata[0] = JustPath(strWarning[3], true);
         rowdata[4] = ResNumber.ToString();
-        rowdata[6] = strWarning[3].Length != 0 ? JustFileName(strWarning[3]) : Logics[ResNumber].ID;
+        rowdata[6] = strWarning[3].Length != 0 ? JustFileName(strWarning[3]) : EditGame.Logics[ResNumber].ID;
         break;
       case rtPicture:
-        rowdata[6] = Pictures[ResNumber].ID;
+        rowdata[6] = EditGame.Pictures[ResNumber].ID;
         break;
       case rtSound:
-        rowdata[6] = Sounds[ResNumber].ID;
+        rowdata[6] = EditGame.Sounds[ResNumber].ID;
         break;
       case rtView:
-        rowdata[6] = Views[ResNumber].ID;
+        rowdata[6] = EditGame.Views[ResNumber].ID;
         break;
       }
 
@@ -2231,7 +2198,6 @@ namespace WinAGI.Editor
         pnlWarnings.Visible = true;
       }
     }
-
     private void cmdBack_Click(object sender, EventArgs e)
     {
       // if resqptr is not at beginning, go back one
@@ -2257,7 +2223,6 @@ namespace WinAGI.Editor
         break;
       }
     }
-
     private void cmdBack_MouseDown(object sender, MouseEventArgs e)
     {
       int rtn;
@@ -2275,7 +2240,6 @@ namespace WinAGI.Editor
         NLOffset = ResQPtr;
       }
     }
-
     private void cmdForward_Click(object sender, EventArgs e)
     {
       // if resqptr is not at end, go forward one
@@ -2301,7 +2265,6 @@ namespace WinAGI.Editor
         break;
       }
     }
-
     private void cmdForward_MouseDown(object sender, MouseEventArgs e)
     {
       //if right button, show list of resources on nav stack
@@ -2317,7 +2280,6 @@ namespace WinAGI.Editor
         NLOffset = ResQPtr;
       }
     }
-
     private void picNavList_MouseMove(object sender, MouseEventArgs e)
     {
       //POINTAPI mPos;
@@ -2361,7 +2323,6 @@ namespace WinAGI.Editor
         tmrNavList.Enabled = false;
       }
     }
-
     private void picNavList_Paint(object sender, PaintEventArgs e)
     {
 
@@ -2390,22 +2351,22 @@ namespace WinAGI.Editor
           //print the id
           switch ((AGIResType)(ResQueue[i + NLOffset - 2] / 256)) {
           case rtLogic:
-            e.Graphics.DrawString(Logics[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+            e.Graphics.DrawString(EditGame.Logics[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
             break;
           case rtPicture:
-            e.Graphics.DrawString(Pictures[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+            e.Graphics.DrawString(EditGame.Pictures[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
             break;
           case rtSound:
-            e.Graphics.DrawString(Sounds[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+            e.Graphics.DrawString(EditGame.Sounds[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
             break;
           case rtView:
-            e.Graphics.DrawString(Views[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+            e.Graphics.DrawString(EditGame.Views[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
             break;
           case (AGIResType)4:
             switch (ResQueue[i + NLOffset - 2] % 256) {
             case 9:
               // rtGame
-              e.Graphics.DrawString(GameID, nlFont, bbrush, nlPoint);
+              e.Graphics.DrawString(EditGame.GameID, nlFont, bbrush, nlPoint);
               break;
             case 0:
               // rtLogic
@@ -2437,7 +2398,6 @@ namespace WinAGI.Editor
         }
       }
     }
-
     private void picNavList_MouseUp(object sender, MouseEventArgs e)
     {
       int newPtr;
@@ -2467,7 +2427,6 @@ namespace WinAGI.Editor
         cmdForward.Enabled = ResQPtr < (ResQueue.Length - 1);
       }
     }
-
     private void mnuGMRU_Click(object sender, EventArgs e)
     {
       int index;
@@ -2475,81 +2434,69 @@ namespace WinAGI.Editor
       int.TryParse(((ToolStripMenuItem)sender).Tag.ToString(), out index);
       OpenMRUGame(index);
     }
-
     private void mnuGExit_Click(object sender, EventArgs e)
     {
       // shut it all down
       this.Close();
     }
-
     private void btnImportLogic_Click(object sender, EventArgs e)
     {
       MessageBox.Show("Import logic...");
       btnImportRes.DefaultItem = btnImportLogic;
       btnImportRes.Image = btnImportLogic.Image;
     }
-
     private void btnImportPicture_Click(object sender, EventArgs e)
     {
       MessageBox.Show("Import picture...");
       btnImportRes.DefaultItem = btnImportPicture;
       btnImportRes.Image = btnImportPicture.Image;
     }
-
     private void btnImportSound_Click(object sender, EventArgs e)
     {
       MessageBox.Show("Import sound...");
       btnImportRes.DefaultItem = btnImportSound;
       btnImportRes.Image = btnImportSound.Image;
     }
-
     private void btnImportView_Click(object sender, EventArgs e)
     {
       MessageBox.Show("Import view...");
       btnImportRes.DefaultItem = btnImportView;
       btnImportRes.Image = btnImportView.Image;
     }
-
     private void btnOpenLogic_Click(object sender, EventArgs e)
     {
       MessageBox.Show("Open logic...");
       btnOpenRes.DefaultItem = btnOpenLogic;
       btnOpenRes.Image = btnOpenLogic.Image;
     }
-
     private void btnOpenPicture_Click(object sender, EventArgs e)
     {
       MessageBox.Show("Open picture...");
       btnOpenRes.DefaultItem = btnOpenPicture;
       btnOpenRes.Image = btnOpenPicture.Image;
     }
-
     private void btnOpenSound_Click(object sender, EventArgs e)
     {
       MessageBox.Show("Open sound...");
       btnOpenRes.DefaultItem = btnOpenSound;
       btnOpenRes.Image = btnOpenSound.Image;
     }
-
     private void btnOpenView_Click(object sender, EventArgs e)
     {
       MessageBox.Show("Open view...");
       btnOpenRes.DefaultItem = btnOpenView;
       btnOpenRes.Image = btnOpenView.Image;
     }
-
     private void mnuGImport_Click(object sender, EventArgs e)
     {
       //import a game by directory
       OpenDIR();
     }
-
     private void mnuGOpen_Click(object sender, EventArgs e)
     {
       //open a game - user will get chance to select wag file in OpenWAGFile()
       OpenWAGFile();
     }
-
     private void fsbProperty_Scroll(object sender, ScrollEventArgs e)
     {
       //cancel editing, if it is occurring
@@ -2570,13 +2517,10 @@ namespace WinAGI.Editor
       //redraw
       picProperties.Refresh();
 
-    }
-
-    private void fsbProperty_ValueChanged(object sender, EventArgs e)
+    }    private void fsbProperty_ValueChanged(object sender, EventArgs e)
     {
       //Debug.Print($"val chg: {fsbProperty.Value}");
     }
-
     public void ClearWarnings(int ResNum, AGIResType ResType)
     {
       //Warning  Description  ResNum  Line  Module
@@ -2602,7 +2546,6 @@ namespace WinAGI.Editor
         }
       }
     }
-
     private void splResource_Panel1_Resize(object sender, EventArgs e)
     {
       // resize the navigation buttons
@@ -2610,12 +2553,10 @@ namespace WinAGI.Editor
       cmdForward.Width = splResource.Width / 2;
       cmdForward.Left = splResource.Width / 2;
     }
-
     private void picProperties_Resize(object sender, EventArgs e)
     {
       picProperties.Invalidate();
     }
-
     private void picProperties_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
     {
       string strHelp = "";
@@ -2706,7 +2647,6 @@ namespace WinAGI.Editor
       }
       return;
     }
-
     public void DismissWarning(int row)
     {
       //remove a row to dismiss the warning
@@ -3839,7 +3779,7 @@ void agGameEvents_CompileGameStatus(cStatus As WinAGI.ECStatus, ResType As WinAG
             Settings.OpenOnErr = 2
           }
           //update settings list
-          WriteAppSetting(SettingsList, sLOGICS, "OpenOnErr", Settings.OpenOnErr
+          GameSettings.WriteSetting(sLOGICS, "OpenOnErr", Settings.OpenOnErr
           
         }
         
@@ -7590,13 +7530,13 @@ void mnuRILogic_Click()
     .DialogTitle = "Import Logic"
     .DefaultExt = ""
     .Filter = "AGI Logic Resource (*.agl)|*.agl|Logic Source Files (*.lgc)|*.lgc|Text files(*.txt)|*.txt|All files (*.*)|*.*"
-    .FilterIndex = ReadSettingLong(SettingsList, sLOGICS, sOPENFILTER, 2)
+    .FilterIndex = GameSettings.GetSetting(sLOGICS, sOPENFILTER, 2)
     .FileName = ""
     .InitDir = DefaultResDir
     
     .ShowOpen
     //save default filter index
-    WriteAppSetting(SettingsList, sLOGICS, sOPENFILTER, .FilterIndex
+    GameSettings.WriteSetting(sLOGICS, sOPENFILTER, .FilterIndex
     DefaultResDir = JustPath(.FileName)
   End With
   
@@ -7743,13 +7683,13 @@ void mnuRIPicture_Click()
     .DialogTitle = "Import Picture"
     .DefaultExt = ""
     .Filter = "AGI Picture Resource (*.agp)|*.agp|All files (*.*)|*.*"
-    .FilterIndex = ReadSettingLong(SettingsList, sPICTURES, sOPENFILTER, 1)
+    .FilterIndex = GameSettings.GetSetting(sPICTURES, sOPENFILTER, 1)
     .FileName = ""
     .InitDir = DefaultResDir
     
     .ShowOpen
     //save default filter index
-    WriteAppSetting(SettingsList, sPICTURES, sOPENFILTER, .FilterIndex
+    GameSettings.WriteSetting(sPICTURES, sOPENFILTER, .FilterIndex
     DefaultResDir = JustPath(.FileName)
   End With
 
@@ -7790,13 +7730,13 @@ void mnuRISound_Click()
     .DialogTitle = "Import Sound"
     .DefaultExt = ""
     .Filter = "AGI Sound Resource (*.ags)|*.ags|Sound Script Files (*.ass)|*.ass|All files (*.*)|*.*"
-    .FilterIndex = ReadSettingLong(SettingsList, sSOUNDS, sOPENFILTER, 1)
+    .FilterIndex = GameSettings.GetSetting(sSOUNDS, sOPENFILTER, 1)
     .FileName = ""
      .InitDir = DefaultResDir
    
     .ShowOpen
     //save default filter index
-    WriteAppSetting(SettingsList, sSOUNDS, sOPENFILTER, .FilterIndex
+    GameSettings.WriteSetting(sSOUNDS, sOPENFILTER, .FilterIndex
     DefaultResDir = JustPath(.FileName)
   End With
   
@@ -7836,13 +7776,13 @@ void mnuRIView_Click()
     .DialogTitle = "Import View"
     .DefaultExt = ""
     .Filter = "AGI View Resource (*.agv)|*.agv|All files (*.*)|*.*"
-    .FilterIndex = ReadSettingLong(SettingsList, sVIEWS, sOPENFILTER, 1)
+    .FilterIndex = GameSettings.GetSetting(sVIEWS, sOPENFILTER, 1)
     .FileName = ""
     .InitDir = DefaultResDir
    
     .ShowOpen
     //save default filter index
-    WriteAppSetting(SettingsList, sVIEWS, sOPENFILTER, .FilterIndex
+    GameSettings.WriteSetting(sVIEWS, sOPENFILTER, .FilterIndex
     DefaultResDir = JustPath(.FileName)
   End With
   
@@ -8846,7 +8786,7 @@ ErrHandler:
           tvwResources.Nodes.Clear();
         }
         //add the base nodes
-        tvwResources.Nodes.Add("root", GameLoaded ? GameID : "AGIGame");
+        tvwResources.Nodes.Add("root", EditGame.GameLoaded ? EditGame.GameID : "AGIGame");
         tvwResources.Nodes[0].Nodes.Add(sLOGICS, sLOGICS);
         tvwResources.Nodes[0].Nodes.Add(sPICTURES, sPICTURES);
         tvwResources.Nodes[0].Nodes.Add(sSOUNDS, sSOUNDS);
@@ -8866,8 +8806,8 @@ ErrHandler:
         //PaintPropertyWindow();
         break;
       case 2: //combo/list box
-        if (GameLoaded) {
-          cmbResType.Items[0] = GameID;
+        if (EditGame.GameLoaded) {
+          cmbResType.Items[0] = EditGame.GameID;
         }
         else {
           cmbResType.Items[0] = "AGIGame";
@@ -8929,7 +8869,7 @@ ErrHandler:
     private void frmMDIMain_FormClosing(object sender, FormClosingEventArgs e)
     {
       //is a game loaded?
-      bool blnLastLoad = GameLoaded;
+      bool blnLastLoad = EditGame.GameLoaded;
       if (blnLastLoad) {
         //close open game (get cancel flag, in case user cancels)
         try {
@@ -8956,7 +8896,7 @@ ErrHandler:
         }
       }
       //write lastload status
-      WriteAppSetting(SettingsList, sMRULIST, "LastLoad", blnLastLoad);
+      GameSettings.WriteSetting(sMRULIST, "LastLoad", blnLastLoad);
       //save settings to register
       SaveSettings();
 

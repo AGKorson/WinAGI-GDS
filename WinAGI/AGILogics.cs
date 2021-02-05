@@ -11,8 +11,10 @@ namespace WinAGI.Engine
 {
   public class AGILogics : IEnumerable<AGILogic>
   {
-    public AGILogics()
+    AGIGame parent;
+    internal AGILogics(AGIGame parent)
     {
+      this.parent = parent;
       // create the initial Col object
       Col = new SortedList<byte, AGILogic>();
     }
@@ -101,7 +103,7 @@ namespace WinAGI.Engine
         UpdateDirFile(Col[Index], true);
         Col.Remove(Index);
         //remove all properties from the wag file
-        DeleteSettingSection(agGameProps, "Logic" + Index);
+        parent.agGameProps.DeleteSection("Logic" + Index);
       }
     }
     public void Renumber(byte OldLogic, byte NewLogic)
@@ -130,7 +132,7 @@ namespace WinAGI.Engine
       }
 
       //remove old properties
-      DeleteSettingSection(agGameProps, "Logic" + OldLogic);
+      parent.agGameProps.DeleteSection("Logic" + OldLogic);
 
       //remove from collection
       Col.Remove(OldLogic);
@@ -149,9 +151,9 @@ namespace WinAGI.Engine
         }
         try {
           //get rid of existing file with same name as new logicif needed
-          File.Delete(agResDir + tmpLogic.ID + agSrcExt);
+          File.Delete(parent.agResDir + tmpLogic.ID + agSrcExt);
           //rename sourcefile
-          File.Move(agResDir + "Logic" + OldLogic + agSrcExt, agResDir + tmpLogic.ID + agSrcExt);
+          File.Move(parent.agResDir + "Logic" + OldLogic + agSrcExt, parent.agResDir + tmpLogic.ID + agSrcExt);
         }
         catch (Exception e) {
           throw new Exception("670, LoadResString(670) " + e.Message);
@@ -169,11 +171,11 @@ namespace WinAGI.Engine
 
       //add properties back with new logic number
       strSection = "Logic" + NewLogic;
-      WriteGameSetting(strSection, "ID", tmpLogic.ID, "Logics");
-      WriteGameSetting(strSection, "Description", tmpLogic.Description);
-      WriteGameSetting(strSection, "CRC32", "0x" + tmpLogic.CRC.ToString("x"));
-      WriteGameSetting(strSection, "CompCRC32", "0x" + (tmpLogic.CompiledCRC.ToString("x")));
-      WriteGameSetting(strSection, "IsRoom", tmpLogic.IsRoom.ToString());
+      parent.WriteGameSetting(strSection, "ID", tmpLogic.ID, "Logics");
+      parent.WriteGameSetting(strSection, "Description", tmpLogic.Description);
+      parent.WriteGameSetting(strSection, "CRC32", "0x" + tmpLogic.CRC.ToString("x"));
+      parent.WriteGameSetting(strSection, "CompCRC32", "0x" + (tmpLogic.CompiledCRC.ToString("x")));
+      parent.WriteGameSetting(strSection, "IsRoom", tmpLogic.IsRoom.ToString());
 
       //force writeprop state back to false
       tmpLogic.WritePropState = false;
@@ -188,12 +190,11 @@ namespace WinAGI.Engine
       //called by the resource loading method for the initial loading of
       //resources into logics collection
       //if this Logic number is already in the game
-      if (agLogs.Exists(bytResNum)) {
+      if (Exists(bytResNum)) {
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
       //create new logic object
-      AGILogic newResource = new AGILogic();
-      newResource.InGameInit(bytResNum, bytVol, lngLoc);
+      AGILogic newResource = new AGILogic(parent, bytResNum, bytVol, lngLoc);
       //add it
       Col.Add(bytResNum, newResource);
     }
@@ -201,20 +202,20 @@ namespace WinAGI.Engine
     {
       foreach (AGILogic tmpLogic in Col.Values) {
         tmpLogic.CompiledCRC = 0;
-        WriteGameSetting("Logic" + tmpLogic.Number, "CompCRC32", "0x00", "Logics");
+        parent.WriteGameSetting("Logic" + tmpLogic.Number, "CompCRC32", "0x00", "Logics");
       }
-      SaveSettingList(agGameProps);
+      parent.agGameProps.Save();
     }
     public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false)
     {
       //tie function to allow access to the LogCompile variable conversion function
       //if in a game
-      if (agGameLoaded) {
+      if (parent.agGameLoaded) {
         //initialize global defines
         //get datemodified property
-        DateTime dtFileMod = File.GetLastWriteTime(agGameDir + "globals.txt");
+        DateTime dtFileMod = File.GetLastWriteTime(parent.agGameDir + "globals.txt");
         if (CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString())) != agGlobalCRC) {
-          GetGlobalDefines();
+          parent.GetGlobalDefines();
         }
         //if ids not set yet
         if (!blnSetIDs) {

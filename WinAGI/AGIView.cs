@@ -21,8 +21,6 @@ namespace WinAGI.Engine
       strErrSource = "WinAGI.View";
       // add rempty loop col
       mLoopCol = new AGILoops(this);
-      //set default resource data
-      mRData = new RData(0);
       mRData.AllData = new byte[] { 0x01, 0x01, 0x00, 0x00, 0x00 };
       // byte0 = unknown (always 1 or 2?)
       // byte1 = unknown (always 1?)
@@ -30,31 +28,37 @@ namespace WinAGI.Engine
       // byte3 = high byte of viewdesc
       // byte4 = low byte of viewdesc
     }
-    internal void InGameInit(byte ResNum, sbyte VOL, int Loc)
+    internal AGIView(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtView, "NewView")
     {
       //this internal function adds this resource to a game, setting its resource 
       //location properties, and reads properties from the wag file
 
+      //initialize
+      //attach events
+      base.PropertyChanged += ResPropChange;
+      strErrSource = "WinAGI.View";
+      // add rempty loop col
+      mLoopCol = new AGILoops(this);
       //set up base resource
-      base.InitInGame(ResNum, VOL, Loc);
+      base.InitInGame(parent, ResNum, VOL, Loc);
 
       //if first time loading this game, there will be nothing in the propertyfile
-      ID = ReadSettingString(agGameProps, "View" + ResNum, "ID", "");
+      ID = this.parent.agGameProps.GetSetting("View" + ResNum, "ID", "");
       if (ID.Length == 0)
       {
         //no properties to load; save default ID
         ID = "View" + ResNum;
-        WriteGameSetting("Logic" + ResNum, "ID", ID, "Views");
+        this.parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Views");
         //load resource to get size
         Load();
-        WriteGameSetting("View" + ResNum, "Size", Size.ToString());
+        this.parent.WriteGameSetting("View" + ResNum, "Size", Size.ToString());
         Unload();
       }
       else
       {
         //get description, size and other properties from wag file
-        mDescription = ReadSettingString(agGameProps, "View" + ResNum, "Description", "");
-        Size = ReadSettingLong(agGameProps, "View" + ResNum, "Size", -1);
+        mDescription = parent.agGameProps.GetSetting("View" + ResNum, "Description", "");
+        Size = parent.agGameProps.GetSetting("View" + ResNum, "Size", -1);
       }
     }
     private void ResPropChange(object sender, AGIResPropChangedEventArgs e)
@@ -574,8 +578,8 @@ namespace WinAGI.Engine
       if (WritePropState && mInGame)
       {
         //save ID and description to ID file
-        WriteGameSetting("View" + Number, "ID", mResID, "Views");
-        WriteGameSetting("View" + Number, "Description", mDescription);
+        parent.WriteGameSetting("View" + Number, "ID", mResID, "Views");
+        parent.WriteGameSetting("View" + Number, "Description", mDescription);
         WritePropState = false;
       }
       //if not loaded
@@ -599,7 +603,7 @@ namespace WinAGI.Engine
           //pass error along
           throw;
         }
-        WriteGameSetting("View" + Number, "Size", mSize, "Views");
+        parent.WriteGameSetting("View" + Number, "Size", mSize, "Views");
         //reset flag
         mIsDirty = false;
       }

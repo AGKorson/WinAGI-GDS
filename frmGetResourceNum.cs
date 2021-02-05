@@ -543,7 +543,7 @@ Private Sub cmdOK_Click()
   
   
   'save the current 'opennew' value
-   WriteAppSetting SettingsList, sGENERAL, "OpenNew", (chkOpenRes.Value = vbChecked)
+   WriteSetting GameSettings, sGENERAL, "OpenNew", (chkOpenRes.Value = vbChecked)
   
   Me.Hide
 End Sub

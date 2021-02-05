@@ -210,16 +210,16 @@ namespace WinAGI.Editor
         //also include the resource ID
         switch (ResType) {
         case rtLogic:
-          strID = Logics[ResNum].ID;
+          strID = EditGame.Logics[ResNum].ID;
           break;
         case rtPicture:
-          strID = Pictures[ResNum].ID;
+          strID = EditGame.Pictures[ResNum].ID;
           break;
         case rtSound:
-          strID = Sounds[ResNum].ID;
+          strID = EditGame.Sounds[ResNum].ID;
           break;
         case rtView:
-          strID = Views[ResNum].ID;
+          strID = EditGame.Views[ResNum].ID;
           break;
         }
         strID = "   (" + strID + ")";
@@ -229,7 +229,7 @@ namespace WinAGI.Editor
     bool PreviewLogic(byte LogNum)
     {
       //get the logic
-      agLogic = Logics[LogNum];
+      agLogic = EditGame.Logics[LogNum];
       try {
         if (!agLogic.Loaded) {
           //load the logic to access source code
@@ -314,16 +314,16 @@ namespace WinAGI.Editor
         agSound = null;
       }
       //save preview window pos
-      WriteAppSetting(SettingsList, sPOSITION, "PreviewTop", Top);
-      WriteAppSetting(SettingsList, sPOSITION, "PreviewLeft", Left);
-      WriteAppSetting(SettingsList, sPOSITION, "PreviewWidth", Width);
-      WriteAppSetting(SettingsList, sPOSITION, "PreviewHeight", Height);
+      GameSettings.WriteSetting(sPOSITION, "PreviewTop", Top);
+      GameSettings.WriteSetting(sPOSITION, "PreviewLeft", Left);
+      GameSettings.WriteSetting(sPOSITION, "PreviewWidth", Width);
+      GameSettings.WriteSetting(sPOSITION, "PreviewHeight", Height);
     }
     bool PreviewPic(byte PicNum)
     {
       try {
         //get new picture
-        agPic = Pictures[PicNum];
+        agPic = EditGame.Pictures[PicNum];
 
         if (!agPic.Loaded) {
           //load resource for this view
@@ -527,7 +527,7 @@ namespace WinAGI.Editor
 
       //get new sound
       try {
-        agSound = Sounds[SndNum];
+        agSound = EditGame.Sounds[SndNum];
         if (!agSound.Loaded) {
           //load the resource
           agSound.Load();
@@ -807,7 +807,7 @@ namespace WinAGI.Editor
     bool PreviewView(byte ViewNum)
     {
       //get the view
-      agView = Views[ViewNum];
+      agView = EditGame.Views[ViewNum];
       try {
         if (!agView.Loaded) {
           //load resource for this view
@@ -1106,7 +1106,7 @@ namespace WinAGI.Editor
       udCel.Text = $"Cel {CurCel} / {agView[CurLoop].Cels.Count - 1}";
       //set transparent color for the toolbox image
       picTrans.Image = new Bitmap(picTrans.Width, picTrans.Height);
-      Graphics.FromImage(picTrans.Image).Clear(EGAColor[(int)agView[CurLoop][CurCel].TransColor]);
+      Graphics.FromImage(picTrans.Image).Clear(EditGame.EGAColor[(int)agView[CurLoop][CurCel].TransColor]);
 
       // create new image in the picture box that is desired size
       picCel.Image = new Bitmap(picCel.Width, picCel.Height);
@@ -1385,19 +1385,19 @@ namespace WinAGI.Editor
       vsbView.Minimum = -PW_MARGIN;
 
       //get preview window position
-      sngWidth = ReadSettingLong(SettingsList, sPOSITION, "PreviewWidth", (int)(0.4 * MDIMain.Bounds.Width));
+      sngWidth = GameSettings.GetSetting(sPOSITION, "PreviewWidth", (int)(0.4 * MDIMain.Bounds.Width));
       if (sngWidth <= MIN_WIDTH) {
         sngWidth = MIN_WIDTH;
       } else if (sngWidth > 0.75 * Screen.GetWorkingArea(this).Width) {
         sngWidth = (int)(0.75 * Screen.GetWorkingArea(this).Width);
       }
-      sngHeight = ReadSettingLong(SettingsList, sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
+      sngHeight = GameSettings.GetSetting(sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
       if (sngHeight <= MIN_HEIGHT) {
         sngHeight = MIN_HEIGHT;
       } else if (sngHeight > 0.75 * Screen.GetWorkingArea(this).Height) {
         sngHeight = (int)(0.75 * Screen.GetWorkingArea(this).Height);
       }
-      sngLeft = ReadSettingLong(SettingsList, sPOSITION, "PreviewLeft", 0);
+      sngLeft = GameSettings.GetSetting(sPOSITION, "PreviewLeft", 0);
       if (sngLeft < 0) {
         sngLeft = 0;
       } else {
@@ -1411,7 +1411,7 @@ namespace WinAGI.Editor
           }
         }
       }
-      sngTop = ReadSettingLong(SettingsList, sPOSITION, "PreviewTop", 0);
+      sngTop = GameSettings.GetSetting(sPOSITION, "PreviewTop", 0);
       if (sngTop < 0) {
         sngTop = 0;
       } else {
@@ -1554,16 +1554,16 @@ namespace WinAGI.Editor
       //set form defaults
       switch (SelResType) {
       case rtLogic:
-        GFindText = Logics[(byte)SelResNum].ID;
+        GFindText = EditGame.Logics[(byte)SelResNum].ID;
         break;
       case rtPicture:
-        GFindText = Pictures[(byte)SelResNum].ID;
+        GFindText = EditGame.Pictures[(byte)SelResNum].ID;
         break;
       case rtSound:
-        GFindText = Sounds[(byte)SelResNum].ID;
+        GFindText = EditGame.Sounds[(byte)SelResNum].ID;
         break;
       case rtView:
-        GFindText = Views[(byte)SelResNum].ID;
+        GFindText = EditGame.Views[(byte)SelResNum].ID;
         break;
       }
       GFindDir = FindDirection.fdAll;

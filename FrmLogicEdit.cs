@@ -17,7 +17,6 @@ namespace WinAGI.Editor
   public partial class frmLogicEdit : Form
   {
     public AGILogic ThisLogic = new AGILogic { };
-    public AGILogics aglogs = new AGILogics { };
     internal ELogicFormMode FormMode;
     internal bool InGame;
     public bool ListDirty = false;
@@ -1539,7 +1538,7 @@ Public Sub MenuClickInGame()
       Settings.AskExport = Not blnDontAsk
       'if now hiding update settings file
       If Not Settings.AskExport Then
-        WriteAppSetting SettingsList, sGENERAL, "AskExport", Settings.AskExport
+        WriteSetting GameSettings, sGENERAL, "AskExport", Settings.AskExport
       End If
     Else
       'dont ask; assume no
@@ -1580,7 +1579,7 @@ Public Sub MenuClickInGame()
       Settings.AskRemove = Not blnDontAsk
       'if now hiding, update settings file
       If Not Settings.AskRemove Then
-        WriteAppSetting SettingsList, sGENERAL, "AskRemove", Settings.AskRemove
+        WriteSetting GameSettings, sGENERAL, "AskRemove", Settings.AskRemove
       End If
     Else
       'assume OK
@@ -1805,7 +1804,7 @@ Public Sub MenuClickCustom2()
       Settings.WarnMsgs = 2
     End If
     'now save this setting
-    WriteAppSetting SettingsList, sLOGICS, "WarnMsgs", Settings.WarnMsgs
+    WriteSetting GameSettings, sLOGICS, "WarnMsgs", Settings.WarnMsgs
   End If
   
   'save logic text as a string
@@ -3295,7 +3294,7 @@ Function AskClose() As Boolean
       'if asked to skip further warnings
       If blnSkipWarn Then
         Settings.WarnCompile = False
-        WriteAppSetting SettingsList, sGENERAL, "WarnCompile", Settings.WarnCompile
+        WriteSetting GameSettings, sGENERAL, "WarnCompile", Settings.WarnCompile
       End If
     End If
   End If

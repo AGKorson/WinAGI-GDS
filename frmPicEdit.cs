@@ -56,8 +56,8 @@ namespace WinAGI.Editor
       cmbTransCol.SelectedIndex = 16;
 
       // load the picture
-      Pictures[1].Load();
-      thisBMP = Pictures[1].VisualBMP;
+      EditGame.Pictures[1].Load();
+      thisBMP = EditGame.Pictures[1].VisualBMP;
       // show it with NO transparency
       ShowAGIBitmap(picVisual, thisBMP);
     }
@@ -87,15 +87,15 @@ namespace WinAGI.Editor
     {
       if (picMode)
       {
-        thisBMP = (Bitmap)Pictures[1].PriorityBMP.Clone();
+        thisBMP = (Bitmap)EditGame.Pictures[1].PriorityBMP.Clone();
       }
       else
       {
-        thisBMP = (Bitmap)Pictures[1].VisualBMP.Clone();
+        thisBMP = (Bitmap)EditGame.Pictures[1].VisualBMP.Clone();
       }
       if (cmbTransCol.SelectedIndex < 16)
       {
-        thisBMP.MakeTransparent(EGAColor[cmbTransCol.SelectedIndex]);
+        thisBMP.MakeTransparent(EditGame.EGAColor[cmbTransCol.SelectedIndex]);
       }
       ShowAGIBitmap(picVisual, thisBMP, zoom);
 
@@ -1628,7 +1628,7 @@ Private Sub GetTestView()
     With MainDialog
       .DialogTitle = "Choose Test View"
       .Filter = "AGI View Resource (*.agv)|*.agv|All files (*.*)|*.*"
-      .FilterIndex = ReadSettingLong(SettingsList, sVIEWS, sOPENFILTER, 1)
+      .FilterIndex = GameSettings.GetSetting(sVIEWS, sOPENFILTER, 1)
       .DefaultExt = vbNullString
       .FileName = vbNullString
       .InitDir = DefaultResDir
@@ -1643,7 +1643,7 @@ Private Sub GetTestView()
       On Error GoTo ErrHandler
       TestViewFile = .FileName
       
-      WriteAppSetting SettingsList, sVIEWS, sOPENFILTER, .FilterIndex
+      WriteSetting GameSettings, sVIEWS, sOPENFILTER, .FilterIndex
       DefaultResDir = JustPath(.FileName)
     End With
   End If
@@ -5395,7 +5395,7 @@ Public Sub MenuClickInGame()
       Settings.AskExport = Not blnDontAsk
       'if now hiding update settings file
       If Not Settings.AskExport Then
-        WriteAppSetting SettingsList, sGENERAL, "AskExport", Settings.AskExport
+        WriteSetting GameSettings, sGENERAL, "AskExport", Settings.AskExport
       End If
     Else
       'dont ask; assume no
@@ -5424,7 +5424,7 @@ Public Sub MenuClickInGame()
       Settings.AskRemove = Not blnDontAsk
       'if now hiding, update settings file
       If Not Settings.AskRemove Then
-        WriteAppSetting SettingsList, sGENERAL, "AskRemove", Settings.AskRemove
+        WriteSetting GameSettings, sGENERAL, "AskRemove", Settings.AskRemove
       End If
     Else
       'assume OK
@@ -7207,21 +7207,21 @@ Private Sub Form_Load()
   
   'get default pic test settings
   With TestSettings
-    .ObjSpeed = ReadSettingLong(SettingsList, sPICTEST, "Speed", DEFAULT_PICTEST_OBJSPEED)
+    .ObjSpeed = GameSettings.GetSetting(sPICTEST, "Speed", DEFAULT_PICTEST_OBJSPEED)
       If .ObjSpeed < 0 Then .ObjSpeed = 0
       If .ObjSpeed > 3 Then .ObjSpeed = 3
-    .ObjPriority = ReadSettingLong(SettingsList, sPICTEST, "Priority", DEFAULT_PICTEST_OBJPRIORITY)
+    .ObjPriority = GameSettings.GetSetting(sPICTEST, "Priority", DEFAULT_PICTEST_OBJPRIORITY)
       If .ObjPriority < 4 Then .ObjPriority = 4
       If .ObjPriority > 16 Then .ObjPriority = 16
-    .ObjRestriction = ReadSettingLong(SettingsList, sPICTEST, "Restriction", DEFAULT_PICTEST_OBJRESTRICTION)
+    .ObjRestriction = GameSettings.GetSetting(sPICTEST, "Restriction", DEFAULT_PICTEST_OBJRESTRICTION)
       If .ObjRestriction < 0 Then .ObjRestriction = 0
       If .ObjRestriction > 2 Then .ObjRestriction = 2
-    .Horizon = ReadSettingLong(SettingsList, sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON)
+    .Horizon = GameSettings.GetSetting(sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON)
       If .Horizon < 0 Then .Horizon = 0
       If .Horizon > 167 Then .Horizon = 167
-    .IgnoreHorizon = ReadSettingBool(SettingsList, sPICTEST, "IgnoreHorizon", DEFAULT_PICTEST_IGNOREHORIZON)
-    .IgnoreBlocks = ReadSettingBool(SettingsList, sPICTEST, "IgnoreBlocks", DEFAULT_PICTEST_IGNOREBLOCKS)
-    .CycleAtRest = ReadSettingBool(SettingsList, sPICTEST, "CycleAtRest", DEFAULT_PICTEST_CYCLEATREST)
+    .IgnoreHorizon = GameSettings.GetSetting(sPICTEST, "IgnoreHorizon", DEFAULT_PICTEST_IGNOREHORIZON)
+    .IgnoreBlocks = GameSettings.GetSetting(sPICTEST, "IgnoreBlocks", DEFAULT_PICTEST_IGNOREBLOCKS)
+    .CycleAtRest = GameSettings.GetSetting(sPICTEST, "CycleAtRest", DEFAULT_PICTEST_CYCLEATREST)
     .TestCel = -1
     .TestLoop = -1
     'set timer based on speed

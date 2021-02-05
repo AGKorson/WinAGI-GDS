@@ -21,9 +21,26 @@ namespace WinAGI.Engine
     bool mWriteProps;
     bool mLoaded;
     bool mLoading;
+    AGIGame parent = null;
     //other
     string strErrSource = "";
     public AGIInventoryObjects()
+    {
+      mInGame = false;
+      mResFile = "";
+      InitInvObj();
+    }
+    public AGIInventoryObjects(AGIGame parent, bool Loaded = false) 
+    {
+      this.parent = parent;
+      mInGame = true;
+      //if loaded property is passed, set loaded flag as well
+      mLoaded = Loaded;
+      //set resourcefile to game default
+      mResFile = parent.agGameDir + "OBJECT";
+      InitInvObj();
+    }
+    private void InitInvObj()
     {
       // create the initial Col object
       mItems = new List<AGIInventoryItem>();
@@ -83,16 +100,23 @@ namespace WinAGI.Engine
         //set the flag to be NON-Amiga
         mAmigaOBJ = value;
         //save the current file as 'OBJECT.amg'
+        string theDir;
+        if (parent == null) {
+          theDir = JustPath(mResFile);
+        }
+        else {
+          theDir = parent.agGameDir;
+        }
         try
         {
-          if (File.Exists(agGameDir + "OBJECT.amg")) ;
+          if (File.Exists(theDir + "OBJECT.amg")) ;
           {
-            File.Delete(agGameDir + "OBJECT.amg");
+            File.Delete(theDir + "OBJECT.amg");
           }
-          File.Move(agGameDir + "OBJECT", agGameDir + "OBJECT.amg");
+          File.Move(parent.agGameDir + "OBJECT", theDir + "OBJECT.amg");
 
           //now delete the current file
-          File.Delete(agGameDir + "OBJECT");
+          File.Delete(theDir + "OBJECT");
           //mark it as dirty, and save it to create a new file
           mIsDirty = true;
           Save();
@@ -162,7 +186,7 @@ namespace WinAGI.Engine
           //if in a game
           if (mInGame)
           {
-            WriteGameSetting("OBJECT", "Description", mDescription);
+            parent.WriteProperty("OBJECT", "Description", mDescription);
           }
         }
       }
@@ -317,19 +341,6 @@ ErrHandler:
     internal bool WriteProps
     {
       get { return mWriteProps; }
-    }
-    internal void Init(bool Loaded = false)
-    {
-      //this function is only called for the object list
-      //that is part of a game
-      //it sets the ingame flag
-      mInGame = true;
-
-      //if loaded property is passed, set loaded flag as well
-      mLoaded = Loaded;
-
-      //set resourcefile to game default
-      mResFile = agGameDir + "OBJECT";
     }
     public bool Loaded
     {
@@ -809,7 +820,7 @@ ErrHandler:
       if (mInGame)
       {
         //use default Sierra name
-        LoadFile = agGameDir + "OBJECT";
+        LoadFile = parent.agGameDir + "OBJECT";
         //attempt to load
         if (!LoadSierraFile(LoadFile))
         {
@@ -819,7 +830,7 @@ ErrHandler:
           throw new Exception("692, strErrSource, LoadResString(692)");
         }
         //get description, if there is one
-        mDescription = ReadSettingString(agGameProps, "OBJECT", "Description", "");
+        mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "");
       }
       else
       {
@@ -928,7 +939,7 @@ ErrHandler:
         //compile the file
         Compile(mResFile);
         //change date of last edit
-        agLastEdit = DateTime.Now;
+        parent.agLastEdit = DateTime.Now;
       }
       else
       {

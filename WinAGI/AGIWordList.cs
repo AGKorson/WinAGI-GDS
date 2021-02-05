@@ -19,6 +19,7 @@ namespace WinAGI.Engine
     string mResFile = "";
     string mDescription = "";
     bool mInGame;
+    AGIGame parent;
     bool mIsDirty;
     bool mWriteProps;
     bool mLoaded;
@@ -47,6 +48,21 @@ namespace WinAGI.Engine
       tmpGroup = new AGIWordGroup { mGroupNum = 9999 };
       tmpGroup.AddWordToGroup("rol");
       mGroupCol.Add(9999, tmpGroup);
+    }
+    internal AGIWordList(AGIGame parent, bool Loaded = false)
+    {
+      //initialize the collections
+      mWordCol = new SortedList<string, AGIWord>();
+      mGroupCol = new SortedList<int, AGIWordGroup>();
+      //this function is only called for a vocab word list
+      //that is part of a game
+      //it sets the ingame flag
+      mInGame = true;
+      this.parent = parent;
+      //if loaded property is passed, set loaded flag as well
+      mLoaded = Loaded;
+      //it also sets the default name to //WORDS.TOK//
+      mResFile = this.parent.agGameDir + "WORDS.TOK";
     }
     public void NewWords()
     {
@@ -417,9 +433,9 @@ namespace WinAGI.Engine
           //if in a game
           if (mInGame)
           {
-            WriteGameSetting("WORDS.TOK", "Description", mDescription);
+            parent.WriteGameSetting("WORDS.TOK", "Description", mDescription);
             //change date of last edit
-            agLastEdit = DateTime.Now;
+            parent.agLastEdit = DateTime.Now;
           }
         }
       }
@@ -435,17 +451,6 @@ namespace WinAGI.Engine
       {
         mInGame = value;
       }
-    }
-    internal void Init(bool Loaded = false)
-    {
-      //this function is only called for a vocab word list
-      //that is part of a game
-      //it sets the ingame flag
-      mInGame = true;
-      //if loaded property is passed, set loaded flag as well
-      mLoaded = Loaded;
-      //it also sets the default name to //WORDS.TOK//
-      mResFile = agGameDir + "WORDS.TOK";
     }
     public string ResFile
     {
@@ -565,7 +570,7 @@ namespace WinAGI.Engine
         //compile the file
         Compile(mResFile);
         //change date of last edit
-        agLastEdit = DateTime.Now; ;
+        parent.agLastEdit = DateTime.Now; ;
       }
       else
       {
@@ -949,7 +954,7 @@ namespace WinAGI.Engine
       if (mInGame)
       {
         //use default filename
-        LoadFile = agGameDir + "WORDS.TOK";
+        LoadFile = parent.agGameDir + "WORDS.TOK";
         //attempt to load
         if (!LoadSierraFile(LoadFile))
         {
@@ -957,7 +962,7 @@ namespace WinAGI.Engine
           throw new Exception("529, strErrSource, LoadResString(529)");
         }
         //get description, if there is one
-        mDescription = ReadSettingString(agGameProps, "WORDS.TOK", "Description", "");
+        mDescription = parent.agGameProps.GetSetting("WORDS.TOK", "Description", "");
       }
       else
       {

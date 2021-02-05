@@ -9,13 +9,17 @@ using static WinAGI.Common.WinAGI;
 
 namespace WinAGI.Engine
 {
-  // should this be public? or internal?
   public class AGILogicSourceSettings
   {
+    AGIGame parent;
     private bool agElseAsGoto;
     private bool agShowMsgs;
     private bool agMsgsByNum;
     private bool agSpecialSyntax;
+    internal AGILogicSourceSettings(AGIGame parent)
+    {
+      this.parent = parent;
+    }
     public LogicErrorLevel ErrorLevel
     { get; set; }
     public string ArgTypePrefix(byte index)
@@ -86,13 +90,13 @@ namespace WinAGI.Engine
 
           tmpDefines[44].Name = agResDef[4].Name;
           //if a game is not loaded
-          if (!agGameLoaded)
+          if (!parent.agGameLoaded)
           {
             tmpDefines[44].Value = "0";
           }
           else
           {
-            tmpDefines[44].Value = agInvObj.Count.ToString();
+            tmpDefines[44].Value = parent.agInvObj.Count.ToString();
           }
           break;
         case atVar:
@@ -139,15 +143,15 @@ namespace WinAGI.Engine
           //return all reserved string defines
           tmpDefines = new TDefine[2];
           tmpDefines[0].Name = agResDef[1].Name;
-          tmpDefines[0].Value = "\"" + GameVersion + "\"";
+          tmpDefines[0].Value = "\"" + parent.agGameVersion + "\"";
           tmpDefines[0].Type = atDefStr;
           tmpDefines[1].Name = agResDef[2].Name;
-          tmpDefines[1].Value = "\"" + GameAbout + "\"";
+          tmpDefines[1].Value = "\"" + parent.GameAbout + "\"";
           tmpDefines[1].Type = atDefStr;
           tmpDefines[2].Name = agResDef[3].Name;
-          if (agGameLoaded)
+          if (parent.agGameLoaded)
           {
-            tmpDefines[2].Value = "\"" + GameID + "\"";
+            tmpDefines[2].Value = "\"" + parent.GameID + "\"";
           }
           else
           {
@@ -322,9 +326,9 @@ namespace WinAGI.Engine
       set
       {
         agUseRes = value;
-        if (agGameLoaded)
+        if (parent.agGameLoaded)
         {
-          WriteGameSetting("General", "UseResNames", agUseRes.ToString());
+          parent.WriteGameSetting("General", "UseResNames", agUseRes.ToString());
         }
 
       }

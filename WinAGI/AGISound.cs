@@ -51,8 +51,6 @@ namespace WinAGI.Engine
       base.PropertyChanged += ResPropChange;
       strErrSource = "WinAGI.Sound";
       //create default PC/PCjr sound with no notes in any tracks
-      //set default resource data
-      mRData = new RData(0);
       mRData.AllData = new byte[] { 0x08, 0x00, 0x08, 0x00,
                                     0x08, 0x00, 0x08, 0x00,
                                     0xff, 0xff};
@@ -73,31 +71,35 @@ namespace WinAGI.Engine
       //key is c
       mKey = 0;
     }
-    internal void InGameInit(byte ResNum, sbyte VOL, int Loc)
+    public AGISound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtSound, "NewSound")
     {
       //this internal function adds this resource to a game, setting its resource 
       //location properties, and reads properties from the wag file
+      //initialize
+      //attach events
+      base.PropertyChanged += ResPropChange;
+      strErrSource = "WinAGI.Sound";
 
       //set up base resource
-      base.InitInGame(ResNum, VOL, Loc);
+      base.InitInGame(parent, ResNum, VOL, Loc);
 
       //if first time loading this game, there will be nothing in the propertyfile
-      ID = ReadSettingString(agGameProps, "Sound" + ResNum, "ID", "");
+      ID = parent.agGameProps.GetSetting("Sound" + ResNum, "ID", "");
       if (ID.Length == 0)
       {
         //no properties to load; save default ID
         ID = "Sound" + ResNum;
-        WriteGameSetting("Logic" + ResNum, "ID", ID, "Sounds");
+        parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Sounds");
         //load resource to get size
         Load();
-        WriteGameSetting("Sound" + ResNum, "Size", Size.ToString());
+        parent.WriteGameSetting("Sound" + ResNum, "Size", Size.ToString());
         Unload();
       }
       else
       {
         //get description, size and other properties from wag file
-        mDescription = ReadSettingString(agGameProps, "Sound" + ResNum, "Description", "");
-        Size = ReadSettingLong(agGameProps, "Sound" + ResNum, "Size", -1);
+        mDescription = parent.agGameProps.GetSetting("Sound" + ResNum, "Description", "");
+        Size = parent.agGameProps.GetSetting("Sound" + ResNum, "Size", -1);
       }
     }
     private void ResPropChange(object sender, AGIResPropChangedEventArgs e)
@@ -226,17 +228,17 @@ namespace WinAGI.Engine
       if (mInGame)
       {
         //get track properties from the .WAG file
-        mTrack[0].Instrument = ReadSettingByte(agGameProps, "Sound" + mResNum, "Inst0", 80);
-        mTrack[1].Instrument = ReadSettingByte(agGameProps, "Sound" + mResNum, "Inst1", 80);
-        mTrack[2].Instrument = ReadSettingByte(agGameProps, "Sound" + mResNum, "Inst2", 80);
-        mTrack[0].Muted = ReadSettingBool(agGameProps, "Sound" + mResNum, "Mute0", false);
-        mTrack[1].Muted = ReadSettingBool(agGameProps, "Sound" + mResNum, "Mute1", false);
-        mTrack[2].Muted = ReadSettingBool(agGameProps, "Sound" + mResNum, "Mute2", false);
-        mTrack[3].Muted = ReadSettingBool(agGameProps, "Sound" + mResNum, "Mute3", false);
-        mTrack[0].Visible = ReadSettingBool(agGameProps, "Sound" + mResNum, "Visible0", true);
-        mTrack[1].Visible = ReadSettingBool(agGameProps, "Sound" + mResNum, "Visible1", true);
-        mTrack[2].Visible = ReadSettingBool(agGameProps, "Sound" + mResNum, "Visible2", true);
-        mTrack[3].Visible = ReadSettingBool(agGameProps, "Sound" + mResNum, "Visible3", true);
+        mTrack[0].Instrument = parent.agGameProps.GetSetting("Sound" + mResNum, "Inst0", (byte)80);
+        mTrack[1].Instrument = parent.agGameProps.GetSetting("Sound" + mResNum, "Inst1", (byte)80);
+        mTrack[2].Instrument = parent.agGameProps.GetSetting("Sound" + mResNum, "Inst2", (byte)80);
+        mTrack[0].Muted = parent.agGameProps.GetSetting("Sound" + mResNum, "Mute0", false);
+        mTrack[1].Muted = parent.agGameProps.GetSetting("Sound" + mResNum, "Mute1", false);
+        mTrack[2].Muted = parent.agGameProps.GetSetting("Sound" + mResNum, "Mute2", false);
+        mTrack[3].Muted = parent.agGameProps.GetSetting("Sound" + mResNum, "Mute3", false);
+        mTrack[0].Visible = parent.agGameProps.GetSetting("Sound" + mResNum, "Visible0", true);
+        mTrack[1].Visible = parent.agGameProps.GetSetting("Sound" + mResNum, "Visible1", true);
+        mTrack[2].Visible = parent.agGameProps.GetSetting("Sound" + mResNum, "Visible2", true);
+        mTrack[3].Visible = parent.agGameProps.GetSetting("Sound" + mResNum, "Visible3", true);
       }
       else
       {
@@ -1231,13 +1233,13 @@ namespace WinAGI.Engine
         // pass along any error
         throw;
       }
-      mKey = ReadSettingLong(agGameProps, "Sound" + mResNum, "Key", 0);
+      mKey = parent.agGameProps.GetSetting("Sound" + mResNum, "Key", 0);
       //validate it
       if (mKey < -7 || mKey > 7)
       {
         mKey = 0;
       }
-      mTPQN = ReadSettingLong(agGameProps, "Sound" + mResNum, "TPQN", 0);
+      mTPQN = parent.agGameProps.GetSetting("Sound" + mResNum, "TPQN", 0);
       //validate it
       mTPQN = (mTPQN / 4) * 4;
       if (mTPQN < 4)
@@ -1330,22 +1332,22 @@ namespace WinAGI.Engine
       {
         strSection = "Sound" + mResNum;
         //save ID and description to ID file
-        WriteGameSetting(strSection, "ID", mResID, "Sounds");
-        WriteGameSetting(strSection, "Description", mDescription);
+        parent.WriteGameSetting(strSection, "ID", mResID, "Sounds");
+        parent.WriteGameSetting(strSection, "Description", mDescription);
         //write song key signature, tqpn, and track instruments
-        WriteGameSetting(strSection, "Key", mKey, "Sounds");
-        WriteGameSetting(strSection, "TPQN", mTPQN);
-        WriteGameSetting(strSection, "Inst0",mTrack[0].Instrument);
-        WriteGameSetting(strSection, "Inst1",mTrack[1].Instrument);
-        WriteGameSetting(strSection, "Inst2",mTrack[2].Instrument);
-        WriteGameSetting(strSection, "Mute0",mTrack[0].Muted);
-        WriteGameSetting(strSection, "Mute1",mTrack[1].Muted);
-        WriteGameSetting(strSection, "Mute2",mTrack[2].Muted);
-        WriteGameSetting(strSection, "Mute3",mTrack[3].Muted);
-        WriteGameSetting(strSection, "Visible0",mTrack[0].Visible);
-        WriteGameSetting(strSection, "Visible1",mTrack[1].Visible);
-        WriteGameSetting(strSection, "Visible2",mTrack[2].Visible);
-        WriteGameSetting(strSection, "Visible3",mTrack[3].Visible);
+        parent.WriteGameSetting(strSection, "Key", mKey, "Sounds");
+        parent.WriteGameSetting(strSection, "TPQN", mTPQN);
+        parent.WriteGameSetting(strSection, "Inst0",mTrack[0].Instrument);
+        parent.WriteGameSetting(strSection, "Inst1",mTrack[1].Instrument);
+        parent.WriteGameSetting(strSection, "Inst2",mTrack[2].Instrument);
+        parent.WriteGameSetting(strSection, "Mute0",mTrack[0].Muted);
+        parent.WriteGameSetting(strSection, "Mute1",mTrack[1].Muted);
+        parent.WriteGameSetting(strSection, "Mute2",mTrack[2].Muted);
+        parent.WriteGameSetting(strSection, "Mute3",mTrack[3].Muted);
+        parent.WriteGameSetting(strSection, "Visible0",mTrack[0].Visible);
+        parent.WriteGameSetting(strSection, "Visible1",mTrack[1].Visible);
+        parent.WriteGameSetting(strSection, "Visible2",mTrack[2].Visible);
+        parent.WriteGameSetting(strSection, "Visible3",mTrack[3].Visible);
         WritePropState = false;
       }
         //if not loaded
@@ -1383,7 +1385,7 @@ namespace WinAGI.Engine
           // pass along any errors
           throw;
         }
-        WriteGameSetting("Sound" + mResNum, "Size", mSize, "Sounds");
+        parent.WriteGameSetting("Sound" + mResNum, "Size", mSize, "Sounds");
         //mark as clean
         mIsDirty = false;
       }

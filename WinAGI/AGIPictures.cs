@@ -9,8 +9,10 @@ namespace WinAGI.Engine
 {
   public class AGIPictures : IEnumerable<AGIPicture>
   {
-    public AGIPictures()
+    internal AGIGame parent;
+    public AGIPictures(AGIGame parent)
     {
+      this.parent = parent;
       // create the initial Col object
       Col = new SortedList<byte, AGIPicture>();
     }
@@ -99,7 +101,7 @@ namespace WinAGI.Engine
         UpdateDirFile(Col[Index], true);
         Col.Remove(Index);
         //remove all properties from the wag file
-        DeleteSettingSection(agGameProps, "Picture" + Index);
+        parent.agGameProps.DeleteSection("Picture" + Index);
       }
     }
     public void Renumber(byte OldPic, byte NewPic)
@@ -128,7 +130,7 @@ namespace WinAGI.Engine
       }
 
       //remove old properties
-      DeleteSettingSection(agGameProps, "Picture" + OldPic);
+      parent.agGameProps.DeleteSection("Picture" + OldPic);
 
       //remove from collection
       Col.Remove(OldPic);
@@ -157,8 +159,8 @@ namespace WinAGI.Engine
 
       //add properties back with new picture number
       strSection = "Picture" + NewPic;
-      WriteGameSetting(strSection, "ID", tmpPic.ID, "Pictures");
-      WriteGameSetting(strSection, "Description", tmpPic.Description);
+      parent.WriteGameSetting(strSection, "ID", tmpPic.ID, "Pictures");
+      parent.WriteGameSetting(strSection, "Description", tmpPic.Description);
       //
       //TODO: add rest of default property values
       //
@@ -175,13 +177,12 @@ namespace WinAGI.Engine
     {
       //called by the resource loading method for the initial loading of
       //resources into logics collection
-      //if this Logic number is already in the game
-      if (agPics.Exists(bytResNum)) {
+      //if this picture number is already in the game
+      if (Exists(bytResNum)) {
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
       //create new logic object
-      AGIPicture newResource = new AGIPicture();
-      newResource.InGameInit(bytResNum, bytVol, lngLoc);
+      AGIPicture newResource = new AGIPicture(parent, bytResNum, bytVol, lngLoc);
       //add it
       Col.Add(bytResNum, newResource);
     }

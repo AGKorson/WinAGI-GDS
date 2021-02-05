@@ -35,41 +35,50 @@ namespace WinAGI.Engine
       //attach events
       base.PropertyChanged += ResPropChange;
       strErrSource = "WinAGI.Picture";
-      //set default resource data
-      mRData = new RData(1);
+
       //create default picture with no commands
-      mRData[0] = 0xff;
-      //initialize the DIBSection headers
+      //mRData = new RData(1);
+      //mRData[0] = 0xff;
+      base.WriteByte(0xff);
       //default to entire image
       mDrawPos = -1;
       //default pribase is 48
       mPriBase = 48;
     }
-    internal void InGameInit(byte ResNum, sbyte VOL, int Loc)
+    public AGIPicture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtPicture, "NewPicture")
     {
       //this internal function adds this resource to a game, setting its resource 
       //location properties, and reads properties from the wag file
 
+      //initialize
+      //attach events
+      base.PropertyChanged += ResPropChange;
+      strErrSource = "WinAGI.Picture";
+      //default to entire image
+      mDrawPos = -1;
+      //default pribase is 48
+      mPriBase = 48;
+
       //set up base resource
-      base.InitInGame(ResNum, VOL, Loc);
+      base.InitInGame(parent, ResNum, VOL, Loc);
 
       //if first time loading this game, there will be nothing in the propertyfile
-      ID = ReadSettingString(agGameProps, "Picture" + ResNum, "ID", "");
+      ID = this.parent.agGameProps.GetSetting("Picture" + ResNum, "ID", "");
       if (ID.Length == 0)
       {
         //no properties to load; save default ID
         ID = "Picture" + ResNum;
-        WriteGameSetting("Logic" + ResNum, "ID", ID, "Pictures");
+        this.parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Pictures");
         //load resource to get size
         Load();
-        WriteGameSetting("Picture" + ResNum, "Size", Size.ToString());
+        this.parent.WriteGameSetting("Picture" + ResNum, "Size", Size.ToString());
         Unload();
       }
       else
       {
         //get description, size and other properties from wag file
-        mDescription = ReadSettingString(agGameProps, "Picture" + ResNum, "Description", "");
-        Size = ReadSettingLong(agGameProps, "Picture" + ResNum, "Size", -1);
+        mDescription = this.parent.agGameProps.GetSetting("Picture" + ResNum, "Description", "");
+        Size = parent.agGameProps.GetSetting("Picture" + ResNum, "Size", -1);
       }
     }
     void ResPropChange(object sender, AGIResPropChangedEventArgs e)
@@ -217,7 +226,7 @@ namespace WinAGI.Engine
       get
       {
         //if not in a game, or if before v2.936, always return value of 48
-        if (!agGameLoaded || Val(agIntVersion) < 2.936) {
+        if (!parent.agGameLoaded || Val(parent.agIntVersion) < 2.936) {
           mPriBase = 48;
         }
         return mPriBase;
@@ -635,13 +644,13 @@ namespace WinAGI.Engine
         throw;
       }
       //load bkgd info, if there is such
-      mBkImgFile = ReadSettingString(agGameProps, "Picture" + Number, "BkgdImg", "");
+      mBkImgFile = parent.agGameProps.GetSetting("Picture" + Number, "BkgdImg", "");
       if (mBkImgFile.Length != 0)
       {
-        mBkShow = ReadSettingBool(agGameProps, "Picture" + Number, "BkgdShow", false);
-        mBkTrans = ReadSettingLong(agGameProps, "Picture" + Number, "BkgdTrans", 0);
-        mBkPos = ReadSettingString(agGameProps, "Picture" + Number, "BkgdPosn", "");
-        mBkSize = ReadSettingString(agGameProps, "Picture" + Number, "BkgdSize", "");
+        mBkShow = parent.agGameProps.GetSetting("Picture" + Number, "BkgdShow", false);
+        mBkTrans = parent.agGameProps.GetSetting("Picture" + Number, "BkgdTrans", 0);
+        mBkPos = parent.agGameProps.GetSetting("Picture" + Number, "BkgdPosn", "");
+        mBkSize = parent.agGameProps.GetSetting("Picture" + Number, "BkgdSize", "");
       }
       try
       {
@@ -720,34 +729,34 @@ namespace WinAGI.Engine
         //saves the picture resource
         //save ID and description to ID file
         string strPicKey = "Picture" + Number;
-        WriteGameSetting(strPicKey, "ID", mResID, "Pictures");
-        WriteGameSetting(strPicKey, "Description", mDescription);
+        parent.WriteGameSetting(strPicKey, "ID", mResID, "Pictures");
+        parent.WriteGameSetting(strPicKey, "Description", mDescription);
         if (mPriBase != 48)
         {
-          WriteGameSetting(strPicKey, "PriBase", mPriBase.ToString());
+          parent.WriteGameSetting(strPicKey, "PriBase", mPriBase.ToString());
         }
         else
         {
-          DeleteSettingKey(agGameProps, strPicKey, "PriBase");
+          parent.agGameProps.DeleteKey(strPicKey, "PriBase");
         }
         //if no bkgdfile, delete other settings
         if (mBkImgFile.Length == 0)
         {
           mBkShow = false;
-          DeleteSettingKey(agGameProps, strPicKey, "BkgdImg");
-          DeleteSettingKey(agGameProps, strPicKey, "BkgdShow");
+          parent.agGameProps.DeleteKey(strPicKey, "BkgdImg");
+          parent.agGameProps.DeleteKey(strPicKey, "BkgdShow");
           //mBkTrans = 0
-          DeleteSettingKey(agGameProps, strPicKey, "BkgdTrans");
-          DeleteSettingKey(agGameProps, strPicKey, "BkgdPosn");
-          DeleteSettingKey(agGameProps, strPicKey, "BkgdSize");
+          parent.agGameProps.DeleteKey(strPicKey, "BkgdTrans");
+          parent.agGameProps.DeleteKey(strPicKey, "BkgdPosn");
+          parent.agGameProps.DeleteKey(strPicKey, "BkgdSize");
         }
         else
         {
-          WriteGameSetting(strPicKey, "BkgdImg", mBkImgFile);
-          WriteGameSetting(strPicKey, "BkgdShow", mBkShow.ToString());
-          WriteGameSetting(strPicKey, "BkgdTrans", mBkTrans.ToString());
-          WriteGameSetting(strPicKey, "BkgdPosn", mBkPos);
-          WriteGameSetting(strPicKey, "BkgdSize", mBkSize);
+          parent.WriteGameSetting(strPicKey, "BkgdImg", mBkImgFile);
+          parent.WriteGameSetting(strPicKey, "BkgdShow", mBkShow.ToString());
+          parent.WriteGameSetting(strPicKey, "BkgdTrans", mBkTrans.ToString());
+          parent.WriteGameSetting(strPicKey, "BkgdPosn", mBkPos);
+          parent.WriteGameSetting(strPicKey, "BkgdSize", mBkSize);
         }
         WritePropState = false;
       }
@@ -775,7 +784,7 @@ namespace WinAGI.Engine
         //check for errors
       }
 
-      WriteGameSetting("Picture" + Number, "Size", Size.ToString(), "Pictures");
+      parent.WriteGameSetting("Picture" + Number, "Size", Size.ToString(), "Pictures");
 
       //reset flag
       mIsDirty = false;
@@ -816,9 +825,9 @@ namespace WinAGI.Engine
       for (i = 0; i < 16; i++)
       {
         ncp.Entries[i] = Color.FromArgb(255,
-        EGAColor[i].R,
-        EGAColor[i].G,
-        EGAColor[i].B);
+        parent.EGAColor[i].R,
+        parent.EGAColor[i].G,
+        parent.EGAColor[i].B);
         // ncp.Entries[i] = EGAColor[i];
       }
       // both bitmaps use same palette

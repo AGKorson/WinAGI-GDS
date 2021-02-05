@@ -235,248 +235,6 @@ MA  02110-1301  USA
         agTemplateDir = CDir(value);
       }
     }
-    public static void NewGame(string NewID, string NewVersion, string NewGameDir, string NewResDir, string TemplateDir = "")
-    {
-
-      //creates a new game in NewGameDir
-      //if a template directory is passed,
-      //use the resources from that template directory
-
-      string strGameWAG, strTmplResDir, strTempDir;
-      int i, lngDirCount;
-      bool blnWarnings = false;
-      List<string> stlGlobals;
-      //if a game is already open,
-      if (agGameLoaded) {
-        //can't open a game if one is already open
-        throw new Exception("501, strErrSource, LoadResString(501)");
-      }
-      //if not a valid directory
-      if (!Directory.Exists(NewGameDir)) {
-        //raise error
-        throw new Exception("630, strErrSource, Replace(LoadResString(630), ARG1, NewGameDir)");
-      }
-
-      //if a game already exists
-      if (Directory.GetFiles(NewGameDir, "*.wag").Length != 0) {
-        //game file exists;
-        throw new Exception("687, strErrSource, LoadResString(687)");
-      }
-      if (IsValidGameDir(CDir(NewGameDir))) {
-        //game files exist;
-        ClearGameState();
-        throw new Exception("687, strErrSource, LoadResString(687)");
-      }
-      //set game directory
-      agGameDir = CDir(NewGameDir);
-      //ensure resdir is valid
-      if (NewResDir.Length == 0) {
-        //if blank use default
-        NewResDir = agDefResDir;
-      }
-      //if using template
-      if (TemplateDir.Length != 0) {
-        //template should include dir files, vol files, words.tok and object;
-        // also globals list and layout, and source directory with logic source files
-        TemplateDir = CDir(TemplateDir);
-        // should be exactly one wag file
-        if (Directory.GetFiles(TemplateDir, "*.wag").Length != 1) {
-          //raise error
-          throw new Exception("630, strErrSource, LoadResString(630)");
-        }
-        // get file name (it's first[and only] element)
-        strGameWAG = Directory.GetFiles(TemplateDir, "*.wag")[0];
-        // should only be one subdirectory; if there's more than one, 
-        //it's on the user to figure it out; we use the first one found
-        // as resource directory
-        if (Directory.GetDirectories(TemplateDir).Length == 0) {
-          //no resource directory; we will build a default
-          strTmplResDir = "";
-        }
-        else {
-          // retrieve name of the first directory
-          strTmplResDir = Directory.GetDirectories(TemplateDir)[0];
-        }
-        //copy all files from the templatedir into gamedir
-        if (!DirectoryCopy(TemplateDir, agGameDir, true)) {
-          throw new Exception("683, strErrSource, Replace(LoadResString(683), ARG1, Err.Description)");
-        }
-
-        // open the game in the newly created directory
-        try {
-          //open game with template id
-          OpenGameWAG(agGameDir + strGameWAG);
-        }
-        catch (Exception) {
-          throw new Exception("684, strErrSource, Replace(LoadResString(684), ARG1, Err.Description)");
-        }
-        //we need to rename the resdir
-        //(have to do this AFTER load, because loading will keep the current
-        //resdir that's in the WAG file)
-        if (NewResDir != strTmplResDir) {
-          //we need to change it
-          DirectoryInfo resDir = new DirectoryInfo(agGameDir + strTmplResDir);
-          resDir.MoveTo(agGameDir + NewResDir);
-        }
-        //then change the resource directory property
-        agResDirName = NewResDir;
-        //update the actual resdir
-        agResDir = agGameDir + agResDirName + @"\";
-        //change gameid
-        GameID = NewID;
-        //update global file header
-        stlGlobals = OpenSettingList(agGameDir + "globals.txt", false);
-        if (stlGlobals.Count > 3) {
-          if (Left(stlGlobals[2].Trim(), 1) == "[") {
-            stlGlobals[2] = "[ global defines file for " + NewID;
-          }
-          //save it
-          SaveSettingList(stlGlobals);
-        }
-      }
-      else
-      //if not using template,
-      {
-        //validate new version
-        if (IntVersions.Contains(NewVersion)) {
-          //ok; set version
-          agIntVersion = NewVersion;
-          //set version3 flag
-          agIsVersion3 = (Val(NewVersion) > 3);
-        }
-        else {
-          if (Val(NewVersion) < 2 || Val(NewVersion) > 3) {
-            //not a version 2 or 3 game
-            throw new Exception("597, strErrSource, LoadResString(597)");
-          }
-          else {
-            //unsupported version 2 or 3 game
-            throw new Exception("543, strErrSource, LoadResString(543)");
-          }
-        }
-
-        //set game id (limit to 6 characters for v2, and 5 characters for v3
-        //(don't use the GameID property; gameloaded flag is not set yet
-        //so using GameID property will cause error)
-        if (agIsVersion3) {
-          agGameID = Left(NewID, 5).ToUpper();
-        }
-        else {
-          agGameID = Left(NewID, 6).ToUpper();
-        }
-
-        //create empty property file
-        agGameFile = agGameDir + agGameID + ".wag";
-        if (File.Exists(agGameFile)) {
-          File.Delete(agGameFile);
-        }
-        agGameProps = OpenSettingList(agGameFile);
-        agGameProps.Add("#");
-        agGameProps.Add("# WinAGI Game Property File for " + agGameID);
-        agGameProps.Add("#");
-        agGameProps.Add("[General]");
-        agGameProps.Add("");
-        agGameProps.Add("[Palette]");
-        agGameProps.Add("");
-        agGameProps.Add("[WORDS.TOK]");
-        agGameProps.Add("");
-        agGameProps.Add("[OBJECT]");
-        agGameProps.Add("");
-        agGameProps.Add("[::BEGIN Logics::]");
-        agGameProps.Add("[::END Logics::]");
-        agGameProps.Add("");
-        agGameProps.Add("[::BEGIN Pictures::]");
-        agGameProps.Add("[::END Pictures::]");
-        agGameProps.Add("");
-        agGameProps.Add("[::BEGIN Sounds::]");
-        agGameProps.Add("[::END Sounds::]");
-        agGameProps.Add("");
-        agGameProps.Add("[::BEGIN Views::]");
-        agGameProps.Add("[::END Views::]");
-        agGameProps.Add("");
-        //add WinAGI version
-        WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION);
-        //set the resource directory name so it can be set up
-        ResDirName = NewResDir;
-        //create default resource directories
-        byte[] bytDirData = new byte[768];
-        for (i = 0; i < 768; i++) bytDirData[i] = 0xff;
-
-        if (agIsVersion3) {
-          byte[] bytDirHdr = new byte[8] { 8, 0, 8, 3, 8, 6, 8, 9 };
-          using FileStream fsDIR = new FileStream(agGameDir + agGameID + "DIR", FileMode.OpenOrCreate);
-          fsDIR.Write(bytDirHdr);
-          for (i = 0; i < 4; i++) {
-            fsDIR.Write(bytDirData);
-          }
-        }
-        else {
-          FileStream fsDIR = new FileStream(agGameDir + "LOGDIR", FileMode.OpenOrCreate);
-          fsDIR.Write(bytDirData);
-          fsDIR = new FileStream(agGameDir + "PICDIR", FileMode.OpenOrCreate);
-          fsDIR.Write(bytDirData);
-          fsDIR = new FileStream(agGameDir + "SNDDIR", FileMode.OpenOrCreate);
-          fsDIR.Write(bytDirData);
-          fsDIR = new FileStream(agGameDir + "VIEWDIR", FileMode.OpenOrCreate);
-          fsDIR.Write(bytDirData);
-          fsDIR.Dispose();
-        }
-        //create default vocabulary word list
-        agVocabWords = new AGIWordList();
-        //use loaded argument to force load of the new wordlist
-        agVocabWords.Init(true);
-        agVocabWords.Save();
-        //create inventory objects list
-        agInvObj = new AGIInventoryObjects();
-        //use loaded argument to force load of new inventory list
-        agInvObj.Init(true);
-        agInvObj.Save();
-
-        //commands based on AGI version
-        CorrectCommands(agIntVersion);
-
-        //add logic zero
-        agLogs.Add(0);
-        agLogs[0].Clear();
-        agLogs[0].Save();
-        agLogs[0].Unload();
-
-        //force id reset
-        blnSetIDs = false;
-
-        //set open flag, so properties can be updated
-        agGameLoaded = true;
-      }
-
-      //set resource directory
-      //ensure resource directory exists
-      if (!Directory.Exists(agGameDir + agResDirName)) {
-        if (Directory.CreateDirectory(agGameDir + agResDirName) == null) {
-          //note the problem in the error log as a warning
-          RecordLogEvent(LogEventType.leWarning, "Can't create " + agResDir);
-          //use main directory
-          agResDir = agGameDir;
-          //set warning flag
-          blnWarnings = true;
-        }
-      }
-      //save gameID, version, directory resource name to the property file;
-      //rest of properties need to be set by the calling function
-      WriteGameSetting("General", "GameID", agGameID);
-      WriteGameSetting("General", "Interpreter", agIntVersion);
-      WriteGameSetting("General", "ResDir", agResDirName);
-
-      //save palette colors
-      for (i = 0; i < 16; i++) {
-        WriteGameSetting("Palette", "Color" + i, ColorText(i));
-      }
-
-      //if errors
-      if (blnWarnings) {
-        throw new Exception("637, strErrSource, LoadResString(637)");
-      }
-      return;
-    }
 
 
 
@@ -565,7 +323,7 @@ MA  02110-1301  USA
     #endregion
     //global variables
     #region
-    internal static AGIGame theGame = new AGIGame(); // reference pointer to the current game in the engine
+    internal static string agDefResDir = "";
     internal static EGAColors colorEGA = new EGAColors();
     internal static EGAColors defaultColorEGA = new EGAColors();
     internal static bool agResAsText;  //if true, reserved variables and flags show up as text when decompiling
@@ -584,12 +342,6 @@ MA  02110-1301  USA
     internal const int WARNCOUNT = 107;
     internal static bool[] agNoCompWarn = new bool[WARNCOUNT];
 
-    //user defined global arguments
-    internal static TDefine[] agGlobal; //dynamic size
-    internal static int agGlobalCount;
-    internal static bool agGlobalsSet;
-    internal static uint agGlobalCRC;
-
     //error number and string to return error values
     //from various functions/subroutines
     internal static int lngError = 0;
@@ -601,23 +353,32 @@ MA  02110-1301  USA
       // initialize all winagi stuff here
       RestoreDefaultColors();
       CRC32Setup();
-      //get default max vol sizes
-      theGame.agMaxVolSize = 1023 * 1024;
-
-      //set max vol0 size
-      theGame.agMaxVol0 = theGame.agMaxVolSize;
     }
     internal static void InitWinAGI()
     {
-      // calling this forces the module to load and initialize!
-      //// non-readonly startup stuff goes here
-      //RestoreDefaultColors();
-      //CRC32Setup();
-      ////get max vol size
-      //agMaxVolSize = 1023 * 1024;
+      // calling this forces the module to load and initialize?
+    }
+    public static string DefResDir
+    {
+      get { return agDefResDir; }
+      set
+      {
 
-      ////set max vol0 size
-      //agMaxVol0 = agMaxVolSize;
+        string NewDir = value;
+
+        NewDir = NewDir.Trim();
+
+        if (NewDir.Length == 0) {
+          //throw new Exception("380, strErrSource, "Invalid property Value"
+          throw new Exception("Invalid property Value");
+        }
+        if (NewDir.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
+          //throw new Exception("380, strErrSource, "Invalid property Value"
+          throw new Exception("Invalid property Value");
+        }
+        //save new resdir name
+        agDefResDir = NewDir;
+      }
     }
     internal static void AssignReservedDefines()
     {
@@ -878,86 +639,6 @@ MA  02110-1301  USA
       agResDef[4].Default = agResDef[4].Name;
       agResDef[5].Type = ArgTypeEnum.atStr;
       agResDef[5].Default = agResDef[5].Name;
-    }
-    internal static void GetGlobalDefines()
-    {
-      string strLine, strTmp;
-      string[] strSplitLine;
-      int i, lngTest;
-      TDefine tdNewDefine = new TDefine();
-      DateTime dtFileMod;
-      agGlobalsSet = false;
-
-      //clear global list
-      agGlobal = Array.Empty<TDefine>();
-      agGlobalCount = 0;
-      //look for global file
-      if (!File.Exists(AGIGame.agGameDir + "globals.txt"))
-        return;
-      //open file for input
-      using var glbSR = new StringReader(AGIGame.agGameDir + "globals.txt");
-      {
-        //read in globals
-        while (true) {
-          //get next line
-          strLine = glbSR.ReadLine();
-          if (strLine == null)
-            break;
-          //strip off comment (need a throwaway string for comment)
-          string s = "";
-          strLine = WinAGI.StripComments(strLine, ref s, false);
-          //ignore blanks '''and comments(// or [)
-          if (strLine.Length != 0) {
-            //splitline into name and Value
-            strSplitLine = strLine.Split("\t");//     vbTab
-            //if not exactly two elements
-            if (strSplitLine.Length != 1) {
-              //not a valid global.txt; check for defines.txt
-              strTmp = strLine.Substring(0, 8).ToLower();
-              if (strTmp == "#define ")
-                //set up splitline array
-                Array.Resize(ref strSplitLine, 2);
-              //strip off the define statement
-              strLine = strLine.Substring(8, strLine.Length - 8);
-              //extract define name
-              i = strLine.IndexOf(" ");
-              if (i != 0) {
-                strSplitLine[0] = strLine.Substring(0, i - 1);
-                strLine = strLine.Substring(i, strLine.Length - i);
-                strSplitLine[1] = strLine.Trim();
-              } else {
-                //invalid; reset splitline so this line
-                //gets ignored
-                Array.Resize(ref strSplitLine, 0);
-              }
-            }
-            //if exactly two elements
-            if (strSplitLine.Length == 2) {
-              //strSplitLine(0] has name
-              tdNewDefine.Name = strSplitLine[0].Trim();
-              //strSplitLine(1] has Value
-              tdNewDefine.Value = strSplitLine[1].Trim();
-              //validate define name
-              lngTest = ValidateDefName(tdNewDefine.Name);
-              if (lngTest == 0 || (lngTest >= 8 && lngTest <= 12)) {
-                lngTest = ValidateDefName(tdNewDefine.Name);
-                lngTest = ValidateDefValue(tdNewDefine);
-                if (lngTest == 0 || lngTest == 5 || lngTest == 6) {
-                  //increment Count
-                  agGlobalCount++;
-                  //add it
-                  Array.Resize(ref agGlobal, agGlobalCount);
-                  agGlobal[agGlobalCount] = tdNewDefine;
-                }
-              }
-            }
-          }
-        }
-        //save crc for this file
-        //get datemodified property
-        dtFileMod = File.GetLastWriteTime(AGIGame.agGameDir + "globals.txt");
-        agGlobalCRC = CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString()));
-      }
     }
     internal static int ValidateDefName(string DefName)
     {
@@ -1245,932 +926,13 @@ MA  02110-1301  USA
       ////*'Debug.Throw exception
       //  Resume Next
     }
-    internal static void WriteGameSetting(string Section, string Key, dynamic Value, string Group = "")
-    {
-      WriteAppSetting(agGameProps, Section, Key, Value.ToString(), Group);
-
-      if (Key.ToLower() != "lastedit" && Key.ToLower() != "winagiversion" && Key.ToLower() != "palette")
-        agLastEdit = DateTime.Now;
-    }
-    //public static void WriteAppSetting(List<string> ConfigList, string Section, string Key, string Value, string Group = "")
-    public static void WriteAppSetting(List<string> ConfigList, string Section, string Key, dynamic Value, string Group = "")
-    {
-      //elements of a settings file:
-      //
-      //  #comments begin with hashtag; all characters on line after hashtag are ignored
-      //  comments can be added to end of valid section or key / value line
-      //  blank lines are ignored
-      //  [::BEGIN group::] marker to indicate a group of sections
-      //  [::END group::]   marker to indicate end of a group
-      //  [section]         sections indicated by square brackets; anything else on the line gets ignored
-      //  key=value         key/value pairs separated by an equal sign; no quotes around values means only
-      //                      single word; use quotes for multiword strings
-      //  if string is multline, use '\n' control code (and use multiline option)
-      int lngPos, i;
-      string strLine, strCheck;
-      int lngSectionEnd = 0;
-      int lenKey; bool blnFound = false;
-      int lngGrpStart, lngGrpEnd, lngInsertLine;
-      if (Value == null) {
-        strCheck = "\"\"";
-      } else {  //convert to string
-        strCheck = Value.ToString();
-      }
-      //if value contains spaces, it must be enclosed in quotes
-      if (strCheck.IndexOf(" ") > 0) {
-        if (strCheck[0] != '"') {
-          strCheck = "\"" + strCheck;
-        }
-        if ((strCheck[strCheck.Length - 1] != '"')) {
-          strCheck += "\"";
-        }
-      }
-      //if value contains any carriage returns, replace them with control characters
-      if (strCheck.Contains("\r\n", StringComparison.OrdinalIgnoreCase)) {
-        strCheck = strCheck.Replace("\r\n", "\\n");
-      }
-      if (strCheck.Contains("\r", StringComparison.OrdinalIgnoreCase)) {
-        strCheck = strCheck.Replace("\r", "\\n");
-      }
-      if (strCheck.Contains("\n", StringComparison.OrdinalIgnoreCase)) {
-        strCheck = strCheck.Replace("\n", "\\n");
-      }
-      //if nullstring, include quotes
-      if (strCheck.Length == 0) {
-        strCheck = "\"\"";
-      }
-      //if a group is provided, we will add new items within the group;
-      //existing items, even if within the group, will be left where they are
-      lngGrpStart = -1;
-      lngGrpEnd = -1;
-      lngPos = -1;
-      if (Group.Length > 0) {
-        //********** we will have to make adjustments to group start
-        //           and end positions later on as we add lines
-        //           during the key update! don't forget to do that!!
-        for (i = 1; i <= ConfigList.Count - 1; i++) {
-          //skip blanks, and lines starting with a comment
-          strLine = ConfigList[i].Replace("\t", " ").Trim();
-          if (strLine.Length > 0) {
-            //skip empty lines
-            if (strLine[0] != '#') {
-              //skip comments
-              //if not found yet, look for the starting marker
-              if (!blnFound) {
-                //is this the group marker?
-                if (strLine.Equals("[::BEGIN " + Group + "::]", StringComparison.OrdinalIgnoreCase)) {
-                  lngGrpStart = i;
-                  blnFound = true;
-                  //was the end found earlier? if so, we are done
-                  if (lngGrpEnd >= 0) {
-                    break;
-                  }
-                }
-              } else {
-                //start is found; make sure we find end before
-                //finding another start
-                if (Left(strLine, 9).Equals("[::BEGIN ", StringComparison.OrdinalIgnoreCase)) {
-                  //mark position of first new start, so we can move the end marker here
-                  if (lngPos < 0) {
-                    lngPos = i;
-                  }
-                }
-              }
-              //we check for end marker here even if start not found
-              //just in case they are backwards
-              if (strLine.Equals("[::END " + Group + "::]", StringComparison.OrdinalIgnoreCase)) {
-                lngGrpEnd = i;
-                //and if we also have a start, we can exit the loop
-                if (blnFound) {
-                  break;
-                }
-              }
-            }
-          }
-        }
-
-        //possible outcomes:
-        // - start and end both found; start before end
-        //   this is what we want
-        //
-        // - start and end both found, but end before start
-        //   this is backwards; we fix by moving end to
-        //   the line after start
-        //
-        // - start found, but no end; we add end
-        //   to just before next group start, or
-        //   to end of file if no other group start
-        //
-        // - end found, but no start; we fix by putting
-        //   start right in front of end
-
-        // if both found
-        if (lngGrpStart >= 0 && lngGrpEnd >= 0) {
-          //if backwards, move end to line after start
-          if (lngGrpEnd < lngGrpStart) {
-            ConfigList.Insert(lngGrpStart + 1, ConfigList[lngGrpEnd]);
-            ConfigList.RemoveAt(lngGrpEnd);
-            lngGrpStart -= 1;
-            lngGrpEnd = lngGrpStart + 1;
-          }
-        }
-        // if only start found
-        else if (lngGrpStart >= 0) {
-          //means end not found
-          //if there was another start found, insert end there
-          if (lngPos > 0) {
-            ConfigList.Insert(lngPos, "[::END " + Group + "::]");
-            ConfigList.Insert(lngPos + 1, "");
-            lngGrpEnd = lngPos;
-          } else {
-            //otherwise insert group end at end of file
-            lngGrpEnd = ConfigList.Count;
-            ConfigList.Add("[::END " + Group + "::]");
-          }
-        }
-        // if end found but no start
-        else if (lngGrpEnd >= 0) {
-          //means start not found
-          //insert start in front of end
-          lngGrpStart = lngGrpEnd;
-          ConfigList.Insert(lngGrpStart, "[::START " + Group + "::]");
-          lngGrpEnd = lngGrpStart + 1;
-        } else {
-          //means neither found
-          //make sure at least one blank line
-          if (ConfigList[ConfigList.Count - 1].Trim().Length > 0) {
-            ConfigList.Add("");
-          }
-          lngGrpStart = ConfigList.Count;
-          ConfigList.Add("[::BEGIN " + Group + "::]");
-          ConfigList.Add("[::END " + Group + "::]");
-          lngGrpEnd = lngGrpStart + 1;
-        }
-      }
-      //reset the found flag
-      blnFound = false;
-      //find the section we are looking for
-      int lngSectionStart = FindSettingSection(ConfigList, Section);
-      //if not found, create it at end of group (if group is provided)
-      //otherwise at end of list
-      if (lngSectionStart <= 0) {
-        if (lngGrpStart >= 0) {
-          lngInsertLine = lngGrpEnd;
-        } else {
-          lngInsertLine = ConfigList.Count;
-        }
-        //make sure there is at least one blank line (unless this is first line in list)
-        if (lngInsertLine > 0) {
-          if (ConfigList[lngInsertLine - 1].Trim().Length != 0) {
-            ConfigList.Insert(lngInsertLine, "");
-            lngInsertLine++;
-          }
-        }
-        ConfigList.Insert(lngInsertLine, "[" + Section + "]");
-        ConfigList.Insert(lngInsertLine + 1, "   " + Key + " = " + strCheck);
-        //no need to check for location of section within group;
-        //we just added it to the group (if one is needed)
-      } else {
-        //now step through all lines in this section; find matching key
-        lenKey = Key.Length;
-        for (i = lngSectionStart + 1; i < ConfigList.Count; i++) {
-          //skip blanks, and lines starting with a comment
-          strLine = ConfigList[i].Replace("\t", " ").Trim();
-          if (strLine.Length > 0) {
-            if (strLine[0] != '#') {
-              //if another section is found, stop here
-              if (strLine[0] == '[') {
-                //if part of a group; last line of the section
-                //is line prior to the new section
-                if (lngGrpStart >= 0) {
-                  lngSectionEnd = i - 1;
-                }
-                //if not already added, add it now
-                if (!blnFound) {
-                  //back up until a nonblank line is found
-                  for (lngPos = i - 1; lngPos >= lngSectionStart; lngPos--) {
-                    if (ConfigList[lngPos].Trim().Length > 0) {
-                      break;
-                    }
-                  }
-                  //add the key and value at this pos
-                  ConfigList.Insert(lngPos + 1, "   " + Key + " = " + strCheck);
-                  //this also bumps down the section end
-                  lngSectionEnd++;
-                  //it also may bump down group start/end
-                  if (lngGrpStart >= lngPos + 1) {
-                    lngGrpStart++;
-                  }
-                  if (lngGrpEnd >= lngPos + 1) {
-                    lngGrpEnd++;
-                  }
-                }
-                //we are done, but if part of a group
-                //we need to verify the section is in
-                //the group
-                if (lngGrpStart >= 0) {
-                  blnFound = true;
-                  break;
-                } else {
-                  return;
-                }
-              }
-              //if not already found,  look for 'key'
-              if (!blnFound) {
-                if (Left(strLine, lenKey).Equals(Key, StringComparison.OrdinalIgnoreCase) && (strLine.Substring(lenKey + 1, 1) == " " || strLine.Substring(lenKey + 1, 1) == "=")) {
-                  //found it- change key value to match new value
-                  //(if there is a comment on the end, save it)
-                  strLine = Right(strLine, strLine.Length - lenKey).Trim();
-                  if (strLine.Length > 0) {
-                    //expect an equal sign
-                    if (strLine[0] == '=') {
-                      //remove it
-                      strLine = Right(strLine, strLine.Length - 1).Trim();
-                    }
-                  }
-                  if (strLine.Length > 0) {
-                    if (strLine[0] == '"') {
-                      //string delimiter; find ending delimiter
-                      lngPos = strLine.IndexOf('"', 1) + 1;
-                    } else {
-                      //look for comment marker
-                      lngPos = strLine.IndexOf("#", 1);
-                      // if none found, look for space delimiter
-                      if (lngPos == -1) {
-                        //look for a space as a delimiter
-                        lngPos = strLine.IndexOf(" ", 1);
-                      }
-                      ////look for a space as a delimiter
-                      //lngPos = strLine.IndexOf(" ", 1);
-                      //if (lngPos == -1)
-                      //{
-                      //  //could be a case where a comment is at end of text, without a space
-                      //  //if so we need to keep the delimiter
-                      //  lngPos = strLine.IndexOf("#", 2) - 1;
-                      //}
-                    }
-                    //no delimiter found; assume entire line
-                    if (lngPos <= 0) {
-                      lngPos = strLine.Length;
-                    }
-                    //now strip off the old value, leaving potential comment
-                    strLine = Right(strLine, strLine.Length - lngPos).Trim();
-                  }
-                  //if something left, maks sure it's a comment
-                  if (strLine.Length > 0) {
-                    if (strLine[0] != '#') {
-                      strLine = "#" + strLine;
-                    }
-                    //make sure it starts with a space
-                    strLine = "   " + strLine;
-                  }
-                  strLine = "   " + Key + " = " + strCheck + strLine;
-                  ConfigList[i] = strLine;
-                  //we are done, but if part of a group
-                  //we need to keep going to find end so
-                  //we can validate section is in the group
-                  if (lngGrpStart >= 0) {
-                    blnFound = true;
-                  } else {
-                    return;
-                  }
-                }
-              }
-            }
-          }
-        }
-        //if not found (will only happen if this the last section in the
-        //list, probably NOT in a group, but still possible (if the
-        //section is outside the defined group)
-        if (!blnFound) {
-          //back up until a nonblank line is found
-          for (lngPos = i - 1; i >= lngSectionStart; i--) {
-            if (ConfigList[lngPos].Trim().Length > 0) {
-              break;
-            }
-          }
-          //add the key and value at this pos
-          ConfigList.Insert(lngPos + 1, "   " + Key + " = " + strCheck);
-          //we SHOULD be done, but just in case this section is
-          //out of position, we still check for the group
-          if (lngGrpStart < 0) {
-            //no group - all done!
-            return;
-          }
-          //note that we don't need to bother adjusting group
-          //start/end, because we only added a line to the
-          //end of the file, and we know that the group
-          //start/end markers MUST be before the start
-          //of this section
-        }
-        //found marker ONLY set if part a group so let's verify
-        //the section is in the group, moving it if necessary
-
-        //if this was last section, AND section is NOT in its group
-        //then then section end won't be set yet
-        if (lngSectionEnd <= 0) {
-          lngSectionEnd = ConfigList.Count - 1;
-        }
-        //if the section is not in the group, then move it
-        //(depends on whether section is BEFORE or AFTER group start)
-        if (lngSectionStart < lngGrpStart) {
-          //make sure at least one blank line above the group end
-          if (ConfigList[lngGrpEnd - 1].Trim().Length > 0) {
-            ConfigList.Insert(lngGrpEnd, "");
-            lngGrpEnd++;
-          }
-          //add the section to end of group
-          for (i = lngSectionStart; i <= lngSectionEnd; i++) {
-            ConfigList.Insert(lngGrpEnd, ConfigList[i]);
-            lngGrpEnd++;
-          }
-          //then delete the section from it's current location
-          for (i = lngSectionStart; i <= lngSectionEnd; i++) {
-            ConfigList.RemoveAt(lngSectionStart);
-          }
-        } else if (lngSectionStart > lngGrpEnd) {
-          //make sure at least one blank line above the group end
-          if (ConfigList[lngGrpEnd - 1].Trim().Length > 0) {
-            ConfigList.Insert(lngGrpEnd, "");
-            lngGrpEnd++;
-            lngSectionStart++;
-            lngSectionEnd++;
-          }
-          //add the section to end of group
-          for (i = lngSectionEnd; i >= lngSectionStart; i--) {
-            ConfigList.Insert(lngGrpEnd, ConfigList[lngSectionEnd]);
-            //delete the line in current location
-            ConfigList.RemoveAt(lngSectionEnd + 1);
-          }
-        }
-      }
-    }
-    internal static void SaveSettingList(List<string> ConfigList)
-    {
-      //filename is first line
-      //get filename (and remove it; we don't need to save that)
-      string strFileName = ConfigList[0];
-      ConfigList.RemoveAt(0);
-      //open temp file
-      string TempFile = Path.GetTempFileName();
-      try {
-        using StreamWriter cfgSR = new StreamWriter(TempFile);
-        //now output the results to the file
-        foreach (string line in ConfigList)
-          cfgSR.WriteLine(line);
-        //// close it
-        //cfgSR.Close();
-        //dispose it
-        cfgSR.Dispose();
-
-        // delete current file
-        File.Delete(strFileName);
-        // now copy new to final destination
-        File.Move( TempFile, strFileName);
-
-        //add filename back
-        ConfigList.Insert(0, strFileName);
-      }
-      catch (Exception) {
-        // do we care if there is a file error?
-        throw;
-      }
-    }
-    internal static List<string> OpenSettingList(string ConfigFile, bool CreateNew = true)
-    {
-      List<string> stlConfig = new List<string> { };
-      FileStream fsConfig;
-      StreamWriter swConfig;
-      StreamReader srConfig;
-
-      if (File.Exists(ConfigFile) || CreateNew) {
-        //open the config file for create/write
-        fsConfig = new FileStream(ConfigFile, FileMode.OpenOrCreate);
-        long lngLen = fsConfig.Length;
-        //if this is an empty file (either previously empty or created by this call)
-        if (lngLen == 0) {
-          swConfig = new StreamWriter(fsConfig);
-          //add a single comment to the file
-          stlConfig.Add("#");
-          // and write it to the file
-          swConfig.WriteLine("#");
-          swConfig.Dispose();
-        } else {
-          //grab the file data
-          srConfig = new StreamReader(fsConfig);
-          while (!srConfig.EndOfStream) {
-            // opens ConfigFile as a SettingsList, and returns the file's text as
-            // a SettingsList object
-
-            // if file does not exist, a blank SettingsList object is passed back
-            // if the CreateNew flag is set, the blank file is also saved to disk
-
-            string strInput = srConfig.ReadLine();
-            stlConfig.Add(strInput);
-          }
-          srConfig.Dispose();
-        }
-        fsConfig.Dispose();
-      } else {
-        //if file doesn't exist, and NOT forcing new file creation
-        //just add a single comment as first line
-        stlConfig.Add("#");
-      }
-
-      //always add filename as first line
-      stlConfig.Insert(0, ConfigFile);
-      //return the list
-      return stlConfig;
-    }
-    internal static string ReadAppSetting(List<string> ConfigList, string Section, string Key, string Default = "")
-    {
-      //need to make sure there is a list to read from
-      if (ConfigList.Count == 0) {
-        //return the default
-        return Default;
-      }
-      //elements of a settings file:
-      //
-      //  #comments begin with hashtag; all characters on line after hashtag are ignored
-      //  //comments can be added to end of valid section or key/value line
-      //  blank lines are ignored
-      //  [::BEGIN group::] marker to indicate a group of sections
-      //  [::END group::] marker to indicate end of a group
-      //  [section] sections indicated by square brackets; anything else on the line gets ignored
-      //  key=value  key/value pairs separated by an equal sign; no quotes around values means only
-      //    single word; use quotes for multiword strings
-      //  if string is multline, use '\n' control code (and use multiline option)
-      string strLine;
-      int i;
-      int lngPos;
-      //find the section we are looking for (skip 1st line; it's the filename)
-      int lngSection = FindSettingSection(ConfigList, Section);
-      //if not found,
-      if (lngSection < 0) {
-        //add the section and the value
-        WriteAppSetting(ConfigList, Section, Key, Default, "");
-        //and return the default value
-        return Default;
-      } else {
-        //step through all lines in this section; find matching key
-        int lenKey = Key.Length;
-        for (i = lngSection + 1; i < ConfigList.Count; i++) {
-          //skip blanks, and lines starting with a comment
-          strLine = ConfigList[i].Replace("\t", " ").Trim();
-          if (strLine.Length > 0) {
-            if (strLine[0] != '#') { //not a comment
-              //if another section is found, stop here
-              if (strLine[0] == '[') {
-                break;
-              }
-              //look for 'key'
-              //validate that this is an exact match, and not a key that starts with
-              //the same letters by verifying next char is either a space, or an equal sign
-              if (Left(strLine, lenKey).Equals(Key, StringComparison.OrdinalIgnoreCase) && (strLine.Substring(lenKey, 1) == " " || strLine.Substring(lenKey, 1) == "=")) {
-                //found it- extract value (if there is a comment on the end, drop it)
-                //strip off key
-                strLine = Right(strLine, strLine.Length - lenKey).Trim();
-                //check for nullstring, incase line has ONLY the key and nothing else
-                if (strLine.Length > 0) {
-                  //expect an equal sign
-                  if (strLine[0] == '=') {
-                    //remove it
-                    strLine = Right(strLine, strLine.Length - 1).Trim();
-                  }
-                  if (strLine.Length > 0) {
-                    if (strLine[0] == '"') {
-                      //string delimiter; find ending delimiter
-                      // (don't add 1; we want to drop the ending quote)
-                      lngPos = strLine.IndexOf("\"", 1);
-                    } else {
-                      //look for comment marker (don't add to result -
-                      // the coment marker gets stripped off)
-                      lngPos = strLine.IndexOf("#", 1);
-                    }
-                    //no delimiter found; assume entire line
-                    if (lngPos <= 0) {
-                      lngPos = strLine.Length;
-                    }
-                    //now strip off anything past value (including quote delimiter)
-                    strLine = Left(strLine, lngPos).Trim();
-                    if (strLine.Length > 0) {
-                      //if a leading quote, remove it
-                      if (strLine[0] == '"') {
-                        strLine = Right(strLine, strLine.Length - 1);
-                      }
-                    }
-                    //should never have an end quote; it will be caught as the ending delimiter
-                    if (strLine.Length > 0) {
-                      if (Right(strLine, 1)[0] == '"') {
-                        strLine = Left(strLine, strLine.Length - 1);
-                      }
-                    }
-                    if (strLine.IndexOf("\\n", 0) >= 0) {
-                      //replace any newline control characters
-                      strLine = strLine.Replace("\\n", "\r\n");
-                    }
-                  }
-                }
-                return strLine;
-              }
-            }
-          }
-        }
-        //not found// add it here
-        //back up until a nonblank line is found
-        for (lngPos = i - 1; lngPos >= lngSection; lngPos--) {
-          if (ConfigList[lngPos].Trim().Length > 0) {
-            break;
-          }
-        }
-        //return the default value
-        string sReturn = Default;
-        //add the key and default value at this pos
-        //if value contains spaces, it must be enclosed in quotes
-        if (Default.IndexOf(" ", 0) >= 0) {
-          if (Default[0] != '"') {
-            Default = "\"" + Default;
-          }
-          if (Right(Default, 1)[0] != '"') {
-            Default += "\"";
-          }
-        }
-        //if Default contains any carriage returns, replace them with control characters
-        if (Default.IndexOf("\r\n", 0) >= 0) {
-          Default = Default.Replace("\r\n", "\\n");
-        }
-        if (Default.IndexOf("\r", 0) >= 0) {
-          Default = Default.Replace("\r", "\\n");
-        }
-        if (Default.IndexOf("\n", 0) >= 0) {
-          Default = Default.Replace("\n", "\\n");
-        }
-        if (Default.Length == 0) {
-          Default = "\"\"";
-        }
-        ConfigList.Insert(lngPos + 1, "   " + Key + " = " + Default);
-        return sReturn;
-      }
-    }
-    public static int ReadSettingLong(List<string> ConfigList, string Section, string Key, int Default = 0, bool hex = false)
-    {
-      //get the setting value; if it converts to long value, use it;
-      //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, hex ? "0x" + Default.ToString("x8") : Default.ToString());
-      if (strValue.Length == 0) {
-        return Default;
-      } else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase)) {
-        try {
-          return Convert.ToInt32(strValue, 16);
-        }
-        catch (Exception) {
-          return Default;
-        }
-      } else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
-        try {
-          int retval = Convert.ToInt32(Right(strValue, strValue.Length - 2), 16);
-          //write the value in correct format
-          WriteGameSetting(Section, Key, "0x" + retval.ToString("x8"));
-          return retval;
-        }
-        catch (Exception) {
-          return Default;
-        }
-      } else {
-        if (int.TryParse(strValue, out int iResult)) {
-          return iResult;
-        } else {
-          return Default;
-        }
-      }
-    }
-    public static uint ReadSettingUint32(List<string> ConfigList, string Section, string Key, uint Default = 0)
-    {
-      //get the setting value; if it converts to long value, use it;
-      //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-
-      if (strValue.Length == 0) {
-        return Default;
-      } else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase)) {
-        try {
-          return Convert.ToUInt32(strValue, 16);
-        }
-        catch (Exception) {
-          return Default;
-        }
-      } else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
-        try {
-          UInt32 retval = Convert.ToUInt32(Right(strValue, strValue.Length - 2), 16);
-          //write the value in correct format
-          WriteGameSetting(Section, Key, "0x" + retval.ToString("x8"));
-          return retval;
-        }
-        catch (Exception) {
-          return Default;
-        }
-      } else {
-
-        if (uint.TryParse(strValue, out uint iResult)) {
-          return iResult;
-        } else {
-          return Default;
-        }
-      }
-    }
-    public static byte ReadSettingByte(List<string> ConfigList, string Section, string Key, byte Default = 0)
-    {
-      //get the setting value; if it converts to byte value, use it;
-      //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-      if (strValue.Length == 0) {
-        return Default;
-      } else {
-        if (byte.TryParse(strValue, out byte bResult)) {
-          return bResult;
-        } else {
-          return Default;
-        }
-      }
-    }
-    public static double ReadSettingSingle(List<string> ConfigList, string Section, string Key, double Default = 0)
-    {
-      //get the setting value; if it converts to single value, use it;
-      //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-
-      if (strValue.Length == 0) {
-        return Default;
-      } else {
-        if (double.TryParse(strValue, out double sResult)) {
-          return sResult;
-        } else {
-          return Default;
-        }
-      }
-    }
-    public static bool ReadSettingBool(List<string> ConfigList, string Section, string Key, bool Default = false)
-    {
-      //get the setting value; if it converts to boolean value, use it;
-      //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, Default.ToString());
-      if (strValue.Length == 0) {
-        return Default;
-      } else {
-        if (bool.TryParse(strValue, out bool bResult)) {
-          return bResult;
-        } else {
-          return Default;
-        }
-      }
-    }
-    public static string ReadSettingString(List<string> ConfigList, string Section, string Key, string Default = "")
-    {
-      //read a string value from the configlist
-
-
-      return ReadAppSetting(ConfigList, Section, Key, Default);
-    }
-    public static Color ReadSettingColor(List<string> ConfigList, string Section, string Key, Color Default)
-    {
-      //get the setting value; if it converts to long value, use it;
-      //if any kind of error, return the default value
-      string strValue = ReadAppSetting(ConfigList, Section, Key, "");
-      if (strValue.Length == 0) {
-        // for blank entries, replace with default
-        WriteAppSetting(ConfigList, Section, Key, ColorText(Default));
-        return Default;
-      }
-      // expected format is '0xrr, 0xgg, 0xbb'
-      string[] comp = strValue.Split(",");
-      if (comp.Length == 3) {
-        try {
-          int r, g, b;
-          r = Convert.ToInt32(comp[0].Trim(), 16) % 0x100;
-          g = Convert.ToInt32(comp[1].Trim(), 16) % 0x100;
-          b = Convert.ToInt32(comp[2].Trim(), 16) % 0x100;
-          return Color.FromArgb(r, g, b);
-        }
-        catch (Exception) {
-          // for invalid entries, replace with default
-          WriteAppSetting(ConfigList, Section, Key, ColorText(Default));
-          return Default;
-        }
-      } else {
-        Color retColor = Default;
-        if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase) || Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
-          try {
-            // convert hex integer color value; assume it is '0xaarrggbb' or '&Haarrggbb';
-            // we can't just convert it to a number and then translate it;
-            // the translator expects colors to be in '0xaabbggrr' format
-            // also, we ignore the alpha; all colors are returned with only
-            // rgb components set; the alpha channel is always left to default
-
-            // assign to int number
-            int iColor = Convert.ToInt32(strValue, 16);
-            //parse it into rgb components
-            int r, g, b;
-            b = iColor % 0x100;
-            g = (iColor / 0x100) % 0x100;
-            r = (iColor / 0x10000) % 0x100;
-            retColor = Color.FromArgb(r, g, b);
-          }
-          catch (Exception) {
-            //keep default
-          }
-        } else {
-          if (int.TryParse(strValue, out int iColor)) {
-            // it might be a non-hex color number
-            try {
-              //parse it into rgb components
-              int r, g, b;
-              b = (int)(unchecked((uint)iColor) % 0x100);
-              g = (int)(unchecked((uint)iColor) / 0x100 % 0x100);
-              r = (int)(unchecked((uint)iColor) / 0x10000 % 0x100);
-              retColor = Color.FromArgb(r, g, b);
-            }
-            catch (Exception) {
-              //keep default;
-            }
-          } else {
-            // not sure what it is; keep the default value
-          }
-        }
-        // for invalid entries, always replace with updated text
-        WriteAppSetting(ConfigList, Section, Key, ColorText(retColor));
-        return retColor;
-      }
-    }
-    public static void WriteProperty(string Section, string Key, string Value, string Group = "", bool ForceSave = false)
-    {
-      // this procedure provides calling programs a way to write property
-      // values to the WAG file
-
-      // no validation of section or newval is done, so calling function
-      // needs to be careful
-
-      try {
-        WriteGameSetting(Section, Key, Value, Group);
-
-        // if forcing a save
-        if (ForceSave) {
-          SaveProperties();
-        }
-      }
-      catch (Exception) {
-
-        //ignore if error?
-      }
-      return;
-    }
-    public static void DeleteSettingSection(List<string> ConfigList, string Section)
-    {
-      //elements of a settings file:
-      //
-      //  #comments begin with hashtag; all characters on line after hashtag are ignored
-      //  //comments can be added to end of valid section or key/value line
-      //  blank lines are ignored
-      //  [section] sections indicated by square brackets; anything else on the line gets ignored
-      //  key=value  key/value pairs separated by an equal sign; no quotes around values means only
-      //    single word; use quotes for multiword strings
-      //  if string is multline, use '\n' control code (and use multiline option)
-
-      int lngPos, lngSection = 0, i;
-      string strLine, strCheck;
-      //find the section we are looking for (skip 1st line; it's the filename)
-      for (i = 1; i < ConfigList.Count; i++) {
-        //skip blanks, and lines starting with a comment
-        strLine = ConfigList[i].Replace("\t", " ").Trim();
-        if (strLine.Length > 0) {
-          if (strLine[0] != '#') {
-            //look for a bracket
-            if (strLine[0] == '[') {
-              //find end bracket
-              lngPos = strLine.IndexOf("]", 1);
-              if (lngPos >= 0) {
-                strCheck = Mid(strLine, 1, lngPos - 2);
-              } else {
-                strCheck = Right(strLine, strLine.Length - 1);
-              }
-              if (strCheck.Equals(Section, StringComparison.OrdinalIgnoreCase)) {
-                //found it
-                lngSection = i;
-                break;
-              }
-            }
-          }
-        }
-      } //Next i
-
-      //if not found,
-      if (lngSection == 0) {
-        //nothing to delete
-        return;
-      }
-
-      //step through all lines in this section, deleting until another section or end of list is found
-      do {  //delete this line
-        ConfigList.RemoveAt(lngSection);
-
-        //at end?
-        if (lngSection >= ConfigList.Count) {
-          return;
-        }
-
-        //or another section found?
-        strLine = ConfigList[lngSection].Replace('\t', ' ').Trim();
-        if (strLine.Length > 0) {
-          //if another section is found, stop here
-          if (strLine[0] == (char)91) {
-            //nothing to delete
-            return;
-          }
-        }
-      } while (true);
-    }
-    public static void DeleteSettingKey(List<string> ConfigList, string Section, string Key)
-    {
-      //elements of a settings file:
-      //
-      //  #comments begin with hashtag; all characters on line after hashtag are ignored
-      //  //comments can be added to end of valid section or key/value line
-      //  blank lines are ignored
-      //  [section] sections indicated by square brackets; anything else on the line gets ignored
-      //  key=value  key/value pairs separated by an equal sign; no quotes around values means only
-      //    single word; use quotes for multiword strings
-      //  if string is multline, use '\n' control code (and use multiline option)
-
-      int i;
-      string strLine;
-      int lngSection, lenKey;
-      //find the section we are looking for (skip 1st line; it's the filename)
-      lngSection = FindSettingSection(ConfigList, Section);
-      //if not found,
-      if (lngSection <= 0) {
-        //nothing to delete
-        return;
-      }
-      //step through all lines in this section; find matching key
-      lenKey = Key.Length;
-      for (i = lngSection + 1; i < ConfigList.Count; i++) {
-        //skip blanks, and lines starting with a comment
-        strLine = ConfigList[i].Replace("\t", " ").Trim();
-        if (strLine.Length > 0) {
-          if (strLine[0] != '#') { //not a comment
-            //if another section is found, stop here
-            if (strLine[0] == '[') {
-              //nothing to delete
-              return;
-            }
-            //look for key
-            if (Left(strLine, lenKey) == Key) {
-              //found it- delete this line
-              ConfigList.RemoveAt(i);
-              return;
-            }
-          }
-        }
-      }
-      //not found - nothing to delete
-    }
-    private static int FindSettingSection(List<string> ConfigList, string Section)
-    {
-      int i, lngPos;
-      string strLine;
-      //find the section we are looking for (skip 1st line; it's the filename)
-      for (i = 1; i <= ConfigList.Count - 1; i++) {
-        //skip blanks, and lines starting with a comment
-        strLine = ConfigList[i].Replace("\t", " ").Trim();
-        if (strLine.Length > 0) {
-          if (strLine[0] != '#') {
-            //look for a bracket
-            if (strLine[0] == '[') {
-              //find end bracket
-              lngPos = strLine.IndexOf("]", 1);
-              string strCheck;
-              if (lngPos > 0) {
-                strCheck = Mid(strLine, 1, lngPos - 1);
-              } else {
-                strCheck = Right(strLine, strLine.Length - 1);
-              }
-              if (strCheck.Equals(Section, StringComparison.OrdinalIgnoreCase)) {
-                //found it
-                return i;
-              }
-            }
-          }
-        }
-      }
-      // not found
-      return -1;
-    }
-    internal static string GetIntVersion()
+    internal static string GetIntVersion(string gameDir, bool isV3)
     {
       byte[] bytBuffer = new byte[] { 0 };
       FileStream fsVer;
 
       // version is in OVL file
-      string strFileName = agGameDir + "AGIDATA.OVL";
+      string strFileName = gameDir + "AGIDATA.OVL";
       if (File.Exists(strFileName)) {
         try {
           //open AGIDATA.OVL, copy to buffer, and close
@@ -2189,13 +951,11 @@ MA  02110-1301  USA
           //invalid - return a default
         }
       }
-
-
       // if no data (either no file, or bad data
       if (bytBuffer.Length == 0) {
         //no agidata.ovl
         //if version3 is set
-        if (agIsVersion3) {
+        if (isV3) {
           //use default v3
           return "3.002149"; //most common version 3
         } else {
@@ -2276,7 +1036,7 @@ MA  02110-1301  USA
       //if version info not found in AGIDATA.OVL
 
       //if version3 is set
-      if (agIsVersion3) {
+      if (isV3) {
         return "3.002149"; //most common version 3?
       } else {
         return "2.917";  // This is what we use if we can't find the version number.
@@ -2316,96 +1076,9 @@ MA  02110-1301  USA
       }
       return ColorText(colorEGA[index]);
     }
-    public static bool IsValidGameDir(string strDir)
+    internal static SettingsList ConvertWag(AGIGame game, string oldWAGfile)
     {
-      string strFile;
-      byte[] bChunk = new byte[6];
-      FileStream fsCOM;
-
-      //this function will determine if the strDir is a
-      //valid sierra AGI game directory
-      //it also sets the gameID, if one is found and the version3 flag
-      //search for 'DIR' files
-      int dirCount;
-      try {
-        dirCount = Directory.EnumerateFiles(strDir, "*DIR").Count();
-      }
-      catch (Exception) {
-        // if error, assume NOT a directory
-        return false;
-      }
-
-      if (dirCount > 0) {
-        //this might be an AGI game directory-
-        // if exactly four dir files
-        if (dirCount == 4) {
-          // assume it's a v2 game
-
-          // check for at least one VOL file
-          if (File.Exists(strDir + "VOL.0")) {
-            //clear version3 flag
-            agIsVersion3 = false;
-
-            //clear ID
-            agGameID = "";
-
-            //look for loader file to find ID
-            foreach (string strLoader in Directory.EnumerateFiles(strDir, "*.COM")) {
-              //open file and get chunk
-              string strChunk = new string(' ', 6);
-              using (fsCOM = new FileStream(strLoader, FileMode.Open)) {
-                // see if the word 'LOADER' is at position 3 of the file
-                fsCOM.Position = 3;
-                fsCOM.Read(bChunk, 0, 6);
-                strChunk = Encoding.UTF8.GetString(bChunk);
-                fsCOM.Dispose();
-
-                //if this is a Sierra loader
-                if (strChunk == "LOADER") {
-                  // determine ID to use
-                  //if not SIERRA.COM
-                  strFile = JustFileName(strLoader);
-                  if (strLoader != "SIERRA.COM") {
-                    //use this filename as ID
-                    agGameID = Left(strFile, strFile.Length - 4).ToUpper();
-                    return true;
-                  }
-                }
-              }
-            }
-
-            //if no loader file found (looped through all files, no luck)
-            //use default
-            agGameID = "AGI";
-            return true;
-          }
-        } else if (dirCount == 1) {
-          //if only one, it's probably v3 game
-          strFile = Directory.GetFiles(strNewDir, "*DIR")[0].ToUpper();
-          agGameID = Left(strFile, strFile.IndexOf("DIR"));
-
-          // check for matching VOL file;
-          if (File.Exists(strDir + agGameID + "VOL.0")) {
-            //set version3 flag
-            agIsVersion3 = true;
-            return true;
-          }
-
-          //if no vol file, assume not valid
-          agGameID = "";
-          return false;
-        }
-      }
-
-      // no valid files/loader found; not an AGI directory
-      return false;
-    }
-    internal static void ConvertWag()
-    {
-
       //converts a v1.2.1 propfile to current version proplist
-      // TODO: should return a bool; true if success, fals if not
-
       //1.2.1 properties use the following format for the property file:
       // CPRLL<data>
       //where C= PropCode, P=PropNum, R=ResNum, LL=length of data (as integer)
@@ -2419,26 +1092,15 @@ MA  02110-1301  USA
       byte ResNum, PropType;
       byte PropCode;
       bool blnFoundID = false, blnFoundVer = false;
-
-
-      //remove everything except first line in wag file
-      if (agGameProps.Count > 1) {
-        agGameProps.RemoveRange(1, agGameProps.Count - 2);
-      }
-      agGameProps.Add("#");
-      agGameProps.Add("# WinAGI Game Property File");
-      agGameProps.Add("# converted from version 1.2.1");
-      agGameProps.Add("#");
-      agGameProps.Add("[General]");
-      agGameProps.Add("   WinAGIVersion = " + WINAGI_VERSION);
+      SettingsList retval = new SettingsList(oldWAGfile);
 
       //open old file
-      FileStream fsOldWag = new FileStream(agGameFile, FileMode.Open);
+      FileStream fsOldWAG = new FileStream(oldWAGfile, FileMode.Open);
       //verify version
       bytData = new byte[16];
       //adjust position to compensate for length of variable
-      //: fsOldWag.Length - 16;
-      fsOldWag.Read(bytData, (int)fsOldWag.Length - 16, 16);
+      //: fsretval.Length - 16;
+      fsOldWAG.Read(bytData, (int)fsOldWAG.Length - 16, 16);
       strValue = Encoding.UTF8.GetString(bytData);
 
       //if version is incompatible
@@ -2450,22 +1112,27 @@ MA  02110-1301  USA
       //ok
       default:
         //return nothing
-        fsOldWag.Dispose();
-        agGameProps = new List<string> { };
-        return;
+        fsOldWAG.Dispose();
+        return retval;
       }
+      //add header
+      retval.Lines.Add("#");
+      retval.Lines.Add("# WinAGI Game Property File");
+      retval.Lines.Add("# converted from version 1.2.1");
+      retval.Lines.Add("#");
+      retval.Lines.Add("[General]");
+      retval.Lines.Add("   WinAGIVersion = " + WINAGI_VERSION);
 
       //don't copy version line into buffer
-      lngCount = (int)fsOldWag.Length - 16;
+      lngCount = (int)fsOldWAG.Length - 16;
       if (lngCount > 0) {
         bytData = new byte[lngCount];
-        fsOldWag.Read(bytData, 0, lngCount);
+        fsOldWAG.Read(bytData, 0, lngCount);
       } else {
         //set to zero
         lngCount = 0;
       }
       lngPos = 0;
-
       //get codes
       while (lngPos < lngCount) {
         //reset propval
@@ -2478,33 +1145,31 @@ MA  02110-1301  USA
         for (i = 1; i < PropSize; i++) {
           strValue += (char)bytData[lngPos + 4 + i];
         }
-
-
         if (PropCode >= PC_LOGIC) {
           switch (PropCode) {
           case PC_LOGIC:
             switch (PropType) {
             case PT_ID:
-              WriteGameSetting("Logic" + ResNum.ToString(), "ID", strValue, "Logics");
+              game.WriteGameSetting("Logic" + ResNum.ToString(), "ID", strValue, "Logics");
               break;
             case PT_DESC:
-              WriteGameSetting("Logic" + ResNum.ToString(), "Description", strValue, "Logics");
+              game.WriteGameSetting("Logic" + ResNum.ToString(), "Description", strValue, "Logics");
               break;
             case PT_CRC32:
-              WriteGameSetting("Logic" + ResNum.ToString(), "CRC32", "0x" + strValue, "Logics");
+              game.WriteGameSetting("Logic" + ResNum.ToString(), "CRC32", "0x" + strValue, "Logics");
               break;
             case PT_COMPCRC32:
-              WriteGameSetting("Logic" + ResNum.ToString(), "CompCRC32", "0x" + strValue, "Logics");
+              game.WriteGameSetting("Logic" + ResNum.ToString(), "CompCRC32", "0x" + strValue, "Logics");
               break;
             case PT_ROOM:
               if (ResNum == 0) {
                 //force to false
                 strValue = "false";
               }
-              WriteGameSetting("Logic" + ResNum.ToString(), "IsRoom", strValue, "Logics");
+              game.WriteGameSetting("Logic" + ResNum.ToString(), "IsRoom", strValue, "Logics");
               break;
             case PT_SIZE:
-              WriteGameSetting("Logic" + ResNum.ToString(), "Size", strValue, "Logics");
+              game.WriteGameSetting("Logic" + ResNum.ToString(), "Size", strValue, "Logics");
               break;
 
             default:
@@ -2513,29 +1178,28 @@ MA  02110-1301  USA
               break;
             }
             break;
-
           case PC_PICTURE:
             switch (PropType) {
             case PT_ID:
-              WriteGameSetting("Picture" + ResNum.ToString(), "ID", strValue, "Pictures");
+              game.WriteGameSetting("Picture" + ResNum.ToString(), "ID", strValue, "Pictures");
               break;
             case PT_DESC:
-              WriteGameSetting("Picture" + ResNum.ToString(), "Description", strValue, "Pictures");
+              game.WriteGameSetting("Picture" + ResNum.ToString(), "Description", strValue, "Pictures");
               break;
             case PT_SIZE:
-              WriteGameSetting("Picture" + ResNum.ToString(), "Size", strValue, "Pictures");
+              game.WriteGameSetting("Picture" + ResNum.ToString(), "Size", strValue, "Pictures");
               break;
             case PT_BKIMG:
-              WriteGameSetting("Picture" + ResNum.ToString(), "BkgdImg", strValue, "Pictures");
+              game.WriteGameSetting("Picture" + ResNum.ToString(), "BkgdImg", strValue, "Pictures");
               break;
             case PT_BKPOS:
-              WriteGameSetting("Picture" + ResNum.ToString(), "BkgdPosn", strValue, "Pictures");
+              game.WriteGameSetting("Picture" + ResNum.ToString(), "BkgdPosn", strValue, "Pictures");
               break;
             case PT_BKSZ:
-              WriteGameSetting("Picture" + ResNum.ToString(), "BkgdSize", strValue, "Pictures");
+              game.WriteGameSetting("Picture" + ResNum.ToString(), "BkgdSize", strValue, "Pictures");
               break;
             case PT_BKTRANS:
-              WriteGameSetting("Picture" + ResNum.ToString(), "BkgdTrans", strValue, "Pictures");
+              game.WriteGameSetting("Picture" + ResNum.ToString(), "BkgdTrans", strValue, "Pictures");
               break;
             default:
               //unknown code; ignore it
@@ -2543,57 +1207,55 @@ MA  02110-1301  USA
               break;
             }
             break;
-
-
           case PC_SOUND:
             switch (PropType) {
             case PT_ID:
-              WriteGameSetting("Sound" + ResNum.ToString(), "ID", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "ID", strValue, "Sounds");
               break;
             case PT_DESC:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Description", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Description", strValue, "Sounds");
               break;
             case PT_SIZE:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Size", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Size", strValue, "Sounds");
               break;
             case PT_KEY:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Key", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Key", strValue, "Sounds");
               break;
             case PT_TPQN:
-              WriteGameSetting("Sound" + ResNum.ToString(), "TQPN", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "TQPN", strValue, "Sounds");
               break;
             case PT_INST0:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Inst0", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Inst0", strValue, "Sounds");
               break;
             case PT_INST1:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Inst1", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Inst1", strValue, "Sounds");
               break;
             case PT_INST2:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Inst2", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Inst2", strValue, "Sounds");
               break;
             case PT_MUTE0:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Mute0", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Mute0", strValue, "Sounds");
               break;
             case PT_MUTE1:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Mute1", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Mute1", strValue, "Sounds");
               break;
             case PT_MUTE2:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Mute2", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Mute2", strValue, "Sounds");
               break;
             case PT_MUTE3:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Mute3", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Mute3", strValue, "Sounds");
               break;
             case PT_VIS0:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Visible0", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Visible0", strValue, "Sounds");
               break;
             case PT_VIS1:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Visible1", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Visible1", strValue, "Sounds");
               break;
             case PT_VIS2:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Visible2", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Visible2", strValue, "Sounds");
               break;
             case PT_VIS3:
-              WriteGameSetting("Sound" + ResNum.ToString(), "Visible3", strValue, "Sounds");
+              game.WriteGameSetting("Sound" + ResNum.ToString(), "Visible3", strValue, "Sounds");
               break;
             default:
               //unknown code; ignore it
@@ -2601,17 +1263,16 @@ MA  02110-1301  USA
               break;
             }
             break;
-
           case PC_VIEW:
             switch (PropType) {
             case PT_ID:
-              WriteGameSetting("View" + ResNum.ToString(), "ID", strValue, "Views");
+              game.WriteGameSetting("View" + ResNum.ToString(), "ID", strValue, "Views");
               break;
             case PT_DESC:
-              WriteGameSetting("View" + ResNum.ToString(), "Description", strValue, "Views");
+              game.WriteGameSetting("View" + ResNum.ToString(), "Description", strValue, "Views");
               break;
             case PT_SIZE:
-              WriteGameSetting("View" + ResNum.ToString(), "Size", strValue, "Views");
+              game.WriteGameSetting("View" + ResNum.ToString(), "Size", strValue, "Views");
               break;
             default:
               //unknown code; ignore it
@@ -2624,40 +1285,40 @@ MA  02110-1301  USA
         } else {
           switch (PropCode) {
           case PC_GAMEDESC:
-            WriteGameSetting("General", "Description", strValue);
+            game.WriteGameSetting("General", "Description", strValue);
             break;
 
           case PC_GAMEAUTHOR:
-            WriteGameSetting("General", "Author", strValue);
+            game.WriteGameSetting("General", "Author", strValue);
             break;
           case PC_GAMEID:
             blnFoundID = strValue.Length > 0;
-            WriteGameSetting("General", "GameID", strValue);
+            game.WriteGameSetting("General", "GameID", strValue);
             break;
           case PC_INTVERSION:
-            WriteGameSetting("General", "Interpreter", strValue);
+            game.WriteGameSetting("General", "Interpreter", strValue);
             blnFoundVer = strValue.Length > 0;
             break;
           case PC_GAMEABOUT:
-            WriteGameSetting("General", "About", strValue);
+            game.WriteGameSetting("General", "About", strValue);
             break;
           case PC_GAMEVERSION:
-            WriteGameSetting("General", "GameVersion", strValue);
+            game.WriteGameSetting("General", "GameVersion", strValue);
             break;
           case PC_RESDIR:
-            WriteGameSetting("General", "ResDir", strValue);
+            game.WriteGameSetting("General", "ResDir", strValue);
             break;
           case PC_GAMELAST:
-            WriteGameSetting("General", "LastEdit", strValue);
+            game.WriteGameSetting("General", "LastEdit", strValue);
             break;
           case PC_INVOBJDESC:
-            WriteGameSetting("OBJECT", "Description", strValue);
+            game.WriteGameSetting("OBJECT", "Description", strValue);
             break;
           case PC_VOCABWORDDESC:
-            WriteGameSetting("WORDS.TOK", "Description", strValue);
+            game.WriteGameSetting("WORDS.TOK", "Description", strValue);
             break;
           case PC_GAMEEXEC:
-            //////WriteGameSetting("General", "Exec", strValue);
+            //////game.WriteGameSetting("General", "Exec", strValue);
             //Exec property no longer supported
             break;
 
@@ -2669,11 +1330,11 @@ MA  02110-1301  USA
                           bytData[lngPos + 6 + 4 * i].ToString("x2") +
                           bytData[lngPos + 7 + 4 * i].ToString("x2") +
                           bytData[lngPos + 8 + 4 * i].ToString("x2");
-              WriteGameSetting("Palette", "Color" + i.ToString(), strValue);
+              game.WriteGameSetting("Palette", "Color" + i.ToString(), strValue);
             }
             break;
           case PC_USERESNAMES:
-            WriteGameSetting("General", "UseResNames", strValue);
+            game.WriteGameSetting("General", "UseResNames", strValue);
             break;
 
 
@@ -2686,109 +1347,12 @@ MA  02110-1301  USA
         //add offset to next code (length +5)
         lngPos += PropSize + 5;
       }
-
       //if no id and no intver
       if (!blnFoundID || blnFoundVer) {
-        agGameProps = new List<string> { };
+        // return an empty list
+        retval = new SettingsList(oldWAGfile);
       }
-    }
-    internal static void RecordLogEvent(LogEventType leType, string strMessage)
-    {
-      //open the log file and write the message
-      //leType =0 means warning
-      //inttype =1 means error
-      string strType = "";
-
-      //set type of msg
-      strType = leType == LogEventType.leWarning ? "WARNING: " : "ERROR: ";
-
-      using FileStream fsErrLog = new FileStream(agGameDir + "errlog.txt", FileMode.Append);
-      using StreamWriter swErrLog = new StreamWriter(fsErrLog);
-      swErrLog.WriteLine(DateTime.Now.ToString("MM/dd/yyyy HH:mm") + ": " + strType + strMessage);
-
-      // also send it to the event handler
-      Raise_LoadGameEvent(leType == LogEventType.leWarning ? ELStatus.lsWarning : ELStatus.lsError,
-                          AGIResType.rtNone,
-                          0,
-                          DateTime.Now.ToString("MM/dd/yyyy HH:mm") + ": " + strType + strMessage);
-    }
-    internal static void GetGameProperties()
-    {
-      //what's loaded BEFORE we get here:
-      // General:
-      //  GameID
-      //  Interpreter
-      //  ResDir
-
-      //ASSUMES a valid game property file has been loaded
-      //loads only these properties:
-      //
-      //  Palette:
-      //     all colors
-      //
-      //  General:
-      //     description
-      //     author
-      //     about
-      //     game version
-      //     last date
-      //     platform, platform program, platform options, dos executable
-      //     use res names property
-      //     use layout editor
-
-      //Palette: (make sure AGI defaults set first)
-      RestoreDefaultColors();
-      for (int i = 0; i < 16; i++) {
-        EGAColor[i] = ReadSettingColor(agGameProps, "Palette", "Color" + i.ToString(), EGAColor[i]);
-      }
-      //description
-      agDescription = ReadSettingString(agGameProps, "General", "Description");
-
-      //author
-      agAuthor = ReadSettingString(agGameProps, "General", "Author");
-
-      //about
-      agAbout = ReadSettingString(agGameProps, "General", "About");
-
-      //game version
-      agGameVersion = ReadSettingString(agGameProps, "General", "GameVersion");
-
-
-      if (!DateTime.TryParse(ReadSettingString(agGameProps, "General", "LastEdit", DateTime.Now.ToString()), out agLastEdit)) {
-        // default to now
-        agLastEdit = DateTime.Now;
-      }
-
-      //platform
-      agPlatformType = ReadSettingLong(agGameProps, "General", "PlatformType", 0);
-
-      //platform program
-      agPlatformFile = ReadSettingString(agGameProps, "General", "Platform");
-
-      //dos executable
-      agDOSExec = ReadSettingString(agGameProps, "General", "DOSExec");
-
-      //platform options
-      agPlatformOpts = ReadSettingString(agGameProps, "General", "PlatformOpts");
-
-      //use res names property (use current value, if one not found in property file)
-      agUseRes = ReadSettingBool(agGameProps, "General", "UseResNames", agUseRes);
-
-      // use layout editor property
-      agUseLE = ReadSettingBool(agGameProps, "General", "UseLE");
-    }
-    internal static void CompleteCancel(bool NoEvent = false)
-    {
-      //cleans up after a compile game cancel or error
-
-      if (!NoEvent) {
-        Raise_CompileGameEvent(ECStatus.csCanceled, 0, 0, "");
-      }
-      agCompGame = false;
-      fsDIR.Dispose();
-      fsVOL.Dispose();
-      bwVOL.Dispose();
-      bwDIR.Dispose();
+      return retval;
     }
     public static string LoadResString(int index)
     {
@@ -2801,6 +1365,902 @@ MA  02110-1301  USA
         // return nothing if string doesn't exist
         return "";
       }
+    }
+  }
+  public class SettingsList
+  {
+    //elements of a settings list file:
+    //
+    //  #comments begin with hashtag; all characters on line after hashtag are ignored
+    //  comments can be added to end of valid section or key / value line
+    //  blank lines are ignored
+    //  [::BEGIN group::] marker to indicate a group of sections
+    //  [::END group::]   marker to indicate end of a group
+    //  [section]         sections indicated by square brackets; anything else on the line gets ignored
+    //  key=value         key/value pairs separated by an equal sign; no quotes around values means only
+    //                      single word; use quotes for multiword strings
+    //  if string is multline, use '\n' control code (and use multiline option)
+    internal List<string> Lines;
+    public string Filename
+    {
+      get;
+      set;
+    }
+    public SettingsList(string filename)
+    {
+      Filename = filename;
+      Lines = new List<string>();
+    }
+    public void WriteSetting(string Section, string Key, dynamic Value, string Group = "")
+    {
+      int lngPos, i;
+      string strLine, strCheck;
+      int lngSectionEnd = 0;
+      int lenKey; bool blnFound = false;
+      int lngGrpStart, lngGrpEnd, lngInsertLine;
+      if (Value == null) {
+        strCheck = "\"\"";
+      }
+      else {  //convert to string
+        strCheck = Value.ToString();
+      }
+      //if value contains spaces, it must be enclosed in quotes
+      if (strCheck.IndexOf(" ") > 0) {
+        if (strCheck[0] != '"') {
+          strCheck = "\"" + strCheck;
+        }
+        if ((strCheck[strCheck.Length - 1] != '"')) {
+          strCheck += "\"";
+        }
+      }
+      //if value contains any carriage returns, replace them with control characters
+      if (strCheck.Contains("\r\n", StringComparison.OrdinalIgnoreCase)) {
+        strCheck = strCheck.Replace("\r\n", "\\n");
+      }
+      if (strCheck.Contains("\r", StringComparison.OrdinalIgnoreCase)) {
+        strCheck = strCheck.Replace("\r", "\\n");
+      }
+      if (strCheck.Contains("\n", StringComparison.OrdinalIgnoreCase)) {
+        strCheck = strCheck.Replace("\n", "\\n");
+      }
+      //if nullstring, include quotes
+      if (strCheck.Length == 0) {
+        strCheck = "\"\"";
+      }
+      //if a group is provided, we will add new items within the group;
+      //existing items, even if within the group, will be left where they are
+      lngGrpStart = -1;
+      lngGrpEnd = -1;
+      lngPos = -1;
+      if (Group.Length > 0) {
+        //********** we will have to make adjustments to group start
+        //           and end positions later on as we add lines
+        //           during the key update! don't forget to do that!!
+        for (i = 1; i <= Lines.Count - 1; i++) {
+          //skip blanks, and lines starting with a comment
+          strLine = Lines[i].Replace("\t", " ").Trim();
+          if (strLine.Length > 0) {
+            //skip empty lines
+            if (strLine[0] != '#') {
+              //skip comments
+              //if not found yet, look for the starting marker
+              if (!blnFound) {
+                //is this the group marker?
+                if (strLine.Equals("[::BEGIN " + Group + "::]", StringComparison.OrdinalIgnoreCase)) {
+                  lngGrpStart = i;
+                  blnFound = true;
+                  //was the end found earlier? if so, we are done
+                  if (lngGrpEnd >= 0) {
+                    break;
+                  }
+                }
+              }
+              else {
+                //start is found; make sure we find end before
+                //finding another start
+                if (Left(strLine, 9).Equals("[::BEGIN ", StringComparison.OrdinalIgnoreCase)) {
+                  //mark position of first new start, so we can move the end marker here
+                  if (lngPos < 0) {
+                    lngPos = i;
+                  }
+                }
+              }
+              //we check for end marker here even if start not found
+              //just in case they are backwards
+              if (strLine.Equals("[::END " + Group + "::]", StringComparison.OrdinalIgnoreCase)) {
+                lngGrpEnd = i;
+                //and if we also have a start, we can exit the loop
+                if (blnFound) {
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        //possible outcomes:
+        // - start and end both found; start before end
+        //   this is what we want
+        //
+        // - start and end both found, but end before start
+        //   this is backwards; we fix by moving end to
+        //   the line after start
+        //
+        // - start found, but no end; we add end
+        //   to just before next group start, or
+        //   to end of file if no other group start
+        //
+        // - end found, but no start; we fix by putting
+        //   start right in front of end
+
+        // if both found
+        if (lngGrpStart >= 0 && lngGrpEnd >= 0) {
+          //if backwards, move end to line after start
+          if (lngGrpEnd < lngGrpStart) {
+            Lines.Insert(lngGrpStart + 1, Lines[lngGrpEnd]);
+            Lines.RemoveAt(lngGrpEnd);
+            lngGrpStart -= 1;
+            lngGrpEnd = lngGrpStart + 1;
+          }
+        }
+        // if only start found
+        else if (lngGrpStart >= 0) {
+          //means end not found
+          //if there was another start found, insert end there
+          if (lngPos > 0) {
+            Lines.Insert(lngPos, "[::END " + Group + "::]");
+            Lines.Insert(lngPos + 1, "");
+            lngGrpEnd = lngPos;
+          }
+          else {
+            //otherwise insert group end at end of file
+            lngGrpEnd = Lines.Count;
+            Lines.Add("[::END " + Group + "::]");
+          }
+        }
+        // if end found but no start
+        else if (lngGrpEnd >= 0) {
+          //means start not found
+          //insert start in front of end
+          lngGrpStart = lngGrpEnd;
+          Lines.Insert(lngGrpStart, "[::START " + Group + "::]");
+          lngGrpEnd = lngGrpStart + 1;
+        }
+        else {
+          //means neither found
+          //make sure at least one blank line
+          if (Lines[Lines.Count - 1].Trim().Length > 0) {
+            Lines.Add("");
+          }
+          lngGrpStart = Lines.Count;
+          Lines.Add("[::BEGIN " + Group + "::]");
+          Lines.Add("[::END " + Group + "::]");
+          lngGrpEnd = lngGrpStart + 1;
+        }
+      }
+      //reset the found flag
+      blnFound = false;
+      //find the section we are looking for
+      int lngSectionStart = FindSettingSection(Section);
+      //if not found, create it at end of group (if group is provided)
+      //otherwise at end of list
+      if (lngSectionStart <= 0) {
+        if (lngGrpStart >= 0) {
+          lngInsertLine = lngGrpEnd;
+        }
+        else {
+          lngInsertLine = Lines.Count;
+        }
+        //make sure there is at least one blank line (unless this is first line in list)
+        if (lngInsertLine > 0) {
+          if (Lines[lngInsertLine - 1].Trim().Length != 0) {
+            Lines.Insert(lngInsertLine, "");
+            lngInsertLine++;
+          }
+        }
+        Lines.Insert(lngInsertLine, "[" + Section + "]");
+        Lines.Insert(lngInsertLine + 1, "   " + Key + " = " + strCheck);
+        //no need to check for location of section within group;
+        //we just added it to the group (if one is needed)
+      }
+      else {
+        //now step through all lines in this section; find matching key
+        lenKey = Key.Length;
+        for (i = lngSectionStart + 1; i < Lines.Count; i++) {
+          //skip blanks, and lines starting with a comment
+          strLine = Lines[i].Replace("\t", " ").Trim();
+          if (strLine.Length > 0) {
+            if (strLine[0] != '#') {
+              //if another section is found, stop here
+              if (strLine[0] == '[') {
+                //if part of a group; last line of the section
+                //is line prior to the new section
+                if (lngGrpStart >= 0) {
+                  lngSectionEnd = i - 1;
+                }
+                //if not already added, add it now
+                if (!blnFound) {
+                  //back up until a nonblank line is found
+                  for (lngPos = i - 1; lngPos >= lngSectionStart; lngPos--) {
+                    if (Lines[lngPos].Trim().Length > 0) {
+                      break;
+                    }
+                  }
+                  //add the key and value at this pos
+                  Lines.Insert(lngPos + 1, "   " + Key + " = " + strCheck);
+                  //this also bumps down the section end
+                  lngSectionEnd++;
+                  //it also may bump down group start/end
+                  if (lngGrpStart >= lngPos + 1) {
+                    lngGrpStart++;
+                  }
+                  if (lngGrpEnd >= lngPos + 1) {
+                    lngGrpEnd++;
+                  }
+                }
+                //we are done, but if part of a group
+                //we need to verify the section is in
+                //the group
+                if (lngGrpStart >= 0) {
+                  blnFound = true;
+                  break;
+                }
+                else {
+                  return;
+                }
+              }
+              //if not already found,  look for 'key'
+              if (!blnFound) {
+                if (Left(strLine, lenKey).Equals(Key, StringComparison.OrdinalIgnoreCase) && (strLine.Substring(lenKey + 1, 1) == " " || strLine.Substring(lenKey + 1, 1) == "=")) {
+                  //found it- change key value to match new value
+                  //(if there is a comment on the end, save it)
+                  strLine = Right(strLine, strLine.Length - lenKey).Trim();
+                  if (strLine.Length > 0) {
+                    //expect an equal sign
+                    if (strLine[0] == '=') {
+                      //remove it
+                      strLine = Right(strLine, strLine.Length - 1).Trim();
+                    }
+                  }
+                  if (strLine.Length > 0) {
+                    if (strLine[0] == '"') {
+                      //string delimiter; find ending delimiter
+                      lngPos = strLine.IndexOf('"', 1) + 1;
+                    }
+                    else {
+                      //look for comment marker
+                      lngPos = strLine.IndexOf("#", 1);
+                      // if none found, look for space delimiter
+                      if (lngPos == -1) {
+                        //look for a space as a delimiter
+                        lngPos = strLine.IndexOf(" ", 1);
+                      }
+                      ////look for a space as a delimiter
+                      //lngPos = strLine.IndexOf(" ", 1);
+                      //if (lngPos == -1)
+                      //{
+                      //  //could be a case where a comment is at end of text, without a space
+                      //  //if so we need to keep the delimiter
+                      //  lngPos = strLine.IndexOf("#", 2) - 1;
+                      //}
+                    }
+                    //no delimiter found; assume entire line
+                    if (lngPos <= 0) {
+                      lngPos = strLine.Length;
+                    }
+                    //now strip off the old value, leaving potential comment
+                    strLine = Right(strLine, strLine.Length - lngPos).Trim();
+                  }
+                  //if something left, maks sure it's a comment
+                  if (strLine.Length > 0) {
+                    if (strLine[0] != '#') {
+                      strLine = "#" + strLine;
+                    }
+                    //make sure it starts with a space
+                    strLine = "   " + strLine;
+                  }
+                  strLine = "   " + Key + " = " + strCheck + strLine;
+                  Lines[i] = strLine;
+                  //we are done, but if part of a group
+                  //we need to keep going to find end so
+                  //we can validate section is in the group
+                  if (lngGrpStart >= 0) {
+                    blnFound = true;
+                  }
+                  else {
+                    return;
+                  }
+                }
+              }
+            }
+          }
+        }
+        //if not found (will only happen if this the last section in the
+        //list, probably NOT in a group, but still possible (if the
+        //section is outside the defined group)
+        if (!blnFound) {
+          //back up until a nonblank line is found
+          for (lngPos = i - 1; i >= lngSectionStart; i--) {
+            if (Lines[lngPos].Trim().Length > 0) {
+              break;
+            }
+          }
+          //add the key and value at this pos
+          Lines.Insert(lngPos + 1, "   " + Key + " = " + strCheck);
+          //we SHOULD be done, but just in case this section is
+          //out of position, we still check for the group
+          if (lngGrpStart < 0) {
+            //no group - all done!
+            return;
+          }
+          //note that we don't need to bother adjusting group
+          //start/end, because we only added a line to the
+          //end of the file, and we know that the group
+          //start/end markers MUST be before the start
+          //of this section
+        }
+        //found marker ONLY set if part a group so let's verify
+        //the section is in the group, moving it if necessary
+
+        //if this was last section, AND section is NOT in its group
+        //then then section end won't be set yet
+        if (lngSectionEnd <= 0) {
+          lngSectionEnd = Lines.Count - 1;
+        }
+        //if the section is not in the group, then move it
+        //(depends on whether section is BEFORE or AFTER group start)
+        if (lngSectionStart < lngGrpStart) {
+          //make sure at least one blank line above the group end
+          if (Lines[lngGrpEnd - 1].Trim().Length > 0) {
+            Lines.Insert(lngGrpEnd, "");
+            lngGrpEnd++;
+          }
+          //add the section to end of group
+          for (i = lngSectionStart; i <= lngSectionEnd; i++) {
+            Lines.Insert(lngGrpEnd, Lines[i]);
+            lngGrpEnd++;
+          }
+          //then delete the section from it's current location
+          for (i = lngSectionStart; i <= lngSectionEnd; i++) {
+            Lines.RemoveAt(lngSectionStart);
+          }
+        }
+        else if (lngSectionStart > lngGrpEnd) {
+          //make sure at least one blank line above the group end
+          if (Lines[lngGrpEnd - 1].Trim().Length > 0) {
+            Lines.Insert(lngGrpEnd, "");
+            lngGrpEnd++;
+            lngSectionStart++;
+            lngSectionEnd++;
+          }
+          //add the section to end of group
+          for (i = lngSectionEnd; i >= lngSectionStart; i--) {
+            Lines.Insert(lngGrpEnd, Lines[lngSectionEnd]);
+            //delete the line in current location
+            Lines.RemoveAt(lngSectionEnd + 1);
+          }
+        }
+      }
+    }
+    internal void Save()
+    {
+      //open temp file
+      string TempFile = Path.GetTempFileName();
+      try {
+        using StreamWriter cfgSR = new StreamWriter(TempFile);
+        //now output the results to the file
+        foreach (string line in Lines)
+          cfgSR.WriteLine(line);
+        //// close it
+        //cfgSR.Close();
+        //dispose it
+        cfgSR.Dispose();
+
+        // delete current file
+        File.Delete(Filename);
+        // now copy new to final destination
+        File.Move(TempFile, Filename);
+
+        //add filename back
+        Lines.Insert(0, Filename);
+      }
+      catch (Exception) {
+        // do we care if there is a file error?
+        throw;
+      }
+    }
+    internal void Open(bool CreateNew = true)
+    {
+      // opens this SettingsList
+
+      // if file does not exist, a blank list object is created
+      // if the CreateNew flag is set, the blank file is also saved to disk
+      FileStream fsConfig;
+      StreamWriter swConfig;
+      StreamReader srConfig;
+
+      if (File.Exists(Filename) || CreateNew) {
+        //open the config file for create/write
+        fsConfig = new FileStream(Filename, FileMode.OpenOrCreate);
+        long lngLen = fsConfig.Length;
+        //if this is an empty file (either previously empty or created by this call)
+        if (lngLen == 0) {
+          swConfig = new StreamWriter(fsConfig);
+          //add a single comment to the file
+          Lines.Add("#");
+          // and write it to the file
+          swConfig.WriteLine("#");
+          swConfig.Dispose();
+        }
+        else {
+          //grab the file data
+          srConfig = new StreamReader(fsConfig);
+          while (!srConfig.EndOfStream) {
+
+            string strInput = srConfig.ReadLine();
+            Lines.Add(strInput);
+          }
+          srConfig.Dispose();
+        }
+        fsConfig.Dispose();
+      }
+      else {
+        //if file doesn't exist, and NOT forcing new file creation
+        //just add a single comment as first line
+        Lines.Add("#");
+      }
+    }
+    public string GetSetting(string Section, string Key, string Default = "")
+    {
+      //need to make sure there is a list to read from
+      if (Lines.Count == 0) {
+        //return the default
+        return Default;
+      }
+      //elements of a settings file:
+      //
+      //  #comments begin with hashtag; all characters on line after hashtag are ignored
+      //  //comments can be added to end of valid section or key/value line
+      //  blank lines are ignored
+      //  [::BEGIN group::] marker to indicate a group of sections
+      //  [::END group::] marker to indicate end of a group
+      //  [section] sections indicated by square brackets; anything else on the line gets ignored
+      //  key=value  key/value pairs separated by an equal sign; no quotes around values means only
+      //    single word; use quotes for multiword strings
+      //  if string is multline, use '\n' control code (and use multiline option)
+      string strLine;
+      int i;
+      int lngPos;
+      //find the section we are looking for (skip 1st line; it's the filename)
+      int lngSection = FindSettingSection(Section);
+      //if not found,
+      if (lngSection < 0) {
+        //add the section and the value
+        WriteSetting(Section, Key, Default, "");
+        //and return the default value
+        return Default;
+      }
+      else {
+        //step through all lines in this section; find matching key
+        int lenKey = Key.Length;
+        for (i = lngSection + 1; i < Lines.Count; i++) {
+          //skip blanks, and lines starting with a comment
+          strLine = Lines[i].Replace("\t", " ").Trim();
+          if (strLine.Length > 0) {
+            if (strLine[0] != '#') { //not a comment
+              //if another section is found, stop here
+              if (strLine[0] == '[') {
+                break;
+              }
+              //look for 'key'
+              //validate that this is an exact match, and not a key that starts with
+              //the same letters by verifying next char is either a space, or an equal sign
+              if (Left(strLine, lenKey).Equals(Key, StringComparison.OrdinalIgnoreCase) && (strLine.Substring(lenKey, 1) == " " || strLine.Substring(lenKey, 1) == "=")) {
+                //found it- extract value (if there is a comment on the end, drop it)
+                //strip off key
+                strLine = Right(strLine, strLine.Length - lenKey).Trim();
+                //check for nullstring, incase line has ONLY the key and nothing else
+                if (strLine.Length > 0) {
+                  //expect an equal sign
+                  if (strLine[0] == '=') {
+                    //remove it
+                    strLine = Right(strLine, strLine.Length - 1).Trim();
+                  }
+                  if (strLine.Length > 0) {
+                    if (strLine[0] == '"') {
+                      //string delimiter; find ending delimiter
+                      // (don't add 1; we want to drop the ending quote)
+                      lngPos = strLine.IndexOf("\"", 1);
+                    }
+                    else {
+                      //look for comment marker (don't add to result -
+                      // the coment marker gets stripped off)
+                      lngPos = strLine.IndexOf("#", 1);
+                    }
+                    //no delimiter found; assume entire line
+                    if (lngPos <= 0) {
+                      lngPos = strLine.Length;
+                    }
+                    //now strip off anything past value (including quote delimiter)
+                    strLine = Left(strLine, lngPos).Trim();
+                    if (strLine.Length > 0) {
+                      //if a leading quote, remove it
+                      if (strLine[0] == '"') {
+                        strLine = Right(strLine, strLine.Length - 1);
+                      }
+                    }
+                    //should never have an end quote; it will be caught as the ending delimiter
+                    if (strLine.Length > 0) {
+                      if (Right(strLine, 1)[0] == '"') {
+                        strLine = Left(strLine, strLine.Length - 1);
+                      }
+                    }
+                    if (strLine.IndexOf("\\n", 0) >= 0) {
+                      //replace any newline control characters
+                      strLine = strLine.Replace("\\n", "\r\n");
+                    }
+                  }
+                }
+                return strLine;
+              }
+            }
+          }
+        }
+        //not found// add it here
+        //back up until a nonblank line is found
+        for (lngPos = i - 1; lngPos >= lngSection; lngPos--) {
+          if (Lines[lngPos].Trim().Length > 0) {
+            break;
+          }
+        }
+        //return the default value
+        string sReturn = Default;
+        //add the key and default value at this pos
+        //if value contains spaces, it must be enclosed in quotes
+        if (Default.IndexOf(" ", 0) >= 0) {
+          if (Default[0] != '"') {
+            Default = "\"" + Default;
+          }
+          if (Right(Default, 1)[0] != '"') {
+            Default += "\"";
+          }
+        }
+        //if Default contains any carriage returns, replace them with control characters
+        if (Default.IndexOf("\r\n", 0) >= 0) {
+          Default = Default.Replace("\r\n", "\\n");
+        }
+        if (Default.IndexOf("\r", 0) >= 0) {
+          Default = Default.Replace("\r", "\\n");
+        }
+        if (Default.IndexOf("\n", 0) >= 0) {
+          Default = Default.Replace("\n", "\\n");
+        }
+        if (Default.Length == 0) {
+          Default = "\"\"";
+        }
+        Lines.Insert(lngPos + 1, "   " + Key + " = " + Default);
+        return sReturn;
+      }
+    }
+    public int GetSetting(string Section, string Key, int Default = 0, bool hex = false)
+    {
+      //get the setting value; if it converts to long value, use it;
+      //if any kind of error, return the default value
+      string strValue = GetSetting(Section, Key, hex ? "0x" + Default.ToString("x8") : Default.ToString());
+      if (strValue.Length == 0) {
+        return Default;
+      } else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase)) {
+        try {
+          return Convert.ToInt32(strValue, 16);
+        }
+        catch (Exception) {
+          return Default;
+        }
+      } else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
+        try {
+          int retval = Convert.ToInt32(Right(strValue, strValue.Length - 2), 16);
+          //write the value in correct format
+          WriteSetting(Section, Key, "0x" + retval.ToString("x8"));
+          return retval;
+        }
+        catch (Exception) {
+          return Default;
+        }
+      } else {
+        if (int.TryParse(strValue, out int iResult)) {
+          return iResult;
+        } else {
+          return Default;
+        }
+      }
+    }
+    public uint GetSetting(string Section, string Key, uint Default = 0)
+    {
+      //get the setting value; if it converts to long value, use it;
+      //if any kind of error, return the default value
+      string strValue = GetSetting(Section, Key, Default.ToString());
+
+      if (strValue.Length == 0) {
+        return Default;
+      } else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase)) {
+        try {
+          return Convert.ToUInt32(strValue, 16);
+        }
+        catch (Exception) {
+          return Default;
+        }
+      } else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
+        try {
+          UInt32 retval = Convert.ToUInt32(Right(strValue, strValue.Length - 2), 16);
+          //write the value in correct format
+          WriteSetting(Section, Key, "0x" + retval.ToString("x8"));
+          return retval;
+        }
+        catch (Exception) {
+          return Default;
+        }
+      } else {
+
+        if (uint.TryParse(strValue, out uint iResult)) {
+          return iResult;
+        } else {
+          return Default;
+        }
+      }
+    }
+    public byte GetSetting(string Section, string Key, byte Default = 0)
+    {
+      //get the setting value; if it converts to byte value, use it;
+      //if any kind of error, return the default value
+      string strValue = GetSetting(Section, Key, Default.ToString());
+      if (strValue.Length == 0) {
+        return Default;
+      } else {
+        if (byte.TryParse(strValue, out byte bResult)) {
+          return bResult;
+        } else {
+          return Default;
+        }
+      }
+    }
+    public double GetSetting(string Section, string Key, double Default = 0)
+    {
+      //get the setting value; if it converts to single value, use it;
+      //if any kind of error, return the default value
+      string strValue = GetSetting(Section, Key, Default.ToString());
+
+      if (strValue.Length == 0) {
+        return Default;
+      } else {
+        if (double.TryParse(strValue, out double sResult)) {
+          return sResult;
+        } else {
+          return Default;
+        }
+      }
+    }
+    public bool GetSetting(string Section, string Key, bool Default = false)
+    {
+      //get the setting value; if it converts to boolean value, use it;
+      //if any kind of error, return the default value
+      string strValue = GetSetting(Section, Key, Default.ToString());
+      if (strValue.Length == 0) {
+        return Default;
+      } else {
+        if (bool.TryParse(strValue, out bool bResult)) {
+          return bResult;
+        } else {
+          return Default;
+        }
+      }
+    }
+    public Color GetSetting(string Section, string Key, Color Default)
+    {
+      //get the setting value; if it converts to long value, use it;
+      //if any kind of error, return the default value
+      string strValue = GetSetting(Section, Key, "");
+      if (strValue.Length == 0) {
+        // for blank entries, replace with default
+        WriteSetting(Section, Key, WinAGI.ColorText(Default));
+        return Default;
+      }
+      // expected format is '0xrr, 0xgg, 0xbb'
+      string[] comp = strValue.Split(",");
+      if (comp.Length == 3) {
+        try {
+          int r, g, b;
+          r = Convert.ToInt32(comp[0].Trim(), 16) % 0x100;
+          g = Convert.ToInt32(comp[1].Trim(), 16) % 0x100;
+          b = Convert.ToInt32(comp[2].Trim(), 16) % 0x100;
+          return Color.FromArgb(r, g, b);
+        }
+        catch (Exception) {
+          // for invalid entries, replace with default
+          WriteSetting(Section, Key, WinAGI.ColorText(Default));
+          return Default;
+        }
+      } else {
+        Color retColor = Default;
+        if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase) || Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
+          try {
+            // convert hex integer color value; assume it is '0xaarrggbb' or '&Haarrggbb';
+            // we can't just convert it to a number and then translate it;
+            // the translator expects colors to be in '0xaabbggrr' format
+            // also, we ignore the alpha; all colors are returned with only
+            // rgb components set; the alpha channel is always left to default
+
+            // assign to int number
+            int iColor = Convert.ToInt32(strValue, 16);
+            //parse it into rgb components
+            int r, g, b;
+            b = iColor % 0x100;
+            g = (iColor / 0x100) % 0x100;
+            r = (iColor / 0x10000) % 0x100;
+            retColor = Color.FromArgb(r, g, b);
+          }
+          catch (Exception) {
+            //keep default
+          }
+        } else {
+          if (int.TryParse(strValue, out int iColor)) {
+            // it might be a non-hex color number
+            try {
+              //parse it into rgb components
+              int r, g, b;
+              b = (int)(unchecked((uint)iColor) % 0x100);
+              g = (int)(unchecked((uint)iColor) / 0x100 % 0x100);
+              r = (int)(unchecked((uint)iColor) / 0x10000 % 0x100);
+              retColor = Color.FromArgb(r, g, b);
+            }
+            catch (Exception) {
+              //keep default;
+            }
+          } else {
+            // not sure what it is; keep the default value
+          }
+        }
+        // for invalid entries, always replace with updated text
+        WriteSetting(Section, Key, WinAGI.ColorText(retColor));
+        return retColor;
+      }
+    }
+    public void DeleteSection(string Section)
+    {
+      //elements of a settings file:
+      //
+      //  #comments begin with hashtag; all characters on line after hashtag are ignored
+      //  //comments can be added to end of valid section or key/value line
+      //  blank lines are ignored
+      //  [section] sections indicated by square brackets; anything else on the line gets ignored
+      //  key=value  key/value pairs separated by an equal sign; no quotes around values means only
+      //    single word; use quotes for multiword strings
+      //  if string is multline, use '\n' control code (and use multiline option)
+
+      int lngPos, lngSection = 0, i;
+      string strLine, strCheck;
+      //find the section we are looking for (skip 1st line; it's the filename)
+      for (i = 1; i < Lines.Count; i++) {
+        //skip blanks, and lines starting with a comment
+        strLine = Lines[i].Replace("\t", " ").Trim();
+        if (strLine.Length > 0) {
+          if (strLine[0] != '#') {
+            //look for a bracket
+            if (strLine[0] == '[') {
+              //find end bracket
+              lngPos = strLine.IndexOf("]", 1);
+              if (lngPos >= 0) {
+                strCheck = Mid(strLine, 1, lngPos - 2);
+              } else {
+                strCheck = Right(strLine, strLine.Length - 1);
+              }
+              if (strCheck.Equals(Section, StringComparison.OrdinalIgnoreCase)) {
+                //found it
+                lngSection = i;
+                break;
+              }
+            }
+          }
+        }
+      } 
+      //if not found,
+      if (lngSection == 0) {
+        //nothing to delete
+        return;
+      }
+      //step through all lines in this section, deleting until another section or end of list is found
+      do {  //delete this line
+        Lines.RemoveAt(lngSection);
+
+        //at end?
+        if (lngSection >= Lines.Count) {
+          return;
+        }
+        //or another section found?
+        strLine = Lines[lngSection].Replace('\t', ' ').Trim();
+        if (strLine.Length > 0) {
+          //if another section is found, stop here
+          if (strLine[0] == (char)91) {
+            //nothing to delete
+            return;
+          }
+        }
+      } while (true);
+    }
+    public void DeleteKey(string Section, string Key)
+    {
+      //elements of a settings file:
+      //
+      //  #comments begin with hashtag; all characters on line after hashtag are ignored
+      //  //comments can be added to end of valid section or key/value line
+      //  blank lines are ignored
+      //  [section] sections indicated by square brackets; anything else on the line gets ignored
+      //  key=value  key/value pairs separated by an equal sign; no quotes around values means only
+      //    single word; use quotes for multiword strings
+      //  if string is multline, use '\n' control code (and use multiline option)
+
+      int i;
+      string strLine;
+      int lngSection, lenKey;
+      //find the section we are looking for (skip 1st line; it's the filename)
+      lngSection = FindSettingSection(Section);
+      //if not found,
+      if (lngSection <= 0) {
+        //nothing to delete
+        return;
+      }
+      //step through all lines in this section; find matching key
+      lenKey = Key.Length;
+      for (i = lngSection + 1; i < Lines.Count; i++) {
+        //skip blanks, and lines starting with a comment
+        strLine = Lines[i].Replace("\t", " ").Trim();
+        if (strLine.Length > 0) {
+          if (strLine[0] != '#') { //not a comment
+            //if another section is found, stop here
+            if (strLine[0] == '[') {
+              //nothing to delete
+              return;
+            }
+            //look for key
+            if (Left(strLine, lenKey) == Key) {
+              //found it- delete this line
+              Lines.RemoveAt(i);
+              return;
+            }
+          }
+        }
+      }
+      //not found - nothing to delete
+    }
+    private int FindSettingSection(string Section)
+    {
+      int i, lngPos;
+      string strLine;
+      //find the section we are looking for (skip 1st line; it's the filename)
+      for (i = 1; i <= Lines.Count - 1; i++) {
+        //skip blanks, and lines starting with a comment
+        strLine = Lines[i].Replace("\t", " ").Trim();
+        if (strLine.Length > 0) {
+          if (strLine[0] != '#') {
+            //look for a bracket
+            if (strLine[0] == '[') {
+              //find end bracket
+              lngPos = strLine.IndexOf("]", 1);
+              string strCheck;
+              if (lngPos > 0) {
+                strCheck = Mid(strLine, 1, lngPos - 1);
+              } else {
+                strCheck = Right(strLine, strLine.Length - 1);
+              }
+              if (strCheck.Equals(Section, StringComparison.OrdinalIgnoreCase)) {
+                //found it
+                return i;
+              }
+            }
+          }
+        }
+      }
+      // not found
+      return -1;
     }
   }
 }

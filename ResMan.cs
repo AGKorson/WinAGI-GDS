@@ -671,14 +671,15 @@ namespace WinAGI.Editor
     // GLOBAL VARIABLES
     //***************************************************
     #region
-    public static frmMDIMain MDIMain;
+    public static AGIGame EditGame;
 
+    public static frmMDIMain MDIMain;
     public static string ProgramDir;
     public static string DefaultResDir; //this is the location that the file dialog box uses as the initial directory
     public static string CurGameFile;
     public static AGIResType CurResType;
     public static agiSettings Settings;
-    public static List<string> SettingsList;
+    public static SettingsList GameSettings;
     public static frmPreview PreviewWin;
     public static frmProgress ProgressWin;
     public static StatusStrip MainStatusBar;
@@ -864,13 +865,13 @@ namespace WinAGI.Editor
       int intCount, lngGrp;
       int i;
       //check to see if there are any overrides:
-      intCount = ReadSettingLong(SettingsList, "ResDefOverrides", "Count", 0);
+      intCount = GameSettings.GetSetting("ResDefOverrides", "Count", 0);
       if (intCount == 0) {
         return;
       }
       //ok, get the overrides, and apply them
       for (i = 1; i <= intCount; i++) {
-        strIn = ReadSettingString(SettingsList, "ResDefOverrides", "Override" + i);
+        strIn = GameSettings.GetSetting("ResDefOverrides", "Override" + i, "");
         //split it to get the def value and def name
         //(0)=group
         //(1)=index
@@ -878,8 +879,8 @@ namespace WinAGI.Editor
         strDef = strIn.Split(":");
         if (strDef.Length == 3) {
           //get the new name, if a valid entry
-          if (Val(strDef[1]) < LogicSourceSettings.ResDefByGrp((int)Val(strDef[0])).Length) {
-            LogicSourceSettings.ResDef((int)Val(strDef[0]), (int)Val(strDef[1]), strDef[2]);
+          if (Val(strDef[1]) < EditGame.LogicSourceSettings.ResDefByGrp((int)Val(strDef[0])).Length) {
+            EditGame.LogicSourceSettings.ResDef((int)Val(strDef[0]), (int)Val(strDef[1]), strDef[2]);
           }
         }
       }
@@ -888,7 +889,7 @@ namespace WinAGI.Editor
       //default value
       //we check AFTER all overrides are made just in case a swap is desired- checking in
       //realtime would not allow a swap
-      if (!LogicSourceSettings.ValidateResDefs()) {
+      if (!EditGame.LogicSourceSettings.ValidateResDefs()) {
         //if any were changed, re-write the WinAGI.config file
         SaveResDefOverrides();
       }
@@ -904,22 +905,22 @@ namespace WinAGI.Editor
       //wants to change case of a define (even though it really doesn't matter; compiler is not case sensitive)
 
       //first, delete any previous overrides
-      DeleteSettingSection(SettingsList, "ResDefOverrides");
+      GameSettings.DeleteSection("ResDefOverrides");
       //now step through each type of define value; if name is not the default, then save it
       for (j = 1; j <= 8; j++) {
 
         //checks 27 variables
-        dfTemp = LogicSourceSettings.ResDefByGrp(j);
+        dfTemp = EditGame.LogicSourceSettings.ResDefByGrp(j);
         for (i = 0; i < max[j]; i++) {
           if (dfTemp[i].Default != dfTemp[i].Name) {
             //save it
             intCount++;
-            WriteAppSetting(SettingsList, "ResDefOverrides", "Override" + intCount, j + ":" + i + ":" + dfTemp[i].Name);
+            GameSettings.WriteSetting("ResDefOverrides", "Override" + intCount, j + ":" + i + ":" + dfTemp[i].Name);
           }
         }
       }
       //write the count value
-      WriteAppSetting(SettingsList, "ResDefOverrides", "Count", intCount.ToString());
+      GameSettings.WriteSetting("ResDefOverrides", "Count", intCount.ToString());
     }
     public static void InitializeResMan()
     {
@@ -964,7 +965,7 @@ namespace WinAGI.Editor
       //set default color values by copying
       //from WinAGI game object
       for (i = 0; i < 16; i++) {
-        DefEGAColor[i] = EGAColor[i];
+        DefEGAColor[i] = EditGame.EGAColor[i];
       }
       // initialize settings arrays
       Settings.HBold = new bool[5];
@@ -1101,9 +1102,9 @@ namespace WinAGI.Editor
 
       //add global color table
       for (i = 0; i < 16; i++) {
-        bytData[13 + 3 * i] = EGAColor[i].B;
-        bytData[14 + 3 * i] = EGAColor[i].G;
-        bytData[15 + 3 * i] = EGAColor[i].R;
+        bytData[13 + 3 * i] = EditGame.EGAColor[i].B;
+        bytData[14 + 3 * i] = EditGame.EGAColor[i].G;
+        bytData[15 + 3 * i] = EditGame.EGAColor[i].R;
       }
       //if cycling, add netscape extension to allow continuous looping
       if (GifOps.Cycle) {
@@ -1348,13 +1349,13 @@ namespace WinAGI.Editor
       //setup ProgressWin form
       ProgressWin = new frmProgress();
       ProgressWin.Text = "Exporting All Picture Images";
-      ProgressWin.pgbStatus.Maximum = Pictures.Count;
+      ProgressWin.pgbStatus.Maximum = EditGame.Pictures.Count;
       ProgressWin.pgbStatus.Value = 0;
       ProgressWin.lblProgress.Text = "Exporting...";
       ProgressWin.Show();
       ProgressWin.Refresh();
 
-      foreach (AGIPicture ThisPic in Pictures) {
+      foreach (AGIPicture ThisPic in EditGame.Pictures) {
         ProgressWin.lblProgress.Text = "Exporting " + ThisPic.ID + " Image...";
         ProgressWin.pgbStatus.Value++;
         ProgressWin.Refresh();
@@ -1364,7 +1365,7 @@ namespace WinAGI.Editor
         if (!blnLoaded) {
           ThisPic.Load();
         }
-        ExportImg(ThisPic, ResDir + ThisPic.ID + strExt, lngFormat, lngMode, lngZoom);
+        ExportImg(ThisPic, EditGame.ResDir + ThisPic.ID + strExt, lngFormat, lngMode, lngZoom);
         if (!blnLoaded) {
           ThisPic.Unload();
         }
@@ -1571,27 +1572,27 @@ namespace WinAGI.Editor
         // open the game in this directory
         if (OpenGame(1, ThisGameDir)) {
           // if not loaded,
-          if (!GameLoaded) {
+          if (!EditGame.GameLoaded) {
             // user canceled close of currently open game, or
             //must have encountered error;
             return;
           }
 
           //set default directory
-          BrowserStartDir = GameDir;
+          BrowserStartDir = EditGame.GameDir;
 
           //set default text file directory to game source file directory
-          DefaultResDir = GameDir + ResDirName + "\\";
+          DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
 
           //did the resource directory change? (is this even possible?)
           //YES it is; if only one dir exists, and it has a different name,
           //it's assumed to be the resource directory
-          strMsg = "Game file '" + GameID + ".wag'  has been created." + Environment.NewLine + Environment.NewLine;
-          if (ResDirName != DefResDir) {
-            strMsg = strMsg + "The existing subdirectory '" + ResDirName + "' will be used ";
+          strMsg = "Game file '" + EditGame.GameID + ".wag'  has been created." + Environment.NewLine + Environment.NewLine;
+          if (EditGame.ResDirName != DefResDir) {
+            strMsg = strMsg + "The existing subdirectory '" + EditGame.ResDirName + "' will be used ";
           }
           else {
-            strMsg = strMsg + "The subdirectory '" + ResDirName + "' has been created ";
+            strMsg = strMsg + "The subdirectory '" + EditGame.ResDirName + "' has been created ";
           }
           strMsg = strMsg + "to store logic " +
           "source files and exported resources. You can change the " +
@@ -1602,7 +1603,7 @@ namespace WinAGI.Editor
 
           //does the game have an Amiga OBJECT file?
           //very rare, but we check for it anyway
-          if (InvObjects.AmigaOBJ) {
+          if (EditGame.InvObjects.AmigaOBJ) {
             MessageBox.Show("The OBJECT file for this game is formatted" + Environment.NewLine +
                    "for the Amiga." + Environment.NewLine + Environment.NewLine +
                    "If you intend to run this game on a DOS " + Environment.NewLine +
@@ -1625,7 +1626,7 @@ namespace WinAGI.Editor
       int lngErr;
 
       //if a game is currently open,
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
         //close game, if user allows
         if (!CloseThisGame()) {
           return false;
@@ -1648,10 +1649,10 @@ namespace WinAGI.Editor
       try {
         //and load the game/dir
         if (mode == 0) {
-          OpenGameWAG(gameSource);
+          EditGame.OpenGameWAG(gameSource);
         }
         else {
-          OpenGameDIR(gameSource);
+          EditGame.OpenGameDIR(gameSource);
         }
         blnLoaded = true;
       }
@@ -1715,7 +1716,7 @@ namespace WinAGI.Editor
       if (blnLoaded) {
         ProgressWin.lblProgress.Text = "Game " + (mode == 0 ? "loaded" : "imported") + " successfully, setting up editors";
         ProgressWin.Refresh();
-        MDIMain.Text = "WinAGI GDS - " + GameID;
+        MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
         //build resource list
         BuildResourceTree();
         // show it, if needed
@@ -1745,13 +1746,13 @@ namespace WinAGI.Editor
           PreviewWin.Show();
         }
         //set default directory
-        BrowserStartDir = GameDir;
+        BrowserStartDir = EditGame.GameDir;
         //add wag file to mru
-        AddToMRU(GameFile);
+        AddToMRU(EditGame.GameFile);
         //store game file name
-        CurGameFile = GameFile;
+        CurGameFile = EditGame.GameFile;
         //set default text file directory to game source file directory
-        DefaultResDir = GameDir + ResDirName + "\\";
+        DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
         // after a game loads, colors may be different
         //done with ProgressWin form
         ProgressWin.Close();
@@ -1764,10 +1765,10 @@ namespace WinAGI.Editor
         BuildIDefLookup();
         BuildGDefLookup();
         //update the reserved lookup values
-        RDefLookup[90].Value = QUOTECHAR + GameVersion + QUOTECHAR;
-        RDefLookup[91].Value = QUOTECHAR + GameAbout + QUOTECHAR;
-        RDefLookup[92].Value = QUOTECHAR + GameID + QUOTECHAR;
-        RDefLookup[93].Value = (InvObjects.Count - 1).ToString();
+        RDefLookup[90].Value = QUOTECHAR + EditGame.GameVersion + QUOTECHAR;
+        RDefLookup[91].Value = QUOTECHAR + EditGame.GameAbout + QUOTECHAR;
+        RDefLookup[92].Value = QUOTECHAR + EditGame.GameID + QUOTECHAR;
+        RDefLookup[93].Value = (EditGame.InvObjects.Count - 1).ToString();
       }
       else {
         //done with ProgressWin form
@@ -1780,9 +1781,9 @@ namespace WinAGI.Editor
       //clear status bar
       MainStatusBar.Items[1].Text = "";
 
-      paGame.Author = GameAuthor;
-      paGame.GameID = GameID;
-      paGame.GameDir = GameDir;
+      paGame.Author = EditGame.GameAuthor;
+      paGame.GameID = EditGame.GameID;
+      paGame.GameDir = EditGame.GameDir;
 
       return blnLoaded;
     }
@@ -1794,7 +1795,7 @@ namespace WinAGI.Editor
       string strError, strErrSrc;
       int lngError;
       //if no game is open
-      if (!GameLoaded) {
+      if (!EditGame.GameLoaded) {
         //just return success
         return true;
       }
@@ -1910,7 +1911,7 @@ namespace WinAGI.Editor
       // should now be unloaded, but just in case...
 
       //unload all resources
-      foreach (AGILogic tmpLog in Logics) {
+      foreach (AGILogic tmpLog in EditGame.Logics) {
         if (tmpLog.Loaded) {
           //Debug.Print tmpLog.ID
           //if dirty
@@ -1929,7 +1930,7 @@ namespace WinAGI.Editor
           tmpLog.Unload();
         }
       }
-      foreach (AGIPicture tmpPic in Pictures) {
+      foreach (AGIPicture tmpPic in EditGame.Pictures) {
         //Debug.Assert !tmpPic.Loaded
         if (tmpPic.Loaded) {
           //if dirty
@@ -1948,7 +1949,7 @@ namespace WinAGI.Editor
           tmpPic.Unload();
         }
       }
-      foreach (AGISound tmpSnd in Sounds) {
+      foreach (AGISound tmpSnd in EditGame.Sounds) {
         //Debug.Assert !tmpSnd.Loaded
         if (tmpSnd.Loaded) {
           //if dirty
@@ -1967,7 +1968,7 @@ namespace WinAGI.Editor
           tmpSnd.Unload();
         }
       }
-      foreach (AGIView tmpView in Views) {
+      foreach (AGIView tmpView in EditGame.Views) {
         //Debug.Assert !tmpView.Loaded
         if (tmpView.Loaded) {
           //if dirty
@@ -1998,12 +1999,12 @@ namespace WinAGI.Editor
         PreviewWin.Visible = false;
       }
       //now close the game
-      CloseGame();
+      EditGame.CloseGame();
       //colors get restored to AGI default when a game closes
       //change them to match preferred defaults
       GetDefaultColors();
       // restore default resdef
-      LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
+      EditGame.LogicSourceSettings.UseReservedNames = Settings.DefUseResDef;
       //update caption
       MDIMain.Text = "WinAGI GDS";
       //reset node marker so selection of resources
@@ -2025,18 +2026,18 @@ namespace WinAGI.Editor
         return;
       case 1: // treeview list
         //if a game id was passed
-        if (GameID.Length != 0) {
+        if (EditGame.GameID.Length != 0) {
           //update root
-          MDIMain.tvwResources.Nodes[0].Text = GameID;
+          MDIMain.tvwResources.Nodes[0].Text = EditGame.GameID;
           //add logics
-          if (Logics.Count > 0) {
+          if (EditGame.Logics.Count > 0) {
             for (i = 0; i <= 255; i++) {
               //if a valid resource
-              if (Logics.Exists((byte)i)) {
-                tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sLOGICS].Nodes.Add("l" + i, ResourceName(Logics[(byte)i], true));
+              if (EditGame.Logics.Exists((byte)i)) {
+                tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sLOGICS].Nodes.Add("l" + i, ResourceName(EditGame.Logics[(byte)i], true));
                 tmpNode.Tag = i;
                 //load source to set compiled status
-                if (Logics[(byte)i].Compiled) {
+                if (EditGame.Logics[(byte)i].Compiled) {
                   tmpNode.ForeColor = Color.Black;
                 }
                 else {
@@ -2045,27 +2046,27 @@ namespace WinAGI.Editor
               }
             }
           }
-          if (Pictures.Count > 0) {
+          if (EditGame.Pictures.Count > 0) {
             for (i = 0; i <= 255; i++) {
               //if a valid resource
-              if (Pictures.Exists((byte)i)) {
-                MDIMain.tvwResources.Nodes[0].Nodes[sPICTURES].Nodes.Add("p" + i, ResourceName(Pictures[(byte)i], true)).Tag = i;
+              if (EditGame.Pictures.Exists((byte)i)) {
+                MDIMain.tvwResources.Nodes[0].Nodes[sPICTURES].Nodes.Add("p" + i, ResourceName(EditGame.Pictures[(byte)i], true)).Tag = i;
               }
             }
           }
-          if (Sounds.Count > 0) {
+          if (EditGame.Sounds.Count > 0) {
             for (i = 0; i <= 255; i++) {
               //if a valid resource
-              if (Sounds.Exists((byte)i)) {
-                MDIMain.tvwResources.Nodes[0].Nodes[sSOUNDS].Nodes.Add("s" + i, ResourceName(Sounds[(byte)i], true)).Tag = i;
+              if (EditGame.Sounds.Exists((byte)i)) {
+                MDIMain.tvwResources.Nodes[0].Nodes[sSOUNDS].Nodes.Add("s" + i, ResourceName(EditGame.Sounds[(byte)i], true)).Tag = i;
               }
             }
           }
-          if (Views.Count > 0) {
+          if (EditGame.Views.Count > 0) {
             for (i = 0; i <= 255; i++) {
               //if a valid resource
-              if (Views.Exists((byte)i)) {
-                MDIMain.tvwResources.Nodes[0].Nodes[sVIEWS].Nodes.Add("v" + i, ResourceName(Views[(byte)i], true)).Tag = i;
+              if (EditGame.Views.Exists((byte)i)) {
+                MDIMain.tvwResources.Nodes[0].Nodes[sVIEWS].Nodes.Add("v" + i, ResourceName(EditGame.Views[(byte)i], true)).Tag = i;
               }
             }
           }
@@ -2073,7 +2074,7 @@ namespace WinAGI.Editor
         break;
       case 2: //combo/list boxes
               //update root
-        MDIMain.cmbResType.Items[0] = GameID;
+        MDIMain.cmbResType.Items[0] = EditGame.GameID;
         //select root
         MDIMain.cmbResType.SelectedIndex = 0;
         break;
@@ -2091,42 +2092,42 @@ namespace WinAGI.Editor
       // step through each type of define value, add it to list
 
       //27 variables
-      tmpDef = LogicSourceSettings.ResDefByGrp(1);
+      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(1);
       for (i = 0; i < 27; i++) {
         RDefLookup[i] = tmpDef[i];
       }
       //18 flags
-      tmpDef = LogicSourceSettings.ResDefByGrp(2);
+      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(2);
       for (i = 0; i < 18; i++) {
         RDefLookup[i + 27] = tmpDef[i];
       }
       //5 edge codes
-      tmpDef = LogicSourceSettings.ResDefByGrp(3);
+      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(3);
       for (i = 0; i < 5; i++) {
         RDefLookup[i + 45] = tmpDef[i];
       }
       //9 directions
-      tmpDef = LogicSourceSettings.ResDefByGrp(4);
+      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(4);
       for (i = 0; i < 9; i++) {
         RDefLookup[i + 50] = tmpDef[i];
       }
       //5 video modes
-      tmpDef = LogicSourceSettings.ResDefByGrp(5);
+      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(5);
       for (i = 0; i < 5; i++) {
         RDefLookup[i + 59] = tmpDef[i];
       }
       //9 computer types
-      tmpDef = LogicSourceSettings.ResDefByGrp(6);
+      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(6);
       for (i = 0; i < 9; i++) {
         RDefLookup[i + 64] = tmpDef[i];
       }
       //16 colors
-      tmpDef = LogicSourceSettings.ResDefByGrp(7);
+      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(7);
       for (i = 0; i < 16; i++) {
         RDefLookup[i + 73] = tmpDef[i];
       }
       //6 others
-      tmpDef = LogicSourceSettings.ResDefByGrp(8);
+      tmpDef = EditGame.LogicSourceSettings.ResDefByGrp(8);
       for (i = 0; i < 6; i++) {
         RDefLookup[i + 89] = tmpDef[i];
       }
@@ -2140,44 +2141,23 @@ namespace WinAGI.Editor
     public static void BuildSnippets()
     {
       //loads snippet file, and creates array of snippets
-      string strFileName;
-      string strLine;
-      List<string> SnipList = new List<string>();
+      SettingsList SnipList = new SettingsList(ProgramDir + "snippets.txt");
       int lngCount;
       int i, lngAdded;
 
       //open the snippet file
-      strFileName = ProgramDir + "snippets.txt";
-      if (!File.Exists(strFileName)) {
-        //no snippets
+      SnipList.Open(false);
+      // if nothing returned (meaning file was empty)
+      if (SnipList.Lines.Count == 0) {
         return;
       }
-      try {
-        using FileStream fsSnip = new FileStream(strFileName, FileMode.Open);
-        using StreamReader srSnip = new StreamReader(fsSnip);
-        //get all the text
-        //assign to stringlist
-        while (!srSnip.EndOfStream) {
-          SnipList.Add(srSnip.ReadLine());
-        }
-        //done with the file
-        fsSnip.Dispose();
-      }
-      catch (Exception) {
-        //assume no snippets, if error encountered
-        return;
-      }
-      //insert line where filename is stored
-      SnipList.Insert(0, "");
-
       // get count
-      lngCount = ReadSettingLong(SnipList, "General", "Count", 0);
+      lngCount = SnipList.GetSetting("General", "Count", 0);
       //if none
       if (lngCount <= 0) {
         //no Snippets
         return;
       }
-
       //create snippet array
       CodeSnippets = new TDefine[lngCount];
       //retrieve each snippet (no error checking is done
@@ -2188,9 +2168,9 @@ namespace WinAGI.Editor
       lngAdded = 0;
       for (i = 0; i < lngCount; i++) {
         //name
-        CodeSnippets[lngAdded].Name = ReadSettingString(SnipList, "Snippet" + (lngAdded + 1), "Name", "");
+        CodeSnippets[lngAdded].Name = SnipList.GetSetting("Snippet" + (lngAdded + 1), "Name", "");
         //value
-        CodeSnippets[lngAdded].Value = ReadSettingString(SnipList, "Snippet" + (lngAdded + 1), "Value", "");
+        CodeSnippets[lngAdded].Value = SnipList.GetSetting("Snippet" + (lngAdded + 1), "Value", "");
 
         //if name and value are non-null
         if (CodeSnippets[lngAdded].Name.Length > 0 && CodeSnippets[lngAdded].Value.Length > 0) {
@@ -2246,7 +2226,7 @@ namespace WinAGI.Editor
       //attempt to open this game
       if (OpenGame(0, strMRU[Index])) {
         //if not successful
-        if (!GameLoaded) {
+        if (!EditGame.GameLoaded) {
           //step through previous mru entries
           for (i = Index + 1; i < 4; i++) {
             //move this mru entry up
@@ -2283,9 +2263,7 @@ namespace WinAGI.Editor
       //it is moved to the top;
       //otherwise, it is added to the top, and other
       //entries are moved down
-
       int i, j;
-
       for (i = 0; i < 4; i++) {
         if (NewWAGFile == strMRU[i]) {
           // if already at the top
@@ -2352,10 +2330,10 @@ namespace WinAGI.Editor
       //because they never change
 
       //logics first
-      last = Logics.Max;
+      last = EditGame.Logics.Max;
       for (i = 0; i <= last; i++) {
-        if (Logics.Exists((byte)i)) {
-          tmpDef.Name = Logics[(byte)i].ID;
+        if (EditGame.Logics.Exists((byte)i)) {
+          tmpDef.Name = EditGame.Logics[(byte)i].ID;
           tmpDef.Type = atNum;
           tmpDef.Value = i.ToString();
           IDefLookup[i] = tmpDef;
@@ -2371,10 +2349,10 @@ namespace WinAGI.Editor
       }
 
       //views next
-      last = Views.Max;
+      last = EditGame.Views.Max;
       for (i = 0; i <= last; i++) {
-        if (Views.Exists((byte)i)) {
-          tmpDef.Name = Views[(byte)i].ID;
+        if (EditGame.Views.Exists((byte)i)) {
+          tmpDef.Name = EditGame.Views[(byte)i].ID;
           tmpDef.Type = atNum;
           tmpDef.Value = i.ToString();
           IDefLookup[i + 256] = tmpDef;
@@ -2389,10 +2367,10 @@ namespace WinAGI.Editor
         IDefLookup[i + 256] = tmpBlank;
       }
       //then sounds next
-      last = Sounds.Max;
+      last = EditGame.Sounds.Max;
       for (i = 0; i <= last; i++) {
-        if (Sounds.Exists((byte)i)) {
-          tmpDef.Name = Sounds[(byte)i].ID;
+        if (EditGame.Sounds.Exists((byte)i)) {
+          tmpDef.Name = EditGame.Sounds[(byte)i].ID;
           tmpDef.Type = atNum;
           tmpDef.Value = i.ToString();
           IDefLookup[i + 512] = tmpDef;
@@ -2407,10 +2385,10 @@ namespace WinAGI.Editor
         IDefLookup[i + 512] = tmpBlank;
       }
       //pictures last (least likely to be used in a logic by ID)
-      last = Pictures.Max;
+      last = EditGame.Pictures.Max;
       for (i = 0; i <= last; i++) {
-        if (Pictures.Exists((byte)i)) {
-          tmpDef.Name = Pictures[(byte)i].ID;
+        if (EditGame.Pictures.Exists((byte)i)) {
+          tmpDef.Name = EditGame.Pictures[(byte)i].ID;
           tmpDef.Type = atNum;
           tmpDef.Value = i.ToString();
           IDefLookup[i + 768] = tmpDef;
@@ -2448,7 +2426,7 @@ namespace WinAGI.Editor
       //clear the lookup list
       GDefLookup = Array.Empty<TDefine>();
       try {
-        strFileName = GameDir + "globals.txt";
+        strFileName = EditGame.GameDir + "globals.txt";
         // if no global file, just exit
         if (!File.Exists(strFileName)) {
           return;
@@ -2751,7 +2729,7 @@ namespace WinAGI.Editor
             }
 
             //update settings list
-            WriteAppSetting SettingsList, sLOGICS, "SaveOnComp", Settings.SaveOnCompile
+            WriteSetting GameSettings, sLOGICS, "SaveOnComp", Settings.SaveOnCompile
 
           } else {
             //if on automatic, always say yes
@@ -4135,7 +4113,7 @@ namespace WinAGI.Editor
       }
 
       //update settings list
-      WriteAppSetting SettingsList, sLOGICS, "CompOnRun", Settings.CompileOnRun
+      WriteSetting GameSettings, sLOGICS, "CompOnRun", Settings.CompileOnRun
     }
 
     case 1  //no
@@ -6579,7 +6557,7 @@ namespace WinAGI.Editor
         MDIMain.SaveDlg.DialogTitle = "Save Picture As"
       }
       MDIMain.SaveDlg.Filter = "WinAGI Picture Files (*.agp)|*.agp|All files (*.*)|*.*"
-      MDIMain.SaveDlg.FilterIndex = ReadSettingLong(SettingsList, sPICTURES, sEXPFILTER, 1)
+      MDIMain.SaveDlg.FilterIndex = GameSettings.GetSetting(sPICTURES, sEXPFILTER, 1)
       switch (MDIMain.SaveDlg.FilterIndex) {
       case 1
         MDIMain.SaveDlg.DefaultExt = "agp"
@@ -6611,7 +6589,7 @@ namespace WinAGI.Editor
       }
       On Error GoTo ErrHandler
       //save filterindex
-      WriteAppSetting SettingsList, sPICTURES, sEXPFILTER, MDIMain.SaveDlg.FilterIndex
+      WriteSetting GameSettings, sPICTURES, sEXPFILTER, MDIMain.SaveDlg.FilterIndex
       //get filename
       strFileName = MDIMain.SaveDlg.FullName
 
@@ -6703,7 +6681,7 @@ namespace WinAGI.Editor
 
     //set filter index (if it's the script option, change it to
     //default ags for non-PC/PCjr sounds
-    lngFilter = ReadSettingLong(SettingsList, sSOUNDS, sEXPFILTER, 1)
+    lngFilter = GameSettings.GetSetting(sSOUNDS, sEXPFILTER, 1)
     switch (sFmt
     case 2, 3 //non-PC/PCjr
      if (lngFilter = 4) {
@@ -6746,7 +6724,7 @@ namespace WinAGI.Editor
     On Error GoTo ErrHandler
 
     //save default filter index
-    WriteAppSetting SettingsList, sSOUNDS, sEXPFILTER, MDIMain.SaveDlg.FilterIndex
+    WriteSetting GameSettings, sSOUNDS, sEXPFILTER, MDIMain.SaveDlg.FilterIndex
 
     //get filename
     strFileName = MDIMain.SaveDlg.FullName
@@ -6832,7 +6810,7 @@ namespace WinAGI.Editor
       MDIMain.SaveDlg.DialogTitle = "Save View As"
     }
     MDIMain.SaveDlg.Filter = "WinAGI View Files (*.agv)|*.agv|All files (*.*)|*.*"
-    MDIMain.SaveDlg.FilterIndex = ReadSettingLong(SettingsList, sVIEWS, sEXPFILTER, 1)
+    MDIMain.SaveDlg.FilterIndex = GameSettings.GetSetting(sVIEWS, sEXPFILTER, 1)
     if (MDIMain.SaveDlg.FilterIndex = 1) {
       MDIMain.SaveDlg.DefaultExt = "agv"
     }
@@ -6864,7 +6842,7 @@ namespace WinAGI.Editor
     On Error GoTo ErrHandler
 
     //save default filter index
-    WriteAppSetting SettingsList, sVIEWS, sEXPFILTER, MDIMain.SaveDlg.FilterIndex
+    WriteSetting GameSettings, sVIEWS, sEXPFILTER, MDIMain.SaveDlg.FilterIndex
     //get filename
     strFileName = MDIMain.SaveDlg.FullName
 
@@ -7086,7 +7064,7 @@ namespace WinAGI.Editor
       OpenDlg.DialogTitle = "Open Global Defines File"
       OpenDlg.DefaultExt = "txt"
       OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"
-      OpenDlg.FilterIndex = ReadSettingLong(SettingsList, "Globals", sOPENFILTER, 1)
+      OpenDlg.FilterIndex = GameSettings.GetSetting("Globals", sOPENFILTER, 1)
       OpenDlg.FileName = ""
       OpenDlg.InitDir = DefaultResDir
 
@@ -7095,7 +7073,7 @@ namespace WinAGI.Editor
       strFileName = OpenDlg.FileName
 
       //save filter
-      WriteAppSetting SettingsList, "Globals", sOPENFILTER, .FilterIndex
+      WriteSetting GameSettings, "Globals", sOPENFILTER, .FilterIndex
 
       DefaultResDir = JustPath(OpenDlg.FileName)
 
@@ -9246,7 +9224,7 @@ namespace WinAGI.Editor
       Settings.NotifyCompSuccess = !blnDontNotify
       //if hiding, update settings file
      if (!Settings.NotifyCompSuccess) {
-        WriteAppSetting SettingsList, sGENERAL, "NotifyCompSuccess", Settings.NotifyCompSuccess
+        WriteSetting GameSettings, sGENERAL, "NotifyCompSuccess", Settings.NotifyCompSuccess
       }
     }
     //return true
@@ -9277,7 +9255,7 @@ namespace WinAGI.Editor
       Settings.NotifyCompFail = !blnDontNotify
       //if now hiding update settings file
      if (!Settings.NotifyCompFail) {
-        WriteAppSetting SettingsList, sGENERAL, "NotifyCompFail", Settings.NotifyCompFail
+        WriteSetting GameSettings, sGENERAL, "NotifyCompFail", Settings.NotifyCompFail
       }
     }
 
@@ -9413,7 +9391,7 @@ namespace WinAGI.Editor
     //set cmndlg properties for logic source file
     .DialogTitle = "Export Logic File"
     .Filter = "Logic Files (*.agl)|*.agl|All files (*.*)|*.*"
-    .FilterIndex = ReadSettingLong(SettingsList, sLOGICS, sEXPFILTER, 1)
+    .FilterIndex = GameSettings.GetSetting(sLOGICS, sEXPFILTER, 1)
     //set default name
     .DefaultExt = "agl"
     .FullName = ResDir + Logics(LogicNumber).ID + ".agl"
@@ -9788,14 +9766,14 @@ namespace WinAGI.Editor
       .DialogTitle = "Import Words File"
       .Filter = "AGI Word file|WORDS.TOK|WinAGI Words file (*.agw)|*.agw|All files (*.*)|*.*"
       .DefaultExt = ""
-      .FilterIndex = ReadSettingLong(SettingsList, "Words", sOPENFILTER, 1)
+      .FilterIndex = GameSettings.GetSetting("Words", sOPENFILTER, 1)
       .FileName = ""
       .InitDir = DefaultResDir
 
       .ShowOpen
       strFileName = .FileName
       //save filter
-      WriteAppSetting SettingsList, "Words", sOPENFILTER, .FilterIndex
+      WriteSetting GameSettings, "Words", sOPENFILTER, .FilterIndex
       DefaultResDir = JustPath(.FileName)
 
     End With
@@ -9883,7 +9861,7 @@ namespace WinAGI.Editor
       .DialogTitle = "Import Object File"
       .Filter = "WinAGI Objects file (*.ago)|*.ago|AGI OBJECT file|OBJECT|All files (*.*)|*.*"
       .DefaultExt = ""
-      .FilterIndex = ReadSettingLong(SettingsList, "Objects", sOPENFILTER, 2)
+      .FilterIndex = GameSettings.GetSetting("Objects", sOPENFILTER, 2)
       .FileName = ""
       .InitDir = DefaultResDir
 
@@ -9892,7 +9870,7 @@ namespace WinAGI.Editor
       strFileName = .FileName
 
       //save filter
-      WriteAppSetting SettingsList, "Objects", sOPENFILTER, .FilterIndex
+      WriteSetting GameSettings, "Objects", sOPENFILTER, .FilterIndex
       DefaultResDir = JustPath(.FileName)
 
     End With
@@ -11397,9 +11375,9 @@ namespace WinAGI.Editor
           //update the node for this resource
           switch (ResType) {
           case rtLogic:
-            HdrNode[0].Nodes["l" + ResNum.ToString()].Text = ResourceName(Logics[ResNum], true);
+            HdrNode[0].Nodes["l" + ResNum.ToString()].Text = ResourceName(EditGame.Logics[ResNum], true);
             //also set compiled status
-            if (!Logics[ResNum].Compiled) {
+            if (!EditGame.Logics[ResNum].Compiled) {
               HdrNode[0].Nodes["l" + ResNum.ToString()].ForeColor = Color.Red;
             }
             else {
@@ -11407,13 +11385,13 @@ namespace WinAGI.Editor
             }
             break;
           case rtPicture:
-            HdrNode[1].Nodes["p" + ResNum.ToString()].Text = ResourceName(Pictures[ResNum], true);
+            HdrNode[1].Nodes["p" + ResNum.ToString()].Text = ResourceName(EditGame.Pictures[ResNum], true);
             break;
           case rtSound:
-            HdrNode[2].Nodes["s" + ResNum.ToString()].Text = ResourceName(Sounds[ResNum], true);
+            HdrNode[2].Nodes["s" + ResNum.ToString()].Text = ResourceName(EditGame.Sounds[ResNum], true);
             break;
           case rtView:
-            HdrNode[3].Nodes["v" + ResNum.ToString()].Text = ResourceName(Views[ResNum], true);
+            HdrNode[3].Nodes["v" + ResNum.ToString()].Text = ResourceName(EditGame.Views[ResNum], true);
             break;
           }
         }
@@ -11428,9 +11406,9 @@ namespace WinAGI.Editor
             switch (ResType) {
             case rtLogic:
               ListViewItem tmpItem = MDIMain.lstResources.Items["l" + ResNum.ToString()];
-              tmpItem.Text = ResourceName(Logics[ResNum], true);
+              tmpItem.Text = ResourceName(EditGame.Logics[ResNum], true);
               //also set compiled status
-              if (!Logics[ResNum].Compiled) {
+              if (!EditGame.Logics[ResNum].Compiled) {
                 tmpItem.ForeColor = Color.Red;
               }
               else {
@@ -11438,13 +11416,13 @@ namespace WinAGI.Editor
               }
               break;
             case rtPicture:
-              MDIMain.lstResources.Items["p" + ResNum.ToString()].Text = ResourceName(Pictures[ResNum], true);
+              MDIMain.lstResources.Items["p" + ResNum.ToString()].Text = ResourceName(EditGame.Pictures[ResNum], true);
               break;
             case rtSound:
-              MDIMain.lstResources.Items["s" + ResNum.ToString()].Text = ResourceName(Sounds[ResNum], true);
+              MDIMain.lstResources.Items["s" + ResNum.ToString()].Text = ResourceName(EditGame.Sounds[ResNum], true);
               break;
             case rtView:
-              MDIMain.lstResources.Items["v" + ResNum.ToString()].Text = ResourceName(Views[ResNum], true);
+              MDIMain.lstResources.Items["v" + ResNum.ToString()].Text = ResourceName(EditGame.Views[ResNum], true);
               break;
             }
             // //expand column width if necessary
@@ -11481,10 +11459,10 @@ namespace WinAGI.Editor
       switch (ResType) {
       case rtLogic:
         //if a file with this name already exists
-        if (File.Exists(ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt)) {
+        if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt)) {
           //import existing, or overwrite it?
-          rtn = MessageBox.Show("There is already a source file with the name '" + Logics[ResNum].ID +
-                LogicSourceSettings.SourceExt + "' in your source file directory." + Environment.NewLine + Environment.NewLine +
+          rtn = MessageBox.Show("There is already a source file with the name '" + EditGame.Logics[ResNum].ID +
+                EditGame.LogicSourceSettings.SourceExt + "' in your source file directory." + Environment.NewLine + Environment.NewLine +
                 "Do you want to import that file? Choose 'NO' to replace that file with the current logic source.",
                 "Import Existing Source File?", MessageBoxButtons.YesNo);
         }
@@ -11495,9 +11473,9 @@ namespace WinAGI.Editor
 
         if (rtn == DialogResult.Yes) {
           //keep old file with new name as new name; basically import it by reloading, if currently loaded
-          if (Logics[ResNum].Loaded) {
-            Logics[ResNum].Unload();
-            Logics[ResNum].Load();
+          if (EditGame.Logics[ResNum].Loaded) {
+            EditGame.Logics[ResNum].Unload();
+            EditGame.Logics[ResNum].Load();
           }
 
           //now update preview window, if previewing
@@ -11511,19 +11489,19 @@ namespace WinAGI.Editor
           //if there is a file with the new ResID, rename it first
           try {
             //delete existing .OLD file (if there is one)
-            if (File.Exists(ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt + ".OLD")) {
+            if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt + ".OLD")) {
               {
-                File.Delete(ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt + ".OLD");
+                File.Delete(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt + ".OLD");
               }
               //rename old file with new ResID as .OLD
-              File.Move(ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt, ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt + ".OLD");
+              File.Move(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt, EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt + ".OLD");
               //then, if there is a file with the previous ID
               //save it with the new ID
               if (File.Exists(OldFileName)) {
-                File.Move(OldFileName, ResDir + Logics[ResNum].ID + LogicSourceSettings.SourceExt);
+                File.Move(OldFileName, EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.LogicSourceSettings.SourceExt);
               }
               else {
-                Logics[ResNum].SaveSource();
+                EditGame.Logics[ResNum].SaveSource();
               }
             }
           }
@@ -11542,21 +11520,21 @@ namespace WinAGI.Editor
         if (Settings.AutoExport) {
           try {
             //if a file with this name already exists
-            if (File.Exists(ResDir + Pictures[ResNum].ID + ".agp")) {
+            if (File.Exists(EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp")) {
               // rename it, (remove existing old file first)
-              if (File.Exists(ResDir + Pictures[ResNum].ID + ".agp" + ".OLD")) {
-                File.Delete(ResDir + Pictures[ResNum].ID + ".agp" + ".OLD");
+              if (File.Exists(EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp" + ".OLD")) {
+                File.Delete(EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp" + ".OLD");
               }
-              File.Move(ResDir + Pictures[ResNum].ID + ".agp", ResDir + Pictures[ResNum].ID + ".agp" + ".OLD");
+              File.Move(EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp", EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp" + ".OLD");
             }
 
             if (File.Exists(OldFileName)) {
               //rename resource file, if it exists
-              File.Move(OldFileName, ResDir + Pictures[ResNum].ID + ".agp");
+              File.Move(OldFileName, EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp");
             }
             else {
               //save it
-              Pictures[ResNum].Export(ResDir + Pictures[ResNum].ID + ".agp");
+              EditGame.Pictures[ResNum].Export(EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp");
             }
           }
           catch (Exception) {
@@ -11569,20 +11547,20 @@ namespace WinAGI.Editor
         if (Settings.AutoExport) {
           try {
             //if a file with this name already exists
-            if (File.Exists(ResDir + Sounds[ResNum].ID + ".ags")) {
+            if (File.Exists(EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags")) {
               // rename it, (remove existing old file first)
-              if (File.Exists(ResDir + Sounds[ResNum].ID + ".ags" + ".OLD")) {
-                File.Delete(ResDir + Sounds[ResNum].ID + ".ags" + ".OLD");
+              if (File.Exists(EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags" + ".OLD")) {
+                File.Delete(EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags" + ".OLD");
               }
-              File.Move(ResDir + Sounds[ResNum].ID + ".ags", ResDir + Sounds[ResNum].ID + ".ags" + ".OLD");
+              File.Move(EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags", EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags" + ".OLD");
             }
 
             if (File.Exists(OldFileName)) {
               //rename resource file, if it exists
-              File.Move(OldFileName, ResDir + Sounds[ResNum].ID + ".ags");
+              File.Move(OldFileName, EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags");
             }
             else {
-              Sounds[ResNum].Export(ResDir + Sounds[ResNum].ID + ".ags");
+              EditGame.Sounds[ResNum].Export(EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags");
             }
           }
           catch (Exception) {
@@ -11595,21 +11573,21 @@ namespace WinAGI.Editor
         if (Settings.AutoExport) {
           try {
             //if a file with this name already exists
-            if (File.Exists(ResDir + Views[ResNum].ID + ".agv")) {
+            if (File.Exists(EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv")) {
               // rename it, (remove existing old file first)
-              if (File.Exists(ResDir + Views[ResNum].ID + ".agv" + ".OLD")) {
-                File.Delete(ResDir + Views[ResNum].ID + ".agv" + ".OLD");
+              if (File.Exists(EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv" + ".OLD")) {
+                File.Delete(EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv" + ".OLD");
               }
-              File.Move(ResDir + Views[ResNum].ID + ".agv", ResDir + Views[ResNum].ID + ".agv" + ".OLD");
+              File.Move(EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv", EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv" + ".OLD");
             }
 
             //check to see if old file exists
             if (File.Exists(OldFileName)) {
               //rename resource file, if it exists
-              File.Move(OldFileName, ResDir + Views[ResNum].ID + ".agv");
+              File.Move(OldFileName, EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv");
             }
             else {
-              Views[ResNum].Export(ResDir + Views[ResNum].ID + ".agv");
+              EditGame.Views[ResNum].Export(EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv");
             }
           }
           catch (Exception) {
@@ -12031,37 +12009,40 @@ namespace WinAGI.Editor
       int i;
 
       //add to logic collection in game
-      Logics.Add((byte)NewLogicNumber, NewLogic);
+      EditGame.Logics.Add((byte)NewLogicNumber, NewLogic);
 
       //if not importing, we need to add boilerplate text
       if (!Importing) {
         //if using template,
         if (blnTemplate) {
           //add template text to logic source
-          strLogic = LogTemplateText(Logics[NewLogicNumber].ID, Logics[NewLogicNumber].Description);
+          strLogic = LogTemplateText(EditGame.Logics[NewLogicNumber].ID, EditGame.Logics[NewLogicNumber].Description);
         }
         else {
           //add default text
-          strLogic = "[ " + Keys.Enter + "[ " + Logics[NewLogicNumber].ID + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****";
+          strLogic = "[ " + Keys.Enter + "[ " + EditGame.Logics[NewLogicNumber].ID + Keys.Enter + 
+                     "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + 
+                     "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + 
+                     Keys.Enter + "[*****";
         }
         //for new resources, need to set the source text
-        Logics[NewLogicNumber].SourceText = strLogic;
+        EditGame.Logics[NewLogicNumber].SourceText = strLogic;
       }
       //always save source to new name
-      Logics[NewLogicNumber].SaveSource();
+      EditGame.Logics[NewLogicNumber].SaveSource();
 
       //if NOT importing AND default (not using template), compile the text
       if (!Importing && !blnTemplate) {
-        Logics[NewLogicNumber].Compile();
+        EditGame.Logics[NewLogicNumber].Compile();
       }
       //set isroom status based on template
       if (NewLogicNumber != 0) {
-        Logics[NewLogicNumber].IsRoom = blnTemplate;
+        EditGame.Logics[NewLogicNumber].IsRoom = blnTemplate;
       }
       //if using layout editor AND isroom
-      if (UseLE && Logics[NewLogicNumber].IsRoom) {
+      if (EditGame.UseLE && EditGame.Logics[NewLogicNumber].IsRoom) {
         //update layout editor and layout data file to show this room is in the game
-        UpdateExitInfo(EUReason.euAddRoom, NewLogicNumber, Logics[NewLogicNumber]);
+        UpdateExitInfo(EUReason.euAddRoom, NewLogicNumber, EditGame.Logics[NewLogicNumber]);
       }
       //add to resource list
       switch (Settings.ResListType) {
@@ -12074,10 +12055,10 @@ namespace WinAGI.Editor
           }
         }
         //add to tree
-        tmpNode = HdrNode[0].Nodes.Insert(lngPos, "l" + NewLogicNumber, ResourceName(Logics[NewLogicNumber], true));
+        tmpNode = HdrNode[0].Nodes.Insert(lngPos, "l" + NewLogicNumber, ResourceName(EditGame.Logics[NewLogicNumber], true));
         tmpNode.Tag = NewLogicNumber;
         //load source to set compiled status
-        if (Logics[NewLogicNumber].Compiled) {
+        if (EditGame.Logics[NewLogicNumber].Compiled) {
           tmpNode.ForeColor = Color.Black;
         }
         else {
@@ -12095,9 +12076,9 @@ namespace WinAGI.Editor
             }
           }
           //i is index position we are looking for
-          tmpListItem = MDIMain.lstResources.Items.Insert(i, "l" + NewLogicNumber, ResourceName(Logics[NewLogicNumber], true), 0);
+          tmpListItem = MDIMain.lstResources.Items.Insert(i, "l" + NewLogicNumber, ResourceName(EditGame.Logics[NewLogicNumber], true), 0);
           tmpListItem.Tag = NewLogicNumber.ToString();
-          if (!Logics[NewLogicNumber].Compiled) {
+          if (!EditGame.Logics[NewLogicNumber].Compiled) {
             tmpListItem.ForeColor = Color.Red;
           }
         }
@@ -12108,7 +12089,7 @@ namespace WinAGI.Editor
         break;
       }
       //update the logic tooltip lookup table
-      IDefLookup[NewLogicNumber].Name = Logics[NewLogicNumber].ID;
+      IDefLookup[NewLogicNumber].Name = EditGame.Logics[NewLogicNumber].ID;
       IDefLookup[NewLogicNumber].Type = atNum;
       //then let open logic editors know
       if (LogicEditors.Count > 0) {
@@ -12124,7 +12105,7 @@ namespace WinAGI.Editor
     {
       int lngPos = 0;
       //add picture to game collection
-      Pictures.Add((byte)NewPictureNumber, NewPicture);
+      EditGame.Pictures.Add((byte)NewPictureNumber, NewPicture);
 
       switch (Settings.ResListType) {
       case 1:
@@ -12135,7 +12116,7 @@ namespace WinAGI.Editor
           }
         }
         //add it to tree
-        HdrNode[1].Nodes.Insert(lngPos, "p" + NewPictureNumber, ResourceName(Pictures[NewPictureNumber], true)).Tag = NewPictureNumber;
+        HdrNode[1].Nodes.Insert(lngPos, "p" + NewPictureNumber, ResourceName(EditGame.Pictures[NewPictureNumber], true)).Tag = NewPictureNumber;
         break;
       case 2:
         //only update if pictures are being listed
@@ -12147,7 +12128,7 @@ namespace WinAGI.Editor
             }
           }
           //i is index position we are looking for
-          MDIMain.lstResources.Items.Insert(lngPos, "p" + NewPictureNumber, ResourceName(Pictures[NewPictureNumber], true)).Tag = NewPictureNumber;
+          MDIMain.lstResources.Items.Insert(lngPos, "p" + NewPictureNumber, ResourceName(EditGame.Pictures[NewPictureNumber], true)).Tag = NewPictureNumber;
           // //expand column width if necessary
           //if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
           //   MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
@@ -12157,7 +12138,7 @@ namespace WinAGI.Editor
       }
 
       //update the logic tooltip lookup table
-      IDefLookup[NewPictureNumber + 768].Name = Pictures[NewPictureNumber].ID;
+      IDefLookup[NewPictureNumber + 768].Name = EditGame.Pictures[NewPictureNumber].ID;
       IDefLookup[NewPictureNumber + 768].Type = atNum;
       //then let open logic editors know
       if (LogicEditors.Count > 0) {
@@ -12173,7 +12154,7 @@ namespace WinAGI.Editor
     {
       int lngPos = 0;
       //add sound to game collection
-      Sounds.Add((byte)NewSoundNumber, NewSound);
+      EditGame.Sounds.Add((byte)NewSoundNumber, NewSound);
 
       switch (Settings.ResListType) {
       case 1:
@@ -12184,7 +12165,7 @@ namespace WinAGI.Editor
           }
         }
         //add it to tree
-        HdrNode[2].Nodes.Insert(lngPos, "s" + NewSoundNumber, ResourceName(Sounds[NewSoundNumber], true)).Tag = NewSoundNumber;
+        HdrNode[2].Nodes.Insert(lngPos, "s" + NewSoundNumber, ResourceName(EditGame.Sounds[NewSoundNumber], true)).Tag = NewSoundNumber;
         break;
       case 2:
         //only update if sounds are being updated
@@ -12196,7 +12177,7 @@ namespace WinAGI.Editor
             }
           }
           //i is index position we are looking for
-          MDIMain.lstResources.Items.Insert(lngPos, "s" + NewSoundNumber, ResourceName(Sounds[NewSoundNumber], true)).Tag = NewSoundNumber;
+          MDIMain.lstResources.Items.Insert(lngPos, "s" + NewSoundNumber, ResourceName(EditGame.Sounds[NewSoundNumber], true)).Tag = NewSoundNumber;
           // //expand column width if necessary
           //if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
           //   MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
@@ -12206,7 +12187,7 @@ namespace WinAGI.Editor
       }
 
       //update the logic tooltip lookup table
-      IDefLookup[NewSoundNumber + 512].Name = Sounds[NewSoundNumber].ID;
+      IDefLookup[NewSoundNumber + 512].Name = EditGame.Sounds[NewSoundNumber].ID;
       IDefLookup[NewSoundNumber + 512].Type = atNum;
       //then let open logic editors know
       if (LogicEditors.Count > 0) {
@@ -12222,7 +12203,7 @@ namespace WinAGI.Editor
     {
       int lngPos = 0;
       //add view to game collection
-      Views.Add((byte)NewViewNumber, NewView);
+      EditGame.Views.Add((byte)NewViewNumber, NewView);
 
       switch (Settings.ResListType) {
       case 1:
@@ -12233,7 +12214,7 @@ namespace WinAGI.Editor
           }
         }
         //add it to tree
-        HdrNode[3].Nodes.Insert(lngPos, "v" + NewViewNumber, ResourceName(Views[NewViewNumber], true)).Tag = NewViewNumber;
+        HdrNode[3].Nodes.Insert(lngPos, "v" + NewViewNumber, ResourceName(EditGame.Views[NewViewNumber], true)).Tag = NewViewNumber;
         break;
       case 2:
         //only update if views are being displayed
@@ -12245,7 +12226,7 @@ namespace WinAGI.Editor
             }
           }
           //i is index position we are looking for
-          MDIMain.lstResources.Items.Insert(lngPos, "v" + NewViewNumber, ResourceName(Views[NewViewNumber], true)).Tag = NewViewNumber;
+          MDIMain.lstResources.Items.Insert(lngPos, "v" + NewViewNumber, ResourceName(EditGame.Views[NewViewNumber], true)).Tag = NewViewNumber;
           // //expand column width if necessary
           //if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
           //   MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
@@ -12253,7 +12234,7 @@ namespace WinAGI.Editor
         break;
       }
       //update the logic tooltip lookup table
-      IDefLookup[NewViewNumber + 256].Name = Views[NewViewNumber].ID;
+      IDefLookup[NewViewNumber + 256].Name = EditGame.Views[NewViewNumber].ID;
       IDefLookup[NewViewNumber + 256].Type = atNum;
       //then let open logic editors know
       if (LogicEditors.Count > 0) {
@@ -12336,7 +12317,7 @@ namespace WinAGI.Editor
         }
       }
       //if a game is loaded,
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
         // get logic number, id , description
         frmGetResourceNum GetResNum = new frmGetResourceNum();
         GetResNum.ResType = rtLogic;
@@ -12375,17 +12356,17 @@ namespace WinAGI.Editor
           //add Logic
           AddNewLogic(GetResNum.NewResNum, tmpLogic, (GetResNum.chkRoom.Checked), blnImporting);
           //reset tmplogic to point to the new game logic
-          tmpLogic = Logics[GetResNum.NewResNum];
+          tmpLogic = EditGame.Logics[GetResNum.NewResNum];
 
           //if using layout editor AND a room,
-          if (UseLE && (GetResNum.chkRoom.Checked)) {
+          if (EditGame.UseLE && (GetResNum.chkRoom.Checked)) {
             //update editor and data file to show this room is now in the game
-            UpdateExitInfo(EUReason.euShowRoom, GetResNum.NewResNum, Logics[GetResNum.NewResNum]);
+            UpdateExitInfo(EUReason.euShowRoom, GetResNum.NewResNum, EditGame.Logics[GetResNum.NewResNum]);
           }
           //if including picture
           if (GetResNum.chkIncludePic.Checked) {
             //if replacing an existing pic
-            if (Pictures.Exists(GetResNum.NewResNum)) {
+            if (EditGame.Pictures.Exists(GetResNum.NewResNum)) {
               RemovePicture(GetResNum.NewResNum);
             }
             AddNewPicture(GetResNum.NewResNum, null);
@@ -12394,9 +12375,9 @@ namespace WinAGI.Editor
               //change ID (if able)
               if (ValidateID("pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3), "") == 0) {
                 //save old resfile name
-                strFile = ResDir + Pictures[GetResNum.NewResNum].ID + ".agp";
+                strFile = EditGame.ResDir + EditGame.Pictures[GetResNum.NewResNum].ID + ".agp";
                 //change this picture//s ID
-                Pictures[GetResNum.NewResNum].ID = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
+                EditGame.Pictures[GetResNum.NewResNum].ID = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
                 //update the resfile, tree and properties
                 UpdateResFile(rtPicture, GetResNum.NewResNum, strFile);
                 //update lookup table
@@ -12404,7 +12385,7 @@ namespace WinAGI.Editor
               }
             }
             //pic is still loaded so we need to unload it now
-            Pictures[GetResNum.NewResNum].Unload();
+            EditGame.Pictures[GetResNum.NewResNum].Unload();
           }
           //set ingame flag
           blnInGame = true;
@@ -12428,7 +12409,7 @@ namespace WinAGI.Editor
       }
 
       //only open if user wants it open (or if not in a game or if opening/not importing)
-      if (blnOpen || !GameLoaded || !blnInGame) {
+      if (blnOpen || !EditGame.GameLoaded || !blnInGame) {
         //open a new logic editing window
         frmNew = new frmLogicEdit
         {
@@ -12445,14 +12426,14 @@ namespace WinAGI.Editor
           frmNew.Close();
         }
       }
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
         //save openres value
         Settings.OpenNew = blnOpen;
       }
       //if logic was added to game
       if (blnInGame) {
         //unload it
-        Logics[tmpLogic.Number].Unload();
+        EditGame.Logics[tmpLogic.Number].Unload();
       }
 
       //restore mousepointer and exit
@@ -12500,7 +12481,7 @@ namespace WinAGI.Editor
       }
 
       //if a game is loaded
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
         // get picture number, id , description
         frmGetResourceNum GetResNum = new frmGetResourceNum
         {
@@ -12540,7 +12521,7 @@ namespace WinAGI.Editor
           //add picture
           AddNewPicture(GetResNum.NewResNum, tmpPic);
           //reset tmpPic to point to the new game picture
-          tmpPic = Pictures[GetResNum.NewResNum];
+          tmpPic = EditGame.Pictures[GetResNum.NewResNum];
           //set ingame flag
           blnInGame = true;
         }
@@ -12552,7 +12533,7 @@ namespace WinAGI.Editor
       }
 
       //only open if user wants it open (or if not in a game or if opening/not importing)
-      if (blnOpen || !GameLoaded || !blnInGame) {
+      if (blnOpen || !EditGame.GameLoaded || !blnInGame) {
         //open a new picture editing window
         frmNew = new frmPicEdit()
         {
@@ -12571,7 +12552,7 @@ namespace WinAGI.Editor
         }
       }
 
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
         //save openres value
         Settings.OpenNew = blnOpen;
       }
@@ -12579,7 +12560,7 @@ namespace WinAGI.Editor
       //if added to a game
       if (blnInGame) {
         //unload it
-        Pictures[tmpPic.Number].Unload();
+        EditGame.Pictures[tmpPic.Number].Unload();
       }
 
       //restore main form mousepointer and exit
@@ -12641,7 +12622,7 @@ namespace WinAGI.Editor
       }
 
       //if a game is loaded
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
         // get picture number, id , description
         frmGetResourceNum GetResNum = new frmGetResourceNum
         {
@@ -12682,7 +12663,7 @@ namespace WinAGI.Editor
           //add sound
           AddNewSound(GetResNum.NewResNum, tmpSound);
           //reset tmpSound to point to the new game sound
-          tmpSound = Sounds[GetResNum.NewResNum];
+          tmpSound = EditGame.Sounds[GetResNum.NewResNum];
 
           //set flag
           blnInGame = true;
@@ -12695,7 +12676,7 @@ namespace WinAGI.Editor
       }
 
       //only open if user wants it open (or if not in a game or if opening/not importing)
-      if (blnOpen || !GameLoaded || !blnInGame) {
+      if (blnOpen || !EditGame.GameLoaded || !blnInGame) {
 
         //open a new sound editing window
         frmNew = new frmSoundEdit()
@@ -12715,7 +12696,7 @@ namespace WinAGI.Editor
         }
       }
 
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
         //save openres value
         Settings.OpenNew = blnOpen;
       }
@@ -12723,7 +12704,7 @@ namespace WinAGI.Editor
       //if added to a game
       if (blnInGame) {
         //unload it
-        Sounds[tmpSound.Number].Unload();
+        EditGame.Sounds[tmpSound.Number].Unload();
       }
 
       //restore mousepointer and exit
@@ -12779,7 +12760,7 @@ namespace WinAGI.Editor
       }
 
       //if a game is loaded
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
         // get picture number, id , description
         frmGetResourceNum GetResNum = new frmGetResourceNum
         {
@@ -12820,7 +12801,7 @@ namespace WinAGI.Editor
           //add view
           AddNewView(GetResNum.NewResNum, tmpView);
           //reset tmpView to point to the new game view
-          tmpView = Views[GetResNum.NewResNum];
+          tmpView = EditGame.Views[GetResNum.NewResNum];
           //set ingame flag
           blnInGame = true;
         }
@@ -12832,7 +12813,7 @@ namespace WinAGI.Editor
       }
 
       //only open if user wants it open (or if not in a game or if opening/not importing)
-      if (blnOpen || !GameLoaded || !blnInGame) {
+      if (blnOpen || !EditGame.GameLoaded || !blnInGame) {
         //open a new view editing window
         frmNew = new frmViewEdit()
         {
@@ -12851,7 +12832,7 @@ namespace WinAGI.Editor
         }
       }
 
-      if (GameLoaded) {
+      if (EditGame.GameLoaded) {
         //save openres value
         Settings.OpenNew = blnOpen;
       }
@@ -12859,7 +12840,7 @@ namespace WinAGI.Editor
       //if added to game
       if (blnInGame) {
         //unload the game resource
-        Views[tmpView.Number].Unload();
+        EditGame.Views[tmpView.Number].Unload();
       }
 
       //restore main form mousepointer and exit
@@ -13216,14 +13197,14 @@ namespace WinAGI.Editor
       //removes a picture from the game, and updates
       //preview and resource windows
       //and deletes resource file from source directory
-      if (!Pictures.Exists(PicNum)) {
+      if (!EditGame.Pictures.Exists(PicNum)) {
         //raise error
         throw new Exception("WINAGIERR + 502, ResMan, Invalid Picture number passed to RemovePicture (picture does not exist)");
       }
 
-      string strPicFile = ResDir + Pictures[PicNum].ID + ".agp";
+      string strPicFile = EditGame.ResDir + EditGame.Pictures[PicNum].ID + ".agp";
       //remove it from game
-      Pictures.Remove(PicNum);
+      EditGame.Pictures.Remove(PicNum);
 
       switch (Settings.ResListType) {
       case 1:
@@ -13328,16 +13309,16 @@ namespace WinAGI.Editor
 
         //horizon is a PicTest setting, which should always be retrieved everytime
         //it is used to make sure it's current
-        strLogic = strLogic.Replace("%h", ReadSettingLong(SettingsList, sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON).ToString());
+        strLogic = strLogic.Replace("%h", GameSettings.GetSetting(sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON).ToString());
 
         //if using reserved names, insert them
-        if (LogicSourceSettings.UseReservedNames) {
+        if (EditGame.LogicSourceSettings.UseReservedNames) {
           //f5, v0, f2, f4, v9
-          strLogic = strLogic.Replace("f5", LogicSourceSettings.ReservedDefines(atFlag)[5].Name);
-          strLogic = strLogic.Replace("f2", LogicSourceSettings.ReservedDefines(atFlag)[2].Name);
-          strLogic = strLogic.Replace("f4", LogicSourceSettings.ReservedDefines(atFlag)[4].Name);
-          strLogic = strLogic.Replace("v0", LogicSourceSettings.ReservedDefines(atVar)[0].Name);
-          strLogic = strLogic.Replace("v9", LogicSourceSettings.ReservedDefines(atVar)[9].Name);
+          strLogic = strLogic.Replace("f5", EditGame.LogicSourceSettings.ReservedDefines(atFlag)[5].Name);
+          strLogic = strLogic.Replace("f2", EditGame.LogicSourceSettings.ReservedDefines(atFlag)[2].Name);
+          strLogic = strLogic.Replace("f4", EditGame.LogicSourceSettings.ReservedDefines(atFlag)[4].Name);
+          strLogic = strLogic.Replace("v0", EditGame.LogicSourceSettings.ReservedDefines(atVar)[0].Name);
+          strLogic = strLogic.Replace("v9", EditGame.LogicSourceSettings.ReservedDefines(atVar)[9].Name);
         }
       }
       catch (Exception) {
@@ -13378,7 +13359,7 @@ namespace WinAGI.Editor
         case Keys.R: //rebuild VOL
           if (MDIMain.mnuGRebuild.Enabled) {
             //rebuild volfiles only
-            CompileAGIGame(GameDir, true);
+            CompileAGIGame(EditGame.GameDir, true);
           }
           break;
         case Keys.T: //insert a snippet
@@ -14153,7 +14134,7 @@ namespace WinAGI.Editor
     {
       // reads default custom colors from winagi.confg
       for (int i = 0; i < 16; i++) {
-        EGAColor[i] = ReadSettingColor(SettingsList, sDEFCOLORS, "DefEGAColor" + i, EGAColor[i]);
+        EditGame.EGAColor[i] = GameSettings.GetSetting(sDEFCOLORS, "DefEGAColor" + i, EditGame.EGAColor[i]);
       }
 
     }

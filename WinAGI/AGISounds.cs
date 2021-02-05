@@ -9,8 +9,10 @@ namespace WinAGI.Engine
 {
   public class AGISounds : IEnumerable<AGISound>
   {
-    public AGISounds()
+    AGIGame parent;
+    public AGISounds(AGIGame parent)
     {
+      this.parent = parent;
       // create the initial Col object
       Col = new SortedList<byte, AGISound>();
     }
@@ -100,7 +102,7 @@ namespace WinAGI.Engine
         UpdateDirFile(Col[Index], true);
         Col.Remove(Index);
         //remove all properties from the wag file
-        DeleteSettingSection(agGameProps, "Sound" + Index);
+        parent.agGameProps.DeleteSection("Sound" + Index);
       }
     }
     public void Renumber(byte OldSound, byte NewSound)
@@ -132,7 +134,7 @@ namespace WinAGI.Engine
       }
 
       //remove old properties
-      DeleteSettingSection(agGameProps, "Sound" + OldSound);
+      parent.agGameProps.DeleteSection("Sound" + OldSound);
 
       //remove from collection
       Col.Remove(OldSound);
@@ -163,8 +165,8 @@ namespace WinAGI.Engine
 
       //add properties back with new sound number
       strSection = "Sound" + NewSound;
-      WriteGameSetting(strSection, "ID", tmpSound.ID, "Sounds");
-      WriteGameSetting(strSection, "Description", tmpSound.Description);
+      parent.WriteGameSetting(strSection, "ID", tmpSound.ID, "Sounds");
+      parent.WriteGameSetting(strSection, "Description", tmpSound.Description);
       //
       //TODO: add rest of default property values
       //
@@ -183,13 +185,12 @@ namespace WinAGI.Engine
       //called by the resource loading method for the initial loading of
       //resources into logics collection
       //if this Logic number is already in the game
-      if (agSnds.Exists(bytResNum))
+      if (Exists(bytResNum))
       {
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
       //create new logic object
-      AGISound newResource = new AGISound();
-      newResource.InGameInit(bytResNum, bytVol, lngLoc);
+      AGISound newResource = new AGISound(parent, bytResNum, bytVol, lngLoc);
       //add it
       Col.Add(bytResNum, newResource);
     }

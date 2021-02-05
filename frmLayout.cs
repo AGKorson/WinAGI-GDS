@@ -3503,7 +3503,7 @@ Public Sub MenuClickCustom2()
   DrawLayout
   
   'save the setting
-  WriteAppSetting SettingsList, sLAYOUT, "ShowPics", Settings.LEShowPics
+  WriteSetting GameSettings, sLAYOUT, "ShowPics", Settings.LEShowPics
 Exit Sub
 
 ErrHandler:
@@ -3568,7 +3568,7 @@ Public Sub MenuClickDelete()
         'if user wants no more warnings
         If blnNoWarn Then
           Settings.LEDelPicToo = 8 - rtn 'convert yes/no(6/7) into 2/1
-          WriteAppSetting SettingsList, sLAYOUT, "DelPicToo", Settings.LEDelPicToo
+          WriteSetting GameSettings, sLAYOUT, "DelPicToo", Settings.LEDelPicToo
         End If
       Case 1 'no
         rtn = vbNo

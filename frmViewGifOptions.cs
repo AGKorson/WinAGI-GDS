@@ -76,7 +76,7 @@ namespace WinAGI.Editor
       //from bytLoop.bytCel into the view Image box,
       //and resizes it to be correct size
       int tgtX, tgtY, tgtH, tgtW;
-      picCel.BackColor = EGAColor[(int)ExportLoop.Cels[bytCel].TransColor];
+      picCel.BackColor = EditGame.EGAColor[(int)ExportLoop.Cels[bytCel].TransColor];
       //copy view Image
       tgtW = ExportLoop.Cels[bytCel].Width * 2 * ThisGifOps.Zoom;
       tgtH = ExportLoop.Cels[bytCel].Height * ThisGifOps.Zoom;

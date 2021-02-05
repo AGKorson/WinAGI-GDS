@@ -9,8 +9,10 @@ namespace WinAGI.Engine
 {
   public class AGIViews : IEnumerable<AGIView>
   {
-    public AGIViews()
+    AGIGame parent;
+    public AGIViews(AGIGame parent)
     {
+      this.parent = parent;
       // create the initial Col object
       Col = new SortedList<byte, AGIView>();
     }
@@ -100,7 +102,7 @@ namespace WinAGI.Engine
         UpdateDirFile(Col[Index], true);
         Col.Remove(Index);
         //remove all properties from the wag file
-        DeleteSettingSection(agGameProps, "View" + Index);
+        parent.agGameProps.DeleteSection("View" + Index);
       }
     }
     public void Renumber(byte OldView, byte NewView)
@@ -129,7 +131,7 @@ namespace WinAGI.Engine
       }
 
       //remove old properties
-      DeleteSettingSection(agGameProps, "View" + OldView);
+      parent.agGameProps.DeleteSection("View" + OldView);
 
       //remove from collection
       Col.Remove(OldView);
@@ -158,8 +160,8 @@ namespace WinAGI.Engine
 
       //add properties back with new view number
       strSection = "View" + NewView;
-      WriteGameSetting(strSection, "ID", tmpView.ID, "Views");
-      WriteGameSetting(strSection, "Description", tmpView.Description);
+      parent.WriteGameSetting(strSection, "ID", tmpView.ID, "Views");
+      parent.WriteGameSetting(strSection, "Description", tmpView.Description);
       //
       //TODO: add rest of default property values
       //
@@ -176,13 +178,12 @@ namespace WinAGI.Engine
     {
       //called by the resource loading method for the initial loading of
       //resources into logics collection
-      //if this Logic number is already in the game
-      if (agViews.Exists(bytResNum)) {
+      //if this view number is already in the game
+      if (Exists(bytResNum)) {
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
       //create new logic object
-      AGIView newResource = new AGIView();
-      newResource.InGameInit(bytResNum, bytVol, lngLoc);
+      AGIView newResource = new AGIView(parent, bytResNum, bytVol, lngLoc);
       //add it
       Col.Add(bytResNum, newResource);
       // update VOL and LOC

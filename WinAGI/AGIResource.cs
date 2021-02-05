@@ -32,8 +32,9 @@ namespace WinAGI.Engine
 
 
     */
-    protected RData mRData;
+    protected RData mRData = new RData(0);
     protected bool mInGame;
+    protected AGIGame parent;
     protected bool mIsDirty;
     protected byte mResNum;
     protected string mDescription;
@@ -44,6 +45,25 @@ namespace WinAGI.Engine
 
     internal delegate void AGIResPropChangedEventHandler(object sender, AGIResPropChangedEventArgs e);
     internal event AGIResPropChangedEventHandler PropertyChanged;
+    protected AGIResource(AGIResType ResType, string ID)
+    {
+      // can ONLY create new resource from within other game resources
+      // when first created, a resource MUST have a type assigned
+      mResType = ResType;
+      // New resources start out NOT in game; so vol and loc are undefined
+      mInGame = false;
+      mVolume = -1;
+      mLoc = -1;
+      // and is set with a default ID
+      this.ID = ID;
+      // calling resource constructor is responsible for creating
+      // default data
+      // assume no compression
+      V3Compressed = 0;
+      //new resources start as loaded by default, and can only be unloaded when
+      // in a game
+      mLoaded = true;
+    }
     public class AGIResPropChangedEventArgs
     {
       public AGIResPropChangedEventArgs(string name)
@@ -55,6 +75,17 @@ namespace WinAGI.Engine
     protected void OnPropertyChanged(string name)
     {
       PropertyChanged?.Invoke(this, new AGIResPropChangedEventArgs(name));
+    }
+    protected void InitInGame(AGIGame parent, byte ResNum, sbyte VOL, int Loc)
+    {
+      //attaches resource to a game
+      this.parent = parent;
+      mInGame = true;
+      mResNum = ResNum;
+      mVolume = VOL;
+      mLoc = Loc;
+      // ingame resources start unloaded
+      mLoaded = false;
     }
     public sbyte Volume
     {
@@ -195,9 +226,9 @@ namespace WinAGI.Engine
           //if in a game,
           if (InGame) {
             //step through other resources
-            foreach (AGILogic tmpRes in agLogs) {
+            foreach (AGILogic tmpRes in parent.agLogs) {
               //if resource IDs are same
-              if (tmpRes.ID == NewID) {
+              if (tmpRes.ID.Equals(NewID, StringComparison.OrdinalIgnoreCase)) {
                 //if not the same resource
                 if (tmpRes.Number != Number || tmpRes.ResType != ResType) {
                   //error
@@ -205,9 +236,9 @@ namespace WinAGI.Engine
                 }
               }
             }
-            foreach (AGIPicture tmpRes in agPics) {
+            foreach (AGIPicture tmpRes in parent.agPics) {
               //if resource IDs are same
-              if (tmpRes.ID == NewID) {
+              if (tmpRes.ID.Equals(NewID, StringComparison.OrdinalIgnoreCase)) {
                 //if not the same resource
                 if (tmpRes.Number != Number || tmpRes.ResType != ResType) {
                   //error
@@ -215,9 +246,9 @@ namespace WinAGI.Engine
                 }
               }
             }
-            foreach (AGISound tmpRes in agSnds) {
+            foreach (AGISound tmpRes in parent.agSnds) {
               //if resource IDs are same
-              if (tmpRes.ID == NewID) {
+              if (tmpRes.ID.Equals(NewID, StringComparison.OrdinalIgnoreCase)) {
                 //if not the same resource
                 if (tmpRes.Number != Number || tmpRes.ResType != ResType) {
                   //error
@@ -225,9 +256,9 @@ namespace WinAGI.Engine
                 }
               }
             }
-            foreach (AGIView tmpRes in agViews) {
+            foreach (AGIView tmpRes in parent.agViews) {
               //if resource IDs are same
-              if (tmpRes.ID == NewID) {
+              if (tmpRes.ID.Equals(NewID, StringComparison.OrdinalIgnoreCase)) {
                 //if not the same resource
                 if (tmpRes.Number != Number || tmpRes.ResType != ResType) {
                   //error
@@ -255,7 +286,7 @@ namespace WinAGI.Engine
           mDescription = newDesc;
 
           if (mInGame) {
-            WriteGameSetting("Logic" + Number, "Description", mDescription, "Logics");
+            parent.WriteGameSetting("Logic" + Number, "Description", mDescription, "Logics");
           }
         }
       }
@@ -303,6 +334,7 @@ namespace WinAGI.Engine
       //change ingame status is to do so through
       //appropriate methods for adding/removing
       //resources to/from game
+      NewRes.parent = parent;
 
       //resource data are copied manually as necessary by calling method
       //EORes and CurPos are calculated; don't need to copy them
@@ -324,16 +356,6 @@ namespace WinAGI.Engine
       NewRes.mblnEORes = mblnEORes;
       NewRes.mlngCurPos = mlngCurPos;
   }
-  protected void InitInGame(byte ResNum, sbyte VOL, int Loc)
-    {
-      //attaches resource to a game
-      mInGame = true;
-      mResNum = ResNum;
-      mVolume = VOL;
-      mLoc = Loc;
-      // ingame resources start unloaded
-      mLoaded = false;
-    }
     public virtual void Load()
     {
       //loads the data for this resource
@@ -356,10 +378,10 @@ namespace WinAGI.Engine
       if (mInGame) {
         //resource data is loaded from the AGI VOL file
         //build filename
-        if (agIsVersion3) {
-          strLoadResFile = agGameDir + agGameID + "VOL." + mVolume.ToString();
+        if (parent.agIsVersion3) {
+          strLoadResFile = parent.agGameDir + parent.agGameID + "VOL." + mVolume.ToString();
         } else {
-          strLoadResFile = agGameDir + "VOL." + mVolume.ToString();
+          strLoadResFile = parent.agGameDir + "VOL." + mVolume.ToString();
         }
       } else {
         //if no filename
@@ -410,7 +432,7 @@ namespace WinAGI.Engine
         intSize = bytHigh * 256 + bytLow;
 
         //if version3,
-        if (agIsVersion3) {
+        if (parent.agIsVersion3) {
           //the size retreived is the expanded size
           lngExpandedSize = intSize;
           //now get compressed size
@@ -433,7 +455,7 @@ namespace WinAGI.Engine
       brVOL.Dispose();
 
       //if version3
-      if (agIsVersion3) {
+      if (parent.agIsVersion3) {
         //if resource is a compressed picture
         if (blnIsPicture) {
           //pictures use this decompression
@@ -504,7 +526,7 @@ namespace WinAGI.Engine
       if (mInGame) {
         try {
           //add resource to VOL file to save it
-          AddToVol(this, agIsVersion3);
+          AddToVol(this, parent.agIsVersion3);
           // update saved size
           mSize = mRData.Length;
           // resource is no longer compressed
@@ -517,7 +539,7 @@ namespace WinAGI.Engine
         }
 
         //change date of last edit
-        agLastEdit = DateTime.Now;
+        parent.agLastEdit = DateTime.Now;
       } else {
         //export it
         Export(SaveFile);
@@ -1024,25 +1046,6 @@ namespace WinAGI.Engine
       mSizeInVol = -1;
       mblnEORes = false;
       mIsDirty = true;
-    }
-    protected AGIResource(AGIResType ResType, string ID)
-    {
-      // can ONLY create new resource from within other game resources
-      // when first created, a resource MUST have a type assigned
-      mResType = ResType;
-      // New resources start out NOT in game; so vol and loc are undefined
-      mInGame = false;
-      mVolume = -1;
-      mLoc = -1;
-      // and is set with a default ID
-      this.ID = ID;
-      // calling resource constructor is responsible for creating
-      // default data
-      // assume no compression
-      V3Compressed = 0;
-      //new resources start as loaded by default, and can only be unloaded when
-      // in a game
-      mLoaded = true;
     }
     public override string ToString()
     {

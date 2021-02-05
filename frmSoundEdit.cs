@@ -11,6 +11,7 @@ using WinAGI.Engine;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.AGISound;
 using static WinAGI.Engine.WinAGI;
+using static WinAGI.Editor.ResMan;
 
 namespace WinAGI.Editor
 {
@@ -26,7 +27,7 @@ namespace WinAGI.Editor
     private void frmSoundEdit_Load(object sender, EventArgs e)
     {
         // if  a game is loaded, list all sounds by id
-        if (GameLoaded)
+        if (EditGame.GameLoaded)
       {
         //foreach (AGILogic tmpLog in agLogs.Col.Values)
         //{
@@ -36,7 +37,7 @@ namespace WinAGI.Editor
         //{
         //  listBox1.Items.Add(tmpPic.ToString());
         //}
-        foreach (AGISound tmpSound in agSnds.Col.Values)
+        foreach (AGISound tmpSound in EditGame.Sounds.Col.Values)
         {
           listBox1.Items.Add(tmpSound);
         }
@@ -5063,7 +5064,7 @@ Public Sub MenuClickInGame()
       Settings.AskExport = Not blnDontAsk
       'if now hiding update settings file
       If Not Settings.AskExport Then
-        WriteAppSetting SettingsList, sGENERAL, "AskExport", Settings.AskExport
+        WriteSetting GameSettings, sGENERAL, "AskExport", Settings.AskExport
       End If
     Else
       'dont ask; assume no
@@ -5091,7 +5092,7 @@ Public Sub MenuClickInGame()
       Settings.AskRemove = Not blnDontAsk
       'if now hiding, update settings file
       If Not Settings.AskRemove Then
-        WriteAppSetting SettingsList, sGENERAL, "AskRemove", Settings.AskRemove
+        WriteSetting GameSettings, sGENERAL, "AskRemove", Settings.AskRemove
       End If
     Else
       'assume OK

@@ -71,12 +71,11 @@ namespace WinAGI.Engine
     }
     public AGILogic() : base(AGIResType.rtLogic, "NewLogic")
     {
-      //initialize
+      //initialize a nongame logic
       //attach events
       base.PropertyChanged += ResPropChange;
       strErrSource = "WinAGI.Logic";
       //set default resource data
-      mRData = new RData(0);
       mRData.AllData = new byte[] { 0x01, 0x00, 0x00, 0x00 };
         // byte0 = low byte of msg section offset (relative to byte 2)
         // byte1 = high byte of msg section offset
@@ -86,41 +85,45 @@ namespace WinAGI.Engine
       // set default source
       mSourceText = agCmds[0].Name + "();" + NEWLINE + NEWLINE + "[ messages";
       //to avoid having compile property read true if both values are 0, set compiled to -1 on initialization
-      CompiledCRC = 0xffffff;
+      CompiledCRC = 0xffffffff;
       CRC = 0;
     }
-    internal void InGameInit(byte ResNum, sbyte VOL, int Loc)
+    public AGILogic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtLogic, "NewLogic")
     {
-      //this internal function adds this resource to a game, setting its resource 
+      //adds this resource to a game, setting its resource 
       //location properties, and reads properties from the wag file
 
+      //attach events
+      base.PropertyChanged += ResPropChange;
+      strErrSource = "WinAGI.Logic";
+
       //set up base resource
-      base.InitInGame(ResNum, VOL, Loc);
+      base.InitInGame(parent, ResNum, VOL, Loc);
 
       //if first time loading this game, there will be nothing in the propertyfile
-      ID = ReadSettingString(agGameProps, "Logic" + ResNum, "ID", "");
+      ID = this.parent.agGameProps.GetSetting("Logic" + ResNum, "ID", "");
       if (ID.Length == 0)
       {
         //no properties to load; save default ID
         ID = "Logic" + ResNum;
-        WriteGameSetting("Logic" + ResNum, "ID", ID, "Logics");
+        this.parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Logics");
         //load resource to get size
         base.Load();
-        WriteGameSetting("Logic" + ResNum, "Size", Size.ToString());
+        this.parent.WriteGameSetting("Logic" + ResNum, "Size", Size.ToString());
         base.Unload();
         //save CRC and CompCRC values as defaults; they//ll be adjusted first time logic is accessed
-        WriteGameSetting("Logic" + ResNum, "CRC32", "0x00000000", "Logics");
-        WriteGameSetting("Logic" + ResNum, "CompCRC32", "0xffffffff");
+        this.parent.WriteGameSetting("Logic" + ResNum, "CRC32", "0x00000000", "Logics");
+        this.parent.WriteGameSetting("Logic" + ResNum, "CompCRC32", "0xffffffff");
       }
       else
       {
         //get description, size and other properties from wag file
-        mDescription = ReadSettingString(agGameProps, "Logic" + ResNum, "Description", "");
-        Size = ReadSettingLong(agGameProps, "Logic" + ResNum, "Size", -1);
+        mDescription = this.parent.agGameProps.GetSetting("Logic" + ResNum, "Description", "");
+        Size = this.parent.agGameProps.GetSetting("Logic" + ResNum, "Size", -1);
 
-        mCRC = ReadSettingUint32(agGameProps, "Logic" + ResNum, "CRC32");
-        mCompiledCRC = ReadSettingUint32(agGameProps, "Logic" + ResNum, "CompCRC32");
-        mIsRoom = ReadSettingBool(agGameProps, "Logic" + ResNum, "IsRoom");
+        mCRC = this.parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
+        mCompiledCRC = this.parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
+        mIsRoom = this.parent.agGameProps.GetSetting("Logic" + ResNum, "IsRoom", false);
       }
 
       //if res is zero
@@ -177,7 +180,7 @@ namespace WinAGI.Engine
         if (mIsRoom != value)
         {
           mIsRoom = value;
-          WriteGameSetting("Logic" + Number, "IsRoom", mIsRoom.ToString(), "Logics");
+          parent.WriteGameSetting("Logic" + Number, "IsRoom", mIsRoom.ToString(), "Logics");
         }
      }
     }
@@ -193,7 +196,7 @@ namespace WinAGI.Engine
         if (mInGame)
         {
           //sourcefile is predefined
-          return agResDir + mResID + agSrcExt;
+          return parent.agResDir + mResID + agSrcExt;
         }
         else
         {
@@ -226,11 +229,11 @@ namespace WinAGI.Engine
       string strSection;
       //save properties
       strSection = "Logic" + Number;
-      WriteGameSetting(strSection, "ID", ID, "Logics");
-      WriteGameSetting(strSection, "Description", Description);
-      WriteGameSetting(strSection, "CRC32", "0x" + mCRC.ToString("x8"));
-      WriteGameSetting(strSection, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
-      WriteGameSetting(strSection, "IsRoom", mIsRoom.ToString());
+      parent.WriteGameSetting(strSection, "ID", ID, "Logics");
+      parent.WriteGameSetting(strSection, "Description", Description);
+      parent.WriteGameSetting(strSection, "CRC32", "0x" + mCRC.ToString("x8"));
+      parent.WriteGameSetting(strSection, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
+      parent.WriteGameSetting(strSection, "IsRoom", mIsRoom.ToString());
 
       //set flag indicating all props are uptodate
       WritePropState = false;
@@ -372,8 +375,8 @@ namespace WinAGI.Engine
         if (mInGame)
         {
           //source file always tracks ID for ingame resources
-          mSourceFile = agResDir + base.ID + agSrcExt;
-          WriteGameSetting("Logic" + Number, "ID", mResID, "Logics");
+          mSourceFile = parent.agResDir + base.ID + agSrcExt;
+          parent.WriteGameSetting("Logic" + Number, "ID", mResID, "Logics");
         }
       }
     }
@@ -387,22 +390,22 @@ namespace WinAGI.Engine
       if (mInGame)
       {
         //load file is predefined
-        LoadFile = agResDir + mResID + agSrcExt;
+        LoadFile = parent.agResDir + mResID + agSrcExt;
         mSourceFile = LoadFile;
 
         //if it does not exist,
         if (!File.Exists(LoadFile))
         {
           //check for AGI Studio file format
-          if (File.Exists(agResDir + "logic" + Number + ".txt") && (agSrcExt == ".lgc"))
+          if (File.Exists(parent.agResDir + "logic" + Number + ".txt") && (agSrcExt == ".lgc"))
           {
             //rename it to correct format
-            File.Move(agResDir + "logic" + Number + ".txt", LoadFile);
+            File.Move(parent.agResDir + "logic" + Number + ".txt", LoadFile);
           } 
-          else if (File.Exists(agResDir + mResID + ".txt") && (agSrcExt == ".lgc"))
+          else if (File.Exists(parent.agResDir + mResID + ".txt") && (agSrcExt == ".lgc"))
           {
             //rename it to correct format
-            File.Move(agResDir + mResID + ".txt", LoadFile);
+            File.Move(parent.agResDir + mResID + ".txt", LoadFile);
           } 
           else
           {
@@ -451,14 +454,14 @@ namespace WinAGI.Engine
       mCRC = CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(strInput));
       if (mInGame)
       {
-        WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics");
+        parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics");
         //if decompiling, also save the source and the compiled crc
         //(it's the same as the source crc!)
         if (Decompile)
         {
           SaveSource();
           mCompiledCRC = mCRC;
-          WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
+          parent.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
         }
       }
       //set loaded flag and dirty status
@@ -593,9 +596,9 @@ namespace WinAGI.Engine
       if (InGame)
       {
         //save the crc value
-        WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics");
+        parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics");
         //change date of last edit
-        agLastEdit = DateTime.Now;
+        parent.agLastEdit = DateTime.Now;
       }
       else
       {
@@ -681,7 +684,7 @@ namespace WinAGI.Engine
             throw;
           }
         }
-        WriteGameSetting("Logic" + Number, "Size", Size.ToString(), "Logics");
+        parent.WriteGameSetting("Logic" + Number, "Size", Size.ToString(), "Logics");
      }
       else
       {

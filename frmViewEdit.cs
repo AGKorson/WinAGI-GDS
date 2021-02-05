@@ -65,7 +65,7 @@ namespace WinAGI.Editor
     private void frmViewEdit_Load(object sender, EventArgs e)
     {
       // load views
-      foreach (AGIView tmpView in Views.Col.Values)
+      foreach (AGIView tmpView in EditGame.Views.Col.Values)
       {
         cmbView.Items.Add(tmpView);
       }
@@ -1266,7 +1266,7 @@ Public Sub MenuClickInGame()
       Settings.AskExport = Not blnDontAsk
       'if now hiding update settings file
       If Not Settings.AskExport Then
-        WriteAppSetting SettingsList, sGENERAL, "AskExport", Settings.AskExport
+        WriteSetting GameSettings, sGENERAL, "AskExport", Settings.AskExport
       End If
     Else
       'dont ask; assume no
@@ -1295,7 +1295,7 @@ Public Sub MenuClickInGame()
       Settings.AskRemove = Not blnDontAsk
       'if now hiding, update settings file
       If Not Settings.AskRemove Then
-        WriteAppSetting SettingsList, sGENERAL, "AskRemove", Settings.AskRemove
+        WriteSetting GameSettings, sGENERAL, "AskRemove", Settings.AskRemove
       End If
     Else
       'assume OK

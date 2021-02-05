@@ -34,6 +34,7 @@ namespace WinAGI.Engine
     }
 
     internal static AGILogic tmpLogRes;
+    internal static AGIGame compGame;
     internal static byte[] mbytData;
     internal const int MAX_BLOCK_DEPTH = 64; //used by LogDecode functions too
     internal const int MAX_LABELS = 255;
@@ -77,7 +78,7 @@ namespace WinAGI.Engine
     internal static string[] strSndID;
     internal static string[] strViewID;
 
-    internal static void CompileLogic(AGILogic SourceLogic)
+    internal static void CompileLogic(AGILogic SourceLogic, AGIGame game)
     {
       //this function compiles the sourcetext that is passed
       //the function returns a Value of true if successful; it returns false
@@ -89,6 +90,8 @@ namespace WinAGI.Engine
       bool blnCompiled;
       List<string> stlSource = new List<string>();
 
+      compGame = game;
+
       //set error info to success as default
       blnError = false;
       lngErrLine = -1;
@@ -98,25 +101,23 @@ namespace WinAGI.Engine
       intCtlCount = 0;
 
       //initialize global defines
-      //get datemodified property
-      DateTime dtFileMod = File.GetLastWriteTime(agGameDir + "globals.txt");
-      if (CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString())) != agGlobalCRC) {
-        GetGlobalDefines();
+      if (!compGame.GlobalDefines.IsSet) {
+        compGame.GlobalDefines.GetGlobalDefines();
       }
       //if ids not set yet
       if (!blnSetIDs) {
-        SetResourceIDs();
+        SetResourceIDs(compGame);
       }
 
       //insert current values for reserved defines that can change values
       //agResDef[0].Value = "ego"  //this one doesn't change
-      agResDef[1].Value = "\"" + agGameVersion + "\"";
-      agResDef[2].Value = "\"" + agAbout + "\"";
-      agResDef[3].Value = "\"" + agGameID + "\"";
-      if (agInvObj.Loaded) {
+      agResDef[1].Value = "\"" + compGame.agGameVersion + "\"";
+      agResDef[2].Value = "\"" + compGame.agAbout + "\"";
+      agResDef[3].Value = "\"" + compGame.agGameID + "\"";
+      if (compGame.agInvObj.Loaded) {
         //Count of ACTUAL useable objects is one less than inventory object Count
         //because the first object ('?') is just a placeholder
-        agResDef[4].Value = (agInvObj.Count - 1).ToString();
+        agResDef[4].Value = (compGame.agInvObj.Count - 1).ToString();
       }
       else {
         agResDef[4].Value = "-1";
@@ -207,13 +208,13 @@ namespace WinAGI.Engine
       //update compiled crc
       SourceLogic.CompiledCRC = SourceLogic.CRC;
       // and write the new crc values to property file
-      WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CRC32", "0x" + SourceLogic.CRC, "Logics");
-      WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CompCRC32", "0x" + SourceLogic.CompiledCRC);
+      compGame.WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CRC32", "0x" + SourceLogic.CRC, "Logics");
+      compGame.WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CompCRC32", "0x" + SourceLogic.CompiledCRC);
 
       //done with the temp resource
       tmpLogRes.Unload();
     }
-    internal static void SetResourceIDs()
+    internal static void SetResourceIDs(AGIGame game)
     {
       //builds array of resourceIDs so
       //convertarg function can iterate through them much quicker
@@ -224,16 +225,16 @@ namespace WinAGI.Engine
       strPicID = new string[255];
       strSndID = new string[255];
       strViewID = new string[255];
-      foreach (AGILogic tmpLog in agLogs) {
+      foreach (AGILogic tmpLog in game.agLogs) {
         strLogID[tmpLog.Number] = tmpLog.ID;
       }
-      foreach (AGIPicture tmpPic in agPics) {
+      foreach (AGIPicture tmpPic in game.agPics) {
         strPicID[tmpPic.Number] = tmpPic.ID;
       }
-      foreach (AGISound tmpSnd in agSnds) {
+      foreach (AGISound tmpSnd in game.agSnds) {
         strSndID[tmpSnd.Number] = tmpSnd.ID;
       }
-      foreach (AGIView tmpView in agViews) {
+      foreach (AGIView tmpView in game.agViews) {
         strViewID[tmpView.Number] = tmpView.ID;
       }
       //set flag
@@ -539,10 +540,10 @@ namespace WinAGI.Engine
       //for any type except vocab words
       if (ArgType != atVocWrd) {
         //check against this type of global defines
-        for (i = 0; i < agGlobalCount; i++) {
-          if (agGlobal[i].Type == ArgType) {
-            if (strArgIn == agGlobal[i].Name) {
-              strArgIn = agGlobal[i].Value;
+        for (i = 0; i < compGame.GlobalDefines.Count; i++) {
+          if (compGame.GlobalDefines[i].Type == ArgType) {
+            if (strArgIn == compGame.GlobalDefines[i].Name) {
+              strArgIn = compGame.GlobalDefines[i].Value;
               //reset VarOrNum flag
               blnVarOrNum = false;
               return true;
@@ -552,10 +553,10 @@ namespace WinAGI.Engine
           //if checking var or num
         if (blnVarOrNum) {
           //numbers were checked; need to check variables
-          for (i = 0; i < agGlobalCount; i++) {
-            if (agGlobal[i].Type == atVar) {
-              if (strArgIn == agGlobal[i].Name) {
-                strArgIn = agGlobal[i].Value;
+          for (i = 0; i < compGame.GlobalDefines.Count; i++) {
+            if (compGame.GlobalDefines[i].Type == atVar) {
+              if (strArgIn == compGame.GlobalDefines[i].Name) {
+                strArgIn = compGame.GlobalDefines[i].Value;
                 return true;
               }
             }
@@ -564,10 +565,10 @@ namespace WinAGI.Engine
       }
       else {
         //check vocab words only against numbers
-        for (i = 0; i < agGlobalCount; i++) {
-          if (agGlobal[i].Type == atNum) {
-            if (strArgIn == agGlobal[i].Name) {
-              strArgIn = agGlobal[i].Value;
+        for (i = 0; i < compGame.GlobalDefines.Count; i++) {
+          if (compGame.GlobalDefines[i].Type == atNum) {
+            if (strArgIn == compGame.GlobalDefines[i].Name) {
+              strArgIn = compGame.GlobalDefines[i].Value;
               return true;
             }
           }
@@ -576,10 +577,10 @@ namespace WinAGI.Engine
       //check messages, iobjs, and vocab words against global strings
       if ((ArgType == atMsg) || (ArgType == atIObj) || (ArgType == atVocWrd)) {
         //check against global defines (string type)
-        for (i = 0; i < agGlobalCount; i++) {
-          if (agGlobal[i].Type == atDefStr) {
-            if (strArgIn == agGlobal[i].Name) {
-              strArgIn = agGlobal[i].Value;
+        for (i = 0; i < compGame.GlobalDefines.Count; i++) {
+          if (compGame.GlobalDefines[i].Type == atDefStr) {
+            if (strArgIn == compGame.GlobalDefines[i].Name) {
+              strArgIn = compGame.GlobalDefines[i].Value;
               return true;
             }
           }
@@ -840,7 +841,7 @@ namespace WinAGI.Engine
           //if filename doesnt include a path,
           if (JustPath(strIncludeFilename, true).Length == 0) {
             //use resource dir for this include file
-            strIncludeFilename = agResDir + strIncludeFilename;
+            strIncludeFilename = compGame.agResDir + strIncludeFilename;
           }
           //verify file exists
           if (!File.Exists(strIncludeFilename)) {
@@ -1160,17 +1161,17 @@ namespace WinAGI.Engine
         }
 
         //check against max screen object Value
-        if (lngArg > agInvObj.MaxScreenObjects) {
+        if (lngArg > compGame.agInvObj.MaxScreenObjects) {
           if (agMainLogSettings.ErrorLevel == leHigh) {
             //generate error
             blnError = true;
-            strErrMsg = LoadResString(4119).Replace(ARG1, (agInvObj.MaxScreenObjects).ToString());
+            strErrMsg = LoadResString(4119).Replace(ARG1, (compGame.agInvObj.MaxScreenObjects).ToString());
             return -1;
 
           }
           else if (agMainLogSettings.ErrorLevel == leMedium) {
             //generate warning
-            AddWarning(5006, LoadResString(5006).Replace(ARG1, agInvObj.MaxScreenObjects.ToString()));
+            AddWarning(5006, LoadResString(5006).Replace(ARG1, compGame.agInvObj.MaxScreenObjects.ToString()));
           }
         }
         break;
@@ -1182,7 +1183,7 @@ namespace WinAGI.Engine
           //if high errlevel
           if (agMainLogSettings.ErrorLevel == leHigh) {
             //for version 2.089, 2.272, and 3.002149 only 12 strings
-            switch (agIntVersion) {
+            switch (compGame.agIntVersion) {
             case "2.089":
             case "2.272":
             case "3.002149":
@@ -1202,12 +1203,12 @@ namespace WinAGI.Engine
         }
         else {
           //if outside expected bounds (strings should be limited to 0-23)
-          if ((lngArg > 23) || (lngArg > 11 && (agIntVersion == "2.089" || agIntVersion == "2.272" || agIntVersion == "3.002149"))) {
+          if ((lngArg > 23) || (lngArg > 11 && (compGame.agIntVersion == "2.089" || compGame.agIntVersion == "2.272" || compGame.agIntVersion == "3.002149"))) {
             if (agMainLogSettings.ErrorLevel == leHigh) {
               //generate error
               blnError = true;
               //for version 2.089, 2.272, and 3.002149 only 12 strings
-              switch (agIntVersion) {
+              switch (compGame.agIntVersion) {
               case "2.089":
               case "2.272":
               case "3.002149":
@@ -1223,7 +1224,7 @@ namespace WinAGI.Engine
             else if (agMainLogSettings.ErrorLevel == leMedium) {
               //generate warning
               //for version 2.089, 2.272, and 3.002149 only 12 strings
-              switch (agIntVersion) {
+              switch (compGame.agIntVersion) {
               case "2.089":
               case "2.272":
               case "3.002149":
@@ -1380,7 +1381,7 @@ namespace WinAGI.Engine
           for (i = 0; i <= max; i++) {
             //for (i = 0; i < agInvObj.Count; i++) {
             //if this is the object
-            if (strArg == agInvObj[(byte)i].ItemName) {
+            if (strArg == compGame.agInvObj[(byte)i].ItemName) {
               //return this Value
               lngArg = (byte)i;
               break;
@@ -1406,7 +1407,7 @@ namespace WinAGI.Engine
           }
 
           //if object is not unique
-          if (!agInvObj[(byte)lngArg].Unique) {
+          if (!compGame.agInvObj[(byte)lngArg].Unique) {
             if (agMainLogSettings.ErrorLevel == leHigh) {
               blnError = true;
               //use 1-based arg values
@@ -1443,7 +1444,7 @@ namespace WinAGI.Engine
         }
         else {
           //if object is a question mark, raise error/warning
-          if (agInvObj[(byte)lngArg].ItemName == "?") {
+          if (compGame.agInvObj[(byte)lngArg].ItemName == "?") {
             if (agMainLogSettings.ErrorLevel == leHigh) {
               blnError = true;
               //use 1-based arg values
@@ -1470,7 +1471,7 @@ namespace WinAGI.Engine
           }
           else {
             //validate the group
-            blnError = !agVocabWords.GroupExists(lngArg);
+            blnError = !compGame.agVocabWords.GroupExists(lngArg);
           }
         }
         else {
@@ -1486,8 +1487,8 @@ namespace WinAGI.Engine
           strArg = Mid(strArg, 2, strArg.Length - 2);
 
           //get argument val by checking against word list
-          if (agVocabWords.WordExists(strArg)) {
-            lngArg = agVocabWords[strArg].Group;
+          if (compGame.agVocabWords.WordExists(strArg)) {
+            lngArg = compGame.agVocabWords[strArg].Group;
           }
           else {
             //RARE, but if it's an 'a' or 'i' that isn't defined,
@@ -3051,7 +3052,7 @@ namespace WinAGI.Engine
       else if (CmdNum == 18) {
         //new.room(A)
         //validate that this logic exists
-        if (!agLogs.Exists(ArgVal[0])) {
+        if (!compGame.agLogs.Exists(ArgVal[0])) {
           if (agMainLogSettings.ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4120);
             return false;
@@ -3073,7 +3074,7 @@ namespace WinAGI.Engine
       else if (CmdNum == 20) {
         //load.logics(A)
         //validate that logic exists
-        if (!agLogs.Exists(ArgVal[0])) {
+        if (!compGame.agLogs.Exists(ArgVal[0])) {
           if (agMainLogSettings.ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4121).Replace(ARG1, ArgVal[0].ToString());
             return false;
@@ -3112,7 +3113,7 @@ namespace WinAGI.Engine
           }
         }
         //validate that logic exists
-        if (!agLogs.Exists(ArgVal[0])) {
+        if (!compGame.agLogs.Exists(ArgVal[0])) {
           if (agMainLogSettings.ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4156).Replace(ARG1, (ArgVal[0]).ToString());
             return false;
@@ -3127,7 +3128,7 @@ namespace WinAGI.Engine
       else if (CmdNum == 30) {
         //load.view(A)
         //validate that view exists
-        if (!agViews.Exists(ArgVal[0])) {
+        if (!compGame.agViews.Exists(ArgVal[0])) {
           if (agMainLogSettings.ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4122).Replace(ARG1, (ArgVal[0]).ToString());
             return false;
@@ -3142,7 +3143,7 @@ namespace WinAGI.Engine
       else if (CmdNum == 32) {
         //discard.view(A)
         //validate that view exists
-        if (!agViews.Exists(ArgVal[0])) {
+        if (!compGame.agViews.Exists(ArgVal[0])) {
           if (agMainLogSettings.ErrorLevel == leHigh) {
             strErrMsg = LoadResString(4123).Replace(ARG1, ArgVal[0].ToString());
             return false;

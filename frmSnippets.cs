@@ -340,10 +340,10 @@ Sub cmdSave_Click()
     ReDim CodeSnippets(0)
     
     'add count value of zero
-    WriteAppSetting SnipList, "General", "Count", "0"
+    WriteSetting SnipList, "General", "Count", "0"
   Else
     'add count
-    WriteAppSetting SnipList, "General", "Count", lstSnippets.ListItems.Count
+    WriteSetting SnipList, "General", "Count", lstSnippets.ListItems.Count
     
     'resize snippets collection
     ReDim CodeSnippets(lstSnippets.ListItems.Count)
@@ -355,9 +355,9 @@ Sub cmdSave_Click()
       'value is actual text in the snippets list
       CodeSnippets(i).Value = lstSnippets.ListItems(i).Tag
       'write to the list
-      WriteAppSetting SnipList, "Snippet" & CStr(i), "Name", CodeSnippets(i).Name
+      WriteSetting SnipList, "Snippet" & CStr(i), "Name", CodeSnippets(i).Name
       ' encode value to replace special characters in the file
-      WriteAppSetting SnipList, "Snippet" & CStr(i), "Value", EnCodeSnippet(CodeSnippets(i).Value)
+      WriteSetting SnipList, "Snippet" & CStr(i), "Value", EnCodeSnippet(CodeSnippets(i).Value)
     Next i
   End If
   

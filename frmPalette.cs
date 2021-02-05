@@ -11,6 +11,7 @@ using WinAGI.Engine;
 using WinAGI.Editor;
 using static WinAGI.Engine.WinAGI;
 using static WinAGI.Engine.AGIGame;
+using static WinAGI.Editor.ResMan;
 
 namespace WinAGI.Editor
 {
@@ -28,7 +29,7 @@ namespace WinAGI.Editor
       switch (FormMode) {
       case 0:
         // adjust caption depending on whether game is loaded or not
-        if (GameLoaded) {
+        if (EditGame.GameLoaded) {
           Text = "Modify Color Palette for this Game";
         } else {
           Text = "Modify Default Color Palette";
@@ -377,7 +378,7 @@ namespace WinAGI.Editor
         if (Not GameLoaded) {
           //save default values
           DefEGAColor(i) = lngTempCol(i)
-          WriteAppSetting SettingsList, sDEFCOLORS, "DefEGAColor" & CStr(i), "&H" & PadHex(lngTempCol(i), 8)
+          WriteSetting GameSettings, sDEFCOLORS, "DefEGAColor" & CStr(i), "&H" & PadHex(lngTempCol(i), 8)
         }
       Next i
 
