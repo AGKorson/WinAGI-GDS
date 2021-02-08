@@ -27,3 +27,6 @@
       changing to game object NOT being static; - need to re-check almost everything; specifically
        - reserved defines; most are static, and in the Compiler class; game-specific ones need to be  re-coded
 
+
+
+!!! use a linked list for managing the MRU files; much easier than what I'm doing now; when adding new item to the list, first check if it already exists; if it does, delete it, otherwise, delete last item on list, then add new item to the top of the list - voila!
