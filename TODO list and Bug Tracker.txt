@@ -29,4 +29,11 @@
 
 
 
-!!! use a linked list for managing the MRU files; much easier than what I'm doing now; when adding new item to the list, first check if it already exists; if it does, delete it, otherwise, delete last item on list, then add new item to the top of the list - voila!
+!!! use a linked list for managing the MRU files; much easier than what I'm doing now; when adding new item to
+the list, first check if it already exists; if it does, delete it, otherwise, delete last item on list, then
+add new item to the top of the list - voila!
+
+!!! now that I know how to convert text from raw byte code to codepage 437 (see decode logic), I think I can 
+use that strategy to replace the ExtChar custom functions I wrote! should be easy to create a function
+wrapper around that text - now I wonder if there's a similar conversion available in VB... the API functions
+(MultiByteToWideChar and WideCharToMultiByte) might work, but I haven't been able to figure them out yet
