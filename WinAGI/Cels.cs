@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 using System.Collections;
 
 namespace WinAGI.Engine
 {
-  class AGICels : IEnumerable<AGICel>
+  class Cels : IEnumerable<Cel>
   {
     //local variable to hold array of cels
-    internal readonly List<AGICel> mCelCol;
-    AGIView mParent;
+    internal readonly List<Cel> mCelCol;
+    View mParent;
     bool mSetMirror;
     //other
     string strErrSource;
-    public AGICel this[int index]
+    public Cel this[int index]
     {
       get
       {
@@ -43,9 +43,9 @@ namespace WinAGI.Engine
         return mCelCol.Count;
       }
     }
-    public AGICel Add(int Pos, byte CelWidth = 1, byte CelHeight = 1, AGIColors TransColor = AGIColors.agBlack)
+    public Cel Add(int Pos, byte CelWidth = 1, byte CelHeight = 1, AGIColorIndex TransColor = AGIColorIndex.agBlack)
     {
-      AGICel agNewCel;
+      Cel agNewCel;
       int i;
       //if too many cels, or invalid pos
       if (mCelCol.Count == MAX_CELS || Pos < 0)
@@ -61,7 +61,7 @@ namespace WinAGI.Engine
         Pos = mCelCol.Count;
       }
       //create new cel object
-      agNewCel = new AGICel(mParent)
+      agNewCel = new Cel(mParent)
       {
         mWidth = CelWidth,
         mHeight = CelHeight,
@@ -134,28 +134,28 @@ namespace WinAGI.Engine
       //it is used to force the celbmp functions to
       //flip cel bitmaps and to flip cel data
       mSetMirror = NewState;
-      foreach (AGICel tmpCel in mCelCol)
+      foreach (Cel tmpCel in mCelCol)
       {
         tmpCel.SetMirror(NewState);
       }
     }
-    public AGIView Parent
+    public View Parent
     { get { return mParent; } internal set { mParent = value; } }
-    public AGICels()
+    public Cels()
     {
-      mCelCol = new List<AGICel>();
+      mCelCol = new List<Cel>();
       strErrSource = "WINAGI.agiCels";
     }
-    internal AGICels(AGIView parent)
+    internal Cels(View parent)
     {
-      mCelCol = new List<AGICel>();
+      mCelCol = new List<Cel>();
       strErrSource = "WINAGI.agiCels";
       mParent = parent;
     }
-    internal AGICels Clone(AGIView cloneparent)
+    internal Cels Clone(View cloneparent)
     {
-      AGICels CopyCels = new AGICels(cloneparent);
-      foreach (AGICel tmpCel in mCelCol)
+      Cels CopyCels = new Cels(cloneparent);
+      foreach (Cel tmpCel in mCelCol)
       {
         CopyCels.mCelCol.Add(tmpCel.Clone(cloneparent));
       }
@@ -170,21 +170,21 @@ namespace WinAGI.Engine
     {
       return (IEnumerator)GetEnumerator();
     }
-    IEnumerator<AGICel> IEnumerable<AGICel>.GetEnumerator()
+    IEnumerator<Cel> IEnumerable<Cel>.GetEnumerator()
     {
-      return (IEnumerator<AGICel>)GetEnumerator();
+      return (IEnumerator<Cel>)GetEnumerator();
     }
   }
-  internal class CelEnum : IEnumerator<AGICel>
+  internal class CelEnum : IEnumerator<Cel>
   {
-    public List<AGICel> _cels;
+    public List<Cel> _cels;
     int position = -1;
-    public CelEnum(List<AGICel> list)
+    public CelEnum(List<Cel> list)
     {
       _cels = list;
     }
     object IEnumerator.Current => Current;
-    public AGICel Current
+    public Cel Current
     {
       get
       {

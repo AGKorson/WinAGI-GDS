@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
-using static WinAGI.Engine.AGICommands;
+using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.AudioPlayer;
 using WinAGI.Common;
-using static WinAGI.Common.WinAGI;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
 
 namespace WinAGI.Engine
 {
-  public static partial class WinAGI
+  public static partial class Base
   {
     //constants used in extracting compressed resources
     const int TABLE_SIZE = 18041;
@@ -97,19 +97,19 @@ namespace WinAGI.Engine
           //calculate offset and size of each dir component
           switch (bytResType) {
           case AGIResType.rtLogic:
-            lngDirOffset = bytBuffer[0] + bytBuffer[1] * 256;
-            lngDirSize = bytBuffer[2] + bytBuffer[3] * 256 - lngDirOffset;
+            lngDirOffset = bytBuffer[0] + (bytBuffer[1] << 8);
+            lngDirSize = bytBuffer[2] + (bytBuffer[3] << 8) - lngDirOffset;
             break;
           case AGIResType.rtPicture:
-            lngDirOffset = bytBuffer[2] + bytBuffer[3] * 256;
-            lngDirSize = bytBuffer[4] + bytBuffer[5] * 256 - lngDirOffset;
+            lngDirOffset = bytBuffer[2] + (bytBuffer[3] << 8);
+            lngDirSize = bytBuffer[4] + (bytBuffer[5] << 8) - lngDirOffset;
             break;
           case AGIResType.rtView:
-            lngDirOffset = bytBuffer[4] + bytBuffer[5] * 256;
-            lngDirSize = bytBuffer[6] + bytBuffer[7] * 256 - lngDirOffset;
+            lngDirOffset = bytBuffer[4] + (bytBuffer[5] << 8);
+            lngDirSize = bytBuffer[6] + (bytBuffer[7] << 8) - lngDirOffset;
             break;
           case AGIResType.rtSound:
-            lngDirOffset = bytBuffer[6] + bytBuffer[7] * 256;
+            lngDirOffset = bytBuffer[6] + (bytBuffer[7] << 8);
             lngDirSize = bytBuffer.Length - lngDirOffset;
             break;
           default:
@@ -187,7 +187,7 @@ namespace WinAGI.Engine
               //extract volume and location
               bytVol = (sbyte)(byte1 >> 4);
               strVolFile = game.agGameDir + strID + "VOL." + bytVol.ToString();
-              lngLoc = ((byte1 % 16) << 16) + (byte2 << 8) + byte3;
+              lngLoc = ((byte1 & 0xF) << 16) + (byte2 << 8) + byte3;
               strResID = ResTypeName[(int)bytResType] + bytResNum.ToString();
               //add a resource of this res type
               switch (bytResType) {
@@ -388,7 +388,7 @@ namespace WinAGI.Engine
         //if currently offset,
         if (blnOffset) {
           //adjust buffer byte
-          bytBuffer = (byte)(bytBuffer + (bytCurComp >> 4));
+          bytBuffer += (byte)(bytCurComp >> 4);
           //extract uncompressed byte
           bytCurUncomp = bytBuffer;
           //shift buffer back
@@ -544,7 +544,7 @@ namespace WinAGI.Engine
       bytAppend = Array.Empty<byte>();
       return bytTempData;
     }
-    internal static byte[] CompressedCel(AGICel Cel, bool blnMirror)
+    internal static byte[] CompressedCel(Cel Cel, bool blnMirror)
     {
       //this method compresses cel data
       //into run-length-encoded data that
@@ -554,7 +554,7 @@ namespace WinAGI.Engine
       byte[] bytTempRLE;
       byte mHeight, mWidth, bytChunkLen;
       byte[,] mCelData;
-      AGIColors mTransColor;
+      AGIColorIndex mTransColor;
       int lngByteCount = 0;
       byte bytChunkColor, bytNextColor;
       byte bytOut;
@@ -734,6 +734,11 @@ namespace WinAGI.Engine
         //this makes no sense!!!!
         //as written, it means max code size is really 11, not
         //12; an attempt to set it to 12 keeps it at 11???
+
+      // I think it should be
+      //if (intVal > MAXBITS) {
+        //retval = MAXBITS;
+
       }
       else {
         retval = intVal;
@@ -741,7 +746,7 @@ namespace WinAGI.Engine
       }
       return retval;
     }
-    internal static byte[] BuildMIDI(AGISound SoundIn)
+    internal static byte[] BuildMIDI(Sound SoundIn)
     {
       int lngWriteTrack = 0;
       int i, j;
@@ -1087,7 +1092,7 @@ namespace WinAGI.Engine
       Array.Resize(ref SndPlayer.mMIDIData, lngPos);
       return SndPlayer.mMIDIData;
     }
-    internal static byte[] BuildIIgsMIDI(AGISound SoundIn, ref double Length)
+    internal static byte[] BuildIIgsMIDI(Sound SoundIn, ref double Length)
     {
       int lngInPos, lngOutPos;
       byte[] midiIn, midiOut;
@@ -1397,15 +1402,15 @@ namespace WinAGI.Engine
       midiOut[lngOutPos + 3] = 0;
       lngOutPos = lngOutPos + 4;
       //update size of track data (total length - 22)
-      midiOut[18] = (byte)(((lngOutPos - 22) / 0x1000000) & 0xFF);
-      midiOut[19] = (byte)(((lngOutPos - 22) / 0x10000) & 0xFF);
-      midiOut[20] = (byte)(((lngOutPos - 22) / 0x100) & 0xFF);
+      midiOut[18] = (byte)(((lngOutPos - 22) >> 24));
+      midiOut[19] = (byte)(((lngOutPos - 22) >> 16) & 0xFF);
+      midiOut[20] = (byte)(((lngOutPos - 22) >> 8) & 0xFF);
       midiOut[21] = (byte)((lngOutPos - 22) & 0xFF);
       //(convert ticks seconds)
       Length = (double)lngTicks / 60;
       return midiOut;
     }
-    internal static byte[] BuildIIgsPCM(AGISound SoundIn)
+    internal static byte[] BuildIIgsPCM(Sound SoundIn)
     {
       int i, lngSize;
       byte[] bData;
@@ -1444,9 +1449,9 @@ namespace WinAGI.Engine
       SndPlayer.mMIDIData[2] = 70;
       SndPlayer.mMIDIData[3] = 70;
       SndPlayer.mMIDIData[4] = (byte)((lngSize + 36) & 0xFF);
-      SndPlayer.mMIDIData[5] = (byte)(((lngSize + 36) / 0x100) & 0xFF);
-      SndPlayer.mMIDIData[6] = (byte)(((lngSize + 36) / 0x10000) & 0xFF);
-      SndPlayer.mMIDIData[7] = (byte)(((lngSize + 36) / 0x1000000) & 0xFF);
+      SndPlayer.mMIDIData[5] = (byte)(((lngSize + 36) >> 8) & 0xFF);
+      SndPlayer.mMIDIData[6] = (byte)(((lngSize + 36) >> 16) & 0xFF);
+      SndPlayer.mMIDIData[7] = (byte)((lngSize + 36) >> 24);
       SndPlayer.mMIDIData[8] = 87;
       SndPlayer.mMIDIData[9] = 65;
       SndPlayer.mMIDIData[10] = 86;
@@ -1480,9 +1485,9 @@ namespace WinAGI.Engine
       SndPlayer.mMIDIData[38] = 116;
       SndPlayer.mMIDIData[39] = 97;
       SndPlayer.mMIDIData[40] = (byte)((lngSize - 2) & 0xFF);
-      SndPlayer.mMIDIData[41] = (byte)(((lngSize - 2) / 0x100) & 0xFF);
-      SndPlayer.mMIDIData[42] = (byte)(((lngSize - 2) / 0x10000) & 0xFF);
-      SndPlayer.mMIDIData[43] = (byte)(((lngSize - 2) / 0x1000000) & 0xFF);
+      SndPlayer.mMIDIData[41] = (byte)(((lngSize - 2) >> 8) & 0xFF);
+      SndPlayer.mMIDIData[42] = (byte)(((lngSize - 2) >> 16) & 0xFF);
+      SndPlayer.mMIDIData[43] = (byte)((lngSize - 2) >> 24);
       lngPos = 44;
       //copy data from sound resource, beginning at pos 2
       for (i = 54; i < bData.Length; i++) {
@@ -1517,12 +1522,12 @@ namespace WinAGI.Engine
     }
     internal static void WriteSndLong(int LongIn)
     {
-      WriteSndByte((byte)(LongIn / 0x1000000));
-      WriteSndByte((byte)((LongIn / 0x10000) & 0xFF));
-      WriteSndByte((byte)((LongIn / 0x100) & 0xFF));
+      WriteSndByte((byte)(LongIn >> 24));
+      WriteSndByte((byte)((LongIn >> 16) & 0xFF));
+      WriteSndByte((byte)((LongIn >> 8) & 0xFF));
       WriteSndByte((byte)(LongIn & 0xFF));
     }
-    internal static int GetTrack3Freq(AGITrack Track3, int lngTarget)
+    internal static int GetTrack3Freq(Track Track3, int lngTarget)
     {
       //if noise channel needs the frequency of track 3,
       //must step through track three until the same point in time is found

@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace WinAGI.Engine
 {
-  public class AGINotes : IEnumerable<AGINote>
+  public class Notes : IEnumerable<Note>
   {
     //local variable to hold collection
-    List<AGINote> mCol = new List<AGINote>();
-    AGISound mParent;
-    AGITrack mTParent;
+    List<Note> mCol = new List<Note>();
+    Sound mParent;
+    Track mTParent;
     string strErrSource;
-    public AGINote this[int index]
+    public Note this[int index]
     { 
       get 
       { // validate
@@ -29,7 +29,7 @@ namespace WinAGI.Engine
     public void Clear()
     {
       //clear by setting collection to nothing
-      mCol = new List<AGINote>();
+      mCol = new List<Note>();
 
       //if parent is assigned
       if (mParent != null)
@@ -39,9 +39,9 @@ namespace WinAGI.Engine
         mTParent.SetLengthDirty();
       }
     }
-    public AGINote Add(int FreqDivisor, int Duration, byte Attenuation, int InsertPos = -1)
+    public Note Add(int FreqDivisor, int Duration, byte Attenuation, int InsertPos = -1)
     {
-      AGINote agNewNote = new AGINote
+      Note agNewNote = new Note
       {
         FreqDivisor = FreqDivisor,
         Duration = Duration,
@@ -94,24 +94,24 @@ namespace WinAGI.Engine
         mTParent.SetLengthDirty();
       }
     }
-    public AGINotes()
+    public Notes()
     {    //creates the collection when this class is created
-      mCol = new List<AGINote>();
+      mCol = new List<Note>();
       strErrSource = "AGINotes";
     }
-    internal AGINotes(AGISound parent, AGITrack tparent)
+    internal Notes(Sound parent, Track tparent)
     {    //creates the collection when this class is created
-      mCol = new List<AGINote>();
+      mCol = new List<Note>();
       mParent = parent;
       mTParent = tparent; 
       strErrSource = "AGINotes";
     }
-    internal AGINotes Clone(AGITrack cloneTparent)
+    internal Notes Clone(Track cloneTparent)
     {
       // return a copy of this notes collection
-      AGINotes CopyNotes = new AGINotes(mParent, cloneTparent);
-      foreach (AGINote tmpNote in mCol) {
-        CopyNotes.mCol.Add(new AGINote(mParent, mTParent)
+      Notes CopyNotes = new Notes(mParent, cloneTparent);
+      foreach (Note tmpNote in mCol) {
+        CopyNotes.mCol.Add(new Note(mParent, mTParent)
         {
           mAttenuation = tmpNote.mAttenuation,
           mDuration = tmpNote.mDuration,
@@ -130,21 +130,21 @@ namespace WinAGI.Engine
       return (IEnumerator)GetEnumerator();
     }
 
-    IEnumerator<AGINote> IEnumerable<AGINote>.GetEnumerator()
+    IEnumerator<Note> IEnumerable<Note>.GetEnumerator()
     {
-      return (IEnumerator<AGINote>)GetEnumerator();
+      return (IEnumerator<Note>)GetEnumerator();
     }
   }
-  internal class NoteEnum : IEnumerator<AGINote>
+  internal class NoteEnum : IEnumerator<Note>
   {
-    public List<AGINote> _notes;
+    public List<Note> _notes;
     int position = -1;
-    public NoteEnum(List<AGINote> list)
+    public NoteEnum(List<Note> list)
     {
       _notes = list;
     }
     object IEnumerator.Current => Current;
-    public AGINote Current
+    public Note Current
     {
       get
       {

@@ -1,19 +1,19 @@
 ﻿using System;
 using System.ComponentModel;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.AGICommands;
+using static WinAGI.Engine.Commands;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Drawing.Imaging;
 
 namespace WinAGI.Engine
 {
-  public class AGICel
+  public class Cel
   {
     internal byte mWidth;
     internal byte mHeight;
-    internal AGIColors mTransColor;
+    internal AGIColorIndex mTransColor;
     internal EGAColors colorEGA;
     internal byte[,] mCelData;
     internal int mIndex;
@@ -26,8 +26,8 @@ namespace WinAGI.Engine
     //mMirror is true if the cel IS showing the mirror
     bool mMirrored;
     string strErrSource;
-    AGIView mParent;
-    public AGICel()
+    View mParent;
+    public Cel()
     {
       strErrSource = "WINAGI.AGICel";
       mCelData = new byte[1, 1];
@@ -36,7 +36,7 @@ namespace WinAGI.Engine
       // use default colors
       colorEGA = defaultColorEGA;
     }
-    internal AGICel(AGIView parent)
+    internal Cel(View parent)
     {
       strErrSource = "WINAGI.AGICel";
       mCelData = new byte[1, 1];
@@ -46,7 +46,7 @@ namespace WinAGI.Engine
       //if parent view is part of a game, use the game's colors
       if (mParent != null) {
         if (mParent.parent != null) {
-          colorEGA = mParent.parent.colorEGA;
+          colorEGA = mParent.parent.agEGAcolors;
         }
       }
       // if not assigned to parent, use default
@@ -193,9 +193,9 @@ namespace WinAGI.Engine
         }
       }
     }
-    internal AGICel Clone(AGIView cloneparent)
+    internal Cel Clone(View cloneparent)
     {
-      AGICel CopyCel = new AGICel(cloneparent);
+      Cel CopyCel = new Cel(cloneparent);
       CopyCel.mWidth = mWidth;
       CopyCel.mHeight = mHeight;
       CopyCel.mTransColor = mTransColor;
@@ -281,11 +281,11 @@ namespace WinAGI.Engine
           return mCelBMP;
         }
       }
-    public void CopyCel(AGICel SourceCel)
+    public void CopyCel(Cel SourceCel)
     {
       //copies the source cel into this cel
       int i, j;
-      AGIColors tmpColor;
+      AGIColorIndex tmpColor;
 
       mWidth = SourceCel.Width;
       mHeight = SourceCel.Height;
@@ -299,7 +299,7 @@ namespace WinAGI.Engine
         {
           for (j = 0; j < mHeight; j++)
           {    //swap horizontally
-            tmpColor = (AGIColors)mCelData[mWidth - 1 - i, j];
+            tmpColor = (AGIColorIndex)mCelData[mWidth - 1 - i, j];
             mCelData[mWidth - 1 - i, j] = mCelData[i, j];
             mCelData[i, j] = (byte)tmpColor;
           }
@@ -419,7 +419,7 @@ namespace WinAGI.Engine
       //with no data, and black as transcolor
       mHeight = 1;
       mWidth = 1;
-      mTransColor = AGIColors.agBlack;
+      mTransColor = AGIColorIndex.agBlack;
       mCelData = new byte[1, 1];
       //if the cel has a bitmap set,
       if (blnCelBMPSet)
@@ -508,7 +508,7 @@ namespace WinAGI.Engine
     {
       mSetMirror = blnNew;
     }
-    public AGIColors TransColor
+    public AGIColorIndex TransColor
     {
       get { return mTransColor; }
       set

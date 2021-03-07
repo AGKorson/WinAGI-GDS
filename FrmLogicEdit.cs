@@ -6,17 +6,16 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using WinAGI.Engine;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.AGITestCommands;
-using static WinAGI.Engine.AGICommands;
-using static WinAGI.Editor.ResMan;
+using static WinAGI.Engine.Commands;
+using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor
 {
   public partial class frmLogicEdit : Form
   {
-    public AGILogic ThisLogic = new AGILogic { };
+    public Logic ThisLogic = new Logic { };
     internal ELogicFormMode FormMode;
     internal bool InGame;
     public bool ListDirty = false;
@@ -25,7 +24,7 @@ namespace WinAGI.Editor
     {
       InitializeComponent();
     }
-    public bool EditLogic(AGILogic ThisLogic)
+    public bool EditLogic(Logic ThisLogic)
     {
       return true;
       /*

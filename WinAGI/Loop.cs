@@ -4,19 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WinAGI.Engine;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine
 {
-  public class AGILoop
+  public class Loop
   {
-    AGICels mCelCol;
+    Cels mCelCol;
     int mMirrorPair;
     internal int mIndex;
-    AGIView mParent;
+    View mParent;
     //other
     string strErrSource;
-    internal AGICels Cels
+    internal Cels Cels
     {
       get
       {
@@ -53,7 +53,7 @@ namespace WinAGI.Engine
         }
       }
     }
-    public void CopyLoop(AGILoop SourceLoop)
+    public void CopyLoop(Loop SourceLoop)
     {
       //copies the source loop into this loop
       //if this is mirrored, and the primary loop
@@ -81,7 +81,7 @@ namespace WinAGI.Engine
         mParent.IsDirty = true;
       }
     }
-    public AGICel this [int index]
+    public Cel this [int index]
     {
       get
       {
@@ -162,7 +162,7 @@ namespace WinAGI.Engine
       //this function passes the call to the
       //secondary loop for processing
       byte i;
-      AGICels tmpCels;
+      Cels tmpCels;
       if (mMirrorPair == 0)
       {
         return;
@@ -180,7 +180,7 @@ namespace WinAGI.Engine
       //and copy cel data
 
       //create temporary collection of cels
-      tmpCels = new AGICels(mParent);
+      tmpCels = new Cels(mParent);
       //copy cels from current cel collection
       for (i = 0; i < mCelCol.Count; i++)
       {
@@ -200,25 +200,25 @@ namespace WinAGI.Engine
         mParent.IsDirty = true;
       }
     }
-    internal AGILoop Clone(AGIView cloneparent)
+    internal Loop Clone(View cloneparent)
     {
       // returns a copy of this loop
-      AGILoop CopyLoop = new AGILoop(cloneparent);
+      Loop CopyLoop = new Loop(cloneparent);
       CopyLoop.mMirrorPair = mMirrorPair;
       CopyLoop.mIndex = mIndex;
       CopyLoop.mCelCol = mCelCol.Clone(cloneparent);
       return CopyLoop;
   }
-  public AGILoop()
+  public Loop()
     {
       //initialize cel collection object
-      mCelCol = new AGICels();
+      mCelCol = new Cels();
       strErrSource = "WINAGI.AGILoop";
     }
-    internal AGILoop(AGIView parent)
+    internal Loop(View parent)
     {
       //initialize cel collection object
-      mCelCol = new AGICels(parent);
+      mCelCol = new Cels(parent);
       strErrSource = "WINAGI.AGILoop";
       mParent = parent;
     }

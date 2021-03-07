@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using static WinAGI.Common.WinAGI;
+using static WinAGI.Common.Base;
 
 namespace WinAGI.Engine
 {
@@ -734,8 +734,8 @@ namespace WinAGI.Engine
             //parse it into rgb components
             int r, g, b;
             b = iColor % 0x100;
-            g = (iColor / 0x100) % 0x100;
-            r = (iColor / 0x10000) % 0x100;
+            g = (iColor >> 8) % 0x100;
+            r = (iColor >> 16) % 0x100;
             retColor = Color.FromArgb(r, g, b);
           }
           catch (Exception) {
@@ -748,8 +748,8 @@ namespace WinAGI.Engine
               //parse it into rgb components
               int r, g, b;
               b = (int)(unchecked((uint)iColor) % 0x100);
-              g = (int)(unchecked((uint)iColor) / 0x100 % 0x100);
-              r = (int)(unchecked((uint)iColor) / 0x10000 % 0x100);
+              g = (int)(unchecked(((uint)iColor) >> 8) % 0x100);
+              r = (int)(unchecked(((uint)iColor) >> 16) % 0x100);
               retColor = Color.FromArgb(r, g, b);
             }
             catch (Exception) {

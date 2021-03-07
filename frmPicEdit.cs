@@ -10,9 +10,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Editor.ResMan;
+using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor
 {
@@ -23,7 +23,7 @@ namespace WinAGI.Editor
     bool picMode = false;
 
     public int PicNumber;
-    public AGIPicture PicEdit;
+    public Picture PicEdit;
     public bool InGame;
     public bool IsDirty;
     public EPicCursorMode CursorMode;
@@ -36,22 +36,22 @@ namespace WinAGI.Editor
     private void frmPicEdit_Load(object sender, EventArgs e)
     {
       //load combobox with AGI color indices
-      cmbTransCol.Items.Add(AGIColors.agBlack);
-      cmbTransCol.Items.Add(AGIColors.agBlue);
-      cmbTransCol.Items.Add(AGIColors.agGreen);
-      cmbTransCol.Items.Add(AGIColors.agCyan);
-      cmbTransCol.Items.Add(AGIColors.agRed);
-      cmbTransCol.Items.Add(AGIColors.agMagenta);
-      cmbTransCol.Items.Add(AGIColors.agBrown);
-      cmbTransCol.Items.Add(AGIColors.agLtGray);
-      cmbTransCol.Items.Add(AGIColors.agDkGray);
-      cmbTransCol.Items.Add(AGIColors.agLtBlue);
-      cmbTransCol.Items.Add(AGIColors.agLtGreen);
-      cmbTransCol.Items.Add(AGIColors.agLtCyan);
-      cmbTransCol.Items.Add(AGIColors.agLtRed);
-      cmbTransCol.Items.Add(AGIColors.agLtMagenta);
-      cmbTransCol.Items.Add(AGIColors.agYellow);
-      cmbTransCol.Items.Add(AGIColors.agWhite);
+      cmbTransCol.Items.Add(AGIColorIndex.agBlack);
+      cmbTransCol.Items.Add(AGIColorIndex.agBlue);
+      cmbTransCol.Items.Add(AGIColorIndex.agGreen);
+      cmbTransCol.Items.Add(AGIColorIndex.agCyan);
+      cmbTransCol.Items.Add(AGIColorIndex.agRed);
+      cmbTransCol.Items.Add(AGIColorIndex.agMagenta);
+      cmbTransCol.Items.Add(AGIColorIndex.agBrown);
+      cmbTransCol.Items.Add(AGIColorIndex.agLtGray);
+      cmbTransCol.Items.Add(AGIColorIndex.agDkGray);
+      cmbTransCol.Items.Add(AGIColorIndex.agLtBlue);
+      cmbTransCol.Items.Add(AGIColorIndex.agLtGreen);
+      cmbTransCol.Items.Add(AGIColorIndex.agLtCyan);
+      cmbTransCol.Items.Add(AGIColorIndex.agLtRed);
+      cmbTransCol.Items.Add(AGIColorIndex.agLtMagenta);
+      cmbTransCol.Items.Add(AGIColorIndex.agYellow);
+      cmbTransCol.Items.Add(AGIColorIndex.agWhite);
       cmbTransCol.Items.Add("None");
       cmbTransCol.SelectedIndex = 16;
 
@@ -95,7 +95,7 @@ namespace WinAGI.Editor
       }
       if (cmbTransCol.SelectedIndex < 16)
       {
-        thisBMP.MakeTransparent(EditGame.EGAColor[cmbTransCol.SelectedIndex]);
+        thisBMP.MakeTransparent(EditGame.AGIColors[cmbTransCol.SelectedIndex]);
       }
       ShowAGIBitmap(picVisual, thisBMP, zoom);
 
@@ -105,7 +105,7 @@ namespace WinAGI.Editor
       //redraw, with the selected transparent image
       showPic();
     }
-    public bool EditPicture(AGIPicture ThisPicture)
+    public bool EditPicture(Picture ThisPicture)
     {
       return true;
       /*

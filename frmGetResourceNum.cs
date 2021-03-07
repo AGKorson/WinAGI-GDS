@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static WinAGI.Editor.ResMan;
+using static WinAGI.Editor.Base;
 using WinAGI.Engine;
 using static WinAGI.Engine.AGIResType;
 namespace WinAGI.Editor

@@ -5,7 +5,7 @@ namespace WinAGI.Engine
 {
   public class EGAColors
   {
-    Color[] colorEGA = new Color[16];
+    Color[] colorList = new Color[16];
     public Color this[int index]
     {
       get
@@ -13,18 +13,14 @@ namespace WinAGI.Engine
         if (index < 0 || index > 15) {
           throw new IndexOutOfRangeException("bad color");
         }
-        return colorEGA[index];
+        return colorList[index];
       }
       set
       {
         if (index < 0 || index > 15) {
           throw new IndexOutOfRangeException("bad color");
         }
-        colorEGA[index] = value;
-        //// if color for a game is changed, how to let the game object know???
-        //if (agGameLoaded) {
-        //  WriteGameSetting("Palette", "Color" + index, ColorText(index));
-        //}
+        colorList[index] = value;
       }
     }
     public static string ColorText(Color aColor)
@@ -38,7 +34,7 @@ namespace WinAGI.Engine
       if (index < 0 || index > 15) {
         throw new IndexOutOfRangeException("bad color");
       }
-      return ColorText(colorEGA[index]);
+      return ColorText(colorList[index]);
     }
   }
 }

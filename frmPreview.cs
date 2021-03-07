@@ -10,11 +10,11 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using WinAGI.Engine;
 using WinAGI.Common;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.AGIResType;
-using static WinAGI.Editor.ResMan;
-using static WinAGI.Engine.AGISound;
+using static WinAGI.Editor.Base;
+using static WinAGI.Engine.Sound;
 
 namespace WinAGI.Editor
 {
@@ -32,19 +32,19 @@ namespace WinAGI.Editor
     AGIResType PrevResType;
 
     //logic preview
-    AGILogic agLogic;
+    Logic agLogic;
 
     //picture preview
-    AGIPicture agPic;
+    Picture agPic;
     int PicScale;
     bool blnDraggingPic;
 
     //sound preview
-    AGISound agSound;
+    Sound agSound;
     long lngStart;
 
     //view preview
-    AGIView agView;
+    Engine.View agView;
     int CurLoop, CurCel;
     int ViewScale, VTopMargin;
     bool blnDraggingView;
@@ -88,9 +88,16 @@ namespace WinAGI.Editor
       // always unload previous resources
       agLogic?.Unload();
       agPic?.Unload();
-      agSound?.Unload(); //TODO: do I need to stop playing and unhook sounds?
       agView?.Unload();
-
+      if (agSound != null) {
+        // if a sound is already being previewed, make sure it gets stopped
+        // before switching to the new sound
+        this.StopSoundPreview();
+        //agSound.StopSound();
+        //// always unhook the event handler
+        //agSound.SoundComplete -= This_SoundComplete;
+        agSound.Unload();
+      }
       // if picture header selected
       if (ResType == rtPicture && ResNum < 0) {
         // show save all pics menu item
@@ -171,6 +178,8 @@ namespace WinAGI.Editor
           //unload sound
           agSound.Unload();
         }
+        //stop sound
+        agSound.StopSound();
         // always unhook the event handler
         agSound.SoundComplete -= This_SoundComplete;
         agSound = null;
@@ -1106,7 +1115,7 @@ namespace WinAGI.Editor
       udCel.Text = $"Cel {CurCel} / {agView[CurLoop].Cels.Count - 1}";
       //set transparent color for the toolbox image
       picTrans.Image = new Bitmap(picTrans.Width, picTrans.Height);
-      Graphics.FromImage(picTrans.Image).Clear(EditGame.EGAColor[(int)agView[CurLoop][CurCel].TransColor]);
+      Graphics.FromImage(picTrans.Image).Clear(EditGame.AGIColors[(int)agView[CurLoop][CurCel].TransColor]);
 
       // create new image in the picture box that is desired size
       picCel.Image = new Bitmap(picCel.Width, picCel.Height);

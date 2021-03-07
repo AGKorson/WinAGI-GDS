@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Common.WinAGI;
+using static WinAGI.Common.Base;
 
 namespace WinAGI.Engine
 {
@@ -214,7 +214,7 @@ namespace WinAGI.Engine
             bytHigh = brVOL.ReadByte();
             fsVOL.Dispose();
             brVOL.Dispose();
-            return (int)bytHigh * 256 + bytLow;
+            return (bytHigh << 8) + bytLow;
           }
         }
       }
@@ -280,7 +280,7 @@ namespace WinAGI.Engine
           //if in a game,
           if (InGame) {
             //step through other resources
-            foreach (AGILogic tmpRes in parent.agLogs) {
+            foreach (Logic tmpRes in parent.agLogs) {
               //if resource IDs are same
               if (tmpRes.ID.Equals(NewID, StringComparison.OrdinalIgnoreCase)) {
                 //if not the same resource
@@ -290,7 +290,7 @@ namespace WinAGI.Engine
                 }
               }
             }
-            foreach (AGIPicture tmpRes in parent.agPics) {
+            foreach (Picture tmpRes in parent.agPics) {
               //if resource IDs are same
               if (tmpRes.ID.Equals(NewID, StringComparison.OrdinalIgnoreCase)) {
                 //if not the same resource
@@ -300,7 +300,7 @@ namespace WinAGI.Engine
                 }
               }
             }
-            foreach (AGISound tmpRes in parent.agSnds) {
+            foreach (Sound tmpRes in parent.agSnds) {
               //if resource IDs are same
               if (tmpRes.ID.Equals(NewID, StringComparison.OrdinalIgnoreCase)) {
                 //if not the same resource
@@ -310,7 +310,7 @@ namespace WinAGI.Engine
                 }
               }
             }
-            foreach (AGIView tmpRes in parent.agViews) {
+            foreach (View tmpRes in parent.agViews) {
               //if resource IDs are same
               if (tmpRes.ID.Equals(NewID, StringComparison.OrdinalIgnoreCase)) {
                 //if not the same resource
@@ -483,7 +483,7 @@ namespace WinAGI.Engine
         //get size info
         bytLow = brVOL.ReadByte();
         bytHigh = brVOL.ReadByte();
-        intSize = bytHigh * 256 + bytLow;
+        intSize = (bytHigh << 8) + bytLow;
 
         //if version3,
         if (parent.agIsVersion3) {
@@ -492,7 +492,7 @@ namespace WinAGI.Engine
           //now get compressed size
           bytLow = brVOL.ReadByte();
           bytHigh = brVOL.ReadByte();
-          intSize = bytHigh * 256 + bytLow;
+          intSize = (bytHigh << 8) + bytLow;
         }
       } else {
         //get size from total file length
@@ -935,7 +935,7 @@ namespace WinAGI.Engine
       //check for end of resource
       mblnEORes = (mlngCurPos == mRData.Length);
       //calculate word Value
-      return (ushort)(bytHigh * 256 + bytLow);
+      return (ushort)((bytHigh << 8) + bytLow);
     }
     public byte ReadByte(int Pos = MAX_RES_SIZE + 1)
     {

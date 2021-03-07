@@ -9,16 +9,17 @@ using System.Resources;
 using WinAGI.Engine;
 using WinAGI.Common;
 using static WinAGI.Common.API;
-using static WinAGI.Common.WinAGI;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.WinAGI;
-using static WinAGI.Engine.AGICommands;
-using static WinAGI.Engine.AGITestCommands;
+using static WinAGI.Engine.Base;
+using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.AGIResType;
 using static WinAGI.Engine.ArgTypeEnum;
+using static WinAGI.Editor.BkgdTasks;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Drawing.Imaging;
+using System.ComponentModel;
 
 namespace WinAGI.Editor
 {
@@ -31,7 +32,7 @@ namespace WinAGI.Editor
   //
   //***************************************************
 
-  public static class ResMan
+  public static class Base
   {
     //***************************************************
     // GLOBAL CONSTANTS
@@ -136,8 +137,8 @@ namespace WinAGI.Editor
     public const int DEFAULT_VIEWUNDO = -1;
     public const int DEFAULT_DEFCELH = 32;
     public const int DEFAULT_DEFCELW = 16;
-    public const AGIColors DEFAULT_DEFVCOLOR1 = AGIColors.agBlack;
-    public const AGIColors DEFAULT_DEFVCOLOR2 = AGIColors.agWhite;
+    public const AGIColorIndex DEFAULT_DEFVCOLOR1 = AGIColorIndex.agBlack;
+    public const AGIColorIndex DEFAULT_DEFVCOLOR2 = AGIColorIndex.agWhite;
     public const bool DEFAULT_SHOWVEPREV = true;
     public const bool DEFAULT_SHOWGRID = true;
     // default settings - object
@@ -471,20 +472,6 @@ namespace WinAGI.Editor
     //***************************************************
     #region
     //property accessors
-    public struct PropAccGame
-    {
-      public string GameID;
-      public string Author;
-      public string GameDir;
-      public string ResDir;
-      public string IntVer;
-      public string Description;
-      public string GameVer;
-      public string GameAbout;
-      public string LayoutEditor;
-      public string LastEdit;
-    }
-    public static PropAccGame paGame;
     public struct tDefaultScale
     {
       public int Edit;
@@ -667,6 +654,14 @@ namespace WinAGI.Editor
       public string Separator;
       public string NumFormat;
     }
+    public struct LoadGameResults
+    {
+      public int Mode;
+      public string Source;
+      public bool Warnings;
+      public bool Failed;
+      public string ErrorMsg;
+    }
     #endregion
     //***************************************************
     // GLOBAL VARIABLES
@@ -727,9 +722,9 @@ namespace WinAGI.Editor
     public static bool GEInUse;
     //lookup lists for logic editor
     //tooltips and define lists
-    public static TDefine[] RDefLookup = new TDefine[95]; //(94)
+    public static TDefine[] RDefLookup = new TDefine[95];
     public static TDefine[] GDefLookup;
-    public static TDefine[] IDefLookup = new TDefine[1024]; // (1023)
+    public static TDefine[] IDefLookup = new TDefine[1024];
     //  //for now we will not do lookups
     //  // on words and invObjects
     //  // if performance is good enough
@@ -746,10 +741,10 @@ namespace WinAGI.Editor
     //mru variables
     public static string[] strMRU = new string[4] { "", "", "", "" }; // (4)
                                                                       //clipboard variables
-    public static AGINotes SoundClipboard;
+    public static Notes SoundClipboard;
     public static int SoundCBMode;
-    public static AGILoop ClipViewLoop;
-    public static AGICel ClipViewCel;
+    public static Loop ClipViewLoop;
+    public static Cel ClipViewCel;
     //public static PictureUndo PicClipBoardObj;
     public static ViewEditMode ViewCBMode;
     //public static PictureBox ViewClipboard;
@@ -839,7 +834,7 @@ namespace WinAGI.Editor
         return;
       }
       //build combined number/resource
-      lngRes = (int)ResType * 256 + ResNum;
+      lngRes = ((int)ResType << 8) + ResNum;
       if (ResQPtr >= 0) {
         //don't add if the current resource matches
         if (ResQueue[ResQPtr] == lngRes) {
@@ -880,8 +875,8 @@ namespace WinAGI.Editor
         strDef = strIn.Split(":");
         if (strDef.Length == 3) {
           //get the new name, if a valid entry
-          if (Val(strDef[1]) < Compiler.ResDefByGrp((int)Val(strDef[0])).Length) {
-            Compiler.ResDef((int)Val(strDef[0]), (int)Val(strDef[1]), strDef[2]);
+          if (Val(strDef[1]) < Compiler.ResDefByGrp((ResDefGroup)Val(strDef[0])).Length) {
+            Compiler.SetResDef((int)Val(strDef[0]), (int)Val(strDef[1]), strDef[2]);
           }
         }
       }
@@ -900,7 +895,6 @@ namespace WinAGI.Editor
       //if any reserved define names are different from the default values,
       //write them to the app settings;
       int intCount = 0, i, j;
-      int[] max = new int[] { 0, 27, 18, 5, 9, 5, 9, 16, 6 };
       TDefine[] dfTemp;
       //need to make string comparisons case sensitive, in case user
       //wants to change case of a define (even though it really doesn't matter; compiler is not case sensitive)
@@ -908,15 +902,13 @@ namespace WinAGI.Editor
       //first, delete any previous overrides
       GameSettings.DeleteSection("ResDefOverrides");
       //now step through each type of define value; if name is not the default, then save it
-      for (j = 1; j <= 8; j++) {
-
-        //checks 27 variables
-        dfTemp = Compiler.ResDefByGrp(j);
-        for (i = 0; i < max[j]; i++) {
+      for (ResDefGroup grp = 0; (int)grp < 10; grp++) {
+        dfTemp = Compiler.ResDefByGrp(grp);
+        for (i = 0; i < dfTemp.Length; i++) {
           if (dfTemp[i].Default != dfTemp[i].Name) {
             //save it
             intCount++;
-            GameSettings.WriteSetting("ResDefOverrides", "Override" + intCount, j + ":" + i + ":" + dfTemp[i].Name);
+            GameSettings.WriteSetting("ResDefOverrides", "Override" + intCount, (int)grp + ":" + i + ":" + dfTemp[i].Name);
           }
         }
       }
@@ -983,7 +975,7 @@ namespace WinAGI.Editor
       //initialize code snippet array
       CodeSnippets = Array.Empty<TDefine>();
     }
-    public static void ExportLoop(AGILoop ThisLoop)
+    public static void ExportLoop(Loop ThisLoop)
     {
       //export a loop as a gif
       bool blnCanceled;
@@ -1048,7 +1040,7 @@ namespace WinAGI.Editor
       //done with the options form
       frmVGO.Close();
     }
-    public static bool MakeLoopGif(AGILoop GifLoop, GifOptions GifOps, string ExportFile)
+    public static bool MakeLoopGif(Loop GifLoop, GifOptions GifOps, string ExportFile)
     {
       string strTempFile;
       byte[] bytData;
@@ -1084,9 +1076,9 @@ namespace WinAGI.Editor
       }
       //add logical screen size info
       bytData[6] = (byte)((MaxW * GifOps.Zoom * 2) & 0xFF);
-      bytData[7] = (byte)(MaxW * GifOps.Zoom * 2 / 0x100);
+      bytData[7] = (byte)((MaxW * GifOps.Zoom * 2) >> 8);
       bytData[8] = (byte)((MaxH * GifOps.Zoom) & 0xFF);
-      bytData[9] = (byte)(MaxH * GifOps.Zoom / 0x100);
+      bytData[9] = (byte)((MaxH * GifOps.Zoom) >> 8);
       //add color info
       bytData[10] = 243; //1-111-0-011 means:
                          //global color table,
@@ -1100,9 +1092,9 @@ namespace WinAGI.Editor
 
       //add global color table
       for (i = 0; i < 16; i++) {
-        bytData[13 + 3 * i] = EditGame.EGAColor[i].B;
-        bytData[14 + 3 * i] = EditGame.EGAColor[i].G;
-        bytData[15 + 3 * i] = EditGame.EGAColor[i].R;
+        bytData[13 + 3 * i] = EditGame.AGIColors[i].B;
+        bytData[14 + 3 * i] = EditGame.AGIColors[i].G;
+        bytData[15 + 3 * i] = EditGame.AGIColors[i].R;
       }
       //if cycling, add netscape extension to allow continuous looping
       if (GifOps.Cycle) {
@@ -1156,7 +1148,7 @@ namespace WinAGI.Editor
         lngPos++;
         bytData[lngPos] = (byte)(GifOps.Delay & 0xFF);
         lngPos++;
-        bytData[lngPos] = (byte)((GifOps.Delay & 0xFF) / 0x100);
+        bytData[lngPos] = (byte)((GifOps.Delay & 0xFF) >> 8);
         lngPos++;
         if (GifOps.Transparency) {
           bytData[lngPos] = (byte)GifLoop.Cels[i].TransColor;
@@ -1232,11 +1224,11 @@ namespace WinAGI.Editor
         lngPos++;
         bytData[lngPos] = (byte)((byte)(MaxW * GifOps.Zoom * 2) & 0xFF);
         lngPos++;
-        bytData[lngPos] = (byte)((byte)(MaxW * GifOps.Zoom * 2) / 0x100);
+        bytData[lngPos] = (byte)((byte)(MaxW * GifOps.Zoom * 2) >> 8);
         lngPos++;
         bytData[lngPos] = (byte)((byte)(MaxH * GifOps.Zoom) & 0xFF);
         lngPos++;
-        bytData[lngPos] = (byte)((byte)(MaxH * GifOps.Zoom) / 0x100);
+        bytData[lngPos] = (byte)((byte)(MaxH * GifOps.Zoom) >> 8);
         lngPos++;
         bytData[lngPos] = 0;
         lngPos++;
@@ -1353,7 +1345,7 @@ namespace WinAGI.Editor
       ProgressWin.Show();
       ProgressWin.Refresh();
 
-      foreach (AGIPicture ThisPic in EditGame.Pictures) {
+      foreach (Picture ThisPic in EditGame.Pictures) {
         ProgressWin.lblProgress.Text = "Exporting " + ThisPic.ID + " Image...";
         ProgressWin.pgbStatus.Value++;
         ProgressWin.Refresh();
@@ -1373,7 +1365,7 @@ namespace WinAGI.Editor
       //restore cursor
       MDIMain.UseWaitCursor = false;
     }
-    static void ExportImg(AGIPicture ExportPic, string ExportFile, int ImgFormat, int ImgMode, int ImgZoom)
+    static void ExportImg(Picture ExportPic, string ExportFile, int ImgFormat, int ImgMode, int ImgZoom)
     {
       //exports pic gdpImg
       Bitmap ExportBMP;
@@ -1466,7 +1458,7 @@ namespace WinAGI.Editor
       g.ReleaseHdc(destHDC);
       return newBmp;
     }
-    public static void ExportOnePicImg(AGIPicture ThisPicture)
+    public static void ExportOnePicImg(Picture ThisPicture)
     {
       //exports a picture vis screen and/or pri screen as either bmp or gif, or png
       int lngZoom, lngMode, lngFormat;
@@ -1618,10 +1610,7 @@ namespace WinAGI.Editor
       // mode 0 == open source as a wag file
       // mode 1 == open source as a sierra game directory;
 
-      string strError = "";
-      bool blnWarnings = false;
       bool blnLoaded = false;
-      int lngErr;
 
       //if a game is currently open,
       if (EditGame != null) {
@@ -1630,160 +1619,39 @@ namespace WinAGI.Editor
           return false;
         }
       }
-      //all resource editors should now be closed
+
       //show wait cursor
       MDIMain.UseWaitCursor = true;
       MDIMain.Refresh();
-      //show the ProgressWin bar
+      //show the progress window
       ProgressWin = new frmProgress();
       ProgressWin.Text = "Loading Game";
       ProgressWin.lblProgress.Text = "Checking WinAGI Game file ...";
       ProgressWin.StartPosition = FormStartPosition.CenterParent;
       ProgressWin.pgbStatus.Visible = false;
-      ProgressWin.Show(MDIMain);
-      ProgressWin.Refresh();
       //show loading msg in status bar
       MainStatusBar.Items[1].Text = (mode == 0 ? "Loading" : "Importing") + " game; please wait...";
-      try {
-        //and load the game/dir
-        if (mode == 0) {
-          EditGame = new AGIGame();
-          EditGame.OpenGameWAG(gameSource);
-        }
-        else {
-          EditGame.OpenGameDIR(gameSource);
-        }
-        blnLoaded = true;
-      }
-      catch (Exception e) {
-        //catch any errors/warnings that were returned
-        lngErr = e.HResult;
-        strError = e.Message;
-        switch (lngErr) {
-        case WINAGI_ERR + 636: //warnings only- loaded ok;
-          blnWarnings = true;
-          blnLoaded = true;
-          break;
-        default:
-          ProgressWin.lblProgress.Text = "Error encountered, game not loaded";
-          //error
-          switch (lngErr - WINAGI_ERR) {
-          case 501:
-            strError = "A game is already loaded. Close it before opening another game.";
-            break;
-          case 502:
-            strError = "A file access error occurred while trying to open this game: " + Environment.NewLine + Environment.NewLine + strError;
-            break;
-          case 524:
-            strError = "A critical game file (" + JustFileName(strError) + " is missing.";
-            break;
-          case 541:
-            strError = "Missing or invalid directory '" + strError + "'";
-            break;
-          case 542:
-            strError = "'" + Left(strError, strError.Length - 31) + "' is an invalid directory file.";
-            break;
-          case 543:
-            //invalid interpreter version - couldn't find correct version from the AGI
-            //files; current error string is sufficient
-            break;
-          case 545:
-            //resource loading error; current error string is sufficient
-            break;
-          case 597:
-            strError = "WinAGI GDS only supports version 2 and 3 of AGI.";
-            break;
-          case 655:
-            strError = "Missing game property file (" + strError + ").";
-            break;
-          case 665:
-            strError = "Invalid or corrupt game property file (" + strError + ").";
-            break;
-          case 690:
-            //invalid gameID in wag file
-            strError = "Game property file does not contain a valid GameID.";
-            break;
-          case 691:
-            //invalid intVersion in wag file
-            strError = "Game property file does not contain a valid Interpreter Version.";
-            break;
-          }
-          break;
-        }
-      }
-      // if loaded OK, 
-      if (blnLoaded) {
-        ProgressWin.lblProgress.Text = "Game " + (mode == 0 ? "loaded" : "imported") + " successfully, setting up editors";
-        ProgressWin.Refresh();
-        MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
-        //build resource list
-        BuildResourceTree();
-        // show it, if needed
-        if (Settings.ResListType != 0) {
-          // show resource tree pane
-          MDIMain.ShowResTree();
-          //ok up to here
-        }
-        switch (Settings.ResListType) {
-        case 1: //tree
-          //select root
-          MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
-          //update selected resource
-          MDIMain.SelectResource(rtGame, -1);
-          //set LastNodeName property
-          MDIMain.LastNodeName = RootNode.Name;
-          break;
-        case 2:
-          //select root
-          MDIMain.cmbResType.SelectedIndex = 0;
-          //update selected resource
-          MDIMain.SelectResource(rtGame, -1);
-          break;
-        }
-        // show selection in preview, if needed
-        if (Settings.ShowPreview) {
-          PreviewWin.Show();
-        }
-        //set default directory
-        BrowserStartDir = EditGame.GameDir;
-        //add wag file to mru
-        AddToMRU(EditGame.GameFile);
-        //store game file name
-        CurGameFile = EditGame.GameFile;
-        //set default text file directory to game source file directory
-        DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
-        // after a game loads, colors may be different
-        //done with ProgressWin form
-        ProgressWin.Close();
-        //if warnings
-        if (blnWarnings) {
-          //warn about errors
-          MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", "Errors During " + (mode == 0 ? "Load" : "Import"), MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-        //build the lookup tables for logic tooltips
-        BuildIDefLookup();
-        BuildGDefLookup();
-        //update the reserved lookup values
-        RDefLookup[90].Value = QUOTECHAR + EditGame.GameVersion + QUOTECHAR;
-        RDefLookup[91].Value = QUOTECHAR + EditGame.GameAbout + QUOTECHAR;
-        RDefLookup[92].Value = QUOTECHAR + EditGame.GameID + QUOTECHAR;
-        RDefLookup[93].Value = (EditGame.InvObjects.Count - 1).ToString();
-      }
-      else {
-        //done with ProgressWin form
-        ProgressWin.Close();
-        //show error message
-        MessageBox.Show(strError, "Unable to " + (mode == 0 ? "Open" : "Import") + " Game", MessageBoxButtons.OK, MessageBoxIcon.Error);
-      }
+
+      //set up the background worker to open the game
+      bgwOpenGame = new BackgroundWorker();
+      bgwOpenGame.DoWork += new DoWorkEventHandler(OpenGameBkgd);
+      bgwOpenGame.ProgressChanged += new ProgressChangedEventHandler(bgw_ProgressChanged);
+      bgwOpenGame.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgw_RunWorkerCompleted);
+      bgwOpenGame.WorkerReportsProgress = true;
+      // pass mode and source
+      LoadGameResults argval = new LoadGameResults();
+      argval.Mode = mode;
+      argval.Source = gameSource;
+      bgwOpenGame.RunWorkerAsync(argval);
+      // now show progress form
+      ProgressWin.ShowDialog(MDIMain);
+      // done with the background worker
+      bgwOpenGame.Dispose();
+      bgwOpenGame = null;
       //reset cursor
       MDIMain.UseWaitCursor = false;
       //clear status bar
       MainStatusBar.Items[1].Text = "";
-
-      paGame.Author = EditGame.GameAuthor;
-      paGame.GameID = EditGame.GameID;
-      paGame.GameDir = EditGame.GameDir;
-
       return blnLoaded;
     }
     public static bool CloseThisGame()
@@ -1910,7 +1778,7 @@ namespace WinAGI.Editor
       // should now be unloaded, but just in case...
 
       //unload all resources
-      foreach (AGILogic tmpLog in EditGame.Logics) {
+      foreach (Logic tmpLog in EditGame.Logics) {
         if (tmpLog.Loaded) {
           //Debug.Print tmpLog.ID
           //if dirty
@@ -1929,7 +1797,7 @@ namespace WinAGI.Editor
           tmpLog.Unload();
         }
       }
-      foreach (AGIPicture tmpPic in EditGame.Pictures) {
+      foreach (Picture tmpPic in EditGame.Pictures) {
         //Debug.Assert !tmpPic.Loaded
         if (tmpPic.Loaded) {
           //if dirty
@@ -1948,7 +1816,7 @@ namespace WinAGI.Editor
           tmpPic.Unload();
         }
       }
-      foreach (AGISound tmpSnd in EditGame.Sounds) {
+      foreach (Sound tmpSnd in EditGame.Sounds) {
         //Debug.Assert !tmpSnd.Loaded
         if (tmpSnd.Loaded) {
           //if dirty
@@ -1967,7 +1835,7 @@ namespace WinAGI.Editor
           tmpSnd.Unload();
         }
       }
-      foreach (AGIView tmpView in EditGame.Views) {
+      foreach (Engine.View tmpView in EditGame.Views) {
         //Debug.Assert !tmpView.Loaded
         if (tmpView.Loaded) {
           //if dirty
@@ -2086,49 +1954,35 @@ namespace WinAGI.Editor
     {
       //populate the lookup list that logics will
       //use to support tooltips and define list lookups
-      int i;
-      TDefine[] tmpDef;
-      // step through each type of define value, add it to list
+      //reserve define count:
+      // group 0:      27 variables
+      // group 1:      18 flags
+      // group 2:       5 edge codes
+      // group 3:       9 object direction codes
+      // group 4:       5 video mode codes
+      // group 5:       9 computer type codes
+      // group 6:      16 color indices
+      // group 7:       1 object (o0)
+      // group 8:       1 input prompt (s0)  
+      // game specific: 4 (id, about, description, invObjcount)
+      // Total of 95
 
-      //27 variables
-      tmpDef = Compiler.ResDefByGrp(1);
-      for (i = 0; i < 27; i++) {
-        RDefLookup[i] = tmpDef[i];
+      int pos = 0;
+      // first add gloal resdefs
+      for (ResDefGroup grp = 0; (int)grp < 9; grp++) {
+        for (int i = 0; i < Compiler.ResDefByGrp(grp).Length; i++) {
+          RDefLookup[pos] = Compiler.ResDefByGrp(grp)[i];
+          pos++;
+        }
       }
-      //18 flags
-      tmpDef = Compiler.ResDefByGrp(2);
-      for (i = 0; i < 18; i++) {
-        RDefLookup[i + 27] = tmpDef[i];
-      }
-      //5 edge codes
-      tmpDef = Compiler.ResDefByGrp(3);
-      for (i = 0; i < 5; i++) {
-        RDefLookup[i + 45] = tmpDef[i];
-      }
-      //9 directions
-      tmpDef = Compiler.ResDefByGrp(4);
-      for (i = 0; i < 9; i++) {
-        RDefLookup[i + 50] = tmpDef[i];
-      }
-      //5 video modes
-      tmpDef = Compiler.ResDefByGrp(5);
-      for (i = 0; i < 5; i++) {
-        RDefLookup[i + 59] = tmpDef[i];
-      }
-      //9 computer types
-      tmpDef = Compiler.ResDefByGrp(6);
-      for (i = 0; i < 9; i++) {
-        RDefLookup[i + 64] = tmpDef[i];
-      }
-      //16 colors
-      tmpDef = Compiler.ResDefByGrp(7);
-      for (i = 0; i < 16; i++) {
-        RDefLookup[i + 73] = tmpDef[i];
-      }
-      //one other
-      tmpDef = Compiler.ResDefByGrp(8);
-      for (i = 0; i < 1; i++) {
-        RDefLookup[i + 89] = tmpDef[i];
+      // then add game specific resdefs, if a game is loaded
+      //TODO: if this is only called when mainform loads, then
+      // game will never be loaded
+      if (EditGame != null) {
+        for (int i = 0; i < 4; i++) {
+          RDefLookup[pos] = EditGame.ReservedGameDefines[i];
+          pos++;
+        }
       }
       //then let open logic editors know
       if (LogicEditors.Count > 1) {
@@ -3664,14 +3518,14 @@ namespace WinAGI.Editor
       }
 
       //check against regular commands
-      for (int i = 0; i < AGICommands.Count; i++) {
-        if (NewID.Equals(Commands[i].Name, StringComparison.OrdinalIgnoreCase)) {
+      for (int i = 0; i < Commands.ActionCount; i++) {
+        if (NewID.Equals(ActionCommands[i].Name, StringComparison.OrdinalIgnoreCase)) {
           return 3;
         }
       }
 
       //check against test commands
-      for (int i = 0; i < AGITestCommands.Count; i++) {
+      for (int i = 0; i < TestCount; i++) {
         if (NewID.Equals(TestCommands[i].Name, StringComparison.OrdinalIgnoreCase)) {
           return 4;
         }
@@ -5934,9 +5788,9 @@ namespace WinAGI.Editor
 
     //add logical screen size info
     bytData[6) = (byte)(MaxW * GifOps.Zoom * 2) & 0xFF)
-    bytData[7) = (byte)(MaxW * GifOps.Zoom * 2) / 0x100)
+    bytData[7) = (byte)(MaxW * GifOps.Zoom * 2) >> 8)
     bytData[8) = (byte)(MaxH * GifOps.Zoom) & 0xFF)
-    bytData[9) = (byte)(MaxH * GifOps.Zoom) / 0x100)
+    bytData[9) = (byte)(MaxH * GifOps.Zoom) >> 8)
     //add color info
     bytData[10) = 243 //1-111-0-011 means:
                     //global color table,
@@ -5952,8 +5806,8 @@ namespace WinAGI.Editor
     //add global color table
     For i = 0 To 15
     bytData[13 + 3 * i) = EGAColorLong(i) && 0xFF
-    bytData[14 + 3 * i) = (EGAColorLong(i) && 0xFF00) / 0x100
-    bytData[15 + 3 * i) = (EGAColorLong(i) && 0xFF0000) / 0x10000
+    bytData[14 + 3 * i) = (EGAColorLong(i) && 0xFF00) >> 8
+    bytData[15 + 3 * i) = (EGAColorLong(i) && 0xFF0000) >> 16
     Next i
 
     //if cycling, add netscape extension to allow continuous looping
@@ -6064,7 +5918,7 @@ namespace WinAGI.Editor
         lngPos++;
     bytData[lngPos) = GifOps.Delay && 0xFF
         lngPos++;
-    bytData[lngPos) = (GifOps.Delay && 0xFF) / 0x100
+    bytData[lngPos) = (GifOps.Delay && 0xFF) >> 8
         lngPos++;
     bytData[lngPos) = 0
         lngPos++;
@@ -6109,12 +5963,12 @@ namespace WinAGI.Editor
 
     bytData[lngPos) = (byte)(MaxW * GifOps.Zoom * 2) && 0xFF)
     lngPos++;
-    bytData[lngPos) = (byte)(MaxW * GifOps.Zoom * 2) / 0x100)
+    bytData[lngPos) = (byte)(MaxW * GifOps.Zoom * 2) >> 8)
     lngPos++;
 
     bytData[lngPos) = (byte)(MaxH * GifOps.Zoom) && 0xFF)
     lngPos++;
-    bytData[lngPos) = (byte)(MaxH * GifOps.Zoom) / 0x100)
+    bytData[lngPos) = (byte)(MaxH * GifOps.Zoom) >> 8)
     lngPos++;
     bytData[lngPos) = 0
     lngPos++;
@@ -6268,9 +6122,9 @@ namespace WinAGI.Editor
     ////
     ////  //add logical screen size info
     ////  bytData[6) = (byte)(320 * Zoom) && 0xFF)
-    ////  bytData[7) = (byte)(320 * Zoom) / 0x100)
+    ////  bytData[7) = (byte)(320 * Zoom) >> 8)
     ////  bytData[8) = (byte)(168 * Zoom) && 0xFF)
-    ////  bytData[9) = (byte)(168 * Zoom) / 0x100)
+    ////  bytData[9) = (byte)(168 * Zoom) >> 8)
     ////  //add color info
     ////  bytData[10) = 243 //1-111-0-011 means:
     ////                    //global color table,
@@ -6285,8 +6139,8 @@ namespace WinAGI.Editor
     ////  //add global color table
     ////  For i = 0 To 15
     ////    bytData[13 + 3 * i) = EGAColorLong(i) && 0xFF
-    ////    bytData[14 + 3 * i) = (EGAColorLong(i) && 0xFF00) / 0x100
-    ////    bytData[15 + 3 * i) = (EGAColorLong(i) && 0xFF0000) / 0x10000
+    ////    bytData[14 + 3 * i) = (EGAColorLong(i) && 0xFF00) >> 8
+    ////    bytData[15 + 3 * i) = (EGAColorLong(i) && 0xFF0000) >> 16
     ////  Next i
     ////
     ////  //at this point, numbering is not absolute, so we need to begin tracking the data position
@@ -6337,9 +6191,9 @@ namespace WinAGI.Editor
     ////  bytData[lngPos + 3) = 0
     ////  bytData[lngPos + 4) = 0
     ////  bytData[lngPos + 5) = (byte)(320 * Zoom) && 0xFF)
-    ////  bytData[lngPos + 6) = (byte)(320 * Zoom) / 0x100)
+    ////  bytData[lngPos + 6) = (byte)(320 * Zoom) >> 8)
     ////  bytData[lngPos + 7) = (byte)(168 * Zoom) && 0xFF)
-    ////  bytData[lngPos + 8) = (byte)(168 * Zoom) / 0x100)
+    ////  bytData[lngPos + 8) = (byte)(168 * Zoom) >> 8)
     ////  bytData[lngPos + 9) = 0
     ////  //add byte for initial LZW code size
     ////  bytData[lngPos + 10) = 4 //5
@@ -10382,8 +10236,8 @@ namespace WinAGI.Editor
 
     On Error GoTo ErrHandler
 
-    bytRed = lngEGAColor / 0x10000
-    bytGreen = (lngEGAColor && 0xFFFF) / 0x100
+    bytRed = lngEGAColor >> 16
+    bytGreen = (lngEGAColor && 0xFFFF) >> 8
     bytBlue = lngEGAColor && 0xFF
 
     //set initial difference to ensure first number resets it
@@ -10394,10 +10248,10 @@ namespace WinAGI.Editor
     //or until all colors are compared
     Do Until lngDiff = 0 || i = 16
     //get new diff
-    bytRed = lngEGACol(i) / 0x10000
-    bytGreen = (lngEGACol(i) && 0xFFFF) / 0x100
+    bytRed = lngEGACol(i) >> 16
+    bytGreen = (lngEGACol(i) && 0xFFFF) >> 8
     bytBlue = lngEGACol(i) && 0xFF
-    newdiff = (Abs(bytRed - lngEGAColor / 0x10000) + Abs(bytGreen - (lngEGAColor && 0xFFFF) / 0x100) + Abs(bytBlue - lngEGAColor && 0xFF))
+    newdiff = (Abs((bytRed - lngEGAColor) >> 16) + Abs(bytGreen - (lngEGAColor && 0xFFFF) >> 8) + Abs(bytBlue - lngEGAColor && 0xFF))
 
     //if difference between this color and color i is less than difference
     if (newdiff < lngDiff) {
@@ -11599,7 +11453,7 @@ namespace WinAGI.Editor
       //update property window and resource list
       UpdateSelection(ResType, ResNum, UpdateModeType.umProperty | UpdateModeType.umResList);
     }
-    public static void UpdateExitInfo(EUReason Reason, int LogicNumber, AGILogic ThisLogic, int NewNum = 0)
+    public static void UpdateExitInfo(EUReason Reason, int LogicNumber, Logic ThisLogic, int NewNum = 0)
     {
       /*
     //   frmMDIMain|SelectedItemRenumber:  UpdateExitInfo euRenumberRoom, OldResNum, null, NewResNum
@@ -12002,7 +11856,7 @@ namespace WinAGI.Editor
         }
       } */
     }
-    public static void AddNewLogic(int NewLogicNumber, AGILogic NewLogic, bool blnTemplate, bool Importing)
+    public static void AddNewLogic(int NewLogicNumber, Logic NewLogic, bool blnTemplate, bool Importing)
     {
       string strLogic;
       int lngPos = 0;
@@ -12019,9 +11873,9 @@ namespace WinAGI.Editor
         }
         else {
           //add default text
-          strLogic = "[ " + Keys.Enter + "[ " + EditGame.Logics[NewLogicNumber].ID + Keys.Enter + 
-                     "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + 
-                     "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + 
+          strLogic = "[ " + Keys.Enter + "[ " + EditGame.Logics[NewLogicNumber].ID + Keys.Enter +
+                     "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter +
+                     "[*****" + Keys.Enter + "[ messages         [  declared messages go here" +
                      Keys.Enter + "[*****";
         }
         //for new resources, need to set the source text
@@ -12100,7 +11954,7 @@ namespace WinAGI.Editor
       //last node marker is no longer accurate; reset
       MDIMain.LastNodeName = "";
     }
-    public static void AddNewPicture(int NewPictureNumber, AGIPicture NewPicture)
+    public static void AddNewPicture(int NewPictureNumber, Picture NewPicture)
     {
       int lngPos = 0;
       //add picture to game collection
@@ -12149,7 +12003,7 @@ namespace WinAGI.Editor
       //last node marker is no longer accurate; reset
       MDIMain.LastNodeName = "";
     }
-    public static void AddNewSound(int NewSoundNumber, AGISound NewSound)
+    public static void AddNewSound(int NewSoundNumber, Sound NewSound)
     {
       int lngPos = 0;
       //add sound to game collection
@@ -12198,7 +12052,7 @@ namespace WinAGI.Editor
       //last node marker is no longer accurate; reset
       MDIMain.LastNodeName = "";
     }
-    public static void AddNewView(int NewViewNumber, AGIView NewView)
+    public static void AddNewView(int NewViewNumber, Engine.View NewView)
     {
       int lngPos = 0;
       //add view to game collection
@@ -12251,7 +12105,7 @@ namespace WinAGI.Editor
 
       frmLogicEdit frmNew;
       bool blnInGame = false;
-      AGILogic tmpLogic;
+      Logic tmpLogic;
       bool blnOpen = false;
 
       string strFile = "";
@@ -12261,7 +12115,7 @@ namespace WinAGI.Editor
       MDIMain.UseWaitCursor = true;
 
       //create temporary logic
-      tmpLogic = new AGILogic();
+      tmpLogic = new Logic();
 
       //if an import filename passed,
       if (ImportLogicFile.Length != 0) {
@@ -12444,14 +12298,14 @@ namespace WinAGI.Editor
 
       frmPicEdit frmNew;
       bool blnInGame = false;
-      AGIPicture tmpPic;
+      Picture tmpPic;
       bool blnOpen = false;
 
       //show wait cursor
       MDIMain.UseWaitCursor = true;
 
       //create temporary picture
-      tmpPic = new AGIPicture();
+      tmpPic = new Picture();
 
       //if an import filename was passed
       if (ImportPictureFile.Length != 0) {
@@ -12571,14 +12425,14 @@ namespace WinAGI.Editor
 
       frmSoundEdit frmNew;
       bool blnInGame = false;
-      AGISound tmpSound;
+      Sound tmpSound;
       bool blnOpen = false;
 
       //show wait cursor
       MDIMain.UseWaitCursor = true;
 
       //create temporary sound
-      tmpSound = new AGISound();
+      tmpSound = new Sound();
       //set default instrument settings;
       //if a sound is being imported, these may be overridden...
       tmpSound.Track(0).Instrument = Settings.DefInst0;
@@ -12608,7 +12462,7 @@ namespace WinAGI.Editor
         }
         catch (Exception e) {
           ErrMsgBox(e, "Error reading Sound data:", "This is not a valid sound resource.", "Invalid Sound Resource");
-            MDIMain.UseWaitCursor = false;
+          MDIMain.UseWaitCursor = false;
           return;
         }
         // only PC sounds are editable
@@ -12716,14 +12570,14 @@ namespace WinAGI.Editor
 
       frmViewEdit frmNew;
       bool blnInGame = false;
-      AGIView tmpView;
+      Engine.View tmpView;
       bool blnOpen = false;
 
       //show wait cursor
       MDIMain.UseWaitCursor = true;
 
       //create temporary view
-      tmpView = new AGIView();
+      tmpView = new Engine.View();
 
       //if an import filename was passed
       if (ImportViewFile.Length != 0) {

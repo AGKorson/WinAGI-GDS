@@ -8,8 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
-using static WinAGI.Editor.ResMan;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Editor.Base;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 
 namespace WinAGI.Editor
@@ -19,8 +19,8 @@ namespace WinAGI.Editor
     public bool Canceled = true;
     public int FormMode = 0;
 
-    AGILoop ExportLoop;
-    AGIPicture ExportPic;
+    Loop ExportLoop;
+    Picture ExportPic;
     GifOptions ThisGifOps;
     bool DontDraw;
     bool blnVisOn, blnXYDraw;
@@ -76,7 +76,7 @@ namespace WinAGI.Editor
       //from bytLoop.bytCel into the view Image box,
       //and resizes it to be correct size
       int tgtX, tgtY, tgtH, tgtW;
-      picCel.BackColor = EditGame.EGAColor[(int)ExportLoop.Cels[bytCel].TransColor];
+      picCel.BackColor = EditGame.AGIColors[(int)ExportLoop.Cels[bytCel].TransColor];
       //copy view Image
       tgtW = ExportLoop.Cels[bytCel].Width * 2 * ThisGifOps.Zoom;
       tgtH = ExportLoop.Cels[bytCel].Height * ThisGifOps.Zoom;
@@ -107,7 +107,7 @@ namespace WinAGI.Editor
 
       switch (Mode) {
       case 0:  //export a loop
-        ExportLoop = (AGILoop)GifObj;
+        ExportLoop = (Loop)GifObj;
         //use the global options as starting point
         ThisGifOps = VGOptions;
         if (ThisGifOps.Cycle) {
@@ -148,7 +148,7 @@ namespace WinAGI.Editor
         CheckScrollbars();
         break;
       case 1: //export a picture
-        ExportPic = (AGIPicture)GifObj;
+        ExportPic = (Picture)GifObj;
         //hide the alignment toolbar, scrollbars and transparency options
         toolStrip1.Visible = false;
         chkTrans.Visible = false;

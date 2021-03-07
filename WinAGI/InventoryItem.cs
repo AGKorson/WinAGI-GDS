@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WinAGI.Engine
 {
-  public class AGIInventoryItem
+  public class InventoryItem
   {
     private string mItemName = "";
     private byte mRoom;
@@ -15,8 +15,8 @@ namespace WinAGI.Engine
     //as NOT unique; that way the compilers and decompilers can handle
     //the duplicate objects correctly
     private bool mUnique;
-    private AGIInventoryObjects mParent;
-    public AGIInventoryItem()
+    private InventoryObjects mParent;
+    public InventoryItem()
     {
       //always unique until proven otherwise
       mUnique = true;
@@ -49,7 +49,7 @@ namespace WinAGI.Engine
         }
       }
     }
-    internal void SetParent(AGIInventoryObjects Parent)
+    internal void SetParent(InventoryObjects Parent)
     {
       //sets parent for this item; needed so we can update the item's unique property
       // when it changes

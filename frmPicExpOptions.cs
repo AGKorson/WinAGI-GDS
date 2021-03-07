@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Editor
 {

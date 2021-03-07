@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.AGISound;
-using static WinAGI.Engine.WinAGI;
-using static WinAGI.Editor.ResMan;
+using static WinAGI.Engine.Sound;
+using static WinAGI.Engine.Base;
+using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor
 {
@@ -37,7 +37,7 @@ namespace WinAGI.Editor
         //{
         //  listBox1.Items.Add(tmpPic.ToString());
         //}
-        foreach (AGISound tmpSound in EditGame.Sounds.Col.Values)
+        foreach (Sound tmpSound in EditGame.Sounds.Col.Values)
         {
           listBox1.Items.Add(tmpSound);
         }
@@ -52,7 +52,7 @@ namespace WinAGI.Editor
     {
       // let's load it
 
-      AGISound tmpSnd = (AGISound)listBox1.SelectedItem;
+      Sound tmpSnd = (Sound)listBox1.SelectedItem;
       tmpSnd.Load();
       tmpSnd.SoundComplete += This_SoundComplete;
       tmpSnd.PlaySound();
@@ -67,7 +67,7 @@ namespace WinAGI.Editor
 
     }
 
-    public bool EditSound(AGISound ThisSound)
+    public bool EditSound(Sound ThisSound)
     {
       return true;
       /*

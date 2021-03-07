@@ -698,7 +698,7 @@ End Function
     }
 
   }
-  public static partial class WinAGI
+  public static partial class Base
   {
     internal const double LOG10_1_12 = 2.50858329719984E-02; // = Log10(2 ^ (1/12))
     internal const string QUOTECHAR = "\"";
@@ -717,7 +717,7 @@ End Function
 
     internal static readonly string NEWLINE = Environment.NewLine;
 
-    static WinAGI()
+    static Base()
     {
       // create invalid control char string
       CTRL_CHARS = "";
@@ -1420,13 +1420,6 @@ End Function
     {
       /*
 Option Explicit
-  
-  internal Type RGBQUAD
-    byte rgbBlue
-    byte rgbGreen
-    byte rgbRed
-    byte rgbReserved
-  End Type
   
 internal bool IsTokenChar(int intChar, bool Quotes = false)
   {

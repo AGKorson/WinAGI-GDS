@@ -1491,7 +1491,7 @@
       this.splResource.Panel2.Controls.Add(this.fsbProperty);
       this.splResource.Panel2.Cursor = System.Windows.Forms.Cursors.Default;
       this.splResource.Size = new System.Drawing.Size(314, 604);
-      this.splResource.SplitterDistance = 258;
+      this.splResource.SplitterDistance = 210;
       this.splResource.SplitterWidth = 8;
       this.splResource.TabIndex = 0;
       this.splResource.TabStop = false;
@@ -1521,7 +1521,7 @@
       treeNode7.Text = "AGIGAME";
       this.tvwResources.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
             treeNode7});
-      this.tvwResources.Size = new System.Drawing.Size(299, 181);
+      this.tvwResources.Size = new System.Drawing.Size(299, 133);
       this.tvwResources.TabIndex = 25;
       this.tvwResources.Visible = false;
       this.tvwResources.AfterCollapse += new System.Windows.Forms.TreeViewEventHandler(this.tvwResources_AfterCollapse);
@@ -1566,7 +1566,7 @@
       this.lstResources.MultiSelect = false;
       this.lstResources.Name = "lstResources";
       this.lstResources.ShowGroups = false;
-      this.lstResources.Size = new System.Drawing.Size(299, 153);
+      this.lstResources.Size = new System.Drawing.Size(299, 105);
       this.lstResources.TabIndex = 27;
       this.lstResources.UseCompatibleStateImageBehavior = false;
       this.lstResources.View = System.Windows.Forms.View.Details;
@@ -1597,14 +1597,23 @@
       // 
       // propertyGrid1
       // 
+      this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
       this.propertyGrid1.CommandsVisibleIfAvailable = false;
       this.propertyGrid1.HelpVisible = false;
-      this.propertyGrid1.Location = new System.Drawing.Point(27, 31);
+      this.propertyGrid1.Location = new System.Drawing.Point(0, 0);
       this.propertyGrid1.Name = "propertyGrid1";
       this.propertyGrid1.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-      this.propertyGrid1.Size = new System.Drawing.Size(224, 255);
+      this.propertyGrid1.Size = new System.Drawing.Size(311, 343);
       this.propertyGrid1.TabIndex = 28;
       this.propertyGrid1.ToolbarVisible = false;
+      this.propertyGrid1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmMDIMain_KeyDown);
+      this.propertyGrid1.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.propertyGrid1_PropertyValueChanged);
+      this.propertyGrid1.SelectedGridItemChanged += new System.Windows.Forms.SelectedGridItemChangedEventHandler(this.propertyGrid1_SelectedGridItemChanged);
+      this.propertyGrid1.Click += new System.EventHandler(this.propertyGrid1_Click);
+      this.propertyGrid1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.propertyGrid1_MouseClick);
+      this.propertyGrid1.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.propertyGrid1_PreviewKeyDown);
       // 
       // picProperties
       // 

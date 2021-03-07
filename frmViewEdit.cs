@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Editor.ResMan;
+using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor
 {
   public partial class frmViewEdit : Form
   {
     readonly double zoom = 4;
-    AGIView thisView;
+    Engine.View thisView;
     private int CurLoop = 0;
     private int CurCel = 0;
     internal bool InGame;
@@ -32,7 +32,7 @@ namespace WinAGI.Editor
       if (thisView != null)
         thisView.Unload();
 
-      thisView = (AGIView)cmbView.SelectedItem;
+      thisView = (Engine.View)cmbView.SelectedItem;
       try
       {
         thisView.Load();
@@ -46,7 +46,7 @@ namespace WinAGI.Editor
       //clear loop list
       cmbLoop.Items.Clear();
       //add loops to the loop box
-      foreach (AGILoop tmpLoop in thisView.Loops)
+      foreach (Loop tmpLoop in thisView.Loops)
       {
         cmbLoop.Items.Add($"Loop {tmpLoop.Index}");
       }
@@ -65,7 +65,7 @@ namespace WinAGI.Editor
     private void frmViewEdit_Load(object sender, EventArgs e)
     {
       // load views
-      foreach (AGIView tmpView in EditGame.Views.Col.Values)
+      foreach (Engine.View tmpView in EditGame.Views.Col.Values)
       {
         cmbView.Items.Add(tmpView);
       }
@@ -78,7 +78,7 @@ namespace WinAGI.Editor
       // clear cel list
       cmbCel.Items.Clear();
       // add all cels
-      foreach (AGICel tmpCel in thisView[CurLoop].Cels)
+      foreach (Cel tmpCel in thisView[CurLoop].Cels)
       {
         cmbCel.Items.Add($"Cel {tmpCel.Index}");
       }
@@ -134,7 +134,7 @@ namespace WinAGI.Editor
       thisView?.Unload();
     }
 
-    public bool EditView(AGIView ThisView)
+    public bool EditView(Engine.View ThisView)
     {
       return true;
       /*

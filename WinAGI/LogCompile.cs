@@ -5,11 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using WinAGI.Common;
-using static WinAGI.Common.WinAGI;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Common.Base;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.AGICommands;
-using static WinAGI.Engine.AGITestCommands;
+using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.ArgTypeEnum;
 using static WinAGI.Engine.LogicErrorLevel;
 
@@ -32,7 +31,7 @@ namespace WinAGI.Engine
       internal int Loc;
     }
 
-    internal static AGILogic tmpLogRes;
+    internal static Logic tmpLogRes;
     internal static AGIGame compGame;
     internal static byte[] mbytData;
     internal const int MAX_BLOCK_DEPTH = 64; //used by LogDecode functions too
@@ -77,7 +76,7 @@ namespace WinAGI.Engine
     internal static string[] strSndID;
     internal static string[] strViewID;
 
-    internal static void CompileLogic(AGILogic SourceLogic)
+    internal static void CompileLogic(Logic SourceLogic)
     {
       //this function compiles the sourcetext that is passed
       //the function returns a Value of true if successful; it returns false
@@ -108,18 +107,17 @@ namespace WinAGI.Engine
         SetResourceIDs(compGame);
       }
 
-      //insert current values for reserved defines that can change values
-      //agResDef[0].Value = "ego"  //this one doesn't change
-      agResObj[1].Value = "\"" + compGame.agGameVersion + "\"";
-      agResObj[2].Value = "\"" + compGame.agAbout + "\"";
-      agResObj[3].Value = "\"" + compGame.agGameID + "\"";
-      if (compGame.agInvObj.Loaded) {
+      //refresh  values for game specific reserved defines
+      compGame.agResGameDef[0].Value = "\"" + compGame.agGameID + "\"";
+      compGame.agResGameDef[1].Value = "\"" + compGame.agGameVersion + "\"";
+      compGame.agResGameDef[2].Value = "\"" + compGame.agAbout + "\"";
+      if (compGame.InvObjects.Loaded) {
         //Count of ACTUAL useable objects is one less than inventory object Count
         //because the first object ('?') is just a placeholder
-        agResObj[4].Value = (compGame.agInvObj.Count - 1).ToString();
+        compGame.agResGameDef[3].Value = (compGame.InvObjects.Count - 1).ToString();
       }
       else {
-        agResObj[4].Value = "-1";
+        compGame.agResGameDef[3].Value = "-1";
       }
 
       //get source text by lines as a list of strings
@@ -179,7 +177,7 @@ namespace WinAGI.Engine
       }
 
       //assign temporary resource object
-      tmpLogRes = new AGILogic();
+      tmpLogRes = new Logic();
       // and clear the data
       tmpLogRes.Data.Clear();
       //write a word as a place holder for offset to msg section start
@@ -224,16 +222,16 @@ namespace WinAGI.Engine
       strPicID = new string[255];
       strSndID = new string[255];
       strViewID = new string[255];
-      foreach (AGILogic tmpLog in game.agLogs) {
+      foreach (Logic tmpLog in game.agLogs) {
         strLogID[tmpLog.Number] = tmpLog.ID;
       }
-      foreach (AGIPicture tmpPic in game.agPics) {
+      foreach (Picture tmpPic in game.agPics) {
         strPicID[tmpPic.Number] = tmpPic.ID;
       }
-      foreach (AGISound tmpSnd in game.agSnds) {
+      foreach (Sound tmpSnd in game.agSnds) {
         strSndID[tmpSnd.Number] = tmpSnd.ID;
       }
-      foreach (AGIView tmpView in game.agViews) {
+      foreach (View tmpView in game.agViews) {
         strViewID[tmpView.Number] = tmpView.ID;
       }
       //set flag
@@ -664,8 +662,8 @@ namespace WinAGI.Engine
             }
           }// i
            //check against invobj Count
-          if (strArgIn == agResObj[4].Name) {
-            strArgIn = agResObj[4].Value;
+          if (strArgIn == compGame.agResGameDef[3].Name) {
+            strArgIn = compGame.agResGameDef[3].Value;
             //reset VarOrNum flag
             blnVarOrNum = false;
             return true;
@@ -698,9 +696,9 @@ namespace WinAGI.Engine
           }
           break;
         case atMsg:
-          for (i = 1; i <= 3; i++) { //for gamever and gameabout and gameid
-            if (strArgIn == agResObj[i].Name) {
-              strArgIn = agResObj[i].Value;
+          for (i = 1; i <= 2; i++) { //for gamever and gameabout and gameid
+            if (strArgIn == compGame.agResGameDef[i].Name) {
+              strArgIn = compGame.agResGameDef[i].Value;
               return true;
             }
           }
@@ -712,8 +710,8 @@ namespace WinAGI.Engine
           }
           break;
         case atStr:
-          if (strArgIn == agResObj[5].Name) {
-            strArgIn = agResObj[5].Value;
+          if (strArgIn == agResStr[0].Name) {
+            strArgIn = agResStr[0].Value;
             return true;
           }
           break;
@@ -1038,8 +1036,6 @@ namespace WinAGI.Engine
       //variables return true; the flag is set to TRUE if returned Value
       //is for a variable, to false if it is for a number
 
-      // max number of invobjs; (not sure why using this value instead of agInvOb.Count...)
-      int max = int.Parse(agResObj[4].Value);
       string strArg;
       int lngArg = 0;
       int i;
@@ -1160,17 +1156,17 @@ namespace WinAGI.Engine
         }
 
         //check against max screen object Value
-        if (lngArg > compGame.agInvObj.MaxScreenObjects) {
+        if (lngArg > compGame.InvObjects.MaxScreenObjects) {
           if (ErrorLevel == leHigh) {
             //generate error
             blnError = true;
-            strErrMsg = LoadResString(4119).Replace(ARG1, (compGame.agInvObj.MaxScreenObjects).ToString());
+            strErrMsg = LoadResString(4119).Replace(ARG1, (compGame.InvObjects.MaxScreenObjects).ToString());
             return -1;
 
           }
           else if (ErrorLevel == leMedium) {
             //generate warning
-            AddWarning(5006, LoadResString(5006).Replace(ARG1, compGame.agInvObj.MaxScreenObjects.ToString()));
+            AddWarning(5006, LoadResString(5006).Replace(ARG1, compGame.InvObjects.MaxScreenObjects.ToString()));
           }
         }
         break;
@@ -1208,9 +1204,7 @@ namespace WinAGI.Engine
               blnError = true;
               //for version 2.089, 2.272, and 3.002149 only 12 strings
               switch (compGame.agIntVersion) {
-              case "2.089":
-              case "2.272":
-              case "3.002149":
+              case "2.089" or "2.272" or "3.002149":
                 //use 1-based arg values
                 strErrMsg = LoadResString(4079).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, "11");
                 return -1;
@@ -1350,7 +1344,7 @@ namespace WinAGI.Engine
 
         //if character is inv obj arg type prefix
         switch ((int)strArg[0]) {
-        case 105:
+        case 105: //'i'
           //validate Value
           lngArg = VariableValue(strArg);
           if (lngArg == -1) {
@@ -1358,9 +1352,23 @@ namespace WinAGI.Engine
             //use 1-based arg values
             strErrMsg = LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString());
             return -1;
+          } else if (lngArg >= compGame.InvObjects.Count) {
+            if (ErrorLevel == leHigh) {
+              blnError = true;
+              //use 1-based arg values
+              strErrMsg = LoadResString(4112).Replace(ARG1, (ArgPos + 1).ToString());
+              return -1;
+            }
+            else if (ErrorLevel == leMedium) {
+              //set warning
+              //use 1-based arg values
+              AddWarning(5005, LoadResString(5005).Replace(ARG1, (ArgPos + 1).ToString()));
+              //if (ErrorLevel == leLow) {
+              //no action
+            }
           }
           break;
-        case 34:
+        case 34: // quote
           //concatenate, if applicable
           strArg = ConcatArg(strArg);
           if (blnError) {
@@ -1376,11 +1384,10 @@ namespace WinAGI.Engine
           //otherwise the object would never match
           strArg = strArg.Replace("\\\"", QUOTECHAR);
 
-          //step through all object names (using max value from resdef[4])
-          for (i = 0; i <= max; i++) {
-            //for (i = 0; i < agInvObj.Count; i++) {
+          //step through all object names
+          for (i = 0; i < compGame.InvObjects.Count; i++) {
             //if this is the object
-            if (strArg == compGame.agInvObj[(byte)i].ItemName) {
+            if (strArg == compGame.InvObjects[(byte)i].ItemName) {
               //return this Value
               lngArg = (byte)i;
               break;
@@ -1388,8 +1395,7 @@ namespace WinAGI.Engine
           }
 
           //if not found,
-          if (i == max + 1) {
-            //if (i == agInvObj.Count) {
+          if (i == compGame.InvObjects.Count) {
             blnError = true;
             //check for added quotes; they are the problem
             if (lngQuoteAdded >= 0) {
@@ -1406,7 +1412,7 @@ namespace WinAGI.Engine
           }
 
           //if object is not unique
-          if (!compGame.agInvObj[(byte)lngArg].Unique) {
+          if (!compGame.InvObjects[(byte)lngArg].Unique) {
             if (ErrorLevel == leHigh) {
               blnError = true;
               //use 1-based arg values
@@ -1421,29 +1427,16 @@ namespace WinAGI.Engine
             }
           }
           break;
+        default: //any other character means not a valid inventory item
+                 //use 1-base arg values
+          strErrMsg = LoadResString(4075).Replace(ARG1, (ArgPos + 1).ToString());
+          return -1;
         }
 
-        //if object number exceeds current object Count,
-        //* // 
-        //if (lngArg >= agInvObj.Count) {  //???? why did I change this???? 
-        if (lngArg > max) {
-          if (ErrorLevel == leHigh) {
-            blnError = true;
-            //use 1-based arg values
-            strErrMsg = LoadResString(4112).Replace(ARG1, (ArgPos + 1).ToString());
-            return -1;
-          }
-          else if (ErrorLevel == leMedium) {
-            //set warning
-            //use 1-based arg values
-            AddWarning(5005, LoadResString(5005).Replace(ARG1, (ArgPos + 1).ToString()));
-            //if (ErrorLevel == leLow) {
-            //no action
-          }
-        }
-        else {
-          //if object is a question mark, raise error/warning
-          if (compGame.agInvObj[(byte)lngArg].ItemName == "?") {
+        //if object number is valid
+        if (lngArg < compGame.InvObjects.Count) {
+          //check for question mark, raise error/warning
+          if (compGame.InvObjects[(byte)lngArg].ItemName == "?") {
             if (ErrorLevel == leHigh) {
               blnError = true;
               //use 1-based arg values
@@ -2192,75 +2185,89 @@ namespace WinAGI.Engine
           tdNewDefine.Name = Left(strCurrentLine, strCurrentLine.IndexOf(" ") - 1).Trim();
           tdNewDefine.Value = Right(strCurrentLine, strCurrentLine.Length - strCurrentLine.IndexOf(" ")).Trim();
           //validate define name
-          rtn = compGame.agGlobals.ValidateDefName(tdNewDefine.Name);
-          //name error 7-12  are only warnings if error level is medium or low
+          DefineNameCheck chkName = compGame.agGlobals.ValidateDefName(tdNewDefine.Name);
+          //some name errors are only warnings if error level is medium or low
           if (ErrorLevel == leMedium) {
             //check for name warnings
-            switch (rtn) {
-            case 7:
+            switch (chkName) {
+            case DefineNameCheck.ncGlobal:
               //set warning
               AddWarning(5034, LoadResString(5034).Replace(ARG1, tdNewDefine.Name));
               //reset return error code
-              rtn = 0;
+              chkName = DefineNameCheck.ncOK;
               break;
-            default:
-              if (rtn >= 8 && rtn <= 12) {
-                //set warning
-                AddWarning(5035, LoadResString(5035).Replace(ARG1, tdNewDefine.Name));
-                //reset return error code
-                rtn = 0;
-              }
+            case DefineNameCheck.ncGlobal or
+            DefineNameCheck.ncReservedFlag or
+            DefineNameCheck.ncReservedMsg or
+            DefineNameCheck.ncReservedNum or
+            DefineNameCheck.ncReservedObj or
+            DefineNameCheck.ncReservedStr or
+            DefineNameCheck.ncReservedVar:
+              //set warning
+              AddWarning(5035, LoadResString(5035).Replace(ARG1, tdNewDefine.Name));
+              //reset return error code
+              chkName = DefineNameCheck.ncOK;
               break;
             }
           }
           else if (ErrorLevel == leLow) {
             //check for warnings
-            if (rtn >= 7 && rtn <= 12) {
+            switch (chkName) {
+            case DefineNameCheck.ncGlobal or
+            DefineNameCheck.ncReservedFlag or
+            DefineNameCheck.ncReservedMsg or
+            DefineNameCheck.ncReservedNum or
+            DefineNameCheck.ncReservedObj or
+            DefineNameCheck.ncReservedStr or
+            DefineNameCheck.ncReservedVar:
               //reset return error code
-              rtn = 0;
+              chkName = DefineNameCheck.ncOK;
+              break;
             }
           }
-          //check for errors
-          if (rtn != 0) {
+          //now check for errors
+          if (chkName != DefineNameCheck.ncOK) {
             //check for name errors
-            switch (rtn) {
-            case 1: // no name
+            switch (chkName) {
+            case DefineNameCheck.ncEmpty: // no name
               strErrMsg = LoadResString(4070);
               break;
-            case 2: // name is numeric
+            case DefineNameCheck.ncNumeric: // name is numeric
               strErrMsg = LoadResString(4072);
               break;
-            case 3: // name is command
+            case DefineNameCheck.ncActionCommand: // name is command
               strErrMsg = LoadResString(4021).Replace(ARG1, tdNewDefine.Name);
               break;
-            case 4: // name is test command
+            case DefineNameCheck.ncTestCommand: // name is test command
               strErrMsg = LoadResString(4022).Replace(ARG1, tdNewDefine.Name);
               break;
-            case 5: // name is a compiler keyword
+            case DefineNameCheck.ncKeyWord: // name is a compiler keyword
               strErrMsg = LoadResString(4013).Replace(ARG1, tdNewDefine.Name);
               break;
-            case 6: // name is an argument marker
+            case DefineNameCheck.ncArgMarker: // name is an argument marker
               strErrMsg = LoadResString(4071);
               break;
-            case 7: // name is already globally defined
+            case DefineNameCheck.ncGlobal: // name is already globally defined
               strErrMsg = LoadResString(4019).Replace(ARG1, tdNewDefine.Name);
               break;
-            case 8: // name is reserved variable name
+            case DefineNameCheck.ncReservedVar: // name is reserved variable name
               strErrMsg = LoadResString(4018).Replace(ARG1, tdNewDefine.Name);
               break;
-            case 9: // name is reserved flag name
+            case DefineNameCheck.ncReservedFlag: // name is reserved flag name
               strErrMsg = LoadResString(4014).Replace(ARG1, tdNewDefine.Name);
               break;
-            case 10: // name is reserved number constant
+            case DefineNameCheck.ncReservedNum: // name is reserved number constant
               strErrMsg = LoadResString(4016).Replace(ARG1, tdNewDefine.Name);
               break;
-            case 11: // name is reserved object constant
+            case DefineNameCheck.ncReservedObj or DefineNameCheck.ncReservedStr: 
+              // name is reserved object constant
+              // name is a reserved string constant
               strErrMsg = LoadResString(4017).Replace(ARG1, tdNewDefine.Name);
               break;
-            case 12: // name is reserved message constant
+            case DefineNameCheck.ncReservedMsg: // name is reserved message constant
               strErrMsg = LoadResString(4015).Replace(ARG1, tdNewDefine.Name);
               break;
-            case 13: // name contains improper character
+            case DefineNameCheck.ncBadChar: // name contains improper character
               strErrMsg = LoadResString(4067);
               break;
             }
@@ -2268,13 +2275,13 @@ namespace WinAGI.Engine
           }
 
           //validate define Value
-          rtn = compGame.agGlobals.ValidateDefValue(tdNewDefine);
+          DefineValueCheck chkValue = compGame.agGlobals.ValidateDefValue(tdNewDefine);
           //Value errors 4,5,6 are only warnings if error level is medium or low
           if (ErrorLevel == leMedium) {
             //if Value error is due to missing quotes
-            switch (rtn) {
-            case 4:  //string Value missing quotes
-                     //fix the define Value
+            switch (chkValue) {
+            case DefineValueCheck.vcNotAValue:  //assume it's a string Value missing quotes
+                                                //fix the define Value
               if (tdNewDefine.Value[0] != '"') {
                 tdNewDefine.Value = QUOTECHAR + tdNewDefine.Value;
               }
@@ -2284,73 +2291,65 @@ namespace WinAGI.Engine
               //set warning
               AddWarning(5022);
               //reset error code
-              rtn = 0;
+              chkValue = DefineValueCheck.vcOK;
               break;
-            case 5: // Value is already defined by a reserved name
-                    //set warning
-              AddWarning(5032, LoadResString(5032).Replace(ARG1, tdNewDefine.Value));
-              //reset error code
-              rtn = 0;
-              break;
-            case 6: // Value is already defined by a global name
-                    //set warning
+            case DefineValueCheck.vcGlobal: // Value is already defined by a global name
+                                            //set warning
               AddWarning(5031, LoadResString(5031).Replace(ARG1, tdNewDefine.Value));
               //reset error code
-              rtn = 0;
+              chkValue = DefineValueCheck.vcOK;
+              break;
+            case DefineValueCheck.vcReserved: // Value is already defined by a reserved name
+                                              //set warning
+              AddWarning(5032, LoadResString(5032).Replace(ARG1, tdNewDefine.Value));
+              //reset error code
+              chkValue = DefineValueCheck.vcOK;
               break;
             }
           }
           else if (ErrorLevel == leLow) {
             //if Value error is due to missing quotes
-            switch (rtn) {
-            case 4:
+            switch (chkValue) {
+            case DefineValueCheck.vcNotAValue:
               //fix the define Value
               if (tdNewDefine.Value[0] != '"') {
                 tdNewDefine.Value = QUOTECHAR + tdNewDefine.Value;
               }
-              if (tdNewDefine.Value[tdNewDefine.Value.Length - 1] != '"') {
+              if (tdNewDefine.Value[^1] != '"') {
                 tdNewDefine.Value += QUOTECHAR;
               }
               //reset return Value
-              rtn = 0;
+              chkValue = DefineValueCheck.vcOK;
               break;
-            case 5:
-            case 6:
+            case DefineValueCheck.vcGlobal or DefineValueCheck.vcReserved:
               //reset return Value
-              rtn = 0;
+              chkValue = DefineValueCheck.vcOK;
               break;
             }
           }
-
           //check for errors
-          if (rtn != 0) {
+          if (chkValue != DefineValueCheck.vcOK) {
             //if already have a name error
             if (strErrMsg.Length != 0) {
               //append Value error
               strErrMsg += "; and ";
             }
-
             //check for Value error
-            switch (rtn) {
-            case 1: // no Value
+            switch (chkValue) {
+            case DefineValueCheck.vcEmpty: // no Value
               strErrMsg += LoadResString(4073);
               break;
-            //a return Value of 2 is no longer possible; this
-            //Value has been removed from the ValidateDefineValue function
-            //case 2: // Value is an invalid argument marker
-            //  strErrMsg += "4065: Invalid argument declaration Value"
-            //  break;
-            case 3: // Value contains an invalid argument Value
+            case DefineValueCheck.vcBadArgNumber: // Value contains an invalid argument Value
               strErrMsg += LoadResString(4042);
               break;
-            case 4: // Value is not a string, number or argument marker
+            case DefineValueCheck.vcNotAValue: // Value is not a string, number or argument marker
               strErrMsg += LoadResString(4082);
               break;
-            case 5: // Value is already defined by a reserved name
-              strErrMsg += LoadResString(4041).Replace(ARG1, tdNewDefine.Value);
-              break;
-            case 6: // Value is already defined by a global name
+            case DefineValueCheck.vcGlobal: // Value is already defined by a global name
               strErrMsg += LoadResString(4040).Replace(ARG1, tdNewDefine.Value);
+              break;
+            case DefineValueCheck.vcReserved: // Value is already defined by a reserved name
+              strErrMsg += LoadResString(4041).Replace(ARG1, tdNewDefine.Value);
               break;
             }
           }
@@ -2779,7 +2778,7 @@ namespace WinAGI.Engine
                   // if error number is 4054
                   if (Left(strErrMsg, 4) == "4054") {
                     // add command name to error string
-                    strErrMsg = strErrMsg.Replace(ARG2, agTestCmds[bytTestCmd].Name);
+                    strErrMsg = strErrMsg.Replace(ARG2, TestCommands[bytTestCmd].Name);
                   }
                   //exit
                   return false;
@@ -2818,7 +2817,7 @@ namespace WinAGI.Engine
                         // if error number is 4054
                         if (Left(strErrMsg, 4) == "4054") {
                           // add command name to error string
-                          strErrMsg = strErrMsg.Replace(ARG2, agTestCmds[bytTestCmd].Name);
+                          strErrMsg = strErrMsg.Replace(ARG2, TestCommands[bytTestCmd].Name);
                         }
                         return false;
                       }
@@ -2882,7 +2881,7 @@ namespace WinAGI.Engine
               }
               else {
                 //not 'said'; extract arguments for this command
-                for (i = 0; i < agTestCmds[bytTestCmd].ArgType.Length; i++) {
+                for (i = 0; i < TestCommands[bytTestCmd].ArgType.Length; i++) {
                   //after first argument, verify comma separates arguments
                   if (i > 0) {
                     if (NextChar(true) != ",") {
@@ -2895,13 +2894,13 @@ namespace WinAGI.Engine
 
                   //reset the quotemark error flag after comma is found
                   lngQuoteAdded = -1;
-                  bytArg[i] = (byte)GetNextArg(agTestCmds[bytTestCmd].ArgType[i], i);
+                  bytArg[i] = (byte)GetNextArg(TestCommands[bytTestCmd].ArgType[i], i);
                   //if error
                   if (blnError) {
                     // if error number is 4054
                     if (Left(strErrMsg, 4) == "4054") {
                       // add command name to error string
-                      strErrMsg = strErrMsg.Replace(ARG2, agTestCmds[bytTestCmd].Name);
+                      strErrMsg = strErrMsg.Replace(ARG2, TestCommands[bytTestCmd].Name);
                     }
                     return false;
                   }
@@ -3174,7 +3173,7 @@ namespace WinAGI.Engine
         if (ArgVal[1] <= 26 || ArgVal[2] <= 26) {
           if (ErrorLevel == leHigh ||
               ErrorLevel == leMedium) {
-            AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
+            AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
             //} else if (ErrorLevel == leLow) {
             //  //no action
           }
@@ -3204,7 +3203,7 @@ namespace WinAGI.Engine
         if (ArgVal[1] <= 26) {
           if (ErrorLevel == leHigh ||
               ErrorLevel == leMedium) {
-            AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
+            AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
             //} else if (ErrorLevel == leLow) {
             //  //no action
           }
@@ -3232,7 +3231,7 @@ namespace WinAGI.Engine
         if (ArgVal[1] <= 26) {
           if (ErrorLevel == leHigh ||
               ErrorLevel == leMedium) {
-            AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
+            AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
             //} else if (ErrorLevel == leLow) {
             //  //no action
           }
@@ -3289,7 +3288,7 @@ namespace WinAGI.Engine
         if (ArgVal[2] <= 26) {
           if (ErrorLevel == leHigh ||
               ErrorLevel == leMedium) {
-            AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
+            AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
             //} else if (ErrorLevel == leLow) {
             //  //no action
           }
@@ -3301,7 +3300,7 @@ namespace WinAGI.Engine
         if (ArgVal[1] <= 15) {
           if (ErrorLevel == leHigh ||
               ErrorLevel == leMedium) {
-            AddWarning(5078, LoadResString(5078).Replace(ARG1, agCmds[CmdNum].Name));
+            AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
             //} else if (ErrorLevel == leLow) {
             //  //no action
           }
@@ -3336,7 +3335,7 @@ namespace WinAGI.Engine
         if (ArgVal[4] <= 15) {
           if (ErrorLevel == leHigh ||
               ErrorLevel == leMedium) {
-            AddWarning(5078, LoadResString(5078).Replace(ARG1, agCmds[CmdNum].Name));
+            AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
             //} else if (ErrorLevel == leLow) {
             //  //no action
           }
@@ -3349,7 +3348,7 @@ namespace WinAGI.Engine
         if (ArgVal[4] <= 15) {
           if (ErrorLevel == leHigh ||
               ErrorLevel == leMedium) {
-            AddWarning(5078, LoadResString(5078).Replace(ARG1, agCmds[CmdNum].Name));
+            AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
             //} else if (ErrorLevel == leLow) {
             //  //no action
           }
@@ -3381,7 +3380,7 @@ namespace WinAGI.Engine
         if (ArgVal[2] <= 15) {
           if (ErrorLevel == leHigh ||
               ErrorLevel == leMedium) {
-            AddWarning(5078, LoadResString(5078).Replace(ARG1, agCmds[CmdNum].Name));
+            AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
             //} else if (ErrorLevel == leLow) {
             //  //no action
           }
@@ -3407,7 +3406,7 @@ namespace WinAGI.Engine
         if (ArgVal[1] <= 26) {
           if (ErrorLevel == leHigh ||
               ErrorLevel == leMedium) {
-            AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
+            AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
             //} else if (ErrorLevel == leLow) {
             //  //no action
           }
@@ -3833,7 +3832,7 @@ namespace WinAGI.Engine
         //init.disk, hide.mouse, show.mouse
         if (ErrorLevel == leHigh ||
             ErrorLevel == leMedium) {
-          AddWarning(5087, LoadResString(5087).Replace(ARG1, agCmds[CmdNum].Name));
+          AddWarning(5087, LoadResString(5087).Replace(ARG1, ActionCommands[CmdNum].Name));
           //} else if (ErrorLevel == leLow) {
           //  //no action
         }
@@ -3841,11 +3840,11 @@ namespace WinAGI.Engine
       else if (CmdNum == 175 || CmdNum == 179 || CmdNum == 180) {
         //discard.sound, fence.mouse, mouse.posn
         if (ErrorLevel == leHigh) {
-          strErrMsg = LoadResString(4152).Replace(ARG1, agCmds[CmdNum].Name);
+          strErrMsg = LoadResString(4152).Replace(ARG1, ActionCommands[CmdNum].Name);
           return false;
         }
         else if (ErrorLevel == leMedium) {
-          AddWarning(5088, LoadResString(5088).Replace(ARG1, agCmds[CmdNum].Name));
+          AddWarning(5088, LoadResString(5088).Replace(ARG1, ActionCommands[CmdNum].Name));
           //} else if (ErrorLevel == leLow) {
           //  //no action
         }
@@ -3888,7 +3887,7 @@ namespace WinAGI.Engine
         if (ArgVal[2] <= 26) {
           if (ErrorLevel == leHigh ||
           ErrorLevel == leMedium) {
-            AddWarning(5077, LoadResString(5077).Replace(ARG1, agCmds[CmdNum].Name));
+            AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
             //} else if (ErrorLevel == leLow) {
             //  //no action
           }
@@ -4421,52 +4420,53 @@ namespace WinAGI.Engine
               strErrMsg = LoadResString(4109).Replace(ARG1, MAX_LABELS.ToString());
               return false;
             }
-            rtn = compGame.agGlobals.ValidateDefName(strLabel);
+            DefineNameCheck chkLabel = compGame.agGlobals.ValidateDefName(strLabel);
             //numbers are ok for labels
-            if (rtn == 2) {
-              rtn = 0;
+            if (chkLabel == DefineNameCheck.ncNumeric) {
+              chkLabel = DefineNameCheck.ncOK;
             }
             // check for error
-            switch (rtn) {
-            case 1:
-              strErrMsg = LoadResString(4096);
-              break;
-            case 3:
-              strErrMsg = LoadResString(4025).Replace(ARG1, strLabel);
-              break;
-            case 4:
-              strErrMsg = LoadResString(4026).Replace(ARG1, strLabel);
-              break;
-            case 5:
-              strErrMsg = LoadResString(4028).Replace(ARG1, strLabel);
-              break;
-            case 6:
-              strErrMsg = LoadResString(4091);
-              break;
-            case 7:
-              strErrMsg = LoadResString(4024).Replace(ARG1, strLabel);
-              break;
-            case 8:
-              strErrMsg = LoadResString(4033).Replace(ARG1, strLabel);
-              break;
-            case 9:
-              strErrMsg = LoadResString(4030).Replace(ARG1, strLabel);
-              break;
-            case 10:
-              strErrMsg = LoadResString(4029).Replace(ARG1, strLabel);
-              break;
-            case 11:
-              strErrMsg = LoadResString(4032).Replace(ARG1, strLabel);
-              break;
-            case 12:
-              strErrMsg = LoadResString(4031).Replace(ARG1, strLabel);
-              break;
-            case 13:
-              strErrMsg = LoadResString(4068);
-              break;
+            if (chkLabel != DefineNameCheck.ncOK) {
+              switch (chkLabel) {
+              case DefineNameCheck.ncEmpty:
+                strErrMsg = LoadResString(4096);
+                break;
+              case DefineNameCheck.ncActionCommand:
+                strErrMsg = LoadResString(4025).Replace(ARG1, strLabel);
+                break;
+              case DefineNameCheck.ncTestCommand:
+                strErrMsg = LoadResString(4026).Replace(ARG1, strLabel);
+                break;
+              case DefineNameCheck.ncKeyWord:
+                strErrMsg = LoadResString(4028).Replace(ARG1, strLabel);
+                break;
+              case DefineNameCheck.ncArgMarker:
+                strErrMsg = LoadResString(4091);
+                break;
+              case DefineNameCheck.ncGlobal:
+                strErrMsg = LoadResString(4024).Replace(ARG1, strLabel);
+                break;
+              case DefineNameCheck.ncReservedVar:
+                strErrMsg = LoadResString(4033).Replace(ARG1, strLabel);
+                break;
+              case DefineNameCheck.ncReservedFlag:
+                strErrMsg = LoadResString(4030).Replace(ARG1, strLabel);
+                break;
+              case DefineNameCheck.ncReservedNum:
+                strErrMsg = LoadResString(4029).Replace(ARG1, strLabel);
+                break;
+              case DefineNameCheck.ncReservedObj or DefineNameCheck.ncReservedStr:
+                strErrMsg = LoadResString(4032).Replace(ARG1, strLabel);
+                break;
+              case DefineNameCheck.ncReservedMsg:
+                strErrMsg = LoadResString(4031).Replace(ARG1, strLabel);
+                break;
+              case DefineNameCheck.ncBadChar:
+                strErrMsg = LoadResString(4068);
+                break;
+              }
+              return false;
             }
-            return false;
-
             //no periods allowed either
             if (strLabel.IndexOf(".") >= 0) {
               strErrMsg = LoadResString(4068);
@@ -4812,7 +4812,7 @@ namespace WinAGI.Engine
               //reset the quotemark error flag
               lngQuoteAdded = -1;
               //now extract arguments,
-              for (i = 0; i < agCmds[intCmdNum].ArgType.Length; i++) {
+              for (i = 0; i < ActionCommands[intCmdNum].ArgType.Length; i++) {
                 //after first argument, verify comma separates arguments
                 if (i > 0) {
                   if (NextChar(true) != ",") {
@@ -4832,13 +4832,13 @@ namespace WinAGI.Engine
                     return false;
                   }
                 }
-                bytArg[i] = (byte)GetNextArg(agCmds[(byte)intCmdNum].ArgType[i], i);
+                bytArg[i] = (byte)GetNextArg(ActionCommands[(byte)intCmdNum].ArgType[i], i);
                 //if error
                 if (blnError) {
                   // if error number is 4054
                   if (Left(strErrMsg, 4) == "4054") {
                     // add command name to error string
-                    strErrMsg = strErrMsg.Replace(ARG2, agCmds[intCmdNum].Name);
+                    strErrMsg = strErrMsg.Replace(ARG2, ActionCommands[intCmdNum].Name);
                   }
                   //blnError = false; //why not set error flag?
                   return false;
@@ -4984,14 +4984,14 @@ namespace WinAGI.Engine
        //of a command, based on the text
       if (blnIF) {
         for (byte retval = 0; retval < agNumTestCmds; retval++) {
-          if (strCmdName.Equals(agTestCmds[retval].Name, StringComparison.OrdinalIgnoreCase)) {
+          if (strCmdName.Equals(TestCommands[retval].Name, StringComparison.OrdinalIgnoreCase)) {
             return retval;
           }
         }
       }
       else {
         for (byte retval = 0; retval < agNumCmds; retval++) {
-          if (strCmdName.Equals(agCmds[retval].Name, StringComparison.OrdinalIgnoreCase)) {
+          if (strCmdName.Equals(ActionCommands[retval].Name, StringComparison.OrdinalIgnoreCase)) {
             return retval;
           }
         }
@@ -4999,7 +4999,7 @@ namespace WinAGI.Engine
         //maybe the command is a valid agi command, but
         //just not supported in this agi version
         for (int retval = agNumCmds; retval < MAX_CMDS; retval++) {
-          if (strCmdName.Equals(agCmds[retval].Name, StringComparison.OrdinalIgnoreCase)) {
+          if (strCmdName.Equals(ActionCommands[retval].Name, StringComparison.OrdinalIgnoreCase)) {
             if (ErrorLevel == leHigh) {
               //error; return cmd Value of 254 so compiler knows to raise error
               return 254;

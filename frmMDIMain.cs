@@ -11,11 +11,12 @@ using System.Reflection;
 using WinAGI.Engine;
 using WinAGI.Common;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIResType;
-using static WinAGI.Common.WinAGI;
+using static WinAGI.Common.Base;
 using System.Diagnostics;
-using static WinAGI.Editor.ResMan;
+using static WinAGI.Editor.Base;
+using static WinAGI.Editor.BkgdTasks;
 
 namespace WinAGI.Editor
 {
@@ -140,16 +141,19 @@ namespace WinAGI.Editor
       bool blnNoWAG = false;
       switch (e.lStatus) {
       case ELStatus.lsDecompiling:
-        ProgressWin.lblProgress.Text = "Validating AGI game files ...";
+        //ProgressWin.lblProgress.Text = "Validating AGI game files ...";
+        bgwOpenGame.ReportProgress(0, "Validating AGI game files ...");
         blnNoWAG = true;
         break;
 
       case ELStatus.lsPropertyFile:
         if (blnNoWAG) {
-          ProgressWin.lblProgress.Text = "Creating game property file ...";
+          //ProgressWin.lblProgress.Text = "Creating game property file ...";
+          bgwOpenGame.ReportProgress(0, "Creating game property file ...");
         }
         else {
-          ProgressWin.lblProgress.Text = "Loading game property file ...";
+          //ProgressWin.lblProgress.Text = "Loading game property file ...";
+          bgwOpenGame.ReportProgress(0, "Loading game property file ...");
         }
         break;
 
@@ -159,21 +163,25 @@ namespace WinAGI.Editor
         case AGIResType.rtPicture:
         case AGIResType.rtView:
         case AGIResType.rtSound:
-          ProgressWin.lblProgress.Text = "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum;
+          //ProgressWin.lblProgress.Text = "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum;
+          bgwOpenGame.ReportProgress(0, "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum);
           break;
         case AGIResType.rtWords:
-          ProgressWin.lblProgress.Text = "Validating WORDS.TOK file";
+          //ProgressWin.lblProgress.Text = "Validating WORDS.TOK file";
+          bgwOpenGame.ReportProgress(0, "Validating WORDS.TOK file");
           break;
         case AGIResType.rtObjects:
-          ProgressWin.lblProgress.Text = "Validating OBJECT file";
+          //ProgressWin.lblProgress.Text = "Validating OBJECT file";
+          bgwOpenGame.ReportProgress(0, "Validating OBJECT file");
           break;
         }
         break;
       case ELStatus.lsFinalizing:
-        ProgressWin.lblProgress.Text = "Configuring WinAGI";
+        //ProgressWin.lblProgress.Text = "Configuring WinAGI";
+        bgwOpenGame.ReportProgress(0, "Configuring WinAGI");
         break;
       }
-      ProgressWin.Refresh();
+      //ProgressWin.Refresh();
     }
     private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e)
     {
@@ -212,7 +220,7 @@ namespace WinAGI.Editor
         MessageBox.Show("Game opened, with warnings.");
       }
       else {
-        MessageBox.Show($"opengame result: {ResMan.LoadResString(retval - WINAGI_ERR)}");
+        MessageBox.Show($"opengame result: {Base.LoadResString(retval - WINAGI_ERR)}");
       }
       MDIHasFocus = true;
       tvwResources.Focus();
@@ -279,7 +287,7 @@ namespace WinAGI.Editor
       };
       MainStatusBar = statusStrip1;
       //      ViewClipboard = picViewCB;
-      SoundClipboard = new AGINotes();
+      SoundClipboard = new Notes();
       //      NotePictures = picNotes;
       //        WordsClipboard = new WordsUndo();
       FindingForm = new frmFind();
@@ -445,7 +453,7 @@ namespace WinAGI.Editor
       foreach (AGIWord tmpWord in (IEnumerable<AGIWord>)EditGame.WordList) {
         i++;
       }
-      foreach (AGIWordGroup tmpGrp in (IEnumerable<AGIWordGroup>)EditGame.WordList) {
+      foreach (WordGroup tmpGrp in (IEnumerable<WordGroup>)EditGame.WordList) {
         j++;
       }
       Debug.Print($"There are {i} words in {j} groups in this list.");
@@ -487,7 +495,7 @@ namespace WinAGI.Editor
           selRes = rtGame;
           break;
         case 1: //logics
-          foreach (AGILogic tmpRes in EditGame.Logics) {
+          foreach (Logic tmpRes in EditGame.Logics) {
             tmpItem = lstResources.Items.Add("l" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
             //set color based on compiled status;
@@ -501,21 +509,21 @@ namespace WinAGI.Editor
           selRes = rtLogic;
           break;
         case 2://pictures
-          foreach (AGIPicture tmpRes in EditGame.Pictures) {
+          foreach (Picture tmpRes in EditGame.Pictures) {
             tmpItem = lstResources.Items.Add("p" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
           }
           selRes = rtPicture;
           break;
         case 3: //sounds
-          foreach (AGISound tmpRes in EditGame.Sounds) {
+          foreach (Sound tmpRes in EditGame.Sounds) {
             tmpItem = lstResources.Items.Add("s" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
           }
           selRes = rtSound;
           break;
         case 4: //views
-          foreach (AGIView tmpRes in EditGame.Views) {
+          foreach (Engine.View tmpRes in EditGame.Views) {
             tmpItem = lstResources.Items.Add("v" + tmpRes.Number, ResourceName(tmpRes, true), 0);
             tmpItem.Tag = tmpRes;
           }
@@ -663,65 +671,77 @@ namespace WinAGI.Editor
       case AGIResType.rtGame:
         //show gameid, gameauthor, description,etc
         PropRows = 10;
-        //propertyGrid1.SelectedObject = paGame;
+        GameProperties pGame = new GameProperties(EditGame);
+        propertyGrid1.SelectedObject = pGame;
         break;
       case AGIResType.rtLogic:
         if (NewResNum == -1) {
           //logic header
           PropRows = 3;
-          //propertyGrid1.SelectedObject = EditGame.Logics;
+          LogicHdrProperties pLgcHdr = new LogicHdrProperties(EditGame.Logics.Count, Compiler.UseReservedNames);
+          propertyGrid1.SelectedObject = pLgcHdr;
         }
         else {
           //show logic properties
           PropRows = 8;
-          //propertyGrid1.SelectedObject = EditGame.Logics[NewResNum];
+          //if compiled state doesn't match correct tree color, fix it now
+          LogicProperties pLog = new LogicProperties(EditGame.Logics[NewResNum]);
+          propertyGrid1.SelectedObject = pLog;
         }
         break;
       case AGIResType.rtPicture:
         if (NewResNum == -1) {
           //picture header
-          //propertyGrid1.SelectedObject = EditGame.Pictures;
+          PictureHdrProperties pPicHdr = new PictureHdrProperties(EditGame.Pictures.Count);
+          propertyGrid1.SelectedObject = pPicHdr;
           PropRows = 1;
         }
         else {
           //show picture properties
           PropRows = 6;
-          //propertyGrid1.SelectedObject = EditGame.Pictures[NewResNum];
+          PictureProperties pPicture = new PictureProperties(EditGame.Pictures[NewResNum]);
+          propertyGrid1.SelectedObject = pPicture;
         }
         break;
       case AGIResType.rtSound:
         if (NewResNum == -1) {
           //sound header
           PropRows = 1;
-          //propertyGrid1.SelectedObject = EditGame.Sounds;
+          SoundHdrProperties pSndHdr = new SoundHdrProperties(EditGame.Sounds.Count);
+          propertyGrid1.SelectedObject = pSndHdr;
         }
         else {
           //show sound properties
           PropRows = 6;
-          //propertyGrid1.SelectedObject = EditGame.Sounds[NewResNum];
+          SoundProperties pSound = new SoundProperties(EditGame.Sounds[NewResNum]);
+          propertyGrid1.SelectedObject = pSound;
         }
         break;
       case AGIResType.rtView:
         if (NewResNum == -1) {
           //view header
+          VieweHdrProperties pViewHdr = new VieweHdrProperties(EditGame.Views.Count);
           PropRows = 1;
-          //propertyGrid1.SelectedObject = EditGame.Views;
+          propertyGrid1.SelectedObject = pViewHdr;
         }
         else {
           //show view properties
           PropRows = 7;
-          //propertyGrid1.SelectedObject = EditGame.Views[NewResNum];
+          ViewProperties pView = new ViewProperties(EditGame.Views[NewResNum]);
+          propertyGrid1.SelectedObject = pView;
         }
         break;
       case AGIResType.rtObjects:
         //show object Count, description, encryption, and Max screen objects
         PropRows = 4;
-        //propertyGrid1.SelectedObject = EditGame.InvObjects;
+        InvObjProperties pInvObj = new InvObjProperties(EditGame.InvObjects);
+        propertyGrid1.SelectedObject = pInvObj;
         break;
       case AGIResType.rtWords:
         //show group Count and word Count and description
         PropRows = 3;
-        //propertyGrid1.SelectedObject = EditGame.WordList;
+        WordListProperties pWordList = new WordListProperties(EditGame.WordList);
+        propertyGrid1.SelectedObject = pWordList;
         break;
       }
 
@@ -1363,7 +1383,7 @@ namespace WinAGI.Editor
         Compiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 60))) == 1 << (i - 60));
       }
       lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn3", 0);
-      for (i = 91; i < WARNCOUNT; i++) {
+      for (i = 91; i < Compiler.WARNCOUNT; i++) {
         Compiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 90))) == 1 << (i - 90));
       }
       return true;
@@ -1411,7 +1431,7 @@ namespace WinAGI.Editor
       }
       GameSettings.WriteSetting(sLOGICS, "NoCompWarn2", lngCompVal);
       lngCompVal = 0;
-      for (i = 1; i < (WARNCOUNT % 30); i++) {
+      for (i = 1; i < (Compiler.WARNCOUNT % 30); i++) {
         lngCompVal |= (Compiler.IgnoreWarning(5090 + i) ? 1 << i : 0);
       }
       GameSettings.WriteSetting(sLOGICS, "NoCompWarn3", lngCompVal);
@@ -1517,8 +1537,8 @@ namespace WinAGI.Editor
       byte bSelResNum = (byte)SelResNum;
       // always expand the clipping region so the entire surface
       // gets repainted
-      e.Graphics.ResetClip();
       Graphics gProp = e.Graphics;
+      gProp.ResetClip();
 
       //if no game loaded, or nothing selected
       if ((!EditGame.GameLoaded)) {
@@ -1574,7 +1594,6 @@ namespace WinAGI.Editor
       if (PropRows > 0) {
         switch (SelResType) {
         case rtGame: //  1  //root
-          Debug.Print($"propscroll:{PropScroll}");
           DrawProp(gProp, "GameID", EditGame.GameID, 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded);
           DrawProp(gProp, "Author", EditGame.GameAuthor, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded);
           DrawProp(gProp, "GameDir", EditGame.GameDir, 3, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfDialog);
@@ -1713,7 +1732,6 @@ namespace WinAGI.Editor
       //draw vertical line separating columns
       penProp.Color = LtGray;
       gProp.DrawLine(penProp, PropSplitLoc, PropRowHeight, PropSplitLoc, picProperties.Height - 1);
-      Debug.Print($"edge: {picProperties.Width - 1}");
       gProp.DrawLine(penProp, picProperties.Width - 1, PropRowHeight, picProperties.Width - 1, picProperties.Height - 1);
       //draw horizontal lines separating rows
       for (i = 2; i <= PropRowCount + 1; i++) {
@@ -1909,7 +1927,7 @@ namespace WinAGI.Editor
     }
     internal void mnuROLogic_Click(object sender, EventArgs e)
     {
-
+      EditGame.Logics[SelResNum].SaveSource();
     }
     internal void mnuROObjects_Click(object sender, EventArgs e)
     {
@@ -1941,7 +1959,7 @@ namespace WinAGI.Editor
       // to preview window, if it's active
 
       //*//
-      Debug.Print($"Keypress: {e.KeyChar}");
+      Debug.Print($"Form Keypress: {e.KeyChar}");
 
       if (!e.Handled) {
         //
@@ -1962,12 +1980,21 @@ namespace WinAGI.Editor
     }
     private void frmMDIMain_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
     {
+      if (this.ActiveControl == this.propertyGrid1) {
+        //? cancel it?
+      }
       Debug.Print($"Main - PreviewKeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
     }
     private void frmMDIMain_KeyDown(object sender, KeyEventArgs e)
     {
       Debug.Print($"Main - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
     }
+    private void propertyGrid1_KeyDown(object sender, KeyEventArgs e)
+    {
+      Debug.Print($"propgrid - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
+    }
+
+
     public void RemoveSelectedRes()
     {
       //*//
@@ -2650,6 +2677,35 @@ namespace WinAGI.Editor
       }
       return;
     }
+
+    private void propertyGrid1_MouseClick(object sender, MouseEventArgs e)
+    {
+      
+    }
+
+    private void propertyGrid1_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    private void propertyGrid1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+    {
+      //can we cancel?
+      //no...
+      Debug.Assert(false);
+    }
+
+    private void propertyGrid1_SelectedGridItemChanged(object sender, SelectedGridItemChangedEventArgs e)
+    {
+//      Debug.Assert(false);
+    }
+
+    private void propertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
+    {
+      //this happens AFTER the change?
+      Debug.Print($"prop: {e.ChangedItem}   oldval:{e.OldValue}");
+    }
+
     public void DismissWarning(int row)
     {
       //remove a row to dismiss the warning
@@ -8717,59 +8773,6 @@ ErrHandler:
   Resume Next
 }
       */
-    }
-    void UpdateSplitRes(int SplitResLoc)
-    {
-      int OldHeight;
-
-      //if minimized
-      if ((MDIMain.WindowState == FormWindowState.Minimized)) {
-        return;
-      }
-
-      if (SplitResLoc < tvwResources.Top) {
-        SplitResLoc = tvwResources.Top + 1;
-      }
-
-      ////resize split + spliticon to match width
-      //picSplitRes.Width = picResources.ScaleWidth
-      //picSplitResIcon.Width = picResources.ScaleWidth
-
-      //get current split pos
-      OldHeight = tvwResources.Top + tvwResources.Height;
-
-      //if no change
-      if (OldHeight == SplitResLoc) {
-        //nothing needs changing
-        return;
-      }
-
-      switch (Settings.ResListType) {
-      case 0:
-        break;
-      case 1: //tree
-              //set tree height
-        tvwResources.Height = SplitResLoc - tvwResources.Top;
-        break;
-      case 2: //box
-              //set listbox height
-        lstResources.Height = SplitResLoc - lstResources.Top;
-        break;
-      }
-
-      ////move property box to bottom
-      //pnlProp.Top = SplitResLoc + SPLIT_HEIGHT;
-      //if (pnlResources.Height - pnlProp.Top > 65) {
-      //  pnlProp.Height = pnlResources.Height - pnlProp.Top;
-      //}
-
-      ////move scrollbar
-      //fsbProperty.Top = pnlProp.Top;
-      //fsbProperty.Height = pnlProp.Height;
-
-      ////position the splitter
-      //picSplitRes.Top = SplitResLoc
-      //picSplitRes.ZOrder
     }
     public void ClearResourceList()
     {

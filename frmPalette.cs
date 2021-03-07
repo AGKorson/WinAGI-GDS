@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using WinAGI.Editor;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Editor.ResMan;
+using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor
 {

@@ -22,7 +22,7 @@ namespace WinAGI.Editor
       throw new NotImplementedException();
     }
 
-    internal void SetForm(ResMan.FindFormFunction ffFindLogic, bool v)
+    internal void SetForm(Base.FindFormFunction ffFindLogic, bool v)
     {
       throw new NotImplementedException();
     }

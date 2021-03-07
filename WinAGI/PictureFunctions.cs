@@ -11,7 +11,7 @@ namespace WinAGI.Engine
     cdX,
     cdY,
   }
-  public static partial class WinAGI
+  public static partial class Base
   {
     //picture resource global variables
     private static byte[] VisBuildData, PriBuildData, agPicData;
@@ -71,8 +71,8 @@ namespace WinAGI.Engine
       agPicData = bytPicData;
 
       //set default picture values
-      CurrentPen.VisColor = AGIColors.agNone;
-      CurrentPen.PriColor = AGIColors.agNone;
+      CurrentPen.VisColor = AGIColorIndex.agNone;
+      CurrentPen.PriColor = AGIColorIndex.agNone;
       CurrentPen.PlotSize = 0;
       CurrentPen.PlotShape = EPlotShape.psCircle;
       CurrentPen.PlotStyle = EPlotStyle.psSolid;
@@ -128,13 +128,13 @@ namespace WinAGI.Engine
               break;
             case 0xF0: //Change picture color and enable picture draw.
                        //get color (only lower nibble is used)
-              CurrentPen.VisColor = (AGIColors)(bytPicData[lngPos] & 0xF);
+              CurrentPen.VisColor = (AGIColorIndex)(bytPicData[lngPos] & 0xF);
               //AGI has a slight bug; if color is > 15, the
               //upper nibble will overwrite the priority color
               if (bytPicData[lngPos] > 15)
               {
                 //pass upper nibble to priority
-                CurrentPen.PriColor |= (AGIColors)(bytPicData[lngPos] / 16);
+                CurrentPen.PriColor |= (AGIColorIndex)(bytPicData[lngPos] / 16);
                 //set warning flag
                 retval |= 2;
               }
@@ -145,7 +145,7 @@ namespace WinAGI.Engine
               break;
             case 0xF1: //Disable picture draw.
                        //disable visual drawing
-              CurrentPen.VisColor = AGIColors.agNone;
+              CurrentPen.VisColor = AGIColorIndex.agNone;
               //get next command byte
               bytIn = bytPicData[lngPos];
               lngPos++;
@@ -154,7 +154,7 @@ namespace WinAGI.Engine
                        //get color
                        //AGI uses ONLY priority color; if the passed value is
                        //greater than 15, the upper nibble gets ignored
-              CurrentPen.PriColor = ((AGIColors)(bytPicData[lngPos] & 0xF));
+              CurrentPen.PriColor = ((AGIColorIndex)(bytPicData[lngPos] & 0xF));
               lngPos++;
               //get next command byte
               bytIn = bytPicData[lngPos];
@@ -162,7 +162,7 @@ namespace WinAGI.Engine
               break;
             case 0xF3: //Disable priority draw.
                        //disable priority
-              CurrentPen.PriColor = AGIColors.agNone;
+              CurrentPen.PriColor = AGIColorIndex.agNone;
               //get next command byte
               bytIn = bytPicData[lngPos];
               lngPos++;
@@ -329,11 +329,11 @@ namespace WinAGI.Engine
 
       if (lngIndex <= 26879)
       {
-        if (CurrentPen.VisColor < AGIColors.agNone)
+        if (CurrentPen.VisColor < AGIColorIndex.agNone)
         {
           VisBuildData[lngIndex] = (byte)CurrentPen.VisColor;
         }
-        if (CurrentPen.PriColor < AGIColors.agNone)
+        if (CurrentPen.PriColor < AGIColorIndex.agNone)
         {
           PriBuildData[lngIndex] = (byte)CurrentPen.PriColor;
         }
@@ -695,13 +695,13 @@ namespace WinAGI.Engine
         Y = agPicData[lngPos];
         lngPos++;
         //if visual OR priority but not both
-        if ((CurrentPen.VisColor < AGIColors.agNone) ^ (CurrentPen.PriColor < AGIColors.agNone))
+        if ((CurrentPen.VisColor < AGIColorIndex.agNone) ^ (CurrentPen.PriColor < AGIColorIndex.agNone))
         {
           //if drawing visual
-          if (CurrentPen.VisColor < AGIColors.agNone)
+          if (CurrentPen.VisColor < AGIColorIndex.agNone)
           {
             //if color is not white, and current pixel IS white,
-            if (CurrentPen.VisColor != AGIColors.agWhite && (AGIColors)VisBuildData[X + 160 * Y] == AGIColors.agWhite)
+            if (CurrentPen.VisColor != AGIColorIndex.agWhite && (AGIColorIndex)VisBuildData[X + 160 * Y] == AGIColorIndex.agWhite)
             {
               //store the starting point in first queue position
               QueueStart = 0;
@@ -722,7 +722,7 @@ namespace WinAGI.Engine
                 if (Y > 0)
                 {
                   lngOffset = (Y - 1) * 160 + X;
-                  if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                  if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite)
                   {
                     //set it
                     VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
@@ -735,7 +735,7 @@ namespace WinAGI.Engine
                 if (X > 0)
                 {
                   lngOffset = Y * 160 + X - 1;
-                  if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                  if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite)
                   {
                     //set it
                     VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
@@ -748,7 +748,7 @@ namespace WinAGI.Engine
                 if (X < 159)
                 {
                   lngOffset = Y * 160 + X + 1;
-                  if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                  if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite)
                   {
                     //set it
                     VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
@@ -761,7 +761,7 @@ namespace WinAGI.Engine
                 if (Y < 167)
                 {
                   lngOffset = (Y + 1) * 160 + X;
-                  if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                  if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite)
                   {
                     //set it
                     VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
@@ -777,7 +777,7 @@ namespace WinAGI.Engine
           else
           {
             //if color is not red, and current pixel IS red,
-            if (CurrentPen.PriColor != AGIColors.agRed && (AGIColors)PriBuildData[X + 160 * Y] == AGIColors.agRed)
+            if (CurrentPen.PriColor != AGIColorIndex.agRed && (AGIColorIndex)PriBuildData[X + 160 * Y] == AGIColorIndex.agRed)
             {
               //store the starting point in first queue position
               QueueStart = 0;
@@ -796,7 +796,7 @@ namespace WinAGI.Engine
                 if (Y > 0)
                 {
                   lngOffset = (Y - 1) * 160 + X;
-                  if ((AGIColors)PriBuildData[lngOffset] == AGIColors.agRed)
+                  if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed)
                   {
                     //set it
                     PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
@@ -809,7 +809,7 @@ namespace WinAGI.Engine
                 if (X > 0)
                 {
                   lngOffset = Y * 160 + X - 1;
-                  if ((AGIColors)PriBuildData[lngOffset] == AGIColors.agRed)
+                  if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed)
                   {
                     //set it
                     PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
@@ -822,7 +822,7 @@ namespace WinAGI.Engine
                 if (X < 159)
                 {
                   lngOffset = Y * 160 + X + 1;
-                  if ((AGIColors)PriBuildData[lngOffset] == AGIColors.agRed)
+                  if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed)
                   {
                     //set it
                     PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
@@ -835,7 +835,7 @@ namespace WinAGI.Engine
                 if (Y < 167)
                 {
                   lngOffset = (Y + 1) * 160 + X;
-                  if ((AGIColors)PriBuildData[lngOffset] == AGIColors.agRed)
+                  if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed)
                   {
                     //set it
                     PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
@@ -850,10 +850,10 @@ namespace WinAGI.Engine
           }
           //if drawing both
         }
-        else if ((CurrentPen.VisColor < AGIColors.agNone) && (CurrentPen.VisColor < AGIColors.agNone))
+        else if ((CurrentPen.VisColor < AGIColorIndex.agNone) && (CurrentPen.VisColor < AGIColorIndex.agNone))
         {
           //if picture draw color is NOT white, and current pixel is white
-          if (CurrentPen.VisColor != AGIColors.agWhite && (AGIColors)VisBuildData[X + 160 * Y] == AGIColors.agWhite)
+          if (CurrentPen.VisColor != AGIColorIndex.agWhite && (AGIColorIndex)VisBuildData[X + 160 * Y] == AGIColorIndex.agWhite)
           {
             //store the starting point in first queue position
             QueueStart = 0;
@@ -875,7 +875,7 @@ namespace WinAGI.Engine
               if (Y > 0)
               {
                 lngOffset = (Y - 1) * 160 + X;
-                if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite)
                 {
                   //set it
                   VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
@@ -889,7 +889,7 @@ namespace WinAGI.Engine
               if (X > 0)
               {
                 lngOffset = Y * 160 + X - 1;
-                if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite)
                 {
                   //set it
                   VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
@@ -903,7 +903,7 @@ namespace WinAGI.Engine
               if (X < 159)
               {
                 lngOffset = Y * 160 + X + 1;
-                if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite)
                 {
                   //set it
                   VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
@@ -917,7 +917,7 @@ namespace WinAGI.Engine
               if (Y < 167)
               {
                 lngOffset = (Y + 1) * 160 + X;
-                if ((AGIColors)VisBuildData[lngOffset] == AGIColors.agWhite)
+                if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite)
                 {
                   //set it
                   VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;

@@ -4,17 +4,17 @@ using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 
 namespace WinAGI.Engine
 {
-  public class AGILoops : IEnumerable<AGILoop>
+  public class Loops : IEnumerable<Loop>
   {
-    List<AGILoop> mLoopCol;
-    AGIView mParent;
+    List<Loop> mLoopCol;
+    View mParent;
     string strErrSource;
-    public AGILoop this[int index]
+    public Loop this[int index]
     {
       get
       {
@@ -30,10 +30,10 @@ namespace WinAGI.Engine
         return mLoopCol[index];
       }
     }
-    public AGILoop Add(int Pos)
+    public Loop Add(int Pos)
     {
       //Pos is position of this loop in the loop collection
-      AGILoop agNewLoop;
+      Loop agNewLoop;
       int i;
       //if too many loops or invalid pos
       if (mLoopCol.Count == MAX_LOOPS || Pos < 0)
@@ -59,7 +59,7 @@ namespace WinAGI.Engine
         }
       }
       //create new loop object
-      agNewLoop = new AGILoop(mParent)
+      agNewLoop = new Loop(mParent)
       {
         //set index
         mIndex = Pos
@@ -145,26 +145,26 @@ namespace WinAGI.Engine
       }
     }
 
-    internal AGILoops Clone(AGIView cloneparent)
+    internal Loops Clone(View cloneparent)
     {
       // returns a copy of this loop collection
-      AGILoops CopyLoops = new AGILoops(cloneparent);
-      foreach (AGILoop tmpLoop in mLoopCol) {
+      Loops CopyLoops = new Loops(cloneparent);
+      foreach (Loop tmpLoop in mLoopCol) {
         CopyLoops.mLoopCol.Add(tmpLoop.Clone(cloneparent));
       }
       return CopyLoops;
     }
-    public AGILoops()
+    public Loops()
     {
       //creates the collection when this class is created
-      mLoopCol = new List<AGILoop>();
+      mLoopCol = new List<Loop>();
     }
-    public AGIView Parent
+    public View Parent
     { get { return mParent; } internal set { mParent = value; } }
-    internal AGILoops(AGIView parent)
+    internal Loops(View parent)
     {
       //create the collection when this class is created
-      mLoopCol = new List<AGILoop>();
+      mLoopCol = new List<Loop>();
       // set parent
       mParent = parent;
     }
@@ -176,21 +176,21 @@ namespace WinAGI.Engine
     {
       return (IEnumerator)GetEnumerator();
     }
-    IEnumerator<AGILoop> IEnumerable<AGILoop>.GetEnumerator()
+    IEnumerator<Loop> IEnumerable<Loop>.GetEnumerator()
     {
-      return (IEnumerator<AGILoop>)GetEnumerator();
+      return (IEnumerator<Loop>)GetEnumerator();
     }
   }
-  internal class LoopEnum : IEnumerator<AGILoop>
+  internal class LoopEnum : IEnumerator<Loop>
   {
-    public List<AGILoop> _loops;
+    public List<Loop> _loops;
     int position = -1;
-    public LoopEnum(List<AGILoop> list)
+    public LoopEnum(List<Loop> list)
     {
       _loops = list;
     }
     object IEnumerator.Current => Current;
-    public AGILoop Current
+    public Loop Current
     { get
       {
         try

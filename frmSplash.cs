@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Editor
 {
@@ -20,7 +20,7 @@ namespace WinAGI.Editor
 
       // set version information
       lblVersion.Text = "Version " + Application.ProductVersion;
-      lblCopyright.Text += Common.WinAGI.COPYRIGHT_YEAR;
+      lblCopyright.Text += Common.Base.COPYRIGHT_YEAR;
   }
   }
 }

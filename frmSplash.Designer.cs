@@ -124,7 +124,7 @@ namespace WinAGI.Editor
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(891, 579);
+      this.ClientSize = new System.Drawing.Size(887, 575);
       this.ControlBox = false;
       this.Controls.Add(this.label2);
       this.Controls.Add(this.groupBox1);
@@ -136,8 +136,7 @@ namespace WinAGI.Editor
       this.ShowIcon = false;
       this.ShowInTaskbar = false;
       this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-      this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-      this.TransparencyKey = System.Drawing.Color.White;
+      this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
       this.groupBox1.ResumeLayout(false);
       this.groupBox1.PerformLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();

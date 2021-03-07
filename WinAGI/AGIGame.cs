@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using static WinAGI.Engine.WinAGI;
-using static WinAGI.Engine.AGICommands;
-using static WinAGI.Common.WinAGI;
+using static WinAGI.Engine.Base;
+using static WinAGI.Engine.Commands;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.Compiler;
 
 namespace WinAGI.Engine
@@ -20,9 +20,9 @@ namespace WinAGI.Engine
   //***************************************************
   public partial class AGIGame
   {
-    internal SettingsList agGameProps = new SettingsList("");
+    internal SettingsList agGameProps; // = new SettingsList("");
 
-    static readonly string strErrSource = "WinAGI.Engine.Engine";
+    static readonly string strErrSource = "WinAGI.Engine.AGIGame";
 
     //game compile variables
     internal bool agCompGame = false;
@@ -32,14 +32,14 @@ namespace WinAGI.Engine
     //local variable(s) to hold property Value(s)
     //for game properties which need to be accessible
     //from all objects in the game system
-    internal AGILogics agLogs;
-    internal AGISounds agSnds;
-    internal AGIViews agViews;
-    internal AGIPictures agPics;
-    internal AGIInventoryObjects agInvObj;
-    internal AGIWordList agVocabWords;
+    internal Logics agLogs;
+    internal Sounds agSnds;
+    internal Views agViews;
+    internal Pictures agPics;
+    internal InventoryObjects agInvObj;
+    internal WordList agVocabWords;
     internal GlobalList agGlobals;
-    internal EGAColors colorEGA = new EGAColors();
+    internal EGAColors agEGAcolors = new EGAColors();
     internal string agGameDir = "";
     internal string agResDir = "";
     internal string agResDirName = "";
@@ -66,8 +66,30 @@ namespace WinAGI.Engine
     internal string agPlatformOpts = "";
     internal string agDOSExec = "";
     internal bool agUseLE = false;
+    internal TDefine[] agResGameDef = new TDefine[4];
 
-    public AGIGame()
+    public AGIGame(OpenGameMode mode,  string gameSource)
+    {
+      InitGame();
+
+      switch (mode) {
+      case OpenGameMode.File:
+        OpenGameWAG(gameSource);
+        break;
+      case OpenGameMode.Directory:
+        OpenGameDIR(gameSource);
+        break;
+      default:
+        //bad mode - do nothing?
+        break;
+      }
+    }
+    public AGIGame(string id, string version, string gamedir, string resdir, string template = "")
+    {
+      InitGame();
+      NewGame(id, version, gamedir, resdir, template);
+    }
+    private void InitGame()
     {
       // enable encoding access to codepage 437; this gives us access to the standard MSDOS extended characters
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -78,30 +100,41 @@ namespace WinAGI.Engine
       //set max vol0 size
       agMaxVol0 = agMaxVolSize;
 
+      // reserved game defines
+      agResGameDef[0].Name = "gameID";
+      agResGameDef[0].Default = "gameID";
+      agResGameDef[0].Type = ArgTypeEnum.atDefStr;
+      agResGameDef[1].Name = "gameVersion";
+      agResGameDef[1].Default = "gameVersion";
+      agResGameDef[1].Type = ArgTypeEnum.atDefStr;
+      agResGameDef[2].Name = "gameAbout";
+      agResGameDef[2].Default = "gameAbout";
+      agResGameDef[2].Type = ArgTypeEnum.atDefStr;
+      agResGameDef[3].Name = "numberOfItems";
+      agResGameDef[3].Default = "numberOfItems";
+      agResGameDef[3].Type = ArgTypeEnum.atNum;
+
       //initialize all game variables
       ClearGameState();
     }
-    public AGILogics Logics
-    { get => agLogs; set { } }
-    public AGIPictures Pictures
-    { get => agPics; set { } }
-    public AGISounds Sounds
-    { get => agSnds; set { } }
-    public AGIViews Views
-    { get => agViews; set { } }
-    public AGIWordList WordList
-    { get => agVocabWords; set { } }
-    public AGIInventoryObjects InvObjects
-    { get => agInvObj; set { } }
+    public Logics Logics
+    { get => agLogs; }
+    public Pictures Pictures
+    { get => agPics; }
+    public Sounds Sounds
+    { get => agSnds; }
+    public Views Views
+    { get => agViews; }
+    public WordList WordList
+    { get => agVocabWords; }
+    public InventoryObjects InvObjects
+    { get => agInvObj; }
     public GlobalList GlobalDefines
-    { get => agGlobals; set { } }
-    public EGAColors EGAColor
-    {
-      get { return colorEGA; }
-      //set { colorEGA = value; }
-    }
+    { get => agGlobals; }
+    public EGAColors AGIColors
+    { get => agEGAcolors; }
     public bool GameLoaded
-    { get => agGameLoaded; set { } }
+    { get => agGameLoaded; }
     public void CancelCompile()
     {
       // can be called by parent program during a compile
@@ -337,7 +370,7 @@ namespace WinAGI.Engine
       {
         // no validation required
         agUseLE = value;
-
+        System.Diagnostics.Debug.Print($"changing UseLE to {value}");
         //if a game is loaded,
         if (agGameLoaded)
           //write new property
@@ -361,25 +394,21 @@ namespace WinAGI.Engine
           WriteGameSetting("General", "GameVersion", agGameVersion);
       }
     }
-    public TDefine[] ReservedGameDefines()
+    public TDefine[] ReservedGameDefines
     {
-    //internal static TDefine[] agResDef = new TDefine[6];    //5 //defines for ego, gamever, gameabout, gameid, invobj Count
-                                                            //returns the reserved defines that are game-specific
-    TDefine[] tmpDefines = new TDefine[44];
-      tmpDefines[0].Name = agResObj[3].Name;
-      tmpDefines[0].Value = "\"" + GameID + "\"";
-      tmpDefines[0].Type = ArgTypeEnum.atDefStr;
-      tmpDefines[1].Name = agResObj[1].Name;
-      tmpDefines[1].Value = "\"" + agGameVersion + "\"";
-      tmpDefines[1].Type = ArgTypeEnum.atDefStr;
-      tmpDefines[2].Name = agResObj[2].Name;
-      tmpDefines[2].Value = "\"" + GameAbout + "\"";
-      tmpDefines[2].Type = ArgTypeEnum.atDefStr;
+      get
+      {
+        //returns the reserved defines that are game-specific:
+        //     gamever, gameabout, gameid, invobj Count
+        TDefine[] tmpDefines = agResGameDef;
 
-      tmpDefines[44].Name = agResObj[4].Name;
-      tmpDefines[44].Value = agInvObj.Count.ToString();
-      tmpDefines[0].Type = ArgTypeEnum.atNum;
-      return tmpDefines;
+        // always refrsh the values
+        tmpDefines[0].Value = "\"" + GameID + "\"";
+        tmpDefines[1].Value = "\"" + agGameVersion + "\"";
+        tmpDefines[2].Value = "\"" + GameAbout + "\"";
+        tmpDefines[3].Value = agInvObj.Count.ToString();
+        return tmpDefines;
+      }
     }
     public void CloseGame()
     {
@@ -866,21 +895,21 @@ namespace WinAGI.Engine
         //this is done here instead of when the logics are compiled because
         //if there's an error, or the user cancels, we don't want the resources
         //to point to the wrong place
-        foreach (AGILogic tmpLogic in agLogs.Col.Values) {
+        foreach (Logic tmpLogic in agLogs.Col.Values) {
           tmpLogic.Volume = (sbyte)(bytDIR[0, tmpLogic.Number * 3] >> 4);
-          tmpLogic.Loc = (bytDIR[0, tmpLogic.Number * 3] + 0xF) * 0x10000 + bytDIR[0, tmpLogic.Number * 3 + 1] * 0x100 + bytDIR[0, tmpLogic.Number * 3 + 2];
+          tmpLogic.Loc = ((bytDIR[0, tmpLogic.Number * 3] & 0xF) << 16) + (bytDIR[0, tmpLogic.Number * 3 + 1] << 8) + bytDIR[0, tmpLogic.Number * 3 + 2];
         }
-        foreach (AGIPicture tmpPicture in agPics.Col.Values) {
+        foreach (Picture tmpPicture in agPics.Col.Values) {
           tmpPicture.Volume = (sbyte)(bytDIR[1, tmpPicture.Number * 3] >> 4);
-          tmpPicture.Loc = (bytDIR[1, tmpPicture.Number * 3] + 0xF) * 0x10000 + bytDIR[1, tmpPicture.Number * 3 + 1] * 0x100 + bytDIR[1, tmpPicture.Number * 3 + 2];
+          tmpPicture.Loc = ((bytDIR[1, tmpPicture.Number * 3] & 0xF) << 16) + (bytDIR[1, tmpPicture.Number * 3 + 1] << 8) + bytDIR[1, tmpPicture.Number * 3 + 2];
         }
-        foreach (AGISound tmpSound in agSnds.Col.Values) {
+        foreach (Sound tmpSound in agSnds.Col.Values) {
           tmpSound.Volume = (sbyte)(bytDIR[2, tmpSound.Number * 3] >> 4);
-          tmpSound.Loc = (bytDIR[2, tmpSound.Number * 3] + 0xF) * 0x10000 + bytDIR[2, tmpSound.Number * 3 + 1] * 0x100 + bytDIR[2, tmpSound.Number * 3 + 2];
+          tmpSound.Loc = ((bytDIR[2, tmpSound.Number * 3] & 0xF) << 16) + (bytDIR[2, tmpSound.Number * 3 + 1] << 8) + bytDIR[2, tmpSound.Number * 3 + 2];
         }
-        foreach (AGIView tmpView in agViews.Col.Values) {
+        foreach (View tmpView in agViews.Col.Values) {
           tmpView.Volume = (sbyte)(bytDIR[3, tmpView.Number * 3] >> 4);
-          tmpView.Loc = (bytDIR[3, tmpView.Number * 3] + 0xF) * 0x10000 + bytDIR[3, tmpView.Number * 3 + 1] * 0x100 + bytDIR[3, tmpView.Number * 3 + 2];
+          tmpView.Loc = ((bytDIR[3, tmpView.Number * 3] & 0xF) << 16) + (bytDIR[3, tmpView.Number * 3 + 1] << 8) + bytDIR[3, tmpView.Number * 3 + 2];
         }
       }
 
@@ -973,7 +1002,7 @@ namespace WinAGI.Engine
         }
 
         //set new id
-        agGameID = NewID.ToUpper();
+        agGameID = NewID; //.ToUpper();
 
         //write new property
         WriteGameSetting("General", "GameID", NewID);
@@ -1351,11 +1380,11 @@ namespace WinAGI.Engine
         }
         //create default vocabulary word list;  use loaded argument to force
         //load of the new wordlist so it can be saved
-        agVocabWords = new AGIWordList(this, true);
+        agVocabWords = new WordList(this, true);
         agVocabWords.Save();
         //create inventory objects list
         //use loaded argument to force load of new inventory list
-        agInvObj = new AGIInventoryObjects(this, true);
+        agInvObj = new InventoryObjects(this, true);
         agInvObj.Save();
 
         //commands based on AGI version
@@ -1394,7 +1423,7 @@ namespace WinAGI.Engine
 
       //save palette colors
       for (i = 0; i < 16; i++) {
-        WriteGameSetting("Palette", "Color" + i, colorEGA.ColorText(i));
+        WriteGameSetting("Palette", "Color" + i, agEGAcolors.ColorText(i));
       }
 
       //if errors
@@ -1454,7 +1483,7 @@ namespace WinAGI.Engine
       agGameProps.WriteSetting("General", "GameID", agGameID);
 
       //get version number (version3 flag already set)
-      agIntVersion = WinAGI.GetIntVersion(agGameDir, agIsVersion3);
+      agIntVersion = Base.GetIntVersion(agGameDir, agIsVersion3);
 
       //if not valid
       if (agIntVersion.Length == 0) {
@@ -1476,12 +1505,12 @@ namespace WinAGI.Engine
       //clears basic game variables for a blank, unopened game
       // no game is loaded
       agGameLoaded = false;
-      agLogs = new AGILogics(this);
-      agPics = new AGIPictures(this);
-      agSnds = new AGISounds(this);
-      agViews = new AGIViews(this);
-      agInvObj = new AGIInventoryObjects(this);
-      agVocabWords = new AGIWordList(this);
+      agLogs = new Logics(this);
+      agPics = new Pictures(this);
+      agSnds = new Sounds(this);
+      agViews = new Views(this);
+      agInvObj = new InventoryObjects(this);
+      agVocabWords = new WordList(this);
       agGlobals = new GlobalList(this);
 
       //clear out game properties
@@ -1509,7 +1538,7 @@ namespace WinAGI.Engine
 
       // colors
       for (int i = 0; i < 16; i++) {
-        colorEGA[i] = DefaultColors[i];
+        agEGAcolors[i] = DefaultColors[i];
       }
     }
     public int OpenGameWAG(string GameWAG)
@@ -1709,7 +1738,7 @@ namespace WinAGI.Engine
       //load vocabulary word list
       Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtWords, 0, "");
       try {
-        agVocabWords = new AGIWordList(this);
+        agVocabWords = new WordList(this);
         agVocabWords.Load(agGameDir + "WORDS.TOK");
       }
       catch (Exception e) {
@@ -1723,7 +1752,7 @@ namespace WinAGI.Engine
       //load inventory objects list
       Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtObjects, 0, "");
       try {
-        agInvObj = new AGIInventoryObjects(this);
+        agInvObj = new InventoryObjects(this);
         agInvObj.Load();
       }
       catch (Exception e) {
@@ -1925,7 +1954,7 @@ namespace WinAGI.Engine
       //Palette: (make sure AGI defaults set first)
       ResetDefaultColors();
       for (int i = 0; i < 16; i++) {
-        EGAColor[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), EGAColor[i]);
+        AGIColors[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), AGIColors[i]);
       }
       //description
       agDescription = agGameProps.GetSetting("General", "Description", "");

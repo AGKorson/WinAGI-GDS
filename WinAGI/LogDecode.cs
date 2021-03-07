@@ -5,14 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using WinAGI.Engine;
 using WinAGI.Common;
-using static WinAGI.Common.WinAGI;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.LogicErrorLevel;
 using static WinAGI.Engine.ArgTypeEnum;
-using static WinAGI.Engine.AGICommands;
-using static WinAGI.Engine.AGITestCommands;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Commands;
+
+using static WinAGI.Engine.Base;
 using System.Diagnostics;
+using System.IO;
 
 namespace WinAGI.Engine
 {
@@ -54,17 +55,10 @@ namespace WinAGI.Engine
     static bool blnWarning;
     static string strWarning;
 
-    internal static TDefine[] agResVar = new TDefine[27];    //26 //text name of built in variables
-    internal static TDefine[] agResFlag = new TDefine[18];   //17) //text name of built in flags
-    internal static TDefine[] agEdgeCodes = new TDefine[5]; //4 //text of edge codes
-    internal static TDefine[] agEgoDir = new TDefine[9];    //8 //text of ego direction codes
-    internal static TDefine[] agVideoMode = new TDefine[5]; //4 //text of video mode codes
-    internal static TDefine[] agCompType = new TDefine[9];  //8 //computer type values
-    internal static TDefine[] agResObj = new TDefine[1]; // just ego object6];  
-    internal static TDefine[] agResColor = new TDefine[16];  //15 //predefined color values
-
-    internal static List<string> DecodeLogic(byte[] bytData, bool DecryptMsg)
+    internal static string DecodeLogic(Logic SourceLogic)
     {
+      // converts logic bytecode into decompiled source, converting extended
+      // characters to correct encoding
       byte bytCurData;
       bool blnGoto;
       byte bytCmd;
@@ -78,11 +72,14 @@ namespace WinAGI.Engine
       int intCharCount;
       List<string> stlOutput = new List<string> { };
 
+      compGame = SourceLogic.parent;
+      byte[] bytData = SourceLogic.Data.AllData;
+
       //if nothing in the resource,
       if (bytData.Length == 0) {
         //single //'return()' command
-        stlOutput.Add("return();");
-        return stlOutput;
+        //stlOutput.Add("return();");
+        return "return();";
       }
       //clear block info
       for (i = 0; i < MAX_BLOCK_DEPTH; i++) {
@@ -107,10 +104,10 @@ namespace WinAGI.Engine
       // byte 06: high byte of offset to message section start
       // byte 07: begin logic data
 
-      lngMsgSecStart = bytData[1] * 256 + bytData[0] + 2;
+      lngMsgSecStart = bytData[0] + (bytData[1] << 8) + 2;
 
       //if can't read messges,
-      if (!ReadMessages(bytData, lngMsgSecStart, DecryptMsg)) {
+      if (!ReadMessages(bytData, lngMsgSecStart, SourceLogic.V3Compressed != 2)) {
         //raise error
         goto ErrHandler;
       }
@@ -228,7 +225,7 @@ namespace WinAGI.Engine
           //valid agi command (don't need to check for invalid command number;
           // they are all validated in FindLabels)
           //if this command is not within range of expected commands for targeted interpretr version,
-          if (bytCurData > AGICommands.Count - 1) { //this byte is a command
+          if (bytCurData > Commands.ActionCount - 1) { //this byte is a command
             //show warning
             AddDecodeWarning("this command not valid for selected interpreter version (" + compGame.agIntVersion + ")");
           }
@@ -238,12 +235,12 @@ namespace WinAGI.Engine
             strCurrentLine += AddSpecialCmd(bytData, bytCmd);
           }
           else {
-            strCurrentLine = strCurrentLine + agCmds[bytCmd].Name + "(";
+            strCurrentLine = strCurrentLine + ActionCommands[bytCmd].Name + "(";
             intArgStart = strCurrentLine.Length;
-            for (intArg = 0; intArg < agCmds[bytCmd].ArgType.Length; intArg++) {
+            for (intArg = 0; intArg < ActionCommands[bytCmd].ArgType.Length; intArg++) {
               bytCurData = bytData[lngPos];
               lngPos++;
-              strArg = ArgValue(bytCurData, agCmds[bytCmd].ArgType[intArg]);
+              strArg = ArgValue(bytCurData, ActionCommands[bytCmd].ArgType[intArg]);
               //if showing reserved names && using reserved defines
               if (ReservedAsText && UseReservedNames) {
                 //some commands use resources as arguments; substitute as appropriate
@@ -504,7 +501,7 @@ namespace WinAGI.Engine
               }
 
               //if message
-              if (agCmds[bytCmd].ArgType[intArg] == atMsg) {
+              if (ActionCommands[bytCmd].ArgType[intArg] == atMsg) {
                 //split over additional lines, if necessary
                 do {
                   //if this message is too long to add to current line,
@@ -556,7 +553,7 @@ namespace WinAGI.Engine
               }
 
               //if more arguments needed,
-              if (intArg < agCmds[bytCmd].ArgType.Length - 1) {
+              if (intArg < ActionCommands[bytCmd].ArgType.Length - 1) {
                 strCurrentLine += ", ";
               }
             } // Next intArg
@@ -577,14 +574,28 @@ namespace WinAGI.Engine
           }
         }
       }
-      while (lngPos < lngMsgSecStart); //Loop Until (lngPos >= lngMsgSecStart)
+      while (lngPos < lngMsgSecStart);
       // finish up
       AddBlockEnds(stlOutput);
       stlOutput.Add("");
       DisplayMessages(stlOutput);
-      //return results
-      return stlOutput;
 
+      // convert array to single string, then to byte array
+      // using the Latin1 encoding (this converts the string
+      // characters to the correct byte values
+      byte[] chrLog = System.Text.Encoding.Latin1.GetBytes(string.Join(NEWLINE, stlOutput.ToArray()));
+      // then use a stream reader to convert the byte code array
+      // into the correct encoding to display them as cp437 characters
+      MemoryStream msLog = new MemoryStream(chrLog);
+      StreamReader srLogic = new StreamReader(msLog, Encoding.GetEncoding(437));
+      string strOut = srLogic.ReadToEnd();
+      srLogic.Dispose();
+      msLog.Dispose();
+
+      //return results
+      return strOut;
+
+      // need to handle any errors
       ErrHandler:
       Exception e = new Exception($"LogDecode Error ({strError})");
       e.HResult = WINAGI_ERR + 688;
@@ -603,7 +614,7 @@ namespace WinAGI.Engine
       }
       strWarning += WarningText;
     }
-    static string ArgValue(byte ArgNum, ArgTypeEnum ArgType, int ArgComp = -1)
+    static string ArgValue(byte ArgNum, ArgTypeEnum ArgType, int VarVal = -1)
     {
       //if not showing reserved names (or if not using reserved defines)
       // AND not a msg (always substitute msgs)
@@ -614,30 +625,29 @@ namespace WinAGI.Engine
       //add appropriate resdef name
       switch (ArgType) {
       case ArgTypeEnum.atNum:
-        switch (ArgComp) {
-        case 2:
-        case 5:  //edgecode
+        switch (VarVal) {
+        case 2 or 5: //v2 and v5 use edge codes
           if (ArgNum <= 4) {
             return agEdgeCodes[ArgNum].Name;
           }
           else {
             return ArgNum.ToString();
           }
-        case 6: //egodir
+        case 6: //v6 uses direction codes
           if (ArgNum <= 8) {
             return agEgoDir[ArgNum].Name;
           }
           else {
             return ArgNum.ToString();
           }
-        case 20: //computer type
+        case 20: //v20 uses computer type codes
           if (ArgNum <= 8) {
             return agCompType[ArgNum].Name;
           }
           else {
             return ArgNum.ToString();
           }
-        case 26: //video
+        case 26: //v26 uses video mode codes
           if (ArgNum <= 4) {
             return agVideoMode[ArgNum].Name;
           }
@@ -702,7 +712,7 @@ namespace WinAGI.Engine
       case ArgTypeEnum.atSObj:
         //if ego
         if (ArgNum == 0) {
-          return "ego";
+          return agResObj[0].Name;
         }
         else {
           //not a reserved data type
@@ -756,7 +766,7 @@ namespace WinAGI.Engine
         }
       case ArgTypeEnum.atStr:
         if (ArgNum == 0) {
-          return agResObj[5].Name;
+          return agResStr[0].Name;
         }
         else {
           //not a reserved data type
@@ -788,7 +798,7 @@ namespace WinAGI.Engine
       byte bytInput;
       int NumMessages;
 
-      //NOTE: There is no message 0 (this is not supported by the file format).
+      //NOTE: There is no message 0 (it is not supported by the file format).
       // the word which corresponds to message 0 offset is used to hold the
       //end of text ptr so AGI can decrypt the message text when the logic
       //is initially loaded
@@ -819,6 +829,7 @@ namespace WinAGI.Engine
             return false;
           }
           lngPos += 2;
+
         } //Next intCurMsg
 
         //mark start of encrypted data (to align encryption string)
@@ -878,11 +889,6 @@ namespace WinAGI.Engine
         } //Next intCurMsg
       }
       return true;
-
-      //ErrHandler:
-      //  //save error message
-      //  strError = "Unhandled error while decoding messages (" + Err.Number + ": " + Err.Description + ") at position " + lngPos;
-      //  return false;
     }
     static bool DecodeIf(byte[] bytData, List<string> stlOut)
     {
@@ -956,7 +962,7 @@ namespace WinAGI.Engine
         }
 
         //check for valid test command
-        if ((bytCurByte > 0) && (bytCurByte <= AGITestCommands.Count)) {
+        if ((bytCurByte > 0) && (bytCurByte <= TestCount)) {
           if (!blnFirstCmd) {
             if (blnInOrBlock) {
               strLine += D_TKN_OR;
@@ -981,7 +987,7 @@ namespace WinAGI.Engine
               strLine += D_TKN_NOT;
             }
 
-            strLine = strLine + agTestCmds[bytCmd].Name + "(";
+            strLine = strLine + TestCommands[bytCmd].Name + "(";
 
             intArgStart = strLine.Length;
             if (bytCmd == 14) {
@@ -1030,12 +1036,12 @@ namespace WinAGI.Engine
             }
             else {
               //if at least one arg
-              if (agTestCmds[bytCmd].ArgType.Length > 0) {
-                for (intArg1Val = 0; intArg1Val < agTestCmds[bytCmd].ArgType.Length; intArg1Val++) {
+              if (TestCommands[bytCmd].ArgType.Length > 0) {
+                for (intArg1Val = 0; intArg1Val < TestCommands[bytCmd].ArgType.Length; intArg1Val++) {
                   bytCurByte = bytData[lngPos];
                   lngPos++;
                   //get arg Value
-                  strArg = ArgValue(bytCurByte, agTestCmds[bytCmd].ArgType[intArg1Val]);
+                  strArg = ArgValue(bytCurByte, TestCommands[bytCmd].ArgType[intArg1Val]);
                   //if message error (no string returned)
                   if (strArg.Length == 0) {
                     //error string set by ArgValue function
@@ -1043,7 +1049,7 @@ namespace WinAGI.Engine
                   }
 
                   //if message
-                  if (agTestCmds[bytCmd].ArgType[intArg1Val] == ArgTypeEnum.atMsg) {
+                  if (TestCommands[bytCmd].ArgType[intArg1Val] == ArgTypeEnum.atMsg) {
                     //split over additional lines, if necessary
                     do {
                       //if this message is too long to add to current line,
@@ -1088,7 +1094,7 @@ namespace WinAGI.Engine
                   }
 
                   //if more arguments needed,
-                  if (intArg1Val < agTestCmds[bytCmd].ArgType.Length - 1) {
+                  if (intArg1Val < TestCommands[bytCmd].ArgType.Length - 1) {
                     strLine += ", ";
                   }
                 } //Next intArg1Val
@@ -1176,11 +1182,6 @@ namespace WinAGI.Engine
       }
       while (!blnIfFinished); //Loop Until blnIfFinished
       return true;
-
-      //ErrHandler:
-      //  //unknown test command
-      //  strError = "Unhandled error (" + Err.Number + ": " + Err.Description + ")" + NEWLINE + "at position " + lngPos + " in DecodeIf"
-      //  return false;
     }
     static bool SkipToEndIf(byte[] bytData)
     {
@@ -1209,7 +1210,7 @@ namespace WinAGI.Engine
           lngPos++;
         }
 
-        if ((CurByte > 0) && (CurByte <= AGITestCommands.Count)) {
+        if ((CurByte > 0) && (CurByte <= TestCount)) {
           ThisCommand = CurByte;
           if (ThisCommand == 14) { // said command
             //read in number of arguments
@@ -1221,7 +1222,7 @@ namespace WinAGI.Engine
           }
           else {
             //move pointer to next position past the arguments for this command
-            lngPos += agTestCmds[ThisCommand].ArgType.Length;
+            lngPos += TestCommands[ThisCommand].ArgType.Length;
           }
         }
         else if (CurByte == 0xFF) {
@@ -1287,14 +1288,6 @@ namespace WinAGI.Engine
       }
       while (!IfFinished); //Loop Until IfFinished
       return true;
-
-      //ErrHandler:
-      //  //if no error string
-      //  if (strError.Length == 0) 
-      //  {
-      //    strError = "Unhandled error while decoding logic at position " + lngPos + "): " + strError;
-      //  }
-      //  return false;
     }
     static bool FindLabels(byte[] bytData)
     {
@@ -1412,7 +1405,7 @@ namespace WinAGI.Engine
         else if (bytCurData < MAX_CMDS) //byte is an AGI command
         {
           //skip over arguments to get next command
-          lngPos += agCmds[bytCurData].ArgType.Length;
+          lngPos += ActionCommands[bytCurData].ArgType.Length;
         }
         else {
           //not a valid command - eror depends on value
@@ -1458,7 +1451,6 @@ namespace WinAGI.Engine
       //since the list is zero based, but messages are one-based.
       stlOut.Add(D_TKN_COMMENT + "Messages");
       for (lngMsg = 1; lngMsg <= stlMsgs.Count; lngMsg++) {
-        Debug.Print($"Msg Num: {lngMsg}  MsgExists:{blnMsgExists[lngMsg].ToString()}  MsgUsed:{blnMsgUsed[lngMsg]}");
         if (blnMsgExists[lngMsg] && ((Compiler.ShowAllMessages) || !blnMsgUsed[lngMsg])) {
           stlOut.Add(D_TKN_MESSAGE.Replace(ARG1, lngMsg.ToString()).Replace(ARG2, stlMsgs[lngMsg - 1]));
         }

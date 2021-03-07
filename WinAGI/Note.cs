@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace WinAGI.Engine
 {
-  public class AGINote
+  public class Note
   {
     internal int mFreqDiv;
     internal int mDuration;
     internal byte mAttenuation;
-    internal AGISound mSndParent;
-    internal AGITrack mTrkParent;
+    internal Sound mSndParent;
+    internal Track mTrkParent;
     string strErrSource;
     public byte Attenuation
        { 
@@ -80,11 +80,11 @@ namespace WinAGI.Engine
         }
       }
     }
-    public AGINote()
+    public Note()
     {
       strErrSource = "AGINote";
     }
-    public AGINote(int freqdiv, int duration, byte attenuation)
+    public Note(int freqdiv, int duration, byte attenuation)
     {
       strErrSource = "AGINote";
       //validate freqdiv
@@ -109,7 +109,7 @@ namespace WinAGI.Engine
       }
       mAttenuation = attenuation;
     }
-    internal AGINote(AGISound parent, AGITrack tparent)
+    internal Note(Sound parent, Track tparent)
     {
       mSndParent = parent;
       mTrkParent = tparent;

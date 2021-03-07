@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
 using System.IO;
-using static WinAGI.Engine.WinAGI;
+using static WinAGI.Engine.Base;
 using static WinAGI.Common.API;
-using static WinAGI.Common.WinAGI;
+using static WinAGI.Common.Base;
 using System.Windows.Forms;
 
 namespace WinAGI.Engine
@@ -13,7 +13,7 @@ namespace WinAGI.Engine
     IntPtr piFormHandle = IntPtr.Zero;
     internal bool blnPlaying;
     internal byte PlaySndResNum;
-    internal AGISound SndPlaying;
+    internal Sound SndPlaying;
     internal byte[] mMIDIData;
     internal AudioPlayer()
     {
@@ -24,7 +24,7 @@ namespace WinAGI.Engine
       this.CreateHandle(cpSndPlayer);
       piFormHandle = this.Handle;
     }
-    internal void PlaySound(AGISound SndRes)
+    internal void PlaySound(Sound SndRes)
     {
       string strTempFile, strShortFile;
       int rtn;

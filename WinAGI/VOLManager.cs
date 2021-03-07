@@ -8,7 +8,7 @@ using System.IO;
 
 namespace WinAGI.Engine
 {
-  public static partial class WinAGI
+  public static partial class Base
   {
     internal static int lngCurrentLoc;
     internal static sbyte lngCurrentVol;
@@ -165,7 +165,7 @@ namespace WinAGI.Engine
 
             //picture warnings aren't in error handler anymore and 
             // need a special check here
-            if (tmpGameRes is AGIPicture tmpPic)
+            if (tmpGameRes is Picture tmpPic)
             {
               //check bmp error level by property, not error number
               if (tmpPic.BMPErrLevel >= 0)
@@ -201,7 +201,7 @@ namespace WinAGI.Engine
             }
             //for logics, compile the sourcetext
             //load actual object
-            if (tmpGameRes is AGILogic tmpLog)
+            if (tmpGameRes is Logic tmpLog)
             {
               try
               {
@@ -278,8 +278,8 @@ namespace WinAGI.Engine
 
           //new strategy is to use arrays for DIR data, and then
           //to build the DIR files after compiling all resources
-          bytDIR[(int)ResType, tmpGameRes.Number * 3] = (byte)(lngCurrentVol * 0x10 + lngCurrentLoc / 0x10000);
-          bytDIR[(int)ResType, tmpGameRes.Number * 3 + 1] = (byte)((lngCurrentLoc % 0x10000) / 0x100);
+          bytDIR[(int)ResType, tmpGameRes.Number * 3] = (byte)((lngCurrentVol << 4) + (lngCurrentLoc >> 16));
+          bytDIR[(int)ResType, tmpGameRes.Number * 3 + 1] = (byte)((lngCurrentLoc % 0x10000) >> 8);
           bytDIR[(int)ResType, tmpGameRes.Number * 3 + 2] = (byte)(lngCurrentLoc % 0x100);
 
           try
@@ -528,7 +528,7 @@ namespace WinAGI.Engine
       NewResNum = NewResource.Number;
       NewResSize = NewResource.Size + lngHeader;
       //build array of all resources, sorted by VOL order (except the one being loaded)
-      foreach (AGILogic tmpRes in NewResource.parent.agLogs.Col.Values)
+      foreach (Logic tmpRes in NewResource.parent.agLogs.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtLogic || tmpRes.Number != NewResNum)
@@ -537,7 +537,7 @@ namespace WinAGI.Engine
           AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
         }
       }
-      foreach (AGIPicture tmpRes in NewResource.parent.agPics.Col.Values)
+      foreach (Picture tmpRes in NewResource.parent.agPics.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtPicture || tmpRes.Number != NewResNum)
@@ -546,7 +546,7 @@ namespace WinAGI.Engine
           AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
         }
       }
-      foreach (AGISound tmpRes in NewResource.parent.agSnds.Col.Values)
+      foreach (Sound tmpRes in NewResource.parent.agSnds.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtSound || tmpRes.Number != NewResNum)
@@ -555,7 +555,7 @@ namespace WinAGI.Engine
           AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
         }
       }
-      foreach (AGIView tmpRes in NewResource.parent.agViews.Col.Values)
+      foreach (View tmpRes in NewResource.parent.agViews.Col.Values)
       {
         //if not the resource being replaced
         if (NewResType != AGIResType.rtView || tmpRes.Number != NewResNum)
@@ -637,8 +637,8 @@ namespace WinAGI.Engine
       else
       {
         //calculate directory bytes
-        DirByte[0] = (byte)((UpdateResource.Volume * 0x10) + ((uint)UpdateResource.Loc >> 16));
-        DirByte[1] = (byte)((UpdateResource.Loc % 0x10000) / 0x100);
+        DirByte[0] = (byte)((UpdateResource.Volume << 4) + ((uint)UpdateResource.Loc >> 16));
+        DirByte[1] = (byte)((UpdateResource.Loc % 0x10000) >> 8);
         DirByte[2] = (byte)(UpdateResource.Loc % 0x100);
       }
 
@@ -689,18 +689,18 @@ namespace WinAGI.Engine
         {
           case AGIResType.rtLogic:
             lngDirOffset = 8;
-            lngDirEnd = bytDIR[3] * 256 + bytDIR[2];
+            lngDirEnd = (bytDIR[3] << 8) + bytDIR[2];
             break;
         case AGIResType.rtPicture:
-            lngDirOffset = bytDIR[3] * 256 + bytDIR[2];
-            lngDirEnd = bytDIR[5] * 256 + bytDIR[4];
+            lngDirOffset = (bytDIR[3] << 8) + bytDIR[2];
+            lngDirEnd = (bytDIR[5] << 8) + bytDIR[4];
             break;
         case AGIResType.rtView:
-            lngDirOffset = bytDIR[5] * 256 + bytDIR[4];
-            lngDirEnd = bytDIR[7] * 256 + bytDIR[6];
+            lngDirOffset = (bytDIR[5] << 8) + bytDIR[4];
+            lngDirEnd = (bytDIR[7] << 8) + bytDIR[6];
             break;
         case AGIResType.rtSound:
-            lngDirOffset = bytDIR[7] * 256 + bytDIR[6];
+            lngDirOffset = (bytDIR[7] << 8) + bytDIR[6];
             lngDirEnd = bytDIR.Length;
             break;
         }
@@ -762,25 +762,25 @@ namespace WinAGI.Engine
             Array.Resize(ref bytDIR, bytDIR.Length - 3 * (intOldMax - intMax));
             //then we need to update affected offsets
             //move snddir offset first
-            lngDirOffset = bytDIR[7] * 0x100 + bytDIR[6];
+            lngDirOffset = (bytDIR[7] << 8) + bytDIR[6];
             lngDirOffset -= 3 * (intOldMax - intMax);
-            bytDIR[7] = (byte)(lngDirOffset / 0x100);
+            bytDIR[7] = (byte)(lngDirOffset >> 8);
             bytDIR[6] = (byte)(lngDirOffset % 0x100);
             //if resource is a view, we are done
             if (UpdateResource.ResType != AGIResType.rtView)
             {
               //move view offset
-              lngDirOffset = bytDIR[5] * 0x100 + bytDIR[4];
+              lngDirOffset = (bytDIR[5] << 8) + bytDIR[4];
               lngDirOffset -= 3 * (intOldMax - intMax);
-              bytDIR[5] = (byte)(lngDirOffset / 0x100);
+              bytDIR[5] = (byte)(lngDirOffset >> 8);
               bytDIR[4] = (byte)(lngDirOffset % 0x100);
               //if resource is a pic, we are done
               if (UpdateResource.ResType != AGIResType.rtPicture)
               {
                 //move picture offset
-                lngDirOffset = bytDIR[3] * 0x100 + bytDIR[2];
+                lngDirOffset = (bytDIR[3] << 8) + bytDIR[2];
                 lngDirOffset -= 3 * (intOldMax - intMax);
-                bytDIR[3] = (byte)(lngDirOffset / 0x100);
+                bytDIR[3] = (byte)(lngDirOffset >> 8);
                 bytDIR[2] = (byte)(lngDirOffset % 0x100);
               }
             }
@@ -851,25 +851,25 @@ namespace WinAGI.Engine
 
             //then adjust the offsets
             //move snddir offset first
-            lngDirOffset = bytDIR[7] * 256 + bytDIR[6];
+            lngDirOffset = (bytDIR[7] << 8) + bytDIR[6];
             lngDirOffset += 3 * (intMax - intOldMax);
-            bytDIR[7] = (byte)(lngDirOffset / 0x100);
+            bytDIR[7] = (byte)(lngDirOffset >> 8);
             bytDIR[6] = (byte)(lngDirOffset % 0x100);
             //if resource is a view, we are done
             if (UpdateResource.ResType != AGIResType.rtView)
             {
               //move view offset
-              lngDirOffset = (byte)(bytDIR[5] * 0x100 + bytDIR[4]);
+              lngDirOffset = (byte)((bytDIR[5] << 8) + bytDIR[4]);
               lngDirOffset += 3 * (intMax - intOldMax);
-              bytDIR[5] = (byte)(lngDirOffset / 0x100);
+              bytDIR[5] = (byte)(lngDirOffset >> 8);
               bytDIR[4] = (byte)(lngDirOffset % 0x100);
               //if resource is a pic, we are done
               if (UpdateResource.ResType != AGIResType.rtPicture)
                 {
                 //move picture offset
-                lngDirOffset = (byte)(bytDIR[3] * 0x100 + bytDIR[2]);
+                lngDirOffset = (byte)((bytDIR[3] << 8) + bytDIR[2]);
                 lngDirOffset += 3 * (intMax - intOldMax);
-                bytDIR[3] = (byte)(lngDirOffset / 0x100);
+                bytDIR[3] = (byte)(lngDirOffset >> 8);
                 bytDIR[2] = (byte)(lngDirOffset % 0x100);
               }
             }

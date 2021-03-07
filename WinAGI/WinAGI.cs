@@ -3,34 +3,31 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using static WinAGI.Common.WinAGI;
-using static WinAGI.Engine.AGICommands;
-using static WinAGI.Engine.AGITestCommands;
-
+using static WinAGI.Common.Base;
 namespace WinAGI.Engine
 {
   using System.Diagnostics;
   using System.Drawing;
 
   /***************************************************************
-WinAGI Game Engine
-Copyright (C) 2020 Andrew Korson
+  WinAGI Game Engine
+  Copyright (C) 2020 Andrew Korson
 
-This program is free software; you can redistribute it and/or 
-modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of
-the License, or (at your option) any later version.
+  This program is free software; you can redistribute it and/or 
+  modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2 of
+  the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public
-License along with this program; if not, write to the Free
-Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
-MA  02110-1301  USA
-***************************************************************/
+  You should have received a copy of the GNU General Public
+  License along with this program; if not, write to the Free
+  Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+  MA  02110-1301  USA
+  ***************************************************************/
 
   //enums 
   #region
@@ -50,7 +47,7 @@ MA  02110-1301  USA
     rtWarnings = 11,
     rtNone = 255
   };
-  public enum AGIColors
+  public enum AGIColorIndex
   {
     agBlack,
     agBlue,
@@ -141,10 +138,10 @@ MA  02110-1301  USA
   public enum SoundFormat
   {
     sfUndefined,
-    sfAGI,    //all sounds
-    sfMIDI,    //pc and IIgs midi
-    sfScript,  //pc only
-    sfWAV     //only for IIgs pcm sounds
+    sfAGI,    //native agi format (all)
+    sfMIDI,   //only pc and IIgs can be saved as midi
+    sfScript, //only pc can be exported as script
+    sfWAV     //only IIgs pcm sounds can be exported as wav
   };
   public enum LogEventType
   {
@@ -155,23 +152,68 @@ MA  02110-1301  USA
   {
     atNum = 0,      //i.e. numeric Value
     atVar = 1,      //v##
-    atFlag = 2,      //f##
+    atFlag = 2,     //f##
     atMsg = 3,      //m##
     atSObj = 4,     //o##
     atIObj = 5,     //i##
-    atStr = 6,     //s##
+    atStr = 6,      //s##
     atWord = 7,     //w## -- word argument (that user types in)
     atCtrl = 8,     //c##
     atDefStr = 9,   //defined string; could be msg, inv obj, or vocword
     atVocWrd = 10   //vocabulary word; NOT word argument
+  }
+  public enum ResDefGroup
+  {
+    rgVariable,
+    rgFlag,
+    rgEdgeCode,
+    rgObjectDir,
+    rgVideoMode,
+    rgComputerType,
+    rgColor,
+    rgObject,
+    rgString,
+  }
+  public enum DefineNameCheck
+  {
+    ncOK,            // 0 = name is valid
+    ncEmpty,         // 1 = no name
+    ncNumeric,       // 2 = name is numeric
+    ncActionCommand, // 3 = name is command
+    ncTestCommand,   // 4 = name is test command
+    ncKeyWord,       // 5 = name is a compiler keyword
+    ncArgMarker,     // 6 = name is an argument marker
+    ncGlobal,        // 7 = name is already globally defined
+    ncReservedVar,   // 8 = name is reserved variable name
+    ncReservedFlag,  // 9 = name is reserved flag name
+    ncReservedNum,   // 10 = name is reserved number constant
+    ncReservedObj,   // 11 = name is reserved object
+    ncReservedStr,   // 12 = name is reserved string
+    ncReservedMsg,   // 13(12) = name is reserved message
+    ncBadChar,       // 14(13) = name contains improper character
+  }
+  public enum DefineValueCheck
+  {
+    vcOK,           // 0 = value is valid
+    vcEmpty,        // 1 = no Value
+                    // 2 = Value is an invalid argument marker (not used anymore]
+    vcBadArgNumber, // 3 = Value contains an invalid argument Value (controller, string, out of bounds for example)
+    vcNotAValue,    // 4 = Value is not a string, number or argument marker
+    vcReserved,     // 5 = Value is already defined by a reserved name
+    vcGlobal,       // 6 = Value is already defined by a global name
+  }
+  public enum OpenGameMode
+  {
+    File,
+    Directory,
   }
   #endregion
   //structs
   #region
   public struct PenStatus
   {
-    public AGIColors VisColor;
-    public AGIColors PriColor;
+    public AGIColorIndex VisColor;
+    public AGIColorIndex PriColor;
     public EPlotShape PlotShape;
     public EPlotStyle PlotStyle;
     public int PlotSize;
@@ -204,52 +246,26 @@ MA  02110-1301  USA
   #endregion
   //***************************************************
   //
-  // this class exposes all the static variables and 
-  // methods that the engine uses
+  // the base class exposes all the static variables 
+  // and methods that the engine uses
   //
   //***************************************************
-  public static partial class WinAGI
+  public static partial class Base
   {
-        // exposed game properties, methods, objects
-    internal static string agTemplateDir = "";
-
-    //temp file location
-    internal static string TempFileDir = "";
-    public const int WINAGI_ERR = 0x100000;
-
-    public static EGAColors DefaultColors
-    {
-      get { return defaultColorEGA; }
-      //set { colorEGA = value; }
-    }
-    public static string TemplateDir
-    {
-      get { return agTemplateDir; }
-      set
-      {
-        // directory has to exist
-        if (!Directory.Exists(value))
-          throw new Exception("Replace(LoadResString(630), ARG1, NewDir)");
-
-        agTemplateDir = CDir(value);
-      }
-    }
-
     // arrays that hold constant values
     #region
-    internal static readonly byte[] bytEncryptKey = { (byte)'A', (byte)'v', (byte)'i',
-                             (byte)'s', (byte)' ', (byte)'D',
-                             (byte)'u', (byte)'r', (byte)'g',
-                             (byte)'a', (byte)'n' }; //' = "Avis Durgan"
-
     public static readonly string[] ResTypeAbbrv = { "LOG", "PIC", "SND", "VIEW" };
     public static readonly string[] ResTypeName = { "Logic", "Picture", "Sound", "View" };
-    public static readonly string[] IntVersions = new string[16]
-    { //load versions
-      "2.089", "2.272", "2.411", "2.425", "2.426", "2.435", "2.439", "2.440",
-      "2.915", "2.917", "2.936",
-      "3.002086", "3.002098", "3.002102", "3.002107", "3.002149"
-    };
+    public static readonly string[] IntVersions = 
+      { //load versions
+        "2.089", "2.272", "2.411", "2.425", "2.426", "2.435", "2.439", "2.440",
+        "2.915", "2.917", "2.936",
+        "3.002086", "3.002098", "3.002102", "3.002107", "3.002149"
+      };
+    internal static readonly byte[] bytEncryptKey =
+      { (byte)'A', (byte)'v', (byte)'i', (byte)'s', (byte)' ',
+        (byte)'D', (byte)'u', (byte)'r', (byte)'g', (byte)'a', (byte)'n'
+      }; //' = "Avis Durgan"
     #endregion
     //game constants
     #region
@@ -314,6 +330,8 @@ MA  02110-1301  USA
     internal const int PT_BKSZ = 21;
     internal const int PT_SIZE = 254;
     internal const int PT_ALL = 255;
+    // error offset is public
+    public const int WINAGI_ERR = 0x100000;
     #endregion
     //global variables
     #region
@@ -322,17 +340,35 @@ MA  02110-1301  USA
     internal static EGAColors defaultColorEGA = new EGAColors();
     internal static string agSrcExt = ".lgc";
 
-    //warning count value stored in Common file, so it can be used by the IDE as well as the engine
-    internal const int WARNCOUNT = 107;
-    internal static bool[] agNoCompWarn = new bool[WARNCOUNT];
-
     //error number and string to return error values
     //from various functions/subroutines
     internal static int lngError = 0;
     internal static string strError = "";
     internal static string strErrSrc = "";
     #endregion
-    static WinAGI()
+    //temp file location
+    internal static string agTemplateDir = "";
+    internal static string TempFileDir = "";
+
+    public static EGAColors DefaultColors
+    {
+      get { return defaultColorEGA; }
+      //set { colorEGA = value; }
+    }
+    public static string TemplateDir
+    {
+      get { return agTemplateDir; }
+      set
+      {
+        // directory has to exist
+        if (!Directory.Exists(value))
+          throw new Exception("Replace(LoadResString(630), ARG1, NewDir)");
+
+        agTemplateDir = CDir(value);
+      }
+    }
+
+    static Base()
     {
       // initialize all winagi stuff here? no, put it in a method that can be called
     }
@@ -414,7 +450,8 @@ MA  02110-1301  USA
         if (isV3) {
           //use default v3
           return "3.002149"; //most common version 3
-        } else {
+        }
+        else {
           //use default version  2.917
           return "2.917";
         }
@@ -494,7 +531,8 @@ MA  02110-1301  USA
       //if version3 is set
       if (isV3) {
         return "3.002149"; //most common version 3?
-      } else {
+      }
+      else {
         return "2.917";  // This is what we use if we can't find the version number.
                          // Version 2.917 is the most common interpreter and
                          // the one that all the "new" AGI games should be based on.
@@ -571,7 +609,8 @@ MA  02110-1301  USA
       if (lngCount > 0) {
         bytData = new byte[lngCount];
         fsOldWAG.Read(bytData, 0, lngCount);
-      } else {
+      }
+      else {
         //set to zero
         lngCount = 0;
       }
@@ -725,7 +764,8 @@ MA  02110-1301  USA
             break;
           }
 
-        } else {
+        }
+        else {
           switch (PropCode) {
           case PC_GAMEDESC:
             game.WriteGameSetting("General", "Description", strValue);

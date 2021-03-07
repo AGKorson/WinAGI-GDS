@@ -90,7 +90,7 @@ namespace WinAGI.Editor
       //set pointer to next available code to end code +1
       intNextCode = (ushort)(intEndCode + 1);
       //reset code table
-      strCodeValues = new string[1 << intCurCodeSize - 1]; //2 ^ intCurCodeSize - 1
+      strCodeValues = new string[(1 << intCurCodeSize) - 1]; //2 ^ intCurCodeSize - 1
 
       //prepopulate with regular characters
       for (i = 0; i < intClearCode; i++) {
@@ -246,8 +246,8 @@ namespace WinAGI.Editor
       lngBitBuffer = 0;
       intBitCount = 0;
       //initialize code tables (values up to clear code are not needed in the tables)
-      intAppendChar = new ushort[4096 - 1 << (intCodeSize - 1) + 1]; //4095 - 2 ^ (intCodeSize - 1) + 1)
-      intCodePrefix = new ushort[4096 - 1 << (intCodeSize - 1) + 1]; //(4095 - 2 ^ (intCodeSize - 1) + 1)
+      intAppendChar = new ushort[4096 - (1 << (intCodeSize - 1)) + 1]; //4095 - 2 ^ (intCodeSize - 1) + 1)
+      intCodePrefix = new ushort[4096 - (1 << (intCodeSize - 1)) + 1]; //(4095 - 2 ^ (intCodeSize - 1) + 1)
                                                                      //intialize output buffer
       bytCompData = new byte[256];
       //get first code
@@ -277,8 +277,8 @@ namespace WinAGI.Editor
           //need to reset
           blnMaxedOut = false;
           intCurCodeSize = (ushort)intCodeSize;
-          intAppendChar = new ushort[4096 - 1 << (intCodeSize - 1) + 1];
-          intCodePrefix = new ushort[4096 - 1 << (intCodeSize - 1) + 1];
+          intAppendChar = new ushort[4096 - (1 << (intCodeSize - 1)) + 1];
+          intCodePrefix = new ushort[4096 - (1 << (intCodeSize - 1)) + 1];
           intNextCode = (ushort)(intEndCode + 1);
           //start over
           intCode = GetNextCode();
@@ -393,10 +393,10 @@ namespace WinAGI.Editor
         intBitCount += 8;
       }
       //now extract off the code
-      intCodeMask = (short)(1 << intCurCodeSize - 1);
+      intCodeMask = (short)((1 << intCurCodeSize) - 1);
       short retval = (short)(lngBitBuffer & intCodeMask);
       //shift buffer to right
-      lngBitBuffer = lngBitBuffer >> intCurCodeSize; //SHR(lngBitBuffer, intCurCodeSize)
+      lngBitBuffer >>= intCurCodeSize; //SHR(lngBitBuffer, intCurCodeSize)
                                                      //decrement bit Count
       intBitCount = (ushort)(intBitCount - intCurCodeSize);
       return retval;

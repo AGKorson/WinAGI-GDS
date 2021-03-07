@@ -1,9 +1,10 @@
 ﻿using System;
 using System.IO;
-using static WinAGI.Engine.WinAGI;
-using static WinAGI.Common.WinAGI;
+using static WinAGI.Engine.Base;
+using static WinAGI.Common.Base;
 using System.Linq;
-
+using static WinAGI.Engine.DefineNameCheck;
+using static WinAGI.Engine.DefineValueCheck;
 namespace WinAGI.Engine
 {
   public class GlobalList
@@ -40,7 +41,7 @@ namespace WinAGI.Engine
     {
       string strLine, strTmp;
       string[] strSplitLine;
-      int i, lngTest, gCount = 0;
+      int i, gCount = 0;
       TDefine tdNewDefine = new TDefine();
       DateTime dtFileMod;
       agGlobalCRC = 0xffffffff;
@@ -96,17 +97,26 @@ namespace WinAGI.Engine
               //strSplitLine(1] has Value
               tdNewDefine.Value = strSplitLine[1].Trim();
               //validate define name
-              lngTest = ValidateDefName(tdNewDefine.Name);
-              if (lngTest == 0 || (lngTest >= 8 && lngTest <= 12)) {
-                lngTest = ValidateDefName(tdNewDefine.Name);
-                lngTest = ValidateDefValue(tdNewDefine);
-                if (lngTest == 0 || lngTest == 5 || lngTest == 6) {
+              DefineNameCheck chkName = ValidateDefName(tdNewDefine.Name);
+              switch (chkName) {
+              case ncOK or
+              ncReservedVar or
+              ncReservedFlag or
+              ncReservedNum or
+              ncReservedObj or
+              ncReservedStr or
+              ncReservedMsg:
+                DefineValueCheck chkValue = ValidateDefValue(tdNewDefine);
+                switch (chkValue) {
+                case vcOK or vcReserved or vcGlobal:
                   //increment Count
                   gCount++;
                   //add it
                   Array.Resize(ref agGlobal, gCount);
                   agGlobal[gCount - 1] = tdNewDefine;
+                  break;
                 }
+                break;
               }
             }
           }
@@ -117,96 +127,68 @@ namespace WinAGI.Engine
         agGlobalCRC = CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString()));
       }
     }
-    internal int ValidateDefName(string DefName)
+    internal DefineNameCheck ValidateDefName(string DefName)
     {
       // validates that DefValue is a valid define Value
-      // 
-      // returns 0 if successful
-      // 
-      // returns an error code on failure:
-      // 1 = no name
-      // 2 = name is numeric
-      // 3 = name is command
-      // 4 = name is test command
-      // 5 = name is a compiler keyword
-      // 6 = name is an argument marker
-      // 7 = name is already globally defined
-      // 8 = name is reserved variable name
-      // 9 = name is reserved flag name
-      // 10 = name is reserved number constant
-      // 11 = name is reserved object constant
-      // 12 = name is reserved message constant
-      // 13 = name contains improper character
       int i;
 
       // if no name
       if (DefName.Length == 0)
-        return 1;
+        return ncEmpty;
       // name cant be numeric
       if (IsNumeric(DefName))
-        return 2;
+        return ncNumeric;
       // check against regular commands
-      for (i = 0; i <= AGICommands.agCmds.Length; i++) {
-        if (DefName == AGICommands.agCmds[i].Name)
-          return 3;
+      for (i = 0; i < Commands.ActionCount; i++) {
+        if (DefName == Commands.ActionCommands[i].Name)
+          return ncActionCommand;
       }
       // check against test commands
-      for (i = 0; i <= AGITestCommands.agTestCmds.Length; i++) {
-        if (DefName == AGITestCommands.agTestCmds[i].Name)
-          return 4;
+      for (i = 0; i < Commands.TestCount; i++) {
+        if (DefName == Commands.TestCommands[i].Name)
+          return ncTestCommand;
       }
       // check against keywords
       if ((DefName.ToLower() == "if") || (DefName.ToLower() == "else") ||
          (DefName.ToLower() == "goto"))
-        return 5;
+        return ncKeyWord;
       // if the name starts with any of these letters
       if ("vfmoiswc".Any(DefName.ToLower().StartsWith))
         //if rest of string is numeric
         if (IsNumeric(Right(DefName, DefName.Length - 1)))
           // can't have a name that's a valid marker
-          return 6;
+          return ncArgMarker;
       // check against current globals
       for (i = 0; i < agGlobal.Length; i++) {
         if (DefName == agGlobal[i].Name)
-          return 7;
+          return ncGlobal;
       }
       // check against reserved defines:
       if (Compiler.UseReservedNames) {
-        // check against reserved variables
-        for (i = 0; i <= 26; i++) {
-          if (DefName == Compiler.ReservedDefines(ArgTypeEnum.atVar)[i].Name)
-            return 8;
+        for (ResDefGroup grp = 0; (int)grp < 10; grp++) {
+          for (i = 0; i < Compiler.ResDefByGrp(grp).Length; grp++) {
+            if (DefName == Compiler.ResDefByGrp(grp)[i].Name) {
+              switch (grp) {
+              case ResDefGroup.rgVariable:
+                return ncReservedVar;
+              case ResDefGroup.rgFlag:
+                return ncReservedFlag;
+              case ResDefGroup.rgObject:
+                return ncReservedObj;
+              case ResDefGroup.rgString:
+                return ncReservedStr;
+              default: // reserved number
+                return ncReservedNum;
+              }
+            }
+          }
         }
-        // check against reserved flags
-        for (i = 0; i <= 17; i++) {
-          if (DefName == Compiler.ReservedDefines(ArgTypeEnum.atFlag)[i].Name)
-            return 9;
+        //check for ingame defines
+        for (i = 0; i < parent.agResGameDef.Length; i++) {
+          if (DefName == parent.agResGameDef[i].Name)
+            //unvobj count is number; rest are msgstrings
+            return i == 3 ? ncReservedNum : ncReservedMsg;
         }
-        // check against other reserved constants
-        for (i = 0; i <= 4; i++) {
-          if (DefName == Compiler.ResDefByGrp(3)[i].Name)
-            return 10;
-        }
-        for (i = 0; i <= 8; i++) {
-          if (DefName == Compiler.ResDefByGrp(4)[i].Name)
-            return 10;
-        }
-        for (i = 0; i <= 4; i++) {
-          if (DefName == Compiler.ResDefByGrp(5)[i].Name)
-            return 10;
-        }
-        // check against other reserved defines
-        if (DefName == Compiler.ResDefByGrp(8)[0].Name)
-          return 11;
-        //TODO: need to rewrite checks for ingame defines
-        //for (i = 1; i <= 3; i++) {
-        //  if (DefName == agResDef[i].Name)
-        //    return 12;
-        //if (DefName == agResDef[4].Name)
-        //  return 10;
-        //if (DefName == agResDef[5].Name)
-        //  return 11;
-        //}
       }
       // Linq feature makes it easy to check for invalid characters
       // Any applies the test inside to each element of the source
@@ -214,30 +196,19 @@ namespace WinAGI.Engine
       // for any element in testList!
       if ((INVALID_DEFNAME_CHARS).Any(DefName.Contains)) {
         // bad
-        return 13;
+        return ncBadChar;
       }
       // if no error conditions, it's OK
-      return 0;
+      return ncOK;
     }
-    internal int ValidateDefValue(TDefine TestDefine)
+    internal DefineValueCheck ValidateDefValue(TDefine TestDefine)
     {
       //validates that TestDefine.Value is a valid define Value
-      //
-      //returns 0 if successful
-      //
-      //returns an error code on failure:
-      //1 = no Value
-      //2 = Value is an invalid argument marker (not used anymore]
-      //3 = Value contains an invalid argument Value
-      //4 = Value is not a string, number or argument marker
-      //5 = Value is already defined by a reserved name
-      //6 = Value is already defined by a global name
-
       string strVal;
       int intVal;
 
       if (TestDefine.Value.Length == 0)
-        return 1;
+        return vcEmpty;
       //values must be a variable/flag/etc, string, or a number
       if (!IsNumeric(TestDefine.Value)) {
         //if Value is an argument marker
@@ -249,12 +220,12 @@ namespace WinAGI.Engine
             //if Value is not between 0-255
             intVal = int.Parse(strVal);
             if (intVal < 0 || intVal > 255)
-              return 3;
+              return vcBadArgNumber;
             //check defined globals
             for (int i = 0; i <= agGlobal.Length - 1; i++) {
               //if this define has same Value
               if (agGlobal[i].Value == TestDefine.Value)
-                return 6;
+                return vcGlobal;
             }
             //verify that the Value is not already assigned
             switch ((int)TestDefine.Value.ToLower().ToCharArray()[0]) {
@@ -263,14 +234,18 @@ namespace WinAGI.Engine
               if (Compiler.UseReservedNames)
                 //if already defined as a reserved flag
                 if (intVal <= 15)
-                  return 5;
+                  return vcReserved;
+              // if version 3.002.102 and flag 20
+              if (Val(parent.agIntVersion) >= 3.002102 && intVal == 20) {
+                return vcReserved;
+              }
               break;
             case 118: //variable
               TestDefine.Type = ArgTypeEnum.atVar;
               if (Compiler.UseReservedNames)
                 //if already defined as a reserved variable
                 if (intVal <= 26)
-                  return 5;
+                  return vcReserved;
               break;
             case 109: //message
               TestDefine.Type = ArgTypeEnum.atMsg;
@@ -280,40 +255,49 @@ namespace WinAGI.Engine
               if (Compiler.UseReservedNames)
                 //can't be ego
                 if (TestDefine.Value == "o0")
-                  return 5;
+                  return vcReserved;
               break;
             case 105: //inv object
               TestDefine.Type = ArgTypeEnum.atIObj;
               break;
             case 115: //string
               TestDefine.Type = ArgTypeEnum.atStr;
-              break;
+              if (intVal > 23 || (intVal > 11 &&
+                (parent.agIntVersion == "2.089" ||
+                parent.agIntVersion == "2.272" ||
+                parent.agIntVersion == "3.002149")))
+                return vcBadArgNumber;
+                  break;
             case 119: //word
               TestDefine.Type = ArgTypeEnum.atWord;
               break;
             case 99: //controller
                      //controllers limited to 0-49
               if (intVal > 49)
-                return 3;
+                return vcBadArgNumber;
               TestDefine.Type = ArgTypeEnum.atCtrl;
               break;
             }
             //Value is ok
-            return 0;
+            return vcOK;
           }
         }
         //non-numeric, non-marker and most likely a string
         TestDefine.Type = ArgTypeEnum.atDefStr;
         //check Value for string delimiters in Value
+        //TODO: need a 'IsAStrng' function; just becuase it ends in a quote 
+        // doesn't mean it's a string; need to check for embedded strings
         if (TestDefine.Value.Substring(0, 1) != "\"" || TestDefine.Value.Substring(TestDefine.Value.Length - 1, 1) != "\"")
-          return 4;
+          return vcNotAValue;
         else
-          return 0;
+          return vcOK;
       }
       else {
         // numeric
         TestDefine.Type = ArgTypeEnum.atNum;
-        return 0;
+        //TODO: should validate number? are negatives OK? values > 255?
+        // shouldn't they at least throw a warning?
+        return vcOK;
       }
     }
   }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WinAGI.Engine
 {
-  public class AGIWordGroup : IEnumerable<AGIWord>
+  public class WordGroup : IEnumerable<AGIWord>
   {
     internal List<string> mWords;
     //internal System.Collections.Generic.SortedDictionary<string, string> mWordsD;
@@ -18,7 +18,7 @@ namespace WinAGI.Engine
       //access to word list is by index only
     public string this[byte index]
     { get { return mWords[index]; } }
-    public AGIWordGroup()
+    public WordGroup()
     {
       //initialze the word collection
       mWords = new List<string>();

@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace WinAGI.Engine
 {
-  public class AGITrack
+  public class Track
   {
     //local variable(s) to hold property Value(s)
-    AGINotes mNotes;
+    Notes mNotes;
     bool mMuted;
     byte mInstrument;
     bool mVisible;
-    internal AGISound mParent;
+    internal Sound mParent;
     bool mLengthDirty;
     double mLength;
     public byte Instrument
@@ -73,7 +73,7 @@ namespace WinAGI.Engine
         return mLength;
       }
     }
-    public AGINotes Notes
+    public Notes Notes
     {
       get
       {
@@ -104,25 +104,25 @@ namespace WinAGI.Engine
         }
       }
     }
-    public AGITrack()
+    public Track()
     {
-      mNotes = new AGINotes();
+      mNotes = new Notes();
       mLengthDirty = true;
       mVisible = true;
       mInstrument = 80;
     }
-    internal AGITrack(AGISound parent)
+    internal Track(Sound parent)
     {
-      mNotes = new AGINotes(parent, this);
+      mNotes = new Notes(parent, this);
       mLengthDirty = true;
       mVisible = true;
       mInstrument = 80;
       mParent = parent;
     }
-    public AGITrack Clone(AGISound cloneparent)
+    public Track Clone(Sound cloneparent)
     {
       //returns a copy of this track
-      AGITrack CopyTrack = new AGITrack(cloneparent);
+      Track CopyTrack = new Track(cloneparent);
       CopyTrack.mNotes = mNotes.Clone(this);
       CopyTrack.mMuted = mMuted;
       CopyTrack.mInstrument = mInstrument;
