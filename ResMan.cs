@@ -1144,7 +1144,7 @@ namespace WinAGI.Editor
         lngPos++;
         bytData[lngPos] = 4;
         lngPos++;
-        bytData[lngPos] = GifOps.Transparency ? 13 : 12;  //000-011-0-x = reserved-restore-no user input-transparency included
+        bytData[lngPos] = (byte)(GifOps.Transparency ? 13 : 12);  //000-011-0-x = reserved-restore-no user input-transparency included
         lngPos++;
         bytData[lngPos] = (byte)(GifOps.Delay & 0xFF);
         lngPos++;
