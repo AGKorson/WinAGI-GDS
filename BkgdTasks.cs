@@ -129,8 +129,6 @@ namespace WinAGI.Editor
         //}
         //set default directory
         BrowserStartDir = EditGame.GameDir;
-        //add wag file to mru
-        AddToMRU(EditGame.GameFile);
         //store game file name
         CurGameFile = EditGame.GameFile;
         //set default text file directory to game source file directory

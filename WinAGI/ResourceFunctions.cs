@@ -770,7 +770,7 @@ namespace WinAGI.Engine
         //add two tracks if noise is not muted
         //because the white noise and periodic noise
         //are written as two separate tracks
-        lngTrackCount = lngTrackCount + 2;
+        lngTrackCount += 2;
       }
 
       //set intial size of midi data array
@@ -876,7 +876,13 @@ namespace WinAGI.Engine
               //this requires a shift in freq of approx. 36.376
               //however, this offset results in crappy sounding music;
               //empirically, 36.5 seems to work best
-              bytNote = (byte)((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.5);
+              //**** TODO: OK, in c#, changing from dbl to byte truncates the value, which 
+              // makes things sound wrong when useing 36.5; but if we go back
+              // to 36.276, then it sounds OK; seems like difference is whether 
+              // or not you truncate the value (then use 36.376) or round the
+              // value (then use 36.5); this means the calculations used in the
+              // sound editor will probably need to be modified too
+              bytNote = (byte)((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.376);
               //
               //f = 111860 / (((Byte2 + 0x3F) << 4) + (Byte3 + 0x0F))
               //

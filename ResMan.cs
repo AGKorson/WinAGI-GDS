@@ -1650,6 +1650,8 @@ namespace WinAGI.Editor
       bgwOpenGame = null;
       //reset cursor
       MDIMain.UseWaitCursor = false;
+      //add wag file to mru
+      AddToMRU(EditGame.GameFile);
       //clear status bar
       MainStatusBar.Items[1].Text = "";
       return blnLoaded;

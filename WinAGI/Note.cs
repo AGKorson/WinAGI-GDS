@@ -66,6 +66,8 @@ namespace WinAGI.Engine
       set
       {
         //validate
+        // ****TODO: is zero allowed? it will cause divbyzero error when trying to 
+        // convert it to MIDI
         if (value < 0 || value > 1023)
         {
           //invalid frequency
