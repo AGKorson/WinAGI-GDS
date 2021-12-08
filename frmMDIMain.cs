@@ -213,17 +213,6 @@ namespace WinAGI.Editor
       else {
         return;
       }
-      if (retval == 0) {
-        MessageBox.Show("Game opened with no errors or warnings.");
-      }
-      else if (retval == WINAGI_ERR + 636) {
-        MessageBox.Show("Game opened, with warnings.");
-      }
-      else {
-        MessageBox.Show($"opengame result: {Base.LoadResString(retval - WINAGI_ERR)}");
-      }
-      MDIHasFocus = true;
-      tvwResources.Focus();
     }
     private void mnuWCascade_Click(object sender, EventArgs e)
     {

@@ -1527,7 +1527,20 @@ namespace WinAGI.Editor
       }
 
       //now open this game file
-      OpenGame(0, ThisGameFile);
+      if (OpenGame(0, ThisGameFile)) {
+        MessageBox.Show("Game opened; not sure if there were errors or warnings.");
+        //MDIHasFocus = true;
+        //tvwResources.Focus();
+      }
+      else {
+        MessageBox.Show("did not load; not sure why");
+        //if (retval == WINAGI_ERR + 636) {
+        //  MessageBox.Show("Game opened, with warnings.");
+        //}
+        //else {
+        //  MessageBox.Show($"opengame result: {Base.LoadResString(retval - WINAGI_ERR)}");
+        //}
+      }
     }
     public static void OpenDIR()
     {
@@ -1650,8 +1663,12 @@ namespace WinAGI.Editor
       bgwOpenGame = null;
       //reset cursor
       MDIMain.UseWaitCursor = false;
-      //add wag file to mru
-      AddToMRU(EditGame.GameFile);
+
+      //add wag file to mru, if opened successfully
+      if (EditGame != null) {
+        AddToMRU(EditGame.GameFile);
+      }
+
       //clear status bar
       MainStatusBar.Items[1].Text = "";
       return blnLoaded;

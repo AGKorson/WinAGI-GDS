@@ -71,17 +71,22 @@ namespace WinAGI.Engine
     public AGIGame(OpenGameMode mode,  string gameSource)
     {
       InitGame();
+      int retval = -1;
 
       switch (mode) {
       case OpenGameMode.File:
-        OpenGameWAG(gameSource);
+        retval = OpenGameWAG(gameSource);
         break;
       case OpenGameMode.Directory:
-        OpenGameDIR(gameSource);
+        retval = OpenGameDIR(gameSource);
         break;
       default:
         //bad mode - do nothing?
         break;
+      }
+      if (retval != 0) {
+        //throw exception?
+        throw new Exception("could not open");
       }
     }
     public AGIGame(string id, string version, string gamedir, string resdir, string template = "")
@@ -1888,7 +1893,7 @@ namespace WinAGI.Engine
         }
         else if (dirCount == 1) {
           //if only one, it's probably v3 game
-          strFile = Directory.GetFiles(strNewDir, "*DIR")[0].ToUpper();
+          strFile = JustFileName(Directory.GetFiles(strDir, "*DIR")[0].ToUpper());
           agGameID = Left(strFile, strFile.IndexOf("DIR"));
 
           // check for matching VOL file;

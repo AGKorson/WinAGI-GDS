@@ -44,7 +44,7 @@ namespace WinAGI.Engine
     }
     public bool Exists(byte ResNum)
     {
-      //check for thsi logic in the collection
+      //check for this logic in the collection
       return Col.ContainsKey(ResNum);
     }
     internal void Clear()
