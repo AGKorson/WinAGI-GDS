@@ -1969,14 +1969,15 @@ namespace WinAGI.Editor
     }
     private void frmMDIMain_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
     {
-      if (this.ActiveControl == this.propertyGrid1) {
-        //? cancel it?
-      }
       Debug.Print($"Main - PreviewKeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
     }
     private void frmMDIMain_KeyDown(object sender, KeyEventArgs e)
     {
       Debug.Print($"Main - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
+      if (this.splResource.ActiveControl == this.propertyGrid1 && this.ActiveControl == this.splResource) {
+        //? cancel it, unless in editing mode
+        e.SuppressKeyPress = true;
+      }
     }
     private void propertyGrid1_KeyDown(object sender, KeyEventArgs e)
     {
