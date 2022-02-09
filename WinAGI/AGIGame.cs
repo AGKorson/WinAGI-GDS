@@ -39,7 +39,7 @@ namespace WinAGI.Engine
     internal InventoryObjects agInvObj;
     internal WordList agVocabWords;
     internal GlobalList agGlobals;
-    internal EGAColors agEGAcolors = new EGAColors();
+    internal EGAColors agEGAcolors = new();
     internal string agGameDir = "";
     internal string agResDir = "";
     internal string agResDirName = "";

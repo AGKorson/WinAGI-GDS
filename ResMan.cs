@@ -1623,8 +1623,6 @@ namespace WinAGI.Editor
       // mode 0 == open source as a wag file
       // mode 1 == open source as a sierra game directory;
 
-      bool blnLoaded = false;
-
       //if a game is currently open,
       if (EditGame != null) {
         //close game, if user allows
@@ -1652,9 +1650,11 @@ namespace WinAGI.Editor
       bgwOpenGame.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgw_RunWorkerCompleted);
       bgwOpenGame.WorkerReportsProgress = true;
       // pass mode and source
-      LoadGameResults argval = new LoadGameResults();
-      argval.Mode = mode;
-      argval.Source = gameSource;
+      LoadGameResults argval = new LoadGameResults
+      {
+        Mode = mode,
+        Source = gameSource
+      };
       bgwOpenGame.RunWorkerAsync(argval);
       // now show progress form
       ProgressWin.ShowDialog(MDIMain);
@@ -1671,7 +1671,7 @@ namespace WinAGI.Editor
 
       //clear status bar
       MainStatusBar.Items[1].Text = "";
-      return blnLoaded;
+      return !argval.Failed;
     }
     public static bool CloseThisGame()
     {
