@@ -615,7 +615,7 @@ namespace WinAGI.Engine
             for (X = 0; X <= CurrentPen.PlotSize; X++)
             {
               //if pixel is within circle shape,
-              if ((CircleData[(CurrentPen.PlotSize * CurrentPen.PlotSize) + Y] & (1 >> (7 - X))) == (1 >> (7 - X)))
+              if ((CircleData[(CurrentPen.PlotSize * CurrentPen.PlotSize) + Y] & (1 << (7 - X))) == (1 << (7 - X)))
               {
                 //if style is splatter
                 if (CurrentPen.PlotStyle == EPlotStyle.psSplatter)
