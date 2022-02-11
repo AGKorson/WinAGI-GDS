@@ -26,7 +26,7 @@ namespace WinAGI.Engine
     private static int lngOriginalSize;
 
     //sound subclassing variables, constants, declarations
-    internal static AudioPlayer SndPlayer = new AudioPlayer();
+    internal static AudioPlayer SndPlayer = new();
     //public Declare int CallWindowProc Lib "user32" Alias "CallWindowProcA" (int lpPrevWndFunc, int hWnd, int uMsg, int wParam, int lParam)
     //public Declare int SetWindowLong Lib "user32" Alias "SetWindowLongA" (int hWnd, int nIndex, int dwNewLong)
     public const int GWL_WNDPROC = (-4);
@@ -51,7 +51,6 @@ namespace WinAGI.Engine
       int lngDirSize = 0, intResCount, i;
       sbyte bytVol;
       int lngLoc;
-      string strVolFile, strID;
       string strResID;
       bool blnWarnings = false;
 
@@ -59,13 +58,11 @@ namespace WinAGI.Engine
 
       //if version 3
       if (game.agIsVersion3) {
-        //get ID
-        strID = game.agGameID;
         //get combined dir Volume
         strDirFile = game.agGameDir + game.agGameID + "DIR";
         //verify it exists
         if (!File.Exists(strDirFile)) {
-          throw new Exception("524, LoadResString(524), ARG1, strDirFile)");
+          throw new Exception(LoadResString(524).Replace(ARG1, strDirFile));
         }
         try {
           //open the file, load it into buffer, and close it
@@ -75,19 +72,19 @@ namespace WinAGI.Engine
           fsDIR.Dispose();
         }
         catch (Exception) {
-          throw new Exception("502LoadResString(502)");
+          throw new Exception(LoadResString(502));
         }
 
         //if not enough bytes to hold at least the 4 dir pointers + 1 resource
         if (bytBuffer.Length < 11) // 11 + bytes
         {
-          throw new Exception("542 LoadResString(542), ARG1, strDirFile");
+          throw new Exception(LoadResString(542).Replace(ARG1, strDirFile));
         }
 
       }
       else {
         //no id
-        strID = "";
+//        strID = "";
       }
 
       //step through all four resource types
@@ -123,7 +120,7 @@ namespace WinAGI.Engine
           strDirFile = game.agGameDir + ResTypeAbbrv[(int)bytResType] + "DIR";
           //verify it exists
           if (!File.Exists(strDirFile)) {
-            throw new Exception("524, LoadResString(524), ARG1, strDirFile");
+            throw new Exception(LoadResString(524).Replace(ARG1, strDirFile));
           }
 
           try {
@@ -134,7 +131,7 @@ namespace WinAGI.Engine
             fsDIR.Dispose();
           }
           catch (Exception) {
-            throw new Exception("502LoadResString(502)");
+            throw new Exception(LoadResString(502));
           }
 
           //get size
@@ -143,13 +140,13 @@ namespace WinAGI.Engine
 
         //if invalid dir information, return false
         if ((lngDirOffset < 0) || (lngDirSize < 0)) {
-          throw new Exception(" 542, LoadResString(542), ARG1, strDirFile");
+          throw new Exception(LoadResString(542).Replace(ARG1, strDirFile));
         }
 
         //if at least one resource,
         if (lngDirSize >= 3) {
           if (lngDirOffset + lngDirSize > bytBuffer.Length) {
-            throw new Exception(" 542, LoadResString(542), ARG1, strDirFile");
+            throw new Exception(LoadResString(542).Replace(ARG1, strDirFile));
           }
         }
 
@@ -186,7 +183,6 @@ namespace WinAGI.Engine
             if (byte1 != 0xff) {
               //extract volume and location
               bytVol = (sbyte)(byte1 >> 4);
-              strVolFile = game.agGameDir + strID + "VOL." + bytVol.ToString();
               lngLoc = ((byte1 & 0xF) << 16) + (byte2 << 8) + byte3;
               strResID = ResTypeName[(int)bytResType] + bytResNum.ToString();
               //add a resource of this res type
@@ -474,7 +470,8 @@ namespace WinAGI.Engine
       if (intOldCode != 256) {
         intPrefix = Array.Empty<uint>();
         bytAppend = Array.Empty<byte>();
-        throw new Exception("559, Replace(LoadResString(559), ARG1, CStr(Err.Number))");
+        //TODO: wrong error msg here!
+        throw new Exception(LoadResString(559).Replace(ARG1, "123"));//, Replace(LoadResString(559), ARG1, CStr(Err.Number))");
       }
 
       //now begin decompressing actual data
@@ -664,7 +661,7 @@ namespace WinAGI.Engine
       //since the number of bits per code can vary between 9 and 12,
       //can't read in directly from the stream
 
-      //unlike normal LZW, though, the bytes are actually written in so the code boundaries
+      //unlike normal LZW, though, the bytes are actually written so the code boundaries
       //work from right to left, NOT left to right. for (example,an input stream that needs
       //to be split on a 9 bit boundary will use eight bits of first byte, plus LOWEST
       //bit of byte 2. The second code is then the upper seven bits of byte 2 and the lower
@@ -880,11 +877,15 @@ namespace WinAGI.Engine
               //empirically, 36.5 seems to work best
               //**** TODO: OK, in c#, changing from dbl to byte truncates the value, which 
               // makes things sound wrong when useing 36.5; but if we go back
-              // to 36.276, then it sounds OK; seems like difference is whether 
+              // to 36.376, then it sounds OK; seems like difference is whether 
               // or not you truncate the value (then use 36.376) or round the
               // value (then use 36.5); this means the calculations used in the
               // sound editor will probably need to be modified too
-              bytNote = (byte)((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.376);
+              //?????? well, here we are, months later; now the 36.376 sounds crappy! WTH?
+              // by using 'round' instead of 'floor' (which is what I think (byte) conversion
+              // does, 36.376 sounds right again; smh
+              //bytNote = (byte)((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.5);
+              bytNote = (byte)Math.Round((Math.Log10(111860 / (double)SoundIn[i].Notes[j].FreqDivisor) / LOG10_1_12) - 36.376);
               //
               //f = 111860 / (((Byte2 + 0x3F) << 4) + (Byte3 + 0x0F))
               //
@@ -1002,7 +1003,7 @@ namespace WinAGI.Engine
           //1 - add white noise
           for (j = 0; j < SoundIn[3].Notes.Count; j++) {
             //add duration to tickcount
-            lngTickCount = lngTickCount + SoundIn[3].Notes[j].Duration;
+            lngTickCount += SoundIn[3].Notes[j].Duration;
             //Fourth byte: noise freq and type
             //    In the case of the noise voice,
             //    7  6  5  4  3  2  1  0
@@ -1117,9 +1118,9 @@ namespace WinAGI.Engine
       //Windows Media Player, or the midi API functions; even in
       //WinAmp, the total sound length (ticks and seconds) doesn't
       //calculate correctly, even though it plays
-      //this seems to be due to the prescence of the 0xFC commands
+      //this seems to be due to the presence of the 0xFC commands
       //it looks like every sound resource has them; sometimes
-      //one 0xFC ends the file; othertimes there are a series of
+      //one 0xFC ends the file; other times there are a series of
       //them that are followed by a set of 0xDx and 0xBx commands
       //that appear to reset all 16 channels
       //eliminating the 0xFC command and everything that follows
@@ -1271,7 +1272,7 @@ namespace WinAGI.Engine
           lngInPos--;
         }
         //increment tick count
-        lngTicks = lngTicks + lngTime;
+        lngTicks += lngTime;
         //next comes event data; number of data points depends on command
         switch (bytCmd) {
         case 8:
@@ -1408,7 +1409,7 @@ namespace WinAGI.Engine
       midiOut[lngOutPos + 1] = 0xFF;
       midiOut[lngOutPos + 2] = 0x2F;
       midiOut[lngOutPos + 3] = 0;
-      lngOutPos = lngOutPos + 4;
+      lngOutPos += 4;
       //update size of track data (total length - 22)
       midiOut[18] = (byte)(((lngOutPos - 22) >> 24));
       midiOut[19] = (byte)(((lngOutPos - 22) >> 16) & 0xFF);
@@ -1507,7 +1508,7 @@ namespace WinAGI.Engine
     }
     internal static void WriteSndDelta(int LongIn)
     {
-      //writes variable delta times!!
+      //writes variable delta times
       int i;
       i = LongIn << 21; //LngSHR(LongIn, 21)
       if ((i > 0)) {

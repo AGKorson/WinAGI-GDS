@@ -11,7 +11,7 @@ namespace WinAGI.Engine
 {
   public class Logics : IEnumerable<Logic>
   {
-    AGIGame parent;
+    readonly AGIGame parent;
     internal Logics(AGIGame parent)
     {
       this.parent = parent;
@@ -194,7 +194,7 @@ namespace WinAGI.Engine
         throw new Exception("602, strErrSource, LoadResString(602)");
       }
       //create new logic object
-      Logic newResource = new Logic(parent, bytResNum, bytVol, lngLoc);
+      Logic newResource = new(parent, bytResNum, bytVol, lngLoc);
       //add it
       Col.Add(bytResNum, newResource);
     }
