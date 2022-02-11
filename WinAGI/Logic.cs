@@ -283,7 +283,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //nothing to clear
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
       }
       //clear resource
@@ -314,13 +319,23 @@ namespace WinAGI.Engine
       if (!InGame)
       {
         //not allowed; nothing to export
-        throw new Exception("668, strErrSource, LoadResString(668)");
+
+        Exception e = new(LoadResString(668))
+        {
+          HResult = 668
+        };
+        throw e;
       }
       //if not loaded
       if (!Loaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //export a logic resource file
       base.Export(ExportFile);
@@ -444,7 +459,12 @@ namespace WinAGI.Engine
         }
         catch (Exception e)
         {
-          throw new Exception($"502, LoadResString(502), LoadFile, {e.Message}");
+
+          Exception eR = new(LoadResString(502).Replace(ARG1, LoadFile).Replace(ARG2, e.Message))
+          {
+            HResult = 502
+          };
+          throw eR;
         }
       }
       //send text in source code string list
@@ -474,7 +494,12 @@ namespace WinAGI.Engine
         if (!mLoaded)
         {
           return "";
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         return mSourceText;
       }
@@ -541,7 +566,12 @@ namespace WinAGI.Engine
           {
             Unload();
           }
-          throw new Exception("599, strErrSource, LoadResString(599)");
+
+          Exception e = new(LoadResString(599))
+          {
+            HResult = 599
+          };
+          throw e;
         }
       }
       try
@@ -562,7 +592,12 @@ namespace WinAGI.Engine
         {
           Unload();
         }
-        throw new Exception("582, strErrSource, LoadResString(582)");
+
+        Exception e = new(LoadResString(582))
+        {
+          HResult = 582
+        };
+        throw e;
       }
       try
       {
@@ -577,7 +612,12 @@ namespace WinAGI.Engine
       }
       catch (Exception)
       {
-        throw new Exception("663, LoadResString(663)");
+
+        Exception e = new(LoadResString(663))
+        {
+          HResult = 663
+        };
+        throw e;
       }
       //if exporting, nothing left to do
       if (Exporting)
@@ -616,17 +656,32 @@ namespace WinAGI.Engine
       //if not in a game
       if (!mInGame)
       {
-        throw new Exception("618, strErrSource, LoadResString(618)");
+
+        Exception e = new(LoadResString(618))
+        {
+          HResult = 618
+        };
+        throw e;
       }
       //if not loaded, raise error
       if (!mLoaded)
       {
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //if no data in sourcecode
       if (mSourceText.Length == 0)
       {
-        throw new Exception("546, strErrSource, LoadResString(546)");
+
+        Exception e = new(LoadResString(546))
+        {
+          HResult = 0
+        };
+        throw e;
       }
       try
       {

@@ -102,13 +102,13 @@ namespace WinAGI.Engine
       if (mCelCol.Count == 1)
       {
         //cant remove last cel
-        throw new Exception("612, strErrSource, LoadResString(612)");
+        throw new Exception(LoadResString(612));
       }
       //if past end
       if (index >= mCelCol.Count)
       {
         //invalid item
-        throw new Exception("9, strErrSource, subscript out of range");
+        throw new IndexOutOfRangeException("subscript out of range");
       }
       //remove cel
       mCelCol.RemoveAt(index);

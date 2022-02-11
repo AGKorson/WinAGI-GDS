@@ -39,7 +39,12 @@ namespace WinAGI.Engine
       if (mLoopCol.Count == MAX_LOOPS || Pos < 0)
       {
         //error - too many loops
-        throw new Exception("537, strErrSource, LoadResString(537)");
+
+        Exception e = new(LoadResString(537))
+        {
+          HResult = 537
+        };
+        throw e;
       }
       //if no position is past end
       if (Pos > mLoopCol.Count)
@@ -106,13 +111,18 @@ namespace WinAGI.Engine
       if (mLoopCol.Count == 1)
       {
         //can't delete last loop
-        throw new Exception("613, strErrSource, LoadResString(613)");
+
+        Exception e = new(LoadResString(613))
+        {
+          HResult = 613
+        };
+        throw e;
       }
       // if past the end
       if (Index >= mLoopCol.Count)
       {
         //invalid item
-        throw new Exception("index out of bounds");
+        throw new IndexOutOfRangeException("index out of bounds");
       }
       //if this loop is a mirrored loop
       if (mLoopCol[Index].Mirrored)

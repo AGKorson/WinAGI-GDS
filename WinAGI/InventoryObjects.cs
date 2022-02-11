@@ -66,7 +66,7 @@ namespace WinAGI.Engine
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+          throw new Exception(LoadResString(563));
         }
         //although first object does not Count as an object
         //it must be returned as part of the Count
@@ -135,13 +135,13 @@ namespace WinAGI.Engine
       if (mLoaded)
       {
         //error
-        throw new Exception("642, strErrSource, LoadResString(642)");
+        throw new Exception(LoadResString(642));
       }
       //can't call NewResource if already in a game;
       //clear it instead
       if (mInGame)
       {
-        throw new Exception("510, strErrSource, LoadResString(510)");
+        throw new Exception(LoadResString(510));
       }
 
       //mark as loaded
@@ -164,7 +164,7 @@ namespace WinAGI.Engine
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+          throw new Exception(LoadResString(563));
         }
         return mDescription;
       }
@@ -174,7 +174,7 @@ namespace WinAGI.Engine
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+          throw new Exception(LoadResString(563));
         }
 
         //limit description to 1K
@@ -201,7 +201,7 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+        throw new Exception(LoadResString(563));
       }
       try
       {
@@ -218,7 +218,7 @@ namespace WinAGI.Engine
       catch (Exception)
       {
         //return error condition
-        throw new Exception("582, strErrSource, LoadResString(582)");
+        throw new Exception(LoadResString(582));
       }
       //if NOT in a game,
       if (!mInGame)
@@ -249,7 +249,7 @@ namespace WinAGI.Engine
   if (LenB(CompileFile) == 0) {
     On Error GoTo 0
     'raise error
-    throw new Exception("615, strErrSource, LoadResString(615)
+    throw new Exception(LoadResString(615));
     return;
   }
   
@@ -311,7 +311,7 @@ ErrHandler:
   Kill CompileFile
   Err.Clear
   'return error condition
-  throw new Exception("582, strErrSource, LoadResString(582)
+  throw new Exception(LoadResString(582));
       */
     }
     public bool InGame
@@ -361,7 +361,7 @@ ErrHandler:
         if (mInGame)
         {
           //error- resfile is readonly for ingame resources
-          throw new Exception("680, strErrSource, LoadResString(680)");
+          throw new Exception(LoadResString(680));
         }
         else
         {
@@ -653,13 +653,13 @@ ErrHandler:
       if (!mLoading && !mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+        throw new Exception(LoadResString(563));
       }
       //if already have max number of items,
       if (mItems.Count == MAX_ITEMS)
       {
         //error
-        throw new Exception("569, LoadResString(569)");
+        throw new Exception(LoadResString(569));
       }
       //add the item
       tmpItem = new InventoryItem();
@@ -679,7 +679,7 @@ ErrHandler:
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+        throw new Exception(LoadResString(563));
       }
       InventoryItem tmpItem = mItems[Index];
 
@@ -750,7 +750,7 @@ ErrHandler:
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+          throw new Exception(LoadResString(563));
         }
         return mEncrypted;
       }
@@ -760,7 +760,7 @@ ErrHandler:
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+          throw new Exception(LoadResString(563));
         }
         //if change in encryption
         if (mEncrypted != value)
@@ -779,7 +779,7 @@ ErrHandler:
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+          throw new Exception(LoadResString(563));
         }
         return mMaxScreenObjects;
       }
@@ -789,7 +789,7 @@ ErrHandler:
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+          throw new Exception(LoadResString(563));
         }
         //if change in max objects
         if (value != mMaxScreenObjects)
@@ -810,7 +810,7 @@ ErrHandler:
       if (mLoaded)
       {
         //error- resource already loaded
-        throw new Exception("511, strErrSource, LoadResString(511)");
+        throw new Exception(LoadResString(511));
       }
       //if in a game
       if (mInGame)
@@ -823,7 +823,7 @@ ErrHandler:
           //reset objects resource using Clear method
           Clear();
           //error
-          throw new Exception("692, strErrSource, LoadResString(692)");
+          throw new Exception(LoadResString(692));
         }
         //get description, if there is one
         mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "");
@@ -834,13 +834,13 @@ ErrHandler:
         if (LoadFile.Length == 0)
         {
           //no file specified; return error
-          throw new Exception("599, strErrSource, LoadResString(599)");
+          throw new Exception(LoadResString(599));
         }
         //verify file exists
         if (!File.Exists(LoadFile))
         {
           //error
-          throw new Exception("524, strErrSource, Replace(LoadResString(524), ARG1, LoadFile)");
+          throw new Exception(LoadResString(524).Replace(ARG1, LoadFile));
         }
         //if extension is .ago then
         if ((Right(LoadFile, 4)).ToLower() == ".ago")
@@ -852,7 +852,7 @@ ErrHandler:
             if (!LoadSierraFile(LoadFile))
             {
               //error
-              throw new Exception("692, strErrSource, LoadResString(692)");
+              throw new Exception(LoadResString(692));
             }
           }
         }
@@ -865,7 +865,7 @@ ErrHandler:
             if (!LoadWinAGIFile(LoadFile))
             {
               //error
-              throw new Exception("692, strErrSource, LoadResString(692)");
+              throw new Exception(LoadResString(692));
             }
           }
         }
@@ -923,7 +923,11 @@ ErrHandler:
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //if in a game,
       if (mInGame)
@@ -942,7 +946,12 @@ ErrHandler:
         //if still no file
         if (SaveFile.Length == 0)
         {
-          throw new Exception("615, strErrSource, LoadResString(615)");
+
+          Exception e = new(LoadResString(615))
+          {
+            HResult = 615
+          };
+          throw e;
         }
 
         switch (FileType)
@@ -970,7 +979,12 @@ ErrHandler:
       if (!NewObjects.Loaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //first, clear current list
       Clear();
@@ -1020,7 +1034,12 @@ ErrHandler:
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       Clear();
       mLoaded = false;
@@ -1037,7 +1056,12 @@ ErrHandler:
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       mEncrypted = false;
       mMaxScreenObjects = 16;
@@ -1071,7 +1095,12 @@ ErrHandler:
       //if no file
       if (CompileFile.Length == 0)
       {
-        throw new Exception("616, strErrSource, LoadResString(616)");
+
+        Exception e = new(LoadResString(616))
+        {
+          HResult = 616
+        };
+        throw e;
       }
 
       //if not dirty AND compilefile=resfile

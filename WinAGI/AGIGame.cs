@@ -259,11 +259,14 @@ namespace WinAGI.Engine
 
         if (agGameLoaded)
           //validate gamedir
-          if (Directory.Exists(CDir(value))) //, vbDirectory) 
-                                             //return error
-                                             //throw new Exception("630, strErrSource, Replace(LoadResString(630), ARG1, NewDir)
-                                             //return;
-            throw new System.NotImplementedException();
+          if (Directory.Exists(CDir(value))) {
+            //return error
+            Exception e = new(LoadResString(630).Replace(ARG1, value))
+            {
+              HResult = 630
+            };
+            throw e;
+          }
 
         //change the directory
         agGameDir = CDir(value);
@@ -283,17 +286,27 @@ namespace WinAGI.Engine
       get
       {
         //error if game not loaded
-        if (!agGameLoaded)
-          throw new Exception(LoadResString(693));
+        if (!agGameLoaded) {
 
+          Exception e = new(LoadResString(693))
+          {
+            HResult = 693
+          };
+          throw e;
+        }
         return agGameFile;
       }
       set
       {
         //error if game not loaded
-        if (!agGameLoaded)
-          throw new Exception(LoadResString(693));
+        if (!agGameLoaded) {
 
+          Exception e = new(LoadResString(693))
+          {
+            HResult = 693
+          };
+          throw e;
+        }
         //calling function has to make sure NewFile is valid!
         try {
           File.Move(agGameFile, value);
@@ -485,7 +498,12 @@ namespace WinAGI.Engine
       if (!Directory.Exists(NewGameDir)) {
         //this isn't a directory
         CompleteCancel(true);
-        throw new Exception("Replace(LoadResString(561), ARG1, NewGameDir)");
+
+        Exception e = new(LoadResString(561).Replace(ARG1, NewGameDir))
+        {
+          HResult = 561
+        };
+        throw e;
       }
 
       //set flag if game is being compiled in its current directory
@@ -511,7 +529,12 @@ namespace WinAGI.Engine
         if (agGameID.Length > 5) {
           //invalid ID; calling function should know better!
           CompleteCancel(true);
-          throw new Exception("LoadResString(694)");
+
+          Exception e = new(LoadResString(694))
+          {
+            HResult = 694
+          };
+          throw e;
         }
         strID = agGameID;
       }
@@ -654,16 +677,21 @@ namespace WinAGI.Engine
       }
       catch (Exception) {
         CompleteCancel(true);
-        throw new Exception("Replace(LoadResString(503), ARG1, Exception");
+
+        Exception e = new(LoadResString(503).Replace(ARG1, NewGameDir + "NEW_VOL.0"))
+        {
+          HResult = 503
+        };
+        throw e;
       }
 
       //add all logic resources
       try {
         CompileResCol(agLogs, AGIResType.rtLogic, RebuildOnly, NewIsV3);
       }
-      catch (Exception ex) {
+      catch {
         CompleteCancel(true);
-        throw new Exception("err: " + ex.ToString());
+        throw;
       }
       //check for cancellation
       //if a resource error (or user canceled) encountered, just exit
@@ -675,9 +703,9 @@ namespace WinAGI.Engine
       try {
         CompileResCol(agPics, AGIResType.rtPicture, RebuildOnly, NewIsV3);
       }
-      catch (Exception ex) {
+      catch {
         CompleteCancel(true);
-        throw new Exception("err: " + ex.ToString());
+        throw;
       }
       //check for cancellation
       //if a resource error (or user canceled) encountered, just exit
@@ -689,9 +717,9 @@ namespace WinAGI.Engine
       try {
         CompileResCol(agViews, AGIResType.rtView, RebuildOnly, NewIsV3);
       }
-      catch (Exception ex) {
+      catch {
         CompleteCancel(true);
-        throw new Exception("err " + ex.ToString());
+        throw;
       }
       //check for cancellation
       //if a resource error (or user canceled) encountered, just exit
@@ -703,9 +731,9 @@ namespace WinAGI.Engine
       try {
         CompileResCol(agSnds, AGIResType.rtSound, RebuildOnly, NewIsV3);
       }
-      catch (Exception ex) {
+      catch {
         CompleteCancel(true);
-        throw new Exception("err: " + ex.ToString());
+        throw;
       }
       //check for cancellation
       //if a resource error (or user canceled) encountered, just exit
@@ -949,7 +977,12 @@ namespace WinAGI.Engine
       {
         //id is undefined if a game is not loaded
         if (!agGameLoaded) {
-          throw new Exception(LoadResString(677));
+
+          Exception e = new(LoadResString(677))
+          {
+            HResult = 677
+          };
+          throw e;
         }
         return agGameID;
       }
@@ -961,7 +994,12 @@ namespace WinAGI.Engine
 
         //id is undefined if a game is not loaded
         if (!agGameLoaded) {
-          throw new Exception(LoadResString(677));
+
+          Exception e = new(LoadResString(677))
+          {
+            HResult = 677
+          };
+          throw e;
         }
         //version 3 games limited to 5 characters
         if (agIsVersion3) {
@@ -1012,13 +1050,6 @@ namespace WinAGI.Engine
 
         //write new property
         WriteGameSetting("General", "GameID", NewID);
-        //ErrHandler:
-        //  //file renaming or property writing are only sources of error
-        //  strError = Err.Description
-        //  strErrSrc = Err.Source
-        //  lngError = Err.Number
-
-        //  throw new Exception("530, strErrSrc, Replace(LoadResString(530), ARG1, CStr(lngError) + ":" + strError)
       }
     }
     public DateTime LastEdit
@@ -1093,13 +1124,13 @@ namespace WinAGI.Engine
               try {
                 CompileGame(true);
               }
-              catch (Exception ex) {
+              catch {
 
                 //reset cancel flag
                 agCancelComp = false;
 
                 // pass along the exception
-                throw new Exception(ex.Message);
+                throw;
               }
 
               //check for user cancellation
@@ -1132,14 +1163,31 @@ namespace WinAGI.Engine
         }
         else {
           // if not numeric
-          if (!IsNumeric(value))
-            throw new Exception(LoadResString(597));
-          else if (Double.Parse(value) < 2 || Double.Parse(value) > 3)
+          if (!IsNumeric(value)) {
+            Exception e = new(LoadResString(597))
+            {
+              HResult = 597
+            };
+            throw e;
+          }
+          else if (Double.Parse(value) < 2 || Double.Parse(value) > 3) {
             //not a version 2 or 3 game
-            throw new Exception(LoadResString(597));
-          else
+
+            Exception e = new(LoadResString(597))
+            {
+              HResult = 597
+            };
+            throw e;
+          }
+          else {
             //unsupported version 2 or 3 game
-            throw new Exception(LoadResString(543));
+
+            Exception e = new(LoadResString(543))
+            {
+              HResult = 543
+            };
+            throw e;
+          }
         }
       }
     }
@@ -1211,21 +1259,41 @@ namespace WinAGI.Engine
       //if a game is already open,
       if (agGameLoaded) {
         //can't open a game if one is already open
-        throw new Exception(LoadResString(501)); 
+
+        Exception e = new(LoadResString(501))
+        {
+          HResult = 501
+        };
+        throw e;
       }
       //if not a valid directory
       if (!Directory.Exists(NewGameDir)) {
         //raise error
-        throw new Exception(LoadResString(630).Replace(ARG1, NewGameDir));
+
+        Exception e = new(LoadResString(630).Replace(ARG1, NewGameDir))
+        {
+          HResult = 630
+        };
+        throw e;
       }
       //if a game already exists
       if (Directory.GetFiles(NewGameDir, "*.wag").Length != 0) {
         //wag file already exists;
-        throw new Exception(LoadResString(687));
+
+        Exception e = new(LoadResString(687))
+        {
+          HResult = 687
+        };
+        throw e;
       }
       if (IsValidGameDir(CDir(NewGameDir))) {
         //game files already exist;
-        throw new Exception(LoadResString(687));
+
+        Exception e = new(LoadResString(687))
+        {
+          HResult = 687
+        };
+        throw e;
       }
       // clear game properties
       ClearGameState();
@@ -1244,7 +1312,12 @@ namespace WinAGI.Engine
         // should be exactly one wag file
         if (Directory.GetFiles(TemplateDir, "*.wag").Length != 1) {
           //raise error
-          throw new Exception(LoadResString(630));
+
+          Exception e = new(LoadResString(630))
+          {
+            HResult = 630
+          };
+          throw e;
         }
         // get file name (it's first[and only] element)
         strGameWAG = Directory.GetFiles(TemplateDir, "*.wag")[0];
@@ -1262,7 +1335,12 @@ namespace WinAGI.Engine
         //copy all files from the templatedir into gamedir
         if (!DirectoryCopy(TemplateDir, agGameDir, true)) {
           //TODO: error number??? might need to rewrite this errmsg
-          throw new Exception(LoadResString(683).Replace(ARG1, "123"));
+
+          Exception e = new(LoadResString(683).Replace(ARG1, "123"))
+          {
+            HResult = 683
+          };
+          throw e;
         }
 
         // open the game in the newly created directory
@@ -1271,7 +1349,12 @@ namespace WinAGI.Engine
           OpenGameWAG(agGameDir + strGameWAG);
         }
         catch (Exception e) {
-          throw new Exception(LoadResString(684).Replace(ARG1, e.Message));
+
+          Exception eR = new(LoadResString(684).Replace(ARG1, e.Message))
+          {
+            HResult = 684
+          };
+          throw eR;
         }
         //we need to rename the resdir
         //(have to do this AFTER load, because loading will keep the current
@@ -1311,11 +1394,21 @@ namespace WinAGI.Engine
         else {
           if (Val(NewVersion) < 2 || Val(NewVersion) > 3) {
             //not a version 2 or 3 game
-            throw new Exception(LoadResString(597));
+
+            Exception e = new(LoadResString(597))
+            {
+              HResult = 597
+            };
+            throw e;
           }
           else {
             //unsupported version 2 or 3 game
-            throw new Exception(LoadResString(543));
+
+            Exception e = new(LoadResString(543))
+            {
+              HResult = 543
+            };
+            throw e;
           }
         }
 
@@ -1436,7 +1529,12 @@ namespace WinAGI.Engine
 
       //if errors
       if (blnWarnings) {
-        throw new Exception(LoadResString(637));
+
+        Exception e = new(LoadResString(637))
+        {
+          HResult = 637
+        };
+        throw e;
       }
       return;
     }
@@ -1448,7 +1546,6 @@ namespace WinAGI.Engine
       if (agGameLoaded) {
         //can't open a game if one is already open
         return WINAGI_ERR + 501;
-        //throw new Exception("LoadResString(501)");
       }
 
       //set game directory
@@ -1468,7 +1565,6 @@ namespace WinAGI.Engine
         ClearGameState();
         //invalid game directory
         return WINAGI_ERR + 541;
-        //throw new Exception("LoadResString(541), ARG1, agGameDir");
       }
 
       //create a new wag file name
@@ -1499,7 +1595,6 @@ namespace WinAGI.Engine
         ClearGameState();
         //invalid number found
         return WINAGI_ERR + 543;
-        //throw new Exception("LoadResString(543)");
       }
 
       //save version
@@ -1618,7 +1713,6 @@ namespace WinAGI.Engine
             ClearGameState();
             //invalid wag
             return WINAGI_ERR + 665;
-            //throw new Exception("665,JustFileName(agGameFile) ");
           }
         }
       }
@@ -1637,7 +1731,6 @@ namespace WinAGI.Engine
           ClearGameState();
           //invalid int version inside wag file
           return WINAGI_ERR + 691;
-          //throw new Exception("691, JustFileName(agGameFile)");
         }
       }
       else {
@@ -1647,7 +1740,6 @@ namespace WinAGI.Engine
         ClearGameState();
         //invalid wag file
         return WINAGI_ERR + 690;
-        //throw new Exception("690, JustFileName(agGameFile)");
       }
 
       //if a valid wag file was found, we now have agGameID, agGameFile
@@ -1740,8 +1832,6 @@ namespace WinAGI.Engine
         ClearGameState();
 
         return WINAGI_ERR + e.HResult;
-        ////raise error
-        //throw new Exception("lngError, strErrSource, strError");
       }
       //load vocabulary word list
       Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtWords, 0, "");

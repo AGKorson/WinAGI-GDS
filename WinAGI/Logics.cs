@@ -60,7 +60,7 @@ namespace WinAGI.Engine
       //if this Logic already exists
       if (Exists(ResNum)) {
         //resource already exists
-        throw new Exception("602, strErrSource, LoadResString(602)");
+        throw new Exception(LoadResString(602));
       }
       //if an object was not passed
       if ((NewLogic == null)) {
@@ -120,7 +120,7 @@ namespace WinAGI.Engine
       //verify new number is not in collection
       if (Col.Keys.Contains(NewLogic)) {
         //number already in use
-        throw new Exception("669, LoadResString(669)");
+        throw new Exception(LoadResString(669));
       }
       //get logic being renumbered
       tmpLogic = Col[OldLogic];
@@ -156,7 +156,7 @@ namespace WinAGI.Engine
           File.Move(parent.agResDir + "Logic" + OldLogic + agSrcExt, parent.agResDir + tmpLogic.ID + agSrcExt);
         }
         catch (Exception e) {
-          throw new Exception("670, LoadResString(670) " + e.Message);
+          throw new Exception(LoadResString(670) + e.Message);
         }
       }
 
@@ -191,7 +191,7 @@ namespace WinAGI.Engine
       //resources into logics collection
       //if this Logic number is already in the game
       if (Exists(bytResNum)) {
-        throw new Exception("602, strErrSource, LoadResString(602)");
+        throw new Exception(LoadResString(602));
       }
       //create new logic object
       Logic newResource = new(parent, bytResNum, bytVol, lngLoc);

@@ -90,7 +90,12 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //clear the resource
       base.Clear();
@@ -345,7 +350,12 @@ namespace WinAGI.Engine
       if (bytNumLoops == 0)
       {
         //error - invalid data
-        throw new Exception("595, strErrSource, LoadResString(595)");
+
+        Exception e = new(LoadResString(595))
+        {
+          HResult = 595
+        };
+        throw e;
       }
       //get loop offset data for each loop
       for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++)
@@ -356,7 +366,12 @@ namespace WinAGI.Engine
         if ((lngLoopStart[bytLoop] > mSize))
         {
           Unload();
-          throw new Exception("548, strErrSource, LoadResString(548)");
+
+          Exception e = new(LoadResString(548))
+          {
+            HResult = 548
+          };
+          throw e;
         }
       }
       //step through all loops
@@ -418,7 +433,12 @@ namespace WinAGI.Engine
             if ((lngCelStart > mSize))
             {
               Unload();
-              throw new Exception("553, strErrSource, LoadResString(553)");
+
+              Exception e = new(LoadResString(553))
+              {
+                HResult = 553
+              };
+              throw e;
             }
             //get height/width
             bytWidth = ReadByte(lngCelStart);
@@ -461,7 +481,12 @@ namespace WinAGI.Engine
         {
           Unload();
           //error? can't load this description
-          throw new Exception("513, strErrSource, LoadResString(513)");
+
+          Exception e = new(LoadResString(513))
+          {
+            HResult = 513
+          };
+          throw e;
         }
       }
       //set flag indicating view matches resource data
@@ -475,7 +500,12 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       try
       {
@@ -630,7 +660,12 @@ namespace WinAGI.Engine
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         //if view not set,
         if (!mViewSet)
@@ -689,20 +724,35 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //the source loop must already exist
       //(must be less than or equal to max number of loops)
       if (SourceLoop >= mLoopCol.Count)
       {
         //error - loop must exist
-        throw new Exception("539, strErrSource, LoadResString(539)");
+
+        Exception e = new(LoadResString(539))
+        {
+          HResult = 539
+        };
+        throw e;
       }
       //the source loop and the target loop must be less than 8
       if (SourceLoop >= 8 || TargetLoop >= 8)
       {
         //error - loop must exist
-        throw new Exception("539, strErrSource, LoadResString(539)");
+
+        Exception e = new(LoadResString(539))
+        {
+          HResult = 539
+        };
+        throw e;
       }
       //mirror source and target can't be the same
       if (SourceLoop == TargetLoop)
@@ -714,13 +764,23 @@ namespace WinAGI.Engine
       if (mLoopCol[TargetLoop].Mirrored)
       {
         //error
-        throw new Exception("550, strErrSource, LoadResString(550)");
+
+        Exception e = new(LoadResString(550))
+        {
+          HResult = 550
+        };
+        throw e;
       }
       //the mirror loop can't already have a mirror
       if (mLoopCol[SourceLoop].Mirrored)
       {
         //error
-        throw new Exception("551, strErrSource, LoadResString(551), SourceLoop");
+
+        Exception e = new(LoadResString(551))
+        {
+          HResult = 0
+        };
+        throw e;
       }
       //get a new mirror pair number
       i = GetMirrorPair();

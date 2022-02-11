@@ -122,7 +122,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //raise error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         mBkImgFile = value;
         WritePropState = true;
@@ -140,7 +145,12 @@ namespace WinAGI.Engine
         if (!Loaded) 
         {
           //raise error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         mBkPos = value;
         WritePropState = true;
@@ -158,7 +168,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //raise error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         mBkSize = value;
         WritePropState = true;
@@ -176,7 +191,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //raise error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         mBkTrans = value;
         WritePropState = true;
@@ -194,7 +214,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //raise error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         mBkShow = value;
         WritePropState = true;
@@ -237,7 +262,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //raise error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         //max value is 158
         if (value > 158)
@@ -259,7 +289,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         //if picture data changed,
         if (!mPicBMPSet)
@@ -278,7 +313,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         //if picture data changed,
         if (!mPicBMPSet)
@@ -297,7 +337,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         return mCurrentPen;
       }
@@ -310,7 +355,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         return mDrawPos;
       }
@@ -320,7 +370,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //raise error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         //if not changed
         if (value == mDrawPos)
@@ -354,12 +409,22 @@ namespace WinAGI.Engine
       if (!Loaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //validate x,Y
       if (X > 159 || Y > 167)
       {
-        throw new Exception("621, strErrSource, LoadResString(621)");
+
+        Exception e = new(LoadResString(621))
+        {
+          HResult = 621
+        };
+        throw e;
       }
       //if picture data changed,
       if (!mPicBMPSet)
@@ -405,11 +470,21 @@ namespace WinAGI.Engine
       if (!Loaded)
       {
         //raise error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //validate x,Y
       if (X > 159 || Y > 167) {
-        throw new Exception("621, strErrSource, LoadResString(621)");
+
+        Exception e = new(LoadResString(621))
+        {
+          HResult = 621
+        };
+        throw e;
       }
       //if picture data changed,
       if (!mPicBMPSet)
@@ -452,11 +527,21 @@ namespace WinAGI.Engine
       if (!Loaded)
       {
         //raise error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //validate x,Y
       if (X > 159 || Y > 167) {
-        throw new Exception("621, strErrSource, LoadResString(621)");
+
+        Exception e = new(LoadResString(621))
+        {
+          HResult = 621
+        };
+        throw e;
       }
       //if picture data changed,
       if (!mPicBMPSet)
@@ -480,12 +565,22 @@ namespace WinAGI.Engine
       if (!Loaded)
       {
         //raise error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //validate x,y
       if (X > 159 || Y > 167) 
       {
-        throw new Exception("621, strErrSource, LoadResString(621)");
+
+        Exception e = new(LoadResString(621))
+        {
+          HResult = 621
+        };
+        throw e;
       }
       //if picture data changed,
       if (!mPicBMPSet)
@@ -509,12 +604,22 @@ namespace WinAGI.Engine
       if (!Loaded)
       {
         //raise error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //validate x,Y
       if (X > 159 || Y > 167) 
       {
-        throw new Exception("621, strErrSource, LoadResString(621)");
+
+        Exception e = new(LoadResString(621))
+        {
+          HResult = 621
+        };
+        throw e;
       }
       //if picture data changed,
       if (!mPicBMPSet)
@@ -559,7 +664,12 @@ namespace WinAGI.Engine
       if (!Loaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 0
+        };
+        throw e;
       }
       // use base function
       base.Export(ExportFile);
@@ -608,7 +718,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //nothing to clear
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
       }
       base.Clear();
@@ -674,7 +789,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //raise error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         //if pictures not built, or have changed,
         if (!mPicBMPSet)
@@ -701,7 +821,12 @@ namespace WinAGI.Engine
         if (!Loaded)
         {
           //raise error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         //if pictures not built, or have changed,
         if (!mPicBMPSet)
@@ -867,7 +992,12 @@ namespace WinAGI.Engine
         //if not loaded,
         if (!Loaded) {
           //raise error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         return mStepDraw;
       }
@@ -875,7 +1005,12 @@ namespace WinAGI.Engine
       {
         if (!mLoaded)
         {
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         // if a change
         if (mStepDraw != value)

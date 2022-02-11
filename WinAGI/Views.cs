@@ -58,7 +58,12 @@ namespace WinAGI.Engine
       //if this view already exists
       if (Exists(ResNum)) {
         //resource already exists
-        throw new Exception("602, strErrSource, LoadResString(602)");
+
+        Exception e = new(LoadResString(602))
+        {
+          HResult = 602
+        };
+        throw e;
       }
       //if no object was passed
       if ((NewView == null)) {
@@ -119,7 +124,12 @@ namespace WinAGI.Engine
       //verify new number is not in collection
       if (Col.Keys.Contains(NewView)) {
         //number already in use
-        throw new Exception("669, LoadResString(669)");
+
+        Exception e = new(LoadResString(669))
+        {
+          HResult = 669
+        };
+        throw e;
       }
       //get view being renumbered
       tmpView = Col[OldView];
@@ -180,7 +190,12 @@ namespace WinAGI.Engine
       //resources into logics collection
       //if this view number is already in the game
       if (Exists(bytResNum)) {
-        throw new Exception("602, strErrSource, LoadResString(602)");
+
+        Exception e = new(LoadResString(602))
+        {
+          HResult = 0
+        };
+        throw e;
       }
       //create new logic object
       View newResource = new View(parent, bytResNum, bytVol, lngLoc);

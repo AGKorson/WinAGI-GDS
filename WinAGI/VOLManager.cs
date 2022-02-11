@@ -265,14 +265,19 @@ namespace WinAGI.Engine
 
             //raise appropriate error
             if (lngError == 593)
-            { 
+            {
               //exceed max storage
-              throw new Exception("593, CompResCol, LoadResString(593)");
+              throw;
             }
             else
-            { 
+            {
               //file access error
-              throw new Exception("638, strErrSrc, LoadResString(638), (lngError) + ':' + strError)");
+
+              Exception eR = new(LoadResString(638).Replace(Common.Base.ARG1, e.Message))
+              {
+                HResult = 638
+              };
+              throw eR;
             }
           }
 
@@ -599,7 +604,12 @@ namespace WinAGI.Engine
         }
       }
       //if no room in any VOL file, raise an error
-      throw new Exception("593,ResourceFunctions.FindFreeVOLSpace, LoadResString(593)");
+
+      Exception e = new(LoadResString(593))
+      {
+        HResult = 593
+      };
+      throw e;
     }
     internal static void UpdateDirFile(AGIResource UpdateResource, bool Remove = false)
     {
@@ -922,7 +932,12 @@ namespace WinAGI.Engine
             fsVOL.Dispose();
             bwVOL.Dispose();
             //also, compiler should check for this error, as it is fatal
-            throw new Exception("640, VolManager.ValidateVolAndLoc, LoadResString(640)");
+
+            Exception eR = new(LoadResString(640))
+            {
+              HResult = 640
+            };
+            throw eR;
           }
           //is there room at the end of this file?
           if ((i > 0 && (fsVOL.Length + resource.Size <= MAX_VOLSIZE)) || (fsVOL.Length + resource.Size <= resource.parent.agMaxVol0))
@@ -934,10 +949,15 @@ namespace WinAGI.Engine
           }
         } //Next i
 
-      //if no volume found, we//ve got a problem...
-      //raise error!
-      //also, compiler should check for this error, as it is fatal
-      throw new Exception("593, VolManager.ValidateVolAndLoc, LoadResString(593)");
+        //if no volume found, we//ve got a problem...
+        //raise error!
+        //also, compiler should check for this error, as it is fatal
+
+        Exception e = new(LoadResString(593))
+        {
+          HResult = 0
+        };
+        throw e;
       }
     }
   }

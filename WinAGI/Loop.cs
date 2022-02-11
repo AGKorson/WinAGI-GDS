@@ -124,7 +124,12 @@ namespace WinAGI.Engine
         if (mMirrorPair == 0)
         {
           //raise error
-          throw new Exception("611, strErrSource, LoadResString(611)");
+
+          Exception eR = new(LoadResString(611))
+          {
+            HResult = 611
+          };
+          throw eR;
         }
 
         //step through all loops in the loop collection
@@ -137,7 +142,12 @@ namespace WinAGI.Engine
           }
         }
         //should never get here
-        throw new Exception("611, strErrSource, LoadResString(611)");
+
+        Exception e = new(LoadResString(611))
+        {
+          HResult = 611
+        };
+        throw e;
       }
     }
     internal int MirrorPair

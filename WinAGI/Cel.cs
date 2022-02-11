@@ -152,12 +152,12 @@ namespace WinAGI.Engine
         if (value.GetUpperBound(0) != mWidth - 1)
         {
           //invalid data
-          throw new Exception("614, strErrSource, LoadResString(614)");
+          throw new Exception(LoadResString(614));
         }
         if (value.GetUpperBound(1) != mHeight - 1)
         {
           //invalid data
-          throw new Exception("614, strErrSource, LoadResString(614)");
+          throw new Exception(LoadResString(614));
         }
         //set the celdata
         mCelData = value;
@@ -358,11 +358,11 @@ namespace WinAGI.Engine
         //must be non-zero
         if (value == 0)
         {
-          throw new Exception("532, strErrSource, LoadResString(532)");
+          throw new Exception(LoadResString(532));
         }
         if (value > MAX_CEL_HEIGHT)
         {
-          throw new Exception("532, strErrSource, LoadResString(532)");
+          throw new Exception(LoadResString(532));
         }
         //if changed
         if (mHeight != value)
@@ -459,12 +459,12 @@ namespace WinAGI.Engine
         //width must be non zero
         if (value == 0)
         {
-          throw new Exception("533, strErrSource, LoadResString(533)");
+          throw new Exception(LoadResString(533));
         }
         //width must not exceed max Value
         if (value > MAX_CEL_WIDTH)
         {
-          throw new Exception("533, strErrSource, LoadResString(533)");
+          throw new Exception(LoadResString(533));
         }
         //if changed,
         if (mWidth != value)
@@ -517,7 +517,7 @@ namespace WinAGI.Engine
         if (value < 0 || (byte)value > 15)
         {
           //error
-          throw new Exception("556, strErrSource, LoadResString(556)");
+          throw new Exception(LoadResString(556));
         }
         //if changed,
         if (value != mTransColor)

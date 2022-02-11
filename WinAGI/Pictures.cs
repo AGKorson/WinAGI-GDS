@@ -58,7 +58,12 @@ namespace WinAGI.Engine
       //if this Picture already exists
       if (Exists(ResNum)) {
         //resource already exists
-        throw new Exception("602, strErrSource, LoadResString(602)");
+
+        Exception e = new(LoadResString(602))
+        {
+          HResult = 602
+        };
+        throw e;
       }
       //if no object was passed
       if ((NewPicture == null)) {
@@ -118,7 +123,12 @@ namespace WinAGI.Engine
       //verify new number is not in collection
       if (Col.Keys.Contains(NewPic)) {
         //number already in use
-        throw new Exception("669, LoadResString(669)");
+
+        Exception e = new(LoadResString(669))
+        {
+          HResult = 669
+        };
+        throw e;
       }
       //get picture being renumbered
       tmpPic = Col[OldPic];
@@ -179,7 +189,12 @@ namespace WinAGI.Engine
       //resources into logics collection
       //if this picture number is already in the game
       if (Exists(bytResNum)) {
-        throw new Exception("602, strErrSource, LoadResString(602)");
+
+        Exception e = new(LoadResString(602))
+        {
+          HResult = 0
+        };
+        throw e;
       }
       //create new logic object
       Picture newResource = new Picture(parent, bytResNum, bytVol, lngLoc);

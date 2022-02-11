@@ -72,14 +72,24 @@ namespace WinAGI.Engine
       if (mLoaded)
       {
         //error
-        throw new Exception("642, strErrSource, LoadResString(642)");
+
+        Exception e = new(LoadResString(642))
+        {
+          HResult = 642
+        };
+        throw e;
       }
 
       //cant call NewResource if already in a game;
       //clear it instead
       if (mInGame)
       {
-        throw new Exception("510, strErrSource, LoadResString(510)");
+
+        Exception e = new(LoadResString(510))
+        {
+          HResult = 510
+        };
+        throw e;
       }
       //mark as loaded
       mLoaded = true;
@@ -122,8 +132,11 @@ namespace WinAGI.Engine
       if (CompileFile.Length == 0) {
         On Error GoTo 0
         //raise error
-        throw new Exception("615, strErrSource, LoadResString(615)");
-            return;
+        Exception e = new(LoadResString(615))
+        {
+          HResult = 615
+        };
+        throw e;
       }
   
       //get temporary file
@@ -180,7 +193,11 @@ namespace WinAGI.Engine
       //erase the temp file
       Kill CompileFile
       //return error condition
-      throw new Exception("582, strErrSource, LoadResString(582)");
+        Exception e = new(LoadResString(582))
+        {
+          HResult = 582
+        };
+        throw e;
       */
     }
     public void Export(string ExportFile, int FileType, bool ResetDirty = true)
@@ -192,7 +209,12 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       switch (FileType)
       {
@@ -360,7 +382,12 @@ namespace WinAGI.Engine
       if (!NewWords.Loaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //first, clear current list
       Clear();
@@ -412,7 +439,12 @@ namespace WinAGI.Engine
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         return mDescription;
       }
@@ -422,7 +454,12 @@ namespace WinAGI.Engine
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         //limit description to 1K
         value = Left(value, 1024);
@@ -464,7 +501,12 @@ namespace WinAGI.Engine
         if (mInGame)
         {
           //error- resfile is readonly for ingame resources
-          throw new Exception("680, strErrSource, LoadResString(680)");
+
+          Exception e = new(LoadResString(680))
+          {
+            HResult = 680
+          };
+          throw e;
         }
         else
         {
@@ -479,7 +521,12 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //reset group and word collections
       mGroupCol = new SortedList<int, WordGroup>();
@@ -494,7 +541,12 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //return this group by it's number (key value)
       return mGroupCol[groupNum];
@@ -525,7 +577,12 @@ namespace WinAGI.Engine
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         //only allow string or integer number
         if ((vKeyIndex is int) || (vKeyIndex is byte) || (vKeyIndex is short))
@@ -562,7 +619,12 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //if in a game,
       if (mInGame)
@@ -600,7 +662,12 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       Clear();
       mLoaded = false;
@@ -615,7 +682,12 @@ namespace WinAGI.Engine
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
         return mWordCol.Count;
       }
@@ -632,23 +704,43 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //if group number is invalid
       if (GroupNumber < 0)
       {
         //error
-        throw new Exception("575, strErrSource, LoadResString(575)");
+
+        Exception e = new(LoadResString(575))
+        {
+          HResult = 575
+        };
+        throw e;
       }
       if (GroupNumber > MAX_GROUP_NUM)
       {
         //error
-        throw new Exception("575, strErrSource, LoadResString(575)");
+
+        Exception e = new(LoadResString(575))
+        {
+          HResult = 575
+        };
+        throw e;
       }
       //see if group already exists
       if (mGroupCol.ContainsKey(GroupNumber))
       {
-        throw new Exception("576, strErrSource, LoadResString(576)");
+
+        Exception e = new(LoadResString(576))
+        {
+          HResult = 576
+        };
+        throw e;
       }
       tmpGroup = new WordGroup
       {
@@ -665,13 +757,23 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       // if word doesn't exist
       if (!mWordCol.ContainsKey(aWord))
       {
         //word not found
-        throw new Exception("584, strErrSource, LoadResString(584)");
+
+        Exception e = new(LoadResString(584))
+        {
+          HResult = 584
+        };
+        throw e;
       }
       //delete this word from its assigned group BY Group number
       WordGroup tmpGroup = GroupN(mWordCol[aWord].Group);
@@ -694,7 +796,12 @@ namespace WinAGI.Engine
         if (!mLoaded)
         {
           //error
-          throw new Exception("563, strErrSource, LoadResString(563)");
+
+          Exception e = new(LoadResString(563))
+          {
+            HResult = 563
+          };
+          throw e;
         }
 
         return mGroupCol.Count;
@@ -707,19 +814,34 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //if group number is invalid
       if (GroupNumber < 0 || GroupNumber > MAX_GROUP_NUM)
       {
         //error
-        throw new Exception("575, strErrSource, LoadResString(575)");
+
+        Exception e = new(LoadResString(575))
+        {
+          HResult = 575
+        };
+        throw e;
       }
       //if group doesn't exist
       if (!GroupExists(GroupNumber))
       {
         //error
-        throw new Exception("583, strErrSource, LoadResString(583)");
+
+        Exception e = new(LoadResString(583))
+        {
+          HResult = 583
+        };
+        throw e;
       }
       //step through all words in main list
       // CAN'T use foreach because we need to delete 
@@ -745,31 +867,56 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //if oldgroup number is invalid
       if (OldGroupNumber < 0 || OldGroupNumber > MAX_GROUP_NUM)
       {
         //error
-        throw new Exception("575, strErrSource, LoadResString(575)");
+
+        Exception e = new(LoadResString(575))
+        {
+          HResult = 575
+        };
+        throw e;
       }
       //if new group number is invalid
       if (NewGroupNumber < 0 || NewGroupNumber > MAX_GROUP_NUM)
       {
         //error
-        throw new Exception("575, strErrSource, LoadResString(575)");
+
+        Exception e = new(LoadResString(575))
+        {
+          HResult = 575
+        };
+        throw e;
       }
       //if old group doesn't exist
       if (!GroupExists(OldGroupNumber))
       {
         //error
-        throw new Exception("696, strErrSource, LoadResString(696)");
+
+        Exception e = new(LoadResString(696))
+        {
+          HResult = 696
+        };
+        throw e;
       }
       //if new group already exists
       if (GroupExists(NewGroupNumber))
       {
         //error
-        throw new Exception("697, strErrSource, LoadResString(697)");
+
+        Exception e = new(LoadResString(697))
+        {
+          HResult = 697
+        };
+        throw e;
       }
       //make temp copy of old group
       tmpGroup = mGroupCol[OldGroupNumber];
@@ -809,7 +956,12 @@ namespace WinAGI.Engine
       //if no filename passed,
       if (CompileFile.Length == 0)
       {
-        throw new Exception("616, strErrSource, LoadResString(616)");
+
+        Exception e = new(LoadResString(616))
+        {
+          HResult = 616
+        };
+        throw e;
       }
       //if not dirty AND CompileFile=resfile
       if (!mIsDirty && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase))
@@ -949,7 +1101,12 @@ namespace WinAGI.Engine
       if (mLoaded)
       {
         //error- resource already loaded
-        throw new Exception("511, strErrSource, LoadResString(511)");
+
+        Exception e = new(LoadResString(511))
+        {
+          HResult = 511
+        };
+        throw e;
       }
       if (mInGame)
       {
@@ -959,7 +1116,12 @@ namespace WinAGI.Engine
         if (!LoadSierraFile(LoadFile))
         {
           //error
-          throw new Exception("529, strErrSource, LoadResString(529)");
+
+          Exception e = new(LoadResString(529))
+          {
+            HResult = 529
+          };
+          throw e;
         }
         //get description, if there is one
         mDescription = parent.agGameProps.GetSetting("WORDS.TOK", "Description", "");
@@ -970,7 +1132,12 @@ namespace WinAGI.Engine
         if (LoadFile.Length == 0)
         {
           //not in game; return error
-          throw new Exception("599, strErrSource, LoadResString(599)");
+
+          Exception e = new(LoadResString(599))
+          {
+            HResult = 599
+          };
+          throw e;
         }
         //verify file exists
         if (!File.Exists(LoadFile))
@@ -988,7 +1155,12 @@ namespace WinAGI.Engine
             if (!LoadSierraFile(LoadFile))
             {
               //error
-              throw new Exception("529, strErrSource, LoadResString(529)");
+
+              Exception e = new(LoadResString(529))
+              {
+                HResult = 529
+              };
+              throw e;
             }
           }
         }
@@ -1001,7 +1173,12 @@ namespace WinAGI.Engine
             if (!LoadWinAGIFile(LoadFile))
             {
               //error
-              throw new Exception("529, strErrSource, LoadResString(529)");
+
+              Exception e = new(LoadResString(529))
+              {
+                HResult = 529
+              };
+              throw e;
             }
           }
         }
@@ -1019,13 +1196,23 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //if invalid index
       if (Index < 0 || Index > mGroupCol.Count - 1)
       {
         //error
-        throw new Exception("588, strErrSource, LoadResString(588)");
+
+        Exception e = new(LoadResString(588))
+        {
+          HResult = 588
+        };
+        throw e;
       }
       //access the group by its index
       return mGroupCol.Values[Index];
@@ -1037,20 +1224,35 @@ namespace WinAGI.Engine
       if (!mLoaded)
       {
         //error
-        throw new Exception("563, strErrSource, LoadResString(563)");
+
+        Exception e = new(LoadResString(563))
+        {
+          HResult = 563
+        };
+        throw e;
       }
       //convert input to lowercase
       WordText = WordText.ToLower();
       //check to see if word is already in collection,
       if (mWordCol.ContainsKey(WordText))
       {
-        throw new Exception("579, strErrSource, LoadResString(579)");
+
+        Exception e = new(LoadResString(579))
+        {
+          HResult = 579
+        };
+        throw e;
       }
       //if group number is invalid (negative, or > max)
       if (Group < 0 || Group > MAX_GROUP_NUM)
       {
         //error
-        throw new Exception("581, strErrSource, LoadResString(581)");
+
+        Exception e = new(LoadResString(581))
+        {
+          HResult = 0
+        };
+        throw e;
       }
       //if this group does not yet exist,
       if (!GroupExists(Group))

@@ -55,7 +55,12 @@ namespace WinAGI.Engine
       if (Exists(ResNum))
       {
         //resource already exists
-        throw new Exception("602, strErrSource, LoadResString(602)");
+
+        Exception e = new(LoadResString(602))
+        {
+          HResult = 602
+        };
+        throw e;
       }
       //if an object was not passed
       if ((NewSound == null))
@@ -121,7 +126,12 @@ namespace WinAGI.Engine
       if (Col.Keys.Contains(NewSound))
       {
         //number already in use
-        throw new Exception("669, LoadResString(669)");
+
+        Exception e = new(LoadResString(669))
+        {
+          HResult = 669
+        };
+        throw e;
       }
       //get sound being renumbered
       tmpSound = Col[OldSound];
@@ -187,7 +197,12 @@ namespace WinAGI.Engine
       //if this Logic number is already in the game
       if (Exists(bytResNum))
       {
-        throw new Exception("602, strErrSource, LoadResString(602)");
+
+        Exception e = new(LoadResString(602))
+        {
+          HResult = 0
+        };
+        throw e;
       }
       //create new logic object
       Sound newResource = new Sound(parent, bytResNum, bytVol, lngLoc);
