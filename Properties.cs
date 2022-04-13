@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using WinAGI.Engine;
+using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor
 {
@@ -8,9 +9,10 @@ namespace WinAGI.Editor
   // properties, and allow them to be edited
   public class GameProperties
   {
+    string _GameID;
     public GameProperties(AGIGame pGame)
     {
-      GameID = pGame.GameID;
+      _GameID = pGame.GameID;
       Author = pGame.GameAuthor;
       GameDir = pGame.GameDir;
       ResDir = pGame.ResDirName;
@@ -21,9 +23,26 @@ namespace WinAGI.Editor
       LayoutEditor = pGame.UseLE;
       LastEdit = pGame.LastEdit;
     }
-    public string GameID { get; set; }
-    public string Author { get; set; }
-    public string GameDir { get; set; }
+    public string GameID
+    {
+      get {
+        return  _GameID;
+
+      }
+      set 
+      { 
+        // validate new id before changing it
+ //       if (value.Length <= 5 ) {
+          _GameID = value.Substring(0, 5);
+ //       }
+      }
+    }
+    public string Author
+    {
+      get => EditGame.GameAuthor;
+      set => EditGame.GameAuthor = value;
+    }
+    public string GameDir { get; }
     public string ResDir { get; set; }
     public string IntVer { get; set; }
     public string Description { get; set; }
