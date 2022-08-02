@@ -379,6 +379,7 @@ namespace WinAGI.Engine
       CRC32Setup();
       Compiler.AssignReservedDefines();
     }
+
     public static string DefResDir
     {
       get { return agDefResDir; }

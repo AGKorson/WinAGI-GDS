@@ -1522,7 +1522,7 @@ namespace WinAGI.Editor
     private void picProperties_Paint(object sender, PaintEventArgs e)
     {
       //
-      int i;
+/*      int i;
       byte bSelResNum = (byte)SelResNum;
       // always expand the clipping region so the entire surface
       // gets repainted
@@ -1726,7 +1726,7 @@ namespace WinAGI.Editor
       for (i = 2; i <= PropRowCount + 1; i++) {
         gProp.DrawLine(penProp, 0, i * PropRowHeight - 1, picProperties.Width - 1, i * PropRowHeight - 1);
       }
-    }
+*/    }
     void CheckCmd()
     {
       return;
@@ -1973,15 +1973,17 @@ namespace WinAGI.Editor
     }
     private void frmMDIMain_KeyDown(object sender, KeyEventArgs e)
     {
-      Debug.Print($"Main - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
+//      Debug.Print($"Main - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
       if (this.splResource.ActiveControl == this.propertyGrid1 && this.ActiveControl == this.splResource) {
         //? cancel it, unless in editing mode
-        e.SuppressKeyPress = true;
+       // e.SuppressKeyPress = true;
       }
     }
     private void propertyGrid1_KeyDown(object sender, KeyEventArgs e)
     {
       Debug.Print($"propgrid - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
+      //? cancel it, unless in editing mode
+      e.SuppressKeyPress = true;
     }
 
 
@@ -2665,32 +2667,9 @@ namespace WinAGI.Editor
       return;
     }
 
-    private void propertyGrid1_MouseClick(object sender, MouseEventArgs e)
-    {
-      
-    }
-
-    private void propertyGrid1_Click(object sender, EventArgs e)
-    {
-
-    }
-
-    private void propertyGrid1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
-    {
-      //can we cancel?
-      //no...
-      Debug.Assert(false);
-    }
-
-    private void propertyGrid1_SelectedGridItemChanged(object sender, SelectedGridItemChangedEventArgs e)
-    {
-//      Debug.Assert(false);
-    }
-
     private void propertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
     {
-      //this happens AFTER the change?
-      Debug.Print($"prop: {e.ChangedItem}   oldval:{e.OldValue}");
+// what to do if changed?
     }
 
     public void DismissWarning(int row)
