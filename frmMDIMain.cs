@@ -2292,6 +2292,7 @@ namespace WinAGI.Editor
         //set left edge of list to match this button
         picNavList.Left = cmdForward.Left;
         picNavList.Width = cmdForward.Width;
+        picNavList.Top = cmdForward.Parent.Parent.Parent.Top + e.Y - picNavList.Height/2; 
         //show it
         picNavList.Visible = true;
         //set mouse capture to the list picture
@@ -2311,17 +2312,13 @@ namespace WinAGI.Editor
       }
 
       // if selrow has changed, repaint
-      //// get mouse pos
-      //rtn = GetCursorPos(mPos);
-      ////convert to client coordinates
-      //rtn = ScreenToClient(picNavList.hWnd, mPos);
-      // determine which row is under cursor
-      SelRow = (int)(e.Location.Y / NLRowHeight - 0.13);
 
+      // determine which row is under cursor
+      SelRow = (int)Math.Floor((float)e.Location.Y / NLRowHeight);
       //if on a new row
       if (SelRow != NLRow) {
         //if both values still offscreen
-        if ((SelRow < 0 && NLRow < 0) && (SelRow > 4 && NLRow > 4)) {
+        if (SelRow < 0 && NLRow < 0 || (SelRow > 4 && NLRow > 4)) {
           //just update the selected row
           NLRow = SelRow;
           //no need to repaint
@@ -2334,7 +2331,7 @@ namespace WinAGI.Editor
       }
 
       //if not on the list
-      if (SelRow < 0 && SelRow > 4) {
+      if (SelRow < 0 || SelRow > 4) {
         //enable autoscrolling
         tmrNavList.Enabled = true;
       }
@@ -2346,23 +2343,23 @@ namespace WinAGI.Editor
     private void picNavList_Paint(object sender, PaintEventArgs e)
     {
 
-      int i, rtn;
-      SolidBrush hbrush = new SolidBrush(Color.FromArgb(0xFFE0E0));
-      SolidBrush bbrush = new SolidBrush(Color.Black);
-      Font nlFont = new Font(Settings.PFontName, Settings.PFontSize);
+      int i;
+      SolidBrush hbrush = new(Color.FromArgb(0xff, 0xe0, 0xe0));//                  FFE0E0));
+      SolidBrush bbrush = new(Color.Black);
+      Font nlFont = new(Settings.PFontName, Settings.PFontSize);
       //draw list of resources on stack, according to current
-      // offset; whatever is selected is also highlight
+      // offset; whatever is selected is also highlighted
 
       //start with a clean slate
       e.Graphics.Clear(picNavList.BackColor);
 
-      PointF nlPoint = new PointF();
+      PointF nlPoint = new();
       //print five lines
       for (i = 0; i < 5; i++) {
         if (i + NLOffset - 2 > 0 && i + NLOffset - 2 <= ResQueue.Length - 1) {
           //if this row is highlighted (under cursor and valid)
           if (i == NLRow) {
-            e.Graphics.FillRectangle(hbrush, 0, (int)((i + 0.035) * NLRowHeight), picNavList.Width, (int)NLRowHeight);
+            e.Graphics.FillRectangle(hbrush, 0, (int)((i + 0.035) * NLRowHeight), picNavList.Width, NLRowHeight);
           }
           ////set x and y positions for the printed id
           nlPoint.X = 1;
@@ -2427,7 +2424,7 @@ namespace WinAGI.Editor
       //get new ptr value; exit if it's invalid
       newPtr = NLOffset + NLRow - 2;
       Debug.Print($" new resQ: {newPtr}");
-      return;
+ //     return;
 
       if (newPtr < 0) {
         return;
