@@ -1989,7 +1989,6 @@ namespace WinAGI.Editor
 
     public void RemoveSelectedRes()
     {
-      //*//
 
       /*
   //removes a resource from the game
