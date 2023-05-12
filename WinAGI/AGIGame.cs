@@ -1700,8 +1700,8 @@ namespace WinAGI.Engine
       }
       else {
         if (strVer != WINAGI_VERSION) {
-          if (Left(strVer, 4) == "1.2." || (Left(strVer, 3) == "2.1")) {
-            //any v1.2.x or 2.1.x is ok, but update
+          if (Left(strVer, 4) == "1.2." || (Left(strVer, 2) == "2.")) {
+            //any v1.2.x or 2.x is ok, but update
             // TODO: after testing, re-enable version updating
             //            WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION);
           }
