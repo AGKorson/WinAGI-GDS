@@ -1650,7 +1650,7 @@ namespace WinAGI.Editor
       bgwOpenGame.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgw_RunWorkerCompleted);
       bgwOpenGame.WorkerReportsProgress = true;
       // pass mode and source
-      LoadGameResults argval = new LoadGameResults
+      LoadGameResults argval = new()
       {
         Mode = mode,
         Source = gameSource
@@ -1681,7 +1681,7 @@ namespace WinAGI.Editor
       string strError, strErrSrc;
       int lngError;
       //if no game is open
-      if (!EditGame.GameLoaded) {
+      if (EditGame == null || !EditGame.GameLoaded) {
         //just return success
         return true;
       }
@@ -2098,7 +2098,7 @@ namespace WinAGI.Editor
       //attempt to open this game
       if (OpenGame(0, strMRU[Index])) {
         //if not successful
-        if (!EditGame.GameLoaded) {
+        if (EditGame == null || !EditGame.GameLoaded) {
           //step through previous mru entries
           for (i = Index + 1; i < 4; i++) {
             //move this mru entry up
