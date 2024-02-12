@@ -11,6 +11,7 @@ using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.ArgTypeEnum;
 using static WinAGI.Engine.LogicErrorLevel;
+using EnvDTE;
 
 namespace WinAGI.Engine
 {
@@ -58,7 +59,7 @@ namespace WinAGI.Engine
         internal static bool blnNewRoom;
         internal static string[] strIncludeFile;
         internal static int lngIncludeOffset; //to correct line number due to added include lines
-        internal static List<string> stlInput = new List<string>();  //the entire text to be compiled; includes the
+        internal static List<string> stlInput = new();  //the entire text to be compiled; includes the
                                                                      //original logic text, includes, and defines
         internal static int lngLine;
         internal static int lngPos;
@@ -76,7 +77,7 @@ namespace WinAGI.Engine
         internal static string[] strSndID;
         internal static string[] strViewID;
 
-        internal static void CompileLogic(Logic SourceLogic)
+        internal static TWarnInfo CompileLogic(Logic SourceLogic)
         {
             //this function compiles the sourcetext that is passed
             //the function returns a Value of true if successful; it returns false
@@ -86,7 +87,7 @@ namespace WinAGI.Engine
             //editor rows(lines) start at '1', but the compiler starts at line '0'
 
             bool blnCompiled;
-            List<string> stlSource = new List<string>();
+            List<string> stlSource = new();
 
             compGame = SourceLogic.parent;
 
@@ -205,8 +206,8 @@ namespace WinAGI.Engine
             //update compiled crc
             SourceLogic.CompiledCRC = SourceLogic.CRC;
             // and write the new crc values to property file
-            compGame.WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CRC32", "0x" + SourceLogic.CRC, "Logics");
-            compGame.WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CompCRC32", "0x" + SourceLogic.CompiledCRC);
+            compGame.WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CRC32", "0x" + SourceLogic.CRC.ToString("x8"), "Logics");
+            compGame.WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CompCRC32", "0x" + SourceLogic.CompiledCRC.ToString("x8"));
 
             //done with the temp resource
             tmpLogRes.Unload();
@@ -901,7 +902,7 @@ namespace WinAGI.Engine
                                             //return success
             return true;
         } //endfunction
-        static internal string ArgTypeName(ArgTypeEnum ArgType)
+        internal static string ArgTypeName(ArgTypeEnum ArgType)
         {
             switch (ArgType) {
             case atNum:       //i.e. numeric Value
@@ -930,7 +931,7 @@ namespace WinAGI.Engine
                 return "";
             }
         }
-        static internal void CheckResFlagUse(byte ArgVal)
+        internal static void CheckResFlagUse(byte ArgVal)
         {
             //if error level is low, don't do anything
             if (ErrorLevel == leLow) {
@@ -2186,7 +2187,7 @@ namespace WinAGI.Engine
                     tdNewDefine.Name = Left(strCurrentLine, strCurrentLine.IndexOf(" ") - 1).Trim();
                     tdNewDefine.Value = Right(strCurrentLine, strCurrentLine.Length - strCurrentLine.IndexOf(" ")).Trim();
                     //validate define name
-                    DefineNameCheck chkName = compGame.agGlobals.ValidateDefName(tdNewDefine.Name);
+                    DefineNameCheck chkName = compGame.agGlobals.ValidateDefName(tdNewDefine);
                     //some name errors are only warnings if error level is medium or low
                     if (ErrorLevel == leMedium) {
                         //check for name warnings
@@ -2611,23 +2612,25 @@ namespace WinAGI.Engine
         } //endfunction
         static internal void AddWarning(int WarningNum, string WarningText = "")
         {
-            //warning elements are separated by pipe character
-            //WarningsText is in format:
-            //  number|warningtext|line|module
-            //
             //(number, line and module only have meaning for logic warnings
             // other warnings generated during a game compile will use
             // same format, but use -- for warning number, line and module)
 
             //if no text passed, use the default resource string
-            string evWarn;
             if (WarningText.Length == 0) {
                 WarningText = LoadResString(WarningNum);
             }
             //only add if not ignoring
             if (!agNoCompWarn[WarningNum - 5000]) {
-                evWarn = WarningNum.ToString() + "|" + WarningText + "|" + (lngErrLine + 1).ToString() + "|" + (strModule.Length != 0 ? strModule : "");
-                Raise_LogicCompileEvent(evWarn, bytLogComp);
+                TWarnInfo tmpWarn = new()
+                {
+                    Type = EWarnType.ecCompWarn,
+                    WarningNum = WarningNum,
+                    Line = lngErrLine,
+                    Module = strModule,
+                    Text = WarningText
+                };
+                Raise_CompileLogicEvent(bytLogComp, tmpWarn);
             }
         }
         static internal bool CompileIf()

@@ -32,7 +32,7 @@ namespace WinAGI.Engine
         internal static TDefine[] agResStr = new TDefine[1];     //  1: just prompt (s0)  
         internal static TDefine[] agResColor = new TDefine[16];  // 16: text of color indices
         internal static bool agSierraSyntax = false;
-
+        internal static string agDefSrcExt = ".lgc";
         public static string ArgTypePrefix(byte index)
         {
             if (index > 8) {
@@ -271,6 +271,24 @@ namespace WinAGI.Engine
             get;
             set;
         }
+        public static string DefaultSrcExt
+        {
+            get
+            {
+                return agDefSrcExt;
+            }
+            set
+            {
+                //must start with a period
+                if (value[0] != 46) {
+                    agDefSrcExt = "." + value;
+                }
+                else {
+                    agDefSrcExt = value;
+                }
+            }
+        }
+
         public static bool SpecialSyntax
         {
             get;
@@ -300,7 +318,7 @@ namespace WinAGI.Engine
         {
             get
             {
-                return agSrcExt;
+                return agSrcFileExt;
             }
             set
             {
@@ -310,10 +328,10 @@ namespace WinAGI.Engine
                 }
                 //must start with a period
                 if (value[0] != '.') {
-                    agSrcExt = "." + value;
+                    agSrcFileExt = "." + value;
                 }
                 else {
-                    agSrcExt = value;
+                    agSrcFileExt = value;
                 }
             }
         }

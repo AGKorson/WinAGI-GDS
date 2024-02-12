@@ -68,15 +68,10 @@ namespace WinAGI.Engine
                 //no properties to load; save default ID
                 ID = "Picture" + ResNum;
                 this.parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Pictures");
-                //load resource to get size
-                Load();
-                this.parent.WriteGameSetting("Picture" + ResNum, "Size", Size.ToString());
-                Unload();
             }
             else {
-                //get description, size and other properties from wag file
+                //get description and other properties from wag file
                 mDescription = this.parent.agGameProps.GetSetting("Picture" + ResNum, "Description", "");
-                Size = parent.agGameProps.GetSetting("Picture" + ResNum, "Size", -1);
             }
         }
         void ResPropChange(object sender, AGIResPropChangedEventArgs e)
@@ -122,7 +117,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -144,7 +139,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -166,7 +161,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -188,7 +183,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -210,7 +205,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -257,7 +252,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -281,7 +276,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -303,7 +298,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -325,7 +320,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -342,7 +337,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -356,7 +351,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -390,7 +385,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -399,7 +394,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(621))
                 {
-                    HResult = 621
+                    HResult = WINAGI_ERR + 621
                 };
                 throw e;
             }
@@ -443,7 +438,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -452,7 +447,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(621))
                 {
-                    HResult = 621
+                    HResult = WINAGI_ERR + 621
                 };
                 throw e;
             }
@@ -493,7 +488,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -502,7 +497,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(621))
                 {
-                    HResult = 621
+                    HResult = WINAGI_ERR + 621
                 };
                 throw e;
             }
@@ -527,7 +522,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -536,7 +531,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(621))
                 {
-                    HResult = 621
+                    HResult = WINAGI_ERR + 621
                 };
                 throw e;
             }
@@ -561,7 +556,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -570,7 +565,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(621))
                 {
-                    HResult = 621
+                    HResult = WINAGI_ERR + 621
                 };
                 throw e;
             }
@@ -613,7 +608,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 0
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -659,7 +654,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -728,7 +723,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -756,7 +751,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -828,9 +823,6 @@ namespace WinAGI.Engine
                 }
                 //check for errors
             }
-
-            parent.WriteGameSetting("Picture" + Number, "Size", Size.ToString(), "Pictures");
-
             //reset flag
             mIsDirty = false;
         }
@@ -911,7 +903,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -923,7 +915,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }

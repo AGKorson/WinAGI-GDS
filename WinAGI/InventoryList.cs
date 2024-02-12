@@ -48,9 +48,11 @@ namespace WinAGI.Engine
             strErrSource = "WINAGI.agiObjectFile";
             mMaxScreenObjects = 16;
             //add placeholder for item 0
-            tmpItem = new InventoryItem();
-            tmpItem.ItemName = "?";
-            tmpItem.Room = 0;
+            tmpItem = new InventoryItem
+            {
+                ItemName = "?",
+                Room = 0
+            };
             tmpItem.SetParent(this);
             mItems.Add(tmpItem);
         }
@@ -105,7 +107,7 @@ namespace WinAGI.Engine
                     theDir = parent.agGameDir;
                 }
                 try {
-                    if (File.Exists(theDir + "OBJECT.amg")) ;
+                    if (File.Exists(theDir + "OBJECT.amg"))
                     {
                         File.Delete(theDir + "OBJECT.amg");
                     }
@@ -180,7 +182,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void Export(string ExportFile, int FileType, bool ResetDirty = true)
+        public void Export(string ExportFile, bool ResetDirty = true)
         {
             //exports the list of inventory objects
             //  filetype = 0 means AGI OBJECT file
@@ -192,14 +194,7 @@ namespace WinAGI.Engine
                 throw new Exception(LoadResString(563));
             }
             try {
-                switch (FileType) {
-                case 0:  //compile agi OBJECT file
-                    Compile(ExportFile);
-                    break;
-                case 1:  //create WinAGI Object list
-                    CompileWinAGI(ExportFile);
-                    break;
-                }
+                Compile(ExportFile);
             }
             catch (Exception) {
                 //return error condition
@@ -214,88 +209,6 @@ namespace WinAGI.Engine
                 //save filename
                 mResFile = ExportFile;
             }
-        }
-        public void CompileWinAGI(string CompileFile)
-        {
-            /*
-        'items are saved with the description and room number
-        'of each item (separated by a tab character) on a separate line
-        'first line is version identifier
-        'file description is saved at end of words
-
-        string strTempFile
-        AGIInventoryItem tmpItem
-
-        On Error GoTo ErrHandler
-
-        'if no name
-        if (LenB(CompileFile) == 0) {
-          On Error GoTo 0
-          'raise error
-          throw new Exception(LoadResString(615));
-          return;
-        }
-
-        'get temporary file
-        strTempFile = Path.GetTempFileName();
-
-        'open file for output
-        intFile = FreeFile()
-        Open strTempFile output
-        'print version
-        Print #intFile, WINAGI_VERSION
-
-        'print max screen objects
-        Print #intFile, mMaxScreenObjects
-
-        'print item description and room for each object
-        foreach (tmpItem In Me
-          Print #intFile, tmpItem.ItemName + vbTab + CStr(tmpItem.Room)
-        Next
-
-        'if there is a description
-        if (LenB(mDescription) != 0) {
-          'print eof marker
-          Print #intFile, Chr$(255) + Chr$(255)
-          'print description
-          Print #intFile, mDescription
-        }
-
-        'close file
-        Close intFile
-
-        'if CompileFile exists
-        if (File.Exists(CompileFile)) {
-          'delete it
-          Kill CompileFile
-          Err.Clear
-        }
-
-        'copy tempfile to CompileFile
-        FileCopy strTempFile, CompileFile
-
-        'delete temp file
-        Kill strTempFile
-        Err.Clear
-
-        'if not in a game,
-        if (!mInGame) {
-          'change resfile
-          mResFile = CompileFile
-          'mark as clean
-          mIsDirty = false
-        }
-      return;
-
-      ErrHandler:
-        'close file
-        Close intFile
-        'erase the temp file
-        Kill CompileFile
-        Err.Clear
-        'return error condition
-        throw new Exception(LoadResString(582));
-            */
         }
         public bool InGame
         {
@@ -481,120 +394,6 @@ namespace WinAGI.Engine
             mLoading = false;
             return true;
         }
-        internal bool LoadWinAGIFile(string LoadFile)
-        {
-            //attempts to load a winAGI file
-            //if unsuccessful, returns false
-            string strInput, strItem = "", strRoom;
-            byte bytRoom;
-            int lngPos;
-            //attempt to open the WinAGI resource
-            FileStream fsObj;
-            StreamReader srObj;
-            try {
-                //attempt to open the WinAGI resource
-                fsObj = new FileStream(LoadFile, FileMode.Open);
-                srObj = new StreamReader(fsObj);
-            }
-            catch (Exception) {
-                //ignore and fail
-                return false;
-            }
-            //first line should be loader
-            strInput = srObj.ReadLine();
-            switch (strInput) {
-            case WINAGI_VERSION:
-            case WINAGI_VERSION_1_2:
-            case WINAGI_VERSION_1_0:
-            case WINAGI_VERSION_BETA:
-                //ok
-                break;
-            default:
-                //any 1.2.x is ok
-                if (Left(strInput, 4) != "1.2.") {
-                    //close file
-                    fsObj.Dispose();
-                    srObj.Dispose();
-                    return false;
-                }
-                break;
-            }
-            //never encrypt
-            mEncrypted = false;
-            //get max screen objects from first line
-            strInput = srObj.ReadLine();
-            //if within bounds
-            if (Val(strInput) > 255) {
-                mMaxScreenObjects = 255;
-            }
-            else if (Val(strInput) < 1) {
-                mMaxScreenObjects = 1;
-            }
-            else {
-                mMaxScreenObjects = (byte)Val(strInput);
-            }
-            //set loading flag
-            mLoading = true;
-            //read in each item
-            while (!srObj.EndOfStream) {
-                //get input string
-                strInput = srObj.ReadLine();
-                //check for end of input characters
-                if (strInput == ((char)255 + (char)255).ToString()) {
-                    break;
-                }
-                //check for tab character
-                lngPos = strInput.IndexOf('\t');
-                //if tab character found
-                if (lngPos >= 0) {
-                    //strip off room number
-                    strRoom = Right(strInput, strInput.Length - lngPos);
-                    strItem = Left(strInput, lngPos - 1);
-                    //convert to byte Value
-                    if (Val(strRoom) > 255) {
-                        bytRoom = 255;
-                    }
-                    else if (Val(strRoom) < 0) {
-                        bytRoom = 0;
-                    }
-                    else {
-                        bytRoom = (byte)Val(strRoom);
-                    }
-                }
-                else {
-                    //no room included; assume zero
-                    bytRoom = 0;
-                }
-                //add without key (to avoid duplicate key error)
-                Add(strItem, bytRoom);
-            } //loop
-
-            //if any lines left
-            if (!srObj.EndOfStream) {
-                //get first remaining line
-                strItem = srObj.ReadLine();
-                //if there are additional lines, add them as a description
-                while (!srObj.EndOfStream) {
-                    strInput = srObj.ReadLine();
-                    strItem += NEWLINE + strInput;
-                }
-                //save description
-                mDescription = strItem;
-            }
-            //close file
-            fsObj.Dispose();
-            srObj.Dispose();
-            //if no objects loaded
-            if (mItems.Count == 0) {
-                //add default object
-                Add("?", 0);
-            }
-            //clear loading flag
-            mLoading = false;
-            //set loaded flag
-            mLoaded = true;
-            return true;
-        }
         public InventoryItem Add(string NewItem, byte Room)
         {
             //adds new item to object list
@@ -734,8 +533,6 @@ namespace WinAGI.Engine
         public void Load(string LoadFile = "")
         {
             //this function loads inventory objects for the game
-            //if loading from a Sierra game, it extracts items
-            //from the OBJECT file;
             //if not in a game, LoadFile must be specified
 
             //if already loaded,
@@ -768,26 +565,9 @@ namespace WinAGI.Engine
                     //error
                     throw new Exception(LoadResString(524).Replace(ARG1, LoadFile));
                 }
-                //if extension is .ago then
-                if ((Right(LoadFile, 4)).ToLower() == ".ago") {
-                    //assume winagi format
-                    if (!LoadWinAGIFile(LoadFile)) {
-                        //try sierra format
-                        if (!LoadSierraFile(LoadFile)) {
-                            //error
-                            throw new Exception(LoadResString(692));
-                        }
-                    }
-                }
-                else {
-                    //assume sierra format
-                    if (!LoadSierraFile(LoadFile)) {
-                        //try winagi format
-                        if (!LoadWinAGIFile(LoadFile)) {
-                            //error
-                            throw new Exception(LoadResString(692));
-                        }
-                    }
+                if (!LoadSierraFile(LoadFile)) {
+                    //error
+                    throw new Exception(LoadResString(692));
                 }
                 //save filename
                 mResFile = LoadFile;
@@ -828,7 +608,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void Save(string SaveFile = "", int FileType = 0)
+        public void Save(string SaveFile = "")
         {
             //saves the list of inventory objects
             //  filetype = 0 means AGI OBJECT file
@@ -840,7 +620,7 @@ namespace WinAGI.Engine
                 //error
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -860,19 +640,11 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(615))
                     {
-                        HResult = 615
+                        HResult = WINAGI_ERR + 615
                     };
                     throw e;
                 }
-
-                switch (FileType) {
-                case 0:  //compile agi OBJECT file
-                    Compile(SaveFile);
-                    break;
-                case 1:  //create WinAGI Object list
-                    CompileWinAGI(SaveFile);
-                    break;
-                }
+                Compile(SaveFile);
 
                 //save filename
                 mResFile = SaveFile;
@@ -891,7 +663,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -941,7 +713,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -962,7 +734,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -997,10 +769,9 @@ namespace WinAGI.Engine
             int Dwidth;
             //if no file
             if (CompileFile.Length == 0) {
-
                 Exception e = new(LoadResString(616))
                 {
-                    HResult = 616
+                    HResult = WINAGI_ERR + 616
                 };
                 throw e;
             }
@@ -1011,12 +782,8 @@ namespace WinAGI.Engine
             }
 
             //PC version (most common) has 3 bytes per item in offest table; amiga version has four bytes per item
-            if (mAmigaOBJ) {
-                Dwidth = 4;
-            }
-            else {
-                Dwidth = 3;
-            }
+            Dwidth = mAmigaOBJ ? 4 : 3;
+
             //calculate min filesize
             //(offset table size plus header + null obj '?')
             lngFileSize = (mItems.Count + 1) * Dwidth + 2;
@@ -1050,6 +817,8 @@ namespace WinAGI.Engine
             bytTemp[lngPos + 1] = 0;
             lngPos += 2;
             //now step through all items
+            // TODO: should not assume first obj is null??? hmmmm... not sure
+            // (i.e. start at 1? or 0?)
             for (i = 1; i < mItems.Count - 1; i++) {
                 //if object is //?//
                 if (mItems[i].ItemName == "?") {

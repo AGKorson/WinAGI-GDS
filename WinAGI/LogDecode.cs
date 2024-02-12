@@ -52,10 +52,29 @@ namespace WinAGI.Engine
         const string D_TKN_COMMENT = "[ ";
         const string D_TKN_MESSAGE = "#message %1 %2";
 
+        internal static string DecodeGameID
+        {
+            get;
+            set;
+        }
+
+        public static byte IndentLevel
+        {
+            get;
+            set;
+        }
+
+        internal static string INDENT
+        {
+            get {
+                return "".PadLeft(IndentLevel);
+            }
+        }
+
         static bool blnWarning;
         static string strWarning;
 
-        internal static string DecodeLogic(Logic SourceLogic)
+        internal static string DecodeLogic(Logic SourceLogic, int LogNum = -1)
         {
             // converts logic bytecode into decompiled source, converting extended
             // characters to correct encoding

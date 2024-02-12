@@ -167,6 +167,15 @@ namespace WinAGI.Engine
             // if no error conditions, it's OK
             return ncOK;
         }
+
+        internal DefineNameCheck ValidateDefName(string CheckName)
+        {
+            TDefine CheckDef = new()
+            {
+                Name = CheckName
+            };
+            return ValidateDefName(CheckDef);
+        }
         internal DefineValueCheck ValidateDefValue(TDefine TestDefine)
         {
             //validates that TestDefine.Value is a valid define Value

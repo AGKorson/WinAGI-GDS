@@ -88,15 +88,10 @@ namespace WinAGI.Engine
                 //no properties to load; save default ID
                 ID = "Sound" + ResNum;
                 parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Sounds");
-                //load resource to get size
-                Load();
-                parent.WriteGameSetting("Sound" + ResNum, "Size", Size.ToString());
-                Unload();
             }
             else {
-                //get description, size and other properties from wag file
+                //get description and other properties from wag file
                 mDescription = parent.agGameProps.GetSetting("Sound" + ResNum, "Description", "");
-                Size = parent.agGameProps.GetSetting("Sound" + ResNum, "Size", -1);
                 //length is undefined until sound is built
                 mLength = -1;
             }
@@ -136,7 +131,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(596))
                 {
-                    HResult = 596
+                    HResult = WINAGI_ERR + 596
                 };
                 throw e;
             }
@@ -256,7 +251,7 @@ namespace WinAGI.Engine
 
                         Exception e = new(LoadResString(598))
                         {
-                            HResult = 598
+                            HResult = WINAGI_ERR + 598
                         };
                         throw e;
                     }
@@ -311,7 +306,7 @@ namespace WinAGI.Engine
 
                 Exception eR = new(LoadResString(565).Replace(ARG1, e.Message))
                 {
-                    HResult = 565
+                    HResult = WINAGI_ERR + 565
                 };
                 throw eR;
             }
@@ -372,7 +367,7 @@ namespace WinAGI.Engine
             catch (Exception e) {
                 Exception eR = new(LoadResString(566).Replace(ARG1, e.Message))
                 {
-                    HResult = 566
+                    HResult = WINAGI_ERR + 566
                 };
                 throw eR;
             }
@@ -399,7 +394,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -456,7 +451,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -469,7 +464,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(629))
                 {
-                    HResult = 629
+                    HResult = WINAGI_ERR + 629
                 };
                 throw e;
             }
@@ -527,7 +522,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -730,7 +725,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(681))
                 {
-                    HResult = 681
+                    HResult = WINAGI_ERR + 681
                 };
                 throw e;
             }
@@ -1028,7 +1023,7 @@ namespace WinAGI.Engine
 
                             Exception e = new(LoadResString(681))
                             {
-                                HResult = 681
+                                HResult = WINAGI_ERR + 681
                             };
                             throw e;
                         }
@@ -1083,7 +1078,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -1190,7 +1185,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(598))
                 {
-                    HResult = 598
+                    HResult = WINAGI_ERR + 598
                 };
                 throw e;
             } //switch
@@ -1209,7 +1204,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 0
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -1281,7 +1276,6 @@ namespace WinAGI.Engine
                     // pass along any errors
                     throw;
                 }
-                parent.WriteGameSetting("Sound" + mResNum, "Size", mSize, "Sounds");
                 //mark as clean
                 mIsDirty = false;
             }

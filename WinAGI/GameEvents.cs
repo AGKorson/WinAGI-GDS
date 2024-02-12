@@ -1,45 +1,46 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Shell.Interop;
+using System;
 
 namespace WinAGI.Engine
 {
     public class CompileGameEventArgs
     {
-        public CompileGameEventArgs(ECStatus status, AGIResType restype, byte num, string errString)
+        public CompileGameEventArgs(ECStatus status, AGIResType restype, byte num, TWarnInfo errInfo)
         {
-            cStatus = status;
+            CStatus = status;
             ResType = restype;
             ResNum = num;
-            ErrString = errString;
+            ErrorInfo = errInfo;
         }
-        public ECStatus cStatus { get; }
+        public ECStatus CStatus { get; }
         public AGIResType ResType { get; }
         public byte ResNum { get; }
-        public string ErrString { get; }
+        public TWarnInfo ErrorInfo { get; }
     }
 
     public class LoadGameEventArgs
     {
-        public LoadGameEventArgs(ELStatus status, AGIResType restype, byte num, string errString)
+        public LoadGameEventArgs(ELStatus status, AGIResType restype, byte num, TWarnInfo loadinfo)
         {
-            lStatus = status;
+            LoadStatus = status;
             ResType = restype;
             ResNum = num;
-            ErrString = errString;
+            LoadInfo = loadinfo;
         }
-        public ELStatus lStatus { get; }
+        public ELStatus LoadStatus { get; }
         public AGIResType ResType { get; }
         public byte ResNum { get; }
-        public string ErrString { get; }
+        public TWarnInfo LoadInfo { get; }
     }
 
     public class CompileLogicEventArgs
     {
-        public CompileLogicEventArgs(string warning, byte num)
+        public CompileLogicEventArgs(byte num, TWarnInfo compInfo)
         {
-            Warning = warning;
+            Info = compInfo;
             ResNum = num;
         }
-        public string Warning { get; }
+        public TWarnInfo Info { get; }
         public byte ResNum { get; }
     }
 
@@ -60,22 +61,24 @@ namespace WinAGI.Engine
         internal delegate void CompileLogicEventHandler(object sender, CompileLogicEventArgs e);
         // Declare the event.
         internal static event CompileLogicEventHandler CompileLogicStatus;
-
-        internal static void Raise_CompileGameEvent(ECStatus cStatus, AGIResType ResType, byte ResNum, string ErrString)
+        internal static void Raise_CompileGameEvent(ECStatus cStatus, AGIResType ResType, byte ResNum, TWarnInfo CompileInfo)
         {
-            // Raise the event in a thread-safe manner using the ?. operator.
-            CompileGameStatus?.Invoke(null, new CompileGameEventArgs(cStatus, ResType, ResNum, ErrString));
+            //// if error, assume cancel, but it can be overridden by event handler for Logic errors
+            //if (cStatus == ECStatus.csLogicError || cStatus == ECStatus.csResError) {
+            //    AGIGame.agCancelComp = true;
+            //}
+           // Raise the event in a thread-safe manner using the ?. operator.
+            CompileGameStatus?.Invoke(null, new CompileGameEventArgs(cStatus, ResType, ResNum, CompileInfo));
         }
-        internal static void Raise_LoadGameEvent(ELStatus lStatus, AGIResType ResType, byte ResNum, string ErrString)
+        internal static void Raise_LoadGameEvent(ELStatus lStatus, AGIResType ResType, byte ResNum, TWarnInfo LoadInfo)
         {
             // Raise the event in a thread-safe manner using the ?. operator.
-            LoadGameStatus?.Invoke(null, new LoadGameEventArgs(lStatus, ResType, ResNum, ErrString));
+            LoadGameStatus?.Invoke(null, new LoadGameEventArgs(lStatus, ResType, ResNum, LoadInfo));   
         }
-
-        internal static void Raise_LogicCompileEvent(string strWarning, byte LogicNum)
+        internal static void Raise_CompileLogicEvent(byte LogicNum, TWarnInfo CompInfo)
         {
             // Raise the event in a thread-safe manner using the ?. operator.
-            CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(strWarning, LogicNum));
+            CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(LogicNum, CompInfo));
         }
     }
 }

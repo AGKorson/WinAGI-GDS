@@ -42,7 +42,11 @@ namespace WinAGI.Engine
             foreach (AGIResource tmpGameRes in tmpResCol) {
                 CurResNum = tmpGameRes.Number;
                 //update status
-                Raise_CompileGameEvent(ECStatus.csAddResource, ResType, CurResNum, "");
+                TWarnInfo tmpWarn = new()
+                {
+                    Type = EWarnType.ecCompWarn
+                };
+                Raise_CompileGameEvent(ECStatus.csAddResource, ResType, CurResNum, tmpWarn);
                 //check for cancellation
                 if (!tmpGameRes.parent.agCompGame) {
                     tmpGameRes.parent.CompleteCancel();
@@ -68,7 +72,8 @@ namespace WinAGI.Engine
 
                             if (RebuildOnly) {
                                 //note it
-                                Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, "Unable to load " + tmpGameRes.ID + " (" + e.Message + ")");
+                                tmpWarn.Text = "Unable to load " + tmpGameRes.ID + " (" + e.Message + ")";
+                                Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
                                 //check for cancellation
                                 if (!tmpGameRes.parent.agCompGame) {
                                     tmpGameRes.parent.CompleteCancel();
@@ -92,7 +97,7 @@ namespace WinAGI.Engine
                                     case AGIResType.rtPicture:
                                     case AGIResType.rtView:
                                         //check for invalid view data errors
-                                        switch (e.HResult) {
+                                        switch (e.HResult - WINAGI_ERR) {
                                         case 537:
                                         case 548:
                                         case 552:
@@ -124,7 +129,9 @@ namespace WinAGI.Engine
                                     //if error (warning not set)
                                     if (!blnWarning) {
                                         //note the error
-                                        Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, strMsg);
+                                        tmpWarn.Type = EWarnType.ecCompWarn;
+                                        tmpWarn.Text = strMsg;
+                                        Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
                                         //check for cancellation
                                         if (!tmpGameRes.parent.agCompGame) {
                                             tmpGameRes.parent.CompleteCancel();
@@ -168,7 +175,9 @@ namespace WinAGI.Engine
                         //if a warning
                         if (blnWarning) {
                             //note the warning
-                            Raise_CompileGameEvent(ECStatus.csWarning, ResType, CurResNum, "--|" + strMsg + "|--|--");
+                            tmpWarn.Type = EWarnType.ecCompWarn;
+                            tmpWarn.Text = strMsg;
+                            Raise_CompileGameEvent(ECStatus.csWarning, ResType, CurResNum, tmpWarn);
                             //check for cancellation
                             if (!tmpGameRes.parent.agCompGame) {
                                 tmpGameRes.parent.CompleteCancel();
@@ -186,10 +195,12 @@ namespace WinAGI.Engine
                                 Compiler.CompileLogic(tmpLog);
                             }
                             catch (Exception e) {
-                                switch (e.HResult) {
+                                switch (e.HResult - WINAGI_ERR) {
                                 case 635: //compile error
                                           //raise compile event
-                                    Raise_CompileGameEvent(ECStatus.csLogicError, ResType, CurResNum, e.Message);
+                                    tmpWarn.Type = EWarnType.ecCompWarn;
+                                    tmpWarn.Text = e.Message;
+                                    Raise_CompileGameEvent(ECStatus.csLogicError, ResType, CurResNum, tmpWarn);
                                     //check for cancellation
                                     if (!tmpGameRes.parent.agCompGame) {
                                         tmpGameRes.parent.CompleteCancel();
@@ -202,7 +213,9 @@ namespace WinAGI.Engine
                                     break;
                                 default:
                                     //any other error; note it
-                                    Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, "Unable to compile Logic (" + e.Message + ")");
+                                    tmpWarn.Type = EWarnType.ecCompWarn;
+                                    tmpWarn.Text = "Unable to compile Logic (" + e.Message + ")";
+                                    Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
                                     //check for cancellation
                                     if (!tmpGameRes.parent.agCompGame) {
                                         tmpGameRes.parent.CompleteCancel();
@@ -244,7 +257,7 @@ namespace WinAGI.Engine
 
                             Exception eR = new(LoadResString(638).Replace(Common.Base.ARG1, e.Message))
                             {
-                                HResult = 638
+                                HResult = WINAGI_ERR + 638
                             };
                             throw eR;
                         }
@@ -262,7 +275,9 @@ namespace WinAGI.Engine
                     }
                     catch (Exception e) {
                         //note it
-                        Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, "Unable to add Logic resource to VOL file (" + e.Message + ")");
+                        tmpWarn.Type = EWarnType.ecCompWarn;
+                        tmpWarn.Text = "Unable to add Logic resource to VOL file (" + e.Message + ")";
+                        Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
                         //check for cancellation
                         if (!tmpGameRes.parent.agCompGame) {
                             tmpGameRes.parent.CompleteCancel();
@@ -537,7 +552,7 @@ namespace WinAGI.Engine
 
             Exception e = new(LoadResString(593))
             {
-                HResult = 593
+                HResult = WINAGI_ERR + 593
             };
             throw e;
         }
@@ -828,7 +843,7 @@ namespace WinAGI.Engine
 
                         Exception eR = new(LoadResString(640))
                         {
-                            HResult = 640
+                            HResult = WINAGI_ERR + 640
                         };
                         throw eR;
                     }
@@ -847,7 +862,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(593))
                 {
-                    HResult = 0
+                    HResult = WINAGI_ERR + 593
                 };
                 throw e;
             }

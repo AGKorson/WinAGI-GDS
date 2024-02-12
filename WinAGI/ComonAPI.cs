@@ -706,7 +706,7 @@ namespace WinAGI.Common
         internal const string ARG2 = "%2";
         internal const string ARG3 = "%3";
         internal const string sAPPNAME = "WinAGI Game Development System 2.1";
-        internal const string COPYRIGHT_YEAR = "2021";
+        internal const string COPYRIGHT_YEAR = "2024";
         internal static uint[] CRC32Table = new uint[256];
         internal static bool CRC32Loaded;
         internal static readonly string CTRL_CHARS; // contains all chars <32; used for comparisons
@@ -763,21 +763,21 @@ namespace WinAGI.Common
             if (length >= strIn.Length)
                 return strIn;
             else
-                return strIn.Substring(strIn.Length - length);
+                return strIn[^length..];
         }
         internal static string Left(string strIn, int length)
         {
             if (length >= strIn.Length)
                 return strIn;
             else
-                return strIn.Substring(0, length);
+                return strIn[..length];
         }
         internal static string Mid(string strIn, int pos, int length)
         {
             // mimic VB mid function; if length is too long, return
             // max amount
             if (pos + length > strIn.Length)
-                return strIn.Substring(pos, strIn.Length - pos);
+                return strIn[pos..];
             return strIn.Substring(pos, length);
         }
         internal static string MultStr(string strIn, int NumCopies)

@@ -61,7 +61,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(602))
                 {
-                    HResult = 602
+                    HResult = WINAGI_ERR + 602
                 };
                 throw e;
             }
@@ -127,7 +127,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(669))
                 {
-                    HResult = 669
+                    HResult = WINAGI_ERR + 669
                 };
                 throw e;
             }
@@ -193,7 +193,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(602))
                 {
-                    HResult = 0
+                    HResult = WINAGI_ERR + 602
                 };
                 throw e;
             }

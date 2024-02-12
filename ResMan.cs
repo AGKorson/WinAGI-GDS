@@ -917,9 +917,6 @@ namespace WinAGI.Editor
         }
         public static void InitializeResMan()
         {
-            //initialize main WinAGI functions
-            InitWinAGI();
-
             bool blnCourier = false, blnArial = false;
             bool blnTimes = false, blnConsolas = false;
             //set default fonts

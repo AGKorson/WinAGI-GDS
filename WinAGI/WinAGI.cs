@@ -3,15 +3,18 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using static System.Windows.Forms.DataFormats;
 using static WinAGI.Common.Base;
+using static WinAGI.Editor.Base;
 namespace WinAGI.Engine
 {
+    using System.Data;
     using System.Diagnostics;
     using System.Drawing;
 
     /***************************************************************
     WinAGI Game Engine
-    Copyright (C) 2020 Andrew Korson
+    Copyright (C) 2005 - 2024 Andrew Korson
 
     This program is free software; you can redistribute it and/or 
     modify it under the terms of the GNU General Public License as
@@ -45,6 +48,9 @@ namespace WinAGI.Engine
         rtGame = 9,
         rtText = 10,
         rtWarnings = 11,
+        rtTextScreen = 12,
+        rtTODOEntry = 99, //refactor error/warnings functions
+        rtDecompWarn = 100, // add decompile warnings to warning list
         rtNone = 255
     };
     public enum AGIColorIndex
@@ -122,19 +128,29 @@ namespace WinAGI.Engine
         csCompileComplete,
         csWarning,
         csResError,
+        csLogicCompiled,
         csLogicError,
         csCanceled
     };
     public enum ELStatus
     { //used to update editor during a game load
         lsInitialize,
-        lsDecompiling,
+        lsValidating, //add check for dirty source code
         lsPropertyFile,
         lsResources,
-        lsWarning,
-        lsError,
-        lsFinalizing
+        lsDecompiling,// decompiling logics during an import
+        lsCheckCRC,    // checking CRCs during load
+        lsFinalizing,
+        lsLoadWarning //non-critical error/warning encountered during loading
     };
+    public enum ELoadWarningSource
+    {
+        lwNA,            // not applicable
+        lwDIR,           // directory related error/warning
+        lwVol,           // VOL related error/warning
+        lwResource,      // resource related error
+        lwOther          // any other error/warning
+    }
     public enum SoundFormat
     {
         sfUndefined,
@@ -142,11 +158,6 @@ namespace WinAGI.Engine
         sfMIDI,   //only pc and IIgs can be saved as midi
         sfScript, //only pc can be exported as script
         sfWAV     //only IIgs pcm sounds can be exported as wav
-    };
-    public enum LogEventType
-    {
-        leWarning,
-        leError
     };
     public enum ArgTypeEnum
     {
@@ -160,7 +171,14 @@ namespace WinAGI.Engine
         atWord = 7,     //w## -- word argument (that user types in)
         atCtrl = 8,     //c##
         atDefStr = 9,   //defined string; could be msg, inv obj, or vocword
-        atVocWrd = 10   //vocabulary word; NOT word argument
+        atVocWrd = 10,   //vocabulary word; NOT word argument
+        atActionCmd = 11, //action command synonym
+        atTestCmd = 12,  //test command synonym
+        atObj = 13      // dual object type for Sierra Syntax
+
+        //if using Sierra syntax, only valid types are:
+        // atNum, atVar, atFlag,
+        //atDefStr[msg only], atVocWrd, atActionCmd, atTestCmd
     }
     public enum ResDefGroup
     {
@@ -207,6 +225,16 @@ namespace WinAGI.Engine
         File,
         Directory,
     }
+    public enum EWarnType
+    {
+        ecError,
+        ecLoadWarn,
+        ecCompWarn,
+        ecResWarn,
+        ecTODO,
+        ecCompOK,
+        ecDecompWarn,
+    }
     #endregion
     //structs
     #region
@@ -238,7 +266,19 @@ namespace WinAGI.Engine
         public ArgTypeEnum Type;
         public string Comment;
     }
-    public struct CommandStruct
+
+    public struct TWarnInfo
+    {
+        public EWarnType Type;
+        public ELoadWarningSource LWType ;
+        public long WarningNum;
+        public long Line;
+        public string ID;
+        public string Text;
+        public string Module;
+    }
+        
+        public struct CommandStruct
     {
         public string Name;
         public ArgTypeEnum[] ArgType; //7
@@ -281,55 +321,11 @@ namespace WinAGI.Engine
         internal const int MAX_VOLSIZE = 1047552;// '= 1024 * 1023
         internal const string WORD_SEPARATOR = " | ";
         //current version
-        internal const string WINAGI_VERSION = "3.0.1";
+        internal const string WINAGI_VERSION = "3.0";
         // old versions
         internal const string WINAGI_VERSION_1_2 = "WINAGI v1.2     ";
         internal const string WINAGI_VERSION_1_0 = "WINAGI v1.0     ";
         internal const string WINAGI_VERSION_BETA = "1.0 BETA        ";
-        // old version property constants for loading/saving game + resource properties
-        internal const int SP_SEPARATOR = 128;
-        internal const int PC_GAMEDESC = 129;
-        internal const int PC_GAMEAUTHOR = 130;
-        internal const int PC_GAMEID = 131;
-        internal const int PC_INTVERSION = 132;
-        internal const int PC_GAMELAST = 133;
-        internal const int PC_GAMEVERSION = 134;
-        internal const int PC_GAMEABOUT = 135;
-        internal const int PC_GAMEEXEC = 136;
-        internal const int PC_RESDIR = 137;
-        internal const int PC_DEFSYNTAX = 138; //not used anymore...
-        internal const int PC_INVOBJDESC = 144;
-        internal const int PC_VOCABWORDDESC = 160;
-        internal const int PC_PALETTE = 172;
-        internal const int PC_USERESNAMES = 180;
-        internal const int PC_LOGIC = 192;
-        internal const int PC_PICTURE = 208;
-        internal const int PC_SOUND = 224;
-        internal const int PC_VIEW = 240;
-        internal const int PT_ID = 0;
-        internal const int PT_DESC = 1;
-        internal const int PT_COMPCRC32 = 2;
-        internal const int PT_CRC32 = 3;
-        internal const int PT_KEY = 4;
-        internal const int PT_INST0 = 5;
-        internal const int PT_INST1 = 6;
-        internal const int PT_INST2 = 7;
-        internal const int PT_MUTE0 = 8;
-        internal const int PT_MUTE1 = 9;
-        internal const int PT_MUTE2 = 10;
-        internal const int PT_MUTE3 = 11;
-        internal const int PT_TPQN = 12;
-        internal const int PT_ROOM = 13;
-        internal const int PT_VIS0 = 14;
-        internal const int PT_VIS1 = 15;
-        internal const int PT_VIS2 = 16;
-        internal const int PT_VIS3 = 17;
-        internal const int PT_BKIMG = 18;
-        internal const int PT_BKTRANS = 19;
-        internal const int PT_BKPOS = 20;
-        internal const int PT_BKSZ = 21;
-        internal const int PT_SIZE = 254;
-        internal const int PT_ALL = 255;
         // error offset is public
         public const int WINAGI_ERR = 0x100000;
         #endregion
@@ -337,8 +333,8 @@ namespace WinAGI.Engine
         #region
         internal static string agDefResDir = "";
         internal static int defMaxVol0 = MAX_VOLSIZE;
-        internal static EGAColors defaultColorEGA = new EGAColors();
-        internal static string agSrcExt = ".lgc";
+        internal static EGAColors defaultColorEGA = new();
+        internal static string agSrcFileExt = ".lgc";
 
         //error number and string to return error values
         //from various functions/subroutines
@@ -362,7 +358,7 @@ namespace WinAGI.Engine
             {
                 // directory has to exist
                 if (!Directory.Exists(value))
-                    throw new Exception("Replace(LoadResString(630), ARG1, NewDir)");
+                    throw new Exception(LoadResString(630).Replace(ARG1, value));
 
                 agTemplateDir = CDir(value);
             }
@@ -392,16 +388,17 @@ namespace WinAGI.Engine
 
                 if (NewDir.Length == 0) {
                     //throw new Exception("380, strErrSource, "Invalid property Value"
-                    throw new Exception("Invalid property Value");
+                    throw new ArgumentOutOfRangeException("DefResDir","Empty string not allowed");
                 }
                 if (NewDir.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
                     //throw new Exception("380, strErrSource, "Invalid property Value"
-                    throw new Exception("Invalid property Value");
+                    throw new ArgumentOutOfRangeException("Invalid characters in path name");
                 }
                 //save new resdir name
                 agDefResDir = NewDir;
             }
         }
+
         public static int DefMaxVol0Size
         {
             get { return defMaxVol0; }
@@ -557,286 +554,6 @@ namespace WinAGI.Engine
             defaultColorEGA[13] = Color.FromArgb(0xFF, 0x55, 0xFF); // FF55FF = light magenta
             defaultColorEGA[14] = Color.FromArgb(0xFF, 0xFF, 0x55); // FFFF55 = yellow
             defaultColorEGA[15] = Color.FromArgb(0xFF, 0xFF, 0xFF); // FFFFFF = white
-        }
-        internal static SettingsList ConvertWag(AGIGame game, string oldWAGfile)
-        {
-            //converts a v1.2.1 propfile to current version proplist
-            //1.2.1 properties use the following format for the property file:
-            // CPRLL<data>
-            //where C= PropCode, P=PropNum, R=ResNum, LL=length of data (as integer)
-            //      <data>= property data
-            //last line of file should be version code
-
-            byte[] bytData = Array.Empty<byte>();
-            int lngCount, lngPos;
-            string strValue;
-            int i, PropSize;
-            byte ResNum, PropType;
-            byte PropCode;
-            bool blnFoundID = false, blnFoundVer = false;
-            SettingsList retval = new SettingsList(oldWAGfile);
-
-            //open old file
-            FileStream fsOldWAG = new FileStream(oldWAGfile, FileMode.Open);
-            //verify version
-            bytData = new byte[16];
-            //adjust position to compensate for length of variable
-            //: fsretval.Length - 16;
-            fsOldWAG.Read(bytData, (int)fsOldWAG.Length - 16, 16);
-            strValue = Encoding.UTF8.GetString(bytData);
-
-            //if version is incompatible
-            switch (strValue) {
-            case WINAGI_VERSION_1_2:
-            case WINAGI_VERSION_1_0:
-            case WINAGI_VERSION_BETA:
-                break;
-            //ok
-            default:
-                //return nothing
-                fsOldWAG.Dispose();
-                return retval;
-            }
-            //add header
-            retval.Lines.Add("#");
-            retval.Lines.Add("# WinAGI Game Property File");
-            retval.Lines.Add("# converted from version 1.2.1");
-            retval.Lines.Add("#");
-            retval.Lines.Add("[General]");
-            retval.Lines.Add("   WinAGIVersion = " + WINAGI_VERSION);
-
-            //don't copy version line into buffer
-            lngCount = (int)fsOldWAG.Length - 16;
-            if (lngCount > 0) {
-                bytData = new byte[lngCount];
-                fsOldWAG.Read(bytData, 0, lngCount);
-            }
-            else {
-                //set to zero
-                lngCount = 0;
-            }
-            lngPos = 0;
-            //get codes
-            while (lngPos < lngCount) {
-                //reset propval
-                strValue = "";
-                //get prop data
-                PropCode = bytData[lngPos];
-                PropType = bytData[lngPos + 1];
-                ResNum = bytData[lngPos + 2];
-                PropSize = bytData[lngPos + 3] + 256 * bytData[lngPos + 4];
-                for (i = 1; i < PropSize; i++) {
-                    strValue += (char)bytData[lngPos + 4 + i];
-                }
-                if (PropCode >= PC_LOGIC) {
-                    switch (PropCode) {
-                    case PC_LOGIC:
-                        switch (PropType) {
-                        case PT_ID:
-                            game.WriteGameSetting("Logic" + ResNum.ToString(), "ID", strValue, "Logics");
-                            break;
-                        case PT_DESC:
-                            game.WriteGameSetting("Logic" + ResNum.ToString(), "Description", strValue, "Logics");
-                            break;
-                        case PT_CRC32:
-                            game.WriteGameSetting("Logic" + ResNum.ToString(), "CRC32", "0x" + strValue, "Logics");
-                            break;
-                        case PT_COMPCRC32:
-                            game.WriteGameSetting("Logic" + ResNum.ToString(), "CompCRC32", "0x" + strValue, "Logics");
-                            break;
-                        case PT_ROOM:
-                            if (ResNum == 0) {
-                                //force to false
-                                strValue = "false";
-                            }
-                            game.WriteGameSetting("Logic" + ResNum.ToString(), "IsRoom", strValue, "Logics");
-                            break;
-                        case PT_SIZE:
-                            game.WriteGameSetting("Logic" + ResNum.ToString(), "Size", strValue, "Logics");
-                            break;
-
-                        default:
-                            //unknown code; ignore it
-                            //*'Debug.Throw exception
-                            break;
-                        }
-                        break;
-                    case PC_PICTURE:
-                        switch (PropType) {
-                        case PT_ID:
-                            game.WriteGameSetting("Picture" + ResNum.ToString(), "ID", strValue, "Pictures");
-                            break;
-                        case PT_DESC:
-                            game.WriteGameSetting("Picture" + ResNum.ToString(), "Description", strValue, "Pictures");
-                            break;
-                        case PT_SIZE:
-                            game.WriteGameSetting("Picture" + ResNum.ToString(), "Size", strValue, "Pictures");
-                            break;
-                        case PT_BKIMG:
-                            game.WriteGameSetting("Picture" + ResNum.ToString(), "BkgdImg", strValue, "Pictures");
-                            break;
-                        case PT_BKPOS:
-                            game.WriteGameSetting("Picture" + ResNum.ToString(), "BkgdPosn", strValue, "Pictures");
-                            break;
-                        case PT_BKSZ:
-                            game.WriteGameSetting("Picture" + ResNum.ToString(), "BkgdSize", strValue, "Pictures");
-                            break;
-                        case PT_BKTRANS:
-                            game.WriteGameSetting("Picture" + ResNum.ToString(), "BkgdTrans", strValue, "Pictures");
-                            break;
-                        default:
-                            //unknown code; ignore it
-                            //*'Debug.Throw exception
-                            break;
-                        }
-                        break;
-                    case PC_SOUND:
-                        switch (PropType) {
-                        case PT_ID:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "ID", strValue, "Sounds");
-                            break;
-                        case PT_DESC:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Description", strValue, "Sounds");
-                            break;
-                        case PT_SIZE:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Size", strValue, "Sounds");
-                            break;
-                        case PT_KEY:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Key", strValue, "Sounds");
-                            break;
-                        case PT_TPQN:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "TQPN", strValue, "Sounds");
-                            break;
-                        case PT_INST0:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Inst0", strValue, "Sounds");
-                            break;
-                        case PT_INST1:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Inst1", strValue, "Sounds");
-                            break;
-                        case PT_INST2:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Inst2", strValue, "Sounds");
-                            break;
-                        case PT_MUTE0:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Mute0", strValue, "Sounds");
-                            break;
-                        case PT_MUTE1:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Mute1", strValue, "Sounds");
-                            break;
-                        case PT_MUTE2:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Mute2", strValue, "Sounds");
-                            break;
-                        case PT_MUTE3:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Mute3", strValue, "Sounds");
-                            break;
-                        case PT_VIS0:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Visible0", strValue, "Sounds");
-                            break;
-                        case PT_VIS1:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Visible1", strValue, "Sounds");
-                            break;
-                        case PT_VIS2:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Visible2", strValue, "Sounds");
-                            break;
-                        case PT_VIS3:
-                            game.WriteGameSetting("Sound" + ResNum.ToString(), "Visible3", strValue, "Sounds");
-                            break;
-                        default:
-                            //unknown code; ignore it
-                            //*'Debug.Throw exception
-                            break;
-                        }
-                        break;
-                    case PC_VIEW:
-                        switch (PropType) {
-                        case PT_ID:
-                            game.WriteGameSetting("View" + ResNum.ToString(), "ID", strValue, "Views");
-                            break;
-                        case PT_DESC:
-                            game.WriteGameSetting("View" + ResNum.ToString(), "Description", strValue, "Views");
-                            break;
-                        case PT_SIZE:
-                            game.WriteGameSetting("View" + ResNum.ToString(), "Size", strValue, "Views");
-                            break;
-                        default:
-                            //unknown code; ignore it
-                            //*'Debug.Throw exception
-                            break;
-                        }
-                        break;
-                    }
-
-                }
-                else {
-                    switch (PropCode) {
-                    case PC_GAMEDESC:
-                        game.WriteGameSetting("General", "Description", strValue);
-                        break;
-
-                    case PC_GAMEAUTHOR:
-                        game.WriteGameSetting("General", "Author", strValue);
-                        break;
-                    case PC_GAMEID:
-                        blnFoundID = strValue.Length > 0;
-                        game.WriteGameSetting("General", "GameID", strValue);
-                        break;
-                    case PC_INTVERSION:
-                        game.WriteGameSetting("General", "Interpreter", strValue);
-                        blnFoundVer = strValue.Length > 0;
-                        break;
-                    case PC_GAMEABOUT:
-                        game.WriteGameSetting("General", "About", strValue);
-                        break;
-                    case PC_GAMEVERSION:
-                        game.WriteGameSetting("General", "GameVersion", strValue);
-                        break;
-                    case PC_RESDIR:
-                        game.WriteGameSetting("General", "ResDir", strValue);
-                        break;
-                    case PC_GAMELAST:
-                        game.WriteGameSetting("General", "LastEdit", strValue);
-                        break;
-                    case PC_INVOBJDESC:
-                        game.WriteGameSetting("OBJECT", "Description", strValue);
-                        break;
-                    case PC_VOCABWORDDESC:
-                        game.WriteGameSetting("WORDS.TOK", "Description", strValue);
-                        break;
-                    case PC_GAMEEXEC:
-                        //////game.WriteGameSetting("General", "Exec", strValue);
-                        //Exec property no longer supported
-                        break;
-
-                    case PC_PALETTE:  //TODO: all hex strings need to be stored as '0x00', not '0x00'
-                                      //convert the color bytes into long values
-                        for (i = 0; i < 16; i++) {
-                            strValue = "0x";
-                            strValue += bytData[lngPos + 5 + 4 * i].ToString("x2") +
-                                        bytData[lngPos + 6 + 4 * i].ToString("x2") +
-                                        bytData[lngPos + 7 + 4 * i].ToString("x2") +
-                                        bytData[lngPos + 8 + 4 * i].ToString("x2");
-                            game.WriteGameSetting("Palette", "Color" + i.ToString(), strValue);
-                        }
-                        break;
-                    case PC_USERESNAMES:
-                        game.WriteGameSetting("General", "UseResNames", strValue);
-                        break;
-
-
-                    default:
-                        //ignore
-                        break;
-                    }
-                } //end if propcode>=pclogic
-
-                //add offset to next code (length +5)
-                lngPos += PropSize + 5;
-            }
-            //if no id and no intver
-            if (!blnFoundID || blnFoundVer) {
-                // return an empty list
-                retval = new SettingsList(oldWAGfile);
-            }
-            return retval;
         }
         public static string LoadResString(int index)
         {

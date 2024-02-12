@@ -151,9 +151,9 @@ namespace WinAGI.Engine
                 }
                 try {
                     //get rid of existing file with same name as new logicif needed
-                    File.Delete(parent.agResDir + tmpLogic.ID + agSrcExt);
+                    File.Delete(parent.agResDir + tmpLogic.ID + agSrcFileExt);
                     //rename sourcefile
-                    File.Move(parent.agResDir + "Logic" + OldLogic + agSrcExt, parent.agResDir + tmpLogic.ID + agSrcExt);
+                    File.Move(parent.agResDir + "Logic" + OldLogic + agSrcFileExt, parent.agResDir + tmpLogic.ID + agSrcFileExt);
                 }
                 catch (Exception e) {
                     throw new Exception(LoadResString(670) + e.Message);
@@ -173,8 +173,8 @@ namespace WinAGI.Engine
             strSection = "Logic" + NewLogic;
             parent.WriteGameSetting(strSection, "ID", tmpLogic.ID, "Logics");
             parent.WriteGameSetting(strSection, "Description", tmpLogic.Description);
-            parent.WriteGameSetting(strSection, "CRC32", "0x" + tmpLogic.CRC.ToString("x"));
-            parent.WriteGameSetting(strSection, "CompCRC32", "0x" + (tmpLogic.CompiledCRC.ToString("x")));
+            parent.WriteGameSetting(strSection, "CRC32", "0x" + tmpLogic.CRC.ToString("x8"));
+            parent.WriteGameSetting(strSection, "CompCRC32", "0x" + (tmpLogic.CompiledCRC.ToString("x8")));
             parent.WriteGameSetting(strSection, "IsRoom", tmpLogic.IsRoom.ToString());
 
             //force writeprop state back to false

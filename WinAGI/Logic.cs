@@ -8,6 +8,12 @@ using static WinAGI.Common.Base;
 using System.IO;
 using System.Linq;
 using System.Text;
+using EnvDTE;
+using Microsoft.VisualBasic.Logging;
+using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace WinAGI.Engine
 {
@@ -20,6 +26,22 @@ namespace WinAGI.Engine
         uint mCRC;
         bool mSourceDirty;
         bool mIsRoom;
+        int mCodeSize;
+
+        internal void LoadNoSource() {
+            // used by extractresources function to load
+            // logic data without loading the sourcecode
+            // can skip the error checks
+
+            // load the base resource data
+            base.Load();
+            //set code size (add 2 to msgstart offset)
+            mCodeSize = ReadWord(0) + 2;
+            //clear dirty flag
+            IsDirty = false;
+            mSourceDirty = false;
+        }
+
         public override void Load()
         {
             //if not ingame, the resource should already be loaded
@@ -40,6 +62,9 @@ namespace WinAGI.Engine
                 // pass it along
                 throw;
             }
+            //set code size (add 2 to msgstart offset)
+            mCodeSize = ReadWord(0) + 2;
+
             try {
                 //load the sourcetext
                 LoadSource();
@@ -69,14 +94,17 @@ namespace WinAGI.Engine
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Logic";
             //set default resource data
-            mRData.AllData = new byte[] { 0x01, 0x00, 0x00, 0x00 };
+            // TODO: confirm correct empty logic data block; fix Clear to match
+            mRData.AllData = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x02, 0x00 };
             // byte0 = low byte of msg section offset (relative to byte 2)
             // byte1 = high byte of msg section offset
             // byte2 = first byte of code data (a single return)
             // byte3 = first byte of msg section = # of messages
+            // byte4 = high byte of msg end offset
+            // byte5 = low byte of msg end offset
 
             // set default source
-            mSourceText = ActionCommands[0].Name + "();" + NEWLINE + NEWLINE + "[ messages";
+            mSourceText = ActionCommands[0].Name + "();" + NEWLINE + NEWLINE + "[ messages" + NEWLINE;
             //to avoid having compile property read true if both values are 0, set compiled to -1 on initialization
             CompiledCRC = 0xffffffff;
             CRC = 0;
@@ -94,27 +122,21 @@ namespace WinAGI.Engine
             base.InitInGame(parent, ResNum, VOL, Loc);
 
             //if first time loading this game, there will be nothing in the propertyfile
-            ID = this.parent.agGameProps.GetSetting("Logic" + ResNum, "ID", "");
+            ID = parent.agGameProps.GetSetting("Logic" + ResNum, "ID", "");
             if (ID.Length == 0) {
                 //no properties to load; save default ID
                 ID = "Logic" + ResNum;
-                this.parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Logics");
-                //load resource to get size
-                base.Load();
-                this.parent.WriteGameSetting("Logic" + ResNum, "Size", Size.ToString());
-                base.Unload();
+                parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Logics");
                 //save CRC and CompCRC values as defaults; they//ll be adjusted first time logic is accessed
-                this.parent.WriteGameSetting("Logic" + ResNum, "CRC32", "0x00000000", "Logics");
-                this.parent.WriteGameSetting("Logic" + ResNum, "CompCRC32", "0xffffffff");
+                parent.WriteGameSetting("Logic" + ResNum, "CRC32", "0x00000000", "Logics");
+                parent.WriteGameSetting("Logic" + ResNum, "CompCRC32", "0xffffffff");
             }
             else {
                 //get description, size and other properties from wag file
-                mDescription = this.parent.agGameProps.GetSetting("Logic" + ResNum, "Description", "");
-                Size = this.parent.agGameProps.GetSetting("Logic" + ResNum, "Size", -1);
-
-                mCRC = this.parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
-                mCompiledCRC = this.parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
-                mIsRoom = this.parent.agGameProps.GetSetting("Logic" + ResNum, "IsRoom", false);
+                mDescription = parent.agGameProps.GetSetting("Logic" + ResNum, "Description", "");
+                mCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
+                mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
+                mIsRoom = parent.agGameProps.GetSetting("Logic" + ResNum, "IsRoom", false);
             }
 
             //if res is zero
@@ -126,7 +148,7 @@ namespace WinAGI.Engine
         public Logic Clone()
         {
             //copies logic data from this logic and returns a completely separate object reference
-            Logic CopyLogic = new Logic();
+            Logic CopyLogic = new();
             // copy base properties
             base.SetRes(CopyLogic);
             //add WinAGI items
@@ -137,7 +159,9 @@ namespace WinAGI.Engine
             CopyLogic.mCRC = mCRC;
             CopyLogic.mSourceText = mSourceText;
             CopyLogic.mSourceDirty = mSourceDirty;
-            CopyLogic.mSourceFile = mSourceFile;
+            if (!mInGame) {
+                CopyLogic.mSourceFile = mSourceFile;
+            }
             return CopyLogic;
         }
         public uint CompiledCRC
@@ -183,7 +207,7 @@ namespace WinAGI.Engine
                 //if in a game,
                 if (mInGame) {
                     //sourcefile is predefined
-                    return parent.agResDir + mResID + agSrcExt;
+                    return parent.agResDir + mResID + agSrcFileExt;
                 }
                 else {
                     return mSourceFile;
@@ -202,6 +226,7 @@ namespace WinAGI.Engine
             }
         }
         public uint CRC { get; internal set; }
+        public int CodeSize { get; internal set; }
         private void ResPropChange(object sender, AGIResPropChangedEventArgs e)
         {
             ////let's do a test
@@ -262,10 +287,9 @@ namespace WinAGI.Engine
             if (InGame) {
                 if (!Loaded) {
                     //nothing to clear
-
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -275,11 +299,11 @@ namespace WinAGI.Engine
             //set default resource data
             Data = new RData(6)
             {
-                AllData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x02, 0x00 }
+                AllData = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x02, 0x00 }
             };
 
             //clear the source code by setting it to //return// command
-            mSourceText = ActionCommands[0].Name + "();" + NEWLINE + NEWLINE + "[ messages";
+            mSourceText = ActionCommands[0].Name + "();" + NEWLINE + NEWLINE + "[ messages" + NEWLINE;
             if (InGame) {
                 //reset crcs
                 mCRC = CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(mSourceText));
@@ -287,6 +311,7 @@ namespace WinAGI.Engine
             }
             //note change by marking source as dirty
             mSourceDirty = true;
+            CodeSize = 3;
         }
         public void Export(string ExportFile, bool ResetDirty)
         {
@@ -299,7 +324,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(668))
                 {
-                    HResult = 668
+                    HResult = WINAGI_ERR + 668
                 };
                 throw e;
             }
@@ -309,7 +334,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -328,7 +353,9 @@ namespace WinAGI.Engine
             //if importing source code
             if (AsSource) {
                 //load the source code
-                mSourceFile = ImportFile;
+                if (!mInGame) {
+                    mSourceFile = ImportFile;
+                }
                 LoadSource(false);
             }
             else {
@@ -337,8 +364,10 @@ namespace WinAGI.Engine
                     Import(ImportFile);
                     //load the source code by decompiling
                     LoadSource(true);
-                    //force filename to null
-                    mSourceFile = "";
+                    if (!mInGame) {
+                        //force filename to null
+                        mSourceFile = "";
+                    }
                 }
                 catch (Exception e) {
                     Unload();
@@ -361,38 +390,56 @@ namespace WinAGI.Engine
                 base.ID = value;
                 if (mInGame) {
                     //source file always tracks ID for ingame resources
-                    mSourceFile = parent.agResDir + base.ID + agSrcExt;
+                    mSourceFile = parent.agResDir + base.ID + agSrcFileExt;
                     parent.WriteGameSetting("Logic" + Number, "ID", mResID, "Logics");
                 }
             }
         }
-        private void LoadSource(bool Decompile = false)
+        internal void LoadSource(bool Decompile = false)
         {
             //loads LoadFile as the source code
             //for not-ingame, calling code must first set sourcefile name
             string strInput, LoadFile;
+            uint tmpCRC;
 
             //if in a game,
             if (mInGame) {
                 //load file is predefined
-                LoadFile = parent.agResDir + mResID + agSrcExt;
-                mSourceFile = LoadFile;
+                LoadFile = parent.agResDir + mResID + agSrcFileExt;
+               // mSourceFile = LoadFile;
 
                 //if it does not exist,
                 if (!File.Exists(LoadFile)) {
                     //check for AGI Studio file format
-                    if (File.Exists(parent.agResDir + "logic" + Number + ".txt") && (agSrcExt == ".lgc")) {
+                    if (File.Exists(parent.agResDir + "logic" + Number + ".txt")) {
                         //rename it to correct format
                         File.Move(parent.agResDir + "logic" + Number + ".txt", LoadFile);
                     }
-                    else if (File.Exists(parent.agResDir + mResID + ".txt") && (agSrcExt == ".lgc")) {
+                    else if (File.Exists(parent.agResDir + mResID + ".txt")) {
                         //rename it to correct format
                         File.Move(parent.agResDir + mResID + ".txt", LoadFile);
                     }
                     else {
-                        //default file does not exist; AGI Studio file does not exist;
-                        //set to null string to force decompile
-                        LoadFile = "";
+                        //check for cg files
+                        if (agSierraSyntax) {
+                            if (File.Exists(parent.agResDir + "RM" + Number + ".cg")) {
+                                //rename it to correct format
+                                File.Move(parent.agResDir + "RM" + Number + ".cg", LoadFile);
+                            }
+                            else {
+                                //default file does not exist
+                                //AGI Studio file does not exist
+                                //CG file does not exist
+                                //force decompile
+                                Decompile = true;
+                            }
+                        }
+                        else {
+                            //default file does not exist
+                            //AGI Studio file does not exist
+                            //force decompile
+                            Decompile = true;
+                        }
                     }
                 }
             }
@@ -400,48 +447,59 @@ namespace WinAGI.Engine
                 LoadFile = mSourceFile;
             }
 
-            //if no name, (OR forcing decompile)
-            if (LoadFile.Length == 0 || Decompile) {
+            //if forcing decompile
+            if (Decompile) {
                 //get source code by decoding the resource, decrypting messages if not v3compressed
-                strInput = DecodeLogic(this);
+                strInput = DecodeLogic(this, mInGame ? Number : -1);
 
                 //make sure decompile flag is set (so crc can be saved)
                 Decompile = true;
                 //if in a game, always save this newly created source
             }
             else {
-                FileStream fsLogic;
+                //FileStream fsLogic;
                 try {
                     //load sourcecode from file
-                    fsLogic = new FileStream(LoadFile, FileMode.Open);
-                    StreamReader srLogic = new StreamReader(fsLogic, Encoding.GetEncoding(437));
-                    strInput = srLogic.ReadToEnd();
-                    srLogic.Dispose();
-                    fsLogic.Dispose();
+                    strInput = File.ReadAllText(LoadFile, parent.agCodePage);
+                    //fsLogic = new FileStream(LoadFile, FileMode.Open);
+                    //StreamReader srLogic = new(fsLogic, Encoding.GetEncoding(437));
+                    //strInput = srLogic.ReadToEnd();
+                    //srLogic.Dispose();
+                    //fsLogic.Dispose();
                 }
                 catch (Exception e) {
 
                     Exception eR = new(LoadResString(502).Replace(ARG1, LoadFile).Replace(ARG2, e.Message))
                     {
-                        HResult = 502
+                        HResult = WINAGI_ERR + 502
                     };
                     throw eR;
                 }
             }
             //send text in source code string list
+            
             mSourceText = strInput;
+            // replace tabs with indent spaces
+            if (mSourceText.Contains("\t")) {
+
+                mSourceText = mSourceText.Replace("\t", INDENT);
+            }
             //calculate source crc
-            mCRC = CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(strInput));
+            tmpCRC = CRC32(parent.agCodePage.GetBytes(strInput));
             if (mInGame) {
-                parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics");
+                if (mCRC != tmpCRC) {
+                    parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + tmpCRC.ToString("x8"), "Logics");
+                }
                 //if decompiling, also save the source and the compiled crc
                 //(it's the same as the source crc!)
                 if (Decompile) {
                     SaveSource();
-                    mCompiledCRC = mCRC;
+                    mCompiledCRC = tmpCRC;
                     parent.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
                 }
             }
+            // update crc
+            mCRC = tmpCRC;
             //set loaded flag and dirty status
             mIsDirty = false;
             mSourceDirty = false;
@@ -450,38 +508,41 @@ namespace WinAGI.Engine
         {
             get
             {
-                if (!mLoaded) {
-                    return "";
-
-                    Exception e = new(LoadResString(563))
-                    {
-                        HResult = 563
-                    };
-                    throw e;
-                }
+                // ********** SourceText is UNICODE, not CP byte code
+                // it gets converted to CP byte code when it gets compiled
                 return mSourceText;
             }
             set
             {
-                int i = 0;
                 mSourceText = value;
 
                 //strip off any CRs at the end (unless it's the only character)
                 int lngLen = mSourceText.Length;
                 if (lngLen > 1) {
+                    int i;
                     for (i = 1; i < lngLen; i++) {
                         if (Right(mSourceText, i)[0] != '\n') {
                             break;
                         }
+                        //i=1 means no cr
+                        //i=2 means one cr
+                        //i=3 means two cr
+                        // etc.
+                        //if more than one found (meaning counter
+                        // got to 3 before finding non-CR)
+                        if (i > 2) {
+                            //remove the extras
+                            mSourceText = Left(mSourceText, lngLen - i + 2);
+                        }
                     }
+                    //remove the extras
+                    mSourceText = Left(mSourceText, lngLen - i + 1);
                 }
-                //remove the extras
-                mSourceText = Left(mSourceText, lngLen - i + 1);
 
                 //if in a game, save the crc value
                 if (mInGame) {
                     //calculate new crc value
-                    mCRC = CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(mSourceText));
+                    mCRC = CRC32(parent.agCodePage.GetBytes(mSourceText));
                     mSourceDirty = true;
                 }
             }
@@ -515,10 +576,9 @@ namespace WinAGI.Engine
                     if (blnUnload) {
                         Unload();
                     }
-
                     Exception e = new(LoadResString(599))
                     {
-                        HResult = 599
+                        HResult = WINAGI_ERR + 599
                     };
                     throw e;
                 }
@@ -526,22 +586,39 @@ namespace WinAGI.Engine
             try {
                 //get temporary file
                 strTempFile = Path.GetTempFileName();
-                //open file for output
-                FileStream fsOut = new FileStream(strTempFile, FileMode.Open);
-                //write text to file (conveting characters to cp437 values)
-                bytText = System.Text.Encoding.GetEncoding(437).GetBytes(mSourceText);
-                fsOut.Write(bytText, 0, bytText.Length);
-                //close file,
-                fsOut.Dispose();
+                // need to replace single CR with CRLF (but first
+                // check if the control already has the correct end-of-line marks
+                //mSourceText;
+
+                // TODO: need strategy to deal with end-of-line; in files
+                // allow whatver is local environment setting; when doing
+                // CRC or compiling, only \r
+
+                //if (!mSourceText.Contains("\r\n")) {
+                //    mSourceText = mSourceText.Replace("\r", "\r\n");
+                //}
+
+                bytText = parent.agCodePage.GetBytes(mSourceText);
+
+                File.WriteAllBytes(strTempFile, bytText);
+                // TODO: replace all text file handling to use simpler
+                // functions that incorporate codepage
+
+                ////open file for output
+                //FileStream fsOut = new FileStream(strTempFile, FileMode.Open);
+                ////write text to file (conveting characters to cp437 values)
+                //bytText = parent.agCodePage.GetBytes(mSourceText);
+                //fsOut.Write(bytText, 0, bytText.Length);
+                ////close file,
+                //fsOut.Dispose();
             }
             catch (Exception) {
                 if (blnUnload) {
                     Unload();
                 }
-
                 Exception e = new(LoadResString(582))
                 {
-                    HResult = 582
+                    HResult = WINAGI_ERR + 582
                 };
                 throw e;
             }
@@ -555,10 +632,9 @@ namespace WinAGI.Engine
                 File.Move(strTempFile, SaveFile);
             }
             catch (Exception) {
-
                 Exception e = new(LoadResString(663))
                 {
-                    HResult = 663
+                    HResult = WINAGI_ERR + 663
                 };
                 throw e;
             }
@@ -567,6 +643,7 @@ namespace WinAGI.Engine
                 if (blnUnload) {
                     Unload();
                 }
+                return;
             }
             //reset source dirty flag
             mSourceDirty = false;
@@ -590,47 +667,59 @@ namespace WinAGI.Engine
         {
             //compiles the source code for this logic
             //and saves the resource
+            TWarnInfo tmpInfo;
 
             //if not in a game
             if (!mInGame) {
-
                 Exception e = new(LoadResString(618))
                 {
-                    HResult = 618
+                    HResult = WINAGI_ERR + 618
                 };
                 throw e;
             }
             //if not loaded, raise error
             if (!mLoaded) {
-
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
             //if no data in sourcecode
             if (mSourceText.Length == 0) {
-
                 Exception e = new(LoadResString(546))
                 {
-                    HResult = 0
+                    HResult = WINAGI_ERR + 546
                 };
                 throw e;
             }
             try {
                 //compile the logic
-                CompileLogic(this);
+                tmpInfo = CompileLogic(this);
                 //set dirty flag (forces save to work correctly)
                 IsDirty = true;
                 //save logic to vol file
                 Save();
             }
             catch (Exception) {
+                //force uncompiled state
+                mCompiledCRC = 0;
+                compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
                 // pass it along
                 throw;
             }
-            //if no error
+            //if no error, check result
+            if (tmpInfo.Type != EWarnType.ecCompOK) {
+                //force uncompiled state
+                mCompiledCRC = 0;
+                compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
+            }
+            else {
+                //set dirty flag (forces save to work correctly)
+                mIsDirty = true;
+                //save logic to vol file
+                Save();
+            }
         }
         public new void Save(string SaveFile = "")
         {
@@ -663,7 +752,6 @@ namespace WinAGI.Engine
                         throw;
                     }
                 }
-                parent.WriteGameSetting("Logic" + Number, "Size", Size.ToString(), "Logics");
             }
             else {
                 //if source is dirty

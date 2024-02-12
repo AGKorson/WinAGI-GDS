@@ -8,6 +8,8 @@ using static WinAGI.Engine.AudioPlayer;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
+using static WinAGI.Editor.Base;
 
 namespace WinAGI.Engine
 {
@@ -53,8 +55,12 @@ namespace WinAGI.Engine
             int lngLoc;
             string strResID;
             bool blnWarnings = false;
+            TWarnInfo warnInfo = new()
+            {
+                Type = EWarnType.ecCompWarn
+            };
 
-            Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtNone, 0, "");
+            Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtNone, 0, warnInfo);
 
             //if version 3
             if (game.agIsVersion3) {
@@ -155,10 +161,19 @@ namespace WinAGI.Engine
                     //warning- file might be invalid
                     blnWarnings = true;
                     if (game.agIsVersion3) {
-                        game.RecordLogEvent(LogEventType.leWarning, ResTypeAbbrv[(int)bytResType] + " portion of DIR file is larger than expected; it may be corrupted");
+                        warnInfo.LWType = ELoadWarningSource.lwDIR;
+                        warnInfo.WarningNum = 1;
+                        warnInfo.Text = ResTypeAbbrv[(int)bytResType] + " portion of DIR file is larger than expected; it may be corrupted";
+                        Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtGame, 0, warnInfo);
+
                     }
                     else {
-                        game.RecordLogEvent(LogEventType.leWarning, ResTypeAbbrv[(int)bytResType] + "DIR file is larger than expected; it may be corrupted");
+                        //");
+                        //AddLoadWarning lwDIR, 2, rtGame, 0, ResTypeAbbrv(bytResType) & "DIR file is larger than expected; it may be corrupted"
+                        warnInfo.LWType = ELoadWarningSource.lwDIR;
+                        warnInfo.WarningNum = 2;
+                        warnInfo.Text = ResTypeAbbrv[(int)bytResType] + "DIR file is larger than expected; it may be corrupted";
+                        Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtGame, 0, warnInfo);
                     }
                     //assume the max for now
                     intResCount = 256;
@@ -172,7 +187,7 @@ namespace WinAGI.Engine
                     //use error handler to check for bad resources
                     for (i = 0; i < intResCount; i++) {
 
-                        Raise_LoadGameEvent(ELStatus.lsResources, bytResType, (byte)i, "");
+                        Raise_LoadGameEvent(ELStatus.lsResources, bytResType, (byte)i, warnInfo);
 
                         bytResNum = (byte)i;
                         //get location data for this resource
@@ -193,7 +208,7 @@ namespace WinAGI.Engine
                                 }
                                 catch (Exception e) {
                                     //deal with load errors
-                                    RecordLoadError(game, strResID, e);
+                                    RecordLoadError(AGIResType.rtLogic, bytResNum, e);
                                     blnWarnings = true;
                                 }
                                 //make sure it was added before attempting to set property state
@@ -220,7 +235,7 @@ namespace WinAGI.Engine
                                 }
                                 catch (Exception e) {
                                     //deal with load errors
-                                    RecordLoadError(game, strResID, e);
+                                    RecordLoadError(AGIResType.rtPicture, bytResNum, e);
                                     blnWarnings = true;
                                 }
                                 //make sure it was added before attempting to set property state
@@ -244,7 +259,7 @@ namespace WinAGI.Engine
                                 }
                                 catch (Exception e) {
                                     //deal with load errors
-                                    RecordLoadError(game, strResID, e);
+                                    RecordLoadError(AGIResType.rtSound, bytResNum, e);
                                     blnWarnings = true;
                                 }
                                 //make sure it was added before attempting to set property state
@@ -269,7 +284,7 @@ namespace WinAGI.Engine
                                 }
                                 catch (Exception e) {
                                     //deal with load errors
-                                    RecordLoadError(game, strResID, e);
+                                    RecordLoadError(AGIResType.rtView, bytResNum, e);
                                     blnWarnings = true;
                                 }
                                 //make sure it was added before attempting to set property state
@@ -337,36 +352,66 @@ namespace WinAGI.Engine
             //return any warning codes
             return blnWarnings;
         }
-        internal static void RecordLoadError(AGIGame game, string strID, Exception eRes)
+        internal static void RecordLoadError(AGIResType resType, byte resNum, Exception eRes)
         {
             // called when error encountered while trying to extract resources
             // during game load
+            TWarnInfo warnInfo = new()
+            {
+                Type = EWarnType.ecLoadWarn
+            };
 
             //if error was invalid resource data, invalid LOC value, or missing VOL file
-            switch (eRes.HResult) {
+            switch (eRes.HResult - WINAGI_ERR) {
             case 502: //Error %1 occurred while trying to access %2.
-                game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped due to file access error (" + eRes.Data[0] + ")");
+                strError = "502: " + eRes.Message;
+                warnInfo.LWType = ELoadWarningSource.lwVol;
+                warnInfo.WarningNum = 1;
+                warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " is invalid due to file access error (" + strError + ")";
+                Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtGame, (byte)lngCurrentVol, warnInfo);
                 break;
             case 505: //Invalid resource location (%1) in %2.
-                game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped because it's location (" + eRes.Data[0] + ") in the VOL file(" + eRes.Data[1] + ") is invalid.");
+                warnInfo.LWType = ELoadWarningSource.lwVol;
+                warnInfo.WarningNum = 2;
+                warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " has an invalid location (" + lngCurrentLoc + ") in volume file " + JustFileName(fsVOL.Name);
+                Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtGame, (byte)lngCurrentVol, warnInfo);
                 break;
-            case 506: //Invalid resource data at %1 in %2.
-                game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped because it does not have a valid resource header");
+            case 506: //invalid header
+                warnInfo.LWType = ELoadWarningSource.lwResource; 
+                warnInfo.WarningNum = 9;
+                warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " has an invalid resource header";
+                Raise_LoadGameEvent(ELStatus.lsResources, resType, resNum, warnInfo);
                 break;
-            case 507: //Error %1 while reading resource in %2.
-                game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped due to resource data error (" + eRes.Data[0] + ")");
+            case 507: //Invalid resource data (err.msg)
+                strError = "507: " + eRes.Message;
+                warnInfo.LWType = ELoadWarningSource.lwResource;
+                warnInfo.WarningNum = 10;
+                warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " has invalid resource data (" + strError + ")";
+                Raise_LoadGameEvent(ELStatus.lsResources, resType, resNum, warnInfo);
                 break;
-            case 606: //Can//t load resource: file not found (%1)
-                game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped because it's VOL file (" + eRes.Data[0] + ") is missing.");
+            case 606: //Can't load resource: file not found (%1)
+                warnInfo.LWType = ELoadWarningSource.lwVol;
+                warnInfo.WarningNum = 3;
+                warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " is in a VOL file (" + JustFileName(fsVOL.Name) + ") that does not exist";
+                Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtGame, (byte)lngCurrentVol, warnInfo);
                 break;
             case 646:
             case 648:
             case 650:
             case 652: //unhandled error in LoadLog|Pic|Snd|View
-                game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped due to an error while loading (" + eRes.Message + ")");
+                      //  strError = CStr(Err.Number - vbObjectError) & ": " & Err.Description
+                strError = (eRes.HResult - WINAGI_ERR) + ": " + eRes.Message;
+                warnInfo.LWType = ELoadWarningSource.lwResource;
+                warnInfo.WarningNum = 11;
+                warnInfo.Text = "Unable to load " + ResTypeName[(int)resType] + " " + resNum + " (" + strError + ")";
+                Raise_LoadGameEvent(ELStatus.lsResources, resType, resNum, warnInfo);
                 break;
             default: //any other unhandled error
-                game.RecordLogEvent(LogEventType.leWarning, strID + " was skipped due to an error while loading (" + eRes.Message + ")");
+                strError = (eRes.HResult - WINAGI_ERR) + ": " + eRes.Message;
+                warnInfo.LWType = ELoadWarningSource.lwOther;
+                warnInfo.WarningNum = 3;
+                warnInfo.Text = "Unhandled resource error in " + ResTypeName[(int)resType] + " " + resNum + " (" + strError + ")";
+                Raise_LoadGameEvent(ELStatus.lsResources, resType, resNum, warnInfo);
                 break;
             }
         }

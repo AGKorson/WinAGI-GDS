@@ -277,7 +277,11 @@ namespace WinAGI.Engine
                 //validate length
                 if (NewID.Length == 0) {
                     //error
-                    throw new Exception(LoadResString(667));
+                    Exception e = new(LoadResString(667))
+                    {
+                        HResult= WINAGI_ERR + 667
+                    };
+                    throw e;
                 }
                 else if (NewID.Length > 64) {
                     NewID = Left(NewID, 64);
@@ -332,6 +336,7 @@ namespace WinAGI.Engine
 
                     //save ID
                     mResID = NewID;
+                    parent.WriteGameSetting("Logic" + this.Number, "ID", NewID, "Logics");
                     //reset compiler list of ids
                     Compiler.blnSetIDs = false;
                 }

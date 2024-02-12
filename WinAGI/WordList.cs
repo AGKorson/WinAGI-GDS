@@ -74,7 +74,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(642))
                 {
-                    HResult = 642
+                    HResult = WINAGI_ERR + 642
                 };
                 throw e;
             }
@@ -85,7 +85,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(510))
                 {
-                    HResult = 510
+                    HResult = WINAGI_ERR + 510
                 };
                 throw e;
             }
@@ -105,122 +105,21 @@ namespace WinAGI.Engine
             AddGroup(9999);
             AddWord("rol", 9999);
         }
-        void CompileWinAGI(string CompileFile)
+        public void Export(string ExportFile, bool ResetDirty = true)
         {
-            /*
-            //for the text file,
-            //words are saved as one group to a line
-            //in numerical order by group
-            //each line contains the group number, and
-            //the the group//s list of words in alphabetical
-            //order (separated by a tab character)
-            //(empty groups are skipped during the save)
+            //exports words.tok
 
-            //first line is version identifier
-            //file description is saved at end of words
-
-            string strTempFile ;
-            int intFile
-            AGIWordGroup tmpGroup
-            AGIWord tmpWord
-            int i, j
-            string strOutput
-
-            //if no name
-            if (CompileFile.Length == 0) {
-              On Error GoTo 0
-              //raise error
-              Exception e = new(LoadResString(615))
-              {
-                HResult = 615
-              };
-              throw e;
-            }
-
-            //get temporary file
-            strTempFile = Path.GetTempFileName();
-
-            //open file for output
-            intFile = FreeFile()
-            Open strTempFile Output intFile
-
-            //print version
-            Print #intFile, WINAGI_VERSION
-
-            //step through all groups
-            foreach (AGIWordGroup tmpGroup in this) {
-                //add group number to output line
-                strOutput = CStr(tmpGroup.GroupNum)
-                //step through all words
-                foreach (string tmpWord in tmpGroup) {
-                  //add tab character and this word
-                  strOutput = strOutput + vbTab + tmpWord;
-                } //nxt  i
-                //add this group to output file
-                Print #intFile, strOutput
-            } //nxt  j
-
-            //if there is a description
-            if (mDescription.Length != 0) {
-              //print eof marker
-              Print #intFile, Chr$(255) + Chr$(255)
-              //print description
-              Print #intFile, mDescription
-            }
-
-            //close file
-            Close intFile
-
-            //if CompileFile exists
-            if (File.Exists(CompileFile)) {
-              //delete it
-              Kill CompileFile
-            }
-
-            //copy tempfile to CompileFile
-            FileCopy strTempFile, CompileFile
-
-            //delete temp file
-            Kill strTempFile
-            Err.Clear
-          return;
-
-          ErrHandler:
-            //close file
-            Close intFile
-            //erase the temp file
-            Kill CompileFile
-            //return error condition
-              Exception e = new(LoadResString(582))
-              {
-                HResult = 582
-              };
-              throw e;
-            */
-        }
-        public void Export(string ExportFile, int FileType, bool ResetDirty = true)
-        {
-            //exports the list of words
-            //  filetype = 0 means AGI WORDS.TOK file
-            //  filetype = 1 means WinAGI word list file
             //if not loaded
             if (!mLoaded) {
                 //error
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
-            switch (FileType) {
-            case 0: //compile agi WORDS.TOK file
-                Compile(ExportFile);
-                break;
-            case 1:  //create WinAGI word list
-                CompileWinAGI(ExportFile);
-                break;
-            }
+            Compile(ExportFile);
             //if NOT in a game,
             if (!mInGame) {
                 if (ResetDirty) {
@@ -367,7 +266,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -421,7 +320,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -435,7 +334,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -479,7 +378,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(680))
                     {
-                        HResult = 680
+                        HResult = WINAGI_ERR + 680
                     };
                     throw e;
                 }
@@ -497,7 +396,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -516,7 +415,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -551,7 +450,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -576,7 +475,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void Save(string SaveFile = "", int FileType = 0)
+        public void Save(string SaveFile = "")
         {
             //saves wordlist
             // filetype = 0 means AGI WORDS.TOK file
@@ -588,7 +487,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -603,14 +502,8 @@ namespace WinAGI.Engine
                 if (SaveFile.Length == 0) {
                     SaveFile = mResFile;
                 }
-                switch (FileType) {
-                case 0:  //compile agi WORDS.TOK file
-                    Compile(SaveFile);
-                    break;
-                case 1:  //create WinAGI word list
-                    CompileWinAGI(SaveFile);
-                    break;
-                }
+                //compile agi WORDS.TOK file
+                Compile(SaveFile);
                 //save filename
                 mResFile = SaveFile;
             }
@@ -626,7 +519,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -645,7 +538,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -666,7 +559,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -676,7 +569,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(575))
                 {
-                    HResult = 575
+                    HResult = WINAGI_ERR + 575
                 };
                 throw e;
             }
@@ -685,7 +578,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(575))
                 {
-                    HResult = 575
+                    HResult = WINAGI_ERR + 575
                 };
                 throw e;
             }
@@ -694,7 +587,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(576))
                 {
-                    HResult = 576
+                    HResult = WINAGI_ERR + 576
                 };
                 throw e;
             }
@@ -715,7 +608,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -725,7 +618,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(584))
                 {
-                    HResult = 584
+                    HResult = WINAGI_ERR + 584
                 };
                 throw e;
             }
@@ -751,7 +644,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(563))
                     {
-                        HResult = 563
+                        HResult = WINAGI_ERR + 563
                     };
                     throw e;
                 }
@@ -768,7 +661,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -778,7 +671,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(575))
                 {
-                    HResult = 575
+                    HResult = WINAGI_ERR + 575
                 };
                 throw e;
             }
@@ -788,7 +681,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(583))
                 {
-                    HResult = 583
+                    HResult = WINAGI_ERR + 583
                 };
                 throw e;
             }
@@ -816,7 +709,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -826,7 +719,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(575))
                 {
-                    HResult = 575
+                    HResult = WINAGI_ERR + 575
                 };
                 throw e;
             }
@@ -836,7 +729,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(575))
                 {
-                    HResult = 575
+                    HResult = WINAGI_ERR + 575
                 };
                 throw e;
             }
@@ -846,7 +739,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(696))
                 {
-                    HResult = 696
+                    HResult = WINAGI_ERR + 696
                 };
                 throw e;
             }
@@ -856,7 +749,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(697))
                 {
-                    HResult = 697
+                    HResult = WINAGI_ERR + 697
                 };
                 throw e;
             }
@@ -884,7 +777,6 @@ namespace WinAGI.Engine
         {
             //compiles the word list into a Sierra WORDS.TOK file
             int i;
-            int lngGroup, lngWord;
             byte CurByte;
             string strCurWord;
             string strPrevWord = "";
@@ -895,10 +787,9 @@ namespace WinAGI.Engine
             string strTempFile;
             //if no filename passed,
             if (CompileFile.Length == 0) {
-
                 Exception e = new(LoadResString(616))
                 {
-                    HResult = 616
+                    HResult = WINAGI_ERR + 616
                 };
                 throw e;
             }
@@ -908,12 +799,20 @@ namespace WinAGI.Engine
             }
             //if there are no word groups to add
             if (mGroupCol.Count == 0) {
-                throw new Exception("672, strErrSource, Replace(LoadResString(672), ARG1, no word groups to add)");
+                Exception e = new(LoadResString(672).Replace(ARG1, "no word groups to add"))
+                {
+                    HResult = WINAGI_ERR + 672
+                };
+                throw e;
             }
             //if there are no words,
             if (mWordCol.Count == 0) {
                 //error
-                throw new Exception("672, strErrSource, Replace(LoadResString(672), ARG1, no words to add)");
+                Exception e = new(LoadResString(672).Replace(ARG1, "no words to add"))
+                {
+                    HResult = WINAGI_ERR + 672
+                };
+                throw e;
             }
             //create temp file
             strTempFile = Path.GetTempFileName();
@@ -1025,7 +924,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(511))
                 {
-                    HResult = 511
+                    HResult = WINAGI_ERR + 511
                 };
                 throw e;
             }
@@ -1038,7 +937,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(529))
                     {
-                        HResult = 529
+                        HResult = WINAGI_ERR + 529
                     };
                     throw e;
                 }
@@ -1052,7 +951,7 @@ namespace WinAGI.Engine
 
                     Exception e = new(LoadResString(599))
                     {
-                        HResult = 599
+                        HResult = WINAGI_ERR + 599
                     };
                     throw e;
                 }
@@ -1061,36 +960,14 @@ namespace WinAGI.Engine
                     //error
                     throw new Exception("524, strErrSource, Replace(LoadResString(524), ARG1, LoadFile)");
                 }
-                //if extension is .agw then
-                if (LoadFile.EndsWith(".agw", StringComparison.OrdinalIgnoreCase)) {
-                    //assume winagi format
-                    if (!LoadWinAGIFile(LoadFile)) {
-                        //try sierra format
-                        if (!LoadSierraFile(LoadFile)) {
-                            //error
-
-                            Exception e = new(LoadResString(529))
-                            {
-                                HResult = 529
-                            };
-                            throw e;
-                        }
-                    }
-                }
-                else {
-                    //assume sierra format
-                    if (!LoadSierraFile(LoadFile)) {
-                        //try winagi format
-                        if (!LoadWinAGIFile(LoadFile)) {
-                            //error
-
-                            Exception e = new(LoadResString(529))
-                            {
-                                HResult = 529
-                            };
-                            throw e;
-                        }
-                    }
+                //try sierra format
+                if (!LoadSierraFile(LoadFile)) {
+                    //error
+                    Exception e = new(LoadResString(529))
+                    {
+                        HResult = WINAGI_ERR + 529
+                    };
+                    throw e;
                 }
                 //save filename
                 mResFile = LoadFile;
@@ -1108,7 +985,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -1118,7 +995,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(588))
                 {
-                    HResult = 588
+                    HResult = WINAGI_ERR + 588
                 };
                 throw e;
             }
@@ -1134,7 +1011,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(563))
                 {
-                    HResult = 563
+                    HResult = WINAGI_ERR + 563
                 };
                 throw e;
             }
@@ -1145,7 +1022,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(579))
                 {
-                    HResult = 579
+                    HResult = WINAGI_ERR + 579
                 };
                 throw e;
             }
@@ -1155,7 +1032,7 @@ namespace WinAGI.Engine
 
                 Exception e = new(LoadResString(581))
                 {
-                    HResult = 0
+                    HResult = WINAGI_ERR + 581
                 };
                 throw e;
             }
@@ -1173,105 +1050,6 @@ namespace WinAGI.Engine
             mWordCol.Add(WordText, NewWord);
             //set dirty flag
             mIsDirty = true;
-        }
-        bool LoadWinAGIFile(string LoadFile)
-        {
-            string strInput;
-            string[] strWords;
-            string strThisWord;
-            int lngGrpNum;
-            int i;
-
-            //attempt to open the WinAGI resource
-            FileStream fsWords;
-            StreamReader srWords;
-            try {
-                //attempt to open the WinAGI resource
-                fsWords = new FileStream(LoadFile, FileMode.Open);
-                srWords = new StreamReader(fsWords);
-            }
-            catch (Exception) {
-                //ignore and fail
-                return false;
-            }
-
-            //first line should be loader
-            strInput = srWords.ReadLine();
-            switch (strInput) {
-            case WINAGI_VERSION:
-            case WINAGI_VERSION_1_2:
-            case WINAGI_VERSION_1_0:
-            case WINAGI_VERSION_BETA:
-                //ok
-                break;
-            default:
-                //any 1.2.x is ok
-                if (Left(strInput, 4) != "1.2.") {
-                    //close file
-                    fsWords.Dispose();
-                    srWords.Dispose();
-                    return false;
-                }
-                break;
-            }
-            //enable inline error handling to check for invalid words/groups
-            try {
-                //begin loading word groups
-                while (!srWords.EndOfStream) // Until EOF(intFile)
-                {
-                    strInput = srWords.ReadLine();
-                    //check for end of input characters
-                    if (strInput == ((char)255 + (char)255).ToString()) {
-                        break;
-                    }
-                    //split input line
-                    strWords = strInput.Split("\t");
-                    //if there is at least one word and one number,
-                    if (strWords.Length >= 2) {
-                        //get group number
-                        lngGrpNum = (int)Val(strWords[0]);
-                        //add this group
-                        AddGroup(lngGrpNum);
-                        //rest of strings in the list are words; add them to this group
-                        for (i = 1; i < strWords.Length; i++) {
-                            AddWord(strWords[i], lngGrpNum);
-                        }
-                    }
-                } //Loop
-            }
-            catch (Exception) {
-                //invalid word group, or other word error
-                fsWords.Dispose();
-                srWords.Dispose();
-                // pass along error
-                throw;
-            }
-            //if any lines left
-            if (!srWords.EndOfStream) {
-                //get first remaining line
-                strThisWord = srWords.ReadLine();
-                //if there are additional lines, add them as a description
-                while (!srWords.EndOfStream) {
-                    strInput = srWords.ReadLine();
-                    strThisWord += NEWLINE + strInput;
-                }
-                //save description
-                mDescription = strThisWord;
-            }
-            //close file
-            fsWords.Dispose();
-            srWords.Dispose();
-
-            //if no words
-            if (mWordCol.Count == 0) {
-                //add default words
-                AddWord("a", 0);
-                AddWord("anyword", 1);
-                AddWord("rol", 9999);
-            }
-            //set loaded flag
-            mLoaded = true;
-            return true;
         }
         public WGrpEnum GetEnumerator()
         {
