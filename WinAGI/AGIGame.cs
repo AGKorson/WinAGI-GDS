@@ -1,19 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Compiler;
-using EnvDTE;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
-using System.Diagnostics;
-using System.Windows.Forms;
-using System.Xml.Linq;
-using System.Globalization;
 
 namespace WinAGI.Engine
 {

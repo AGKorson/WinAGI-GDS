@@ -1342,6 +1342,10 @@ namespace WinAGI.Common
             retval.AddRange(strText.Replace("\n\r", "\n").Replace('\r', '\n').Split('\n'));
             return retval;
         }
+        internal static string UnicodeToCP(string strIn, Encoding enc)
+        {
+            return enc.GetBytes(strIn).ToString();
+        }
         internal static string ChangeExtension(ref string FileName, string Filter, int Index)
         {
             //compares the extension on Filename to the extension belonging to
