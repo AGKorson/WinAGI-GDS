@@ -450,7 +450,7 @@ namespace WinAGI.Engine
                 Lines.Add("#");
             }
         }
-        public string GetSetting(string Section, string Key, string Default = "")
+        public string GetSetting(string Section, string Key, string Default = "", bool DontAdd = false)
         {
             //need to make sure there is a list to read from
             if (Lines.Count == 0) {
@@ -475,8 +475,11 @@ namespace WinAGI.Engine
             int lngSection = FindSettingSection(Section);
             //if not found,
             if (lngSection < 0) {
-                //add the section and the value
-                WriteSetting(Section, Key, Default, "");
+                if (!DontAdd)
+                {
+                    //add the section and the value
+                    WriteSetting(Section, Key, Default, "");
+                }
                 //and return the default value
                 return Default;
             }
@@ -546,15 +549,21 @@ namespace WinAGI.Engine
                         }
                     }
                 }
-                //not found// add it here
+                // not found - 
+                if (DontAdd)
+                {
+                    //return the default
+                    return Default;
+                }
+                //stach the default value unmodified by control codes
+                string sReturn = Default;
+                // add teh default value here
                 //back up until a nonblank line is found
                 for (lngPos = i - 1; lngPos >= lngSection; lngPos--) {
                     if (Lines[lngPos].Trim().Length > 0) {
                         break;
                     }
                 }
-                //return the default value
-                string sReturn = Default;
                 //add the key and default value at this pos
                 //if value contains spaces, it must be enclosed in quotes
                 if (Default.IndexOf(" ", 0) >= 0) {
@@ -582,47 +591,57 @@ namespace WinAGI.Engine
                 return sReturn;
             }
         }
-        public int GetSetting(string Section, string Key, int Default = 0, bool hex = false)
+        public int GetSetting(string Section, string Key, int Default = 0, bool hex = false, bool DontAdd = false)
         {
             //get the setting value; if it converts to long value, use it;
             //if any kind of error, return the default value
-            string strValue = GetSetting(Section, Key, hex ? "0x" + Default.ToString("x8") : Default.ToString());
-            if (strValue.Length == 0) {
+            string strValue = GetSetting(Section, Key, hex ? "0x" + Default.ToString("x8") : Default.ToString(), DontAdd);
+            if (strValue.Length == 0)
+            {
                 return Default;
             }
-            else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase)) {
-                try {
+            else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
                     return Convert.ToInt32(strValue, 16);
                 }
-                catch (Exception) {
+                catch (Exception)
+                {
                     return Default;
                 }
             }
-            else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
-                try {
+            else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
                     int retval = Convert.ToInt32(Right(strValue, strValue.Length - 2), 16);
                     //write the value in correct format
                     WriteSetting(Section, Key, "0x" + retval.ToString("x8"));
                     return retval;
                 }
-                catch (Exception) {
+                catch (Exception)
+                {
                     return Default;
                 }
             }
-            else {
-                if (int.TryParse(strValue, out int iResult)) {
+            else
+            {
+                if (int.TryParse(strValue, out int iResult))
+                {
                     return iResult;
                 }
-                else {
+                else
+                {
                     return Default;
                 }
             }
         }
-        public uint GetSetting(string Section, string Key, uint Default = 0)
+        public uint GetSetting(string Section, string Key, uint Default = 0, bool DontAdd = false)
         {
             //get the setting value; if it converts to long value, use it;
             //if any kind of error, return the default value
-            string strValue = GetSetting(Section, Key, Default.ToString());
+            string strValue = GetSetting(Section, Key, Default.ToString(), DontAdd);
 
             if (strValue.Length == 0) {
                 return Default;
@@ -656,11 +675,11 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public byte GetSetting(string Section, string Key, byte Default = 0)
+        public byte GetSetting(string Section, string Key, byte Default = 0, bool DontAdd = false)
         {
             //get the setting value; if it converts to byte value, use it;
             //if any kind of error, return the default value
-            string strValue = GetSetting(Section, Key, Default.ToString());
+            string strValue = GetSetting(Section, Key, Default.ToString(), DontAdd);
             if (strValue.Length == 0) {
                 return Default;
             }
@@ -673,11 +692,11 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public double GetSetting(string Section, string Key, double Default = 0)
+        public double GetSetting(string Section, string Key, double Default = 0, bool DontAdd = false)
         {
             //get the setting value; if it converts to single value, use it;
             //if any kind of error, return the default value
-            string strValue = GetSetting(Section, Key, Default.ToString());
+            string strValue = GetSetting(Section, Key, Default.ToString(), DontAdd);
 
             if (strValue.Length == 0) {
                 return Default;
@@ -691,11 +710,11 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool GetSetting(string Section, string Key, bool Default = false)
+        public bool GetSetting(string Section, string Key, bool Default = false, bool DontAdd = false)
         {
             //get the setting value; if it converts to boolean value, use it;
             //if any kind of error, return the default value
-            string strValue = GetSetting(Section, Key, Default.ToString());
+            string strValue = GetSetting(Section, Key, Default.ToString(), DontAdd);
             if (strValue.Length == 0) {
                 return Default;
             }
@@ -708,14 +727,16 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public Color GetSetting(string Section, string Key, Color Default)
+        public Color GetSetting(string Section, string Key, Color Default, bool DontAdd = false)
         {
             //get the setting value; if it converts to long value, use it;
             //if any kind of error, return the default value
-            string strValue = GetSetting(Section, Key, "");
+            string strValue = GetSetting(Section, Key, "", DontAdd);
             if (strValue.Length == 0) {
                 // for blank entries, replace with default
-                WriteSetting(Section, Key, EGAColors.ColorText(Default));
+                if (!DontAdd) { 
+                    WriteSetting(Section, Key, EGAColors.ColorText(Default));
+                }
                 return Default;
             }
             // expected format is '0xrr, 0xgg, 0xbb'
@@ -730,7 +751,9 @@ namespace WinAGI.Engine
                 }
                 catch (Exception) {
                     // for invalid entries, replace with default
-                    WriteSetting(Section, Key, EGAColors.ColorText(Default));
+                    if (!DontAdd) {
+                        WriteSetting(Section, Key, EGAColors.ColorText(Default));
+                    }
                     return Default;
                 }
             }
@@ -777,7 +800,9 @@ namespace WinAGI.Engine
                     }
                 }
                 // for invalid entries, always replace with updated text
-                WriteSetting(Section, Key, EGAColors.ColorText(retColor));
+                if (!DontAdd) {
+                    WriteSetting(Section, Key, EGAColors.ColorText(retColor));
+                }
                 return retColor;
             }
         }

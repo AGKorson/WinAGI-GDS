@@ -279,7 +279,6 @@ namespace WinAGI.Engine
             byte bytRoom;
             int rtn;
             byte[] bytData = Array.Empty<byte>();
-            byte bytLow, bytHigh;
             int lngDataOffset, lngNameOffset;
             int lngPos, Dwidth;
             //open the file
@@ -296,7 +295,7 @@ namespace WinAGI.Engine
             fsObj.Read(bytData);
             fsObj.Dispose();
             //determine if file is encrypted or clear
-            rtn = IsEncrypted(bytData[bytData.Length - 1], bytData.Length - 1);
+            rtn = IsEncrypted(bytData[^1], bytData.Length - 1);
             switch (rtn) {
             case 0:  //unencrypted
                 mEncrypted = false;

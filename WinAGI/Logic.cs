@@ -87,9 +87,10 @@ namespace WinAGI.Engine
             mSourceDirty = false;
             mSourceText = "";
         }
-        public Logic() : base(AGIResType.rtLogic, "NewLogic")
+        public Logic() : base(AGIResType.rtLogic)
         {
             //initialize a nongame logic
+            mResID = "NewLogic";
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Logic";
@@ -109,7 +110,7 @@ namespace WinAGI.Engine
             CompiledCRC = 0xffffffff;
             CRC = 0;
         }
-        public Logic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtLogic, "NewLogic")
+        public Logic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtLogic)
         {
             //adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
@@ -121,11 +122,11 @@ namespace WinAGI.Engine
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 
-            //if first time loading this game, there will be nothing in the propertyfile
-            ID = parent.agGameProps.GetSetting("Logic" + ResNum, "ID", "");
-            if (ID.Length == 0) {
+            //if importing, there will be nothing in the propertyfile
+            mResID = parent.agGameProps.GetSetting("Logic" + ResNum, "ID", "", true);
+            if (mResID.Length == 0) {
                 //no properties to load; save default ID
-                ID = "Logic" + ResNum;
+                mResID = "Logic" + ResNum;
                 parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Logics");
                 //save CRC and CompCRC values as defaults; they//ll be adjusted first time logic is accessed
                 parent.WriteGameSetting("Logic" + ResNum, "CRC32", "0x00000000", "Logics");

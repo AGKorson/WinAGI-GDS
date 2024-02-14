@@ -8841,8 +8841,14 @@ namespace WinAGI.Editor
         }
         private void frmMDIMain_FormClosing(object sender, FormClosingEventArgs e)
         {
+            bool blnLastLoad;
+
             //is a game loaded?
-            bool blnLastLoad = EditGame.GameLoaded;
+            if (EditGame is null) {
+                blnLastLoad = false;
+            } else {
+                blnLastLoad = EditGame.GameLoaded;
+            }
             if (blnLastLoad) {
                 //close open game (get cancel flag, in case user cancels)
                 try {

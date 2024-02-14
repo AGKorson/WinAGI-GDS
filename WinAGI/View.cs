@@ -12,7 +12,7 @@ namespace WinAGI.Engine
         bool mViewSet; //flag to note loops loaded from res data
         internal Loops mLoopCol;
         string mViewDesc;
-        public View() : base(AGIResType.rtView, "NewView")
+        public View() : base(AGIResType.rtView)
         {
             //initialize
             //attach events
@@ -27,12 +27,13 @@ namespace WinAGI.Engine
             // byte3 = high byte of viewdesc
             // byte4 = low byte of viewdesc
         }
-        internal View(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtView, "NewView")
+        internal View(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtView)
         {
             //this internal function adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
 
             //initialize
+            mResID = "NewView";
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.View";
@@ -41,12 +42,12 @@ namespace WinAGI.Engine
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 
-            //if first time loading this game, there will be nothing in the propertyfile
-            ID = this.parent.agGameProps.GetSetting("View" + ResNum, "ID", "");
+            //if importing, there will be nothing in the propertyfile
+            ID = this.parent.agGameProps.GetSetting("View" + ResNum, "ID", "", true);
             if (ID.Length == 0) {
                 //no properties to load; save default ID
                 ID = "View" + ResNum;
-                this.parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Views");
+                this.parent.WriteGameSetting("View" + ResNum, "ID", ID, "Views");
             }
             else {
                 //get description and other properties from wag file

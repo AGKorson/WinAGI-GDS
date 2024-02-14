@@ -29,9 +29,10 @@ namespace WinAGI.Engine
                         //variables used for low level graphics handling
         Bitmap bmpVis;
         Bitmap bmpPri;
-        public Picture() : base(AGIResType.rtPicture, "NewPicture")
+        public Picture() : base(AGIResType.rtPicture)
         {
             //initialize
+            mResID = "NewPicture";
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Picture";
@@ -45,7 +46,7 @@ namespace WinAGI.Engine
             //default pribase is 48
             mPriBase = 48;
         }
-        public Picture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtPicture, "NewPicture")
+        public Picture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtPicture)
         {
             //this internal function adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
@@ -62,16 +63,16 @@ namespace WinAGI.Engine
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 
-            //if first time loading this game, there will be nothing in the propertyfile
-            ID = this.parent.agGameProps.GetSetting("Picture" + ResNum, "ID", "");
-            if (ID.Length == 0) {
+            //if importing, there will be nothing in the propertyfile
+            mResID = parent.agGameProps.GetSetting("Picture" + ResNum, "ID", "", true);
+            if (mResID.Length == 0) {
                 //no properties to load; save default ID
-                ID = "Picture" + ResNum;
-                this.parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Pictures");
+                mResID = "Picture" + ResNum;
+                parent.WriteGameSetting("Picture" + ResNum, "ID", ID, "Pictures");
             }
             else {
                 //get description and other properties from wag file
-                mDescription = this.parent.agGameProps.GetSetting("Picture" + ResNum, "Description", "");
+                mDescription = parent.agGameProps.GetSetting("Picture" + ResNum, "Description", "");
             }
         }
         void ResPropChange(object sender, AGIResPropChangedEventArgs e)

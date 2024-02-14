@@ -43,9 +43,10 @@ namespace WinAGI.Engine
             //for example - 
             // new AGISound newSound.CompileGameStatus += myForm.mySoundEventHandler;
         }
-        public Sound() : base(AGIResType.rtSound, "NewSound")
+        public Sound() : base(AGIResType.rtSound)
         {
             //initialize
+            mResID = "NewSound";
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Sound";
@@ -70,7 +71,7 @@ namespace WinAGI.Engine
             //default key is c
             mKey = 0;
         }
-        public Sound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtSound, "NewSound")
+        public Sound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtSound)
         {
             //this internal function adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
@@ -82,12 +83,12 @@ namespace WinAGI.Engine
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 
-            //if first time loading this game, there will be nothing in the propertyfile
-            ID = parent.agGameProps.GetSetting("Sound" + ResNum, "ID", "");
+            //if importing, there will be nothing in the propertyfile
+            ID = parent.agGameProps.GetSetting("Sound" + ResNum, "ID", "", true);
             if (ID.Length == 0) {
                 //no properties to load; save default ID
                 ID = "Sound" + ResNum;
-                parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Sounds");
+                parent.WriteGameSetting("Sound" + ResNum, "ID", ID, "Sounds");
             }
             else {
                 //get description and other properties from wag file

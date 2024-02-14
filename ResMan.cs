@@ -2090,24 +2090,25 @@ namespace WinAGI.Editor
             //skip if this MRU is blank (probably due to user manually editing
             //the config file)
             if (strMRU[Index].Length == 0) {
+                // TODO: if entry is blank, but there's text on the menu bar, should probably inform user
                 return;
             }
             //attempt to open this game
             if (OpenGame(0, strMRU[Index])) {
                 //if not successful
                 if (EditGame == null || !EditGame.GameLoaded) {
-                    //step through previous mru entries
+                    //step through rest of mru entries
                     for (i = Index + 1; i < 4; i++) {
                         //move this mru entry up
                         strMRU[i - 1] = strMRU[i];
                         //if blank
-                        if (strMRU[i].Length == 0) {
+                        if (strMRU[i - 1].Length == 0) {
                             //hide this mru item
-                            MDIMain.Controls["mnuGMRU" + (i + 1)].Visible = false;
+                            MDIMain.mnuGame.DropDownItems["mnuGMRU" + (i - 1)].Visible = false;
                         }
                         else {
                             //change this mru item
-                            MDIMain.Controls["mnuGMRU" + (i + 1)].Text = CompactPath(strMRU[i], 60);
+                            MDIMain.mnuGame.DropDownItems["mnuGMRU" + (i - 1)].Text = CompactPath(strMRU[i], 60);
                         }
                     }
                     //remove last entry
@@ -2144,6 +2145,7 @@ namespace WinAGI.Editor
                     for (j = i; j >= 1; j--) {
                         strMRU[j] = strMRU[j - 1];
                         MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Text = MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Text;
+                        MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Visible;
                     }
                     //move item i to top of list
                     strMRU[0] = NewWAGFile;
@@ -2156,19 +2158,11 @@ namespace WinAGI.Editor
             //move all entries down
             for (j = 3; j >= 1; j--) {
                 strMRU[j] = strMRU[j - 1];
-                //if this entry is valid
-                if (strMRU[j].Length != 0) {
-                    //update menu
-                    MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Text = CompactPath(strMRU[j], 60);
-                    MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = true;
-                }
-                else {
-                    //hide it
-                    MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = false;
-                }
+                MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Text = MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Text;
+                MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Visible;
             }
-            //add new item 1
-            strMRU[1] = NewWAGFile;
+            //add new item 0
+            strMRU[0] = NewWAGFile;
             MDIMain.mnuGMRU0.Text = CompactPath(NewWAGFile, 60);
             MDIMain.mnuGMRU0.Visible = true;
             //ensure bar is visible

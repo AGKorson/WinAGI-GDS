@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
     <RootNamespace>WinAGI.Editor</RootNamespace>
     <UseWindowsForms>true</UseWindowsForms>
     <StartupObject>WinAGI.Editor.Program</StartupObject>
@@ -11,6 +11,7 @@
     <Company />
     <Copyright>2021</Copyright>
     <PackageIcon>winagi.jpg</PackageIcon>
+    <ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,19 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="RichEdAGI.cs" />
     <Compile Remove="WinAGI\obj\Debug\net5.0\.NETCoreApp,Version=v5.0.AssemblyAttributes.cs" />
     <Compile Remove="WinAGI\obj\Debug\net5.0\WinAGI.AssemblyInfo.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <COMReference Include="tom.dll">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>0</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>8cc497c9-a1df-11ce-8098-00aa0047be5d</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-    </COMReference>
     <COMReference Include="stdole.dll">
       <WrapperTool>tlbimp</WrapperTool>
       <VersionMinor>0</VersionMinor>

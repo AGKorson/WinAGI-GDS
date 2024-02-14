@@ -367,6 +367,7 @@ namespace WinAGI.Engine
         static Base()
         {
             // initialize all winagi stuff here? no, put it in a method that can be called
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
         internal static void InitWinAGI()
         {

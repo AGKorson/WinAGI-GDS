@@ -99,8 +99,8 @@ namespace WinAGI.Engine
         }
         private void InitGame()
         {
-            // enable encoding access to codepage 437; this gives us access to the standard MSDOS extended characters
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //// enable encoding access to codepage 437; this gives us access to the standard MSDOS extended characters
+            //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             //get default max vol sizes
             agMaxVolSize = 1023 * 1024;
@@ -1802,6 +1802,9 @@ namespace WinAGI.Engine
             for (int i = 0; i < 16; i++) {
                 agEGAcolors[i] = DefaultColors[i];
             }
+            // other properties
+            DecodeGameID = "";
+            IndentLevel = 2; // TODO: set default indent?
         }
         public int OpenGameWAG(string GameWAG)
         {
@@ -1913,7 +1916,6 @@ namespace WinAGI.Engine
             {
                 Type = EWarnType.ecLoadWarn
             };
-            string strError;
 
             //set v3 flag
             agIsVersion3 = (Val(agIntVersion) >= 3);

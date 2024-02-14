@@ -45,7 +45,7 @@ namespace WinAGI.Engine
 
         internal delegate void AGIResPropChangedEventHandler(object sender, AGIResPropChangedEventArgs e);
         internal event AGIResPropChangedEventHandler PropertyChanged;
-        protected AGIResource(AGIResType ResType, string ID)
+        protected AGIResource(AGIResType ResType)
         {
             // can ONLY create new resource from within other game resources
             // when first created, a resource MUST have a type assigned
@@ -54,8 +54,8 @@ namespace WinAGI.Engine
             mInGame = false;
             mVolume = -1;
             mLoc = -1;
-            // and is set with a default ID
-            this.ID = ID;
+            //// and is set with a default ID
+            this.mResID = ID;
             // calling resource constructor is responsible for creating
             // default data
             // assume no compression
@@ -336,7 +336,6 @@ namespace WinAGI.Engine
 
                     //save ID
                     mResID = NewID;
-                    parent.WriteGameSetting("Logic" + this.Number, "ID", NewID, "Logics");
                     //reset compiler list of ids
                     Compiler.blnSetIDs = false;
                 }
