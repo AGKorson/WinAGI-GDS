@@ -65,7 +65,7 @@ namespace WinAGI.Engine
         internal static string[] strIncludeFile;
         internal static int lngIncludeOffset; //to correct line number due to added include lines
         internal static int intFileCount;
-        internal static List<string> stlInput = new();  //the entire text to be compiled; includes the
+        internal static List<string> stlInput = [];  //the entire text to be compiled; includes the
                                                         //original logic text, includes, and defines
         internal static int lngLine;
         internal static int lngPos;

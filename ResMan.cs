@@ -2145,7 +2145,7 @@ namespace WinAGI.Editor
                     for (j = i; j >= 1; j--) {
                         strMRU[j] = strMRU[j - 1];
                         MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Text = MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Text;
-                        MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Visible;
+                        MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = true; // MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Visible;
                     }
                     //move item i to top of list
                     strMRU[0] = NewWAGFile;
@@ -2159,7 +2159,7 @@ namespace WinAGI.Editor
             for (j = 3; j >= 1; j--) {
                 strMRU[j] = strMRU[j - 1];
                 MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Text = MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Text;
-                MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Visible;
+                MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = strMRU[j].Length != 0;
             }
             //add new item 0
             strMRU[0] = NewWAGFile;

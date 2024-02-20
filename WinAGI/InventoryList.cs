@@ -839,6 +839,7 @@ namespace WinAGI.Engine
                     bytTemp[i * Dwidth + 2] = mItems[i].Room;
                     //write all characters of this object
                     for (CurrentChar = 0; CurrentChar < mItems[i].ItemName.Length; CurrentChar++) {
+                        // TODO: make sure extended charcters are working for all codepages
                         bytTemp[lngPos] = (byte)mItems[i].ItemName[CurrentChar];
                         lngPos++;
                     }

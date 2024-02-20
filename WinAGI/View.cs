@@ -137,7 +137,7 @@ namespace WinAGI.Engine
                 //if loop is mirrored AND already added
                 //(can tell if not added by comparing the mirror loop
                 //property against current loop being added)
-                if (mLoopCol[i].Mirrored) {
+                if (mLoopCol[i].Mirrored != 0) {
                     blnMirrorAdded = (mLoopCol[i].MirrorLoop < i);
                 }
                 else {
@@ -167,7 +167,7 @@ namespace WinAGI.Engine
                         //write height
                         WriteByte(mLoopCol[i].Cels[j].Height);
                         //if loop is mirrored
-                        if (mLoopCol[i].Mirrored) {
+                        if (mLoopCol[i].Mirrored != 0) {
                             //set bit 7 for mirror flag and include loop number
                             //in bits 6-5-4 for transparent color
                             bytTransCol = (byte)(0x80 + i * 0x10 + mLoopCol[i].Cels[j].TransColor);
@@ -179,7 +179,7 @@ namespace WinAGI.Engine
                         //write transcolor
                         WriteByte(bytTransCol);
                         //get compressed cel data
-                        bytCelData = CompressedCel(mLoopCol[i].Cels[j], mLoopCol[i].Mirrored);
+                        bytCelData = CompressedCel(mLoopCol[i].Cels[j], (mLoopCol[i].Mirrored != 0));
                         //write cel data
                         for (k = 0; k < bytCelData.Length; k++) {
                             WriteByte(bytCelData[k]);
@@ -378,7 +378,7 @@ namespace WinAGI.Engine
                     }
                 }
                 //if loop not mirrored,
-                if (!mLoopCol[bytLoop].Mirrored) {
+                if (mLoopCol[bytLoop].Mirrored == 0) {
                     //point to start of this loop
                     Pos = lngLoopStart[bytLoop];
                     //read number of cels
@@ -680,7 +680,7 @@ namespace WinAGI.Engine
                 return;
             }
             //this loop can't be already mirrored
-            if (mLoopCol[TargetLoop].Mirrored) {
+            if (mLoopCol[TargetLoop].Mirrored != 0) {
                 //error
 
                 Exception e = new(LoadResString(550))
@@ -690,7 +690,7 @@ namespace WinAGI.Engine
                 throw e;
             }
             //the mirror loop can't already have a mirror
-            if (mLoopCol[SourceLoop].Mirrored) {
+            if (mLoopCol[SourceLoop].Mirrored != 0) {
                 //error
 
                 Exception e = new(LoadResString(551))

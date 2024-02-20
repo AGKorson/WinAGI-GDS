@@ -256,6 +256,16 @@ namespace WinAGI.Engine
         }
         public static LogicErrorLevel ErrorLevel
         { get; set; }
+        public static AGICodeStyle CodeStyle
+        {
+            get { return CodeStyle; }
+            set {
+                CodeStyle = value;
+                //force decompiler to update the tokens
+                blnTokensSet = false;
+
+            }
+        }
         public static bool ShowAllMessages
         {
             get;
@@ -266,6 +276,17 @@ namespace WinAGI.Engine
             get;
             set;
         }
+        public static bool IObjsByNumber
+        {
+            get;
+            set;
+        }
+        public static bool WordsByNumber
+        {
+            get;
+            set;
+        }
+
         public static bool ElseAsGoto
         {
             get;
@@ -335,6 +356,7 @@ namespace WinAGI.Engine
                 }
             }
         }
+
         public static void AssignReservedDefines()
         {
             // predefined variables, flags, and objects

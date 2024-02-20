@@ -52,7 +52,7 @@ namespace WinAGI.Engine
             //(which could push a mirror loop out of position
             if (Pos < 7 && mLoopCol.Count >= 7) {
                 //if loop 7(index of 6) is a mirror
-                if (mLoopCol[6].Mirrored) {
+                if (mLoopCol[6].Mirrored != 0) {
                     //unmirror it
                     mLoopCol[6].UnMirror();
                 }
@@ -113,7 +113,7 @@ namespace WinAGI.Engine
                 throw new IndexOutOfRangeException("index out of bounds");
             }
             //if this loop is a mirrored loop
-            if (mLoopCol[Index].Mirrored) {
+            if (mLoopCol[Index].Mirrored != 0) {
                 //clear mirrorpair for the mirror
                 mLoopCol[mLoopCol[Index].MirrorLoop].MirrorPair = 0;
                 //if the mirror is the primary loop

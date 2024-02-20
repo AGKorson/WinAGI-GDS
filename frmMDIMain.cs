@@ -980,7 +980,7 @@ namespace WinAGI.Editor
             if (DefResDir == "") {
                 DefResDir = "src";
             }
-            else if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) //     !#$%&'()+,-;=@[]^`{}~
+            else if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) 
             {
                 //invalid character; reset to default
                 DefResDir = "src";

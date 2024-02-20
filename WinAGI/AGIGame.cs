@@ -66,7 +66,7 @@ namespace WinAGI.Engine
         internal bool agUseLE = false;
         internal Encoding agCodePage = Encoding.GetEncoding(437);
         internal bool agPowerPack = false;
-        internal string agDefSrcExt = "";
+        internal string agDefSrcExt = "lgc";
         internal string agSrcFileExt = "";
 
         internal TDefine[] agResGameDef = new TDefine[4];
@@ -1287,11 +1287,13 @@ namespace WinAGI.Engine
 
                 string tmpName = value.Trim();
 
-                // ignore blank
-                if (tmpName.Length == 0)
-                    return;
+                // if  blank use default
+                if (tmpName.Length == 0) {
 
-                if (@"\/:*?<>|".Any(tmpName.Contains)) {
+                    return;
+                }
+                    )
+                if (Path.GetInvalidPathChars().Any(tmpName.Contains)) {
                     throw new ArgumentOutOfRangeException("Invalid property Value");
                 }
 
@@ -1399,7 +1401,7 @@ namespace WinAGI.Engine
                 // need to open current wag file to get original extension
                 // open the property file (file has to already exist)
                 try {
-                    SettingsList oldProps = new SettingsList(agGameFile);
+                    SettingsList oldProps = new(agGameFile);
                     oldProps.Open(false);
                     oldExt = oldProps.GetSetting("General", "SourceFileExt", DefaultSrcExt);
                     oldProps = null;
@@ -1804,7 +1806,7 @@ namespace WinAGI.Engine
             }
             // other properties
             DecodeGameID = "";
-            IndentLevel = 2; // TODO: set default indent?
+            IndentSize = 2; // TODO: set default indent?
         }
         public int OpenGameWAG(string GameWAG)
         {
@@ -2294,6 +2296,7 @@ namespace WinAGI.Engine
             //     all colors
             //
             //  General:
+            //     codepage
             //     description
             //     author
             //     about
@@ -2302,12 +2305,16 @@ namespace WinAGI.Engine
             //     platform, platform program, platform options, dos executable
             //     use res names property
             //     use layout editor
-
+            //     sierra syntax mode
+            //     logic sourcefile extension
             //Palette: (make sure AGI defaults set first)
             ResetDefaultColors();
             for (int i = 0; i < 16; i++) {
                 AGIColors[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), DefaultColors[i]);
             }
+            // codepage
+            agCodePage = Encoding.GetEncoding(agGameProps.GetSetting("General", "CodePage", (int)437));
+
             //description
             agDescription = agGameProps.GetSetting("General", "Description", "");
 
@@ -2315,11 +2322,10 @@ namespace WinAGI.Engine
             agAuthor = agGameProps.GetSetting("General", "Author", "");
 
             //about
-            agAbout = agGameProps.GetSetting("General", "About", "");
+            agAbout = agGameProps.GetSetting("General", "About", "").Replace("\n", "\\n");
 
             //game version
-            agGameVersion = agGameProps.GetSetting("General", "GameVersion", "");
-
+            agGameVersion = agGameProps.GetSetting("General", "GameVersion", "").Replace("\n", "\\n");
 
             if (!DateTime.TryParse(agGameProps.GetSetting("General", "LastEdit", DateTime.Now.ToString()), out agLastEdit)) {
                 // default to now
@@ -2343,6 +2349,13 @@ namespace WinAGI.Engine
 
             // use layout editor property
             agUseLE = agGameProps.GetSetting("General", "UseLE", false);
+
+            //sierra syntax
+            agSierraSyntax = agGameProps.GetSetting("General", "SierraSyntax", true);
+
+            // sourcefile extension
+            agSrcFileExt = agGameProps.GetSetting("General", "SourceFileExt", agDefSrcExt).ToLower().Trim();
+            // validate characters
         }
         internal void CompleteCancel(bool NoEvent = false)
         {

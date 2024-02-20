@@ -96,13 +96,15 @@ namespace WinAGI.Engine
                 mIndex = value;
             }
         }
-        public bool Mirrored
+        public int Mirrored
         {
             get
             {
                 //if this loop is part of a mirror pair
                 //then it is mirrored
-                return (mMirrorPair != 0);
+                // return sign so calling function can tell if this is
+                //original loop, or the mirrored loop
+                return Math.Sign(mMirrorPair);
             }
         }
         public byte MirrorLoop

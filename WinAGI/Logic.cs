@@ -26,7 +26,7 @@ namespace WinAGI.Engine
         uint mCRC;
         bool mSourceDirty;
         bool mIsRoom;
-        int mCodeSize;
+        //int mCodeSize;
 
         internal void LoadNoSource() {
             // used by extractresources function to load
@@ -36,7 +36,7 @@ namespace WinAGI.Engine
             // load the base resource data
             base.Load();
             //set code size (add 2 to msgstart offset)
-            mCodeSize = ReadWord(0) + 2;
+            CodeSize = ReadWord(0) + 2;
             //clear dirty flag
             IsDirty = false;
             mSourceDirty = false;
@@ -63,7 +63,7 @@ namespace WinAGI.Engine
                 throw;
             }
             //set code size (add 2 to msgstart offset)
-            mCodeSize = ReadWord(0) + 2;
+            CodeSize = ReadWord(0) + 2;
 
             try {
                 //load the sourcetext
@@ -312,6 +312,7 @@ namespace WinAGI.Engine
             }
             //note change by marking source as dirty
             mSourceDirty = true;
+            //TODO: for a completely empty logic, is it two? or three? 
             CodeSize = 3;
         }
         public void Export(string ExportFile, bool ResetDirty)
@@ -481,7 +482,7 @@ namespace WinAGI.Engine
             
             mSourceText = strInput;
             // replace tabs with indent spaces
-            if (mSourceText.Contains("\t")) {
+            if (mSourceText.Contains('\t')) {
 
                 mSourceText = mSourceText.Replace("\t", INDENT);
             }
@@ -552,7 +553,6 @@ namespace WinAGI.Engine
         {
             //saves the source code for this logic to file
             string strTempFile;
-            byte[] bytText;
             bool blnUnload;
             //no filename needed for ingame logics,
             //but must have filename if NOT ingame
@@ -599,9 +599,7 @@ namespace WinAGI.Engine
                 //    mSourceText = mSourceText.Replace("\r", "\r\n");
                 //}
 
-                bytText = parent.agCodePage.GetBytes(mSourceText);
-
-                File.WriteAllBytes(strTempFile, bytText);
+                File.WriteAllBytes(strTempFile, parent.agCodePage.GetBytes(mSourceText));
                 // TODO: replace all text file handling to use simpler
                 // functions that incorporate codepage
 
@@ -709,6 +707,9 @@ namespace WinAGI.Engine
                 // pass it along
                 throw;
             }
+            // TODO: should Compile be a function, that returns value of true if successful
+            // and false if not?
+
             //if no error, check result
             if (tmpInfo.Type != EWarnType.ecCompOK) {
                 //force uncompiled state

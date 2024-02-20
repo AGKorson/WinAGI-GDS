@@ -713,6 +713,7 @@ namespace WinAGI.Common
         internal static readonly string EXT_CHARS; // all extended chars; used for comparisons
         internal static readonly string INVALID_ID_CHARS;
         internal static readonly string INVALID_DEFNAME_CHARS;
+        internal static readonly string INVALID_FILENAME_CHARS;
         internal static readonly string TOKEN_CHARS;
 
         internal static readonly string NEWLINE = Environment.NewLine;
@@ -745,7 +746,7 @@ namespace WinAGI.Common
             // sierra syntax allows ' ?
             // sierra syntax allows / for anything but first char
             INVALID_DEFNAME_CHARS = CTRL_CHARS + " !\"#$%&'()*+,-:;<=>?@[\\]^`{|}~" + ((char)127).ToString() + EXT_CHARS;
-
+            INVALID_FILENAME_CHARS = CTRL_CHARS + " \\/:*?\"<>|"
         }
 
         internal static Array ResizeArray(Array arr, int[] newSizes)

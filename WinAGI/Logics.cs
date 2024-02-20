@@ -6,17 +6,21 @@ using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using System.IO;
+using System.Diagnostics;
+using System.Xml.Linq;
 
 namespace WinAGI.Engine
 {
     public class Logics : IEnumerable<Logic>
     {
         readonly AGIGame parent;
+        internal string mSourceFileExt = "";
         internal Logics(AGIGame parent)
         {
             this.parent = parent;
             // create the initial Col object
-            Col = new SortedList<byte, Logic>();
+            Col = [];
+            mSourceFileExt = Compiler.DefaultSrcExt;
         }
         internal SortedList<byte, Logic> Col
         { get; private set; }
@@ -40,6 +44,26 @@ namespace WinAGI.Engine
                 if (Col.Count > 0)
                     max = Col.Keys[Col.Count - 1];
                 return max;
+            }
+        }
+        public string SourceFileExt
+        {
+            get
+            {
+                return mSourceFileExt;
+            }
+            set
+            {
+                if (!parent.agGameLoaded) {
+                    return;
+                }
+                if (value.Length == 0) {
+                    // lower case, max four characters, not null
+                    // use default?
+                    mSourceFileExt = Compiler.DefaultSrcExt;
+                    return;
+                }
+
             }
         }
         public bool Exists(byte ResNum)
@@ -104,6 +128,8 @@ namespace WinAGI.Engine
                 Col.Remove(Index);
                 //remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Logic" + Index);
+                //remove ID from compiler list
+                Compiler.blnSetIDs = false;
             }
         }
         public void Renumber(byte OldLogic, byte NewLogic)
@@ -158,6 +184,9 @@ namespace WinAGI.Engine
                 catch (Exception e) {
                     throw new Exception(LoadResString(670) + e.Message);
                 }
+                File.Delete(parent.agResDir + tmpLogic.ID + agSrcFileExt);
+                //rename sourcefile
+                File.Move(parent.agResDir + "Logic" + OldLogic.ToString() + agSrcFileExt, parent.agResDir + tmpLogic.ID + agSrcFileExt);
             }
 
             //change number
@@ -184,6 +213,8 @@ namespace WinAGI.Engine
             if (blnUnload) {
                 tmpLogic.Unload();
             }
+            //reset compiler list of ids
+            Compiler.blnSetIDs = false;
         }
         internal void LoadLogic(byte bytResNum, sbyte bytVol, int lngLoc)
         {
@@ -206,7 +237,17 @@ namespace WinAGI.Engine
             }
             parent.agGameProps.Save();
         }
-        public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false)
+        public void MarkAsDirty(byte ResNum)
+        {
+            //mark this logic as dirty by setting its compiledCRC value to zero
+            //(ignore if resource is not valid)
+            if (Exists(ResNum)) {
+                Col[ResNum].CompiledCRC = 0;
+                parent.WriteGameSetting("Logic" + ResNum.ToString(), "CompCRC32", "0x00", "Logics");
+                return;
+            }
+        }
+       public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false)
         {
             //tie function to allow access to the LogCompile variable conversion function
             //if in a game

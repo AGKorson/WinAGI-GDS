@@ -270,7 +270,7 @@ namespace WinAGI.Engine
     public struct TWarnInfo
     {
         public EWarnType Type;
-        public ELoadWarningSource LWType ;
+        public ELoadWarningSource LWType;
         public long WarningNum;
         public long Line;
         public string ID;
@@ -322,10 +322,6 @@ namespace WinAGI.Engine
         internal const string WORD_SEPARATOR = " | ";
         //current version
         internal const string WINAGI_VERSION = "3.0";
-        // old versions
-        internal const string WINAGI_VERSION_1_2 = "WINAGI v1.2     ";
-        internal const string WINAGI_VERSION_1_0 = "WINAGI v1.0     ";
-        internal const string WINAGI_VERSION_BETA = "1.0 BETA        ";
         // error offset is public
         public const int WINAGI_ERR = 0x100000;
         #endregion
@@ -382,7 +378,6 @@ namespace WinAGI.Engine
             get { return agDefResDir; }
             set
             {
-
                 string NewDir = value;
 
                 NewDir = NewDir.Trim();
