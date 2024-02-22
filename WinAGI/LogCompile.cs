@@ -1662,7 +1662,7 @@ namespace WinAGI.Engine
                 //set module
                 int mod = int.Parse(Mid(stlInput[lngLine], 3, stlInput[lngLine].IndexOf(":") - 3));
                 strModule = strIncludeFile[mod];
-                strModFileName = JustFileName(strModule);
+                strModFileName = Path.GetFileName(strModule);
                 //set errline
                 lngErrLine = int.Parse(Mid(stlInput[lngLine], stlInput[lngLine].IndexOf(":") + 1, stlInput[lngLine].IndexOf("#") - 5));
                 strCurrentLine = Right(stlInput[lngLine], stlInput[lngLine].Length - stlInput[lngLine].IndexOf("#"));

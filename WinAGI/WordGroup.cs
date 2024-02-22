@@ -21,10 +21,13 @@ namespace WinAGI.Engine
         public WordGroup()
         {
             //initialze the word collection
-            mWords = new List<string>();
+            mWords = [];
         }
         internal void AddWordToGroup(string aWord)
         {
+            // TODO: need to make sure passed string is byte-code (i.e. converted from
+            // unicode to actual byte values- or do I do that here????
+
             //add word to collection of strings
             //the fact that this word DOES NOT yet exist in this
             //group has been validated BEFORE this property is called
@@ -35,6 +38,9 @@ namespace WinAGI.Engine
                 mWords.Add(aWord);
             }
             else {
+                // TODO: need to add extended char words
+                // and non-lettered words to BEGINNING of list
+               
                 //step through all words
                 for (i = 0; i < mWords.Count; i++) {
                     //if new word is less than current word
@@ -43,7 +49,7 @@ namespace WinAGI.Engine
                         break;
                     }
                 }
-                //add it, 
+                //add it,
                 mWords.Insert(i, aWord);
             }
             return;

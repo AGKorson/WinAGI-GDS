@@ -4,6 +4,7 @@ using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
+using System.IO;
 
 namespace WinAGI.Engine
 {
@@ -12,6 +13,8 @@ namespace WinAGI.Engine
         bool mViewSet; //flag to note loops loaded from res data
         internal Loops mLoopCol;
         string mViewDesc;
+        int mErrLvl;
+
         public View() : base(AGIResType.rtView)
         {
             //initialize
@@ -20,7 +23,7 @@ namespace WinAGI.Engine
             strErrSource = "WinAGI.View";
             // add rempty loop col
             mLoopCol = new Loops(this);
-            mRData.AllData = new byte[] { 0x01, 0x01, 0x00, 0x00, 0x00 };
+            mRData.AllData = [0x01, 0x01, 0x00, 0x00, 0x00];
             // byte0 = unknown (always 1 or 2?)
             // byte1 = unknown (always 1?)
             // byte2 = loop count
@@ -63,13 +66,14 @@ namespace WinAGI.Engine
         internal View Clone()
         {
             //copies view data from this view and returns a completely separate object reference
-            View CopyView = new View();
+            View CopyView = new();
             // copy base properties
-            base.SetRes(CopyView);
+            base.Clone(CopyView);
             //add WinAGI items
             CopyView.mViewSet = mViewSet;
             CopyView.mViewDesc = mViewDesc;
             CopyView.mLoopCol = mLoopCol.Clone(this);
+            CopyView.mErrLvl = mErrLvl;
             return CopyView;
         }
         public override void Clear()
@@ -210,6 +214,8 @@ namespace WinAGI.Engine
                 //add terminating null char
                 WriteByte(0);
             }
+            // clear viewdesc ptr error
+            mErrLvl = 0;
             //set viewloaded flag
             mViewSet = true;
         }
@@ -290,8 +296,9 @@ namespace WinAGI.Engine
             } while (true);
             return retval;
         }
-        internal void LoadLoops()
+        internal int LoadLoops()
         {
+            return 0;
             // used by load function to extract the view
             // loops and cels from the data stream
             byte bytNumLoops, bytNumCels;
@@ -469,7 +476,7 @@ namespace WinAGI.Engine
             //if not in a game,
             if (!mInGame) {
                 //ID always tracks the resfile name
-                mResID = JustFileName(ExportFile);
+                mResID = Path.GetFileName(ExportFile);
                 if (mResID.Length > 64) {
                     mResID = Left(mResID, 64);
                 }
@@ -493,7 +500,7 @@ namespace WinAGI.Engine
             //if not in a game,
             if (!mInGame) {
                 //set ID
-                mResID = JustFileName(ImportFile);
+                mResID = Path.GetFileName(ImportFile);
                 if (mResID.Length > 64) {
                     mResID = Left(mResID, 64);
                 }
@@ -517,7 +524,7 @@ namespace WinAGI.Engine
             try {
                 //load base resource data
                 base.Load();
-                LoadLoops();
+                mErrLvl = LoadLoops();
             }
             catch (Exception) {
                 Unload();
@@ -535,6 +542,7 @@ namespace WinAGI.Engine
             mIsDirty = false;
             //clear out loop collection
             mLoopCol = new Loops(this);
+            mErrLvl = 0;
             mViewSet = false;
         }
         public void Save()
@@ -588,7 +596,6 @@ namespace WinAGI.Engine
                 //if not loaded
                 if (!mLoaded) {
                     //error
-
                     Exception e = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
@@ -597,14 +604,12 @@ namespace WinAGI.Engine
                 }
                 //if view not set,
                 if (!mViewSet) {
-                    try {
-                        //load loops first
-                        LoadLoops();
-                    }
-                    catch (Exception) {
-                        //pass error along
-                        throw;
-                    }
+                    //error
+                    Exception e = new(LoadResString(563) + ": loops not load????")
+                    {
+                        HResult = WINAGI_ERR + 563,
+                    };
+                    throw e;
                 }
                 //return the loop collection
                 return mLoopCol;
@@ -637,6 +642,23 @@ namespace WinAGI.Engine
                 }
             }
         }
+        public int ErrLevel
+        {
+
+            //provides access to current error level of the view
+
+            //can be used by calling programs to provide feedback
+            //on errors in the view data
+
+            //return 0 if successful, no errors/warnings
+            // non-zero for error/warning:
+            //     1 = invalid viewdesc pointer
+            get
+            {
+                return mErrLvl;
+            }
+        }
+
         public void SetMirror(byte TargetLoop, byte SourceLoop)
         {
             //TargetLoop is the loop that will be a mirror of

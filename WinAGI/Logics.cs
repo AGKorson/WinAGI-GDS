@@ -122,9 +122,9 @@ namespace WinAGI.Engine
             //removes a logic from the game file
 
             // if the resource exists
-            if (Col.ContainsKey(Index)) {
+            if (Col.TryGetValue(Index, out Logic value)) {
                 //need to clear the directory file first
-                UpdateDirFile(Col[Index], true);
+                UpdateDirFile(value, true);
                 Col.Remove(Index);
                 //remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Logic" + Index);
@@ -144,7 +144,7 @@ namespace WinAGI.Engine
                 return;
             }
             //verify new number is not in collection
-            if (Col.Keys.Contains(NewLogic)) {
+            if (Col.ContainsKey(NewLogic)) {
                 //number already in use
                 throw new Exception(LoadResString(669));
             }

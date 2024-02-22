@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace WinAGI.Common
 {
@@ -746,9 +747,25 @@ namespace WinAGI.Common
             // sierra syntax allows ' ?
             // sierra syntax allows / for anything but first char
             INVALID_DEFNAME_CHARS = CTRL_CHARS + " !\"#$%&'()*+,-:;<=>?@[\\]^`{|}~" + ((char)127).ToString() + EXT_CHARS;
-            INVALID_FILENAME_CHARS = CTRL_CHARS + " \\/:*?\"<>|"
+            INVALID_FILENAME_CHARS = CTRL_CHARS + " \\/:*?\"<>|";
         }
 
+        internal static string UnicodeToCP(string strIn, Encoding enc)
+        {
+            return enc.GetBytes(strIn).ToString();
+        }
+        internal static string UnicodeToCP1(string strIn, Encoding newCP)
+        {
+            byte[] bIn = Encoding.Unicode.GetBytes(strIn);
+            byte[] bOut = Encoding.Convert(Encoding.Unicode, newCP, bIn);
+             
+            string conv = newCP.GetString(bOut);
+            return conv;
+        }
+        internal static string CPToUnicode(string strIn, Encoding oldCP)
+        {
+            return Encoding.Convert(oldCP, Encoding.Unicode, oldCP.GetBytes(strIn)).ToString();
+        }
         internal static Array ResizeArray(Array arr, int[] newSizes)
         {
             if (newSizes.Length != arr.Rank)
@@ -834,22 +851,11 @@ namespace WinAGI.Common
             else
                 return strDirIn;
         }
-        internal static string JustFileName(string strFullPathName)
-        {
-            //will extract just the file name by removing the path info
-            string[] strSplitName;
-
-            //On Error Resume Next
-
-            strSplitName = strFullPathName.Split(@"\");
-            if (strSplitName.Length == 1)
-                return strFullPathName;
-            else
-                return strSplitName[strSplitName.Length - 1];
-        }
         internal static string JustPath(string strFullPathName, bool NoSlash = false)
         {  //will extract just the path name by removing the filename
            //if optional NoSlash is true, the trailing backslash will be dropped
+
+            //return Path.GetFullPath(strFullPathName);
 
             // if nothing
             if (strFullPathName.Length == 0) {
@@ -873,13 +879,12 @@ namespace WinAGI.Common
                 }
                 return sReturn;
             }
-            //if slash should be added,
         }
         internal static string FileNameNoExt(string FileName)
         {
             //returns a filename without the extension
             //if FileName includes a path, the path is also removed
-            string strOut = JustFileName(FileName);
+            string strOut = Path.GetFileName(FileName);
             int i = strOut.LastIndexOf(".");
             if (i <= 0) {
                 return strOut;
@@ -1343,10 +1348,6 @@ namespace WinAGI.Common
             retval.AddRange(strText.Replace("\n\r", "\n").Replace('\r', '\n').Split('\n'));
             return retval;
         }
-        internal static string UnicodeToCP(string strIn, Encoding enc)
-        {
-            return enc.GetBytes(strIn).ToString();
-        }
         internal static string ChangeExtension(ref string FileName, string Filter, int Index)
         {
             //compares the extension on Filename to the extension belonging to
@@ -1602,7 +1603,7 @@ namespace WinAGI.Common
             string strOut
                 int i
 
-            strOut = JustFileName(FileName)
+            strOut = Path.GetFileName(FileName)
 
             i = InStrRev(strOut, ".")
 

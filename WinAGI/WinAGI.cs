@@ -237,7 +237,7 @@ namespace WinAGI.Engine
     }
     #endregion
     //structs
-    #region
+    #region Structures  
     public struct PenStatus
     {
         public AGIColorIndex VisColor;
@@ -297,15 +297,15 @@ namespace WinAGI.Engine
         public static readonly string[] ResTypeAbbrv = { "LOG", "PIC", "SND", "VIEW" };
         public static readonly string[] ResTypeName = { "Logic", "Picture", "Sound", "View" };
         public static readonly string[] IntVersions =
-          { //load versions
+          [ //load versions
         "2.089", "2.272", "2.411", "2.425", "2.426", "2.435", "2.439",
         "2.440", "2.903", "2.911", "2.912", "2.915", "2.917", "2.936",
         "3.002086", "3.002098", "3.002102", "3.002107", "3.002149"
-      };
+      ];
         internal static readonly byte[] bytEncryptKey =
-          { (byte)'A', (byte)'v', (byte)'i', (byte)'s', (byte)' ',
+          [ (byte)'A', (byte)'v', (byte)'i', (byte)'s', (byte)' ',
         (byte)'D', (byte)'u', (byte)'r', (byte)'g', (byte)'a', (byte)'n'
-      }; //' = "Avis Durgan"
+      ]; //' = "Avis Durgan"
         #endregion
         //game constants
         #region

@@ -10,6 +10,7 @@ using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIResType;
+using System.IO;
 
 namespace WinAGI.Editor
 {
@@ -58,7 +59,7 @@ namespace WinAGI.Editor
                         strError = "A file access error occurred while trying to open this game: " + Environment.NewLine + Environment.NewLine + strError;
                         break;
                     case 524:
-                        strError = "A critical game file (" + JustFileName(strError) + " is missing.";
+                        strError = "A critical game file (" + Path.GetFileName(strError) + " is missing.";
                         break;
                     case 541:
                         strError = "Missing or invalid directory '" + strError + "'";

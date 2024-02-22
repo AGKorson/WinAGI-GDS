@@ -14,7 +14,7 @@ namespace WinAGI.Engine
         {
             this.parent = parent;
             // create the initial Col object
-            Col = new SortedList<byte, View>();
+            Col = [];
         }
         internal SortedList<byte, View> Col
         { get; private set; }
@@ -94,20 +94,27 @@ namespace WinAGI.Engine
             //save new view
             agResource.Save();
 
+            // TODO: does adding a resource automatically update resid lists? or should
+            // they be reset here as well?
+            //Compiler.blnSetIDs = false;
+
             //return the object created
             return agResource;
+
         }
         public void Remove(byte Index)
         {
             //removes a view from the game file
 
             // if the resource exists
-            if (Col.ContainsKey(Index)) {
+            if (Col.TryGetValue(Index, out View value)) {
                 //need to clear the directory file first
-                UpdateDirFile(Col[Index], true);
+                UpdateDirFile(value, true);
                 Col.Remove(Index);
                 //remove all properties from the wag file
                 parent.agGameProps.DeleteSection("View" + Index);
+                //remove ID from compiler list
+                Compiler.blnSetIDs = false;
             }
         }
         public void Renumber(byte OldView, byte NewView)
@@ -183,6 +190,8 @@ namespace WinAGI.Engine
             if (blnUnload) {
                 tmpView.Unload();
             }
+            //reset compiler list of ids
+            Compiler.blnSetIDs = false;
         }
         internal void LoadView(byte bytResNum, sbyte bytVol, int lngLoc)
         {

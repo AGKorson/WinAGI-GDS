@@ -7,6 +7,8 @@ using static WinAGI.Common.Base;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WinAGI.Engine
 {
@@ -85,9 +87,9 @@ namespace WinAGI.Engine
         internal Picture Clone()
         {
             //copies picture data from this picture and returns a completely separate object reference
-            Picture CopyPicture = new Picture();
+            Picture CopyPicture = new();
             // copy base properties
-            base.SetRes(CopyPicture);
+            base.Clone(CopyPicture);
             //add WinAGI items
             CopyPicture.mBkImgFile = mBkImgFile;
             CopyPicture.mBkShow = mBkShow;
@@ -618,7 +620,7 @@ namespace WinAGI.Engine
             //if not in a game,
             if (!InGame) {
                 //ID always tracks the resfile name
-                mResID = JustFileName(ExportFile);
+                mResID = Path.GetFileName(ExportFile);
                 if (mResID.Length > 64) {
                     mResID = Left(mResID, 64);
                 }
@@ -640,7 +642,7 @@ namespace WinAGI.Engine
                 throw;
             }
             //set ID
-            mResID = JustFileName(ImportFile);
+            mResID = Path.GetFileName(ImportFile);
             if (mResID.Length > 64) {
                 mResID = Left(mResID, 64);
             }
@@ -749,7 +751,6 @@ namespace WinAGI.Engine
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
-
                     Exception e = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
@@ -766,7 +767,6 @@ namespace WinAGI.Engine
                         // pass along any errors
                         throw;
                     }
-                    //if errors,
                 }
                 return bmpPri;
             }
@@ -815,6 +815,8 @@ namespace WinAGI.Engine
                 //(no picture-specific action needed, since changes in picture are
                 //made directly to resource data)
                 //use the base save method
+                // any bmp errors will remain until they are fixed by the
+                // user, so don't reset error flag
                 try {
                     base.Save();
                 }
@@ -831,7 +833,7 @@ namespace WinAGI.Engine
         {
             //sets the picture resource data to PicData()
             //
-            //if the data is invalid, the resource will
+            //if the data are invalid, the resource will
             //be identified as corrupted
             //(clear the picture, replace it with valid data
             //or unload it without saving to recover from
@@ -936,6 +938,7 @@ namespace WinAGI.Engine
             bmpVis = null;
             bmpPri = null;
             mPicBMPSet = false;
+            mBMPErrLvl = 0;
         }
     }
 }

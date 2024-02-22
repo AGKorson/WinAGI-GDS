@@ -185,8 +185,6 @@ namespace WinAGI.Engine
         public void Export(string ExportFile, bool ResetDirty = true)
         {
             //exports the list of inventory objects
-            //  filetype = 0 means AGI OBJECT file
-            //  filetype = 1 means WinAGI object list file
 
             //if not loaded
             if (!mLoaded) {
@@ -278,11 +276,11 @@ namespace WinAGI.Engine
             int intItem;
             byte bytRoom;
             int rtn;
-            byte[] bytData = Array.Empty<byte>();
+            byte[] bytData = [], bytChar = new byte[1];
             int lngDataOffset, lngNameOffset;
             int lngPos, Dwidth;
             //open the file
-            FileStream fsObj = new FileStream(LoadFile, FileMode.Open);
+            FileStream fsObj = new(LoadFile, FileMode.Open);
             //if no data,
             if (fsObj.Length == 0) {
                 fsObj.Dispose();
@@ -364,22 +362,21 @@ namespace WinAGI.Engine
                     if (bytData[lngPos] == 0) {
                         break;
                     }
-                    strItem += ((char)bytData[lngPos]).ToString();
+                    bytChar[0] = bytData[lngPos];
+                    strItem += parent.agCodePage.GetString(bytChar);
                     lngPos++;
                 }
                 //first item IS USUALLY a '?'  , but NOT always
                 //(See MH2 for example!!!!)
                 if (intItem == 0) {
+                    // don't add first item; it is already added
+                    // but it might not be a '?'
                     if (strItem != "?") {
                         //rename first object
                         mItems[0].ItemName = strItem;
                         mItems[0].Room = bytRoom;
-                        //***and if game is being imported, make a note of this!
+                        //TODO: if game is being imported, make a note of this!
                     }
-                    else {
-                        //skip it - '?' is already added by default
-                    }
-                    //dont add first item; it is already added
                 }
                 else {
                     //add without key (to avoid duplicate key error)
@@ -610,9 +607,6 @@ namespace WinAGI.Engine
         public void Save(string SaveFile = "")
         {
             //saves the list of inventory objects
-            //  filetype = 0 means AGI OBJECT file
-            //  filetype = 1 means WinAGI object list file
-            //for ingame resources, SaveFile and filetype are ignored
 
             //if not loaded
             if (!mLoaded) {

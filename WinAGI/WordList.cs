@@ -7,6 +7,15 @@ using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using System.IO;
 using System.Diagnostics;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
+using System.Drawing;
+using System.Windows.Forms;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Diagnostics.Eventing.Reader;
+using System.DirectoryServices;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace WinAGI.Engine
 {
@@ -23,6 +32,7 @@ namespace WinAGI.Engine
         bool mIsDirty;
         bool mWriteProps;
         bool mLoaded;
+        int mErrLvl = 0;
         readonly string strErrSource = "WinAGI.AGIWordList";
         public WordList()
         {
@@ -98,16 +108,15 @@ namespace WinAGI.Engine
             Clear();
 
             //add default groups
-            AddGroup(0);
             AddWord("a", 0);
-            AddGroup(1);
             AddWord("anyword", 1);
-            AddGroup(9999);
             AddWord("rol", 9999);
         }
-        public void Export(string ExportFile, bool ResetDirty = true)
+        public void Export(string ExportFile, int FileType = 0, bool ResetDirty = true)
         {
             //exports words.tok
+            // filetype = 0 means AGI WORDS.TOK file
+            // filetype = 1 means SCUMM SVE format
 
             //if not loaded
             if (!mLoaded) {
@@ -119,7 +128,16 @@ namespace WinAGI.Engine
                 };
                 throw e;
             }
-            Compile(ExportFile);
+            try {
+                if (FileType == 0) {
+                    Compile(ExportFile);
+                }
+                else {
+                    CompileSVE(ExportFile);
+                }
+            } catch {
+                throw;
+            }
             //if NOT in a game,
             if (!mInGame) {
                 if (ResetDirty) {
@@ -142,14 +160,30 @@ namespace WinAGI.Engine
         {
             get { return mLoaded; }
         }
+        public int ErrLevel
+        {
+
+            //provides access to current error level of the sound tracks
+
+            //can be used by calling programs to provide feedback
+            //on errors in the sound data
+
+            //return 0 if successful, no errors/warnings
+            // non-zero for error/warning:
+            //   1 = abnormal index ('a' group doesn't start at position 52)
+            get
+            {
+                return mErrLvl;
+            }
+        }
         bool LoadSierraFile(string LoadFile)
         {
-            byte bytHigh, bytLow;
+            byte bytHigh, bytLow, bytExt;
             int lngPos;
-            byte[] bytData = Array.Empty<byte>();
+            byte[] bytData = [];
             string strThisWord;
             string strPrevWord;
-            byte bytVal;
+            byte[] bytVal = new byte[1];
             int lngGrpNum;
             byte bytPrevWordCharCount;
             FileStream fsWords;
@@ -169,8 +203,8 @@ namespace WinAGI.Engine
             //set load flag
             mLoaded = true;
             // empty word and group columns
-            mWordCol = new SortedList<string, AGIWord> { };
-            mGroupCol = new SortedList<int, WordGroup> { };
+            mWordCol = [];
+            mGroupCol = [];
 
             //read in entire resource
             Array.Resize(ref bytData, (int)fsWords.Length);
@@ -180,6 +214,21 @@ namespace WinAGI.Engine
             bytHigh = bytData[0];
             bytLow = bytData[1];
             lngPos = (bytHigh << 8) + bytLow;
+            if (lngPos != 52) {
+                // words.tok file is corrupt or invalid
+                // don't assume it's bad just yet; if the target
+                // byte is zero, give it a try
+                if (bytData[lngPos] == 0) {
+                    // note the problem in a warning
+                    mErrLvl = 1;
+                }
+                else {
+                    mLoaded = false;
+                    return false;
+                    ////invalid words.tok file!
+                    //throw new Exception("bad WORDS.TOK file");
+                }
+            }
             //for first word, there is no previous word
             strPrevWord = "";
             //read character Count for first word
@@ -191,35 +240,43 @@ namespace WinAGI.Engine
             {
                 //initialize word
                 strThisWord = "";
-                //if number of characters to Count from previous word are longer than the previous word,
-                if (bytPrevWordCharCount > strPrevWord.Length) {
-                    //should never be??
-                    bytPrevWordCharCount = (byte)strPrevWord.Length;
-                }
                 //if some characters should be copied from previous word
                 if (bytPrevWordCharCount > 0) {
-                    //copy //em
+                    //copy them
                     strThisWord = Left(strPrevWord, bytPrevWordCharCount);
                 }
                 //build rest of word
                 do {
-                    bytVal = bytData[lngPos];
+                    bytVal[0] = bytData[lngPos];
+                    // **** check for extended character marker
+                    if (bytVal[0] == 0) {
+                        //nextchar is the one
+                        lngPos++;
+                        bytVal[0] = bytData[lngPos];
+                        bytExt = 128;
+                    }
+                    else {
+                        bytExt = 0;
+                    }
                     //if bit7 is clear
-                    if (bytVal < 0x80) {
-                        strThisWord += (char)(bytVal ^ 0x7F);
+                    if (bytVal[0] < 0x80) {
+                        bytVal[0] = (byte)(bytVal[0] ^ 0x7F + bytExt);
+                        strThisWord += parent.agCodePage.GetString(bytVal);
                     }
                     lngPos++;
                     //continue until last character (indicated by flag) or endofresource is reached
                 }
-                while ((bytVal < 0x80) && (lngPos < bytData.Length)); // Loop Until (bytVal >= 0x80) || lngPos > UBound(bytData)
+                while ((bytVal[0] < 0x80) && (lngPos < bytData.Length)); // Loop Until (bytVal >= 0x80) || lngPos > UBound(bytData)
                                                                       //if end of file is reached before 0x80,
                 if (lngPos >= bytData.Length) {
                     //invalid words.tok file!
                     throw new Exception("bad WORDS.TOK file");
                 }
                 //add last character (after stripping off flag)
-                strThisWord += (char)(0xFF ^ bytVal);
-                //convert any upper-case characters to lower-case (just in case)
+                bytVal[0] ^= 0xFF;
+                strThisWord += parent.agCodePage.GetString(bytVal);
+                // TODO: convert any upper-case characters to lower-case (just in case)
+                // do I need a custom converter? 
                 strThisWord = strThisWord.ToLower();
                 //get group number
                 lngGrpNum = (bytData[lngPos] << 8) + bytData[lngPos + 1];
@@ -249,9 +306,19 @@ namespace WinAGI.Engine
                 AddWord("anyword", 1);
                 AddWord("rol", 9999);
             }
+            //if reserved groups are empty, add default words
+            if (!GroupExists(0)) {
+                AddWord("a", 0);
+            }
+            if (!GroupExists(1)) {
+                AddWord("anyword", 1);
+            }
+            if (!GroupExists(9999)) {
+                AddWord("rol", 9999);
+            }
             return true;
         }
-        public void SetWords(WordList NewWords)
+        public void Clone(WordList WordListToClone)
         {
             //copies word list from NewWords to
             //this word list
@@ -261,7 +328,7 @@ namespace WinAGI.Engine
             WordGroup tmpGroup;
             AGIWord tmpWord;
             //if source wordlist is not loaded
-            if (!NewWords.Loaded) {
+            if (!WordListToClone.Loaded) {
                 //error
 
                 Exception e = new(LoadResString(563))
@@ -273,8 +340,7 @@ namespace WinAGI.Engine
             //first, clear current list
             Clear();
             //then add all groups
-            lngCount = NewWords.GroupCount;
-            foreach (WordGroup oldGroup in NewWords) {
+            foreach (WordGroup oldGroup in WordListToClone) {
                 //create new temp group, assign the number
                 tmpGroup = new WordGroup();
                 lngGrpNum = oldGroup.GroupNum;
@@ -284,7 +350,7 @@ namespace WinAGI.Engine
             }
 
             //then add all words
-            foreach (AGIWord oldWord in NewWords.mWordCol.Values) {
+            foreach (AGIWord oldWord in WordListToClone.mWordCol.Values) {
                 //get word
                 strWord = oldWord.WordText;
                 lngGrpNum = oldWord.Group;
@@ -300,12 +366,12 @@ namespace WinAGI.Engine
             } //nxt  i
 
             //copy description
-            mDescription = NewWords.Description;
+            mDescription = WordListToClone.Description;
             //set dirty flags
-            mIsDirty = NewWords.IsDirty;
-            mWriteProps = NewWords.WriteProps;
+            mIsDirty = WordListToClone.IsDirty;
+            mWriteProps = WordListToClone.WriteProps;
             //copy filename
-            mResFile = NewWords.ResFile;
+            mResFile = WordListToClone.ResFile;
             //set loaded flag
             mLoaded = true;
         }
@@ -401,8 +467,8 @@ namespace WinAGI.Engine
                 throw e;
             }
             //reset group and word collections
-            mGroupCol = new SortedList<int, WordGroup>();
-            mWordCol = new SortedList<string, AGIWord>();
+            mGroupCol = [];
+            mWordCol = [];
             mDescription = "";
             mIsDirty = true;
         }
@@ -425,7 +491,7 @@ namespace WinAGI.Engine
         public bool GroupExists(int GroupNumber)
         {
             //if this group exists, it returns true
-            return mGroupCol.Keys.Contains(GroupNumber);
+            return mGroupCol.ContainsKey(GroupNumber);
         }
         public bool IsDirty
         {
@@ -478,9 +544,7 @@ namespace WinAGI.Engine
         public void Save(string SaveFile = "")
         {
             //saves wordlist
-            // filetype = 0 means AGI WORDS.TOK file
-            // filetype = 1 means WinAGI word list file
-            //for ingame resources, SaveFile and filetype are ignored
+
             //if not loaded
             if (!mLoaded) {
                 //error
@@ -493,17 +557,25 @@ namespace WinAGI.Engine
             }
             //if in a game,
             if (mInGame) {
-                //compile the file
-                Compile(mResFile);
-                //change date of last edit
-                parent.agLastEdit = DateTime.Now; ;
-            }
+                SaveFile = mResFile;
+            } 
             else {
                 if (SaveFile.Length == 0) {
                     SaveFile = mResFile;
                 }
-                //compile agi WORDS.TOK file
+            }
+            try {
+                //compile the file
                 Compile(SaveFile);
+            }
+            catch {
+                throw;
+            }
+            if (mInGame) {
+                //change date of last edit
+                parent.agLastEdit = DateTime.Now;
+            }
+            else {
                 //save filename
                 mResFile = SaveFile;
             }
@@ -870,13 +942,34 @@ namespace WinAGI.Engine
                     if (strCurWord.Length > 1) {
                         //write all but last character
                         for (i = 0; i < strCurWord.Length - 1; i++) {
-                            //encrypt character before writing it
-                            CurByte = (byte)(0x7F ^ (byte)strCurWord[i]);
+                            //check for extended characters
+                            if ((byte)strCurWord[i] > 127) {
+                                //add marker
+                                fsWords.WriteByte((byte)0);
+                                //adjust character down by 128
+                                CurByte = (byte)(0x7F ^ ((byte)strCurWord[i] - (byte)128));
+                            }
+                            else {
+                                //encrypt character before writing it
+                                CurByte = (byte)(0x7F ^ (byte)strCurWord[i]);
+                            }
+                            // add the encrypted character
                             fsWords.WriteByte(CurByte);
                         }
                     }
-                    //encrypt character, and set flag 0x80 for last char
-                    CurByte = (byte)(0x80 + (0x7F ^ (byte)strCurWord[strCurWord.Length]));
+
+                    //check for extended characters
+                    if ((byte)strCurWord[^1] > 127) {
+                        //add marker
+                        fsWords.WriteByte((byte)0);
+                        //adjust character down by 128
+                        CurByte = (byte)(0x80 + (0x7F ^ ((byte)strCurWord[^1] - (byte)128)));
+                    }
+                    else {
+                        //encrypt character, and set flag 0x80 for last char
+                        CurByte = (byte)(0x80 + (0x7F ^ (byte)strCurWord[^1]));
+                    }
+                    // add the encrypted end character
                     fsWords.WriteByte(CurByte);
                     //write group number (stored as 2-byte word; high byte first)
                     CurByte = (byte)(tmpWord.Group / 256);
@@ -898,17 +991,63 @@ namespace WinAGI.Engine
                 }
                 //close file,
                 fsWords.Dispose();
-                //if CompileFile already exists
-                if (File.Exists(CompileFile)) {
-                    //delete it
-                    File.Delete(CompileFile);
-                }
                 //copy tempfile to CompileFile
-                File.Move(strTempFile, CompileFile);
+                File.Move(strTempFile, CompileFile, true);
             }
             catch (Exception) {
                 //raise the error
-                throw new Exception("672, strErrSrc, Replace(LoadResString(672), ARG1, CStr(lngError) + strError)");
+                Exception e = new(LoadResString(672).Replace(ARG1, lngError.ToString()) + ": " + strError)
+                {
+                    HResult = WINAGI_ERR + 672,
+                    Source = strErrSrc
+                };
+                throw e;
+            }
+        }
+        void CompileSVE(string CompileFile)
+        {
+            // ScummVM Extended Word List File format
+            //
+            // header (1st line): Unofficial extended format to support ASCII range of 128-255
+            // wordtext & chr(0) & Cstr(groupnum) & newline(CRLF)
+
+            string strTempFile;
+            int i;
+
+            //if no filename passed,
+            if (CompileFile.Length == 0) {
+                Exception e = new(LoadResString(616))
+                {
+                    HResult = WINAGI_ERR + 616
+                };
+                throw e;
+            }
+            if (mWordCol.Count == 0) {
+                //error
+                Exception e = new(LoadResString(672).Replace(ARG1, "no words to add"))
+                {
+                    HResult = WINAGI_ERR + 672
+                };
+                throw e;
+            }
+            //create temp file
+            strTempFile = Path.GetTempFileName();
+            try {
+                //open the file
+                StreamWriter swWords = new(strTempFile);
+                //print header
+                swWords.WriteLine("Unofficial extended format to support ASCII range of 128-255");
+
+                //add all words, in alphabetical order
+                for (i = 0; i < this.WordCount; i++) {
+                    swWords.WriteLine(this[i].WordText + (char)0 + this[i].Group);
+                }
+                swWords.Close();
+                //copy tempfile to CompileFile
+                File.Move(strTempFile, CompileFile, true);
+            }
+            catch (Exception) {
+                throw;
             }
         }
         public void Load(string LoadFile = "")
@@ -920,13 +1059,8 @@ namespace WinAGI.Engine
 
             //if already loaded,
             if (mLoaded) {
-                //error- resource already loaded
-
-                Exception e = new(LoadResString(511))
-                {
-                    HResult = WINAGI_ERR + 511
-                };
-                throw e;
+                //do nothing
+                return;
             }
             if (mInGame) {
                 //use default filename
@@ -1015,7 +1149,12 @@ namespace WinAGI.Engine
                 };
                 throw e;
             }
+            // convert to byte code in correct codepage
+            //WordText = UnicodeToCP(WordText, parent.agCodePage);
+            //WordText = Encoding.Convert(Encoding.Unicode, parent.agCodePage, Encoding.Unicode.GetBytes(WordText)).ToString();
             //convert input to lowercase
+            // TODO: do I need custom lowercase? because extended chars 
+            // can be extended without causing problems
             WordText = WordText.ToLower();
             //check to see if word is already in collection,
             if (mWordCol.ContainsKey(WordText)) {

@@ -1572,7 +1572,7 @@ namespace WinAGI.Editor
                 // open the game in this directory
                 if (OpenGame(1, ThisGameDir)) {
                     // if not loaded,
-                    if (!EditGame.GameLoaded) {
+                    if (EditGame is null || !EditGame.GameLoaded) {
                         // user canceled close of currently open game, or
                         //must have encountered error;
                         return;
@@ -10011,7 +10011,7 @@ namespace WinAGI.Editor
 
           //set filename, caption
           .FileName = strOpenFile
-          .Text = "Text editor - " + JustFileName(strOpenFile)
+          .Text = "Text editor - " + Path.GetFileName(strOpenFile)
 
           //reset dirty flag
           .rtfLogic.Dirty = false
@@ -10983,7 +10983,7 @@ namespace WinAGI.Editor
               ProgressWin.lblProgress.Text = "Searching " + LogicEditors(i).LogicEdit.ID + "..."
             } else {
               //if a text file, show the filename
-              ProgressWin.lblProgress.Text = "Searching " + JustFileName(LogicEditors(i).FileName) + "..."
+              ProgressWin.lblProgress.Text = "Searching " + Path.GetFileName(LogicEditors(i).FileName) + "..."
             }
             //replace
             ReplaceAllWords FindText, ReplaceText, MatchWord, MatchCase, true, null, LogicEditors(i)

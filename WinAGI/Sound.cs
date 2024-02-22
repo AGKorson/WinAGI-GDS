@@ -19,6 +19,7 @@ namespace WinAGI.Engine
         int mKey;
         int mTPQN;
         int mFormat;
+        int mErrLvl;
         //variables to support MIDI file creation
         bool mMIDISet;
 
@@ -206,6 +207,32 @@ namespace WinAGI.Engine
                 }
             }
         }
+        public int ErrLevel
+        {
+
+            //provides access to current error level of the sound tracks
+
+            //can be used by calling programs to provide feedback
+            //on errors in the sound data
+
+            //return 0 if successful, no errors/warnings
+            // non-zero for error/warning:
+            //  -1 = error- can't build sound tracks
+            //   1 = bad track0 offset
+            //   2 = bad track1 offset
+            //   4 = bad track2 offset
+            //   8 = bad track3 offset
+            //  16 = bad track0 data
+            //  32 = bad track1 data
+            //  64 = bad track2 data
+            // 128 = bad track3 data
+            // 256 = missing track data
+            get
+            {
+                return mErrLvl;
+            }
+        }
+
         internal void LoadTracks()
         {
             int i, lngLength = 0, lngTLength;
@@ -497,7 +524,7 @@ namespace WinAGI.Engine
             //copies sound data from this sound and returns a completely separate object reference
             Sound CopySound = new Sound();
             // copy base properties
-            base.SetRes(CopySound);
+            base.Clone(CopySound);
             //add WinAGI items
             CopySound.mKey = mKey;
             CopySound.mTPQN = mTPQN;
@@ -697,7 +724,7 @@ namespace WinAGI.Engine
               //if not in a game,
             if (!mInGame) {
                 //ID always tracks the resfile name
-                mResID = JustFileName(ExportFile);
+                mResID = Path.GetFileName(ExportFile);
                 if (mResID.Length > 64) {
                     mResID = Left(mResID, 64);
                 }
@@ -734,7 +761,7 @@ namespace WinAGI.Engine
             mTPQN = 16;
             mKey = 0;
             //set ID
-            mResID = JustFileName(ImportFile);
+            mResID = Path.GetFileName(ImportFile);
             if (mResID.Length > 64) {
                 mResID = Left(mResID, 64);
             }

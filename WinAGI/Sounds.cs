@@ -14,7 +14,7 @@ namespace WinAGI.Engine
         {
             this.parent = parent;
             // create the initial Col object
-            Col = new SortedList<byte, Sound>();
+            Col = [];
         }
         internal SortedList<byte, Sound> Col
         { get; private set; }
@@ -101,12 +101,14 @@ namespace WinAGI.Engine
             //removes a sound from the game file
 
             // if the resource exists
-            if (Col.ContainsKey(Index)) {
+            if (Col.TryGetValue(Index, out Sound value)) {
                 //need to clear the directory file first
-                UpdateDirFile(Col[Index], true);
+                UpdateDirFile(value, true);
                 Col.Remove(Index);
                 //remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Sound" + Index);
+                //remove ID from compiler list
+                Compiler.blnSetIDs = false;
             }
         }
         public void Renumber(byte OldSound, byte NewSound)
@@ -182,6 +184,8 @@ namespace WinAGI.Engine
             if (blnUnload) {
                 tmpSound.Unload();
             }
+            //reset compiler list of ids
+            Compiler.blnSetIDs = false;
         }
         internal void LoadSound(byte bytResNum, sbyte bytVol, int lngLoc)
         {

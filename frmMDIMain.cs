@@ -17,6 +17,7 @@ using static WinAGI.Common.Base;
 using System.Diagnostics;
 using static WinAGI.Editor.Base;
 using static WinAGI.Editor.BkgdTasks;
+using System.IO;
 
 namespace WinAGI.Editor
 {
@@ -249,6 +250,32 @@ namespace WinAGI.Editor
         private void frmMDIMain_Load(object sender, EventArgs e)
         {
             bool blnLastLoad;
+
+            // STRATEGY FOR READING/WRITING DATA TO/FROM
+            // AGI TEXT RESOURCES:
+            //
+            // TO READ:
+            // read in as a byte array; then convert the
+            // byte array to current codepage:
+            //   strIn = agCodePage.GetString(bIn);
+            //
+            // TO WRITE:
+            // convert string to byte array, then write
+            // the byte array
+            //   bOut = agCodePage.GetBytes(strOut);
+            //
+            // means can't easily convert to different codepage
+            // on the fly; need to close and then restart the
+            // game
+            //int i;
+            //byte[] charval = new byte[1];
+            //string sTest = "";
+            //for (i = 160; i < 176; i++) {
+            //    charval[0] = (byte)i;
+            //    sTest += Encoding.GetEncoding(850).GetString(charval);
+            //}
+            //byte tmp = (byte)sTest[0];
+            //Debug.Print(sTest);
 
             //what is resolution?
             Debug.Print($"DeviceDPI: {this.DeviceDpi}");
@@ -1747,7 +1774,7 @@ namespace WinAGI.Editor
             }
 
             //check for OBJECT or WORDS.TOK file:
-            if (JustFileName(args[0]).Equals("OBJECT", StringComparison.OrdinalIgnoreCase)) {
+            if (Path.GetFileName(args[0]).Equals("OBJECT", StringComparison.OrdinalIgnoreCase)) {
               //open a object resource
               frmNewO = new frmObjectEdit();
               try {
@@ -1758,7 +1785,7 @@ namespace WinAGI.Editor
                 frmNewO.Close();
               }
 
-            } else if (JustFileName(args[0]).Equals("WORDS.TOK", StringComparison.OrdinalIgnoreCase)) {
+            } else if (Path.GetFileName(args[0]).Equals("WORDS.TOK", StringComparison.OrdinalIgnoreCase)) {
               //open a word resource
               frmNewW = new frmWordsEdit();
               try {
@@ -2136,7 +2163,7 @@ namespace WinAGI.Editor
         ErrorText,
         ResNumber.ToString(),
         LineNum.ToString(),
-        (Module.Length != 0 ? JustFileName(Module) : EditGame.Logics[(byte)ResNumber].ID) };
+        (Module.Length != 0 ? Path.GetFileName(Module) : EditGame.Logics[(byte)ResNumber].ID) };
 
             //add it to the grid
             lngNewRow = fgWarnings.Rows.Add(rowdata);
@@ -2188,7 +2215,7 @@ namespace WinAGI.Editor
             case rtLogic:
                 rowdata[0] = JustPath(strWarning[3], true);
                 rowdata[4] = ResNumber.ToString();
-                rowdata[6] = strWarning[3].Length != 0 ? JustFileName(strWarning[3]) : EditGame.Logics[ResNumber].ID;
+                rowdata[6] = strWarning[3].Length != 0 ? Path.GetFileName(strWarning[3]) : EditGame.Logics[ResNumber].ID;
                 break;
             case rtPicture:
                 rowdata[6] = EditGame.Pictures[ResNumber].ID;
@@ -5237,7 +5264,7 @@ namespace WinAGI.Editor
           if (Len(strNewPath) > 0) {
           //if a path is provided, check for program dir
             strNewPath = Replace(strNewPath, "%PROGDIR%", ProgramDir)
-            strFile = strNewPath + JustFileName(mnuTCustom(Index).Tag)
+            strFile = strNewPath + Path.GetFileName(mnuTCustom(Index).Tag)
           } else {
             strFile = mnuTCustom(Index).Tag
           }

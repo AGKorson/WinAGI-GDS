@@ -151,7 +151,7 @@ namespace WinAGI.Engine
             //copies logic data from this logic and returns a completely separate object reference
             Logic CopyLogic = new();
             // copy base properties
-            base.SetRes(CopyLogic);
+            base.Clone(CopyLogic);
             //add WinAGI items
             CopyLogic.mIsRoom = IsRoom;
             CopyLogic.mLoaded = mLoaded;
@@ -655,7 +655,7 @@ namespace WinAGI.Engine
             }
             else {
                 //update id to match savefile name
-                mResID = JustFileName(SaveFile);
+                mResID = Path.GetFileName(SaveFile);
             }
             //if unloaded when call to this function was made
             if (blnUnload) {

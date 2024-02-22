@@ -10,6 +10,8 @@ using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
 using static WinAGI.Editor.Base;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using stdole;
 
 namespace WinAGI.Engine
 {
@@ -163,15 +165,16 @@ namespace WinAGI.Engine
                     if (game.agIsVersion3) {
                         warnInfo.LWType = ELoadWarningSource.lwDIR;
                         warnInfo.WarningNum = 1;
+                        warnInfo.ID = "DW01";
                         warnInfo.Text = ResTypeAbbrv[(int)bytResType] + " portion of DIR file is larger than expected; it may be corrupted";
                         Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtGame, 0, warnInfo);
 
                     }
                     else {
-                        //");
                         //AddLoadWarning lwDIR, 2, rtGame, 0, ResTypeAbbrv(bytResType) & "DIR file is larger than expected; it may be corrupted"
                         warnInfo.LWType = ELoadWarningSource.lwDIR;
                         warnInfo.WarningNum = 2;
+                        warnInfo.ID = "DW02";
                         warnInfo.Text = ResTypeAbbrv[(int)bytResType] + "DIR file is larger than expected; it may be corrupted";
                         Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtGame, 0, warnInfo);
                     }
@@ -244,6 +247,30 @@ namespace WinAGI.Engine
                                     //need to reset them to false
                                     game.agPics[bytResNum].WritePropState = false;
                                     game.agPics[bytResNum].IsDirty = false;
+                                    // check for picture errors
+                                    game.agPics[bytResNum].Load();
+                                    switch (game.agPics[bytResNum].BMPErrLevel) {
+                                    case 0:  // ok
+                                        break;
+                                    case -1:
+                                    case >= 8:
+                                        // unhandled error
+                                        warnInfo.LWType = ELoadWarningSource.lwResource;
+                                        warnInfo.WarningNum = 5;
+                                        warnInfo.ID = "RW05";
+                                        warnInfo.Text = "Unhandled error in Picture " + bytResNum + " data- picture may not display correctly (" + game.agPics[bytResNum].BMPErrLevel + ")";
+                                        Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtPicture,  bytResNum, warnInfo);
+                                        break;
+                                    default:
+                                        //missing EOP marker, bad color or bad cmd
+                                        warnInfo.LWType = ELoadWarningSource.lwResource;
+                                        warnInfo.WarningNum = 6;
+                                        warnInfo.ID = "RW06";
+                                        warnInfo.Text = "Data anomalies in Picture " + bytResNum + " data but picture should display(" + game.agPics[bytResNum].BMPErrLevel + ")";
+                                        Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtPicture, bytResNum, warnInfo);
+                                        break;
+                                    }
+                                    game.agPics[bytResNum].Unload();
                                 }
                                 else {
                                     //set it's DIR file values to FFs
@@ -268,6 +295,16 @@ namespace WinAGI.Engine
                                     //need to reset them to false
                                     game.agSnds[bytResNum].WritePropState = false;
                                     game.agSnds[bytResNum].IsDirty = false;
+                                    game.agSnds[bytResNum].Load();
+                                    // check for sound errors
+                                    if (game.agSnds[bytResNum].ErrLevel != 0) {
+                                        warnInfo.LWType = ELoadWarningSource.lwResource;
+                                        warnInfo.WarningNum = 7;
+                                        warnInfo.ID = "RW07";
+                                        warnInfo.Text = "Sound " + bytResNum + " invalid track pointer (" + game.agSnds[bytResNum].ErrLevel + ")";
+                                        Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtSound, bytResNum, warnInfo);
+                                    }
+                                    game.agSnds[bytResNum].Unload();
                                 }
                                 else {
                                     //set it's DIR file values to FFs
@@ -293,6 +330,16 @@ namespace WinAGI.Engine
                                     //need to reset them to false
                                     game.agViews[bytResNum].WritePropState = false;
                                     game.agViews[bytResNum].IsDirty = false;
+                                    game.agViews[bytResNum].Load();
+                                    // check for sound errors
+                                    if (game.agViews[bytResNum].ErrLevel == 1) {
+                                        warnInfo.LWType = ELoadWarningSource.lwResource;
+                                        warnInfo.WarningNum = 8;
+                                        warnInfo.ID = "RW08";
+                                        warnInfo.Text = "View " + bytResNum + " has an invalid view description pointer";
+                                        Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtView, bytResNum, warnInfo);
+                                    }
+                                    game.agViews[bytResNum].Unload();
                                 }
                                 else {
                                     //set it's DIR file values to FFs
@@ -367,18 +414,21 @@ namespace WinAGI.Engine
                 strError = "502: " + eRes.Message;
                 warnInfo.LWType = ELoadWarningSource.lwVol;
                 warnInfo.WarningNum = 1;
+                warnInfo.ID = "VW01";
                 warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " is invalid due to file access error (" + strError + ")";
                 Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtGame, (byte)lngCurrentVol, warnInfo);
                 break;
             case 505: //Invalid resource location (%1) in %2.
                 warnInfo.LWType = ELoadWarningSource.lwVol;
                 warnInfo.WarningNum = 2;
-                warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " has an invalid location (" + lngCurrentLoc + ") in volume file " + JustFileName(fsVOL.Name);
+                warnInfo.ID = "VW02";
+                warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " has an invalid location (" + lngCurrentLoc + ") in volume file " + Path.GetFileName(fsVOL.Name);
                 Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtGame, (byte)lngCurrentVol, warnInfo);
                 break;
             case 506: //invalid header
                 warnInfo.LWType = ELoadWarningSource.lwResource; 
                 warnInfo.WarningNum = 9;
+                warnInfo.ID = "RW09";
                 warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " has an invalid resource header";
                 Raise_LoadGameEvent(ELStatus.lsResources, resType, resNum, warnInfo);
                 break;
@@ -386,13 +436,15 @@ namespace WinAGI.Engine
                 strError = "507: " + eRes.Message;
                 warnInfo.LWType = ELoadWarningSource.lwResource;
                 warnInfo.WarningNum = 10;
+                warnInfo.ID = "RW10";
                 warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " has invalid resource data (" + strError + ")";
                 Raise_LoadGameEvent(ELStatus.lsResources, resType, resNum, warnInfo);
                 break;
             case 606: //Can't load resource: file not found (%1)
                 warnInfo.LWType = ELoadWarningSource.lwVol;
                 warnInfo.WarningNum = 3;
-                warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " is in a VOL file (" + JustFileName(fsVOL.Name) + ") that does not exist";
+                warnInfo.ID = "VW03";
+                warnInfo.Text = ResTypeName[(int)resType] + " " + resNum + " is in a VOL file (" + Path.GetFileName(fsVOL.Name) + ") that does not exist";
                 Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtGame, (byte)lngCurrentVol, warnInfo);
                 break;
             case 646:
@@ -403,6 +455,7 @@ namespace WinAGI.Engine
                 strError = (eRes.HResult - WINAGI_ERR) + ": " + eRes.Message;
                 warnInfo.LWType = ELoadWarningSource.lwResource;
                 warnInfo.WarningNum = 11;
+                warnInfo.ID = "RW11";
                 warnInfo.Text = "Unable to load " + ResTypeName[(int)resType] + " " + resNum + " (" + strError + ")";
                 Raise_LoadGameEvent(ELStatus.lsResources, resType, resNum, warnInfo);
                 break;
@@ -410,6 +463,7 @@ namespace WinAGI.Engine
                 strError = (eRes.HResult - WINAGI_ERR) + ": " + eRes.Message;
                 warnInfo.LWType = ELoadWarningSource.lwOther;
                 warnInfo.WarningNum = 3;
+                warnInfo.ID = "OW03";
                 warnInfo.Text = "Unhandled resource error in " + ResTypeName[(int)resType] + " " + resNum + " (" + strError + ")";
                 Raise_LoadGameEvent(ELStatus.lsResources, resType, resNum, warnInfo);
                 break;

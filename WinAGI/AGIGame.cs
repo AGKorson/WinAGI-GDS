@@ -273,7 +273,7 @@ namespace WinAGI.Engine
                 agGameDir = CDir(value);
 
                 //update gamefile name
-                agGameFile = agGameDir + JustFileName(agGameFile);
+                agGameFile = agGameDir + Path.GetFileName(agGameFile);
 
                 //update resdir
                 agResDir = agGameDir + agResDirName + @"\";
@@ -621,8 +621,8 @@ namespace WinAGI.Engine
                         TWarnInfo tmpWarn = new()
                         {
                             Type = EWarnType.ecCompWarn,
-                            LWType = ELoadWarningSource.lwResource,
-                            Text = "Error during compilation of WORDS.TOK (" + ex.Message + ")"
+                        // TODO: complete refactor of load/compile error & warnings needed
+                        Text = "Error during compilation of WORDS.TOK (" + ex.Message + ")"
                         };
                         Raise_CompileGameEvent(ECStatus.csResError, AGIResType.rtWords, 0, tmpWarn);
                         // cancel it
@@ -650,10 +650,9 @@ namespace WinAGI.Engine
                         TWarnInfo tmpWarn = new()
                         {
                             Type = EWarnType.ecCompWarn,
-                            LWType = ELoadWarningSource.lwResource,
                             Text = "Error while creating WORDS.TOK file (" + ex.Message + ")"
                         };
-                        Raise_CompileGameEvent(ECStatus.csResError, AGIResType.rtObjects, 0, tmpWarn);
+                        Raise_CompileGameEvent(ECStatus.csResError, AGIResType.rtWords, 0, tmpWarn);
                         //cancel it
                         CompleteCancel();
                         return false;
@@ -679,7 +678,6 @@ namespace WinAGI.Engine
                         TWarnInfo tmpWarn = new()
                         {
                             Type = EWarnType.ecCompWarn,
-                            LWType = ELoadWarningSource.lwResource,
                             Text = "Error during compilation of OBJECT (" + ex.Message + ")"
                         };
                         Raise_CompileGameEvent(ECStatus.csResError, AGIResType.rtObjects, 0, tmpWarn);
@@ -706,8 +704,6 @@ namespace WinAGI.Engine
                         // note error
                         TWarnInfo tmpWarn = new()
                         {
-                            Type = EWarnType.ecCompWarn,
-                            LWType = ELoadWarningSource.lwResource,
                             Text = "Error while creating OBJECT file (" + ex.Message + ")"
                         };
                         Raise_CompileGameEvent(ECStatus.csResError, AGIResType.rtObjects, 0, tmpWarn);
@@ -1292,7 +1288,6 @@ namespace WinAGI.Engine
 
                     return;
                 }
-                    )
                 if (Path.GetInvalidPathChars().Any(tmpName.Contains)) {
                     throw new ArgumentOutOfRangeException("Invalid property Value");
                 }
@@ -1642,11 +1637,14 @@ namespace WinAGI.Engine
             if (!Directory.Exists(agGameDir + agResDirName)) {
                 if (Directory.CreateDirectory(agGameDir + agResDirName) == null) {
                     //note the problem as a warning
-                    TWarnInfo warnInfo = new();
-                    warnInfo.Type = EWarnType.ecLoadWarn;
-                    warnInfo.LWType = ELoadWarningSource.lwOther;
-                    warnInfo.WarningNum = 1;
-                    warnInfo.Text = "Can't create " + agResDir;
+                    TWarnInfo warnInfo = new()
+                    {
+                        Type = EWarnType.ecLoadWarn,
+                        LWType = ELoadWarningSource.lwOther,
+                        ID = "OW01",
+                        WarningNum = 1,
+                        Text = "Can't create " + agResDir
+                    };
                     Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtGame, 0, warnInfo);
                     //use main directory
                     agResDir = agGameDir;
@@ -1954,7 +1952,7 @@ namespace WinAGI.Engine
                     //so use default
                     agResDirName = agDefResDir;
                 }
-                WriteGameSetting("General", "ResDir", JustFileName(agResDirName));
+                WriteGameSetting("General", "ResDir", Path.GetFileName(agResDirName));
             }
             //now create full resdir from name
             agResDir = agGameDir + agResDirName + @"\";
@@ -1969,6 +1967,7 @@ namespace WinAGI.Engine
                     //note the problem as a warning
                     loadInfo.LWType = ELoadWarningSource.lwOther;
                     loadInfo.WarningNum = 1;
+                    loadInfo.ID = "OW01";
                     loadInfo.Text = "Can't create " + agResDir;
                     loadInfo.Module = "--";
                     Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtGame, 0, loadInfo);
@@ -2011,6 +2010,7 @@ namespace WinAGI.Engine
                 //note the problem as a warning
                 loadInfo.LWType = ELoadWarningSource.lwOther;
                 loadInfo.WarningNum = 2;
+                loadInfo.ID = "OW02";
                 loadInfo.Text = "Error while loading WAG file; some properties not loaded. (Error number: " + e.Message + ")";
                 loadInfo.Module = "--";
                 Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtGame, 0, loadInfo);
@@ -2033,13 +2033,23 @@ namespace WinAGI.Engine
                 //note the problem as a warning
                 loadInfo.LWType = ELoadWarningSource.lwResource;
                 loadInfo.WarningNum = 1;
+                loadInfo.ID = "RW01";
                 loadInfo.Text = "An error occurred while loading WORDS.TOK: " + e.Message;
+                loadInfo.Module = "--";
+                Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtWords, 0, loadInfo);
+                //set warning flag
+                blnWarnings = true;
+            }
+            if (agVocabWords.ErrLevel == 1) {
+                loadInfo.LWType = ELoadWarningSource.lwResource;
+                loadInfo.WarningNum = 2;
+                loadInfo.ID = "RW02";
+                loadInfo.Text = "Abnormal index in WORDS.TOK, file may be corrupt";
                 loadInfo.Module = "--";
                 Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtGame, 0, loadInfo);
                 //set warning flag
                 blnWarnings = true;
-            }
-
+            } 
             //load inventory objects list
             loadInfo.LWType = ELoadWarningSource.lwNA;
             loadInfo.WarningNum = 0;
@@ -2054,10 +2064,11 @@ namespace WinAGI.Engine
                 //if there was an error,
                 //note the problem as a warning
                 loadInfo.LWType = ELoadWarningSource.lwResource;
-                loadInfo.WarningNum = 1;
+                loadInfo.WarningNum = 3;
+                loadInfo.ID = "RW03";
                 loadInfo.Text = "An error occurred while loading OBJECT: " + e.Message;
                 loadInfo.Module = "--";
-                Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtGame, 0, loadInfo);
+                Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtObjects, 0, loadInfo);
                 //set warning flag
                 blnWarnings = true;
             }
@@ -2126,6 +2137,7 @@ namespace WinAGI.Engine
                             tmpLog.CompiledCRC = 0;
                             loadInfo.LWType = ELoadWarningSource.lwResource;
                             loadInfo.WarningNum = 4;
+                            loadInfo.ID = "RW04";
                             loadInfo.Text = "Logic " + tmpLog.Number + " cannot be decompiled (" + e.Message + "); inserting blank source file";
                             loadInfo.Module = tmpLog.ID;
                             Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtLogic, tmpLog.Number, loadInfo);
@@ -2171,8 +2183,10 @@ namespace WinAGI.Engine
         {
             agGameProps.WriteSetting(Section, Key, Value.ToString(), Group);
 
-            if (Key.ToLower() != "lastedit" && Key.ToLower() != "winagiversion" && Key.ToLower() != "palette")
+            if (!Key.Equals("lastedit", StringComparison.CurrentCultureIgnoreCase) && !Key.Equals("winagiversion", StringComparison.CurrentCultureIgnoreCase) && !Key.Equals("palette", StringComparison.CurrentCultureIgnoreCase))
                 agLastEdit = DateTime.Now;
+            // always save settings file
+            agGameProps.Save();
         }
         public void WriteProperty(string Section, string Key, string Value, string Group = "", bool ForceSave = false)
         {
@@ -2211,7 +2225,7 @@ namespace WinAGI.Engine
                 dirCount = Directory.EnumerateFiles(strDir, "*DIR").Count();
             }
             catch (Exception) {
-                // if error, assume NOT a directory
+                // if error, assume NOT a valid directory
                 return false;
             }
 
@@ -2219,6 +2233,19 @@ namespace WinAGI.Engine
                 //this might be an AGI game directory-
                 // if exactly four dir files
                 if (dirCount == 4) {
+                    // one MUST be LOGDIR
+                    if (!File.Exists(strDir + "LOGDIR")) {
+                        return false;
+                    }
+                    if (!File.Exists(strDir + "PICDIR")) {
+                        return false;
+                    }
+                    if (!File.Exists(strDir + "SNDDIR")) {
+                        return false;
+                    }
+                    if (!File.Exists(strDir + "VIEWDIR")) {
+                        return false;
+                    }
                     // assume it's a v2 game
 
                     // check for at least one VOL file
@@ -2232,7 +2259,7 @@ namespace WinAGI.Engine
                         //look for loader file to find ID
                         foreach (string strLoader in Directory.EnumerateFiles(strDir, "*.COM")) {
                             //open file and get chunk
-                            string strChunk = new string(' ', 6);
+                            string strChunk = new(' ', 6);
                             using (fsCOM = new FileStream(strLoader, FileMode.Open)) {
                                 // see if the word 'LOADER' is at position 3 of the file
                                 fsCOM.Position = 3;
@@ -2242,9 +2269,8 @@ namespace WinAGI.Engine
 
                                 //if this is a Sierra loader
                                 if (strChunk == "LOADER") {
-                                    // determine ID to use
-                                    //if not SIERRA.COM
-                                    strFile = JustFileName(strLoader);
+                                    // determine ID to use based on loader filename
+                                    strFile = Path.GetFileName(strLoader);
                                     if (strLoader != "SIERRA.COM") {
                                         //use this filename as ID
                                         agGameID = Left(strFile, strFile.Length - 4).ToUpper();
@@ -2262,7 +2288,7 @@ namespace WinAGI.Engine
                 }
                 else if (dirCount == 1) {
                     //if only one, it's probably v3 game
-                    strFile = JustFileName(Directory.GetFiles(strDir, "*DIR")[0].ToUpper());
+                    strFile = Path.GetFileName(Directory.GetFiles(strDir, "*DIR")[0].ToUpper());
                     agGameID = Left(strFile, strFile.IndexOf("DIR"));
 
                     // check for matching VOL file;
@@ -2351,7 +2377,7 @@ namespace WinAGI.Engine
             agUseLE = agGameProps.GetSetting("General", "UseLE", false);
 
             //sierra syntax
-            agSierraSyntax = agGameProps.GetSetting("General", "SierraSyntax", true);
+            agSierraSyntax = agGameProps.GetSetting("General", "SierraSyntax", false);
 
             // sourcefile extension
             agSrcFileExt = agGameProps.GetSetting("General", "SourceFileExt", agDefSrcExt).ToLower().Trim();

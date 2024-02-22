@@ -101,12 +101,14 @@ namespace WinAGI.Engine
             //removes a picture from the game file
 
             // if the resource exists
-            if (Col.ContainsKey(Index)) {
+            if (Col.TryGetValue(Index, out Picture value)) {
                 //need to clear the directory file first
-                UpdateDirFile(Col[Index], true);
+                UpdateDirFile(value, true);
                 Col.Remove(Index);
                 //remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Picture" + Index);
+                //remove ID from compiler list
+                Compiler.blnSetIDs = false;
             }
         }
         public void Renumber(byte OldPic, byte NewPic)
@@ -121,7 +123,7 @@ namespace WinAGI.Engine
                 return;
             }
             //verify new number is not in collection
-            if (Col.Keys.Contains(NewPic)) {
+            if (Col.ContainsKey(NewPic)) {
                 //number already in use
 
                 Exception e = new(LoadResString(669))
@@ -182,6 +184,8 @@ namespace WinAGI.Engine
             if (blnUnload) {
                 tmpPic.Unload();
             }
+            //reset compiler list of ids
+            Compiler.blnSetIDs = false;
         }
         internal void LoadPicture(byte bytResNum, sbyte bytVol, int lngLoc)
         {

@@ -4947,7 +4947,7 @@ Public Sub MenuClickExport()
         Caption = sSNDED & ResourceName(SoundEdit, InGame, True)
       Else
         'reset id to savefile name
-        SoundEdit.ID = JustFileName(SoundEdit.Resource.ResFile)
+        SoundEdit.ID = Path.GetFileName(SoundEdit.Resource.ResFile)
       End If
       
       'disable menu and toolbar button

@@ -7,7 +7,7 @@ namespace WinAGI.Engine
 {
     using System.Drawing;
 
-    public class SettingsList
+    public class SettingsList(string filename)
     {
         //elements of a settings list file:
         //
@@ -20,17 +20,13 @@ namespace WinAGI.Engine
         //  key=value         key/value pairs separated by an equal sign; no quotes around values means only
         //                      single word; use quotes for multiword strings
         //  if string is multline, use '\n' control code (and use multiline option)
-        internal List<string> Lines;
+        internal List<string> Lines = new List<string>();
         public string Filename
         {
             get;
             set;
-        }
-        public SettingsList(string filename)
-        {
-            Filename = filename;
-            Lines = new List<string>();
-        }
+        } = filename;
+
         public void WriteSetting(string Section, string Key, dynamic Value, string Group = "")
         {
             int lngPos, i;
@@ -387,7 +383,7 @@ namespace WinAGI.Engine
             //open temp file
             string TempFile = Path.GetTempFileName();
             try {
-                using StreamWriter cfgSR = new StreamWriter(TempFile);
+                using StreamWriter cfgSR = new(TempFile);
                 //now output the results to the file
                 foreach (string line in Lines)
                     cfgSR.WriteLine(line);
@@ -395,14 +391,8 @@ namespace WinAGI.Engine
                 //cfgSR.Close();
                 //dispose it
                 cfgSR.Dispose();
-
-                // delete current file
-                File.Delete(Filename);
                 // now copy new to final destination
-                File.Move(TempFile, Filename);
-
-                //add filename back
-                Lines.Insert(0, Filename);
+                File.Move(TempFile, Filename, true);
             }
             catch (Exception) {
                 // do we care if there is a file error?

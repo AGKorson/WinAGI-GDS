@@ -3,6 +3,7 @@ using System.IO;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.ArgTypeEnum;
 using Microsoft.VisualBasic.Devices;
+using System.Linq;
 
 namespace WinAGI.Engine
 {
@@ -977,53 +978,22 @@ namespace WinAGI.Engine
         internal static void CorrectCommands(string Version)
         {
             // This procedure adjusts the logic commands for a given int. version
-
-            if (!double.TryParse(Version, out double verNum)) {
+            if (!IntVersions.Contains(Version)) { 
                 //error
                 throw new NotImplementedException();
                 //return;
             }
-
-            //now adjust for version
+            double verNum = Double.Parse(Version);
+            //now adjust quit cmd for version
             if (verNum <= 2.089) {
                 // quit command
-                agCmds[134].ArgType = Array.Empty<ArgTypeEnum>();
+                agCmds[134].ArgType = [];
             }
             else {
                 agCmds[134].ArgType = new ArgTypeEnum[1];
                 agCmds[134].ArgType[0] = ArgTypeEnum.atNum;
             }
 
-            if (verNum <= 2.4) {
-                // print.at
-                agCmds[151].Name = "print.at";
-                agCmds[151].ArgType = new ArgTypeEnum[3];
-                agCmds[151].ArgType[0] = ArgTypeEnum.atMsg;
-                agCmds[151].ArgType[1] = ArgTypeEnum.atNum;
-                agCmds[151].ArgType[2] = ArgTypeEnum.atNum;
-                // print.at.v
-                agCmds[152].Name = "print.at.v";
-                agCmds[152].ArgType = new ArgTypeEnum[3];
-                agCmds[152].ArgType[0] = ArgTypeEnum.atVar;
-                agCmds[152].ArgType[1] = ArgTypeEnum.atNum;
-                agCmds[152].ArgType[2] = ArgTypeEnum.atNum;
-            }
-            else {
-                // print.at
-                agCmds[151].Name = "print.at";
-                agCmds[151].ArgType = new ArgTypeEnum[4];
-                agCmds[151].ArgType[0] = ArgTypeEnum.atMsg;
-                agCmds[151].ArgType[1] = ArgTypeEnum.atNum;
-                agCmds[151].ArgType[2] = ArgTypeEnum.atNum;
-                agCmds[151].ArgType[3] = ArgTypeEnum.atNum;
-                // print.at.v
-                agCmds[152].Name = "print.at.v";
-                agCmds[152].ArgType = new ArgTypeEnum[4];
-                agCmds[152].ArgType[0] = ArgTypeEnum.atVar;
-                agCmds[152].ArgType[1] = ArgTypeEnum.atNum;
-                agCmds[152].ArgType[2] = ArgTypeEnum.atNum;
-                agCmds[152].ArgType[3] = ArgTypeEnum.atNum;
-            }
             // adjust number of available commands
             if (verNum <= 2.089)
                 agNumCmds = 156; // 155;

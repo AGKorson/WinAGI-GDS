@@ -390,7 +390,7 @@ namespace WinAGI.Engine
                 mRData = value;
             }
         }
-        internal void SetRes(AGIResource NewRes)
+        internal void Clone(AGIResource NewRes)
         {
             //called by setview, setlog, setpic and setsnd
             //copies entire resource structure from this resource 
@@ -463,7 +463,7 @@ namespace WinAGI.Engine
             }
             //verify file exists
             if (!File.Exists(strLoadResFile)) {
-                throw new Exception(LoadResString(606).Replace(ARG1, JustFileName(strLoadResFile)));
+                throw new Exception(LoadResString(606).Replace(ARG1, Path.GetFileName(strLoadResFile)));
             }
             //open file (VOL or individual resource)
             try {
@@ -557,7 +557,7 @@ namespace WinAGI.Engine
             ////if an AGI error, error number and string already set
             ////so only need error info if some other error occurred
             //////raise the error
-            ////throw new Exception("LoadResString(507),JustFileName(strLoadResFile))");
+            ////throw new Exception("LoadResString(507), Path.GetFileName(strLoadResFile))");
             ////reset resource markers
             //mlngCurPos = 0;
             //mblnEORes = false;
@@ -724,7 +724,7 @@ namespace WinAGI.Engine
                 Unload();
             }
             //open file for binary
-            FileStream fsImport = null;
+            FileStream fsImport;
             try {
                 fsImport = new FileStream(ImportFile, FileMode.Open);
             }
