@@ -631,9 +631,11 @@ namespace WinAGI.Engine
         }
         internal static void AddTODO(string TODOText, int LineNum, byte LogicNum)
         {
-            TWarnInfo todoInfo = new()
+            TWinAGIEventInfo todoInfo = new()
             {
-                Type = EWarnType.ecTODO,
+                Type = EventType.ecTODO,
+                ID = "",
+                Module = "",
                 Text = TODOText,
                 Line = LineNum
             };
@@ -641,9 +643,9 @@ namespace WinAGI.Engine
         }
        static void AddDecodeWarning(string WarnID, string WarningText, int LineNum, byte LogicNum)
         {
-            TWarnInfo dcWarnInfo = new()
+            TWinAGIEventInfo dcWarnInfo = new()
             {
-                Type = EWarnType.ecDecompWarn,
+                Type = EventType.ecDecompWarn,
                 ID = WarnID,
                 Module = "",
                 Text = WarningText,

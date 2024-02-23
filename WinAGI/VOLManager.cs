@@ -42,9 +42,12 @@ namespace WinAGI.Engine
             foreach (AGIResource tmpGameRes in tmpResCol) {
                 CurResNum = tmpGameRes.Number;
                 //update status
-                TWarnInfo tmpWarn = new()
+                TWinAGIEventInfo tmpWarn = new()
                 {
-                    Type = EWarnType.ecCompWarn
+                    Type = EventType.ecCompWarn,
+                    ID = "",
+                    Module = "",
+                    Text = ""
                 };
                 Raise_CompileGameEvent(ECStatus.csAddResource, ResType, CurResNum, tmpWarn);
                 //check for cancellation
@@ -129,7 +132,7 @@ namespace WinAGI.Engine
                                     //if error (warning not set)
                                     if (!blnWarning) {
                                         //note the error
-                                        tmpWarn.Type = EWarnType.ecCompWarn;
+                                        tmpWarn.Type = EventType.ecCompWarn;
                                         tmpWarn.Text = strMsg;
                                         Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
                                         //check for cancellation
@@ -175,7 +178,7 @@ namespace WinAGI.Engine
                         //if a warning
                         if (blnWarning) {
                             //note the warning
-                            tmpWarn.Type = EWarnType.ecCompWarn;
+                            tmpWarn.Type = EventType.ecCompWarn;
                             tmpWarn.Text = strMsg;
                             Raise_CompileGameEvent(ECStatus.csWarning, ResType, CurResNum, tmpWarn);
                             //check for cancellation
@@ -198,7 +201,7 @@ namespace WinAGI.Engine
                                 switch (e.HResult - WINAGI_ERR) {
                                 case 635: //compile error
                                           //raise compile event
-                                    tmpWarn.Type = EWarnType.ecCompWarn;
+                                    tmpWarn.Type = EventType.ecCompWarn;
                                     tmpWarn.Text = e.Message;
                                     Raise_CompileGameEvent(ECStatus.csLogicError, ResType, CurResNum, tmpWarn);
                                     //check for cancellation
@@ -213,7 +216,7 @@ namespace WinAGI.Engine
                                     break;
                                 default:
                                     //any other error; note it
-                                    tmpWarn.Type = EWarnType.ecCompWarn;
+                                    tmpWarn.Type = EventType.ecCompWarn;
                                     tmpWarn.Text = "Unable to compile Logic (" + e.Message + ")";
                                     Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
                                     //check for cancellation
@@ -275,7 +278,7 @@ namespace WinAGI.Engine
                     }
                     catch (Exception e) {
                         //note it
-                        tmpWarn.Type = EWarnType.ecCompWarn;
+                        tmpWarn.Type = EventType.ecCompWarn;
                         tmpWarn.Text = "Unable to add Logic resource to VOL file (" + e.Message + ")";
                         Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
                         //check for cancellation

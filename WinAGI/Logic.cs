@@ -666,7 +666,13 @@ namespace WinAGI.Engine
         {
             //compiles the source code for this logic
             //and saves the resource
-            TWarnInfo tmpInfo;
+            TWinAGIEventInfo tmpInfo = new()
+            {
+                ID = "",
+                Module = "",
+                Text = ""
+            };
+
 
             //if not in a game
             if (!mInGame) {
@@ -711,7 +717,7 @@ namespace WinAGI.Engine
             // and false if not?
 
             //if no error, check result
-            if (tmpInfo.Type != EWarnType.ecCompOK) {
+            if (tmpInfo.Type != EventType.ecCompOK) {
                 //force uncompiled state
                 mCompiledCRC = 0;
                 compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));

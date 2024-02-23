@@ -82,7 +82,7 @@ namespace WinAGI.Engine
         internal static string[] strSndID;
         internal static string[] strViewID;
 
-        internal static TWarnInfo CompileLogic(Logic SourceLogic)
+        internal static TWinAGIEventInfo CompileLogic(Logic SourceLogic)
         {
             //this function compiles the sourcetext that is passed
             //if successful, the function returns a warning code of ecCompOK
@@ -96,7 +96,14 @@ namespace WinAGI.Engine
             List<string> stlSource = new();
             string strInput;
             int lngCodeSize;
-            TWarnInfo tmpInfo = new();
+            TWinAGIEventInfo tmpInfo = new()
+            {
+                Type = EventType.ecCompOK,
+                ResType = AGIResType.rtLogic,
+                ID = "",
+                Module = "",
+                Text = ""
+            };
 
             compGame = SourceLogic.parent;
 
@@ -160,7 +167,7 @@ namespace WinAGI.Engine
                 tmpInfo.Text = strErrMsg;
                 tmpInfo.Line = lngErrLine + 1;
                 tmpInfo.Module = strModule;
-                tmpInfo.Type = EWarnType.ecError;
+                tmpInfo.Type = EventType.ecCompError;
                 return tmpInfo;
             }
 
@@ -176,7 +183,7 @@ namespace WinAGI.Engine
                 tmpInfo.Text = LoadResString(4159);
                 tmpInfo.Line = 0;
                 tmpInfo.Module = strModule;
-                tmpInfo.Type = EWarnType.ecError;
+                tmpInfo.Type = EventType.ecCompError;
                 return tmpInfo;
             }
 
@@ -187,7 +194,7 @@ namespace WinAGI.Engine
                 tmpInfo.Text = strErrMsg;
                 tmpInfo.Line = lngErrLine + 1;
                 tmpInfo.Module = strModule;
-                tmpInfo.Type = EWarnType.ecError;
+                tmpInfo.Type = EventType.ecCompError;
                 return tmpInfo;
             }
 
@@ -198,7 +205,7 @@ namespace WinAGI.Engine
                 tmpInfo.Text = strErrMsg;
                 tmpInfo.Line = lngErrLine + 1;
                 tmpInfo.Module = strModule;
-                tmpInfo.Type = EWarnType.ecError;
+                tmpInfo.Type = EventType.ecCompError;
                 return tmpInfo;
             }
 
@@ -209,7 +216,7 @@ namespace WinAGI.Engine
                 tmpInfo.Text = strErrMsg;
                 tmpInfo.Line = lngErrLine + 1;
                 tmpInfo.Module = strModule;
-                tmpInfo.Type = EWarnType.ecError;
+                tmpInfo.Type = EventType.ecCompError;
                 return tmpInfo;
             }
             //read predefined messages
@@ -219,7 +226,7 @@ namespace WinAGI.Engine
                 tmpInfo.Text = strErrMsg;
                 tmpInfo.Line = lngErrLine + 1;
                 tmpInfo.Module = strModule;
-                tmpInfo.Type = EWarnType.ecError;
+                tmpInfo.Type = EventType.ecCompError;
                 return tmpInfo;
             }
 
@@ -241,7 +248,7 @@ namespace WinAGI.Engine
                 tmpInfo.Text = strErrMsg;
                 tmpInfo.Line = lngErrLine + 1;
                 tmpInfo.Module = strModule;
-                tmpInfo.Type = EWarnType.ecError;
+                tmpInfo.Type = EventType.ecCompError;
                 return tmpInfo;
             }
 
@@ -256,7 +263,7 @@ namespace WinAGI.Engine
                 tmpInfo.Text = strErrMsg;
                 tmpInfo.Line = lngErrLine + 1;
                 tmpInfo.Module = strModule;
-                tmpInfo.Type = EWarnType.ecError;
+                tmpInfo.Type = EventType.ecCompError;
                 return tmpInfo;
             }
 
@@ -283,11 +290,11 @@ namespace WinAGI.Engine
                 tmpInfo.Text = LoadResString(4001);
                 tmpInfo.Line = 0;
                 tmpInfo.Module = "";
-                tmpInfo.Type = EWarnType.ecError;
+                tmpInfo.Type = EventType.ecCompError;
             }
             else
             {
-                tmpInfo.Type = EWarnType.ecCompOK;
+                tmpInfo.Type = EventType.ecCompOK;
             }
                 return tmpInfo;
         }
@@ -2714,10 +2721,10 @@ namespace WinAGI.Engine
             }
             //only add if not ignoring
             if (!agNoCompWarn[WarningNum - 5000]) {
-                TWarnInfo tmpWarn = new()
+                TWinAGIEventInfo tmpWarn = new()
                 {
-                    Type = EWarnType.ecCompWarn,
-                    WarningNum = WarningNum,
+                    Type = EventType.ecCompWarn,
+                    ID = WarningNum.ToString(),
                     Line = lngErrLine,
                     Module = strModule,
                     Text = WarningText

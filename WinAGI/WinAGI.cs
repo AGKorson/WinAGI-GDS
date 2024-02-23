@@ -225,15 +225,18 @@ namespace WinAGI.Engine
         File,
         Directory,
     }
-    public enum EWarnType
+    public enum EventType
     {
-        ecError,
+        ecLoadOK,
+        ecCompOK,
+        ecDecompOK,
+        ecLoadError,
+        ecCompError,
+        ecDecompError,
         ecLoadWarn,
         ecCompWarn,
-        ecResWarn,
-        ecTODO,
-        ecCompOK,
         ecDecompWarn,
+        ecTODO,
     }
     #endregion
     //structs
@@ -267,15 +270,16 @@ namespace WinAGI.Engine
         public string Comment;
     }
 
-    public struct TWarnInfo
+    public struct TWinAGIEventInfo
     {
-        public EWarnType Type;
-        public ELoadWarningSource LWType;
-        public long WarningNum;
-        public long Line;
-        public string ID;
-        public string Text;
-        public string Module;
+        public EventType Type;              // type of data being reported - error/warning/info/TODO
+        public AGIResType ResType;          // resource type, if applicable to warning or error
+        public byte ResNum;                 // resource number for logics,pics,views,sounds
+        public string ID;                   // warning or error number (could be alphanumeric)
+        public string Text;                 // info, warning or error msg
+        public ELoadWarningSource LWType;   // sub-type for game load warnings ??? is this even needed anymore???
+        public int Line;                    // line number for comp/decomp errors and warnings
+        public string Module;               // module name, if comp error occurs in an #include file
     }
         
         public struct CommandStruct

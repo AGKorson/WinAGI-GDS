@@ -13,11 +13,16 @@ using WinAGI.Common;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIResType;
+using static WinAGI.Engine.EventType;
 using static WinAGI.Common.Base;
 using System.Diagnostics;
 using static WinAGI.Editor.Base;
 using static WinAGI.Editor.BkgdTasks;
 using System.IO;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace WinAGI.Editor
 {
@@ -47,6 +52,7 @@ namespace WinAGI.Editor
         //compiler error list variables
         bool mLoading;
         double mEX, mEY;
+        List<TWinAGIEventInfo> WarningList = [];
 
         int lngDefIndex; //default filterindex for opening text files
 
@@ -82,9 +88,9 @@ namespace WinAGI.Editor
         public void OnIdle(object sender, EventArgs e)
         {
             // Update the panels when the program is idle.
-            bool newCapsLock = (((ushort)API.GetKeyState(0x14 /*VK_CAPITAL*/)) & 0xffff) != 0;
-            bool newNumLock = (((ushort)API.GetKeyState(0x90 /*VK_NUMLOCK*/)) & 0xffff) != 0;
-            bool newInsertLock = (((ushort)API.GetKeyState(0x2D /*VK_INSERT*/)) & 0xffff) != 0;
+            bool newCapsLock = Console.CapsLock;
+            bool newNumLock = Console.NumberLock;
+            bool newInsertLock = Control.IsKeyLocked(Keys.Insert);
             if (newCapsLock != CapsLock) {
                 CapsLock = newCapsLock;
                 if (CapsLockLabel != null) {
@@ -140,6 +146,13 @@ namespace WinAGI.Editor
         {
             //update the load ProgressWin form
             bool blnNoWAG = false;
+
+            if (e.LoadInfo.LWType != ELoadWarningSource.lwNA) {
+                Debug.Print($"Load Warning: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
+                // add to warning list
+                AddWarning(e.LoadInfo);
+            }
+
             switch (e.LoadStatus) {
             case ELStatus.lsDecompiling:
                 //ProgressWin.lblProgress.Text = "Validating AGI game files ...";
@@ -160,21 +173,24 @@ namespace WinAGI.Editor
 
             case ELStatus.lsResources:
                 switch (e.ResType) {
-                case AGIResType.rtLogic:
-                case AGIResType.rtPicture:
-                case AGIResType.rtView:
-                case AGIResType.rtSound:
+                case rtLogic:
+                case rtPicture:
+                case rtView:
+                case rtSound:
                     //ProgressWin.lblProgress.Text = "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum;
                     bgwOpenGame.ReportProgress(0, "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum);
                     break;
-                case AGIResType.rtWords:
+                case rtWords:
                     //ProgressWin.lblProgress.Text = "Validating WORDS.TOK file";
                     bgwOpenGame.ReportProgress(0, "Validating WORDS.TOK file");
                     break;
-                case AGIResType.rtObjects:
+                case rtObjects:
                     //ProgressWin.lblProgress.Text = "Validating OBJECT file";
                     bgwOpenGame.ReportProgress(0, "Validating OBJECT file");
                     break;
+                }
+                if (e.LoadInfo.LWType != ELoadWarningSource.lwNA) {
+                    //add warning?
                 }
                 break;
             case ELStatus.lsFinalizing:
@@ -182,7 +198,6 @@ namespace WinAGI.Editor
                 bgwOpenGame.ReportProgress(0, "Configuring WinAGI");
                 break;
             }
-            //ProgressWin.Refresh();
         }
         private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e)
         {
@@ -198,7 +213,6 @@ namespace WinAGI.Editor
         }
         private void btnOpenGame_Click(object sender, EventArgs e)
         {
-            int retval = 0;
             //open a game!
             OpenDlg.InitialDirectory = Environment.SpecialFolder.Desktop.ToString();
             OpenDlg.DefaultExt = "wag";
@@ -1301,36 +1315,67 @@ namespace WinAGI.Editor
 
             //get main window state
             blnMax = GameSettings.GetSetting(sPOSITION, "WindowMax", false);
-
             //get main window position
             sngLeft = GameSettings.GetSetting(sPOSITION, "Left", Screen.PrimaryScreen.Bounds.Width * 0.15);
+            sngTop = GameSettings.GetSetting(sPOSITION, "Top", Screen.PrimaryScreen.Bounds.Height * 0.15);
+            sngWidth = GameSettings.GetSetting(sPOSITION, "Width", Screen.PrimaryScreen.Bounds.Width * 0.7);
+            sngHeight = GameSettings.GetSetting(sPOSITION, "Height", Screen.PrimaryScreen.Bounds.Height * 0.7);
+            // min width
+            if (sngWidth < 360) {
+                sngWidth = 360;
+            }
+            // max width
+            if (sngWidth > SystemInformation.VirtualScreen.Width) {
+                sngWidth = SystemInformation.VirtualScreen.Width;
+            }
+            // min height
+            if (sngHeight < 361) {
+                sngHeight = 361;
+            }
+            // max height
+            if (sngHeight > SystemInformation.VirtualScreen.Height) {
+                sngHeight = SystemInformation.VirtualScreen.Height;
+            }
+            // min left pos
             if (sngLeft < 0) {
                 sngLeft = 0;
             }
-            else if (sngLeft > Screen.PrimaryScreen.Bounds.Width * 0.85) {
-                sngLeft = Screen.PrimaryScreen.Bounds.Width * 0.85;
+            // max left pos
+            if (sngLeft > SystemInformation.VirtualScreen.Width * 0.85) {
+                sngLeft = SystemInformation.VirtualScreen.Width * 0.85;
             }
-            sngTop = GameSettings.GetSetting(sPOSITION, "Top", Screen.PrimaryScreen.Bounds.Height * 0.15);
+            // min top pos
             if (sngTop < 0) {
                 sngTop = 0;
             }
-            else if (sngTop > Screen.PrimaryScreen.Bounds.Height * 0.85) {
-                sngTop = Screen.PrimaryScreen.Bounds.Height * 0.85;
+            // max top pos
+            if (sngTop > SystemInformation.VirtualScreen.Height * 0.85) {
+                sngTop = SystemInformation.VirtualScreen.Height * 0.85;
             }
-            sngWidth = GameSettings.GetSetting(sPOSITION, "Width", Screen.PrimaryScreen.Bounds.Width * 0.7);
-            if (sngWidth <= Screen.PrimaryScreen.Bounds.Width * 0.2) {
-                sngWidth = Screen.PrimaryScreen.Bounds.Width * 0.2;
-            }
-            if (sngWidth > Screen.PrimaryScreen.Bounds.Width) {
-                sngWidth = Screen.PrimaryScreen.Bounds.Width;
-            }
-            sngHeight = GameSettings.GetSetting(sPOSITION, "Height", Screen.PrimaryScreen.Bounds.Height * 0.7);
-            if (sngHeight <= Screen.PrimaryScreen.Bounds.Height * 0.2) {
-                sngHeight = Screen.PrimaryScreen.Bounds.Height * 0.2;
-            }
-            else if (sngHeight > Screen.PrimaryScreen.Bounds.Height) {
-                sngHeight = Screen.PrimaryScreen.Bounds.Height;
-            }
+            //if (sngWidth <= Screen.PrimaryScreen.Bounds.Width * 0.2) {
+            //    sngWidth = Screen.PrimaryScreen.Bounds.Width * 0.2;
+            //}
+            //if (sngWidth > Screen.PrimaryScreen.Bounds.Width) {
+            //    sngWidth = Screen.PrimaryScreen.Bounds.Width;
+            //}
+            //if (sngHeight <= Screen.PrimaryScreen.Bounds.Height * 0.2) {
+            //    sngHeight = Screen.PrimaryScreen.Bounds.Height * 0.2;
+            //}
+            //else if (sngHeight > Screen.PrimaryScreen.Bounds.Height) {
+            //    sngHeight = Screen.PrimaryScreen.Bounds.Height;
+            //}
+            //if (sngLeft < 0) {
+            //    sngLeft = 0;
+            //}
+            //else if (sngLeft > Screen.PrimaryScreen.Bounds.Width * 0.85) {
+            //    sngLeft = Screen.PrimaryScreen.Bounds.Width * 0.85;
+            //}
+            //if (sngTop < 0) {
+            //    sngTop = 0;
+            //}
+            //else if (sngTop > Screen.PrimaryScreen.Bounds.Height * 0.85) {
+            //    sngTop = Screen.PrimaryScreen.Bounds.Height * 0.85;
+            //}
             //now move the form
             MDIMain.Bounds = new Rectangle((int)sngLeft, (int)sngTop, (int)sngWidth, (int)sngHeight);
             //if maximized
@@ -2184,67 +2229,83 @@ namespace WinAGI.Editor
                 pnlWarnings.Visible = true;
             }
         }
-        public void AddWarning(string WarningText, AGIResType ResType, int ResNumber)
+        public void AddWarning(TWinAGIEventInfo warnInfo)
         {
-            //Warning  Description  ResNum  Line  Module
-            //4118      Blah          1     34    Logic1
-            //--        Picture Blah  1     --    Picture1
-            //
-            //Text        1           2     3     4             smallicon=(type+1)
-
-            //parse the text, and add it
-            //WarningsText is in format:
-            //  number(255)warningtext(255)line(255)module
-            //
-            //number and line only have meaning for logic warnings
-            string[] strWarning, rowdata;
-            int lngNewRow;
-            //split the warning text into its elements
-            strWarning = WarningText.Split("|");
-            //assign it to row data
-            rowdata = new string[7] {
-        "",
-        "",
-        strWarning[0],
-        strWarning[1],
-        "--",
-        strWarning[2],
-        "" };
-
-            switch (ResType) {
-            case rtLogic:
-                rowdata[0] = JustPath(strWarning[3], true);
-                rowdata[4] = ResNumber.ToString();
-                rowdata[6] = strWarning[3].Length != 0 ? Path.GetFileName(strWarning[3]) : EditGame.Logics[ResNumber].ID;
+            switch (warnInfo.Type) {
+            case ecDecompWarn:
+            case ecDecompError:
                 break;
-            case rtPicture:
-                rowdata[6] = EditGame.Pictures[ResNumber].ID;
+            case ecCompWarn:
+                WarningList.Add(warnInfo);
                 break;
-            case rtSound:
-                rowdata[6] = EditGame.Sounds[ResNumber].ID;
+            case ecCompError:
+                // ResType can ONLY be rtLogic
+                Debug.Assert(warnInfo.ResType == rtLogic);
+                WarningList.Add(warnInfo);
                 break;
-            case rtView:
-                rowdata[6] = EditGame.Views[ResNumber].ID;
+            case ecLoadWarn:
+                WarningList.Add(warnInfo);
+                break;
+            case ecLoadError:
+                break;
+            case ecTODO:
+                WarningList.Add(warnInfo);
                 break;
             }
 
-            //add it to the grid
-            lngNewRow = fgWarnings.Rows.Add(rowdata);
-            //make it bold/red
-            fgWarnings.Rows[lngNewRow].DefaultCellStyle.ForeColor = Color.Red;
-            fgWarnings.Rows[lngNewRow].DefaultCellStyle.Font = new Font(fgWarnings.Rows[lngNewRow].DefaultCellStyle.Font, FontStyle.Bold);
+            // if grid is visible, also add to it
+            if (MDIMain.splitWarning.Visible) {
+                AddWarningToGrid(warnInfo);
+            }
+            // if not visible, show if autowarn is true
+            else if (Settings.AutoWarn) {
+                ShowWarningList();
+            }
+        }
+        public void ShowWarningList()
+        {
+            LoadWarnGrid();
+            splitWarning.Visible = true;
 
+            //mnuTWarnList.Caption = "Hide Warning List\tShift+Ctrl+W";
+        }
+        private void LoadWarnGrid()
+        {
+            fgWarnings.Rows.Clear();
+            if (WarningList.Count == 0) {
+                return;
+            }
+            foreach (TWinAGIEventInfo warnInfo in WarningList) {
+                AddWarningToGrid(warnInfo, false);
+            }
+        }
+        public void AddWarningToGrid(TWinAGIEventInfo warnInfo, bool showit = true)
+        {
+            // adds a warning/error/TODO item to the warning grid
+            int tmpRow = fgWarnings.Rows.Add(warnInfo.ID, warnInfo.Text, (int)warnInfo.ResType < 4 ? warnInfo.ResNum : "--", warnInfo.ResType == rtLogic ? warnInfo.Line : "--", warnInfo.Module.Length > 0 ? Path.GetFileName(warnInfo.Module) : "--");
             //save restype in row data tag
-            fgWarnings.Rows[lngNewRow].Tag = ResType.ToString();
-
-            //always make it visible
-            if (!fgWarnings.Rows[lngNewRow].Displayed) {
-                fgWarnings.FirstDisplayedScrollingRowIndex = lngNewRow;
+            fgWarnings.Rows[tmpRow].Tag = rtLogic.ToString();
+            switch (warnInfo.Type) {
+            case ecCompError:
+            case ecDecompError:
+            case ecLoadError:
+                // bold, red
+                fgWarnings.Rows[tmpRow].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold);
+                fgWarnings.Rows[tmpRow].DefaultCellStyle.ForeColor = Color.Red;
+                break;
+            case ecTODO:
+                // bold, italic, dark gray
+                fgWarnings.Rows[tmpRow].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold | FontStyle.Italic);
+                fgWarnings.Rows[tmpRow].DefaultCellStyle.ForeColor = Color.DarkGray;
+                break;
+            case ecCompWarn:
+            case ecDecompWarn:
+            case ecLoadWarn:
+                break;
             }
-
-            //if not already visible, show the list
-            if (!pnlWarnings.Visible) {
-                pnlWarnings.Visible = true;
+            // always make it visible
+            if (showit && !fgWarnings.Rows[tmpRow].Displayed) {
+                fgWarnings.CurrentCell = fgWarnings.Rows[tmpRow].Cells[0];
             }
         }
         private void cmdBack_Click(object sender, EventArgs e)

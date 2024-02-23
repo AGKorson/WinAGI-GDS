@@ -37,18 +37,13 @@ namespace WinAGI.Editor
                     EditGame = new AGIGame(OpenGameMode.Directory, argval.Source);
                 }
                 blnLoaded = true;
+                blnWarnings = EditGame.LoadWarnings;
             }
             catch (Exception ex) {
                 //catch any errors/warnings that were returned
                 lngErr = ex.HResult;
                 strError = ex.Message;
-                switch (lngErr) {
-                case WINAGI_ERR + 636: //warnings only- loaded ok;
-                    blnWarnings = true;
-                    blnLoaded = true;
-                    break;
-                default:
-                    //ProgressWin.lblProgress.Text = "Error encountered, game not loaded";
+                if ((lngErr & WINAGI_ERR) == WINAGI_ERR) {
                     bgwOpenGame.ReportProgress(0, "Error encountered, game not loaded");
                     //error
                     switch (lngErr - WINAGI_ERR) {
@@ -91,8 +86,14 @@ namespace WinAGI.Editor
                         //invalid intVersion in wag file
                         strError = "Game property file does not contain a valid Interpreter Version.";
                         break;
+                    default:
+                        // unknown error
+                        strError = "UNKNOWN: " + (lngErr - WINAGI_ERR).ToString() + " - " + ex.Source + " - " + strError;
+                        break;
                     }
-                    break;
+                } else {
+                    // unknown error
+                    strError = "UNKNOWN: " + lngErr.ToString() + " - " + ex.Source + " - " + strError;
                 }
             }
             // if loaded OK, 

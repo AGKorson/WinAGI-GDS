@@ -5,7 +5,7 @@ namespace WinAGI.Engine
 {
     public class CompileGameEventArgs
     {
-        public CompileGameEventArgs(ECStatus status, AGIResType restype, byte num, TWarnInfo errInfo)
+        public CompileGameEventArgs(ECStatus status, AGIResType restype, byte num, TWinAGIEventInfo errInfo)
         {
             CStatus = status;
             ResType = restype;
@@ -15,12 +15,12 @@ namespace WinAGI.Engine
         public ECStatus CStatus { get; }
         public AGIResType ResType { get; }
         public byte ResNum { get; }
-        public TWarnInfo ErrorInfo { get; }
+        public TWinAGIEventInfo ErrorInfo { get; }
     }
 
     public class LoadGameEventArgs
     {
-        public LoadGameEventArgs(ELStatus status, AGIResType restype, byte num, TWarnInfo loadinfo)
+        public LoadGameEventArgs(ELStatus status, AGIResType restype, byte num, TWinAGIEventInfo loadinfo)
         {
             LoadStatus = status;
             ResType = restype;
@@ -30,17 +30,17 @@ namespace WinAGI.Engine
         public ELStatus LoadStatus { get; }
         public AGIResType ResType { get; }
         public byte ResNum { get; }
-        public TWarnInfo LoadInfo { get; }
+        public TWinAGIEventInfo LoadInfo { get; }
     }
 
     public class CompileLogicEventArgs
     {
-        public CompileLogicEventArgs(byte num, TWarnInfo compInfo)
+        public CompileLogicEventArgs(byte num, TWinAGIEventInfo compInfo)
         {
             Info = compInfo;
             ResNum = num;
         }
-        public TWarnInfo Info { get; }
+        public TWinAGIEventInfo Info { get; }
         public byte ResNum { get; }
     }
 
@@ -61,7 +61,7 @@ namespace WinAGI.Engine
         internal delegate void CompileLogicEventHandler(object sender, CompileLogicEventArgs e);
         // Declare the event.
         internal static event CompileLogicEventHandler CompileLogicStatus;
-        internal static void Raise_CompileGameEvent(ECStatus cStatus, AGIResType ResType, byte ResNum, TWarnInfo CompileInfo)
+        internal static void Raise_CompileGameEvent(ECStatus cStatus, AGIResType ResType, byte ResNum, TWinAGIEventInfo CompileInfo)
         {
             //// if error, assume cancel, but it can be overridden by event handler for Logic errors
             //if (cStatus == ECStatus.csLogicError || cStatus == ECStatus.csResError) {
@@ -70,12 +70,12 @@ namespace WinAGI.Engine
            // Raise the event in a thread-safe manner using the ?. operator.
             CompileGameStatus?.Invoke(null, new CompileGameEventArgs(cStatus, ResType, ResNum, CompileInfo));
         }
-        internal static void Raise_LoadGameEvent(ELStatus lStatus, AGIResType ResType, byte ResNum, TWarnInfo LoadInfo)
+        internal static void Raise_LoadGameEvent(ELStatus lStatus, AGIResType ResType, byte ResNum, TWinAGIEventInfo LoadInfo)
         {
             // Raise the event in a thread-safe manner using the ?. operator.
             LoadGameStatus?.Invoke(null, new LoadGameEventArgs(lStatus, ResType, ResNum, LoadInfo));   
         }
-        internal static void Raise_CompileLogicEvent(byte LogicNum, TWarnInfo CompInfo)
+        internal static void Raise_CompileLogicEvent(byte LogicNum, TWinAGIEventInfo CompInfo)
         {
             // Raise the event in a thread-safe manner using the ?. operator.
             CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(LogicNum, CompInfo));

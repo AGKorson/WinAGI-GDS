@@ -555,6 +555,7 @@ namespace WinAGI.Editor
             public bool WarnResOvrd;  // //warn user if attempting to override definition of a reserved var/flag/etc
             public int DelBlankG;  //0 = ask; 1 = no; 2 = yes
             public bool WarnDupObj;
+            public bool AutoWarn;
             // logics
             public bool HighlightLogic;
             public bool HighlightText;
@@ -1508,7 +1509,6 @@ namespace WinAGI.Editor
             //if no game file passed,
             if (ThisGameFile.Length == 0) {
                 //get a wag file to open
-                //MDIMain.OpenDlg.Flags = cdlOFNHideReadOnly;
                 MDIMain.OpenDlg.Title = "Open WinAGI Game File";
                 MDIMain.OpenDlg.Filter = "WinAGI Game file (*.wag)|*.wag|All files (*.*)|*.*";
                 MDIMain.OpenDlg.DefaultExt = "";
@@ -1525,7 +1525,7 @@ namespace WinAGI.Editor
 
             //now open this game file
             if (OpenGame(0, ThisGameFile)) {
-                MessageBox.Show("Game opened; not sure if there were errors or warnings.");
+                MessageBox.Show("Game opened. Check it for errors or warnings.");
                 //MDIHasFocus = true;
                 //tvwResources.Focus();
             }
@@ -1632,8 +1632,10 @@ namespace WinAGI.Editor
             MDIMain.UseWaitCursor = true;
             MDIMain.Refresh();
             //show the progress window
-            ProgressWin = new frmProgress();
-            ProgressWin.Text = "Loading Game";
+            ProgressWin = new frmProgress
+            {
+                Text = "Loading Game"
+            };
             ProgressWin.lblProgress.Text = "Checking WinAGI Game file ...";
             ProgressWin.StartPosition = FormStartPosition.CenterParent;
             ProgressWin.pgbStatus.Visible = false;
