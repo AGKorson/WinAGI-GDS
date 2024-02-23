@@ -298,25 +298,20 @@ namespace WinAGI.Engine
         }
         internal int LoadLoops()
         {
-            return 0;
             // used by load function to extract the view
             // loops and cels from the data stream
             byte bytNumLoops, bytNumCels;
             int[] lngLoopStart = new int[MAX_LOOPS];
             ushort lngCelStart, lngDescLoc;
             int tmpLoopNo, bytLoop, bytCel;
-            byte bytInput;
+            byte[] bytInput = new byte[1];
             byte[] bytMaxW = new byte[MAX_LOOPS], bytMaxH = new byte[MAX_LOOPS];
             byte bytWidth, bytHeight;
             byte bytTransCol;
+            int result = 0; // assume OK
+
             //clear out loop collection by assigning a new one
             mLoopCol = new Loops(this);
-            ////if empty (as in creating a new view)
-            //if (mSize == 1) {
-            //  //set flag and exit
-            //  mViewSet = true;
-            //  return;
-            //}
 
             //get number of loops and strDescription location
             bytNumLoops = ReadByte(2);
@@ -426,31 +421,28 @@ namespace WinAGI.Engine
                     Pos = lngDescLoc;
                     do {
                         //get character
-                        bytInput = ReadByte();
+                        bytInput[0] = ReadByte();
                         //if not zero, and string not yet up to 255 characters,
-                        if ((bytInput > 0) && (mViewDesc.Length < 255)) {
+                        if ((bytInput[0] > 0) && (mViewDesc.Length < 255)) {
                             //add the character
-                            mViewDesc += (char)bytInput;
+                            mViewDesc += parent.agCodePage.GetString(bytInput);
                         }
                         //stop if zero reached, end of resource reached, or 255 characters read
                     }
-                    while (!EORes && bytInput != 0 && mViewDesc.Length < 255); // Until EORes || (bytInput == 0) || mViewDesc.Length >= 255)
+                    while (!EORes && bytInput[0] != 0 && mViewDesc.Length < 255);
                 }
                 else {
-                    Unload();
-                    //error? can't load this description
-
-                    Exception e = new(LoadResString(513))
-                    {
-                        HResult = WINAGI_ERR + 513
-                    };
-                    throw e;
+                    // pointer is not valid; fix it (reset to zero)
+                    WriteWord(0, 3);
+                    // return error level
+                    result = 1;
                 }
             }
             //set flag indicating view matches resource data
             mViewSet = true;
             //MUST be clean, since loaded from resource data
             mIsDirty = false;
+            return result;
         }
         public void Export(string ExportFile, bool ResetDirty = true)
         {

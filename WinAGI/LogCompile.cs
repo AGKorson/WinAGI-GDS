@@ -19,9 +19,8 @@ namespace WinAGI.Engine
 {
     public static partial class Compiler
     {
-        // reminder: the compiler is not case sensitive
-        //EXCEPT strings in messages; they ARE case sensitive
-        //need to consider that in the getmsg function!!!!
+        // reminder: in VB6, the compiler was not case sensitive
+        //EXCEPT strings in messages; now all tokens are case sensitive
 
         internal struct LogicGoto
         {
