@@ -984,6 +984,36 @@
   <data name="6013" xml:space="preserve">
     <value>Flag, variable, object and view values must be numeric (0-255)</value>
   </data>
+  <data name="501" xml:space="preserve">
+    <value>A game is already open; close it before opening another.</value>
+  </data>
+  <data name="502" xml:space="preserve">
+    <value>Error %1 occurred while trying to access %2.</value>
+  </data>
+  <data name="503" xml:space="preserve">
+    <value>File access error while creating temporary DIR file: (%1)</value>
+  </data>
+  <data name="504" xml:space="preserve">
+    <value>Error while decompressing picture resource.</value>
+  </data>
+  <data name="505" xml:space="preserve">
+    <value>Invalid resource location (%1) in %2.</value>
+  </data>
+  <data name="506" xml:space="preserve">
+    <value>Invalid resource data at %1 in %2.</value>
+  </data>
+  <data name="507" xml:space="preserve">
+    <value>Error %1 while reading resource in %2.</value>
+  </data>
+  <data name="508" xml:space="preserve">
+    <value>Template directory is missing its WinAGI game property file.</value>
+  </data>
+  <data name="509" xml:space="preserve">
+    <value>Unhandled error %1 while loading logic</value>
+  </data>
+  <data name="510" xml:space="preserve">
+    <value>NewResource cannot be used by a resource in a game. Use the Clear method instead.</value>
+  </data>
   <data name="511" xml:space="preserve">
     <value>Resource already loaded</value>
   </data>
@@ -1354,10 +1384,10 @@
     <value>File access error while converting directory files ('%1')</value>
   </data>
   <data name="634" xml:space="preserve">
-    <value>&lt;compile error&gt;</value>
+    <value><compile error></value>
   </data>
   <data name="635" xml:space="preserve">
-    <value>&lt;compile warning&gt;</value>
+    <value><compile warning></value>
   </data>
   <data name="636" xml:space="preserve">
     <value>Warnings generated during OpenGame</value>
@@ -1516,7 +1546,7 @@
     <value>Can't create new game in a directory that already has AGI game files</value>
   </data>
   <data name="688" xml:space="preserve">
-    <value>&lt;decompiler error&gt;</value>
+    <value><decompiler error></value>
   </data>
   <data name="689" xml:space="preserve">
     <value>No export file specified</value>
@@ -1544,5 +1574,11 @@
   </data>
   <data name="697" xml:space="preserve">
     <value>Can't renumber word group; new group already exists</value>
+  </data>
+  <data name="698" xml:space="preserve">
+    <value>Unable to write to file (%1). Make sure the file is not marked 'read only'.</value>
+  </data>
+  <data name="" xml:space="preserve">
+    <value></value>
   </data>
 </root>
