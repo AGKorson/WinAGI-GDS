@@ -316,10 +316,10 @@
     <value>Invalid value for argument %1 (must be between 0-255)</value>
   </data>
   <data name="4067" xml:space="preserve">
-    <value>Invalid character in define name: !" & QUOTECHAR & "#$%&'()*+,-/:;<=>?@[\]^`{}~ and spaces are not allowed</value>
+    <value>Invalid character in define name: !" &amp; QUOTECHAR &amp; "#$%&amp;'()*+,-/:;&lt;=&gt;?@[\]^`{}~ and spaces are not allowed</value>
   </data>
   <data name="4068" xml:space="preserve">
-    <value>Invalid character in label name: '-[~`!@#$%^&*()+{}\?/.,<>;:]' are not allowed</value>
+    <value>Invalid character in label name: '-[~`!@#$%^&amp;*()+{}\?/.,&lt;&gt;;:]' are not allowed</value>
   </data>
   <data name="4069" xml:space="preserve">
     <value>Include file marker found - unable to compile</value>
@@ -490,7 +490,7 @@
     <value>Invalid argument for set.view (view %1 does not exist)</value>
   </data>
   <data name="4125" xml:space="preserve">
-    <value>Invalid argument for set.priority (acceptable value is >=4 and <=15)</value>
+    <value>Invalid argument for set.priority (acceptable value is &gt;=4 and &lt;=15)</value>
   </data>
   <data name="4126" xml:space="preserve">
     <value>Invalid argument for set.horizon command</value>
@@ -520,7 +520,7 @@
     <value>shake.screen argument must be non-zero</value>
   </data>
   <data name="4135" xml:space="preserve">
-    <value>Invalid TOP argument for configure.screen command (should be <= 3)</value>
+    <value>Invalid TOP argument for configure.screen command (should be &lt;= 3)</value>
   </data>
   <data name="4136" xml:space="preserve">
     <value>Invalid controller value for argument %1 (must be between 0 - 49)</value>
@@ -550,16 +550,16 @@
     <value>Invalid argument for show.obj (view %1 does not exist)</value>
   </data>
   <data name="4145" xml:space="preserve">
-    <value>Invalid arguments for random command (lower bound must be <= upper bound)</value>
+    <value>Invalid arguments for random command (lower bound must be &lt;= upper bound)</value>
   </data>
   <data name="4146" xml:space="preserve">
     <value>Invalid arguments for trace.info command (TOP plus HEIGHT exceeds screen size)</value>
   </data>
   <data name="4147" xml:space="preserve">
-    <value>Invalid argument for print.at command (ROW must be <= 22)</value>
+    <value>Invalid argument for print.at command (ROW must be &lt;= 22)</value>
   </data>
   <data name="4148" xml:space="preserve">
-    <value>Invalid arguments for print.at command (COL must be >= 2 and (COL + MAXWIDTH) must be <= 39)</value>
+    <value>Invalid arguments for print.at command (COL must be &gt;= 2 and (COL + MAXWIDTH) must be &lt;= 39)</value>
   </data>
   <data name="4149" xml:space="preserve">
     <value>Dividing by zero will cause AGI to crash</value>
@@ -640,7 +640,7 @@
     <value>Using call command on logic 0 will cause game to crash</value>
   </data>
   <data name="5011" xml:space="preserve">
-    <value>Using clear.line command with bottom < top and/or either value > 24 will have unpredictable results</value>
+    <value>Using clear.line command with bottom &lt; top and/or either value &gt; 24 will have unpredictable results</value>
   </data>
   <data name="5012" xml:space="preserve">
     <value>Using room 0 in the new.room command will crash AGI</value>
@@ -661,13 +661,13 @@
     <value>'%1' is normally a read-only variable; changing it could have unexpected results</value>
   </data>
   <data name="5018" xml:space="preserve">
-    <value>'%1' shouldn't be assigned a value > %2, or unexpected results will occur</value>
+    <value>'%1' shouldn't be assigned a value &gt; %2, or unexpected results will occur</value>
   </data>
   <data name="5019" xml:space="preserve">
     <value>Unknown word number(%1) in said command </value>
   </data>
   <data name="5020" xml:space="preserve">
-    <value>One or more block coordinates are off screen (X > 159 and/or Y > 167)</value>
+    <value>One or more block coordinates are off screen (X &gt; 159 and/or Y &gt; 167)</value>
   </data>
   <data name="5021" xml:space="preserve">
     <value>Unable to validate add.to.pic arguments because view %1 cannot be loaded; check your code and your view for errors</value>
@@ -676,7 +676,7 @@
     <value>Defined string value not enclosed in quotes; quotes were assumed</value>
   </data>
   <data name="5023" xml:space="preserve">
-    <value>Object position is off screen (X > 159 and/or Y > 167)</value>
+    <value>Object position is off screen (X &gt; 159 and/or Y &gt; 167)</value>
   </data>
   <data name="5024" xml:space="preserve">
     <value>Attempting to discard a view that does not exist will cause a trappable error</value>
@@ -694,7 +694,7 @@
     <value>Improper use of quote marks around Include file. Include filename assumed to be: %1</value>
   </data>
   <data name="5029" xml:space="preserve">
-    <value>Using color values > 15 may have unpredictable results</value>
+    <value>Using color values &gt; 15 may have unpredictable results</value>
   </data>
   <data name="5030" xml:space="preserve">
     <value>Dividing by zero will cause AGI to crash</value>
@@ -721,7 +721,7 @@
     <value>Attempting to set a view that does not exist will cause a trappable error</value>
   </data>
   <data name="5038" xml:space="preserve">
-    <value>Position is off screen (X > 159 and/or Y > 167</value>
+    <value>Position is off screen (X &gt; 159 and/or Y &gt; 167</value>
   </data>
   <data name="5039" xml:space="preserve">
     <value>Using script.size command outside logic 0 wastes memory</value>
@@ -757,25 +757,25 @@
     <value>INPUTLINE and/or STATUSLINE are inside the graphic display; this is usually not desired</value>
   </data>
   <data name="5050" xml:space="preserve">
-    <value>Setting PRIORITY to < 4 or >15  may cause unexpected results</value>
+    <value>Setting PRIORITY to &lt; 4 or &gt; 15  may cause unexpected results</value>
   </data>
   <data name="5051" xml:space="preserve">
-    <value>X2 - X1 should be >= 2 and Y2 - Y1 should be >= 2; this block will not behave as expected</value>
+    <value>X2 - X1 should be &gt;= 2 and Y2 - Y1 should be &gt;= 2; this block will not behave as expected</value>
   </data>
   <data name="5052" xml:space="preserve">
-    <value>If ROW >= 25 the prompt string is drawn at current text cursor location (both ROW and COL arguments are ignored)</value>
+    <value>If ROW &gt;= 25 the prompt string is drawn at current text cursor location (both ROW and COL arguments are ignored)</value>
   </data>
   <data name="5053" xml:space="preserve">
     <value>Using new.room command on a non-existent room will crash AGI</value>
   </data>
   <data name="5054" xml:space="preserve">
-    <value>Using random command with lower bound > upper bound will have unexpected results</value>
+    <value>Using random command with lower bound &gt; upper bound will have unexpected results</value>
   </data>
   <data name="5055" xml:space="preserve">
     <value>Assigning a large number to 'cycle_delay' (v10) is highly unusual</value>
   </data>
   <data name="5056" xml:space="preserve">
-    <value>LENGTH is > max string length (but AGI automatically resets it to 40 so no errors occur)</value>
+    <value>LENGTH is &gt; max string length (but AGI automatically resets it to 40 so no errors occur)</value>
   </data>
   <data name="5057" xml:space="preserve">
     <value>Large values for shake.screen command are unusual</value>
@@ -784,7 +784,7 @@
     <value>This 'shake.screen' command appears to be an AGIPAL palette change; don't use original interpreter to run this game</value>
   </data>
   <data name="5059" xml:space="preserve">
-    <value>Cursor position is off screen (ROW > 24 and/or COL > 39)</value>
+    <value>Cursor position is off screen (ROW &gt; 24 and/or COL &gt; 39)</value>
   </data>
   <data name="5060" xml:space="preserve">
     <value>Controller argument value is not within expected range (0 - 49)</value>
@@ -793,7 +793,7 @@
     <value>Using show.obj command with an invalid view will generate a trappable error</value>
   </data>
   <data name="5062" xml:space="preserve">
-    <value>Target position is off screen (X > 159 and/or Y > 167)</value>
+    <value>Target position is off screen (X &gt; 159 and/or Y &gt; 167)</value>
   </data>
   <data name="5063" xml:space="preserve">
     <value>The ROW and HEIGHT combination specified will not fit on the screen</value>
@@ -808,25 +808,25 @@
     <value>Assigning keycode values that correspond to normal input keys may result in unpredictable behavior in AGI</value>
   </data>
   <data name="5067" xml:space="preserve">
-    <value>The message box won't draw correctly if ROW > 22</value>
+    <value>The message box won't draw correctly if ROW &gt; 22</value>
   </data>
   <data name="5068" xml:space="preserve">
-    <value>The message box won't draw correctly if COL < 2 or (COL + MAXWIDTH) > 39</value>
+    <value>The message box won't draw correctly if COL &lt; 2 or (COL + MAXWIDTH) &gt; 39</value>
   </data>
   <data name="5069" xml:space="preserve">
     <value>Invalid cursor position for clear.text.rect command; must be in upper-left/lower-right format</value>
   </data>
   <data name="5070" xml:space="preserve">
-    <value>Invalid cursor position values for clear.text.rect command; R1 & R2 must be <=24; C1 & C2 must be <=39</value>
+    <value>Invalid cursor position values for clear.text.rect command; R1 &amp; R2 must be &lt;=24; C1 &amp; C2 must be &lt;=39</value>
   </data>
   <data name="5071" xml:space="preserve">
-    <value>Using a value >167 for set.pri.base results in entire screen being priority 4</value>
+    <value>Using a value &gt; 167 for set.pri.base results in entire screen being priority 4</value>
   </data>
   <data name="5072" xml:space="preserve">
-    <value>One or more test command coordinates are offscreen (X > 159 and/or Y > 167)</value>
+    <value>One or more test command coordinates are offscreen (X &gt; 159 and/or Y &gt; 167)</value>
   </data>
   <data name="5073" xml:space="preserve">
-    <value>X1 should be <= X2 and Y1 should be <=Y2; this test command will not behave as expected</value>
+    <value>X1 should be &lt;= X2 and Y1 should be &lt;=Y2; this test command will not behave as expected</value>
   </data>
   <data name="5074" xml:space="preserve">
     <value>Message is null (0 length)</value>
@@ -844,10 +844,10 @@
     <value>Using a reserved flag in '%1' command may cause unexpected behavior</value>
   </data>
   <data name="5079" xml:space="preserve">
-    <value>Setting PRIORITY to 1, 2 or 3, or > 15 in add.to.pic command may cause unexpected results</value>
+    <value>Setting PRIORITY to 1, 2 or 3, or &gt; 15 in add.to.pic command may cause unexpected results</value>
   </data>
   <data name="5080" xml:space="preserve">
-    <value>Setting COL to >39 in the get.string command will cause the PROMPT to appear in unexpected location</value>
+    <value>Setting COL to &gt; 39 in the get.string command will cause the PROMPT to appear in unexpected location</value>
   </data>
   <data name="5081" xml:space="preserve">
     <value>Test command 'return.false()' is not compatible with AGIStudio</value>
@@ -904,22 +904,22 @@
     <value>Negative numbers are converted to unsigned 2s complement value</value>
   </data>
   <data name="5099" xml:space="preserve">
-    <value>INPUTLINE and/or STATUSLINE > 24 will result in undesirable effects on graphics screen</value>
+    <value>INPUTLINE and/or STATUSLINE &gt; 24 will result in undesirable effects on graphics screen</value>
   </data>
   <data name="5100" xml:space="preserve">
     <value>COLOR value other than 0 is treated as 15</value>
   </data>
   <data name="5101" xml:space="preserve">
-    <value>MGN values >15 will cause unexepected results in add.to.pic command</value>
+    <value>MGN values &gt; 15 will cause unexepected results in add.to.pic command</value>
   </data>
   <data name="5102" xml:space="preserve">
-    <value>Object will not catch ego if DISTANCE <= 1</value>
+    <value>Object will not catch ego if DISTANCE &lt;= 1</value>
   </data>
   <data name="5103" xml:space="preserve">
     <value>Using a value of 1 for MAXWIDTH will crash AGI</value>
   </data>
   <data name="5104" xml:space="preserve">
-    <value>Print window will not display correctly if MAXWIDTH >36</value>
+    <value>Print window will not display correctly if MAXWIDTH &gt; 36</value>
   </data>
   <data name="5105" xml:space="preserve">
     <value>Print window will use default value of 30 if MAXWIDTH = 0</value>
@@ -1384,10 +1384,10 @@
     <value>File access error while converting directory files ('%1')</value>
   </data>
   <data name="634" xml:space="preserve">
-    <value><compile error></value>
+    <value>&lt;compile error&gt;</value>
   </data>
   <data name="635" xml:space="preserve">
-    <value><compile warning></value>
+    <value>&lt;compile warning&gt;</value>
   </data>
   <data name="636" xml:space="preserve">
     <value>Warnings generated during OpenGame</value>
@@ -1546,7 +1546,7 @@
     <value>Can't create new game in a directory that already has AGI game files</value>
   </data>
   <data name="688" xml:space="preserve">
-    <value><decompiler error></value>
+    <value>&lt;decompiler error&gt;</value>
   </data>
   <data name="689" xml:space="preserve">
     <value>No export file specified</value>
@@ -1577,8 +1577,5 @@
   </data>
   <data name="698" xml:space="preserve">
     <value>Unable to write to file (%1). Make sure the file is not marked 'read only'.</value>
-  </data>
-  <data name="" xml:space="preserve">
-    <value></value>
   </data>
 </root>
