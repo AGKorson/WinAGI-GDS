@@ -633,25 +633,25 @@ namespace WinAGI.Engine
         {
             TWinAGIEventInfo todoInfo = new()
             {
-                Type = EventType.ecTODO,
-                ID = "",
+                Type = EventType.etTODO,
+                ID = "TODO",
                 Module = "",
                 Text = TODOText,
                 Line = LineNum
             };
-            Raise_CompileLogicEvent(bytLogComp, todoInfo);
+            Raise_CompileLogicEvent(todoInfo);
         }
        static void AddDecodeWarning(string WarnID, string WarningText, int LineNum, byte LogicNum)
         {
             TWinAGIEventInfo dcWarnInfo = new()
             {
-                Type = EventType.ecDecompWarn,
+                Type = EventType.etWarning,
                 ID = WarnID,
                 Module = "",
                 Text = WarningText,
                 Line = LineNum,
             };
-            Raise_CompileLogicEvent(LogicNum, dcWarnInfo);
+            Raise_CompileLogicEvent(dcWarnInfo);
 
             // add warning text to the stack so it can be added
             //to output once the current line is decompiled
@@ -770,7 +770,7 @@ namespace WinAGI.Engine
                     //not a reserved data type
                     return "o" + ArgNum;
                 }
-            case ArgTypeEnum.atIObj:
+            case ArgTypeEnum.atInvItem:
                 //if a game is loaded AND OBJECT file is loaded and not displaying objects by number,
                 // TODO: shouldn't a game always be loaded to compile a logic?
                 if (compGame.agGameLoaded && compGame.agInvObj.Loaded && !Compiler.IObjsByNumber) {

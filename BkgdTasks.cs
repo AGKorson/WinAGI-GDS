@@ -165,6 +165,9 @@ namespace WinAGI.Editor
         }
         public static void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
+            if (e.ProgressPercentage == -99) {
+                MDIMain.SafeAddToWarningList();
+            }
             ProgressWin.lblProgress.Text = e.UserState.ToString();
             if (e.ProgressPercentage == 50) {
                 MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
@@ -200,19 +203,20 @@ namespace WinAGI.Editor
         }
         public static void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            LoadGameResults results = (LoadGameResults)e.Result;
             //load is over
             ProgressWin.Close();
 
-            if (results.Failed) {
+            // refresh results
+            LoadResults = (LoadGameResults)e.Result;
+            if (LoadResults.Failed) {
                 //show error message
-                MessageBox.Show(results.ErrorMsg, "Unable to " + (results.Mode == 0 ? "Open" : "Import") + " Game", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(LoadResults.ErrorMsg, "Unable to " + (LoadResults.Mode == 0 ? "Open" : "Import") + " Game", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else {
                 //if warnings
-                if (results.Warnings) {
+                if (LoadResults.Warnings) {
                     //warn about errors
-                    MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", "Errors During " + (results.Mode == 0 ? "Load" : "Import"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", "Errors During " + (LoadResults.Mode == 0 ? "Load" : "Import"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }

@@ -55,6 +55,18 @@ namespace WinAGI.Editor
         public bool LayoutEditor { get; set; }
         public DateTime LastEdit { get; }
     }
+    public class LogicHdrProperties
+        {
+            public LogicHdrProperties(int count, bool useresnames)
+            {
+                Count = count;
+                GlobalDef = true; // what to do about this one...
+                UseResNames = useresnames;
+            }
+            public int Count { get; }
+            public bool GlobalDef { get; set; } // dbl click to edit list?
+            public bool UseResNames { get; set; }
+        }
     public class LogicProperties
     {
         public LogicProperties(Logic pLogic)
@@ -67,6 +79,7 @@ namespace WinAGI.Editor
             Volume = pLogic.Volume;
             LOC = pLogic.Loc;
             Size = pLogic.Size;
+            CodeSize = pLogic.CodeSize;
         }
         public int Number { get; set; }
         public string ID { get; set; }
@@ -76,18 +89,15 @@ namespace WinAGI.Editor
         public int Volume { get; }
         public int LOC { get; }
         public int Size { get; }
+        public int CodeSize { get; }
     }
-    public class LogicHdrProperties
+    public class PictureHdrProperties
     {
-        public LogicHdrProperties(int count, bool useresnames)
+        public PictureHdrProperties(int count)
         {
             Count = count;
-            GlobalDef = true; // what to do about this one...
-            UseResNames = useresnames;
         }
         public int Count { get; }
-        public bool GlobalDef { get; set; } // dbl click to edit list?
-        public bool UseResNames { get; set; }
     }
     public class PictureProperties
     {
@@ -107,9 +117,9 @@ namespace WinAGI.Editor
         public int LOC { get; }
         public int Size { get; }
     }
-    public class PictureHdrProperties
+    public class SoundHdrProperties
     {
-        public PictureHdrProperties(int count)
+        public SoundHdrProperties(int count)
         {
             Count = count;
         }
@@ -133,9 +143,9 @@ namespace WinAGI.Editor
         public int LOC { get; }
         public int Size { get; }
     }
-    public class SoundHdrProperties
+    public class VieweHdrProperties
     {
-        public SoundHdrProperties(int count)
+        public VieweHdrProperties(int count)
         {
             Count = count;
         }
@@ -160,14 +170,6 @@ namespace WinAGI.Editor
         public int Volume { get; }
         public int LOC { get; }
         public int Size { get; }
-    }
-    public class VieweHdrProperties
-    {
-        public VieweHdrProperties(int count)
-        {
-            Count = count;
-        }
-        public int Count { get; }
     }
     public class InvObjProperties
     {

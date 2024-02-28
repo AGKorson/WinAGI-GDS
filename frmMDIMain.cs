@@ -144,58 +144,61 @@ namespace WinAGI.Editor
         }
         private void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e)
         {
-            //update the load ProgressWin form
-            bool blnNoWAG = false;
-
-            if (e.LoadInfo.LWType != ELoadWarningSource.lwNA) {
-                Debug.Print($"Load Warning: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
+            switch (e.LoadInfo.Type) {
+            case etInfo:
+                switch (e.LoadInfo.InfoType) {
+                case EInfoType.itInitialize:
+                    break;
+                case EInfoType.itValidating:
+                    bgwOpenGame.ReportProgress(0, "Validating AGI game files ...");
+                    break;
+                case EInfoType.itPropertyFile:
+                    if (e.LoadInfo.ResNum == 0) {
+                        //ProgressWin.lblProgress.Text = "Creating game property file ...";
+                        bgwOpenGame.ReportProgress(0, "Creating game property file ...");
+                    }
+                    else {
+                        //ProgressWin.lblProgress.Text = "Loading game property file ...";
+                        bgwOpenGame.ReportProgress(0, "Loading game property file ...");
+                    }
+                    break;
+                case EInfoType.itResources:
+                    switch (e.LoadInfo.ResType) {
+                    case rtLogic:
+                    case rtPicture:
+                    case rtView:
+                    case rtSound:
+                        //ProgressWin.lblProgress.Text = "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum;
+                        bgwOpenGame.ReportProgress(0, "Validating Resources: " + ResTypeName[(int)e.LoadInfo.ResType] + " " + e.LoadInfo.ResNum);
+                        break;
+                    case rtWords:
+                        //ProgressWin.lblProgress.Text = "Validating WORDS.TOK file";
+                        bgwOpenGame.ReportProgress(0, "Validating WORDS.TOK file ...");
+                        break;
+                    case rtObjects:
+                        //ProgressWin.lblProgress.Text = "Validating OBJECT file";
+                        bgwOpenGame.ReportProgress(0, "Validating OBJECT file ...");
+                        break;
+                    }
+                    break;
+                case EInfoType.itDecompiling:
+                    //ProgressWin.lblProgress.Text = "Validating AGI game files ...";
+                    bgwOpenGame.ReportProgress(0, "Validating AGI game files ...");
+                    break;
+                case EInfoType.itCheckCRC:
+                    break;
+                case EInfoType.itFinalizing:
+                    //ProgressWin.lblProgress.Text = "Configuring WinAGI";
+                    bgwOpenGame.ReportProgress(0, "Configuring WinAGI");
+                    break;
+                }
+                break;
+            case etError:
+                break;
+            case etWarning:
+                bgwOpenGame.ReportProgress(0, $"Load Warning: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
                 // add to warning list
                 AddWarning(e.LoadInfo);
-            }
-
-            switch (e.LoadStatus) {
-            case ELStatus.lsDecompiling:
-                //ProgressWin.lblProgress.Text = "Validating AGI game files ...";
-                bgwOpenGame.ReportProgress(0, "Validating AGI game files ...");
-                blnNoWAG = true;
-                break;
-
-            case ELStatus.lsPropertyFile:
-                if (blnNoWAG) {
-                    //ProgressWin.lblProgress.Text = "Creating game property file ...";
-                    bgwOpenGame.ReportProgress(0, "Creating game property file ...");
-                }
-                else {
-                    //ProgressWin.lblProgress.Text = "Loading game property file ...";
-                    bgwOpenGame.ReportProgress(0, "Loading game property file ...");
-                }
-                break;
-
-            case ELStatus.lsResources:
-                switch (e.ResType) {
-                case rtLogic:
-                case rtPicture:
-                case rtView:
-                case rtSound:
-                    //ProgressWin.lblProgress.Text = "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum;
-                    bgwOpenGame.ReportProgress(0, "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum);
-                    break;
-                case rtWords:
-                    //ProgressWin.lblProgress.Text = "Validating WORDS.TOK file";
-                    bgwOpenGame.ReportProgress(0, "Validating WORDS.TOK file");
-                    break;
-                case rtObjects:
-                    //ProgressWin.lblProgress.Text = "Validating OBJECT file";
-                    bgwOpenGame.ReportProgress(0, "Validating OBJECT file");
-                    break;
-                }
-                if (e.LoadInfo.LWType != ELoadWarningSource.lwNA) {
-                    //add warning?
-                }
-                break;
-            case ELStatus.lsFinalizing:
-                //ProgressWin.lblProgress.Text = "Configuring WinAGI";
-                bgwOpenGame.ReportProgress(0, "Configuring WinAGI");
                 break;
             }
         }
@@ -701,14 +704,14 @@ namespace WinAGI.Editor
             case AGIResType.rtGame:
                 //show gameid, gameauthor, description,etc
                 PropRows = 10;
-                GameProperties pGame = new GameProperties(EditGame);
+                GameProperties pGame = new(EditGame);
                 propertyGrid1.SelectedObject = pGame;
                 break;
             case AGIResType.rtLogic:
                 if (NewResNum == -1) {
                     //logic header
                     PropRows = 3;
-                    LogicHdrProperties pLgcHdr = new LogicHdrProperties(EditGame.Logics.Count, Compiler.UseReservedNames);
+                    LogicHdrProperties pLgcHdr = new(EditGame.Logics.Count, Compiler.UseReservedNames);
                     propertyGrid1.SelectedObject = pLgcHdr;
                 }
                 else {
@@ -1015,6 +1018,7 @@ namespace WinAGI.Editor
             Settings.AskRemove = GameSettings.GetSetting(sGENERAL, "AskRemove", DEFAULT_ASKREMOVE);
             Settings.OpenNew = GameSettings.GetSetting(sGENERAL, "OpenNew", DEFAULT_OPENNEW);
             Settings.RenameDelRes = GameSettings.GetSetting(sGENERAL, "RenameDelRes", DEFAULT_RENAMEDELRES);
+            Settings.AutoWarn = GameSettings.GetSetting(sLOGICS, "AutoWarn", DEFAULT_AUTOWARN);
             //(DefResDir is not an element of settings; it's a WinAGI property)
             DefResDir = GameSettings.GetSetting(sGENERAL, "DefResDir", "src").Trim();
             //validate directory
@@ -1164,7 +1168,6 @@ namespace WinAGI.Editor
                 Settings.ErrorLevel = LogicErrorLevel.leHigh;
             Settings.DefUseResDef = GameSettings.GetSetting(sLOGICS, "DefUseResDef", DEFAULT_DEFUSERESDEF);
             Settings.Snippets = GameSettings.GetSetting(sLOGICS, "Snippets", DEFAULT_SNIPPETS);
-
             //SYNTAXHIGHLIGHTFORMAT
             Settings.HColor[0] = GameSettings.GetSetting(sSHFORMAT, "NormalColor", DEFAULT_HNRMCOLOR);
             Settings.HColor[1] = GameSettings.GetSetting(sSHFORMAT, "KeywordColor", DEFAULT_HKEYCOLOR);
@@ -2195,78 +2198,55 @@ namespace WinAGI.Editor
 
             //////  FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
         }
-        public void AddError(int LineNum, int ErrNum, string ErrorText, int ResNumber, string Module)
-        {
-            //Error  Description  ResNum  Line  Module
-            //4118      Blah          1     34    Logic1
-
-            int i, lngNewRow;
-            string[] rowdata = new string[7] {
-        JustPath(Module, true),
-        "",
-        ErrNum.ToString(),
-        ErrorText,
-        ResNumber.ToString(),
-        LineNum.ToString(),
-        (Module.Length != 0 ? Path.GetFileName(Module) : EditGame.Logics[(byte)ResNumber].ID) };
-
-            //add it to the grid
-            lngNewRow = fgWarnings.Rows.Add(rowdata);
-            //make it bold/red
-            fgWarnings.Rows[lngNewRow].DefaultCellStyle.ForeColor = Color.Red;
-            fgWarnings.Rows[lngNewRow].DefaultCellStyle.Font = new Font(fgWarnings.Rows[lngNewRow].DefaultCellStyle.Font, FontStyle.Bold);
-
-            //save restype in row data tag
-            fgWarnings.Rows[lngNewRow].Tag = rtLogic.ToString();
-
-            //always make it visible
-            if (!fgWarnings.Rows[lngNewRow].Displayed) {
-                fgWarnings.FirstDisplayedScrollingRowIndex = lngNewRow;
-            }
-
-            //if not already visible, show the list
-            if (!pnlWarnings.Visible) {
-                pnlWarnings.Visible = true;
-            }
-        }
         public void AddWarning(TWinAGIEventInfo warnInfo)
         {
             switch (warnInfo.Type) {
-            case ecDecompWarn:
-            case ecDecompError:
-                break;
-            case ecCompWarn:
+            case etInfo:
                 WarningList.Add(warnInfo);
                 break;
-            case ecCompError:
-                // ResType can ONLY be rtLogic
-                Debug.Assert(warnInfo.ResType == rtLogic);
+            case etError:
+                break;
+            case etWarning:
                 WarningList.Add(warnInfo);
                 break;
-            case ecLoadWarn:
-                WarningList.Add(warnInfo);
-                break;
-            case ecLoadError:
-                break;
-            case ecTODO:
+            case etTODO:
                 WarningList.Add(warnInfo);
                 break;
             }
-
-            // if grid is visible, also add to it
-            if (MDIMain.splitWarning.Visible) {
-                AddWarningToGrid(warnInfo);
+            if (bgwOpenGame.IsBusy) {
+                // use the background tasker to avoid unsafe thread errors
+                bgwOpenGame.ReportProgress(-99, "");
+            }
+            else {
+                SafeAddToWarningList();
+            }
+        }
+        public void SafeAddToWarningList()
+        {
+            // if grid is visible, add the last item
+            if (MDIMain.pnlWarnings.Visible) {
+                AddWarningToGrid(WarningList[^1]);
             }
             // if not visible, show if autowarn is true
             else if (Settings.AutoWarn) {
                 ShowWarningList();
             }
+            return;
         }
-        public void ShowWarningList()
+        public void HideWarningList(bool clearlist = false)
+        {
+            if (clearlist) {
+                ClearWarnings();
+            }
+            MDIMain.pnlWarnings.Visible = false;
+            MDIMain.splitWarning.Visible = false;
+        }
+
+public void ShowWarningList()
         {
             LoadWarnGrid();
             splitWarning.Visible = true;
-
+            pnlWarnings.Visible = true;
             //mnuTWarnList.Caption = "Hide Warning List\tShift+Ctrl+W";
         }
         private void LoadWarnGrid()
@@ -2282,25 +2262,25 @@ namespace WinAGI.Editor
         public void AddWarningToGrid(TWinAGIEventInfo warnInfo, bool showit = true)
         {
             // adds a warning/error/TODO item to the warning grid
-            int tmpRow = fgWarnings.Rows.Add(warnInfo.ID, warnInfo.Text, (int)warnInfo.ResType < 4 ? warnInfo.ResNum : "--", warnInfo.ResType == rtLogic ? warnInfo.Line : "--", warnInfo.Module.Length > 0 ? Path.GetFileName(warnInfo.Module) : "--");
+            int tmpRow = fgWarnings.Rows.Add(warnInfo.ID,
+                         warnInfo.Text,
+                         (int)warnInfo.ResType < 4 ? warnInfo.ResNum : "--",
+                         warnInfo.ResType == rtLogic ? warnInfo.Line : "--",
+                         warnInfo.Module.Length > 0 ? Path.GetFileName(warnInfo.Module) : "--");
             //save restype in row data tag
             fgWarnings.Rows[tmpRow].Tag = rtLogic.ToString();
             switch (warnInfo.Type) {
-            case ecCompError:
-            case ecDecompError:
-            case ecLoadError:
+            case etError:
                 // bold, red
                 fgWarnings.Rows[tmpRow].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold);
                 fgWarnings.Rows[tmpRow].DefaultCellStyle.ForeColor = Color.Red;
                 break;
-            case ecTODO:
+            case etTODO:
                 // bold, italic, dark gray
                 fgWarnings.Rows[tmpRow].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold | FontStyle.Italic);
                 fgWarnings.Rows[tmpRow].DefaultCellStyle.ForeColor = Color.DarkGray;
                 break;
-            case ecCompWarn:
-            case ecDecompWarn:
-            case ecLoadWarn:
+            case etWarning:
                 break;
             }
             // always make it visible
@@ -2629,28 +2609,17 @@ namespace WinAGI.Editor
         {
             //Debug.Print($"val chg: {fsbProperty.Value}");
         }
-        public void ClearWarnings(int ResNum, AGIResType ResType)
+        public void ClearWarnings()
         {
-            //Warning  Description  ResNum  Line  Module
-            //4118      Blah          1     34    Logic1
-            //--        Picture Blah  --    --    Picture1
-            //
-            //Text        1           2     3     4             rowdata=type
-
-
-            //delete all lines from the grid that have the given resnum and restype
-            //if resnum is -1, clear all
-
-            //if restype is -1, it means clear all
-            if (ResNum == -1) {
-                fgWarnings.Rows.Clear();
-            }
-            else {
-                //find the matching lines (by type/number)
-                for (int i = fgWarnings.Rows.Count - 1; i >= 0; i--) {
-                    if ((int)fgWarnings.Rows[i].Cells[4].Value == ResNum && (AGIResType)fgWarnings.Rows[i].Tag == ResType) {
-                        fgWarnings.Rows.RemoveAt(i);
-                    }
+            // clear entire list
+            fgWarnings.Rows.Clear();
+        }
+        public void ClearWarnings(bool ResNum, AGIResType ResType)
+        {
+            //find the matching lines (by type/number)
+            for (int i = fgWarnings.Rows.Count - 1; i >= 0; i--) {
+                if ((bool)fgWarnings.Rows[i].Cells[4].Value == ResNum && (AGIResType)fgWarnings.Rows[i].Tag == ResType) {
+                    fgWarnings.Rows.RemoveAt(i);
                 }
             }
         }
@@ -3186,13 +3155,6 @@ namespace WinAGI.Editor
       public void GRun()
         //tie function
         mnuGRun_Click
-      }
-
-      public void HideWarningList()
-
-          pnlWarnings.Visible = false;
-          picBottom.Visible = false
-          picSplitH.Visible = false
       }
 
       public void PrintResources()

@@ -8,6 +8,13 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+using EnvDTE80;
+using static System.Net.Mime.MediaTypeNames;
+using System.Diagnostics;
+using System.Windows.Forms;
+using System.Xml;
+using WinAGI.Engine;
+using Microsoft.VisualBasic;
 
 namespace WinAGI.Common
 {
@@ -97,19 +104,19 @@ namespace WinAGI.Common
         public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, Int32 wParam, Int32 lParam);
         public const int WM_SETREDRAW = 0xB;
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
-        public static extern short GetKeyState(int keyCode);
+        //[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
+        //public static extern short GetKeyState(int keyCode);
         //apis for bitmap creation/manipulation
         [DllImport("Winmm.dll", SetLastError = true)]
         internal static extern int mciSendString(string lpszCommand, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn, IntPtr hwndCallback);
         [DllImport("Winmm.dll", SetLastError = true)]
         internal static extern int mciGetErrorString(int errNum, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn);
-        [DllImport("gdi32.dll")]
-        internal static extern int GetTickCount();
-        [DllImport("gdi32.dll")]
-        internal static extern int BitBlt(int hDestDC, int X, int Y, int nWidth, int nHeight, int hSrcDC, int xSrc, int ySrc, int dwRop);
-        [DllImport("gdi32.dll")]
-        internal static extern int CreateDIBSection(int hDC, BitmapInfo pBitmapInfo, int un, int lplpVoid, int handle, int dw);
+        //[DllImport("gdi32.dll")]
+        //internal static extern int GetTickCount();
+        //[DllImport("gdi32.dll")]
+        //internal static extern int BitBlt(int hDestDC, int X, int Y, int nWidth, int nHeight, int hSrcDC, int xSrc, int ySrc, int dwRop);
+        //[DllImport("gdi32.dll")]
+        //internal static extern int CreateDIBSection(int hDC, BitmapInfo pBitmapInfo, int un, int lplpVoid, int handle, int dw);
         [DllImport("gdi32.dll")]
         internal static extern IntPtr CreateCompatibleDC(IntPtr hDC);
         [DllImport("gdi32.dll")]
@@ -120,8 +127,8 @@ namespace WinAGI.Common
         internal static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
         [DllImport("gdi32.dll")]
         internal static extern int StretchBlt(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, int dwRop);
-        [DllImport("msimg32.dll")]
-        internal static extern int TransparentBlt(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, int crTransparent);
+        //[DllImport("msimg32.dll")]
+        //internal static extern int TransparentBlt(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, int crTransparent);
         [DllImport("hhctrl.ocx")]
         internal static extern int HtmlHelpS(IntPtr hwndCaller, string pszFile, int uCommand, string dwData);
         [DllImport("hhctrl.ocx")]
@@ -157,23 +164,23 @@ namespace WinAGI.Common
 
         [DllImport("msimg32.dll")]
         internal static extern int AlphaBlend(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, BLENDFUNCTION ftn);
-        [DllImport("gdi32.dll")]
-        internal static extern int GetLastError();
-        [DllImport("gdi32.dll")]
-        internal static extern int CreateCompatibleBitmap(int hDC, int nWidth, int nHeight);
-        [DllImport("gdi32.dll")]
-        internal static extern int SetPixelV(int hDC, int X, int Y, int crColor);
-        [DllImport("gdi32.dll")]
-        internal static extern int GetPixel(int hDC, int X, int Y);
-        [DllImport("gdi32.dll")]
-        internal static extern int ExtFloodFill(int hDC, int X, int Y, int crColor, int wFillType);
-        [DllImport("gdi32.dll")]
-        internal static extern int CreateSolidBrush(int crColor);
+        //[DllImport("gdi32.dll")]
+        //internal static extern int GetLastError();
+        //[DllImport("gdi32.dll")]
+        //internal static extern int CreateCompatibleBitmap(int hDC, int nWidth, int nHeight);
+        //[DllImport("gdi32.dll")]
+        //internal static extern int SetPixelV(int hDC, int X, int Y, int crColor);
+        //[DllImport("gdi32.dll")]
+        //internal static extern int GetPixel(int hDC, int X, int Y);
+        //[DllImport("gdi32.dll")]
+        //internal static extern int ExtFloodFill(int hDC, int X, int Y, int crColor, int wFillType);
+        //[DllImport("gdi32.dll")]
+        //internal static extern int CreateSolidBrush(int crColor);
         //[DllImport("kernel32.dll")]
         //internal static extern void CopyMemory(dynamic Destination, dynamic Source, int Length) alias RtlMoveMemory;
-        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
-        [ResourceExposure(ResourceScope.None)]
-        internal static extern void CopyMemory(HandleRef destData, HandleRef srcData, int size);
+        //[DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        //[ResourceExposure(ResourceScope.None)]
+        //internal static extern void CopyMemory(HandleRef destData, HandleRef srcData, int size);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern int GetShortPathName(string pathName, StringBuilder shortName, int cbShortName);
@@ -706,7 +713,7 @@ namespace WinAGI.Common
         internal const string ARG1 = "%1";
         internal const string ARG2 = "%2";
         internal const string ARG3 = "%3";
-        internal const string sAPPNAME = "WinAGI Game Development System 2.1";
+        internal const string sAPPNAME = "WinAGI Game Development System 3.0 alpha";
         internal const string COPYRIGHT_YEAR = "2024";
         internal static uint[] CRC32Table = new uint[256];
         internal static bool CRC32Loaded;
@@ -752,19 +759,11 @@ namespace WinAGI.Common
 
         internal static string UnicodeToCP(string strIn, Encoding enc)
         {
-            return enc.GetBytes(strIn).ToString();
-        }
-        internal static string UnicodeToCP1(string strIn, Encoding newCP)
-        {
-            byte[] bIn = Encoding.Unicode.GetBytes(strIn);
-            byte[] bOut = Encoding.Convert(Encoding.Unicode, newCP, bIn);
-             
-            string conv = newCP.GetString(bOut);
-            return conv;
+            return enc.GetString(Encoding.Unicode.GetBytes(strIn));
         }
         internal static string CPToUnicode(string strIn, Encoding oldCP)
         {
-            return Encoding.Convert(oldCP, Encoding.Unicode, oldCP.GetBytes(strIn)).ToString();
+            return Encoding.Unicode.GetString(oldCP.GetBytes(strIn));
         }
         internal static Array ResizeArray(Array arr, int[] newSizes)
         {
@@ -812,7 +811,7 @@ namespace WinAGI.Common
         /// <param name="str">string that may be a number</param>
         /// <returns>true if numeric, false if not</returns>
         internal static bool IsNumeric(string str)
-        {
+        { // TODO: do I need another test specifically for int values?
             if (Double.TryParse(str, out _)) {
                 return true;
             }
@@ -878,19 +877,6 @@ namespace WinAGI.Common
                     sReturn += "\\";
                 }
                 return sReturn;
-            }
-        }
-        internal static string FileNameNoExt(string FileName)
-        {
-            //returns a filename without the extension
-            //if FileName includes a path, the path is also removed
-            string strOut = Path.GetFileName(FileName);
-            int i = strOut.LastIndexOf(".");
-            if (i <= 0) {
-                return strOut;
-            }
-            else {
-                return Left(strOut, i - 1);
             }
         }
         internal static uint CRC32(byte[] DataIn)
@@ -1344,8 +1330,7 @@ namespace WinAGI.Common
             // splits the input text into lines, by CR, LF, or CRLF
             // strategy is to replace CRLFs with CRs, then LFs with CRs,
             // and then slpit by CRs
-            List<string> retval = new List<string>();
-            retval.AddRange(strText.Replace("\n\r", "\n").Replace('\r', '\n').Split('\n'));
+            List<string> retval = [.. strText.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n')];
             return retval;
         }
         internal static string ChangeExtension(ref string FileName, string Filter, int Index)
@@ -1595,24 +1580,6 @@ namespace WinAGI.Common
         static void tmpStuff2()
         {
             /*
-          internal string FileNameNoExt(string FileName)
-          {
-            //returns a filename without the extension
-            //if FileName includes a path, the path is also removed
-
-            string strOut
-                int i
-
-            strOut = Path.GetFileName(FileName)
-
-            i = InStrRev(strOut, ".")
-
-            if (i <= 0) {
-              FileNameNoExt = strOut
-            } else {
-              FileNameNoExt = Left(strOut, i - 1)
-            }
-          }
 
           internal bool IsInvObject(int lngStartPos, string strText)
           {
@@ -1809,6 +1776,110 @@ namespace WinAGI.Common
             vClng = Int(InputNum) + CLng(InputNum - Int(InputNum) + 1) - 1
           }
                 */
+        }
+        public static void ExtractTODO(byte LogicNum, string SourceText, string Module) {
+
+            // update the warning list with TODO items from this logic
+            // valid TODO entries must be the string 'TODO:' within a comment, and must be
+            // first thing after the comment marker, except for spaces
+            // everything on the line following will be considered the text
+            // marker is not case-sensitive
+            //
+            // example:    [ TODO: text
+            // OK:         [ todo: text
+            // not OK:     [ something TODO: text
+            // not OK:     [ TODO text
+
+            int Tpos, lngLine, Cpos;
+            string strLine, strTODO;
+            List<string> stlText;
+
+            // if TODO marker isn't in the logic, just exit
+            if (!SourceText.Contains("TODO:", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            //split into lines
+            stlText = SplitLines(SourceText);
+
+            //step through all lines
+            for (lngLine = 0; lngLine < stlText.Count; lngLine++) {
+                Tpos = stlText[lngLine].IndexOf("TODO:", StringComparison.OrdinalIgnoreCase);
+                if (Tpos > 0) {
+                    Cpos = Strings.InStrRev(stlText[lngLine], "[", Tpos);
+                    if (Cpos > 0) {
+                        //get text between the comment and the TODO
+                        strTODO = Mid(stlText[lngLine], Cpos + 1, Tpos - Cpos - 1);
+                        //only valid if empty spaces
+                        if (strTODO.Trim().Length == 0) {
+                            //get comment portion of text
+                            strTODO = Right(stlText[lngLine], stlText[lngLine].Length - Tpos - 4).Trim();
+                            if (strTODO.Length > 0) {
+                                //add this TODO (adjust line by 1)
+                                TWinAGIEventInfo tmpInfo = new()
+                                {
+                                    ID = "TODO",
+                                    //InfoType = EInfoType.itInitialize,
+                                    Line = lngLine + 1,
+                                    Module = Module, //Editor.Base.EditGame.Logics[LogicNum].ID,
+                                    ResNum = LogicNum,
+                                    ResType = AGIResType.rtLogic,
+                                    Text = strTODO,
+                                    Type = EventType.etTODO
+                                };
+                                Editor.Base.MDIMain.AddWarning(tmpInfo);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void ExtractDecompWarn(byte LogicNum, string SourceText, string Module)
+        {
+            // update the warning list with decompiler warnings still present
+            //
+            // look for WARNING DC## comments
+            int Tpos, Cpos, lngLine;
+            string strDCWarn;
+            List<string> stlText;
+
+            // if warning marker isn't in the logic, just exit
+            if (!SourceText.Contains("WARNING DC", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            //split into lines
+            stlText = SplitLines(SourceText);
+            //step through all lines
+            for (lngLine = 0; lngLine < stlText.Count; lngLine++) {
+                Tpos = stlText[lngLine].IndexOf("WARNING DC", StringComparison.OrdinalIgnoreCase);
+                if (Tpos > 0) {
+                    Cpos = Strings.InStrRev(stlText[lngLine], "[", Tpos);
+                    if (Cpos > 0) {
+                        //get text between the comment and the warning
+                        strDCWarn = Mid(stlText[lngLine], Cpos + 1, Tpos - Cpos - 1);
+                        //only valid if empty spaces
+                        if (strDCWarn.Trim().Length == 0) {
+                            //get warning portion of text
+                            strDCWarn = Right(stlText[lngLine], stlText[lngLine].Length - Tpos - 7).Trim();
+                            if (strDCWarn.Length > 0) {
+                                //add this TODO (adjust line by 1)
+                                TWinAGIEventInfo tmpInfo = new()
+                                {
+                                    ID = strDCWarn[..4],
+                                    //InfoType = EInfoType.itInitialize,
+                                    Line = lngLine + 1,
+                                    Module = Module, // Editor.Base.EditGame?.Logics[LogicNum].ID,
+                                    ResNum = LogicNum,
+                                    ResType = AGIResType.rtLogic,
+                                    Text = strDCWarn[6..],
+                                    Type = EventType.etWarning
+                                };
+                                Editor.Base.MDIMain.AddWarning(tmpInfo);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

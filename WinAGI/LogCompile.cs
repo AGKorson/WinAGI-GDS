@@ -11,9 +11,6 @@ using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.ArgTypeEnum;
 using static WinAGI.Engine.LogicErrorLevel;
-using EnvDTE;
-using System.Runtime.InteropServices;
-using System.Net.Http.Headers;
 
 namespace WinAGI.Engine
 {
@@ -54,10 +51,17 @@ namespace WinAGI.Engine
         internal static string strLogCompID;
         internal static bool blnCriticalError, blnMinorError;
         internal static int lngQuoteAdded;
-        internal static int lngErrNum;
-        internal static string strErrMsg;
-        internal static string strModule, strModFileName;
-        internal static int lngErrLine;
+        internal static TWinAGIEventInfo errInfo = new()
+        {
+            Type = EventType.etError,
+            ID = "",
+            Text = "",
+            Module = "",
+        };
+        //internal static int lngErrNum;
+        //internal static string strErrMsg;
+        //internal static string strModule, strModFileName;
+        //internal static int lngErrLine;
         internal static int intCtlCount;
         internal static bool blnNewRoom;
         internal static string INCLUDE_MARK = ((char)31).ToString() + "!";
@@ -65,7 +69,7 @@ namespace WinAGI.Engine
         internal static int lngIncludeOffset; //to correct line number due to added include lines
         internal static int intFileCount;
         internal static List<string> stlInput = [];  //the entire text to be compiled; includes the
-                                                        //original logic text, includes, and defines
+                                                     //original logic text, includes, and defines
         internal static int lngLine;
         internal static int lngPos;
         internal static string strCurrentLine;
@@ -84,37 +88,20 @@ namespace WinAGI.Engine
 
         internal static TWinAGIEventInfo CompileLogic(Logic SourceLogic)
         {
-            //this function compiles the sourcetext that is passed
-            //if successful, the function returns a warning code of ecCompOK
-            //if not successful, compInfo is filled with relevant info
+            //this function compiles the sourcetext for the logic that is passed
+            //if successful, the function returns an info code of itDone
+            //if not successful, compInfo is filled with relevant data
             //
             //if an error occurs, nothing is passed in tmpInfo
             //note that when errors are returned, line is adjusted because
             //editor rows(lines) start at '1', but the compiler starts at line '0'
 
             bool blnCompiled;
-            List<string> stlSource = new();
-            string strInput;
+            List<string> stlSource = [];
             int lngCodeSize;
-            TWinAGIEventInfo tmpInfo = new()
-            {
-                Type = EventType.ecCompOK,
-                ResType = AGIResType.rtLogic,
-                ID = "",
-                Module = "",
-                Text = ""
-            };
 
+            // compiler needs a reference to the game object
             compGame = SourceLogic.parent;
-
-            //set error info to success as default
-            blnCriticalError = false;
-            blnMinorError = false;
-            lngErrLine = -1;
-            strErrMsg = "";
-            strModule = "";
-            strModFileName = "";
-            intCtlCount = 0;
 
             //initialize global defines
             if (!compGame.GlobalDefines.IsSet) {
@@ -132,126 +119,91 @@ namespace WinAGI.Engine
             compGame.agResGameDef[0].Value = "\"" + compGame.agGameID + "\"";
             compGame.agResGameDef[1].Value = "\"" + compGame.agGameVersion + "\"";
             compGame.agResGameDef[2].Value = "\"" + compGame.agAbout + "\"";
-            if (!compGame.InvObjects.Loaded)
-            {
+            if (!compGame.InvObjects.Loaded) {
                 compGame.InvObjects.Load();
                 //Count of ACTUAL useable objects is one less than inventory object Count
                 //because the first object ('?') is just a placeholder
                 compGame.agResGameDef[3].Value = (compGame.InvObjects.Count - 1).ToString();
                 compGame.InvObjects.Unload();
             }
-            else
-            {
+            else {
                 compGame.agResGameDef[3].Value = (compGame.InvObjects.Count - 1).ToString();
             }
 
             //get source text by lines as a list of strings
-            stlSource = SplitLines(UnicodeToCP(SourceLogic.SourceText,compGame.CodePage));
+            stlSource = SplitLines(UnicodeToCP(SourceLogic.SourceText, compGame.CodePage));
+            //stlSource = SplitLines(SourceLogic.SourceText);
             bytLogComp = SourceLogic.Number;
             strLogCompID = SourceLogic.ID;
 
-            //reset error info
-            lngErrLine = -1;
-            strErrMsg = "";
-            strModule = "";
-            strModFileName = "";
-
+            //setup error info
+            blnCriticalError = false;
+            blnMinorError = false;
+            errInfo.ResType = AGIResType.rtLogic;
+            errInfo.ResNum = SourceLogic.Number;
+            errInfo.Line = -1;
+            errInfo.Module = SourceLogic.ID;
+            intCtlCount = 0;
             // reset the combined input list
-            stlInput = new();
+            stlInput = [];
             intFileCount = 0;
 
             //add include files (extchars handled automatically)
             if (!AddIncludes(stlSource)) {
                 //return error
-                tmpInfo.ID = lngErrNum.ToString();
-                tmpInfo.Text = strErrMsg;
-                tmpInfo.Line = lngErrLine + 1;
-                tmpInfo.Module = strModule;
-                tmpInfo.Type = EventType.ecCompError;
-                return tmpInfo;
+                //tmpInfo.ID = lngErrNum.ToString();
+                //tmpInfo.Text = strErrMsg;
+                //tmpInfo.Line = lngErrLine + 1;
+                //tmpInfo.Module = strModule;
+                //tmpInfo.Type = EventType.etError;
+                return errInfo;
             }
-
             //remove any blank lines from end
             while (stlInput[^1].Length == 0 && stlInput.Count > 0) { // Until Len(stlInput(stlInput.Count - 1)) != 0 || stlInput.Count = 0
                 stlInput.RemoveAt(stlInput.Count - 1);
             }
-
             //if nothing to compile, throw an error
             if (stlInput.Count == 0) {
                 //return error
-                tmpInfo.ID = "4159";
-                tmpInfo.Text = LoadResString(4159);
-                tmpInfo.Line = 0;
-                tmpInfo.Module = strModule;
-                tmpInfo.Type = EventType.ecCompError;
-                return tmpInfo;
+                errInfo.ID = "4159";
+                errInfo.Text = LoadResString(4159);
+                errInfo.Line = 0;
+                return errInfo;
             }
-
             //strip out all comments
             if (!RemoveComments()) {
                 //return error
-                tmpInfo.ID = lngErrNum.ToString();
-                tmpInfo.Text = strErrMsg;
-                tmpInfo.Line = lngErrLine + 1;
-                tmpInfo.Module = strModule;
-                tmpInfo.Type = EventType.ecCompError;
-                return tmpInfo;
+                return errInfo;
             }
-
             //read labels
             if (!ReadLabels()) {
                 //return error
-                tmpInfo.ID = lngErrNum.ToString();
-                tmpInfo.Text = strErrMsg;
-                tmpInfo.Line = lngErrLine + 1;
-                tmpInfo.Module = strModule;
-                tmpInfo.Type = EventType.ecCompError;
-                return tmpInfo;
+                return errInfo;
             }
-
             //enumerate and replace all the defines
             if (!ReadDefines()) {
                 //return error
-                tmpInfo.ID = lngErrNum.ToString();
-                tmpInfo.Text = strErrMsg;
-                tmpInfo.Line = lngErrLine + 1;
-                tmpInfo.Module = strModule;
-                tmpInfo.Type = EventType.ecCompError;
-                return tmpInfo;
+                return errInfo;
             }
             //read predefined messages
             if (!ReadMsgs()) {
                 //return error
-                tmpInfo.ID = lngErrNum.ToString();
-                tmpInfo.Text = strErrMsg;
-                tmpInfo.Line = lngErrLine + 1;
-                tmpInfo.Module = strModule;
-                tmpInfo.Type = EventType.ecCompError;
-                return tmpInfo;
+                return errInfo;
             }
-
             //assign temporary resource object
             tmpLogRes = new Logic();
             // and clear the data
             tmpLogRes.Data.Clear();
             //write a word as a place holder for offset to msg section start
             tmpLogRes.WriteWord(0, 0);
-
             //run agi compiler
             blnCompiled = CompileAGI();
-
             //compile commands
             if (!blnCompiled) {
                 tmpLogRes.Unload();
                 //return error
-                tmpInfo.ID = lngErrNum.ToString();
-                tmpInfo.Text = strErrMsg;
-                tmpInfo.Line = lngErrLine + 1;
-                tmpInfo.Module = strModule;
-                tmpInfo.Type = EventType.ecCompError;
-                return tmpInfo;
+                return errInfo;
             }
-
             // code size equals bytes currently written (before msg secion added)
             lngCodeSize = tmpLogRes.Size;
 
@@ -259,17 +211,11 @@ namespace WinAGI.Engine
             if (!WriteMsgs()) {
                 tmpLogRes.Unload();
                 //return error
-                tmpInfo.ID = lngErrNum.ToString();
-                tmpInfo.Text = strErrMsg;
-                tmpInfo.Line = lngErrLine + 1;
-                tmpInfo.Module = strModule;
-                tmpInfo.Type = EventType.ecCompError;
-                return tmpInfo;
+                return errInfo;
             }
 
             // if no minor errors
-            if (!blnMinorError)
-            {
+            if (!blnMinorError) {
                 //assign resource data
                 SourceLogic.Data.AllData = tmpLogRes.Data.AllData;
                 //update compiled crc
@@ -278,25 +224,21 @@ namespace WinAGI.Engine
                 compGame.WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CRC32", "0x" + SourceLogic.CRC.ToString("x8"), "Logics");
                 compGame.WriteGameSetting("Logic" + (SourceLogic.Number).ToString(), "CompCRC32", "0x" + SourceLogic.CompiledCRC.ToString("x8"));
             }
-
-
             //done with the temp resource
             tmpLogRes.Unload();
 
             // if minor errors, report them as a compile fail
-            if (blnMinorError)
-            {
-                tmpInfo.ID = "4001";
-                tmpInfo.Text = LoadResString(4001);
-                tmpInfo.Line = 0;
-                tmpInfo.Module = "";
-                tmpInfo.Type = EventType.ecCompError;
+            if (blnMinorError) {
+                errInfo.ID = "4001";
+                errInfo.Text = LoadResString(4001);
+                errInfo.Line = 0;
+                errInfo.Module = "";
             }
-            else
-            {
-                tmpInfo.Type = EventType.ecCompOK;
+            else {
+                errInfo.Type = EventType.etInfo;
+                errInfo.InfoType = EInfoType.itDone;
             }
-                return tmpInfo;
+            return errInfo;
         }
         internal static void SetResourceIDs(AGIGame game)
         {
@@ -350,464 +292,499 @@ namespace WinAGI.Engine
             //the blnVarOrNum flag is used to do this; when the flag is
             //true, number searches also return variables
 
+            //the ' & ' operator acts as a 'pointer' and returns the numeric
+            //value of 'v##, f##, s##, o##, w##, i##, c##'
             int i;
-            int intAsc;
 
-            //check if already in correct format
-            switch (ArgType) {
-            case atNum:  //numeric only
-                if (IsNumeric(strArgIn)) {
-                    //reset VarOrNum flag
-                    blnVarOrNum = false;
-                    return true;
+            if (agSierraSyntax) {
+                //vocab words are text (not starting with quote)
+                //all others must be a number
+                if (ArgType == atVocWrd) {
+                    if (strArgIn[0] == '\"') {
+                        //error
+                        AddMinorError(6001, LoadResString(6001));
+                    }
+                    else {
+                        //OK
+                        return true;
+                    }
                 }
-                //unless looking for var or num
-                if (blnVarOrNum) {
-                    //then //v##// is ok
-                    if ((strArgIn[0] | 32) == 118) {
-                        if (VariableValue(strArgIn) != -1) {
+                else {
+                    // other args are only numbers (or defines)
+                    // return int values; calling function will evaluate bounds
+                    // 
+                    if (int.TryParse(strArgIn, out int intVal)) {
+                        //reset VarOrNum flag
+                        blnVarOrNum = false;
+                        strArgIn = intVal.ToString();
+                        return true;
+                    }
+                }
+            }
+            else {
+                // AGI FAN syntax:
+                //check if already in correct format
+                switch (ArgType) {
+                case atNum:  //numeric (int) only; allow all values, including
+                    // negative; calling function will evaluate bounds
+                    if (int.TryParse(strArgIn, out _)) {
+                        //reset VarOrNum flag
+                        blnVarOrNum = false;
+                        return true;
+                    }
+                    //unless looking for var or num
+                    if (blnVarOrNum) {
+                        //then 'v##' is ok
+                        if (strArgIn[0] == 'v') {
+                            if (int.TryParse(strArgIn[1..], out _)) {
+                                return true;
+                            }
+                        }
+                    }
+                    // check for a pointer
+                    if (strArgIn[0] == '&') {
+                        int ptrVal = PointerValue(strArgIn[1..]);
+                        if (ptrVal != -1) {
+                            //valid pointer
+                            strArgIn = ptrVal.ToString();
+                            // not a variable
+                            blnVarOrNum = false;
                             return true;
                         }
                     }
-                }
-                break;
-            case atVar:
-                //if first char matches
-                if ((strArgIn[0] | 32) == 118) {
-                    //if this arg returns a valid Value
-                    if (VariableValue(strArgIn) != -1) {
-                        //ok
-                        return true;
-                    }
-                }
-                break;
-            case atFlag:
-                //if first char matches
-                if ((strArgIn[0] | 32) == 102) {
-                    //if this arg returns a valid Value
-                    if (VariableValue(strArgIn) != -1) {
-                        //ok
-                        return true;
-                    }
-                }
-                break;
-            case atCtrl:
-                //if first char matches
-                if ((strArgIn[0] | 32) == 99) {
-                    //if this arg returns a valid Value
-                    if (VariableValue(strArgIn) != -1) {
-                        //ok
-                        return true;
-                    }
-                }
-                break;
-            case atSObj:
-                //if first char matches
-                if ((strArgIn[0] | 32) == 111) {
-                    //if this arg returns a valid Value
-                    if (VariableValue(strArgIn) != -1) {
-                        //ok
-                        return true;
-                    }
-                }
-                break;
-            case atStr:
-                //if first char matches
-                if ((strArgIn[0] | 32) == 115) {
-                    //if this arg returns a valid Value
-                    if (VariableValue(strArgIn) != -1) {
-                        //ok
-                        return true;
-                    }
-                }
-                break;
-            case atWord: //NOTE: this is NOT vocab word; this is word arg type (used in command word.to.string)
-                         //if first char matches
-                if ((strArgIn[0] | 32) == 119) {
-                    //if this arg returns a valid Value
-                    if (VariableValue(strArgIn) != -1) {
-                        //ok
-                        return true;
-                    }
-                }
-                break;
-            case atMsg:
-                //if first char matches, or is a quote
-                intAsc = strArgIn[0] | 32;
-                switch (intAsc) {
-                case 109:
-                    //if this arg returns a valid Value
-                    if (VariableValue(strArgIn) != -1) {
-                        //ok
-                        return true;
-                    }
                     break;
-                case 34:
-                    //strings are always ok
-                    return true;
-                }
-                break;
-            case atIObj:
-                //if first char matches, or is a quote
-                intAsc = strArgIn[0] | 32;
-                switch (intAsc) {
-                case 105:
-                    //if this arg returns a valid Value
-                    if (VariableValue(strArgIn) != -1) {
-                        //ok
-                        return true;
-                    }
-                    break;
-                case 34:
-                    //strings are always ok
-                    return true;
-                }
-                break;
-            case atVocWrd:
-                //can be number or string in quotes
-                if (IsNumeric(strArgIn) || strArgIn[0] == 34) {
-                    //ok
-                    return true;
-                }
-                break;
-            }
 
+                case atVar:
+                    //if first char matches
+                    if (strArgIn[0] == 'v') {
+                        //if this arg returns a valid Value
+                        if (int.TryParse(strArgIn[1..], out _)) {
+                            //ok
+                            return true;
+                        }
+                    }
+                    break;
+                case atFlag:
+                    //if first char matches
+                    if (strArgIn[0] == 'f') {
+                        //if this arg returns a valid Value
+                        if (int.TryParse(strArgIn[1..], out _)) {
+                            //ok
+                            return true;
+                        }
+                    }
+                    break;
+                case atCtrl:
+                    //if first char matches
+                    if (strArgIn[0] == 'c') {
+                        //if this arg returns a valid Value
+                        if (int.TryParse(strArgIn[1..], out _)) {
+                            //ok
+                            return true;
+                        }
+                    }
+                    break;
+                case atSObj:
+                    //if first char matches
+                    if (strArgIn[0] == 'o') {
+                        //if this arg returns a valid Value
+                        if (int.TryParse(strArgIn[1..], out _)) {
+                            //ok
+                            return true;
+                        }
+                    }
+                    break;
+                case atStr:
+                    //if first char matches
+                    if (strArgIn[0] == 's') {
+                        //if this arg returns a valid Value
+                        if (int.TryParse(strArgIn[1..], out _)) {
+                            //ok
+                            return true;
+                        }
+                    }
+                    break;
+                case atWord: //NOTE: this is NOT vocab word; this is word arg type (used in command word.to.string)
+                    //if first char matches
+                    if (strArgIn[0] == 'w') {
+                        //if this arg returns a valid Value
+                        if (int.TryParse(strArgIn[1..], out _)) {
+                            //ok
+                            return true;
+                        }
+                    }
+                    break;
+                case atMsg:
+                    //if first char matches, or is a quote
+                    switch (strArgIn[0]) {
+                    case 'm':
+                        //if this arg returns a valid Value
+                        if (int.TryParse(strArgIn[1..], out _)) {
+                            //ok
+                            return true;
+                        }
+                        break;
+                    case '\"':
+                        //strings are always ok
+                        return true;
+                    }
+                    break;
+                case atInvItem:
+                    //if first char matches, or is a quote
+                    switch (strArgIn[0]) {
+                    case 'i':
+                        //if this arg returns a valid Value
+                        if (int.TryParse(strArgIn[1..], out _)) {
+                            //ok
+                            return true;
+                        }
+                        break;
+                    case '\"':
+                        //strings are always ok
+                        return true;
+                    }
+                    break;
+                case atVocWrd:
+                    //can be number or string in quotes
+                    if (int.TryParse(strArgIn, out _) || strArgIn[0] == '\"') {
+                        //ok
+                        return true;
+                    }
+                    break;
+                }
+            }
             //arg is not in correct format; must be reserved name, global or local define, or an error
 
             //first, check against local defines
             for (i = 0; i < lngDefineCount; i++) {
-                if (strArgIn.Equals(tdDefines[i].Name, StringComparison.OrdinalIgnoreCase)) {
+                if (strArgIn == tdDefines[i].Name) {
                     //match found; check that Value is correct type
-                    switch (ArgType) {
-                    case atNum:
-                        //check for number
-                        if (IsNumeric(tdDefines[i].Value)) {
+                    if (tdDefines[i].Type == ArgType) {
+                        // return the value
+                        strArgIn = tdDefines[i].Value;
+                        // if looking for a number
+                        if (ArgType == atNum) {
                             //reset VarOrNum flag
                             blnVarOrNum = false;
+                        }
+                        // ok
+                        return true;
+                   }
+                    // special case - looking for number, but var also OK
+                    if (blnVarOrNum && tdDefines[i].Type == atVar) {
+                        strArgIn = tdDefines[i].Value;
+                        return true;
+                    }
+                    // special case - message, item can be a string
+                    if (ArgType == atMsg || ArgType == atInvItem) {
+                        if (tdDefines[i].Type == atDefStr) {
                             strArgIn = tdDefines[i].Value;
                             return true;
                         }
+                    }
+                    // special case - vocab words are numbers or strings
+                    if (ArgType == atVocWrd && (tdDefines[i].Type == atNum || tdDefines[i].Type == atDefStr)) {
+                        strArgIn = tdDefines[i].Value;
+                        return true;
+                    }
+                    //not validated, so return false
+                    return false;
+                }
+            }
 
-                        //if checking for variables
+            //if not sierra syntax check global defines, ResIDs and reserved
+            if (!agSierraSyntax) {
+                //check against global defines
+                for (i = 0; i < compGame.GlobalDefines.Count; i++) {
+                    if (strArgIn == compGame.GlobalDefines[i].Name) {
+                        // match found; check that Value is correct type
+                        if (compGame.GlobalDefines[i].Type == ArgType) {
+                            // return the value
+                            strArgIn = compGame.GlobalDefines[i].Value;
+                            // if looking for a number
+                            if (ArgType == atNum) {
+                                //reset VarOrNum flag
+                                blnVarOrNum = false;
+                            }
+                            // ok
+                            return true;
+                        }
+                        // special case - looking for number, but var also OK
+                        if (blnVarOrNum && compGame.GlobalDefines[i].Type == atVar) {
+                            strArgIn = compGame.GlobalDefines[i].Value;
+                            return true;
+                        }
+                        // special case - message, item can be a string
+                        if (ArgType == atMsg || ArgType == atInvItem) {
+                            if (compGame.GlobalDefines[i].Type == atDefStr) {
+                                strArgIn = compGame.GlobalDefines[i].Value;
+                                return true;
+                            }
+                        }
+                        // special case - vocab words are numbers or strings
+                        if (ArgType == atVocWrd && (compGame.GlobalDefines[i].Type == atNum || compGame.GlobalDefines[i].Type == atDefStr)) {
+                            strArgIn = compGame.GlobalDefines[i].Value;
+                            return true;
+                        }
+                        //not validated, so return false
+                        return false;
+                    }
+                }
+                //check numbers against list of resource IDs
+                if (ArgType == atNum) {
+                    //check against resource IDs
+                    for (i = 0; i <= 255; i++) {
+                        //if this arg matches one of the resource ids
+                        if (strArgIn == strLogID[i]) {
+                            strArgIn = i.ToString();
+                            //reset VarOrNum flag
+                            blnVarOrNum = false;
+                            return true;
+                        }
+                        if (strArgIn == strPicID[i]) {
+                            strArgIn = i.ToString();
+                            //reset VarOrNum flag
+                            blnVarOrNum = false;
+                            return true;
+                        }
+                        if (strArgIn == strSndID[i]) {
+                            strArgIn = i.ToString();
+                            //reset VarOrNum flag
+                            blnVarOrNum = false;
+                            return true;
+                        }
+                        if (strArgIn == strViewID[i]) {
+                            strArgIn = i.ToString();
+                            //reset VarOrNum flag
+                            blnVarOrNum = false;
+                            return true;
+                        }
+                    }
+                }
+                //lastly, if using reserved names,
+                if (UseReservedNames) {
+                    //last of all, check reserved names
+                    switch (ArgType) {
+                    case atNum:
+                        for (i = 0; i <= 4; i++) {
+                            if (strArgIn == agEdgeCodes[i].Name) {
+                                strArgIn = agEdgeCodes[i].Value;
+                                //reset VarOrNum flag
+                                blnVarOrNum = false;
+                                return true;
+                            }
+                        }
+                        for (i = 0; i <= 8; i++) {
+                            if (strArgIn == agEgoDir[i].Name) {
+                                strArgIn = agEgoDir[i].Value;
+                                //reset VarOrNum flag
+                                blnVarOrNum = false;
+                                return true;
+                            }
+                        }
+                        for (i = 0; i <= 4; i++) {
+                            if (strArgIn == agVideoMode[i].Name) {
+                                strArgIn = agVideoMode[i].Value;
+                                //reset VarOrNum flag
+                                blnVarOrNum = false;
+                                return true;
+                            }
+                        }
+                        for (i = 0; i <= 8; i++) {
+                            if (strArgIn == agCompType[i].Name) {
+                                strArgIn = agCompType[i].Value;
+                                //reset VarOrNum flag
+                                blnVarOrNum = false;
+                                return true;
+                            }
+                        }
+                        for (i = 0; i <= 15; i++) {
+                            if (strArgIn == agResColor[i].Name) {
+                                strArgIn = agResColor[i].Value;
+                                //reset VarOrNum flag
+                                blnVarOrNum = false;
+                                return true;
+                            }
+                        }
+                         //check against invobj Count
+                        if (strArgIn == compGame.agResGameDef[3].Name) {
+                            strArgIn = compGame.agResGameDef[3].Value;
+                            //reset VarOrNum flag
+                            blnVarOrNum = false;
+                            return true;
+                        }
+                        //if looking for numbers OR variables
                         if (blnVarOrNum) {
-                            if ((tdDefines[i].Value[0] | 32) == 118) {
-                                //if this define returns a valid Value
-                                if (VariableValue(tdDefines[i].Value) != -1) {
-                                    //ok
-                                    strArgIn = tdDefines[i].Value;
+                            //check against builtin variables as well
+                            for (i = 0; i <= 26; i++) {
+                                if (strArgIn == agResVar[i].Name) {
+                                    strArgIn = agResVar[i].Value;
                                     return true;
                                 }
                             }
                         }
                         break;
                     case atVar:
-                        //v## only
-                        if ((tdDefines[i].Value[0] | 32) == 118) {
-                            //if this define returns a valid Value
-                            if (VariableValue(tdDefines[i].Value) != -1) {
-                                //ok
-                                strArgIn = tdDefines[i].Value;
-                                return true;
-                            }
-                        }
-                        break;
-                    case atFlag:
-                        //f## only
-                        if ((tdDefines[i].Value[0] | 32) == 102) {
-                            //if this define returns a valid Value
-                            if (VariableValue(tdDefines[i].Value) != -1) {
-                                //ok
-                                strArgIn = tdDefines[i].Value;
-                                return true;
-                            }
-                        }
-                        break;
-                    case atMsg:
-                        //m## or a string
-                        intAsc = tdDefines[i].Value[0] | 32;
-                        switch (intAsc) {
-                        case 109:
-                            //if this define returns a valid Value
-                            if (VariableValue(tdDefines[i].Value) != -1) {
-                                //ok
-                                strArgIn = tdDefines[i].Value;
-                                return true;
-                            }
-                            break;
-                        case 34:
-                            strArgIn = tdDefines[i].Value;
-                            return true;
-                        }
-                        break;
-                    case atSObj:
-                        //o## only
-                        if ((tdDefines[i].Value[0] | 32) == 111) {
-                            //if this define returns a valid Value
-                            if (VariableValue(tdDefines[i].Value) != -1) {
-                                //ok
-                                strArgIn = tdDefines[i].Value;
-                                return true;
-                            }
-                        }
-                        break;
-                    case atIObj:
-                        //i## or a string
-                        intAsc = tdDefines[i].Value[0];
-                        switch (intAsc) {
-                        case 105:
-                            //if this define returns a valid Value
-                            if (VariableValue(tdDefines[i].Value) != -1) {
-                                //ok
-                                strArgIn = tdDefines[i].Value;
-                                return true;
-                            }
-                            break;
-                        case 34:
-                            strArgIn = tdDefines[i].Value;
-                            return true;
-                        }
-                        break;
-                    case atStr:
-                        //s## only
-                        if ((tdDefines[i].Value[0] | 32) == 115) {
-                            //if this define returns a valid Value
-                            if (VariableValue(tdDefines[i].Value) != -1) {
-                                //ok
-                                strArgIn = tdDefines[i].Value;
-                                return true;
-                            }
-                        }
-                        break;
-                    case atWord:
-                        //w## only
-                        if ((tdDefines[i].Value[0] | 32) == 119) {
-                            //if this define returns a valid Value
-                            if (VariableValue(tdDefines[i].Value) != -1) {
-                                //ok
-                                strArgIn = tdDefines[i].Value;
-                                return true;
-                            }
-                        }
-                        break;
-                    case atCtrl:
-                        //c## only
-                        if ((tdDefines[i].Value[0] | 32) == 99) {
-                            //if this define returns a valid Value
-                            if (VariableValue(tdDefines[i].Value) != -1) {
-                                //ok
-                                strArgIn = tdDefines[i].Value;
-                                return true;
-                            }
-                        }
-                        break;
-                    case atVocWrd:
-                        //numeric or string only
-                        if (IsNumeric(tdDefines[i].Value)) {
-                            strArgIn = tdDefines[i].Value;
-                            return true;
-                        }
-                        else if (tdDefines[i].Value[0] == 34) {
-                            strArgIn = tdDefines[i].Value;
-                            return true;
-                        }
-                        break;
-                    case atDefStr:
-                        //call to ConvertArgument is never made with type of atDefStr
-                        break;
-                    }
-                    //not validated, so return false
-                    return false;
-                }
-            } //nexti
-
-            //second, check against global defines
-            //for any type except vocab words
-            if (ArgType != atVocWrd) {
-                //check against this type of global defines
-                for (i = 0; i < compGame.GlobalDefines.Count; i++) {
-                    if (compGame.GlobalDefines[i].Type == ArgType) {
-                        if (strArgIn == compGame.GlobalDefines[i].Name) {
-                            strArgIn = compGame.GlobalDefines[i].Value;
-                            //reset VarOrNum flag
-                            blnVarOrNum = false;
-                            return true;
-                        }
-                    }
-                } //nexti
-                  //if checking var or num
-                if (blnVarOrNum) {
-                    //numbers were checked; need to check variables
-                    for (i = 0; i < compGame.GlobalDefines.Count; i++) {
-                        if (compGame.GlobalDefines[i].Type == atVar) {
-                            if (strArgIn == compGame.GlobalDefines[i].Name) {
-                                strArgIn = compGame.GlobalDefines[i].Value;
-                                return true;
-                            }
-                        }
-                    } //nexti
-                }
-            }
-            else {
-                //check vocab words only against numbers
-                for (i = 0; i < compGame.GlobalDefines.Count; i++) {
-                    if (compGame.GlobalDefines[i].Type == atNum) {
-                        if (strArgIn == compGame.GlobalDefines[i].Name) {
-                            strArgIn = compGame.GlobalDefines[i].Value;
-                            return true;
-                        }
-                    }
-                } //nexti
-            }
-            //check messages, iobjs, and vocab words against global strings
-            if ((ArgType == atMsg) || (ArgType == atIObj) || (ArgType == atVocWrd)) {
-                //check against global defines (string type)
-                for (i = 0; i < compGame.GlobalDefines.Count; i++) {
-                    if (compGame.GlobalDefines[i].Type == atDefStr) {
-                        if (strArgIn == compGame.GlobalDefines[i].Name) {
-                            strArgIn = compGame.GlobalDefines[i].Value;
-                            return true;
-                        }
-                    }
-                } //nexti
-            }
-
-            //third, check numbers against list of resource IDs
-            if (ArgType == atNum) {
-                //check against resource IDs
-                for (i = 0; i <= 255; i++) {
-                    //if this arg matches one of the resource ids
-                    if (strArgIn == strLogID[i]) {
-                        strArgIn = i.ToString();
-                        //reset VarOrNum flag
-                        blnVarOrNum = false;
-                        return true;
-                    }
-                    if (strArgIn == strPicID[i]) {
-                        strArgIn = i.ToString();
-                        //reset VarOrNum flag
-                        blnVarOrNum = false;
-                        return true;
-                    }
-                    if (strArgIn == strSndID[i]) {
-                        strArgIn = i.ToString();
-                        //reset VarOrNum flag
-                        blnVarOrNum = false;
-                        return true;
-                    }
-                    if (strArgIn == strViewID[i]) {
-                        strArgIn = i.ToString();
-                        //reset VarOrNum flag
-                        blnVarOrNum = false;
-                        return true;
-                    }
-                } //nexti
-            }
-
-            //lastly, if using reserved names,
-            if (UseReservedNames) {
-                //last of all, check reserved names
-                switch (ArgType) {
-                case atNum:
-                    for (i = 0; i <= 4; i++) {
-                        if (strArgIn == agEdgeCodes[i].Name) {
-                            strArgIn = agEdgeCodes[i].Value;
-                            //reset VarOrNum flag
-                            blnVarOrNum = false;
-                            return true;
-                        }
-                    }// i
-                    for (i = 0; i <= 8; i++) {
-                        if (strArgIn == agEgoDir[i].Name) {
-                            strArgIn = agEgoDir[i].Value;
-                            //reset VarOrNum flag
-                            blnVarOrNum = false;
-                            return true;
-                        }
-                    }// i
-                    for (i = 0; i <= 4; i++) {
-                        if (strArgIn == agVideoMode[i].Name) {
-                            strArgIn = agVideoMode[i].Value;
-                            //reset VarOrNum flag
-                            blnVarOrNum = false;
-                            return true;
-                        }
-                    } // i
-                    for (i = 0; i <= 8; i++) {
-                        if (strArgIn == agCompType[i].Name) {
-                            strArgIn = agCompType[i].Value;
-                            //reset VarOrNum flag
-                            blnVarOrNum = false;
-                            return true;
-                        }
-                    } // i
-                    for (i = 0; i <= 15; i++) {
-                        if (strArgIn == agResColor[i].Name) {
-                            strArgIn = agResColor[i].Value;
-                            //reset VarOrNum flag
-                            blnVarOrNum = false;
-                            return true;
-                        }
-                    }// i
-                     //check against invobj Count
-                    if (strArgIn == compGame.agResGameDef[3].Name) {
-                        strArgIn = compGame.agResGameDef[3].Value;
-                        //reset VarOrNum flag
-                        blnVarOrNum = false;
-                        return true;
-                    }
-                    //if looking for numbers OR variables
-                    if (blnVarOrNum) {
-                        //check against builtin variables as well
                         for (i = 0; i <= 26; i++) {
                             if (strArgIn == agResVar[i].Name) {
                                 strArgIn = agResVar[i].Value;
                                 return true;
                             }
-                        } // i
-                    }
-                    break;
-                case atVar:
-                    for (i = 0; i <= 26; i++) {
-                        if (strArgIn == agResVar[i].Name) {
-                            strArgIn = agResVar[i].Value;
+                        }
+                        break;
+                    case atFlag:
+                        for (i = 0; i <= 17; i++) {
+                            if (strArgIn == agResFlag[i].Name) {
+                                strArgIn = agResFlag[i].Value;
+                                return true;
+                            }
+                        }
+                        break;
+                    case atMsg:
+                        for (i = 1; i <= 2; i++) { //for gamever and gameabout and gameid
+                            if (strArgIn == compGame.agResGameDef[i].Name) {
+                                strArgIn = compGame.agResGameDef[i].Value;
+                                return true;
+                            }
+                        }
+                        break;
+                    case atSObj:
+                        if (strArgIn == agResObj[0].Name) {
+                            strArgIn = agResObj[0].Value;
                             return true;
                         }
-                    }// i
-                    break;
-                case atFlag:
-                    for (i = 0; i <= 17; i++) {
-                        if (strArgIn == agResFlag[i].Name) {
-                            strArgIn = agResFlag[i].Value;
+                        break;
+                    case atStr:
+                        if (strArgIn == agResStr[0].Name) {
+                            strArgIn = agResStr[0].Value;
                             return true;
                         }
+                        break;
                     }
-                    break;
-                case atMsg:
-                    for (i = 1; i <= 2; i++) { //for gamever and gameabout and gameid
-                        if (strArgIn == compGame.agResGameDef[i].Name) {
-                            strArgIn = compGame.agResGameDef[i].Value;
-                            return true;
-                        }
-                    }
-                    break;
-                case atSObj:
-                    if (strArgIn == agResObj[0].Name) {
-                        strArgIn = agResObj[0].Value;
-                        return true;
-                    }
-                    break;
-                case atStr:
-                    if (strArgIn == agResStr[0].Name) {
-                        strArgIn = agResStr[0].Value;
-                        return true;
-                    }
-                    break;
                 }
             }
             // if not validated above, it fails
             return false;
         }
-        static internal int VariableValue(string strVar)
+        private static int PointerValue(string strArgIn) {
+            // returns the numeric value of a non-numeric argument (var, flag, etc)
+            // if strArg is numeric, not a valid argument marker, or not a valid
+            // define value, return value is set to -1; if valid, the arg value
+            // is returned
+            //
+            // if the indirect operator (&) is included, it is removed
+
+            if (strArgIn[0] == '&') {
+                strArgIn = strArgIn[1..];
+            }
+            //if a number, return error
+            if (int.TryParse(strArgIn, out _)) {
+                return -1;
+            }
+            switch (strArgIn[0]) {
+            // check for standard arg types
+            case 'v' or 'f' or 'c' or 'o' or 's' or 'w' or 'm' or 'i':
+                int varVal = VariableValue(strArgIn);
+                //if found, return it
+                if (varVal >= 0) {
+                    return varVal;
+                }
+                break;
+            }
+            // arg is not in correct format; must be reserved name,
+            // global or local define, or an error
+
+            //first, check against local defines
+            for (int i = 0; i < lngDefineCount; i++) {
+                if (strArgIn == tdDefines[i].Name) {
+                    //numbers are not valid
+                    if (int.TryParse(tdDefines[i].Value, out _)) {
+                        return -1;
+                    }
+                    switch (tdDefines[i].Value[0]) {
+                    // check for standard arg types
+                    case 'v' or 'f' or 'c' or 'o' or 's' or 'w' or 'm' or 'i':
+                        int varVal = VariableValue(tdDefines[i].Value);
+                        //if found, return it
+                        if (varVal >= 0) {
+                            return varVal;
+                        } else {
+                            return -1;
+                        }
+                    default:
+                        // not valid
+                        return -1;
+                    }
+                }
+            }
+            //second, check against global defines
+            for (int i = 0; i < compGame.GlobalDefines.Count; i++) {
+                if (strArgIn == compGame.GlobalDefines[i].Name) {
+                    //numbers are not valid
+                    if (int.TryParse(compGame.GlobalDefines[i].Value, out _)) {
+                        return -1;
+                    }
+                    switch (tdDefines[i].Value[0]) {
+                    // check for standard arg types
+                    case 'v' or 'f' or 'c' or 'o' or 's' or 'w' or 'm' or 'i':
+                        int varVal = VariableValue(compGame.GlobalDefines[i].Value);
+                        //if found, return it
+                        if (varVal >= 0) {
+                            return varVal;
+                        }
+                        else {
+                            return -1;
+                        }
+                    default:
+                        // not valid
+                        return -1;
+                    }
+                }
+            }
+            //lastly, if using reserved names,
+            if (UseReservedNames) {
+                //check reserved names
+                int i;
+                for (i = 0; i <= 26; i++) {
+                    if (strArgIn == agResVar[i].Name) {
+                        return i;
+                    }
+                }
+            }
+            for (int i = 0; i <= 17; i++) {
+                if (strArgIn == agResFlag[i].Name) {
+                    return i;
+                }
+            }
+            // check for o0, s0
+            if (strArgIn == agResObj[0].Name || strArgIn == agResStr[0].Name) {
+                return 0;
+            }
+            //if not found or error, return false
+            return -1;
+        }
+        static void AddMinorError(int ErrorNum, string ErrorText = "") {
+            // used for errors that don't require canceling the the compile feature
+            // the compile still fails, but it will continue working through code,
+            // possibly finding other errors and warnings so user can address them all
+            // at once instead of one at a time
+
+            //if no text passed, use the default resource string
+            if (ErrorText.Length == 0) {
+                ErrorText = LoadResString(ErrorNum);
+            }
+
+            errInfo.ID = ErrorNum.ToString();
+            errInfo.Text = ErrorText;
+            // module and line are updated as they change so they are already set here
+
+            Raise_CompileLogicEvent(errInfo);
+            // note the error (minor errors don't stop the compile action
+            // but they will cause it to fail)
+            blnMinorError = true;
+        }
+
+       static internal int VariableValue(string strVar)
         {
             //this function will extract the variable number from
             //an input variable string
@@ -816,16 +793,15 @@ namespace WinAGI.Engine
             //and # is 0-255
             //if the result is invalid, this function returns -1
             string strVarVal;
-            int intVarVal;
             //if not numeric
-            if (!IsNumeric(strVar)) {
+            if (!int.TryParse(strVar, out _)) {
                 //strip off variable prefix, and indirection
                 //if indirection
                 if (Left(strVar, 1) == "*") {
-                    strVarVal = Right(strVar, strVar.Length - 2);
+                    strVarVal = strVar[2..];
                 }
                 else {
-                    strVarVal = Right(strVar, strVar.Length - 1);
+                    strVarVal = strVar[1..];
                 }
             }
             else {
@@ -833,13 +809,11 @@ namespace WinAGI.Engine
                 strVarVal = strVar;
             }
             //if result is a number
-            if (IsNumeric(strVarVal)) {
-                //get number
-                intVarVal = (int)Val(strVarVal);
+            if (int.TryParse(strVarVal, out int intVarVal)) {
                 //for word only, subtract one to
-                //account for //1// based word data type
-                //(i.e. w1 is first word, but command uses arg Value of //0//)
-                if (strVar[0] == 119) {
+                //account for '1' based word data type
+                //(i.e. w1 is first word, but command uses arg Value of '0')
+                if (strVar[0] == 'w') {
                     intVarVal--;
                 }
                 //verify within bounds  0-255
@@ -866,34 +840,31 @@ namespace WinAGI.Engine
             int intFileCount = 0;
             int lngLineCount;
 
-
-            stlInput = new List<string>();
-            IncludeLines = new List<string>(); //only temporary,
+            stlInput = [];
+            IncludeLines = []; //only temporary,
             lngLine = 0;
             lngLineCount = stlLogicText.Count;
-
-            //module is always main module
-            strModule = "";
-            strModFileName = "";
 
             //step through all lines
             do {
                 //set errline
-                lngErrLine = lngLine;
+                errInfo.Line = lngLine + 1;
                 //check this line for include statement
                 string strLine = stlLogicText[lngLine].Trim().ToLower();
                 if (Left(strLine, 8) == "#include") {
                     //proper format requires a space after //include//
                     if (Mid(strLine, 9, 1) != " ") {
                         //generate error
-                        strErrMsg = LoadResString(4103);
+                        errInfo.ID = "4103";
+                        errInfo.Text = LoadResString(4103);
                         return false;
                     }
                     //build include filename
                     strIncludeFilename = Right(strLine, strLine.Length - 9).Trim();
                     //check for a filename
                     if (strIncludeFilename.Length == 0) {
-                        strErrMsg = LoadResString(4060);
+                        errInfo.ID = "4060";
+                        errInfo.Text = LoadResString(4060);
                         return false;
                     }
 
@@ -902,7 +873,8 @@ namespace WinAGI.Engine
                        Right(strIncludeFilename, 1) == QUOTECHAR && Left(strIncludeFilename, 1) != QUOTECHAR) {
                         if (ErrorLevel == leHigh) {
                             //return error: improper use of quote marks
-                            strErrMsg = LoadResString(4059);
+                            errInfo.ID = "4059";
+                            errInfo.Text = LoadResString(4059);
                             return false;
                         }
                         else {// leMedium, leLow
@@ -929,7 +901,8 @@ namespace WinAGI.Engine
                     }
                     //verify file exists
                     if (!File.Exists(strIncludeFilename)) {
-                        strErrMsg = LoadResString(4050).Replace(ARG1, strIncludeFilename);
+                        errInfo.ID = "4050";
+                        errInfo.Text = LoadResString(4050).Replace(ARG1, strIncludeFilename);
                         return false;
                     }
                     //now open the include file, and get the text
@@ -941,7 +914,8 @@ namespace WinAGI.Engine
                         fsInclude.Dispose();
                     }
                     catch (Exception) {
-                        strErrMsg = LoadResString(4055).Replace(ARG1, strIncludeFilename);
+                        errInfo.ID = "4055";
+                        errInfo.Text = LoadResString(4055).Replace(ARG1, strIncludeFilename);
                         return false;
                     }
                     //assign text to stringlist
@@ -958,8 +932,9 @@ namespace WinAGI.Engine
                         for (CurIncludeLine = 0; CurIncludeLine < IncludeLines.Count; CurIncludeLine++) {
                             //verify the include file contains no includes
                             if (Left(IncludeLines[CurIncludeLine].Trim(), 2) == "#I") {
-                                strErrMsg = LoadResString(4061);
-                                lngErrLine = CurIncludeLine;
+                                errInfo.ID = "4061";
+                                errInfo.Text = LoadResString(4061);
+                                errInfo.Line = CurIncludeLine + 1;
                                 return false;
                             }
                             //include filenumber and line number from includefile
@@ -975,7 +950,7 @@ namespace WinAGI.Engine
                     //check for any instances of #I, since these will
                     //interfere with include line handling
                     if (Left(stlLogicText[lngLine], 2).Equals("#i", StringComparison.OrdinalIgnoreCase)) {
-                        strErrMsg = LoadResString(4069);
+                        errInfo.Text = LoadResString(4069);
                         return false;
                     }
                     //copy the line by itself
@@ -983,11 +958,9 @@ namespace WinAGI.Engine
                 }
                 lngLine++;
             }
-            while (lngLine < lngLineCount); // Until lngLine >= lngLineCount
-                                            //done
-                                            //return success
+            while (lngLine < lngLineCount);
             return true;
-        } //endfunction
+        }
         internal static string ArgTypeName(ArgTypeEnum ArgType)
         {
             switch (ArgType) {
@@ -1001,7 +974,7 @@ namespace WinAGI.Engine
                 return "message";
             case atSObj:      //o##
                 return "screen object";
-            case atIObj:      //i##
+            case atInvItem:      //i##
                 return "inventory item";
             case atStr:       //s##
                 return "string";
@@ -1145,15 +1118,15 @@ namespace WinAGI.Engine
                         retval = -3;
                     }
                     // arg missing
-                    lngErrNum = 4054;
-                    strErrMsg = LoadResString(4054).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG3, ArgTypeName(ArgType));
+                    errInfo.ID = "4054";
+                    errInfo.Text = LoadResString(4054).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG3, ArgTypeName(ArgType));
                     //backup so comma/bracket can be retrieved
                     lngPos -= 1;
                 }
                 else {
                     // invalid conversion
-                    lngErrNum = 4063;
-                    strErrMsg = LoadResString(4063).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, ArgTypeName(ArgType)).Replace(ARG3, strArg);
+                    errInfo.ID = "4063";
+                    errInfo.Text = LoadResString(4063).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, ArgTypeName(ArgType)).Replace(ARG3, strArg);
                     retval = -1;
                 }
                 return retval;
@@ -1161,70 +1134,60 @@ namespace WinAGI.Engine
 
             switch (ArgType) {
             case atNum:  //number
-                         //verify type is number
-                if (!IsNumeric(strArg)) {
-                    //if NOT catching variables too
-                    if (!blnVarOrNum) {
-                        //blnError = true;
-                        strErrMsg = LoadResString(4062).Replace(ARG1, (ArgPos).ToString());
+                // check for variable override first
+                if (blnVarOrNum) {
+                    // TODO: is this even possible? convert arg would only 
+                    // set blnVarOrNum if a variable (v##) is found right?
+                    // should be 'v##' (or '##' for sierra syntax)
+                    if (int.TryParse(strArg, out _) && !agSierraSyntax) {
+                        errInfo.ID = "4062";
+                        errInfo.Text = LoadResString(4062).Replace(ARG1, (ArgPos).ToString());
                         return -1;
                     }
-                }
-                else {
-                    //return //is NOT a variable//; ensure flag is reset
-                    blnVarOrNum = false;
                 }
                 //check for negative number
                 if (Val(strArg) < 0) {
                     //valid negative numbers are -1 to -128
                     if (Val(strArg) < -128) {
                         //error
-                        //blnError = true;
-                        strErrMsg = LoadResString(4157);
-                        return -1;
-                    }
-                    //convert it to 2s-compliment unsigned value by adding it to 256
-                    strArg = (256 + Val(strArg)).ToString();
-                    if (ErrorLevel == leHigh ||
-                        ErrorLevel == leMedium) {
-                        //show warning
-                        AddWarning(5098);
+                        AddMinorError(4157);
+                        // use dummy value to continue
+                        strArg = "1";
+                    } else {
+                        //convert it to 2s-compliment unsigned value by adding it to 256
+                        strArg = (256 + Val(strArg)).ToString();
+                        if (ErrorLevel == leHigh ||
+                            ErrorLevel == leMedium) {
+                            //show warning
+                            AddWarning(5098);
+                        }
                     }
                 }
                 //convert to number and validate
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
-                    //blnError = true;
                     //use 1-based arg values
-                    strErrMsg = LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString());
-                    return -1;
+                    AddMinorError(4066, LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString()));
                 }
                 break;
-            case atVar:
-            case atFlag:  //variable, flag
-                          //get Value
+            case atVar or atFlag:  //variable, flag
+                //get Value
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
-                    //blnError = true;
                     //use 1-based arg values
-                    strErrMsg = LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString());
-                    return -1;
+                    AddMinorError(4066, LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString()));
                 }
                 break;
-            case atCtrl:    //controller
-                            //controllers should be  0 - 49
-                            //get Value
+            case atCtrl:    //controllers should be  0 - 49
+                //get Value
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
-                    //blnError = true;
                     //if high errlevel
                     if (ErrorLevel == leHigh) {
-                        //use 1-based arg values
-                        strErrMsg = LoadResString(4136).Replace(ARG1, (ArgPos + 1).ToString());
+                        AddMinorError(4136, LoadResString(4136).Replace(ARG1, (ArgPos + 1).ToString()));
                     }
                     else {
-                        //use 1-based arg values
-                        strErrMsg = LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString());
+                        AddMinorError(4066, LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString()));
                     }
                     return -1;
                 }
@@ -1233,10 +1196,7 @@ namespace WinAGI.Engine
                     if (lngArg > 49) {
                         if (ErrorLevel == leHigh) {
                             //generate error
-                            //blnError = true;
-                            //use 1-based arg values
-                            strErrMsg = LoadResString(4136).Replace(ARG1, (ArgPos + 1).ToString());
-                            return -1;
+                            AddMinorError(4136, LoadResString(4136).Replace(ARG1, (ArgPos + 1).ToString()));
                         }
                         else if (ErrorLevel == leMedium) {
                             //generate warning
@@ -1249,20 +1209,13 @@ namespace WinAGI.Engine
                          //get Value
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
-                    //blnError = true;
-                    //use 1-based arg values
-                    strErrMsg = LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString());
-                    return -1;
+                    AddMinorError(4066, LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString()));
                 }
-
                 //check against max screen object Value
                 if (lngArg > compGame.InvObjects.MaxScreenObjects) {
                     if (ErrorLevel == leHigh) {
-                        //generate error
-                        //blnError = true;
-                        strErrMsg = LoadResString(4119).Replace(ARG1, (compGame.InvObjects.MaxScreenObjects).ToString());
-                        return -1;
-
+                        //minor error
+                        AddMinorError(4119, LoadResString(4119).Replace(ARG1, (compGame.InvObjects.MaxScreenObjects).ToString()));
                     }
                     else if (ErrorLevel == leMedium) {
                         //generate warning
@@ -1271,7 +1224,6 @@ namespace WinAGI.Engine
                 }
                 break;
             case atStr: //string
-                        //get Value
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
                     //blnError = true;
@@ -1279,48 +1231,39 @@ namespace WinAGI.Engine
                     if (ErrorLevel == leHigh) {
                         //for version 2.089, 2.272, and 3.002149 only 12 strings
                         switch (compGame.agIntVersion) {
-                        case "2.089":
-                        case "2.272":
-                        case "3.002149":
+                        case "2.089" or "2.272" or "3.002149":
                             //use 1-based arg values
-                            strErrMsg = LoadResString(4079).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, "11");
+                            AddMinorError(4079, LoadResString(4079).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, "11"));
                             break;
                         default:
-                            strErrMsg = LoadResString(4079).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, "23");
+                            AddMinorError(4079, LoadResString(4079).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, "23"));
                             break;
                         }
                     }
                     else {
-                        //use 1-based arg values
-                        strErrMsg = LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString());
+                        AddMinorError(4066, LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString()));
                     }
-                    return -1;
                 }
                 else {
                     //if outside expected bounds (strings should be limited to 0-23)
                     if ((lngArg > 23) || (lngArg > 11 && (compGame.agIntVersion == "2.089" || compGame.agIntVersion == "2.272" || compGame.agIntVersion == "3.002149"))) {
                         if (ErrorLevel == leHigh) {
-                            //generate error
-                            //blnError = true;
                             //for version 2.089, 2.272, and 3.002149 only 12 strings
                             switch (compGame.agIntVersion) {
                             case "2.089" or "2.272" or "3.002149":
-                                //use 1-based arg values
-                                strErrMsg = LoadResString(4079).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, "11");
-                                return -1;
+                                AddMinorError(4079, LoadResString(4079).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, "11"));
+                                break;
                             default:
-                                strErrMsg = LoadResString(4079).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, "23");
-                                return -1;
+                                errInfo.ID = "4079";
+                                errInfo.Text = LoadResString(4079).Replace(ARG1, (ArgPos + 1).ToString()).Replace(ARG2, "23");
+                                break;
                             }
-
                         }
                         else if (ErrorLevel == leMedium) {
                             //generate warning
                             //for version 2.089, 2.272, and 3.002149 only 12 strings
                             switch (compGame.agIntVersion) {
-                            case "2.089":
-                            case "2.272":
-                            case "3.002149":
+                            case "2.089" or "2.272" or "3.002149":
                                 AddWarning(5007, LoadResString(5007).Replace(ARG1, "11"));
                                 break;
                             default:
@@ -1332,29 +1275,22 @@ namespace WinAGI.Engine
                 }
                 break;
             case atWord: //word  (word type is NOT words from word.tok)
-                         //get Value
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
-                    //blnError = true;
                     //if high error level
                     if (ErrorLevel == leHigh) {
-                        //use 1-based arg values
-                        strErrMsg = LoadResString(4090).Replace(ARG1, (ArgPos + 1).ToString());
+                        AddMinorError(4090, LoadResString(4090).Replace(ARG1, (ArgPos + 1).ToString()));
                     }
                     else {
-                        strErrMsg = LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString());
+                        AddMinorError(4066, LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString()));
                     }
-                    return -1;
                 }
                 else {
                     //if outside expected bounds (words should be limited to 0-9)
                     if (lngArg > 9) {
                         if (ErrorLevel == leHigh) {
                             //generate error
-                            //blnError = true;
-                            //use 1-based arg values
-                            strErrMsg = LoadResString(4090).Replace(ARG1, (ArgPos + 1).ToString());
-                            return -1;
+                            AddMinorError(4090, LoadResString(4090).Replace(ARG1, (ArgPos + 1).ToString()));
                         }
                         else if (ErrorLevel == leMedium) {
                             //generate warning
@@ -1365,271 +1301,263 @@ namespace WinAGI.Engine
                 }
                 break;
             case atMsg:  //message
-                         //returned arg is either m## or "msg"
-                switch ((int)strArg[0]) {
-                case 109:
+                //returned arg is either m## or "msg" [or ## for sierra syntax])
+                if (agSierraSyntax) {
                     //validate Value
                     lngArg = VariableValue(strArg);
-                    if (lngArg == -1) {
-                        //blnError = true;
-                        //use 1-based arg values
-                        strErrMsg = LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString());
-                        return -1;
-                    }
-                    //m0 is not allowed
-                    if (lngArg == 0) {
-                        if (ErrorLevel == leHigh) {
+                }
+                else {
+                    switch (strArg[0]) {
+                    case 'm':
+                        //validate Value
+                        lngArg = VariableValue(strArg);
+                        if (lngArg == -1) {
+                            AddMinorError(4066, LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString()));
+                        }
+                        break;
+                    case '\"':
+                        //concatenate, if applicable
+                        strArg = ConcatArg(strArg);
+                        //strip off quotes
+                        strArg = Mid(strArg, 2, strArg.Length - 2);
+                        //convert to msg number
+                        lngArg = MessageNum(strArg);
+                        //if unallowed characters found, error was raised; exit
+                        if (lngArg == -1) {
                             //blnError = true;
-                            strErrMsg = LoadResString(4107);
                             return -1;
                         }
-                        else if (ErrorLevel == leMedium) {
-                            //generate warning
-                            AddWarning(5091, LoadResString(5091).Replace(ARG1, lngArg.ToString()));
-                            //make this a null msg
-                            blnMsg[lngArg] = true;
-                            strMsg[lngArg] = "";
-                            // }else if (ErrorLevel == leLow) {
-                            //ignore; it will be handled when writing messages
-                        }
-                    }
-                    //verify msg exists
-                    if (!blnMsg[lngArg]) {
-                        if (ErrorLevel == leHigh) {
-                            //blnError = true;
-                            strErrMsg = LoadResString(4113).Replace(ARG1, lngArg.ToString());
+                        //if too many messages
+                        if (lngArg == 0) {
+                            AddMinorError(4092);
+                            // result is meaningless
                             return -1;
                         }
-                        else if (ErrorLevel == leMedium) {
-                            //generate warning
-                            AddWarning(5090, LoadResString(5090).Replace(ARG1, lngArg.ToString()));
-                            //make this a null msg
-                            blnMsg[lngArg] = true;
-                            strMsg[lngArg] = "";
-                            // }else if (ErrorLevel == leLow) {
-                            //ignore; WinAGI adds a null value, so no error will occur
-                        }
+                        break;
                     }
-                    break;
-                case 34:
-                    //concatenate, if applicable
-                    strArg = ConcatArg(strArg);
-                    if (blnCriticalError) {
-                        //concatenation error; exit
+                }
+                //m0 is not allowed
+                if (lngArg == 0) {
+                    if (ErrorLevel == leHigh) {
+                        AddMinorError(4107);
+                        // make this a null msg
+                        blnMsg[lngArg] = true;
+                        strMsg[lngArg] = "";
                         return -1;
                     }
-                    //strip off quotes
-                    strArg = Mid(strArg, 2, strArg.Length - 2);
-                    //convert to msg number
-                    lngArg = MessageNum(strArg);
-                    //if unallowed characters found, error was raised; exit
-                    if (lngArg == -1) {
-                        //blnError = true;
-                        return -1;
+                    else if (ErrorLevel == leMedium) {
+                        //generate warning
+                        AddWarning(5091, LoadResString(5091).Replace(ARG1, lngArg.ToString()));
+                        //make this a null msg
+                        blnMsg[lngArg] = true;
+                        strMsg[lngArg] = "";
                     }
-                    //if valid number not found
-                    if (lngArg == 0) {
-                        //blnError = true;
-                        strErrMsg = LoadResString(4092);
-                        return -1;
+                }
+                //verify msg exists
+                if (!blnMsg[lngArg]) {
+                    if (ErrorLevel == leHigh) {
+                        AddMinorError(4113, LoadResString(4113).Replace(ARG1, lngArg.ToString()));
+                        //make this a null msg
+                        blnMsg[lngArg] = true;
+                        strMsg[lngArg] = "";
                     }
-                    break;
+                    else if (ErrorLevel == leMedium) {
+                        //generate warning
+                        AddWarning(5090, LoadResString(5090).Replace(ARG1, lngArg.ToString()));
+                        //make this a null msg
+                        blnMsg[lngArg] = true;
+                        strMsg[lngArg] = "";
+                    }
                 }
                 break;
-            case atIObj: //inventory object
-                         //only true restriction is can't exceed object count, and can't exceed 255 objects (0-254)
-                         //i0 is usually a '?', BUT not a strict requirement
-                         //HOWEVER, WinAGI enforces that i0 MUST be '?', and can't be changed
-                         //also, if any code tries to access an object by '?', return error
-
-                //if character is inv obj arg type prefix
-                switch ((int)strArg[0]) {
-                case 105: //'i'
-                          //validate Value
+            case atInvItem: //inventory object
+                            //only true restriction is can't exceed object count, and can't exceed 255 objects (0-254)
+                            //i0 is usually a '?', BUT not a strict requirement
+                            //HOWEVER, WinAGI enforces that i0 MUST be '?', and can't be changed
+                            //also, if any code tries to access an object by '?', return error
+                if (agSierraSyntax) {
                     lngArg = VariableValue(strArg);
-                    if (lngArg == -1) {
-                        //blnError = true;
-                        //use 1-based arg values
-                        strErrMsg = LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString());
-                        return -1;
-                    }
-                    else if (lngArg >= compGame.InvObjects.Count) {
-                        if (ErrorLevel == leHigh) {
-                            //blnError = true;
-                            //use 1-based arg values
-                            strErrMsg = LoadResString(4112).Replace(ARG1, (ArgPos + 1).ToString());
+                }
+                else {
+                    //if character is inv obj arg type prefix
+                    switch (strArg[0]) {
+                    case 'i':
+                        lngArg = VariableValue(strArg);
+                        break;
+                    case '\"':
+                             //concatenate, if applicable
+                        strArg = ConcatArg(strArg);
+                        lngLine = -1;
+                        //convert to inv obj number
+                        //first strip off starting and ending quotes
+                        strArg = strArg[1..^1]; //Mid(strArg, 2, strArg.Length - 2);
+                        //if a quotation mark is part of an object name,
+                        //it is coded in the logic as a '\"' not just a '"'
+                        //need to ensure all '\"' codes are converted to '"'
+                        //otherwise the object would never match
+                        strArg = strArg.Replace("\\\"", QUOTECHAR);
+                        //step through all object names
+                        for (i = 0; i < compGame.InvObjects.Count; i++) {
+                            //if this is the object
+                            if (strArg == compGame.InvObjects[(byte)i].ItemName) {
+                                //return this Value
+                                lngArg = i;
+                                break;
+                            }
+                        }
+                        //if not found,
+                        if (i == compGame.InvObjects.Count) {
+                            //check for added quotes; they are the problem
+                            if (lngQuoteAdded >= 0) {
+                                //reset line;
+                                lngLine = lngQuoteAdded;
+                                errInfo.Line = lngLine + 1;
+                            }
+                            AddMinorError(4075, LoadResString(4075).Replace(ARG1, (ArgPos + 1).ToString()));
                             return -1;
+                        }
+
+                        //if object is valid and not unique
+                        if (lngArg != -1 && !compGame.InvObjects[(byte)lngArg].Unique) {
+                            if (ErrorLevel == leHigh) {
+                                AddMinorError(4036, LoadResString(4036).Replace(ARG1, (ArgPos + 1).ToString()));
+                            }
+                            else if (ErrorLevel == leMedium) {
+                                //set warning
+                                AddWarning(5003, LoadResString(5003).Replace(ARG1, (ArgPos + 1).ToString()));
+                            }
+                        }
+                        break;
+                    }
+                }
+                if (lngArg == -1) {
+                    AddMinorError(4066, LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString()));
+                }
+                else {
+                    if (lngArg >= compGame.InvObjects.Count) {
+                        if (ErrorLevel == leHigh) {
+                            AddMinorError(4112, LoadResString(4112).Replace(ARG1, (ArgPos + 1).ToString()));
                         }
                         else if (ErrorLevel == leMedium) {
                             //set warning
                             //use 1-based arg values
                             AddWarning(5005, LoadResString(5005).Replace(ARG1, (ArgPos + 1).ToString()));
-                            //if (ErrorLevel == leLow) {
-                            //no action
                         }
                     }
-                    break;
-                case 34: // quote
-                         //concatenate, if applicable
-                    strArg = ConcatArg(strArg);
-                    if (blnCriticalError) {
-                        //concatenation error
-                        return -1;
-                    }
-                    //convert to inv obj number
-                    //first strip off starting and ending quotes
-                    strArg = Mid(strArg, 2, strArg.Length - 2);
-                    //if a quotation mark is part of an object name,
-                    //it is coded in the logic as a '\"' not just a '"'
-                    //need to ensure all '\"' codes are converted to '"'
-                    //otherwise the object would never match
-                    strArg = strArg.Replace("\\\"", QUOTECHAR);
-
-                    //step through all object names
-                    for (i = 0; i < compGame.InvObjects.Count; i++) {
-                        //if this is the object
-                        if (strArg == compGame.InvObjects[(byte)i].ItemName) {
-                            //return this Value
-                            lngArg = (byte)i;
-                            break;
-                        }
-                    }
-
-                    //if not found,
-                    if (i == compGame.InvObjects.Count) {
-                        //blnError = true;
-                        //check for added quotes; they are the problem
-                        if (lngQuoteAdded >= 0) {
-                            //reset line;
-                            lngLine = lngQuoteAdded;
-                            //string error
-                            strErrMsg = LoadResString(4051);
-                        }
-                        else {
-                            //use 1-base arg values
-                            strErrMsg = LoadResString(4075).Replace(ARG1, (ArgPos + 1).ToString());
-                        }
-                        return -1;
-                    }
-
-                    //if object is not unique
-                    if (!compGame.InvObjects[(byte)lngArg].Unique) {
-                        if (ErrorLevel == leHigh) {
-                            //blnError = true;
-                            //use 1-based arg values
-                            strErrMsg = LoadResString(4036).Replace(ARG1, (ArgPos + 1).ToString());
-                            return -1;
-                        }
-                        else if (ErrorLevel == leMedium) {
-                            //set warning
-                            AddWarning(5003, LoadResString(5003).Replace(ARG1, (ArgPos + 1).ToString()));
-                            //} else if (ErrorLevel == leLow) {
-                            //no action
-                        }
-                    }
-                    break;
-                default: //any other character means not a valid inventory item
-                         //use 1-base arg values
-                    strErrMsg = LoadResString(4075).Replace(ARG1, (ArgPos + 1).ToString());
-                    return -1;
-                }
-
-                //if object number is valid
-                if (lngArg < compGame.InvObjects.Count) {
-                    //check for question mark, raise error/warning
-                    if (compGame.InvObjects[(byte)lngArg].ItemName == "?") {
-                        if (ErrorLevel == leHigh) {
-                            //blnError = true;
-                            //use 1-based arg values
-                            strErrMsg = LoadResString(4111).Replace(ARG1, (ArgPos + 1).ToString());
-                            return -1;
-                        }
-                        else if (ErrorLevel == leMedium) {
-                            //set warning
-                            AddWarning(5004);
-                            //if (ErrorLevel == leLow) {
-                            //no action
+                    //if object number is valid
+                    if (lngArg < compGame.InvObjects.Count) {
+                        //check for question mark, raise error/warning
+                        if (compGame.InvObjects[(byte)lngArg].ItemName == "?") {
+                            if (ErrorLevel == leHigh) {
+                                errInfo.ID = "4111";
+                                //use 1-based arg values
+                                errInfo.Text = LoadResString(4111).Replace(ARG1, (ArgPos + 1).ToString());
+                                return -1;
+                            }
+                            else if (ErrorLevel == leMedium) {
+                                //set warning
+                                AddWarning(5004);
+                                //if (ErrorLevel == leLow) {
+                                //no action
+                            }
                         }
                     }
                 }
                 break;
             case atVocWrd:
-                //words can be ## or "word"
-                if (IsNumeric(strArg)) {
-                    lngArg = int.Parse(strArg);
-                    //make sure it's not a decimal
-                    if (Val(strArg) != lngArg) {
-                        //blnError = true;
-                        lngArg = -1;
+                //words can be ## or "word" (or no quotes, dollar sign for spaces for Sierra syntax)
+                if (IsNumeric(strArg) && !agSierraSyntax) {
+                    if (!int.TryParse(strArg, out lngArg)) {
+                        lngArg = 1;
+                        AddMinorError(4162, LoadResString(4162).Replace(ARG1, strArg));
+                    }
+                    if (lngArg > 65535 || lngArg < 0) {
+                        // set to anyword
+                        lngArg = 1;
+                        AddMinorError(4162, LoadResString(4162).Replace(ARG1, strArg));
                     }
                     else {
-                        //validate the group
-                        //blnError = !compGame.agVocabWords.GroupExists(lngArg);
+                        // valldate the group
+                        if (!compGame.agVocabWords.GroupExists(lngArg)) {
+                            if (ErrorLevel == leHigh) {
+                                //argument is already 1-based for said tests
+                                AddMinorError(4114, LoadResString(4114).Replace(ARG1, strArg));
+                            }
+                            else if (ErrorLevel == leMedium) {
+                                AddWarning(5019, LoadResString(5019).Replace(ARG1, strArg));
+                            }
+                        }
                     }
                 }
                 else {
-                    //this is a string; concatenate if applicable
-                    strArg = ConcatArg(strArg);
-                    if (blnCriticalError) {
-                        //concatenation error
-                        return -1;
+                    if (agSierraSyntax) {
+                        strArg = strArg.ToLower().Replace('$', ' ');
+                    } else {
+                        // no concatenation for vocab words
+                        if (strArg[^1] != '\"') {
+                            //error
+                            AddMinorError(4114, LoadResString(4114).Replace(ARG1, strArg));
+                            //try backing up to where quote is probably missing
+                            i = strCurrentLine.LastIndexOf(',');
+                            if (i > 0 && i > lngPos - strArg.Length) {
+                                lngPos = i - 1;
+                            } else {
+                                i = strCurrentLine.LastIndexOf(')');
+                                if (i > 0 && i > lngPos - strArg.Length) {
+                                    lngPos = i - 1;
+                                }
+                            }
+                            //use 'anyword' so compiler can continue
+                            strArg = "anyword";
+                        } else {
+                            // strip off starting and ending quotes
+                            // (and all words are lower case/case insensitive)
+                            strArg = strArg[1..^1].ToLower();
+                        }
                     }
-
-                    //convert to word number
-                    //first strip off starting and ending quotes
-                    strArg = Mid(strArg, 2, strArg.Length - 2);
-
-                    //get argument val by checking against word list
+                    //now convert to word number
                     if (compGame.agVocabWords.WordExists(strArg)) {
                         lngArg = compGame.agVocabWords[strArg].Group;
                     }
                     else {
                         //RARE, but if it's an 'a' or 'i' that isn't defined,
                         //it's word group 0
-                        if (strArg == "i" || strArg == "a" || strArg == "I" || strArg == "A") {
+                        if (strArg == "i" || strArg == "a") {
                             lngArg = 0;
                             //add warning
                             if (ErrorLevel == leHigh || ErrorLevel == leMedium) {
                                 AddWarning(5108, LoadResString(5108).Replace(ARG1, strArg));
                             }
+                            // "anyword" and "rol" are keywords, even if not explicitly
+                            // added to WORDS.TOK
+                        }
+                        else if (strArg == "anyword") {
+                            lngArg = 1;
+                        }
+                        else if (strArg == "rol") {
+                            lngArg = 9999;
                         }
                         else {
-                            //set error flag
-                            //blnError = true;
-                            //set arg to invalid number
-                            lngArg = -1;
-                        }
-                    }
-                }
-
-                //now lngArg is a valid group number, unless blnError is set
-
-                //if there is an error
-                if (blnCriticalError) {
-                    //if arg value=-1 OR high level,
-                    if (ErrorLevel == leHigh || (lngArg == -1)) {
-                        //argument is already 1-based for said tests
-                        strErrMsg = LoadResString(4114).Replace(ARG1, strArg);
-                        return -1;
-                    }
-                    else {
-                        if (ErrorLevel == leMedium) {
-                            //set warning
-                            AddWarning(5019, LoadResString(5019).Replace(ARG1, strArg));
-                            //blnError = false;
+                            if (ErrorLevel == leHigh) {
+                                AddMinorError(4114, LoadResString(4114).Replace(ARG1, strArg));
+                            } else if (ErrorLevel == leMedium) {
+                                //set warning
+                                AddWarning(5019, LoadResString(5019).Replace(ARG1, strArg));
+                            }
+                            //set arg to 'anyword'
+                            lngArg = 1;
                         }
                     }
                 }
                 //check for group 0
                 if (lngArg == 0) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4035).Replace(ARG1, strArg);
+                        errInfo.ID = "4035";
+                        errInfo.Text = LoadResString(4035).Replace(ARG1, strArg);
                         return -1;
                     }
                     else if (ErrorLevel == leMedium) {
                         AddWarning(5083, LoadResString(5083).Replace(ARG1, strArg));
-                        //} else if (ErrorLevel == leLow) {
-                        // no action 
                     }
                 }
                 break;
@@ -1637,7 +1565,7 @@ namespace WinAGI.Engine
 
             //return the arg value
             return lngArg;
-        } //endfunction
+        }
         static internal void IncrementLine()
         {
             //increments the the current line of input being processed
@@ -1667,16 +1595,14 @@ namespace WinAGI.Engine
                 lngIncludeOffset++;
                 //set module
                 int mod = int.Parse(Mid(stlInput[lngLine], 3, stlInput[lngLine].IndexOf(":") - 3));
-                strModule = strIncludeFile[mod];
-                strModFileName = Path.GetFileName(strModule);
+                errInfo.Module = strIncludeFile[mod];
                 //set errline
-                lngErrLine = int.Parse(Mid(stlInput[lngLine], stlInput[lngLine].IndexOf(":") + 1, stlInput[lngLine].IndexOf("#") - 5));
+                errInfo.Line = int.Parse(Mid(stlInput[lngLine], stlInput[lngLine].IndexOf(":") + 1, stlInput[lngLine].IndexOf("#") - 5));
                 strCurrentLine = Right(stlInput[lngLine], stlInput[lngLine].Length - stlInput[lngLine].IndexOf("#"));
             }
             else {
-                strModule = "";
-                strModFileName = "";
-                lngErrLine = lngLine - lngIncludeOffset;
+                errInfo.Module = strLogCompID;
+                errInfo.Line = lngLine - lngIncludeOffset + 1;
                 //set string
                 strCurrentLine = stlInput[lngLine];
             }
@@ -2038,8 +1964,8 @@ namespace WinAGI.Engine
             //verify at least two characters
             if (strText.Length < 2) {
                 //error
-                //blnError = true;
-                strErrMsg = LoadResString(4081);
+                errInfo.ID = "4081";
+                errInfo.Text = LoadResString(4081);
                 return "";
             }
 
@@ -2100,8 +2026,8 @@ namespace WinAGI.Engine
 
                         if (ErrorLevel == leHigh) {
                             //error
-                            //blnError = true;
-                            strErrMsg = LoadResString(4080);
+                            errInfo.ID = "4080";
+                            errInfo.Text = LoadResString(4080);
                             return "";
                         }
                         else if (ErrorLevel == leHigh) {
@@ -2131,7 +2057,7 @@ namespace WinAGI.Engine
                 //after end of string found, move back to correct position
                 lngPos = lngLastPos;
                 lngLine = lngLastLine;
-                lngErrLine = lngLastLine;
+                errInfo.Line = lngLastLine + 1;
                 strCurrentLine = strLastLine;
             }
             return retval;
@@ -2211,7 +2137,7 @@ namespace WinAGI.Engine
 
             //success
             return true;
-        } //endfunction
+        }
         static internal void ReplaceLine(string strNewLine)
         {
             //this function replaces the current line in the input string
@@ -2267,7 +2193,7 @@ namespace WinAGI.Engine
             ResetCompiler();
 
             //reset error string
-            strErrMsg = "";
+            errInfo.Text = "";
 
             //step through all lines and find define values
             do {
@@ -2276,9 +2202,9 @@ namespace WinAGI.Engine
                     //strip off define keyword
                     strCurrentLine = Right(strCurrentLine, strCurrentLine.Length - CONST_TOKEN.Length).Trim();
                     //if equal marker (i.e. space) not present
-                    if (!strCurrentLine.Contains(" ")) { // (strCurrentLine.IndexOf(" ") == -1) {
-                                                         //error
-                        strErrMsg = LoadResString(4104);
+                    if (!strCurrentLine.Contains(' ')) { // (strCurrentLine.IndexOf(" ") == -1) {
+                        errInfo.ID = "4104";
+                        errInfo.Text = LoadResString(4104);
                         return false;
                     }
 
@@ -2331,45 +2257,58 @@ namespace WinAGI.Engine
                         //check for name errors
                         switch (chkName) {
                         case DefineNameCheck.ncEmpty: // no name
-                            strErrMsg = LoadResString(4070);
+                            errInfo.ID = "4070";
+                            errInfo.Text = LoadResString(4070);
                             break;
                         case DefineNameCheck.ncNumeric: // name is numeric
-                            strErrMsg = LoadResString(4072);
+                            errInfo.ID = "4072";
+                            errInfo.Text = LoadResString(4072);
                             break;
                         case DefineNameCheck.ncActionCommand: // name is command
-                            strErrMsg = LoadResString(4021).Replace(ARG1, tdNewDefine.Name);
+                            errInfo.ID = "4021";
+                            errInfo.Text = LoadResString(4021).Replace(ARG1, tdNewDefine.Name);
                             break;
                         case DefineNameCheck.ncTestCommand: // name is test command
-                            strErrMsg = LoadResString(4022).Replace(ARG1, tdNewDefine.Name);
+                            errInfo.ID = "4022";
+                            errInfo.Text = LoadResString(4022).Replace(ARG1, tdNewDefine.Name);
                             break;
                         case DefineNameCheck.ncKeyWord: // name is a compiler keyword
-                            strErrMsg = LoadResString(4013).Replace(ARG1, tdNewDefine.Name);
+                            errInfo.ID = "4013";
+                            errInfo.Text = LoadResString(4013).Replace(ARG1, tdNewDefine.Name);
                             break;
                         case DefineNameCheck.ncArgMarker: // name is an argument marker
-                            strErrMsg = LoadResString(4071);
+                            errInfo.ID = "4071";
+                            errInfo.Text = LoadResString(4071);
                             break;
                         case DefineNameCheck.ncGlobal: // name is already globally defined
-                            strErrMsg = LoadResString(4019).Replace(ARG1, tdNewDefine.Name);
+                            errInfo.ID = "4019";
+                            errInfo.Text = LoadResString(4019).Replace(ARG1, tdNewDefine.Name);
                             break;
                         case DefineNameCheck.ncReservedVar: // name is reserved variable name
-                            strErrMsg = LoadResString(4018).Replace(ARG1, tdNewDefine.Name);
+                            errInfo.ID = "4018";
+                            errInfo.Text = LoadResString(4018).Replace(ARG1, tdNewDefine.Name);
                             break;
                         case DefineNameCheck.ncReservedFlag: // name is reserved flag name
-                            strErrMsg = LoadResString(4014).Replace(ARG1, tdNewDefine.Name);
+                            errInfo.ID = "4014";
+                            errInfo.Text = LoadResString(4014).Replace(ARG1, tdNewDefine.Name);
                             break;
                         case DefineNameCheck.ncReservedNum: // name is reserved number constant
-                            strErrMsg = LoadResString(4016).Replace(ARG1, tdNewDefine.Name);
+                            errInfo.ID = "4016";
+                            errInfo.Text = LoadResString(4016).Replace(ARG1, tdNewDefine.Name);
                             break;
                         case DefineNameCheck.ncReservedObj or DefineNameCheck.ncReservedStr:
                             // name is reserved object constant
                             // name is a reserved string constant
-                            strErrMsg = LoadResString(4017).Replace(ARG1, tdNewDefine.Name);
+                            errInfo.ID = "4017";
+                            errInfo.Text = LoadResString(4017).Replace(ARG1, tdNewDefine.Name);
                             break;
                         case DefineNameCheck.ncReservedMsg: // name is reserved message constant
-                            strErrMsg = LoadResString(4015).Replace(ARG1, tdNewDefine.Name);
+                            errInfo.ID = "4015";
+                            errInfo.Text = LoadResString(4015).Replace(ARG1, tdNewDefine.Name);
                             break;
                         case DefineNameCheck.ncBadChar: // name contains improper character
-                            strErrMsg = LoadResString(4067);
+                            errInfo.ID = "4090";
+                            errInfo.Text = LoadResString(4067);
                             break;
                         }
                         //don't exit; check for define Value errors first
@@ -2431,37 +2370,38 @@ namespace WinAGI.Engine
                     //check for errors
                     if (chkValue != DefineValueCheck.vcOK) {
                         //if already have a name error
-                        if (strErrMsg.Length != 0) {
+                        if (errInfo.Text.Length != 0) {
                             //append Value error
-                            strErrMsg += "; and ";
+                            errInfo.Text += "; and ";
                         }
                         //check for Value error
                         switch (chkValue) {
                         case DefineValueCheck.vcEmpty: // no Value
-                            strErrMsg += LoadResString(4073);
+                            errInfo.Text += LoadResString(4073);
                             break;
                         case DefineValueCheck.vcBadArgNumber: // Value contains an invalid argument Value
-                            strErrMsg += LoadResString(4042);
+                            errInfo.Text += LoadResString(4042);
                             break;
                         case DefineValueCheck.vcNotAValue: // Value is not a string, number or argument marker
-                            strErrMsg += LoadResString(4082);
+                            errInfo.Text += LoadResString(4082);
                             break;
                         case DefineValueCheck.vcGlobal: // Value is already defined by a global name
-                            strErrMsg += LoadResString(4040).Replace(ARG1, tdNewDefine.Value);
+                            errInfo.Text += LoadResString(4040).Replace(ARG1, tdNewDefine.Value);
                             break;
                         case DefineValueCheck.vcReserved: // Value is already defined by a reserved name
-                            strErrMsg += LoadResString(4041).Replace(ARG1, tdNewDefine.Value);
+                            errInfo.Text += LoadResString(4041).Replace(ARG1, tdNewDefine.Value);
                             break;
                         }
                     }
                     //if an error was generated during define validation
-                    if (strErrMsg.Length != 0) {
+                    if (errInfo.Text.Length != 0) {
                         return false;
                     }
                     //check all previous defines
                     for (i = 0; i < lngDefineCount; i++) {
                         if (tdNewDefine.Name == tdDefines[i].Name) {
-                            strErrMsg = LoadResString(4012).Replace(ARG1, tdDefines[i].Name);
+                            errInfo.ID = "4012";
+                            errInfo.Text = LoadResString(4012).Replace(ARG1, tdDefines[i].Name);
                             return false;
                         }
                         if (tdNewDefine.Value == tdDefines[i].Value) {
@@ -2469,7 +2409,8 @@ namespace WinAGI.Engine
                             if (!IsNumeric(tdNewDefine.Value)) {
                                 if (ErrorLevel == leHigh) {
                                     //set error
-                                    strErrMsg = LoadResString(4023).Replace(ARG1, tdDefines[i].Value).Replace(ARG2, tdDefines[i].Name);
+                                    errInfo.ID = "4023";
+                                    errInfo.Text = LoadResString(4023).Replace(ARG1, tdDefines[i].Value).Replace(ARG2, tdDefines[i].Name);
                                     return false;
                                 }
                                 else if (ErrorLevel == leMedium) {
@@ -2486,7 +2427,8 @@ namespace WinAGI.Engine
                     if (bytLabelCount > 0) {
                         for (i = 0; i < bytLabelCount; i++) {
                             if (tdNewDefine.Name == llLabel[i].Name) {
-                                strErrMsg = LoadResString(4020).Replace(ARG1, tdNewDefine.Name);
+                                errInfo.ID = "4012";
+                                errInfo.Text = LoadResString(4020).Replace(ARG1, tdNewDefine.Name);
                                 return false;
                             }
                         }
@@ -2548,22 +2490,22 @@ namespace WinAGI.Engine
                     //this should be a msg number
                     if (!IsNumeric(strCmd)) {
                         //error
-                        //blnError = true;
-                        strErrMsg = LoadResString(4077);
+                        errInfo.ID = "4077";
+                        errInfo.Text = LoadResString(4077);
                         return false;
                     }
                     //validate msg number
                     intMsgNum = VariableValue(strCmd);
                     if (intMsgNum <= 0) {
                         //error
-                        //blnError = true;
-                        strErrMsg = LoadResString(4077);
+                        errInfo.ID = "4077";
+                        errInfo.Text = LoadResString(4077);
                         return false;
                     }
                     //if msg is already assigned
                     if (blnMsg[intMsgNum]) {
-                        //blnError = true;
-                        strErrMsg = LoadResString(4094).Replace(ARG1, (intMsgNum).ToString());
+                        errInfo.ID = "4094";
+                        errInfo.Text = LoadResString(4094).Replace(ARG1, (intMsgNum).ToString());
                         return false;
                     }
                     //get next command (should be the message text)
@@ -2593,7 +2535,7 @@ namespace WinAGI.Engine
                         lngQuotesOK = 1;
                     }
                     //check for end quote
-                    if (strCmd[strCmd.Length - 1] != '"') {
+                    if (strCmd[^1] != '"') {
                         //bad end quote
                         lngQuotesOK += 2;
                     }
@@ -2607,7 +2549,7 @@ namespace WinAGI.Engine
                         //this quote
                         lngSlashCount = 0;
                         do {
-                            if (strCmd[strCmd.Length - (lngSlashCount + 1)] == '\\') {
+                            if (strCmd[^(lngSlashCount + 1)] == '\\') {
                                 lngSlashCount++;
                             }
                             else {
@@ -2629,8 +2571,8 @@ namespace WinAGI.Engine
                         lngQuoteAdded = lngLine;
 
                         if (ErrorLevel == leHigh) {
-                            //blnError = true;
-                            strErrMsg = LoadResString(4051);
+                            errInfo.ID = "4051";
+                            errInfo.Text = LoadResString(4051);
                             return false;
                         }
                         else { // leMedium, leLow
@@ -2659,8 +2601,8 @@ namespace WinAGI.Engine
                     //nothing allowed after msg declaration
                     if (lngPos != strCurrentLine.Length) {
                         //error
-                        //blnError = true;
-                        strErrMsg = LoadResString(4099);
+                        errInfo.ID = "4099";
+                        errInfo.Text = LoadResString(4099);
                         return false;
                     }
 
@@ -2721,15 +2663,12 @@ namespace WinAGI.Engine
             }
             //only add if not ignoring
             if (!agNoCompWarn[WarningNum - 5000]) {
-                TWinAGIEventInfo tmpWarn = new()
-                {
-                    Type = EventType.ecCompWarn,
-                    ID = WarningNum.ToString(),
-                    Line = lngErrLine,
-                    Module = strModule,
-                    Text = WarningText
-                };
-                Raise_CompileLogicEvent(bytLogComp, tmpWarn);
+                errInfo.Type = EventType.etWarning;
+                errInfo.ID = WarningNum.ToString();
+                errInfo.Text = WarningText;
+                Raise_CompileLogicEvent(errInfo);
+                // restore error as default
+                errInfo.Type = EventType.etError;
             }
         }
         static internal bool CompileIf()
@@ -2763,7 +2702,7 @@ namespace WinAGI.Engine
 
             string strTestCmd, strArg;
             byte bytTestCmd;
-            byte[] bytArg = new byte[8]; //(7)
+            byte[] bytArg = new byte[8];
             int lngArg;
             int[] lngWord;
             int intWordCount;
@@ -2780,8 +2719,8 @@ namespace WinAGI.Engine
 
             //next character should be "("
             if (NextChar() != "(") {
-                //blnError = true;
-                strErrMsg = LoadResString(4002);
+                errInfo.ID = "4002";
+                errInfo.Text = LoadResString(4002);
                 return false;
             }
 
@@ -2791,8 +2730,8 @@ namespace WinAGI.Engine
                 strTestCmd = NextCommand();
                 //check for end of input,
                 if (lngLine == -1) {
-                    //blnError = true;
-                    strErrMsg = LoadResString(4106);
+                    errInfo.ID = "4106";
+                    errInfo.Text = LoadResString(4106);
                     return false;
                 }
 
@@ -2802,8 +2741,8 @@ namespace WinAGI.Engine
                     case "(": //open paran
                               //if already in a block
                         if (blnIfBlock) {
-                            //blnError = true;
-                            strErrMsg = LoadResString(4045);
+                            errInfo.ID = "4045";
+                            errInfo.Text = LoadResString(4045);
                             return false;
                         }
                         //write /'or' block start
@@ -2814,13 +2753,16 @@ namespace WinAGI.Engine
                     case ")":
                         //if a test command is expected, ')' always causes error
                         if (intNumTestCmds == 0) {
-                            strErrMsg = LoadResString(4057);
+                            errInfo.ID = "4057";
+                            errInfo.Text = LoadResString(4057);
                         }
                         else if (blnIfBlock && intNumCmdsInBlock == 0) {
-                            strErrMsg = LoadResString(4044);
+                            errInfo.ID = "4044";
+                            errInfo.Text = LoadResString(4044);
                         }
                         else {
-                            strErrMsg = LoadResString(4056);
+                            errInfo.ID = "4056";
+                            errInfo.Text = LoadResString(4056);
                         }
                         //blnError = true;
                         return false;
@@ -2833,8 +2775,8 @@ namespace WinAGI.Engine
                             strTestCmd = NextCommand();
                             //check for end of input,
                             if (lngLine == -1) {
-                                //blnError = true;
-                                strErrMsg = LoadResString(4106);
+                                errInfo.ID = "4106";
+                                errInfo.Text = LoadResString(4106);
                                 return false;
                             }
                         }
@@ -2854,8 +2796,8 @@ namespace WinAGI.Engine
                             tmpLogRes.WriteByte(bytTestCmd);
                             //next command should be "("
                             if (NextChar() != "(") {
-                                //blnError = true;
-                                strErrMsg = LoadResString(4048);
+                                errInfo.ID = "4048";
+                                errInfo.Text = LoadResString(4048);
                                 return false;
                             }
                             //check for return.false() command
@@ -2873,15 +2815,15 @@ namespace WinAGI.Engine
                             //if said command
                             if (bytTestCmd == 0xE) {
                                 intWordCount = 0;
-                                lngWord = Array.Empty<int>();
+                                lngWord = [];
                                 //get first word arg
                                 lngArg = GetNextArg(atVocWrd, intWordCount + 1);
                                 //if error
                                 if (blnCriticalError) {
                                     // if error number is 4054
-                                    if (Left(strErrMsg, 4) == "4054") {
+                                    if (errInfo.ID == "4054") {
                                         // add command name to error string
-                                        strErrMsg = strErrMsg.Replace(ARG2, TestCommands[bytTestCmd].Name);
+                                        errInfo.Text = errInfo.Text.Replace(ARG2, TestCommands[bytTestCmd].Name);
                                     }
                                     //exit
                                     return false;
@@ -2895,8 +2837,8 @@ namespace WinAGI.Engine
                                     intWordCount++;
                                     //if too many words
                                     if (intWordCount == 10) {
-                                        //blnError = true;
-                                        strErrMsg = LoadResString(4093);
+                                        errInfo.ID = "4002";
+                                        errInfo.Text = LoadResString(4002);
                                         return false;
                                     }
 
@@ -2918,9 +2860,9 @@ namespace WinAGI.Engine
                                             if (blnCriticalError) {
                                                 //exit
                                                 // if error number is 4054
-                                                if (Left(strErrMsg, 4) == "4054") {
+                                                if (errInfo.ID == "4054") {
                                                     // add command name to error string
-                                                    strErrMsg = strErrMsg.Replace(ARG2, TestCommands[bytTestCmd].Name);
+                                                    errInfo.Text = errInfo.Text.Replace(ARG2, TestCommands[bytTestCmd].Name);
                                                 }
                                                 return false;
                                             }
@@ -2932,13 +2874,14 @@ namespace WinAGI.Engine
                                             if (lngQuoteAdded >= 0) {
                                                 //reset line;
                                                 lngLine = lngQuoteAdded;
-                                                lngErrLine = lngLine - lngIncludeOffset;
-                                                //string error
-                                                strErrMsg = LoadResString(4051);
+                                                errInfo.Line = lngLine - lngIncludeOffset + 1;
+                                                errInfo.ID = "4051";
+                                                errInfo.Text = LoadResString(4051);
                                             }
                                             else {
+                                                errInfo.ID = "4047";
                                                 //use 1-base arg values
-                                                strErrMsg = LoadResString(4047).Replace(ARG1, (intWordCount + 1).ToString());
+                                                errInfo.Text = LoadResString(4047).Replace(ARG1, (intWordCount + 1).ToString());
                                             }
                                             return false;
                                         }
@@ -2957,13 +2900,14 @@ namespace WinAGI.Engine
                                         if (lngQuoteAdded >= 0) {
                                             //reset line;
                                             lngLine = lngQuoteAdded;
-                                            lngErrLine = lngLine - lngIncludeOffset;
+                                            errInfo.Line = lngLine - lngIncludeOffset + 1;
                                             //string error
-                                            strErrMsg = LoadResString(4051);
+                                            errInfo.Text = LoadResString(4051);
                                         }
                                         else {
+                                            errInfo.ID = "4047";
                                             //use 1-base arg values
-                                            strErrMsg = LoadResString(4047).Replace(ARG1, (intWordCount + 1).ToString());
+                                            errInfo.Text = LoadResString(4047).Replace(ARG1, (intWordCount + 1).ToString());
                                         }
                                         return false;
                                     }
@@ -2988,9 +2932,9 @@ namespace WinAGI.Engine
                                     //after first argument, verify comma separates arguments
                                     if (i > 0) {
                                         if (NextChar(true) != ",") {
-                                            //blnError = true;
+                                            errInfo.ID = "4047";
                                             //use 1-base arg values
-                                            strErrMsg = LoadResString(4047).Replace(ARG1, (i + 1).ToString());
+                                            errInfo.Text = LoadResString(4047).Replace(ARG1, (i + 1).ToString());
                                             return false;
                                         }
                                     }
@@ -3001,9 +2945,9 @@ namespace WinAGI.Engine
                                     //if error
                                     if (blnCriticalError) {
                                         // if error number is 4054
-                                        if (Left(strErrMsg, 4) == "4054") {
+                                        if (errInfo.ID == "4054") {
                                             // add command name to error string
-                                            strErrMsg = strErrMsg.Replace(ARG2, TestCommands[bytTestCmd].Name);
+                                            errInfo.Text = errInfo.Text.Replace(ARG2, TestCommands[bytTestCmd].Name);
                                         }
                                         return false;
                                     }
@@ -3013,8 +2957,8 @@ namespace WinAGI.Engine
                             }
                             //next character should be ")"
                             if (NextChar() != ")") {
-                                //blnError = true;
-                                strErrMsg = LoadResString(4160);
+                                errInfo.ID = "4160";
+                                errInfo.Text = LoadResString(4160);
                                 return false;
                             }
                             //reset the quotemark error flag
@@ -3043,14 +2987,14 @@ namespace WinAGI.Engine
                     case NOT_TOKEN:
 
                         //invalid
-                        //blnError = true;
-                        strErrMsg = LoadResString(4097);
+                        errInfo.ID = "4097";
+                        errInfo.Text = LoadResString(4097);
                         return false;
                     case AND_TOKEN:
                         //if inside brackets
                         if (blnIfBlock) {
-                            //blnError = true;
-                            strErrMsg = LoadResString(4037);
+                            errInfo.ID = "4037";
+                            errInfo.Text = LoadResString(4037);
                             return false;
                         }
                         blnNeedNextCmd = true;
@@ -3058,8 +3002,8 @@ namespace WinAGI.Engine
                     case OR_TOKEN:
                         //if NOT inside brackets
                         if (!blnIfBlock) {
-                            //blnError = true;
-                            strErrMsg = LoadResString(4100);
+                            errInfo.ID = "4100";
+                            errInfo.Text = LoadResString(4100);
                             return false;
                         }
                         blnNeedNextCmd = true;
@@ -3069,8 +3013,8 @@ namespace WinAGI.Engine
                         if (blnIfBlock) {
                             //ensure at least one command in block,
                             if (intNumCmdsInBlock == 0) {
-                                //blnError = true;
-                                strErrMsg = LoadResString(4044);
+                                errInfo.ID = "4044";
+                                errInfo.Text = LoadResString(4044);
                                 return false;
                             }
                             //close brackets
@@ -3080,8 +3024,8 @@ namespace WinAGI.Engine
                         else {
                             //ensure at least one command in block,
                             if (intNumTestCmds == 0) {
-                                //blnError = true;
-                                strErrMsg = LoadResString(4044);
+                                errInfo.ID = "4044";
+                                errInfo.Text = LoadResString(4044);
                                 return false;
                             }
                             //end of if found
@@ -3094,10 +3038,12 @@ namespace WinAGI.Engine
                         break;
                     default:
                         if (blnIfBlock) {
-                            strErrMsg = LoadResString(4101);
+                            errInfo.ID = "4101";
+                            errInfo.Text = LoadResString(4101);
                         }
                         else {
-                            strErrMsg = LoadResString(4038);
+                            errInfo.ID = "4038";
+                            errInfo.Text = LoadResString(4038);
                         }
                         //blnError = true;
                         return false;
@@ -3106,7 +3052,7 @@ namespace WinAGI.Engine
                 //never leave loop normally; error, end of input, or successful
                 //compilation of test commands will all exit loop directly
             } while (true);
-        } //endfunction
+        }
         static internal bool ValidateArgs(int CmdNum, ref byte[] ArgVal)
         {
             //check for specific command issues
@@ -3129,7 +3075,8 @@ namespace WinAGI.Engine
                 if (CmdNum == 167) {
                     if (ArgVal[1] == 0) {
                         if (ErrorLevel == leHigh) {
-                            strErrMsg = LoadResString(4149);
+                            errInfo.ID = "4149";
+                            errInfo.Text = LoadResString(4149);
                             return false;
                         }
                         else if (ErrorLevel == leMedium) {
@@ -3155,7 +3102,8 @@ namespace WinAGI.Engine
                 //validate that this logic exists
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4120);
+                        errInfo.ID = "4120";
+                        errInfo.Text = LoadResString(4120);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3177,7 +3125,8 @@ namespace WinAGI.Engine
                 //validate that logic exists
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4121).Replace(ARG1, ArgVal[0].ToString());
+                        errInfo.ID = "4121";
+                        errInfo.Text = LoadResString(4121).Replace(ARG1, ArgVal[0].ToString());
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3192,7 +3141,8 @@ namespace WinAGI.Engine
                 //calling logic0 is a BAD idea
                 if (ArgVal[0] == 0) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4118);
+                        errInfo.ID = "4118";
+                        errInfo.Text = LoadResString(4118);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3204,7 +3154,8 @@ namespace WinAGI.Engine
                 //recursive calling is BAD
                 if (ArgVal[0] == bytLogComp) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4117);
+                        errInfo.ID = "4117";
+                        errInfo.Text = LoadResString(4117);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3216,7 +3167,8 @@ namespace WinAGI.Engine
                 //validate that logic exists
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4156).Replace(ARG1, (ArgVal[0]).ToString());
+                        errInfo.ID = "4156";
+                        errInfo.Text = LoadResString(4156).Replace(ARG1, (ArgVal[0]).ToString());
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3231,7 +3183,8 @@ namespace WinAGI.Engine
                 //validate that view exists
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4122).Replace(ARG1, (ArgVal[0]).ToString());
+                        errInfo.ID = "4122";
+                        errInfo.Text = LoadResString(4122).Replace(ARG1, (ArgVal[0]).ToString());
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3246,7 +3199,8 @@ namespace WinAGI.Engine
                 //validate that view exists
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4123).Replace(ARG1, ArgVal[0].ToString());
+                        errInfo.ID = "4123";
+                        errInfo.Text = LoadResString(4123).Replace(ARG1, ArgVal[0].ToString());
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3261,7 +3215,8 @@ namespace WinAGI.Engine
                 //check x/y against limits
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4128);
+                        errInfo.ID = "4128";
+                        errInfo.Text = LoadResString(4128);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3286,7 +3241,8 @@ namespace WinAGI.Engine
                                      //validate that view exists
                 if (!compGame.agViews.Exists(ArgVal[1])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4124).Replace(ARG1, (ArgVal[1]).ToString());
+                        errInfo.ID = "4124";
+                        errInfo.Text = LoadResString(4124).Replace(ARG1, (ArgVal[1]).ToString());
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3317,7 +3273,8 @@ namespace WinAGI.Engine
                 //check priority Value
                 if (ArgVal[1] > 15) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4125);
+                        errInfo.ID = "4125";
+                        errInfo.Text = LoadResString(4125);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3348,7 +3305,8 @@ namespace WinAGI.Engine
                 //validate horizon Value
                 if (ErrorLevel == leHigh) {
                     if (ArgVal[0] >= 167) {
-                        strErrMsg = LoadResString(4126);
+                        errInfo.ID = "4126";
+                        errInfo.Text = LoadResString(4126);
                         return false;
                     }
                     if (ArgVal[0] > 120) {
@@ -3416,7 +3374,8 @@ namespace WinAGI.Engine
                 //validate the target position
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4127);
+                        errInfo.ID = "4127";
+                        errInfo.Text = LoadResString(4127);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3522,7 +3481,8 @@ namespace WinAGI.Engine
                 if (ArgVal[0] > 159 || ArgVal[1] > 167 || ArgVal[2] > 159 || ArgVal[3] > 167) {
                     //bad number
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4129);
+                        errInfo.ID = "4129";
+                        errInfo.Text = LoadResString(4129);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3534,7 +3494,8 @@ namespace WinAGI.Engine
                 if ((ArgVal[2] - ArgVal[0] < 2) || (ArgVal[3] - ArgVal[1] < 2)) {
                     //won't work
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4129);
+                        errInfo.ID = "4129";
+                        errInfo.Text = LoadResString(4129);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3549,7 +3510,8 @@ namespace WinAGI.Engine
                 //validate the sound exists
                 if (!compGame.agSnds.Exists(ArgVal[0])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4130).Replace(ARG1, ArgVal[0].ToString());
+                        errInfo.ID = "4130";
+                        errInfo.Text = LoadResString(4130).Replace(ARG1, ArgVal[0].ToString());
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3564,7 +3526,8 @@ namespace WinAGI.Engine
                 //validate the sound exists
                 if (!compGame.agSnds.Exists(ArgVal[0])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4137).Replace(ARG1, ArgVal[0].ToString());
+                        errInfo.ID = "4137";
+                        errInfo.Text = LoadResString(4137).Replace(ARG1, ArgVal[0].ToString());
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3579,7 +3542,8 @@ namespace WinAGI.Engine
                 //check row/col against limits
                 if (ArgVal[0] > 24 || ArgVal[1] > 39) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4131);
+                        errInfo.ID = "4131";
+                        errInfo.Text = LoadResString(4131);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3594,7 +3558,8 @@ namespace WinAGI.Engine
                 //top must be >btm; both must be <=24
                 if (ArgVal[0] > 24 || ArgVal[1] > 24 || ArgVal[0] > ArgVal[1]) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4132);
+                        errInfo.ID = "4132";
+                        errInfo.Text = LoadResString(4132);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3618,7 +3583,8 @@ namespace WinAGI.Engine
                 //should be limited to valid color values (0-15)
                 if (ArgVal[0] > 15 || ArgVal[1] > 15) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4133);
+                        errInfo.ID = "4133";
+                        errInfo.Text = LoadResString(4133);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3633,9 +3599,9 @@ namespace WinAGI.Engine
                 //shouldn't normally have more than a few shakes; zero is BAD
                 if (ArgVal[0] == 0) {
                     //error!
-                    if (ErrorLevel == leHigh ||
-                        ErrorLevel == leMedium) {
-                        strErrMsg = LoadResString(4134);
+                    if (ErrorLevel == leHigh || ErrorLevel == leMedium) {
+                        errInfo.ID = "4134";
+                        errInfo.Text = LoadResString(4134);
                         return false;
                         //} else if (ErrorLevel == leLow) {
                         //  //no action
@@ -3669,7 +3635,8 @@ namespace WinAGI.Engine
                                       //input and status should be <top or >=top+21
                 if (ArgVal[0] > 3) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4135);
+                        errInfo.ID = "4135";
+                        errInfo.Text = LoadResString(4135);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3729,7 +3696,8 @@ namespace WinAGI.Engine
                 }
                 if (ArgVal[3] > 39) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4004);
+                        errInfo.ID = "4004";
+                        errInfo.Text = LoadResString(4004);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3755,7 +3723,8 @@ namespace WinAGI.Engine
                 //must be ascii or key code, (Arg0 can be 1 to mean joystick)
                 if (ArgVal[0] > 0 && ArgVal[1] > 0 && ArgVal[0] != 1) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4154);
+                        errInfo.ID = "4154";
+                        errInfo.Text = LoadResString(4154);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3770,7 +3739,8 @@ namespace WinAGI.Engine
                         //ascii codes for bkspace, enter, spacebar
                         //bad
                         if (ErrorLevel == leHigh) {
-                            strErrMsg = LoadResString(4155);
+                            errInfo.ID = "4155";
+                            errInfo.Text = LoadResString(4155);
                             return false;
                         }
                         else if (ErrorLevel == leMedium) {
@@ -3787,7 +3757,8 @@ namespace WinAGI.Engine
                         (ArgVal[1] >= 79 && ArgVal[1] <= 83)) {
                         //ascii codes - bad
                         if (ErrorLevel == leHigh) {
-                            strErrMsg = LoadResString(4155);
+                            errInfo.ID = "4155";
+                            errInfo.Text = LoadResString(4155);
                             return false;
                         }
                         else if (ErrorLevel == leMedium) {
@@ -3808,7 +3779,8 @@ namespace WinAGI.Engine
                 //validate view
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4138).Replace(ARG1, (ArgVal[0]).ToString());
+                        errInfo.ID = "4138";
+                        errInfo.Text = LoadResString(4138).Replace(ARG1, (ArgVal[0]).ToString());
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3832,7 +3804,8 @@ namespace WinAGI.Engine
                         //validate loop
                         if (ArgVal[1] >= compGame.agViews[ArgVal[0]].Loops.Count) {
                             if (ErrorLevel == leHigh) {
-                                strErrMsg = LoadResString(4139).Replace(ARG1, ArgVal[1].ToString()).Replace(ARG2, ArgVal[0].ToString());
+                                errInfo.ID = "4139";
+                                errInfo.Text = LoadResString(4139).Replace(ARG1, ArgVal[1].ToString()).Replace(ARG2, ArgVal[0].ToString());
                                 if (blnUnload) {
                                     compGame.agViews[ArgVal[0]].Unload();
                                 }
@@ -3851,7 +3824,8 @@ namespace WinAGI.Engine
                             //validate cel
                             if (ArgVal[2] >= compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels.Count) {
                                 if (ErrorLevel == leHigh) {
-                                    strErrMsg = LoadResString(4140).Replace(ARG1, ArgVal[2].ToString()).Replace(ARG2, ArgVal[1].ToString()).Replace(ARG3, ArgVal[0].ToString());
+                                    errInfo.ID = "4140";
+                                    errInfo.Text = LoadResString(4140).Replace(ARG1, ArgVal[2].ToString()).Replace(ARG2, ArgVal[1].ToString()).Replace(ARG3, ArgVal[0].ToString());
                                     if (blnUnload) {
                                         compGame.agViews[ArgVal[0]].Unload();
                                     }
@@ -3876,7 +3850,8 @@ namespace WinAGI.Engine
                 //x,y must be within limits
                 if (ArgVal[3] > 159 || ArgVal[4] > 167) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4141);
+                        errInfo.ID = "4141";
+                        errInfo.Text = LoadResString(4141);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3888,7 +3863,8 @@ namespace WinAGI.Engine
                 //PRI should be <=15
                 if (ArgVal[5] > 15) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4142);
+                        errInfo.ID = "4142";
+                        errInfo.Text = LoadResString(4142);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3921,7 +3897,8 @@ namespace WinAGI.Engine
                 //validate view
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4144).Replace(ARG1, ArgVal[0].ToString());
+                        errInfo.ID = "4144";
+                        errInfo.Text = LoadResString(4144).Replace(ARG1, ArgVal[0].ToString());
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3943,7 +3920,8 @@ namespace WinAGI.Engine
             else if (CmdNum == 175 || CmdNum == 179 || CmdNum == 180) {
                 //discard.sound, fence.mouse, mouse.posn
                 if (ErrorLevel == leHigh) {
-                    strErrMsg = LoadResString(4152).Replace(ARG1, ActionCommands[CmdNum].Name);
+                    errInfo.ID = "4152";
+                    errInfo.Text = LoadResString(4152).Replace(ARG1, ActionCommands[CmdNum].Name);
                     return false;
                 }
                 else if (ErrorLevel == leMedium) {
@@ -3956,7 +3934,8 @@ namespace WinAGI.Engine
                                       //lower should be < upper
                 if (ArgVal[0] > ArgVal[1]) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4145);
+                        errInfo.ID = "4145";
+                        errInfo.Text = LoadResString(4145);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -3977,7 +3956,8 @@ namespace WinAGI.Engine
                 //if lower=upper+1, means div by 0!
                 if (ArgVal[0] == ArgVal[1] + 1) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4158);
+                        errInfo.ID = "4158";
+                        errInfo.Text = LoadResString(4158);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -4021,7 +4001,8 @@ namespace WinAGI.Engine
                                       //validate the new position
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4128);
+                        errInfo.ID = "4128";
+                        errInfo.Text = LoadResString(4128);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -4040,7 +4021,8 @@ namespace WinAGI.Engine
                 //validate that logic exists
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4153).Replace(ARG1, ArgVal[0].ToString());
+                        errInfo.ID = "4153";
+                        errInfo.Text = LoadResString(4153).Replace(ARG1, ArgVal[0].ToString());
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -4061,7 +4043,8 @@ namespace WinAGI.Engine
                 //validate size of window
                 if (ArgVal[1] + ArgVal[2] > 23) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4146);
+                        errInfo.ID = "4146";
+                        errInfo.Text = LoadResString(4146);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -4081,7 +4064,8 @@ namespace WinAGI.Engine
                 //col + maxwidth <=39
                 if (ArgVal[1] > 22) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4147);
+                        errInfo.ID = "4147";
+                        errInfo.Text = LoadResString(4147);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -4101,7 +4085,8 @@ namespace WinAGI.Engine
                     break;
                 case 1: //maxwidth=1 crashes AGI
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4043);
+                        errInfo.ID = "4043";
+                        errInfo.Text = LoadResString(4043);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -4113,7 +4098,8 @@ namespace WinAGI.Engine
                 default:
                     if (ArgVal[3] > 36) { //maxwidth >36 won't work
                         if (ErrorLevel == leHigh) {
-                            strErrMsg = LoadResString(4043);
+                            errInfo.ID = "4043";
+                            errInfo.Text = LoadResString(4043);
                             return false;
                         }
                         else if (ErrorLevel == leMedium) {
@@ -4127,7 +4113,8 @@ namespace WinAGI.Engine
                 //col>2 and col + maxwidth <=39
                 if (ArgVal[2] < 2 || ArgVal[2] + ArgVal[3] > 39) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4148);
+                        errInfo.ID = "4148";
+                        errInfo.Text = LoadResString(4148);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -4148,7 +4135,8 @@ namespace WinAGI.Engine
                    ArgVal[2] < ArgVal[0] || ArgVal[3] < ArgVal[1]) {
                     //invalid items
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4150);
+                        errInfo.ID = "4150";
+                        errInfo.Text = LoadResString(4150);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -4236,7 +4224,8 @@ namespace WinAGI.Engine
                 if (ArgVal[1] > 159 || ArgVal[2] > 167 || ArgVal[3] > 159 || ArgVal[4] > 167) {
                     //bad number
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4151);
+                        errInfo.ID = "4151";
+                        errInfo.Text  = LoadResString(4151);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -4248,7 +4237,8 @@ namespace WinAGI.Engine
                 if ((ArgVal[1] > ArgVal[3]) || (ArgVal[2] > ArgVal[4])) {
                     //won't work
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4151);
+                        errInfo.ID = "4151";
+                        errInfo.Text = LoadResString(4151);
                         return false;
                     }
                     else if (ErrorLevel == leMedium) {
@@ -4291,7 +4281,8 @@ namespace WinAGI.Engine
             if ((BADCHARS).Any(strMsg.Contains)) {
                 //warn user
                 if (ErrorLevel == leHigh) {
-                    strErrMsg = LoadResString(4005);
+                    errInfo.ID = "4005";
+                    errInfo.Text = LoadResString(4005);
                     //blnError = true;
                     return false;
                 }
@@ -4305,7 +4296,8 @@ namespace WinAGI.Engine
                 //extended characters
                 if ((EXTCHARS).Any(strMsg.Contains)) {
                     if (ErrorLevel == leHigh) {
-                        strErrMsg = LoadResString(4006);
+                        errInfo.ID = "4006";
+                        errInfo.Text = LoadResString(4006);
                         //blnError = true;
                         return false;
                     }
@@ -4486,14 +4478,13 @@ namespace WinAGI.Engine
         }
         static internal bool ReadLabels()
         {
-            byte i;
-            string strLabel;
-            int rtn;
             //this function steps through the source code to identify all valid labels; we need to find
             //them all before starting the compile so we can correctly set jumps
             //
             //valid syntax is either 'label:' or ':label', with nothing else in front of or after
             //the label declaration
+            byte i;
+            string strLabel;
 
             //reset counter
             bytLabelCount = 0;
@@ -4505,7 +4496,7 @@ namespace WinAGI.Engine
                     // first replace any tabs ? why? don't do it anywhere eles?
                     strLabel = strCurrentLine.Replace("\t", " ").Trim();
                     //check for 'label:'
-                    if (strLabel[strLabel.Length - 1] == ':') {
+                    if (strLabel[^1] == ':') {
                         strLabel = Left(strLabel, strLabel.Length - 1).Trim();
                         // check for ':label'
                     }
@@ -4520,7 +4511,8 @@ namespace WinAGI.Engine
                     if (strLabel.Length != 0) {
                         //make sure enough room
                         if (bytLabelCount >= MAX_LABELS) {
-                            strErrMsg = LoadResString(4109).Replace(ARG1, MAX_LABELS.ToString());
+                            errInfo.ID = "4109";
+                            errInfo.Text = LoadResString(4109).Replace(ARG1, MAX_LABELS.ToString());
                             return false;
                         }
                         DefineNameCheck chkLabel = compGame.agGlobals.ValidateDefName(strLabel);
@@ -4532,53 +4524,67 @@ namespace WinAGI.Engine
                         if (chkLabel != DefineNameCheck.ncOK) {
                             switch (chkLabel) {
                             case DefineNameCheck.ncEmpty:
-                                strErrMsg = LoadResString(4096);
+                                errInfo.ID = "4096";
+                                errInfo.Text = LoadResString(4096);
                                 break;
                             case DefineNameCheck.ncActionCommand:
-                                strErrMsg = LoadResString(4025).Replace(ARG1, strLabel);
+                                errInfo.ID = "4025";
+                                errInfo.Text = LoadResString(4025).Replace(ARG1, strLabel);
                                 break;
                             case DefineNameCheck.ncTestCommand:
-                                strErrMsg = LoadResString(4026).Replace(ARG1, strLabel);
+                                errInfo.ID = "4026";
+                                errInfo.Text = LoadResString(4026).Replace(ARG1, strLabel);
                                 break;
                             case DefineNameCheck.ncKeyWord:
-                                strErrMsg = LoadResString(4028).Replace(ARG1, strLabel);
+                                errInfo.ID = "4028";
+                                errInfo.Text = LoadResString(4028).Replace(ARG1, strLabel);
                                 break;
                             case DefineNameCheck.ncArgMarker:
-                                strErrMsg = LoadResString(4091);
+                                errInfo.ID = "4091";
+                                errInfo.Text = LoadResString(4091);
                                 break;
                             case DefineNameCheck.ncGlobal:
-                                strErrMsg = LoadResString(4024).Replace(ARG1, strLabel);
+                                errInfo.ID = "4024";
+                                errInfo.Text = LoadResString(4024).Replace(ARG1, strLabel);
                                 break;
                             case DefineNameCheck.ncReservedVar:
-                                strErrMsg = LoadResString(4033).Replace(ARG1, strLabel);
+                                errInfo.ID = "4033";
+                                errInfo.Text = LoadResString(4033).Replace(ARG1, strLabel);
                                 break;
                             case DefineNameCheck.ncReservedFlag:
-                                strErrMsg = LoadResString(4030).Replace(ARG1, strLabel);
+                                errInfo.ID = "4030";
+                                errInfo.Text = LoadResString(4030).Replace(ARG1, strLabel);
                                 break;
                             case DefineNameCheck.ncReservedNum:
-                                strErrMsg = LoadResString(4029).Replace(ARG1, strLabel);
+                                errInfo.ID = "4029";
+                                errInfo.Text = LoadResString(4029).Replace(ARG1, strLabel);
                                 break;
                             case DefineNameCheck.ncReservedObj or DefineNameCheck.ncReservedStr:
-                                strErrMsg = LoadResString(4032).Replace(ARG1, strLabel);
+                                errInfo.ID = "4032";
+                                errInfo.Text = LoadResString(4032).Replace(ARG1, strLabel);
                                 break;
                             case DefineNameCheck.ncReservedMsg:
-                                strErrMsg = LoadResString(4031).Replace(ARG1, strLabel);
+                                errInfo.ID = "4031";
+                                errInfo.Text = LoadResString(4031).Replace(ARG1, strLabel);
                                 break;
                             case DefineNameCheck.ncBadChar:
-                                strErrMsg = LoadResString(4068);
+                                errInfo.ID = "4068";
+                                errInfo.Text = LoadResString(4068);
                                 break;
                             }
                             return false;
                         }
                         //no periods allowed either
-                        if (strLabel.IndexOf(".") >= 0) {
-                            strErrMsg = LoadResString(4068);
+                        if (strLabel.Contains('.')) {
+                            errInfo.ID = "4068";
+                            errInfo.Text = LoadResString(4068);
                             return false;
                         }
                         //check label against current list of labels
                         for (i = 0; i < bytLabelCount; i++) {
                             if (strLabel.Equals(llLabel[i].Name, StringComparison.OrdinalIgnoreCase)) {
-                                strErrMsg = LoadResString(4027).Replace(ARG1, strLabel);
+                                errInfo.ID = "4027";
+                                errInfo.Text = LoadResString(4027).Replace(ARG1, strLabel);
                                 return false;
                             }
                         }
@@ -4641,16 +4647,16 @@ namespace WinAGI.Engine
                 case "{":
                     //can't have a "{" command, unless it follows an 'if' or 'else'
                     if (strPrevCmd != "if" && strPrevCmd != "else") {
-                        strErrMsg = LoadResString(4008);
-                        //blnError = false; //why not set error flag?
+                        errInfo.ID = "4008";
+                        errInfo.Text = LoadResString(4008);
                         return false;
                     }
                     break;
                 case "}":
                     //if no block currently open,
                     if (BlockDepth == 0) {
-                        strErrMsg = LoadResString(4010);
-                        //blnError = false; //why not set error flag?
+                        errInfo.ID = "4010";
+                        errInfo.Text = LoadResString(4010);
                         return false;
                     }
                     //if last command was a new.room command, then closing block is expected
@@ -4660,7 +4666,8 @@ namespace WinAGI.Engine
                     //if last position in resource is two bytes from start of block
                     if (tmpLogRes.Size == BlockStartDataLoc[BlockDepth] + 2) {
                         if (ErrorLevel == leHigh) {
-                            strErrMsg = LoadResString(4049);
+                            errInfo.ID = "4049";
+                            errInfo.Text = LoadResString(4049);
                             //blnError = false; //why not set error flag?
                             return false;
                         }
@@ -4684,7 +4691,8 @@ namespace WinAGI.Engine
                     }
                     //if block stack exceeded
                     if (BlockDepth >= MAX_BLOCK_DEPTH) {
-                        strErrMsg = LoadResString(4110).Replace(ARG1, MAX_BLOCK_DEPTH.ToString());
+                        errInfo.ID = "4110";
+                        errInfo.Text = LoadResString(4110).Replace(ARG1, MAX_BLOCK_DEPTH.ToString());
                         //blnError = false; //why not set error flag?
                         return false;
                     }
@@ -4699,15 +4707,16 @@ namespace WinAGI.Engine
                     strNextCmd = NextCommand();
                     if (strNextCmd != "{") {
                         //error
-                        strErrMsg = LoadResString(4053);
-                        //blnError = false; //why not set error flag?
+                        errInfo.ID = "4053";
+                        errInfo.Text = LoadResString(4053);
                         return false;
                     }
                     break;
                 case "else":
                     //else can only follow a close bracket
                     if (strPrevCmd != "}") {
-                        strErrMsg = LoadResString(4011);
+                        errInfo.ID = "4011";
+                        errInfo.Text = LoadResString(4011);
                         //blnError = false; //why not set error flag?
                         return false;
                     }
@@ -4715,8 +4724,8 @@ namespace WinAGI.Engine
                     //if the block closed by that bracket was an 'else'
                     //(which will be determined by having that block's IsIf flag NOT being set),
                     if (!BlockIsif[BlockDepth + 1]) {
-                        strErrMsg = LoadResString(4083);
-                        //blnError = false; //why not set error flag?
+                        errInfo.ID = "4083";
+                        errInfo.Text = LoadResString(4083);
                         return false;
                     }
 
@@ -4737,7 +4746,8 @@ namespace WinAGI.Engine
                     strNextCmd = NextCommand();
                     if (strNextCmd != "{") {
                         //error
-                        strErrMsg = LoadResString(4053);
+                        errInfo.ID = "4053";
+                        errInfo.Text = LoadResString(4053);
                         //blnError = false; //why not set error flag?
                         return false;
                     }
@@ -4757,7 +4767,8 @@ namespace WinAGI.Engine
                     }
                     //next command should be "("
                     if (NextChar() != "(") {
-                        strErrMsg = LoadResString(4001);
+                        errInfo.ID = "4001";
+                        errInfo.Text = LoadResString(4001);
                         //blnError = false; //why not set error flag?
                         return false;
                     }
@@ -4766,13 +4777,15 @@ namespace WinAGI.Engine
 
                     //if argument is NOT a valid label
                     if (LabelNum(strArg) == -1) {
-                        strErrMsg = LoadResString(4074).Replace(ARG1, strArg);
+                        errInfo.ID = "4074";
+                        errInfo.Text = LoadResString(4074).Replace(ARG1, strArg);
                         //blnError = false; //why not set error flag?
                         return false;
                     }
                     //if too many gotos
                     if (NumGotos >= MaxGotos) {
-                        strErrMsg = LoadResString(4108).Replace(ARG1, MaxGotos.ToString());
+                        errInfo.ID = "4108";
+                        errInfo.Text = LoadResString(4108).Replace(ARG1, MaxGotos.ToString());
                     }
                     //save this goto info on goto stack
                     NumGotos++;
@@ -4784,14 +4797,14 @@ namespace WinAGI.Engine
                     tmpLogRes.WriteWord(0);
                     //next character should be ")"
                     if (NextChar() != ")") {
-                        strErrMsg = LoadResString(4003);
-                        //blnError = false; //why not set error flag?
+                        errInfo.ID = "4003";
+                        errInfo.Text = LoadResString(4003);
                         return false;
                     }
                     //verify next command is end of line (;)
                     if (NextChar() != ";") {
-                        //blnError = true;
-                        strErrMsg = LoadResString(4007);
+                        errInfo.ID = "4007";
+                        errInfo.Text = LoadResString(4007);
                         return false;
                     }
                     break;
@@ -4799,8 +4812,8 @@ namespace WinAGI.Engine
                 case "*/":
                     //since block commands are no longer supported, check for markers in order to provide a
                     //meaningful error message
-                    //blnError = true;
-                    strErrMsg = LoadResString(4052);
+                    errInfo.ID = "4052";
+                    errInfo.Text = LoadResString(4052);
                     return false;
                 case "++":
                 case "--": //unary operators; need to get a variable next
@@ -4817,22 +4830,23 @@ namespace WinAGI.Engine
                     if (!ConvertArgument(ref strArg, atVar)) {
                         //error
                         //blnError = true; //here, error flag IS set
-                        strErrMsg = LoadResString(4046);
+                        errInfo.ID = "4046";
+                        errInfo.Text = LoadResString(4046);
                         return false;
                     }
                     //get Value
                     intCmdNum = VariableValue(strArg);
                     if (intCmdNum == -1) {
-                        //blnError = true;
-                        strErrMsg = LoadResString(4066).Replace(ARG1, "");
+                        errInfo.ID = "4066";
+                        errInfo.Text = LoadResString(4066).Replace(ARG1, "");
                         return false;
                     }
                     //write the variable value
                     tmpLogRes.WriteByte((byte)intCmdNum);
                     //verify next command is end of line ';'
                     if (NextChar(true) != ";") {
-                        //blnError = false; //why not set error flag?
-                        strErrMsg = LoadResString(4007);
+                        errInfo.ID = "4007";
+                        errInfo.Text = LoadResString(4007);
                         return false;
                     }
                     break;
@@ -4842,8 +4856,8 @@ namespace WinAGI.Engine
                     intLabelNum = LabelNum(strNextCmd);
                     //if not a valid label
                     if (intLabelNum == -1) {
-                        //blnError = false; //why not set error flag?
-                        strErrMsg = LoadResString(4076);
+                        errInfo.ID = "4076";
+                        errInfo.Text = LoadResString(4076);
                         return false;
                     }
                     //save position of label
@@ -4857,8 +4871,8 @@ namespace WinAGI.Engine
                         intLabelNum = LabelNum(strNextCmd);
                         //if not a valid label
                         if (intLabelNum == -1) {
-                            strErrMsg = LoadResString(4076);
-                            //blnError = false; //why not set error flag?
+                            errInfo.ID = "4076";
+                            errInfo.Text = LoadResString(4076);
                             return false;
                         }
                         //save position of label
@@ -4884,7 +4898,8 @@ namespace WinAGI.Engine
                         //if invalid version
                         if (intCmdNum == 254) {
                             //raise error
-                            strErrMsg = LoadResString(4065).Replace(ARG1, strNextCmd);
+                            errInfo.ID = "4065";
+                            errInfo.Text = LoadResString(4065).Replace(ARG1, strNextCmd);
                             return false;
                             //if command not found,
                         }
@@ -4898,7 +4913,8 @@ namespace WinAGI.Engine
                             }
                             else {
                                 //unknown command
-                                strErrMsg = LoadResString(4116).Replace(ARG1, strNextCmd);
+                                errInfo.ID = "4116";
+                                errInfo.Text = LoadResString(4116).Replace(ARG1, strNextCmd);
                                 //blnError = false; //why not set error flag?
                                 return false;
                             }
@@ -4908,7 +4924,8 @@ namespace WinAGI.Engine
                             tmpLogRes.WriteByte((byte)intCmdNum);
                             //next character should be "("
                             if (NextChar() != "(") {
-                                strErrMsg = LoadResString(4048);
+                                errInfo.ID = "4048";
+                                errInfo.Text = LoadResString(4048);
                                 //blnError = false; //why not set error flag?
                                 return false;
                             }
@@ -4923,13 +4940,15 @@ namespace WinAGI.Engine
                                         if (lngQuoteAdded >= 0) {
                                             //reset line;
                                             lngLine = lngQuoteAdded;
-                                            lngErrLine = lngLine - lngIncludeOffset;
+                                            errInfo.Line = lngLine - lngIncludeOffset + 1;
                                             //string error
-                                            strErrMsg = LoadResString(4051);
+                                            errInfo.ID = "4051";
+                                            errInfo.Text = LoadResString(4051);
                                         }
                                         else {
+                                            errInfo.ID = "4047";
                                             //use 1-base arg values
-                                            strErrMsg = LoadResString(4047).Replace(ARG1, (i + 1).ToString());
+                                            errInfo.Text = LoadResString(4047).Replace(ARG1, (i + 1).ToString());
                                         }
                                         //blnError = false; //why not set error flag?
                                         return false;
@@ -4939,9 +4958,9 @@ namespace WinAGI.Engine
                                 //if error
                                 if (blnCriticalError) {
                                     // if error number is 4054
-                                    if (Left(strErrMsg, 4) == "4054") {
+                                    if (errInfo.ID == "4054") {
                                         // add command name to error string
-                                        strErrMsg = strErrMsg.Replace(ARG2, ActionCommands[intCmdNum].Name);
+                                        errInfo.Text = errInfo.Text.Replace(ARG2, ActionCommands[intCmdNum].Name);
                                     }
                                     //blnError = false; //why not set error flag?
                                     return false;
@@ -4960,12 +4979,14 @@ namespace WinAGI.Engine
                                 if (lngQuoteAdded >= 0) {
                                     //reset line;
                                     lngLine = lngQuoteAdded;
-                                    lngErrLine = lngLine - lngIncludeOffset;
+                                    errInfo.Line = lngLine - lngIncludeOffset + 1;
                                     //string error
-                                    strErrMsg = LoadResString(4051);
+                                    errInfo.ID = "4051";
+                                    errInfo.Text = LoadResString(4051);
                                 }
                                 else {
-                                    strErrMsg = LoadResString(4160);
+                                    errInfo.ID = "4160";
+                                    errInfo.Text = LoadResString(4160);
                                 }
                                 return false;
                             }
@@ -4980,7 +5001,8 @@ namespace WinAGI.Engine
 
                         //verify next command is end of line (;)
                         if (NextChar(true) != ";") {
-                            strErrMsg = LoadResString(4007);
+                            errInfo.ID = "4007";
+                            errInfo.Text = LoadResString(4007);
                             return false;
                         }
                     }
@@ -4994,7 +5016,8 @@ namespace WinAGI.Engine
             if (!blnLastCmdRtn) {
                 if (ErrorLevel == leHigh) {
                     //error
-                    strErrMsg = LoadResString(4102);
+                    errInfo.ID = "4102";
+                    errInfo.Text = LoadResString(4102);
                     //blnError = false; //why not set error flag?
                     return false;
                 }
@@ -5009,9 +5032,10 @@ namespace WinAGI.Engine
             //check to see if everything was wrapped up properly
 
             if (BlockDepth > 0) {
-                strErrMsg = LoadResString(4009);
+                errInfo.ID = "4009";
+                errInfo.Text = LoadResString(4009);
                 //reset errorline to return cmd
-                lngErrLine = lngReturnLine;
+                errInfo.Line = lngReturnLine + 1;
                 return false;
             }
             //write in goto values
@@ -5148,8 +5172,8 @@ namespace WinAGI.Engine
                 //if invalid variable number
                 if (intArg1 == -1) {
                     //invalid number
-                    //blnError = true;
-                    strErrMsg = LoadResString(4086);
+                    errInfo.ID = "4086";
+                    errInfo.Text = LoadResString(4086);
                     return false;
                 }
                 //get comparison expression
@@ -5194,15 +5218,15 @@ namespace WinAGI.Engine
                     return true;
 
                 default:
-                    //blnError = true;
-                    strErrMsg = LoadResString(4078);
+                    errInfo.ID = "4078";
+                    errInfo.Text = LoadResString(4078);
                     return false;
                 }
                 //before getting second arg, check for NOT symbol in front of a variable
                 //can't have a NOT in front of variable comparisons
                 if (blnNOT) {
-                    //blnError = true;
-                    strErrMsg = LoadResString(4098);
+                    errInfo.ID = "4098";
+                    errInfo.Text = LoadResString(4098);
                     return false;
                 }
                 //get second argument (numerical or variable)
@@ -5213,13 +5237,14 @@ namespace WinAGI.Engine
                 //if error
                 if (blnCriticalError) {
                     //if an invalid arg value found
-                    if (Val(strErrMsg) == 4063) {
+                    if (errInfo.ID == "4063") {
                         //change error message
-                        strErrMsg = Mid(strErrMsg, 55, strErrMsg.LastIndexOf("'") - 53);
-                        strErrMsg = LoadResString(4089).Replace(ARG1, strErrMsg);
+                        errInfo.Text = Mid(errInfo.Text, 55, errInfo.Text.LastIndexOf('\'') - 53);
+                        errInfo.Text = LoadResString(4089).Replace(ARG1, errInfo.Text);
                     }
                     else {
-                        strErrMsg = LoadResString(4089).Replace(ARG1, "");
+                        errInfo.ID = "4089";
+                        errInfo.Text = LoadResString(4089).Replace(ARG1, "");
                     }
                     return false;
                 }
@@ -5246,8 +5271,8 @@ namespace WinAGI.Engine
                 //if invalid flag number
                 if (intArg1 == -1) {
                     //invalid number
-                    //blnError = true;
-                    strErrMsg = LoadResString(4066).Replace(ARG1, "1");
+                    errInfo.ID = "4002";
+                    errInfo.Text = LoadResString(4066).Replace(ARG1, "1");
                     return false;
                 }
                 //write isset cmd
@@ -5258,8 +5283,8 @@ namespace WinAGI.Engine
             }
             else {
                 //invalid argument
-                //blnError = true;
-                strErrMsg = LoadResString(4039).Replace(ARG1, strArg1);
+                errInfo.ID = "4039";
+                errInfo.Text = LoadResString(4039).Replace(ARG1, strArg1);
                 return false;
             }
         } //endfunction
@@ -5286,17 +5311,16 @@ namespace WinAGI.Engine
                 //     *v# = #
                 //     *v# = v#
                 if (lngPos + 1 == strCurrentLine.Length) {
-                    //blnError = true;
-                    strErrMsg = LoadResString(4105);
+                    errInfo.ID = "4002";
+                    errInfo.Text = LoadResString(4105);
                     return false;
                 }
                 //next char can't be a space, newline, or tab
                 switch (strCurrentLine[lngPos + 1]) {
-                case ' ':
-                case '\t': //tab
-                           //error
-                    //blnError = true;
-                    strErrMsg = LoadResString(4105);
+                case ' ' or '\t':
+                    //error
+                    errInfo.ID = "4105";
+                    errInfo.Text = LoadResString(4105);
                     return false;
                 }
 
@@ -5305,7 +5329,8 @@ namespace WinAGI.Engine
                 //if error
                 if (blnCriticalError) {
                     //adjust error message
-                    strErrMsg = LoadResString(4064);
+                    errInfo.ID = "4064";
+                    errInfo.Text = LoadResString(4064);
                     return false;
                 }
                 intDir = 1;
@@ -5313,8 +5338,8 @@ namespace WinAGI.Engine
                 strArg2 = NextCommand();
                 if (strArg2 != "=") {
                     //error
-                    strErrMsg = LoadResString(4105);
-                    //blnError = true;
+                    errInfo.ID = "4105";
+                    errInfo.Text = LoadResString(4105);
                     return false;
                 }
                 //if this arg is string
@@ -5328,14 +5353,12 @@ namespace WinAGI.Engine
                 if (ErrorLevel != leLow) {
                     //for version 2.089, 2.272, and 3.002149 only 12 strings
                     switch (compGame.agIntVersion) {
-                    case "2.089":
-                    case "2.272":
-                    case "3.002149":
+                    case "2.089" or "2.272" or "3.002149":
                         if (intArg1 > 11) {
                             if (ErrorLevel == leHigh) {
+                                errInfo.ID = "4079";
                                 //use 1-based arg values
-                                strErrMsg = LoadResString(4079).Replace(ARG1, "1").Replace(ARG2, "11");
-                                //blnError = true;
+                                errInfo.Text = LoadResString(4079).Replace(ARG1, "1").Replace(ARG2, "11");
                                 return false;
                             }
                             else { // leMedium
@@ -5347,8 +5370,8 @@ namespace WinAGI.Engine
                     default:
                         if (intArg1 > 23) {
                             if (ErrorLevel == leHigh) {
-                                strErrMsg = LoadResString(4079).Replace(ARG1, "1").Replace(ARG2, "23");
-                                //blnError = true;
+                                errInfo.ID = "4079";
+                                errInfo.Text = LoadResString(4079).Replace(ARG1, "1").Replace(ARG2, "23");
                                 return false;
                             }
                             else { // leMedium
@@ -5363,8 +5386,8 @@ namespace WinAGI.Engine
                 //if not equal sign
                 if (strArg2 != "=") {
                     //error
-                    strErrMsg = LoadResString(4034);
-                    //blnError = true;
+                    errInfo.ID = "4034";
+                    errInfo.Text = LoadResString(4034);
                     return false;
                 }
                 //get actual second variable
@@ -5373,9 +5396,10 @@ namespace WinAGI.Engine
                 //if error
                 if (blnCriticalError) {
                     // if error number is 4054
-                    if (Left(strErrMsg, 4) == "4054") {
+                    if (errInfo.ID == "4054") {
                         // change it to 4058
-                        strErrMsg = LoadResString(4058);
+                        errInfo.ID = "4058";
+                        errInfo.Text = LoadResString(4058);
                     }
                     //then exit
                     return false;
@@ -5391,8 +5415,8 @@ namespace WinAGI.Engine
                 //if invalid variable number
                 if (intArg1 == -1) {
                     //invalid number
-                    strErrMsg = LoadResString(4085);
-                    //blnError = true;
+                    errInfo.ID = "4085";
+                    errInfo.Text = LoadResString(4085);
                     return false;
                 }
                 //variable assignment or arithmetic operation
@@ -5437,8 +5461,8 @@ namespace WinAGI.Engine
                     break;
                 default:
                     //don't know what the heck it is...
-                    strErrMsg = LoadResString(4034);
-                    //blnError = true;
+                    errInfo.ID = "4034";
+                    errInfo.Text = LoadResString(4034);
                     return false;
                 }
                 //check for flag assignment
@@ -5454,8 +5478,8 @@ namespace WinAGI.Engine
                 //if not equal sign
                 if (strArg2 != "=") {
                     //error
-                    strErrMsg = LoadResString(4034);
-                    //blnError = true;
+                    errInfo.ID = "4034";
+                    errInfo.Text = LoadResString(4034);
                     return false;
                 }
                 //get flag Value
@@ -5471,8 +5495,8 @@ namespace WinAGI.Engine
                     break;
                 default:
                     //error
-                    strErrMsg = LoadResString(4034);
-                    //blnError = true;
+                    errInfo.ID = "4034";
+                    errInfo.Text = LoadResString(4034);
                     return false;
                 }
             }
@@ -5504,29 +5528,31 @@ namespace WinAGI.Engine
                         //next char can't be a space, tab or end of line
                         if (lngPos + 1 == strCurrentLine.Length) {
                             //error
-                            strErrMsg = LoadResString(4105);
-                            //blnError = true;
+                            errInfo.ID = "4105";
+                            errInfo.Text = LoadResString(4105);
                             return false;
                         }
                         switch (strCurrentLine[lngPos + 1]) {
                         case ' ':
                         case '\t': // tab
                                    //error
-                            strErrMsg = LoadResString(4105);
-                            //blnError = true;
+                            errInfo.ID = "4105";
+                            errInfo.Text = LoadResString(4105);
                             return false;
                         }
                         //get actual variable
                         intArg2 = GetNextArg(atVar, -1);
                         if (blnCriticalError) {
                             //reset error string
-                            strErrMsg = LoadResString(4105);
+                            errInfo.ID = "4105";
+                            errInfo.Text = LoadResString(4105);
                             return false;
                         }
                     }
                     else {
                         //bad indirection syntax
-                        strErrMsg = LoadResString(4105);
+                        errInfo.ID = "4105";
+                        errInfo.Text = LoadResString(4105);
                         //blnError = true;
                         return false;
                     }
@@ -5538,8 +5564,8 @@ namespace WinAGI.Engine
                         //valid negative numbers are -1 to -128
                         if (Val(strArg2) < -128) {
                             //error
-                            strErrMsg = LoadResString(4095);
-                            //blnError = true;
+                            errInfo.ID = "4095";
+                            errInfo.Text = LoadResString(4095);
                             return false;
                         }
                         //convert it to 2s-compliment unsigned value by adding it to 256
@@ -5554,8 +5580,8 @@ namespace WinAGI.Engine
                     blnArg2Var = true;
                     if (!ConvertArgument(ref strArg2, atNum, ref blnArg2Var)) {
                         //set error
-                        strErrMsg = LoadResString(4088).Replace(ARG1, strArg2);
-                        //blnError = true;
+                        errInfo.ID = "4088";
+                        errInfo.Text = LoadResString(4088).Replace(ARG1, strArg2);
                         return false;
                     }
                     //it's a number or variable; verify it's 0-255
@@ -5563,8 +5589,8 @@ namespace WinAGI.Engine
                     //if invalid
                     if (intArg2 == -1) {
                         //set error
-                        strErrMsg = LoadResString(4088).Replace(ARG1, strArg2);
-                        //blnError = true;
+                        errInfo.ID = "4088";
+                        errInfo.Text = LoadResString(4088).Replace(ARG1, strArg2);
                         return false;
                     }
                     //if arg2 is a number
@@ -5602,8 +5628,8 @@ namespace WinAGI.Engine
                         lngPos--;
                         //this is a simple assign (with a variable being assigned to itself!!)
                         if (ErrorLevel == leHigh) {
-                            strErrMsg = LoadResString(4084);
-                            //blnError = true;
+                            errInfo.ID = "4084";
+                            errInfo.Text = LoadResString(4084);
                             return false;
                         }
                         else if (ErrorLevel == leMedium) {
@@ -5631,8 +5657,8 @@ namespace WinAGI.Engine
                             break;
                         default:
                             //error
-                            strErrMsg = LoadResString(4087);
-                            //blnError = true;
+                            errInfo.ID = "4087";
+                            errInfo.Text = LoadResString(4087);
                             return false;
                         }
                         //now get actual second argument (number or variable)
@@ -5640,13 +5666,15 @@ namespace WinAGI.Engine
                         intArg2 = GetNextArg(atNum, -1, ref blnArg2Var);
                         //if error
                         if (blnCriticalError) {
-                            if (Val(strErrMsg) == 4063) {
+                            if (errInfo.ID == "4063") {
                                 //change error message
-                                strErrMsg = Mid(strErrMsg, 55, strErrMsg.LastIndexOf("'") - 53);
-                                strErrMsg = LoadResString(4161).Replace(ARG1, strErrMsg);
+                                errInfo.ID = "4161";
+                                errInfo.Text = Mid(errInfo.Text, 55, errInfo.Text.LastIndexOf('\'') - 53);
+                                errInfo.Text = LoadResString(4161).Replace(ARG1, errInfo.Text);
                             }
                             else {
-                                strErrMsg = LoadResString(4161).Replace(ARG1, "");
+                                errInfo.ID = "4161";
+                                errInfo.Text = LoadResString(4161).Replace(ARG1, "");
                             }
                             return false;
                         }
@@ -5689,12 +5717,14 @@ namespace WinAGI.Engine
                 if (lngQuoteAdded >= 0) {
                     //reset line;
                     lngLine = lngQuoteAdded;
-                    lngErrLine = lngLine - lngIncludeOffset;
+                    errInfo.Line = lngLine - lngIncludeOffset + 1;
                     //string error
-                    strErrMsg = LoadResString(4051);
+                    errInfo.ID = "4051";
+                    errInfo.Text = LoadResString(4051);
                 }
                 else {
-                    strErrMsg = LoadResString(4007);
+                    errInfo.ID = "4007";
+                    errInfo.Text = LoadResString(4007);
                 }
                 return false;
             }

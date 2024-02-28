@@ -196,11 +196,9 @@
             splitResource = new Splitter();
             pnlWarnings = new Panel();
             fgWarnings = new DataGridView();
-            colResType = new DataGridViewTextBoxColumn();
-            colIDK = new DataGridViewTextBoxColumn();
             colWarning = new DataGridViewTextBoxColumn();
             colDesc = new DataGridViewTextBoxColumn();
-            colLogic = new DataGridViewTextBoxColumn();
+            colResNum = new DataGridViewTextBoxColumn();
             colLIne = new DataGridViewTextBoxColumn();
             colModule = new DataGridViewTextBoxColumn();
             splitWarning = new Splitter();
@@ -930,7 +928,7 @@
             // 
             btnNewLogic.Image = (System.Drawing.Image)resources.GetObject("btnNewLogic.Image");
             btnNewLogic.Name = "btnNewLogic";
-            btnNewLogic.Size = new System.Drawing.Size(188, 30);
+            btnNewLogic.Size = new System.Drawing.Size(138, 22);
             btnNewLogic.Text = "New Logic";
             btnNewLogic.Click += btnNewLogic_Click;
             // 
@@ -938,7 +936,7 @@
             // 
             btnNewPicture.Image = (System.Drawing.Image)resources.GetObject("btnNewPicture.Image");
             btnNewPicture.Name = "btnNewPicture";
-            btnNewPicture.Size = new System.Drawing.Size(188, 30);
+            btnNewPicture.Size = new System.Drawing.Size(138, 22);
             btnNewPicture.Text = "New Picture";
             btnNewPicture.Click += btnNewPicture_Click;
             // 
@@ -946,7 +944,7 @@
             // 
             btnNewSound.Image = (System.Drawing.Image)resources.GetObject("btnNewSound.Image");
             btnNewSound.Name = "btnNewSound";
-            btnNewSound.Size = new System.Drawing.Size(188, 30);
+            btnNewSound.Size = new System.Drawing.Size(138, 22);
             btnNewSound.Text = "New Sound";
             btnNewSound.Click += btnNewSound_Click;
             // 
@@ -954,7 +952,7 @@
             // 
             btnNewView.Image = (System.Drawing.Image)resources.GetObject("btnNewView.Image");
             btnNewView.Name = "btnNewView";
-            btnNewView.Size = new System.Drawing.Size(188, 30);
+            btnNewView.Size = new System.Drawing.Size(138, 22);
             btnNewView.Text = "New View";
             btnNewView.Click += btnNewView_Click;
             // 
@@ -977,7 +975,7 @@
             // springLabel
             // 
             springLabel.Name = "springLabel";
-            springLabel.Size = new System.Drawing.Size(1015, 18);
+            springLabel.Size = new System.Drawing.Size(1046, 18);
             springLabel.Spring = true;
             // 
             // CapsLockLabel
@@ -1083,7 +1081,7 @@
             btnOpenLogic.Image = (System.Drawing.Image)resources.GetObject("btnOpenLogic.Image");
             btnOpenLogic.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnOpenLogic.Name = "btnOpenLogic";
-            btnOpenLogic.Size = new System.Drawing.Size(188, 30);
+            btnOpenLogic.Size = new System.Drawing.Size(143, 22);
             btnOpenLogic.Text = "Open Logic";
             btnOpenLogic.Click += btnOpenLogic_Click;
             // 
@@ -1092,7 +1090,7 @@
             btnOpenPicture.Image = (System.Drawing.Image)resources.GetObject("btnOpenPicture.Image");
             btnOpenPicture.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnOpenPicture.Name = "btnOpenPicture";
-            btnOpenPicture.Size = new System.Drawing.Size(188, 30);
+            btnOpenPicture.Size = new System.Drawing.Size(143, 22);
             btnOpenPicture.Text = "Open Picture";
             btnOpenPicture.Click += btnOpenPicture_Click;
             // 
@@ -1101,7 +1099,7 @@
             btnOpenSound.Image = (System.Drawing.Image)resources.GetObject("btnOpenSound.Image");
             btnOpenSound.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnOpenSound.Name = "btnOpenSound";
-            btnOpenSound.Size = new System.Drawing.Size(188, 30);
+            btnOpenSound.Size = new System.Drawing.Size(143, 22);
             btnOpenSound.Text = "Open Sound";
             btnOpenSound.Click += btnOpenSound_Click;
             // 
@@ -1110,7 +1108,7 @@
             btnOpenView.Image = (System.Drawing.Image)resources.GetObject("btnOpenView.Image");
             btnOpenView.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnOpenView.Name = "btnOpenView";
-            btnOpenView.Size = new System.Drawing.Size(188, 30);
+            btnOpenView.Size = new System.Drawing.Size(143, 22);
             btnOpenView.Text = "Open View";
             btnOpenView.Click += btnOpenView_Click;
             // 
@@ -1129,7 +1127,7 @@
             // 
             btnImportLogic.Image = (System.Drawing.Image)resources.GetObject("btnImportLogic.Image");
             btnImportLogic.Name = "btnImportLogic";
-            btnImportLogic.Size = new System.Drawing.Size(188, 30);
+            btnImportLogic.Size = new System.Drawing.Size(150, 22);
             btnImportLogic.Text = "Import Logic";
             btnImportLogic.Click += btnImportLogic_Click;
             // 
@@ -1137,7 +1135,7 @@
             // 
             btnImportPicture.Image = (System.Drawing.Image)resources.GetObject("btnImportPicture.Image");
             btnImportPicture.Name = "btnImportPicture";
-            btnImportPicture.Size = new System.Drawing.Size(188, 30);
+            btnImportPicture.Size = new System.Drawing.Size(150, 22);
             btnImportPicture.Text = "Import Picture";
             btnImportPicture.Click += btnImportPicture_Click;
             // 
@@ -1145,7 +1143,7 @@
             // 
             btnImportSound.Image = (System.Drawing.Image)resources.GetObject("btnImportSound.Image");
             btnImportSound.Name = "btnImportSound";
-            btnImportSound.Size = new System.Drawing.Size(188, 30);
+            btnImportSound.Size = new System.Drawing.Size(150, 22);
             btnImportSound.Text = "Import Sound";
             btnImportSound.Click += btnImportSound_Click;
             // 
@@ -1153,7 +1151,7 @@
             // 
             btnImportView.Image = (System.Drawing.Image)resources.GetObject("btnImportView.Image");
             btnImportView.Name = "btnImportView";
-            btnImportView.Size = new System.Drawing.Size(188, 30);
+            btnImportView.Size = new System.Drawing.Size(150, 22);
             btnImportView.Text = "Import View";
             btnImportView.Click += btnImportView_Click;
             // 
@@ -1309,7 +1307,7 @@
             splResource.Dock = DockStyle.Fill;
             splResource.FixedPanel = FixedPanel.Panel2;
             splResource.Location = new System.Drawing.Point(0, 0);
-            splResource.Margin = new Padding(2, 2, 2, 2);
+            splResource.Margin = new Padding(2);
             splResource.Name = "splResource";
             splResource.Orientation = Orientation.Horizontal;
             // 
@@ -1390,7 +1388,7 @@
             lstResources.BorderStyle = BorderStyle.FixedSingle;
             lstResources.FullRowSelect = true;
             lstResources.Location = new System.Drawing.Point(0, -4);
-            lstResources.Margin = new Padding(2, 2, 2, 2);
+            lstResources.Margin = new Padding(2);
             lstResources.MultiSelect = false;
             lstResources.Name = "lstResources";
             lstResources.ShowGroups = false;
@@ -1421,7 +1419,7 @@
             propertyGrid1.CommandsVisibleIfAvailable = false;
             propertyGrid1.HelpVisible = false;
             propertyGrid1.Location = new System.Drawing.Point(0, 0);
-            propertyGrid1.Margin = new Padding(2, 2, 2, 2);
+            propertyGrid1.Margin = new Padding(2);
             propertyGrid1.Name = "propertyGrid1";
             propertyGrid1.PropertySort = PropertySort.NoSort;
             propertyGrid1.Size = new System.Drawing.Size(156, 124);
@@ -1435,7 +1433,7 @@
             picProperties.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             picProperties.BackColor = System.Drawing.SystemColors.Window;
             picProperties.Location = new System.Drawing.Point(0, 0);
-            picProperties.Margin = new Padding(2, 2, 2, 2);
+            picProperties.Margin = new Padding(2);
             picProperties.Name = "picProperties";
             picProperties.Size = new System.Drawing.Size(113, 22);
             picProperties.TabIndex = 25;
@@ -1459,7 +1457,7 @@
             // 
             picNavList.BackColor = System.Drawing.SystemColors.Window;
             picNavList.Location = new System.Drawing.Point(360, 66);
-            picNavList.Margin = new Padding(2, 2, 2, 2);
+            picNavList.Margin = new Padding(2);
             picNavList.Name = "picNavList";
             picNavList.Size = new System.Drawing.Size(74, 78);
             picNavList.TabIndex = 24;
@@ -1474,7 +1472,7 @@
             lstProperty.FormattingEnabled = true;
             lstProperty.ItemHeight = 15;
             lstProperty.Location = new System.Drawing.Point(172, 253);
-            lstProperty.Margin = new Padding(2, 2, 2, 2);
+            lstProperty.Margin = new Padding(2);
             lstProperty.Name = "lstProperty";
             lstProperty.Size = new System.Drawing.Size(98, 4);
             lstProperty.TabIndex = 26;
@@ -1499,7 +1497,6 @@
             pnlWarnings.Name = "pnlWarnings";
             pnlWarnings.Size = new System.Drawing.Size(1123, 86);
             pnlWarnings.TabIndex = 20;
-            pnlWarnings.Visible = false;
             // 
             // fgWarnings
             // 
@@ -1516,7 +1513,7 @@
             dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
             fgWarnings.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             fgWarnings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            fgWarnings.Columns.AddRange(new DataGridViewColumn[] { colResType, colIDK, colWarning, colDesc, colLogic, colLIne, colModule });
+            fgWarnings.Columns.AddRange(new DataGridViewColumn[] { colWarning, colDesc, colResNum, colLIne, colModule });
             dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
             dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -1528,7 +1525,7 @@
             fgWarnings.Dock = DockStyle.Fill;
             fgWarnings.EditMode = DataGridViewEditMode.EditOnEnter;
             fgWarnings.Location = new System.Drawing.Point(0, 0);
-            fgWarnings.Margin = new Padding(2, 2, 2, 2);
+            fgWarnings.Margin = new Padding(2);
             fgWarnings.Name = "fgWarnings";
             fgWarnings.ReadOnly = true;
             fgWarnings.RowHeadersVisible = false;
@@ -1543,29 +1540,13 @@
             fgWarnings.StandardTab = true;
             fgWarnings.TabIndex = 0;
             // 
-            // colResType
-            // 
-            colResType.HeaderText = "restype";
-            colResType.MinimumWidth = 10;
-            colResType.Name = "colResType";
-            colResType.ReadOnly = true;
-            colResType.Width = 200;
-            // 
-            // colIDK
-            // 
-            colIDK.HeaderText = "idontknow";
-            colIDK.MinimumWidth = 10;
-            colIDK.Name = "colIDK";
-            colIDK.ReadOnly = true;
-            colIDK.Width = 200;
-            // 
             // colWarning
             // 
             colWarning.HeaderText = "Warning";
             colWarning.MinimumWidth = 10;
             colWarning.Name = "colWarning";
             colWarning.ReadOnly = true;
-            colWarning.Width = 200;
+            colWarning.Width = 75;
             // 
             // colDesc
             // 
@@ -1573,15 +1554,15 @@
             colDesc.MinimumWidth = 10;
             colDesc.Name = "colDesc";
             colDesc.ReadOnly = true;
-            colDesc.Width = 200;
+            colDesc.Width = 725;
             // 
-            // colLogic
+            // colResNum
             // 
-            colLogic.HeaderText = "Logic#";
-            colLogic.MinimumWidth = 10;
-            colLogic.Name = "colLogic";
-            colLogic.ReadOnly = true;
-            colLogic.Width = 200;
+            colResNum.HeaderText = "Res#";
+            colResNum.MinimumWidth = 10;
+            colResNum.Name = "colResNum";
+            colResNum.ReadOnly = true;
+            colResNum.Width = 50;
             // 
             // colLIne
             // 
@@ -1589,7 +1570,7 @@
             colLIne.MinimumWidth = 10;
             colLIne.Name = "colLIne";
             colLIne.ReadOnly = true;
-            colLIne.Width = 200;
+            colLIne.Width = 50;
             // 
             // colModule
             // 
@@ -1597,7 +1578,6 @@
             colModule.MinimumWidth = 10;
             colModule.Name = "colModule";
             colModule.ReadOnly = true;
-            colModule.Width = 200;
             // 
             // splitWarning
             // 
@@ -1767,8 +1747,8 @@
     private ToolStripMenuItem mnuWMinimize;
     private ToolStripSeparator toolStripSeparator8;
     private ToolStripMenuItem mnuWClose;
-    private Splitter splitResource;
-    private Splitter splitWarning;
+    public Splitter splitResource;
+    public Splitter splitWarning;
     private ToolStripMenuItem toolStripMenuItem1;
     private ToolStripMenuItem mnuRNew;
     private ToolStripMenuItem mnuRSave;
@@ -1895,13 +1875,6 @@
     private ToolStripStatusLabel InsertLockLabel;
     private ToolStripStatusLabel StatusPanel1;
     private DataGridView fgWarnings;
-    private DataGridViewTextBoxColumn colResType;
-    private DataGridViewTextBoxColumn colIDK;
-    private DataGridViewTextBoxColumn colWarning;
-    private DataGridViewTextBoxColumn colDesc;
-    private DataGridViewTextBoxColumn colLogic;
-    private DataGridViewTextBoxColumn colLIne;
-    private DataGridViewTextBoxColumn colModule;
     private PictureBox picNavList;
     public FolderBrowserDialog FolderDlg;
     public PictureBox picProperties;
@@ -1911,6 +1884,11 @@
     public ComboBox cmbResType;
     private SplitContainer splitContainer1;
     private PropertyGrid propertyGrid1;
-  }
+        private DataGridViewTextBoxColumn colWarning;
+        private DataGridViewTextBoxColumn colDesc;
+        private DataGridViewTextBoxColumn colResNum;
+        private DataGridViewTextBoxColumn colLIne;
+        private DataGridViewTextBoxColumn colModule;
+    }
 }
 

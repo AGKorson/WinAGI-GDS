@@ -105,7 +105,7 @@ namespace WinAGI.Engine
                 //one - ego
                 tmpDefines = agResObj;
                 break;
-            case atIObj:
+            case atInvItem:
                 //none
                 tmpDefines = Array.Empty<TDefine>();
                 break;

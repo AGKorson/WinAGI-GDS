@@ -132,25 +132,6 @@ namespace WinAGI.Engine
         csLogicError,
         csCanceled
     };
-    public enum ELStatus
-    { //used to update editor during a game load
-        lsInitialize,
-        lsValidating, //add check for dirty source code
-        lsPropertyFile,
-        lsResources,
-        lsDecompiling,// decompiling logics during an import
-        lsCheckCRC,    // checking CRCs during load
-        lsFinalizing,
-        lsLoadWarning //non-critical error/warning encountered during loading
-    };
-    public enum ELoadWarningSource
-    {
-        lwNA,            // not applicable
-        lwDIR,           // directory related error/warning
-        lwVol,           // VOL related error/warning
-        lwResource,      // resource related error
-        lwOther          // any other error/warning
-    }
     public enum SoundFormat
     {
         sfUndefined,
@@ -166,7 +147,7 @@ namespace WinAGI.Engine
         atFlag = 2,     //f##
         atMsg = 3,      //m##
         atSObj = 4,     //o##
-        atIObj = 5,     //i##
+        atInvItem = 5,  //i##
         atStr = 6,      //s##
         atWord = 7,     //w## -- word argument (that user types in)
         atCtrl = 8,     //c##
@@ -227,16 +208,10 @@ namespace WinAGI.Engine
     }
     public enum EventType
     {
-        ecLoadOK,
-        ecCompOK,
-        ecDecompOK,
-        ecLoadError,
-        ecCompError,
-        ecDecompError,
-        ecLoadWarn,
-        ecCompWarn,
-        ecDecompWarn,
-        ecTODO,
+        etInfo,
+        etError,
+        etWarning,
+        etTODO
     }
     #endregion
     //structs
@@ -273,16 +248,28 @@ namespace WinAGI.Engine
     public struct TWinAGIEventInfo
     {
         public EventType Type;              // type of data being reported - error/warning/info/TODO
+        public EInfoType InfoType;          // sub-type for game load warnings ??? is this even needed anymore???
         public AGIResType ResType;          // resource type, if applicable to warning or error
         public byte ResNum;                 // resource number for logics,pics,views,sounds
         public string ID;                   // warning or error number (could be alphanumeric)
         public string Text;                 // info, warning or error msg
-        public ELoadWarningSource LWType;   // sub-type for game load warnings ??? is this even needed anymore???
         public int Line;                    // line number for comp/decomp errors and warnings
         public string Module;               // module name, if comp error occurs in an #include file
     }
-        
-        public struct CommandStruct
+    public enum EInfoType
+    { //used to update editor during a game load
+        itInitialize,
+        itValidating,     //add check for dirty source code
+        itPropertyFile,
+        itResources,
+        itDecompiling,    // decompiling logics during an import
+        itCheckCRC,       // checking CRCs during load
+        itFinalizing,
+        itDone            // pass-back value indicating all is well
+    };
+
+
+    public struct CommandStruct
     {
         public string Name;
         public ArgTypeEnum[] ArgType; //7

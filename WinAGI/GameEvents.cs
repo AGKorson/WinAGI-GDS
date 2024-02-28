@@ -20,28 +20,20 @@ namespace WinAGI.Engine
 
     public class LoadGameEventArgs
     {
-        public LoadGameEventArgs(ELStatus status, AGIResType restype, byte num, TWinAGIEventInfo loadinfo)
+        public LoadGameEventArgs(TWinAGIEventInfo loadinfo)
         {
-            LoadStatus = status;
-            ResType = restype;
-            ResNum = num;
             LoadInfo = loadinfo;
         }
-        public ELStatus LoadStatus { get; }
-        public AGIResType ResType { get; }
-        public byte ResNum { get; }
         public TWinAGIEventInfo LoadInfo { get; }
     }
 
     public class CompileLogicEventArgs
     {
-        public CompileLogicEventArgs(byte num, TWinAGIEventInfo compInfo)
+        public CompileLogicEventArgs(TWinAGIEventInfo compInfo)
         {
             Info = compInfo;
-            ResNum = num;
         }
         public TWinAGIEventInfo Info { get; }
-        public byte ResNum { get; }
     }
 
     // 
@@ -70,15 +62,15 @@ namespace WinAGI.Engine
            // Raise the event in a thread-safe manner using the ?. operator.
             CompileGameStatus?.Invoke(null, new CompileGameEventArgs(cStatus, ResType, ResNum, CompileInfo));
         }
-        internal static void Raise_LoadGameEvent(ELStatus lStatus, AGIResType ResType, byte ResNum, TWinAGIEventInfo LoadInfo)
+        internal static void Raise_LoadGameEvent(TWinAGIEventInfo LoadInfo)
         {
             // Raise the event in a thread-safe manner using the ?. operator.
-            LoadGameStatus?.Invoke(null, new LoadGameEventArgs(lStatus, ResType, ResNum, LoadInfo));   
+            LoadGameStatus?.Invoke(null, new LoadGameEventArgs(LoadInfo));   
         }
-        internal static void Raise_CompileLogicEvent(byte LogicNum, TWinAGIEventInfo CompInfo)
+        internal static void Raise_CompileLogicEvent(TWinAGIEventInfo CompInfo)
         {
             // Raise the event in a thread-safe manner using the ?. operator.
-            CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(LogicNum, CompInfo));
+            CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(CompInfo));
         }
     }
 }

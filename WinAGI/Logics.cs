@@ -264,7 +264,7 @@ namespace WinAGI.Engine
             //convert argument
             Compiler.ConvertArgument(ref ArgIn, ArgType, ref VarOrNum);
             //return it
-            return ArgIn.ToLower();
+            return ArgIn;
         }
         LogicEnum GetEnumerator()
         {

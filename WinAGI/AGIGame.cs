@@ -78,7 +78,7 @@ namespace WinAGI.Engine
             InitGame();
             TWinAGIEventInfo retval = new()
             {
-                Type = EventType.ecCompOK,
+                Type = EventType.etInfo,
                 ID = "",
                 Module = "",
                 Text = ""
@@ -95,7 +95,7 @@ namespace WinAGI.Engine
                 //bad mode - do nothing?
                 break;
             }
-            if (retval.Type == EventType.ecLoadError) {
+            if (retval.Type == EventType.etError) {
                 //throw return value as exception
                 throw new Exception(retval.Text)
                 {
@@ -549,7 +549,7 @@ namespace WinAGI.Engine
             int tmpMax = 0, i, j;
             TWinAGIEventInfo compInfo = new()
             {
-                Type = EventType.ecCompOK,
+                Type = EventType.etInfo,
                 ID = "",
                 Module = "",
                 Text = ""
@@ -559,9 +559,6 @@ namespace WinAGI.Engine
             agCompGame = true;
             //reset cancel flag
             agCancelComp = false;
-
-            compInfo.Type = EventType.ecCompWarn;
-
             //if no directory passed,
             if (NewGameDir.Length == 0)
                 NewGameDir = agGameDir;
@@ -571,7 +568,6 @@ namespace WinAGI.Engine
             if (!Directory.Exists(NewGameDir)) {
                 //this isn't a directory
                 CompleteCancel(true);
-
                 Exception e = new(LoadResString(561).Replace(ARG1, NewGameDir))
                 {
                     HResult = WINAGI_ERR + 561
@@ -637,7 +633,7 @@ namespace WinAGI.Engine
                         // note it
                         TWinAGIEventInfo tmpError = new()
                         {
-                            Type = EventType.ecCompError,
+                            Type = EventType.etError,
                             ID = "",
                             Module = "",
                             // TODO: complete refactor of load/compile error & warnings needed
@@ -668,7 +664,7 @@ namespace WinAGI.Engine
                         //note error
                         TWinAGIEventInfo tmpError = new()
                         {
-                            Type = EventType.ecCompError,
+                            Type = EventType.etError,
                             ID = "",
                             Module = "",
                             Text = "Error while creating WORDS.TOK file (" + ex.Message + ")"
@@ -698,7 +694,7 @@ namespace WinAGI.Engine
                         // note it
                         TWinAGIEventInfo tmpError = new()
                         {
-                            Type = EventType.ecCompError,
+                            Type = EventType.etError,
                             ID = "",
                             Module = "",
                             Text = "Error during compilation of OBJECT (" + ex.Message + ")"
@@ -727,7 +723,7 @@ namespace WinAGI.Engine
                         // note error
                         TWinAGIEventInfo tmpError = new()
                         {
-                            Type = EventType.ecCompError,
+                            Type = EventType.etError,
                             ID = "",
                             Module = "",
                             Text = "Error while creating OBJECT file (" + ex.Message + ")"
@@ -1508,8 +1504,8 @@ namespace WinAGI.Engine
                 //change propfile to correct name
                 agGameProps.Lines[0] = agGameFile;
                 //rename wal file, if present
-                if (File.Exists(agGameDir + FileNameNoExt(strGameWAG) + ".wal")) {
-                    File.Move(agGameDir + FileNameNoExt(strGameWAG) + ".wal", agGameDir + NewID + ".wal");
+                if (File.Exists(agGameDir + Path.GetFileNameWithoutExtension(strGameWAG) + ".wal")) {
+                    File.Move(agGameDir + Path.GetFileNameWithoutExtension(strGameWAG) + ".wal", agGameDir + NewID + ".wal");
                 }
                 //update global file header
                 stlGlobals = new SettingsList(agGameDir + "globals.txt");
@@ -1668,13 +1664,15 @@ namespace WinAGI.Engine
                     //note the problem as a warning
                     TWinAGIEventInfo warnInfo = new()
                     {
-                        Type = EventType.ecLoadWarn,
-                        LWType = ELoadWarningSource.lwOther,
+                        Type = EventType.etWarning,
+                        ResType = AGIResType.rtGame,
+                        ResNum = 0,
                         ID = "OW01",
                         Module = "",
-                        Text = "Can't create " + agResDir
+                        Text = "Can't create " + agResDir,
+                        Line = 0
                     };
-                    Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtGame, 0, warnInfo);
+                    Raise_LoadGameEvent(warnInfo);
                     //use main directory
                     agResDir = agGameDir;
                     //set warning flag
@@ -1716,7 +1714,7 @@ namespace WinAGI.Engine
             // assume OK result
             TWinAGIEventInfo retval = new()
             {
-                Type = EventType.ecLoadOK,
+                Type = EventType.etInfo,
                 ID = "",
                 Module = "",
                 Text = ""
@@ -1725,7 +1723,7 @@ namespace WinAGI.Engine
             // periodically report status of the load back to calling function
             TWinAGIEventInfo warnInfo = new()
             {
-                Type = EventType.ecLoadWarn,
+                Type = EventType.etWarning,
                 ID = "",
                 Module = "",
                 Text = ""
@@ -1734,7 +1732,7 @@ namespace WinAGI.Engine
             //if a game is already open,
             if (agGameLoaded) {
                 //can't open a game if one is already open
-                retval.Type = EventType.ecLoadError;
+                retval.Type = EventType.etError;
                 retval.ID = (WINAGI_ERR + 501).ToString();
             }
 
@@ -1742,9 +1740,10 @@ namespace WinAGI.Engine
             agGameDir = CDir(NewGameDir);
 
             //update status
-            warnInfo.Type = EventType.ecLoadWarn;
+            warnInfo.Type = EventType.etInfo;
+            warnInfo.InfoType = EInfoType.itValidating;
             warnInfo.Text = "";
-            Raise_LoadGameEvent(ELStatus.lsValidating, AGIResType.rtNone, 0, warnInfo);
+            Raise_LoadGameEvent(warnInfo);
 
             //attempt to extract agGameID, agGameFile and interpreter version
             //from Sierra files (i.e. from DIR files and VOL files)
@@ -1756,7 +1755,7 @@ namespace WinAGI.Engine
                 //clear game variables
                 ClearGameState();
                 // directory is not a valid AGI directory
-                retval.Type = EventType.ecLoadError;
+                retval.Type = EventType.etError;
                 retval.ID = (WINAGI_ERR + 541).ToString();
                 retval.Text = CDir(NewGameDir);
                 return retval;
@@ -1780,7 +1779,7 @@ namespace WinAGI.Engine
                 ClearGameState();
                 // file error
                 // TODO: need a generic number for all non-enumerated errors that might be encountered
-                retval.Type = EventType.ecLoadError;
+                retval.Type = EventType.etError;
                 retval.ID =  (WINAGI_ERR + 999).ToString();
                 retval.Text = e.HResult.ToString() + ": " + e.Message;
                 return retval;
@@ -1802,7 +1801,7 @@ namespace WinAGI.Engine
                 //clear game variables
                 ClearGameState();
                 //invalid number found
-                retval.Type = EventType.ecLoadError;
+                retval.Type = EventType.etError;
                 retval.ID = (WINAGI_ERR + 543).ToString();
                 retval.Text = "";
                 return retval;
@@ -1867,7 +1866,7 @@ namespace WinAGI.Engine
             //opens a WinAGI game file (must be passed as a full length file name)
             TWinAGIEventInfo retval = new()
             {
-                Type = EventType.ecLoadOK,
+                Type = EventType.etInfo,
                 ID = "",
                 Module = "",
                 Text = ""
@@ -1878,7 +1877,7 @@ namespace WinAGI.Engine
             //if a game is already open,
             if (agGameLoaded) {
                 //can't open a game if one is already open
-                retval.Type = EventType.ecLoadError;
+                retval.Type = EventType.etError;
                 retval.ID = (WINAGI_ERR + 501).ToString();
                 return retval;
             }
@@ -1889,7 +1888,7 @@ namespace WinAGI.Engine
                 if (Directory.Exists(JustPath(GameWAG, true))) {
                     //it's a missing file - return wagfile as error string
                     //invalid wag
-                    retval.Type = EventType.ecLoadError;
+                    retval.Type = EventType.etError;
                     retval.ID = (WINAGI_ERR + 655).ToString();
                     retval.Text = GameWAG;
                     return retval;
@@ -1897,7 +1896,7 @@ namespace WinAGI.Engine
                 else {
                     //it's an invalid or missing directory - return directory as error string
                     //invalid wag
-                    retval.Type = EventType.ecLoadError;
+                    retval.Type = EventType.etError;
                     retval.ID = (WINAGI_ERR + 541).ToString();
                     retval.Text = JustPath(GameWAG, true);
                     return retval;
@@ -1921,7 +1920,7 @@ namespace WinAGI.Engine
                 // check for readonly (not allowed)
                 if ((File.GetAttributes(GameWAG) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                     // pass along the error
-                    retval.Type = EventType.ecLoadError;
+                    retval.Type = EventType.etError;
                     retval.ID = (WINAGI_ERR + 655).ToString();
                     retval.Text = "WAG File is 'readonly'";
                     return retval;
@@ -1931,7 +1930,7 @@ namespace WinAGI.Engine
                 // reset game variables
                 ClearGameState();
                 // pass along the error
-                retval.Type = EventType.ecLoadError;
+                retval.Type = EventType.etError;
                 retval.ID = (WINAGI_ERR + 655).ToString();
                 retval.Text = e.HResult.ToString() + ": " + e.Message;
                 return retval;
@@ -1948,7 +1947,7 @@ namespace WinAGI.Engine
                     //clear game variables
                     ClearGameState();
                     //invalid wag
-                    retval.Type = EventType.ecLoadError;
+                    retval.Type = EventType.etError;
                     retval.ID = (WINAGI_ERR + 665).ToString();
                     retval.Text = GameWAG;
                     return retval;
@@ -1969,7 +1968,7 @@ namespace WinAGI.Engine
                     //clear game variables
                     ClearGameState();
                     //invalid int version inside wag file
-                    retval.Type = EventType.ecLoadError;
+                    retval.Type = EventType.etError;
                     retval.ID = (WINAGI_ERR + 691).ToString();
                     return retval;
                 }
@@ -1980,7 +1979,7 @@ namespace WinAGI.Engine
                 //clear game variables
                 ClearGameState();
                 //invalid wag file
-                retval.Type = EventType.ecLoadError;
+                retval.Type = EventType.etError;
                 retval.ID = (WINAGI_ERR + 690).ToString();
                 retval.Text = GameWAG;
                 return retval;
@@ -2002,7 +2001,7 @@ namespace WinAGI.Engine
             //instead of throwing exceptions, errors get passed back as a return value
             TWinAGIEventInfo retval = new()
             {
-                Type = EventType.ecLoadOK,
+                Type = EventType.etInfo,
                 ID = "",
                 Text = "",
                 Module = ""
@@ -2012,7 +2011,7 @@ namespace WinAGI.Engine
             bool blnWarnings = false;
             TWinAGIEventInfo loadInfo = new()
             {
-                Type = EventType.ecLoadWarn,
+                Type = EventType.etInfo,
                 ID = "",
                 Module = "",
                 Text = ""
@@ -2023,8 +2022,8 @@ namespace WinAGI.Engine
             //if loading from a wag file
             if (Mode == OpenGameMode.File) {
                 //informs user we are checking property file to set game parameters
-                loadInfo.LWType = ELoadWarningSource.lwNA;
-                Raise_LoadGameEvent(ELStatus.lsPropertyFile, AGIResType.rtNone, 0, loadInfo);
+                loadInfo.InfoType = EInfoType.itPropertyFile;
+                Raise_LoadGameEvent(loadInfo);
 
                 //get resdir before loading resources
                 agResDirName = agGameProps.GetSetting("General", "ResDir", "");
@@ -2063,10 +2062,11 @@ namespace WinAGI.Engine
                 catch (Exception) {
                     //if can't create the resources directory
                     //note the problem as a warning
-                    loadInfo.LWType = ELoadWarningSource.lwOther;
+                    loadInfo.ResType = AGIResType.rtGame;
+                    loadInfo.Type = EventType.etWarning;
                     loadInfo.ID = "OW01";
                     loadInfo.Text = "Can't create " + agResDir;
-                    Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtGame, 0, loadInfo);
+                    Raise_LoadGameEvent(loadInfo);
                     //use game directory
                     agResDir = agGameDir;
                     //set warning
@@ -2075,9 +2075,7 @@ namespace WinAGI.Engine
             }
 
             try {
-                if (ExtractResources(this)) {
-                    blnWarnings = true;
-                }
+                blnWarnings |= ExtractResources(this);
             }
             catch (Exception e) {
                 //if there was an error
@@ -2088,7 +2086,7 @@ namespace WinAGI.Engine
 
                 //clear game variables
                 ClearGameState();
-                retval.Type = EventType.ecLoadError;
+                retval.Type = EventType.etError;
                 retval.ID = (WINAGI_ERR + 999).ToString(); // TODO: need new error number
                 retval.Text = e.HResult.ToString() + ": " + e.Message;
                 return retval;
@@ -2108,17 +2106,17 @@ namespace WinAGI.Engine
             }
             catch (Exception e) {
                 //note the problem as a warning
-                loadInfo.LWType = ELoadWarningSource.lwOther;
+                loadInfo.ResType = AGIResType.rtGame;
+                loadInfo.Type = EventType.etWarning;
                 loadInfo.ID = "OW02";
-                loadInfo.Text = "Error while loading WAG file; some properties not loaded. (Error number: " + e.Message + ")";
-                Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtGame, 0, loadInfo);
+                loadInfo.Text = $"Error while loading WAG file; some properties not loaded. (Error {e.HResult}: {e.Message})";
+                Raise_LoadGameEvent(loadInfo);
                 //set warning
                 blnWarnings = true;
             }
 
             //load vocabulary word list
-            loadInfo.LWType = ELoadWarningSource.lwNA;
-            Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtWords, 0, loadInfo);
+            Raise_LoadGameEvent(loadInfo);
             try {
                 agVocabWords = new WordList(this);
                 agVocabWords.Load(agGameDir + "WORDS.TOK");
@@ -2126,24 +2124,27 @@ namespace WinAGI.Engine
             catch (Exception e) {
                 //if there was an error,
                 //note the problem as a warning
-                loadInfo.LWType = ELoadWarningSource.lwResource;
+                loadInfo.ResType = AGIResType.rtWords;
+                loadInfo.Type = EventType.etWarning;
                 loadInfo.ID = "RW01";
-                loadInfo.Text = "An error occurred while loading WORDS.TOK: " + e.Message;
-                Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtWords, 0, loadInfo);
+                loadInfo.Text = $"An error occurred while loading WORDS.TOK (Error {e.HResult}: {e.Message}";
+                loadInfo.Module = "WORDS.TOK";
+                Raise_LoadGameEvent(loadInfo);
                 //set warning flag
                 blnWarnings = true;
             }
             if (agVocabWords.ErrLevel == 1) {
-                loadInfo.LWType = ELoadWarningSource.lwResource;
+                loadInfo.ResType = AGIResType.rtWords;
+                loadInfo.Type = EventType.etWarning;
                 loadInfo.ID = "RW02";
                 loadInfo.Text = "Abnormal index in WORDS.TOK, file may be corrupt";
-                Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtGame, 0, loadInfo);
+                loadInfo.Module = "WORDS.TOK";
+                Raise_LoadGameEvent(loadInfo);
                 //set warning flag
                 blnWarnings = true;
             } 
             //load inventory objects list
-            loadInfo.LWType = ELoadWarningSource.lwNA;
-            Raise_LoadGameEvent(ELStatus.lsResources, AGIResType.rtObjects, 0, loadInfo);
+            Raise_LoadGameEvent(loadInfo);
             try {
                 agInvObj = new InventoryList(this);
                 agInvObj.Load();
@@ -2151,11 +2152,12 @@ namespace WinAGI.Engine
             catch (Exception e) {
                 //if there was an error,
                 //note the problem as a warning
-                loadInfo.LWType = ELoadWarningSource.lwResource;
+                loadInfo.ResType = AGIResType.rtObjects;
+                loadInfo.Type = EventType.etWarning;
                 loadInfo.ID = "RW03";
-                loadInfo.Text = "An error occurred while loading OBJECT: " + e.Message;
-                loadInfo.Module = "--";
-                Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtObjects, 0, loadInfo);
+                loadInfo.Text = $"An error occurred while loading OBJECT:(Error {e.HResult}: {e.Message}";
+                loadInfo.Module = "OBJECT";
+                Raise_LoadGameEvent(loadInfo);
                 //set warning flag
                 blnWarnings = true;
             }
@@ -2175,16 +2177,19 @@ namespace WinAGI.Engine
                 //the CRC/source check depends on mode
                 if (Mode == OpenGameMode.File) {
                     //opening existing wag file - check CRC
-                    loadInfo.LWType = ELoadWarningSource.lwNA;
-                    Raise_LoadGameEvent(ELStatus.lsCheckCRC, AGIResType.rtLogic, tmpLog.Number, loadInfo);
+                    loadInfo.ResType = AGIResType.rtLogic;
+                    loadInfo.ResNum = tmpLog.Number;
+                    loadInfo.Type = EventType.etInfo;
+                    loadInfo.InfoType = EInfoType.itCheckCRC;
+                    Raise_LoadGameEvent(loadInfo);
                     //if there is a source file, need to verify source CRC value
                     if (File.Exists(tmpLog.SourceFile)) {
                         //recalculate the CRC value for this sourcefile by loading the source
                         tmpLog.LoadSource(false);
                         // check it for TODO items
-                        //ExtractTODO(tmpLog.Number, tmpLog.SourceText);
+                        ExtractTODO(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
                         // check for Decompile warnings
-                        //ExtractDecompWarn(tmpLog.Number, tmpLog.SourceText);
+                        ExtractDecompWarn(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
                         // then unload it
                         tmpLog.Unload();
                     }
@@ -2202,8 +2207,11 @@ namespace WinAGI.Engine
                     // a blank source file is used instead)
 
                     // decompiling
-                    loadInfo.LWType = ELoadWarningSource.lwNA;
-                    Raise_LoadGameEvent(ELStatus.lsDecompiling, AGIResType.rtLogic, tmpLog.Number, loadInfo);
+                    loadInfo.ResType = AGIResType.rtLogic;
+                    loadInfo.ResNum = tmpLog.Number;
+                    loadInfo.Type = EventType.etInfo;
+                    loadInfo.InfoType = EInfoType.itDecompiling;
+                    Raise_LoadGameEvent(loadInfo);
                     try {
                         tmpLog.LoadSource(true);
                     }
@@ -2216,11 +2224,11 @@ namespace WinAGI.Engine
                             // finally, change the compiled CRC value to default, since
                             // it no longer matches the source CRC
                             tmpLog.CompiledCRC = 0;
-                            loadInfo.LWType = ELoadWarningSource.lwResource;
+                            loadInfo.Type = EventType.etWarning;
                             loadInfo.ID = "RW04";
-                            loadInfo.Text = "Logic " + tmpLog.Number + " cannot be decompiled (" + e.Message + "); inserting blank source file";
+                            loadInfo.Text = $"Logic {tmpLog.Number} cannot be decompiled ({e.HResult}: {e.Message}); inserting blank source file";
                             loadInfo.Module = tmpLog.ID;
-                            Raise_LoadGameEvent(ELStatus.lsLoadWarning, AGIResType.rtLogic, tmpLog.Number, loadInfo);
+                            Raise_LoadGameEvent(loadInfo);
                         }
                     }
                     // then unload it
@@ -2236,6 +2244,10 @@ namespace WinAGI.Engine
                     WriteGameSetting("General", "GameID", agGameID);
                 }
             }
+            loadInfo.Type = EventType.etInfo;
+            loadInfo.InfoType = EInfoType.itFinalizing;
+            Raise_LoadGameEvent(loadInfo);
+
             // force id reset
             blnSetIDs = false;
 
@@ -2244,10 +2256,6 @@ namespace WinAGI.Engine
                 // write create date
                 WriteGameSetting("General", "LastEdit", agLastEdit);
             }
-
-            loadInfo.LWType = ELoadWarningSource.lwNA;
-            Raise_LoadGameEvent(ELStatus.lsFinalizing, AGIResType.rtNone, 0, loadInfo);
-
             //if errors
             if (blnWarnings) {
                 retval.ID = (WINAGI_ERR + 636).ToString();
@@ -2466,7 +2474,7 @@ namespace WinAGI.Engine
             if (!NoEvent) {
                 TWinAGIEventInfo tmpWarn = new()
                 {
-                    Type = EventType.ecCompWarn,
+                    Type = EventType.etWarning,
                     ID = "",
                     Module = "",
                     Text = ""

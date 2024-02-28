@@ -604,7 +604,7 @@ namespace WinAGI.Engine
             else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase))
             {
                 try
-                {
+                { // TODO: check all number conversions for correct type
                     int retval = Convert.ToInt32(Right(strValue, strValue.Length - 2), 16);
                     //write the value in correct format
                     WriteSetting(Section, Key, "0x" + retval.ToString("x8"));

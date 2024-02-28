@@ -452,7 +452,7 @@ namespace WinAGI.Engine
 
             agCmds[92].Name = "get";
             agCmds[92].ArgType = new ArgTypeEnum[1];
-            agCmds[92].ArgType[0] = ArgTypeEnum.atIObj;
+            agCmds[92].ArgType[0] = ArgTypeEnum.atInvItem;
 
             agCmds[93].Name = "get.v";
             agCmds[93].ArgType = new ArgTypeEnum[1];
@@ -460,11 +460,11 @@ namespace WinAGI.Engine
 
             agCmds[94].Name = "drop";
             agCmds[94].ArgType = new ArgTypeEnum[1];
-            agCmds[94].ArgType[0] = ArgTypeEnum.atIObj;
+            agCmds[94].ArgType[0] = ArgTypeEnum.atInvItem;
 
             agCmds[95].Name = "put";
             agCmds[95].ArgType = new ArgTypeEnum[2];
-            agCmds[95].ArgType[0] = ArgTypeEnum.atIObj;
+            agCmds[95].ArgType[0] = ArgTypeEnum.atInvItem;
             agCmds[95].ArgType[1] = ArgTypeEnum.atVar;
 
             agCmds[96].Name = "put.v";
@@ -901,11 +901,11 @@ namespace WinAGI.Engine
 
             agTestCmds[9].Name = "has";
             agTestCmds[9].ArgType = new ArgTypeEnum[1];
-            agTestCmds[9].ArgType[0] = ArgTypeEnum.atIObj;
+            agTestCmds[9].ArgType[0] = ArgTypeEnum.atInvItem;
 
             agTestCmds[10].Name = "obj.in.room";
             agTestCmds[10].ArgType = new ArgTypeEnum[2];
-            agTestCmds[10].ArgType[0] = ArgTypeEnum.atIObj;
+            agTestCmds[10].ArgType[0] = ArgTypeEnum.atInvItem;
             agTestCmds[10].ArgType[1] = ArgTypeEnum.atVar;
 
             agTestCmds[11].Name = "posn";

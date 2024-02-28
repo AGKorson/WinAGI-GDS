@@ -105,6 +105,7 @@ namespace WinAGI.Editor
         public const int DEFAULT_WARNMSGS = 0;
         public const bool DEFAULT_DEFUSERESDEF = true;
         public const bool DEFAULT_SNIPPETS = true;
+        public const bool DEFAULT_AUTOWARN = true;
         public const LogicErrorLevel DEFAULT_ERRORLEVEL = LogicErrorLevel.leMedium;
         // default settings - pictures
         public const int DEFAULT_PICSCALE_EDIT = 2;
@@ -674,6 +675,7 @@ namespace WinAGI.Editor
         public static string ProgramDir;
         public static string DefaultResDir; //this is the location that the file dialog box uses as the initial directory
         public static string CurGameFile;
+        public static LoadGameResults LoadResults;
         public static AGIResType CurResType;
         public static agiSettings Settings;
         public static SettingsList GameSettings;
@@ -1649,14 +1651,18 @@ namespace WinAGI.Editor
             bgwOpenGame.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgw_RunWorkerCompleted);
             bgwOpenGame.WorkerReportsProgress = true;
             // pass mode and source
-            LoadGameResults argval = new()
+            LoadResults = new()
             {
                 Mode = mode,
-                Source = gameSource
+                Source = gameSource,
+                Failed = false,
+                ErrorMsg = "",
+                Warnings = false
             };
-            bgwOpenGame.RunWorkerAsync(argval);
+            bgwOpenGame.RunWorkerAsync(LoadResults);
             // now show progress form
             ProgressWin.ShowDialog(MDIMain);
+
             // done with the background worker
             bgwOpenGame.Dispose();
             bgwOpenGame = null;
@@ -1666,19 +1672,21 @@ namespace WinAGI.Editor
             //add wag file to mru, if opened successfully
             if (EditGame != null) {
                 AddToMRU(EditGame.GameFile);
+            } else {
+                //make sure warning grid is hidden
+                if (MDIMain.pnlWarnings.Visible) {
+                    MDIMain.HideWarningList(true);
+                }
             }
 
             //clear status bar
             MainStatusBar.Items[1].Text = "";
-            return !argval.Failed;
+            return !LoadResults.Failed;
         }
         public static bool CloseThisGame()
         {
             int i, j;
             DialogResult rtn;
-            Form tmpForm;
-            string strError, strErrSrc;
-            int lngError;
             //if no game is open
             if (EditGame == null || !EditGame.GameLoaded) {
                 //just return success
@@ -1781,8 +1789,7 @@ namespace WinAGI.Editor
             }
             //always clear and hide warning list if it is showing
             if (MDIMain.pnlWarnings.Visible) {
-                MDIMain.ClearWarnings(-1, rtLogic);
-                MDIMain.pnlWarnings.Visible = false;
+                MDIMain.HideWarningList(true);
             }
             //always hide find dialog if it's showing
             if (FindingForm.Visible) {
@@ -2384,7 +2391,7 @@ namespace WinAGI.Editor
                 case 102: //"f"
                     return atFlag;
                 case 105: //"i"
-                    return atIObj;
+                    return atInvItem;
                 case 109: //"m"
                     return atMsg;
                 case 111: //"o"
@@ -12196,7 +12203,7 @@ namespace WinAGI.Editor
                 GetResNum.FormSetup();
                 //suggest ID based on filename
                 if (ImportLogicFile.Length > 0) {
-                    GetResNum.txtID.Text = FileNameNoExt(ImportLogicFile).Replace(" ", "");
+                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportLogicFile).Replace(" ", "");
                 }
                 //restore cursor while getting resnum
                 MDIMain.UseWaitCursor = false;
@@ -12362,7 +12369,7 @@ namespace WinAGI.Editor
                 GetResNum.FormSetup();
                 //suggest ID based on filename
                 if (ImportPictureFile.Length > 0) {
-                    GetResNum.txtID.Text = FileNameNoExt(ImportPictureFile).Replace(" ", "");
+                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportPictureFile).Replace(" ", "");
                 }
                 //restore cursor while getting resnum
                 MDIMain.UseWaitCursor = false;
@@ -12503,7 +12510,7 @@ namespace WinAGI.Editor
                 GetResNum.FormSetup();
                 //suggest ID based on filename
                 if (ImportSoundFile.Length > 0) {
-                    GetResNum.txtID.Text = FileNameNoExt(ImportSoundFile).Replace(" ", "");
+                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportSoundFile).Replace(" ", "");
                 }
 
                 //restore cursor while getting resnum
@@ -12641,7 +12648,7 @@ namespace WinAGI.Editor
                 GetResNum.FormSetup();
                 //suggest ID based on filename
                 if (ImportViewFile.Length > 0) {
-                    GetResNum.txtID.Text = FileNameNoExt(ImportViewFile).Replace(" ", "");
+                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportViewFile).Replace(" ", "");
                 }
                 //restore cursor while getting resnum
                 MDIMain.UseWaitCursor = false;

@@ -379,7 +379,7 @@ namespace WinAGI.Engine
             //set ID to the filename without extension;
             //the calling function will take care or reassigning it later, if needed
             //(for example, if the new logic will be added to a game)
-            ID = FileNameNoExt(ImportFile);
+            ID = Path.GetFileNameWithoutExtension(ImportFile);
             //reset dirty flags
             IsDirty = false;
             mSourceDirty = false;
@@ -717,7 +717,7 @@ namespace WinAGI.Engine
             // and false if not?
 
             //if no error, check result
-            if (tmpInfo.Type != EventType.ecCompOK) {
+            if (tmpInfo.Type == EventType.etError) {
                 //force uncompiled state
                 mCompiledCRC = 0;
                 compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));

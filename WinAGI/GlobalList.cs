@@ -233,7 +233,7 @@ namespace WinAGI.Engine
                                     return vcReserved;
                             break;
                         case 105: //inv object
-                            TestDefine.Type = ArgTypeEnum.atIObj;
+                            TestDefine.Type = ArgTypeEnum.atInvItem;
                             break;
                         case 115: //string
                             TestDefine.Type = ArgTypeEnum.atStr;

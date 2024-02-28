@@ -12,6 +12,7 @@
     <Copyright>2021</Copyright>
     <PackageIcon>winagi.jpg</PackageIcon>
     <ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
