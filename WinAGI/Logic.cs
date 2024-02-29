@@ -264,9 +264,8 @@ namespace WinAGI.Engine
                     // load the sourcetext to get the crc (also sets compiledcrc if
                     // no sourcefile exists)
                     if (!Loaded) {
-                        Load();
                         try {
-                            LoadSource();
+                            Load();
                         }
                         catch (Exception) {
                             //presumably due to decompiling error;
@@ -493,7 +492,9 @@ namespace WinAGI.Engine
             tmpCRC = CRC32(parent.agCodePage.GetBytes(strInput));
             if (mInGame) {
                 if (mCRC != tmpCRC) {
-                    parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + tmpCRC.ToString("x8"), "Logics");
+                    // update crc
+                    mCRC = tmpCRC;
+                    parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics");
                 }
                 //if decompiling, also save the source and the compiled crc
                 //(it's the same as the source crc!)
@@ -502,9 +503,10 @@ namespace WinAGI.Engine
                     mCompiledCRC = tmpCRC;
                     parent.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
                 }
+            } else {
+                // update crc
+                mCRC = tmpCRC;
             }
-            // update crc
-            mCRC = tmpCRC;
             //set loaded flag and dirty status
             mIsDirty = false;
             mSourceDirty = false;

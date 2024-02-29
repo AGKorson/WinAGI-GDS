@@ -1604,7 +1604,7 @@ namespace WinAGI.Engine
                         }
                     }
                     //add end if
-                    stlOutput.Add(MultStr(INDENT, CurBlock) + D_TKN_ENDIF.Replace(ARG1, INDENT));
+                    stlOutput.Add(MultStr(INDENT, CurBlock - 1) + D_TKN_ENDIF.Replace(ARG1, INDENT));
                     bytBlockDepth--;
                 }
             }
