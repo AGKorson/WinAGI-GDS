@@ -106,9 +106,11 @@ namespace WinAGI.Engine
             int intCharCount;
 
             // TODO: what about logics that aren't in a game?? they have no number
+            Debug.Assert(SourceLogic.Loaded);
             bytLogComp = (byte)LogNum;
             compGame = SourceLogic.parent;
             byte[] bytData = SourceLogic.Data.AllData;
+            stlOutput = [];
 
             //if nothing in the resource,
             if (bytData.Length == 0) {

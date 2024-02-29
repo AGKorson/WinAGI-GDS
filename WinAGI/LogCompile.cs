@@ -469,7 +469,7 @@ namespace WinAGI.Engine
                         }
                         // ok
                         return true;
-                   }
+                    }
                     // special case - looking for number, but var also OK
                     if (blnVarOrNum && tdDefines[i].Type == atVar) {
                         strArgIn = tdDefines[i].Value;
@@ -606,7 +606,7 @@ namespace WinAGI.Engine
                                 return true;
                             }
                         }
-                         //check against invobj Count
+                        //check against invobj Count
                         if (strArgIn == compGame.agResGameDef[3].Name) {
                             strArgIn = compGame.agResGameDef[3].Value;
                             //reset VarOrNum flag
@@ -784,7 +784,7 @@ namespace WinAGI.Engine
             blnMinorError = true;
         }
 
-       static internal int VariableValue(string strVar)
+        static internal int VariableValue(string strVar)
         {
             //this function will extract the variable number from
             //an input variable string
@@ -1110,11 +1110,9 @@ namespace WinAGI.Engine
             if (!ConvertArgument(ref strArg, ArgType, ref blnVarOrNum)) {
                 //if a closing paren or comma found, it means one or more args missing
                 if (strArg == ")" || strArg == ",") {
-                    if (strArg == ")")
-                    {
+                    if (strArg == ")") {
                         retval = -2;
-                    } else
-                    {
+                    } else {
                         retval = -3;
                     }
                     // arg missing
@@ -1385,7 +1383,7 @@ namespace WinAGI.Engine
                         lngArg = VariableValue(strArg);
                         break;
                     case '\"':
-                             //concatenate, if applicable
+                        //concatenate, if applicable
                         strArg = ConcatArg(strArg);
                         lngLine = -1;
                         //convert to inv obj number
@@ -1582,32 +1580,79 @@ namespace WinAGI.Engine
                 //set it to -1 so line 0 is returned
                 lngLine = -1;
             }
-            //increment line counter
-            lngLine++;
-            lngPos = 0;
-            //if at end,
-            if (lngLine >= stlInput.Count) {
-                lngLine = -1;
-                return;
-            }
-            //check for include lines
-            if (Left(stlInput[lngLine], 2).Equals("#I", StringComparison.OrdinalIgnoreCase)) {
-                lngIncludeOffset++;
-                //set module
-                int mod = int.Parse(Mid(stlInput[lngLine], 3, stlInput[lngLine].IndexOf(":") - 3));
-                errInfo.Module = strIncludeFile[mod];
-                //set errline
-                errInfo.Line = int.Parse(Mid(stlInput[lngLine], stlInput[lngLine].IndexOf(":") + 1, stlInput[lngLine].IndexOf("#") - 5));
-                strCurrentLine = Right(stlInput[lngLine], stlInput[lngLine].Length - stlInput[lngLine].IndexOf("#"));
-            }
-            else {
-                errInfo.Module = strLogCompID;
-                errInfo.Line = lngLine - lngIncludeOffset + 1;
-                //set string
-                strCurrentLine = stlInput[lngLine];
-            }
+
+            // skip over blank lines
+            do {
+                //increment line counter
+                lngLine++;
+                lngPos = 0;
+                //if at end,
+                if (lngLine >= stlInput.Count) {
+                    lngLine = -1;
+                    return;
+                }
+                //check for include lines
+                if (Left(stlInput[lngLine], 2) == INCLUDE_MARK) {
+                    lngIncludeOffset++;
+                    //set module
+                    int mod = int.Parse(Mid(stlInput[lngLine], 3, stlInput[lngLine].IndexOf(':') - 3));
+                    errInfo.Module = strIncludeFile[mod];
+                    //set errline
+                    errInfo.Line = int.Parse(Mid(stlInput[lngLine], stlInput[lngLine].IndexOf(':') + 1, stlInput[lngLine].IndexOf('#') - 5));
+                    strCurrentLine = Right(stlInput[lngLine], stlInput[lngLine].Length - stlInput[lngLine].IndexOf('#'));
+                }
+                else {
+                    errInfo.Module = strLogCompID;
+                    errInfo.Line = lngLine - lngIncludeOffset + 1;
+                    //get the next line
+                    strCurrentLine = stlInput[lngLine];
+                }
+            } while (strCurrentLine.Length == 0);
         }
-        static internal string NextChar(bool blnNoNewLine = false)
+        internal static bool CheckChar(string charval, bool blnNoNewLine = false) {
+            //if next char is what we want, it advances, otherwise not
+
+            string testChar;
+
+
+            testChar = NextChar(blnNoNewLine);
+            // CheckChar = (testChar = charval)
+
+
+            if (testChar != charval) {
+                //no match; need to back up
+                //unless nothing was found (meaning end of line or input)
+                if (testChar.Length > 0) {
+                    lngPos--;
+                }
+            }
+            return testChar == charval;
+        }
+        internal static string PeekCmd(bool blnNoNewLine = false)
+        {
+            int tmpPos, tmpLine, tmpErrLine, tmpInclOffset;
+            string tmpModule, tmpModName, tmpCurLine, peekcmd;
+
+            //save compiler state
+            tmpPos = lngPos;
+            tmpLine = lngLine;
+            tmpInclOffset = lngIncludeOffset;
+            tmpModule = errInfo.Module;
+            tmpCurLine = strCurrentLine;
+            tmpErrLine = errInfo.Line;
+            // get next command
+            peekcmd = NextCommand(blnNoNewLine);
+            // restore compiler state
+            lngPos = tmpPos;
+            lngLine = tmpLine;
+            lngIncludeOffset = tmpInclOffset;
+            errInfo.Module = tmpModule;
+            strCurrentLine = tmpCurLine;
+            errInfo.Line = tmpErrLine;
+            // return the peek
+            return peekcmd;
+        }
+    internal static string NextChar(bool blnNoNewLine = false)
         {
             //gets the next non-space character (tabs (ascii code H&9, are converted
             //to a space character, and ignored) from the input stream
@@ -1661,7 +1706,7 @@ namespace WinAGI.Engine
                 return retval;
             }
             while (true);// Loop Until NextChar != ' ' && LenB(NextChar) != 0
-        } //endfunction
+        }
         static internal string NextCommand(bool blnNoNewLine = false)
         {
             //this function will return the next command, which is comprised
@@ -1701,28 +1746,45 @@ namespace WinAGI.Engine
                 return "";
             }
             //if command is a element separator:
-            if ("'(),:;?[\\]^`{}~".Any(retval.Contains)) {
+            //  Case 40, 41, 44, 58, 59, 91, 92, 93, 94, 96, 123, 125, 126 '
+            //  (),:;[\]^`{}~
+
+            if ("'(),:;[\\]^`{}~".Any(retval.Contains)) {
                 //return this single character as a command
                 return retval;
             }
             // check for other characters using a switch
             switch ((byte)retval[0]) {
+            case 39 or 63: // ' or ?
+                //sierra syntax doesn't treat these as a single character command
+                if (!agSierraSyntax) {
+                    // fanAGI does
+                    return retval;
+                }
+                break;
             case 61: // =
-                     //special case; "=", "=<" and "=>" returned as separate commands
+                     //special case; "=", "==", "=<" and "=>" returned as separate commands
+                     // (also "=@" for sierra syntax)
                 switch (strCurrentLine[lngPos + 1]) {
-                case '<':
-                case '>':
+                case '<' or '>':
                     //increment pointer
                     lngPos++;
                     //return the two byte cmd (swap so we get ">=" and "<="
                     // instead of "=>" and "=<"
-                    retval = ((char)strCurrentLine[lngPos]).ToString() + retval;
+                    retval = strCurrentLine[lngPos].ToString() + retval;
                     break;
                 case '=': //"=="
                           //increment pointer
                     lngPos++;
                     //return the two byte cmd
                     retval = "==";
+                    break;
+                case '@': // "=@"
+                    if (agSierraSyntax) {
+                        // rindirect
+                        lngPos++;
+                        retval = "=@";
+                    }
                     break;
                 }
                 return retval;
@@ -1793,11 +1855,6 @@ namespace WinAGI.Engine
                     lngPos++;
                     //return less than or equal
                     retval = "<=";
-                    //} else if ( strCurrentLine[lngPos + 1] == '>') {
-                    //  //increment pointer
-                    //  lngPos++;
-                    //  //return not equal
-                    //  NextCommand = "<>";
                 }
                 return retval;
             case 62: //>
@@ -1821,9 +1878,9 @@ namespace WinAGI.Engine
                     lngPos++;
                     //return shorthand multiplication
                     retval = "*=";
-                    //since block commands are no longer supported, check for them in order to provide a
-                    //meaningful error message
                 }
+                //since block commands are no longer supported, check for them in order to provide a
+                //meaningful error message
                 else if (strCurrentLine[lngPos + 1] == '/') {
                     lngPos++;
                     retval = "*/";
@@ -1865,6 +1922,18 @@ namespace WinAGI.Engine
                     retval = "&&";
                 }
                 return retval;
+            case 64: // @
+                     // special case; "@=" returned as separate command
+                if (agSierraSyntax) {
+                    if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
+                        //increment pointer
+                        lngPos++;
+                        //return "@="
+                        retval = "@=";
+                        return retval;
+                    }
+                }
+                break;
             }
 
             //if not a text string,
@@ -1872,22 +1941,26 @@ namespace WinAGI.Engine
                 //continue adding characters until element separator or EOL is reached
                 while (lngPos < strCurrentLine.Length) // Until lngPos + 1 > Len(strCurrentLine)
                   {
-                    intChar = (byte)strCurrentLine[lngPos + 1];
-                    if ((intChar >= 32 && intChar <= 34) ||
-                        (intChar >= 38 && intChar <= 45) ||
-                        intChar == 47 ||
-                        (intChar >= 58 && intChar <= 63) ||
-                        (intChar >= 91 && intChar <= 94) ||
-                        intChar == 96 ||
-                        (intChar >= 123 && intChar <= 126)) {
-                        //case 32, 33, 34, 38 To 45, 47, 58 To 63, 91 To 94, 96, 123 To 126
-                        //  space, !"&//() *+,-/:;<=>?[\]^`{|}~ 
+                    char nextChar = strCurrentLine[lngPos + 1];
+                    //  space, !"&'() * +,-/:;<=>?[\] ^`{|}~
+                    // always marks end of token
+                    if (" !\"&'() * +,-/:;<=>?[\\] ^`{|}~".Any(nextChar.ToString().Contains)) {
                         //end of command text found
                         break;
+                    } else if ("'/?".Any(nextChar.ToString().Contains)) {
+                        if (agSierraSyntax) {
+                            // sierra syntax allows these in tokens
+                            retval += nextChar;
+                            //incrmeent position
+                            lngPos++;
+                        } else {
+                            // in fanAGI syntax these also mark end of token
+                            break;
+                        }
                     }
                     else {
                         //add character
-                        retval += ((char)intChar).ToString();
+                        retval += nextChar;
                         //incrment position
                         lngPos++;
                     }
@@ -1944,6 +2017,31 @@ namespace WinAGI.Engine
             }
             // return the command
             return retval;
+        }
+        internal static void CheckForEOL() {
+            // normal syntax requires an eol mark;
+            // sierra syntax does not, but it's recommended
+
+            int lngOldLine, lngNewLine;
+
+            //cache error line, in case error drops down
+            //one or more lines
+            lngOldLine = errInfo.Line;
+
+            if (!CheckChar(";")) {
+                // temporarily set to line where error really is
+                lngNewLine = errInfo.Line;
+                errInfo.Line = lngOldLine;
+                if (agSierraSyntax) {
+                    // warning
+                    AddWarning(5111);
+                } else {
+                    // error
+                    AddMinorError(4007);
+                }
+                // restore errline
+                errInfo.Line = lngNewLine;
+            }
         }
         static internal string ConcatArg(string strText)
         {
@@ -2707,7 +2805,7 @@ namespace WinAGI.Engine
             int[] lngWord;
             int intWordCount;
             int i;
-            bool blnIfBlock = false; //command block, not a comment block
+            bool blnOrBlock = false; //command block, not a comment block
             bool blnNeedNextCmd = true;
             int intNumTestCmds = 0;
             int intNumCmdsInBlock = 0;
@@ -2718,9 +2816,8 @@ namespace WinAGI.Engine
             tmpLogRes.WriteByte(0xFF);
 
             //next character should be "("
-            if (NextChar() != "(") {
-                errInfo.ID = "4002";
-                errInfo.Text = LoadResString(4002);
+            if (!CheckChar("(")) {
+                AddMinorError(4002);
                 return false;
             }
 
@@ -2730,42 +2827,47 @@ namespace WinAGI.Engine
                 strTestCmd = NextCommand();
                 //check for end of input,
                 if (lngLine == -1) {
+                    // nothing left, return critical error
                     errInfo.ID = "4106";
                     errInfo.Text = LoadResString(4106);
                     return false;
                 }
-
                 //if awaiting a test command,
                 if (blnNeedNextCmd) {
                     switch (strTestCmd) {
                     case "(": //open paran
                               //if already in a block
-                        if (blnIfBlock) {
-                            errInfo.ID = "4045";
-                            errInfo.Text = LoadResString(4045);
-                            return false;
+                        if (blnOrBlock) {
+                            AddMinorError(4045);
                         }
                         //write /'or' block start
                         tmpLogRes.WriteByte(0xFC);
-                        blnIfBlock = true;
+                        blnOrBlock = true;
                         intNumCmdsInBlock = 0;
                         break;
                     case ")":
                         //if a test command is expected, ')' always causes error
-                        if (intNumTestCmds == 0) {
-                            errInfo.ID = "4057";
-                            errInfo.Text = LoadResString(4057);
+                        if (blnOrBlock && intNumCmdsInBlock == 0) {
+                            // TODO: technically not an error; it will compile and run
+                            // but I don't feel like adding another warning
+                            AddMinorError(4044);
+                            // close the block
+                            blnOrBlock = false;
+                            blnNeedNextCmd = false;
                         }
-                        else if (blnIfBlock && intNumCmdsInBlock == 0) {
-                            errInfo.ID = "4044";
-                            errInfo.Text = LoadResString(4044);
+                        else if (intNumTestCmds == 0) {
+                            // TODO: technically not an error; it will compile and run
+                            // but I don't feel like adding another warning
+                            AddMinorError(4057);
+                            // done with if
+                            break;
                         }
                         else {
-                            errInfo.ID = "4056";
-                            errInfo.Text = LoadResString(4056);
+                            AddMinorError(4056);
+                            // done with if;
+                            break;
                         }
-                        //blnError = true;
-                        return false;
+                        break;
                     default:
                         //check for NOT
                         blnNOT = (strTestCmd == NOT_TOKEN);
@@ -2775,6 +2877,7 @@ namespace WinAGI.Engine
                             strTestCmd = NextCommand();
                             //check for end of input,
                             if (lngLine == -1) {
+                                blnCriticalError = true;
                                 errInfo.ID = "4106";
                                 errInfo.Text = LoadResString(4106);
                                 return false;
@@ -2786,19 +2889,16 @@ namespace WinAGI.Engine
                             //check for special syntax
                             if (!CompileSpecialif(strTestCmd, blnNOT)) {
                                 //error; the CompileSpecialIf function
-                                //sets the error codes, and CompileLogic will
-                                //call the error handler
-                                return false;
+                                //sets the error codes, - return true to continue
+                                return true;
                             }
                         }
                         else {
                             //write the test command code
                             tmpLogRes.WriteByte(bytTestCmd);
                             //next command should be "("
-                            if (NextChar() != "(") {
-                                errInfo.ID = "4048";
-                                errInfo.Text = LoadResString(4048);
-                                return false;
+                            if (!CheckChar("(")) {
+                                AddMinorError(4048);
                             }
                             //check for return.false() command
                             if (bytTestCmd == 0) {
@@ -2807,41 +2907,42 @@ namespace WinAGI.Engine
                                     ErrorLevel == leMedium) {
                                     //generate warning
                                     AddWarning(5081);
-                                    //} else {// leLow
-                                    //  // no action
                                 }
                             }
-
                             //if said command
                             if (bytTestCmd == 0xE) {
+                                // reset word count
                                 intWordCount = 0;
                                 lngWord = [];
-                                //get first word arg
-                                lngArg = GetNextArg(atVocWrd, intWordCount + 1);
-                                //if error
-                                if (blnCriticalError) {
-                                    // if error number is 4054
-                                    if (errInfo.ID == "4054") {
-                                        // add command name to error string
-                                        errInfo.Text = errInfo.Text.Replace(ARG2, TestCommands[bytTestCmd].Name);
+                                // loop to add words
+                                do { 
+                                    //get first word arg
+                                    lngArg = GetNextArg(atVocWrd, intWordCount);
+                                    //if error
+                                    if (lngArg < 0) {
+                                        switch (lngArg) {
+                                        case -1:
+                                            AddMinorError(int.Parse(errInfo.ID), errInfo.Text);
+                                            break;
+                                        default:
+                                            // show error
+                                            AddMinorError(4054);
+                                            break;
+                                        }
+                                        // use placeholder 'anyword'
+                                        lngArg = 1;
                                     }
-                                    //exit
-                                    return false;
-                                }
-
-                                //loop to add this word, and any more
-                                do {
-                                    //add this word number to array of word numbers
-                                    Array.Resize(ref lngWord, intWordCount + 1);
-                                    lngWord[intWordCount] = lngArg;
-                                    intWordCount++;
-                                    //if too many words
+                                    // if too many words
                                     if (intWordCount == 10) {
-                                        errInfo.ID = "4002";
-                                        errInfo.Text = LoadResString(4002);
-                                        return false;
+                                        AddMinorError(4093);
+                                        break;
+                                    } else if (intWordCount < 10) {
+                                        // if 1 to 9 words, ok to add this word number
+                                        // to array of word numbers
+                                        Array.Resize(ref lngWord, intWordCount + 1);
+                                        lngWord[intWordCount] = lngArg;
                                     }
-
+                                    intWordCount++;
                                     //get next character
                                     //(should be a comma, or close parenthesis, if no more words)
                                     strArg = NextChar();
@@ -2854,72 +2955,37 @@ namespace WinAGI.Engine
                                             endfound = true;
                                             break; //exit do
                                         case ',':
-                                            //expected; now check for next word argument
-                                            lngArg = GetNextArg(atVocWrd, intWordCount + 1);
-                                            //if error
-                                            if (blnCriticalError) {
-                                                //exit
-                                                // if error number is 4054
-                                                if (errInfo.ID == "4054") {
-                                                    // add command name to error string
-                                                    errInfo.Text = errInfo.Text.Replace(ARG2, TestCommands[bytTestCmd].Name);
-                                                }
-                                                return false;
-                                            }
+                                            //expected; continue check for next word argument
                                             break;
                                         default:
-                                            //anything else is an error
-                                            //blnError = true;
-                                            //check for added quotes; they are the problem
-                                            if (lngQuoteAdded >= 0) {
-                                                //reset line;
-                                                lngLine = lngQuoteAdded;
-                                                errInfo.Line = lngLine - lngIncludeOffset + 1;
-                                                errInfo.ID = "4051";
-                                                errInfo.Text = LoadResString(4051);
-                                            }
-                                            else {
-                                                errInfo.ID = "4047";
-                                                //use 1-base arg values
-                                                errInfo.Text = LoadResString(4047).Replace(ARG1, (intWordCount + 1).ToString());
-                                            }
-                                            return false;
+                                            //missing comma
+                                            AddMinorError(4047, LoadResString(4047).Replace(ARG1, (intWordCount + 1).ToString()));
+                                            // assume comma and continue
+                                            lngPos -= strArg.Length;
+                                            break;
                                         }
-                                        if (endfound) {
-                                            break; // exit the loop
-                                        }
-
                                     }
                                     else {
-                                        //we should normally never get here, since changing the function to allow
+                                        //this  should normally never happen, since changing the function to allow
                                         //splitting over multiple lines, unless this is the LAST line of
                                         //the logic (an EXTREMELY rare edge case)
-                                        //error
-                                        //blnError = true;
                                         //check for added quotes; they are the problem
                                         if (lngQuoteAdded >= 0) {
                                             //reset line;
                                             lngLine = lngQuoteAdded;
                                             errInfo.Line = lngLine - lngIncludeOffset + 1;
-                                            //string error
-                                            errInfo.Text = LoadResString(4051);
                                         }
-                                        else {
-                                            errInfo.ID = "4047";
-                                            //use 1-base arg values
-                                            errInfo.Text = LoadResString(4047).Replace(ARG1, (intWordCount + 1).ToString());
-                                        }
+                                        errInfo.ID = "4047";
+                                        //use 1-base arg values
+                                        errInfo.Text = LoadResString(4047).Replace(ARG1, (intWordCount + 1).ToString());
                                         return false;
                                     }
                                 } while (true);
-
                                 //reset the quotemark error flag after ')' is found
                                 lngQuoteAdded = -1;
-
                                 //need to write number of arguments for //said//
                                 //before writing arguments themselves
                                 tmpLogRes.WriteByte((byte)intWordCount);
-
                                 //now add words
                                 for (i = 0; i < intWordCount; i++) {
                                     //write word Value
@@ -2931,50 +2997,48 @@ namespace WinAGI.Engine
                                 for (i = 0; i < TestCommands[bytTestCmd].ArgType.Length; i++) {
                                     //after first argument, verify comma separates arguments
                                     if (i > 0) {
-                                        if (NextChar(true) != ",") {
-                                            errInfo.ID = "4047";
-                                            //use 1-base arg values
-                                            errInfo.Text = LoadResString(4047).Replace(ARG1, (i + 1).ToString());
-                                            return false;
+                                        if (!CheckChar(",")) {
+                                            AddMinorError(4047, LoadResString(4047).Replace(ARG1, (i + 1).ToString()));
                                         }
                                     }
-
                                     //reset the quotemark error flag after comma is found
                                     lngQuoteAdded = -1;
-                                    bytArg[i] = (byte)GetNextArg(TestCommands[bytTestCmd].ArgType[i], i);
-                                    //if error
-                                    if (blnCriticalError) {
-                                        // if error number is 4054
-                                        if (errInfo.ID == "4054") {
-                                            // add command name to error string
-                                            errInfo.Text = errInfo.Text.Replace(ARG2, TestCommands[bytTestCmd].Name);
+                                    lngArg = GetNextArg(TestCommands[bytTestCmd].ArgType[i], i);
+                                    //check for error
+                                    if (lngArg >= 0) {
+                                        bytArg[i] = (byte)lngArg;
+                                    }
+                                    else {
+                                        if (lngArg == -1) {
+                                            AddMinorError(int.Parse(errInfo.ID), errInfo.Text);
                                         }
-                                        return false;
+                                        else {
+                                            // if error number is 4054 add cmd name
+                                            AddMinorError(4054, errInfo.Text.Replace(ARG2, agTestCmds[bytTestCmd].Name));
+                                        }
+                                        // use a placeholder
+                                        bytArg[i] = 0;
                                     }
                                     //write argument
                                     tmpLogRes.WriteByte(bytArg[i]);
                                 }
                             }
                             //next character should be ")"
-                            if (NextChar() != ")") {
-                                errInfo.ID = "4160";
-                                errInfo.Text = LoadResString(4160);
-                                return false;
+                            if (!CheckChar(")")) {
+                                AddMinorError(4160);
                             }
                             //reset the quotemark error flag
                             lngQuoteAdded = -1;
-
                             //validate arguments for this command
                             if (!ValidateIfArgs(bytTestCmd, ref bytArg)) {
                                 //error assigned by called function
                                 return false;
                             }
                         }
-
                         //command added
                         intNumTestCmds++;
                         //if in IF block,
-                        if (blnIfBlock) {
+                        if (blnOrBlock) {
                             intNumCmdsInBlock++;
                         }
                         //toggle off need for test command
@@ -2985,72 +3049,131 @@ namespace WinAGI.Engine
                 else { //not awaiting a test command
                     switch (strTestCmd) {
                     case NOT_TOKEN:
-
                         //invalid
-                        errInfo.ID = "4097";
-                        errInfo.Text = LoadResString(4097);
-                        return false;
+                        AddMinorError(4097);
+                        break;
                     case AND_TOKEN:
                         //if inside brackets
-                        if (blnIfBlock) {
-                            errInfo.ID = "4037";
-                            errInfo.Text = LoadResString(4037);
-                            return false;
+                        if (blnOrBlock) {
+                            AddMinorError(4037);
                         }
                         blnNeedNextCmd = true;
                         break;
                     case OR_TOKEN:
                         //if NOT inside brackets
-                        if (!blnIfBlock) {
-                            errInfo.ID = "4100";
-                            errInfo.Text = LoadResString(4100);
-                            return false;
+                        if (!blnOrBlock) {
+                            AddMinorError(4100);
+                            // assume a valid test
+                            intNumCmdsInBlock++;
+                            // force orblock
+                            blnOrBlock = false;
                         }
                         blnNeedNextCmd = true;
                         break;
                     case ")":
                         //if inside brackets
-                        if (blnIfBlock) {
+                        if (blnOrBlock) {
                             //ensure at least one command in block,
                             if (intNumCmdsInBlock == 0) {
-                                errInfo.ID = "4044";
-                                errInfo.Text = LoadResString(4044);
+                                // TODO: technically, not an error- it will compile and run
+                                // but I don't feel like adding another warning code...
+                                AddMinorError(4044);
                                 return false;
+                            } else if (intNumCmdsInBlock == 1) {
+                                AddWarning(5109);
                             }
                             //close brackets
-                            blnIfBlock = false;
+                            blnOrBlock = false;
                             tmpLogRes.WriteByte(0xFC);
                         }
                         else {
                             //ensure at least one command in block,
                             if (intNumTestCmds == 0) {
-                                errInfo.ID = "4044";
-                                errInfo.Text = LoadResString(4044);
-                                return false;
+                                AddWarning(4057);
                             }
-                            //end of if found
-
-                            //write ending if byte
+                            //end of if block found
                             tmpLogRes.WriteByte(0xFF);
-                            //return true
                             return true;
                         }
                         break;
                     default:
-                        if (blnIfBlock) {
-                            errInfo.ID = "4101";
-                            errInfo.Text = LoadResString(4101);
+                        int tmpErr;
+                        if (blnOrBlock) {
+                            tmpErr = 4101;
                         }
                         else {
-                            errInfo.ID = "4038";
-                            errInfo.Text = LoadResString(4038);
+                            tmpErr = 4038;
                         }
-                        //blnError = true;
-                        return false;
+                        AddMinorError(tmpErr);
+                        // assume it was ok
+                        blnNeedNextCmd = true;
+                        // 'and if it is a close bracket, assume
+                        // the 'if' block is now closed
+                        if (strTestCmd == "{") {
+                            lngPos--;
+                            break;
+                        }
+                        break;
                     }
                 }
                 //never leave loop normally; error, end of input, or successful
                 //compilation of test commands will all exit loop directly
+            } while (true);
+        }
+        static void ConcatSierraStr(ref string strText)
+        {
+            // sierra syntax allows concatenation over multiple lines, with
+            // ending quote only at end of last line
+
+            // strText is first line, without closing quote, and goes to
+            // end of current line, so first time through the loop the
+            // line will automatically increment
+
+            // add text, including spaces, until valid ending quote found
+
+            bool blnInQuotes = true, blnSlash = false;
+            char theChar;
+
+            //add characters until another TRUE quote is found
+            do {
+                //if at end of line
+                if (lngPos == strCurrentLine.Length) {
+                    //go to next line
+                    IncrementLine();
+                    //don't exceed last line
+                    if (lngLine == -1) {
+                        blnCriticalError = true;
+                        return;
+                    }
+                }
+
+                // get the next char in the line
+                theChar = strCurrentLine[lngPos + 1];
+                // increment position
+                lngPos++;
+                // if last char was a slash,
+                if (blnSlash) {
+                    // next char is just added as-is; no checking it
+                    // always reset  the slash
+                    blnSlash = false;
+                }
+                else {
+                    // regular char; check for slash or quote mark
+                    switch (theChar) {
+                    case '\"': //quote mark
+                               // a quote marks end of string
+                        blnInQuotes = false;
+                        break;
+                    case '\\': //backslash
+                        blnSlash = true;
+                        break;
+                    }
+                }
+
+                strText += theChar;
+                if (!blnInQuotes) {
+                    return;
+                }
             } while (true);
         }
         static internal bool ValidateArgs(int CmdNum, ref byte[] ArgVal)

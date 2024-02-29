@@ -2613,13 +2613,20 @@ public void ShowWarningList()
         public void ClearWarnings()
         {
             // clear entire list
+            WarningList.Clear();
+            // then clear the grid
             fgWarnings.Rows.Clear();
         }
-        public void ClearWarnings(bool ResNum, AGIResType ResType)
+        public void ClearWarnings(byte ResNum, AGIResType ResType)
         {
             //find the matching lines (by type/number)
+            foreach (TWinAGIEventInfo item in WarningList) {
+                if (item.ResNum == ResNum && item.ResType == ResType) {
+                    WarningList.Remove(item);
+                }
+            };
             for (int i = fgWarnings.Rows.Count - 1; i >= 0; i--) {
-                if ((bool)fgWarnings.Rows[i].Cells[4].Value == ResNum && (AGIResType)fgWarnings.Rows[i].Tag == ResType) {
+                if ((byte)fgWarnings.Rows[i].Cells[4].Value == ResNum && (AGIResType)fgWarnings.Rows[i].Tag == ResType) {
                     fgWarnings.Rows.RemoveAt(i);
                 }
             }

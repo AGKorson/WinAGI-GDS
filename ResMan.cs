@@ -20,6 +20,7 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Drawing.Imaging;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace WinAGI.Editor
 {
@@ -1660,9 +1661,13 @@ namespace WinAGI.Editor
                 Warnings = false
             };
             bgwOpenGame.RunWorkerAsync(LoadResults);
-            // now show progress form
-            ProgressWin.ShowDialog(MDIMain);
-
+            try {
+                // now show progress form
+                ProgressWin.ShowDialog(MDIMain);
+            }
+            catch (Exception e) {
+                Debug.Assert(false);
+            }
             // done with the background worker
             bgwOpenGame.Dispose();
             bgwOpenGame = null;

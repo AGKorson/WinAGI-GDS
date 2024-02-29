@@ -8,10 +8,6 @@ using static WinAGI.Engine.AudioPlayer;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
-using static WinAGI.Editor.Base;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using stdole;
 
 namespace WinAGI.Engine
 {
@@ -239,12 +235,12 @@ namespace WinAGI.Engine
                                     game.agLogs[bytResNum].IsDirty = false;
 
                                 }
-                                else {
-                                    //set it's DIR file values to FFs
-                                    bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                                    bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                                    bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                                    blnDirtyDIR = true;
+                                else {// TODO: add new warning if resource fails to load
+                                    ////set it's DIR file values to FFs
+                                    //bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
+                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
+                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
+                                    //blnDirtyDIR = true;
                                 }
                                 break;
                             case AGIResType.rtPicture:  //picture
@@ -286,11 +282,11 @@ namespace WinAGI.Engine
                                     game.agPics[bytResNum].Unload();
                                 }
                                 else {
-                                    //set it's DIR file values to FFs
-                                    bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                                    bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                                    bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                                    blnDirtyDIR = true;
+                                    ////set it's DIR file values to FFs
+                                    //bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
+                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
+                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
+                                    //blnDirtyDIR = true;
                                 }
                                 break;
                             case AGIResType.rtSound:  //sound
@@ -319,11 +315,11 @@ namespace WinAGI.Engine
                                     game.agSnds[bytResNum].Unload();
                                 }
                                 else {
-                                    //set it's DIR file values to FFs
-                                    bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                                    bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                                    bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                                    blnDirtyDIR = true;
+                                    ////set it's DIR file values to FFs
+                                    //bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
+                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
+                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
+                                    //blnDirtyDIR = true;
                                 }
                                 break;
                             case AGIResType.rtView:  //view
@@ -352,11 +348,11 @@ namespace WinAGI.Engine
                                     game.agViews[bytResNum].Unload();
                                 }
                                 else {
-                                    //set it's DIR file values to FFs
-                                    bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                                    bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                                    bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                                    blnDirtyDIR = true;
+                                    ////set it's DIR file values to FFs
+                                    //bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
+                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
+                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
+                                    //blnDirtyDIR = true;
                                 }
                                 break;
                             default:

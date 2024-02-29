@@ -2176,7 +2176,8 @@ namespace WinAGI.Engine
             // false warning about missing resources)
             foreach (Logic tmpLog in agLogs) {
                 //the CRC/source check depends on mode
-                if (Mode == OpenGameMode.File) {
+                switch (Mode) {
+                case OpenGameMode.File:
                     //opening existing wag file - check CRC
                     loadInfo.ResType = AGIResType.rtLogic;
                     loadInfo.ResNum = tmpLog.Number;
@@ -2201,8 +2202,8 @@ namespace WinAGI.Engine
                         tmpLog.CRC = 0;
                         tmpLog.CompiledCRC = 0;
                     }
-                }
-                else {
+                    break;
+                case OpenGameMode.Directory:
                     // extracting from game directory
                     // if extracting from a directory, none of the logics have source
                     // code; they should all be extracted here, and marked as clean
@@ -2216,7 +2217,8 @@ namespace WinAGI.Engine
                     loadInfo.InfoType = EInfoType.itDecompiling;
                     Raise_LoadGameEvent(loadInfo);
                     try {
-                        tmpLog.LoadSource(true);
+                        tmpLog.Load();
+                        //tmpLog.LoadSource(true);
                     }
                     catch (Exception e) {
                         if (e.HResult == WINAGI_ERR + 688) {
@@ -2236,17 +2238,19 @@ namespace WinAGI.Engine
                     }
                     // then unload it
                     tmpLog.Unload();
-                }
-                // if a new ID found, use it
-                if (DecodeGameID.Length != 0) {
-                    agGameID = DecodeGameID;
-                    DecodeGameID = "";
-                    File.Move(agGameFile, agGameDir + agGameID + ".wag", true);
-                    agGameFile = agGameDir + agGameID + ".wag";
-                    agGameProps.Lines[0] = agGameFile;
-                    WriteGameSetting("General", "GameID", agGameID);
+                    // if a new ID found, use it
+                    if (DecodeGameID.Length != 0) {
+                        agGameID = DecodeGameID;
+                        DecodeGameID = "";
+                        File.Move(agGameFile, agGameDir + agGameID + ".wag", true);
+                        agGameFile = agGameDir + agGameID + ".wag";
+                        agGameProps.Lines[0] = agGameFile;
+                        WriteGameSetting("General", "GameID", agGameID);
+                    }
+                    break;
                 }
             }
+            // everything loaded OK; tidy things up before exiting
             loadInfo.Type = EventType.etInfo;
             loadInfo.InfoType = EInfoType.itFinalizing;
             Raise_LoadGameEvent(loadInfo);

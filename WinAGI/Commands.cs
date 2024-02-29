@@ -22,7 +22,7 @@ namespace WinAGI.Engine
         internal static byte agNumCmds;
         internal static byte agNumTestCmds;
         static CommandStruct[] agCmds = new CommandStruct[MAX_CMDS];
-        static CommandStruct[] agTestCmds = new CommandStruct[20];
+        internal static CommandStruct[] agTestCmds = new CommandStruct[20];
 
         // last command 'adjust.ego.x.y', is not supported so it's not added
         // to the list of commands

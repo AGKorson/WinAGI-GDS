@@ -14,14 +14,15 @@ using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Microsoft.VisualStudio.TextManager.Interop;
+using System.Diagnostics;
 
 namespace WinAGI.Engine
 {
     public class Logic : AGIResource
     {
         //source code properties
-        string mSourceFile;
-        string mSourceText;
+        string mSourceFile = "";
+        string mSourceText = "";
         uint mCompiledCRC;
         uint mCRC;
         bool mSourceDirty;
@@ -159,9 +160,12 @@ namespace WinAGI.Engine
             CopyLogic.mCRC = mCRC;
             CopyLogic.mSourceText = mSourceText;
             CopyLogic.mSourceDirty = mSourceDirty;
-            if (!mInGame) {
-                CopyLogic.mSourceFile = mSourceFile;
-            }
+            // TODO: figure out how to handle source filename when cloning
+            CopyLogic.mSourceFile = mSourceFile;
+            //if (!mInGame) {
+            //    CopyLogic.mSourceFile = mSourceFile;
+            //} else {
+            //}
             return CopyLogic;
         }
         public uint CompiledCRC
@@ -207,11 +211,11 @@ namespace WinAGI.Engine
                 //if in a game,
                 if (mInGame) {
                     //sourcefile is predefined
-                    return parent.agResDir + mResID + agSrcFileExt;
+                    // force re-sync of name
+                //    Debug.Assert(mSourceFile == parent.agResDir + mResID + agSrcFileExt);
+                    mSourceFile = parent.agResDir + mResID + agSrcFileExt;
                 }
-                else {
-                    return mSourceFile;
-                }
+                return mSourceFile;
             }
             set
             {
@@ -276,7 +280,7 @@ namespace WinAGI.Engine
                         mSourceText = "";
                     }
                 }
-                return (mCRC == mCompiledCRC);
+                return mCRC == mCompiledCRC;
             }
             private set { }
         }
@@ -407,7 +411,7 @@ namespace WinAGI.Engine
             if (mInGame) {
                 //load file is predefined
                 LoadFile = parent.agResDir + mResID + agSrcFileExt;
-               // mSourceFile = LoadFile;
+            //    Debug.Assert(mSourceFile == LoadFile);
 
                 //if it does not exist,
                 if (!File.Exists(LoadFile)) {
@@ -445,7 +449,7 @@ namespace WinAGI.Engine
                 }
             }
             else {
-                LoadFile = mSourceFile;
+                LoadFile = SourceFile;
             }
 
             //if forcing decompile
@@ -569,7 +573,7 @@ namespace WinAGI.Engine
                 //if in a game
                 if (mInGame) {
                     //filename is predfined
-                    SaveFile = mSourceFile;
+                    SaveFile = SourceFile;
                 }
                 else {
                     //raise an error

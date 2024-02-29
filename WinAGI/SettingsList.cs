@@ -381,9 +381,10 @@ namespace WinAGI.Engine
         internal void Save()
         {
             //open temp file
-            string TempFile = Path.GetTempFileName();
+            //string TempFile = Path.GetTempFileName();
             try {
-                using StreamWriter cfgSR = new(TempFile);
+                //using StreamWriter cfgSR = new(TempFile);
+                using StreamWriter cfgSR = new(Filename);
                 //now output the results to the file
                 foreach (string line in Lines)
                     cfgSR.WriteLine(line);
@@ -391,8 +392,8 @@ namespace WinAGI.Engine
                 //cfgSR.Close();
                 //dispose it
                 cfgSR.Dispose();
-                // now copy new to final destination
-                File.Move(TempFile, Filename, true);
+                //// now copy new to final destination
+                //File.Move(TempFile, Filename, true);
             }
             catch (Exception) {
                 // do we care if there is a file error? YES!!!!!!!!!
