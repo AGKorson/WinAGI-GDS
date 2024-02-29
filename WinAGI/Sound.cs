@@ -76,16 +76,15 @@ namespace WinAGI.Engine
         {
             //this internal function adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
-            //initialize
+
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Sound";
-
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 
             //if importing, there will be nothing in the propertyfile
-            ID = parent.agGameProps.GetSetting("Sound" + ResNum, "ID", "", true);
+            mResID = parent.agGameProps.GetSetting("Sound" + ResNum, "ID", "", true);
             if (ID.Length == 0) {
                 //no properties to load; save default ID
                 ID = "Sound" + ResNum;

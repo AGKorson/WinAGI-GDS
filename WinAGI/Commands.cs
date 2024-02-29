@@ -647,13 +647,13 @@ namespace WinAGI.Engine
 
             agCmds[134].Name = "quit";
             agCmds[134].ArgType = new ArgTypeEnum[1];
-            agCmds[134].ArgType[0] = ArgTypeEnum.atNum;
+            agCmds[134].ArgType[0] = atNum;
 
             agCmds[135].Name = "show.mem";
-            agCmds[135].ArgType = Array.Empty<ArgTypeEnum>();
+            agCmds[135].ArgType = [];
 
             agCmds[136].Name = "pause";
-            agCmds[136].ArgType = Array.Empty<ArgTypeEnum>();
+            agCmds[136].ArgType = [];
 
             agCmds[137].Name = "echo.line";
             agCmds[137].ArgType = Array.Empty<ArgTypeEnum>();
@@ -991,7 +991,7 @@ namespace WinAGI.Engine
             }
             else {
                 agCmds[134].ArgType = new ArgTypeEnum[1];
-                agCmds[134].ArgType[0] = ArgTypeEnum.atNum;
+                agCmds[134].ArgType[0] = atNum;
             }
 
             // adjust number of available commands

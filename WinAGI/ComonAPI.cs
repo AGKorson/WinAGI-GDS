@@ -709,7 +709,7 @@ namespace WinAGI.Common
     public static partial class Base
     {
         internal const double LOG10_1_12 = 2.50858329719984E-02; // = Log10(2 ^ (1/12))
-        internal const string QUOTECHAR = "\"";
+        internal const char QUOTECHAR = '\"';
         internal const string ARG1 = "%1";
         internal const string ARG2 = "%2";
         internal const string ARG3 = "%3";

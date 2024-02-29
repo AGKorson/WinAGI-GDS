@@ -54,8 +54,6 @@ namespace WinAGI.Engine
             mInGame = false;
             mVolume = -1;
             mLoc = -1;
-            //// and is set with a default ID
-            this.mResID = ID;
             // calling resource constructor is responsible for creating
             // default data
             // assume no compression

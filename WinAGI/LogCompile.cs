@@ -869,8 +869,8 @@ namespace WinAGI.Engine
                     }
 
                     //check for correct quotes used 
-                    if (Left(strIncludeFilename, 1) == QUOTECHAR && Right(strIncludeFilename, 1) != QUOTECHAR ||
-                       Right(strIncludeFilename, 1) == QUOTECHAR && Left(strIncludeFilename, 1) != QUOTECHAR) {
+                    if (strIncludeFilename[0] == QUOTECHAR && strIncludeFilename[^1] != QUOTECHAR ||
+                        strIncludeFilename[^1] == QUOTECHAR && strIncludeFilename[0] != QUOTECHAR) {
                         if (ErrorLevel == leHigh) {
                             //return error: improper use of quote marks
                             errInfo.ID = "4059";
@@ -890,9 +890,9 @@ namespace WinAGI.Engine
                         }
                     }
                     //if quotes,
-                    if (Left(strIncludeFilename, 1) == QUOTECHAR) {
+                    if (strIncludeFilename[0] == QUOTECHAR) {
                         //strip off quotes
-                        strIncludeFilename = Mid(strIncludeFilename, 2, strIncludeFilename.Length - 2);
+                        strIncludeFilename = strIncludeFilename[1..^2];// Mid(strIncludeFilename, 2, strIncludeFilename.Length - 2);
                     }
                     //if filename doesnt include a path,
                     if (JustPath(strIncludeFilename, true).Length == 0) {
@@ -1395,7 +1395,7 @@ namespace WinAGI.Engine
                         //it is coded in the logic as a '\"' not just a '"'
                         //need to ensure all '\"' codes are converted to '"'
                         //otherwise the object would never match
-                        strArg = strArg.Replace("\\\"", QUOTECHAR);
+                        strArg = strArg.Replace("\\\"", QUOTECHAR.ToString());
                         //step through all object names
                         for (i = 0; i < compGame.InvObjects.Count; i++) {
                             //if this is the object
@@ -1980,12 +1980,12 @@ namespace WinAGI.Engine
                 //get next command
                 strTextContinue = NextCommand();
                 //add strings until concatenation is complete
-                while (Left(strTextContinue, 1) == QUOTECHAR) { // Until Left(strTextContinue, 1) != QUOTECHAR
+                while (strTextContinue[0] == QUOTECHAR) { // Until Left(strTextContinue, 1) != QUOTECHAR
                                                                 //if a continuation string is found, we need to reset
                                                                 //the quote checker
                     lngQuotesOK = 0;
                     //check for end quote
-                    if (Right(strTextContinue, 1) != QUOTECHAR) {
+                    if (strTextContinue[^1] != QUOTECHAR) {
                         //bad end quote (set end quote marker, overriding error
                         //that might happen on a previous line)
                         lngQuotesOK = 2;
@@ -2100,7 +2100,7 @@ namespace WinAGI.Engine
                             // slash codes never occur outside quotes
                             blnSlash = false;
                             //if this character is a quote mark, it starts a string
-                            blnInQuotes = Mid(strCurrentLine, lngPos, 1) == QUOTECHAR;
+                            blnInQuotes = strCurrentLine[lngPos] == QUOTECHAR; // Mid(strCurrentLine, lngPos, 1) == QUOTECHAR;
                         }
                         else {
                             //if last character was a slash, ignore this character
@@ -2111,12 +2111,12 @@ namespace WinAGI.Engine
                             }
                             else {
                                 //check for slash or quote mark
-                                switch (Mid(strCurrentLine, lngPos, 1)) {
+                                switch (strCurrentLine[lngPos]) {
                                 case QUOTECHAR: // 34 //quote mark
                                                 //a quote marks end of string
                                     blnInQuotes = false;
                                     break;
-                                case "\\": // 92 //slash
+                                case '\\': // 92 //slash
                                     blnSlash = true;
                                     break;
                                 }

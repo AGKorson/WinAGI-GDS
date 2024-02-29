@@ -395,7 +395,7 @@ namespace WinAGI.Engine
                 File.Move(TempFile, Filename, true);
             }
             catch (Exception) {
-                // do we care if there is a file error?
+                // do we care if there is a file error? YES!!!!!!!!!
                 throw;
             }
         }

@@ -29,6 +29,7 @@ namespace WinAGI.Engine
             internal int Length;
             internal bool IsOutside;
             internal int JumpPos;
+            internal bool HasQuit;
         }
         public enum AGICodeStyle
         {
@@ -39,12 +40,14 @@ namespace WinAGI.Engine
         static byte bytBlockDepth;
         static BlockType[] Block = new BlockType[MAX_BLOCK_DEPTH];
         static int intArgStart;
-        static int[] lngLabelPos;
+        static int[] lngLabelPos = [];
         static int lngMsgSecStart;
         static List<string> stlMsgs;
         static bool[] blnMsgUsed = new bool[256];
         static bool[] blnMsgExists = new bool[256];
         static List<string> stlOutput = [];
+        static bool badQuit = false;
+        static byte mIndentSize = 4;
 
         const int MAX_LINE_LEN = 80;
         //tokens for building source code output
@@ -64,20 +67,23 @@ namespace WinAGI.Engine
         static string D_TKN_COMMENT;
         static string D_TKN_MESSAGE;
         static bool blnWarning;
-        static string strWarning;
+        static List<string> strWarning = [];
 
 
         public static byte IndentSize
         {
             get { 
-                if (IndentSize == 0) {
-                    IndentSize = 4;
+                if (mIndentSize == 0) {
+                    mIndentSize = 4;
                 }
-                return IndentSize;
+                return mIndentSize;
             }
-            set { }
+            set {
+                mIndentSize = value;
+            }
         }
 
+        internal static int LogicNum;
         internal static string DecodeGameID
         {
             get;
@@ -90,25 +96,29 @@ namespace WinAGI.Engine
             // characters to correct encoding
             byte bytCurData;
             bool blnGoto;
-            byte bytCmd;
+            byte bytCmd = 0;
             int tmpBlockLen;
             int intArg;
             int lngNextLabel = 0;
             int lngLabelLoc;
-            string[] strWarningLine;
             int i, j;
             string strArg;
             int intCharCount;
+
+            // TODO: what about logics that aren't in a game?? they have no number
+            bytLogComp = (byte)LogNum;
             compGame = SourceLogic.parent;
             byte[] bytData = SourceLogic.Data.AllData;
 
             //if nothing in the resource,
             if (bytData.Length == 0) {
-                //single //'return()' command
-                //stlOutput.Add("return();");
+                //single 'return()' command
                 return "return();";
             }
-
+            // if tokens not set yet, set them now
+            if (!blnTokensSet) {
+                InitTokens(CodeStyle);
+            }
             //clear block info
             for (i = 0; i < MAX_BLOCK_DEPTH; i++) {
                 Block[i].EndPos = 0;
@@ -116,6 +126,7 @@ namespace WinAGI.Engine
                 Block[i].IsOutside = false;
                 Block[i].JumpPos = 0;
                 Block[i].Length = 0;
+                Block[i].HasQuit = false;
             }
 
             //extract beginning of msg section
@@ -137,7 +148,11 @@ namespace WinAGI.Engine
             //if can't read messges,
             if (!ReadMessages(bytData, lngMsgSecStart, SourceLogic.V3Compressed != 2)) {
                 //raise error
-                goto ErrHandler;
+                Exception e = new($"LogDecode Error ({strError})")
+                {
+                    HResult = WINAGI_ERR + 688
+                };
+                throw e;
             }
 
             //set main block info
@@ -150,23 +165,46 @@ namespace WinAGI.Engine
             strError = "";
             //locate labels, and mark them (this also validates all command bytes to be <=181)
             if (!FindLabels(bytData)) {
-                //use error string set by findlabels
-                goto ErrHandler;
+                // check for 'quit' cmd error
+                if (strError == "CHECKQUIT") {
+                    // adjust version and try one more time
+                    ActionCommands[134].ArgType = [];
+                    badQuit = true;
+                    strError = "";
+                    if (!FindLabels(bytData)) {
+                        //use error string set by findlabels
+                        Exception e = new($"LogDecode Error ({strError})")
+                        {
+                            HResult = WINAGI_ERR + 688
+                        };
+                        throw e;
+                    } else {
+                        //use error string set by findlabels
+                        Exception e = new($"LogDecode Error ({strError})")
+                        {
+                            HResult = WINAGI_ERR + 688
+                        };
+                        throw e;
+                    }
+                }
             }
-
             //reset block depth and data position
             bytBlockDepth = 0;
             lngPos = 2;
             if (bytLabelCount > 0) {
                 lngNextLabel = 1;
             }
-
             //main loop
             do {
                 AddBlockEnds(stlOutput);
                 //check for label position
                 if (lngLabelPos[lngNextLabel] == lngPos) {
-                    stlOutput.Add("Label" + lngNextLabel + ":");
+                    if (agSierraSyntax) {
+                        stlOutput.Add(":label" + lngNextLabel.ToString());
+                    }
+                    else {
+                        stlOutput.Add("Label" + lngNextLabel + ":");
+                    }
                     lngNextLabel++;
                     if (lngNextLabel > bytLabelCount) {
                         lngNextLabel = 0;
@@ -174,13 +212,18 @@ namespace WinAGI.Engine
                 }
                 bytCurData = bytData[lngPos];
                 lngPos++;
-                if (bytCurData == 0xFF) {
+                switch (bytCurData) {
+                case 0xFF:
                     //this byte starts an IF statement
                     if (!DecodeIf(bytData, stlOutput)) {
-                        goto ErrHandler;
+                        Exception e = new($"LogDecode Error ({strError})")
+                        {
+                            HResult = WINAGI_ERR + 688
+                        };
+                        throw e;
                     }
-                }
-                else if (bytCurData == 0xFE) {
+                    break;
+                case 0xFE:
                     //this byte is a 'goto' or 'else'
                     blnGoto = false;
                     tmpBlockLen = 256 * bytData[lngPos + 1] + bytData[lngPos];
@@ -190,20 +233,18 @@ namespace WinAGI.Engine
                         // convert to negative number
                         tmpBlockLen -= 0x10000;
                     }
-                    if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!Compiler.ElseAsGoto)) {
+                    if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!ElseAsGoto)) {
                         Block[bytBlockDepth].IsIf = false;
                         Block[bytBlockDepth].IsOutside = false;
                         if ((tmpBlockLen + lngPos > Block[bytBlockDepth - 1].EndPos) || (tmpBlockLen < 0) || (Block[bytBlockDepth].Length <= 3)) {
+                            // else won't work; force it to be a goto
                             blnGoto = true;
                         }
                         else {
-                            stlOutput.Add(MultStr("  ", bytBlockDepth) + D_TKN_ENDIF);
-                            if (Compiler.ElseAsGoto) {
-                                stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + D_TKN_GOTO);
-                            }
-                            else {
-                                stlOutput.Add(MultStr("  ", bytBlockDepth - 1) + D_TKN_ELSE.Replace(ARG1, NEWLINE + new String(' ', bytBlockDepth * 2)));
-                            }
+                            stlOutput.Add(MultStr(INDENT, bytBlockDepth - 1) + D_TKN_ENDIF.Replace(ARG1, INDENT));
+                            // append else to end of curent if block
+                            stlOutput[^1] += D_TKN_ELSE.Replace(ARG1, MultStr(INDENT, bytBlockDepth - 1));
+                            // adjust length and endpos for the 'else' block
                             Block[bytBlockDepth].Length = tmpBlockLen;
                             Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
                         }
@@ -215,55 +256,46 @@ namespace WinAGI.Engine
                     if (blnGoto) {
                         lngLabelLoc = tmpBlockLen + lngPos;
                         //label already verified in FindLabels; add warning if necessary
-                        if (lngLabelLoc > lngMsgSecStart) {
-                            switch (ErrorLevel) {
-                            //case leHigh - high level handled in FindLabels
-                            case leMedium:
-                                //set warning
-                                AddDecodeWarning("DC13", "Goto destination at position " + lngPos + "past end of logic; adjusted to end of logic", stlOutput.Count, SourceLogic.Number);
-                                //adjust it to end of resource
-                                lngLabelLoc = bytData.Length - 1;
-                                break;
-                            case leLow:
-                                //adjust it to end of resource
-                                lngLabelLoc = bytData.Length - 1;
-                                break;
-                            }
+                        if (lngLabelLoc > lngMsgSecStart - 1) {
+                            //set warning
+                            AddDecodeWarning("DC13", "Goto destination at position " + lngPos + "past end of logic; adjusted to end of logic", stlOutput.Count);
+                            //adjust it to end of resource
+                            lngLabelLoc =lngMsgSecStart - 1;
                         }
+                        // find it in list of labels
                         for (i = 1; i <= bytLabelCount; i++) {
                             if (lngLabelPos[i] == lngLabelLoc) {
-                                stlOutput.Add(MultStr("  ", bytBlockDepth) + D_TKN_GOTO.Replace(ARG1, "Label" + i) + D_TKN_EOL);
+                                stlOutput.Add(MultStr(INDENT, bytBlockDepth) + D_TKN_GOTO.Replace(ARG1, "Label" + i) + D_TKN_EOL);
                                 //if any warnings
                                 if (blnWarning) {
                                     //add warning lines
-                                    strWarningLine = strWarning.Split("|");
-                                    for (j = 0; j < strWarningLine.Length; j++) {
-                                        stlOutput.Add(D_TKN_COMMENT + "WARNING: " + strWarningLine[j]);
+                                    for (j = 0; j < strWarning.Count; j++) {
+                                        stlOutput.Add(D_TKN_COMMENT + "WARNING: " + strWarning[j]);
                                     }
                                     //reset warning flag + string
                                     blnWarning = false;
-                                    strWarning = "";
+                                    strWarning = [];
                                 }
                                 break;
                             }
                         }
                     }
-                }
-                else if (bytCurData < MAX_CMDS) {
+                    break;
+                default: //case < MAX_CMDS:
                     //valid agi command (don't need to check for invalid command number;
                     // they are all validated in FindLabels)
                     //if this command is not within range of expected commands for targeted interpretr version,
-                    if (bytCurData > Commands.ActionCount - 1) { //this byte is a command
-                                                                 //show warning
-                        AddDecodeWarning("DC10", "This command at position " + lngPos.ToString() + " is not valid for selected interpreter version (" + compGame.agIntVersion + ")", stlOutput.Count, SourceLogic.Number);
-  }
+                    if (bytCurData > ActionCount - 1) { //this byte is a command
+                         //show warning
+                        AddDecodeWarning("DC10", "This command at position " + lngPos.ToString() + " is not valid for selected interpreter version (" + compGame.agIntVersion + ")", stlOutput.Count);
+                    }
                     bytCmd = bytCurData;
-                    string strCurrentLine = MultStr("  ", bytBlockDepth);
-                    if (Compiler.SpecialSyntax && (bytCmd >= 0x1 && bytCmd <= 0xB) || (bytCmd >= 0xA5 && bytCmd <= 0xA8)) {
+                    string strCurrentLine = MultStr(INDENT, bytBlockDepth);
+                    if (SpecialSyntax && (bytCmd >= 0x1 && bytCmd <= 0xB) || (bytCmd >= 0xA5 && bytCmd <= 0xA8)) {
                         strCurrentLine += AddSpecialCmd(bytData, bytCmd);
                     }
                     else {
-                        strCurrentLine = strCurrentLine + ActionCommands[bytCmd].Name + "(";
+                        strCurrentLine +=  ActionCommands[bytCmd].Name + "(";
                         intArgStart = strCurrentLine.Length;
                         for (intArg = 0; intArg < ActionCommands[bytCmd].ArgType.Length; intArg++) {
                             bytCurData = bytData[lngPos];
@@ -280,16 +312,7 @@ namespace WinAGI.Engine
                                         }
                                         else {
                                             //view doesn't exist
-                                            switch (ErrorLevel) {
-                                            case leHigh:
-                                            case leMedium:
-                                                //set warning
-                                                AddDecodeWarning("DC11", "View " + bytCurData.ToString() + " in add.to.pic() at position " + lngPos.ToString() + " does not exist", stlOutput.Count, SourceLogic.Number);
-                                                break;
-                                            case leLow:
-                                                //do nothing
-                                                break;
-                                            }
+                                            AddDecodeWarning("DC11", "View " + bytCurData.ToString() + " in add.to.pic() at position " + lngPos.ToString() + " does not exist", stlOutput.Count);
                                         }
                                     }
                                     break;
@@ -299,16 +322,7 @@ namespace WinAGI.Engine
                                     }
                                     else {
                                         //logic doesn't exist
-                                        switch (ErrorLevel) {
-                                        case leHigh:
-                                        case leMedium:
-                                            //set warning
-                                            AddDecodeWarning("DC11", "Logic " + bytCurData.ToString() + " in call() at position " + lngPos.ToString() + " does not exist", stlOutput.Count, SourceLogic.Number);
-                                            break;
-                                        case leLow:
-                                            //do nothing
-                                            break;
-                                        }
+                                        AddDecodeWarning("DC11", "Logic " + bytCurData.ToString() + " in call() at position " + lngPos.ToString() + " does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 175: //discard.sound, only arg (S)
@@ -317,16 +331,7 @@ namespace WinAGI.Engine
                                     }
                                     else {
                                         //sound doesn't exist
-                                        switch (ErrorLevel) {
-                                        case leHigh:
-                                        case leMedium:
-                                            //add a warning
-                                            AddDecodeWarning("DC11", "sound " + bytCurData + " in discard.sound() does not exist", stlOutput.Count, SourceLogic.Number);
-                                            break;
-                                        case leLow:
-                                            //do nothing
-                                            break;
-                                        }
+                                        AddDecodeWarning("DC11", "sound " + bytCurData + " in discard.sound() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 32:  //discard.view,  only arg (V)
@@ -335,16 +340,7 @@ namespace WinAGI.Engine
                                     }
                                     else {
                                         //view doesn't exist
-                                        switch (ErrorLevel) {
-                                        case leHigh:
-                                        case leMedium:
-                                            //set warning
-                                            AddDecodeWarning("DC11", "view " + bytCurData + " in discard.view() does not exist", stlOutput.Count, SourceLogic.Number);
-                                            break;
-                                        case leLow:
-                                            //do nothing
-                                            break;
-                                        }
+                                        AddDecodeWarning("DC11", "view " + bytCurData + " in discard.view() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 20:  //load.logics,   only arg (L)
@@ -353,16 +349,7 @@ namespace WinAGI.Engine
                                     }
                                     else {
                                         //logic doesn't exist
-                                        switch (ErrorLevel) {
-                                        case leHigh:
-                                        case leMedium:
-                                            //set warning
-                                            AddDecodeWarning("DC11", "logic " + bytCurData + " in loadlogics() does not exist", stlOutput.Count, SourceLogic.Number);
-                                            break;
-                                        case leLow:
-                                            //do nothing
-                                            break;
-                                        }
+                                        AddDecodeWarning("DC11", "logic " + bytCurData + " in loadlogics() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 98:  //load.sound,    only arg (S)
@@ -371,16 +358,7 @@ namespace WinAGI.Engine
                                     }
                                     else {
                                         //sound doesn't exist
-                                        switch (ErrorLevel) {
-                                        case leHigh:
-                                        case leMedium:
-                                            //set warning
-                                            AddDecodeWarning("DC11", "sound " + bytCurData + " in load.sound() does not exist", stlOutput.Count, SourceLogic.Number);
-                                            break;
-                                        case leLow:
-                                            //do nothing
-                                            break;
-                                        }
+                                        AddDecodeWarning("DC11", "sound " + bytCurData + " in load.sound() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 30:  //load.view,     only arg (V)
@@ -389,16 +367,7 @@ namespace WinAGI.Engine
                                     }
                                     else {
                                         //view doesn't exist
-                                        switch (ErrorLevel) {
-                                        case leHigh:
-                                        case leMedium:
-                                            //set warning
-                                            AddDecodeWarning("DC11", "view " + bytCurData + " in load.view() does not exist", stlOutput.Count, SourceLogic.Number);
-                                            break;
-                                        case leLow:
-                                            //do nothing
-                                            break;
-                                        }
+                                        AddDecodeWarning("DC11", "view " + bytCurData + " in load.view() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 18:  //new.room,      only arg (L)
@@ -407,16 +376,7 @@ namespace WinAGI.Engine
                                     }
                                     else {
                                         //logic doesn't exist
-                                        switch (ErrorLevel) {
-                                        case leHigh:
-                                        case leMedium:
-                                            //set warning
-                                            AddDecodeWarning("DC11", "logic " + bytCurData + " in new.room() does not exist", stlOutput.Count, SourceLogic.Number);
-                                            break;
-                                        case leLow:
-                                            //do nothing
-                                            break;
-                                        }
+                                        AddDecodeWarning("DC11", "logic " + bytCurData + " in new.room() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 41:  //set.view,      2nd arg (V)
@@ -426,16 +386,7 @@ namespace WinAGI.Engine
                                         }
                                         else {
                                             //view doesn't exist
-                                            switch (ErrorLevel) {
-                                            case leHigh:
-                                            case leMedium:
-                                                //set warning
-                                                AddDecodeWarning("DC11", "view " + bytCurData + " in set.view() does not exist", stlOutput.Count, SourceLogic.Number);
-                                                break;
-                                            case leLow:
-                                                //do nothing
-                                                break;
-                                            }
+                                            AddDecodeWarning("DC11", "view " + bytCurData + " in set.view() does not exist", stlOutput.Count);
                                         }
                                     }
                                     break;
@@ -445,16 +396,7 @@ namespace WinAGI.Engine
                                     }
                                     else {
                                         //view doesn't exist
-                                        switch (ErrorLevel) {
-                                        case leHigh:
-                                        case leMedium:
-                                            //set warning
-                                            AddDecodeWarning("DC11", "view " + bytCurData + " in show.obj() does not exist", stlOutput.Count, SourceLogic.Number);
-                                            break;
-                                        case leLow:
-                                            //do nothing
-                                            break;
-                                        }
+                                        AddDecodeWarning("DC11", "view " + bytCurData + " in show.obj() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 99:  //sound,         1st arg (S)
@@ -464,16 +406,7 @@ namespace WinAGI.Engine
                                         }
                                         else {
                                             //sound doesn't exist
-                                            switch (ErrorLevel) {
-                                            case leHigh:
-                                            case leMedium:
-                                                //set warning
-                                                AddDecodeWarning("DC11", "sound " + bytCurData + " in sound() does not exist", stlOutput.Count, SourceLogic.Number);
-                                                break;
-                                            case leLow:
-                                                //do nothing
-                                                break;
-                                            }
+                                            AddDecodeWarning("DC11", "sound " + bytCurData + " in sound() does not exist", stlOutput.Count);
                                         }
                                     }
                                     break;
@@ -484,16 +417,7 @@ namespace WinAGI.Engine
                                         }
                                         else {
                                             //logic doesn't exist
-                                            switch (ErrorLevel) {
-                                            case leHigh:
-                                            case leMedium:
-                                                //set warning
-                                                AddDecodeWarning("DC11", "logic " + bytCurData + " in trace.info() does not exist", stlOutput.Count, SourceLogic.Number);
-                                                break;
-                                            case leLow:
-                                                //do nothing
-                                                break;
-                                            }
+                                            AddDecodeWarning("DC11", "logic " + bytCurData + " in trace.info() does not exist", stlOutput.Count);
                                         }
                                     }
                                     break;
@@ -503,7 +427,11 @@ namespace WinAGI.Engine
                             //if message error (no string returned)
                             if (strArg.Length == 0) {
                                 //error string set by ArgValue function
-                                goto ErrHandler;
+                                Exception e = new($"LogDecode Error ({strError})")
+                                {
+                                    HResult = WINAGI_ERR + 688
+                                };
+                                throw e;
                             }
                             //check for commands that use colors here
                             switch (bytCmd) {
@@ -584,87 +512,89 @@ namespace WinAGI.Engine
                             if (intArg < ActionCommands[bytCmd].ArgType.Length - 1) {
                                 strCurrentLine += ", ";
                             }
-                        } // Next intArg
+                        }
                         strCurrentLine += ")";
+                    }
+                    // check for set.game.id
+                    if (bytCmd == 143) {
+                        // if importing, use ths as suggested wag file name/gameid
+                        DecodeGameID = stlMsgs[bytCurData - 1][1..^1];
+                    }
+                    // check for quit() arg count error
+                    if (badQuit) {
+                        AddDecodeWarning("DC12", "quit() comand at position " + lngPos.ToString() + "coded with no argument",stlOutput.Count);
                     }
                     strCurrentLine += D_TKN_EOL;
                     stlOutput.Add(strCurrentLine);
                     //if any warnings
                     if (blnWarning) {
                         //add warning lines
-                        strWarningLine = strWarning.Split("|");
-                        for (i = 0; i < strWarningLine.Length; i++) {
-                            stlOutput.Add(D_TKN_COMMENT + "WARNING: " + strWarningLine[i]);
+                        for (i = 0; i < strWarning.Count; i++) {
+                            stlOutput.Add(D_TKN_COMMENT + "WARNING: " + strWarning[i]);
                         }
                         //reset warning flag + string
                         blnWarning = false;
-                        strWarning = "";
+                        strWarning = [];
                     }
+                    break;
                 }
             }
             while (lngPos < lngMsgSecStart);
             // finish up
             AddBlockEnds(stlOutput);
+            // confirm logic ends with return
+            if (bytCmd != 0) {
+                stlOutput.Add(MultStr(INDENT, bytBlockDepth) + CMT1_TOKEN + "WARNING DC15: return() command missing from end of logic");
+            }
             stlOutput.Add("");
             DisplayMessages(stlOutput);
+            // if quit was modified,restore it
+            if (badQuit) {
+                ActionCommands[134].ArgType = new ArgTypeEnum[1];
+                ActionCommands[134].ArgType[0] = atNum;
+            }
 
-            // convert array to single string, then to byte array
-            // using the Latin1 encoding (this converts the string
-            // characters to the correct byte values
-            byte[] chrLog = System.Text.Encoding.Latin1.GetBytes(string.Join(NEWLINE, stlOutput.ToArray()));
-            // then use a stream reader to convert the byte code array
-            // into the correct encoding to display them as cp437 characters
-            MemoryStream msLog = new MemoryStream(chrLog);
-            StreamReader srLogic = new(msLog, Encoding.GetEncoding(437));
-            string strOut = srLogic.ReadToEnd();
-            srLogic.Dispose();
-            msLog.Dispose();
 
-            //return results
-            return strOut;
 
-            // need to handle any errors
-            ErrHandler:
-            Exception e = new($"LogDecode Error ({strError})");
-            e.HResult = WINAGI_ERR + 688;
-            throw e;
+            //// convert array to single string, then to byte array
+            //// using the Latin1 encoding (this converts the string
+            //// characters to the correct byte values
+            //byte[] chrLog = System.Text.Encoding.Latin1.GetBytes(string.Join(NEWLINE, stlOutput.ToArray()));
+            //// then use a stream reader to convert the byte code array
+            //// into the correct encoding to display them as cp437 characters
+            //MemoryStream msLog = new MemoryStream(chrLog);
+            //StreamReader srLogic = new(msLog, Encoding.GetEncoding(437));
+            //string strOut = srLogic.ReadToEnd();
+            //srLogic.Dispose();
+            //msLog.Dispose();
+
+            ////return results
+            //return strOut;
+            return string.Join(NEWLINE, [.. stlOutput]);
         }
-        internal static void AddTODO(string TODOText, int LineNum, byte LogicNum)
-        {
-            TWinAGIEventInfo todoInfo = new()
-            {
-                Type = EventType.etTODO,
-                ID = "TODO",
-                Module = "",
-                Text = TODOText,
-                Line = LineNum
-            };
-            Raise_CompileLogicEvent(todoInfo);
-        }
-       static void AddDecodeWarning(string WarnID, string WarningText, int LineNum, byte LogicNum)
+       static void AddDecodeWarning(string WarnID, string WarningText, int LineNum)
         {
             TWinAGIEventInfo dcWarnInfo = new()
             {
+                ResNum = bytLogComp,
+                ResType = AGIResType.rtLogic,
                 Type = EventType.etWarning,
                 ID = WarnID,
                 Module = "",
                 Text = WarningText,
                 Line = LineNum,
             };
-            Raise_CompileLogicEvent(dcWarnInfo);
+            Raise_DecodeLogicEvent(dcWarnInfo);
 
             // add warning text to the stack so it can be added
             //to output once the current line is decompiled
 
             //if at least one warning already,
-            if (blnWarning) {
-                //add pipe character
-                strWarning += "\t";
-            } else {
+            if (!blnWarning) {
                 //set warning flag
                 blnWarning = true;
             }
-            strWarning += WarningText;
+            strWarning.Add(WarningText);
         }
         static string ArgValue(byte ArgNum, ArgTypeEnum ArgType, int VarVal = -1)
         {
@@ -676,7 +606,7 @@ namespace WinAGI.Engine
             }
             //add appropriate resdef name
             switch (ArgType) {
-            case ArgTypeEnum.atNum:
+            case atNum:
                 switch (VarVal) {
                 case 2 or 5: //v2 and v5 use edge codes
                     if (ArgNum <= 4) {
@@ -710,7 +640,7 @@ namespace WinAGI.Engine
                     //use default
                     return ArgNum.ToString();
                 }
-            case ArgTypeEnum.atVar:
+            case atVar:
                 //if a predefined,
                 if (ArgNum <= 26) {
                     return agResVar[ArgNum].Name;
@@ -719,7 +649,7 @@ namespace WinAGI.Engine
                     //not a reserved data type
                     return "v" + ArgNum;
                 }
-            case ArgTypeEnum.atFlag:
+            case atFlag:
                 //if a predefined
                 if (ArgNum <= 16) {
                     return agResFlag[ArgNum].Name;
@@ -732,36 +662,26 @@ namespace WinAGI.Engine
                     //not a reserved data type
                     return "f" + ArgNum;
                 }
-            case ArgTypeEnum.atMsg:
+            case atMsg:
                 blnMsgUsed[ArgNum] = true;
                 //if this message exists,
                 if (blnMsgExists[ArgNum]) {
-                    if (Compiler.MsgsByNumber) {
+                    if (MsgsByNumber) {
                         return "m" + ArgNum;
                     }
                     else {
                         //use string value of  message as the chunk to add to current line
+                        // TODO: adjust creation of message list so it's one-based to avoid potential confusion
                         return stlMsgs[ArgNum - 1];
                     }
                 }
                 else {
-                    //message doesn't exist
-                    switch (ErrorLevel) {
-                    case leHigh:
-                        strError = "Invalid message (" + ArgNum + ")  at position " + lngPos;
-                        return "";
-                    case leMedium:
-                        //set warning
-                        AddDecodeWarning("DC01", "invalid message: " + ArgNum + " at position " + lngPos, stlOutput.Count, bytLogComp);
-                        //store as number
-                        return "m" + ArgNum;
-                    case leLow:
-                    default:
-                        //store as number
-                        return "m" + ArgNum;
-                    }
+                    //message doesn't exist; raise a warning
+                    AddDecodeWarning("DC01", "invalid message: " + ArgNum + " at position " + lngPos, stlOutput.Count);
+                    //store as number
+                    return "m" + ArgNum;
                 }
-            case ArgTypeEnum.atSObj:
+            case atSObj:
                 //if ego
                 if (ArgNum == 0) {
                     return agResObj[0].Name;
@@ -770,47 +690,37 @@ namespace WinAGI.Engine
                     //not a reserved data type
                     return "o" + ArgNum;
                 }
-            case ArgTypeEnum.atInvItem:
+            case atInvItem:
                 //if a game is loaded AND OBJECT file is loaded and not displaying objects by number,
-                // TODO: shouldn't a game always be loaded to compile a logic?
-                if (compGame.agGameLoaded && compGame.agInvObj.Loaded && !Compiler.IObjsByNumber) {
+                // TODO: shouldn't a game always be loaded to decode a logic?
+                if (compGame.agGameLoaded && compGame.agInvObj.Loaded && !IObjsByNumber) {
                     if (ArgNum < compGame.agInvObj.Count) {
                         //if object is unique
                         if (compGame.agInvObj[ArgNum].Unique) {
                             //double check if item is a question mark
                             if (compGame.agInvObj[ArgNum].ItemName == "?") {
                                 //use the inventory item number, and post a warning
-                                AddDecodeWarning("DC04", "Reference to null inventory item ('?') at position " + lngPos, stlOutput.Count,  bytLogComp);
+                                AddDecodeWarning("DC04", "Reference to null inventory item ('?') at position " + lngPos, stlOutput.Count);
                             return "i" + ArgNum;
                             }
                             else {
                                 //a unique, non-questionmark item- use it's string Value
-                                return QUOTECHAR + compGame.agInvObj[ArgNum].ItemName.Replace(QUOTECHAR, "\"") + QUOTECHAR;
+                                return QUOTECHAR + compGame.agInvObj[ArgNum].ItemName.Replace(QUOTECHAR.ToString(), "\\\"") + QUOTECHAR;
                             }
                         }
                         else {
                             //use obj number instead
                             if (ErrorLevel != leLow) {
-                                AddDecodeWarning("DC05", "Non-unique inventory item '" + compGame.agInvObj[ArgNum].ItemName + "' at position " + lngPos, stlOutput.Count, bytLogComp);
+                                AddDecodeWarning("DC05", "Non-unique inventory item '" + compGame.agInvObj[ArgNum].ItemName + "' at position " + lngPos, stlOutput.Count);
                             }
                             return "i" + ArgNum;
                         }
                     }
                     else {
-                        switch (ErrorLevel) {
-                        case leHigh:
-                            strError = ("Invalid inventory item (" + ArgNum + ")");
-                            return "";
-                        case leMedium:
-                            //set warning
-                            AddDecodeWarning("DC03", "Invalid inventory item (" + ArgNum + ") at position " + lngPos, stlOutput.Count, bytLogComp);
-                            //just use the number
-                            return "i" + ArgNum;
-                        case leLow:
-                        default:
-                            //just use the number
-                            return "i" + ArgNum;
-                        }
+                        //set warning
+                        AddDecodeWarning("DC03", "Invalid inventory item (" + ArgNum + ") at position " + lngPos, stlOutput.Count);
+                        //just use the number
+                        return "i" + ArgNum;
                     }
                 }
                 else {
@@ -842,11 +752,11 @@ namespace WinAGI.Engine
         }
         static bool ReadMessages(byte[] bytData, int lngMsgStart, bool Decrypt)
         {
-            int lngEndMsgSection;
+            int lngMsgTextEnd;
             int[] MessageStart = new int[256];
             int intCurMsg;
-            int EncryptionStart;
-            string strMessage;
+            int lngMsgTextStart;
+            List<byte> bMsgText = [];
             bool blnEndOfMsg;
             byte bytInput;
             int NumMessages;
@@ -860,17 +770,26 @@ namespace WinAGI.Engine
             lngPos = lngMsgStart;
 
             //set message section end initially to msgsection start
-            lngEndMsgSection = lngMsgStart;
+            lngMsgTextEnd = lngMsgStart;
 
-            stlMsgs = new List<string> { };
+            stlMsgs = [];
 
             //read in number of messages
             NumMessages = bytData[lngPos];
             lngPos++;
             if (NumMessages > 0) {
+                // TODO: add more checks for bad msg data, and add new warnings as necessary
+
                 //retrieve and adjust end of message section
-                lngEndMsgSection = lngEndMsgSection + 256 * bytData[lngPos + 1] + bytData[lngPos];
+                lngMsgTextEnd = lngMsgTextEnd + 256 * bytData[lngPos + 1] + bytData[lngPos];
                 lngPos += 2;
+                if (lngMsgTextEnd != bytData.Length - 1) {
+                    // error!
+                    AddDecodeWarning("DC16", "Message section has invalid end-of-text marker", stlOutput.Count);
+                    // adjust it to end
+                    lngMsgTextEnd = bytData.Length - 1;
+                }
+
                 //loop through all messages, extract offset
                 for (intCurMsg = 1; intCurMsg <= NumMessages; intCurMsg++) {
                     //set start of this msg as start of msg block, plus offset, plus one (for byte which gives number of msgs)
@@ -878,60 +797,104 @@ namespace WinAGI.Engine
                     //validate msg start
                     if (MessageStart[intCurMsg] >= bytData.Length) {
                         //invalid
-                        strError = "Invalid message section data";
-                        return false;
+                        AddDecodeWarning("DC17", "Message " + intCurMsg + " has invalid offset", stlOutput.Count);
+                        MessageStart[intCurMsg] = 0;
+                        //strError = "Invalid message section data";
+                        //return false;
                     }
                     lngPos += 2;
 
-                } //Next intCurMsg
+                }
 
-                //mark start of encrypted data (to align encryption string)
-                EncryptionStart = lngPos;
+                // decrypt the entire message section, if needed
+                lngMsgTextStart = lngPos;
+                if (Decrypt) {
+                    for (int i = lngPos; i < lngMsgTextEnd; i++) {
+                        bytData[i] ^= bytEncryptKey[(i - lngMsgTextStart) % 11];
+                    }
+                }
 
-                //now read all messages, decrypting in the process, if necessary
+                //now read all messages
                 for (intCurMsg = 1; intCurMsg <= NumMessages; intCurMsg++) {
-                    strMessage = "";
+                    bMsgText = [];
                     //if msg start points to a valid msg
-                    if (MessageStart[intCurMsg] > 0 && MessageStart[intCurMsg] >= EncryptionStart) {
+                    if (MessageStart[intCurMsg] > 0 && MessageStart[intCurMsg] >= lngMsgTextStart) {
                         lngPos = MessageStart[intCurMsg];
                         blnEndOfMsg = false;
                         do {
                             bytInput = bytData[lngPos];
-                            // v3 compressed resources don't use encryption
-                            if (Decrypt) {
-                                bytInput ^= (bytEncryptKey[(lngPos - EncryptionStart) % 11]);
-                            }
                             lngPos++;
                             if ((bytInput == 0) || (lngPos >= bytData.Length)) {
                                 blnEndOfMsg = true;
                             }
                             else {
-                                if (bytInput == 0xA) {
-                                    strMessage += "\\n";
+                                switch (bytInput) {
+                                case 0xA:
+                                    bMsgText.Add(92); // '\'
+                                    bMsgText.Add(110); // 'n'
+                                    break;
+                                case < 0x20:
+                                    bMsgText.Add(92); // '\'
+                                    bMsgText.Add((byte)bytInput.ToString("x2")[0]);
+                                    bMsgText.Add((byte)bytInput.ToString("x2")[1]);
+                                    break;
+                                case 0x22:
+                                    bMsgText.Add(92); // '\'
+                                    bMsgText.Add(34); // '"'
+                                    break;
+                                case 0x5C:
+                                    bMsgText.Add(92); // '\'
+                                    bMsgText.Add(92); // '\'
+                                    break;
+                                case 0x7F:
+                                    bMsgText.Add(92); // '\'
+                                    bMsgText.Add(55); // '7'
+                                    bMsgText.Add(70); // 'F'
+                                    break;
+                                case 0xFF:
+                                    bMsgText.Add(92); // '\'
+                                    bMsgText.Add(70); // 'F'
+                                    bMsgText.Add(70); // 'F'
+                                    break;
+                                default:
+                                    bMsgText.Add(bytInput);
+                                    break;
                                 }
-                                else if (bytInput < 32) {
-                                    strMessage = strMessage + "\\x" + bytInput.ToString("x2");
-                                }
-                                else if (bytInput == 0x22) {
-                                    strMessage += "\\\"";
-                                }
-                                else if (bytInput == 0x5C) {
-                                    strMessage += "\\\\"; //TODO: check this!!!!
-                                }
-                                else if (bytInput == 0x7F) {
-                                    strMessage += "\\x7F";
-                                }
-                                else if (bytInput == 0xFF) {
-                                    strMessage += "\\xFF";
-                                }
-                                else {
-                                    strMessage += (char)(bytInput);
-                                } //End Select
+                                //if (bytInput == 0xA) {
+                                //    strMessage += "\\n"; 
+                                //}
+                                //else if (bytInput < 32) {
+                                //    strMessage = strMessage + "\\x" + bytInput.ToString("x2");
+                                //}
+                                //else if (bytInput == 0x22) {
+                                //    strMessage += "\\\"";
+                                //}
+                                //else if (bytInput == 0x5C) {
+                                //    strMessage += "\\\\"; //TODO: check this!!!!
+                                //}
+                                //else if (bytInput == 0x7F) {
+                                //    strMessage += "\\x7F";
+                                //}
+                                //else if (bytInput == 0xFF) {
+                                //    strMessage += "\\xFF";
+                                //}
+                                //else {
+                                //    strMessage += (char)(bytInput);
+                                //}
                             }
                         }
-                        while (!blnEndOfMsg); //Loop Until blnEndOfMsg
-
-                        stlMsgs.Add(QUOTECHAR + strMessage + QUOTECHAR);
+                        while (!blnEndOfMsg);
+                        // convert to correct codepage
+                        // TO READ:
+                        // read in as a byte array; then convert the
+                        // byte array to current codepage:
+                        //   strIn = agCodePage.GetString(bIn);
+                        if (bMsgText.Count == 0) {
+                            stlMsgs.Add("\"\"");
+                        }
+                        else {
+                            stlMsgs.Add(QUOTECHAR + compGame.CodePage.GetString(bMsgText.ToArray()) + QUOTECHAR);
+                        }
                         blnMsgExists[intCurMsg] = true;
                     }
                     else {
@@ -956,24 +919,22 @@ namespace WinAGI.Engine
             int lngWordGroupNum;
             string strLine, strArg;
             byte bytCmd;
-            string[] strWarningLine;
             int i;
             int intCharCount;
 
             blnIfFinished = false;
             blnFirstCmd = true;
             blnInOrBlock = false;
-            strLine = MultStr("  ", bytBlockDepth) + D_TKN_IF; //new String(" ", bytBlockDepth)? why not this?
-                                                               //main loop - read in logic, one byte at a time, and write text accordingly
+            strLine = MultStr(INDENT, bytBlockDepth) + D_TKN_IF;
+            
+            //main loop - read in logic, one byte at a time, and write text accordingly
             do {
                 //always reset 'NOT' block status to false
                 blnInNotBlock = false;
-
                 //read next byte from input stream
                 bytCurByte = bytData[lngPos];
                 //and increment pointer
                 lngPos++;
-
                 //first, check for an //OR//
                 if (bytCurByte == 0xFC) {
                     blnInOrBlock = !blnInOrBlock;
@@ -981,7 +942,7 @@ namespace WinAGI.Engine
                         if (!blnFirstCmd) {
                             strLine += D_TKN_AND;
                             stlOut.Add(strLine);
-                            strLine = MultStr("  ", bytBlockDepth) + "    ";
+                            strLine = MultStr(INDENT, bytBlockDepth) + "    ";
                             blnFirstCmd = true;
                         }
                         strLine += "(";
@@ -989,17 +950,15 @@ namespace WinAGI.Engine
                     else {
                         strLine += ")";
                     }
-
                     //now get next byte, and continue checking
                     bytCurByte = bytData[lngPos];
                     lngPos++;
                 }
-
                 //special check needed in case two 0xFCs are in a row, e.g. (a || b) && (c || d)
                 if ((bytCurByte == 0xFC) && (!blnInOrBlock)) {
                     strLine += D_TKN_AND;
                     stlOut.Add(strLine);
-                    strLine = MultStr("  ", bytBlockDepth) + "    ";
+                    strLine = MultStr(INDENT, bytBlockDepth) + "    ";
                     blnFirstCmd = true;
                     strLine += "(";
                     blnInOrBlock = true;
@@ -1007,7 +966,7 @@ namespace WinAGI.Engine
                     lngPos++;
                 }
 
-                //check for //not// command
+                //check for 'not' command
                 if (bytCurByte == 0xFD) {   // NOT
                     blnInNotBlock = true;
                     bytCurByte = bytData[lngPos];
@@ -1024,10 +983,10 @@ namespace WinAGI.Engine
                             strLine += D_TKN_AND;
                         }
                         stlOut.Add(strLine);
-                        strLine = MultStr("  ", bytBlockDepth) + "    ";
+                        strLine = MultStr(INDENT, bytBlockDepth) + "    ";
                     }
                     bytCmd = bytCurByte;
-                    if (Compiler.SpecialSyntax && (bytCmd >= 1 && bytCmd <= 6)) {
+                    if (SpecialSyntax && (bytCmd >= 1 && bytCmd <= 6)) {
                         //get first argument
                         bytCurByte = bytData[lngPos];
                         lngPos++;
@@ -1039,9 +998,7 @@ namespace WinAGI.Engine
                         if (blnInNotBlock) {
                             strLine += D_TKN_NOT;
                         }
-
                         strLine = strLine + TestCommands[bytCmd].Name + "(";
-
                         intArgStart = strLine.Length;
                         if (bytCmd == 14) {
                             // said command
@@ -1050,18 +1007,23 @@ namespace WinAGI.Engine
                             for (intArg1Val = 1; intArg1Val <= bytNumSaidArgs; intArg1Val++) {
                                 lngWordGroupNum = 256 * bytData[lngPos + 1] + bytData[lngPos];
                                 lngPos += 2;
-                                //if a game is loaded, TODO: shouldn't a game always be loaded to compile a logic?
-                                if (compGame.agGameLoaded) {
+                                //if a game is loaded and not skipping wordtext, TODO: shouldn't a game always be loaded to compile a logic?
+                                if (compGame.agGameLoaded && !WordsByNumber) {
                                     //enable error trapping to catch any nonexistent words
                                     try {
                                         //if word exists,
-                                        strLine = strLine + QUOTECHAR + compGame.agVocabWords.GroupN(lngWordGroupNum).GroupName + QUOTECHAR;
+                                        if (agSierraSyntax) {
+                                            strLine += QUOTECHAR + compGame.agVocabWords.GroupN(lngWordGroupNum).GroupName.Replace(' ', '$');
+                                        }
+                                        else {
+                                            strLine += QUOTECHAR + compGame.agVocabWords.GroupN(lngWordGroupNum).GroupName + QUOTECHAR;
+                                        }
                                     }
                                     catch (Exception) {
-                                            //add the word by its number
-                                            strLine += lngWordGroupNum;
+                                        //add the word by its number
+                                        strLine += lngWordGroupNum;
                                         //set warning text
-                                        AddDecodeWarning("DC02", "Invalid word (" + lngWordGroupNum + ") at position " + lngPos, stlOutput.Count, bytLogComp);
+                                        AddDecodeWarning("DC02", "Invalid word (" + lngWordGroupNum + ") at position " + lngPos, stlOutput.Count);
                                     }
                                 }
                                 else {
@@ -1072,7 +1034,7 @@ namespace WinAGI.Engine
                                 if (intArg1Val < bytNumSaidArgs) {
                                     strLine += ", ";
                                 }
-                            } //Next intArg1Val
+                            }
 
                         }
                         else {
@@ -1102,8 +1064,8 @@ namespace WinAGI.Engine
                                                 do {
                                                     intCharCount -= 1;
                                                 }
-                                                while (intCharCount != 1 && strArg[intCharCount - 1] != ' '); //Loop Until (intCharCount = 1) || (Mid(strArg, intCharCount, 1) = " ")
-                                                                                                              //if no space is found to split up the line
+                                                while (intCharCount != 1 && strArg[intCharCount - 1] != ' ');
+                                                //if no space is found to split up the line
                                                 if (intCharCount <= 1) {
                                                     //just split it without worrying about a space
                                                     intCharCount = MAX_LINE_LEN - strLine.Length;
@@ -1113,7 +1075,7 @@ namespace WinAGI.Engine
                                                 strArg = Mid(strArg, intCharCount + 1, strArg.Length - intCharCount);
                                                 //add line
                                                 stlOut.Add(strLine);
-                                                //create indent (but don't exceed 20 spaces (to ensure msgs aren//t split
+                                                //create indent (but don't exceed 20 spaces (to ensure msgs aren't split
                                                 //up into small chunks)
                                                 if (intArgStart >= MAX_LINE_LEN - 20) {
                                                     intArgStart = MAX_LINE_LEN - 20;
@@ -1147,12 +1109,12 @@ namespace WinAGI.Engine
                     //add warning if this is the unknown test19 command
                     if (bytCmd == 19) {
                         //set warning text
-                        AddDecodeWarning("DC06", "unknowntest19 at position " + lngPos + " is only valid in Amiga AGI versions", stlOutput.Count, bytLogComp);
+                        AddDecodeWarning("DC06", "unknowntest19 at position " + lngPos + " is only valid in Amiga AGI versions", stlOutput.Count);
                    }
                 }
                 else if (bytCurByte == 0xFF) {
                     //done with if block; add //then//
-                    strLine += D_TKN_THEN.Replace(ARG1, NEWLINE + MultStr(" ", bytBlockDepth * 2 + 2));
+                    strLine += D_TKN_THEN.Replace(ARG1, NEWLINE + MultStr(INDENT, bytBlockDepth + 1));
                     //(SkipToEndIf verified that max block depth is not exceeded)
                     //increase block depth counter
                     bytBlockDepth++;
@@ -1160,59 +1122,42 @@ namespace WinAGI.Engine
                     Block[bytBlockDepth].Length = 256 * bytData[lngPos + 1] + bytData[lngPos];
                     lngPos += 2;
                     //check for length of zero
-                    if (Block[bytBlockDepth].Length == 0 && ErrorLevel == leMedium) {
+                    if (Block[bytBlockDepth].Length == 0) {
                         //set warning text
-                        AddDecodeWarning("DC07", "This block at position " + lngPos + " contains no commands", stlOutput.Count, bytLogComp);
+                        AddDecodeWarning("DC07", "This block at position " + lngPos + " contains no commands", stlOutput.Count);
                    }
-
                     //validate end pos
                     Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
                     if (Block[bytBlockDepth].EndPos >= bytData.Length - 1) {
-                        switch (ErrorLevel) {
-                        //if error level is high, SkipToEndIf catches this condition
-                        case leMedium:
-                            //adjust to end
-                            Block[bytBlockDepth].EndPos = bytData.Length - 2;
-                            //set warning text
-                            AddDecodeWarning("DC08", "Block end at position " + lngPos + " past end of resource; adjusted to end of resource", stlOutput.Count, bytLogComp);
-                            break;
-                        case leLow:
-                            //adjust to end
-                            Block[bytBlockDepth].EndPos = bytData.Length - 2;
-                            break;
-                        }
+                        //adjust to end
+                        Block[bytBlockDepth].EndPos = bytData.Length - 2;
+                        //set warning text
+                        AddDecodeWarning("DC08", "Block end at position " + lngPos + " past end of resource; adjusted to end of resource", stlOutput.Count);
                     }
                     //verify block ends before end of previous block
                     //(i.e. it's properly nested)
                     if (Block[bytBlockDepth].EndPos > Block[bytBlockDepth - 1].EndPos) {
                         //block is outside the previous block nest;
                         //this is an abnormal situation
-                        //if error level is high; this would have been
-                        //caught in SkipToEndIf;
-                        if (ErrorLevel == leMedium) {
-                            //set warning text
-                            AddDecodeWarning("DC09", "Block end (" + Block[bytBlockDepth].JumpPos + ") outside of nested block at position " + lngPos, stlOutput.Count, bytLogComp);
-                        }
-
                         //need to simulate this block by using else and goto
                         Block[bytBlockDepth].IsOutside = true;
                         Block[bytBlockDepth].JumpPos = Block[bytBlockDepth].EndPos;
                         Block[bytBlockDepth].EndPos = Block[bytBlockDepth - 1].EndPos;
+                        //set warning text
+                        AddDecodeWarning("DC09", "Block end (" + Block[bytBlockDepth].JumpPos + ") outside of nested block at position " + lngPos, stlOutput.Count);
                     }
                     stlOut.Add(strLine);
                     //if any warnings
                     if (blnWarning) {
                         //add warning lines
-                        strWarningLine = strWarning.Split("|");
-                        for (i = 0; i < strWarningLine.Length; i++) {
-                            stlOut.Add(MultStr(INDENT, bytBlockDepth) + D_TKN_COMMENT + "WARNING: " + strWarningLine[i]);
+                        for (i = 0; i < strWarning.Count; i++) {
+                            stlOut.Add(MultStr(INDENT, bytBlockDepth) + D_TKN_COMMENT + "WARNING: " + strWarning[i]);
                         } //Next i
                           //reset warning flag + string
                         blnWarning = false;
-                        strWarning = "";
+                        strWarning = [];
                     }
-
-                    strLine = MultStr("  ", bytBlockDepth);
+                    strLine = MultStr(INDENT, bytBlockDepth);
                     blnIfFinished = true;
                 }
                 else {
@@ -1221,7 +1166,7 @@ namespace WinAGI.Engine
                     return false;
                 }
             }
-            while (!blnIfFinished); //Loop Until blnIfFinished
+            while (!blnIfFinished);
             return true;
         }
         static bool SkipToEndIf(byte[] bytData)
@@ -1276,48 +1221,31 @@ namespace WinAGI.Engine
                     Block[bytBlockDepth].IsIf = true;
                     Block[bytBlockDepth].Length = 256 * bytData[lngPos + 1] + bytData[lngPos];
                     lngPos += 2;
-                    //check length of block
-                    if (Block[bytBlockDepth].Length == 0) {
-                        if (ErrorLevel == leHigh) {
-                            //consider zero block lengths as error
-                            strError = "Encountered command block of length 0 at position " + lngPos;
-                            return false;
-                        }
-                    }
+                    // block length of zero will cause warning in main loop, so no need to check for it here
                     Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
                     if (Block[bytBlockDepth].EndPos > Block[bytBlockDepth - 1].EndPos) {
                         //block is outside the previous block nest;
                         //
                         //this is an abnormal situation;
-                        switch (ErrorLevel) {
-                        case leHigh:
-                            //error
-                            strError = "Block end outside of nested block (" + Block[bytBlockDepth].JumpPos + ") at position" + lngPos;
-                            return false;
-                        case leMedium:
-                        case leLow:
-                            //need to simulate this block by using else and goto
-                            Block[bytBlockDepth].IsOutside = true;
-                            Block[bytBlockDepth].JumpPos = Block[bytBlockDepth].EndPos;
-                            Block[bytBlockDepth].EndPos = Block[bytBlockDepth - 1].EndPos;
-                            //add a new goto item
-                            //(since error level is medium or low
-                            //dont need to worry about an invalid jumppos)
-                            //if label is already created
-                            for (i = 1; i <= bytLabelCount; i++) {
-                                if (lngLabelPos[i] == Block[bytBlockDepth].JumpPos) {
-                                    break;
-                                }
+                        //need to simulate this block by using else and goto
+                        Block[bytBlockDepth].IsOutside = true;
+                        Block[bytBlockDepth].JumpPos = Block[bytBlockDepth].EndPos;
+                        Block[bytBlockDepth].EndPos = Block[bytBlockDepth - 1].EndPos;
+                        //add a new goto item
+                        //(since error level is medium or low (dont need to worry about an invalid jumppos)
+                        //if label is already created
+                        for (i = 1; i <= bytLabelCount; i++) {
+                            if (lngLabelPos[i] == Block[bytBlockDepth].JumpPos) {
+                                break;
                             }
-                            //if loop exited normally (i will equal bytLabelCount+1)
-                            if (i == bytLabelCount + 1) {
-                                //increment label Count
-                                bytLabelCount = (byte)i;
-                                Array.Resize(ref lngLabelPos, bytLabelCount + 1);
-                                //save this label position
-                                lngLabelPos[bytLabelCount] = Block[bytBlockDepth].JumpPos;
-                            }
-                            break;
+                        }
+                        //if loop exited normally (i will equal bytLabelCount+1)
+                        if (i == bytLabelCount + 1) {
+                            //increment label Count
+                            bytLabelCount = (byte)i;
+                            Array.Resize(ref lngLabelPos, bytLabelCount + 1);
+                            //save this label position
+                            lngLabelPos[bytLabelCount] = Block[bytBlockDepth].JumpPos;
                         }
                     }
                     IfFinished = true;
@@ -1327,7 +1255,7 @@ namespace WinAGI.Engine
                     return false;
                 }
             }
-            while (!IfFinished); //Loop Until IfFinished
+            while (!IfFinished);
             return true;
         }
         static bool FindLabels(byte[] bytData)
@@ -1354,12 +1282,13 @@ namespace WinAGI.Engine
                 for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--) {
                     //if this position matches the end of this block
                     if (Block[CurBlock].EndPos <= lngPos) {
-                        //verify it is exact
-                        if (Block[CurBlock].EndPos != lngPos) {
-                            //error
-                            strError = "Invalid goto position, or invalid if/then block length at position ";
-                            strError += (Block[CurBlock].EndPos - Block[CurBlock].Length);
-                            return false;
+                        // if off by exactly one, AND there's a quit cmd in this block
+                        // AND this version is one that uses arg value for quit
+                        // this error ismost likely due to bad coding of quit cmd
+                        // if otherwise not an exact match, it will be caught when the block ends are added
+                        if (lngPos - Block[CurBlock].EndPos == 1 && compGame.agIntVersion != "2.089" && Block[CurBlock].HasQuit) {
+                            strError = "CHECKQUIT";
+                                return false;
                         }
                         //take this block off stack
                         bytBlockDepth--;
@@ -1368,16 +1297,15 @@ namespace WinAGI.Engine
                 //get next byte
                 bytCurData = bytData[lngPos];
                 lngPos++;
-                if (bytCurData == 0xFF) //this byte points to start of an IF statement
-                {
+                switch (bytCurData) {
+                case 0xFF:  //this byte points to start of an IF statement
                     //find labels associated with this if statement
                     if (!SkipToEndIf(bytData)) {
                         //major error
                         return false;
                     }
-                }
-                else if (bytCurData == 0xFE)   //if the byte is a GOTO command
-                {
+                    break;
+                case 0xFE:   //if the byte is a GOTO command
                     //reset goto status flag
                     DoGoto = false;
                     tmpBlockLength = 256 * bytData[lngPos + 1] + bytData[lngPos];
@@ -1420,49 +1348,51 @@ namespace WinAGI.Engine
                     // goto
                     if (DoGoto) {
                         LabelLoc = tmpBlockLength + lngPos;
-                        if (LabelLoc > bytData.Length - 2) {
-                            //if error level is high (medium and low are handled in DecodeLogic)
-                            if (ErrorLevel == leHigh) {
-                                strError = "Goto destination past end of logic (" + LabelLoc + ")" + "at position " + lngPos;
-                                return false;
-                            }
-                        }
-                        //if label is already created
-                        for (i = 1; i <= bytLabelCount; i++) {
-                            if (lngLabelPos[i] == LabelLoc) {
-                                break;
-                            }
-                        }
-                        //if loop exited normally (i will equal bytLabelCount+1)
-                        if (i == bytLabelCount + 1) {
+                        // dont' need to check for invalid destination because it's checked in main decode loop
+                        //if label not yet created
+                        if (!lngLabelPos.Contains(LabelLoc)) {
                             //increment label Count
                             bytLabelCount++;
                             Array.Resize(ref lngLabelPos, bytLabelCount + 1);
                             //save this label position
                             lngLabelPos[bytLabelCount] = LabelLoc;
                         }
+                        //for (i = 1; i <= bytLabelCount; i++) {
+                        //    if (lngLabelPos[i] == LabelLoc) {
+                        //        break;
+                        //    }
+                        //}
+                        ////if loop exited normally (i will equal bytLabelCount+1)
+                        //if (i == bytLabelCount + 1) {
+                        //    //increment label Count
+                        //    bytLabelCount++;
+                        //    Array.Resize(ref lngLabelPos, bytLabelCount + 1);
+                        //    //save this label position
+                        //    lngLabelPos[bytLabelCount] = LabelLoc;
+                        //}
                     }
-                }
-                else if (bytCurData < MAX_CMDS) //byte is an AGI command
-                {
+                    break;
+                case < MAX_CMDS: //byte is an AGI command
                     //skip over arguments to get next command
                     lngPos += ActionCommands[bytCurData].ArgType.Length;
-                }
-                else {
+                    break;
+                default:
                     //not a valid command - eror depends on value
-                    if (bytCurData == 182) {
-                        strError = "Unsupported action command 182 (adj.ego.move.to.x.y) at position " + lngPos;
-                        return false;
+                    if (bytCurData <= 182) {
+                        // leave it to main decode function to deal with it
+                        //strError = "Unsupported action command 182 (adj.ego.move.to.x.y) at position " + lngPos;
+                        //return false;
                     }
-                    else { //(bytCurData > MAX_CMDS)
-                           //major error
+                    else {
+                        //major error
                         strError = "Unknown action command (" + bytCurData + ") at position " + lngPos;
                         return false;
                     }
+                    break;
                 }
             }
-            while (lngPos < lngMsgSecStart); //Loop Until (lngPos >= lngMsgSecStart)
-                                             //now sort labels, if found
+            while (lngPos < lngMsgSecStart);
+            //now sort labels, if found
             if (bytLabelCount > 1) {
                 for (i = 1; i <= bytLabelCount - 1; i++) {
                     for (j = i + 1; j <= bytLabelCount; j++) {
@@ -1492,7 +1422,7 @@ namespace WinAGI.Engine
             //since the list is zero based, but messages are one-based.
             stlOut.Add(D_TKN_COMMENT + "Messages");
             for (lngMsg = 1; lngMsg <= stlMsgs.Count; lngMsg++) {
-                if (blnMsgExists[lngMsg] && ((Compiler.ShowAllMessages) || !blnMsgUsed[lngMsg])) {
+                if (blnMsgExists[lngMsg] && (ShowAllMessages || !blnMsgUsed[lngMsg])) {
                     stlOut.Add(D_TKN_MESSAGE.Replace(ARG1, lngMsg.ToString()).Replace(ARG2, stlMsgs[lngMsg - 1]));
                 }
             }
@@ -1633,36 +1563,46 @@ namespace WinAGI.Engine
             }
             return retval;
         }
-        static void AddBlockEnds(List<string> stlIn)
+        static void AddBlockEnds(List<string> stlOutput)
         {
             int CurBlock, i;
 
             for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--) {
-                //why would a less than apply here?
-                //FOUND IT!!! here is a case where it is less than!!!
-                //if (Block(CurBlock).EndPos <= lngPos) {
-                if (Block[CurBlock].EndPos == lngPos) {
-                    //check for unusual case where an if block ends outside
-                    //the if block it is nested in
+                // why would a less than apply here?
+                // FOUND IT!!! christmas card is an example-
+                // it ends with a quit cmd followed by zero value;
+                // the zero value is the last cmd, but the interpreter
+                // version expects an argument value, so it uses
+                //  the zero value. this results in pointer going
+                // past end of data, so it's one greater than
+                // calculated block end
+                if (Block[CurBlock].EndPos < lngPos) {
+                    AddDecodeWarning("DC14", "Expected block end does not align with calculated block end at position " + lngPos.ToString(), Compiler.stlOutput.Count);
+                }
+                if (Block[CurBlock].EndPos <= lngPos) {
+                    //check for unusual case where an if block ends outside the if block it is nested in
                     if (Block[CurBlock].IsOutside) {
-                        //add an else
-                        stlIn.Add(MultStr("  ", bytBlockDepth) + D_TKN_ENDIF);
-                        if (Compiler.ElseAsGoto) {
-                            stlIn.Add(MultStr("  ", bytBlockDepth - 1) + D_TKN_GOTO);
+                        // end current block
+                        stlOutput.Add(MultStr(INDENT, bytBlockDepth - 1) + D_TKN_ENDIF.Replace(ARG1, INDENT));
+                       if (ElseAsGoto) {
+                            //add an goto to start new block
+                            // TODO: check this - I think it's adding wrong goto tokens
+                            stlOutput.Add(MultStr(INDENT, bytBlockDepth - 1) + D_TKN_GOTO);
                         }
                         else {
-                            stlIn.Add(MultStr("  ", bytBlockDepth - 1) + D_TKN_ELSE.Replace(ARG1, NEWLINE + new String(' ', bytBlockDepth * 2)));
+                            // append else to end of current block
+                            stlOutput[^1] = stlOutput[^1] + D_TKN_ELSE.Replace(ARG1, NEWLINE + MultStr(INDENT, bytBlockDepth - 1));
                         }
                         //add a goto
                         for (i = 1; i <= bytLabelCount; i++) {
                             if (lngLabelPos[i] == Block[CurBlock].JumpPos) {
-                                stlIn.Add(MultStr("  ", bytBlockDepth) + D_TKN_GOTO.Replace(ARG1, "Label" + i) + D_TKN_EOL);
+                                stlOutput.Add(MultStr(INDENT, bytBlockDepth) + D_TKN_GOTO.Replace(ARG1, "Label" + i) + D_TKN_EOL);
                                 break;
                             }
                         }
                     }
                     //add end if
-                    stlIn.Add(MultStr("  ", CurBlock) + D_TKN_ENDIF);
+                    stlOutput.Add(MultStr(INDENT, CurBlock) + D_TKN_ENDIF.Replace(ARG1, INDENT));
                     bytBlockDepth--;
                 }
             }

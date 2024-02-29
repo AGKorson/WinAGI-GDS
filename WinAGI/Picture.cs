@@ -53,15 +53,9 @@ namespace WinAGI.Engine
             //this internal function adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
 
-            //initialize
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Picture";
-            //default to entire image
-            mDrawPos = -1;
-            //default pribase is 48
-            mPriBase = 48;
-
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 
@@ -76,6 +70,10 @@ namespace WinAGI.Engine
                 //get description and other properties from wag file
                 mDescription = parent.agGameProps.GetSetting("Picture" + ResNum, "Description", "");
             }
+            //default to entire image
+            mDrawPos = -1;
+            //default pribase is 48
+            mPriBase = 48;
         }
         void ResPropChange(object sender, AGIResPropChangedEventArgs e)
         {

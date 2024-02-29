@@ -1811,7 +1811,7 @@ namespace WinAGI.Engine
             WriteGameSetting("General", "Interpreter", agIntVersion);
 
             //finish the game load
-            return FinishGameLoad(OpenGameMode.File);
+            return FinishGameLoad(OpenGameMode.Directory);
         }
         internal void ClearGameState()
         {
@@ -1989,7 +1989,7 @@ namespace WinAGI.Engine
             //and correct interpreter version;
 
             //finish the game load
-            return FinishGameLoad(0);
+            return FinishGameLoad(OpenGameMode.File);
         }
         public TWinAGIEventInfo FinishGameLoad(OpenGameMode Mode)
         {
@@ -2042,7 +2042,8 @@ namespace WinAGI.Engine
 
                 if (Directory.GetDirectories(agGameDir).Length == 1) {
                     //assume it is resource directory
-                    agResDirName = Directory.GetDirectories(agGameDir)[0];
+                    DirectoryInfo tmp = new(Directory.GetDirectories(agGameDir)[0]);
+                    agResDirName = tmp.Name;
                 }
                 else {
                     //either no subfolders, or more than one
@@ -2187,6 +2188,8 @@ namespace WinAGI.Engine
                         //recalculate the CRC value for this sourcefile by loading the source
                         tmpLog.LoadSource(false);
                         // check it for TODO items
+                        // TODO: need to fix this so it doesn't access editor object; the engine should 
+                        // be 100% standalone from the editor (same for DecompWarnings)
                         ExtractTODO(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
                         // check for Decompile warnings
                         ExtractDecompWarn(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);

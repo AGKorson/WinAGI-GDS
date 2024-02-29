@@ -118,7 +118,6 @@ namespace WinAGI.Engine
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Logic";
-
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 

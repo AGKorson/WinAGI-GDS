@@ -33,6 +33,7 @@ namespace WinAGI.Engine
         internal static TDefine[] agResColor = new TDefine[16];  // 16: text of color indices
         internal static bool agSierraSyntax = false;
         internal static string agDefSrcExt = ".lgc";
+        internal static AGICodeStyle mCodeStyle = AGICodeStyle.cstDefault;
         public static string ArgTypePrefix(byte index)
         {
             if (index > 8) {
@@ -258,9 +259,9 @@ namespace WinAGI.Engine
         { get; set; }
         public static AGICodeStyle CodeStyle
         {
-            get { return CodeStyle; }
+            get { return mCodeStyle; }
             set {
-                CodeStyle = value;
+                mCodeStyle = value;
                 //force decompiler to update the tokens
                 blnTokensSet = false;
 

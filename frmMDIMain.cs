@@ -19,10 +19,6 @@ using System.Diagnostics;
 using static WinAGI.Editor.Base;
 using static WinAGI.Editor.BkgdTasks;
 using System.IO;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace WinAGI.Editor
 {
@@ -115,9 +111,10 @@ namespace WinAGI.Editor
             InitializeComponent();
 
             //attach  AGI game events
+            LoadGameStatus += GameEvents_LoadGameStatus;
             CompileGameStatus += GameEvents_CompileGameStatus;
             CompileLogicStatus += GameEvents_CompileLogicStatus;
-            LoadGameStatus += GameEvents_LoadGameStatus;
+            DecodeLogicStatus += GameEvents_DecodeLogicStatus;
 
             //initialize the WinAGI engine
             InitWinAGI();
@@ -203,6 +200,10 @@ namespace WinAGI.Editor
             }
         }
         private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e)
+        {
+
+        }
+        private void GameEvents_DecodeLogicStatus(object sender, DecodeLogicEventArgs e)
         {
 
         }

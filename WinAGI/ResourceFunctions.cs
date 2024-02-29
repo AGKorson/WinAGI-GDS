@@ -232,7 +232,7 @@ namespace WinAGI.Engine
                                 //make sure it was added before attempting to set property state
                                 if (game.agLogs.Exists(bytResNum)) {
                                     ////when new resources are added, status is set to dirty; for initial load,
-                                    ////need to reset them to false ****does not seem to be true; looks like it is 
+                                    //// TODO: need to reset them to false ****does not seem to be true; looks like it is 
                                     ////already false-
                                     ////
                                     //agLogs[bytResNum].WritePropState = false;

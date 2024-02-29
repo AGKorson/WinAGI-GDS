@@ -35,18 +35,14 @@ namespace WinAGI.Engine
             //this internal function adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
 
-            //initialize
-            mResID = "NewView";
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.View";
-            // add rempty loop col
-            mLoopCol = new Loops(this);
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 
             //if importing, there will be nothing in the propertyfile
-            ID = this.parent.agGameProps.GetSetting("View" + ResNum, "ID", "", true);
+            mResID = this.parent.agGameProps.GetSetting("View" + ResNum, "ID", "", true);
             if (ID.Length == 0) {
                 //no properties to load; save default ID
                 ID = "View" + ResNum;
@@ -56,6 +52,8 @@ namespace WinAGI.Engine
                 //get description and other properties from wag file
                 mDescription = parent.agGameProps.GetSetting("View" + ResNum, "Description", "");
             }
+            // add rempty loop col
+            mLoopCol = new Loops(this);
         }
         private void ResPropChange(object sender, AGIResPropChangedEventArgs e)
         {

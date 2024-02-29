@@ -2083,7 +2083,7 @@ namespace WinAGI.Editor
             retval = retval.Replace("%n", (Keys.Enter).ToString());
 
             //quote marks
-            retval = retval.Replace("%q", QUOTECHAR);
+            retval = retval.Replace("%q", QUOTECHAR.ToString());
 
             //tabs
             retval = retval.Replace("%t", new String(' ', Settings.LogicTabWidth));
