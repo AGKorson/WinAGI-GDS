@@ -3,15 +3,12 @@ using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Editor.Base;
 
-namespace WinAGI.Editor
-{
+namespace WinAGI.Editor {
     // property accessors; used on the main form to display 
     // properties, and allow them to be edited
-    public class GameProperties
-    {
+    public class GameProperties {
         string _GameID;
-        public GameProperties(AGIGame pGame)
-        {
+        public GameProperties(AGIGame pGame) {
             _GameID = pGame.GameID;
             Author = pGame.GameAuthor;
             GameDir = pGame.GameDir;
@@ -23,8 +20,7 @@ namespace WinAGI.Editor
             LayoutEditor = pGame.UseLE;
             LastEdit = pGame.LastEdit;
         }
-        public string GameID
-        {
+        public string GameID {
             get
             {
                 return _GameID;
@@ -41,8 +37,7 @@ namespace WinAGI.Editor
                 }
             }
         }
-        public string Author
-        {
+        public string Author {
             get => EditGame.GameAuthor;
             set => EditGame.GameAuthor = value;
         }
@@ -55,22 +50,18 @@ namespace WinAGI.Editor
         public bool LayoutEditor { get; set; }
         public DateTime LastEdit { get; }
     }
-    public class LogicHdrProperties
-        {
-            public LogicHdrProperties(int count, bool useresnames)
-            {
-                Count = count;
-                GlobalDef = true; // what to do about this one...
-                UseResNames = useresnames;
-            }
-            public int Count { get; }
-            public bool GlobalDef { get; set; } // dbl click to edit list?
-            public bool UseResNames { get; set; }
+    public class LogicHdrProperties {
+        public LogicHdrProperties(int count, bool useresnames) {
+            Count = count;
+            GlobalDef = true; // what to do about this one...
+            UseResNames = useresnames;
         }
-    public class LogicProperties
-    {
-        public LogicProperties(Logic pLogic)
-        {
+        public int Count { get; }
+        public bool GlobalDef { get; set; } // dbl click to edit list?
+        public bool UseResNames { get; set; }
+    }
+    public class LogicProperties {
+        public LogicProperties(Logic pLogic) {
             Number = pLogic.Number;
             ID = pLogic.ID;
             Description = pLogic.Description;
@@ -91,18 +82,14 @@ namespace WinAGI.Editor
         public int Size { get; }
         public int CodeSize { get; }
     }
-    public class PictureHdrProperties
-    {
-        public PictureHdrProperties(int count)
-        {
+    public class PictureHdrProperties {
+        public PictureHdrProperties(int count) {
             Count = count;
         }
         public int Count { get; }
     }
-    public class PictureProperties
-    {
-        public PictureProperties(Picture pPicture)
-        {
+    public class PictureProperties {
+        public PictureProperties(Picture pPicture) {
             Number = pPicture.Number;
             ID = pPicture.ID;
             Description = pPicture.Description;
@@ -117,18 +104,14 @@ namespace WinAGI.Editor
         public int LOC { get; }
         public int Size { get; }
     }
-    public class SoundHdrProperties
-    {
-        public SoundHdrProperties(int count)
-        {
+    public class SoundHdrProperties {
+        public SoundHdrProperties(int count) {
             Count = count;
         }
         public int Count { get; }
     }
-    public class SoundProperties
-    {
-        public SoundProperties(Sound pSound)
-        {
+    public class SoundProperties {
+        public SoundProperties(Sound pSound) {
             Number = pSound.Number;
             ID = pSound.ID;
             Description = pSound.Description;
@@ -143,18 +126,14 @@ namespace WinAGI.Editor
         public int LOC { get; }
         public int Size { get; }
     }
-    public class VieweHdrProperties
-    {
-        public VieweHdrProperties(int count)
-        {
+    public class VieweHdrProperties {
+        public VieweHdrProperties(int count) {
             Count = count;
         }
         public int Count { get; }
     }
-    public class ViewProperties
-    {
-        public ViewProperties(WinAGI.Engine.View pView)
-        {
+    public class ViewProperties {
+        public ViewProperties(WinAGI.Engine.View pView) {
             Number = pView.Number;
             ID = pView.ID;
             Description = pView.Description;
@@ -171,10 +150,8 @@ namespace WinAGI.Editor
         public int LOC { get; }
         public int Size { get; }
     }
-    public class InvObjProperties
-    {
-        public InvObjProperties(InventoryList pInvObj)
-        {
+    public class InvObjProperties {
+        public InvObjProperties(InventoryList pInvObj) {
             ItemCount = pInvObj.Count;
             Description = pInvObj.Description;
             Encrypted = pInvObj.Encrypted;
@@ -185,10 +162,8 @@ namespace WinAGI.Editor
         public bool Encrypted { get; set; }
         public int MaxScreenObj { get; set; }
     }
-    public class WordListProperties
-    {
-        public WordListProperties(WordList pWordList)
-        {
+    public class WordListProperties {
+        public WordListProperties(WordList pWordList) {
             WordCount = pWordList.WordCount;
             GroupCount = pWordList.GroupCount;
             Description = pWordList.Description;

@@ -97,7 +97,7 @@ namespace WinAGI.Engine
             strErrSource = "WinAGI.Logic";
             //set default resource data
             // TODO: confirm correct empty logic data block; fix Clear to match
-            mRData.AllData = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x02, 0x00 };
+            mRData.AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00];
             // byte0 = low byte of msg section offset (relative to byte 2)
             // byte1 = high byte of msg section offset
             // byte2 = first byte of code data (a single return)
@@ -302,7 +302,7 @@ namespace WinAGI.Engine
             //set default resource data
             Data = new RData(6)
             {
-                AllData = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x02, 0x00 }
+                AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00]
             };
 
             //clear the source code by setting it to //return// command

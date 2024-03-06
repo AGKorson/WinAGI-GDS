@@ -52,9 +52,9 @@ namespace WinAGI.Engine
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Sound";
             //create default PC/PCjr sound with no notes in any tracks
-            mRData.AllData = new byte[] { 0x08, 0x00, 0x08, 0x00,
+            mRData.AllData = [ 0x08, 0x00, 0x08, 0x00,
                                     0x08, 0x00, 0x08, 0x00,
-                                    0xff, 0xff};
+                                    0xff, 0xff];
             // byte 0/1, 2/2, 4/5, 6/7 = offset to track data
             // byte 8/9 are end of track markers
             mFormat = 1;
@@ -430,9 +430,9 @@ namespace WinAGI.Engine
             //set default resource data
             //create default PC/PCjr sound with no notes in any tracks
             //set default resource data
-            mRData.AllData = new byte[] { 0x08, 0x00, 0x08, 0x00,
+            mRData.AllData = [ 0x08, 0x00, 0x08, 0x00,
                                     0x08, 0x00, 0x08, 0x00,
-                                    0xff, 0xff};
+                                    0xff, 0xff];
             // byte 0/1, 2/2, 4/5, 6/7 = offset to track data
             // byte 8/9 are end of track markers
 
@@ -521,7 +521,7 @@ namespace WinAGI.Engine
         public Sound Clone()
         {
             //copies sound data from this sound and returns a completely separate object reference
-            Sound CopySound = new Sound();
+            Sound CopySound = new();
             // copy base properties
             base.Clone(CopySound);
             //add WinAGI items
@@ -610,7 +610,7 @@ namespace WinAGI.Engine
                         File.Delete(ExportFile);
                     }
                     //create midi file
-                    FileStream fsSnd = new FileStream(ExportFile, FileMode.Open);
+                    FileStream fsSnd = new(ExportFile, FileMode.Open);
                     fsSnd.Write(SndPlayer.mMIDIData);
                     fsSnd.Dispose();
                 }
@@ -630,8 +630,8 @@ namespace WinAGI.Engine
                         File.Delete(ExportFile);
                     }
                     //creat script file
-                    FileStream fsSnd = new FileStream(ExportFile, FileMode.Open);
-                    StreamWriter swSnd = new StreamWriter(fsSnd);
+                    FileStream fsSnd = new(ExportFile, FileMode.Open);
+                    StreamWriter swSnd = new(fsSnd);
                     //if sound not set,
                     if (!mTracksSet) {
                         //load tracks first
@@ -710,7 +710,7 @@ namespace WinAGI.Engine
                         File.Delete(ExportFile);
                     }
                     //create midi file
-                    FileStream fsSnd = new FileStream(ExportFile, FileMode.Open);
+                    FileStream fsSnd = new(ExportFile, FileMode.Open);
                     fsSnd.Write(SndPlayer.mMIDIData);
                     fsSnd.Dispose();
                 }
@@ -742,8 +742,8 @@ namespace WinAGI.Engine
             byte bytVol;
             //determine file format by checking for '8'-'0' start to file
             //(that is how all sound resources will begin)
-            FileStream fsSnd = new FileStream(ImportFile, FileMode.Open);
-            BinaryReader brSnd = new BinaryReader(fsSnd);
+            FileStream fsSnd = new(ImportFile, FileMode.Open);
+            BinaryReader brSnd = new(fsSnd);
             //verify long enough
             if (fsSnd.Length <= 2) {
                 //error
@@ -789,7 +789,7 @@ namespace WinAGI.Engine
                 //import a script file
                 try {
                     fsSnd = new FileStream(ImportFile, FileMode.Open);
-                    StreamReader srSnd = new StreamReader(fsSnd);
+                    StreamReader srSnd = new(fsSnd);
                     //get data from file
                     strLine = srSnd.ReadToEnd();
                     fsSnd.Dispose();
@@ -930,7 +930,7 @@ namespace WinAGI.Engine
                                 break;
                             }
                             //check for new track
-                            if (strLine.ToLower() == "tone") {
+                            if (strLine.Equals("tone", StringComparison.OrdinalIgnoreCase)) {
                                 lngTrack++;
                                 //default note type is agi (0)
                                 lngNoteType = 0;
@@ -938,7 +938,7 @@ namespace WinAGI.Engine
                                 // AFTER track data)
                                 mTrack[lngTrack].Visible = true;
                             }
-                            else if (strLine.ToLower() == "noise" && lngTrack != 3) {
+                            else if (strLine.Equals("noise", StringComparison.OrdinalIgnoreCase) && lngTrack != 3) {
                                 lngTrack = 3;
                                 //no default note type for track 3
                                 lngNoteType = -1;
@@ -960,10 +960,10 @@ namespace WinAGI.Engine
                                     //check first element for new note type, depending on track
                                     if (lngTrack == 3) {
                                         //p// or //w// only
-                                        if (strTag[0].ToLower() == "p") {
+                                        if (strTag[0].Equals("p", StringComparison.OrdinalIgnoreCase)) {
                                             lngNoteType = 0;
                                         }
-                                        else if (strTag[0].ToLower() == "w") {
+                                        else if (strTag[0].Equals("w", StringComparison.OrdinalIgnoreCase)) {
                                             lngNoteType = 4;
                                         }
                                         else {
@@ -1329,7 +1329,7 @@ namespace WinAGI.Engine
             base.Unload();
             mIsDirty = false;
             //clear midi data
-            SndPlayer.mMIDIData = Array.Empty<byte>();
+            SndPlayer.mMIDIData = [];
             mMIDISet = false;
             //reset length
             mLength = -1;

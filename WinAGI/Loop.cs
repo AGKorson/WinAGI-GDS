@@ -69,7 +69,7 @@ namespace WinAGI.Engine
             this.mCelCol = SourceLoop.Cels;
             // parent, index and mirror status go unchanged
             //if there is a parent object
-            if (mParent != null) {
+            if (mParent is not null) {
                 //set dirty flag
                 mParent.IsDirty = true;
             }
@@ -193,7 +193,7 @@ namespace WinAGI.Engine
             mParent.mLoopCol[MirrorLoop].MirrorPair = 0;
             mMirrorPair = 0;
             //if there is a parent object
-            if (mParent != null) {
+            if (mParent is not null) {
                 //set dirty flag
                 mParent.IsDirty = true;
             }
@@ -201,16 +201,18 @@ namespace WinAGI.Engine
         internal Loop Clone(View cloneparent)
         {
             // returns a copy of this loop
-            Loop CopyLoop = new Loop(cloneparent);
-            CopyLoop.mMirrorPair = mMirrorPair;
-            CopyLoop.mIndex = mIndex;
-            CopyLoop.mCelCol = mCelCol.Clone(cloneparent);
+            Loop CopyLoop = new(cloneparent)
+            {
+                mMirrorPair = mMirrorPair,
+                mIndex = mIndex,
+                mCelCol = mCelCol.Clone(cloneparent)
+            };
             return CopyLoop;
         }
         public Loop()
         {
             //initialize cel collection object
-            mCelCol = new Cels();
+            mCelCol = [];
             strErrSource = "WINAGI.AGILoop";
         }
         internal Loop(View parent)

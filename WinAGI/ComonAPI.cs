@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using System.Xml;
 using WinAGI.Engine;
 using Microsoft.VisualBasic;
+using System.Drawing;
 
 namespace WinAGI.Common
 {
@@ -76,7 +77,7 @@ namespace WinAGI.Common
         internal int HiSize;
         internal int LoSize;
     }
-    public static class API
+    public static partial class API
     {
         //constants used to build bitmaps
         internal const int BI_RGB = 0;
@@ -100,8 +101,8 @@ namespace WinAGI.Common
         internal const int SRCPAINT = 0xEE0086;
         internal const int WHITENESS = 0xFF0062;
         internal const int TRANSCOPY = 0xB8074A;
-        [DllImport("user32.dll")]
-        public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, Int32 wParam, Int32 lParam);
+        [LibraryImport("user32.dll")]
+        public static partial int SendMessage(IntPtr hWnd, int wMsg, int wParam, int lParam);
         public const int WM_SETREDRAW = 0xB;
 
         //[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
@@ -117,16 +118,16 @@ namespace WinAGI.Common
         //internal static extern int BitBlt(int hDestDC, int X, int Y, int nWidth, int nHeight, int hSrcDC, int xSrc, int ySrc, int dwRop);
         //[DllImport("gdi32.dll")]
         //internal static extern int CreateDIBSection(int hDC, BitmapInfo pBitmapInfo, int un, int lplpVoid, int handle, int dw);
-        [DllImport("gdi32.dll")]
-        internal static extern IntPtr CreateCompatibleDC(IntPtr hDC);
-        [DllImport("gdi32.dll")]
-        internal static extern int DeleteObject(IntPtr hObject);
-        [DllImport("gdi32.dll")]
-        internal static extern int DeleteDC(IntPtr hDC);
-        [DllImport("gdi32.dll")]
-        internal static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
-        [DllImport("gdi32.dll")]
-        internal static extern int StretchBlt(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, int dwRop);
+        [LibraryImport("gdi32.dll")]
+        internal static partial IntPtr CreateCompatibleDC(IntPtr hDC);
+        [LibraryImport("gdi32.dll")]
+        internal static partial int DeleteObject(IntPtr hObject);
+        [LibraryImport("gdi32.dll")]
+        internal static partial int DeleteDC(IntPtr hDC);
+        [LibraryImport("gdi32.dll")]
+        internal static partial IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
+        [LibraryImport("gdi32.dll")]
+        internal static partial int StretchBlt(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, int dwRop);
         //[DllImport("msimg32.dll")]
         //internal static extern int TransparentBlt(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, int crTransparent);
         [DllImport("hhctrl.ocx")]
@@ -162,8 +163,8 @@ namespace WinAGI.Common
         internal const int AC_DST_NO_PREMULT_ALPHA = 0x10;
         internal const int AC_DST_NO_ALPHA = 0x20;
 
-        [DllImport("msimg32.dll")]
-        internal static extern int AlphaBlend(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, BLENDFUNCTION ftn);
+        [LibraryImport("msimg32.dll")]
+        internal static partial int AlphaBlend(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, BLENDFUNCTION ftn);
         //[DllImport("gdi32.dll")]
         //internal static extern int GetLastError();
         //[DllImport("gdi32.dll")]
@@ -185,8 +186,8 @@ namespace WinAGI.Common
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern int GetShortPathName(string pathName, StringBuilder shortName, int cbShortName);
 
-        [DllImport("gdi32.dll")]
-        internal static extern int SetBkColor(int hDC, int crColor);
+        [LibraryImport("gdi32.dll")]
+        internal static partial int SetBkColor(int hDC, int crColor);
         static void tmpAPIFunctions()
         {
             /*
@@ -833,6 +834,7 @@ namespace WinAGI.Common
             // not a valid number; return 0
             return 0;
         }
+
         /// <summary>
         /// Confirms that a directory has a terminating backslash,
         /// adding one if necessary
@@ -842,14 +844,14 @@ namespace WinAGI.Common
         internal static string CDir(string strDirIn)
         {
             //this function ensures a trailing "\" is included on strDirIn
-            if (strDirIn.Length != 0)
-                if (!strDirIn.EndsWith(@"\"))
-                    return strDirIn + @"\";
-                else
-                    return strDirIn;
-            else
+            if (strDirIn.Length != 0) {
+                return !strDirIn.EndsWith('\\') ? strDirIn + '\\' : strDirIn;
+            }
+            else {
                 return strDirIn;
+            }
         }
+        
         internal static string JustPath(string strFullPathName, bool NoSlash = false)
         {  //will extract just the path name by removing the filename
            //if optional NoSlash is true, the trailing backslash will be dropped
@@ -879,6 +881,7 @@ namespace WinAGI.Common
                 return sReturn;
             }
         }
+        
         internal static uint CRC32(byte[] DataIn)
         {
             //calculates the CRC32 for an input array of bytes
@@ -907,6 +910,7 @@ namespace WinAGI.Common
             //xor to create final answer
             return result ^ 0xFFFFFFFF;
         }
+        
         internal static void CRC32Setup()
         {
             //build the CRC table
@@ -1188,58 +1192,11 @@ namespace WinAGI.Common
             //CRC32Table[255] = 0x2D02EF8D;
 
         }
-        internal static bool IsValidMsg(string MsgText)
-        {
-            //this function will check MsgText, and returns TRUE if
-            //it start with a dbl quote, AND ends with a valid dbl
-            //quote, taking into account potential slash codes
-
-            int lngSlashCount = 0;
-            if (MsgText[0] != '"') {
-                //not valid
-                return false;
-            }
-            //need at least two chars to be a string
-            if (MsgText.Length < 2) {
-                //not valid
-                return false;
-            }
-            //if no dbl quote at end, not a string
-            if (MsgText[MsgText.Length - 1] != '"') {
-                //not valid
-                return false;
-            }
-            //just because it ends in a quote doesn't mean it's good;
-            //it might be an embedded quote
-            //(we know we have at least two chars, so we don't need
-            //to worry about an error with Mid function)
-
-            //check for an odd number of slashes immediately preceding
-            //the end quote
-            do {
-                //if (Mid(MsgText, MsgText.Length - (lngSlashCount + 1), 1) == "\\") {
-                if (MsgText[MsgText.Length - 1 - (lngSlashCount + 1)] == '\\') {
-                    lngSlashCount++;
-                }
-                else {
-                    break;
-                }
-            } while (true); // eventually, starting quote will be found, which will exit the loop
-                            //while (MsgText.Length - (lngSlashCount + 1) >= 0);
-
-            //if it IS odd, then it's not a valid quote
-            if ((lngSlashCount % 2) == 1) {
-                //it's embedded, and doesn't count
-                return false;
-            }
-
-            //if passes all the tests, it's OK
-            return true;
-        }
+        
         internal static bool DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
         {
             // Get the subdirectories for the specified directory.
-            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+            DirectoryInfo dir = new(sourceDirName);
             if (!dir.Exists) {
                 throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDirName);
             }
@@ -1281,7 +1238,7 @@ namespace WinAGI.Common
                 return LongPath;
             }
             //if no subdirectories
-            if (!LongPath.Contains("\\")) {
+            if (!LongPath.Contains('\\')) {
                 //return truncated path
                 return Left(LongPath, MaxLength - 3) + "...";
             }
@@ -1304,7 +1261,7 @@ namespace WinAGI.Common
             //to make it compatible with DOS programs
             int rtn;
             int lngStrLen;
-            StringBuilder strTemp = new StringBuilder(0);
+            StringBuilder strTemp = new(0);
             try {
                 //get size of required buffer
                 lngStrLen = API.GetShortPathName(strLongFileName, strTemp, 0);
@@ -1408,6 +1365,16 @@ namespace WinAGI.Common
                 FileName = Left(FileName, lngPos - 1) + "." + strFilterExt;
             }
             return retval;
+        }
+        public static string FullFileName(string startdir, string relpath) {
+            // TODO: add error checking
+            try {
+                return Path.GetFullPath(Path.Combine(startdir, relpath));
+            }
+            catch (Exception) {
+                // for now, do nothing
+                return "";
+            }
         }
         static void tmpCommon()
         {
@@ -1777,7 +1744,7 @@ namespace WinAGI.Common
           }
                 */
         }
-        public static void ExtractTODO(byte LogicNum, string SourceText, string Module) {
+        public static List<TWinAGIEventInfo> ExtractTODO(byte LogicNum, string SourceText, string Module) {
 
             // update the warning list with TODO items from this logic
             // valid TODO entries must be the string 'TODO:' within a comment, and must be
@@ -1791,28 +1758,29 @@ namespace WinAGI.Common
             // not OK:     [ TODO text
 
             int Tpos, lngLine, Cpos;
-            string strLine, strTODO;
+            string strTODO;
             List<string> stlText;
+            List <TWinAGIEventInfo> retval = [];
 
             // if TODO marker isn't in the logic, just exit
-            if (!SourceText.Contains("TODO:", StringComparison.OrdinalIgnoreCase))
-                return;
+            if (!SourceText.Contains("TODO:"))
+                return retval;
 
             //split into lines
             stlText = SplitLines(SourceText);
 
             //step through all lines
             for (lngLine = 0; lngLine < stlText.Count; lngLine++) {
-                Tpos = stlText[lngLine].IndexOf("TODO:", StringComparison.OrdinalIgnoreCase);
-                if (Tpos > 0) {
-                    Cpos = Strings.InStrRev(stlText[lngLine], "[", Tpos);
-                    if (Cpos > 0) {
+                Tpos = stlText[lngLine].IndexOf("TODO:");
+                if (Tpos >= 0) {
+                    Cpos = stlText[lngLine].LastIndexOf('[', Tpos);
+                    if (Cpos >= 0) {
                         //get text between the comment and the TODO
                         strTODO = Mid(stlText[lngLine], Cpos + 1, Tpos - Cpos - 1);
                         //only valid if empty spaces
                         if (strTODO.Trim().Length == 0) {
                             //get comment portion of text
-                            strTODO = Right(stlText[lngLine], stlText[lngLine].Length - Tpos - 4).Trim();
+                            strTODO = stlText[lngLine][(Tpos + 5)..].Trim();
                             if (strTODO.Length > 0) {
                                 //add this TODO (adjust line by 1)
                                 TWinAGIEventInfo tmpInfo = new()
@@ -1820,66 +1788,65 @@ namespace WinAGI.Common
                                     ID = "TODO",
                                     //InfoType = EInfoType.itInitialize,
                                     Line = lngLine + 1,
-                                    Module = Module, //Editor.Base.EditGame.Logics[LogicNum].ID,
+                                    Module = Module, 
                                     ResNum = LogicNum,
                                     ResType = AGIResType.rtLogic,
                                     Text = strTODO,
                                     Type = EventType.etTODO
                                 };
-                                Editor.Base.MDIMain.AddWarning(tmpInfo);
+                                // add this one to the list
+                                retval.Add(tmpInfo);
                             }
                         }
                     }
                 }
             }
+            return retval;
         }
-
-        public static void ExtractDecompWarn(byte LogicNum, string SourceText, string Module)
+        public static List<TWinAGIEventInfo> ExtractDecompWarn(byte LogicNum, string SourceText, string Module)
         {
-            // update the warning list with decompiler warnings still present
+            // extracts decompiler warnings from logics
             //
             // look for WARNING DC## comments
             int Tpos, Cpos, lngLine;
             string strDCWarn;
             List<string> stlText;
+            List<TWinAGIEventInfo> retval = [];
 
             // if warning marker isn't in the logic, just exit
             if (!SourceText.Contains("WARNING DC", StringComparison.OrdinalIgnoreCase))
-                return;
+                return retval;
 
             //split into lines
             stlText = SplitLines(SourceText);
             //step through all lines
             for (lngLine = 0; lngLine < stlText.Count; lngLine++) {
                 Tpos = stlText[lngLine].IndexOf("WARNING DC", StringComparison.OrdinalIgnoreCase);
-                if (Tpos > 0) {
-                    Cpos = Strings.InStrRev(stlText[lngLine], "[", Tpos);
-                    if (Cpos > 0) {
-                        //get text between the comment and the warning
-                        strDCWarn = Mid(stlText[lngLine], Cpos + 1, Tpos - Cpos - 1);
-                        //only valid if empty spaces
-                        if (strDCWarn.Trim().Length == 0) {
-                            //get warning portion of text
-                            strDCWarn = Right(stlText[lngLine], stlText[lngLine].Length - Tpos - 7).Trim();
-                            if (strDCWarn.Length > 0) {
-                                //add this TODO (adjust line by 1)
-                                TWinAGIEventInfo tmpInfo = new()
-                                {
-                                    ID = strDCWarn[..4],
-                                    //InfoType = EInfoType.itInitialize,
-                                    Line = lngLine + 1,
-                                    Module = Module, // Editor.Base.EditGame?.Logics[LogicNum].ID,
-                                    ResNum = LogicNum,
-                                    ResType = AGIResType.rtLogic,
-                                    Text = strDCWarn[6..],
-                                    Type = EventType.etWarning
-                                };
-                                Editor.Base.MDIMain.AddWarning(tmpInfo);
-                            }
+                if (Tpos >= 0) {
+                    Cpos = stlText[lngLine].LastIndexOf('[', Tpos);
+                    if (Cpos >= 0) {
+                        //get warning portion of text
+                        strDCWarn = stlText[lngLine][(Cpos + 9)..].Trim();
+                        if (strDCWarn.Length > 0) {
+                            //add this TODO (adjust line by 1)
+                            TWinAGIEventInfo tmpInfo = new()
+                            {
+                                ID = strDCWarn[..4],
+                                //InfoType = EInfoType.itInitialize,
+                                Line = lngLine + 1,
+                                Module = Module,
+                                ResNum = LogicNum,
+                                ResType = AGIResType.rtLogic,
+                                Text = strDCWarn[6..],
+                                Type = EventType.etWarning
+                            };
+                            // add to the list
+                            retval.Add(tmpInfo);
                         }
                     }
                 }
             }
+            return retval;
         }
     }
 }

@@ -44,7 +44,7 @@ namespace WinAGI.Engine
             byte bytResNum;
             AGIResType bytResType;
             string strDirFile = "";
-            byte[] bytBuffer = Array.Empty<byte>();
+            byte[] bytBuffer = [];
             bool blnDirtyDIR = false;
             byte byte1, byte2, byte3;
             int lngDirOffset = 0;  // offset of this resource's directory in Dir file (for v3)
@@ -565,8 +565,8 @@ namespace WinAGI.Engine
             //first code for  SIERRA resouces should always be 256
             //if first code is NOT 256
             if (intOldCode != 256) {
-                intPrefix = Array.Empty<uint>();
-                bytAppend = Array.Empty<byte>();
+                intPrefix = [];
+                bytAppend = [];
                 //TODO: wrong error msg here!
                 throw new Exception(LoadResString(559).Replace(ARG1, "123"));//, Replace(LoadResString(559), ARG1, CStr(Err.Number))");
             }
@@ -636,8 +636,8 @@ namespace WinAGI.Engine
             //Array.Resize(ref bytOriginalData, lngExpandedSize);
             //bytOriginalData = bytTempData;
             //free lzw arrays
-            intPrefix = Array.Empty<uint>();
-            bytAppend = Array.Empty<byte>();
+            intPrefix = [];
+            bytAppend = [];
             return bytTempData;
         }
         internal static byte[] CompressedCel(Cel Cel, bool blnMirror)

@@ -89,19 +89,19 @@ namespace WinAGI.Editor
             bool newInsertLock = Control.IsKeyLocked(Keys.Insert);
             if (newCapsLock != CapsLock) {
                 CapsLock = newCapsLock;
-                if (CapsLockLabel != null) {
+                if (CapsLockLabel is not null) {
                     CapsLockLabel.Text = CapsLock ? "CAP" : "";
                 }
             }
             if (newNumLock != NumLock) {
                 NumLock = newNumLock;
-                if (NumLockLabel != null) {
+                if (NumLockLabel is not null) {
                     NumLockLabel.Text = NumLock ? "NUM" : "";
                 }
             }
             if (newInsertLock != InsertLock) {
                 InsertLock = newInsertLock;
-                if (InsertLockLabel != null) {
+                if (InsertLockLabel is not null) {
                     InsertLockLabel.Text = InsertLock ? "INS" : "";
                 }
             }
@@ -195,7 +195,12 @@ namespace WinAGI.Editor
             case etWarning:
                 bgwOpenGame.ReportProgress(0, $"Load Warning: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
                 // add to warning list
-                AddWarning(e.LoadInfo);
+                bgwOpenGame.ReportProgress(1, e.LoadInfo);
+                break;
+            case etTODO:
+                bgwOpenGame.ReportProgress(0, $"{e.LoadInfo.ID} TODO: : {e.LoadInfo.Text}");
+                // add to warning list
+                bgwOpenGame.ReportProgress(2, e.LoadInfo);
                 break;
             }
         }
@@ -321,7 +326,7 @@ namespace WinAGI.Editor
             };
             MainStatusBar = statusStrip1;
             //      ViewClipboard = picViewCB;
-            SoundClipboard = new Notes();
+            SoundClipboard = [];
             //      NotePictures = picNotes;
             //        WordsClipboard = new WordsUndo();
             FindingForm = new frmFind();
@@ -383,15 +388,15 @@ namespace WinAGI.Editor
             tmrNavList.Interval = 1750;
             tmrNavList.Enabled = true;
 
-            LogicEditors = new List<frmLogicEdit>();
-            ViewEditors = new List<frmViewEdit>();
-            PictureEditors = new List<frmPicEdit>();
-            SoundEditors = new List<frmSoundEdit>();
+            LogicEditors = [];
+            ViewEditors = [];
+            PictureEditors = [];
+            SoundEditors = [];
 
             //build the lookup table for reserved defines
             BuildRDefLookup();
             //default to an empty globals list
-            GDefLookup = Array.Empty<TDefine>();
+            GDefLookup = [];
             //if using snippets
             if (Settings.Snippets) {
                 //build snippet table
@@ -436,7 +441,7 @@ namespace WinAGI.Editor
 
 
             //if nothing loaded AND autoreload is set AND something was loaded last time program ended,
-            if (EditGame == null && this.ActiveMdiChild == null && Settings.AutoOpen && blnLastLoad) {
+            if (EditGame is null && this.ActiveMdiChild is null && Settings.AutoOpen && blnLastLoad) {
                 //open mru1
                 OpenMRUGame(0);
             }
@@ -719,21 +724,21 @@ namespace WinAGI.Editor
                     //show logic properties
                     PropRows = 8;
                     //if compiled state doesn't match correct tree color, fix it now
-                    LogicProperties pLog = new LogicProperties(EditGame.Logics[NewResNum]);
+                    LogicProperties pLog = new(EditGame.Logics[NewResNum]);
                     propertyGrid1.SelectedObject = pLog;
                 }
                 break;
             case AGIResType.rtPicture:
                 if (NewResNum == -1) {
                     //picture header
-                    PictureHdrProperties pPicHdr = new PictureHdrProperties(EditGame.Pictures.Count);
+                    PictureHdrProperties pPicHdr = new(EditGame.Pictures.Count);
                     propertyGrid1.SelectedObject = pPicHdr;
                     PropRows = 1;
                 }
                 else {
                     //show picture properties
                     PropRows = 6;
-                    PictureProperties pPicture = new PictureProperties(EditGame.Pictures[NewResNum]);
+                    PictureProperties pPicture = new(EditGame.Pictures[NewResNum]);
                     propertyGrid1.SelectedObject = pPicture;
                 }
                 break;
@@ -741,40 +746,40 @@ namespace WinAGI.Editor
                 if (NewResNum == -1) {
                     //sound header
                     PropRows = 1;
-                    SoundHdrProperties pSndHdr = new SoundHdrProperties(EditGame.Sounds.Count);
+                    SoundHdrProperties pSndHdr = new(EditGame.Sounds.Count);
                     propertyGrid1.SelectedObject = pSndHdr;
                 }
                 else {
                     //show sound properties
                     PropRows = 6;
-                    SoundProperties pSound = new SoundProperties(EditGame.Sounds[NewResNum]);
+                    SoundProperties pSound = new(EditGame.Sounds[NewResNum]);
                     propertyGrid1.SelectedObject = pSound;
                 }
                 break;
             case AGIResType.rtView:
                 if (NewResNum == -1) {
                     //view header
-                    VieweHdrProperties pViewHdr = new VieweHdrProperties(EditGame.Views.Count);
+                    VieweHdrProperties pViewHdr = new(EditGame.Views.Count);
                     PropRows = 1;
                     propertyGrid1.SelectedObject = pViewHdr;
                 }
                 else {
                     //show view properties
                     PropRows = 7;
-                    ViewProperties pView = new ViewProperties(EditGame.Views[NewResNum]);
+                    ViewProperties pView = new(EditGame.Views[NewResNum]);
                     propertyGrid1.SelectedObject = pView;
                 }
                 break;
             case AGIResType.rtObjects:
                 //show object Count, description, encryption, and Max screen objects
                 PropRows = 4;
-                InvObjProperties pInvObj = new InvObjProperties(EditGame.InvObjects);
+                InvObjProperties pInvObj = new(EditGame.InvObjects);
                 propertyGrid1.SelectedObject = pInvObj;
                 break;
             case AGIResType.rtWords:
                 //show group Count and word Count and description
                 PropRows = 3;
-                WordListProperties pWordList = new WordListProperties(EditGame.WordList);
+                WordListProperties pWordList = new(EditGame.WordList);
                 propertyGrid1.SelectedObject = pWordList;
                 break;
             }
@@ -818,7 +823,7 @@ namespace WinAGI.Editor
                 if (SelResType == AGIResType.rtLogic) {
                     //if syncing the layout editor and the treeview list
                     if (Settings.LESync) {
-                        if (this.ActiveMdiChild != null) {
+                        if (this.ActiveMdiChild is not null) {
                             if (this.ActiveMdiChild is frmLayout) {
                                 if (EditGame.Logics[(byte)SelResNum].IsRoom) {
                                     //if option to sync is set
@@ -841,7 +846,7 @@ namespace WinAGI.Editor
 
             if (!EditGame.GameLoaded) return;
             // show editor form
-            frmViewEdit frmNew = new frmViewEdit
+            frmViewEdit frmNew = new()
             {
                 MdiParent = this
             };
@@ -1527,7 +1532,7 @@ namespace WinAGI.Editor
                 tvwResources.Focus();
             }
             //if nothing selected
-            if (e.Node == null) {
+            if (e.Node is null) {
                 return;
             }
             //if not changed from previous number
@@ -2214,25 +2219,14 @@ namespace WinAGI.Editor
                 WarningList.Add(warnInfo);
                 break;
             }
-            if (bgwOpenGame.IsBusy) {
-                // use the background tasker to avoid unsafe thread errors
-                bgwOpenGame.ReportProgress(-99, "");
-            }
-            else {
-                SafeAddToWarningList();
-            }
-        }
-        public void SafeAddToWarningList()
-        {
             // if grid is visible, add the last item
             if (MDIMain.pnlWarnings.Visible) {
-                AddWarningToGrid(WarningList[^1]);
+                AddWarningToGrid(warnInfo);
             }
             // if not visible, show if autowarn is true
             else if (Settings.AutoWarn) {
                 ShowWarningList();
             }
-            return;
         }
         public void HideWarningList(bool clearlist = false)
         {
@@ -2517,9 +2511,8 @@ public void ShowWarningList()
         }
         private void mnuGMRU_Click(object sender, EventArgs e)
         {
-            int index;
             // open the mru game assigned to this menu item
-            int.TryParse(((ToolStripMenuItem)sender).Tag.ToString(), out index);
+            _ = int.TryParse(((ToolStripMenuItem)sender).Tag.ToString(), out int index);
             OpenMRUGame(index);
         }
         private void mnuGExit_Click(object sender, EventArgs e)
@@ -2686,7 +2679,7 @@ public void ShowWarningList()
                     strHelp = "#wordsprop";
                     break;
                 }
-                API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, @"htm\winagi\restree.htm" + strHelp);
+                _ = API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, @"htm\winagi\restree.htm" + strHelp);
                 return;
             }
 
@@ -2758,7 +2751,7 @@ public void ShowWarningList()
             strTopic = strTopic + "#" + strNum;
 
             //show warning help
-            API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, strTopic);
+            _ = API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, strTopic);
         }
 
         void tmpFormMain()

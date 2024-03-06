@@ -188,7 +188,7 @@ namespace WinAGI.Engine
                             if (!tmpGameRes.parent.agCompGame) {
                                 tmpGameRes.parent.CompleteCancel();
                                 // unload if needed
-                                if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
+                                if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                                 // then stop compiling
                                 return;
                             }
@@ -211,7 +211,7 @@ namespace WinAGI.Engine
                                     if (!tmpGameRes.parent.agCompGame) {
                                         tmpGameRes.parent.CompleteCancel();
                                         // unload if needed
-                                        if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
+                                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                                         // then stop compiling
                                         return;
                                     }
@@ -226,7 +226,7 @@ namespace WinAGI.Engine
                                     if (!tmpGameRes.parent.agCompGame) {
                                         tmpGameRes.parent.CompleteCancel();
                                         // unload if needed
-                                        if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
+                                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                                         // then stop compiling
                                         return;
                                     }
@@ -251,7 +251,7 @@ namespace WinAGI.Engine
                         tmpGameRes.parent.CompleteCancel(true);
 
                         //unload resource, if applicable
-                        if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
+                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
 
                         //raise appropriate error
                         if (lngError == 593) {
@@ -288,7 +288,7 @@ namespace WinAGI.Engine
                         if (!tmpGameRes.parent.agCompGame) {
                             tmpGameRes.parent.CompleteCancel();
                             //unload resource, if applicable
-                            if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
+                            if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                             // then stop compiling
                             return;
                         }
@@ -301,7 +301,7 @@ namespace WinAGI.Engine
                 while (false);
 
                 //done with resource; unload if applicable
-                if (blnUnloadRes && tmpGameRes != null) tmpGameRes.Unload();
+                if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
             }
         }
         internal static void AddToVol(AGIResource AddRes, bool Version3, bool NewVOL = false, sbyte lngVol = -1, int lngLoc = -1)
@@ -324,7 +324,7 @@ namespace WinAGI.Engine
             //only resources that are in a game can be added to a VOL file
             //
 
-            byte[] ResHeader = Array.Empty<byte>();
+            byte[] ResHeader = [];
             string strID;
             //should NEVER get here for a resource
             //that is NOT in a game

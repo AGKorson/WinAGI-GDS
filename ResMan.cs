@@ -743,7 +743,7 @@ namespace WinAGI.Editor
         public static int lngMainLeftBorder;
         public static int DefUpdateVal;
         //mru variables
-        public static string[] strMRU = new string[4] { "", "", "", "" }; // (4)
+        public static string[] strMRU = ["", "", "", ""];
                                                                           //clipboard variables
         public static Notes SoundClipboard;
         public static int SoundCBMode;
@@ -853,7 +853,7 @@ namespace WinAGI.Editor
         }
         public static void ResetQueue()
         {
-            ResQueue = Array.Empty<int>();
+            ResQueue = [];
             ResQPtr = -1;
             MDIMain.cmdBack.Enabled = false;
             MDIMain.cmdForward.Enabled = false;
@@ -972,9 +972,9 @@ namespace WinAGI.Editor
             //default value for updating logics is //checked//
             DefUpdateVal = 1;
             //initialize clipboard object if not already done
-            GlobalsClipboard = Array.Empty<TDefine>();
+            GlobalsClipboard = [];
             //initialize code snippet array
-            CodeSnippets = Array.Empty<TDefine>();
+            CodeSnippets = [];
         }
         public static void ExportLoop(Loop ThisLoop)
         {
@@ -982,7 +982,7 @@ namespace WinAGI.Editor
             bool blnCanceled;
             DialogResult rtn;
             //show options form
-            frmViewGifOptions frmVGO = new frmViewGifOptions();
+            frmViewGifOptions frmVGO = new();
             //set up form to export a view loop
             frmVGO.InitForm(0, ThisLoop);
             frmVGO.ShowDialog(MDIMain);
@@ -1025,8 +1025,10 @@ namespace WinAGI.Editor
             //if NOT canceled, then export!
             if (!blnCanceled) {
                 //show ProgressWin form
-                ProgressWin = new frmProgress();
-                ProgressWin.Text = "Exporting Loop as GIF";
+                ProgressWin = new frmProgress
+                {
+                    Text = "Exporting Loop as GIF"
+                };
                 ProgressWin.lblProgress.Text = "Depending in size of loop, this may take awhile. Please wait...";
                 ProgressWin.pgbStatus.Visible = false;
                 ProgressWin.Show(MDIMain);
@@ -1271,7 +1273,7 @@ namespace WinAGI.Editor
 
             try {
                 //open file for output
-                using FileStream fsGif = new FileStream(strTempFile, FileMode.Open);
+                using FileStream fsGif = new(strTempFile, FileMode.Open);
                 //write data
                 fsGif.Write(bytData);
                 fsGif.Dispose();
@@ -1295,8 +1297,10 @@ namespace WinAGI.Editor
             string strExt = "";
             bool blnLoaded;
             //show options form, force image only
-            frmPicExpOptions frmPEO = new frmPicExpOptions(1);
-            frmPEO.Text = "Export All Picture Images";
+            frmPicExpOptions frmPEO = new(1)
+            {
+                Text = "Export All Picture Images"
+            };
             frmPEO.ShowDialog(MDIMain);
             if (frmPEO.Canceled) {
                 //nothing to do
@@ -1338,8 +1342,10 @@ namespace WinAGI.Editor
             }
             //if not canceled, export them all
             //setup ProgressWin form
-            ProgressWin = new frmProgress();
-            ProgressWin.Text = "Exporting All Picture Images";
+            ProgressWin = new frmProgress
+            {
+                Text = "Exporting All Picture Images"
+            };
             ProgressWin.pgbStatus.Maximum = EditGame.Pictures.Count;
             ProgressWin.pgbStatus.Value = 0;
             ProgressWin.lblProgress.Text = "Exporting...";
@@ -1453,8 +1459,8 @@ namespace WinAGI.Editor
             //select original object
             IntPtr pNew = SelectObject(srcHdc, pOrig);
             //delete objects
-            DeleteObject(pNew);
-            DeleteDC(srcHdc);
+            _ = DeleteObject(pNew);
+            _ = DeleteDC(srcHdc);
             //release handles
             g.ReleaseHdc(destHDC);
             return newBmp;
@@ -1464,7 +1470,7 @@ namespace WinAGI.Editor
             //exports a picture vis screen and/or pri screen as either bmp or gif, or png
             int lngZoom, lngMode, lngFormat;
             //show options form, save image only
-            frmPicExpOptions frmPEO = new frmPicExpOptions(1);
+            frmPicExpOptions frmPEO = new(1);
             frmPEO.ShowDialog(MDIMain);
             if (frmPEO.Canceled) {
                 //nothing to do
@@ -1624,7 +1630,7 @@ namespace WinAGI.Editor
             // mode 1 == open source as a sierra game directory;
 
             //if a game is currently open,
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 //close game, if user allows
                 if (!CloseThisGame()) {
                     return false;
@@ -1675,7 +1681,7 @@ namespace WinAGI.Editor
             MDIMain.UseWaitCursor = false;
 
             //add wag file to mru, if opened successfully
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 AddToMRU(EditGame.GameFile);
             } else {
                 //make sure warning grid is hidden
@@ -1693,7 +1699,7 @@ namespace WinAGI.Editor
             int i, j;
             DialogResult rtn;
             //if no game is open
-            if (EditGame == null || !EditGame.GameLoaded) {
+            if (EditGame is null || !EditGame.GameLoaded) {
                 //just return success
                 return true;
             }
@@ -2008,7 +2014,7 @@ namespace WinAGI.Editor
             // then add game specific resdefs, if a game is loaded
             //TODO: if this is only called when mainform loads, then
             // game will never be loaded
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 for (int i = 0; i < 4; i++) {
                     RDefLookup[pos] = EditGame.ReservedGameDefines[i];
                     pos++;
@@ -2024,7 +2030,7 @@ namespace WinAGI.Editor
         public static void BuildSnippets()
         {
             //loads snippet file, and creates array of snippets
-            SettingsList SnipList = new SettingsList(ProgramDir + "snippets.txt");
+            SettingsList SnipList = new(ProgramDir + "snippets.txt");
             int lngCount;
             int i, lngAdded;
 
@@ -2110,7 +2116,7 @@ namespace WinAGI.Editor
             //attempt to open this game
             if (OpenGame(0, strMRU[Index])) {
                 //if not successful
-                if (EditGame == null || !EditGame.GameLoaded) {
+                if (EditGame is null || !EditGame.GameLoaded) {
                     //step through rest of mru entries
                     for (i = Index + 1; i < 4; i++) {
                         //move this mru entry up
@@ -2196,8 +2202,8 @@ namespace WinAGI.Editor
 
             int i;
             int last;
-            TDefine tmpDef = new TDefine();
-            TDefine tmpBlank = new TDefine
+            TDefine tmpDef = new();
+            TDefine tmpBlank = new()
             {
                 //blanks have a type of 11 (>highest available)
                 Type = (ArgTypeEnum)11
@@ -2296,12 +2302,12 @@ namespace WinAGI.Editor
             string strFileName;
             string strLine;
             string[] strSplitLine;
-            TDefine tmpDef = new TDefine();
+            TDefine tmpDef = new();
             bool blnTry;
             int i, NumDefs = 0;
 
             //clear the lookup list
-            GDefLookup = Array.Empty<TDefine>();
+            GDefLookup = [];
             try {
                 strFileName = EditGame.GameDir + "globals.txt";
                 // if no global file, just exit
@@ -2309,8 +2315,8 @@ namespace WinAGI.Editor
                     return;
                 }
                 //open file for input
-                using FileStream fsGlobal = new FileStream(strFileName, FileMode.Open);
-                using StreamReader srGlobal = new StreamReader(fsGlobal);
+                using FileStream fsGlobal = new(strFileName, FileMode.Open);
+                using StreamReader srGlobal = new(fsGlobal);
 
                 //read in globals
                 while (!srGlobal.EndOfStream) {
@@ -2424,11 +2430,11 @@ namespace WinAGI.Editor
                 return;
             }
             // pens and brushes
-            SolidBrush brushDkGray = new SolidBrush(DkGray);
-            SolidBrush brushBlack = new SolidBrush(Color.Black);
-            SolidBrush brushWhite = new SolidBrush(Color.White);
-            SolidBrush brushSelBlue = new SolidBrush(SelBlue);
-            Font fontProp = new Font("MS Sans Serif", 8);
+            SolidBrush brushDkGray = new(DkGray);
+            SolidBrush brushBlack = new(Color.Black);
+            SolidBrush brushWhite = new(Color.White);
+            SolidBrush brushSelBlue = new(SelBlue);
+            Font fontProp = new("MS Sans Serif", 8);
             //strip off any multilines
             if (PropValue.IndexOf((char)Keys.Enter) > 0) {
                 PropValue = Left(PropValue, PropValue.IndexOf((char)Keys.Enter));
@@ -3556,7 +3562,7 @@ namespace WinAGI.Editor
             }
 
             //check against keywords
-            if (NewID.ToLower() == "if" || NewID.ToLower() == "else" || NewID.ToLower() == "goto") {
+            if (NewID == "if" || NewID == "else" || NewID == "goto") {
                 return 5;
             }
 
@@ -3569,8 +3575,7 @@ namespace WinAGI.Editor
             }
 
             //check name against improper character list
-            if (NewID.IndexOfAny(INVALID_ID_CHARS.ToArray()) >= 0) {
-                //if (INVALID_ID_CHARS.Any(NewID.Contains)) {
+            if (NewID.IndexOfAny([.. INVALID_ID_CHARS]) >= 0) {
                 return 14;
             }
 
@@ -12146,8 +12151,8 @@ namespace WinAGI.Editor
                 blnImporting = true;
                 //open file to see if it is sourcecode or compiled logic
                 try {
-                    using FileStream fsNewLog = new FileStream(ImportLogicFile, FileMode.Open);
-                    using StreamReader srNewLog = new StreamReader(fsNewLog);
+                    using FileStream fsNewLog = new(ImportLogicFile, FileMode.Open);
+                    using StreamReader srNewLog = new(fsNewLog);
                     strFile = srNewLog.ReadToEnd();
                     srNewLog.Dispose();
                     fsNewLog.Dispose();
@@ -12196,8 +12201,10 @@ namespace WinAGI.Editor
             //if a game is loaded,
             if (EditGame.GameLoaded) {
                 // get logic number, id , description
-                frmGetResourceNum GetResNum = new frmGetResourceNum();
-                GetResNum.ResType = rtLogic;
+                frmGetResourceNum GetResNum = new()
+                {
+                    ResType = rtLogic
+                };
                 if (blnImporting) {
                     GetResNum.WindowFunction = EGetRes.grImport;
                 }
@@ -12360,7 +12367,7 @@ namespace WinAGI.Editor
             //if a game is loaded
             if (EditGame.GameLoaded) {
                 // get picture number, id , description
-                frmGetResourceNum GetResNum = new frmGetResourceNum
+                frmGetResourceNum GetResNum = new()
                 {
                     ResType = rtPicture
                 };
@@ -12501,7 +12508,7 @@ namespace WinAGI.Editor
             //if a game is loaded
             if (EditGame.GameLoaded) {
                 // get picture number, id , description
-                frmGetResourceNum GetResNum = new frmGetResourceNum
+                frmGetResourceNum GetResNum = new()
                 {
                     ResType = rtSound
                 };
@@ -12639,7 +12646,7 @@ namespace WinAGI.Editor
             //if a game is loaded
             if (EditGame.GameLoaded) {
                 // get picture number, id , description
-                frmGetResourceNum GetResNum = new frmGetResourceNum
+                frmGetResourceNum GetResNum = new()
                 {
                     ResType = rtView
                 };
@@ -13150,8 +13157,8 @@ namespace WinAGI.Editor
             //first, get the default file, if there is one
             if (File.Exists(ProgramDir + "deflog.txt")) {
                 try {
-                    using FileStream fsLogTempl = new FileStream(ProgramDir + "deflog.txt", FileMode.Open);
-                    using StreamReader srLogTempl = new StreamReader(fsLogTempl);
+                    using FileStream fsLogTempl = new(ProgramDir + "deflog.txt", FileMode.Open);
+                    using StreamReader srLogTempl = new(fsLogTempl);
                     strLogic = srLogTempl.ReadToEnd();
                 }
                 catch (Exception) {
@@ -13240,7 +13247,7 @@ namespace WinAGI.Editor
                     }
                     break;
                 case Keys.T: //insert a snippet
-                    if (MDIMain.ActiveMdiChild != null) {
+                    if (MDIMain.ActiveMdiChild is not null) {
                         if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit" || MDIMain.ActiveMdiChild.Name == "frmTextEdit") {
                             //open snippet manager
                             SnipMode = 1;
@@ -13339,7 +13346,7 @@ namespace WinAGI.Editor
                     break;
                 case Keys.F1:  //logic command help
                                //select commands start page
-                    HtmlHelp(HelpParent, WinAGIHelp, HH_HELP_CONTEXT, 1001);
+                    _ = HtmlHelp(HelpParent, WinAGIHelp, HH_HELP_CONTEXT, 1001);
                     break;
                 }
             }
@@ -13934,7 +13941,7 @@ namespace WinAGI.Editor
               //it's already got focus
             } else {
               //set focus to searchform
-             if (SearchForm != null) {
+             if (SearchForm is not null) {
                 SearchForm.Focus()
               }
             }
@@ -14085,8 +14092,8 @@ namespace WinAGI.Editor
             //select original object
             IntPtr pNew = SelectObject(srcHdc, pOrig);
             //delete objects
-            DeleteObject(pNew);
-            DeleteDC(srcHdc);
+            _ = DeleteObject(pNew);
+            _ = DeleteDC(srcHdc);
             //release handles
             g.ReleaseHdc(destHDC);
             pic.Refresh();
@@ -14136,8 +14143,8 @@ namespace WinAGI.Editor
             //re-select original object
             IntPtr pNew = SelectObject(srcHdc, pOrig);
             //delete objects
-            DeleteObject(pNew);
-            DeleteDC(srcHdc);
+            _ = DeleteObject(pNew);
+            _ = DeleteDC(srcHdc);
             //release handles
             g.ReleaseHdc(destHDC);
             pic.Refresh();

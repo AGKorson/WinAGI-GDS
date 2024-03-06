@@ -100,7 +100,7 @@ namespace WinAGI.Engine
         }
         public Track()
         {
-            mNotes = new Notes();
+            mNotes = [];
             mLengthDirty = true;
             mVisible = true;
             mInstrument = 80;
@@ -116,13 +116,15 @@ namespace WinAGI.Engine
         public Track Clone(Sound cloneparent)
         {
             //returns a copy of this track
-            Track CopyTrack = new Track(cloneparent);
-            CopyTrack.mNotes = mNotes.Clone(this);
-            CopyTrack.mMuted = mMuted;
-            CopyTrack.mInstrument = mInstrument;
-            CopyTrack.mVisible = mVisible;
-            CopyTrack.mLengthDirty = mLengthDirty;
-            CopyTrack.mLength = mLength;
+            Track CopyTrack = new(cloneparent)
+            {
+                mNotes = mNotes.Clone(this),
+                mMuted = mMuted,
+                mInstrument = mInstrument,
+                mVisible = mVisible,
+                mLengthDirty = mLengthDirty,
+                mLength = mLength
+            };
             return CopyTrack;
         }
     }

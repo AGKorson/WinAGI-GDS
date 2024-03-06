@@ -43,7 +43,7 @@ namespace WinAGI.Engine
         private void InitInvObj()
         {
             // create the initial Col object
-            mItems = new List<InventoryItem>();
+            mItems = [];
             InventoryItem tmpItem;
             strErrSource = "WINAGI.agiObjectFile";
             mMaxScreenObjects = 16;
@@ -100,7 +100,7 @@ namespace WinAGI.Engine
                 mAmigaOBJ = value;
                 //save the current file as 'OBJECT.amg'
                 string theDir;
-                if (parent == null) {
+                if (parent is null) {
                     theDir = JustPath(mResFile);
                 }
                 else {
@@ -735,11 +735,13 @@ namespace WinAGI.Engine
             mMaxScreenObjects = 16;
             mAmigaOBJ = false;
             mDescription = "";
-            mItems = new List<InventoryItem>();
+            mItems = [];
             //add the placeholder
-            tmpItem = new InventoryItem();
-            tmpItem.ItemName = "?";
-            tmpItem.Room = 0;
+            tmpItem = new InventoryItem
+            {
+                ItemName = "?",
+                Room = 0
+            };
             mItems.Add(tmpItem);
             //but don't set parent; otherwise
             //circular object reference is created
@@ -755,7 +757,7 @@ namespace WinAGI.Engine
             int CurrentChar;    //current character in name
             int lngDataOffset;  //start of item names
             int lngPos;         //position in current item name
-            byte[] bytTemp = Array.Empty<byte>();
+            byte[] bytTemp = [];
             string strTempFile = "";
             byte bytLow, bytHigh;
             int i;
@@ -857,7 +859,7 @@ namespace WinAGI.Engine
                 //open temp file
                 strTempFile = Path.GetTempFileName();
                 //write the data to file
-                FileStream fsObj = new FileStream(strTempFile, FileMode.Open);
+                FileStream fsObj = new(strTempFile, FileMode.Open);
                 fsObj.Write(bytTemp, 0, bytTemp.Length);
                 fsObj.Dispose();
                 //if savefile already exists

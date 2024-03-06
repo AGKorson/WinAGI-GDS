@@ -10,7 +10,7 @@ namespace WinAGI.Engine
     public class Notes : IEnumerable<Note>
     {
         //local variable to hold collection
-        List<Note> mCol = new List<Note>();
+        List<Note> mCol = [];
         Sound mParent;
         Track mTParent;
         string strErrSource;
@@ -28,10 +28,10 @@ namespace WinAGI.Engine
         public void Clear()
         {
             //clear by setting collection to nothing
-            mCol = new List<Note>();
+            mCol = [];
 
             //if parent is assigned
-            if (mParent != null) {
+            if (mParent is not null) {
                 //notify parent
                 mParent.NoteChanged();
                 mTParent.SetLengthDirty();
@@ -39,7 +39,7 @@ namespace WinAGI.Engine
         }
         public Note Add(int FreqDivisor, int Duration, byte Attenuation, int InsertPos = -1)
         {
-            Note agNewNote = new Note
+            Note agNewNote = new()
             {
                 FreqDivisor = FreqDivisor,
                 Duration = Duration,
@@ -58,7 +58,7 @@ namespace WinAGI.Engine
                 mCol.Insert(InsertPos, agNewNote);
             }
             //if parent is assigned
-            if (mParent != null) {
+            if (mParent is not null) {
                 //notify parent
                 mParent.NoteChanged();
                 mTParent.SetLengthDirty();
@@ -81,7 +81,7 @@ namespace WinAGI.Engine
             }
             mCol.RemoveAt(Index);
             //if parent is assigned
-            if (mParent != null) {
+            if (mParent is not  null) {
                 //notify parent
                 mParent.NoteChanged();
                 mTParent.SetLengthDirty();
@@ -89,12 +89,12 @@ namespace WinAGI.Engine
         }
         public Notes()
         {    //creates the collection when this class is created
-            mCol = new List<Note>();
+            mCol = [];
             strErrSource = "AGINotes";
         }
         internal Notes(Sound parent, Track tparent)
         {    //creates the collection when this class is created
-            mCol = new List<Note>();
+            mCol = [];
             mParent = parent;
             mTParent = tparent;
             strErrSource = "AGINotes";
@@ -102,7 +102,7 @@ namespace WinAGI.Engine
         internal Notes Clone(Track cloneTparent)
         {
             // return a copy of this notes collection
-            Notes CopyNotes = new Notes(mParent, cloneTparent);
+            Notes CopyNotes = new(mParent, cloneTparent);
             foreach (Note tmpNote in mCol) {
                 CopyNotes.mCol.Add(new Note(mParent, mTParent)
                 {

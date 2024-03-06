@@ -32,7 +32,7 @@ namespace WinAGI.Engine
 
 
         */
-        protected RData mRData = new RData(0);
+        protected RData mRData = new(0);
         protected bool mInGame;
         internal AGIGame parent;
         protected bool mIsDirty;
@@ -1001,7 +1001,7 @@ namespace WinAGI.Engine
             //or at end of resource, if not passed
 
             int i, lngResEnd, lngNewDatLen;
-            byte[] bNewData = new byte[] { 0 };
+            byte[] bNewData = [0];
             //if not loaded
             if (!mLoaded) {
                 //error

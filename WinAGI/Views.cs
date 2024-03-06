@@ -47,7 +47,7 @@ namespace WinAGI.Engine
         }
         public void Clear()
         {
-            Col = new SortedList<byte, View>();
+            Col = [];
         }
         public View Add(byte ResNum, View NewView = null)
         {
@@ -66,7 +66,7 @@ namespace WinAGI.Engine
                 throw e;
             }
             //if no object was passed
-            if ((NewView == null)) {
+            if ((NewView is null)) {
                 //create new view resource
                 agResource = new View();
                 //proposed ID will be default
@@ -129,7 +129,7 @@ namespace WinAGI.Engine
                 return;
             }
             //verify new number is not in collection
-            if (Col.Keys.Contains(NewView)) {
+            if (Col.ContainsKey(NewView)) {
                 //number already in use
 
                 Exception e = new(LoadResString(669))
@@ -207,7 +207,7 @@ namespace WinAGI.Engine
                 throw e;
             }
             //create new logic object
-            View newResource = new View(parent, bytResNum, bytVol, lngLoc);
+            View newResource = new(parent, bytResNum, bytVol, lngLoc);
             //add it
             Col.Add(bytResNum, newResource);
             // update VOL and LOC

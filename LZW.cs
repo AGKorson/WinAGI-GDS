@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WinAGI.Editor
+namespace WinAGI.Common
 {
     public static class LZW
     {
@@ -359,11 +359,11 @@ namespace WinAGI.Editor
             while (intCode >= intEndCode); // Until intCode < intEndCode
             if (intCodeIn == intNextCode - 1) {
                 //end char is same as start char
-                bytOutput[bytOutput.Length - 1] = bytOutput[0];
+                bytOutput[^1] = bytOutput[0];
             }
             else {
                 //add append char for input code
-                bytOutput[bytOutput.Length - 1] = (byte)intAppendChar[intCodeIn - intEndCode - 1];
+                bytOutput[^1] = (byte)intAppendChar[intCodeIn - intEndCode - 1];
             }
             //now output the bytes
             for (i = 0; i < bytOutput.Length; i++) {
@@ -396,7 +396,7 @@ namespace WinAGI.Editor
                                                                    //increment pointer
                 lngInPos++;
                 //add byte to buffer
-                lngBitBuffer = lngBitBuffer | lngNextByte;
+                lngBitBuffer |= lngNextByte;
                 //increment bit counter
                 intBitCount += 8;
             }

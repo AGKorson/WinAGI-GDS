@@ -7,17 +7,12 @@ using System.IO;
 
 namespace WinAGI.Engine
 {
-    public class Sounds : IEnumerable<Sound>
+    public class Sounds(AGIGame parent) : IEnumerable<Sound>
     {
-        AGIGame parent;
-        public Sounds(AGIGame parent)
-        {
-            this.parent = parent;
-            // create the initial Col object
-            Col = [];
-        }
+        AGIGame parent = parent;
+
         internal SortedList<byte, Sound> Col
-        { get; private set; }
+        { get; private set; } = [];
         public Sound this[int index]
         {
             get
@@ -47,7 +42,7 @@ namespace WinAGI.Engine
         }
         public void Clear()
         {
-            Col = new SortedList<byte, Sound>();
+            Col = [];
         }
         public Sound Add(byte ResNum, Sound NewSound = null)
         {
@@ -66,7 +61,7 @@ namespace WinAGI.Engine
                 throw e;
             }
             //if an object was not passed
-            if ((NewSound == null)) {
+            if ((NewSound is null)) {
                 //create new sound resource
                 agResource = new Sound();
                 //proposed ID will be default
@@ -123,7 +118,7 @@ namespace WinAGI.Engine
                 return;
             }
             //verify new number is not in collection
-            if (Col.Keys.Contains(NewSound)) {
+            if (Col.ContainsKey(NewSound)) {
                 //number already in use
 
                 Exception e = new(LoadResString(669))
@@ -201,7 +196,7 @@ namespace WinAGI.Engine
                 throw e;
             }
             //create new logic object
-            Sound newResource = new Sound(parent, bytResNum, bytVol, lngLoc);
+            Sound newResource = new(parent, bytResNum, bytVol, lngLoc);
             //add it
             Col.Add(bytResNum, newResource);
         }

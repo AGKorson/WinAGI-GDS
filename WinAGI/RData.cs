@@ -6,7 +6,7 @@ namespace WinAGI.Engine
     {
         internal delegate void RDataChangedEventHandler(object sender, RDataChangedEventArgs e);
         internal event RDataChangedEventHandler PropertyChanged;
-        byte[] mbytData = Array.Empty<byte>();
+        byte[] mbytData = [];
         public class RDataChangedEventArgs
         {
             public RDataChangedEventArgs(int size)
@@ -58,7 +58,7 @@ namespace WinAGI.Engine
         public void Clear()
         {
             //reset to an empty array
-            mbytData = Array.Empty<byte>();
+            mbytData = [];
             OnPropertyChanged(mbytData.Length);
         }
         public RData(int Size)

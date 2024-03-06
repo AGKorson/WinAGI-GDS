@@ -49,13 +49,13 @@ namespace WinAGI.Engine
             mHeight = 1;
             mParent = parent;
             //if parent view is part of a game, use the game's colors
-            if (mParent != null) {
-                if (mParent.parent != null) {
+            if (mParent is not null) {
+                if (mParent.parent is not null) {
                     colorEGA = mParent.parent.agEGAcolors;
                 }
             }
             // if not assigned to parent, use default
-            if (colorEGA == null) {
+            if (colorEGA is null) {
                 colorEGA = defaultColorEGA;
             }
         }
@@ -104,7 +104,7 @@ namespace WinAGI.Engine
                 //note change
                 mCelChanged = true;
                 //if there is a parent object
-                if (mParent != null) {
+                if (mParent is not null) {
                     //set dirty flag
                     mParent.IsDirty = true;
                 }
@@ -152,7 +152,7 @@ namespace WinAGI.Engine
                 //set the celdata
                 mCelData = value;
                 //if there is a parent object
-                if (mParent != null) {
+                if (mParent is not null) {
                     //set dirty flag
                     mParent.IsDirty = true;
                 }
@@ -174,7 +174,7 @@ namespace WinAGI.Engine
                 if (mTransparency != value) {
                     mTransparency = value;
                     mCelChanged = true;
-                    if (mParent != null) {
+                    if (mParent is not null) {
                         //set dirty flag
                         mParent.IsDirty = true;
                     }
@@ -183,19 +183,21 @@ namespace WinAGI.Engine
         }
         internal Cel Clone(View cloneparent)
         {
-            Cel CopyCel = new Cel(cloneparent);
-            CopyCel.mWidth = mWidth;
-            CopyCel.mHeight = mHeight;
-            CopyCel.mTransColor = mTransColor;
-            CopyCel.mCelData = mCelData;
-            CopyCel.mIndex = mIndex;
-            CopyCel.mSetMirror = mSetMirror;
-            CopyCel.mMirrored = mMirrored;
-            CopyCel.blnCelBMPSet = blnCelBMPSet;
-            CopyCel.mTransparency = mTransparency;
-            CopyCel.mCelChanged = mCelChanged;   // means cel data has change? who cares?
+            Cel CopyCel = new(cloneparent)
+            {
+                mWidth = mWidth,
+                mHeight = mHeight,
+                mTransColor = mTransColor,
+                mCelData = mCelData,
+                mIndex = mIndex,
+                mSetMirror = mSetMirror,
+                mMirrored = mMirrored,
+                blnCelBMPSet = blnCelBMPSet,
+                mTransparency = mTransparency,
+                mCelChanged = mCelChanged   // means cel data has change? who cares?
+            };
 
-            if (mCelBMP == null) {
+            if (mCelBMP is null) {
                 CopyCel.mCelBMP = null;
             }
             else {
@@ -290,7 +292,7 @@ namespace WinAGI.Engine
                 }
             }
             //if there is a parent object
-            if (mParent != null) {
+            if (mParent is not null) {
                 mParent.IsDirty = true;
             }
             //note change
@@ -322,7 +324,7 @@ namespace WinAGI.Engine
             //note change
             mCelChanged = true;
             //if there is a parent object
-            if (mParent != null) {
+            if (mParent is not null) {
                 //set dirty flag
                 mParent.IsDirty = true;
             }
@@ -373,7 +375,7 @@ namespace WinAGI.Engine
                     //set new height
                     mHeight = value;
                     //if there is a parent object
-                    if (mParent != null) {
+                    if (mParent is not null) {
                         //set dirty flag
                         mParent.IsDirty = true;
                     }
@@ -398,7 +400,7 @@ namespace WinAGI.Engine
             }
 
             //if there is a parent object
-            if (mParent != null) {
+            if (mParent is not null) {
                 mParent.IsDirty = true;
             }
             mCelChanged = true;
@@ -454,7 +456,7 @@ namespace WinAGI.Engine
                     //set new width
                     mWidth = value;
                     //if there is a parent object
-                    if (mParent != null) {
+                    if (mParent is not null) {
                         //set dirty flag
                         mParent.IsDirty = true;
                     }
@@ -482,7 +484,7 @@ namespace WinAGI.Engine
                     //change it
                     mTransColor = value;
                     mCelChanged = true;
-                    if (mParent != null) {
+                    if (mParent is not null) {
                         //set dirty flag
                         mParent.IsDirty = true;
                     }

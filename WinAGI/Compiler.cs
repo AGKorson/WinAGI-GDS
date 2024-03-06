@@ -2,15 +2,11 @@
 using System.Linq;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.ArgTypeEnum;
-using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.DefineNameCheck;
+using static WinAGI.Engine.DefineValueCheck;
 using static WinAGI.Engine.Base;
 using static WinAGI.Common.Base;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using static System.ComponentModel.Design.ObjectSelectorEditor;
-using System.DirectoryServices.ActiveDirectory;
-using System.Runtime.ConstrainedExecution;
-using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 
 namespace WinAGI.Engine
 {
@@ -69,7 +65,7 @@ namespace WinAGI.Engine
             //returns the reserved defines that match this argtype as an array of defines
             //NOT the same as reporting by //group// (which is used for saving changes to resdef names)
             int i;
-            TDefine[] tmpDefines = Array.Empty<TDefine>();
+            TDefine[] tmpDefines = [];
             switch (ArgType) {
             case atNum:
                 //return all numerical reserved defines
@@ -100,7 +96,7 @@ namespace WinAGI.Engine
                 break;
             case atMsg:
                 //none
-                tmpDefines = Array.Empty<TDefine>();
+                tmpDefines = [];
                 break;
             case atSObj:
                 //one - ego
@@ -108,7 +104,7 @@ namespace WinAGI.Engine
                 break;
             case atInvItem:
                 //none
-                tmpDefines = Array.Empty<TDefine>();
+                tmpDefines = [];
                 break;
             case atStr:
                 //one - input prompt
@@ -116,19 +112,19 @@ namespace WinAGI.Engine
                 break;
             case atWord:
                 //none
-                tmpDefines = Array.Empty<TDefine>();
+                tmpDefines = [];
                 break;
             case atCtrl:
                 //none
-                tmpDefines = Array.Empty<TDefine>();
+                tmpDefines = [];
                 break;
             case atDefStr:
                 //none
-                tmpDefines = Array.Empty<TDefine>();
+                tmpDefines = [];
                 break;
             case atVocWrd:
                 //none
-                tmpDefines = Array.Empty<TDefine>();
+                tmpDefines = [];
                 break;
             }
             //return the defines
@@ -818,8 +814,178 @@ namespace WinAGI.Engine
             //must be OK!
             return DefineNameCheck.ncOK;
         }
-        internal static string StripComments(string strLine, ref string strComment, bool NoTrim)
-        {
+        internal static DefineNameCheck ValidateDefName(TDefine CheckDef) {
+            // validates that DefValue is a valid define Value
+            int i;
+            DefineNameCheck tmpResult;
+
+            // use standard compiler to check everything except other globals
+            tmpResult = Compiler.ValidateName(CheckDef);
+            if (tmpResult != DefineNameCheck.ncOK) {
+                // pass along error value
+                return tmpResult;
+            }
+            // check against current globals
+            if (compGame is not null) {
+                for (i = 0; i < compGame.GlobalDefines.Count; i++) {
+                    if (CheckDef.Name == compGame.GlobalDefines[i].Name)
+                        return ncGlobal;
+                }
+            }
+            // check against ingame reserved defines:
+            if (compGame is not null && UseReservedNames) {
+                for (i = 0; i < compGame.agResGameDef.Length; i++) {
+                    if (CheckDef.Name == compGame.agResGameDef[i].Name)
+                        //invobj count is number; rest are msgstrings
+                        return i == 3 ? ncReservedNum : ncReservedMsg;
+                }
+            }
+            // check for invalid characters
+            if ((INVALID_DEFNAME_CHARS).Any(CheckDef.Name.Contains)) {
+                // bad
+                return ncBadChar;
+            }
+            // if no error conditions, it's OK
+            return ncOK;
+        }
+
+        internal static DefineNameCheck ValidateDefName(string CheckName) {
+            TDefine CheckDef = new()
+            {
+                Name = CheckName
+            };
+            return ValidateDefName(CheckDef);
+        }
+
+        internal static DefineValueCheck ValidateDefValue(TDefine TestDefine) {
+            //validates that TestDefine.Value is a valid define Value
+            string strVal;
+
+            // should only be called if a game is active?
+            if (compGame is null) {
+                throw new Exception("no game object!");
+            }
+            if (TestDefine.Value.Length == 0)
+                return vcEmpty;
+            //values must be a variable/flag/etc, string, or a number
+            if (!int.TryParse(TestDefine.Value, out int intVal)) {
+                // if Value is an argument marker
+                if ("vfmoiswc".Any(TestDefine.Value.ToLower().StartsWith)) {
+                    //if rest of Value is numeric,
+                    strVal = TestDefine.Value[..^1];
+                    if (int.TryParse(strVal, out intVal)) {
+                        //if Value is not between 0-255
+                        if (intVal < 0 || intVal > 255)
+                            return vcOutofBounds;
+                        //check defined globals
+                        for (int i = 0; i < compGame.GlobalDefines.Count; i++) {
+                            //if this define has same Value
+                            if (compGame.GlobalDefines[i].Value == TestDefine.Value)
+                                return vcGlobal;
+                        }
+                        // check if Value is already assigned
+                        switch (TestDefine.Value[0]) {
+                        case 'f':
+                            TestDefine.Type = atFlag;
+                            if (UseReservedNames) {
+                                //if already defined as a reserved flag
+                                if (intVal <= 15)
+                                    return vcReserved;
+                                if (intVal == 20) {
+                                    switch (compGame.agIntVersion) {
+                                    case "3.002.098" or "3.002.102" or "3.002.107"or "3.002.149":
+                                        return vcReserved;
+                                    }
+                                }
+                            }
+                            break;
+                        case 'v':
+                            TestDefine.Type = atVar;
+                            if (UseReservedNames)
+                                //if already defined as a reserved variable
+                                if (intVal <= 26)
+                                    return vcReserved;
+                            break;
+                        case 'm':
+                            TestDefine.Type = atMsg;
+                            break;
+                        case 'o':
+                            TestDefine.Type = atSObj;
+                            if (UseReservedNames)
+                                //can't be ego
+                                if (intVal == 0)
+                                    return vcReserved;
+                            break;
+                        case 'i':
+                            TestDefine.Type = atInvItem;
+                            break;
+                        case 's': //string
+                            TestDefine.Type = atStr;
+                            if (intVal > 23 || (intVal > 11 &&
+                              (compGame.agIntVersion == "2.089" ||
+                              compGame.agIntVersion == "2.272" ||
+                              compGame.agIntVersion == "3.002149")))
+                                return vcBadArgNumber;
+                            break;
+                        case 'w':
+                            // valid from w1 to w10
+                            // applies to fanAGI syntax only;
+                            TestDefine.Type = atWord;
+                            // base is 1 because of how msg formatting
+                            // uses words; compiler will automatically
+                            // convert it to base zero when used - see
+                            // WinAGI help file for more details
+                            if (intVal < 1 || intVal > 10) {
+                                return vcBadArgNumber;
+                            }
+                            break;
+                        case 'c': //controller
+                                 //controllers limited to 0-49
+                            TestDefine.Type = atCtrl;
+                            if (intVal > 49)
+                                return vcBadArgNumber;
+                            break;
+                        }
+                        //Value is ok
+                        return vcOK;
+                    }
+                }
+                //non-numeric, non-marker and most likely a string
+                TestDefine.Type = atDefStr;
+                //check Value for string delimiters in Value
+                if (IsAGIString(TestDefine.Value))
+                    return vcOK;
+                else
+                    return vcNotAValue;
+            }
+            else {
+                // numeric
+                TestDefine.Type = atNum;
+                //unsigned byte (0-255) or signed byte (-128 to 127) are OK
+                if (intVal > -128 && intVal < 256)
+                    return vcOK;
+                else
+                    return vcOutofBounds;
+            }
+        }
+
+        public static bool IsAGIString(string CheckString) {
+            // this function returns true if CheckString begins
+            // with a quote, and ends with a non-embedded quote
+
+            if (string.IsNullOrEmpty(CheckString)) return false;
+            if (CheckString.Length < 2) return false;
+            if (CheckString[0] != '\"') return false;
+            if (CheckString[^1] != '\"') return false;
+            // validate that ending string is not an embedded (\") quote
+            bool embedded = false;
+            for (int i = 0; i < CheckString.Length; i++) {
+                if (CheckString[i] != '\\') break;
+                embedded = !embedded;
+            }
+            return !embedded;
+        }
+        internal static string StripComments(string strLine, ref string strComment, bool NoTrim) {
             //strips off any comments on the line
             //if NoTrim is false, the string is also
             //stripped of any blank space

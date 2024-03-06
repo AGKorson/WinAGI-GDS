@@ -29,10 +29,8 @@ namespace WinAGI.Engine
                 }
                 mAttenuation = value;
                 //if parent is assigned
-                if (mSndParent != null) {
-                    //notify parent
-                    mSndParent.NoteChanged();
-                }
+                //notify parent
+                mSndParent?.NoteChanged();
             }
         }
         public int Duration
@@ -71,10 +69,8 @@ namespace WinAGI.Engine
                 }
                 mFreqDiv = value;
                 //if parent is assigned
-                if (mSndParent != null) {
-                    //notify parent
-                    mSndParent.NoteChanged();
-                }
+                //notify parent
+                mSndParent?.NoteChanged();
             }
         }
         public Note()

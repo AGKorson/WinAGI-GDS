@@ -14,7 +14,7 @@ namespace WinAGI.Engine
         {
             this.parent = parent;
             // create the initial Col object
-            Col = new SortedList<byte, Picture>();
+            Col = [];
         }
         internal SortedList<byte, Picture> Col
         { get; private set; }
@@ -47,7 +47,7 @@ namespace WinAGI.Engine
         }
         public void Clear()
         {
-            Col = new SortedList<byte, Picture>();
+            Col = [];
         }
         public Picture Add(byte ResNum, Picture NewPicture = null)
         {
@@ -66,7 +66,7 @@ namespace WinAGI.Engine
                 throw e;
             }
             //if no object was passed
-            if ((NewPicture == null)) {
+            if (NewPicture is null) {
                 //create new picture object
                 agResource = new Picture();
                 //proposed ID will be default
@@ -201,7 +201,7 @@ namespace WinAGI.Engine
                 throw e;
             }
             //create new logic object
-            Picture newResource = new Picture(parent, bytResNum, bytVol, lngLoc);
+            Picture newResource = new(parent, bytResNum, bytVol, lngLoc);
             //add it
             Col.Add(bytResNum, newResource);
         }

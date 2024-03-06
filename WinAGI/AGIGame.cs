@@ -6,7 +6,7 @@ using static WinAGI.Engine.Base;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Compiler;
-using Microsoft.Win32;
+using System.Collections.Generic;
 
 namespace WinAGI.Engine
 {
@@ -101,12 +101,17 @@ namespace WinAGI.Engine
                 {
                     HResult = int.Parse(retval.ID)
                 };
+
             }
+            // give compiler access
+            compGame = this;
         }
         public AGIGame(string id, string version, string gamedir, string resdir, string template = "")
         {
             InitGame();
             NewGame(id, version, gamedir, resdir, template);
+            // give compiler access
+            compGame = this;
         }
         private void InitGame()
         {
@@ -528,6 +533,10 @@ namespace WinAGI.Engine
 
             // clear all game properties
             ClearGameState();
+            // release compiler access
+            compGame = null;
+            // TODO: need to implement IDisposable so 
+            // compgame can be set to null when game is disposed (set to null)
         }
         public bool CompileGame(bool RebuildOnly, string NewGameDir = "")
         {
@@ -1109,7 +1118,7 @@ namespace WinAGI.Engine
                         //and vol files
                         foreach (string strVolFile in Directory.EnumerateFiles(agGameDir, agGameID + "VOL.*")) {
                             //if an archived (OLD) file, skip it
-                            if (Right(strVolFile, 4).ToUpper() != ".OLD") {
+                            if (!strVolFile[^4..].Equals(".OLD", StringComparison.OrdinalIgnoreCase)) {
                                 //get extension
                                 string[] strExtension = strVolFile.Split(".");
                                 //rename
@@ -1600,8 +1609,8 @@ namespace WinAGI.Engine
 
                 if (agIsVersion3) {
                     // for v3, header should be '08 - 00 - 0B - 00 - 0E - 00 - 11 - 00
-                    byte[] bytDirHdr = new byte[8] { 8, 0, 0x0b, 0, 0x0e, 0, 0x11, 0 };
-                    using FileStream fsDIR = new FileStream(agGameDir + agGameID + "DIR", FileMode.OpenOrCreate);
+                    byte[] bytDirHdr = [8, 0, 0x0b, 0, 0x0e, 0, 0x11, 0];
+                    using FileStream fsDIR = new(agGameDir + agGameID + "DIR", FileMode.OpenOrCreate);
                     fsDIR.Write(bytDirHdr);
                     for (i = 0; i < 4; i++) {
                         fsDIR.Write(bytDirData);
@@ -1609,7 +1618,7 @@ namespace WinAGI.Engine
                     fsDIR.Dispose();
                 }
                 else {
-                    FileStream fsDIR = new FileStream(agGameDir + "LOGDIR", FileMode.OpenOrCreate);
+                    FileStream fsDIR = new(agGameDir + "LOGDIR", FileMode.OpenOrCreate);
                     fsDIR.Write(bytDirData);
                     fsDIR = new FileStream(agGameDir + "PICDIR", FileMode.OpenOrCreate);
                     fsDIR.Write(bytDirData);
@@ -1660,7 +1669,7 @@ namespace WinAGI.Engine
             //set resource directory
             //ensure resource directory exists
             if (!Directory.Exists(agGameDir + agResDirName)) {
-                if (Directory.CreateDirectory(agGameDir + agResDirName) == null) {
+                if (Directory.CreateDirectory(agGameDir + agResDirName) is null) {
                     //note the problem as a warning
                     TWinAGIEventInfo warnInfo = new()
                     {
@@ -2189,11 +2198,19 @@ namespace WinAGI.Engine
                         //recalculate the CRC value for this sourcefile by loading the source
                         tmpLog.LoadSource(false);
                         // check it for TODO items
-                        // TODO: need to fix this so it doesn't access editor object; the engine should 
-                        // be 100% standalone from the editor (same for DecompWarnings)
-                        ExtractTODO(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
+                        List<TWinAGIEventInfo> TODOs = ExtractTODO(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
+                        if (TODOs.Count > 0) {
+                            foreach (TWinAGIEventInfo tmpInfo in TODOs) {
+                                Raise_LoadGameEvent(tmpInfo);
+                            }
+                        }
                         // check for Decompile warnings
-                        ExtractDecompWarn(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
+                        List<TWinAGIEventInfo> DecompWarnings = ExtractDecompWarn(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
+                        if (DecompWarnings.Count > 0) {
+                            foreach (TWinAGIEventInfo tmpInfo in DecompWarnings) {
+                                Raise_LoadGameEvent(tmpInfo);
+                            }
+                        }
                         // then unload it
                         tmpLog.Unload();
                     }

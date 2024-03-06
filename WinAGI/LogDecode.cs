@@ -13,23 +13,21 @@ using static WinAGI.Engine.Commands;
 
 using static WinAGI.Engine.Base;
 using System.Diagnostics;
-using System.IO;
-using static System.Windows.Forms.Design.AxImporter;
-using WinAGI.Editor;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WinAGI.Engine
 {
     public static partial class Compiler
     {
-        internal struct BlockType
-        {
-            internal bool IsIf;
-            internal int EndPos;
-            internal int Length;
-            internal bool IsOutside;
-            internal int JumpPos;
-            internal bool HasQuit;
+        internal struct BlockType {
+            internal bool IsIf = false;
+            internal int StartPos = 0;
+            internal int EndPos = 0;
+            internal int Length = 0;
+            internal bool IsOutside = false;
+            internal int JumpPos = 0;
+            internal bool HasQuit = false;
+            public BlockType() {
+            }
         }
         public enum AGICodeStyle
         {
@@ -38,7 +36,7 @@ namespace WinAGI.Engine
             cstModifiedVisualStudio
         }
         static byte bytBlockDepth;
-        static BlockType[] Block = new BlockType[MAX_BLOCK_DEPTH];
+        static BlockType[] DecodeBlock = new BlockType[MAX_BLOCK_DEPTH];
         static int intArgStart;
         static int[] lngLabelPos = [];
         static int lngMsgSecStart;
@@ -108,9 +106,9 @@ namespace WinAGI.Engine
             // TODO: what about logics that aren't in a game?? they have no number
             Debug.Assert(SourceLogic.Loaded);
             bytLogComp = (byte)LogNum;
-            compGame = SourceLogic.parent;
             byte[] bytData = SourceLogic.Data.AllData;
             stlOutput = [];
+            strError = "";
 
             //if nothing in the resource,
             if (bytData.Length == 0) {
@@ -123,12 +121,12 @@ namespace WinAGI.Engine
             }
             //clear block info
             for (i = 0; i < MAX_BLOCK_DEPTH; i++) {
-                Block[i].EndPos = 0;
-                Block[i].IsIf = false;
-                Block[i].IsOutside = false;
-                Block[i].JumpPos = 0;
-                Block[i].Length = 0;
-                Block[i].HasQuit = false;
+                DecodeBlock[i].EndPos = 0;
+                DecodeBlock[i].IsIf = false;
+                DecodeBlock[i].IsOutside = false;
+                DecodeBlock[i].JumpPos = 0;
+                DecodeBlock[i].Length = 0;
+                DecodeBlock[i].HasQuit = false;
             }
 
             //extract beginning of msg section
@@ -158,10 +156,10 @@ namespace WinAGI.Engine
             }
 
             //set main block info
-            Block[0].IsIf = false;
-            Block[0].EndPos = lngMsgSecStart;
-            Block[0].IsOutside = false;
-            Block[0].Length = lngMsgSecStart;
+            DecodeBlock[0].IsIf = false;
+            DecodeBlock[0].EndPos = lngMsgSecStart;
+            DecodeBlock[0].IsOutside = false;
+            DecodeBlock[0].Length = lngMsgSecStart;
 
             //set error flag
             strError = "";
@@ -235,10 +233,10 @@ namespace WinAGI.Engine
                         // convert to negative number
                         tmpBlockLen -= 0x10000;
                     }
-                    if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!ElseAsGoto)) {
-                        Block[bytBlockDepth].IsIf = false;
-                        Block[bytBlockDepth].IsOutside = false;
-                        if ((tmpBlockLen + lngPos > Block[bytBlockDepth - 1].EndPos) || (tmpBlockLen < 0) || (Block[bytBlockDepth].Length <= 3)) {
+                    if ((DecodeBlock[bytBlockDepth].EndPos == lngPos) && (DecodeBlock[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!ElseAsGoto)) {
+                        DecodeBlock[bytBlockDepth].IsIf = false;
+                        DecodeBlock[bytBlockDepth].IsOutside = false;
+                        if ((tmpBlockLen + lngPos > DecodeBlock[bytBlockDepth - 1].EndPos) || (tmpBlockLen < 0) || (DecodeBlock[bytBlockDepth].Length <= 3)) {
                             // else won't work; force it to be a goto
                             blnGoto = true;
                         }
@@ -247,8 +245,8 @@ namespace WinAGI.Engine
                             // append else to end of curent if block
                             stlOutput[^1] += D_TKN_ELSE.Replace(ARG1, MultStr(INDENT, bytBlockDepth - 1));
                             // adjust length and endpos for the 'else' block
-                            Block[bytBlockDepth].Length = tmpBlockLen;
-                            Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
+                            DecodeBlock[bytBlockDepth].Length = tmpBlockLen;
+                            DecodeBlock[bytBlockDepth].EndPos = DecodeBlock[bytBlockDepth].Length + lngPos;
                         }
                     }
                     else {
@@ -520,7 +518,7 @@ namespace WinAGI.Engine
                     // check for set.game.id
                     if (bytCmd == 143) {
                         // if importing, use ths as suggested wag file name/gameid
-                        DecodeGameID = stlMsgs[bytCurData - 1][1..^1];
+                        DecodeGameID = stlMsgs[bytCurData][1..^1];
                     }
                     // check for quit() arg count error
                     if (badQuit) {
@@ -673,8 +671,7 @@ namespace WinAGI.Engine
                     }
                     else {
                         //use string value of  message as the chunk to add to current line
-                        // TODO: adjust creation of message list so it's one-based to avoid potential confusion
-                        return stlMsgs[ArgNum - 1];
+                        return stlMsgs[ArgNum];
                     }
                 }
                 else {
@@ -775,6 +772,8 @@ namespace WinAGI.Engine
             lngMsgTextEnd = lngMsgStart;
 
             stlMsgs = [];
+            // first msg, with index of zero, is null/not used
+            stlMsgs.Add("");
 
             //read in number of messages
             NumMessages = bytData[lngPos];
@@ -904,7 +903,7 @@ namespace WinAGI.Engine
                         stlMsgs.Add("");
                         blnMsgExists[intCurMsg] = false;
                     }
-                } //Next intCurMsg
+                }
             }
             return true;
         }
@@ -1120,33 +1119,33 @@ namespace WinAGI.Engine
                     //(SkipToEndIf verified that max block depth is not exceeded)
                     //increase block depth counter
                     bytBlockDepth++;
-                    Block[bytBlockDepth].IsIf = true;
-                    Block[bytBlockDepth].Length = 256 * bytData[lngPos + 1] + bytData[lngPos];
+                    DecodeBlock[bytBlockDepth].IsIf = true;
+                    DecodeBlock[bytBlockDepth].Length = 256 * bytData[lngPos + 1] + bytData[lngPos];
                     lngPos += 2;
                     //check for length of zero
-                    if (Block[bytBlockDepth].Length == 0) {
+                    if (DecodeBlock[bytBlockDepth].Length == 0) {
                         //set warning text
                         AddDecodeWarning("DC07", "This block at position " + lngPos + " contains no commands", stlOutput.Count);
                    }
                     //validate end pos
-                    Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
-                    if (Block[bytBlockDepth].EndPos >= bytData.Length - 1) {
+                    DecodeBlock[bytBlockDepth].EndPos = DecodeBlock[bytBlockDepth].Length + lngPos;
+                    if (DecodeBlock[bytBlockDepth].EndPos >= bytData.Length - 1) {
                         //adjust to end
-                        Block[bytBlockDepth].EndPos = bytData.Length - 2;
+                        DecodeBlock[bytBlockDepth].EndPos = bytData.Length - 2;
                         //set warning text
                         AddDecodeWarning("DC08", "Block end at position " + lngPos + " past end of resource; adjusted to end of resource", stlOutput.Count);
                     }
                     //verify block ends before end of previous block
                     //(i.e. it's properly nested)
-                    if (Block[bytBlockDepth].EndPos > Block[bytBlockDepth - 1].EndPos) {
+                    if (DecodeBlock[bytBlockDepth].EndPos > DecodeBlock[bytBlockDepth - 1].EndPos) {
                         //block is outside the previous block nest;
                         //this is an abnormal situation
                         //need to simulate this block by using else and goto
-                        Block[bytBlockDepth].IsOutside = true;
-                        Block[bytBlockDepth].JumpPos = Block[bytBlockDepth].EndPos;
-                        Block[bytBlockDepth].EndPos = Block[bytBlockDepth - 1].EndPos;
+                        DecodeBlock[bytBlockDepth].IsOutside = true;
+                        DecodeBlock[bytBlockDepth].JumpPos = DecodeBlock[bytBlockDepth].EndPos;
+                        DecodeBlock[bytBlockDepth].EndPos = DecodeBlock[bytBlockDepth - 1].EndPos;
                         //set warning text
-                        AddDecodeWarning("DC09", "Block end (" + Block[bytBlockDepth].JumpPos + ") outside of nested block at position " + lngPos, stlOutput.Count);
+                        AddDecodeWarning("DC09", "Block end (" + DecodeBlock[bytBlockDepth].JumpPos + ") outside of nested block at position " + lngPos, stlOutput.Count);
                     }
                     stlOut.Add(strLine);
                     //if any warnings
@@ -1220,24 +1219,24 @@ namespace WinAGI.Engine
                     }
                     //increment block counter
                     bytBlockDepth++;
-                    Block[bytBlockDepth].IsIf = true;
-                    Block[bytBlockDepth].Length = 256 * bytData[lngPos + 1] + bytData[lngPos];
+                    DecodeBlock[bytBlockDepth].IsIf = true;
+                    DecodeBlock[bytBlockDepth].Length = 256 * bytData[lngPos + 1] + bytData[lngPos];
                     lngPos += 2;
                     // block length of zero will cause warning in main loop, so no need to check for it here
-                    Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
-                    if (Block[bytBlockDepth].EndPos > Block[bytBlockDepth - 1].EndPos) {
+                    DecodeBlock[bytBlockDepth].EndPos = DecodeBlock[bytBlockDepth].Length + lngPos;
+                    if (DecodeBlock[bytBlockDepth].EndPos > DecodeBlock[bytBlockDepth - 1].EndPos) {
                         //block is outside the previous block nest;
                         //
                         //this is an abnormal situation;
                         //need to simulate this block by using else and goto
-                        Block[bytBlockDepth].IsOutside = true;
-                        Block[bytBlockDepth].JumpPos = Block[bytBlockDepth].EndPos;
-                        Block[bytBlockDepth].EndPos = Block[bytBlockDepth - 1].EndPos;
+                        DecodeBlock[bytBlockDepth].IsOutside = true;
+                        DecodeBlock[bytBlockDepth].JumpPos = DecodeBlock[bytBlockDepth].EndPos;
+                        DecodeBlock[bytBlockDepth].EndPos = DecodeBlock[bytBlockDepth - 1].EndPos;
                         //add a new goto item
                         //(since error level is medium or low (dont need to worry about an invalid jumppos)
                         //if label is already created
                         for (i = 1; i <= bytLabelCount; i++) {
-                            if (lngLabelPos[i] == Block[bytBlockDepth].JumpPos) {
+                            if (lngLabelPos[i] == DecodeBlock[bytBlockDepth].JumpPos) {
                                 break;
                             }
                         }
@@ -1247,7 +1246,7 @@ namespace WinAGI.Engine
                             bytLabelCount = (byte)i;
                             Array.Resize(ref lngLabelPos, bytLabelCount + 1);
                             //save this label position
-                            lngLabelPos[bytLabelCount] = Block[bytBlockDepth].JumpPos;
+                            lngLabelPos[bytLabelCount] = DecodeBlock[bytBlockDepth].JumpPos;
                         }
                     }
                     IfFinished = true;
@@ -1283,12 +1282,12 @@ namespace WinAGI.Engine
                 //start at most recent block and work up to oldest block
                 for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--) {
                     //if this position matches the end of this block
-                    if (Block[CurBlock].EndPos <= lngPos) {
+                    if (DecodeBlock[CurBlock].EndPos <= lngPos) {
                         // if off by exactly one, AND there's a quit cmd in this block
                         // AND this version is one that uses arg value for quit
                         // this error ismost likely due to bad coding of quit cmd
                         // if otherwise not an exact match, it will be caught when the block ends are added
-                        if (lngPos - Block[CurBlock].EndPos == 1 && compGame.agIntVersion != "2.089" && Block[CurBlock].HasQuit) {
+                        if (lngPos - DecodeBlock[CurBlock].EndPos == 1 && compGame.agIntVersion != "2.089" && DecodeBlock[CurBlock].HasQuit) {
                             strError = "CHECKQUIT";
                                 return false;
                         }
@@ -1322,16 +1321,16 @@ namespace WinAGI.Engine
                     //  - this block is identified as an IF block
                     //  - this is NOT the main block
                     //  - the flag to set elses as gotos is turned off
-                    if ((Block[bytBlockDepth].EndPos == lngPos) && (Block[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!Compiler.ElseAsGoto)) {
+                    if ((DecodeBlock[bytBlockDepth].EndPos == lngPos) && (DecodeBlock[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!Compiler.ElseAsGoto)) {
                         //this block is now in the 'else' part, so reset flag
-                        Block[bytBlockDepth].IsIf = false;
-                        Block[bytBlockDepth].IsOutside = false;
+                        DecodeBlock[bytBlockDepth].IsIf = false;
+                        DecodeBlock[bytBlockDepth].IsOutside = false;
                         //does this 'else' statement line up to end at the same
                         //point that the 'if' statement does?
                         //the end of this block is past where the 'if' block ended OR
                         //the block is negative (means jumping backward, so it MUST be a goto)
                         //length of block doesn't have enough room for code necessary to close the 'else'
-                        if ((tmpBlockLength + lngPos > Block[bytBlockDepth - 1].EndPos) || (tmpBlockLength < 0) || (Block[bytBlockDepth].Length <= 3)) {
+                        if ((tmpBlockLength + lngPos > DecodeBlock[bytBlockDepth - 1].EndPos) || (tmpBlockLength < 0) || (DecodeBlock[bytBlockDepth].Length <= 3)) {
                             //this is a //goto// statement,
                             DoGoto = true;
                         }
@@ -1339,8 +1338,8 @@ namespace WinAGI.Engine
                             //this is an 'else' statement;
                             //readjust block end so the IF statement that owns this 'else'
                             //is ended correctly
-                            Block[bytBlockDepth].Length = tmpBlockLength;
-                            Block[bytBlockDepth].EndPos = Block[bytBlockDepth].Length + lngPos;
+                            DecodeBlock[bytBlockDepth].Length = tmpBlockLength;
+                            DecodeBlock[bytBlockDepth].EndPos = DecodeBlock[bytBlockDepth].Length + lngPos;
                         }
                     }
                     else {
@@ -1408,11 +1407,11 @@ namespace WinAGI.Engine
             }
             //clear block info (don't overwrite main block)
             for (i = 1; i < MAX_BLOCK_DEPTH; i++) {
-                Block[i].EndPos = 0;
-                Block[i].IsIf = false;
-                Block[i].IsOutside = false;
-                Block[i].JumpPos = 0;
-                Block[i].Length = 0;
+                DecodeBlock[i].EndPos = 0;
+                DecodeBlock[i].IsIf = false;
+                DecodeBlock[i].IsOutside = false;
+                DecodeBlock[i].JumpPos = 0;
+                DecodeBlock[i].Length = 0;
             }
             //return success
             return true;
@@ -1420,12 +1419,11 @@ namespace WinAGI.Engine
         static void DisplayMessages(List<string> stlOut)
         {
             int lngMsg;
-            //need to adjust references to the Messages stringlist object by one
-            //since the list is zero based, but messages are one-based.
             stlOut.Add(D_TKN_COMMENT + "Messages");
-            for (lngMsg = 1; lngMsg <= stlMsgs.Count; lngMsg++) {
+            //always skip msg[0] since it's n/a
+            for (lngMsg = 1; lngMsg < stlMsgs.Count; lngMsg++) {
                 if (blnMsgExists[lngMsg] && (ShowAllMessages || !blnMsgUsed[lngMsg])) {
-                    stlOut.Add(D_TKN_MESSAGE.Replace(ARG1, lngMsg.ToString()).Replace(ARG2, stlMsgs[lngMsg - 1]));
+                    stlOut.Add(D_TKN_MESSAGE.Replace(ARG1, lngMsg.ToString()).Replace(ARG2, stlMsgs[lngMsg]));
                 }
             }
         }
@@ -1578,12 +1576,12 @@ namespace WinAGI.Engine
                 //  the zero value. this results in pointer going
                 // past end of data, so it's one greater than
                 // calculated block end
-                if (Block[CurBlock].EndPos < lngPos) {
+                if (DecodeBlock[CurBlock].EndPos < lngPos) {
                     AddDecodeWarning("DC14", "Expected block end does not align with calculated block end at position " + lngPos.ToString(), Compiler.stlOutput.Count);
                 }
-                if (Block[CurBlock].EndPos <= lngPos) {
+                if (DecodeBlock[CurBlock].EndPos <= lngPos) {
                     //check for unusual case where an if block ends outside the if block it is nested in
-                    if (Block[CurBlock].IsOutside) {
+                    if (DecodeBlock[CurBlock].IsOutside) {
                         // end current block
                         stlOutput.Add(MultStr(INDENT, bytBlockDepth - 1) + D_TKN_ENDIF.Replace(ARG1, INDENT));
                        if (ElseAsGoto) {
@@ -1597,7 +1595,7 @@ namespace WinAGI.Engine
                         }
                         //add a goto
                         for (i = 1; i <= bytLabelCount; i++) {
-                            if (lngLabelPos[i] == Block[CurBlock].JumpPos) {
+                            if (lngLabelPos[i] == DecodeBlock[CurBlock].JumpPos) {
                                 stlOutput.Add(MultStr(INDENT, bytBlockDepth) + D_TKN_GOTO.Replace(ARG1, "Label" + i) + D_TKN_EOL);
                                 break;
                             }

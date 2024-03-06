@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using static System.Windows.Forms.DataFormats;
 using static WinAGI.Common.Base;
-using static WinAGI.Editor.Base;
 namespace WinAGI.Engine
 {
     using System.Data;
@@ -154,12 +153,12 @@ namespace WinAGI.Engine
         atDefStr = 9,   //defined string; could be msg, inv obj, or vocword
         atVocWrd = 10,   //vocabulary word; NOT word argument
         atActionCmd = 11, //action command synonym
-        atTestCmd = 12,  //test command synonym
-        atObj = 13      // dual object type for Sierra Syntax
-
-        //if using Sierra syntax, only valid types are:
-        // atNum, atVar, atFlag,
-        //atDefStr[msg only], atVocWrd, atActionCmd, atTestCmd
+        atTestCmd = 12,   //test command synonym
+        atObj = 13,       // dual object type for Sierra syntax
+        atView = 14       // view type is number, only in Sierra syntax
+        // if using Sierra syntax, only valid types are:
+        //   atNum, atVar, atFlag, atDefStr[msg only], atVocWrd,
+        //   atActionCmd, atTestCmd, atObj, atView
     }
     public enum ResDefGroup
     {
@@ -182,21 +181,21 @@ namespace WinAGI.Engine
         ncTestCommand,   // 4 = name is test command
         ncKeyWord,       // 5 = name is a compiler keyword
         ncArgMarker,     // 6 = name is an argument marker
-        ncGlobal,        // 7 = name is already globally defined
-        ncReservedVar,   // 8 = name is reserved variable name
-        ncReservedFlag,  // 9 = name is reserved flag name
-        ncReservedNum,   // 10 = name is reserved number constant
-        ncReservedObj,   // 11 = name is reserved object
-        ncReservedStr,   // 12 = name is reserved string
-        ncReservedMsg,   // 13 = name is reserved message
-        ncBadChar,       // 14 = name contains improper character
+        ncBadChar,       // 7 = name contains improper character
+        ncGlobal,        // 8 = name is already globally defined
+        ncReservedVar,   // 9 = name is reserved variable name
+        ncReservedFlag,  // 10 = name is reserved flag name
+        ncReservedNum,   // 11 = name is reserved number constant
+        ncReservedObj,   // 12 = name is reserved object
+        ncReservedStr,   // 13 = name is reserved string
+        ncReservedMsg,   // 14 = name is reserved message
     }
     public enum DefineValueCheck
     {
         vcOK,           // 0 = value is valid
         vcEmpty,        // 1 = no Value
-                        // 2 = Value is an invalid argument marker (not used anymore]
-        vcBadArgNumber, // 3 = Value contains an invalid argument Value (controller, string, out of bounds for example)
+        vcOutofBounds,  // 2 = Value is not byte(0-255) or marker value is not byte
+        vcBadArgNumber, // 3 = Value contains an invalid argument Value (controller, string, word)
         vcNotAValue,    // 4 = Value is not a string, number or argument marker
         vcReserved,     // 5 = Value is already defined by a reserved name
         vcGlobal,       // 6 = Value is already defined by a global name
@@ -285,8 +284,8 @@ namespace WinAGI.Engine
     {
         // arrays that hold constant values
         #region
-        public static readonly string[] ResTypeAbbrv = { "LOG", "PIC", "SND", "VIEW" };
-        public static readonly string[] ResTypeName = { "Logic", "Picture", "Sound", "View" };
+        public static readonly string[] ResTypeAbbrv = ["LOG", "PIC", "SND", "VIEW"];
+        public static readonly string[] ResTypeName = ["Logic", "Picture", "Sound", "View"];
         public static readonly string[] IntVersions =
           [ //load versions
         "2.089", "2.272", "2.411", "2.425", "2.426", "2.435", "2.439",
@@ -405,7 +404,7 @@ namespace WinAGI.Engine
         }
         internal static string GetIntVersion(string gameDir, bool isV3)
         {
-            byte[] bytBuffer = new byte[] { 0 };
+            byte[] bytBuffer = [0];
             FileStream fsVer;
 
             // version is in OVL file

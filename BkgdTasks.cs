@@ -100,49 +100,12 @@ namespace WinAGI.Editor
             if (blnLoaded) {
                 //ProgressWin.lblProgress.Text = "Game " + (mode == 0 ? "loaded" : "imported") + " successfully, setting up editors";
                 bgwOpenGame.ReportProgress(50, "Game " + (argval.Mode == 0 ? "loaded" : "imported") + " successfully, setting up editors");
-                //MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
-                ////build resource list
-                //BuildResourceTree();
-                //// show it, if needed
-                //if (Settings.ResListType != 0) {
-                //  // show resource tree pane
-                //  MDIMain.ShowResTree();
-                //  //ok up to here
-                //}
-                //switch (Settings.ResListType) {
-                //case 1: //tree
-                //  //select root
-                //  MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
-                //  //update selected resource
-                //  MDIMain.SelectResource(rtGame, -1);
-                //  //set LastNodeName property
-                //  MDIMain.LastNodeName = RootNode.Name;
-                //  break;
-                //case 2:
-                //  //select root
-                //  MDIMain.cmbResType.SelectedIndex = 0;
-                //  //update selected resource
-                //  MDIMain.SelectResource(rtGame, -1);
-                //  break;
-                //}
-                //// show selection in preview, if needed
-                //if (Settings.ShowPreview) {
-                //  PreviewWin.Show();
-                //}
                 //set default directory
                 BrowserStartDir = EditGame.GameDir;
                 //store game file name
                 CurGameFile = EditGame.GameFile;
                 //set default text file directory to game source file directory
                 DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
-                // after a game loads, colors may be different
-                //done with ProgressWin form
-                //ProgressWin.Close();
-                ////if warnings
-                //if (blnWarnings) {
-                //  //warn about errors
-                //  MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", "Errors During " + (mode == 0 ? "Load" : "Import"), MessageBoxButtons.OK, MessageBoxIcon.Information);
-                //}
                 //build the lookup tables for logic tooltips
                 BuildIDefLookup();
                 BuildGDefLookup();
@@ -154,10 +117,6 @@ namespace WinAGI.Editor
                 argval.Warnings = blnWarnings;
             }
             else {
-                //done with ProgressWin form
-                //ProgressWin.Close();
-                ////show error message
-                //MessageBox.Show(strError, "Unable to " + (mode == 0 ? "Open" : "Import") + " Game", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 argval.Failed = true;
                 argval.ErrorMsg = strError;
             }
@@ -165,41 +124,50 @@ namespace WinAGI.Editor
         }
         public static void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            if (e.ProgressPercentage == -99) {
-                MDIMain.SafeAddToWarningList();
-            }
-            ProgressWin.lblProgress.Text = e.UserState.ToString();
-            if (e.ProgressPercentage == 50) {
-                MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
-                //build resource list
-                BuildResourceTree();
-                // show it, if needed
-                if (Settings.ResListType != 0) {
-                    // show resource tree pane
-                    MDIMain.ShowResTree();
-                    //ok up to here
-                }
-                switch (Settings.ResListType) {
-                case 1: //tree
+            // progress percentage used to identify different types of events
+            switch (e.ProgressPercentage) {
+            case 1: // load warning
+                MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
+                break;
+            case 2: // TODO
+                MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
+                break;
+            default:
+                ProgressWin.lblProgress.Text = e.UserState.ToString();
+                if (e.ProgressPercentage == 50) {
+                    MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
+                    //build resource list
+                    BuildResourceTree();
+                    // show it, if needed
+                    if (Settings.ResListType != 0) {
+                        // show resource tree pane
+                        MDIMain.ShowResTree();
+                        //ok up to here
+                    }
+                    switch (Settings.ResListType) {
+                    case 1: //tree
+                            //select root
+                        MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
+                        //update selected resource
+                        MDIMain.SelectResource(rtGame, -1);
+                        //set LastNodeName property
+                        MDIMain.LastNodeName = RootNode.Name;
+                        break;
+                    case 2:
                         //select root
-                    MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
-                    //update selected resource
-                    MDIMain.SelectResource(rtGame, -1);
-                    //set LastNodeName property
-                    MDIMain.LastNodeName = RootNode.Name;
-                    break;
-                case 2:
-                    //select root
-                    MDIMain.cmbResType.SelectedIndex = 0;
-                    //update selected resource
-                    MDIMain.SelectResource(rtGame, -1);
-                    break;
+                        MDIMain.cmbResType.SelectedIndex = 0;
+                        //update selected resource
+                        MDIMain.SelectResource(rtGame, -1);
+                        break;
+                    }
+                    // show selection in preview, if needed
+                    if (Settings.ShowPreview) {
+                        PreviewWin.Show();
+                    }
                 }
-                // show selection in preview, if needed
-                if (Settings.ShowPreview) {
-                    PreviewWin.Show();
-                }
+                break;
             }
+            
         }
         public static void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -216,7 +184,7 @@ namespace WinAGI.Editor
                 //if warnings
                 if (LoadResults.Warnings) {
                     //warn about errors
-                    MessageBox.Show("Some errors in resource data were encountered. See errlog.txt in the game directory for details.", "Errors During " + (LoadResults.Mode == 0 ? "Load" : "Import"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Some errors in resource data were encountered.", "Errors During " + (LoadResults.Mode == 0 ? "Load" : "Import"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }

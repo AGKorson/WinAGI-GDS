@@ -39,7 +39,7 @@ namespace WinAGI.Engine {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI.Editor.WinAGI.EngineResources", typeof(EngineResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI.EngineResources", typeof(EngineResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -3886,7 +3886,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in NextCommand(%1).
+        ///   Looks up a localized string similar to Unhandled error in NextToken(%1).
         /// </summary>
         internal static string _657 {
             get {

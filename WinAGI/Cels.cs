@@ -81,7 +81,7 @@ namespace WinAGI.Engine
                 mCelCol.Insert(Pos, agNewCel);
             }
             //if there is a parent view
-            if (mParent != null) {
+            if (mParent is not null) {
                 //tag as dirty
                 mParent.IsDirty = true;
             }
@@ -110,7 +110,7 @@ namespace WinAGI.Engine
                     mCelCol[index].Index = (byte)i;
                 }
             }
-            if (mParent != null) {
+            if (mParent is not null) {
                 //tag as dirty
                 mParent.IsDirty = true;
             }
@@ -130,18 +130,18 @@ namespace WinAGI.Engine
         { get { return mParent; } internal set { mParent = value; } }
         public Cels()
         {
-            mCelCol = new List<Cel>();
+            mCelCol = [];
             strErrSource = "WINAGI.agiCels";
         }
         internal Cels(View parent)
         {
-            mCelCol = new List<Cel>();
+            mCelCol = [];
             strErrSource = "WINAGI.agiCels";
             mParent = parent;
         }
         internal Cels Clone(View cloneparent)
         {
-            Cels CopyCels = new Cels(cloneparent);
+            Cels CopyCels = new(cloneparent);
             foreach (Cel tmpCel in mCelCol) {
                 CopyCels.mCelCol.Add(tmpCel.Clone(cloneparent));
             }

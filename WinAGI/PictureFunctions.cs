@@ -222,7 +222,7 @@ namespace WinAGI.Engine
 
             //if at end of resource, was last command end-of-resource flag?
             if (lngPos >= bytPicData.Length) {
-                if (bytPicData[bytPicData.Length - 1] != 0xFF) {
+                if (bytPicData[^1] != 0xFF) {
                     //set warning flag
                     retval |= 1;
                 }

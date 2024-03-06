@@ -99,7 +99,7 @@ namespace WinAGI.Engine
             //reset loop col
             mLoopCol = new Loops(this);
             //set default resource data
-            mRData.AllData = new byte[] { 0x01, 0x01, 0x00, 0x00, 0x00 };
+            mRData.AllData = [0x01, 0x01, 0x00, 0x00, 0x00];
             // byte0 = unknown (always 1 or 2?)
             // byte1 = unknown (always 1?)
             // byte2 = loop count

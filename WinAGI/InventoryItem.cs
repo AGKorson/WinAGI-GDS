@@ -18,7 +18,7 @@ namespace WinAGI.Engine
         private InventoryList mParent;
         public InventoryItem()
         {
-            //always unique until proven otherwise
+            // always unique until proven otherwise
             mUnique = true;
         }
         public bool Unique
@@ -41,9 +41,8 @@ namespace WinAGI.Engine
             set
             {
                 mRoom = value;
-
                 //if there is a parent
-                if (mParent != null) {
+                if (mParent is not null) {
                     mParent.IsDirty = true;
                 }
             }
@@ -68,7 +67,7 @@ namespace WinAGI.Engine
                 // re-check for duplicates of new name
 
                 //if there is a parent
-                if (mParent != null) {
+                if (mParent is not null) {
                     //if this item is currently a duplicate
                     if (!mUnique) {
                         //there are at least two objects with this item name;
@@ -81,7 +80,7 @@ namespace WinAGI.Engine
                         byte dupItem = 0, dupCount = 0;
                         for (i = 0; i < mParent.Count; i++) {
                             if (mParent[(byte)i] != this) {
-                                if (mItemName.Equals(mParent[(byte)i].ItemName, StringComparison.OrdinalIgnoreCase)) {
+                                if (mItemName == mParent[(byte)i].ItemName) {
                                     //duplicate found- is this the second?
                                     if (dupCount == 1) {
                                         //the other's are still non-unique
@@ -98,32 +97,27 @@ namespace WinAGI.Engine
                                 }
                             }
                         }
-                        //set the unique flag for this object
+                        // assume this item is now unique
                         mUnique = true;
                         // if only one duplicate found
                         if (dupCount == 1) {
-                            // set unique flag for that object too
+                            // also assume it's now unique
                             mParent[dupItem].Unique = true;
                         }
                     }
                 }
                 //assign name
-                mItemName = value;
-                //if blank,
-                if (mItemName.Length == 0) {
-                    //set it to '?'
-                    mItemName = "?";
-                }
+                mItemName = value.Length == 0 ? "?" : value;
                 //if there is a parent
-                if (mParent != null) {
+                if (mParent is not null) {
                     mParent.IsDirty = true;
-                    //if this item is NOT an unassigned object ('?')
+                    // if this item is NOT an unassigned object ('?')
                     if (mItemName != "?") {
                         //check for duplicates
                         for (i = 0; i < mParent.Count; i++) {
                             //skip this item
                             if (mParent[(byte)i] != this) {
-                                if (mItemName.Equals(mParent[(byte)i].ItemName, StringComparison.OrdinalIgnoreCase)) {
+                                if (mItemName == mParent[(byte)i].ItemName) {
                                     //mark both as NOT unique
                                     mParent[(byte)i].Unique = false;
                                     mUnique = false;

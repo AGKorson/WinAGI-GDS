@@ -20,7 +20,7 @@ namespace WinAGI.Engine
         //  key=value         key/value pairs separated by an equal sign; no quotes around values means only
         //                      single word; use quotes for multiword strings
         //  if string is multline, use '\n' control code (and use multiline option)
-        internal List<string> Lines = new List<string>();
+        internal List<string> Lines = [];
         public string Filename
         {
             get;
@@ -34,18 +34,18 @@ namespace WinAGI.Engine
             int lngSectionEnd = 0;
             int lenKey; bool blnFound = false;
             int lngGrpStart, lngGrpEnd, lngInsertLine;
-            if (Value == null) {
+            if (Value is null) {
                 strCheck = "\"\"";
             }
             else {  //convert to string
                 strCheck = Value.ToString();
             }
             //if value contains spaces, it must be enclosed in quotes
-            if (strCheck.IndexOf(" ") > 0) {
+            if (strCheck.IndexOf(' ') > 0) {
                 if (strCheck[0] != '"') {
                     strCheck = "\"" + strCheck;
                 }
-                if ((strCheck[strCheck.Length - 1] != '"')) {
+                if ((strCheck[^1] != '"')) {
                     strCheck += "\"";
                 }
             }
@@ -53,10 +53,10 @@ namespace WinAGI.Engine
             if (strCheck.Contains("\r\n", StringComparison.OrdinalIgnoreCase)) {
                 strCheck = strCheck.Replace("\r\n", "\\n");
             }
-            if (strCheck.Contains("\r", StringComparison.OrdinalIgnoreCase)) {
+            if (strCheck.Contains('\r', StringComparison.OrdinalIgnoreCase)) {
                 strCheck = strCheck.Replace("\r", "\\n");
             }
-            if (strCheck.Contains("\n", StringComparison.OrdinalIgnoreCase)) {
+            if (strCheck.Contains('\n', StringComparison.OrdinalIgnoreCase)) {
                 strCheck = strCheck.Replace("\n", "\\n");
             }
             //if nullstring, include quotes
@@ -165,7 +165,7 @@ namespace WinAGI.Engine
                 else {
                     //means neither found
                     //make sure at least one blank line
-                    if (Lines[Lines.Count - 1].Trim().Length > 0) {
+                    if (Lines[^1].Trim().Length > 0) {
                         Lines.Add("");
                     }
                     lngGrpStart = Lines.Count;
@@ -265,11 +265,11 @@ namespace WinAGI.Engine
                                         }
                                         else {
                                             //look for comment marker
-                                            lngPos = strLine.IndexOf("#", 1);
+                                            lngPos = strLine.IndexOf('#', 1);
                                             // if none found, look for space delimiter
                                             if (lngPos == -1) {
                                                 //look for a space as a delimiter
-                                                lngPos = strLine.IndexOf(" ", 1);
+                                                lngPos = strLine.IndexOf(' ', 1);
                                             }
                                             ////look for a space as a delimiter
                                             //lngPos = strLine.IndexOf(" ", 1);
@@ -504,12 +504,12 @@ namespace WinAGI.Engine
                                         if (strLine[0] == '"') {
                                             //string delimiter; find ending delimiter
                                             // (don't add 1; we want to drop the ending quote)
-                                            lngPos = strLine.IndexOf("\"", 1);
+                                            lngPos = strLine.IndexOf('\"', 1);
                                         }
                                         else {
                                             //look for comment marker (don't add to result -
                                             // the coment marker gets stripped off)
-                                            lngPos = strLine.IndexOf("#", 1);
+                                            lngPos = strLine.IndexOf('#', 1);
                                         }
                                         //no delimiter found; assume entire line
                                         if (lngPos <= 0) {
@@ -557,7 +557,7 @@ namespace WinAGI.Engine
                 }
                 //add the key and default value at this pos
                 //if value contains spaces, it must be enclosed in quotes
-                if (Default.IndexOf(" ", 0) >= 0) {
+                if (Default.IndexOf(' ', 0) >= 0) {
                     if (Default[0] != '"') {
                         Default = "\"" + Default;
                     }
@@ -569,10 +569,10 @@ namespace WinAGI.Engine
                 if (Default.IndexOf("\r\n", 0) >= 0) {
                     Default = Default.Replace("\r\n", "\\n");
                 }
-                if (Default.IndexOf("\r", 0) >= 0) {
+                if (Default.IndexOf('\r', 0) >= 0) {
                     Default = Default.Replace("\r", "\\n");
                 }
-                if (Default.IndexOf("\n", 0) >= 0) {
+                if (Default.IndexOf('\n', 0) >= 0) {
                     Default = Default.Replace("\n", "\\n");
                 }
                 if (Default.Length == 0) {
@@ -820,7 +820,7 @@ namespace WinAGI.Engine
                         //look for a bracket
                         if (strLine[0] == '[') {
                             //find end bracket
-                            lngPos = strLine.IndexOf("]", 1);
+                            lngPos = strLine.IndexOf(']', 1);
                             if (lngPos >= 0) {
                                 strCheck = Mid(strLine, 1, lngPos - 2);
                             }
@@ -918,7 +918,7 @@ namespace WinAGI.Engine
                         //look for a bracket
                         if (strLine[0] == '[') {
                             //find end bracket
-                            lngPos = strLine.IndexOf("]", 1);
+                            lngPos = strLine.IndexOf(']', 1);
                             string strCheck;
                             if (lngPos > 0) {
                                 strCheck = Mid(strLine, 1, lngPos - 1);

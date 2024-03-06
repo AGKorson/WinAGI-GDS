@@ -80,7 +80,7 @@ namespace WinAGI.Engine
                 mLoopCol[i].Index = (byte)i;
             }
             //if there is a parent view
-            if (mParent != null) {
+            if (mParent is not null) {
                 //set dirty flag
                 mParent.IsDirty = true;
             }
@@ -131,7 +131,7 @@ namespace WinAGI.Engine
                     mLoopCol[i].Index = (byte)i;
                 }
             }
-            if (mParent != null) {
+            if (mParent is not null) {
                 //tag as dirty
                 mParent.IsDirty = true;
             }
@@ -140,7 +140,7 @@ namespace WinAGI.Engine
         internal Loops Clone(View cloneparent)
         {
             // returns a copy of this loop collection
-            Loops CopyLoops = new Loops(cloneparent);
+            Loops CopyLoops = new(cloneparent);
             foreach (Loop tmpLoop in mLoopCol) {
                 CopyLoops.mLoopCol.Add(tmpLoop.Clone(cloneparent));
             }
@@ -149,14 +149,14 @@ namespace WinAGI.Engine
         public Loops()
         {
             //creates the collection when this class is created
-            mLoopCol = new List<Loop>();
+            mLoopCol = [];
         }
         public View Parent
         { get { return mParent; } internal set { mParent = value; } }
         internal Loops(View parent)
         {
             //create the collection when this class is created
-            mLoopCol = new List<Loop>();
+            mLoopCol = [];
             // set parent
             mParent = parent;
         }

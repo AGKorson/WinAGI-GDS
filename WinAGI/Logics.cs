@@ -73,7 +73,7 @@ namespace WinAGI.Engine
         }
         internal void Clear()
         {
-            Col = new SortedList<byte, Logic>();
+            Col = [];
         }
         public Logic Add(byte ResNum, Logic NewLogic = null)
         {
@@ -87,7 +87,7 @@ namespace WinAGI.Engine
                 throw new Exception(LoadResString(602));
             }
             //if an object was not passed
-            if ((NewLogic == null)) {
+            if ((NewLogic is null)) {
                 //create a new logic object
                 agResource = new Logic();
                 //proposed ID will be default
