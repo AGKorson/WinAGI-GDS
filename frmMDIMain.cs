@@ -460,17 +460,13 @@ namespace WinAGI.Editor
             //  Debug.Print($"Group {WordList.GroupN(i).GroupNum}: {WordList.GroupN(i).GroupName} ({WordList.GroupN(i).WordCount} words)");
             //}
             int i = 0, j = 0;
-            foreach (AGIWord tmpWord in (IEnumerable<AGIWord>)EditGame.WordList) {
-                i++;
+            for (i = 0; i < EditGame.WordList.WordCount; i++) {
+                //
             }
             foreach (WordGroup tmpGrp in (IEnumerable<WordGroup>)EditGame.WordList) {
                 j++;
             }
             Debug.Print($"There are {i} words in {j} groups in this list.");
-            //for (int i = 0; i < WordList.WordCount; i++)
-            //  Debug.Print($"group: {WordList[i].Group}  -- {WordList[i].WordText}");
-
-            //      WordList.Clear();
         }
         private void btnNewSound_Click(object sender, EventArgs e) {
             //update default button image
@@ -662,6 +658,23 @@ namespace WinAGI.Editor
             //selects a resource for previewing
             //(always synched with the resource list)
 
+            // always unload the current resource, if it's logic/pic/sound/view
+            if (SelResNum != -1) {
+                switch (SelResType) {
+                case rtLogic:
+                    EditGame.Logics[SelResNum].Unload();
+                    break;
+                case rtPicture:
+                    EditGame.Pictures[SelResNum].Unload();
+                    break;
+                case rtSound:
+                    EditGame.Sounds[SelResNum].Unload();
+                    break;
+                case rtView:
+                    EditGame.Views[SelResNum].Unload();
+                    break;
+                }
+            }
             //reset selprop
             SelectedProp = 0;
             propertyGrid1.SelectedObject = null;
@@ -685,6 +698,8 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pLgcHdr;
                 }
                 else {
+                    // always load before selecting
+                    EditGame.Logics[NewResNum].Load();
                     //show logic properties
                     PropRows = 8;
                     //if compiled state doesn't match correct tree color, fix it now
@@ -700,6 +715,8 @@ namespace WinAGI.Editor
                     PropRows = 1;
                 }
                 else {
+                    // always load before selecting
+                    EditGame.Pictures[NewResNum].Load();
                     //show picture properties
                     PropRows = 6;
                     PictureProperties pPicture = new(EditGame.Pictures[NewResNum]);
@@ -714,6 +731,8 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pSndHdr;
                 }
                 else {
+                    // always load before selecting
+                    EditGame.Sounds[NewResNum].Load();
                     //show sound properties
                     PropRows = 6;
                     SoundProperties pSound = new(EditGame.Sounds[NewResNum]);
@@ -728,6 +747,8 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pViewHdr;
                 }
                 else {
+                    // always load before selecting
+                    EditGame.Sounds[NewResNum].Load();
                     //show view properties
                     PropRows = 7;
                     ViewProperties pView = new(EditGame.Views[NewResNum]);
@@ -735,12 +756,14 @@ namespace WinAGI.Editor
                 }
                 break;
             case rtObjects:
+                // OBJECT file is always loaded
                 //show object Count, description, encryption, and Max screen objects
                 PropRows = 4;
                 InvObjProperties pInvObj = new(EditGame.InvObjects);
                 propertyGrid1.SelectedObject = pInvObj;
                 break;
             case rtWords:
+                // WORDS.TOK is always loaded
                 //show group Count and word Count and description
                 PropRows = 3;
                 WordListProperties pWordList = new(EditGame.WordList);

@@ -113,16 +113,9 @@ namespace WinAGI.Engine {
             compGame.agResGameDef[0].Value = "\"" + compGame.agGameID + "\"";
             compGame.agResGameDef[1].Value = "\"" + compGame.agGameVersion + "\"";
             compGame.agResGameDef[2].Value = "\"" + compGame.agAbout + "\"";
-            if (!compGame.InvObjects.Loaded) {
-                compGame.InvObjects.Load();
-                //Count of ACTUAL useable objects is one less than inventory object Count
-                //because the first object ('?') is just a placeholder
-                compGame.agResGameDef[3].Value = (compGame.InvObjects.Count - 1).ToString();
-                compGame.InvObjects.Unload();
-            }
-            else {
-                compGame.agResGameDef[3].Value = (compGame.InvObjects.Count - 1).ToString();
-            }
+            //Count of ACTUAL useable objects is one less than inventory object Count
+            //because the first object ('?') is just a placeholder
+            compGame.agResGameDef[3].Value = (compGame.InvObjects.Count - 1).ToString();
 
             //get source text by lines as a list of strings
             stlSource = SplitLines(SourceLogic.SourceText);

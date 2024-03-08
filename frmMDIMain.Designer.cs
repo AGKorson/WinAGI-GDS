@@ -27,7 +27,8 @@
         ///  Required method for Designer support - do not modify
         ///  the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent() {
+        private void InitializeComponent()
+        {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMDIMain));
             TreeNode treeNode1 = new TreeNode("Logics");
@@ -194,11 +195,6 @@
             splitResource = new Splitter();
             pnlWarnings = new Panel();
             fgWarnings = new DataGridView();
-            colWarning = new DataGridViewTextBoxColumn();
-            colDesc = new DataGridViewTextBoxColumn();
-            colResNum = new DataGridViewTextBoxColumn();
-            colLIne = new DataGridViewTextBoxColumn();
-            colModule = new DataGridViewTextBoxColumn();
             splitWarning = new Splitter();
             imageList1 = new ImageList(components);
             tmrNavList = new Timer(components);
@@ -206,6 +202,11 @@
             OpenDlg = new OpenFileDialog();
             SaveDlg = new SaveFileDialog();
             imlPropButtons = new ImageList(components);
+            colWarning = new DataGridViewTextBoxColumn();
+            colDesc = new DataGridViewTextBoxColumn();
+            colResNum = new DataGridViewTextBoxColumn();
+            colLIne = new DataGridViewTextBoxColumn();
+            colModule = new DataGridViewTextBoxColumn();
             menuStrip1.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -1523,49 +1524,6 @@
             fgWarnings.SortCompare += fgWarnings_SortCompare;
             fgWarnings.Sorted += fgWarnings_Sorted;
             // 
-            // colWarning
-            // 
-            colWarning.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            colWarning.HeaderText = "Warning";
-            colWarning.MinimumWidth = 10;
-            colWarning.Name = "colWarning";
-            colWarning.ReadOnly = true;
-            colWarning.Width = 75;
-            // 
-            // colDesc
-            // 
-            colDesc.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colDesc.HeaderText = "Description";
-            colDesc.MinimumWidth = 10;
-            colDesc.Name = "colDesc";
-            colDesc.ReadOnly = true;
-            // 
-            // colResNum
-            // 
-            colResNum.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            colResNum.HeaderText = "Res#";
-            colResNum.MinimumWidth = 10;
-            colResNum.Name = "colResNum";
-            colResNum.ReadOnly = true;
-            colResNum.Width = 50;
-            // 
-            // colLIne
-            // 
-            colLIne.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            colLIne.HeaderText = "Line#";
-            colLIne.MinimumWidth = 10;
-            colLIne.Name = "colLIne";
-            colLIne.ReadOnly = true;
-            colLIne.Width = 50;
-            // 
-            // colModule
-            // 
-            colModule.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            colModule.HeaderText = "Module";
-            colModule.MinimumWidth = 10;
-            colModule.Name = "colModule";
-            colModule.ReadOnly = true;
-            // 
             // splitWarning
             // 
             splitWarning.Dock = DockStyle.Bottom;
@@ -1629,6 +1587,56 @@
             imlPropButtons.Images.SetKeyName(3, "dropdown_d.bmp");
             imlPropButtons.Images.SetKeyName(4, "dropover_d.bmp");
             imlPropButtons.Images.SetKeyName(5, "dropdialog_d.bmp");
+            // 
+            // colWarning
+            // 
+            colWarning.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colWarning.FillWeight = 20F;
+            colWarning.HeaderText = "Warning";
+            colWarning.MinimumWidth = 10;
+            colWarning.Name = "colWarning";
+            colWarning.ReadOnly = true;
+            colWarning.Width = 224;
+            // 
+            // colDesc
+            // 
+            colDesc.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colDesc.FillWeight = 50F;
+            colDesc.HeaderText = "Description";
+            colDesc.MinimumWidth = 10;
+            colDesc.Name = "colDesc";
+            colDesc.ReadOnly = true;
+            colDesc.Width = 225;
+            // 
+            // colResNum
+            // 
+            colResNum.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colResNum.FillWeight = 10F;
+            colResNum.HeaderText = "Res#";
+            colResNum.MinimumWidth = 10;
+            colResNum.Name = "colResNum";
+            colResNum.ReadOnly = true;
+            colResNum.Width = 224;
+            // 
+            // colLIne
+            // 
+            colLIne.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colLIne.FillWeight = 10F;
+            colLIne.HeaderText = "Line#";
+            colLIne.MinimumWidth = 10;
+            colLIne.Name = "colLIne";
+            colLIne.ReadOnly = true;
+            colLIne.Width = 225;
+            // 
+            // colModule
+            // 
+            colModule.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colModule.FillWeight = 20F;
+            colModule.HeaderText = "Module";
+            colModule.MinimumWidth = 10;
+            colModule.Name = "colModule";
+            colModule.ReadOnly = true;
+            colModule.Width = 224;
             // 
             // frmMDIMain
             // 
@@ -1868,12 +1876,12 @@
     public ComboBox cmbResType;
     private SplitContainer splitContainer1;
     private PropertyGrid propertyGrid1;
+        private ColumnHeader columnHeader1;
         private DataGridViewTextBoxColumn colWarning;
         private DataGridViewTextBoxColumn colDesc;
         private DataGridViewTextBoxColumn colResNum;
         private DataGridViewTextBoxColumn colLIne;
         private DataGridViewTextBoxColumn colModule;
-        private ColumnHeader columnHeader1;
     }
 }
 

@@ -286,8 +286,6 @@ namespace WinAGI.Engine
                 fsObj.Dispose();
                 return false;
             }
-            //set load flag
-            mLoaded = true;
             //read in entire resource
             Array.Resize(ref bytData, (int)fsObj.Length);
             fsObj.Read(bytData);
@@ -507,7 +505,7 @@ namespace WinAGI.Engine
             {
                 //if not loaded
                 if (!mLoaded) {
-                    //error
+                    // error
                     throw new Exception(LoadResString(563));
                 }
                 return mMaxScreenObjects;
@@ -533,11 +531,13 @@ namespace WinAGI.Engine
 
             //if already loaded,
             if (mLoaded) {
-                //error- resource already loaded
-                throw new Exception(LoadResString(511));
+                // do nothing
+                return;
             }
             //if in a game
             if (mInGame) {
+                // always set load flag for ingame resource, regardless of error status
+                mLoaded = true;
                 //use default Sierra name
                 LoadFile = parent.agGameDir + "OBJECT";
                 //attempt to load
@@ -567,6 +567,8 @@ namespace WinAGI.Engine
                 }
                 //save filename
                 mResFile = LoadFile;
+                // mark as loaded
+                mLoaded = true;
             }
             //reset dirty flag
             mIsDirty = false;

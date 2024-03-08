@@ -11216,6 +11216,7 @@ namespace WinAGI.Editor
 
       */
         }
+
         public static void UpdateSelection(AGIResType ResType, int ResNum, UpdateModeType UpDateMode)
         {
             //updates the resource list, property box, and preview window for a given resource
@@ -11337,6 +11338,7 @@ namespace WinAGI.Editor
                     //now update preview window, if previewing
                     if (Settings.ShowPreview) {
                         if (SelResType == rtLogic && SelResNum == ResNum) {
+                            // TODO: reload? or just update properties??
                             PreviewWin.LoadPreview(rtLogic, ResNum);
                         }
                     }
@@ -11866,7 +11868,6 @@ namespace WinAGI.Editor
 
             //add to logic collection in game
             EditGame.Logics.Add((byte)NewLogicNumber, NewLogic);
-
             //if not importing, we need to add boilerplate text
             if (!Importing) {
                 //if using template,
@@ -11876,9 +11877,9 @@ namespace WinAGI.Editor
                 }
                 else {
                     //add default text
-                    strLogic = "[ " + Keys.Enter + "[ " + EditGame.Logics[NewLogicNumber].ID + Keys.Enter +
-                               "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter +
-                               "[*****" + Keys.Enter + "[ messages         [  declared messages go here" +
+                    strLogic = "[ " + Keys.Enter + "[ " + EditGame.Logics[NewLogicNumber].ID + NEWLINE +
+                               "[ " + Keys.Enter + NEWLINE + "return();" + NEWLINE + NEWLINE +
+                               "[*****" + NEWLINE + "[ messages         [  declared messages go here" +
                                Keys.Enter + "[*****";
                 }
                 //for new resources, need to set the source text
@@ -11956,6 +11957,8 @@ namespace WinAGI.Editor
 
             //last node marker is no longer accurate; reset
             MDIMain.LastNodeName = "";
+            // unload it once all done getting it added
+            EditGame.Logics[NewLogicNumber].Unload();
         }
         public static void AddNewPicture(int NewPictureNumber, Picture NewPicture)
         {

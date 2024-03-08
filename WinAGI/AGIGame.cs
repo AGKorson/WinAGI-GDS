@@ -2212,14 +2212,11 @@ namespace WinAGI.Engine
                 //set warning flag
                 blnWarnings = true;
             }
-
             //we've established that the game can be opened
             //so set the loaded flag now
             agGameLoaded = true;
-
             // adust commands based on AGI version
             CorrectCommands(agIntVersion);
-
             // check for decompile warnings, TODO entries and validate logic CRC values
             //(this has to happen AFTER everything is loaded otherwise some resources
             // that are referenced in the logics won't exist yet, and will give a

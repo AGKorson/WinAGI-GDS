@@ -82,8 +82,8 @@ namespace WinAGI.Engine
             mResNum = ResNum;
             mVolume = VOL;
             mLoc = Loc;
-            // ingame resources start unloaded
-            mLoaded = false;
+            // ingame resources start loaded
+            mLoaded = true;
         }
         public sbyte Volume
         {

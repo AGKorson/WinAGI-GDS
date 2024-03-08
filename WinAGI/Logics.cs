@@ -99,9 +99,11 @@ namespace WinAGI.Engine
                 //get proposed id
                 strID = NewLogic.ID;
             }
+            // set parent
+            agResource.parent = parent;
             // validate id
             strBaseID = strID;
-            while (!NewLogic.IsUniqueResID(strID)) {
+            while (!agResource.IsUniqueResID(strID)) {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }

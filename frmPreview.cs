@@ -77,8 +77,10 @@ namespace WinAGI.Editor {
         }
         public void LoadPreview(AGIResType ResType, int ResNum)
         {
+            // the desired resource must be loaded before showing its preview
+
             //show wait cursor
-            this.UseWaitCursor = true;
+            UseWaitCursor = true;
             //if changing restype, or showing a header
             if (SelResType != ResType || ResNum == -1) {
                 //clear resources
@@ -92,9 +94,6 @@ namespace WinAGI.Editor {
                 // if a sound is already being previewed, make sure it gets stopped
                 // before switching to the new sound
                 StopSoundPreview();
-                //agSound.StopSound();
-                //// always unhook the event handler
-                //agSound.SoundComplete -= This_SoundComplete;
                 agSound.Unload();
             }
             // if picture header selected
@@ -239,11 +238,8 @@ namespace WinAGI.Editor {
             //get the logic
             agLogic = EditGame.Logics[LogNum];
             try {
-                if (!agLogic.Loaded) {
-                    //load the logic to access source code
-                    agLogic.Load();
-                }
-                //success - load the source code
+                Debug.Assert(agLogic.Loaded);
+                // get the source code
                 rtfLogPrev.Text = agLogic.SourceText;
                 rtfLogPrev.ScrollToCaret();
                 //if logic is compiled
@@ -255,8 +251,6 @@ namespace WinAGI.Editor {
                     //use pink background
                     rtfLogPrev.BackColor = Color.FromArgb(0xff, 0xE0, 0xe0);
                 }
-                //always unload
-                agLogic.Unload();
                 return true;
             }
             catch (Exception e) {

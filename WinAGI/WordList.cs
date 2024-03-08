@@ -162,8 +162,7 @@ namespace WinAGI.Engine
         }
         public int ErrLevel
         {
-
-            //provides access to current error level of the sound tracks
+            //provides access to current error level of the word list
 
             //can be used by calling programs to provide feedback
             //on errors in the sound data
@@ -200,8 +199,6 @@ namespace WinAGI.Engine
                 fsWords.Dispose();
                 return false;
             }
-            //set load flag
-            mLoaded = true;
             // empty word and group columns
             mWordCol = [];
             mGroupCol = [];
@@ -1063,6 +1060,8 @@ namespace WinAGI.Engine
                 return;
             }
             if (mInGame) {
+                // always set loaded flag for ingame resource regardless of error status
+                mLoaded = true;
                 //use default filename
                 LoadFile = parent.agGameDir + "WORDS.TOK";
                 //attempt to load
@@ -1103,6 +1102,8 @@ namespace WinAGI.Engine
                     };
                     throw e;
                 }
+                // set loaded flag
+                mLoaded = true;
                 //save filename
                 mResFile = LoadFile;
             }
