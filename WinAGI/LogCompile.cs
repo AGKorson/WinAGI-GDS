@@ -125,8 +125,7 @@ namespace WinAGI.Engine {
             }
 
             //get source text by lines as a list of strings
-            stlSource = SplitLines(UnicodeToCP(SourceLogic.SourceText, compGame.CodePage));
-            //stlSource = SplitLines(SourceLogic.SourceText);
+            stlSource = SplitLines(SourceLogic.SourceText);
             bytLogComp = SourceLogic.Number;
             strLogCompID = SourceLogic.ID;
 
@@ -153,7 +152,7 @@ namespace WinAGI.Engine {
                 return errInfo;
             }
             //remove any blank lines from end
-            while (stlInput[^1].Length == 0 && stlInput.Count > 0) { // Until Len(stlInput(stlInput.Count - 1)) != 0 || stlInput.Count = 0
+            while (stlInput[^1].Length == 0 && stlInput.Count > 0) {
                 stlInput.RemoveAt(stlInput.Count - 1);
             }
             //if nothing to compile, throw an error

@@ -7,6 +7,8 @@ using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Compiler;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Reflection.Metadata;
 
 namespace WinAGI.Engine
 {
@@ -17,8 +19,10 @@ namespace WinAGI.Engine
     // all components for reading/editing
     //
     //***************************************************
-    public partial class AGIGame
+    public partial class AGIGame : IDisposable
     {
+        private bool disposed = false;
+
         internal SettingsList agGameProps; // = new SettingsList("");
 
         static readonly string strErrSource = "WinAGI.Engine.AGIGame";
@@ -106,12 +110,49 @@ namespace WinAGI.Engine
             // give compiler access
             compGame = this;
         }
+        
         public AGIGame(string id, string version, string gamedir, string resdir, string template = "")
         {
             InitGame();
             NewGame(id, version, gamedir, resdir, template);
             // give compiler access
             compGame = this;
+        }
+        
+        public void Dispose()
+        {
+            Dispose(true);
+            // This object will be cleaned up by the Dispose method.
+            // Therefore, you should call GC.SuppressFinalize to
+            // take this object off the finalization queue
+            // and prevent finalization code for this object
+            // from executing a second time.
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            // If disposing equals true, dispose all managed
+            // and unmanaged resources.
+            if (disposing) {
+                // Dispose managed resources.
+                
+            }
+
+            // Call the appropriate methods to clean up
+            // unmanaged resources here.
+            // If disposing is false,
+            // only the following code is executed.
+            compGame = null;
+
+            // Note disposing has been done.
+            disposed = true;
+        }
+        ~AGIGame()
+        {
+            // Do not re-create Dispose clean-up code here.
+            // Calling Dispose(disposing: false) is optimal in terms of
+            // readability and maintainability.
+            Dispose(false);
         }
         private void InitGame()
         {

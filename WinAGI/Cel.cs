@@ -27,10 +27,7 @@ namespace WinAGI.Engine
         //mMirror is true if the cel IS showing the mirror
         bool mMirrored;
         // mForceReload used to reload the bitmaps when
-        // palette changes
-        private bool mForceReload;
 
-        string strErrSource;
         View mParent;
         public Cel()
         {

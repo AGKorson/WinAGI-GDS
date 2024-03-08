@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <RootNamespace>WinAGI.Editor</RootNamespace>
     <UseWindowsForms>true</UseWindowsForms>
     <StartupObject>WinAGI.Editor.Program</StartupObject>
     <ApplicationIcon>fWinAGI32.ico</ApplicationIcon>
     <Authors>Andrew Korson</Authors>
     <Company />
-    <Copyright>2021</Copyright>
+    <Copyright>2024</Copyright>
     <PackageIcon>winagi.jpg</PackageIcon>
     <ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

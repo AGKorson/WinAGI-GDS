@@ -1,82 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using System.Text;
-using System.Threading.Tasks;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
-using EnvDTE80;
-using static System.Net.Mime.MediaTypeNames;
-using System.Diagnostics;
-using System.Windows.Forms;
-using System.Xml;
 using WinAGI.Engine;
-using Microsoft.VisualBasic;
-using System.Drawing;
 
 namespace WinAGI.Common
 {
-    //types used in building bitmaps
-    internal struct BITMAPINFOHEADER  //40 bytes
-    {
-        internal int biSize;
-        internal int biWidth;
-        internal int biHeight;
-        internal short biPlanes;
-        internal short biBitCount;
-        internal int biCompression;
-        internal int biSizeImage;
-        internal int biXPelsPerMeter;
-        internal int biYPelsPerMeter;
-        internal int biClrUsed;
-        internal int biClrImportant;
-    }
-    internal struct RGBQUAD
-    {
-        internal byte rgbBlue;
-        internal byte rgbGreen;
-        internal byte rgbRed;
-        internal byte rgbReserved;
-    }
-    internal struct BitmapInfo
-    {
-        internal BITMAPINFOHEADER bmiHeader;
-        internal RGBQUAD[] bmiColor;// = new RGBQUAD[16];
-    }
-    //types used for time functions
-    internal enum GET_FILEEX_INFO_LEVELS
-    {
-        GetFileExInfoStandard,
-        GetFileExMaxInfoLevel,
-    }
-    internal struct SystemTime
-    {
-        internal short Year;
-        internal short Month;
-        internal short WeekDay;
-        internal short Day;
-        internal short Hour;
-        internal short Minute;
-        internal short Second;
-        internal short MSec;
-    }
-    internal struct FileTime
-    {
-        internal int LoTime;
-        internal int HiTime;
-    }
-    internal struct W32FileAttributeData
-    {
-        internal int FileAttributes;
-        internal FileTime CreateTime;
-        internal FileTime LastAccess;
-        internal FileTime LastWrite;
-        internal int HiSize;
-        internal int LoSize;
-    }
     public static partial class API
     {
         //constants used to build bitmaps
@@ -101,35 +32,12 @@ namespace WinAGI.Common
         internal const int SRCPAINT = 0xEE0086;
         internal const int WHITENESS = 0xFF0062;
         internal const int TRANSCOPY = 0xB8074A;
-        [LibraryImport("user32.dll")]
-        public static partial int SendMessage(IntPtr hWnd, int wMsg, int wParam, int lParam);
-        public const int WM_SETREDRAW = 0xB;
 
-        //[DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
-        //public static extern short GetKeyState(int keyCode);
-        //apis for bitmap creation/manipulation
+        //apis for midi sound handling
         [DllImport("Winmm.dll", SetLastError = true)]
         internal static extern int mciSendString(string lpszCommand, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn, IntPtr hwndCallback);
         [DllImport("Winmm.dll", SetLastError = true)]
         internal static extern int mciGetErrorString(int errNum, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn);
-        //[DllImport("gdi32.dll")]
-        //internal static extern int GetTickCount();
-        //[DllImport("gdi32.dll")]
-        //internal static extern int BitBlt(int hDestDC, int X, int Y, int nWidth, int nHeight, int hSrcDC, int xSrc, int ySrc, int dwRop);
-        //[DllImport("gdi32.dll")]
-        //internal static extern int CreateDIBSection(int hDC, BitmapInfo pBitmapInfo, int un, int lplpVoid, int handle, int dw);
-        [LibraryImport("gdi32.dll")]
-        internal static partial IntPtr CreateCompatibleDC(IntPtr hDC);
-        [LibraryImport("gdi32.dll")]
-        internal static partial int DeleteObject(IntPtr hObject);
-        [LibraryImport("gdi32.dll")]
-        internal static partial int DeleteDC(IntPtr hDC);
-        [LibraryImport("gdi32.dll")]
-        internal static partial IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
-        [LibraryImport("gdi32.dll")]
-        internal static partial int StretchBlt(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, int dwRop);
-        //[DllImport("msimg32.dll")]
-        //internal static extern int TransparentBlt(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, int crTransparent);
         [DllImport("hhctrl.ocx")]
         internal static extern int HtmlHelpS(IntPtr hwndCaller, string pszFile, int uCommand, string dwData);
         [DllImport("hhctrl.ocx")]
@@ -149,45 +57,10 @@ namespace WinAGI.Common
         internal const int HH_TP_HELP_CONTEXTMENU = 0x10;
         // Text pop-up help, similar to WinHelp's HELP_WM_HELP
         internal const int HH_TP_HELP_WM_HELP = 0x11;
-        internal struct BLENDFUNCTION
-        {
-            internal byte BlendOp;
-            internal byte BlendFlags;
-            internal byte SourceConstantAlpha;
-            internal byte AlphaFormat;
-        }
-        internal const int AC_SRC_OVER = 0x00;
-        internal const int AC_SRC_ALPHA = 0x01;
-        internal const int AC_SRC_NO_PREMULT_ALPHA = 0x01;
-        internal const int AC_SRC_NO_ALPHA = 0x02;
-        internal const int AC_DST_NO_PREMULT_ALPHA = 0x10;
-        internal const int AC_DST_NO_ALPHA = 0x20;
 
-        [LibraryImport("msimg32.dll")]
-        internal static partial int AlphaBlend(IntPtr destDC, int destX, int destY, int destW, int destH, IntPtr srcDC, int srcX, int srcY, int srcW, int srcH, BLENDFUNCTION ftn);
-        //[DllImport("gdi32.dll")]
-        //internal static extern int GetLastError();
-        //[DllImport("gdi32.dll")]
-        //internal static extern int CreateCompatibleBitmap(int hDC, int nWidth, int nHeight);
-        //[DllImport("gdi32.dll")]
-        //internal static extern int SetPixelV(int hDC, int X, int Y, int crColor);
-        //[DllImport("gdi32.dll")]
-        //internal static extern int GetPixel(int hDC, int X, int Y);
-        //[DllImport("gdi32.dll")]
-        //internal static extern int ExtFloodFill(int hDC, int X, int Y, int crColor, int wFillType);
-        //[DllImport("gdi32.dll")]
-        //internal static extern int CreateSolidBrush(int crColor);
-        //[DllImport("kernel32.dll")]
-        //internal static extern void CopyMemory(dynamic Destination, dynamic Source, int Length) alias RtlMoveMemory;
-        //[DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
-        //[ResourceExposure(ResourceScope.None)]
-        //internal static extern void CopyMemory(HandleRef destData, HandleRef srcData, int size);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern int GetShortPathName(string pathName, StringBuilder shortName, int cbShortName);
 
-        [LibraryImport("gdi32.dll")]
-        internal static partial int SetBkColor(int hDC, int crColor);
         static void tmpAPIFunctions()
         {
             /*

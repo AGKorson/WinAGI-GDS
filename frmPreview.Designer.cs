@@ -21,1002 +21,940 @@ namespace WinAGI.Editor
       base.Dispose(disposing);
     }
 
-    #region Windows Form Designer generated code
+        #region Windows Form Designer generated code
 
-    /// <summary>
-    /// Required method for Designer support - do not modify
-    /// the contents of this method with the code editor.
-    /// </summary>
-    private void InitializeComponent()
-    {
-      this.components = new System.ComponentModel.Container();
-      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPreview));
-      this.pnlLogic = new System.Windows.Forms.Panel();
-      this.rtfLogPrev = new System.Windows.Forms.RichTextBox();
-      this.pnlPicture = new System.Windows.Forms.Panel();
-      this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-      this.pnlPicHeader = new System.Windows.Forms.Panel();
-      this.optPriority = new System.Windows.Forms.RadioButton();
-      this.optVisual = new System.Windows.Forms.RadioButton();
-      this.udPZoom = new System.Windows.Forms.NumericUpDown();
-      this.label1 = new System.Windows.Forms.Label();
-      this.pnlPicImage = new System.Windows.Forms.Panel();
-      this.fraPCorner = new System.Windows.Forms.PictureBox();
-      this.vsbPic = new System.Windows.Forms.VScrollBar();
-      this.hsbPic = new System.Windows.Forms.HScrollBar();
-      this.imgPicture = new System.Windows.Forms.PictureBox();
-      this.pnlSound = new System.Windows.Forms.Panel();
-      this.pnlProgressBar = new System.Windows.Forms.Panel();
-      this.picProgress = new System.Windows.Forms.PictureBox();
-      this.lblFormat = new System.Windows.Forms.Label();
-      this.btnStop = new System.Windows.Forms.Button();
-      this.imageList1 = new System.Windows.Forms.ImageList(this.components);
-      this.btnPlay = new System.Windows.Forms.Button();
-      this.lblLength = new System.Windows.Forms.Label();
-      this.cmdReset = new System.Windows.Forms.Button();
-      this.cmbInst2 = new System.Windows.Forms.ComboBox();
-      this.cmbInst1 = new System.Windows.Forms.ComboBox();
-      this.cmbInst0 = new System.Windows.Forms.ComboBox();
-      this.chkTrack3 = new System.Windows.Forms.CheckBox();
-      this.chkTrack2 = new System.Windows.Forms.CheckBox();
-      this.chkTrack1 = new System.Windows.Forms.CheckBox();
-      this.chkTrack0 = new System.Windows.Forms.CheckBox();
-      this.pnlView = new System.Windows.Forms.Panel();
-      this.picTrans = new System.Windows.Forms.PictureBox();
-      this.chkTrans = new System.Windows.Forms.CheckBox();
-      this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
-      this.pnlViewHdr = new System.Windows.Forms.Panel();
-      this.dCel = new System.Windows.Forms.Button();
-      this.uCel = new System.Windows.Forms.Button();
-      this.uLoop = new System.Windows.Forms.Button();
-      this.dLoop = new System.Windows.Forms.Button();
-      this.udCel = new System.Windows.Forms.Label();
-      this.udLoop = new System.Windows.Forms.Label();
-      this.pnlViewFtr = new System.Windows.Forms.Panel();
-      this.sldSpeed = new System.Windows.Forms.TrackBar();
-      this.cmbMotion = new System.Windows.Forms.ComboBox();
-      this.cmdVPlay = new System.Windows.Forms.Button();
-      this.pnlCel = new System.Windows.Forms.Panel();
-      this.fraVCorner = new System.Windows.Forms.PictureBox();
-      this.vsbView = new System.Windows.Forms.VScrollBar();
-      this.hsbView = new System.Windows.Forms.HScrollBar();
-      this.picCel = new System.Windows.Forms.PictureBox();
-      this.tsViewPrev = new System.Windows.Forms.ToolStrip();
-      this.tbbZoomIn = new System.Windows.Forms.ToolStripButton();
-      this.tbbZoomOut = new System.Windows.Forms.ToolStripButton();
-      this.tsSep1 = new System.Windows.Forms.ToolStripSeparator();
-      this.HAlign = new System.Windows.Forms.ToolStripSplitButton();
-      this.tbbAlignLeft = new System.Windows.Forms.ToolStripMenuItem();
-      this.tbbAlignCenter = new System.Windows.Forms.ToolStripMenuItem();
-      this.tbbAlignRight = new System.Windows.Forms.ToolStripMenuItem();
-      this.VAlign = new System.Windows.Forms.ToolStripSplitButton();
-      this.tbbTop = new System.Windows.Forms.ToolStripMenuItem();
-      this.tbbMiddle = new System.Windows.Forms.ToolStripMenuItem();
-      this.tbbBottom = new System.Windows.Forms.ToolStripMenuItem();
-      this.tmrMotion = new System.Windows.Forms.Timer(this.components);
-      this.tmrSound = new System.Windows.Forms.Timer(this.components);
-      this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-      this.mnuResource = new System.Windows.Forms.ToolStripMenuItem();
-      this.mnuRSep1 = new System.Windows.Forms.ToolStripSeparator();
-      this.mnuRSavePicAs = new System.Windows.Forms.ToolStripMenuItem();
-      this.mnuRLoopGIF = new System.Windows.Forms.ToolStripMenuItem();
-      this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-      this.tspPreviewText = new System.Windows.Forms.ToolStripStatusLabel();
-      this.pnlLogic.SuspendLayout();
-      this.pnlPicture.SuspendLayout();
-      this.tableLayoutPanel1.SuspendLayout();
-      this.pnlPicHeader.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.udPZoom)).BeginInit();
-      this.pnlPicImage.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.fraPCorner)).BeginInit();
-      ((System.ComponentModel.ISupportInitialize)(this.imgPicture)).BeginInit();
-      this.pnlSound.SuspendLayout();
-      this.pnlProgressBar.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.picProgress)).BeginInit();
-      this.pnlView.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.picTrans)).BeginInit();
-      this.tableLayoutPanel2.SuspendLayout();
-      this.pnlViewHdr.SuspendLayout();
-      this.pnlViewFtr.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.sldSpeed)).BeginInit();
-      this.pnlCel.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.fraVCorner)).BeginInit();
-      ((System.ComponentModel.ISupportInitialize)(this.picCel)).BeginInit();
-      this.tsViewPrev.SuspendLayout();
-      this.menuStrip1.SuspendLayout();
-      this.statusStrip1.SuspendLayout();
-      this.SuspendLayout();
-      // 
-      // pnlLogic
-      // 
-      this.pnlLogic.Controls.Add(this.rtfLogPrev);
-      this.pnlLogic.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.pnlLogic.Location = new System.Drawing.Point(0, 0);
-      this.pnlLogic.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.pnlLogic.Name = "pnlLogic";
-      this.pnlLogic.Size = new System.Drawing.Size(1005, 836);
-      this.pnlLogic.TabIndex = 0;
-      this.pnlLogic.Visible = false;
-      // 
-      // rtfLogPrev
-      // 
-      this.rtfLogPrev.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.rtfLogPrev.DetectUrls = false;
-      this.rtfLogPrev.Location = new System.Drawing.Point(9, 11);
-      this.rtfLogPrev.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.rtfLogPrev.Name = "rtfLogPrev";
-      this.rtfLogPrev.ReadOnly = true;
-      this.rtfLogPrev.Size = new System.Drawing.Size(985, 815);
-      this.rtfLogPrev.TabIndex = 0;
-      this.rtfLogPrev.Text = "";
-      this.rtfLogPrev.WordWrap = false;
-      this.rtfLogPrev.DoubleClick += new System.EventHandler(this.rtfLogPrev_DoubleClick);
-      this.rtfLogPrev.KeyDown += new System.Windows.Forms.KeyEventHandler(this.rtfLogPrev_KeyDown);
-      this.rtfLogPrev.MouseDown += new System.Windows.Forms.MouseEventHandler(this.rtfLogPrev_MouseDown);
-      // 
-      // pnlPicture
-      // 
-      this.pnlPicture.Controls.Add(this.tableLayoutPanel1);
-      this.pnlPicture.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.pnlPicture.Location = new System.Drawing.Point(0, 0);
-      this.pnlPicture.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.pnlPicture.Name = "pnlPicture";
-      this.pnlPicture.Size = new System.Drawing.Size(1005, 836);
-      this.pnlPicture.TabIndex = 1;
-      this.pnlPicture.Visible = false;
-      this.pnlPicture.Leave += new System.EventHandler(this.pnlPicture_Leave);
-      // 
-      // tableLayoutPanel1
-      // 
-      this.tableLayoutPanel1.ColumnCount = 1;
-      this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel1.Controls.Add(this.pnlPicHeader, 0, 0);
-      this.tableLayoutPanel1.Controls.Add(this.pnlPicImage, 0, 1);
-      this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
-      this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(6);
-      this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-      this.tableLayoutPanel1.RowCount = 2;
-      this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 79F));
-      this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel1.Size = new System.Drawing.Size(1005, 836);
-      this.tableLayoutPanel1.TabIndex = 5;
-      // 
-      // pnlPicHeader
-      // 
-      this.pnlPicHeader.Controls.Add(this.optPriority);
-      this.pnlPicHeader.Controls.Add(this.optVisual);
-      this.pnlPicHeader.Controls.Add(this.udPZoom);
-      this.pnlPicHeader.Controls.Add(this.label1);
-      this.pnlPicHeader.Location = new System.Drawing.Point(6, 6);
-      this.pnlPicHeader.Margin = new System.Windows.Forms.Padding(6);
-      this.pnlPicHeader.Name = "pnlPicHeader";
-      this.pnlPicHeader.Size = new System.Drawing.Size(481, 66);
-      this.pnlPicHeader.TabIndex = 0;
-      // 
-      // optPriority
-      // 
-      this.optPriority.AutoSize = true;
-      this.optPriority.Location = new System.Drawing.Point(319, 15);
-      this.optPriority.Margin = new System.Windows.Forms.Padding(6);
-      this.optPriority.Name = "optPriority";
-      this.optPriority.Size = new System.Drawing.Size(120, 36);
-      this.optPriority.TabIndex = 7;
-      this.optPriority.Text = "Priority";
-      this.optPriority.UseVisualStyleBackColor = true;
-      // 
-      // optVisual
-      // 
-      this.optVisual.AutoSize = true;
-      this.optVisual.Checked = true;
-      this.optVisual.Location = new System.Drawing.Point(186, 15);
-      this.optVisual.Margin = new System.Windows.Forms.Padding(6);
-      this.optVisual.Name = "optVisual";
-      this.optVisual.Size = new System.Drawing.Size(108, 36);
-      this.optVisual.TabIndex = 6;
-      this.optVisual.TabStop = true;
-      this.optVisual.Text = "Visual";
-      this.optVisual.UseVisualStyleBackColor = true;
-      this.optVisual.CheckedChanged += new System.EventHandler(this.optVisual_CheckedChanged);
-      // 
-      // udPZoom
-      // 
-      this.udPZoom.Location = new System.Drawing.Point(93, 15);
-      this.udPZoom.Margin = new System.Windows.Forms.Padding(6);
-      this.udPZoom.Maximum = new decimal(new int[] {
-            16,
-            0,
-            0,
-            0});
-      this.udPZoom.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-      this.udPZoom.Name = "udPZoom";
-      this.udPZoom.ReadOnly = true;
-      this.udPZoom.Size = new System.Drawing.Size(74, 39);
-      this.udPZoom.TabIndex = 5;
-      this.udPZoom.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-      this.udPZoom.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-      this.udPZoom.ValueChanged += new System.EventHandler(this.udPZoom_ValueChanged);
-      // 
-      // label1
-      // 
-      this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point(4, 19);
-      this.label1.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-      this.label1.Name = "label1";
-      this.label1.Size = new System.Drawing.Size(82, 32);
-      this.label1.TabIndex = 4;
-      this.label1.Text = "Zoom:";
-      // 
-      // pnlPicImage
-      // 
-      this.pnlPicImage.Controls.Add(this.fraPCorner);
-      this.pnlPicImage.Controls.Add(this.vsbPic);
-      this.pnlPicImage.Controls.Add(this.hsbPic);
-      this.pnlPicImage.Controls.Add(this.imgPicture);
-      this.pnlPicImage.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.pnlPicImage.Location = new System.Drawing.Point(6, 85);
-      this.pnlPicImage.Margin = new System.Windows.Forms.Padding(6);
-      this.pnlPicImage.Name = "pnlPicImage";
-      this.pnlPicImage.Size = new System.Drawing.Size(993, 745);
-      this.pnlPicImage.TabIndex = 1;
-      this.pnlPicImage.Resize += new System.EventHandler(this.pnlPicImage_Resize);
-      // 
-      // fraPCorner
-      // 
-      this.fraPCorner.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.fraPCorner.Location = new System.Drawing.Point(970, 723);
-      this.fraPCorner.Margin = new System.Windows.Forms.Padding(6);
-      this.fraPCorner.Name = "fraPCorner";
-      this.fraPCorner.Size = new System.Drawing.Size(20, 19);
-      this.fraPCorner.TabIndex = 8;
-      this.fraPCorner.TabStop = false;
-      this.fraPCorner.Visible = false;
-      // 
-      // vsbPic
-      // 
-      this.vsbPic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.vsbPic.Location = new System.Drawing.Point(970, 0);
-      this.vsbPic.Minimum = -4;
-      this.vsbPic.Name = "vsbPic";
-      this.vsbPic.Size = new System.Drawing.Size(20, 721);
-      this.vsbPic.TabIndex = 7;
-      this.vsbPic.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vsbPic_Scroll);
-      // 
-      // hsbPic
-      // 
-      this.hsbPic.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.hsbPic.Location = new System.Drawing.Point(0, 723);
-      this.hsbPic.Minimum = -4;
-      this.hsbPic.Name = "hsbPic";
-      this.hsbPic.Size = new System.Drawing.Size(901, 20);
-      this.hsbPic.TabIndex = 6;
-      this.hsbPic.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hsbPic_Scroll);
-      // 
-      // imgPicture
-      // 
-      this.imgPicture.Location = new System.Drawing.Point(0, 0);
-      this.imgPicture.Margin = new System.Windows.Forms.Padding(6);
-      this.imgPicture.Name = "imgPicture";
-      this.imgPicture.Size = new System.Drawing.Size(594, 358);
-      this.imgPicture.TabIndex = 5;
-      this.imgPicture.TabStop = false;
-      this.imgPicture.DoubleClick += new System.EventHandler(this.imgPicture_DoubleClick);
-      this.imgPicture.MouseDown += new System.Windows.Forms.MouseEventHandler(this.imgPicture_MouseDown);
-      this.imgPicture.MouseLeave += new System.EventHandler(this.imgPicture_MouseLeave);
-      this.imgPicture.MouseMove += new System.Windows.Forms.MouseEventHandler(this.imgPicture_MouseMove);
-      this.imgPicture.MouseUp += new System.Windows.Forms.MouseEventHandler(this.imgPicture_MouseUp);
-      this.imgPicture.Validated += new System.EventHandler(this.imgPicture_Validated);
-      // 
-      // pnlSound
-      // 
-      this.pnlSound.Controls.Add(this.pnlProgressBar);
-      this.pnlSound.Controls.Add(this.lblFormat);
-      this.pnlSound.Controls.Add(this.btnStop);
-      this.pnlSound.Controls.Add(this.btnPlay);
-      this.pnlSound.Controls.Add(this.lblLength);
-      this.pnlSound.Controls.Add(this.cmdReset);
-      this.pnlSound.Controls.Add(this.cmbInst2);
-      this.pnlSound.Controls.Add(this.cmbInst1);
-      this.pnlSound.Controls.Add(this.cmbInst0);
-      this.pnlSound.Controls.Add(this.chkTrack3);
-      this.pnlSound.Controls.Add(this.chkTrack2);
-      this.pnlSound.Controls.Add(this.chkTrack1);
-      this.pnlSound.Controls.Add(this.chkTrack0);
-      this.pnlSound.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.pnlSound.Location = new System.Drawing.Point(0, 0);
-      this.pnlSound.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.pnlSound.Name = "pnlSound";
-      this.pnlSound.Size = new System.Drawing.Size(1005, 836);
-      this.pnlSound.TabIndex = 2;
-      this.pnlSound.Visible = false;
-      this.pnlSound.DoubleClick += new System.EventHandler(this.pnlSound_DoubleClick);
-      // 
-      // pnlProgressBar
-      // 
-      this.pnlProgressBar.BackColor = System.Drawing.SystemColors.Info;
-      this.pnlProgressBar.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-      this.pnlProgressBar.Controls.Add(this.picProgress);
-      this.pnlProgressBar.Location = new System.Drawing.Point(43, 410);
-      this.pnlProgressBar.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.pnlProgressBar.Name = "pnlProgressBar";
-      this.pnlProgressBar.Size = new System.Drawing.Size(639, 30);
-      this.pnlProgressBar.TabIndex = 13;
-      // 
-      // picProgress
-      // 
-      this.picProgress.BackColor = System.Drawing.SystemColors.Highlight;
-      this.picProgress.Location = new System.Drawing.Point(0, 0);
-      this.picProgress.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.picProgress.Name = "picProgress";
-      this.picProgress.Size = new System.Drawing.Size(0, 19);
-      this.picProgress.TabIndex = 0;
-      this.picProgress.TabStop = false;
-      // 
-      // lblFormat
-      // 
-      this.lblFormat.Font = new System.Drawing.Font("Segoe UI", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-      this.lblFormat.Location = new System.Drawing.Point(43, 15);
-      this.lblFormat.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-      this.lblFormat.Name = "lblFormat";
-      this.lblFormat.Size = new System.Drawing.Size(637, 58);
-      this.lblFormat.TabIndex = 12;
-      this.lblFormat.Text = "label3";
-      this.lblFormat.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-      // 
-      // btnStop
-      // 
-      this.btnStop.Enabled = false;
-      this.btnStop.ImageIndex = 9;
-      this.btnStop.ImageList = this.imageList1;
-      this.btnStop.Location = new System.Drawing.Point(366, 450);
-      this.btnStop.Margin = new System.Windows.Forms.Padding(6);
-      this.btnStop.Name = "btnStop";
-      this.btnStop.Size = new System.Drawing.Size(176, 60);
-      this.btnStop.TabIndex = 11;
-      this.btnStop.UseVisualStyleBackColor = true;
-      this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
-      // 
-      // imageList1
-      // 
-      this.imageList1.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
-      this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
-      this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
-      this.imageList1.Images.SetKeyName(0, "eli_zoomout.ico");
-      this.imageList1.Images.SetKeyName(1, "eli_zoomin.ico");
-      this.imageList1.Images.SetKeyName(2, "HAlignL.ico");
-      this.imageList1.Images.SetKeyName(3, "HAlignC.ico");
-      this.imageList1.Images.SetKeyName(4, "HAlignR.ico");
-      this.imageList1.Images.SetKeyName(5, "ValignT.ico");
-      this.imageList1.Images.SetKeyName(6, "VAlignM.ico");
-      this.imageList1.Images.SetKeyName(7, "ValignB.ico");
-      this.imageList1.Images.SetKeyName(8, "sndplay.ico");
-      this.imageList1.Images.SetKeyName(9, "sndstop.ico");
-      // 
-      // btnPlay
-      // 
-      this.btnPlay.ImageIndex = 8;
-      this.btnPlay.ImageList = this.imageList1;
-      this.btnPlay.Location = new System.Drawing.Point(182, 450);
-      this.btnPlay.Margin = new System.Windows.Forms.Padding(6);
-      this.btnPlay.Name = "btnPlay";
-      this.btnPlay.Size = new System.Drawing.Size(176, 60);
-      this.btnPlay.TabIndex = 10;
-      this.btnPlay.UseVisualStyleBackColor = true;
-      this.btnPlay.Click += new System.EventHandler(this.btnPlay_Click);
-      // 
-      // lblLength
-      // 
-      this.lblLength.Location = new System.Drawing.Point(43, 371);
-      this.lblLength.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
-      this.lblLength.Name = "lblLength";
-      this.lblLength.Size = new System.Drawing.Size(639, 32);
-      this.lblLength.TabIndex = 8;
-      this.lblLength.Text = "0.0 seconds";
-      this.lblLength.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-      // 
-      // cmdReset
-      // 
-      this.cmdReset.Location = new System.Drawing.Point(392, 273);
-      this.cmdReset.Margin = new System.Windows.Forms.Padding(6);
-      this.cmdReset.Name = "cmdReset";
-      this.cmdReset.Size = new System.Drawing.Size(288, 68);
-      this.cmdReset.TabIndex = 7;
-      this.cmdReset.Text = "Reset Instruments";
-      this.cmdReset.UseVisualStyleBackColor = true;
-      this.cmdReset.Click += new System.EventHandler(this.cmdReset_Click);
-      // 
-      // cmbInst2
-      // 
-      this.cmbInst2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-      this.cmbInst2.FormattingEnabled = true;
-      this.cmbInst2.Location = new System.Drawing.Point(284, 203);
-      this.cmbInst2.Margin = new System.Windows.Forms.Padding(6);
-      this.cmbInst2.Name = "cmbInst2";
-      this.cmbInst2.Size = new System.Drawing.Size(394, 40);
-      this.cmbInst2.TabIndex = 6;
-      this.cmbInst2.SelectionChangeCommitted += new System.EventHandler(this.cmbInst2_SelectionChangeCommitted);
-      // 
-      // cmbInst1
-      // 
-      this.cmbInst1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-      this.cmbInst1.FormattingEnabled = true;
-      this.cmbInst1.Location = new System.Drawing.Point(284, 137);
-      this.cmbInst1.Margin = new System.Windows.Forms.Padding(6);
-      this.cmbInst1.Name = "cmbInst1";
-      this.cmbInst1.Size = new System.Drawing.Size(394, 40);
-      this.cmbInst1.TabIndex = 5;
-      this.cmbInst1.SelectionChangeCommitted += new System.EventHandler(this.cmbInst1_SelectionChangeCommitted);
-      // 
-      // cmbInst0
-      // 
-      this.cmbInst0.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-      this.cmbInst0.FormattingEnabled = true;
-      this.cmbInst0.Location = new System.Drawing.Point(284, 75);
-      this.cmbInst0.Margin = new System.Windows.Forms.Padding(6);
-      this.cmbInst0.Name = "cmbInst0";
-      this.cmbInst0.Size = new System.Drawing.Size(394, 40);
-      this.cmbInst0.TabIndex = 4;
-      this.cmbInst0.SelectionChangeCommitted += new System.EventHandler(this.cmbInst0_SelectionChangeCommitted);
-      // 
-      // chkTrack3
-      // 
-      this.chkTrack3.AutoSize = true;
-      this.chkTrack3.Location = new System.Drawing.Point(39, 290);
-      this.chkTrack3.Margin = new System.Windows.Forms.Padding(6);
-      this.chkTrack3.Name = "chkTrack3";
-      this.chkTrack3.Size = new System.Drawing.Size(254, 36);
-      this.chkTrack3.TabIndex = 3;
-      this.chkTrack3.Text = "Track 3: Noise Track";
-      this.chkTrack3.UseVisualStyleBackColor = true;
-      this.chkTrack3.CheckedChanged += new System.EventHandler(this.chkTrack3_CheckedChanged);
-      // 
-      // chkTrack2
-      // 
-      this.chkTrack2.AutoSize = true;
-      this.chkTrack2.Location = new System.Drawing.Point(39, 207);
-      this.chkTrack2.Margin = new System.Windows.Forms.Padding(6);
-      this.chkTrack2.Name = "chkTrack2";
-      this.chkTrack2.Size = new System.Drawing.Size(248, 36);
-      this.chkTrack2.TabIndex = 2;
-      this.chkTrack2.Text = "Track 2 Instrument:";
-      this.chkTrack2.UseVisualStyleBackColor = true;
-      this.chkTrack2.CheckedChanged += new System.EventHandler(this.chkTrack2_CheckedChanged);
-      // 
-      // chkTrack1
-      // 
-      this.chkTrack1.AutoSize = true;
-      this.chkTrack1.Location = new System.Drawing.Point(39, 141);
-      this.chkTrack1.Margin = new System.Windows.Forms.Padding(6);
-      this.chkTrack1.Name = "chkTrack1";
-      this.chkTrack1.Size = new System.Drawing.Size(248, 36);
-      this.chkTrack1.TabIndex = 1;
-      this.chkTrack1.Text = "Track 1 Instrument:";
-      this.chkTrack1.UseVisualStyleBackColor = true;
-      this.chkTrack1.CheckedChanged += new System.EventHandler(this.chkTrack1_CheckedChanged);
-      // 
-      // chkTrack0
-      // 
-      this.chkTrack0.AutoSize = true;
-      this.chkTrack0.Location = new System.Drawing.Point(39, 79);
-      this.chkTrack0.Margin = new System.Windows.Forms.Padding(6);
-      this.chkTrack0.Name = "chkTrack0";
-      this.chkTrack0.Size = new System.Drawing.Size(248, 36);
-      this.chkTrack0.TabIndex = 0;
-      this.chkTrack0.Text = "Track 0 Instrument:";
-      this.chkTrack0.UseVisualStyleBackColor = true;
-      this.chkTrack0.CheckedChanged += new System.EventHandler(this.chkTrack0_CheckedChanged);
-      // 
-      // pnlView
-      // 
-      this.pnlView.Controls.Add(this.picTrans);
-      this.pnlView.Controls.Add(this.chkTrans);
-      this.pnlView.Controls.Add(this.tableLayoutPanel2);
-      this.pnlView.Controls.Add(this.tsViewPrev);
-      this.pnlView.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.pnlView.Location = new System.Drawing.Point(0, 0);
-      this.pnlView.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.pnlView.Name = "pnlView";
-      this.pnlView.Size = new System.Drawing.Size(1005, 836);
-      this.pnlView.TabIndex = 3;
-      this.pnlView.Visible = false;
-      // 
-      // picTrans
-      // 
-      this.picTrans.Location = new System.Drawing.Point(436, 0);
-      this.picTrans.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.picTrans.Name = "picTrans";
-      this.picTrans.Size = new System.Drawing.Size(35, 36);
-      this.picTrans.TabIndex = 10;
-      this.picTrans.TabStop = false;
-      // 
-      // chkTrans
-      // 
-      this.chkTrans.AutoSize = true;
-      this.chkTrans.Location = new System.Drawing.Point(254, 2);
-      this.chkTrans.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.chkTrans.Name = "chkTrans";
-      this.chkTrans.Size = new System.Drawing.Size(185, 36);
-      this.chkTrans.TabIndex = 10;
-      this.chkTrans.Text = "Transparency";
-      this.chkTrans.UseVisualStyleBackColor = true;
-      this.chkTrans.Click += new System.EventHandler(this.chkTrans_Click);
-      // 
-      // tableLayoutPanel2
-      // 
-      this.tableLayoutPanel2.ColumnCount = 1;
-      this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel2.Controls.Add(this.pnlViewHdr, 0, 0);
-      this.tableLayoutPanel2.Controls.Add(this.pnlViewFtr, 0, 2);
-      this.tableLayoutPanel2.Controls.Add(this.pnlCel, 0, 1);
-      this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.tableLayoutPanel2.Location = new System.Drawing.Point(0, 42);
-      this.tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(6);
-      this.tableLayoutPanel2.Name = "tableLayoutPanel2";
-      this.tableLayoutPanel2.RowCount = 3;
-      this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 53F));
-      this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 83F));
-      this.tableLayoutPanel2.Size = new System.Drawing.Size(1005, 794);
-      this.tableLayoutPanel2.TabIndex = 13;
-      // 
-      // pnlViewHdr
-      // 
-      this.pnlViewHdr.Controls.Add(this.dCel);
-      this.pnlViewHdr.Controls.Add(this.uCel);
-      this.pnlViewHdr.Controls.Add(this.uLoop);
-      this.pnlViewHdr.Controls.Add(this.dLoop);
-      this.pnlViewHdr.Controls.Add(this.udCel);
-      this.pnlViewHdr.Controls.Add(this.udLoop);
-      this.pnlViewHdr.Location = new System.Drawing.Point(6, 6);
-      this.pnlViewHdr.Margin = new System.Windows.Forms.Padding(6);
-      this.pnlViewHdr.Name = "pnlViewHdr";
-      this.pnlViewHdr.Size = new System.Drawing.Size(739, 41);
-      this.pnlViewHdr.TabIndex = 9;
-      // 
-      // dCel
-      // 
-      this.dCel.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("dCel.BackgroundImage")));
-      this.dCel.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-      this.dCel.Location = new System.Drawing.Point(475, 0);
-      this.dCel.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.dCel.Name = "dCel";
-      this.dCel.Size = new System.Drawing.Size(35, 36);
-      this.dCel.TabIndex = 19;
-      this.dCel.UseVisualStyleBackColor = true;
-      this.dCel.Click += new System.EventHandler(this.dCel_Click);
-      // 
-      // uCel
-      // 
-      this.uCel.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("uCel.BackgroundImage")));
-      this.uCel.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-      this.uCel.Location = new System.Drawing.Point(511, 0);
-      this.uCel.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.uCel.Name = "uCel";
-      this.uCel.Size = new System.Drawing.Size(35, 36);
-      this.uCel.TabIndex = 18;
-      this.uCel.UseVisualStyleBackColor = true;
-      this.uCel.Click += new System.EventHandler(this.uCel_Click);
-      // 
-      // uLoop
-      // 
-      this.uLoop.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("uLoop.BackgroundImage")));
-      this.uLoop.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-      this.uLoop.Location = new System.Drawing.Point(230, 0);
-      this.uLoop.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.uLoop.Name = "uLoop";
-      this.uLoop.Size = new System.Drawing.Size(35, 36);
-      this.uLoop.TabIndex = 17;
-      this.uLoop.UseVisualStyleBackColor = true;
-      this.uLoop.Click += new System.EventHandler(this.uLoop_Click);
-      // 
-      // dLoop
-      // 
-      this.dLoop.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("dLoop.BackgroundImage")));
-      this.dLoop.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-      this.dLoop.Location = new System.Drawing.Point(195, 0);
-      this.dLoop.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.dLoop.Name = "dLoop";
-      this.dLoop.Size = new System.Drawing.Size(35, 36);
-      this.dLoop.TabIndex = 16;
-      this.dLoop.UseVisualStyleBackColor = true;
-      this.dLoop.Click += new System.EventHandler(this.dLoop_Click);
-      // 
-      // udCel
-      // 
-      this.udCel.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-      this.udCel.Location = new System.Drawing.Point(280, 0);
-      this.udCel.Margin = new System.Windows.Forms.Padding(6);
-      this.udCel.Name = "udCel";
-      this.udCel.Size = new System.Drawing.Size(195, 38);
-      this.udCel.TabIndex = 15;
-      this.udCel.Text = "Cel 0 / 0";
-      this.udCel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-      // 
-      // udLoop
-      // 
-      this.udLoop.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-      this.udLoop.Location = new System.Drawing.Point(0, 0);
-      this.udLoop.Margin = new System.Windows.Forms.Padding(6);
-      this.udLoop.Name = "udLoop";
-      this.udLoop.Size = new System.Drawing.Size(195, 38);
-      this.udLoop.TabIndex = 9;
-      this.udLoop.Text = "Loop 255 / 255";
-      this.udLoop.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-      // 
-      // pnlViewFtr
-      // 
-      this.pnlViewFtr.Controls.Add(this.sldSpeed);
-      this.pnlViewFtr.Controls.Add(this.cmbMotion);
-      this.pnlViewFtr.Controls.Add(this.cmdVPlay);
-      this.pnlViewFtr.Location = new System.Drawing.Point(6, 717);
-      this.pnlViewFtr.Margin = new System.Windows.Forms.Padding(6);
-      this.pnlViewFtr.Name = "pnlViewFtr";
-      this.pnlViewFtr.Size = new System.Drawing.Size(513, 70);
-      this.pnlViewFtr.TabIndex = 10;
-      // 
-      // sldSpeed
-      // 
-      this.sldSpeed.Location = new System.Drawing.Point(336, 6);
-      this.sldSpeed.Margin = new System.Windows.Forms.Padding(6);
-      this.sldSpeed.Maximum = 12;
-      this.sldSpeed.Minimum = 1;
-      this.sldSpeed.Name = "sldSpeed";
-      this.sldSpeed.Size = new System.Drawing.Size(186, 90);
-      this.sldSpeed.TabIndex = 13;
-      this.sldSpeed.Value = 1;
-      this.sldSpeed.ValueChanged += new System.EventHandler(this.sldSpeed_ValueChanged);
-      // 
-      // cmbMotion
-      // 
-      this.cmbMotion.FormattingEnabled = true;
-      this.cmbMotion.Items.AddRange(new object[] {
-            "normal",
-            "reverse",
-            "end of loop",
-            "reverse loop"});
-      this.cmbMotion.Location = new System.Drawing.Point(113, 15);
-      this.cmbMotion.Margin = new System.Windows.Forms.Padding(6);
-      this.cmbMotion.Name = "cmbMotion";
-      this.cmbMotion.Size = new System.Drawing.Size(169, 40);
-      this.cmbMotion.TabIndex = 12;
-      // 
-      // cmdVPlay
-      // 
-      this.cmdVPlay.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-      this.cmdVPlay.Location = new System.Drawing.Point(9, 11);
-      this.cmdVPlay.Margin = new System.Windows.Forms.Padding(6);
-      this.cmdVPlay.Name = "cmdVPlay";
-      this.cmdVPlay.Size = new System.Drawing.Size(93, 49);
-      this.cmdVPlay.TabIndex = 11;
-      this.cmdVPlay.UseVisualStyleBackColor = true;
-      this.cmdVPlay.Click += new System.EventHandler(this.cmdVPlay_Click);
-      // 
-      // pnlCel
-      // 
-      this.pnlCel.Controls.Add(this.fraVCorner);
-      this.pnlCel.Controls.Add(this.vsbView);
-      this.pnlCel.Controls.Add(this.hsbView);
-      this.pnlCel.Controls.Add(this.picCel);
-      this.pnlCel.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.pnlCel.Location = new System.Drawing.Point(6, 59);
-      this.pnlCel.Margin = new System.Windows.Forms.Padding(6);
-      this.pnlCel.Name = "pnlCel";
-      this.pnlCel.Size = new System.Drawing.Size(993, 646);
-      this.pnlCel.TabIndex = 11;
-      this.pnlCel.Paint += new System.Windows.Forms.PaintEventHandler(this.pnlCel_Paint);
-      this.pnlCel.DoubleClick += new System.EventHandler(this.picCel_DoubleClick);
-      this.pnlCel.Resize += new System.EventHandler(this.pnlCel_Resize);
-      // 
-      // fraVCorner
-      // 
-      this.fraVCorner.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.fraVCorner.Location = new System.Drawing.Point(976, 629);
-      this.fraVCorner.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.fraVCorner.Name = "fraVCorner";
-      this.fraVCorner.Size = new System.Drawing.Size(37, 43);
-      this.fraVCorner.TabIndex = 9;
-      this.fraVCorner.TabStop = false;
-      this.fraVCorner.Visible = false;
-      // 
-      // vsbView
-      // 
-      this.vsbView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.vsbView.Location = new System.Drawing.Point(970, 0);
-      this.vsbView.Minimum = -4;
-      this.vsbView.Name = "vsbView";
-      this.vsbView.Size = new System.Drawing.Size(16, 395);
-      this.vsbView.TabIndex = 5;
-      this.vsbView.Visible = false;
-      this.vsbView.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vsbView_Scroll);
-      // 
-      // hsbView
-      // 
-      this.hsbView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-      this.hsbView.Location = new System.Drawing.Point(0, 629);
-      this.hsbView.Minimum = -4;
-      this.hsbView.Name = "hsbView";
-      this.hsbView.Size = new System.Drawing.Size(292, 16);
-      this.hsbView.TabIndex = 6;
-      this.hsbView.Visible = false;
-      this.hsbView.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hsbView_Scroll);
-      // 
-      // picCel
-      // 
-      this.picCel.Location = new System.Drawing.Point(0, 0);
-      this.picCel.Margin = new System.Windows.Forms.Padding(6);
-      this.picCel.Name = "picCel";
-      this.picCel.Size = new System.Drawing.Size(134, 151);
-      this.picCel.TabIndex = 8;
-      this.picCel.TabStop = false;
-      this.picCel.DoubleClick += new System.EventHandler(this.picCel_DoubleClick);
-      this.picCel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.picCel_MouseDown);
-      this.picCel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picCel_MouseMove);
-      this.picCel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.picCel_MouseUp);
-      // 
-      // tsViewPrev
-      // 
-      this.tsViewPrev.ImageScalingSize = new System.Drawing.Size(32, 32);
-      this.tsViewPrev.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tbbZoomIn,
-            this.tbbZoomOut,
-            this.tsSep1,
-            this.HAlign,
-            this.VAlign});
-      this.tsViewPrev.Location = new System.Drawing.Point(0, 0);
-      this.tsViewPrev.Name = "tsViewPrev";
-      this.tsViewPrev.Padding = new System.Windows.Forms.Padding(0, 0, 4, 0);
-      this.tsViewPrev.Size = new System.Drawing.Size(1005, 42);
-      this.tsViewPrev.TabIndex = 0;
-      this.tsViewPrev.Text = "toolStrip1";
-      // 
-      // tbbZoomIn
-      // 
-      this.tbbZoomIn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.tbbZoomIn.Image = ((System.Drawing.Image)(resources.GetObject("tbbZoomIn.Image")));
-      this.tbbZoomIn.ImageTransparentColor = System.Drawing.Color.Magenta;
-      this.tbbZoomIn.Name = "tbbZoomIn";
-      this.tbbZoomIn.Size = new System.Drawing.Size(46, 36);
-      this.tbbZoomIn.Text = "toolStripButton1";
-      this.tbbZoomIn.Click += new System.EventHandler(this.tbbZoomIn_Click);
-      // 
-      // tbbZoomOut
-      // 
-      this.tbbZoomOut.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.tbbZoomOut.Image = ((System.Drawing.Image)(resources.GetObject("tbbZoomOut.Image")));
-      this.tbbZoomOut.ImageTransparentColor = System.Drawing.Color.Magenta;
-      this.tbbZoomOut.Name = "tbbZoomOut";
-      this.tbbZoomOut.Size = new System.Drawing.Size(46, 36);
-      this.tbbZoomOut.Text = "toolStripButton2";
-      this.tbbZoomOut.Click += new System.EventHandler(this.tbbZoomOut_Click);
-      // 
-      // tsSep1
-      // 
-      this.tsSep1.Name = "tsSep1";
-      this.tsSep1.Size = new System.Drawing.Size(6, 42);
-      // 
-      // HAlign
-      // 
-      this.HAlign.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.HAlign.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tbbAlignLeft,
-            this.tbbAlignCenter,
-            this.tbbAlignRight});
-      this.HAlign.Image = ((System.Drawing.Image)(resources.GetObject("HAlign.Image")));
-      this.HAlign.ImageTransparentColor = System.Drawing.Color.Magenta;
-      this.HAlign.Name = "HAlign";
-      this.HAlign.Size = new System.Drawing.Size(59, 36);
-      // 
-      // tbbAlignLeft
-      // 
-      this.tbbAlignLeft.Image = ((System.Drawing.Image)(resources.GetObject("tbbAlignLeft.Image")));
-      this.tbbAlignLeft.Name = "tbbAlignLeft";
-      this.tbbAlignLeft.Size = new System.Drawing.Size(218, 44);
-      this.tbbAlignLeft.Text = "Left";
-      this.tbbAlignLeft.Click += new System.EventHandler(this.tbbAlignLeft_Click);
-      // 
-      // tbbAlignCenter
-      // 
-      this.tbbAlignCenter.Image = ((System.Drawing.Image)(resources.GetObject("tbbAlignCenter.Image")));
-      this.tbbAlignCenter.Name = "tbbAlignCenter";
-      this.tbbAlignCenter.Size = new System.Drawing.Size(218, 44);
-      this.tbbAlignCenter.Text = "Center";
-      this.tbbAlignCenter.Click += new System.EventHandler(this.tbbAlignCenter_Click);
-      // 
-      // tbbAlignRight
-      // 
-      this.tbbAlignRight.Image = ((System.Drawing.Image)(resources.GetObject("tbbAlignRight.Image")));
-      this.tbbAlignRight.Name = "tbbAlignRight";
-      this.tbbAlignRight.Size = new System.Drawing.Size(218, 44);
-      this.tbbAlignRight.Text = "Right";
-      this.tbbAlignRight.Click += new System.EventHandler(this.tbbAlignRight_Click);
-      // 
-      // VAlign
-      // 
-      this.VAlign.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.VAlign.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tbbTop,
-            this.tbbMiddle,
-            this.tbbBottom});
-      this.VAlign.Image = ((System.Drawing.Image)(resources.GetObject("VAlign.Image")));
-      this.VAlign.ImageTransparentColor = System.Drawing.Color.Magenta;
-      this.VAlign.Name = "VAlign";
-      this.VAlign.Size = new System.Drawing.Size(59, 36);
-      // 
-      // tbbTop
-      // 
-      this.tbbTop.Image = ((System.Drawing.Image)(resources.GetObject("tbbTop.Image")));
-      this.tbbTop.Name = "tbbTop";
-      this.tbbTop.Size = new System.Drawing.Size(226, 44);
-      this.tbbTop.Text = "Top";
-      this.tbbTop.Click += new System.EventHandler(this.tbbTop_Click);
-      // 
-      // tbbMiddle
-      // 
-      this.tbbMiddle.Image = ((System.Drawing.Image)(resources.GetObject("tbbMiddle.Image")));
-      this.tbbMiddle.Name = "tbbMiddle";
-      this.tbbMiddle.Size = new System.Drawing.Size(226, 44);
-      this.tbbMiddle.Text = "Middle";
-      this.tbbMiddle.Click += new System.EventHandler(this.tbbMiddle_Click);
-      // 
-      // tbbBottom
-      // 
-      this.tbbBottom.Image = ((System.Drawing.Image)(resources.GetObject("tbbBottom.Image")));
-      this.tbbBottom.Name = "tbbBottom";
-      this.tbbBottom.Size = new System.Drawing.Size(226, 44);
-      this.tbbBottom.Text = "Bottom";
-      this.tbbBottom.Click += new System.EventHandler(this.tbbBottom_Click);
-      // 
-      // tmrMotion
-      // 
-      this.tmrMotion.Tick += new System.EventHandler(this.tmrMotion_Tick);
-      // 
-      // tmrSound
-      // 
-      this.tmrSound.Interval = 1;
-      this.tmrSound.Tick += new System.EventHandler(this.Timer1_Tick);
-      // 
-      // menuStrip1
-      // 
-      this.menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-      this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuResource});
-      this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-      this.menuStrip1.Name = "menuStrip1";
-      this.menuStrip1.Size = new System.Drawing.Size(1005, 40);
-      this.menuStrip1.TabIndex = 11;
-      this.menuStrip1.Text = "menuStrip1";
-      this.menuStrip1.Visible = false;
-      // 
-      // mnuResource
-      // 
-      this.mnuResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuRSep1,
-            this.mnuRSavePicAs,
-            this.mnuRLoopGIF});
-      this.mnuResource.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
-      this.mnuResource.MergeIndex = 1;
-      this.mnuResource.Name = "mnuResource";
-      this.mnuResource.Size = new System.Drawing.Size(130, 36);
-      this.mnuResource.Text = "&Resource";
-      // 
-      // mnuRSep1
-      // 
-      this.mnuRSep1.MergeAction = System.Windows.Forms.MergeAction.Insert;
-      this.mnuRSep1.MergeIndex = 10;
-      this.mnuRSep1.Name = "mnuRSep1";
-      this.mnuRSep1.Size = new System.Drawing.Size(539, 6);
-      // 
-      // mnuRSavePicAs
-      // 
-      this.mnuRSavePicAs.MergeAction = System.Windows.Forms.MergeAction.Insert;
-      this.mnuRSavePicAs.MergeIndex = 11;
-      this.mnuRSavePicAs.Name = "mnuRSavePicAs";
-      this.mnuRSavePicAs.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.S)));
-      this.mnuRSavePicAs.Size = new System.Drawing.Size(542, 44);
-      this.mnuRSavePicAs.Text = "Save Picture Image As...";
-      // 
-      // mnuRLoopGIF
-      // 
-      this.mnuRLoopGIF.MergeAction = System.Windows.Forms.MergeAction.Insert;
-      this.mnuRLoopGIF.MergeIndex = 12;
-      this.mnuRLoopGIF.Name = "mnuRLoopGIF";
-      this.mnuRLoopGIF.Size = new System.Drawing.Size(542, 44);
-      this.mnuRLoopGIF.Text = "Export Loop as GIF";
-      // 
-      // statusStrip1
-      // 
-      this.statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-      this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tspPreviewText});
-      this.statusStrip1.Location = new System.Drawing.Point(0, 794);
-      this.statusStrip1.Name = "statusStrip1";
-      this.statusStrip1.Size = new System.Drawing.Size(1005, 42);
-      this.statusStrip1.TabIndex = 12;
-      this.statusStrip1.Text = "statusStrip1";
-      this.statusStrip1.Visible = false;
-      // 
-      // tspPreviewText
-      // 
-      this.tspPreviewText.BorderStyle = System.Windows.Forms.Border3DStyle.Sunken;
-      this.tspPreviewText.MergeIndex = 1;
-      this.tspPreviewText.Name = "tspPreviewText";
-      this.tspPreviewText.Size = new System.Drawing.Size(990, 32);
-      this.tspPreviewText.Spring = true;
-      this.tspPreviewText.Text = "blah";
-      this.tspPreviewText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-      // 
-      // frmPreview
-      // 
-      this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
-      this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(1005, 836);
-      this.Controls.Add(this.statusStrip1);
-      this.Controls.Add(this.menuStrip1);
-      this.Controls.Add(this.pnlView);
-      this.Controls.Add(this.pnlPicture);
-      this.Controls.Add(this.pnlSound);
-      this.Controls.Add(this.pnlLogic);
-      this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
-      this.KeyPreview = true;
-      this.Margin = new System.Windows.Forms.Padding(4, 2, 4, 2);
-      this.Name = "frmPreview";
-      this.Text = "Form1";
-      this.Activated += new System.EventHandler(this.frmPreview_Activated);
-      this.Deactivate += new System.EventHandler(this.frmPreview_Deactivate);
-      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmPreview_FormClosing);
-      this.Load += new System.EventHandler(this.frmPreview_Load);
-      this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmPreview_KeyDown);
-      this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.frmPreview_KeyPress);
-      this.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.frmPreview_PreviewKeyDown);
-      this.pnlLogic.ResumeLayout(false);
-      this.pnlPicture.ResumeLayout(false);
-      this.tableLayoutPanel1.ResumeLayout(false);
-      this.pnlPicHeader.ResumeLayout(false);
-      this.pnlPicHeader.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.udPZoom)).EndInit();
-      this.pnlPicImage.ResumeLayout(false);
-      ((System.ComponentModel.ISupportInitialize)(this.fraPCorner)).EndInit();
-      ((System.ComponentModel.ISupportInitialize)(this.imgPicture)).EndInit();
-      this.pnlSound.ResumeLayout(false);
-      this.pnlSound.PerformLayout();
-      this.pnlProgressBar.ResumeLayout(false);
-      ((System.ComponentModel.ISupportInitialize)(this.picProgress)).EndInit();
-      this.pnlView.ResumeLayout(false);
-      this.pnlView.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.picTrans)).EndInit();
-      this.tableLayoutPanel2.ResumeLayout(false);
-      this.pnlViewHdr.ResumeLayout(false);
-      this.pnlViewFtr.ResumeLayout(false);
-      this.pnlViewFtr.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.sldSpeed)).EndInit();
-      this.pnlCel.ResumeLayout(false);
-      ((System.ComponentModel.ISupportInitialize)(this.fraVCorner)).EndInit();
-      ((System.ComponentModel.ISupportInitialize)(this.picCel)).EndInit();
-      this.tsViewPrev.ResumeLayout(false);
-      this.tsViewPrev.PerformLayout();
-      this.menuStrip1.ResumeLayout(false);
-      this.menuStrip1.PerformLayout();
-      this.statusStrip1.ResumeLayout(false);
-      this.statusStrip1.PerformLayout();
-      this.ResumeLayout(false);
-      this.PerformLayout();
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPreview));
+            pnlLogic = new System.Windows.Forms.Panel();
+            rtfLogPrev = new System.Windows.Forms.RichTextBox();
+            pnlPicture = new System.Windows.Forms.Panel();
+            tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            pnlPicHeader = new System.Windows.Forms.Panel();
+            optPriority = new System.Windows.Forms.RadioButton();
+            optVisual = new System.Windows.Forms.RadioButton();
+            udPZoom = new System.Windows.Forms.NumericUpDown();
+            label1 = new System.Windows.Forms.Label();
+            pnlPicImage = new System.Windows.Forms.Panel();
+            fraPCorner = new System.Windows.Forms.PictureBox();
+            vsbPic = new System.Windows.Forms.VScrollBar();
+            hsbPic = new System.Windows.Forms.HScrollBar();
+            imgPicture = new System.Windows.Forms.PictureBox();
+            pnlSound = new System.Windows.Forms.Panel();
+            pnlProgressBar = new System.Windows.Forms.Panel();
+            picProgress = new System.Windows.Forms.PictureBox();
+            lblFormat = new System.Windows.Forms.Label();
+            btnStop = new System.Windows.Forms.Button();
+            imageList1 = new System.Windows.Forms.ImageList(components);
+            btnPlay = new System.Windows.Forms.Button();
+            lblLength = new System.Windows.Forms.Label();
+            cmdReset = new System.Windows.Forms.Button();
+            cmbInst2 = new System.Windows.Forms.ComboBox();
+            cmbInst1 = new System.Windows.Forms.ComboBox();
+            cmbInst0 = new System.Windows.Forms.ComboBox();
+            chkTrack3 = new System.Windows.Forms.CheckBox();
+            chkTrack2 = new System.Windows.Forms.CheckBox();
+            chkTrack1 = new System.Windows.Forms.CheckBox();
+            chkTrack0 = new System.Windows.Forms.CheckBox();
+            pnlView = new System.Windows.Forms.Panel();
+            picTrans = new System.Windows.Forms.PictureBox();
+            chkTrans = new System.Windows.Forms.CheckBox();
+            tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            pnlViewHdr = new System.Windows.Forms.Panel();
+            dCel = new System.Windows.Forms.Button();
+            uCel = new System.Windows.Forms.Button();
+            uLoop = new System.Windows.Forms.Button();
+            dLoop = new System.Windows.Forms.Button();
+            udCel = new System.Windows.Forms.Label();
+            udLoop = new System.Windows.Forms.Label();
+            pnlViewFtr = new System.Windows.Forms.Panel();
+            sldSpeed = new System.Windows.Forms.TrackBar();
+            cmbMotion = new System.Windows.Forms.ComboBox();
+            cmdVPlay = new System.Windows.Forms.Button();
+            pnlCel = new System.Windows.Forms.Panel();
+            fraVCorner = new System.Windows.Forms.PictureBox();
+            vsbView = new System.Windows.Forms.VScrollBar();
+            hsbView = new System.Windows.Forms.HScrollBar();
+            picCel = new System.Windows.Forms.PictureBox();
+            tsViewPrev = new System.Windows.Forms.ToolStrip();
+            tbbZoomIn = new System.Windows.Forms.ToolStripButton();
+            tbbZoomOut = new System.Windows.Forms.ToolStripButton();
+            tsSep1 = new System.Windows.Forms.ToolStripSeparator();
+            HAlign = new System.Windows.Forms.ToolStripSplitButton();
+            tbbAlignLeft = new System.Windows.Forms.ToolStripMenuItem();
+            tbbAlignCenter = new System.Windows.Forms.ToolStripMenuItem();
+            tbbAlignRight = new System.Windows.Forms.ToolStripMenuItem();
+            VAlign = new System.Windows.Forms.ToolStripSplitButton();
+            tbbTop = new System.Windows.Forms.ToolStripMenuItem();
+            tbbMiddle = new System.Windows.Forms.ToolStripMenuItem();
+            tbbBottom = new System.Windows.Forms.ToolStripMenuItem();
+            tmrMotion = new System.Windows.Forms.Timer(components);
+            tmrSound = new System.Windows.Forms.Timer(components);
+            menuStrip1 = new System.Windows.Forms.MenuStrip();
+            mnuResource = new System.Windows.Forms.ToolStripMenuItem();
+            mnuRSep1 = new System.Windows.Forms.ToolStripSeparator();
+            mnuRSavePicAs = new System.Windows.Forms.ToolStripMenuItem();
+            mnuRLoopGIF = new System.Windows.Forms.ToolStripMenuItem();
+            statusStrip1 = new System.Windows.Forms.StatusStrip();
+            tspPreviewText = new System.Windows.Forms.ToolStripStatusLabel();
+            pnlLogic.SuspendLayout();
+            pnlPicture.SuspendLayout();
+            tableLayoutPanel1.SuspendLayout();
+            pnlPicHeader.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)udPZoom).BeginInit();
+            pnlPicImage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)fraPCorner).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)imgPicture).BeginInit();
+            pnlSound.SuspendLayout();
+            pnlProgressBar.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)picProgress).BeginInit();
+            pnlView.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)picTrans).BeginInit();
+            tableLayoutPanel2.SuspendLayout();
+            pnlViewHdr.SuspendLayout();
+            pnlViewFtr.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)sldSpeed).BeginInit();
+            pnlCel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)fraVCorner).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)picCel).BeginInit();
+            tsViewPrev.SuspendLayout();
+            menuStrip1.SuspendLayout();
+            statusStrip1.SuspendLayout();
+            SuspendLayout();
+            // 
+            // pnlLogic
+            // 
+            pnlLogic.Controls.Add(rtfLogPrev);
+            pnlLogic.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlLogic.Location = new System.Drawing.Point(0, 0);
+            pnlLogic.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            pnlLogic.Name = "pnlLogic";
+            pnlLogic.Size = new System.Drawing.Size(541, 392);
+            pnlLogic.TabIndex = 0;
+            pnlLogic.Visible = false;
+            // 
+            // rtfLogPrev
+            // 
+            rtfLogPrev.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            rtfLogPrev.DetectUrls = false;
+            rtfLogPrev.Location = new System.Drawing.Point(5, 5);
+            rtfLogPrev.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            rtfLogPrev.Name = "rtfLogPrev";
+            rtfLogPrev.ReadOnly = true;
+            rtfLogPrev.Size = new System.Drawing.Size(532, 384);
+            rtfLogPrev.TabIndex = 0;
+            rtfLogPrev.Text = "";
+            rtfLogPrev.WordWrap = false;
+            rtfLogPrev.DoubleClick += rtfLogPrev_DoubleClick;
+            rtfLogPrev.KeyDown += rtfLogPrev_KeyDown;
+            rtfLogPrev.MouseDown += rtfLogPrev_MouseDown;
+            // 
+            // pnlPicture
+            // 
+            pnlPicture.Controls.Add(tableLayoutPanel1);
+            pnlPicture.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlPicture.Location = new System.Drawing.Point(0, 0);
+            pnlPicture.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            pnlPicture.Name = "pnlPicture";
+            pnlPicture.Size = new System.Drawing.Size(541, 392);
+            pnlPicture.TabIndex = 1;
+            pnlPicture.Visible = false;
+            pnlPicture.Leave += pnlPicture_Leave;
+            // 
+            // tableLayoutPanel1
+            // 
+            tableLayoutPanel1.ColumnCount = 1;
+            tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel1.Controls.Add(pnlPicHeader, 0, 0);
+            tableLayoutPanel1.Controls.Add(pnlPicImage, 0, 1);
+            tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            tableLayoutPanel1.Name = "tableLayoutPanel1";
+            tableLayoutPanel1.RowCount = 2;
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 37F));
+            tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel1.Size = new System.Drawing.Size(541, 392);
+            tableLayoutPanel1.TabIndex = 5;
+            // 
+            // pnlPicHeader
+            // 
+            pnlPicHeader.Controls.Add(optPriority);
+            pnlPicHeader.Controls.Add(optVisual);
+            pnlPicHeader.Controls.Add(udPZoom);
+            pnlPicHeader.Controls.Add(label1);
+            pnlPicHeader.Location = new System.Drawing.Point(3, 3);
+            pnlPicHeader.Name = "pnlPicHeader";
+            pnlPicHeader.Size = new System.Drawing.Size(259, 31);
+            pnlPicHeader.TabIndex = 0;
+            // 
+            // optPriority
+            // 
+            optPriority.AutoSize = true;
+            optPriority.Location = new System.Drawing.Point(172, 7);
+            optPriority.Name = "optPriority";
+            optPriority.Size = new System.Drawing.Size(63, 19);
+            optPriority.TabIndex = 7;
+            optPriority.Text = "Priority";
+            optPriority.UseVisualStyleBackColor = true;
+            // 
+            // optVisual
+            // 
+            optVisual.AutoSize = true;
+            optVisual.Checked = true;
+            optVisual.Location = new System.Drawing.Point(100, 7);
+            optVisual.Name = "optVisual";
+            optVisual.Size = new System.Drawing.Size(56, 19);
+            optVisual.TabIndex = 6;
+            optVisual.TabStop = true;
+            optVisual.Text = "Visual";
+            optVisual.UseVisualStyleBackColor = true;
+            optVisual.CheckedChanged += optVisual_CheckedChanged;
+            // 
+            // udPZoom
+            // 
+            udPZoom.Location = new System.Drawing.Point(50, 7);
+            udPZoom.Maximum = new decimal(new int[] { 16, 0, 0, 0 });
+            udPZoom.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            udPZoom.Name = "udPZoom";
+            udPZoom.ReadOnly = true;
+            udPZoom.Size = new System.Drawing.Size(40, 23);
+            udPZoom.TabIndex = 5;
+            udPZoom.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            udPZoom.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            udPZoom.ValueChanged += udPZoom_ValueChanged;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(2, 9);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(42, 15);
+            label1.TabIndex = 4;
+            label1.Text = "Zoom:";
+            // 
+            // pnlPicImage
+            // 
+            pnlPicImage.Controls.Add(fraPCorner);
+            pnlPicImage.Controls.Add(vsbPic);
+            pnlPicImage.Controls.Add(hsbPic);
+            pnlPicImage.Controls.Add(imgPicture);
+            pnlPicImage.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlPicImage.Location = new System.Drawing.Point(3, 40);
+            pnlPicImage.Name = "pnlPicImage";
+            pnlPicImage.Size = new System.Drawing.Size(535, 349);
+            pnlPicImage.TabIndex = 1;
+            pnlPicImage.Resize += pnlPicImage_Resize;
+            // 
+            // fraPCorner
+            // 
+            fraPCorner.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            fraPCorner.Location = new System.Drawing.Point(522, 339);
+            fraPCorner.Name = "fraPCorner";
+            fraPCorner.Size = new System.Drawing.Size(11, 9);
+            fraPCorner.TabIndex = 8;
+            fraPCorner.TabStop = false;
+            fraPCorner.Visible = false;
+            // 
+            // vsbPic
+            // 
+            vsbPic.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            vsbPic.Location = new System.Drawing.Point(522, 0);
+            vsbPic.Minimum = -4;
+            vsbPic.Name = "vsbPic";
+            vsbPic.Size = new System.Drawing.Size(20, 338);
+            vsbPic.TabIndex = 7;
+            vsbPic.Scroll += vsbPic_Scroll;
+            // 
+            // hsbPic
+            // 
+            hsbPic.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            hsbPic.Location = new System.Drawing.Point(0, 339);
+            hsbPic.Minimum = -4;
+            hsbPic.Name = "hsbPic";
+            hsbPic.Size = new System.Drawing.Size(485, 20);
+            hsbPic.TabIndex = 6;
+            hsbPic.Scroll += hsbPic_Scroll;
+            // 
+            // imgPicture
+            // 
+            imgPicture.Location = new System.Drawing.Point(0, 0);
+            imgPicture.Name = "imgPicture";
+            imgPicture.Size = new System.Drawing.Size(320, 168);
+            imgPicture.TabIndex = 5;
+            imgPicture.TabStop = false;
+            imgPicture.DoubleClick += imgPicture_DoubleClick;
+            imgPicture.MouseDown += imgPicture_MouseDown;
+            imgPicture.MouseLeave += imgPicture_MouseLeave;
+            imgPicture.MouseMove += imgPicture_MouseMove;
+            imgPicture.MouseUp += imgPicture_MouseUp;
+            imgPicture.Validated += imgPicture_Validated;
+            // 
+            // pnlSound
+            // 
+            pnlSound.Controls.Add(pnlProgressBar);
+            pnlSound.Controls.Add(lblFormat);
+            pnlSound.Controls.Add(btnStop);
+            pnlSound.Controls.Add(btnPlay);
+            pnlSound.Controls.Add(lblLength);
+            pnlSound.Controls.Add(cmdReset);
+            pnlSound.Controls.Add(cmbInst2);
+            pnlSound.Controls.Add(cmbInst1);
+            pnlSound.Controls.Add(cmbInst0);
+            pnlSound.Controls.Add(chkTrack3);
+            pnlSound.Controls.Add(chkTrack2);
+            pnlSound.Controls.Add(chkTrack1);
+            pnlSound.Controls.Add(chkTrack0);
+            pnlSound.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlSound.Location = new System.Drawing.Point(0, 0);
+            pnlSound.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            pnlSound.Name = "pnlSound";
+            pnlSound.Size = new System.Drawing.Size(541, 392);
+            pnlSound.TabIndex = 2;
+            pnlSound.Visible = false;
+            pnlSound.DoubleClick += pnlSound_DoubleClick;
+            // 
+            // pnlProgressBar
+            // 
+            pnlProgressBar.BackColor = System.Drawing.SystemColors.Info;
+            pnlProgressBar.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            pnlProgressBar.Controls.Add(picProgress);
+            pnlProgressBar.Location = new System.Drawing.Point(23, 192);
+            pnlProgressBar.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            pnlProgressBar.Name = "pnlProgressBar";
+            pnlProgressBar.Size = new System.Drawing.Size(346, 16);
+            pnlProgressBar.TabIndex = 13;
+            // 
+            // picProgress
+            // 
+            picProgress.BackColor = System.Drawing.SystemColors.Highlight;
+            picProgress.Location = new System.Drawing.Point(0, 0);
+            picProgress.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            picProgress.Name = "picProgress";
+            picProgress.Size = new System.Drawing.Size(0, 9);
+            picProgress.TabIndex = 0;
+            picProgress.TabStop = false;
+            // 
+            // lblFormat
+            // 
+            lblFormat.Font = new System.Drawing.Font("Segoe UI", 11.25F);
+            lblFormat.Location = new System.Drawing.Point(23, 7);
+            lblFormat.Name = "lblFormat";
+            lblFormat.Size = new System.Drawing.Size(343, 27);
+            lblFormat.TabIndex = 12;
+            lblFormat.Text = "label3";
+            lblFormat.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // btnStop
+            // 
+            btnStop.Enabled = false;
+            btnStop.ImageIndex = 9;
+            btnStop.ImageList = imageList1;
+            btnStop.Location = new System.Drawing.Point(197, 211);
+            btnStop.Name = "btnStop";
+            btnStop.Size = new System.Drawing.Size(95, 28);
+            btnStop.TabIndex = 11;
+            btnStop.UseVisualStyleBackColor = true;
+            btnStop.Click += btnStop_Click;
+            // 
+            // imageList1
+            // 
+            imageList1.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
+            imageList1.ImageStream = (System.Windows.Forms.ImageListStreamer)resources.GetObject("imageList1.ImageStream");
+            imageList1.TransparentColor = System.Drawing.Color.Transparent;
+            imageList1.Images.SetKeyName(0, "eli_zoomout.ico");
+            imageList1.Images.SetKeyName(1, "eli_zoomin.ico");
+            imageList1.Images.SetKeyName(2, "HAlignL.ico");
+            imageList1.Images.SetKeyName(3, "HAlignC.ico");
+            imageList1.Images.SetKeyName(4, "HAlignR.ico");
+            imageList1.Images.SetKeyName(5, "ValignT.ico");
+            imageList1.Images.SetKeyName(6, "VAlignM.ico");
+            imageList1.Images.SetKeyName(7, "ValignB.ico");
+            imageList1.Images.SetKeyName(8, "sndplay.ico");
+            imageList1.Images.SetKeyName(9, "sndstop.ico");
+            // 
+            // btnPlay
+            // 
+            btnPlay.ImageIndex = 8;
+            btnPlay.ImageList = imageList1;
+            btnPlay.Location = new System.Drawing.Point(98, 211);
+            btnPlay.Name = "btnPlay";
+            btnPlay.Size = new System.Drawing.Size(95, 28);
+            btnPlay.TabIndex = 10;
+            btnPlay.UseVisualStyleBackColor = true;
+            btnPlay.Click += btnPlay_Click;
+            // 
+            // lblLength
+            // 
+            lblLength.Location = new System.Drawing.Point(23, 174);
+            lblLength.Name = "lblLength";
+            lblLength.Size = new System.Drawing.Size(344, 15);
+            lblLength.TabIndex = 8;
+            lblLength.Text = "0.0 seconds";
+            lblLength.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // cmdReset
+            // 
+            cmdReset.Location = new System.Drawing.Point(211, 128);
+            cmdReset.Name = "cmdReset";
+            cmdReset.Size = new System.Drawing.Size(155, 32);
+            cmdReset.TabIndex = 7;
+            cmdReset.Text = "Reset Instruments";
+            cmdReset.UseVisualStyleBackColor = true;
+            cmdReset.Click += cmdReset_Click;
+            // 
+            // cmbInst2
+            // 
+            cmbInst2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbInst2.FormattingEnabled = true;
+            cmbInst2.Location = new System.Drawing.Point(153, 95);
+            cmbInst2.Name = "cmbInst2";
+            cmbInst2.Size = new System.Drawing.Size(214, 23);
+            cmbInst2.TabIndex = 6;
+            cmbInst2.SelectionChangeCommitted += cmbInst2_SelectionChangeCommitted;
+            // 
+            // cmbInst1
+            // 
+            cmbInst1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbInst1.FormattingEnabled = true;
+            cmbInst1.Location = new System.Drawing.Point(153, 64);
+            cmbInst1.Name = "cmbInst1";
+            cmbInst1.Size = new System.Drawing.Size(214, 23);
+            cmbInst1.TabIndex = 5;
+            cmbInst1.SelectionChangeCommitted += cmbInst1_SelectionChangeCommitted;
+            // 
+            // cmbInst0
+            // 
+            cmbInst0.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbInst0.FormattingEnabled = true;
+            cmbInst0.Location = new System.Drawing.Point(153, 35);
+            cmbInst0.Name = "cmbInst0";
+            cmbInst0.Size = new System.Drawing.Size(214, 23);
+            cmbInst0.TabIndex = 4;
+            cmbInst0.SelectionChangeCommitted += cmbInst0_SelectionChangeCommitted;
+            // 
+            // chkTrack3
+            // 
+            chkTrack3.AutoSize = true;
+            chkTrack3.Location = new System.Drawing.Point(21, 136);
+            chkTrack3.Name = "chkTrack3";
+            chkTrack3.Size = new System.Drawing.Size(128, 19);
+            chkTrack3.TabIndex = 3;
+            chkTrack3.Text = "Track 3: Noise Track";
+            chkTrack3.UseVisualStyleBackColor = true;
+            chkTrack3.CheckedChanged += chkTrack3_CheckedChanged;
+            // 
+            // chkTrack2
+            // 
+            chkTrack2.AutoSize = true;
+            chkTrack2.Location = new System.Drawing.Point(21, 97);
+            chkTrack2.Name = "chkTrack2";
+            chkTrack2.Size = new System.Drawing.Size(126, 19);
+            chkTrack2.TabIndex = 2;
+            chkTrack2.Text = "Track 2 Instrument:";
+            chkTrack2.UseVisualStyleBackColor = true;
+            chkTrack2.CheckedChanged += chkTrack2_CheckedChanged;
+            // 
+            // chkTrack1
+            // 
+            chkTrack1.AutoSize = true;
+            chkTrack1.Location = new System.Drawing.Point(21, 66);
+            chkTrack1.Name = "chkTrack1";
+            chkTrack1.Size = new System.Drawing.Size(126, 19);
+            chkTrack1.TabIndex = 1;
+            chkTrack1.Text = "Track 1 Instrument:";
+            chkTrack1.UseVisualStyleBackColor = true;
+            chkTrack1.CheckedChanged += chkTrack1_CheckedChanged;
+            // 
+            // chkTrack0
+            // 
+            chkTrack0.AutoSize = true;
+            chkTrack0.Location = new System.Drawing.Point(21, 37);
+            chkTrack0.Name = "chkTrack0";
+            chkTrack0.Size = new System.Drawing.Size(126, 19);
+            chkTrack0.TabIndex = 0;
+            chkTrack0.Text = "Track 0 Instrument:";
+            chkTrack0.UseVisualStyleBackColor = true;
+            chkTrack0.CheckedChanged += chkTrack0_CheckedChanged;
+            // 
+            // pnlView
+            // 
+            pnlView.Controls.Add(picTrans);
+            pnlView.Controls.Add(chkTrans);
+            pnlView.Controls.Add(tableLayoutPanel2);
+            pnlView.Controls.Add(tsViewPrev);
+            pnlView.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlView.Location = new System.Drawing.Point(0, 0);
+            pnlView.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            pnlView.Name = "pnlView";
+            pnlView.Size = new System.Drawing.Size(541, 392);
+            pnlView.TabIndex = 3;
+            pnlView.Visible = false;
+            // 
+            // picTrans
+            // 
+            picTrans.Location = new System.Drawing.Point(235, 0);
+            picTrans.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            picTrans.Name = "picTrans";
+            picTrans.Size = new System.Drawing.Size(19, 17);
+            picTrans.TabIndex = 10;
+            picTrans.TabStop = false;
+            // 
+            // chkTrans
+            // 
+            chkTrans.AutoSize = true;
+            chkTrans.Location = new System.Drawing.Point(137, 1);
+            chkTrans.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            chkTrans.Name = "chkTrans";
+            chkTrans.Size = new System.Drawing.Size(95, 19);
+            chkTrans.TabIndex = 10;
+            chkTrans.Text = "Transparency";
+            chkTrans.UseVisualStyleBackColor = true;
+            chkTrans.Click += chkTrans_Click;
+            // 
+            // tableLayoutPanel2
+            // 
+            tableLayoutPanel2.ColumnCount = 1;
+            tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel2.Controls.Add(pnlViewHdr, 0, 0);
+            tableLayoutPanel2.Controls.Add(pnlViewFtr, 0, 2);
+            tableLayoutPanel2.Controls.Add(pnlCel, 0, 1);
+            tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            tableLayoutPanel2.Location = new System.Drawing.Point(0, 39);
+            tableLayoutPanel2.Name = "tableLayoutPanel2";
+            tableLayoutPanel2.RowCount = 3;
+            tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
+            tableLayoutPanel2.Size = new System.Drawing.Size(541, 353);
+            tableLayoutPanel2.TabIndex = 13;
+            // 
+            // pnlViewHdr
+            // 
+            pnlViewHdr.Controls.Add(dCel);
+            pnlViewHdr.Controls.Add(uCel);
+            pnlViewHdr.Controls.Add(uLoop);
+            pnlViewHdr.Controls.Add(dLoop);
+            pnlViewHdr.Controls.Add(udCel);
+            pnlViewHdr.Controls.Add(udLoop);
+            pnlViewHdr.Location = new System.Drawing.Point(3, 3);
+            pnlViewHdr.Name = "pnlViewHdr";
+            pnlViewHdr.Size = new System.Drawing.Size(398, 19);
+            pnlViewHdr.TabIndex = 9;
+            // 
+            // dCel
+            // 
+            dCel.BackgroundImage = (System.Drawing.Image)resources.GetObject("dCel.BackgroundImage");
+            dCel.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            dCel.Location = new System.Drawing.Point(256, 0);
+            dCel.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            dCel.Name = "dCel";
+            dCel.Size = new System.Drawing.Size(19, 17);
+            dCel.TabIndex = 19;
+            dCel.UseVisualStyleBackColor = true;
+            dCel.Click += dCel_Click;
+            // 
+            // uCel
+            // 
+            uCel.BackgroundImage = (System.Drawing.Image)resources.GetObject("uCel.BackgroundImage");
+            uCel.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            uCel.Location = new System.Drawing.Point(275, 0);
+            uCel.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            uCel.Name = "uCel";
+            uCel.Size = new System.Drawing.Size(19, 17);
+            uCel.TabIndex = 18;
+            uCel.UseVisualStyleBackColor = true;
+            uCel.Click += uCel_Click;
+            // 
+            // uLoop
+            // 
+            uLoop.BackgroundImage = (System.Drawing.Image)resources.GetObject("uLoop.BackgroundImage");
+            uLoop.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            uLoop.Location = new System.Drawing.Point(124, 0);
+            uLoop.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            uLoop.Name = "uLoop";
+            uLoop.Size = new System.Drawing.Size(19, 17);
+            uLoop.TabIndex = 17;
+            uLoop.UseVisualStyleBackColor = true;
+            uLoop.Click += uLoop_Click;
+            // 
+            // dLoop
+            // 
+            dLoop.BackgroundImage = (System.Drawing.Image)resources.GetObject("dLoop.BackgroundImage");
+            dLoop.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            dLoop.Location = new System.Drawing.Point(105, 0);
+            dLoop.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            dLoop.Name = "dLoop";
+            dLoop.Size = new System.Drawing.Size(19, 17);
+            dLoop.TabIndex = 16;
+            dLoop.UseVisualStyleBackColor = true;
+            dLoop.Click += dLoop_Click;
+            // 
+            // udCel
+            // 
+            udCel.Font = new System.Drawing.Font("Segoe UI", 9.75F);
+            udCel.Location = new System.Drawing.Point(151, 0);
+            udCel.Margin = new System.Windows.Forms.Padding(3);
+            udCel.Name = "udCel";
+            udCel.Size = new System.Drawing.Size(105, 18);
+            udCel.TabIndex = 15;
+            udCel.Text = "Cel 0 / 0";
+            udCel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // udLoop
+            // 
+            udLoop.Font = new System.Drawing.Font("Segoe UI", 9.75F);
+            udLoop.Location = new System.Drawing.Point(0, 0);
+            udLoop.Margin = new System.Windows.Forms.Padding(3);
+            udLoop.Name = "udLoop";
+            udLoop.Size = new System.Drawing.Size(105, 18);
+            udLoop.TabIndex = 9;
+            udLoop.Text = "Loop 255 / 255";
+            udLoop.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // pnlViewFtr
+            // 
+            pnlViewFtr.Controls.Add(sldSpeed);
+            pnlViewFtr.Controls.Add(cmbMotion);
+            pnlViewFtr.Controls.Add(cmdVPlay);
+            pnlViewFtr.Location = new System.Drawing.Point(3, 317);
+            pnlViewFtr.Name = "pnlViewFtr";
+            pnlViewFtr.Size = new System.Drawing.Size(276, 33);
+            pnlViewFtr.TabIndex = 10;
+            // 
+            // sldSpeed
+            // 
+            sldSpeed.Location = new System.Drawing.Point(181, 3);
+            sldSpeed.Maximum = 12;
+            sldSpeed.Minimum = 1;
+            sldSpeed.Name = "sldSpeed";
+            sldSpeed.Size = new System.Drawing.Size(100, 45);
+            sldSpeed.TabIndex = 13;
+            sldSpeed.Value = 1;
+            sldSpeed.ValueChanged += sldSpeed_ValueChanged;
+            // 
+            // cmbMotion
+            // 
+            cmbMotion.FormattingEnabled = true;
+            cmbMotion.Items.AddRange(new object[] { "normal", "reverse", "end of loop", "reverse loop" });
+            cmbMotion.Location = new System.Drawing.Point(61, 7);
+            cmbMotion.Name = "cmbMotion";
+            cmbMotion.Size = new System.Drawing.Size(93, 23);
+            cmbMotion.TabIndex = 12;
+            // 
+            // cmdVPlay
+            // 
+            cmdVPlay.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            cmdVPlay.Location = new System.Drawing.Point(5, 5);
+            cmdVPlay.Name = "cmdVPlay";
+            cmdVPlay.Size = new System.Drawing.Size(50, 23);
+            cmdVPlay.TabIndex = 11;
+            cmdVPlay.UseVisualStyleBackColor = true;
+            cmdVPlay.Click += cmdVPlay_Click;
+            // 
+            // pnlCel
+            // 
+            pnlCel.Controls.Add(fraVCorner);
+            pnlCel.Controls.Add(vsbView);
+            pnlCel.Controls.Add(hsbView);
+            pnlCel.Controls.Add(picCel);
+            pnlCel.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlCel.Location = new System.Drawing.Point(3, 28);
+            pnlCel.Name = "pnlCel";
+            pnlCel.Size = new System.Drawing.Size(535, 283);
+            pnlCel.TabIndex = 11;
+            pnlCel.Paint += pnlCel_Paint;
+            pnlCel.DoubleClick += picCel_DoubleClick;
+            pnlCel.Resize += pnlCel_Resize;
+            // 
+            // fraVCorner
+            // 
+            fraVCorner.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            fraVCorner.Location = new System.Drawing.Point(526, 275);
+            fraVCorner.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            fraVCorner.Name = "fraVCorner";
+            fraVCorner.Size = new System.Drawing.Size(20, 20);
+            fraVCorner.TabIndex = 9;
+            fraVCorner.TabStop = false;
+            fraVCorner.Visible = false;
+            // 
+            // vsbView
+            // 
+            vsbView.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            vsbView.Location = new System.Drawing.Point(522, 0);
+            vsbView.Minimum = -4;
+            vsbView.Name = "vsbView";
+            vsbView.Size = new System.Drawing.Size(16, 185);
+            vsbView.TabIndex = 5;
+            vsbView.Visible = false;
+            vsbView.Scroll += vsbView_Scroll;
+            // 
+            // hsbView
+            // 
+            hsbView.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            hsbView.Location = new System.Drawing.Point(0, 275);
+            hsbView.Minimum = -4;
+            hsbView.Name = "hsbView";
+            hsbView.Size = new System.Drawing.Size(157, 16);
+            hsbView.TabIndex = 6;
+            hsbView.Visible = false;
+            hsbView.Scroll += hsbView_Scroll;
+            // 
+            // picCel
+            // 
+            picCel.Location = new System.Drawing.Point(0, 0);
+            picCel.Name = "picCel";
+            picCel.Size = new System.Drawing.Size(72, 71);
+            picCel.TabIndex = 8;
+            picCel.TabStop = false;
+            picCel.DoubleClick += picCel_DoubleClick;
+            picCel.MouseDown += picCel_MouseDown;
+            picCel.MouseMove += picCel_MouseMove;
+            picCel.MouseUp += picCel_MouseUp;
+            // 
+            // tsViewPrev
+            // 
+            tsViewPrev.ImageScalingSize = new System.Drawing.Size(32, 32);
+            tsViewPrev.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { tbbZoomIn, tbbZoomOut, tsSep1, HAlign, VAlign });
+            tsViewPrev.Location = new System.Drawing.Point(0, 0);
+            tsViewPrev.Name = "tsViewPrev";
+            tsViewPrev.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
+            tsViewPrev.Size = new System.Drawing.Size(541, 39);
+            tsViewPrev.TabIndex = 0;
+            tsViewPrev.Text = "toolStrip1";
+            // 
+            // tbbZoomIn
+            // 
+            tbbZoomIn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            tbbZoomIn.Image = (System.Drawing.Image)resources.GetObject("tbbZoomIn.Image");
+            tbbZoomIn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            tbbZoomIn.Name = "tbbZoomIn";
+            tbbZoomIn.Size = new System.Drawing.Size(36, 36);
+            tbbZoomIn.Text = "toolStripButton1";
+            tbbZoomIn.Click += tbbZoomIn_Click;
+            // 
+            // tbbZoomOut
+            // 
+            tbbZoomOut.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            tbbZoomOut.Image = (System.Drawing.Image)resources.GetObject("tbbZoomOut.Image");
+            tbbZoomOut.ImageTransparentColor = System.Drawing.Color.Magenta;
+            tbbZoomOut.Name = "tbbZoomOut";
+            tbbZoomOut.Size = new System.Drawing.Size(36, 36);
+            tbbZoomOut.Text = "toolStripButton2";
+            tbbZoomOut.Click += tbbZoomOut_Click;
+            // 
+            // tsSep1
+            // 
+            tsSep1.Name = "tsSep1";
+            tsSep1.Size = new System.Drawing.Size(6, 39);
+            // 
+            // HAlign
+            // 
+            HAlign.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            HAlign.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { tbbAlignLeft, tbbAlignCenter, tbbAlignRight });
+            HAlign.Image = (System.Drawing.Image)resources.GetObject("HAlign.Image");
+            HAlign.ImageTransparentColor = System.Drawing.Color.Magenta;
+            HAlign.Name = "HAlign";
+            HAlign.Size = new System.Drawing.Size(48, 36);
+            // 
+            // tbbAlignLeft
+            // 
+            tbbAlignLeft.Image = (System.Drawing.Image)resources.GetObject("tbbAlignLeft.Image");
+            tbbAlignLeft.Name = "tbbAlignLeft";
+            tbbAlignLeft.Size = new System.Drawing.Size(109, 22);
+            tbbAlignLeft.Text = "Left";
+            tbbAlignLeft.Click += tbbAlignLeft_Click;
+            // 
+            // tbbAlignCenter
+            // 
+            tbbAlignCenter.Image = (System.Drawing.Image)resources.GetObject("tbbAlignCenter.Image");
+            tbbAlignCenter.Name = "tbbAlignCenter";
+            tbbAlignCenter.Size = new System.Drawing.Size(109, 22);
+            tbbAlignCenter.Text = "Center";
+            tbbAlignCenter.Click += tbbAlignCenter_Click;
+            // 
+            // tbbAlignRight
+            // 
+            tbbAlignRight.Image = (System.Drawing.Image)resources.GetObject("tbbAlignRight.Image");
+            tbbAlignRight.Name = "tbbAlignRight";
+            tbbAlignRight.Size = new System.Drawing.Size(109, 22);
+            tbbAlignRight.Text = "Right";
+            tbbAlignRight.Click += tbbAlignRight_Click;
+            // 
+            // VAlign
+            // 
+            VAlign.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            VAlign.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { tbbTop, tbbMiddle, tbbBottom });
+            VAlign.Image = (System.Drawing.Image)resources.GetObject("VAlign.Image");
+            VAlign.ImageTransparentColor = System.Drawing.Color.Magenta;
+            VAlign.Name = "VAlign";
+            VAlign.Size = new System.Drawing.Size(48, 36);
+            // 
+            // tbbTop
+            // 
+            tbbTop.Image = (System.Drawing.Image)resources.GetObject("tbbTop.Image");
+            tbbTop.Name = "tbbTop";
+            tbbTop.Size = new System.Drawing.Size(114, 22);
+            tbbTop.Text = "Top";
+            tbbTop.Click += tbbTop_Click;
+            // 
+            // tbbMiddle
+            // 
+            tbbMiddle.Image = (System.Drawing.Image)resources.GetObject("tbbMiddle.Image");
+            tbbMiddle.Name = "tbbMiddle";
+            tbbMiddle.Size = new System.Drawing.Size(114, 22);
+            tbbMiddle.Text = "Middle";
+            tbbMiddle.Click += tbbMiddle_Click;
+            // 
+            // tbbBottom
+            // 
+            tbbBottom.Image = (System.Drawing.Image)resources.GetObject("tbbBottom.Image");
+            tbbBottom.Name = "tbbBottom";
+            tbbBottom.Size = new System.Drawing.Size(114, 22);
+            tbbBottom.Text = "Bottom";
+            tbbBottom.Click += tbbBottom_Click;
+            // 
+            // tmrMotion
+            // 
+            tmrMotion.Tick += tmrMotion_Tick;
+            // 
+            // tmrSound
+            // 
+            tmrSound.Interval = 1;
+            tmrSound.Tick += Timer1_Tick;
+            // 
+            // menuStrip1
+            // 
+            menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
+            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuResource });
+            menuStrip1.Location = new System.Drawing.Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Padding = new System.Windows.Forms.Padding(3, 1, 0, 1);
+            menuStrip1.Size = new System.Drawing.Size(541, 24);
+            menuStrip1.TabIndex = 11;
+            menuStrip1.Text = "menuStrip1";
+            menuStrip1.Visible = false;
+            // 
+            // mnuResource
+            // 
+            mnuResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuRSep1, mnuRSavePicAs, mnuRLoopGIF });
+            mnuResource.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
+            mnuResource.MergeIndex = 1;
+            mnuResource.Name = "mnuResource";
+            mnuResource.Size = new System.Drawing.Size(67, 22);
+            mnuResource.Text = "&Resource";
+            // 
+            // mnuRSep1
+            // 
+            mnuRSep1.MergeAction = System.Windows.Forms.MergeAction.Insert;
+            mnuRSep1.MergeIndex = 10;
+            mnuRSep1.Name = "mnuRSep1";
+            mnuRSep1.Size = new System.Drawing.Size(268, 6);
+            // 
+            // mnuRSavePicAs
+            // 
+            mnuRSavePicAs.MergeAction = System.Windows.Forms.MergeAction.Insert;
+            mnuRSavePicAs.MergeIndex = 11;
+            mnuRSavePicAs.Name = "mnuRSavePicAs";
+            mnuRSavePicAs.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.S;
+            mnuRSavePicAs.Size = new System.Drawing.Size(271, 22);
+            mnuRSavePicAs.Text = "Save Picture Image As...";
+            mnuRSavePicAs.Click += mnuRSavePicAs_Click;
+            // 
+            // mnuRLoopGIF
+            // 
+            mnuRLoopGIF.MergeAction = System.Windows.Forms.MergeAction.Insert;
+            mnuRLoopGIF.MergeIndex = 12;
+            mnuRLoopGIF.Name = "mnuRLoopGIF";
+            mnuRLoopGIF.Size = new System.Drawing.Size(271, 22);
+            mnuRLoopGIF.Text = "Export Loop as GIF";
+            // 
+            // statusStrip1
+            // 
+            statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
+            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { tspPreviewText });
+            statusStrip1.Location = new System.Drawing.Point(0, 372);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 8, 0);
+            statusStrip1.Size = new System.Drawing.Size(541, 20);
+            statusStrip1.TabIndex = 12;
+            statusStrip1.Text = "statusStrip1";
+            statusStrip1.Visible = false;
+            // 
+            // tspPreviewText
+            // 
+            tspPreviewText.BorderStyle = System.Windows.Forms.Border3DStyle.Sunken;
+            tspPreviewText.MergeIndex = 1;
+            tspPreviewText.Name = "tspPreviewText";
+            tspPreviewText.Size = new System.Drawing.Size(532, 15);
+            tspPreviewText.Spring = true;
+            tspPreviewText.Text = "blah";
+            tspPreviewText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // frmPreview
+            // 
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(541, 392);
+            Controls.Add(menuStrip1);
+            Controls.Add(statusStrip1);
+            Controls.Add(pnlView);
+            Controls.Add(pnlPicture);
+            Controls.Add(pnlSound);
+            Controls.Add(pnlLogic);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+            KeyPreview = true;
+            Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            Name = "frmPreview";
+            Text = "Form1";
+            Activated += frmPreview_Activated;
+            Deactivate += frmPreview_Deactivate;
+            FormClosing += frmPreview_FormClosing;
+            Load += frmPreview_Load;
+            KeyDown += frmPreview_KeyDown;
+            KeyPress += frmPreview_KeyPress;
+            PreviewKeyDown += frmPreview_PreviewKeyDown;
+            pnlLogic.ResumeLayout(false);
+            pnlPicture.ResumeLayout(false);
+            tableLayoutPanel1.ResumeLayout(false);
+            pnlPicHeader.ResumeLayout(false);
+            pnlPicHeader.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)udPZoom).EndInit();
+            pnlPicImage.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)fraPCorner).EndInit();
+            ((System.ComponentModel.ISupportInitialize)imgPicture).EndInit();
+            pnlSound.ResumeLayout(false);
+            pnlSound.PerformLayout();
+            pnlProgressBar.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)picProgress).EndInit();
+            pnlView.ResumeLayout(false);
+            pnlView.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)picTrans).EndInit();
+            tableLayoutPanel2.ResumeLayout(false);
+            pnlViewHdr.ResumeLayout(false);
+            pnlViewFtr.ResumeLayout(false);
+            pnlViewFtr.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)sldSpeed).EndInit();
+            pnlCel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)fraVCorner).EndInit();
+            ((System.ComponentModel.ISupportInitialize)picCel).EndInit();
+            tsViewPrev.ResumeLayout(false);
+            tsViewPrev.PerformLayout();
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
+        }
 
-    }
+        #endregion
 
-    #endregion
-
-    private System.Windows.Forms.Panel pnlLogic;
+        private System.Windows.Forms.Panel pnlLogic;
     private System.Windows.Forms.RichTextBox rtfLogPrev;
     private System.Windows.Forms.Panel pnlPicture;
     private System.Windows.Forms.Panel pnlSound;

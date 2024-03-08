@@ -183,14 +183,13 @@
             toolStripSplitButton4 = new ToolStripSplitButton();
             pnlResources = new Panel();
             splResource = new SplitContainer();
+            cmbResType = new ComboBox();
+            lstResources = new ListView();
+            columnHeader1 = new ColumnHeader();
             tvwResources = new TreeView();
             cmdBack = new Button();
             cmdForward = new Button();
-            lstResources = new ListView();
-            cmbResType = new ComboBox();
             propertyGrid1 = new PropertyGrid();
-            picProperties = new PictureBox();
-            fsbProperty = new VScrollBar();
             picNavList = new PictureBox();
             lstProperty = new ListBox();
             splitResource = new Splitter();
@@ -217,7 +216,6 @@
             splResource.Panel1.SuspendLayout();
             splResource.Panel2.SuspendLayout();
             splResource.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)picProperties).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picNavList).BeginInit();
             pnlWarnings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)fgWarnings).BeginInit();
@@ -694,6 +692,7 @@
             mnuTSettings.ShortcutKeys = Keys.F2;
             mnuTSettings.Size = new System.Drawing.Size(234, 22);
             mnuTSettings.Text = "&Settings";
+            mnuTSettings.Click += mnuTSettings_Click;
             // 
             // mnuTSep1
             // 
@@ -1313,28 +1312,66 @@
             // 
             // splResource.Panel1
             // 
+            splResource.Panel1.Controls.Add(cmbResType);
+            splResource.Panel1.Controls.Add(lstResources);
             splResource.Panel1.Controls.Add(tvwResources);
             splResource.Panel1.Controls.Add(cmdBack);
             splResource.Panel1.Controls.Add(cmdForward);
-            splResource.Panel1.Controls.Add(lstResources);
-            splResource.Panel1.Controls.Add(cmbResType);
             splResource.Panel1.Resize += splResource_Panel1_Resize;
             // 
             // splResource.Panel2
             // 
             splResource.Panel2.Controls.Add(propertyGrid1);
-            splResource.Panel2.Controls.Add(picProperties);
-            splResource.Panel2.Controls.Add(fsbProperty);
             splResource.Size = new System.Drawing.Size(157, 295);
             splResource.SplitterDistance = 145;
             splResource.TabIndex = 0;
             splResource.TabStop = false;
+            splResource.SplitterMoved += splResource_SplitterMoved;
+            splResource.SizeChanged += splResource_SizeChanged;
+            // 
+            // cmbResType
+            // 
+            cmbResType.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cmbResType.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbResType.FormattingEnabled = true;
+            cmbResType.Items.AddRange(new object[] { "agi", "LOGICS", "PICTURES", "SOUNDS", "VIEWS", "OBJECT", "WORDS.TOK" });
+            cmbResType.Location = new System.Drawing.Point(0, 26);
+            cmbResType.Margin = new Padding(2, 1, 2, 1);
+            cmbResType.Name = "cmbResType";
+            cmbResType.Size = new System.Drawing.Size(156, 23);
+            cmbResType.TabIndex = 26;
+            cmbResType.Visible = false;
+            cmbResType.SelectedIndexChanged += cmbResType_SelectedIndexChanged;
+            // 
+            // lstResources
+            // 
+            lstResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            lstResources.BorderStyle = BorderStyle.FixedSingle;
+            lstResources.Columns.AddRange(new ColumnHeader[] { columnHeader1 });
+            lstResources.FullRowSelect = true;
+            lstResources.HeaderStyle = ColumnHeaderStyle.None;
+            lstResources.Location = new System.Drawing.Point(0, 52);
+            lstResources.Margin = new Padding(2, 1, 2, 1);
+            lstResources.MultiSelect = false;
+            lstResources.Name = "lstResources";
+            lstResources.ShowGroups = false;
+            lstResources.Size = new System.Drawing.Size(150, 89);
+            lstResources.TabIndex = 27;
+            lstResources.UseCompatibleStateImageBehavior = false;
+            lstResources.View = View.Details;
+            lstResources.SelectedIndexChanged += lstResources_SelectedIndexChanged;
+            lstResources.SizeChanged += lstResources_SizeChanged;
+            lstResources.DoubleClick += lstResources_DoubleClick;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Text = "";
             // 
             // tvwResources
             // 
             tvwResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tvwResources.HideSelection = false;
-            tvwResources.Location = new System.Drawing.Point(0, -4);
+            tvwResources.Location = new System.Drawing.Point(0, 26);
             tvwResources.Margin = new Padding(2, 1, 2, 1);
             tvwResources.Name = "tvwResources";
             treeNode1.Name = "logics";
@@ -1354,7 +1391,6 @@
             tvwResources.Nodes.AddRange(new TreeNode[] { treeNode7 });
             tvwResources.Size = new System.Drawing.Size(152, 147);
             tvwResources.TabIndex = 25;
-            tvwResources.Visible = false;
             tvwResources.AfterCollapse += tvwResources_AfterCollapse;
             tvwResources.AfterSelect += tvwResources_AfterSelect;
             tvwResources.NodeMouseClick += tvwResources_NodeMouseClick;
@@ -1382,37 +1418,6 @@
             cmdForward.Click += cmdForward_Click;
             cmdForward.MouseDown += cmdForward_MouseDown;
             // 
-            // lstResources
-            // 
-            lstResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            lstResources.BorderStyle = BorderStyle.FixedSingle;
-            lstResources.FullRowSelect = true;
-            lstResources.Location = new System.Drawing.Point(0, -4);
-            lstResources.Margin = new Padding(2);
-            lstResources.MultiSelect = false;
-            lstResources.Name = "lstResources";
-            lstResources.ShowGroups = false;
-            lstResources.Size = new System.Drawing.Size(150, 145);
-            lstResources.TabIndex = 27;
-            lstResources.UseCompatibleStateImageBehavior = false;
-            lstResources.View = View.Details;
-            lstResources.SelectedIndexChanged += lstResources_SelectedIndexChanged;
-            lstResources.DoubleClick += lstResources_DoubleClick;
-            // 
-            // cmbResType
-            // 
-            cmbResType.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            cmbResType.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbResType.FormattingEnabled = true;
-            cmbResType.Items.AddRange(new object[] { "agi", "LOGICS", "PICTURES", "SOUNDS", "VIEWS", "OBJECT", "WORDS.TOK" });
-            cmbResType.Location = new System.Drawing.Point(0, 26);
-            cmbResType.Margin = new Padding(2, 1, 2, 1);
-            cmbResType.Name = "cmbResType";
-            cmbResType.Size = new System.Drawing.Size(156, 23);
-            cmbResType.TabIndex = 26;
-            cmbResType.Visible = false;
-            cmbResType.SelectedIndexChanged += cmbResType_SelectedIndexChanged;
-            // 
             // propertyGrid1
             // 
             propertyGrid1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -1427,31 +1432,6 @@
             propertyGrid1.ToolbarVisible = false;
             propertyGrid1.KeyDown += propertyGrid1_KeyDown;
             propertyGrid1.PropertyValueChanged += propertyGrid1_PropertyValueChanged;
-            // 
-            // picProperties
-            // 
-            picProperties.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            picProperties.BackColor = System.Drawing.SystemColors.Window;
-            picProperties.Location = new System.Drawing.Point(0, 0);
-            picProperties.Margin = new Padding(2);
-            picProperties.Name = "picProperties";
-            picProperties.Size = new System.Drawing.Size(113, 22);
-            picProperties.TabIndex = 25;
-            picProperties.TabStop = false;
-            picProperties.Paint += picProperties_Paint;
-            picProperties.PreviewKeyDown += picProperties_PreviewKeyDown;
-            picProperties.Resize += picProperties_Resize;
-            // 
-            // fsbProperty
-            // 
-            fsbProperty.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            fsbProperty.LargeChange = 3;
-            fsbProperty.Location = new System.Drawing.Point(0, 0);
-            fsbProperty.Name = "fsbProperty";
-            fsbProperty.Size = new System.Drawing.Size(24, 0);
-            fsbProperty.TabIndex = 24;
-            fsbProperty.Scroll += fsbProperty_Scroll;
-            fsbProperty.ValueChanged += fsbProperty_ValueChanged;
             // 
             // picNavList
             // 
@@ -1542,6 +1522,7 @@
             // 
             // colWarning
             // 
+            colWarning.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
             colWarning.HeaderText = "Warning";
             colWarning.MinimumWidth = 10;
             colWarning.Name = "colWarning";
@@ -1550,14 +1531,15 @@
             // 
             // colDesc
             // 
+            colDesc.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             colDesc.HeaderText = "Description";
             colDesc.MinimumWidth = 10;
             colDesc.Name = "colDesc";
             colDesc.ReadOnly = true;
-            colDesc.Width = 725;
             // 
             // colResNum
             // 
+            colResNum.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
             colResNum.HeaderText = "Res#";
             colResNum.MinimumWidth = 10;
             colResNum.Name = "colResNum";
@@ -1566,6 +1548,7 @@
             // 
             // colLIne
             // 
+            colLIne.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
             colLIne.HeaderText = "Line#";
             colLIne.MinimumWidth = 10;
             colLIne.Name = "colLIne";
@@ -1574,6 +1557,7 @@
             // 
             // colModule
             // 
+            colModule.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
             colModule.HeaderText = "Module";
             colModule.MinimumWidth = 10;
             colModule.Name = "colModule";
@@ -1680,7 +1664,6 @@
             splResource.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splResource).EndInit();
             splResource.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)picProperties).EndInit();
             ((System.ComponentModel.ISupportInitialize)picNavList).EndInit();
             pnlWarnings.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)fgWarnings).EndInit();
@@ -1856,7 +1839,6 @@
     public ToolStripMenuItem mnuGMRU2;
     public ToolStripMenuItem mnuGMRU3;
     public ToolStripMenuItem mnuGame;
-    private VScrollBar fsbProperty;
     public ListBox lstProperty;
     public ImageList imlPropButtons;
     public ToolStripMenuItem mnuRAddRemove;
@@ -1877,7 +1859,6 @@
     private DataGridView fgWarnings;
     private PictureBox picNavList;
     public FolderBrowserDialog FolderDlg;
-    public PictureBox picProperties;
     private SplitContainer splResource;
     public TreeView tvwResources;
     public ListView lstResources;
@@ -1889,6 +1870,7 @@
         private DataGridViewTextBoxColumn colResNum;
         private DataGridViewTextBoxColumn colLIne;
         private DataGridViewTextBoxColumn colModule;
+        private ColumnHeader columnHeader1;
     }
 }
 

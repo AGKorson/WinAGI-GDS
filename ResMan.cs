@@ -21,6 +21,7 @@ using System.IO;
 using System.Drawing.Imaging;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
 
 namespace WinAGI.Editor
 {
@@ -204,8 +205,8 @@ namespace WinAGI.Editor
         public const string sEXPFILTER = "ExportFilter";
 
         //other app level constants
-        //public const int PropRowHeight = 17; //in pixels
-        public static int PropRowHeight;
+        internal static int PropRowHeight;
+        internal static int MAX_PROPGRID_HEIGHT;
         public static Color LtGray = Color.FromArgb(0xC0, 0xC0, 0xC0);
         public static Color DkGray = Color.FromArgb(0x80, 0x80, 0x80);
         public static Color PropGray = Color.FromArgb(0xEC, 0xE9, 0xD8);
@@ -818,10 +819,7 @@ namespace WinAGI.Editor
         public static void AddToQueue(AGIResType ResType, int ResNum)
         {
             //adds this resource to the navigation queue
-            // Restype is either
-            //   0-3 for regular resources, with number = 0-255 or
-            //    4  for non resource nodes, with number = restype
-            //       (game, objects, words, or res header)
+            // ResNum is 256 for non-collection types (game, objects, words)
             //
             // if currently displaying something by navigating the queue
             // don't add
@@ -831,14 +829,8 @@ namespace WinAGI.Editor
             if (DontQueue) {
                 return;
             }
-            //if resum is invalid, or if restype is invalid
-            if (ResType < 0 || (int)ResType > 4 || ResNum < 0 || ResNum > 255) {
-                //error
-                //Debug.Assert false
-                return;
-            }
-            //build combined number/resource
-            lngRes = ((int)ResType << 8) + ResNum;
+            // save type/number as combinted 32bit word
+            lngRes = ((int)ResType << 16) + ResNum;
             if (ResQPtr >= 0) {
                 //don't add if the current resource matches
                 if (ResQueue[ResQPtr] == lngRes) {
@@ -1376,10 +1368,8 @@ namespace WinAGI.Editor
         {
             //exports pic gdpImg
             Bitmap ExportBMP;
-            string strTmpFile;
-            int Count;
+            int Count = 0;
 
-            Count = 0;
             //mode:  0=vis
             //       1=pri
             //       2=both
@@ -1433,36 +1423,24 @@ namespace WinAGI.Editor
                 }
             } while (true);
         }
-        static Bitmap ResizeAGIBitmap(Bitmap agiBmp, int scale = 1)
+        static Bitmap ResizeAGIBitmap(Bitmap agiBmp, int scale = 1, InterpolationMode mode = InterpolationMode.NearestNeighbor)
         {
             //resizes a bitmap using APIs so it can be exported
-            Bitmap newBmp;
+            // NearestNeighbor, with PixelMode set to Half, gives clean scaling of pixels with 
+            // no blurring
 
-            // to scale the picture without blurring, use APIs; .NET's built-in scaling doesn't
-            // properly size the scaled image
-            int bWidth = (int)(agiBmp.Width * scale * 2), bHeight = (int)(agiBmp.Height * scale);
-            //// first, create a new image with desired size; this is where the agi bitmap will be sent to
-            newBmp = new Bitmap(bWidth, bHeight);
-            //intialize a graphics object for the image just created
+            Bitmap newBmp;
+            Size bSize = new()
+            {
+                Width = agiBmp.Width * scale * 2,
+                Height = agiBmp.Height * scale
+            };
+            newBmp = new Bitmap(bSize.Width, bSize.Height);
             using Graphics g = Graphics.FromImage(newBmp);
-            //get handle to agi source bitmap
-            IntPtr hbmp = agiBmp.GetHbitmap();
-            //get DC handle to destination graphic
-            IntPtr destHDC = g.GetHdc();
-            //get DC handle to source graphic, compatible with the destination
-            IntPtr srcHdc = CreateCompatibleDC(destHDC);
-            //get original object and select bitmap
-            IntPtr pOrig = SelectObject(srcHdc, hbmp);
-            //copy it
-            int rtn = StretchBlt(destHDC, 0, 0, bWidth, bHeight,
-                srcHdc, 0, 0, agiBmp.Width, agiBmp.Height, SRCCOPY);
-            //select original object
-            IntPtr pNew = SelectObject(srcHdc, pOrig);
-            //delete objects
-            _ = DeleteObject(pNew);
-            _ = DeleteDC(srcHdc);
-            //release handles
-            g.ReleaseHdc(destHDC);
+            // need to adjust pixel offset so edges are drawn correctly
+            g.PixelOffsetMode = PixelOffsetMode.Half;
+            g.InterpolationMode = mode;
+            g.DrawImage(agiBmp, 0, 0, bSize.Width, bSize.Height);
             return newBmp;
         }
         public static void ExportOnePicImg(Picture ThisPicture)
@@ -1982,8 +1960,6 @@ namespace WinAGI.Editor
                 MDIMain.cmbResType.SelectedIndex = 0;
                 break;
             }
-            //// always update the property window
-            MDIMain.picProperties.Refresh();
             return;
         }
         public static void BuildRDefLookup()
@@ -11319,8 +11295,6 @@ namespace WinAGI.Editor
             if (SelResType == ResType && SelResNum == ResNum) {
                 //if updating properties OR updating tree AND tree is visible
                 if (((UpDateMode & UpdateModeType.umProperty) == UpdateModeType.umProperty || (UpDateMode & UpdateModeType.umResList) == UpdateModeType.umProperty) && Settings.ResListType != 0) {
-                    //redraw property window
-                    MDIMain.picProperties.Refresh();
                 }
 
                 //if updating preview
@@ -14065,111 +14039,43 @@ namespace WinAGI.Editor
             //returns a string Value of an instrument
             return LoadResString(INSTRUMENTNAMETEXT + instrument);
         }
-        public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int tgtX, int tgtY, int tgtW, int tgtH)
+        public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int tgtX, int tgtY, int tgtW, int tgtH, InterpolationMode mode = InterpolationMode.NearestNeighbor)
         {
             // draws the agi bitmap in target picture box using passed target size/location
 
-            // to scale the picture without blurring, use APIs; .NET's built-in scaling doesn't
-            // properly size the scaled image
-            int bWidth = pic.Width, bHeight = pic.Height;
-            //// first, create new image in the picture box that is desired size
-            //pic.Image = new Bitmap(bWidth, bHeight);
-            // intialize a graphics object for the image just created
-            using Graphics g = Graphics.FromImage(pic.Image);
-            //get handle to  source agi bitmap
-            IntPtr hbmp = agiBMP.GetHbitmap();
-            //get handle to destination graphic
-            IntPtr destHDC = g.GetHdc();
-            //get handle to source graphic
-            IntPtr srcHdc = CreateCompatibleDC(destHDC);
-            //get original object and select bitmap
-            IntPtr pOrig = SelectObject(srcHdc, hbmp);
-            //copy it
-            //int rtn = StretchBlt(destHDC, tgtX, tgtY, tgtW, tgtH,
-            //    srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, SRCCOPY);
-            int rtn = AlphaBlend(destHDC, tgtX, tgtY, tgtW, tgtH,
-                srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, new BLENDFUNCTION() { BlendOp = AC_SRC_OVER, BlendFlags = 0, SourceConstantAlpha = 255, AlphaFormat = AC_SRC_ALPHA });
-            //select original object
-            IntPtr pNew = SelectObject(srcHdc, pOrig);
-            //delete objects
-            _ = DeleteObject(pNew);
-            _ = DeleteDC(srcHdc);
-            //release handles
-            g.ReleaseHdc(destHDC);
-            pic.Refresh();
-
             //to scale the picture without blurring, need to use NearestNeighbor interpolation
             // that can't be set directly, so a graphics object is needed to draw the the picture
-            // also, the top row and left column pixels get halved; need to draw the picture twice
-            // to get those pixels to show full size
-            //int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
-            //bWidth = pic.Width;
-            //bHeight = pic.Height;
-            //// first, create new image in the picture box that is desired size
-            //pic.Image = new Bitmap(bWidth, bHeight);
-            //// intialize a graphics object for the image just created
-            //using Graphics g = Graphics.FromImage(pic.Image);
-            ////always clear the background first
-            //g.Clear(pic.BackColor);
-            //// set correct interpolation mode
-            //g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            //// draw the bitmap, at correct resolution
-            //g.DrawImage(agiBMP, tgtX, tgtY, tgtW, tgtH);
-            //g.DrawImage(agiBMP, tgtX + (int)scale, tgtY, tgtW, tgtH);
-            //g.DrawImage(agiBMP, tgtX, tgtY + (int)scale / 2, tgtW, tgtH);
-            //g.DrawImage(agiBMP, tgtX + (int)scale, tgtY + (int)scale / 2, tgtW, tgtH);
+            int bWidth, bHeight;
+            bWidth = pic.Width;
+            bHeight = pic.Height;
+            // first, create new image in the picture box that is desired size
+            pic.Image = new Bitmap(bWidth, bHeight);
+            // intialize a graphics object for the image just created
+            using Graphics g = Graphics.FromImage(pic.Image);
+            //always clear the background first
+            g.Clear(pic.BackColor);
+            // set correct interpolation mode
+            g.InterpolationMode = mode;
+            g.PixelOffsetMode = PixelOffsetMode.Half;
+            // draw the bitmap, at correct resolution
+            g.DrawImage(agiBMP, tgtX, tgtY, tgtW, tgtH);
         }
-        public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1)
+        public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1, InterpolationMode mode = InterpolationMode.NearestNeighbor)
         {
             // draws the agi bitmap in target picture box, using scale factor provided
-            // to scale the picture without blurring, use APIs; .NET's built-in scaling doesn't
-            // properly size the scaled image
+
             int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
-            //// first, create new image in the picture box that is desired size
+            // first, create new image in the picture box that is desired size
             pic.Image = new Bitmap(bWidth, bHeight);
             //intialize a graphics object for the image just created
             using Graphics g = Graphics.FromImage(pic.Image);
-            //get handle to agi source bitmap
-            IntPtr hbmp = agiBMP.GetHbitmap();
-            //get a handle to destination graphic
-            IntPtr destHDC = g.GetHdc();
-            //get a handle to source graphic, compatible with the destination
-            IntPtr srcHdc = CreateCompatibleDC(destHDC);
-            //get original object and select bitmap
-            IntPtr pOrig = SelectObject(srcHdc, hbmp);
-            //copy it
-            int rtn = StretchBlt(destHDC, 0, 0, bWidth, bHeight,
-                srcHdc, 0, 0, agiBMP.Width, agiBMP.Height, SRCCOPY);
-            //re-select original object
-            IntPtr pNew = SelectObject(srcHdc, pOrig);
-            //delete objects
-            _ = DeleteObject(pNew);
-            _ = DeleteDC(srcHdc);
-            //release handles
-            g.ReleaseHdc(destHDC);
-            pic.Refresh();
-
-            //int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
-            //// first, create new image in the picture box that is desired size
-            //pic.Image = new Bitmap(bWidth, bHeight);
-            ////intialize a graphics object for the image just created
-            //using Graphics g = Graphics.FromImage(pic.Image);
-            ////always clear the background first
-            //g.Clear(pic.BackColor);
-            //// set correct interpolation mode
-            //// draw the bitmap, at correct resolution
-            //g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            //g.DrawImage(agiBMP, 0, 0, bWidth, bHeight);
-        }
-        public static void EnableRedraw(Control ctl)
-        {
-            _ = API.SendMessage(ctl.Handle, API.WM_SETREDRAW, 1, 0);
-            ctl.Refresh();
-        }
-        public static void DisableRedraw(Control ctl)
-        {
-            _ = API.SendMessage(ctl.Handle, API.WM_SETREDRAW, 0, 0);
-            ctl.Refresh();
+            //always clear the background first
+            g.Clear(pic.BackColor);
+            // set correct interpolation mode
+            // draw the bitmap, at correct resolution
+            g.InterpolationMode = mode;
+            g.PixelOffsetMode = PixelOffsetMode.Half;
+            g.DrawImage(agiBMP, 0, 0, bWidth, bHeight);
         }
         public static string LoadResString(int index)
         {

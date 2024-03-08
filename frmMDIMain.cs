@@ -126,14 +126,14 @@ namespace WinAGI.Editor
             MDIMain = this;
 
             // set resource list and property controls to default location
-            tvwResources.Width = splResource.Panel1.Width;
-            tvwResources.Height = splResource.Panel1.Height - cmdBack.Height;
+            //tvwResources.Width = splResource.Panel1.Width;
+            //tvwResources.Height = splResource.Panel1.Height - cmdBack.Height;
             cmbResType.Width = splResource.Panel1.Width;
             lstResources.Width = splResource.Panel1.Width;
             lstResources.Height = splResource.Panel1.Height - cmdBack.Height - cmbResType.Height;
-            picProperties.Width = splResource.Panel2.Width;
-            picProperties.Height = splResource.Panel2.Height;
-            fsbProperty.Height = splResource.Panel2.Height;
+            //picProperties.Width = splResource.Panel2.Width;
+            //picProperties.Height = splResource.Panel2.Height;
+            //fsbProperty.Height = splResource.Panel2.Height;
         }
         private void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e)
         {
@@ -333,25 +333,17 @@ namespace WinAGI.Editor
 
             //hide rsource and warning panels until needed
             pnlResources.Visible = false;
-            tvwResources.Left = 0;
-            tvwResources.Width = splResource.Width;
-            fsbProperty.Left = splResource.Width - fsbProperty.Width;
             pnlWarnings.Visible = false;
-            //      //get listitem height
-            //      ListItemHeight = SendMessage(lstProperty.hWnd, LB_GETITEMHEIGHT, 0, 0)
-            //      //if not successful
-            //      if (ListItemHeight = 0) {
-            //        //use default
-            //        ListItemHeight = 13
-            //      }
             //set property window split location based on longest word
-            Size szText = TextRenderer.MeasureText(" Use Res Names ", new Font("MS Sans Serif", 8));
+            Size szText = TextRenderer.MeasureText(" Use Res Names ", propertyGrid1.Font);
             PropSplitLoc = szText.Width;
-            PropRowHeight = szText.Height + 2;
+            // set height based on text (assume padding of four? pixels above/below)
+            PropRowHeight = szText.Height + 7;
+            MAX_PROPGRID_HEIGHT = 11 * PropRowHeight;
             ////set initial position of property panel
             splResource.SplitterIncrement = PropRowHeight;
             splResource.Panel2MinSize = 3 * PropRowHeight;
-            splResource.SplitterDistance = splResource.Height - splResource.Margin.Top - splResource.Margin.Bottom - splResource.SplitterWidth - 3 * PropRowHeight;
+            splResource.SplitterDistance = splResource.Height - splResource.Margin.Top - splResource.Margin.Bottom - splResource.SplitterWidth - 7 * PropRowHeight;
 
             //background color for previewing views is set to default
             PrevWinBColor = SystemColors.Control;
@@ -703,17 +695,17 @@ namespace WinAGI.Editor
             propertyGrid1.SelectedObject = null;
             //get number of rows to display based on new selection
             switch (NewResType) {
-            case AGIResType.rtNone:
+            case rtNone:
                 //nothing to show
                 PropRows = 0;
                 return;
-            case AGIResType.rtGame:
+            case rtGame:
                 //show gameid, gameauthor, description,etc
                 PropRows = 10;
                 GameProperties pGame = new(EditGame);
                 propertyGrid1.SelectedObject = pGame;
                 break;
-            case AGIResType.rtLogic:
+            case rtLogic:
                 if (NewResNum == -1) {
                     //logic header
                     PropRows = 3;
@@ -728,7 +720,7 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pLog;
                 }
                 break;
-            case AGIResType.rtPicture:
+            case rtPicture:
                 if (NewResNum == -1) {
                     //picture header
                     PictureHdrProperties pPicHdr = new(EditGame.Pictures.Count);
@@ -742,7 +734,7 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pPicture;
                 }
                 break;
-            case AGIResType.rtSound:
+            case rtSound:
                 if (NewResNum == -1) {
                     //sound header
                     PropRows = 1;
@@ -756,7 +748,7 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pSound;
                 }
                 break;
-            case AGIResType.rtView:
+            case rtView:
                 if (NewResNum == -1) {
                     //view header
                     VieweHdrProperties pViewHdr = new(EditGame.Views.Count);
@@ -770,13 +762,13 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pView;
                 }
                 break;
-            case AGIResType.rtObjects:
+            case rtObjects:
                 //show object Count, description, encryption, and Max screen objects
                 PropRows = 4;
                 InvObjProperties pInvObj = new(EditGame.InvObjects);
                 propertyGrid1.SelectedObject = pInvObj;
                 break;
-            case AGIResType.rtWords:
+            case rtWords:
                 //show group Count and word Count and description
                 PropRows = 3;
                 WordListProperties pWordList = new(EditGame.WordList);
@@ -802,29 +794,24 @@ namespace WinAGI.Editor
             if (Settings.ResListType >= 0) {
                 //add selected resource to navigation queue
                 //force update property window
-                picProperties.Refresh();
-
                 if (SelResNum < 0) {
                     //add headers and non-regular resources by type
-                    //by 4/type
-                    AddToQueue((AGIResType)4, (int)SelResType);
+                    AddToQueue(SelResType, 256);
                 }
                 else {
                     // add regular resourses by type/number
                     AddToQueue(SelResType, SelResNum);
                 }
-
                 //always disable forward button
                 cmdForward.Enabled = false;
                 //enable back button if at least two in queue
-                cmdBack.Enabled = ResQPtr > 1;
-
+                cmdBack.Enabled = ResQPtr > 0;
                 //if a logic is selected, and layout editor is active form
-                if (SelResType == AGIResType.rtLogic) {
+                if (SelResType == rtLogic) {
                     //if syncing the layout editor and the treeview list
                     if (Settings.LESync) {
-                        if (this.ActiveMdiChild is not null) {
-                            if (this.ActiveMdiChild is frmLayout) {
+                        if (ActiveMdiChild is not null) {
+                            if (ActiveMdiChild is frmLayout) {
                                 if (EditGame.Logics[(byte)SelResNum].IsRoom) {
                                     //if option to sync is set
                                     LayoutEditor.SelectRoom(SelResNum);
@@ -857,7 +844,7 @@ namespace WinAGI.Editor
             //selects the node/resource from the current queue position
             //
             //if the current resource is gone (deleted)
-            //the function does nothing
+            //the function will select the appropriate header
             //
             // while selecting from queue, disable additions to the
             // queue
@@ -872,105 +859,100 @@ namespace WinAGI.Editor
             //disable queue addition
             DontQueue = true;
             //extract restype and number from the resqueue
-            ResType = (AGIResType)(ResQueue[ResQPtr] / 256);
-            ResNum = ResQueue[ResQPtr] % 256;
+            ResType = (AGIResType)(ResQueue[ResQPtr] >> 16);
+            ResNum = ResQueue[ResQPtr] & 0xFFFF;
 
-            //if a header or top level
-            if ((int)ResType == 4) {
-                //resnum indicates type
+            if (ResNum == 256) {
+                // header
                 switch (Settings.ResListType) {
-                case 1: // header; number indicates which header
-                    if (ResNum == (int)rtGame) {
+                case 1:
+                    // treelist
+                    if (ResType == rtGame) {
                         tvwResources.SelectedNode = RootNode;
                     }
                     else {
-                        tvwResources.SelectedNode = HdrNode[ResNum];
+                        tvwResources.SelectedNode = HdrNode[(int)ResType];
                     }
-                    // then call the node click to finish selection
+                    // call the node click to finish selection
                     tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
                     break;
                 case 2:
-                    //for listbox, need to select correct type in combo
-                    switch (ResNum) {
-                    case (int)rtGame: //root
+                    // listbox
+                    switch (ResType) {
+                    case rtGame: //root
                         cmbResType.SelectedIndex = 0;
                         //then force selection change
                         SelectResource(rtGame, -1);
                         break;
-                    case (int)rtObjects: //objects
-                        cmbResType.SelectedIndex = 5;
-                        //force selection change
-                        SelectResource(rtObjects, -1);
-                        break;
-                    case (int)rtWords: // words
-                        cmbResType.SelectedIndex = 6;
-                        //then force selection change
-                        SelectResource(rtWords, -1);
-                        break;
                     default:
                         //(resnum+1 matches desired listindex)
-                        cmbResType.SelectedIndex = ResNum + 1;
+                        cmbResType.SelectedIndex = (int)(ResType + 1);
                         //reset the listbox
-                        lstResources.SelectedItems.Clear();//  .SelectedIndex = -1;
-                                                           //then force selection change
-                        SelectResource((AGIResType)ResNum, -1);
+                        lstResources.SelectedItems.Clear();
+                        //then force selection change
+                        SelectResource(ResType, -1);
                         break;
                     }
                     break;
                 }
-
             }
             else {
                 //does the resource still exist?
                 switch (ResType) {
                 case rtLogic:
-                    if (!EditGame.Logics.Exists((byte)ResNum)) {
-                        return;
+                    if (EditGame.Logics.Exists((byte)ResNum)) {
+                        strKey = "l" + ResNum;
                     }
-                    strKey = "l" + ResNum;
                     break;
                 case rtPicture:
-                    if (!EditGame.Pictures.Exists((byte)ResNum)) {
-                        return;
+                    if (EditGame.Pictures.Exists((byte)ResNum)) {
+                        strKey = "p" + ResNum;
                     }
-                    strKey = "p" + ResNum;
                     break;
                 case rtSound:
-                    if (!EditGame.Sounds.Exists((byte)ResNum)) {
-                        return;
+                    if (EditGame.Sounds.Exists((byte)ResNum)) {
+                        strKey = "s" + ResNum;
                     }
-                    strKey = "s" + ResNum;
                     break;
                 case rtView:
-                    if (!EditGame.Views.Exists((byte)ResNum)) {
-                        return;
+                    if (EditGame.Views.Exists((byte)ResNum)) {
+                        strKey = "v" + ResNum;
                     }
-                    strKey = "v" + ResNum;
                     break;
                 }
 
                 //if no key
                 if (strKey.Length == 0) {
                     //this resource doesn't exist anymore - probably
-                    //deleted
+                    //deleted; select the header
+                    switch (Settings.ResListType) {
+                    case 1:
+                        // treelist
+                        tvwResources.SelectedNode = HdrNode[(int)ResType];
+                        tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
+                        break;
+                    case 2:
+                        //listbox
+                        //(restype+1 matches desired listindex)
+                        cmbResType.SelectedIndex = (int)(ResType + 1);
+                        //reset the listbox
+                        lstResources.SelectedItems.Clear();
+                        //then force selection change
+                        SelectResource(ResType, -1);
+                        break;
+                    }
                     return;
                 }
-
                 //select this resource
                 switch (Settings.ResListType) {
                 case 1:
                     tvwResources.SelectedNode = HdrNode[(int)ResType].Nodes[strKey];
-                    // then call the node click to finish selection
-                    //         tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
                     break;
                 case 2:
                     //(restype+1 matches desired listindex)
                     cmbResType.SelectedIndex = (int)(ResType + 1);
-                    //now select the resource
-                    //          lstResources.SelectedItem = lstResources.ListItems(strKey);
                     break;
                 }
-
                 //force selection
                 SelectResource(ResType, ResNum);
             }
@@ -1031,8 +1013,7 @@ namespace WinAGI.Editor
             if (DefResDir == "") {
                 DefResDir = "src";
             }
-            else if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) 
-            {
+            else if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) {
                 //invalid character; reset to default
                 DefResDir = "src";
             }
@@ -1510,7 +1491,7 @@ namespace WinAGI.Editor
         }
         private void tvwResources_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            // select it first, so property box paint events work correctly
+            // select it first
             tvwResources.SelectedNode = e.Node;
 
             // show the preview for this node
@@ -2030,7 +2011,7 @@ namespace WinAGI.Editor
             // to preview window, if it's active
 
             //*//
-            Debug.Print($"Form Keypress: {e.KeyChar}");
+            //Debug.Print($"Form Keypress: {e.KeyChar}");
 
             if (!e.Handled) {
                 //
@@ -2237,7 +2218,7 @@ namespace WinAGI.Editor
             MDIMain.splitWarning.Visible = false;
         }
 
-public void ShowWarningList()
+        public void ShowWarningList()
         {
             LoadWarnGrid();
             splitWarning.Visible = true;
@@ -2578,31 +2559,6 @@ public void ShowWarningList()
             //open a game - user will get chance to select wag file in OpenWAGFile()
             OpenWAGFile();
         }
-        private void fsbProperty_Scroll(object sender, ScrollEventArgs e)
-        {
-            //cancel editing, if it is occurring
-            //if (txtProperty.Visible) {
-            //  txtProperty.Visible = false;
-            //  picProperties.Focus();
-            //}
-            if (lstProperty.Visible) {
-                lstProperty.Visible = false;
-                picProperties.Focus();
-            }
-            if (e.Type != ScrollEventType.EndScroll) {
-                return;
-            }
-            //adjust propscroll Value
-            PropScroll = fsbProperty.Value;
-            Debug.Print($"scroll: {fsbProperty.Value}");
-            //redraw
-            picProperties.Refresh();
-
-        }
-        private void fsbProperty_ValueChanged(object sender, EventArgs e)
-        {
-            //Debug.Print($"val chg: {fsbProperty.Value}");
-        }
         public void ClearWarnings()
         {
             // clear entire list
@@ -2630,100 +2586,6 @@ public void ShowWarningList()
             cmdBack.Width = splResource.Width / 2;
             cmdForward.Width = splResource.Width / 2;
             cmdForward.Left = splResource.Width / 2;
-        }
-        private void picProperties_Resize(object sender, EventArgs e)
-        {
-            picProperties.Invalidate();
-        }
-        private void picProperties_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
-        {
-            string strHelp = "";
-            //always check for help key
-            if (e.KeyCode == Keys.F1 && e.Modifiers == 0) {
-                //show property window help, depending on what resource or header is selected
-
-                switch (SelResType) {
-                case rtGame:
-                    //root
-                    strHelp = "#gameprop";
-                    break;
-                case rtLogic:
-                    if (SelResNum == -1) {
-                        strHelp = "#logicsprop";
-                    }
-                    else {
-                        strHelp = "#logicprop";
-                    }
-                    break;
-                case rtPicture:
-                case rtSound:
-                    if (SelResNum == -1) {
-                        strHelp = "#hdrsprop";
-                    }
-                    else {
-                        strHelp = "#picsndprop";
-                    }
-                    break;
-                case rtView:
-                    if (SelResNum == -1) {
-                        strHelp = "#hdrsprop";
-                    }
-                    else {
-                        strHelp = "#viewprop";
-                    }
-                    break;
-                case rtObjects:
-                    strHelp = "#objprop";
-                    break;
-                case rtWords:
-                    strHelp = "#wordsprop";
-                    break;
-                }
-                _ = API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, @"htm\winagi\restree.htm" + strHelp);
-                return;
-            }
-
-            switch (e.KeyCode) {
-            case Keys.Up: //up arrow
-                          //decrement selected prop
-                if (SelectedProp > 1) {
-                    SelectedProp--;
-                    //adjust scroll if necessary
-                    if (SelectedProp - PropScroll == 0) {
-                        //scroll up
-                        fsbProperty.Value--;
-                    }
-                    //repaint property window
-                    picProperties.Invalidate();
-                }
-                break;
-            case Keys.Down: //down arrow
-                            //increment selected prop
-                if (SelectedProp < PropRows) {
-                    SelectedProp++;
-                    //adjust scroll if necessary
-                    if (SelectedProp - PropScroll >= PropRowCount) {
-                        //scroll up
-                        fsbProperty.Value++;
-                    }
-                    //repaint property window
-                    picProperties.Invalidate();
-                }
-                break;
-            case Keys.Enter: //enter or ctrl-enter
-                             //edit the selected item
-                break;
-
-            case Keys.Tab:  //tab
-                            //if preview window is in use, switch to it
-                if (PreviewWin.Visible) {
-                    SelectedProp = 0;
-                    picProperties.Invalidate();
-                    PreviewWin.Focus();
-                }
-                break;
-            }
-            return;
         }
 
         private void propertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
@@ -8888,7 +8750,6 @@ public void ShowWarningList()
             //show and position the resource list panels
             pnlResources.Visible = true;
             splitResource.Visible = true;
-            picProperties.Refresh();
         }
         private void frmMDIMain_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -8897,7 +8758,8 @@ public void ShowWarningList()
             //is a game loaded?
             if (EditGame is null) {
                 blnLastLoad = false;
-            } else {
+            }
+            else {
                 blnLastLoad = EditGame.GameLoaded;
             }
             if (blnLastLoad) {
@@ -8932,6 +8794,59 @@ public void ShowWarningList()
 
             // drop the global reference
             MDIMain = null;
+        }
+
+        private void splResource_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            if (splResource.Panel2.Height > MAX_PROPGRID_HEIGHT) {
+                splResource.SplitterDistance = splResource.Height - MAX_PROPGRID_HEIGHT;
+            }
+        }
+
+        private void splResource_SizeChanged(object sender, EventArgs e)
+        {
+            if (splResource.Panel2.Height > MAX_PROPGRID_HEIGHT) {
+                splResource.SplitterDistance = splResource.Height - MAX_PROPGRID_HEIGHT;
+            }
+        }
+
+        private void mnuTSettings_Click(object sender, EventArgs e)
+        {
+            // temp code for dev purposes
+            Settings.ResListType++;
+            if (Settings.ResListType == 3) {
+                Settings.ResListType = 0;
+            };
+            // force refresh of type
+            switch (Settings.ResListType) {
+            case 0:
+                // no list
+                if (splResource.Visible) {
+                    HideResTree();
+                }
+                break;
+            case 1 or 2:
+                // treelist
+                if (!splResource.Visible) {
+                    ShowResTree();
+                }
+                else {
+                    //if (Settings.ResListType != oldResListType) {
+                    // reset to root, then switch
+                    SelResType = rtGame;
+                    SelResNum = -1;
+                    BuildResourceTree();
+                    ShowResTree();
+                    //}
+                }
+                break;
+            }
+        }
+
+        private void lstResources_SizeChanged(object sender, EventArgs e)
+        {
+            // always adjust column to fill entire listbox
+            lstResources.Columns[0].Width = lstResources.Width - 4;
         }
     }
 }
