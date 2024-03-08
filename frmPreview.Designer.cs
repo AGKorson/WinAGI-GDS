@@ -27,8 +27,7 @@ namespace WinAGI.Editor
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent()
-        {
+        private void InitializeComponent() {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPreview));
             pnlLogic = new System.Windows.Forms.Panel();
@@ -146,6 +145,8 @@ namespace WinAGI.Editor
             rtfLogPrev.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             rtfLogPrev.Name = "rtfLogPrev";
             rtfLogPrev.ReadOnly = true;
+            rtfLogPrev.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedHorizontal;
+            rtfLogPrev.ShowSelectionMargin = true;
             rtfLogPrev.Size = new System.Drawing.Size(532, 384);
             rtfLogPrev.TabIndex = 0;
             rtfLogPrev.Text = "";

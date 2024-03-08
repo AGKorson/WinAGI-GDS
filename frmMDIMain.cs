@@ -22,8 +22,7 @@ using System.IO;
 
 namespace WinAGI.Editor
 {
-    public partial class frmMDIMain : Form
-    {
+    public partial class frmMDIMain : Form {
         //constants for control/window placement
         int CalcWidth, CalcHeight;
         const int MIN_HEIGHT = 361;
@@ -81,8 +80,7 @@ namespace WinAGI.Editor
         static bool NumLock = false;
         static bool InsertLock = false;
 
-        public void OnIdle(object sender, EventArgs e)
-        {
+        public void OnIdle(object sender, EventArgs e) {
             // Update the panels when the program is idle.
             bool newCapsLock = Console.CapsLock;
             bool newNumLock = Console.NumberLock;
@@ -106,8 +104,7 @@ namespace WinAGI.Editor
                 }
             }
         }
-        public frmMDIMain()
-        {
+        public frmMDIMain() {
             InitializeComponent();
 
             //attach  AGI game events
@@ -135,12 +132,10 @@ namespace WinAGI.Editor
             //picProperties.Height = splResource.Panel2.Height;
             //fsbProperty.Height = splResource.Panel2.Height;
         }
-        private void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e)
-        {
+        private void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e) {
 
         }
-        private void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e)
-        {
+        private void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e) {
             switch (e.LoadInfo.Type) {
             case etInfo:
                 switch (e.LoadInfo.InfoType) {
@@ -204,24 +199,19 @@ namespace WinAGI.Editor
                 break;
             }
         }
-        private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e)
-        {
+        private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e) {
 
         }
-        private void GameEvents_DecodeLogicStatus(object sender, DecodeLogicEventArgs e)
-        {
+        private void GameEvents_DecodeLogicStatus(object sender, DecodeLogicEventArgs e) {
 
         }
-        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
+        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
 
         }
-        private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
+        private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
 
         }
-        private void btnOpenGame_Click(object sender, EventArgs e)
-        {
+        private void btnOpenGame_Click(object sender, EventArgs e) {
             //open a game!
             OpenDlg.InitialDirectory = Environment.SpecialFolder.Desktop.ToString();
             OpenDlg.DefaultExt = "wag";
@@ -238,40 +228,32 @@ namespace WinAGI.Editor
                 return;
             }
         }
-        private void mnuWCascade_Click(object sender, EventArgs e)
-        {
+        private void mnuWCascade_Click(object sender, EventArgs e) {
             LayoutMdi(MdiLayout.Cascade);
         }
-        private void mnuWArrange_Click(object sender, EventArgs e)
-        {
+        private void mnuWArrange_Click(object sender, EventArgs e) {
             LayoutMdi(MdiLayout.ArrangeIcons);
         }
-        private void mnuWTileH_Click(object sender, EventArgs e)
-        {
+        private void mnuWTileH_Click(object sender, EventArgs e) {
             LayoutMdi(MdiLayout.TileHorizontal);
         }
-        private void mnuWTileV_Click(object sender, EventArgs e)
-        {
+        private void mnuWTileV_Click(object sender, EventArgs e) {
             LayoutMdi(MdiLayout.TileVertical);
         }
-        private void mnuWMinimize_Click(object sender, EventArgs e)
-        {
+        private void mnuWMinimize_Click(object sender, EventArgs e) {
             foreach (Form childForm in MdiChildren) {
                 childForm.WindowState = FormWindowState.Minimized;
             }
         }
-        private void mnuWClose_Click(object sender, EventArgs e)
-        {
+        private void mnuWClose_Click(object sender, EventArgs e) {
             //only close if window is close-able
             this.ActiveMdiChild.Close();
         }
-        private void mnuWindow_DropDownOpening(object sender, EventArgs e)
-        {
+        private void mnuWindow_DropDownOpening(object sender, EventArgs e) {
             // disable the close item if no windows
             mnuWClose.Enabled = (this.MdiChildren.Length != 0);
         }
-        private void frmMDIMain_Load(object sender, EventArgs e)
-        {
+        private void frmMDIMain_Load(object sender, EventArgs e) {
             bool blnLastLoad;
 
             // STRATEGY FOR READING/WRITING DATA TO/FROM
@@ -344,7 +326,8 @@ namespace WinAGI.Editor
             splResource.SplitterIncrement = PropRowHeight;
             splResource.Panel2MinSize = 3 * PropRowHeight;
             splResource.SplitterDistance = splResource.Height - splResource.Margin.Top - splResource.Margin.Bottom - splResource.SplitterWidth - 7 * PropRowHeight;
-
+            // set grid row height
+            fgWarnings.RowTemplate.Height = szText.Height +2;
             //background color for previewing views is set to default
             PrevWinBColor = SystemColors.Control;
             //set selected prop
@@ -447,8 +430,7 @@ namespace WinAGI.Editor
             }
             //      UseWaitCursor = false;
         }
-        private void btnNewLogic_Click(object sender, EventArgs e)
-        {
+        private void btnNewLogic_Click(object sender, EventArgs e) {
             MessageBox.Show("new logic...");
             btnNewRes.DefaultItem = btnNewLogic;
             btnNewRes.Image = btnNewLogic.Image;
@@ -461,20 +443,17 @@ namespace WinAGI.Editor
             //frmLogicEdit frmNew = new frmLogicEdit { MdiParent = this };
             //frmNew.Show();
         }
-        private void btnNewPicture_Click(object sender, EventArgs e)
-        {
+        private void btnNewPicture_Click(object sender, EventArgs e) {
             MessageBox.Show("new picture...");
             btnNewRes.DefaultItem = btnNewPicture;
             btnNewRes.Image = btnNewPicture.Image;
             //create new picture and enter edit mode
             NewPicture();
         }
-        private void btnOjects_Click(object sender, EventArgs e)
-        {
+        private void btnOjects_Click(object sender, EventArgs e) {
             //let's test object list
         }
-        private void btnWords_Click(object sender, EventArgs e)
-        {
+        private void btnWords_Click(object sender, EventArgs e) {
             // now let's test words
             //for (int i = 0; i <WordList.GroupCount; i++)
             //{
@@ -493,8 +472,7 @@ namespace WinAGI.Editor
 
             //      WordList.Clear();
         }
-        private void btnNewSound_Click(object sender, EventArgs e)
-        {
+        private void btnNewSound_Click(object sender, EventArgs e) {
             //update default button image
             btnNewRes.DefaultItem = btnNewSound;
             btnNewRes.Image = btnNewSound.Image;
@@ -510,8 +488,7 @@ namespace WinAGI.Editor
             //};
             //frmNew.Show();
         }
-        private void cmbResType_SelectedIndexChanged(object sender, EventArgs e)
-        {
+        private void cmbResType_SelectedIndexChanged(object sender, EventArgs e) {
             //fill list box with resources for selected type
             if (EditGame.GameLoaded) {
                 AGIResType selRes;
@@ -570,8 +547,7 @@ namespace WinAGI.Editor
                 SelectResource(selRes, -1, true);
             }
         }
-        private void lstResources_SelectedIndexChanged(object sender, EventArgs e)
-        {
+        private void lstResources_SelectedIndexChanged(object sender, EventArgs e) {
             if (EditGame.GameLoaded) {
 
                 AGIResType NewType = rtGame; int NewNum = 0;
@@ -651,8 +627,7 @@ namespace WinAGI.Editor
                 }
             }
         }
-        private void SplashTimer(object sender, EventArgs e)
-        {
+        private void SplashTimer(object sender, EventArgs e) {
             // used by splash screen
             splashDone = true;
             tmrNavList.Enabled = false;
@@ -661,8 +636,7 @@ namespace WinAGI.Editor
             tmrNavList.Tick += new System.EventHandler(NavListTimer);
             tmrNavList.Interval = 200;
         }
-        private void NavListTimer(object sender, EventArgs e)
-        {
+        private void NavListTimer(object sender, EventArgs e) {
             //scroll the navlist
             if (NLRow < 0) {
                 //scroll up
@@ -679,14 +653,12 @@ namespace WinAGI.Editor
                 }
             }
         }
-        private void lstResources_DoubleClick(object sender, EventArgs e)
-        {
+        private void lstResources_DoubleClick(object sender, EventArgs e) {
             // make sure item is selected,
 
             // then edit it
         }
-        public void SelectResource(AGIResType NewResType, int NewResNum, bool UpdatePreview = true)
-        {
+        public void SelectResource(AGIResType NewResType, int NewResNum, bool UpdatePreview = true) {
             //selects a resource for previewing
             //(always synched with the resource list)
 
@@ -822,8 +794,7 @@ namespace WinAGI.Editor
                 }
             }
         }
-        private void btnNewView_Click(object sender, EventArgs e)
-        {
+        private void btnNewView_Click(object sender, EventArgs e) {
             btnNewRes.DefaultItem = btnNewView;
             // update default button function
             btnNewRes.Image = btnNewView.Image;
@@ -839,8 +810,7 @@ namespace WinAGI.Editor
             };
             frmNew.Show();
         }
-        void SelectFromQueue()
-        {
+        void SelectFromQueue() {
             //selects the node/resource from the current queue position
             //
             //if the current resource is gone (deleted)
@@ -933,7 +903,7 @@ namespace WinAGI.Editor
                         break;
                     case 2:
                         //listbox
-                        //(restype+1 matches desired listindex)
+                        //(restype+1 matches desired combobox index)
                         cmbResType.SelectedIndex = (int)(ResType + 1);
                         //reset the listbox
                         lstResources.SelectedItems.Clear();
@@ -949,8 +919,10 @@ namespace WinAGI.Editor
                     tvwResources.SelectedNode = HdrNode[(int)ResType].Nodes[strKey];
                     break;
                 case 2:
-                    //(restype+1 matches desired listindex)
+                    // (restype+1 matches desired combobox index)
                     cmbResType.SelectedIndex = (int)(ResType + 1);
+                    // now select the resource
+                    lstResources.Items[strKey].Selected = true;
                     break;
                 }
                 //force selection
@@ -961,8 +933,7 @@ namespace WinAGI.Editor
             DontQueue = false;
             return;
         }
-        bool ReadSettings()
-        {
+        bool ReadSettings() {
             double sngProp;
             double sngTop, sngLeft;
             double sngWidth, sngHeight;
@@ -1439,8 +1410,7 @@ namespace WinAGI.Editor
             }
             return true;
         }
-        public void SaveSettings()
-        {  //saves game settings to config file
+        public void SaveSettings() {  //saves game settings to config file
             int i, lngCompVal;
             //if main form is maximized
             if (MDIMain.WindowState == FormWindowState.Maximized) {
@@ -1489,8 +1459,7 @@ namespace WinAGI.Editor
             //save to file
             GameSettings.Save();
         }
-        private void tvwResources_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
-        {
+        private void tvwResources_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e) {
             // select it first
             tvwResources.SelectedNode = e.Node;
 
@@ -1553,13 +1522,11 @@ namespace WinAGI.Editor
                 tvwResources.Focus();
             }
         }
-        private void tvwResources_AfterCollapse(object sender, TreeViewEventArgs e)
-        {
+        private void tvwResources_AfterCollapse(object sender, TreeViewEventArgs e) {
             //when collapsing, select the collapsed node
             tvwResources_NodeMouseClick(sender, new TreeNodeMouseClickEventArgs(e.Node, MouseButtons.None, 0, 0, 0));
         }
-        private void tvwResources_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
-        {
+        private void tvwResources_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e) {
             //if not the same as the current item
             if (e.Node != tvwResources.SelectedNode) {
                 //select it
@@ -1568,8 +1535,7 @@ namespace WinAGI.Editor
             //edit the selected item
             //*//    EditResource(SelResType, SelResNum);
         }
-        public void HideResTree()
-        {
+        public void HideResTree() {
             //first hide the resource panel and associated elements
             pnlResources.Visible = false;
             splitResource.Visible = false;
@@ -1581,8 +1547,7 @@ namespace WinAGI.Editor
             //  picSplitH.Width = picBottom.Width - 60
             //}
         }
-        private void picProperties_Paint(object sender, PaintEventArgs e)
-        {
+        private void picProperties_Paint(object sender, PaintEventArgs e) {
             //
             /*      int i;
                   byte bSelResNum = (byte)SelResNum;
@@ -1790,8 +1755,7 @@ namespace WinAGI.Editor
                   }
             */
         }
-        void CheckCmd()
-        {
+        void CheckCmd() {
             return;
             /*
             string[] args = Environment.GetCommandLineArgs();
@@ -1909,104 +1873,81 @@ namespace WinAGI.Editor
             }
             */
         }
-        internal void mnuGClose_Click(object sender, EventArgs e)
-        {
+        internal void mnuGClose_Click(object sender, EventArgs e) {
             //if closed ok,
             if (CloseThisGame()) {
                 //reset last item in  holder
                 LastNodeName = "";
             }
         }
-        internal void mnuRRenumber_Click(object sender, EventArgs e)
-        {
+        internal void mnuRRenumber_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuRILogic_Click(object sender, EventArgs e)
-        {
+        internal void mnuRILogic_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuRIObjects_Click(object sender, EventArgs e)
-        {
+        internal void mnuRIObjects_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuRIPicture_Click(object sender, EventArgs e)
-        {
+        internal void mnuRIPicture_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuRISound_Click(object sender, EventArgs e)
-        {
+        internal void mnuRISound_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuRIView_Click(object sender, EventArgs e)
-        {
+        internal void mnuRIView_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuRIWords_Click(object sender, EventArgs e)
-        {
+        internal void mnuRIWords_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuRNLogic_Click(object sender, EventArgs e)
-        {
+        internal void mnuRNLogic_Click(object sender, EventArgs e) {
             //create new logic and enter edit mode
             NewLogic();
         }
-        internal void mnuRNObjects_Click(object sender, EventArgs e)
-        {
+        internal void mnuRNObjects_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuRNPicture_Click(object sender, EventArgs e)
-        {
+        internal void mnuRNPicture_Click(object sender, EventArgs e) {
             //create new picture and enter edit mode
             NewPicture();
         }
-        internal void mnuRNSound_Click(object sender, EventArgs e)
-        {
+        internal void mnuRNSound_Click(object sender, EventArgs e) {
             //create new logic and enter edit mode
             NewSound();
         }
-        internal void mnuRNText_Click(object sender, EventArgs e)
-        {
+        internal void mnuRNText_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuRNView_Click(object sender, EventArgs e)
-        {
+        internal void mnuRNView_Click(object sender, EventArgs e) {
             //create new view and enter edit mode
             NewView();
         }
-        internal void mnuRNWords_Click(object sender, EventArgs e)
-        {
+        internal void mnuRNWords_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuROLogic_Click(object sender, EventArgs e)
-        {
+        internal void mnuROLogic_Click(object sender, EventArgs e) {
             EditGame.Logics[SelResNum].SaveSource();
         }
-        internal void mnuROObjects_Click(object sender, EventArgs e)
-        {
+        internal void mnuROObjects_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuROPicture_Click(object sender, EventArgs e)
-        {
+        internal void mnuROPicture_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuROSound_Click(object sender, EventArgs e)
-        {
+        internal void mnuROSound_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuROText_Click(object sender, EventArgs e)
-        {
+        internal void mnuROText_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuROView_Click(object sender, EventArgs e)
-        {
+        internal void mnuROView_Click(object sender, EventArgs e) {
 
         }
-        internal void mnuROWords_Click(object sender, EventArgs e)
-        {
+        internal void mnuROWords_Click(object sender, EventArgs e) {
 
         }
-        private void frmMDIMain_KeyPress(object sender, KeyPressEventArgs e)
-        {
+        private void frmMDIMain_KeyPress(object sender, KeyPressEventArgs e) {
             // after processing key press for the main form, pass it 
             // to preview window, if it's active
 
@@ -2020,8 +1961,7 @@ namespace WinAGI.Editor
                 }
             }
         }
-        private void tvwResources_AfterSelect(object sender, TreeViewEventArgs e)
-        {
+        private void tvwResources_AfterSelect(object sender, TreeViewEventArgs e) {
             // probably due to navigation - 
 
             //if not changed from previous number
@@ -2030,28 +1970,24 @@ namespace WinAGI.Editor
                 tvwResources_NodeMouseClick(sender, new TreeNodeMouseClickEventArgs(e.Node, MouseButtons.None, 0, 0, 0));
             }
         }
-        private void frmMDIMain_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
-        {
+        private void frmMDIMain_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e) {
             Debug.Print($"Main - PreviewKeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
         }
-        private void frmMDIMain_KeyDown(object sender, KeyEventArgs e)
-        {
+        private void frmMDIMain_KeyDown(object sender, KeyEventArgs e) {
             //      Debug.Print($"Main - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
             if (this.splResource.ActiveControl == this.propertyGrid1 && this.ActiveControl == this.splResource) {
                 //? cancel it, unless in editing mode
                 // e.SuppressKeyPress = true;
             }
         }
-        private void propertyGrid1_KeyDown(object sender, KeyEventArgs e)
-        {
+        private void propertyGrid1_KeyDown(object sender, KeyEventArgs e) {
             Debug.Print($"propgrid - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
             //? cancel it, unless in editing mode
             e.SuppressKeyPress = true;
         }
 
 
-        public void RemoveSelectedRes()
-        {
+        public void RemoveSelectedRes() {
 
             /*
         //removes a resource from the game
@@ -2147,8 +2083,7 @@ namespace WinAGI.Editor
           RemoveSound SelResNum
         */
         }
-        public void SearchForID(FindFormFunction ffValue = FindFormFunction.ffFindLogic)
-        {
+        public void SearchForID(FindFormFunction ffValue = FindFormFunction.ffFindLogic) {
             //set search form defaults
             switch (SelResType) {
             case rtLogic:
@@ -2185,8 +2120,7 @@ namespace WinAGI.Editor
 
             //////  FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
         }
-        public void AddWarning(TWinAGIEventInfo warnInfo)
-        {
+        public void AddWarning(TWinAGIEventInfo warnInfo) {
             switch (warnInfo.Type) {
             case etInfo:
                 WarningList.Add(warnInfo);
@@ -2209,8 +2143,7 @@ namespace WinAGI.Editor
                 ShowWarningList();
             }
         }
-        public void HideWarningList(bool clearlist = false)
-        {
+        public void HideWarningList(bool clearlist = false) {
             if (clearlist) {
                 ClearWarnings();
             }
@@ -2218,15 +2151,13 @@ namespace WinAGI.Editor
             MDIMain.splitWarning.Visible = false;
         }
 
-        public void ShowWarningList()
-        {
+        public void ShowWarningList() {
             LoadWarnGrid();
             splitWarning.Visible = true;
             pnlWarnings.Visible = true;
             //mnuTWarnList.Caption = "Hide Warning List\tShift+Ctrl+W";
         }
-        private void LoadWarnGrid()
-        {
+        private void LoadWarnGrid() {
             fgWarnings.Rows.Clear();
             if (WarningList.Count == 0) {
                 return;
@@ -2235,13 +2166,14 @@ namespace WinAGI.Editor
                 AddWarningToGrid(warnInfo, false);
             }
         }
-        public void AddWarningToGrid(TWinAGIEventInfo warnInfo, bool showit = true)
-        {
+        public void AddWarningToGrid(TWinAGIEventInfo warnInfo, bool showit = true) {
             // adds a warning/error/TODO item to the warning grid
             int tmpRow = fgWarnings.Rows.Add(warnInfo.ID,
                          warnInfo.Text,
-                         (int)warnInfo.ResType < 4 ? warnInfo.ResNum : "--",
-                         warnInfo.ResType == rtLogic ? warnInfo.Line : "--",
+                         (int)warnInfo.ResType < 4 ? warnInfo.ResNum.ToString() : "--",
+                         warnInfo.ResType == rtLogic ? warnInfo.Line.ToString() : "--",
+                        // To avoid runtime errors during sort, all items in a column must be same 
+                        // object type, that's why resnum and line must be strings
                          warnInfo.Module.Length > 0 ? Path.GetFileName(warnInfo.Module) : "--");
             //save restype in row data tag
             fgWarnings.Rows[tmpRow].Tag = rtLogic.ToString();
@@ -2252,9 +2184,8 @@ namespace WinAGI.Editor
                 fgWarnings.Rows[tmpRow].DefaultCellStyle.ForeColor = Color.Red;
                 break;
             case etTODO:
-                // bold, italic, dark gray
+                // bold, italic
                 fgWarnings.Rows[tmpRow].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold | FontStyle.Italic);
-                fgWarnings.Rows[tmpRow].DefaultCellStyle.ForeColor = Color.DarkGray;
                 break;
             case etWarning:
                 break;
@@ -2264,8 +2195,7 @@ namespace WinAGI.Editor
                 fgWarnings.CurrentCell = fgWarnings.Rows[tmpRow].Cells[0];
             }
         }
-        private void cmdBack_Click(object sender, EventArgs e)
-        {
+        private void cmdBack_Click(object sender, EventArgs e) {
             // if resqptr is not at beginning, go back one
             // and select that resource
             if (ResQPtr > 0) {
@@ -2289,9 +2219,7 @@ namespace WinAGI.Editor
                 break;
             }
         }
-        private void cmdBack_MouseDown(object sender, MouseEventArgs e)
-        {
-            int rtn;
+        private void cmdBack_MouseDown(object sender, MouseEventArgs e) {
             //if right button, show list of resources on nav stack
             if (e.Button == MouseButtons.Right) {
                 //set left edge of list to match this button
@@ -2306,8 +2234,7 @@ namespace WinAGI.Editor
                 NLOffset = ResQPtr;
             }
         }
-        private void cmdForward_Click(object sender, EventArgs e)
-        {
+        private void cmdForward_Click(object sender, EventArgs e) {
             // if resqptr is not at end, go forward one
             // and select that resource
             if (ResQPtr < ResQueue.Length - 1) {
@@ -2331,8 +2258,7 @@ namespace WinAGI.Editor
                 break;
             }
         }
-        private void cmdForward_MouseDown(object sender, MouseEventArgs e)
-        {
+        private void cmdForward_MouseDown(object sender, MouseEventArgs e) {
             //if right button, show list of resources on nav stack
             if (e.Button == MouseButtons.Right) {
                 //set left edge of list to match this button
@@ -2347,8 +2273,7 @@ namespace WinAGI.Editor
                 NLOffset = ResQPtr;
             }
         }
-        private void picNavList_MouseMove(object sender, MouseEventArgs e)
-        {
+        private void picNavList_MouseMove(object sender, MouseEventArgs e) {
             //POINTAPI mPos;
             //int rtn;
             int SelRow;
@@ -2386,8 +2311,7 @@ namespace WinAGI.Editor
                 tmrNavList.Enabled = false;
             }
         }
-        private void picNavList_Paint(object sender, PaintEventArgs e)
-        {
+        private void picNavList_Paint(object sender, PaintEventArgs e) {
 
             int i;
             SolidBrush hbrush = new(Color.FromArgb(0xff, 0xe0, 0xe0));//                  FFE0E0));
@@ -2402,7 +2326,7 @@ namespace WinAGI.Editor
             PointF nlPoint = new();
             //print five lines
             for (i = 0; i < 5; i++) {
-                if (i + NLOffset - 2 > 0 && i + NLOffset - 2 <= ResQueue.Length - 1) {
+                if (i + NLOffset - 2 >= 0 && i + NLOffset - 2 <= ResQueue.Length - 1) {
                     //if this row is highlighted (under cursor and valid)
                     if (i == NLRow) {
                         e.Graphics.FillRectangle(hbrush, 0, (int)((i + 0.035) * NLRowHeight), picNavList.Width, NLRowHeight);
@@ -2412,57 +2336,55 @@ namespace WinAGI.Editor
                     nlPoint.Y = NLRowHeight * i;
 
                     //print the id
-                    switch ((AGIResType)(ResQueue[i + NLOffset - 2] / 256)) {
+                    AGIResType restype = (AGIResType)(ResQueue[i + NLOffset - 2] >> 16);
+                    int resnum = ResQueue[i + NLOffset - 2] & 0xFFFF;
+                    switch (restype) {
+                    case rtGame:
+                        e.Graphics.DrawString(EditGame.GameID, nlFont, bbrush, nlPoint);
+                        break;
                     case rtLogic:
-                        e.Graphics.DrawString(EditGame.Logics[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+                        if (resnum == 256) {
+                            e.Graphics.DrawString("LOGICS", nlFont, bbrush, nlPoint);
+                        }
+                        else {
+                            e.Graphics.DrawString(EditGame.Logics[resnum].ID, nlFont, bbrush, nlPoint);
+                        }
                         break;
                     case rtPicture:
-                        e.Graphics.DrawString(EditGame.Pictures[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+                        if (resnum == 256) {
+                            e.Graphics.DrawString("PICTURES", nlFont, bbrush, nlPoint);
+                        }
+                        else {
+                            e.Graphics.DrawString(EditGame.Pictures[resnum].ID, nlFont, bbrush, nlPoint);
+                        }
                         break;
                     case rtSound:
-                        e.Graphics.DrawString(EditGame.Sounds[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
+                        if (resnum == 256) {
+                            e.Graphics.DrawString("SOUNDS", nlFont, bbrush, nlPoint);
+                        }
+                        else {
+                            e.Graphics.DrawString(EditGame.Sounds[resnum].ID, nlFont, bbrush, nlPoint);
+                        }
                         break;
                     case rtView:
-                        e.Graphics.DrawString(EditGame.Views[ResQueue[i + NLOffset - 2] % 256].ID, nlFont, bbrush, nlPoint);
-                        break;
-                    case (AGIResType)4:
-                        switch (ResQueue[i + NLOffset - 2] % 256) {
-                        case 9:
-                            // rtGame
-                            e.Graphics.DrawString(EditGame.GameID, nlFont, bbrush, nlPoint);
-                            break;
-                        case 0:
-                            // rtLogic
-                            e.Graphics.DrawString("LOGICS", nlFont, bbrush, nlPoint);
-                            break;
-                        case 1:
-                            // rtPicture
-                            e.Graphics.DrawString("PICTURES", nlFont, bbrush, nlPoint);
-                            break;
-                        case 2:
-                            // rtSound
-                            e.Graphics.DrawString("SOUNDS", nlFont, bbrush, nlPoint);
-                            break;
-                        case 3:
-                            //rtView
+                        if (resnum == 256) {
                             e.Graphics.DrawString("VIEWS", nlFont, bbrush, nlPoint);
-                            break;
-                        case 4:
-                            //rtObjects
-                            e.Graphics.DrawString("OBJECTS", nlFont, bbrush, nlPoint);
-                            break;
-                        case 5:
-                            // rtWords
-                            e.Graphics.DrawString("WORDS", nlFont, bbrush, nlPoint);
-                            break;
                         }
+                        else {
+                            e.Graphics.DrawString(EditGame.Views[resnum].ID, nlFont, bbrush, nlPoint);
+                        }
+                        break;
+                    case rtObjects:
+                        e.Graphics.DrawString("OBJECTS", nlFont, bbrush, nlPoint);
+                        break;
+                    case rtWords:
+                        e.Graphics.DrawString("WORDS", nlFont, bbrush, nlPoint);
                         break;
                     }
                 }
             }
         }
-        private void picNavList_MouseUp(object sender, MouseEventArgs e)
-        {
+        private void picNavList_MouseUp(object sender, MouseEventArgs e) {
             int newPtr;
             picNavList.Visible = false;
             tmrNavList.Enabled = false;
@@ -2490,84 +2412,70 @@ namespace WinAGI.Editor
                 cmdForward.Enabled = ResQPtr < (ResQueue.Length - 1);
             }
         }
-        private void mnuGMRU_Click(object sender, EventArgs e)
-        {
+        private void mnuGMRU_Click(object sender, EventArgs e) {
             // open the mru game assigned to this menu item
             _ = int.TryParse(((ToolStripMenuItem)sender).Tag.ToString(), out int index);
             OpenMRUGame(index);
         }
-        private void mnuGExit_Click(object sender, EventArgs e)
-        {
+        private void mnuGExit_Click(object sender, EventArgs e) {
             // shut it all down
             this.Close();
         }
-        private void btnImportLogic_Click(object sender, EventArgs e)
-        {
+        private void btnImportLogic_Click(object sender, EventArgs e) {
             MessageBox.Show("Import logic...");
             btnImportRes.DefaultItem = btnImportLogic;
             btnImportRes.Image = btnImportLogic.Image;
         }
-        private void btnImportPicture_Click(object sender, EventArgs e)
-        {
+        private void btnImportPicture_Click(object sender, EventArgs e) {
             MessageBox.Show("Import picture...");
             btnImportRes.DefaultItem = btnImportPicture;
             btnImportRes.Image = btnImportPicture.Image;
         }
-        private void btnImportSound_Click(object sender, EventArgs e)
-        {
+        private void btnImportSound_Click(object sender, EventArgs e) {
             MessageBox.Show("Import sound...");
             btnImportRes.DefaultItem = btnImportSound;
             btnImportRes.Image = btnImportSound.Image;
         }
-        private void btnImportView_Click(object sender, EventArgs e)
-        {
+        private void btnImportView_Click(object sender, EventArgs e) {
             MessageBox.Show("Import view...");
             btnImportRes.DefaultItem = btnImportView;
             btnImportRes.Image = btnImportView.Image;
         }
-        private void btnOpenLogic_Click(object sender, EventArgs e)
-        {
+        private void btnOpenLogic_Click(object sender, EventArgs e) {
             MessageBox.Show("Open logic...");
             btnOpenRes.DefaultItem = btnOpenLogic;
             btnOpenRes.Image = btnOpenLogic.Image;
         }
-        private void btnOpenPicture_Click(object sender, EventArgs e)
-        {
+        private void btnOpenPicture_Click(object sender, EventArgs e) {
             MessageBox.Show("Open picture...");
             btnOpenRes.DefaultItem = btnOpenPicture;
             btnOpenRes.Image = btnOpenPicture.Image;
         }
-        private void btnOpenSound_Click(object sender, EventArgs e)
-        {
+        private void btnOpenSound_Click(object sender, EventArgs e) {
             MessageBox.Show("Open sound...");
             btnOpenRes.DefaultItem = btnOpenSound;
             btnOpenRes.Image = btnOpenSound.Image;
         }
-        private void btnOpenView_Click(object sender, EventArgs e)
-        {
+        private void btnOpenView_Click(object sender, EventArgs e) {
             MessageBox.Show("Open view...");
             btnOpenRes.DefaultItem = btnOpenView;
             btnOpenRes.Image = btnOpenView.Image;
         }
-        private void mnuGImport_Click(object sender, EventArgs e)
-        {
+        private void mnuGImport_Click(object sender, EventArgs e) {
             //import a game by directory
             OpenDIR();
         }
-        private void mnuGOpen_Click(object sender, EventArgs e)
-        {
+        private void mnuGOpen_Click(object sender, EventArgs e) {
             //open a game - user will get chance to select wag file in OpenWAGFile()
             OpenWAGFile();
         }
-        public void ClearWarnings()
-        {
+        public void ClearWarnings() {
             // clear entire list
             WarningList.Clear();
             // then clear the grid
             fgWarnings.Rows.Clear();
         }
-        public void ClearWarnings(byte ResNum, AGIResType ResType)
-        {
+        public void ClearWarnings(byte ResNum, AGIResType ResType) {
             //find the matching lines (by type/number)
             foreach (TWinAGIEventInfo item in WarningList) {
                 if (item.ResNum == ResNum && item.ResType == ResType) {
@@ -2580,26 +2488,22 @@ namespace WinAGI.Editor
                 }
             }
         }
-        private void splResource_Panel1_Resize(object sender, EventArgs e)
-        {
+        private void splResource_Panel1_Resize(object sender, EventArgs e) {
             // resize the navigation buttons
             cmdBack.Width = splResource.Width / 2;
             cmdForward.Width = splResource.Width / 2;
             cmdForward.Left = splResource.Width / 2;
         }
 
-        private void propertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
-        {
+        private void propertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e) {
             // what to do if changed?
         }
 
-        public void DismissWarning(int row)
-        {
+        public void DismissWarning(int row) {
             //remove a row to dismiss the warning
             fgWarnings.Rows.RemoveAt(row);
         }
-        public void HelpWarning()
-        {
+        public void HelpWarning() {
             string strTopic, strNum;
             //show help for the warning (or error) that is selected
 
@@ -2616,8 +2520,7 @@ namespace WinAGI.Editor
             _ = API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, strTopic);
         }
 
-        void tmpFormMain()
-        {
+        void tmpFormMain() {
             /*
       //    WinAGI Game Development System
       //    Copyright (C) 2005-2020 Andrew Korson
@@ -8654,8 +8557,7 @@ namespace WinAGI.Editor
       }
             */
         }
-        public void ClearResourceList()
-        {
+        public void ClearResourceList() {
             //reset the navigation queue
             ResetQueue();
             //don't add to queue while clearing
@@ -8709,8 +8611,7 @@ namespace WinAGI.Editor
             //allow queuing
             DontQueue = false;
         }
-        public void ShowResTree()
-        {
+        public void ShowResTree() {
 
             // need to make sure resource list (tree or listbox)
             // is set to proper height based on current number of
@@ -8751,8 +8652,7 @@ namespace WinAGI.Editor
             pnlResources.Visible = true;
             splitResource.Visible = true;
         }
-        private void frmMDIMain_FormClosing(object sender, FormClosingEventArgs e)
-        {
+        private void frmMDIMain_FormClosing(object sender, FormClosingEventArgs e) {
             bool blnLastLoad;
 
             //is a game loaded?
@@ -8796,22 +8696,21 @@ namespace WinAGI.Editor
             MDIMain = null;
         }
 
-        private void splResource_SplitterMoved(object sender, SplitterEventArgs e)
-        {
+        private void splResource_SplitterMoved(object sender, SplitterEventArgs e) {
+            if (splResource.Visible) {
+                if (splResource.Panel2.Height > MAX_PROPGRID_HEIGHT) {
+                    splResource.SplitterDistance = splResource.Height - MAX_PROPGRID_HEIGHT;
+                }
+            }
+        }
+
+        private void splResource_SizeChanged(object sender, EventArgs e) {
             if (splResource.Panel2.Height > MAX_PROPGRID_HEIGHT) {
                 splResource.SplitterDistance = splResource.Height - MAX_PROPGRID_HEIGHT;
             }
         }
 
-        private void splResource_SizeChanged(object sender, EventArgs e)
-        {
-            if (splResource.Panel2.Height > MAX_PROPGRID_HEIGHT) {
-                splResource.SplitterDistance = splResource.Height - MAX_PROPGRID_HEIGHT;
-            }
-        }
-
-        private void mnuTSettings_Click(object sender, EventArgs e)
-        {
+        private void mnuTSettings_Click(object sender, EventArgs e) {
             // temp code for dev purposes
             Settings.ResListType++;
             if (Settings.ResListType == 3) {
@@ -8843,10 +8742,41 @@ namespace WinAGI.Editor
             }
         }
 
-        private void lstResources_SizeChanged(object sender, EventArgs e)
-        {
+        private void lstResources_SizeChanged(object sender, EventArgs e) {
             // always adjust column to fill entire listbox
             lstResources.Columns[0].Width = lstResources.Width - 4;
+        }
+
+        private void fgWarnings_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e) {
+
+        }
+
+        private void fgWarnings_SortCompare(object sender, DataGridViewSortCompareEventArgs e) {
+            // force numbers as text to sort as numbers, above text
+            if (e.Column.Index == 2 || e.Column.Index == 3) {
+                //
+                if (!int.TryParse(e.CellValue1.ToString(), out int val1)) {
+                    val1 = -1;
+                }
+                if (!int.TryParse(e.CellValue2.ToString(), out int val2)) {
+                    val2 = -1;
+                }
+                if (val1 > val2) {
+                    e.SortResult = 1;
+                }
+                else if (val1 < val2) {
+                    e.SortResult = -1;
+                }
+                else {
+                    e.SortResult = 0;
+                }
+                e.Handled = true;
+            }
+        }
+
+        private void fgWarnings_Sorted(object sender, EventArgs e) {
+
+
         }
     }
 }

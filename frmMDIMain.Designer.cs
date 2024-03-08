@@ -27,8 +27,7 @@
         ///  Required method for Designer support - do not modify
         ///  the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent()
-        {
+        private void InitializeComponent() {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMDIMain));
             TreeNode treeNode1 = new TreeNode("Logics");
@@ -183,10 +182,10 @@
             toolStripSplitButton4 = new ToolStripSplitButton();
             pnlResources = new Panel();
             splResource = new SplitContainer();
+            tvwResources = new TreeView();
             cmbResType = new ComboBox();
             lstResources = new ListView();
             columnHeader1 = new ColumnHeader();
-            tvwResources = new TreeView();
             cmdBack = new Button();
             cmdForward = new Button();
             propertyGrid1 = new PropertyGrid();
@@ -1312,9 +1311,9 @@
             // 
             // splResource.Panel1
             // 
+            splResource.Panel1.Controls.Add(tvwResources);
             splResource.Panel1.Controls.Add(cmbResType);
             splResource.Panel1.Controls.Add(lstResources);
-            splResource.Panel1.Controls.Add(tvwResources);
             splResource.Panel1.Controls.Add(cmdBack);
             splResource.Panel1.Controls.Add(cmdForward);
             splResource.Panel1.Resize += splResource_Panel1_Resize;
@@ -1328,6 +1327,35 @@
             splResource.TabStop = false;
             splResource.SplitterMoved += splResource_SplitterMoved;
             splResource.SizeChanged += splResource_SizeChanged;
+            // 
+            // tvwResources
+            // 
+            tvwResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tvwResources.HideSelection = false;
+            tvwResources.Location = new System.Drawing.Point(0, 26);
+            tvwResources.Margin = new Padding(2, 1, 2, 1);
+            tvwResources.Name = "tvwResources";
+            treeNode1.Name = "logics";
+            treeNode1.Text = "Logics";
+            treeNode2.Name = "pictures";
+            treeNode2.Text = "Pictures";
+            treeNode3.Name = "sounds";
+            treeNode3.Text = "Sounds";
+            treeNode4.Name = "views";
+            treeNode4.Text = "Views";
+            treeNode5.Name = "objects";
+            treeNode5.Text = "Objects";
+            treeNode6.Name = "words";
+            treeNode6.Text = "Words";
+            treeNode7.Name = "Node0";
+            treeNode7.Text = "AGIGAME";
+            tvwResources.Nodes.AddRange(new TreeNode[] { treeNode7 });
+            tvwResources.Size = new System.Drawing.Size(152, 147);
+            tvwResources.TabIndex = 25;
+            tvwResources.AfterCollapse += tvwResources_AfterCollapse;
+            tvwResources.AfterSelect += tvwResources_AfterSelect;
+            tvwResources.NodeMouseClick += tvwResources_NodeMouseClick;
+            tvwResources.NodeMouseDoubleClick += tvwResources_NodeMouseDoubleClick;
             // 
             // cmbResType
             // 
@@ -1366,35 +1394,6 @@
             // columnHeader1
             // 
             columnHeader1.Text = "";
-            // 
-            // tvwResources
-            // 
-            tvwResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tvwResources.HideSelection = false;
-            tvwResources.Location = new System.Drawing.Point(0, 26);
-            tvwResources.Margin = new Padding(2, 1, 2, 1);
-            tvwResources.Name = "tvwResources";
-            treeNode1.Name = "logics";
-            treeNode1.Text = "Logics";
-            treeNode2.Name = "pictures";
-            treeNode2.Text = "Pictures";
-            treeNode3.Name = "sounds";
-            treeNode3.Text = "Sounds";
-            treeNode4.Name = "views";
-            treeNode4.Text = "Views";
-            treeNode5.Name = "objects";
-            treeNode5.Text = "Objects";
-            treeNode6.Name = "words";
-            treeNode6.Text = "Words";
-            treeNode7.Name = "Node0";
-            treeNode7.Text = "AGIGAME";
-            tvwResources.Nodes.AddRange(new TreeNode[] { treeNode7 });
-            tvwResources.Size = new System.Drawing.Size(152, 147);
-            tvwResources.TabIndex = 25;
-            tvwResources.AfterCollapse += tvwResources_AfterCollapse;
-            tvwResources.AfterSelect += tvwResources_AfterSelect;
-            tvwResources.NodeMouseClick += tvwResources_NodeMouseClick;
-            tvwResources.NodeMouseDoubleClick += tvwResources_NodeMouseDoubleClick;
             // 
             // cmdBack
             // 
@@ -1485,12 +1484,12 @@
             fgWarnings.AllowUserToResizeRows = false;
             fgWarnings.BorderStyle = BorderStyle.None;
             dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.ActiveCaption;
             dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9F);
             dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
             dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
             fgWarnings.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             fgWarnings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             fgWarnings.Columns.AddRange(new DataGridViewColumn[] { colWarning, colDesc, colResNum, colLIne, colModule });
@@ -1510,7 +1509,8 @@
             fgWarnings.ReadOnly = true;
             fgWarnings.RowHeadersVisible = false;
             fgWarnings.RowHeadersWidth = 82;
-            fgWarnings.RowTemplate.Height = 41;
+            fgWarnings.RowTemplate.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+            fgWarnings.RowTemplate.Height = 28;
             fgWarnings.RowTemplate.ReadOnly = true;
             fgWarnings.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             fgWarnings.ShowCellErrors = false;
@@ -1519,6 +1519,9 @@
             fgWarnings.Size = new System.Drawing.Size(1123, 86);
             fgWarnings.StandardTab = true;
             fgWarnings.TabIndex = 0;
+            fgWarnings.ColumnHeaderMouseClick += fgWarnings_ColumnHeaderMouseClick;
+            fgWarnings.SortCompare += fgWarnings_SortCompare;
+            fgWarnings.Sorted += fgWarnings_Sorted;
             // 
             // colWarning
             // 

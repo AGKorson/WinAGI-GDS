@@ -34,10 +34,10 @@ namespace WinAGI.Engine
         //public Declare int mciSendString Lib "winmm.dll" Alias "mciSendStringA" (string lpstrCommand, string lpstrReturnString, int uReturnLength, int hwndCallback)
         public const int MM_MCINOTIFY = 0x3B9;
         public const int MCI_NOTIFY_SUCCESSFUL = 0x1;
+
         internal static bool ExtractResources(AGIGame game)
         {
             //gets the resources from VOL files, and adds them to the game
-
             //returns true if resources loaded with warnings
             //returns false if one or more errors occur during load
 
@@ -889,7 +889,7 @@ namespace WinAGI.Engine
             if (lngTrackCount == 0) {
                 //need to build a //null// set of data!!!
 
-                Array.Resize(ref SndPlayer.mMIDIData, 38);
+                Array.Resize(array: ref SndPlayer.mMIDIData, 38);
 
                 //one track, with one note of smallest length, and no sound
                 WriteSndWord(1);  //one track

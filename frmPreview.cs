@@ -245,6 +245,7 @@ namespace WinAGI.Editor {
                 }
                 //success - load the source code
                 rtfLogPrev.Text = agLogic.SourceText;
+                rtfLogPrev.ScrollToCaret();
                 //if logic is compiled
                 if (agLogic.Compiled) {
                     //use current background
