@@ -53,34 +53,31 @@ namespace WinAGI.Engine
         {
             //adds a new picture to a currently open game
             Picture agResource;
-            int intNextNum = 1;
+            int intNextNum = 0;
             string strID, strBaseID;
             //if this Picture already exists
             if (Exists(ResNum)) {
                 //resource already exists
-
                 Exception e = new(LoadResString(602))
                 {
                     HResult = WINAGI_ERR + 602
                 };
                 throw e;
             }
+            //create new ingame picture object
+            agResource = new Picture(parent, ResNum, NewPicture);
             //if no object was passed
             if (NewPicture is null) {
-                //create new picture object
-                agResource = new Picture();
                 //proposed ID will be default
                 strID = "Picture" + ResNum;
             }
             else {
-                //clone the passed picture
-                agResource = NewPicture.Clone();
                 //get proposed id
-                strID = NewPicture.ID;
+                strID = agResource.ID;
             }
             // validate id
             strBaseID = strID;
-            while (!NewPicture.IsUniqueResID(strID)) {
+            while (!agResource.IsUniqueResID(strID)) {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }
@@ -89,10 +86,8 @@ namespace WinAGI.Engine
             //force flags so save function will work
             agResource.IsDirty = true;
             agResource.WritePropState = true;
-
             //save new picture
             agResource.Save();
-
             //return the object created
             return agResource;
         }
@@ -202,6 +197,14 @@ namespace WinAGI.Engine
             }
             //create new logic object
             Picture newResource = new(parent, bytResNum, bytVol, lngLoc);
+            // try to load it
+            try {
+                newResource.Load();
+            }
+            catch (Exception e) {
+                // throw it
+                throw;
+            }
             //add it
             Col.Add(bytResNum, newResource);
         }

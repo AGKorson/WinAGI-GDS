@@ -937,67 +937,65 @@ namespace WinAGI.Engine
             if (NewIsV3) {
                 //one dir file
                 strFileName = NewGameDir + agGameID + "DIR";
-                fsDIR = File.Create(strFileName);
-                bwDIR = new BinaryWriter(fsDIR);
-                //add offsets - logdir offset is always 8
-                bwDIR.Write(Convert.ToInt16(8));
-                //pic offset is 8 + 3*logmax
-                tmpMax = agLogs.Max + 1;
-                if (tmpMax == 0) {
-                    // always put at least one; even if it's all FFs
-                    tmpMax = 1;
-                }
-                bwDIR.Write((short)(8 + 3 * tmpMax));
-                i = 8 + 3 * tmpMax;
-                //view offset is pic offset + 3*picmax
-                tmpMax = agPics.Max + 1;
-                if (tmpMax == 0) {
-                    tmpMax = 1;
-                }
-                bwDIR.Write((short)(i + 3 * tmpMax));
-                i += 3 * tmpMax;
-                //sound is view offset + 3*viewmax
-                tmpMax = agViews.Max + 1;
-                if (tmpMax == 0) {
-                    tmpMax = 1;
-                }
-                bwDIR.Write((short)(i + 3 * tmpMax));
+                using (fsDIR = File.Create(strFileName))
+                using (bwDIR = new BinaryWriter(fsDIR)) {
+                    //add offsets - logdir offset is always 8
+                    bwDIR.Write(Convert.ToInt16(8));
+                    //pic offset is 8 + 3*logmax
+                    tmpMax = agLogs.Max + 1;
+                    if (tmpMax == 0) {
+                        // always put at least one; even if it's all FFs
+                        tmpMax = 1;
+                    }
+                    bwDIR.Write((short)(8 + 3 * tmpMax));
+                    i = 8 + 3 * tmpMax;
+                    //view offset is pic offset + 3*picmax
+                    tmpMax = agPics.Max + 1;
+                    if (tmpMax == 0) {
+                        tmpMax = 1;
+                    }
+                    bwDIR.Write((short)(i + 3 * tmpMax));
+                    i += 3 * tmpMax;
+                    //sound is view offset + 3*viewmax
+                    tmpMax = agViews.Max + 1;
+                    if (tmpMax == 0) {
+                        tmpMax = 1;
+                    }
+                    bwDIR.Write((short)(i + 3 * tmpMax));
 
-                //now add all the dir entries
-                //NOTE: we can't use a for-next loop
-                //because sound and view dirs are swapped in v3 directory
+                    //now add all the dir entries
+                    //NOTE: we can't use a for-next loop
+                    //because sound and view dirs are swapped in v3 directory
 
-                //logics first
-                tmpMax = agLogs.Max;
-                for (i = 0; i <= tmpMax; i++) {
-                    bwDIR.Write(bytDIR[0, 3 * i]);
-                    bwDIR.Write(bytDIR[0, 3 * i + 1]);
-                    bwDIR.Write(bytDIR[0, 3 * i + 2]);
+                    //logics first
+                    tmpMax = agLogs.Max;
+                    for (i = 0; i <= tmpMax; i++) {
+                        bwDIR.Write(bytDIR[0, 3 * i]);
+                        bwDIR.Write(bytDIR[0, 3 * i + 1]);
+                        bwDIR.Write(bytDIR[0, 3 * i + 2]);
+                    }
+                    //next are pictures
+                    tmpMax = agPics.Max;
+                    for (i = 0; i <= tmpMax; i++) {
+                        bwDIR.Write(bytDIR[1, 3 * i]);
+                        bwDIR.Write(bytDIR[1, 3 * i + 1]);
+                        bwDIR.Write(bytDIR[1, 3 * i + 2]);
+                    }
+                    //then views
+                    tmpMax = agViews.Max;
+                    for (i = 0; i <= tmpMax; i++) {
+                        bwDIR.Write(bytDIR[3, 3 * i]);
+                        bwDIR.Write(bytDIR[3, 3 * i + 1]);
+                        bwDIR.Write(bytDIR[3, 3 * i + 2]);
+                    }
+                    //and finally, sounds
+                    tmpMax = agSnds.Max;
+                    for (i = 0; i <= tmpMax; i++) {
+                        bwDIR.Write(bytDIR[2, 3 * i]);
+                        bwDIR.Write(bytDIR[2, 3 * i + 1]);
+                        bwDIR.Write(bytDIR[2, 3 * i + 2]);
+                    }
                 }
-                //next are pictures
-                tmpMax = agPics.Max;
-                for (i = 0; i <= tmpMax; i++) {
-                    bwDIR.Write(bytDIR[1, 3 * i]);
-                    bwDIR.Write(bytDIR[1, 3 * i + 1]);
-                    bwDIR.Write(bytDIR[1, 3 * i + 2]);
-                }
-                //then views
-                tmpMax = agViews.Max;
-                for (i = 0; i <= tmpMax; i++) {
-                    bwDIR.Write(bytDIR[3, 3 * i]);
-                    bwDIR.Write(bytDIR[3, 3 * i + 1]);
-                    bwDIR.Write(bytDIR[3, 3 * i + 2]);
-                }
-                //and finally, sounds
-                tmpMax = agSnds.Max;
-                for (i = 0; i <= tmpMax; i++) {
-                    bwDIR.Write(bytDIR[2, 3 * i]);
-                    bwDIR.Write(bytDIR[2, 3 * i + 1]);
-                    bwDIR.Write(bytDIR[2, 3 * i + 2]);
-                }
-                //done! close the stream and file
-                fsDIR.Dispose();
-                bwDIR.Dispose();
             }
             else {
                 //make separate dir files
@@ -1021,15 +1019,14 @@ namespace WinAGI.Engine
                         break;
                     }
                     //create the dir file
-                    fsDIR = File.Create(strFileName);
-                    bwDIR = new BinaryWriter(fsDIR);
-                    for (i = 0; i <= tmpMax; i++) {
-                        bwDIR.Write(bytDIR[j, 3 * i]);
-                        bwDIR.Write(bytDIR[j, 3 * i + 1]);
-                        bwDIR.Write(bytDIR[j, 3 * i + 2]);
+                    using (fsDIR = File.Create(strFileName))
+                    using (bwDIR = new BinaryWriter(fsDIR)) {
+                        for (i = 0; i <= tmpMax; i++) {
+                            bwDIR.Write(bytDIR[j, 3 * i]);
+                            bwDIR.Write(bytDIR[j, 3 * i + 1]);
+                            bwDIR.Write(bytDIR[j, 3 * i + 2]);
+                        }
                     }
-                    fsDIR.Dispose();
-                    bwDIR.Dispose();
                 }
             }
 
@@ -2544,10 +2541,8 @@ namespace WinAGI.Engine
                 Raise_CompileGameEvent(ECStatus.csCanceled, 0, 0, tmpWarn);
             }
             agCompGame = false;
-            fsDIR.Dispose();
             fsVOL.Dispose();
             bwVOL.Dispose();
-            bwDIR.Dispose();
         }
     }
 }

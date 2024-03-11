@@ -48,34 +48,31 @@ namespace WinAGI.Engine
         {
             //adds a new sound to a currently open game
             Sound agResource;
-            int intNextNum = 1;
+            int intNextNum = 0;
             string strID, strBaseID;
             //if this sound already exists
             if (Exists(ResNum)) {
                 //resource already exists
-
                 Exception e = new(LoadResString(602))
                 {
                     HResult = WINAGI_ERR + 602
                 };
                 throw e;
             }
+            //create new ingame sound resource
+            agResource = new Sound(parent, ResNum, NewSound);
             //if an object was not passed
             if ((NewSound is null)) {
-                //create new sound resource
-                agResource = new Sound();
                 //proposed ID will be default
                 strID = "Sound" + ResNum;
             }
             else {
-                //clone the passed sound
-                agResource = NewSound.Clone();
                 //get proposed id
-                strID = NewSound.ID;
+                strID = agResource.ID;
             }
             // validate id
             strBaseID = strID;
-            while (!NewSound.IsUniqueResID(strID)) {
+            while (!agResource.IsUniqueResID(strID)) {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }
@@ -84,10 +81,8 @@ namespace WinAGI.Engine
             //force flags so save function will work
             agResource.IsDirty = true;
             agResource.WritePropState = true;
-
             //save new sound
             agResource.Save();
-
             //return the object created
             return agResource;
         }
@@ -188,7 +183,6 @@ namespace WinAGI.Engine
             //resources into logics collection
             //if this Logic number is already in the game
             if (Exists(bytResNum)) {
-
                 Exception e = new(LoadResString(602))
                 {
                     HResult = WINAGI_ERR + 602
@@ -197,6 +191,14 @@ namespace WinAGI.Engine
             }
             //create new logic object
             Sound newResource = new(parent, bytResNum, bytVol, lngLoc);
+            // try to load it
+            try {
+                newResource.Load();
+            }
+            catch (Exception e) {
+                // throw it
+                throw;
+            }
             //add it
             Col.Add(bytResNum, newResource);
         }

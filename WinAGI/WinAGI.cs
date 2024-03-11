@@ -357,6 +357,15 @@ namespace WinAGI.Engine
         }
         internal static void InitWinAGI()
         {
+
+            try {
+                Debug.Print(LoadResString(505));
+
+            }
+            catch (Exception e) {
+                Debug.Assert(false);
+            }
+
             // calling this forces the module to load and initialize
             ResetDefaultColors();
             CRC32Setup();

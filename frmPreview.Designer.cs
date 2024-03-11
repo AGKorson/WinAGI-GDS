@@ -145,7 +145,6 @@ namespace WinAGI.Editor
             rtfLogPrev.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             rtfLogPrev.Name = "rtfLogPrev";
             rtfLogPrev.ReadOnly = true;
-            rtfLogPrev.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedHorizontal;
             rtfLogPrev.ShowSelectionMargin = true;
             rtfLogPrev.Size = new System.Drawing.Size(532, 384);
             rtfLogPrev.TabIndex = 0;

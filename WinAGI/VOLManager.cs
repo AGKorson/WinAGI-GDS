@@ -6,20 +6,17 @@ using System.Threading.Tasks;
 using static WinAGI.Engine.AGIGame;
 using System.IO;
 
-namespace WinAGI.Engine
-{
-    public static partial class Base
-    {
+namespace WinAGI.Engine {
+    public static partial class Base {
         internal static int lngCurrentLoc;
         internal static sbyte lngCurrentVol;
-        internal static BinaryWriter bwDIR, bwVOL;
-        internal static BinaryReader brDIR, brVOL;
         internal static FileStream fsDIR, fsVOL;
+        internal static BinaryWriter bwDIR, bwVOL;
+        internal static BinaryReader brVOL;
         internal static byte[,] bytDIR = new byte[4, 768]; // (3, 767)
         internal static string strNewDir;
 
-        internal static void CompileResCol(dynamic tmpResCol, AGIResType ResType, bool RebuildOnly, bool NewIsV3)
-        {
+        internal static void CompileResCol(dynamic tmpResCol, AGIResType ResType, bool RebuildOnly, bool NewIsV3) {
 
             //compiles all the resources of ResType that are in the tmpResCol collection object
             //by adding them to the new VOL files
@@ -304,35 +301,29 @@ namespace WinAGI.Engine
                 if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
             }
         }
-        internal static void AddToVol(AGIResource AddRes, bool Version3, bool NewVOL = false, sbyte lngVol = -1, int lngLoc = -1)
-        {
-            //this method will add a resource to a VOL file
+        internal static void AddToVol(AGIResource AddRes, bool Version3, bool compileResCol = false, sbyte lngVol = -1, int lngLoc = -1) {
+            // this method adds a resource to a VOL file
             //
-            //if the NewVOL flag is true, it adds the resource
-            //to the specified vol file at the specified location
-            //the DIR file is not updated; that is done by the
-            //CompileGame method (which calls this method)
+            // if the compileResCol flag is true, it adds the resource
+            //  the specified vol file at the specified location
+            // the DIR file is not updated; that is done by the
+            // CompileGame method (which calls this method)
             //
-            //if the NewVOL flag is false, it finds the first
-            //available spot for the resource, and adds it there
-            //the method will add the resource at a new location based
-            //on first open position; it will not delete the resource
-            //data from its old position (but the area will be available
-            //for future use by another resource)
-            //and then it updates the DIR file
+            // if the compileResCol flag is false, it finds the first
+            // available spot for the resource, and adds it there
+            // the method will add the resource at a new location based
+            // on first open position; it will not delete the resource
+            // data from its old position (but the area will be available
+            // for future use by another resource)
+            // and then it updates the DIR file
             //
-            //only resources that are in a game can be added to a VOL file
-            //
-
-            byte[] ResHeader = [];
+            // only resources that are in a game can be added to a VOL file
+            byte[] ResHeader;
             string strID;
-            //should NEVER get here for a resource
-            //that is NOT in a game
 
-            //if NOT adding to a new VOL file
-            if (!NewVOL) {
+            if (!compileResCol) {
                 try {
-                    //get vol number and location where there is room for this resource
+                    // get vol number and location where there is room for this resource
                     FindFreeVOLSpace(AddRes);
                 }
                 catch (Exception e) {
@@ -345,23 +336,14 @@ namespace WinAGI.Engine
                 lngLoc = AddRes.Loc;
                 lngVol = AddRes.Volume;
             }
-            else {
-                //need to verify valid values are passed
-                if (lngLoc < 0 || lngVol < 0) {
-                    //error!!!
-                    //TODO: add appropriate error handling here
-                }
-            }
-
-            //build header
+            // build header
             ResHeader = new byte[5];
             ResHeader[0] = 0x12;
             ResHeader[1] = 0x34;
             ResHeader[2] = (byte)lngVol;
             ResHeader[3] = (byte)(AddRes.Size % 256);
             ResHeader[4] = (byte)(AddRes.Size / 256);
-
-            //if the resource is a version 3 resource,
+            // if the resource is a version 3 resource,
             if (Version3) {
                 //adjust header size
                 Array.Resize(ref ResHeader, 7);
@@ -374,9 +356,8 @@ namespace WinAGI.Engine
             }
 
             //if not adding to a new vol file
-            if (!NewVOL) {
+            if (!compileResCol) {
                 //save the resource into the vol file
-                //get as file number
                 fsVOL = new FileStream(AddRes.parent.agGameDir + strID + "VOL." + lngVol.ToString(), FileMode.Open);
                 bwVOL = new BinaryWriter(fsVOL);
             }
@@ -393,18 +374,19 @@ namespace WinAGI.Engine
                 //strErrSrc = Err.Source
                 lngError = e.HResult;
 
-                //if not adding to a new file, close volfile
-                if (!NewVOL) {
+                //if not compiling, close volfile
+                if (!compileResCol) {
                     fsVOL.Dispose();
                     bwVOL.Dispose();
                 }
-                throw new Exception("638 :" + strError);
+                Exception ex = new("638 :" + strError)
+                {
+                    HResult = lngError,
+                };
+                throw ex;
             }
-            ////always update sizeinvol
-            //SetSizeInVol(AddRes, AddRes.Size);
-
             //if adding to a new vol file
-            if (NewVOL) {
+            if (compileResCol) {
                 //increment loc pointer
                 lngCurrentLoc = lngCurrentLoc + AddRes.Size + 5;
                 //if version3
@@ -423,13 +405,12 @@ namespace WinAGI.Engine
                     //pass it along
                     lngError = e.HResult;
                     strError = e.Message;
-                    //strErrSrc = Err.Source
                     throw new Exception("lngError" + strError);
                 }
             }
         }
-        private static void AddResInfo(sbyte ResVOL, int ResLOC, int ResSize, int[,] VOLLoc, int[,] VOLSize)
-        {
+        private static void AddResInfo(sbyte ResVOL, int ResLOC, int ResSize, int[,] VOLLoc, int[,] VOLSize) {
+            // TODO: replace this mess with Sorted Lists!
             //adds TempRes to volume loc/size arrays, sorted by LOC
             //1st element of each VOL section is number of entries for that VOL
             int i = 0, j = 0;
@@ -452,10 +433,10 @@ namespace WinAGI.Engine
                 }
 
                 //first, increment Count
-                VOLLoc[ResVOL, 0] = VOLLoc[ResVOL, 0] + 1;
+                VOLLoc[ResVOL, 0]++; // = VOLLoc[ResVOL, 0] + 1;
 
                 //now move all items ABOVE i up one space
-                for (j = VOLLoc[ResVOL, 0]; j > i; i--) {
+                for (j = VOLLoc[ResVOL, 0]; j > i; j--) {
                     VOLLoc[ResVOL, j] = VOLLoc[ResVOL, j - 1];
                     VOLSize[ResVOL, j] = VOLSize[ResVOL, j - 1];
                 }
@@ -465,16 +446,15 @@ namespace WinAGI.Engine
                 VOLSize[ResVOL, i] = ResSize;
             }
         }
-        private static void FindFreeVOLSpace(AGIResource NewResource)
-        {
+        private static void FindFreeVOLSpace(AGIResource NewResource) {
             //this method will try to find a volume and location to store a resource
             //if a resource is being updated, it will have its volume set to 255
 
             //sizes are adjusted to include the header that AGI uses at the beginning of each
             //resource; 5 bytes for v2 and 7 bytes for v3
 
-            int[,] lngLoc = new int[15, 1023];
-            int[,] lngSize = new int[15, 1023];
+            int[,] resLoc = new int[15, 1023];
+            int[,] resSize = new int[15, 1023];
             //AGIResource tmpRes;
             int tmpSize, lngHeader, lngMaxVol, j;
             int lngStart, lngEnd, lngFree, NewResSize;
@@ -501,28 +481,28 @@ namespace WinAGI.Engine
                 //if not the resource being replaced
                 if (NewResType != AGIResType.rtLogic || tmpRes.Number != NewResNum) {
                     tmpSize = tmpRes.SizeInVOL + lngHeader;
-                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
+                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
                 }
             }
             foreach (Picture tmpRes in NewResource.parent.agPics.Col.Values) {
                 //if not the resource being replaced
                 if (NewResType != AGIResType.rtPicture || tmpRes.Number != NewResNum) {
                     tmpSize = tmpRes.SizeInVOL + lngHeader;
-                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
+                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
                 }
             }
             foreach (Sound tmpRes in NewResource.parent.agSnds.Col.Values) {
                 //if not the resource being replaced
                 if (NewResType != AGIResType.rtSound || tmpRes.Number != NewResNum) {
                     tmpSize = tmpRes.SizeInVOL + lngHeader;
-                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
+                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
                 }
             }
             foreach (View tmpRes in NewResource.parent.agViews.Col.Values) {
                 //if not the resource being replaced
                 if (NewResType != AGIResType.rtView || tmpRes.Number != NewResNum) {
                     tmpSize = tmpRes.SizeInVOL + lngHeader;
-                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, lngLoc, lngSize);
+                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
                 }
             }
             //step through volumes,
@@ -530,10 +510,10 @@ namespace WinAGI.Engine
                 //start at beginning
                 lngStart = 0;
                 // check for space between resources
-                for (j = 1; j <= lngLoc[i, 0] + 1; j++) {
+                for (j = 1; j <= resLoc[i, 0] + 1; j++) {
                     //if this is not the end of the list
-                    if (j < lngLoc[i, 0] + 1) {
-                        lngEnd = lngLoc[i, j];
+                    if (j < resLoc[i, 0] + 1) {
+                        lngEnd = resLoc[i, j];
                     }
                     else {
                         lngEnd = MAX_VOLSIZE;
@@ -551,7 +531,7 @@ namespace WinAGI.Engine
                     }
                     // not enough room; 
                     // adjust start to end of current resource
-                    lngStart = lngLoc[i, j] + lngSize[i, j];
+                    lngStart = resLoc[i, j] + resSize[i, j];
                 }
             }
             //if no room in any VOL file, raise an error
@@ -562,13 +542,23 @@ namespace WinAGI.Engine
             };
             throw e;
         }
-        internal static void UpdateDirFile(AGIResource UpdateResource, bool Remove = false)
-        {
+        internal static void UpdateDirFile(AGIResource UpdateResource, bool Remove = false) {
             //this method updates the DIR file with the volume and location
             //of a resource
             //if Remove option passed as true,
-            //the resource is treated as //deleted// and
-            // 0xFFFFFF is written in the resource//s DIR file place holder
+            //the resource is treated as 'deleted' and
+            // 0xFFFFFF is written in the resource's DIR file place holder
+
+            //strategy:
+            //if deleting--
+            //    is the the dir larger than the new max?
+            //    yes: compress the dir
+            //    no:  overwrite with 0xFFs
+            //
+            //if adding--
+            //    is the dir too small?
+            //    yes: expand the dir
+            //    no:  overwrite with the data
 
             //NOTE: directories inside a V3 dir file are in this order: LOGIC, PICTURE, VIEW, SOUND
             //the ResType enumeration is in this order: LOGIC, PICTURE, SOUND, VIEW
@@ -578,16 +568,7 @@ namespace WinAGI.Engine
             byte[] bytDIR, DirByte = new byte[2];
             int intMax = 0, intOldMax;
             int lngDirOffset = 0, lngDirEnd = 0, i, lngStart, lngStop;
-            //strategy:
-            //if deleting--
-            //    is the the dir larger than the new max?
-            //    yes: compress the dir
-            //    no:  insert 0xFFs
-            //
-            //if adding--
-            //    is the dir too small?
-            //    yes: expand the dir
-            //    no:  insert the data
+
             if (Remove) {
                 //resource marked for deletion
                 DirByte[0] = 0xFF;
@@ -616,9 +597,7 @@ namespace WinAGI.Engine
                 intMax = UpdateResource.parent.agViews.Max;
                 break;
             }
-
             //open the correct dir file, store in a temp array
-            //if version3
             if (UpdateResource.parent.agIsVersion3) {
                 strDirFile = UpdateResource.parent.agGameDir + UpdateResource.parent.agGameID + "DIR";
             }
@@ -626,13 +605,13 @@ namespace WinAGI.Engine
                 strDirFile = UpdateResource.parent.agGameDir + ResTypeAbbrv[(int)UpdateResource.ResType] + "DIR";
             }
             try {
-                fsDIR = new FileStream(strDirFile, FileMode.Open);
-                bytDIR = new byte[fsDIR.Length];
-                fsDIR.Read(bytDIR, 0, (int)fsDIR.Length);
+                using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
+                    bytDIR = new byte[fsDIR.Length];
+                    fsDIR.Read(bytDIR, 0, (int)fsDIR.Length);
+                }
             }
             catch (Exception) {
-                //error? what to do???
-                fsDIR.Dispose();
+                // error? what to do???
                 throw new Exception("can't open DIR for updating");
             }
             //calculate old max and offset (for v3 files)
@@ -664,22 +643,23 @@ namespace WinAGI.Engine
                 lngDirOffset = 0;
             }
 
-            //if it fits (doesn't matter if inserting or deleting)
+            // if it fits (doesn't matter if inserting or deleting)
             if ((Remove && (intMax >= intOldMax)) || (!Remove && (intOldMax >= intMax))) {
                 //adjust offset for resnum
                 lngDirOffset += 3 * UpdateResource.Number;
                 //just insert the new data, and save the file
                 try {
-                    fsDIR.Seek(lngDirOffset, SeekOrigin.Begin);
-                    fsDIR.Write(bytDIR, 0, 3);
+                    using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
+                        _ = fsDIR.Seek(lngDirOffset, SeekOrigin.Begin);
+                        fsDIR.Write(bytDIR);
+                    }
+                    return;
                 }
                 catch (Exception) {
                     throw new Exception("unable to update the DIR file...");
                 }
-                return;
             }
-
-            //size has changed!
+            // size has changed!
             if (Remove) {
                 //must be shrinking
                 //if v2, just redim the array
@@ -692,18 +672,18 @@ namespace WinAGI.Engine
                         Array.Resize(ref bytDIR, bytDIR.Length - 3 * (intOldMax - intMax));
                     }
                     else {
-                        //we need to move data from the current directory's max
-                        //backwards to compress the directory
-                        //start with resource just after new max; then move all bytes down
+                        // we need to move data from the current directory's max
+                        // backwards to compress the directory
+                        // start with resource just after new max; then move all bytes down
                         lngStart = lngDirOffset + intMax * 3 + 3;
                         lngStop = bytDIR.Length - 3 * (intOldMax - intMax);
                         for (i = lngStart; i < lngStop; i++) {
                             bytDIR[i] = bytDIR[i + 3 * (intOldMax - intMax)];
-                        } //Next i
-                          //now shrink the array
+                        }
+                        // now shrink the array
                         Array.Resize(ref bytDIR, bytDIR.Length - 3 * (intOldMax - intMax));
-                        //then we need to update affected offsets
-                        //move snddir offset first
+                        // then we need to update affected offsets
+                        // move snddir offset first
                         lngDirOffset = (bytDIR[7] << 8) + bytDIR[6];
                         lngDirOffset -= 3 * (intOldMax - intMax);
                         bytDIR[7] = (byte)(lngDirOffset >> 8);
@@ -726,18 +706,21 @@ namespace WinAGI.Engine
                         }
                     }
                 }
-
-                //delete the existing file
-                fsDIR.Dispose();
-                File.Delete(strDirFile);
-                //now save the file
-                fsDIR = new FileStream(strDirFile, FileMode.OpenOrCreate);
-                fsDIR.Write(bytDIR, 0, bytDIR.Length);
+                try {
+                    //delete the existing file
+                    File.Delete(strDirFile);
+                    //now save the file
+                    using (fsDIR = new FileStream(strDirFile, FileMode.OpenOrCreate)) {
+                        fsDIR.Write(bytDIR, 0, bytDIR.Length);
+                    }
+                }
+                catch (Exception) {
+                    throw new Exception("unable to update the DIR file...");
+                }
             }
             else {
                 //must be expanding
                 Array.Resize(ref bytDIR, bytDIR.Length + 3 * (intMax - intOldMax));
-
                 //if v2, add ffs to fill gap up to the last entry
                 if (!UpdateResource.parent.agIsVersion3) {
                     lngStart = lngDirEnd;
@@ -805,15 +788,18 @@ namespace WinAGI.Engine
                         }
                     }
                 }
-
-                //now save the file
-                fsDIR.Dispose();
-                fsDIR = new FileStream(strDirFile, FileMode.Open);
-                fsDIR.Write(bytDIR, 0, bytDIR.Length);
+                // now save the file
+                try {
+                    using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
+                        fsDIR.Write(bytDIR, 0, bytDIR.Length);
+                    }
+                }
+                catch (Exception) {
+                    throw new Exception("unable to update the DIR file...");
+                }
             }
         }
-        private static void ValidateVolAndLoc(AGIResource resource)
-        {
+        private static void ValidateVolAndLoc(AGIResource resource) {
             //this method ensures current vol has room for resource with given size
             //if not, it closes current vol file, and opens next one
             //this method is only used by the game compiler when doing a

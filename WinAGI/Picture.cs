@@ -31,23 +31,46 @@ namespace WinAGI.Engine
                         //variables used for low level graphics handling
         Bitmap bmpVis;
         Bitmap bmpPri;
-        public Picture() : base(AGIResType.rtPicture)
-        {
-            //initialize
-            mResID = "NewPicture";
+
+        private void InitPicture(Picture NewPicture = null) {
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Picture";
+            if (NewPicture is null) {
+                //create default picture with no commands
+                //mRData = new RData(1);
+                //mRData[0] = 0xff;
+                base.WriteByte(0xff);
+                //default to entire image
+                mDrawPos = -1;
+                //default pribase is 48
+                mPriBase = 48;
+            }
+            else {
 
-            //create default picture with no commands
-            //mRData = new RData(1);
-            //mRData[0] = 0xff;
-            base.WriteByte(0xff);
-            //default to entire image
-            mDrawPos = -1;
-            //default pribase is 48
-            mPriBase = 48;
+            }
         }
+
+        public Picture() : base(AGIResType.rtPicture) {
+            // new picture, not in game
+
+            //initialize
+            InitPicture();
+            // create a default ID
+            mResID = "NewPicture";
+            // if not in a game, resource is always loaded
+            mLoaded = true;
+        }
+
+        internal Picture(AGIGame parent, byte ResNum, Picture NewPicture = null) : base(AGIResType.rtPicture) {
+            // internal method to a new picture and find place for it in vol files
+
+            // initialize
+            InitPicture(NewPicture);
+            // set up base resource
+            base.InitInGame(parent, ResNum);
+        }
+
         public Picture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtPicture)
         {
             //this internal function adds this resource to a game, setting its resource 

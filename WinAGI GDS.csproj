@@ -52,12 +52,24 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>EditorResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="WinAGI\EngineResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>EngineResources.resx</DependentUpon>
+      <CustomToolNamespace>WinAGI.Engine</CustomToolNamespace>
+      <Generator></Generator>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="EditorResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>EditorResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="WinAGI\EngineResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>EngineResources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>WinAGI.Engine</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
 

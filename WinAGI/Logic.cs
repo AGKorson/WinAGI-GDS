@@ -88,30 +88,59 @@ namespace WinAGI.Engine
             mSourceDirty = false;
             mSourceText = "";
         }
-        public Logic() : base(AGIResType.rtLogic)
-        {
-            //initialize a nongame logic
-            mResID = "NewLogic";
+
+        private void InitLogic(Logic NewLogic = null) {
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Logic";
-            //set default resource data
-            // TODO: confirm correct empty logic data block; fix Clear to match
-            mRData.AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00];
-            // byte0 = low byte of msg section offset (relative to byte 2)
-            // byte1 = high byte of msg section offset
-            // byte2 = first byte of code data (a single return)
-            // byte3 = first byte of msg section = # of messages
-            // byte4 = high byte of msg end offset
-            // byte5 = low byte of msg end offset
+            if (NewLogic is null) {
+                //set default resource data
+                // TODO: confirm correct empty logic data block; fix Clear to match
+                mRData.AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00];
+                // byte0 = low byte of msg section offset (relative to byte 2)
+                // byte1 = high byte of msg section offset
+                // byte2 = first byte of code data (a single return)
+                // byte3 = first byte of msg section = # of messages
+                // byte4 = high byte of msg end offset
+                // byte5 = low byte of msg end offset
 
-            // set default source
-            mSourceText = ActionCommands[0].Name + "();" + NEWLINE + NEWLINE + "[ messages" + NEWLINE;
-            //to avoid having compile property read true if both values are 0, set compiled to -1 on initialization
-            CompiledCRC = 0xffffffff;
-            CRC = 0;
+                // set default source
+                mSourceText = ActionCommands[0].Name + "();" + NEWLINE + NEWLINE + "[ messages" + NEWLINE;
+                //to avoid having compile property read true if both values are 0, set compiled to -1 on initialization
+                CompiledCRC = 0xffffffff;
+                CRC = 0;
+            }
+            else {
+                // clone this logic
+                NewLogic.Clone(this);
+            }
         }
-        public Logic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtLogic)
+        public Logic() : base(AGIResType.rtLogic)
+        {
+            // new logic, not in game
+
+            //initialize
+            InitLogic();
+            // create a default ID
+            mResID = "NewLogic";
+            // if not in a game, resource is always loaded
+            mLoaded = true;
+        }
+
+        internal Logic(AGIGame parent, byte ResNum, Logic NewLogic = null) : base(AGIResType.rtLogic) {
+            // internal method to add a new logic and find place for it in vol files
+
+            // initialize
+            InitLogic(NewLogic);
+            // set up base resource
+            base.InitInGame(parent, ResNum);
+            //if res is zero
+            if (ResNum == 0) {
+                //make sure isroom flag is false
+                mIsRoom = false;
+            }
+        }
+        internal Logic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtLogic)
         {
             //adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
@@ -139,7 +168,6 @@ namespace WinAGI.Engine
                 mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
                 mIsRoom = parent.agGameProps.GetSetting("Logic" + ResNum, "IsRoom", false);
             }
-
             //if res is zero
             if (ResNum == 0) {
                 //make sure isroom flag is false
@@ -162,10 +190,6 @@ namespace WinAGI.Engine
             CopyLogic.mSourceDirty = mSourceDirty;
             // TODO: figure out how to handle source filename when cloning
             CopyLogic.mSourceFile = mSourceFile;
-            //if (!mInGame) {
-            //    CopyLogic.mSourceFile = mSourceFile;
-            //} else {
-            //}
             return CopyLogic;
         }
         public uint CompiledCRC
@@ -759,7 +783,7 @@ namespace WinAGI.Engine
                 if (mIsDirty) {
                     try {
                         //use the base resource save method
-                        base.Save(SaveFile);
+                        base.Save();
                     }
                     catch (Exception) {
                         throw;
@@ -774,7 +798,7 @@ namespace WinAGI.Engine
                 }
             }
             //reset dirty flag
-            IsDirty = false;
+            mIsDirty = false;
         }
         public override bool IsDirty
         {

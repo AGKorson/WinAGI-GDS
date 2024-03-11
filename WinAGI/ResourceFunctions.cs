@@ -51,7 +51,6 @@ namespace WinAGI.Engine
             int lngDirSize = 0, intResCount, i;
             sbyte bytVol;
             int lngLoc;
-            string strResID;
             bool blnWarnings = false;
             TWinAGIEventInfo warnInfo = new()
             {
@@ -71,23 +70,35 @@ namespace WinAGI.Engine
                 strDirFile = game.agGameDir + game.agGameID + "DIR";
                 //verify it exists
                 if (!File.Exists(strDirFile)) {
-                    throw new Exception(LoadResString(524).Replace(ARG1, strDirFile));
+                    Exception e = new(LoadResString(524).Replace(ARG1, strDirFile))
+                    {
+                        HResult = WINAGI_ERR + 524
+                    };
+                    throw e;
                 }
                 try {
                     //open the file, load it into buffer, and close it
-                    fsDIR = new FileStream(strDirFile, FileMode.Open);
-                    bytBuffer = new byte[fsDIR.Length];
-                    fsDIR.Read(bytBuffer);
-                    fsDIR.Dispose();
+                    using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
+                        bytBuffer = new byte[fsDIR.Length];
+                        fsDIR.Read(bytBuffer);
+                    }
                 }
                 catch (Exception) {
-                    throw new Exception(LoadResString(502));
+                    Exception e = new(LoadResString(502))
+                    {
+                        HResult = WINAGI_ERR + 502
+                    };
+                    throw e;
                 }
 
                 //if not enough bytes to hold at least the 4 dir pointers + 1 resource
                 if (bytBuffer.Length < 11) // 11 + bytes
                 {
-                    throw new Exception(LoadResString(542).Replace(ARG1, strDirFile));
+                    Exception e = new(LoadResString(542).Replace(ARG1, strDirFile))
+                    {
+                        HResult = WINAGI_ERR + 542
+                    };
+                    throw e;
                 }
 
             }
@@ -129,18 +140,26 @@ namespace WinAGI.Engine
                     strDirFile = game.agGameDir + ResTypeAbbrv[(int)bytResType] + "DIR";
                     //verify it exists
                     if (!File.Exists(strDirFile)) {
-                        throw new Exception(LoadResString(524).Replace(ARG1, strDirFile));
+                        Exception e = new(LoadResString(524).Replace(ARG1, strDirFile))
+                        {
+                            HResult = WINAGI_ERR + 524
+                        };
+                        throw e;
                     }
 
                     try {
                         //open the file, load it into buffer, and close it
-                        fsDIR = new FileStream(strDirFile, FileMode.Open);
-                        bytBuffer = new byte[fsDIR.Length];
-                        fsDIR.Read(bytBuffer);
-                        fsDIR.Dispose();
+                        using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
+                            bytBuffer = new byte[fsDIR.Length];
+                            fsDIR.Read(bytBuffer);
+                        }
                     }
                     catch (Exception) {
-                        throw new Exception(LoadResString(502));
+                        Exception e = new(LoadResString(502))
+                        {
+                            HResult = WINAGI_ERR + 502
+                        };
+                        throw e;
                     }
 
                     //get size
@@ -149,13 +168,21 @@ namespace WinAGI.Engine
 
                 //if invalid dir information, return false
                 if ((lngDirOffset < 0) || (lngDirSize < 0)) {
-                    throw new Exception(LoadResString(542).Replace(ARG1, strDirFile));
+                    Exception e = new(LoadResString(542).Replace(ARG1, strDirFile))
+                    {
+                        HResult = WINAGI_ERR + 542
+                    };
+                    throw e;
                 }
 
                 //if at least one resource,
                 if (lngDirSize >= 3) {
                     if (lngDirOffset + lngDirSize > bytBuffer.Length) {
-                        throw new Exception(LoadResString(542).Replace(ARG1, strDirFile));
+                        Exception e = new(LoadResString(542).Replace(ARG1, strDirFile))
+                        {
+                            HResult = WINAGI_ERR + 524
+                        };
+                        throw e;
                     }
                 }
 
@@ -213,10 +240,9 @@ namespace WinAGI.Engine
                             //extract volume and location
                             bytVol = (sbyte)(byte1 >> 4);
                             lngLoc = ((byte1 & 0xF) << 16) + (byte2 << 8) + byte3;
-                            strResID = ResTypeName[(int)bytResType] + bytResNum.ToString();
                             //add a resource of this res type
                             switch (bytResType) {
-                            case AGIResType.rtLogic:  //logic
+                            case AGIResType.rtLogic:
                                 try {
                                     game.agLogs.LoadLogic(bytResNum, bytVol, lngLoc);
                                 }
@@ -225,25 +251,13 @@ namespace WinAGI.Engine
                                     AddLoadWarning(AGIResType.rtLogic, bytResNum, e);
                                     blnWarnings = true;
                                 }
-                                //make sure it was added before attempting to set property state
+                                //make sure it was added before doing follow-on checks
                                 if (game.agLogs.Exists(bytResNum)) {
-                                    ////when new resources are added, status is set to dirty; for initial load,
-                                    //// TODO: need to reset them to false ****does not seem to be true; looks like it is 
-                                    ////already false-
-                                    ////
-                                    //agLogs[bytResNum].WritePropState = false;
                                     game.agLogs[bytResNum].IsDirty = false;
-
-                                }
-                                else {// TODO: add new warning if resource fails to load
-                                    ////set it's DIR file values to FFs
-                                    //bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                                    //blnDirtyDIR = true;
+                                    // logic source checks come after all resources loaded
                                 }
                                 break;
-                            case AGIResType.rtPicture:  //picture
+                            case AGIResType.rtPicture:
                                 try {
                                     game.agPics.LoadPicture(bytResNum, bytVol, lngLoc);
                                 }
@@ -252,16 +266,13 @@ namespace WinAGI.Engine
                                     AddLoadWarning(AGIResType.rtPicture, bytResNum, e);
                                     blnWarnings = true;
                                 }
-                                //make sure it was added before attempting to set property state
+                                //make sure it was added before doing follow-on checks
                                 if (game.agPics.Exists(bytResNum)) {
-                                    //when new resources are added, status is set to dirty; for initial load,
-                                    //need to reset them to false
-                                    game.agPics[bytResNum].WritePropState = false;
                                     game.agPics[bytResNum].IsDirty = false;
                                     // check for picture errors
-                                    game.agPics[bytResNum].Load();
                                     switch (game.agPics[bytResNum].BMPErrLevel) {
-                                    case 0:  // ok
+                                    case 0:
+                                        // ok
                                         break;
                                     case -1:
                                     case >= 8:
@@ -281,15 +292,8 @@ namespace WinAGI.Engine
                                     }
                                     game.agPics[bytResNum].Unload();
                                 }
-                                else {
-                                    ////set it's DIR file values to FFs
-                                    //bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                                    //blnDirtyDIR = true;
-                                }
                                 break;
-                            case AGIResType.rtSound:  //sound
+                            case AGIResType.rtSound:
                                 try {
                                     game.agSnds.LoadSound(bytResNum, bytVol, lngLoc);
                                 }
@@ -298,13 +302,9 @@ namespace WinAGI.Engine
                                     AddLoadWarning(AGIResType.rtSound, bytResNum, e);
                                     blnWarnings = true;
                                 }
-                                //make sure it was added before attempting to set property state
+                                //make sure it was added before doing follow-on checks
                                 if (game.agSnds.Exists(bytResNum)) {
-                                    //when new resources are added, status is set to dirty; for initial load,
-                                    //need to reset them to false
-                                    game.agSnds[bytResNum].WritePropState = false;
                                     game.agSnds[bytResNum].IsDirty = false;
-                                    game.agSnds[bytResNum].Load();
                                     // check for sound errors
                                     if (game.agSnds[bytResNum].ErrLevel != 0) {
                                         warnInfo.ID = "RW07";
@@ -314,15 +314,8 @@ namespace WinAGI.Engine
                                     }
                                     game.agSnds[bytResNum].Unload();
                                 }
-                                else {
-                                    ////set it's DIR file values to FFs
-                                    //bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                                    //blnDirtyDIR = true;
-                                }
                                 break;
-                            case AGIResType.rtView:  //view
+                            case AGIResType.rtView:
                                 try {
                                     game.agViews.LoadView(bytResNum, bytVol, lngLoc);
                                 }
@@ -331,14 +324,11 @@ namespace WinAGI.Engine
                                     AddLoadWarning(AGIResType.rtView, bytResNum, e);
                                     blnWarnings = true;
                                 }
-                                //make sure it was added before attempting to set property state
+                                //make sure it was added before doing follow-on checks
                                 if (game.agViews.Exists(bytResNum)) {
-                                    //when new resources are added, status is set to dirty; for initial load,
-                                    //need to reset them to false
                                     game.agViews[bytResNum].WritePropState = false;
                                     game.agViews[bytResNum].IsDirty = false;
-                                    game.agViews[bytResNum].Load();
-                                    // check for sound errors
+                                    // check for view errors
                                     if (game.agViews[bytResNum].ErrLevel == 1) {
                                         warnInfo.ID = "RW08";
                                         warnInfo.Text = $"View {bytResNum} has an invalid view description pointer";
@@ -347,15 +337,6 @@ namespace WinAGI.Engine
                                     }
                                     game.agViews[bytResNum].Unload();
                                 }
-                                else {
-                                    ////set it's DIR file values to FFs
-                                    //bytBuffer[lngDirOffset + bytResNum * 3] = 0xFF;
-                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 1] = 0xFF;
-                                    //bytBuffer[lngDirOffset + bytResNum * 3 + 2] = 0xFF;
-                                    //blnDirtyDIR = true;
-                                }
-                                break;
-                            default:
                                 break;
                             }
                         }
@@ -370,7 +351,6 @@ namespace WinAGI.Engine
                             }
                             using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
                                 fsDIR.Write(bytBuffer);
-                                fsDIR.Dispose();
                             }
                         }
                         catch (Exception) {
@@ -393,7 +373,6 @@ namespace WinAGI.Engine
                     }
                     using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
                         fsDIR.Write(bytBuffer);
-                        fsDIR.Dispose();
                     }
                 }
                 catch (Exception) {
@@ -440,7 +419,7 @@ namespace WinAGI.Engine
                 strError = "507: " + eRes.Message;
                 warnInfo.ID = "RW10";
                 warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has invalid resource data ({strError})";
-                warnInfo.Module = ""; //TODO: game.agres[bytResNum].ID;
+                warnInfo.Module = ""; //TODO: include module for this type?
                 Raise_LoadGameEvent(warnInfo);
                 break;
             case 606: //Can't load resource: file not found (%1)
@@ -456,7 +435,7 @@ namespace WinAGI.Engine
                 strError = (eRes.HResult - WINAGI_ERR) + ": " + eRes.Message;
                 warnInfo.ID = "RW11";
                 warnInfo.Text = $"Unable to load {ResTypeName[(int)resType]} {resNum} ({strError})";
-                warnInfo.Module = ""; // TODO: game.agPics[bytResNum].ID;
+                warnInfo.Module = "";
                 Raise_LoadGameEvent(warnInfo);
                 break;
             default: //any other unhandled error

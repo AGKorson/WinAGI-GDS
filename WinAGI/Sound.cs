@@ -9,10 +9,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.IO;
 
-namespace WinAGI.Engine
-{
-    public class Sound : AGIResource
-    {
+namespace WinAGI.Engine {
+    public class Sound : AGIResource {
         Track[] mTrack = new Track[4];
         bool mTracksSet;
         double mLength;
@@ -27,16 +25,13 @@ namespace WinAGI.Engine
         // Declare the event delegate, and event
         public delegate void SoundCompleteEventHandler(object sender, SoundCompleteEventArgs e);
         public event SoundCompleteEventHandler SoundComplete;
-        public class SoundCompleteEventArgs
-        {
-            public SoundCompleteEventArgs(bool noerror)
-            {
+        public class SoundCompleteEventArgs {
+            public SoundCompleteEventArgs(bool noerror) {
                 NoError = noerror;
             }
             public bool NoError { get; }
         }
-        internal void Raise_SoundCompleteEvent(bool noerror)
-        {
+        internal void Raise_SoundCompleteEvent(bool noerror) {
             // Raise the event in a thread-safe manner using the ?. operator.
             this.SoundComplete?.Invoke(null, new SoundCompleteEventArgs(noerror));
             //TODO: need to attach events when object instantiated?
@@ -44,36 +39,58 @@ namespace WinAGI.Engine
             //for example - 
             // new AGISound newSound.CompileGameStatus += myForm.mySoundEventHandler;
         }
-        public Sound() : base(AGIResType.rtSound)
-        {
-            //initialize
-            mResID = "NewSound";
+        private void InitSound(Sound NewSound = null) {
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.Sound";
-            //create default PC/PCjr sound with no notes in any tracks
-            mRData.AllData = [ 0x08, 0x00, 0x08, 0x00,
+            if (NewSound is null) {
+                //create default PC/PCjr sound with no notes in any tracks
+                mRData.AllData = [ 0x08, 0x00, 0x08, 0x00,
                                     0x08, 0x00, 0x08, 0x00,
                                     0xff, 0xff];
-            // byte 0/1, 2/2, 4/5, 6/7 = offset to track data
-            // byte 8/9 are end of track markers
-            mFormat = 1;
-            mTrack[0] = new Track(this);
-            mTrack[1] = new Track(this);
-            mTrack[2] = new Track(this);
-            mTrack[3] = new Track(this);
-            mTrack[0].Instrument = 80;
-            mTrack[1].Instrument = 80;
-            mTrack[2].Instrument = 80;
-            //default tqpn is 16
-            mTPQN = 16;
-            //length is undefined
-            mLength = -1;
-            //default key is c
-            mKey = 0;
+                // byte 0/1, 2/2, 4/5, 6/7 = offset to track data
+                // byte 8/9 are end of track markers
+                mFormat = 1;
+                mTrack[0] = new Track(this);
+                mTrack[1] = new Track(this);
+                mTrack[2] = new Track(this);
+                mTrack[3] = new Track(this);
+                mTrack[0].Instrument = 80;
+                mTrack[1].Instrument = 80;
+                mTrack[2].Instrument = 80;
+                //default tqpn is 16
+                mTPQN = 16;
+                //length is undefined
+                mLength = -1;
+                //default key is c
+                mKey = 0;
+            }
+            else {
+                // clone the new sound
+                NewSound.Clone(this);
+            }
         }
-        public Sound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtSound)
-        {
+        public Sound() : base(AGIResType.rtSound) {
+            // new sound, not in game
+
+            //initialize
+            InitSound();
+            // create a default ID
+            mResID = "NewSound";
+            // if not in a game, resource is always loaded
+            mLoaded = true;
+        }
+
+        internal Sound(AGIGame parent, byte ResNum, Sound NewSound = null) : base(AGIResType.rtSound) {
+            // internal method to add a new sound and find place for it in vol files
+
+            // initialize
+            InitSound(NewSound);
+            //set up base resource
+            base.InitInGame(parent, ResNum);
+        }
+
+        internal Sound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtSound) {
             //this internal function adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
 
@@ -82,29 +99,24 @@ namespace WinAGI.Engine
             strErrSource = "WinAGI.Sound";
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
-
-            //if importing, there will be nothing in the propertyfile
+            // ID should be in the propertyfile
             mResID = parent.agGameProps.GetSetting("Sound" + ResNum, "ID", "", true);
             if (ID.Length == 0) {
-                //no properties to load; save default ID
+                // ID not found; save default ID
                 ID = "Sound" + ResNum;
                 parent.WriteGameSetting("Sound" + ResNum, "ID", ID, "Sounds");
             }
-            else {
-                //get description and other properties from wag file
-                mDescription = parent.agGameProps.GetSetting("Sound" + ResNum, "Description", "");
-                //length is undefined until sound is built
-                mLength = -1;
-            }
+            //get description and other properties from wag file
+            mDescription = parent.agGameProps.GetSetting("Sound" + ResNum, "Description", "");
+            //length is undefined until sound is built
+            mLength = -1;
         }
-        private void ResPropChange(object sender, AGIResPropChangedEventArgs e)
-        {
+        private void ResPropChange(object sender, AGIResPropChangedEventArgs e) {
             //sound data has changed- tracks no longer match
             mTracksSet = false;
             mIsDirty = true;
         }
-        void BuildSoundOutput()
-        {
+        void BuildSoundOutput() {
             //creates midi/wav output data stream for this sound resource
             try {
                 switch (mFormat) {
@@ -137,8 +149,7 @@ namespace WinAGI.Engine
                 throw e;
             }
         }
-        double GetSoundLength()
-        {
+        double GetSoundLength() {
             int i;
             double retval = 0;
             //this function assumes a sound has been loaded properly
@@ -164,15 +175,13 @@ namespace WinAGI.Engine
               //does 0 work?
             return retval;
         }
-        public Track this[int index]
-        {
+        public Track this[int index] {
             get
             {
                 return Track(index);
             }
         }
-        public int Key
-        {
+        public int Key {
             get => mKey;
             set
             {
@@ -190,8 +199,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public int SndFormat
-        {
+        public int SndFormat {
             //  0 = not loaded
             //  1 = //standard// agi
             //  2 = IIgs sampled sound
@@ -206,8 +214,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public int ErrLevel
-        {
+        public int ErrLevel {
 
             //provides access to current error level of the sound tracks
 
@@ -232,8 +239,7 @@ namespace WinAGI.Engine
             }
         }
 
-        internal void LoadTracks()
-        {
+        internal void LoadTracks() {
             int i, lngLength = 0, lngTLength;
             int lngTrackStart, lngTrackEnd;
             int lngStart, lngEnd, lngResPos, lngDur;
@@ -347,8 +353,7 @@ namespace WinAGI.Engine
             //MUST be clean, since loaded from resource data
             mIsDirty = false;
         }
-        void CompileSound()
-        {
+        void CompileSound() {
             //compiles this sound by converting notes into an AGI resource datastream
             int i, j;
             Sound tmpRes;
@@ -403,8 +408,7 @@ namespace WinAGI.Engine
             //set tracksloaded flag
             mTracksSet = true;
         }
-        internal void NoteChanged()
-        {
+        internal void NoteChanged() {
             //called by child notes to indicate a change
             //has occured
             //change in note forces midiset to false
@@ -414,8 +418,7 @@ namespace WinAGI.Engine
             //and resets sound length
             mLength = -1;
         }
-        public override void Clear()
-        {
+        public override void Clear() {
             int i;
             if (!mLoaded) {
 
@@ -450,8 +453,7 @@ namespace WinAGI.Engine
               //reset length
             mLength = -1;
         }
-        public double Length
-        {
+        public double Length {
             get
             {
                 //returns length of sound in seconds
@@ -468,9 +470,8 @@ namespace WinAGI.Engine
                 return mLength;
             }
         }
-        public void PlaySound()
-        {  //plays sound asynchronously by generating a MIDI stream
-           //that is fed to a MIDI output
+        public void PlaySound() {  //plays sound asynchronously by generating a MIDI stream
+                                   //that is fed to a MIDI output
 
             //if not loaded
             if (!mLoaded) {
@@ -518,8 +519,7 @@ namespace WinAGI.Engine
                 throw new Exception("lngError, strErrSrc, strError");
             }
         }
-        public Sound Clone()
-        {
+        public Sound Clone() {
             //copies sound data from this sound and returns a completely separate object reference
             Sound CopySound = new();
             // copy base properties
@@ -539,8 +539,7 @@ namespace WinAGI.Engine
             }
             return CopySound;
         }
-        public void Export(string ExportFile, SoundFormat FileFormat = SoundFormat.sfAGI, bool ResetDirty = true)
-        {
+        public void Export(string ExportFile, SoundFormat FileFormat = SoundFormat.sfAGI, bool ResetDirty = true) {
             int i, j;
             int lngType, lngFreq;
             //if not loaded
@@ -729,8 +728,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public override void Import(string ImportFile)
-        {
+        public override void Import(string ImportFile) {
             //imports a sound resource
             short intData;
             string strLine;
@@ -1073,8 +1071,7 @@ namespace WinAGI.Engine
             //reset track flag
             mTracksSet = true;
         }
-        public int TPQN
-        {
+        public int TPQN {
             get
             {
                 return mTPQN;
@@ -1093,8 +1090,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public Track Track(int Index)
-        {
+        public Track Track(int Index) {
             //validate index
             if (Index < 0 || Index > 3) {
                 throw new IndexOutOfRangeException("Index out of bounds");
@@ -1123,8 +1119,7 @@ namespace WinAGI.Engine
             //return the desired track
             return mTrack[Index];
         }
-        internal void TrackChanged(bool ResetMIDI = true)
-        {
+        internal void TrackChanged(bool ResetMIDI = true) {
             //called by sound tracks to indicate a change
             //has occured; ResetMIDI flag allows some track changes to
             //occur that don't affect the MIDI data (such as Visible)
@@ -1139,8 +1134,7 @@ namespace WinAGI.Engine
             //change in track sets writeprop to true
             WritePropState = true;
         }
-        public override void Load()
-        {
+        public override void Load() {
             //load data into the sound tracks
             int i;
             //if already loaded
@@ -1209,7 +1203,6 @@ namespace WinAGI.Engine
             default:
                 //bad sound
                 Unload();
-
                 Exception e = new(LoadResString(598))
                 {
                     HResult = WINAGI_ERR + 598
@@ -1220,8 +1213,7 @@ namespace WinAGI.Engine
             mIsDirty = false;
             WritePropState = false;
         }
-        public byte[] MIDIData
-        {
+        public byte[] MIDIData {
             get
             {
                 //returns the MIDI data stream or WAV strem for this sound resource
@@ -1249,8 +1241,7 @@ namespace WinAGI.Engine
                 return SndPlayer.mMIDIData;
             }
         }
-        public new void Save(string SaveFile = "")
-        {
+        public void Save() {
             //saves the sound
             string strSection;
             //if properties need to be written
@@ -1286,17 +1277,17 @@ namespace WinAGI.Engine
                 try {
                     CompileSound();
                     //if type is sound script
-                    if (Right(SaveFile, 4).Equals(".ass", StringComparison.OrdinalIgnoreCase)) {
+                    if (Right(mResFile, 4).Equals(".ass", StringComparison.OrdinalIgnoreCase)) {
                         //use export for script
                         Export(mResFile, SoundFormat.sfScript);
                     }
-                    else if (Right(SaveFile, 4).Equals(".mid", StringComparison.OrdinalIgnoreCase)) {
+                    else if (Right(mResFile, 4).Equals(".mid", StringComparison.OrdinalIgnoreCase)) {
                         //use export for MIDI
                         Export(mResFile, SoundFormat.sfMIDI);
                     }
                     else {
                         //use the resource save method
-                        base.Save(SaveFile);
+                        base.Save();
                     }
                 }
                 catch (Exception) {
@@ -1307,8 +1298,8 @@ namespace WinAGI.Engine
                 mIsDirty = false;
             }
         }
-        public void StopSound()
-        {
+
+        public void StopSound() {
             //stops the sound, if it is playing
             //calling this for ANY sound will stop ALL sound
             int rtn;
@@ -1323,8 +1314,7 @@ namespace WinAGI.Engine
                 SndPlayer.blnPlaying = false;
             }
         }
-        public override void Unload()
-        {
+        public override void Unload() {
             //unload resource
             base.Unload();
             mIsDirty = false;

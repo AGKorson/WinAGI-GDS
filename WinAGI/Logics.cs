@@ -84,23 +84,23 @@ namespace WinAGI.Engine
             //if this Logic already exists
             if (Exists(ResNum)) {
                 //resource already exists
-                throw new Exception(LoadResString(602));
+                Exception e = new(LoadResString(602))
+                {
+                    HResult = WINAGI_ERR + 602
+                };
+                throw e;
             }
+            // create new ingame logic
+            agResource = new Logic(parent, ResNum, NewLogic);
             //if an object was not passed
             if (NewLogic is null) {
-                //create a new logic object
-                agResource = new Logic();
                 //proposed ID will be default
                 strID = "Logic" + ResNum;
             }
             else {
-                //clone the passed logic
-                agResource = NewLogic.Clone();
                 //get proposed id
-                strID = NewLogic.ID;
+                strID = agResource.ID;
             }
-            // set parent
-            agResource.parent = parent;
             // validate id
             strBaseID = strID;
             while (!agResource.IsUniqueResID(strID)) {
@@ -112,10 +112,8 @@ namespace WinAGI.Engine
             //force flags so save function will work
             agResource.IsDirty = true;
             agResource.WritePropState = true;
-
             //save new logic
             agResource.Save();
-
             //return the object created
             return agResource;
         }
@@ -228,6 +226,14 @@ namespace WinAGI.Engine
             }
             //create new logic object
             Logic newResource = new(parent, bytResNum, bytVol, lngLoc);
+            // try to load it
+            try {
+                newResource.Load();
+            }
+            catch (Exception e) {
+                // throw it
+                throw;
+            }
             //add it
             Col.Add(bytResNum, newResource);
         }

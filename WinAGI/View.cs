@@ -5,33 +5,56 @@ using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using System.IO;
+using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace WinAGI.Engine
-{
-    public class View : AGIResource
-    {
+namespace WinAGI.Engine {
+    public class View : AGIResource {
         bool mViewSet; //flag to note loops loaded from res data
         internal Loops mLoopCol;
         string mViewDesc;
         int mErrLvl;
 
-        public View() : base(AGIResType.rtView)
-        {
-            //initialize
+        private void InitView(View NewView = null) {
             //attach events
             base.PropertyChanged += ResPropChange;
             strErrSource = "WinAGI.View";
-            // add rempty loop col
-            mLoopCol = new Loops(this);
-            mRData.AllData = [0x01, 0x01, 0x00, 0x00, 0x00];
-            // byte0 = unknown (always 1 or 2?)
-            // byte1 = unknown (always 1?)
-            // byte2 = loop count
-            // byte3 = high byte of viewdesc
-            // byte4 = low byte of viewdesc
+            if (NewView is null) {
+                // add rempty loop col
+                mLoopCol = new Loops(this);
+                mRData.AllData = [0x01, 0x01, 0x00, 0x00, 0x00];
+                // byte0 = unknown (always 1 or 2?)
+                // byte1 = unknown (always 1?)
+                // byte2 = loop count
+                // byte3 = high byte of viewdesc
+                // byte4 = low byte of viewdesc
+            }
+            else {
+                // clone the view
+                NewView.Clone(this);
+            }
         }
-        internal View(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtView)
-        {
+
+        public View() : base(AGIResType.rtView) {
+            // new view, not in game
+
+            // initialize
+            InitView();
+            // create default ID
+            mResID = "NewView";
+            // if not in a game, resource is always loaded
+            mLoaded = true;
+        }
+
+        internal View(AGIGame parent, byte ResNum, View NewView = null) : base(AGIResType.rtView) {
+            // internal method to add a new view and find a place for it in vol files
+
+            // initialize
+            InitView(NewView);
+            // set up base resource
+            base.InitInGame(parent, ResNum);
+        }
+
+        internal View(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtView) {
             //this internal function adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
 
@@ -55,14 +78,12 @@ namespace WinAGI.Engine
             // add rempty loop col
             mLoopCol = new Loops(this);
         }
-        private void ResPropChange(object sender, AGIResPropChangedEventArgs e)
-        {
+        private void ResPropChange(object sender, AGIResPropChangedEventArgs e) {
             ////let//s do a test
             //// increment number everytime data changes
             //Number++;
         }
-        internal View Clone()
-        {
+        internal View Clone() {
             //copies view data from this view and returns a completely separate object reference
             View CopyView = new();
             // copy base properties
@@ -74,8 +95,7 @@ namespace WinAGI.Engine
             CopyView.mErrLvl = mErrLvl;
             return CopyView;
         }
-        public override void Clear()
-        {
+        public override void Clear() {
             //resets the view
             //to a single loop with
             //a single view with
@@ -108,8 +128,7 @@ namespace WinAGI.Engine
             //set dirty flag
             mIsDirty = true;
         }
-        void CompileView()
-        {
+        void CompileView() {
             // converts loop/cel objects into correct 
             // AGI data stream
             int[] lngLoopLoc, lngCelLoc;
@@ -217,10 +236,9 @@ namespace WinAGI.Engine
             //set viewloaded flag
             mViewSet = true;
         }
-        void ExpandCelData(int StartPos, Cel TempCel)
-        {  //this function will expand the RLE data beginning at
-           //position StartPos
-           //it then passes the expanded data to the cel
+        void ExpandCelData(int StartPos, Cel TempCel) {  //this function will expand the RLE data beginning at
+                                                         //position StartPos
+                                                         //it then passes the expanded data to the cel
             byte bytWidth, bytHeight, bytTransColor;
             byte bytCelX, bytCelY = 0;
             byte bytIn;
@@ -265,10 +283,9 @@ namespace WinAGI.Engine
             //pass cel data to the cel
             TempCel.AllCelData = tmpCelData;
         }
-        byte GetMirrorPair()
-        {  //this function will generate a unique mirrorpair number
-           //that is used to identify a pair of mirrored loops
-           //the source loop is positive; the copy is negative
+        byte GetMirrorPair() {  //this function will generate a unique mirrorpair number
+                                //that is used to identify a pair of mirrored loops
+                                //the source loop is positive; the copy is negative
             byte i;
             bool goodnum;
             //start with 1
@@ -294,8 +311,7 @@ namespace WinAGI.Engine
             } while (true);
             return retval;
         }
-        internal int LoadLoops()
-        {
+        internal int LoadLoops() {
             // used by load function to extract the view
             // loops and cels from the data stream
             byte bytNumLoops, bytNumCels;
@@ -442,8 +458,7 @@ namespace WinAGI.Engine
             mIsDirty = false;
             return result;
         }
-        public void Export(string ExportFile, bool ResetDirty = true)
-        {
+        public void Export(string ExportFile, bool ResetDirty = true) {
             //if not loaded
             if (!mLoaded) {
                 //error
@@ -476,8 +491,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public override void Import(string ImportFile)
-        {  //imports a view resource
+        public override void Import(string ImportFile) {  //imports a view resource
             try {
                 //import the resource
                 Import(ImportFile);
@@ -501,8 +515,7 @@ namespace WinAGI.Engine
             //loops need rebuilding
             mViewSet = false;
         }
-        public override void Load()
-        {
+        public override void Load() {
             // ignore if already loaded
             if (Loaded) {
                 return;
@@ -525,8 +538,7 @@ namespace WinAGI.Engine
             mIsDirty = false;
             WritePropState = false;
         }
-        public override void Unload()
-        {
+        public override void Unload() {
             //unload resource
             base.Unload();
             mIsDirty = false;
@@ -535,8 +547,7 @@ namespace WinAGI.Engine
             mErrLvl = 0;
             mViewSet = false;
         }
-        public void Save()
-        {
+        public void Save() {
             //saves an ingame view
             //if properties need to be written
             if (WritePropState && mInGame) {
@@ -566,8 +577,7 @@ namespace WinAGI.Engine
                 mIsDirty = false;
             }
         }
-        public Loop this[int index]
-        {
+        public Loop this[int index] {
             get
             {
                 try {
@@ -579,8 +589,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public Loops Loops
-        {
+        public Loops Loops {
             get
             {
                 //if not loaded
@@ -605,8 +614,7 @@ namespace WinAGI.Engine
                 return mLoopCol;
             }
         }
-        public string ViewDescription
-        {
+        public string ViewDescription {
             get
             {
                 //if not loaded
@@ -632,8 +640,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public int ErrLevel
-        {
+        public int ErrLevel {
 
             //provides access to current error level of the view
 
@@ -649,8 +656,7 @@ namespace WinAGI.Engine
             }
         }
 
-        public void SetMirror(byte TargetLoop, byte SourceLoop)
-        {
+        public void SetMirror(byte TargetLoop, byte SourceLoop) {
             //TargetLoop is the loop that will be a mirror of
             //SourceLoop; the cels collection in TargetLoop will be lost
             //once the mirror property is set

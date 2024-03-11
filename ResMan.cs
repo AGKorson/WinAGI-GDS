@@ -263,6 +263,7 @@ namespace WinAGI.Editor
             grImport,
             grMenuBkgd,
             grAddInGame,
+            grRenumberRoom
         }
         public enum GameSettingFunction
         {
@@ -12204,7 +12205,7 @@ namespace WinAGI.Editor
                 if (GetResNum.Canceled) {
                     tmpLogic = null;
                     //restore mousepointer and exit
-                    GetResNum.Close();
+                    GetResNum.Dispose();
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
@@ -12266,7 +12267,7 @@ namespace WinAGI.Editor
                 blnOpen = (GetResNum.chkOpenRes.Checked);
 
                 //make sure resource form is unloaded
-                GetResNum.Close();
+                GetResNum.Dispose();
             }
 
             //only open if user wants it open (or if not in a game or if opening/not importing)

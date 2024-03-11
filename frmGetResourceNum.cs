@@ -20,186 +20,141 @@ namespace WinAGI.Editor
         public AGIResType ResType;
         public byte NewResNum;
         public byte OldResNum;
-        public bool Canceled;
-        public bool DontImport;
+        public bool Canceled = true;
+        public bool DontImport = false;
         public EGetRes WindowFunction;
+
+        class ListItemData {
+            public byte ResNum = 0;
+            public string ID = "";
+            public override string ToString() { return ID; }
+        }
+
         public frmGetResourceNum()
         {
             InitializeComponent();
         }
         public void FormSetup()
         {
-            byte i;
-            int lngOldNum;
-            string strID;
-            Dictionary<byte, string> tmpCol = [];
+            int i;
+            ListItemData tmpItem;
 
             //clear the listbox
             lstResNum.Items.Clear();
 
             switch (WindowFunction) {
             case grAddNew or grAddInGame or grRenumber or grAddLayout or grImport:
-                //add all numbers to temporary collection
-
-                for (i = 0; i <= 255; i++) {
-                    tmpCol.Add(i, i.ToString());
-                }
                 // if adding rooms in layout, always SUGGEST include pic
                 if (WindowFunction == grAddLayout) {
                     chkIncludePic.Checked = true;
                     chkIncludePic.Enabled = true;
                 }
-                // remove all resource numbers that are in use
-                switch (ResType) {
-                case rtView:
-                    if (EditGame.Views.Count > 0) {
-                        foreach (Engine.View tmpView in EditGame.Views) {
-                            tmpCol.Remove(tmpView.Number);
+                // only add  resource numbers that are NOT in use
+                for (i = 0; i < 256; i++) {
+                    tmpItem = new ListItemData
+                    {
+                        ResNum = (byte)i,
+                        ID = i.ToString()
+                    };
+                    switch (ResType) {
+                    case rtLogic:
+                        // if exists, don't add
+                        // if grAddLayout AND i == 0, don't add
+                        // if grRenumberRoom AND Picture exists, don't add
+                        if (!EditGame.Logics.Exists((byte)i) &&
+                            (WindowFunction != grAddLayout || i != 0) &&
+                            (WindowFunction != grRenumberRoom || !EditGame.Pictures.Exists((byte)i))) {
+                            lstResNum.Items.Add(tmpItem);
                         }
-                    }
-                    break;
-                case rtPicture:
-                    if (EditGame.Pictures.Count > 0) {
-                        foreach (Picture tmpPicture in EditGame.Pictures) {
-                            tmpCol.Remove(tmpPicture.Number);
+                        break;
+                    case rtView:
+                        if (!EditGame.Views.Exists((byte)i)) {
+                            lstResNum.Items.Add(tmpItem);
                         }
-                    }
-                    break;
-                case rtSound:
-                    if (EditGame.Sounds.Count > 0) {
-                        foreach (Sound tmpSound in EditGame.Sounds) {
-                            tmpCol.Remove(tmpSound.Number);
+                        break;
+                    case rtPicture:
+                        if (!EditGame.Pictures.Exists((byte)i)) {
+                            lstResNum.Items.Add(tmpItem);
                         }
-                    }
-                    break;
-                case rtLogic:
-                    if (EditGame.Logics.Count > 0) {
-                        foreach (Logic tmpLogic in EditGame.Logics) {
-                            tmpCol.Remove(tmpLogic.Number);
+                        break;
+                    case rtSound:
+                        if (EditGame.Sounds.Exists((byte)i)) {
+                            lstResNum.Items.Add(tmpItem);
                         }
+                        break;
                     }
-                    // if adding rooms in logic/picture pairs
-                    // if adding to layout room 0 is NEVER available
-                    if (chkIncludePic.Checked == true || WindowFunction == grAddLayout) {
-                        // ensure logic 0 is removed
-                        tmpCol.Remove(0);
-                    }
-                    break;
-                }
-                // add remaining numbers to the combobox
-                foreach (KeyValuePair<byte, string> tmpKVP in tmpCol) {
-                    lstResNum.Items.Add(tmpKVP);
                 }
                 break;
             case grOpen or grTestView or grMenu or grMenuBkgd:
-                // to ensure resources are sorted by number, use the tmpcollection;
                 // only add resources that are in game
-                switch (ResType) {
-                case rtLogic:
-                    for (i = 0; i <= 255; i++) {
-                        if (EditGame.Logics.Exists(i)) {
-                            if (Settings.ShowResNum) {
-                                tmpCol.Add(i, ResourceName(EditGame.Logics[i], true));
-                            }
-                            else {
-                                tmpCol.Add(i, i + " - " + EditGame.Logics[i].ID);
-                            }
+                for (i = 0; i < 256; i++) {
+                    tmpItem = new()
+                    {
+                        ResNum = (byte)i
+                    };
+                    switch (ResType) {
+                    case rtLogic:
+                        if (EditGame.Logics.Exists((byte)i)) {
+                            tmpItem.ID = Settings.ShowResNum
+                                ? ResourceName(EditGame.Logics[i], true)
+                                : i + " - " + EditGame.Logics[i].ID;
+                            lstResNum.Items.Add(tmpItem);
                         }
-                    }
-                    // step through collection to add numbers to list
-                    foreach (KeyValuePair<byte, string> tmpKVP in tmpCol) {
-                        lstResNum.Items.Add(tmpKVP);
-                    }
-                    break;
-                case rtPicture:
-                    for (i = 0; i <= 255; i++) {
-                        if (EditGame.Pictures.Exists(i)) {
-                            if (Settings.ShowResNum) {
-                                tmpCol.Add(i, ResourceName(EditGame.Pictures[i], true));
-                            }
-                            else {
-                                tmpCol.Add(i, i + " - " + EditGame.Pictures[i].ID);
-                            }
+
+                        break;
+                    case rtPicture:
+                        if (EditGame.Pictures.Exists((byte)i)) {
+                            tmpItem.ID = Settings.ShowResNum
+                                ? ResourceName(EditGame.Pictures[i], true)
+                                : i + " - " + EditGame.Pictures[i].ID;
+                            lstResNum.Items.Add(tmpItem);
                         }
-                    }
-                    // step through collection to add numbers to list
-                    foreach (KeyValuePair<byte, string> tmpKVP in tmpCol) {
-                        lstResNum.Items.Add(tmpKVP);
-                    }
-                    break;
-                case rtSound:
-                    for (i = 0; i <= 255; i++) {
-                        if (EditGame.Sounds.Exists(i)) {
-                            if (Settings.ShowResNum) {
-                                tmpCol.Add(i, ResourceName(EditGame.Sounds[i], true));
-                            }
-                            else {
-                                tmpCol.Add(i, i + " - " + EditGame.Sounds[i].ID);
-                            }
+                        break;
+                    case rtSound:
+                        if (EditGame.Sounds.Exists((byte)i)) {
+                            tmpItem.ID = Settings.ShowResNum
+                                ? ResourceName(EditGame.Sounds[i], true)
+                                : i + " - " + EditGame.Sounds[i].ID;
+                            lstResNum.Items.Add(tmpItem);
                         }
-                    }
-                    // step through collection again to add numbers to list
-                    foreach (KeyValuePair<byte, string> tmpKVP in tmpCol) {
-                        lstResNum.Items.Add(tmpKVP);
-                    }
-                    break;
-                case rtView:
-                    for (i = 0; i <= 255; i++) {
-                        if (EditGame.Views.Exists(i)) {
-                            if (Settings.ShowResNum) {
-                                tmpCol.Add(i, ResourceName(EditGame.Views[i], true));
-                            }
-                            else {
-                                tmpCol.Add(i, i + " - " + EditGame.Views[i].ID);
-                            }
+                        break;
+                    case rtView:
+                        if (EditGame.Views.Exists((byte)i)) {
+                            tmpItem.ID = Settings.ShowResNum
+                                ? ResourceName(EditGame.Views[i], true)
+                                : i + " - " + EditGame.Views[i].ID;
+                            lstResNum.Items.Add(tmpItem);
                         }
+                        break;
                     }
-                    // step through collection and add numbers to list
-                    foreach (KeyValuePair<byte, string> tmpKVP in tmpCol) {
-                        lstResNum.Items.Add(tmpKVP);
-                    }
-                    break;
                 }
                 break;
             case grShowRoom:
-                // displays all logics in game which do NOT have InRoom=True
-                for (i = 1; i <= 255; i++) {
-                    if (EditGame.Logics.Exists(i)) {
+                // displays all logics in game which do NOT have InRoom=true
+                for (i = 1; i < 256; i++) {
+                    tmpItem = new()
+                    {
+                        ResNum = (byte)i
+                    };
+                    if (EditGame.Logics.Exists((byte)i)) {
                         if (!EditGame.Logics[i].IsRoom) {
-                            if (Settings.ShowResNum) {
-                                tmpCol.Add(i, ResourceName(EditGame.Logics[i], true));
-                            }
-                            else {
-                                tmpCol.Add(i, i + " - " + EditGame.Logics[i].ID);
-                            }
+                            tmpItem.ID = Settings.ShowResNum 
+                                ? ResourceName(EditGame.Logics[i], true) 
+                                : i + " - " + EditGame.Logics[i].ID;
+                            lstResNum.Items.Add(tmpItem);
                         }
                     }
                 }
-                // add items from tmpCol to listbox
-                for (i = 1; i <= tmpCol.Count; i++) {
-                    // lstResNum.ItemData(lstResNum.ListCount - 1) = tmpCol(i)
-                }
-                foreach (KeyValuePair<byte, string> tmpKVP in tmpCol) {
-                    lstResNum.Items.Add(tmpKVP);
-                }
-                    // if no rooms added
-                    if (lstResNum.Items.Count == 0) {
-                    MessageBox.Show("All logics in the game are currently tagged as rooms and are visible."); //, vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Show Room", WinAGIHelp, "htm\winagi\Managing_Resources.htm#resourceids"
-                    // set cancel to true
-                    Canceled = true;
+                // if no rooms added
+                if (lstResNum.Items.Count == 0) {
+                    MessageBox.Show("All logics in the game are currently tagged as rooms and are visible.", "Show Room",MessageBoxButtons.OK,MessageBoxIcon.Information); //vbMsgBoxHelpButton, , WinAGIHelp, "htm\winagi\Managing_Resources.htm#resourceids"
                     // close form
-                }
-                else {
-                    Canceled = false;
+                    Close();
                 }
                 break;
             }
             // set form size and controls
             AdjustControls();
-            // assume cancel
-            Canceled = true;
-            // and not 'dont import'
-            DontImport = false;
             // set focus to resnum list
             lstResNum.Focus();
         }
@@ -450,67 +405,6 @@ namespace WinAGI.Editor
 
       Private Sub cmdOK_Click()
 
-        Dim rtn As Long, strErrMsg As String
-
-        'get resnum
-        NewResNum = CByte(lstResNum.ItemData(lstResNum.ListIndex))
-
-        Select Case WindowFunction
-        Case grRenumber
-          If (OldResNum = NewResNum) Then
-            'same as canceling, then close form
-            Canceled = True
-          Else
-            'OK to close form
-            Canceled = False
-          End If
-
-        Case grAddNew, grAddInGame, grImport
-
-          'validate resourceID (use impossible value for old ID to avoid matching
-          rtn = ValidateID(txtID.Text, Chr$(255))
-
-          Select Case rtn
-          Case 0 'ok
-          Case 1 ' no ID
-            strErrMsg = "Resource ID cannot be blank."
-          Case 2 ' ID is numeric
-            strErrMsg = "Resource IDs cannot be numeric."
-          Case 3 ' ID is command
-            strErrMsg = ChrW$(39) & txtID.Text & "' is an AGI command, and cannot be used as a resource ID."
-          Case 4 ' ID is test command
-            strErrMsg = ChrW$(39) & txtID.Text & "' is an AGI test command, and cannot be used as a resource ID."
-          Case 5 ' ID is a compiler keyword
-            strErrMsg = ChrW$(39) & txtID.Text & "' is a compiler reserved word, and cannot be used as a resource ID."
-          Case 6 ' ID is an argument marker
-            strErrMsg = "Resource IDs cannot be argument markers"
-          Case 14 ' ID contains improper character
-            strErrMsg = "Invalid character in resource ID: & vbnewline & !" & QUOTECHAR & "&'()*+,-/:;<=>?[\]^`{|}~ and spaces" & vbNewLine & "are not allowed."
-          Case 15 ' ID matches existing ResourceID
-            'ingame is presumed true
-            Debug.Assert GameLoaded
-            strErrMsg = ChrW$(39) & txtID.Text & "' is already in use as a resource ID."
-          End Select
-
-          'if there is an error
-          If rtn <> 0 Then
-            'error - show msgbox
-            MsgBoxEx strErrMsg, vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Invalid Resource ID", WinAGIHelp, "htm\winagi\Managing Resources.htm#resourceids"
-            'send user back to the form to try again
-            txtID.SelStart = 0
-            txtID.SelLength = Len(txtID.Text)
-            txtID.SetFocus
-            Exit Sub
-          Else
-            'OK to exit
-            Canceled = False
-          End If
-        Case Else
-          'ok to close form
-          Canceled = False
-        End Select
-
-
         'save the current 'opennew' value
          WriteSetting GameSettings, sGENERAL, "OpenNew", (chkOpenRes.Value = vbChecked)
 
@@ -620,8 +514,84 @@ namespace WinAGI.Editor
             */
         }
 
-        private void btnOK_Click(object sender, EventArgs e)
-        {
+        private void btnOK_Click(object sender, EventArgs e) {
+            int rtn;
+            string strErrMsg = "";
+            // get resnum
+            NewResNum = ((ListItemData)lstResNum.SelectedItem).ResNum;
+            switch (WindowFunction) {
+            case grRenumber or grRenumberRoom:
+                if (OldResNum == NewResNum) {
+                    // same as canceling
+                    Canceled = true;
+                    Close();
+                }
+                break;
+            case grAddNew or grAddInGame or grImport:
+                // validate resourceID (use impossible value for old ID to avoid matching
+                rtn = ValidateID(txtID.Text, 255.ToString());
+                switch (rtn) {
+                case 0:
+                    // ok
+                    break;
+                case 1:
+                    // no ID
+                    strErrMsg = "Resource ID cannot be blank.";
+                    break;
+                case 2:
+                    // ID is numeric
+                    strErrMsg = "Resource IDs cannot be numeric.";
+                    break;
+                case 3:
+                    // ID is command
+                    strErrMsg = "'" + txtID.Text + "' is an AGI command, and cannot be used as a resource ID.";
+                    break;
+                case 4:
+                    // ID is test command
+                    strErrMsg = "'" + txtID.Text + "' is an AGI test command, and cannot be used as a resource ID.";
+                    break;
+                case 5:
+                    // ID is a compiler keyword
+                    strErrMsg = "'" + txtID.Text + "' is a compiler reserved word, and cannot be used as a resource ID.";
+                    break;
+                case 6:
+                    // ID is an argument marker
+                    strErrMsg = "Resource IDs cannot be argument markers";
+                    break;
+                case 14:
+                    // ID contains improper character
+                    strErrMsg = "Invalid character in resource ID: " + Environment.NewLine + "!\"&'()*+,-/:;<=>?[\\]^`{|}~ and spaces" + Environment.NewLine + "are not allowed.";
+                    break;
+                case 15:
+                    // ID matches existing ResourceID
+                    // ingame is presumed true
+                    strErrMsg = "'" + txtID.Text + "' is already in use as a resource ID.";
+                    break;
+                }
+
+                // if there is an error
+                if (rtn != 0) {
+                    // error - show msgbox
+                    MessageBox.Show(strErrMsg, "Invalid Resource ID", MessageBoxButtons.OK, MessageBoxIcon.Information); // vbMsgBoxHelpButton, WinAGIHelp, "htm\winagi\Managing Resources.htm#resourceids"
+                    // send user back to the form to try again
+                    // txtID.SelStart = 0
+                    // txtID.SelLength = Len(txtID.Text)
+                    // txtID.SetFocus
+                    return;
+                }
+                else {
+                    // OK to exit
+                    Canceled = false;
+                }
+                break;
+            default:
+                // ok to close form
+                Canceled = false;
+                break;
+            }
+            // save the current 'opennew' value
+            GameSettings.WriteSetting(sGENERAL, "OpenNew", (chkOpenRes.Checked == true));
+            // done
             Close();
         }
     }

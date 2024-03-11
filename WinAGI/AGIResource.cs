@@ -5,11 +5,9 @@ using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Common.Base;
 
-namespace WinAGI.Engine
-{
+namespace WinAGI.Engine {
     //public abstract class AGIResource
-    public class AGIResource
-    {
+    public class AGIResource {
         protected string strErrSource = "WINAGI.agiResource";
         protected bool mLoaded = false;
         protected string mResID;
@@ -45,8 +43,7 @@ namespace WinAGI.Engine
 
         internal delegate void AGIResPropChangedEventHandler(object sender, AGIResPropChangedEventArgs e);
         internal event AGIResPropChangedEventHandler PropertyChanged;
-        protected AGIResource(AGIResType ResType)
-        {
+        protected AGIResource(AGIResType ResType) {
             // can ONLY create new resource from within other game resources
             // when first created, a resource MUST have a type assigned
             mResType = ResType;
@@ -60,33 +57,41 @@ namespace WinAGI.Engine
             V3Compressed = 0;
             //new resources start as loaded by default, and can only be unloaded when
             // in a game
-            mLoaded = true;
+ //           mLoaded = true;
         }
-        public class AGIResPropChangedEventArgs
-        {
-            public AGIResPropChangedEventArgs(string name)
-            {
+        public class AGIResPropChangedEventArgs {
+            public AGIResPropChangedEventArgs(string name) {
                 Name = name;
             }
             public string Name { get; }
         }
-        protected void OnPropertyChanged(string name)
-        {
+        protected void OnPropertyChanged(string name) {
             PropertyChanged?.Invoke(this, new AGIResPropChangedEventArgs(name));
         }
-        protected void InitInGame(AGIGame parent, byte ResNum, sbyte VOL, int Loc)
-        {
-            //attaches resource to a game
+
+        protected void InitInGame(AGIGame parent, byte ResNum) {
+            // attaches a new resource to a game
+            // and finds a location in vol
+            this.parent = parent;
+            mInGame = true;
+            mResNum = ResNum;
+            // ingame resources start loaded
+            mLoaded = true;
+            // set vol/loc
+            AddToVol(this, parent.agIsVersion3);
+            UpdateDirFile(this);
+        }
+        protected void InitInGame(AGIGame parent, byte ResNum, sbyte VOL, int Loc) {
+            //attaches an existing resource to a game
             this.parent = parent;
             mInGame = true;
             mResNum = ResNum;
             mVolume = VOL;
             mLoc = Loc;
-            // ingame resources start loaded
-            mLoaded = true;
+            //// ingame resources start loaded
+            ////mLoaded = true;
         }
-        public sbyte Volume
-        {
+        public sbyte Volume {
             get
             {
                 if (!mInGame) {
@@ -98,8 +103,7 @@ namespace WinAGI.Engine
             }
             internal set { mVolume = value; }
         }
-        public int Loc
-        {
+        public int Loc {
             get
             {
                 if (mInGame) {
@@ -114,8 +118,7 @@ namespace WinAGI.Engine
                 mLoc = value;
             }
         }
-        public int Size
-        {
+        public int Size {
             get
             {
                 // returns the uncompressed size of the resource
@@ -146,8 +149,7 @@ namespace WinAGI.Engine
                 mSize = value;
             }
         }
-        public virtual int SizeInVOL
-        {
+        public virtual int SizeInVOL {
             get
             {
                 //returns the size of the resource on the volume
@@ -174,11 +176,8 @@ namespace WinAGI.Engine
                 mSizeInVol = value;
             }
         }
-        internal int GetSizeInVOL()
-        {
+        internal int GetSizeInVOL() {
             //returns the size of this resource in its VOL file
-            //inputs are the volume filename and offset to beginning
-            //of resource
 
             //if an error occurs while trying to read the size of this
             //resource, the function returns -1
@@ -231,19 +230,14 @@ namespace WinAGI.Engine
             brVOL.Dispose();
             return -1;
         }
-        public int V3Compressed
-        { get; internal set; }// 0 = not compressed; 1 = picture compress; 2 = LZW compress
-        public bool InGame
-        { get { return mInGame; } internal set { mInGame = value; } }
-        public byte Number
-        {
+        public int V3Compressed { get; internal set; }// 0 = not compressed; 1 = picture compress; 2 = LZW compress
+        public bool InGame { get { return mInGame; } internal set { mInGame = value; } }
+        public byte Number {
             get { if (mInGame) return mResNum; return 0; }//TODO: number is meaningless if not in a game
             internal set { mResNum = value; }
         }
-        public bool Loaded
-        { get { return mLoaded; } internal set { } }
-        public string ResFile
-        {
+        public bool Loaded { get { return mLoaded; } internal set { } }
+        public string ResFile {
             get
             {
                 if (mInGame) {
@@ -260,10 +254,8 @@ namespace WinAGI.Engine
         }
         internal bool WritePropState { get; set; }
         public virtual bool IsDirty { get { return mIsDirty; } internal set { } }
-        public AGIResType ResType
-        { get { return mResType; } }
-        public virtual string ID
-        {
+        public AGIResType ResType { get { return mResType; } }
+        public virtual string ID {
             get { return mResID; }
             internal set
             {
@@ -277,7 +269,7 @@ namespace WinAGI.Engine
                     //error
                     Exception e = new(LoadResString(667))
                     {
-                        HResult= WINAGI_ERR + 667
+                        HResult = WINAGI_ERR + 667
                     };
                     throw e;
                 }
@@ -339,8 +331,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public string Description
-        {
+        public string Description {
             get { return mDescription; }
             internal set
             {
@@ -355,8 +346,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool EORes
-        {
+        public bool EORes {
             get
             {
 
@@ -371,8 +361,7 @@ namespace WinAGI.Engine
         }
         // to allow indexing of data property, a separate class needs to
         // be created
-        public RData Data
-        {
+        public RData Data {
             get
             {
                 //if not loaded
@@ -388,8 +377,7 @@ namespace WinAGI.Engine
                 mRData = value;
             }
         }
-        internal void Clone(AGIResource NewRes)
-        {
+        internal void Clone(AGIResource NewRes) {
             //called by setview, setlog, setpic and setsnd
             //copies entire resource structure from this resource 
             //into NewRes
@@ -420,8 +408,7 @@ namespace WinAGI.Engine
             NewRes.mblnEORes = mblnEORes;
             NewRes.mlngCurPos = mlngCurPos;
         }
-        public virtual void Load()
-        {
+        public virtual void Load() {
             //loads the data for this resource
             //from its VOL file, if in a game
             //or from its resfile
@@ -475,7 +462,13 @@ namespace WinAGI.Engine
             }
             //verify resource is within file bounds
             if (mLoc > fsVOL.Length) {
-                throw new Exception(LoadResString(505).Replace(ARG1, mLoc.ToString()));
+                fsVOL.Dispose();
+                brVOL.Dispose();
+                Exception e = new Exception(LoadResString(505).Replace(ARG1, mLoc.ToString()).Replace(ARG2, fsVOL.Name))
+                {
+                    HResult = WINAGI_ERR + 505
+                };
+                throw e;
             }
             //if loading from a VOL file (i.e. is in a game)
             if (mInGame) {
@@ -551,18 +544,8 @@ namespace WinAGI.Engine
             //attach events
             mRData.PropertyChanged += Raise_DataChange;
             return;
-            ////ErrHandler:
-            ////if an AGI error, error number and string already set
-            ////so only need error info if some other error occurred
-            //////raise the error
-            ////throw new Exception("LoadResString(507), Path.GetFileName(strLoadResFile))");
-            ////reset resource markers
-            //mlngCurPos = 0;
-            //mblnEORes = false;
-            //mLoaded = false;
         }
-        public virtual void Unload()
-        {
+        public virtual void Unload() {
             // only ingame resources can be unloaded
             if (!mInGame) {
                 //just exit
@@ -579,10 +562,9 @@ namespace WinAGI.Engine
             //detach events
             mRData.PropertyChanged -= Raise_DataChange;
         }
-        internal void Save(string SaveFile = "")
-        {
+        internal void Save() {
             //saves a resource into a VOL file if in a game
-            //exports the resource if not in a game
+            // saves to standalone resource file if not in a game
 
             //if not loaded
             if (!mLoaded) {
@@ -611,11 +593,11 @@ namespace WinAGI.Engine
             }
             else {
                 //export it
-                Export(SaveFile);
+                // TODO: throw exception if no filename
+                Export(mResFile);
             }
         }
-        public void Export(string ExportFile)
-        {
+        public void Export(string ExportFile) {
             //exports resource to file
             //doesn't affect the current resource filename
             //MUST specify a valid export file
@@ -694,8 +676,7 @@ namespace WinAGI.Engine
                 mResFile = ExportFile;
             }
         }
-        public virtual void Import(string ImportFile)
-        {
+        public virtual void Import(string ImportFile) {
             //imports resource from a file, and loads it
             //if in a game, it also saves the new
             //resource in a VOL file
@@ -752,8 +733,7 @@ namespace WinAGI.Engine
             //raise change event
             OnPropertyChanged("Data");
         }
-        public void WriteByte(byte InputByte, int Pos = -1)
-        {
+        public void WriteByte(byte InputByte, int Pos = -1) {
             bool bNoEvent = false;
             //if not loaded
             if (!mLoaded) {
@@ -805,8 +785,7 @@ namespace WinAGI.Engine
             }
             return;
         }
-        public void WriteWord(ushort InputInt, int Pos = -1, bool blnMSLS = false)
-        {
+        public void WriteWord(ushort InputInt, int Pos = -1, bool blnMSLS = false) {
             bool bNoEvent = false;
 
             byte bytHigh = 0, bytLow = 0;
@@ -877,8 +856,7 @@ namespace WinAGI.Engine
                 OnPropertyChanged("Data");
             }
         }
-        public int Pos
-        {
+        public int Pos {
             get
             {
                 //if not loaded
@@ -918,8 +896,7 @@ namespace WinAGI.Engine
                 return;
             }
         }
-        public ushort ReadWord(int Pos = -1, bool MSLS = false)
-        {
+        public ushort ReadWord(int Pos = -1, bool MSLS = false) {
             byte bytLow, bytHigh;
             int lngError = 0;
             //if not loaded
@@ -963,8 +940,7 @@ namespace WinAGI.Engine
             //calculate word Value
             return (ushort)((bytHigh << 8) + bytLow);
         }
-        public byte ReadByte(int Pos = MAX_RES_SIZE + 1)
-        {
+        public byte ReadByte(int Pos = MAX_RES_SIZE + 1) {
             int lngError = 0;
             //if not loaded
             if (!mLoaded) {
@@ -995,8 +971,7 @@ namespace WinAGI.Engine
             mblnEORes = (mlngCurPos == mRData.Length);
             return bRetVal;
         }
-        public void InsertData(dynamic NewData, int InsertPos = -1)
-        {
+        public void InsertData(dynamic NewData, int InsertPos = -1) {
             //inserts newdata into resource at insertpos, if passed,
             //or at end of resource, if not passed
 
@@ -1074,8 +1049,7 @@ namespace WinAGI.Engine
             //raise change event
             OnPropertyChanged("Data");
         }
-        public void RemoveData(int RemovePos, int RemoveCount = 1)
-        {
+        public void RemoveData(int RemovePos, int RemoveCount = 1) {
             //removes data from RemovePos; if a Count
             //is passed, that number of bytes removed; if no
             //Count is passed, then only one byte removed
@@ -1117,8 +1091,7 @@ namespace WinAGI.Engine
             OnPropertyChanged("Data");
 
         }
-        public virtual void Clear()
-        {
+        public virtual void Clear() {
             //if not loaded
             if (!mLoaded) {
                 //error
@@ -1133,20 +1106,17 @@ namespace WinAGI.Engine
             mblnEORes = false;
             mIsDirty = true;
         }
-        public override string ToString()
-        {
+        public override string ToString() {
             if (mResID.Length > 0) {
                 return mResID;
             }
             return "blank " + ResTypeName[(int)mResType];
         }
-        internal void Raise_DataChange(object sender, RData.RDataChangedEventArgs e)
-        {
+        internal void Raise_DataChange(object sender, RData.RDataChangedEventArgs e) {
             //pass it along
             OnPropertyChanged("Data");
         }
-        internal bool IsUniqueResID(string checkID)
-        {
+        internal bool IsUniqueResID(string checkID) {
             // check all resids
             foreach (AGIResource tmpRes in parent.agLogs.Col.Values) {
                 if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase)) {
@@ -1171,8 +1141,7 @@ namespace WinAGI.Engine
             // not found; must be unique
             return true;
         }
-        internal string UniqueResFile(AGIResType ResType)
-        {
+        internal string UniqueResFile(AGIResType ResType) {
             int intNo = 0;
             string retval;
             do {

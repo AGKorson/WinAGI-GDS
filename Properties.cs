@@ -133,7 +133,7 @@ namespace WinAGI.Editor {
         public int Count { get; }
     }
     public class ViewProperties {
-        public ViewProperties(WinAGI.Engine.View pView) {
+        public ViewProperties(Engine.View pView) {
             Number = pView.Number;
             ID = pView.ID;
             Description = pView.Description;

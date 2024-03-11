@@ -19,7 +19,7 @@ namespace WinAGI.Engine {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EngineResources {
@@ -39,7 +39,7 @@ namespace WinAGI.Engine {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI.EngineResources", typeof(EngineResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI.Editor.WinAGI.EngineResources", typeof(EngineResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,7 +61,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4001: &apos;(&apos; expected after goto statement.
+        ///   Looks up a localized string similar to One or more minor errors encountered.
         /// </summary>
         internal static string _4001 {
             get {
@@ -70,7 +70,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4002: &apos;(&apos; expected at start of if statement.
+        ///   Looks up a localized string similar to &apos;(&apos; expected at start of if statement.
         /// </summary>
         internal static string _4002 {
             get {
@@ -79,7 +79,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4003: &apos;)&apos; expected after goto argument.
+        ///   Looks up a localized string similar to &apos;)&apos; expected after goto argument.
         /// </summary>
         internal static string _4003 {
             get {
@@ -88,7 +88,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4004: Invalid COL argument in get.string command.
+        ///   Looks up a localized string similar to Invalid COL argument in get.string command.
         /// </summary>
         internal static string _4004 {
             get {
@@ -97,7 +97,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4005: Invalid character in message text.
+        ///   Looks up a localized string similar to Complex variable math statements are not allowed.
         /// </summary>
         internal static string _4005 {
             get {
@@ -106,7 +106,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4006: Extended characters should not be used in message text.
+        ///   Looks up a localized string similar to &apos;(&apos; expected after goto statement.
         /// </summary>
         internal static string _4006 {
             get {
@@ -115,7 +115,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4007: &apos;;&apos; expected at end of statement.
+        ///   Looks up a localized string similar to &apos;;&apos; expected at end of statement.
         /// </summary>
         internal static string _4007 {
             get {
@@ -124,7 +124,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4008: &apos;{&apos; not allowed unless following &apos;if&apos; or &apos;else&apos;.
+        ///   Looks up a localized string similar to &apos;{&apos; not allowed unless following &apos;if&apos; or &apos;else&apos;.
         /// </summary>
         internal static string _4008 {
             get {
@@ -133,7 +133,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4009: &apos;}&apos; expected.
+        ///   Looks up a localized string similar to &apos;}&apos; expected.
         /// </summary>
         internal static string _4009 {
             get {
@@ -142,7 +142,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4010: &apos;}&apos; not at end of any command blocks.
+        ///   Looks up a localized string similar to &apos;}&apos; not at end of any command blocks.
         /// </summary>
         internal static string _4010 {
             get {
@@ -151,7 +151,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4011: &apos;}&apos; required before &apos;else&apos;.
+        ///   Looks up a localized string similar to &apos;}&apos; required before &apos;else&apos;.
         /// </summary>
         internal static string _4011 {
             get {
@@ -160,7 +160,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4012: &apos;%1&apos; is already defined in this logic.
+        ///   Looks up a localized string similar to &apos;%1&apos; is already defined in this logic.
         /// </summary>
         internal static string _4012 {
             get {
@@ -169,7 +169,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4013: &apos;%1&apos; is a compiler reserved word, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a compiler reserved word, and cannot be redefined.
         /// </summary>
         internal static string _4013 {
             get {
@@ -178,7 +178,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4014: &apos;%1&apos; is a reserved flag name, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved flag name, and cannot be redefined.
         /// </summary>
         internal static string _4014 {
             get {
@@ -187,7 +187,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4015: &apos;%1&apos; is a reserved message constant, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved message constant, and cannot be redefined.
         /// </summary>
         internal static string _4015 {
             get {
@@ -196,7 +196,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4016: &apos;%1&apos; is a reserved number constant, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved number constant, and cannot be redefined.
         /// </summary>
         internal static string _4016 {
             get {
@@ -205,7 +205,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4017: &apos;%1&apos; is a reserved object or string name, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved object or string name, and cannot be redefined.
         /// </summary>
         internal static string _4017 {
             get {
@@ -214,7 +214,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4018: &apos;%1&apos; is a reserved variable name, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved variable name, and cannot be redefined.
         /// </summary>
         internal static string _4018 {
             get {
@@ -223,7 +223,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4019: &apos;%1&apos; is already defined as a global define, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is already defined as a global define, and cannot be redefined.
         /// </summary>
         internal static string _4019 {
             get {
@@ -232,7 +232,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4020: &apos;%1&apos; is already in use as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is already in use as a label.
         /// </summary>
         internal static string _4020 {
             get {
@@ -241,7 +241,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4021: &apos;%1&apos; is an AGI command, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI command, and cannot be redefined.
         /// </summary>
         internal static string _4021 {
             get {
@@ -250,7 +250,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4022: &apos;%1&apos; is an AGI test command and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI test command and cannot be redefined.
         /// </summary>
         internal static string _4022 {
             get {
@@ -259,7 +259,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4023: &apos;%1&apos; is already assigned to local define &apos;%2&apos;.
+        ///   Looks up a localized string similar to &apos;%1&apos; is already assigned to local define &apos;%2&apos;.
         /// </summary>
         internal static string _4023 {
             get {
@@ -268,7 +268,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4024: &apos;%1&apos; is already in use as a global define, and cannot be used as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is already in use as a global define, and cannot be used as a label.
         /// </summary>
         internal static string _4024 {
             get {
@@ -277,7 +277,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4025: &apos;%1&apos; is an AGI command, and cannot be used as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI command, and cannot be used as a label.
         /// </summary>
         internal static string _4025 {
             get {
@@ -286,7 +286,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4026: &apos;%1&apos; is an AGI test command, and cannot be used as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI test command, and cannot be used as a label.
         /// </summary>
         internal static string _4026 {
             get {
@@ -295,7 +295,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4027: &apos;%1&apos; is already being used as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is already being used as a label.
         /// </summary>
         internal static string _4027 {
             get {
@@ -304,7 +304,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4028: &apos;%1&apos; is a compiler reserved word, and cannot be used as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a compiler reserved word, and cannot be used as a label.
         /// </summary>
         internal static string _4028 {
             get {
@@ -313,7 +313,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4029: &apos;%1&apos; is a reserved constant name, and cannot be used as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved constant name, and cannot be used as a label.
         /// </summary>
         internal static string _4029 {
             get {
@@ -322,7 +322,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4030: &apos;%1&apos; is a reserved flag name, and cannot be used as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved flag name, and cannot be used as a label.
         /// </summary>
         internal static string _4030 {
             get {
@@ -331,7 +331,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4031: &apos;%1&apos; is a reserved message name, and cannot be used as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved message name, and cannot be used as a label.
         /// </summary>
         internal static string _4031 {
             get {
@@ -340,7 +340,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4032: &apos;%1&apos; is a reserved object or string name, and cannot be used as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved object or string name, and cannot be used as a label.
         /// </summary>
         internal static string _4032 {
             get {
@@ -349,7 +349,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4033: &apos;%1&apos; is a reserved variable name, and cannot be used as a label.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved variable name, and cannot be used as a label.
         /// </summary>
         internal static string _4033 {
             get {
@@ -358,7 +358,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4034: &apos;=&apos; expected for variable, flag or string assignment.
+        ///   Looks up a localized string similar to &apos;=&apos; expected for variable, flag or string assignment.
         /// </summary>
         internal static string _4034 {
             get {
@@ -367,7 +367,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4035: &apos;%1&apos; is a group 0 word and will always be ignored by said command.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a group 0 word and will always be ignored by said command.
         /// </summary>
         internal static string _4035 {
             get {
@@ -376,7 +376,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4036: Ambiguous inventory item for argument %1.
+        ///   Looks up a localized string similar to Ambiguous inventory item for argument %1.
         /// </summary>
         internal static string _4036 {
             get {
@@ -385,7 +385,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4037: AND operator not allowed within brackets.
+        ///   Looks up a localized string similar to AND operator not allowed within brackets.
         /// </summary>
         internal static string _4037 {
             get {
@@ -394,7 +394,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4038: AND operator or end of if statement expected.
+        ///   Looks up a localized string similar to AND operator or end of if statement expected.
         /// </summary>
         internal static string _4038 {
             get {
@@ -403,7 +403,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4039: Undefined value (%1) or syntax error in &apos;if&apos; statement.
+        ///   Looks up a localized string similar to Undefined symbol (%1) or syntax error in &apos;if&apos; statement.
         /// </summary>
         internal static string _4039 {
             get {
@@ -412,7 +412,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4040: &apos;%1&apos; is already defined globally.
+        ///   Looks up a localized string similar to &apos;%1&apos; is already defined globally.
         /// </summary>
         internal static string _4040 {
             get {
@@ -421,7 +421,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4041: &apos;%1&apos; is already defined as a reserved name.
+        ///   Looks up a localized string similar to &apos;%1&apos; is already defined as a reserved name.
         /// </summary>
         internal static string _4041 {
             get {
@@ -430,7 +430,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4042: Local define argument value out of range.
+        ///   Looks up a localized string similar to Local define argument value out of range.
         /// </summary>
         internal static string _4042 {
             get {
@@ -439,7 +439,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4043: Invalid MAXWIDTH value for print.at command.
+        ///   Looks up a localized string similar to Invalid MAXWIDTH value for print.at command.
         /// </summary>
         internal static string _4043 {
             get {
@@ -448,7 +448,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4044: Brackets must contain at least one test command.
+        ///   Looks up a localized string similar to Undefined symbol (%1) or syntax error in assignment statement.
         /// </summary>
         internal static string _4044 {
             get {
@@ -457,7 +457,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4045: Brackets too deep in if statement.
+        ///   Looks up a localized string similar to Brackets too deep in if statement.
         /// </summary>
         internal static string _4045 {
             get {
@@ -466,7 +466,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4046: Incorrect type or syntax error in unary (++/--) statement.
+        ///   Looks up a localized string similar to Incorrect type or syntax error in unary (++/--) statement.
         /// </summary>
         internal static string _4046 {
             get {
@@ -475,7 +475,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4047: Comma expected after argument %1.
+        ///   Looks up a localized string similar to Comma expected after argument %1.
         /// </summary>
         internal static string _4047 {
             get {
@@ -484,7 +484,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4048: &apos;(&apos; expected before command arguments.
+        ///   Looks up a localized string similar to &apos;(&apos; expected before command arguments.
         /// </summary>
         internal static string _4048 {
             get {
@@ -493,7 +493,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4049: Command block must contain at least one command.
+        ///   Looks up a localized string similar to Command block must contain at least one command.
         /// </summary>
         internal static string _4049 {
             get {
@@ -502,7 +502,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4050: Could not find include file &apos;%1&apos;.
+        ///   Looks up a localized string similar to Could not find include file &apos;%1&apos;.
         /// </summary>
         internal static string _4050 {
             get {
@@ -511,7 +511,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4051: Double quote mark (&quot;) required at start and end of string.
+        ///   Looks up a localized string similar to Double quote mark (&quot;) required at start and end of string.
         /// </summary>
         internal static string _4051 {
             get {
@@ -520,7 +520,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4052: Block quotes (/* ... */) are not supported in WinAGI.
+        ///   Looks up a localized string similar to Block quotes (/* ... */) are not supported in WinAGI.
         /// </summary>
         internal static string _4052 {
             get {
@@ -529,7 +529,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4053: &apos;{&apos; must follow an &apos;if&apos; or &apos;else&apos; statement.
+        ///   Looks up a localized string similar to &apos;{&apos; must follow an &apos;if&apos; or &apos;else&apos; statement.
         /// </summary>
         internal static string _4053 {
             get {
@@ -538,7 +538,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4054: Missing argument %1 in %2 command: (expected: %3).
+        ///   Looks up a localized string similar to Missing argument %1 in %2 command: (expected: %3).
         /// </summary>
         internal static string _4054 {
             get {
@@ -547,7 +547,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4055: Error accessing include file &apos;%1&apos;.
+        ///   Looks up a localized string similar to Error accessing include file &apos;%1&apos;.
         /// </summary>
         internal static string _4055 {
             get {
@@ -556,7 +556,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4056: Expected test command, but found closing bracket.
+        ///   Looks up a localized string similar to Expected test command, but found closing bracket.
         /// </summary>
         internal static string _4056 {
             get {
@@ -565,7 +565,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4057: If statement must contain at least one test command.
+        ///   Looks up a localized string similar to If statement must contain at least one test command.
         /// </summary>
         internal static string _4057 {
             get {
@@ -574,7 +574,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4058: Syntax error in string assignment.
+        ///   Looks up a localized string similar to Syntax error in string assignment.
         /// </summary>
         internal static string _4058 {
             get {
@@ -583,7 +583,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4059: Include filename must be enclosed in double quotes.
+        ///   Looks up a localized string similar to Include filename must be enclosed in double quotes.
         /// </summary>
         internal static string _4059 {
             get {
@@ -592,7 +592,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4060: Include filename expected.
+        ///   Looks up a localized string similar to Include filename expected.
         /// </summary>
         internal static string _4060 {
             get {
@@ -601,7 +601,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4061: Include files cannot contain other include files.
+        ///   Looks up a localized string similar to Invalid preprocessor symbol &apos;%1&apos;.
         /// </summary>
         internal static string _4061 {
             get {
@@ -610,7 +610,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4062: Incorrect type for argument %1 (must be numeric).
+        ///   Looks up a localized string similar to Incorrect type for argument %1 (must be numeric).
         /// </summary>
         internal static string _4062 {
             get {
@@ -619,7 +619,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4063: Incorrect type, syntax error or undefined value &apos;%3&apos; for argument %1: (expected: %2).
+        ///   Looks up a localized string similar to Incorrect type, syntax error or undefined value &apos;%3&apos; for argument %1: (expected: %2).
         /// </summary>
         internal static string _4063 {
             get {
@@ -628,7 +628,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4064: Indirect operator only valid on variables.
+        ///   Looks up a localized string similar to Indirect operator only valid on variables.
         /// </summary>
         internal static string _4064 {
             get {
@@ -637,7 +637,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4065: &apos;%1&apos; not supported in this game&apos;s AGI version.
+        ///   Looks up a localized string similar to &apos;%1&apos; not supported in this game&apos;s AGI version.
         /// </summary>
         internal static string _4065 {
             get {
@@ -646,7 +646,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4066: Invalid value for argument %1 (must be between 0-255).
+        ///   Looks up a localized string similar to Invalid value for argument %1 (must be between 0-255).
         /// </summary>
         internal static string _4066 {
             get {
@@ -655,7 +655,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4067: Invalid character in define name: !&quot; &amp; QUOTECHAR &amp; &quot;#$%&amp;&apos;()*+,-/:;&lt;=&gt;?@[\]^`{|}~ and spaces are not allowed.
+        ///   Looks up a localized string similar to Invalid character in define name: !&quot; &amp; QUOTECHAR &amp; &quot;#$%&amp;&apos;()*+,-/:;&lt;=&gt;?@[\]^`{}~ and spaces are not allowed.
         /// </summary>
         internal static string _4067 {
             get {
@@ -664,7 +664,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4068: Invalid character in label name: &apos;-[~`!@#$%^&amp;*()+{}|\?/.,&lt;&gt;;:]&apos; are not allowed.
+        ///   Looks up a localized string similar to Invalid character in label name: &apos;-[~`!@#$%^&amp;*()+{}\?/.,&lt;&gt;;:]&apos; are not allowed.
         /// </summary>
         internal static string _4068 {
             get {
@@ -673,7 +673,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4069: Invalid compiler command: &apos;#I&apos; combination not allowed.
+        ///   Looks up a localized string similar to Include file marker found - unable to compile.
         /// </summary>
         internal static string _4069 {
             get {
@@ -682,7 +682,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4070: Invalid define statement - define name cannot be blank.
+        ///   Looks up a localized string similar to Invalid define statement - define name cannot be blank.
         /// </summary>
         internal static string _4070 {
             get {
@@ -691,7 +691,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4071: Invalid define statement - define names cannot be argument markers (v##, f##, m##, o##, i##, s##, w##, c##).
+        ///   Looks up a localized string similar to Invalid define statement - define names cannot be argument markers (v##, f##, m##, o##, i##, s##, w##, c##).
         /// </summary>
         internal static string _4071 {
             get {
@@ -700,7 +700,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4072: Invalid define statement - define names cannot be numeric.
+        ///   Looks up a localized string similar to Invalid define statement - define names cannot be numeric.
         /// </summary>
         internal static string _4072 {
             get {
@@ -709,7 +709,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4073: Invalid define statement - define value cannot be blank.
+        ///   Looks up a localized string similar to Invalid define statement - define value cannot be blank.
         /// </summary>
         internal static string _4073 {
             get {
@@ -718,7 +718,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4074: Unknown label &apos;%1&apos;.
+        ///   Looks up a localized string similar to Unknown label &apos;%1&apos;.
         /// </summary>
         internal static string _4074 {
             get {
@@ -727,7 +727,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4075: Invalid inventory item for argument %1.
+        ///   Looks up a localized string similar to Invalid inventory item for argument %1.
         /// </summary>
         internal static string _4075 {
             get {
@@ -736,7 +736,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4076: Invalid label name.
+        ///   Looks up a localized string similar to Invalid label name.
         /// </summary>
         internal static string _4076 {
             get {
@@ -745,7 +745,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4077: Invalid message number (must be 1 - 255).
+        ///   Looks up a localized string similar to Invalid message number (must be 1 - 255).
         /// </summary>
         internal static string _4077 {
             get {
@@ -754,7 +754,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4078: Invalid operator in &apos;if&apos; statement.
+        ///   Looks up a localized string similar to Invalid operator in &apos;if&apos; statement.
         /// </summary>
         internal static string _4078 {
             get {
@@ -763,7 +763,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4079: Invalid string number for argument %1 (must be between 0 - %2).
+        ///   Looks up a localized string similar to Invalid string number for argument %1 (must be between 0 - %2).
         /// </summary>
         internal static string _4079 {
             get {
@@ -772,7 +772,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4080: Invalid string concatenation.
+        ///   Looks up a localized string similar to Invalid string concatenation.
         /// </summary>
         internal static string _4080 {
             get {
@@ -781,7 +781,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4081: Invalid string value (no string detected).
+        ///   Looks up a localized string similar to Invalid string value (no string detected).
         /// </summary>
         internal static string _4081 {
             get {
@@ -790,7 +790,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4082: Invalid string value for define.
+        ///   Looks up a localized string similar to Invalid string value for define.
         /// </summary>
         internal static string _4082 {
             get {
@@ -799,7 +799,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4083: Invalid use of &apos;else&apos;.
+        ///   Looks up a localized string similar to Invalid use of &apos;else&apos;.
         /// </summary>
         internal static string _4083 {
             get {
@@ -808,7 +808,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4084: Invalid variable assignment (variable assigned to itself).
+        ///   Looks up a localized string similar to Unknown syntax error.
         /// </summary>
         internal static string _4084 {
             get {
@@ -817,7 +817,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4085: Invalid variable number in assignment statement.
+        ///   Looks up a localized string similar to Invalid variable number in assignment statement.
         /// </summary>
         internal static string _4085 {
             get {
@@ -826,7 +826,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4086: Invalid variable number in &apos;if&apos; statement.
+        ///   Looks up a localized string similar to Invalid variable number in &apos;if&apos; statement.
         /// </summary>
         internal static string _4086 {
             get {
@@ -835,7 +835,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4087: Invalid variable operator.
+        ///   Looks up a localized string similar to Invalid variable operator.
         /// </summary>
         internal static string _4087 {
             get {
@@ -844,7 +844,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4088: Invalid variable or number value &apos;%1&apos; in assignment statement.
+        ///   Looks up a localized string similar to Invalid variable or number value &apos;%1&apos; in assignment statement.
         /// </summary>
         internal static string _4088 {
             get {
@@ -853,7 +853,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4089: Invalid variable or number value %1in &apos;if&apos; statement.
+        ///   Looks up a localized string similar to Invalid variable or number value %1in &apos;if&apos; statement.
         /// </summary>
         internal static string _4089 {
             get {
@@ -862,7 +862,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4090: Invalid word number for argument %1 (must be between 1 - 10).
+        ///   Looks up a localized string similar to Invalid word number for argument %1 (must be between 1 - 10).
         /// </summary>
         internal static string _4090 {
             get {
@@ -871,7 +871,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4091: Labels cannot be default argument values (v##, f##, m##, o##, i##, s##, w##, c##).
+        ///   Looks up a localized string similar to Labels cannot be default argument values (v##, f##, m##, o##, i##, s##, w##, c##).
         /// </summary>
         internal static string _4091 {
             get {
@@ -880,7 +880,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4092: Maximum number of messages exceeded (limit is 255 per logic).
+        ///   Looks up a localized string similar to Maximum number of messages exceeded (limit is 255 per logic).
         /// </summary>
         internal static string _4092 {
             get {
@@ -889,7 +889,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4093: Maximum number of words exceeded (limit is 10).
+        ///   Looks up a localized string similar to Maximum number of words exceeded (limit is 10).
         /// </summary>
         internal static string _4093 {
             get {
@@ -898,7 +898,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4094: Message %1 is already assigned.
+        ///   Looks up a localized string similar to Message %1 is already assigned.
         /// </summary>
         internal static string _4094 {
             get {
@@ -907,7 +907,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4095: Invalid negative argument value.
+        ///   Looks up a localized string similar to Invalid negative argument value.
         /// </summary>
         internal static string _4095 {
             get {
@@ -916,7 +916,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4096: Missing label definition.
+        ///   Looks up a localized string similar to Missing label definition.
         /// </summary>
         internal static string _4096 {
             get {
@@ -925,7 +925,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4097: NOT operator can only be placed directly in front of a command.
+        ///   Looks up a localized string similar to NOT operator can only be placed directly in front of a command.
         /// </summary>
         internal static string _4097 {
             get {
@@ -934,7 +934,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4098: NOT operator not allowed before variable comparisons.
+        ///   Looks up a localized string similar to NOT operator not allowed before variable comparisons.
         /// </summary>
         internal static string _4098 {
             get {
@@ -943,7 +943,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4099: Nothing allowed on line after message declaration.
+        ///   Looks up a localized string similar to Nothing allowed on line after message declaration.
         /// </summary>
         internal static string _4099 {
             get {
@@ -952,7 +952,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4100: OR operator must be within brackets.
+        ///   Looks up a localized string similar to OR operator must be within brackets.
         /// </summary>
         internal static string _4100 {
             get {
@@ -961,7 +961,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4101: OR operator or closing bracket expected.
+        ///   Looks up a localized string similar to OR operator or closing bracket expected.
         /// </summary>
         internal static string _4101 {
             get {
@@ -970,7 +970,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4102: Return command expected at end of logic.
+        ///   Looks up a localized string similar to Return command expected at end of logic.
         /// </summary>
         internal static string _4102 {
             get {
@@ -979,7 +979,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4103: Space expected after #include.
+        ///   Looks up a localized string similar to Space expected after #include.
         /// </summary>
         internal static string _4103 {
             get {
@@ -988,7 +988,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4104: Syntax error in define statement.
+        ///   Looks up a localized string similar to reserved.
         /// </summary>
         internal static string _4104 {
             get {
@@ -997,7 +997,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4105: Syntax error in use of indirection.
+        ///   Looks up a localized string similar to Syntax error in use of indirection.
         /// </summary>
         internal static string _4105 {
             get {
@@ -1006,7 +1006,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4106: Test command expected in if statement.
+        ///   Looks up a localized string similar to Test command expected in if statement.
         /// </summary>
         internal static string _4106 {
             get {
@@ -1015,7 +1015,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4107: Message value of 0 is not allowed.
+        ///   Looks up a localized string similar to Message value of 0 is not allowed.
         /// </summary>
         internal static string _4107 {
             get {
@@ -1024,7 +1024,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4108: Too many &apos;goto&apos; commands (max %1).
+        ///   Looks up a localized string similar to Too many &apos;goto&apos; commands (max %1).
         /// </summary>
         internal static string _4108 {
             get {
@@ -1033,7 +1033,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4109: Too many labels (max %1).
+        ///   Looks up a localized string similar to Too many labels (max %1).
         /// </summary>
         internal static string _4109 {
             get {
@@ -1042,7 +1042,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4110: Too many nested blocks (max %1).
+        ///   Looks up a localized string similar to Too many nested blocks (max %1).
         /// </summary>
         internal static string _4110 {
             get {
@@ -1051,7 +1051,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4111: &apos;?&apos; is not a valid inventory item for argument %1.
+        ///   Looks up a localized string similar to &apos;?&apos; is not a valid inventory item for argument %1.
         /// </summary>
         internal static string _4111 {
             get {
@@ -1060,7 +1060,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4112: Undefined inventory item (exceeds object count) for argument %1.
+        ///   Looks up a localized string similar to Undefined inventory item (exceeds object count) for argument %1.
         /// </summary>
         internal static string _4112 {
             get {
@@ -1069,7 +1069,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4113: Undefined message argument (m%1).
+        ///   Looks up a localized string similar to Undefined message argument (m%1).
         /// </summary>
         internal static string _4113 {
             get {
@@ -1078,7 +1078,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4114: Undefined word &apos;%1&apos; in said command.
+        ///   Looks up a localized string similar to Undefined word &apos;%1&apos; in said command.
         /// </summary>
         internal static string _4114 {
             get {
@@ -1087,7 +1087,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4115: Unhandled error %1 in %2.
+        ///   Looks up a localized string similar to Unhandled error %1 in %2.
         /// </summary>
         internal static string _4115 {
             get {
@@ -1096,7 +1096,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4116: Unknown action command &apos;%1&apos;.
+        ///   Looks up a localized string similar to Unknown action command &apos;%1&apos;.
         /// </summary>
         internal static string _4116 {
             get {
@@ -1105,7 +1105,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4117: Recursively calling a logic will crash AGI.
+        ///   Looks up a localized string similar to Recursively calling a logic may crash AGI.
         /// </summary>
         internal static string _4117 {
             get {
@@ -1114,7 +1114,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4118: Using call command on logic 0 is not allowed.
+        ///   Looks up a localized string similar to Using call command on logic 0 is not allowed.
         /// </summary>
         internal static string _4118 {
             get {
@@ -1123,7 +1123,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4119: Invalid object number - must not exceed MaxScreenObject value (%1).
+        ///   Looks up a localized string similar to Invalid object number - must not exceed MaxScreenObject value (%1).
         /// </summary>
         internal static string _4119 {
             get {
@@ -1132,7 +1132,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4120: new.room command called on a non-existent room.
+        ///   Looks up a localized string similar to new.room command called on a non-existent room.
         /// </summary>
         internal static string _4120 {
             get {
@@ -1141,7 +1141,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4121: Invalid argument for load.logic (logic %1 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for load.logic (logic %1 does not exist).
         /// </summary>
         internal static string _4121 {
             get {
@@ -1150,7 +1150,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4122: Invalid argument for load.view (view %1 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for load.view (view %1 does not exist).
         /// </summary>
         internal static string _4122 {
             get {
@@ -1159,7 +1159,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4123: Invalid argument for discard.view (view %1 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for discard.view (view %1 does not exist).
         /// </summary>
         internal static string _4123 {
             get {
@@ -1168,7 +1168,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4124: Invalid argument for set.view (view %1 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for set.view (view %1 does not exist).
         /// </summary>
         internal static string _4124 {
             get {
@@ -1177,7 +1177,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4125: Invalid argument for set.priority (acceptable value is &gt;=4 and &lt;=15).
+        ///   Looks up a localized string similar to Invalid argument for set.priority (acceptable value is &gt;=4 and &lt;=15).
         /// </summary>
         internal static string _4125 {
             get {
@@ -1186,7 +1186,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4126: Invalid argument for set.horizon command.
+        ///   Looks up a localized string similar to Invalid argument for set.horizon command.
         /// </summary>
         internal static string _4126 {
             get {
@@ -1195,7 +1195,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4127: Invalid target position.
+        ///   Looks up a localized string similar to Invalid target position.
         /// </summary>
         internal static string _4127 {
             get {
@@ -1204,7 +1204,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4128: Invalid new object position.
+        ///   Looks up a localized string similar to Invalid new object position.
         /// </summary>
         internal static string _4128 {
             get {
@@ -1213,7 +1213,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4129: Invalid block command coordinates.
+        ///   Looks up a localized string similar to Invalid block command coordinates.
         /// </summary>
         internal static string _4129 {
             get {
@@ -1222,7 +1222,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4130: Invalid argument for load.sound (sound %1 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for load.sound (sound %1 does not exist).
         /// </summary>
         internal static string _4130 {
             get {
@@ -1231,7 +1231,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4131: Invalid cursor position.
+        ///   Looks up a localized string similar to Invalid cursor position.
         /// </summary>
         internal static string _4131 {
             get {
@@ -1240,7 +1240,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4132: Invalid arguments for clear.line command.
+        ///   Looks up a localized string similar to Invalid arguments for clear.line command.
         /// </summary>
         internal static string _4132 {
             get {
@@ -1249,7 +1249,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4133: Invalid color value.
+        ///   Looks up a localized string similar to Invalid color value.
         /// </summary>
         internal static string _4133 {
             get {
@@ -1258,7 +1258,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4134: shake.screen argument must be non-zero.
+        ///   Looks up a localized string similar to shake.screen argument must be non-zero.
         /// </summary>
         internal static string _4134 {
             get {
@@ -1267,7 +1267,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4135: Invalid TOP argument for configure.screen command (should be &lt;= 3).
+        ///   Looks up a localized string similar to Invalid TOP argument for configure.screen command (should be &lt;= 3).
         /// </summary>
         internal static string _4135 {
             get {
@@ -1276,7 +1276,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4136: Invalid controller value for argument %1 (must be between 0 - 49).
+        ///   Looks up a localized string similar to Invalid controller value for argument %1 (must be between 0 - 49).
         /// </summary>
         internal static string _4136 {
             get {
@@ -1285,7 +1285,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4137: Invalid argument for sound (sound %1 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for sound (sound %1 does not exist).
         /// </summary>
         internal static string _4137 {
             get {
@@ -1294,7 +1294,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4138: Invalid argument for add.to.pic (view %1 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for add.to.pic (view %1 does not exist).
         /// </summary>
         internal static string _4138 {
             get {
@@ -1303,7 +1303,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4139: Invalid argument for add.to.pic (loop %1 does not exist in view %2).
+        ///   Looks up a localized string similar to Invalid argument for add.to.pic (loop %1 does not exist in view %2).
         /// </summary>
         internal static string _4139 {
             get {
@@ -1312,7 +1312,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4140: Invalid argument for add.to.pic (cel %1 in loop %2 in view %3 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for add.to.pic (cel %1 in loop %2 in view %3 does not exist).
         /// </summary>
         internal static string _4140 {
             get {
@@ -1321,7 +1321,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4141: Invalid add.to.pic position.
+        ///   Looks up a localized string similar to Invalid add.to.pic position.
         /// </summary>
         internal static string _4141 {
             get {
@@ -1330,7 +1330,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4142: Invalid PRIORITY value for add.to.pic command.
+        ///   Looks up a localized string similar to Invalid PRIORITY value for add.to.pic command.
         /// </summary>
         internal static string _4142 {
             get {
@@ -1339,7 +1339,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4143: Invalid MARGIN value for add.to.pic command.
+        ///   Looks up a localized string similar to Invalid MARGIN value for add.to.pic command.
         /// </summary>
         internal static string _4143 {
             get {
@@ -1348,7 +1348,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4144: Invalid argument for show.obj (view %1 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for show.obj (view %1 does not exist).
         /// </summary>
         internal static string _4144 {
             get {
@@ -1357,7 +1357,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4145: Invalid arguments for random command (lower bound must be &lt;= upper bound).
+        ///   Looks up a localized string similar to Invalid arguments for random command (lower bound must be &lt;= upper bound).
         /// </summary>
         internal static string _4145 {
             get {
@@ -1366,7 +1366,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4146: Invalid arguments for trace.info command (TOP plus HEIGHT exceeds screen size).
+        ///   Looks up a localized string similar to Invalid arguments for trace.info command (TOP plus HEIGHT exceeds screen size).
         /// </summary>
         internal static string _4146 {
             get {
@@ -1375,7 +1375,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4147: Invalid argument for print.at command (ROW must be &lt;= 22).
+        ///   Looks up a localized string similar to Invalid argument for print.at command (ROW must be &lt;= 22).
         /// </summary>
         internal static string _4147 {
             get {
@@ -1384,7 +1384,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4148: Invalid arguments for print.at command (COL must be &gt;= 2 and (COL + MAXWIDTH) must be &lt;= 39).
+        ///   Looks up a localized string similar to Invalid arguments for print.at command (COL must be &gt;= 2 and (COL + MAXWIDTH) must be &lt;= 39).
         /// </summary>
         internal static string _4148 {
             get {
@@ -1393,7 +1393,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4149: Dividing by zero will cause AGI to crash.
+        ///   Looks up a localized string similar to Dividing by zero will cause AGI to crash.
         /// </summary>
         internal static string _4149 {
             get {
@@ -1402,7 +1402,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4150: Invalid cursor position values for clear.text.rect command.
+        ///   Looks up a localized string similar to Invalid cursor position values for clear.text.rect command.
         /// </summary>
         internal static string _4150 {
             get {
@@ -1411,7 +1411,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4151: Invalid test command coordinates.
+        ///   Looks up a localized string similar to Invalid test command coordinates.
         /// </summary>
         internal static string _4151 {
             get {
@@ -1420,7 +1420,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4152: %1 command is incompatible with MSDOS AGI interpreter.
+        ///   Looks up a localized string similar to %1 command is incompatible with MSDOS AGI interpreter.
         /// </summary>
         internal static string _4152 {
             get {
@@ -1429,7 +1429,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4153: Invalid argument for trace.info (logic %1 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for trace.info (logic %1 does not exist).
         /// </summary>
         internal static string _4153 {
             get {
@@ -1438,7 +1438,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4154: Invalid arguments for set.key command (must be &apos;##,0&apos; for ascii value, or &apos;0,##&apos; for keycode value).
+        ///   Looks up a localized string similar to Invalid arguments for set.key command (must be &apos;##,0&apos; for ascii value, or &apos;0,##&apos; for keycode value).
         /// </summary>
         internal static string _4154 {
             get {
@@ -1447,7 +1447,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4155: Invalid keycode argument for set.key command.
+        ///   Looks up a localized string similar to Invalid keycode argument for set.key command.
         /// </summary>
         internal static string _4155 {
             get {
@@ -1456,7 +1456,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4156: Invalid argument for call (logic %1 does not exist).
+        ///   Looks up a localized string similar to Invalid argument for call (logic %1 does not exist).
         /// </summary>
         internal static string _4156 {
             get {
@@ -1465,7 +1465,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4157: Invalid negative argument value.
+        ///   Looks up a localized string similar to Using room0 in new.room command not allowed.
         /// </summary>
         internal static string _4157 {
             get {
@@ -1474,7 +1474,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4158: Invalid arguments for random command (LOWER=UPPER+1 will crash AGI).
+        ///   Looks up a localized string similar to Invalid arguments for random command (LOWER=UPPER+1 will crash AGI).
         /// </summary>
         internal static string _4158 {
             get {
@@ -1483,7 +1483,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4159: Logic source code is empty.
+        ///   Looks up a localized string similar to Logic source code is empty.
         /// </summary>
         internal static string _4159 {
             get {
@@ -1492,7 +1492,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4160: &apos;)&apos; expected after command arguments.
+        ///   Looks up a localized string similar to &apos;)&apos; expected after command arguments.
         /// </summary>
         internal static string _4160 {
             get {
@@ -1501,11 +1501,38 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4161: Invalid variable or number value %1in arithmetic statement.
+        ///   Looks up a localized string similar to Invalid variable or number value %1in arithmetic statement.
         /// </summary>
         internal static string _4161 {
             get {
                 return ResourceManager.GetString("4161", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid word argument &apos;%1&apos; - must be integer value (0-65535).
+        /// </summary>
+        internal static string _4162 {
+            get {
+                return ResourceManager.GetString("4162", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to End of line expected after define declaration.
+        /// </summary>
+        internal static string _4163 {
+            get {
+                return ResourceManager.GetString("4163", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Incorrect syntax for indirection assignment.
+        /// </summary>
+        internal static string _4164 {
+            get {
+                return ResourceManager.GetString("4164", resourceCulture);
             }
         }
         
@@ -1618,7 +1645,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to not used.
+        ///   Looks up a localized string similar to Using room 0 in the new.room command will crash AGI.
         /// </summary>
         internal static string _5012 {
             get {
@@ -1771,7 +1798,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Improper use of quote moarks around Include file. Include filename assumed to be: %1.
+        ///   Looks up a localized string similar to Improper use of quote marks around Include file. Include filename assumed to be: %1.
         /// </summary>
         internal static string _5028 {
             get {
@@ -1996,7 +2023,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Setting PRIORITY to &lt; 4 or &gt;15  may cause unexpected results.
+        ///   Looks up a localized string similar to Setting PRIORITY to &lt; 4 or &gt; 15  may cause unexpected results.
         /// </summary>
         internal static string _5050 {
             get {
@@ -2203,7 +2230,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using a value &gt;167 for set.pri.base results in entire screen being priority 4.
+        ///   Looks up a localized string similar to Using a value &gt; 167 for set.pri.base results in entire screen being priority 4.
         /// </summary>
         internal static string _5071 {
             get {
@@ -2248,7 +2275,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Attempting to call a logic that does not exist will cause crash AGI.
+        ///   Looks up a localized string similar to Attempting to call a logic that does not exist will cause AGI to crash.
         /// </summary>
         internal static string _5076 {
             get {
@@ -2293,7 +2320,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Setting COL to &gt;39 in the get.string command will cause the PROMPT to appear in unexpected location.
+        ///   Looks up a localized string similar to Setting COL to &gt; 39 in the get.string command will cause the PROMPT to appear in unexpected location.
         /// </summary>
         internal static string _5080 {
             get {
@@ -2374,7 +2401,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Recursively calling a logic will crash AGI.
+        ///   Looks up a localized string similar to Recursively calling a logic may crash AGI.
         /// </summary>
         internal static string _5089 {
             get {
@@ -2500,7 +2527,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MGN values &gt;15 will cause unexepected results in add.to.pic command.
+        ///   Looks up a localized string similar to MGN values &gt; 15 will cause unexepected results in add.to.pic command.
         /// </summary>
         internal static string _5101 {
             get {
@@ -2527,7 +2554,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Print window will not display correctly if MAXWIDTH &gt;36.
+        ///   Looks up a localized string similar to Print window will not display correctly if MAXWIDTH &gt; 36.
         /// </summary>
         internal static string _5104 {
             get {
@@ -2572,11 +2599,47 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Or brackets unnecessary for a single test command.
+        /// </summary>
+        internal static string _5109 {
+            get {
+                return ResourceManager.GetString("5109", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resource already loaded.
         /// </summary>
         internal static string _511 {
             get {
                 return ResourceManager.GetString("511", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Referencing a view that doesn&apos;t not exist will cause an error and may crash AGI.
+        /// </summary>
+        internal static string _5110 {
+            get {
+                return ResourceManager.GetString("5110", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to End of line mark (;) missing; allowed in Sierra syntax, but not best coding practice.
+        /// </summary>
+        internal static string _5111 {
+            get {
+                return ResourceManager.GetString("5111", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Compiler adds return at end automatically, no need to code one.
+        /// </summary>
+        internal static string _5112 {
+            get {
+                return ResourceManager.GetString("5112", resourceCulture);
             }
         }
         
@@ -3382,11 +3445,128 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid vocabulary word (no quotes allowed).
+        /// </summary>
+        internal static string _6001 {
+            get {
+                return ResourceManager.GetString("6001", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI %2 command, and can&apos;t be defined as a flag, variable, object or view.
+        /// </summary>
+        internal static string _6002 {
+            get {
+                return ResourceManager.GetString("6002", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View &apos;%1&apos; does not exist.
+        /// </summary>
+        internal static string _6003 {
+            get {
+                return ResourceManager.GetString("6003", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;%1&apos; is not a valid test command number.
+        /// </summary>
+        internal static string _6004 {
+            get {
+                return ResourceManager.GetString("6004", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;%1&apos; is not a valid action command number for this int version.
+        /// </summary>
+        internal static string _6005 {
+            get {
+                return ResourceManager.GetString("6005", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing string value in message assignment.
+        /// </summary>
+        internal static string _6006 {
+            get {
+                return ResourceManager.GetString("6006", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to String value must start with a quote.
+        /// </summary>
+        internal static string _6007 {
+            get {
+                return ResourceManager.GetString("6007", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to String value must end with a quote.
+        /// </summary>
+        internal static string _6008 {
+            get {
+                return ResourceManager.GetString("6008", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct string assignment not allowed.
+        /// </summary>
+        internal static string _6009 {
+            get {
+                return ResourceManager.GetString("6009", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t export file; unable to load resource data.
         /// </summary>
         internal static string _601 {
             get {
                 return ResourceManager.GetString("601", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direct flag assignment not allowed.
+        /// </summary>
+        internal static string _6010 {
+            get {
+                return ResourceManager.GetString("6010", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syntax error in indirection assignment - second argument must be a variable.
+        /// </summary>
+        internal static string _6011 {
+            get {
+                return ResourceManager.GetString("6011", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Long arithmetic assignments not allowed.
+        /// </summary>
+        internal static string _6012 {
+            get {
+                return ResourceManager.GetString("6012", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Flag, variable, object and view values must be numeric (0-255).
+        /// </summary>
+        internal static string _6013 {
+            get {
+                return ResourceManager.GetString("6013", resourceCulture);
             }
         }
         
@@ -3886,7 +4066,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in NextToken(%1).
+        ///   Looks up a localized string similar to Unhandled error in NextCommand(%1).
         /// </summary>
         internal static string _657 {
             get {
@@ -4251,6 +4431,15 @@ namespace WinAGI.Engine {
         internal static string _697 {
             get {
                 return ResourceManager.GetString("697", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to write to file (%1). Make sure the file is not marked &apos;read only&apos;..
+        /// </summary>
+        internal static string _698 {
+            get {
+                return ResourceManager.GetString("698", resourceCulture);
             }
         }
     }

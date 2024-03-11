@@ -53,35 +53,31 @@ namespace WinAGI.Engine
         {
             //adds a new view to a currently open game
             View agResource;
-            int intNextNum = 1;
+            int intNextNum = 0;
             string strID, strBaseID;
             //if this view already exists
             if (Exists(ResNum)) {
                 //resource already exists
-
                 Exception e = new(LoadResString(602))
                 {
                     HResult = WINAGI_ERR + 602
                 };
                 throw e;
             }
-            //if no object was passed
+            // create new ingame view resource
+            agResource = new View(parent, ResNum, NewView);
+            // if no object was passed
             if ((NewView is null)) {
-                //create new view resource
-                agResource = new View();
                 //proposed ID will be default
                 strID = "View" + ResNum;
             }
             else {
-                //clone the passed view
-                agResource = NewView.Clone();
-
                 //get proposed id
-                strID = NewView.ID;
+                strID = agResource.ID;
             }
             // validate id
             strBaseID = strID;
-            while (!NewView.IsUniqueResID(strID)) {
+            while (!agResource.IsUniqueResID(strID)) {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }
@@ -90,17 +86,13 @@ namespace WinAGI.Engine
             //force flags so save function will work
             agResource.IsDirty = true;
             agResource.WritePropState = true;
-
             //save new view
             agResource.Save();
-
             // TODO: does adding a resource automatically update resid lists? or should
             // they be reset here as well?
             //Compiler.blnSetIDs = false;
-
             //return the object created
             return agResource;
-
         }
         public void Remove(byte Index)
         {
@@ -209,6 +201,14 @@ namespace WinAGI.Engine
             //create new logic object
             View newResource = new(parent, bytResNum, bytVol, lngLoc);
             //add it
+            // try to load it
+            try {
+                newResource.Load();
+            }
+            catch (Exception e) {
+                // throw it
+                throw;
+            }
             Col.Add(bytResNum, newResource);
             // update VOL and LOC
             newResource.Volume = bytVol;
