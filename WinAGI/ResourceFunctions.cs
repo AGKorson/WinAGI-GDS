@@ -407,7 +407,8 @@ namespace WinAGI.Engine
                 break;
             case 505: //Invalid resource location (%1) in %2.
                 warnInfo.ID = "VW02";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid location ({lngCurrentLoc}) in volume file {Path.GetFileName(fsVOL.Name)}";
+                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid location ({eRes.Data["loc"]}) in volume file {eRes.Data["volname"]}";
+                warnInfo.Module = (string)eRes.Data["module"];
                 Raise_LoadGameEvent(warnInfo);
                 break;
             case 506: //invalid header
@@ -416,10 +417,10 @@ namespace WinAGI.Engine
                 Raise_LoadGameEvent(warnInfo);
                 break;
             case 507: //Invalid resource data (err.msg)
+                // TODO: error 507 isn't valid anymore; can remove it
                 strError = "507: " + eRes.Message;
                 warnInfo.ID = "RW10";
                 warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has invalid resource data ({strError})";
-                warnInfo.Module = ""; //TODO: include module for this type?
                 Raise_LoadGameEvent(warnInfo);
                 break;
             case 606: //Can't load resource: file not found (%1)

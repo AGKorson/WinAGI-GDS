@@ -448,6 +448,8 @@ namespace WinAGI.Engine {
             }
             //verify file exists
             if (!File.Exists(strLoadResFile)) {
+                // TODO: all throws need to be checked for correct number,
+                // and use Data[] elements to pass additional error info
                 throw new Exception(LoadResString(606).Replace(ARG1, Path.GetFileName(strLoadResFile)));
             }
             //open file (VOL or individual resource)
@@ -455,19 +457,27 @@ namespace WinAGI.Engine {
                 fsVOL = new FileStream(strLoadResFile, FileMode.Open);
                 brVOL = new BinaryReader(fsVOL);
             }
-            catch (Exception) {
+            catch (Exception e1) {
                 fsVOL.Dispose();
                 brVOL.Dispose();
-                throw new Exception(LoadResString(502));
+                Exception e = new(LoadResString(502))
+                {
+                    HResult = WINAGI_ERR + 502,
+                };
+                e.Data["errorText"] = e1.Message;
             }
             //verify resource is within file bounds
             if (mLoc > fsVOL.Length) {
                 fsVOL.Dispose();
                 brVOL.Dispose();
-                Exception e = new Exception(LoadResString(505).Replace(ARG1, mLoc.ToString()).Replace(ARG2, fsVOL.Name))
+                Exception e = new Exception(LoadResString(505).Replace(ARG1, mLoc.ToString()).Replace(ARG2, fsVOL.Name).Replace(ARG2, mVolume.ToString()))
                 {
-                    HResult = WINAGI_ERR + 505
+                    HResult = WINAGI_ERR + 505,
                 };
+                e.Data["loc"] = mLoc;
+                e.Data["vol"] = mVolume;
+                e.Data["volname"] = Path.GetFileName(fsVOL.Name);
+                e.Data["module"] = mResID;
                 throw e;
             }
             //if loading from a VOL file (i.e. is in a game)

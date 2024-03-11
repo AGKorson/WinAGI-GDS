@@ -357,10 +357,9 @@ namespace WinAGI.Engine
         }
         internal static void InitWinAGI()
         {
-
+            // TEMP CHECK - verify the string resource file is still working correctly
             try {
                 Debug.Print(LoadResString(505));
-
             }
             catch (Exception e) {
                 Debug.Assert(false);

@@ -87,7 +87,8 @@ namespace WinAGI.Engine
                 Module = "",
                 Text = ""
             };
-
+            // give compiler access
+            compGame = this;
             switch (mode) {
             case OpenGameMode.File:
                 retval = OpenGameWAG(gameSource);
@@ -107,16 +108,15 @@ namespace WinAGI.Engine
                 };
 
             }
-            // give compiler access
-            compGame = this;
         }
         
         public AGIGame(string id, string version, string gamedir, string resdir, string template = "")
         {
             InitGame();
-            NewGame(id, version, gamedir, resdir, template);
             // give compiler access
             compGame = this;
+            // create a new, blank game
+            NewGame(id, version, gamedir, resdir, template);
         }
         
         public void Dispose()
@@ -2053,7 +2053,6 @@ namespace WinAGI.Engine
                 Text = "",
                 Module = ""
             };
-
             // provide feedback to calling function
             bool blnWarnings = false;
             TWinAGIEventInfo loadInfo = new()
@@ -2063,8 +2062,6 @@ namespace WinAGI.Engine
                 Module = "",
                 Text = ""
             };
-
-            //set v3 flag
             agIsVersion3 = (Val(agIntVersion) >= 3);
             //if loading from a wag file
             if (Mode == OpenGameMode.File) {
@@ -2162,8 +2159,10 @@ namespace WinAGI.Engine
                 //set warning
                 blnWarnings = true;
             }
-
             //load vocabulary word list
+            loadInfo.Type = EventType.etInfo;
+            loadInfo.InfoType = EInfoType.itResources;
+            loadInfo.ResType = AGIResType.rtWords;
             Raise_LoadGameEvent(loadInfo);
             try {
                 agVocabWords = new WordList(this);
@@ -2190,8 +2189,11 @@ namespace WinAGI.Engine
                 Raise_LoadGameEvent(loadInfo);
                 //set warning flag
                 blnWarnings = true;
-            } 
+            }
             //load inventory objects list
+            loadInfo.Type = EventType.etInfo;
+            loadInfo.InfoType = EInfoType.itResources;
+            loadInfo.ResType = AGIResType.rtObjects;
             Raise_LoadGameEvent(loadInfo);
             try {
                 agInvObj = new InventoryList(this);

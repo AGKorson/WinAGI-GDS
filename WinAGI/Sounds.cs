@@ -189,7 +189,7 @@ namespace WinAGI.Engine
                 };
                 throw e;
             }
-            //create new logic object
+            //create new sound object
             Sound newResource = new(parent, bytResNum, bytVol, lngLoc);
             // try to load it
             try {
