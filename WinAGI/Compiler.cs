@@ -861,10 +861,6 @@ namespace WinAGI.Engine
             //validates that TestDefine.Value is a valid define Value
             string strVal;
 
-            // should only be called if a game is active?
-            if (compGame is null) {
-                throw new Exception("no game object!");
-            }
             if (TestDefine.Value.Length == 0)
                 return vcEmpty;
             //values must be a variable/flag/etc, string, or a number
@@ -1067,15 +1063,11 @@ namespace WinAGI.Engine
                 }
             }
 
-            if (!NoTrim)
+            if (!NoTrim) {
                 //return the line, trimmed
                 strOut = strOut.Trim();
-
+            }
             return strOut;
-
-            //ErrHandler:
-            ////*'Debug.Throw exception
-            //  Resume Next
         }
     }
 }

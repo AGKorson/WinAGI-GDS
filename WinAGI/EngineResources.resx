@@ -1578,4 +1578,7 @@
   <data name="698" xml:space="preserve">
     <value>Unable to write to file (%1). Make sure the file is not marked 'read only'.</value>
   </data>
+  <data name="999" xml:space="preserve">
+    <value>TBD: need a new custom error string</value>
+  </data>
 </root>

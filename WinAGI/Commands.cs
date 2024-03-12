@@ -979,7 +979,7 @@ namespace WinAGI.Engine
             // This procedure adjusts the logic commands for a given int. version
             if (!IntVersions.Contains(Version)) { 
                 //error
-                throw new NotImplementedException();
+                throw new ArgumentOutOfRangeException(nameof(Version));
                 //return;
             }
             double verNum = Double.Parse(Version);

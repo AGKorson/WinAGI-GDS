@@ -43,6 +43,8 @@ namespace WinAGI.Editor
                 //catch any errors/warnings that were returned
                 lngErr = ex.HResult;
                 strError = ex.Message;
+                // TODO: use data field to access additional error info
+                TWinAGIEventInfo errInfo = (TWinAGIEventInfo)ex.Data["retval"];
                 if ((lngErr & WINAGI_ERR) == WINAGI_ERR) {
                     bgwOpenGame.ReportProgress(0, "Error encountered, game not loaded");
                     //error

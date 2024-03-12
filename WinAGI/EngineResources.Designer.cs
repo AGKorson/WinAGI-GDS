@@ -4442,5 +4442,14 @@ namespace WinAGI.Engine {
                 return ResourceManager.GetString("698", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TBD: need a new custom error string.
+        /// </summary>
+        internal static string _999 {
+            get {
+                return ResourceManager.GetString("999", resourceCulture);
+            }
+        }
     }
 }

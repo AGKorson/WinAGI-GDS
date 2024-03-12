@@ -631,14 +631,29 @@ namespace WinAGI.Common
             INVALID_FILENAME_CHARS = CTRL_CHARS + " \\/:*?\"<>|";
         }
 
+        public class WinAGIException : Exception {
+            public WinAGIException() {
+            }
+
+            public WinAGIException(string message)
+                : base(message) {
+            }
+
+            public WinAGIException(string message, Exception inner)
+                : base(message, inner) {
+            }
+        }
+
         internal static string UnicodeToCP(string strIn, Encoding enc)
         {
             return enc.GetString(Encoding.Unicode.GetBytes(strIn));
         }
+        
         internal static string CPToUnicode(string strIn, Encoding oldCP)
         {
             return Encoding.Unicode.GetString(oldCP.GetBytes(strIn));
         }
+        
         internal static Array ResizeArray(Array arr, int[] newSizes)
         {
             if (newSizes.Length != arr.Rank)
@@ -649,6 +664,7 @@ namespace WinAGI.Common
             Array.ConstrainedCopy(arr, 0, temp, 0, length);
             return temp;
         }
+        
         internal static string Right(string strIn, int length)
         {
             if (length >= strIn.Length)
@@ -656,6 +672,7 @@ namespace WinAGI.Common
             else
                 return strIn[^length..];
         }
+        
         internal static string Left(string strIn, int length)
         {
             if (length >= strIn.Length)
@@ -663,6 +680,7 @@ namespace WinAGI.Common
             else
                 return strIn[..length];
         }
+        
         internal static string Mid(string strIn, int pos, int length)
         {
             // mimic VB mid function; if length is too long, return
@@ -671,6 +689,7 @@ namespace WinAGI.Common
                 return strIn[pos..];
             return strIn.Substring(pos, length);
         }
+        
         internal static string MultStr(string strIn, int NumCopies)
         {
             return new StringBuilder(strIn.Length * NumCopies).Insert(0, strIn, NumCopies).ToString();
@@ -679,6 +698,7 @@ namespace WinAGI.Common
             //  retval += strIn;
             //return retval;
         }
+        
         /// <summary>
         /// Extension method that works out if a string is numeric or not
         /// </summary>
@@ -691,6 +711,7 @@ namespace WinAGI.Common
             }
             return false;
         }
+        
         /// <summary>
         /// Extension that mimics the VB Val() function; returns 0
         /// if the string is non-numeric
@@ -1092,11 +1113,12 @@ namespace WinAGI.Common
                 }
             }
             catch (Exception) {
-                throw new Exception("directory copy error");
+                throw new  Exception("directory copy error");
             }
             // success
             return true;
         }
+        
         internal static string CompactPath(string LongPath, int MaxLength = 40)
         {
             //this method will ensure LongPath is compacted
@@ -1128,6 +1150,7 @@ namespace WinAGI.Common
             //truncate directory, pad with ... and return combined dir/filename
             return Left(strDir, MaxLength - 4) + "...\\" + strFile;
         }
+        
         internal static string ShortFileName(string strLongFileName)
         {
             //returns the short filename of a file
@@ -1155,6 +1178,7 @@ namespace WinAGI.Common
                 return "";
             }
         }
+        
         internal static List<string> SplitLines(string strText)
         {
             // splits the input text into lines, by CR, LF, or CRLF
@@ -1163,6 +1187,7 @@ namespace WinAGI.Common
             List<string> retval = [.. strText.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n')];
             return retval;
         }
+        
         internal static string ChangeExtension(ref string FileName, string Filter, int Index)
         {
             //compares the extension on Filename to the extension belonging to
@@ -1239,6 +1264,7 @@ namespace WinAGI.Common
             }
             return retval;
         }
+        
         public static string FullFileName(string startdir, string relpath) {
             // TODO: add error checking
             try {

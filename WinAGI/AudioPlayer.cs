@@ -5,30 +5,22 @@ using static WinAGI.Engine.Base;
 using static WinAGI.Common.API;
 using static WinAGI.Common.Base;
 using System.Windows.Forms;
-using System.ComponentModel;
-using System.Reflection.Metadata;
 
-namespace WinAGI.Engine
-{
-    internal class AudioPlayer : NativeWindow, IDisposable
-    {
-        IntPtr piFormHandle = IntPtr.Zero;
+namespace WinAGI.Engine {
+    internal class AudioPlayer : NativeWindow, IDisposable {
         private bool disposed = false;
         internal bool blnPlaying;
         internal byte PlaySndResNum;
         internal Sound SndPlaying;
         internal byte[] mMIDIData;
-        internal AudioPlayer()
-        {
+        internal AudioPlayer() {
             CreateParams cpSndPlayer = new()
             {
                 //Style = 1
             };
             this.CreateHandle(cpSndPlayer);
-            piFormHandle = this.Handle;
         }
-        internal void PlaySound(Sound SndRes)
-        {
+        internal void PlaySound(Sound SndRes) {
             string strTempFile, strShortFile;
             int rtn;
             string strID, strMode;
@@ -55,7 +47,12 @@ namespace WinAGI.Engine
             if (rtn != 0) {
                 _ = mciGetErrorString(rtn, strError, 255);
                 //return the error
-                throw new Exception("678, SndSubclass " + strError.ToString());
+                WinAGIException wex = new(LoadResString(628))
+                {
+                    HResult = 628,
+                };
+                wex.Data["error"] = strError;
+                throw wex;
             }
             //set playing flag and number of sound being played
             blnPlaying = true;
@@ -72,11 +69,16 @@ namespace WinAGI.Engine
                 //close sound
                 _ = mciSendString("close all", null, 0, (IntPtr)0);
                 //return the error
-                throw new Exception("628, SndSubclass " + strError.ToString());
+                WinAGIException wex = new(LoadResString(628))
+                {
+                    HResult = 628,
+                };
+                wex.Data["error"] = strError;
+                throw wex;
             }
         }
-        public void Dispose()
-        {
+
+        public void Dispose() {
             Dispose(disposing: true);
             // This object will be cleaned up by the Dispose method.
             // Therefore, you should call GC.SuppressFinalize to
@@ -85,6 +87,7 @@ namespace WinAGI.Engine
             // from executing a second time.
             GC.SuppressFinalize(this);
         }
+
         protected virtual void Dispose(bool disposing) {
             // check to see if Dispose has already been called
             if (!this.disposed) {
@@ -101,13 +104,13 @@ namespace WinAGI.Engine
                 disposed = true;
             }
         }
+
         // Use C# finalizer syntax for finalization code.
         // This finalizer will run only if the Dispose method
         // does not get called.
         // It gives your base class the opportunity to finalize.
         // Do not provide finalizer in types derived from this class.
-        ~AudioPlayer()
-        {
+        ~AudioPlayer() {
             // Do not re-create Dispose clean-up code here.
             // Calling Dispose(disposing: false) is optimal in terms of
             // readability and maintainability.
