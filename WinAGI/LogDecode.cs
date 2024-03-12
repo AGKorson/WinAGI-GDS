@@ -148,11 +148,12 @@ namespace WinAGI.Engine
             //if can't read messges,
             if (!ReadMessages(bytData, lngMsgSecStart, SourceLogic.V3Compressed != 2)) {
                 //raise error
-                Exception e = new($"LogDecode Error ({strError})")
+                WinAGIException wex = new($"LogDecode Error ({strError})")
                 {
                     HResult = WINAGI_ERR + 688
                 };
-                throw e;
+                wex.Data["error"] = strError;
+                throw wex;
             }
 
             //set main block info
@@ -173,18 +174,20 @@ namespace WinAGI.Engine
                     strError = "";
                     if (!FindLabels(bytData)) {
                         //use error string set by findlabels
-                        Exception e = new($"LogDecode Error ({strError})")
+                        WinAGIException wex = new($"LogDecode Error ({strError})")
                         {
                             HResult = WINAGI_ERR + 688
                         };
-                        throw e;
+                        wex.Data["error"] = strError;
+                        throw wex;
                     } else {
                         //use error string set by findlabels
-                        Exception e = new($"LogDecode Error ({strError})")
+                        WinAGIException wex = new($"LogDecode Error ({strError})")
                         {
                             HResult = WINAGI_ERR + 688
                         };
-                        throw e;
+                        wex.Data["error"] = strError;
+                        throw wex;
                     }
                 }
             }
@@ -216,11 +219,12 @@ namespace WinAGI.Engine
                 case 0xFF:
                     //this byte starts an IF statement
                     if (!DecodeIf(bytData, stlOutput)) {
-                        Exception e = new($"LogDecode Error ({strError})")
+                        WinAGIException wex = new($"LogDecode Error ({strError})")
                         {
                             HResult = WINAGI_ERR + 688
                         };
-                        throw e;
+                        wex.Data["error"] = strError;
+                        throw wex;
                     }
                     break;
                 case 0xFE:
@@ -427,11 +431,12 @@ namespace WinAGI.Engine
                             //if message error (no string returned)
                             if (strArg.Length == 0) {
                                 //error string set by ArgValue function
-                                Exception e = new($"LogDecode Error ({strError})")
+                                WinAGIException wex = new($"LogDecode Error ({strError})")
                                 {
                                     HResult = WINAGI_ERR + 688
                                 };
-                                throw e;
+                                wex.Data["error"] = strError;
+                                throw wex;
                             }
                             //check for commands that use colors here
                             switch (bytCmd) {

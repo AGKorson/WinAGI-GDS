@@ -140,13 +140,15 @@ namespace WinAGI.Engine {
                   //set flag
                 mMIDISet = true;
             }
-            catch (Exception) {
+            catch (Exception e) {
 
-                Exception e = new(LoadResString(596))
+                WinAGIException wex = new(LoadResString(596))
                 {
                     HResult = WINAGI_ERR + 596
                 };
-                throw e;
+                wex.Data["exception"] = e;
+                wex.Data["ID"] = mResID;
+                throw wex;
             }
         }
         double GetSoundLength() {
@@ -282,11 +284,11 @@ namespace WinAGI.Engine {
                     if (lngStart < 0 || lngEnd < 0 || lngStart > mSize || lngEnd > mSize) {
                         //raise error
 
-                        Exception e = new(LoadResString(598))
+                        WinAGIException wex = new(LoadResString(598))
                         {
                             HResult = WINAGI_ERR + 598
                         };
-                        throw e;
+                        throw wex;
                     }
 
                     //step through notes in this track (5 bytes at a time)
@@ -337,11 +339,13 @@ namespace WinAGI.Engine {
             }
             catch (Exception e) {
 
-                Exception eR = new(LoadResString(565).Replace(ARG1, e.Message))
+                WinAGIException wex = new(LoadResString(565).Replace(ARG1, e.Message))
                 {
                     HResult = WINAGI_ERR + 565
                 };
-                throw eR;
+                wex.Data["exception"] = e;
+                wex.Data["ID"] = mResID;
+                throw wex;
             }
             //save length
             // original playsound dos app used, sound tick of 1/64 sec
@@ -397,11 +401,13 @@ namespace WinAGI.Engine {
                 tmpRes.WriteByte(0xFF);
             }
             catch (Exception e) {
-                Exception eR = new(LoadResString(566).Replace(ARG1, e.Message))
+                WinAGIException wex = new(LoadResString(566).Replace(ARG1, e.Message))
                 {
                     HResult = WINAGI_ERR + 566
                 };
-                throw eR;
+                wex.Data["exception"] = e;
+                wex.Data["ID"] = mResID;
+                throw wex;
             }
             //assign data to resource
             mRData.AllData = tmpRes.mRData.AllData;
@@ -422,11 +428,11 @@ namespace WinAGI.Engine {
             int i;
             if (!mLoaded) {
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             base.Clear();
             //write data for default view
@@ -477,11 +483,11 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
 
             //if sound is already open
@@ -490,11 +496,11 @@ namespace WinAGI.Engine {
                 // need tomake sure all sounds get stopped- should this be a static function?
                 // YES...
 
-                Exception e = new(LoadResString(629))
+                WinAGIException wex = new(LoadResString(629))
                 {
                     HResult = WINAGI_ERR + 629
                 };
-                throw e;
+                throw wex;
             }
             //dont need to worry if tracks are properly loaded because
             //changing track data causes mMIDISet to be reset; this forces
@@ -546,11 +552,11 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //if format is not predefined
             if ((FileFormat <= SoundFormat.sfUndefined) || ((int)FileFormat > 3)) {
@@ -748,11 +754,11 @@ namespace WinAGI.Engine {
                 fsSnd.Dispose();
                 brSnd.Dispose();
 
-                Exception e = new(LoadResString(681))
+                WinAGIException wex = new(LoadResString(681))
                 {
                     HResult = WINAGI_ERR + 681
                 };
-                throw e;
+                throw wex;
             }
             //set key and tpqn defaults
             mTPQN = 16;
@@ -1046,11 +1052,11 @@ namespace WinAGI.Engine {
                             mDescription = "";
                             //raise the error
 
-                            Exception e = new(LoadResString(681))
+                            WinAGIException wex = new(LoadResString(681))
                             {
                                 HResult = WINAGI_ERR + 681
                             };
-                            throw e;
+                            throw wex;
                         }
                     }
                     //increment line counter
@@ -1099,11 +1105,11 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //if sound not set,
             if (!mTracksSet) {
@@ -1203,13 +1209,13 @@ namespace WinAGI.Engine {
             default:
                 //bad sound
                 Unload();
-                Exception e = new(LoadResString(598))
+                WinAGIException wex = new(LoadResString(598))
                 {
                     HResult = WINAGI_ERR + 598
                 };
-                throw e;
-            } //switch
-              //clear dirty flag
+                throw wex;
+            }
+            //clear dirty flag
             mIsDirty = false;
             WritePropState = false;
         }
@@ -1221,11 +1227,11 @@ namespace WinAGI.Engine {
                 if (!mLoaded) {
                     //error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 //if resource changed,
                 if (!mMIDISet) {

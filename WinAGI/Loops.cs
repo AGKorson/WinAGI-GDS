@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
+using static WinAGI.Common.Base;
 
 namespace WinAGI.Engine
 {
@@ -36,12 +37,11 @@ namespace WinAGI.Engine
             //if too many loops or invalid pos
             if (mLoopCol.Count == MAX_LOOPS || Pos < 0) {
                 //error - too many loops
-
-                Exception e = new(LoadResString(537))
+                WinAGIException wex = new(LoadResString(537))
                 {
                     HResult = WINAGI_ERR + 537
                 };
-                throw e;
+                throw wex;
             }
             //if no position is past end
             if (Pos > mLoopCol.Count) {
@@ -100,12 +100,11 @@ namespace WinAGI.Engine
             //if this is last loop
             if (mLoopCol.Count == 1) {
                 //can't delete last loop
-
-                Exception e = new(LoadResString(613))
+                WinAGIException wex = new(LoadResString(613))
                 {
                     HResult = WINAGI_ERR + 613
                 };
-                throw e;
+                throw wex;
             }
             // if past the end
             if (Index >= mLoopCol.Count) {

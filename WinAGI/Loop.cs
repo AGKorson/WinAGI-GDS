@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WinAGI.Engine;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine
@@ -111,37 +112,30 @@ namespace WinAGI.Engine
         {
             get
             {
-                //return the mirror loop
-                //by finding the other loop that has this mirror pair Value
+                // return the mirror loop
+                // by finding the other loop that has this mirror pair Value
                 byte i;
                 //if not mirrored
                 if (mMirrorPair == 0) {
-                    //raise error
-
-                    Exception eR = new(LoadResString(611))
+                    // raise error
+                    WinAGIException wex = new(LoadResString(611))
                     {
                         HResult = WINAGI_ERR + 611
                     };
-                    throw eR;
+                    throw wex;
                 }
-
-                //step through all loops in the loop collection
+                // step through all loops in the loop collection
                 for (i = 0; i < mParent.mLoopCol.Count; i++) {
-                    //if mirror pair values equal zero
+                    // if mirror pair values equal zero
                     if (mParent.mLoopCol[i].MirrorPair + mMirrorPair == 0) {
-                        //this is the loop
-                        return i;
+                        // this is the loop
+                        break;
                     }
                 }
-                //should never get here
-
-                Exception e = new(LoadResString(611))
-                {
-                    HResult = WINAGI_ERR + 611
-                };
-                throw e;
+                return i;
             }
         }
+
         internal int MirrorPair
         {
             get

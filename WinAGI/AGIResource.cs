@@ -160,11 +160,11 @@ namespace WinAGI.Engine {
                         mSizeInVol = GetSizeInVOL();
                         //if valid Value not returned,
                         if (mSizeInVol == -1) {
-                            Exception e = new(LoadResString(625))
+                            WinAGIException wex = new(LoadResString(625))
                             {
                                 HResult = WINAGI_ERR + 625,
                             };
-                            throw e;
+                            throw wex;
                         }
                     }
                     return mSizeInVol;
@@ -271,11 +271,11 @@ namespace WinAGI.Engine {
                 //validate length
                 if (NewID.Length == 0) {
                     //error
-                    Exception e = new(LoadResString(667))
+                    WinAGIException wex = new(LoadResString(667))
                     {
                         HResult = WINAGI_ERR + 667
                     };
-                    throw e;
+                    throw wex;
                 }
                 else if (NewID.Length > 64) {
                     NewID = Left(NewID, 64);
@@ -292,10 +292,10 @@ namespace WinAGI.Engine {
                                 //if not the same resource
                                 if (tmpRes.Number != Number || tmpRes.ResType != ResType) {
                                     // error
-                                    Exception e = new(LoadResString(623)) {
+                                    WinAGIException wex = new(LoadResString(623)) {
                                         HResult = WINAGI_ERR + 623,
                                     };
-                                    throw e;
+                                    throw wex;
                                 }
                             }
                         }
@@ -305,11 +305,11 @@ namespace WinAGI.Engine {
                                 //if not the same resource
                                 if (tmpRes.Number != Number || tmpRes.ResType != ResType) {
                                     //error
-                                    Exception e = new(LoadResString(623))
+                                    WinAGIException wex = new(LoadResString(623))
                                     {
                                         HResult = WINAGI_ERR + 623,
                                     };
-                                    throw e;
+                                    throw wex;
                                 }
                             }
                         }
@@ -319,11 +319,11 @@ namespace WinAGI.Engine {
                                 //if not the same resource
                                 if (tmpRes.Number != Number || tmpRes.ResType != ResType) {
                                     //error
-                                    Exception e = new(LoadResString(623))
+                                    WinAGIException wex = new(LoadResString(623))
                                     {
                                         HResult = WINAGI_ERR + 623,
                                     };
-                                    throw e;
+                                    throw wex;
                                 }
                             }
                         }
@@ -333,11 +333,11 @@ namespace WinAGI.Engine {
                                 //if not the same resource
                                 if (tmpRes.Number != Number || tmpRes.ResType != ResType) {
                                     //error
-                                    Exception e = new(LoadResString(623))
+                                    WinAGIException wex = new(LoadResString(623))
                                     {
                                         HResult = WINAGI_ERR + 623,
                                     };
-                                    throw e;
+                                    throw wex;
                                 }
                             }
                         }
@@ -372,11 +372,11 @@ namespace WinAGI.Engine {
                 //if not loaded
                 if (!mLoaded) {
                     //error
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563,
                     };
-                    throw e;
+                    throw wex;
                 }
                 return mlngCurPos >= mRData.Length;
             }
@@ -435,22 +435,20 @@ namespace WinAGI.Engine {
             //loads the data for this resource
             //from its VOL file, if in a game
             //or from its resfile
-
             byte bytLow, bytHigh, bytVolNum;
             bool blnIsPicture = false;
             int intSize, lngExpandedSize = 0;
             string strLoadResFile;
 
-            //if already loaded,
+            // if already loaded,
             if (mLoaded) {
-                //do nothing
+                // do nothing
                 return;
             }
-
             //if in a game,
             if (mInGame) {
-                //resource data is loaded from the AGI VOL file
-                //build filename
+                // resource data is loaded from the AGI VOL file
+                // build filename
                 if (parent.agIsVersion3) {
                     strLoadResFile = parent.agGameDir + parent.agGameID + "VOL." + mVolume.ToString();
                 }
@@ -459,30 +457,30 @@ namespace WinAGI.Engine {
                 }
             }
             else {
-                //if no filename
+                // if no filename
                 if (mResFile.Length == 0) {
                     //error- nothing to load
-                    Exception e = new(LoadResString(626))
+                    WinAGIException wex = new(LoadResString(626))
                     {
                         HResult = WINAGI_ERR + 626,
                     };
-                    throw e;
+                    throw wex;
                 }
                 else {
-                    //use resource filename
+                    // use resource filename
                     strLoadResFile = mResFile;
                 }
             }
-            //verify file exists
+            // verify file exists
             if (!File.Exists(strLoadResFile)) {
-                Exception e = new(LoadResString(606).Replace(ARG1, Path.GetFileName(strLoadResFile)))
+                WinAGIException wex = new(LoadResString(606).Replace(ARG1, Path.GetFileName(strLoadResFile)))
                 {
                     HResult = WINAGI_ERR + 606,
                 };
-                e.Data["ID"] = mResID;
-                throw e;
+                wex.Data["ID"] = mResID;
+                throw wex;
             }
-            //open file (VOL or individual resource)
+            // open file (VOL or individual resource)
             try {
                 fsVOL = new FileStream(strLoadResFile, FileMode.Open);
                 brVOL = new BinaryReader(fsVOL);
@@ -490,42 +488,44 @@ namespace WinAGI.Engine {
             catch (Exception e1) {
                 fsVOL.Dispose();
                 brVOL.Dispose();
-                Exception e = new(LoadResString(502))
+                WinAGIException wex = new(LoadResString(502))
                 {
                     HResult = WINAGI_ERR + 502,
                 };
-                e.Data["errorText"] = e1.Message;
-                e.Data["ID"] = mResID;
-                throw e;
+                wex.Data["exception"] = e1;
+                wex.Data["ID"] = mResID;
+                throw wex;
             }
-            //verify resource is within file bounds
+            // verify resource is within file bounds
             if (mLoc > fsVOL.Length) {
                 fsVOL.Dispose();
                 brVOL.Dispose();
-                Exception e = new Exception(LoadResString(505).Replace(ARG1, mLoc.ToString()).Replace(ARG2, fsVOL.Name).Replace(ARG2, mVolume.ToString()))
+                WinAGIException wex = new(LoadResString(505).Replace(ARG1, mLoc.ToString()).Replace(ARG2, fsVOL.Name).Replace(ARG2, mVolume.ToString()))
                 {
                     HResult = WINAGI_ERR + 505,
                 };
-                e.Data["loc"] = mLoc;
-                e.Data["vol"] = mVolume;
-                e.Data["volname"] = Path.GetFileName(fsVOL.Name);
-                e.Data["module"] = mResID;
-                throw e;
+                wex.Data["loc"] = mLoc;
+                wex.Data["vol"] = mVolume;
+                wex.Data["volname"] = Path.GetFileName(fsVOL.Name);
+                wex.Data["ID"] = mResID;
+                throw wex;
             }
-            //if loading from a VOL file (i.e. is in a game)
+            // if loading from a VOL file (i.e. is in a game)
             if (mInGame) {
                 //read header bytes
                 brVOL.BaseStream.Seek(mLoc, SeekOrigin.Begin);
                 bytHigh = brVOL.ReadByte();
                 bytLow = brVOL.ReadByte();
                 if ((!((bytHigh == 0x12) && (bytLow == 0x34)))) {
-                    Exception e = new(LoadResString(506))
+                    WinAGIException wex = new(LoadResString(506))
                     {
                         HResult = WINAGI_ERR + 506,
                     };
-                    e.Data["loc"] = mLoc;
-                    e.Data["module"] = mResID;
-                    throw e;
+                    wex.Data["loc"] = mLoc;
+                    wex.Data["vol"] = mVolume;
+                    wex.Data["volname"] = Path.GetFileName(fsVOL.Name);
+                    wex.Data["ID"] = mResID;
+                    throw wex;
                 }
                 //get volume where this resource is stored
                 bytVolNum = brVOL.ReadByte();
@@ -612,11 +612,11 @@ namespace WinAGI.Engine {
             //if not loaded
             if (!mLoaded) {
                 // error
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563,
                 };
-                throw e;
+                throw wex;
             }
             //if in game,
             if (mInGame) {
@@ -631,12 +631,12 @@ namespace WinAGI.Engine {
                 }
                 catch (Exception e) {
                     // pass error along
-                    Exception e1 = new(LoadResString(999))
+                    WinAGIException wex = new(LoadResString(999))
                     {
                         HResult = WINAGI_ERR + 999,
                     };
-                    e1.Data["error"] = e;
-                    throw e1;
+                    wex.Data["error"] = e;
+                    throw wex;
                 }
                 //change date of last edit
                 parent.agLastEdit = DateTime.Now;
@@ -658,11 +658,11 @@ namespace WinAGI.Engine {
 
             //if no filename passed
             if (ExportFile.Length == 0) {
-                Exception e = new(LoadResString(599))
+                WinAGIException wex = new(LoadResString(599))
                 {
                     HResult = WINAGI_ERR + 599,
                 };
-                throw e;
+                throw wex;
             }
             //if not loaded
             if (!mLoaded) {
@@ -671,11 +671,11 @@ namespace WinAGI.Engine {
                     Load();
                 }
                 catch (Exception) {
-                    Exception e = new(LoadResString(601))
+                    WinAGIException wex = new(LoadResString(601))
                     {
                         HResult = WINAGI_ERR + 601,
                     };
-                    throw e;
+                    throw wex;
                 }
             }
             // get temporary file
@@ -694,11 +694,11 @@ namespace WinAGI.Engine {
                     Unload();
                     //return error condition
                 }
-                Exception e = new(LoadResString(582))
+                WinAGIException wex = new(LoadResString(582))
                 {
                     HResult = WINAGI_ERR + 582,
                 };
-                throw e;
+                throw wex;
             }
 
             //close file,
@@ -729,7 +729,7 @@ namespace WinAGI.Engine {
                 //return error condition
                 WinAGIException wex = new(LoadResString(582))
                 {
-                    HResult = 582,
+                    HResult = WINAGI_ERR + 582,
                 };
                 wex.Data["error"] = e;
                 throw wex;
@@ -759,7 +759,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(604))
                 {
-                    HResult = 604,
+                    HResult = WINAGI_ERR + 604,
                 };
                 throw wex;
             }
@@ -768,7 +768,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(524).Replace(ARG1, ImportFile))
                 {
-                    HResult = 524,
+                    HResult = WINAGI_ERR + 524,
                 };
                 throw wex;
             }
@@ -784,7 +784,7 @@ namespace WinAGI.Engine {
             catch (Exception) {
                 WinAGIException wex = new(LoadResString(605).Replace(ARG1, ImportFile))
                 {
-                    HResult = 605,
+                    HResult = WINAGI_ERR + 605,
                 };
                 throw wex;
             }
@@ -792,7 +792,7 @@ namespace WinAGI.Engine {
             if (fsImport.Length == 0) {
                 WinAGIException wex = new(LoadResString(605).Replace(ARG1, ImportFile))
                 {
-                    HResult = 605,
+                    HResult = WINAGI_ERR + 605,
                 };
                 throw wex;
             }
@@ -822,7 +822,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(563))
                 {
-                    HResult = 563,
+                    HResult = WINAGI_ERR + 563,
                 };
                 throw wex;
             }
@@ -842,7 +842,7 @@ namespace WinAGI.Engine {
                 if (lngError > 0) {
                     WinAGIException wex = new(LoadResString(lngError))
                     {
-                        HResult = lngError,
+                        HResult = WINAGI_ERR + lngError,
                     };
                     throw wex;
                 }
@@ -883,7 +883,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(563))
                 {
-                    HResult = 563,
+                    HResult = WINAGI_ERR + 563,
                 };
                 throw wex;
             }
@@ -903,7 +903,7 @@ namespace WinAGI.Engine {
                 if (lngError > 0) {
                     WinAGIException wex = new(LoadResString(lngError))
                     {
-                        HResult = lngError,
+                        HResult = WINAGI_ERR + lngError,
                     };
                     throw wex;
                 }
@@ -957,7 +957,7 @@ namespace WinAGI.Engine {
                     //error
                     WinAGIException wex = new(LoadResString(563))
                     {
-                        HResult = 563,
+                        HResult = WINAGI_ERR + 563,
                     };
                     throw wex;
                 }
@@ -971,7 +971,7 @@ namespace WinAGI.Engine {
                     //error
                     WinAGIException wex = new(LoadResString(563))
                     {
-                        HResult = 563,
+                        HResult = WINAGI_ERR + 563,
                     };
                     throw wex;
                 }
@@ -988,7 +988,7 @@ namespace WinAGI.Engine {
                 if (lngError > 0) {
                     WinAGIException wex = new(LoadResString(lngError))
                     {
-                        HResult = lngError,
+                        HResult = WINAGI_ERR + lngError,
                     };
                     throw wex;
                 }
@@ -1008,7 +1008,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(563))
                 {
-                    HResult = 563,
+                    HResult = WINAGI_ERR + 563,
                 };
                 throw wex;
             }
@@ -1026,7 +1026,7 @@ namespace WinAGI.Engine {
                 if (lngError > 0) {
                     WinAGIException wex = new(LoadResString(lngError))
                     {
-                        HResult = lngError,
+                        HResult = WINAGI_ERR + lngError,
                     };
                     throw wex;
                 }
@@ -1060,7 +1060,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(563))
                 {
-                    HResult = 563,
+                    HResult = WINAGI_ERR + 563,
                 };
                 throw wex;
             }
@@ -1078,7 +1078,7 @@ namespace WinAGI.Engine {
                 if (lngError > 0) {
                     WinAGIException wex = new(LoadResString(lngError))
                     {
-                        HResult = lngError,
+                        HResult = WINAGI_ERR + lngError,
                     };
                     throw wex;
                 }
@@ -1104,7 +1104,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(563))
                 {
-                    HResult = 563,
+                    HResult = WINAGI_ERR + 563,
                 };
                 throw wex;
             }
@@ -1157,7 +1157,7 @@ namespace WinAGI.Engine {
                     //error
                     WinAGIException wex = new(LoadResString(620))
                     {
-                        HResult = 620,
+                        HResult = WINAGI_ERR + 620,
                     };
                     throw wex;
                 }
@@ -1165,7 +1165,7 @@ namespace WinAGI.Engine {
                     //error
                     WinAGIException wex = new(LoadResString(620))
                     {
-                        HResult = 620,
+                        HResult = WINAGI_ERR + 620,
                     };
                     throw wex;
                 }
@@ -1197,7 +1197,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(563))
                 {
-                    HResult = 563,
+                    HResult = WINAGI_ERR + 563,
                 };
                 throw wex;
             }
@@ -1215,7 +1215,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(620))
                 {
-                    HResult = 620,
+                    HResult = WINAGI_ERR + 620,
                 };
                 throw wex;
             }
@@ -1223,7 +1223,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(620))
                 {
-                    HResult = 620,
+                    HResult = WINAGI_ERR + 620,
                 };
                 throw wex;
             }
@@ -1241,7 +1241,7 @@ namespace WinAGI.Engine {
                 //error
                 WinAGIException wex = new(LoadResString(563))
                 {
-                    HResult = 563,
+                    HResult = WINAGI_ERR + 563,
                 };
                 throw wex;
             }

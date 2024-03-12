@@ -49,7 +49,7 @@ namespace WinAGI.Engine {
                 //return the error
                 WinAGIException wex = new(LoadResString(628))
                 {
-                    HResult = 628,
+                    HResult = WINAGI_ERR + 628,
                 };
                 wex.Data["error"] = strError;
                 throw wex;
@@ -71,7 +71,7 @@ namespace WinAGI.Engine {
                 //return the error
                 WinAGIException wex = new(LoadResString(628))
                 {
-                    HResult = 628,
+                    HResult = WINAGI_ERR + 628,
                 };
                 wex.Data["error"] = strError;
                 throw wex;

@@ -42,7 +42,7 @@ namespace WinAGI.Engine {
                 //error - too many cels
                 WinAGIException wex = new(LoadResString(552).Replace("ARG1", ""))
                 {
-                    HResult = 552,
+                    HResult = WINAGI_ERR + 552,
                 };
                 throw wex;
             }
@@ -91,7 +91,7 @@ namespace WinAGI.Engine {
                 //cant remove last cel
                 WinAGIException wex = new(LoadResString(612))
                 {
-                    HResult = 612,
+                    HResult = WINAGI_ERR + 612,
                 };
                 throw wex;
             }

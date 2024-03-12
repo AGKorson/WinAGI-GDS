@@ -106,11 +106,11 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //clear the resource
             base.Clear();
@@ -335,11 +335,11 @@ namespace WinAGI.Engine {
             if (bytNumLoops == 0) {
                 //error - invalid data
 
-                Exception e = new(LoadResString(595))
+                WinAGIException wex = new(LoadResString(595))
                 {
                     HResult = WINAGI_ERR + 595
                 };
-                throw e;
+                throw wex;
             }
             //get loop offset data for each loop
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
@@ -349,11 +349,11 @@ namespace WinAGI.Engine {
                 if ((lngLoopStart[bytLoop] > mSize)) {
                     Unload();
 
-                    Exception e = new(LoadResString(548))
+                    WinAGIException wex = new(LoadResString(548))
                     {
                         HResult = WINAGI_ERR + 548
                     };
-                    throw e;
+                    throw wex;
                 }
             }
             //step through all loops
@@ -406,11 +406,11 @@ namespace WinAGI.Engine {
                         if ((lngCelStart > mSize)) {
                             Unload();
 
-                            Exception e = new(LoadResString(553))
+                            WinAGIException wex = new(LoadResString(553))
                             {
                                 HResult = WINAGI_ERR + 553
                             };
-                            throw e;
+                            throw wex;
                         }
                         //get height/width
                         bytWidth = ReadByte(lngCelStart);
@@ -463,11 +463,11 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             try {
                 //if view is dirty
@@ -595,20 +595,20 @@ namespace WinAGI.Engine {
                 //if not loaded
                 if (!mLoaded) {
                     //error
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 //if view not set,
                 if (!mViewSet) {
                     //error
-                    Exception e = new(LoadResString(563) + ": loops not load????")
+                    WinAGIException wex = new(LoadResString(563) + ": loops not load????")
                     {
                         HResult = WINAGI_ERR + 563,
                     };
-                    throw e;
+                    throw wex;
                 }
                 //return the loop collection
                 return mLoopCol;
@@ -665,32 +665,32 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //the source loop must already exist
             //(must be less than or equal to max number of loops)
             if (SourceLoop >= mLoopCol.Count) {
                 //error - loop must exist
 
-                Exception e = new(LoadResString(539))
+                WinAGIException wex = new(LoadResString(539))
                 {
                     HResult = WINAGI_ERR + 539
                 };
-                throw e;
+                throw wex;
             }
             //the source loop and the target loop must be less than 8
             if (SourceLoop >= 8 || TargetLoop >= 8) {
                 //error - loop must exist
 
-                Exception e = new(LoadResString(539))
+                WinAGIException wex = new(LoadResString(539))
                 {
                     HResult = WINAGI_ERR + 539
                 };
-                throw e;
+                throw wex;
             }
             //mirror source and target can't be the same
             if (SourceLoop == TargetLoop) {
@@ -701,21 +701,21 @@ namespace WinAGI.Engine {
             if (mLoopCol[TargetLoop].Mirrored != 0) {
                 //error
 
-                Exception e = new(LoadResString(550))
+                WinAGIException wex = new(LoadResString(550))
                 {
                     HResult = WINAGI_ERR + 550
                 };
-                throw e;
+                throw wex;
             }
             //the mirror loop can't already have a mirror
             if (mLoopCol[SourceLoop].Mirrored != 0) {
                 //error
 
-                Exception e = new(LoadResString(551))
+                WinAGIException wex = new(LoadResString(551))
                 {
                     HResult = WINAGI_ERR + 551
                 };
-                throw e;
+                throw wex;
             }
             //get a new mirror pair number
             i = GetMirrorPair();

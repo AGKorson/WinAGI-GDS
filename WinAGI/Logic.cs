@@ -45,11 +45,9 @@ namespace WinAGI.Engine
 
         public override void Load()
         {
-            //if not ingame, the resource should already be loaded
+            // if not ingame, the resource should already be loaded
             if (!mInGame) {
-                if (!mLoaded) {
-                    throw new Exception("non-game resources should always be loaded");
-                }
+                Debug.Assert(mLoaded);
             }
             // if already loaded, just exit
             if (mLoaded) {
@@ -314,11 +312,11 @@ namespace WinAGI.Engine
             if (InGame) {
                 if (!Loaded) {
                     //nothing to clear
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
             }
             //clear resource
@@ -350,25 +348,25 @@ namespace WinAGI.Engine
             if (!InGame) {
                 //not allowed; nothing to export
 
-                Exception e = new(LoadResString(668))
+                WinAGIException wex = new(LoadResString(668))
                 {
                     HResult = WINAGI_ERR + 668
                 };
-                throw e;
+                throw wex;
             }
             //if not loaded
             if (!Loaded) {
                 //error
-
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //export a logic resource file
             base.Export(ExportFile);
         }
+
         public void Import(string ImportFile, bool AsSource)
         {
             //imports a logic resource
@@ -489,19 +487,15 @@ namespace WinAGI.Engine
                 try {
                     //load sourcecode from file
                     strInput = File.ReadAllText(LoadFile, parent.agCodePage);
-                    //fsLogic = new FileStream(LoadFile, FileMode.Open);
-                    //StreamReader srLogic = new(fsLogic, Encoding.GetEncoding(437));
-                    //strInput = srLogic.ReadToEnd();
-                    //srLogic.Dispose();
-                    //fsLogic.Dispose();
                 }
                 catch (Exception e) {
-
-                    Exception eR = new(LoadResString(502).Replace(ARG1, LoadFile).Replace(ARG2, e.Message))
+                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, LoadFile).Replace(ARG2, e.Message))
                     {
                         HResult = WINAGI_ERR + 502
                     };
-                    throw eR;
+                    wex.Data["exception"] = e;
+                    wex.Data["ID"] = mResID;
+                    throw wex;
                 }
             }
             //send text in source code string list
@@ -606,11 +600,11 @@ namespace WinAGI.Engine
                     if (blnUnload) {
                         Unload();
                     }
-                    Exception e = new(LoadResString(599))
+                    WinAGIException wex = new(LoadResString(599))
                     {
                         HResult = WINAGI_ERR + 599
                     };
-                    throw e;
+                    throw wex;
                 }
             }
             try {
@@ -644,11 +638,11 @@ namespace WinAGI.Engine
                 if (blnUnload) {
                     Unload();
                 }
-                Exception e = new(LoadResString(582))
+                WinAGIException wex = new(LoadResString(582))
                 {
                     HResult = WINAGI_ERR + 582
                 };
-                throw e;
+                throw wex;
             }
             try {
                 //if savefile exists
@@ -660,11 +654,11 @@ namespace WinAGI.Engine
                 File.Move(strTempFile, SaveFile);
             }
             catch (Exception) {
-                Exception e = new(LoadResString(663))
+                WinAGIException wex = new(LoadResString(663))
                 {
                     HResult = WINAGI_ERR + 663
                 };
-                throw e;
+                throw wex;
             }
             //if exporting, nothing left to do
             if (Exporting) {
@@ -705,27 +699,27 @@ namespace WinAGI.Engine
 
             //if not in a game
             if (!mInGame) {
-                Exception e = new(LoadResString(618))
+                WinAGIException wex = new(LoadResString(618))
                 {
                     HResult = WINAGI_ERR + 618
                 };
-                throw e;
+                throw wex;
             }
             //if not loaded, raise error
             if (!mLoaded) {
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //if no data in sourcecode
             if (mSourceText.Length == 0) {
-                Exception e = new(LoadResString(546))
+                WinAGIException wex = new(LoadResString(546))
                 {
                     HResult = WINAGI_ERR + 546
                 };
-                throw e;
+                throw wex;
             }
             try {
                 //compile the logic

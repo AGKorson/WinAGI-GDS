@@ -4,6 +4,7 @@ using System.Collections;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 using System.IO;
+using static WinAGI.Common.Base;
 
 namespace WinAGI.Engine
 {
@@ -58,11 +59,11 @@ namespace WinAGI.Engine
             //if this view already exists
             if (Exists(ResNum)) {
                 //resource already exists
-                Exception e = new(LoadResString(602))
+                WinAGIException wex = new(LoadResString(602))
                 {
                     HResult = WINAGI_ERR + 602
                 };
-                throw e;
+                throw wex;
             }
             // create new ingame view resource
             agResource = new View(parent, ResNum, NewView);
@@ -124,11 +125,11 @@ namespace WinAGI.Engine
             if (Col.ContainsKey(NewView)) {
                 //number already in use
 
-                Exception e = new(LoadResString(669))
+                WinAGIException wex = new(LoadResString(669))
                 {
                     HResult = WINAGI_ERR + 669
                 };
-                throw e;
+                throw wex;
             }
             //get view being renumbered
             tmpView = Col[OldView];
@@ -189,23 +190,14 @@ namespace WinAGI.Engine
         {
             //called by the resource loading method for the initial loading of
             //resources into logics collection
-            //if this view number is already in the game
-            if (Exists(bytResNum)) {
 
-                Exception e = new(LoadResString(602))
-                {
-                    HResult = WINAGI_ERR + 602
-                };
-                throw e;
-            }
             //create new logic object
             View newResource = new(parent, bytResNum, bytVol, lngLoc);
-            //add it
             // try to load it
             try {
                 newResource.Load();
             }
-            catch (Exception e) {
+            catch (Exception) {
                 // throw it
                 throw;
             }

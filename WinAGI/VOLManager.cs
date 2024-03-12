@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static WinAGI.Engine.AGIGame;
 using System.IO;
+using static WinAGI.Common.Base;
 
 namespace WinAGI.Engine {
     public static partial class Base {
@@ -251,18 +252,19 @@ namespace WinAGI.Engine {
                         if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
 
                         //raise appropriate error
-                        if (lngError == 593) {
-                            //exceed max storage
+                        if (lngError == WINAGI_ERR + 593) {
+                            //exceed max storage- pass it along
                             throw;
                         }
                         else {
                             //file access error
-
-                            Exception eR = new(LoadResString(638).Replace(Common.Base.ARG1, e.Message))
+                            WinAGIException wex = new(LoadResString(638).Replace(Common.Base.ARG1, e.Message))
                             {
                                 HResult = WINAGI_ERR + 638
                             };
-                            throw eR;
+                            wex.Data["exception"] = e;
+                            wex.Data["ID"] = tmpGameRes.ID;
+                            throw wex;
                         }
                     }
 
@@ -379,11 +381,13 @@ namespace WinAGI.Engine {
                     fsVOL.Dispose();
                     bwVOL.Dispose();
                 }
-                Exception ex = new("638 :" + strError)
+                WinAGIException wex = new(LoadResString(638))
                 {
                     HResult = lngError,
                 };
-                throw ex;
+                wex.Data["exception"] = e;
+                wex.Data["ID"] = AddRes.ID;
+                throw wex;
             }
             //if adding to a new vol file
             if (compileResCol) {
@@ -536,11 +540,11 @@ namespace WinAGI.Engine {
             }
             //if no room in any VOL file, raise an error
 
-            Exception e = new(LoadResString(593))
+            WinAGIException wex = new(LoadResString(593))
             {
                 HResult = WINAGI_ERR + 593
             };
-            throw e;
+            throw wex;
         }
         internal static void UpdateDirFile(AGIResource UpdateResource, bool Remove = false) {
             //this method updates the DIR file with the volume and location
@@ -828,16 +832,18 @@ namespace WinAGI.Engine {
                         fsVOL = new FileStream(strNewDir + "NEW_VOL." + i, FileMode.OpenOrCreate);
                         bwVOL = new BinaryWriter(fsVOL);
                     }
-                    catch (Exception) {
+                    catch (Exception e) {
                         fsVOL.Dispose();
                         bwVOL.Dispose();
                         //also, compiler should check for this error, as it is fatal
 
-                        Exception eR = new(LoadResString(640))
+                        WinAGIException wex = new(LoadResString(640))
                         {
                             HResult = WINAGI_ERR + 640
                         };
-                        throw eR;
+                        wex.Data["exception"] = e;
+                        wex.Data["ID"] = resource.ID;
+                        throw wex;
                     }
                     //is there room at the end of this file?
                     if ((i > 0 && (fsVOL.Length + resource.Size <= MAX_VOLSIZE)) || (fsVOL.Length + resource.Size <= resource.parent.agMaxVol0)) {
@@ -852,11 +858,11 @@ namespace WinAGI.Engine {
                 //raise error!
                 //also, compiler should check for this error, as it is fatal
 
-                Exception e = new(LoadResString(593))
+                WinAGIException wex1 = new(LoadResString(593))
                 {
                     HResult = WINAGI_ERR + 593
                 };
-                throw e;
+                throw wex1;
             }
         }
     }

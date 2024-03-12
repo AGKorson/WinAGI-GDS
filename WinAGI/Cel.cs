@@ -136,7 +136,7 @@ namespace WinAGI.Engine {
                     //invalid data
                     WinAGIException wex = new(LoadResString(614))
                     {
-                        HResult = 614,
+                        HResult = WINAGI_ERR + 614,
                     };
                     throw wex;
                 }
@@ -144,7 +144,7 @@ namespace WinAGI.Engine {
                     //invalid data
                     WinAGIException wex = new(LoadResString(614))
                     {
-                        HResult = 614,
+                        HResult = WINAGI_ERR + 614,
                     };
                     throw wex;
                 }
@@ -340,14 +340,14 @@ namespace WinAGI.Engine {
                 if (value == 0) {
                     WinAGIException wex = new(LoadResString(532))
                     {
-                        HResult = 532,
+                        HResult = WINAGI_ERR + 532,
                     };
                     throw wex;
                 }
                 if (value > MAX_CEL_HEIGHT) {
                     WinAGIException wex = new(LoadResString(532))
                     {
-                        HResult = 532,
+                        HResult = WINAGI_ERR + 532,
                     };
                     throw wex;
                 }
@@ -436,7 +436,7 @@ namespace WinAGI.Engine {
                 if (value == 0) {
                     WinAGIException wex = new(LoadResString(533))
                     {
-                        HResult = 533,
+                        HResult = WINAGI_ERR + 533,
                     };
                     throw wex;
                 }
@@ -444,7 +444,7 @@ namespace WinAGI.Engine {
                 if (value > MAX_CEL_WIDTH) {
                     WinAGIException wex = new(LoadResString(533))
                     {
-                        HResult = 533,
+                        HResult = WINAGI_ERR + 533,
                     };
                     throw wex;
                 }
@@ -494,7 +494,7 @@ namespace WinAGI.Engine {
                     //error
                     WinAGIException wex = new(LoadResString(556))
                     {
-                        HResult = 556,
+                        HResult = WINAGI_ERR + 556,
                     };
                     throw wex;
                 }

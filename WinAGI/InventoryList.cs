@@ -613,11 +613,11 @@ namespace WinAGI.Engine
             //if not loaded
             if (!mLoaded) {
                 //error
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //if in a game,
             if (mInGame) {
@@ -630,18 +630,16 @@ namespace WinAGI.Engine
                 if (SaveFile.Length == 0) {
                     SaveFile = mResFile;
                 }
-                //if still no file
+                // if still no file
                 if (SaveFile.Length == 0) {
-
-                    Exception e = new(LoadResString(615))
+                    WinAGIException wex = new(LoadResString(615))
                     {
                         HResult = WINAGI_ERR + 615
                     };
-                    throw e;
+                    throw wex;
                 }
                 Compile(SaveFile);
-
-                //save filename
+                // save filename
                 mResFile = SaveFile;
             }
             //mark as clean
@@ -656,11 +654,11 @@ namespace WinAGI.Engine
             if (!NewObjects.Loaded) {
                 //error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //first, clear current list
             Clear();
@@ -700,17 +698,16 @@ namespace WinAGI.Engine
             }
         }
         public void Unload()
-        {  //unloads ther resource; same as clear, except file marked as not dirty
-
+        {  
+            //unloads ther resource; same as clear, except file marked as not dirty
             //if not loaded
             if (!mLoaded) {
                 //error
-
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             Clear();
             mLoaded = false;
@@ -727,11 +724,11 @@ namespace WinAGI.Engine
             if (!mLoaded) {
                 //error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             mEncrypted = false;
             mMaxScreenObjects = 16;
@@ -766,11 +763,11 @@ namespace WinAGI.Engine
             int Dwidth;
             //if no file
             if (CompileFile.Length == 0) {
-                Exception e = new(LoadResString(616))
+                WinAGIException wex = new(LoadResString(616))
                 {
                     HResult = WINAGI_ERR + 616
                 };
-                throw e;
+                throw wex;
             }
 
             //if not dirty AND compilefile=resfile

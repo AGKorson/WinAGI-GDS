@@ -139,11 +139,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //raise error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 mBkImgFile = value;
                 WritePropState = true;
@@ -161,11 +161,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //raise error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 mBkPos = value;
                 WritePropState = true;
@@ -183,11 +183,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //raise error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 mBkSize = value;
                 WritePropState = true;
@@ -205,11 +205,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //raise error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 mBkTrans = value;
                 WritePropState = true;
@@ -227,11 +227,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //raise error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 mBkShow = value;
                 WritePropState = true;
@@ -274,11 +274,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //raise error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 //max value is 158
                 if (value > 158) {
@@ -297,12 +297,11 @@ namespace WinAGI.Engine
                 //if not loaded
                 if (!Loaded) {
                     //error
-
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 //if picture data changed,
                 if (!mPicBMPSet) {
@@ -320,11 +319,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 //if picture data changed,
                 if (!mPicBMPSet) {
@@ -342,11 +341,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 return mCurrentPen;
             }
@@ -359,11 +358,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 return mDrawPos;
             }
@@ -373,11 +372,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //raise error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 //if not changed
                 if (value == mDrawPos) {
@@ -407,20 +406,20 @@ namespace WinAGI.Engine
             if (!Loaded) {
                 //error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //validate x,Y
             if (X > 159 || Y > 167) {
 
-                Exception e = new(LoadResString(621))
+                WinAGIException wex = new(LoadResString(621))
                 {
                     HResult = WINAGI_ERR + 621
                 };
-                throw e;
+                throw wex;
             }
             //if picture data changed,
             if (!mPicBMPSet) {
@@ -460,20 +459,20 @@ namespace WinAGI.Engine
             if (!Loaded) {
                 //raise error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //validate x,Y
             if (X > 159 || Y > 167) {
 
-                Exception e = new(LoadResString(621))
+                WinAGIException wex = new(LoadResString(621))
                 {
                     HResult = WINAGI_ERR + 621
                 };
-                throw e;
+                throw wex;
             }
             //if picture data changed,
             if (!mPicBMPSet) {
@@ -510,20 +509,20 @@ namespace WinAGI.Engine
             if (!Loaded) {
                 //raise error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //validate x,Y
             if (X > 159 || Y > 167) {
 
-                Exception e = new(LoadResString(621))
+                WinAGIException wex = new(LoadResString(621))
                 {
                     HResult = WINAGI_ERR + 621
                 };
-                throw e;
+                throw wex;
             }
             //if picture data changed,
             if (!mPicBMPSet) {
@@ -544,20 +543,20 @@ namespace WinAGI.Engine
             if (!Loaded) {
                 //raise error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //validate x,y
             if (X > 159 || Y > 167) {
 
-                Exception e = new(LoadResString(621))
+                WinAGIException wex = new(LoadResString(621))
                 {
                     HResult = WINAGI_ERR + 621
                 };
-                throw e;
+                throw wex;
             }
             //if picture data changed,
             if (!mPicBMPSet) {
@@ -578,20 +577,20 @@ namespace WinAGI.Engine
             if (!Loaded) {
                 //raise error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             //validate x,Y
             if (X > 159 || Y > 167) {
 
-                Exception e = new(LoadResString(621))
+                WinAGIException wex = new(LoadResString(621))
                 {
                     HResult = WINAGI_ERR + 621
                 };
-                throw e;
+                throw wex;
             }
             //if picture data changed,
             if (!mPicBMPSet) {
@@ -630,11 +629,11 @@ namespace WinAGI.Engine
             if (!Loaded) {
                 //error
 
-                Exception e = new(LoadResString(563))
+                WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
                 };
-                throw e;
+                throw wex;
             }
             // use base function
             base.Export(ExportFile);
@@ -676,11 +675,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //nothing to clear
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
             }
             base.Clear();
@@ -745,11 +744,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //raise error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 //if pictures not built, or have changed,
                 if (!mPicBMPSet) {
@@ -772,11 +771,11 @@ namespace WinAGI.Engine
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 //if pictures not built, or have changed,
                 if (!mPicBMPSet) {
@@ -925,11 +924,11 @@ namespace WinAGI.Engine
                 if (!Loaded) {
                     //raise error
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 return mStepDraw;
             }
@@ -937,11 +936,11 @@ namespace WinAGI.Engine
             {
                 if (!mLoaded) {
 
-                    Exception e = new(LoadResString(563))
+                    WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
                     };
-                    throw e;
+                    throw wex;
                 }
                 // if a change
                 if (mStepDraw != value) {

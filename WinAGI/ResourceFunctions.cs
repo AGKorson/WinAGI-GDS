@@ -70,11 +70,11 @@ namespace WinAGI.Engine
                 strDirFile = game.agGameDir + game.agGameID + "DIR";
                 //verify it exists
                 if (!File.Exists(strDirFile)) {
-                    Exception e = new(LoadResString(524).Replace(ARG1, strDirFile))
+                    WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile))
                     {
                         HResult = WINAGI_ERR + 524
                     };
-                    throw e;
+                    throw wex;
                 }
                 try {
                     //open the file, load it into buffer, and close it
@@ -83,22 +83,24 @@ namespace WinAGI.Engine
                         fsDIR.Read(bytBuffer);
                     }
                 }
-                catch (Exception) {
-                    Exception e = new(LoadResString(502))
+                catch (Exception e) {
+                    WinAGIException wex = new(LoadResString(502))
                     {
                         HResult = WINAGI_ERR + 502
                     };
-                    throw e;
+                    wex.Data["exception"] = e;
+                    wex.Data["ID"] = Path.GetFileName(strDirFile);
+                    throw wex;
                 }
 
                 //if not enough bytes to hold at least the 4 dir pointers + 1 resource
                 if (bytBuffer.Length < 11) // 11 + bytes
                 {
-                    Exception e = new(LoadResString(542).Replace(ARG1, strDirFile))
+                    WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile))
                     {
                         HResult = WINAGI_ERR + 542
                     };
-                    throw e;
+                    throw wex;
                 }
 
             }
@@ -140,11 +142,11 @@ namespace WinAGI.Engine
                     strDirFile = game.agGameDir + ResTypeAbbrv[(int)bytResType] + "DIR";
                     //verify it exists
                     if (!File.Exists(strDirFile)) {
-                        Exception e = new(LoadResString(524).Replace(ARG1, strDirFile))
+                        WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile))
                         {
                             HResult = WINAGI_ERR + 524
                         };
-                        throw e;
+                        throw wex;
                     }
 
                     try {
@@ -155,11 +157,11 @@ namespace WinAGI.Engine
                         }
                     }
                     catch (Exception) {
-                        Exception e = new(LoadResString(502))
+                        WinAGIException wex = new(LoadResString(502))
                         {
                             HResult = WINAGI_ERR + 502
                         };
-                        throw e;
+                        throw wex;
                     }
 
                     //get size
@@ -168,21 +170,21 @@ namespace WinAGI.Engine
 
                 //if invalid dir information, return false
                 if ((lngDirOffset < 0) || (lngDirSize < 0)) {
-                    Exception e = new(LoadResString(542).Replace(ARG1, strDirFile))
+                    WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile))
                     {
                         HResult = WINAGI_ERR + 542
                     };
-                    throw e;
+                    throw wex;
                 }
 
                 //if at least one resource,
                 if (lngDirSize >= 3) {
                     if (lngDirOffset + lngDirSize > bytBuffer.Length) {
-                        Exception e = new(LoadResString(542).Replace(ARG1, strDirFile))
+                        WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile))
                         {
                             HResult = WINAGI_ERR + 524
                         };
-                        throw e;
+                        throw wex;
                     }
                 }
 
