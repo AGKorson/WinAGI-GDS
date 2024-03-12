@@ -37,3 +37,84 @@ add new item to the top of the list - voila!
 use that strategy to replace the ExtChar custom functions I wrote! should be easy to create a function
 wrapper around that text - now I wonder if there's a similar conversion available in VB... the API functions
 (MultiByteToWideChar and WideCharToMultiByte) might work, but I haven't been able to figure them out yet
+
+
+ERROR HANDLER info:
+resource base errors:
+626: no resfile (outgame only)
+
+606: resfile (volfile for ingame) missing
+    Data["ID"] = mResID
+
+502: file access error
+    Data["exception"] = exception
+    Data["ID"] = mResID
+
+505: invalid mLoc (exceeds size of vol file)
+    Data["loc"] = mLoc
+    Data["vol"] = mVol
+    Data["volname"] = Path.GetFileName(fsVOL.Name);
+    Data["ID"] = mResID
+
+506: invalid resource header (not 0x12 0x34)
+    Data["loc"] = mLoc
+    Data["vol"] = mVol
+    Data["volname"] = Path.GetFileName(fsVOL.Name);
+    Data["ID"] = mResID
+
+
+Logic LoadSource:
+502: file access error
+    Data["exception"] = exception
+    Data["ID"] = mResID
+
+
+
+
+
+BuildSound:
+596: build sound error
+    Data["exception"] = exception
+    Data["ID"] = mResID
+
+
+LoadTracks:
+565: load track error
+    Data["exception"] = exception
+    Data["ID"] = mResID
+
+CompileSound:
+566: compile sound error
+    Data["exception"] = exception
+    Data["ID"] = mResID
+
+
+
+CompileResCol:
+638: file access error
+    Data["exception"] = exception
+    Data["ID"] = mResID
+
+    
+AddtoVol:
+638: file access error
+    Data["exception"] = exception
+    Data["ID"] = mResID
+
+ValidateVolAndLoc:
+640: file access error
+    Data["exception"] = exception
+    Data["ID"] = mResID
+
+ValidateVolAndLoc:
+640: file access error
+    Data["exception"] = exception
+    Data["ID"] = mResID
+
+Word.tok Compile:
+672: file access error
+    Data["exception"] = exception
+    Data["ID"] = mResID
+
+
+    
