@@ -77,8 +77,7 @@ namespace WinAGI.Engine {
             if (mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(642))
-                {
+                WinAGIException wex = new(LoadResString(642)) {
                     HResult = WINAGI_ERR + 642
                 };
                 throw wex;
@@ -88,8 +87,7 @@ namespace WinAGI.Engine {
             //clear it instead
             if (mInGame) {
 
-                WinAGIException wex = new(LoadResString(510))
-                {
+                WinAGIException wex = new(LoadResString(510)) {
                     HResult = WINAGI_ERR + 510
                 };
                 throw wex;
@@ -116,8 +114,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -162,8 +159,7 @@ namespace WinAGI.Engine {
             //return 0 if successful, no errors/warnings
             // non-zero for error/warning:
             //   1 = abnormal index ('a' group doesn't start at position 52)
-            get
-            {
+            get {
                 return mErrLvl;
             }
         }
@@ -318,8 +314,7 @@ namespace WinAGI.Engine {
             if (!WordListToClone.Loaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -364,28 +359,24 @@ namespace WinAGI.Engine {
         }
         internal bool WriteProps { get { return mWriteProps; } }
         public string Description {
-            get
-            {
+            get {
                 //if not loaded
                 if (!mLoaded) {
                     //error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
                 }
                 return mDescription;
             }
-            set
-            {
+            set {
                 //if not loaded
                 if (!mLoaded) {
                     //error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -405,29 +396,24 @@ namespace WinAGI.Engine {
             }
         }
         internal bool InGame {
-            get
-            {
+            get {
                 //only used by setword method
                 return mInGame;
             }
-            set
-            {
+            set {
                 mInGame = value;
             }
         }
         public string ResFile {
-            get
-            {
+            get {
                 return mResFile;
             }
-            set
-            {
+            set {
                 //resfile cannot be changed if resource is part of a game
                 if (mInGame) {
                     //error- resfile is readonly for ingame resources
 
-                    WinAGIException wex = new(LoadResString(680))
-                    {
+                    WinAGIException wex = new(LoadResString(680)) {
                         HResult = WINAGI_ERR + 680
                     };
                     throw wex;
@@ -443,8 +429,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -461,8 +446,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -475,26 +459,22 @@ namespace WinAGI.Engine {
             return mGroupCol.ContainsKey(GroupNumber);
         }
         public bool IsDirty {
-            get
-            {
+            get {
                 //if resource is dirty, or (prop values need writing AND in game)
                 return (mIsDirty || (mWriteProps && mInGame));
             }
-            set
-            {
+            set {
                 mIsDirty = value;
             }
         }
         public AGIWord this[dynamic vKeyIndex] {
-            get
-            {
+            get {
                 //access is by word string or index number
                 //if not loaded
                 if (!mLoaded) {
                     //error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -527,8 +507,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -566,8 +545,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -578,14 +556,12 @@ namespace WinAGI.Engine {
             mIsDirty = false;
         }
         public int WordCount {
-            get
-            {
+            get {
                 //if not loaded
                 if (!mLoaded) {
                     //error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -603,8 +579,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -613,8 +588,7 @@ namespace WinAGI.Engine {
             if (GroupNumber < 0) {
                 //error
 
-                WinAGIException wex = new(LoadResString(575))
-                {
+                WinAGIException wex = new(LoadResString(575)) {
                     HResult = WINAGI_ERR + 575
                 };
                 throw wex;
@@ -622,8 +596,7 @@ namespace WinAGI.Engine {
             if (GroupNumber > MAX_GROUP_NUM) {
                 //error
 
-                WinAGIException wex = new(LoadResString(575))
-                {
+                WinAGIException wex = new(LoadResString(575)) {
                     HResult = WINAGI_ERR + 575
                 };
                 throw wex;
@@ -631,14 +604,12 @@ namespace WinAGI.Engine {
             //see if group already exists
             if (mGroupCol.ContainsKey(GroupNumber)) {
 
-                WinAGIException wex = new(LoadResString(576))
-                {
+                WinAGIException wex = new(LoadResString(576)) {
                     HResult = WINAGI_ERR + 576
                 };
                 throw wex;
             }
-            tmpGroup = new WordGroup
-            {
+            tmpGroup = new WordGroup {
                 GroupNum = GroupNumber
             };
             //add it
@@ -651,8 +622,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -661,8 +631,7 @@ namespace WinAGI.Engine {
             if (!mWordCol.TryGetValue(aWord, out AGIWord value)) {
                 //word not found
 
-                WinAGIException wex = new(LoadResString(584))
-                {
+                WinAGIException wex = new(LoadResString(584)) {
                     HResult = WINAGI_ERR + 584
                 };
                 throw wex;
@@ -680,14 +649,12 @@ namespace WinAGI.Engine {
             mIsDirty = true;
         }
         public int GroupCount {
-            get
-            {
+            get {
                 //if not loaded
                 if (!mLoaded) {
                     //error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -702,8 +669,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -712,8 +678,7 @@ namespace WinAGI.Engine {
             if (GroupNumber < 0 || GroupNumber > MAX_GROUP_NUM) {
                 //error
 
-                WinAGIException wex = new(LoadResString(575))
-                {
+                WinAGIException wex = new(LoadResString(575)) {
                     HResult = WINAGI_ERR + 575
                 };
                 throw wex;
@@ -722,8 +687,7 @@ namespace WinAGI.Engine {
             if (!GroupExists(GroupNumber)) {
                 //error
 
-                WinAGIException wex = new(LoadResString(583))
-                {
+                WinAGIException wex = new(LoadResString(583)) {
                     HResult = WINAGI_ERR + 583
                 };
                 throw wex;
@@ -749,8 +713,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -759,8 +722,7 @@ namespace WinAGI.Engine {
             if (OldGroupNumber < 0 || OldGroupNumber > MAX_GROUP_NUM) {
                 //error
 
-                WinAGIException wex = new(LoadResString(575))
-                {
+                WinAGIException wex = new(LoadResString(575)) {
                     HResult = WINAGI_ERR + 575
                 };
                 throw wex;
@@ -769,8 +731,7 @@ namespace WinAGI.Engine {
             if (NewGroupNumber < 0 || NewGroupNumber > MAX_GROUP_NUM) {
                 //error
 
-                WinAGIException wex = new(LoadResString(575))
-                {
+                WinAGIException wex = new(LoadResString(575)) {
                     HResult = WINAGI_ERR + 575
                 };
                 throw wex;
@@ -779,8 +740,7 @@ namespace WinAGI.Engine {
             if (!GroupExists(OldGroupNumber)) {
                 //error
 
-                WinAGIException wex = new(LoadResString(696))
-                {
+                WinAGIException wex = new(LoadResString(696)) {
                     HResult = WINAGI_ERR + 696
                 };
                 throw wex;
@@ -789,8 +749,7 @@ namespace WinAGI.Engine {
             if (GroupExists(NewGroupNumber)) {
                 //error
 
-                WinAGIException wex = new(LoadResString(697))
-                {
+                WinAGIException wex = new(LoadResString(697)) {
                     HResult = WINAGI_ERR + 697
                 };
                 throw wex;
@@ -828,8 +787,7 @@ namespace WinAGI.Engine {
             string strTempFile;
             //if no filename passed,
             if (CompileFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(616))
-                {
+                WinAGIException wex = new(LoadResString(616)) {
                     HResult = WINAGI_ERR + 616
                 };
                 throw wex;
@@ -840,8 +798,7 @@ namespace WinAGI.Engine {
             }
             //if there are no word groups to add
             if (mGroupCol.Count == 0) {
-                WinAGIException wex = new(LoadResString(672).Replace(ARG1, "no word groups to add"))
-                {
+                WinAGIException wex = new(LoadResString(672).Replace(ARG1, "no word groups to add")) {
                     HResult = WINAGI_ERR + 672
                 };
                 throw wex;
@@ -849,8 +806,7 @@ namespace WinAGI.Engine {
             //if there are no words,
             if (mWordCol.Count == 0) {
                 //error
-                WinAGIException wex = new(LoadResString(672).Replace(ARG1, "no words to add"))
-                {
+                WinAGIException wex = new(LoadResString(672).Replace(ARG1, "no words to add")) {
                     HResult = WINAGI_ERR + 672
                 };
                 throw wex;
@@ -965,8 +921,7 @@ namespace WinAGI.Engine {
             }
             catch (Exception e) {
                 //raise the error
-                WinAGIException wex = new(LoadResString(672).Replace(ARG1, lngError.ToString()) + ": " + strError)
-                {
+                WinAGIException wex = new(LoadResString(672).Replace(ARG1, lngError.ToString()) + ": " + strError) {
                     HResult = WINAGI_ERR + 672,
                     Source = strErrSrc
                 };
@@ -986,16 +941,14 @@ namespace WinAGI.Engine {
 
             //if no filename passed,
             if (CompileFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(616))
-                {
+                WinAGIException wex = new(LoadResString(616)) {
                     HResult = WINAGI_ERR + 616
                 };
                 throw wex;
             }
             if (mWordCol.Count == 0) {
                 //error
-                WinAGIException wex = new(LoadResString(672).Replace(ARG1, "no words to add"))
-                {
+                WinAGIException wex = new(LoadResString(672).Replace(ARG1, "no words to add")) {
                     HResult = WINAGI_ERR + 672
                 };
                 throw wex;
@@ -1040,8 +993,7 @@ namespace WinAGI.Engine {
                 if (!LoadSierraFile(LoadFile)) {
                     //error
 
-                    WinAGIException wex = new(LoadResString(529))
-                    {
+                    WinAGIException wex = new(LoadResString(529)) {
                         HResult = WINAGI_ERR + 529
                     };
                     throw wex;
@@ -1054,8 +1006,7 @@ namespace WinAGI.Engine {
                 if (LoadFile.Length == 0) {
                     //not in game; return error
 
-                    WinAGIException wex = new(LoadResString(599))
-                    {
+                    WinAGIException wex = new(LoadResString(599)) {
                         HResult = WINAGI_ERR + 599
                     };
                     throw wex;
@@ -1068,8 +1019,7 @@ namespace WinAGI.Engine {
                 //try sierra format
                 if (!LoadSierraFile(LoadFile)) {
                     //error
-                    WinAGIException wex = new(LoadResString(529))
-                    {
+                    WinAGIException wex = new(LoadResString(529)) {
                         HResult = WINAGI_ERR + 529
                     };
                     throw wex;
@@ -1089,8 +1039,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -1099,8 +1048,7 @@ namespace WinAGI.Engine {
             if (Index < 0 || Index > mGroupCol.Count - 1) {
                 //error
 
-                WinAGIException wex = new(LoadResString(588))
-                {
+                WinAGIException wex = new(LoadResString(588)) {
                     HResult = WINAGI_ERR + 588
                 };
                 throw wex;
@@ -1114,8 +1062,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -1130,8 +1077,7 @@ namespace WinAGI.Engine {
             //check to see if word is already in collection,
             if (mWordCol.ContainsKey(WordText)) {
 
-                WinAGIException wex = new(LoadResString(579))
-                {
+                WinAGIException wex = new(LoadResString(579)) {
                     HResult = WINAGI_ERR + 579
                 };
                 throw wex;
@@ -1140,8 +1086,7 @@ namespace WinAGI.Engine {
             if (Group < 0 || Group > MAX_GROUP_NUM) {
                 //error
 
-                WinAGIException wex = new(LoadResString(581))
-                {
+                WinAGIException wex = new(LoadResString(581)) {
                     HResult = WINAGI_ERR + 581
                 };
                 throw wex;
@@ -1179,8 +1124,7 @@ namespace WinAGI.Engine {
         }
         object IEnumerator.Current => Current;
         public WordGroup Current {
-            get
-            {
+            get {
                 try {
                     return _groups.Values[position];
                 }

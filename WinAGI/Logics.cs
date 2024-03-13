@@ -9,51 +9,39 @@ using System.IO;
 using System.Diagnostics;
 using System.Xml.Linq;
 
-namespace WinAGI.Engine
-{
-    public class Logics : IEnumerable<Logic>
-    {
+namespace WinAGI.Engine {
+    public class Logics : IEnumerable<Logic> {
         readonly AGIGame parent;
         internal string mSourceFileExt = "";
-        internal Logics(AGIGame parent)
-        {
+        internal Logics(AGIGame parent) {
             this.parent = parent;
             // create the initial Col object
             Col = [];
             mSourceFileExt = Compiler.DefaultSrcExt;
         }
-        internal SortedList<byte, Logic> Col
-        { get; private set; }
-        public Logic this[int index]
-        {
-            get
-            {
+        internal SortedList<byte, Logic> Col { get; private set; }
+        public Logic this[int index] {
+            get {
                 //validate index
                 if (index < 0 || index > 255)
                     throw new IndexOutOfRangeException();
                 return Col[(byte)index];
             }
         }
-        public byte Count
-        { get { return (byte)Col.Count; } private set { } }
-        public byte Max
-        {
-            get
-            {
+        public byte Count { get { return (byte)Col.Count; } private set { } }
+        public byte Max {
+            get {
                 byte max = 0;
                 if (Col.Count > 0)
                     max = Col.Keys[Col.Count - 1];
                 return max;
             }
         }
-        public string SourceFileExt
-        {
-            get
-            {
+        public string SourceFileExt {
+            get {
                 return mSourceFileExt;
             }
-            set
-            {
+            set {
                 if (!parent.agGameLoaded) {
                     return;
                 }
@@ -66,17 +54,14 @@ namespace WinAGI.Engine
 
             }
         }
-        public bool Exists(byte ResNum)
-        {
+        public bool Exists(byte ResNum) {
             //check for this logic in the collection
             return Col.ContainsKey(ResNum);
         }
-        internal void Clear()
-        {
+        internal void Clear() {
             Col = [];
         }
-        public Logic Add(byte ResNum, Logic NewLogic = null)
-        {
+        public Logic Add(byte ResNum, Logic NewLogic = null) {
             //adds a new logic to a currently open game
             Logic agResource;
             int intNextNum = 0;
@@ -84,8 +69,7 @@ namespace WinAGI.Engine
             //if this Logic already exists
             if (Exists(ResNum)) {
                 //resource already exists
-                WinAGIException wex = new(LoadResString(602))
-                {
+                WinAGIException wex = new(LoadResString(602)) {
                     HResult = WINAGI_ERR + 602
                 };
                 throw wex;
@@ -117,8 +101,7 @@ namespace WinAGI.Engine
             //return the object created
             return agResource;
         }
-        public void Remove(byte Index)
-        {
+        public void Remove(byte Index) {
             //removes a logic from the game file
 
             // if the resource exists
@@ -132,8 +115,7 @@ namespace WinAGI.Engine
                 Compiler.blnSetIDs = false;
             }
         }
-        public void Renumber(byte OldLogic, byte NewLogic)
-        {
+        public void Renumber(byte OldLogic, byte NewLogic) {
             //renumbers a resource
             Logic tmpLogic;
             int intNextNum = 0;
@@ -216,8 +198,7 @@ namespace WinAGI.Engine
             //reset compiler list of ids
             Compiler.blnSetIDs = false;
         }
-        internal void LoadLogic(byte bytResNum, sbyte bytVol, int lngLoc)
-        {
+        internal void LoadLogic(byte bytResNum, sbyte bytVol, int lngLoc) {
             //called by the resource loading method for the initial loading of
             //resources into logics collection
 
@@ -234,16 +215,14 @@ namespace WinAGI.Engine
             //add it
             Col.Add(bytResNum, newResource);
         }
-        public void MarkAllAsDirty()
-        {
+        public void MarkAllAsDirty() {
             foreach (Logic tmpLogic in Col.Values) {
                 tmpLogic.CompiledCRC = 0;
                 parent.WriteGameSetting("Logic" + tmpLogic.Number, "CompCRC32", "0x00", "Logics");
             }
             parent.agGameProps.Save();
         }
-        public void MarkAsDirty(byte ResNum)
-        {
+        public void MarkAsDirty(byte ResNum) {
             //mark this logic as dirty by setting its compiledCRC value to zero
             //(ignore if resource is not valid)
             if (Exists(ResNum)) {
@@ -252,8 +231,7 @@ namespace WinAGI.Engine
                 return;
             }
         }
-       public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false)
-        {
+        public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false) {
             //tie function to allow access to the LogCompile variable conversion function
             //if in a game
             if (parent.agGameLoaded) {
@@ -271,32 +249,25 @@ namespace WinAGI.Engine
             //return it
             return ArgIn;
         }
-        LogicEnum GetEnumerator()
-        {
+        LogicEnum GetEnumerator() {
             return new LogicEnum(Col);
         }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
+        IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
-        IEnumerator<Logic> IEnumerable<Logic>.GetEnumerator()
-        {
+        IEnumerator<Logic> IEnumerable<Logic>.GetEnumerator() {
             return (IEnumerator<Logic>)GetEnumerator();
         }
     }
-    internal class LogicEnum : IEnumerator<Logic>
-    {
+    internal class LogicEnum : IEnumerator<Logic> {
         public SortedList<byte, Logic> _logics;
         int position = -1;
-        public LogicEnum(SortedList<byte, Logic> list)
-        {
+        public LogicEnum(SortedList<byte, Logic> list) {
             _logics = list;
         }
         object IEnumerator.Current => Current;
-        public Logic Current
-        {
-            get
-            {
+        public Logic Current {
+            get {
                 try {
                     return _logics.Values[position];
                 }
@@ -306,17 +277,14 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool MoveNext()
-        {
+        public bool MoveNext() {
             position++;
             return (position < _logics.Count);
         }
-        public void Reset()
-        {
+        public void Reset() {
             position = -1;
         }
-        public void Dispose()
-        {
+        public void Dispose() {
             _logics = null;
         }
     }

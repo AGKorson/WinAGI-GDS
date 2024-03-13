@@ -16,10 +16,8 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System.Diagnostics;
 
-namespace WinAGI.Engine
-{
-    public class Logic : AGIResource
-    {
+namespace WinAGI.Engine {
+    public class Logic : AGIResource {
         //source code properties
         string mSourceFile = "";
         string mSourceText = "";
@@ -43,8 +41,7 @@ namespace WinAGI.Engine
             mSourceDirty = false;
         }
 
-        public override void Load()
-        {
+        public override void Load() {
             // if not ingame, the resource should already be loaded
             if (!mInGame) {
                 Debug.Assert(mLoaded);
@@ -81,8 +78,7 @@ namespace WinAGI.Engine
             mSourceDirty = false;
         }
 
-        public override void Unload()
-        {
+        public override void Unload() {
             base.Unload();
             mSourceDirty = false;
             mSourceText = "";
@@ -113,8 +109,7 @@ namespace WinAGI.Engine
                 NewLogic.Clone(this);
             }
         }
-        public Logic() : base(AGIResType.rtLogic)
-        {
+        public Logic() : base(AGIResType.rtLogic) {
             // new logic, not in game
 
             //initialize
@@ -138,8 +133,7 @@ namespace WinAGI.Engine
                 mIsRoom = false;
             }
         }
-        internal Logic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtLogic)
-        {
+        internal Logic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtLogic) {
             //adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
 
@@ -171,8 +165,7 @@ namespace WinAGI.Engine
                 mIsRoom = false;
             }
         }
-        public Logic Clone()
-        {
+        public Logic Clone() {
             //copies logic data from this logic and returns a completely separate object reference
             Logic CopyLogic = new();
             // copy base properties
@@ -189,10 +182,8 @@ namespace WinAGI.Engine
             CopyLogic.mSourceFile = mSourceFile;
             return CopyLogic;
         }
-        public uint CompiledCRC
-        {
-            get
-            {
+        public uint CompiledCRC {
+            get {
                 //if not in a game
                 if (!InGame) {
                     return 0;
@@ -204,11 +195,9 @@ namespace WinAGI.Engine
 
             internal set { }
         }
-        public bool IsRoom
-        {
+        public bool IsRoom {
             get { return mIsRoom; }
-            internal set
-            {
+            internal set {
                 //if in a game, and logic 0
                 if (mInGame && (Number == 0)) {
                     throw new Exception("450, Can't assign to read-only property");
@@ -221,25 +210,21 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool SourceDirty
-        {
+        public bool SourceDirty {
             get { return mSourceDirty; }
         }
-        public string SourceFile
-        {
-            get
-            {
+        public string SourceFile {
+            get {
                 //if in a game,
                 if (mInGame) {
                     //sourcefile is predefined
                     // force re-sync of name
-                //    Debug.Assert(mSourceFile == parent.agResDir + mResID + agSrcFileExt);
+                    //    Debug.Assert(mSourceFile == parent.agResDir + mResID + agSrcFileExt);
                     mSourceFile = parent.agResDir + mResID + agSrcFileExt;
                 }
                 return mSourceFile;
             }
-            set
-            {
+            set {
                 //if in a game,
                 if (mInGame) {
                     //sourcefile is predefined; raise error
@@ -252,14 +237,12 @@ namespace WinAGI.Engine
         }
         public uint CRC { get; internal set; }
         public int CodeSize { get; internal set; }
-        private void ResPropChange(object sender, AGIResPropChangedEventArgs e)
-        {
+        private void ResPropChange(object sender, AGIResPropChangedEventArgs e) {
             ////let's do a test
             //// increment number everytime data changes
             //Number++;
         }
-        private void SaveProps()
-        {
+        private void SaveProps() {
             string strSection;
             //save properties
             strSection = "Logic" + Number;
@@ -272,10 +255,8 @@ namespace WinAGI.Engine
             //set flag indicating all props are uptodate
             WritePropState = false;
         }
-        public bool Compiled
-        {
-            get
-            {
+        public bool Compiled {
+            get {
                 // return true if source code CRC is same as stored compiled crc
                 // if not in a game, compiled is normally undefined, but in case
                 // of a Logic copied from an InGame resource, this property will work
@@ -304,15 +285,13 @@ namespace WinAGI.Engine
             }
             private set { }
         }
-        public override void Clear()
-        {
+        public override void Clear() {
             //clears out source code text
             //and clears the resource data
             if (InGame) {
                 if (!Loaded) {
                     //nothing to clear
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -321,8 +300,7 @@ namespace WinAGI.Engine
             //clear resource
             base.Clear();
             //set default resource data
-            Data = new RData(6)
-            {
+            Data = new RData(6) {
                 AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00]
             };
 
@@ -338,8 +316,7 @@ namespace WinAGI.Engine
             //TODO: for a completely empty logic, is it two? or three? 
             CodeSize = 3;
         }
-        public void Export(string ExportFile, bool ResetDirty)
-        {
+        public void Export(string ExportFile, bool ResetDirty) {
             //exports a compiled resource; ingame only
             //(since only ingame logics can be compiled)
 
@@ -347,8 +324,7 @@ namespace WinAGI.Engine
             if (!InGame) {
                 //not allowed; nothing to export
 
-                WinAGIException wex = new(LoadResString(668))
-                {
+                WinAGIException wex = new(LoadResString(668)) {
                     HResult = WINAGI_ERR + 668
                 };
                 throw wex;
@@ -356,8 +332,7 @@ namespace WinAGI.Engine
             //if not loaded
             if (!Loaded) {
                 //error
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -366,8 +341,7 @@ namespace WinAGI.Engine
             base.Export(ExportFile);
         }
 
-        public void Import(string ImportFile, bool AsSource)
-        {
+        public void Import(string ImportFile, bool AsSource) {
             //imports a logic resource
             //i.e., opens from a standalone file
             //doesn't matter if ingame or not
@@ -407,11 +381,9 @@ namespace WinAGI.Engine
             IsDirty = false;
             mSourceDirty = false;
         }
-        public override string ID
-        {
+        public override string ID {
             get => base.ID;
-            internal set
-            {
+            internal set {
                 base.ID = value;
                 if (mInGame) {
                     //source file always tracks ID for ingame resources
@@ -420,8 +392,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        internal void LoadSource(bool Decompile = false)
-        {
+        internal void LoadSource(bool Decompile = false) {
             //loads LoadFile as the source code
             //for not-ingame, calling code must first set sourcefile name
             string strInput, LoadFile;
@@ -431,7 +402,7 @@ namespace WinAGI.Engine
             if (mInGame) {
                 //load file is predefined
                 LoadFile = parent.agResDir + mResID + agSrcFileExt;
-            //    Debug.Assert(mSourceFile == LoadFile);
+                //    Debug.Assert(mSourceFile == LoadFile);
 
                 //if it does not exist,
                 if (!File.Exists(LoadFile)) {
@@ -488,8 +459,7 @@ namespace WinAGI.Engine
                     strInput = File.ReadAllText(LoadFile, parent.agCodePage);
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, LoadFile).Replace(ARG2, e.Message))
-                    {
+                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, LoadFile).Replace(ARG2, e.Message)) {
                         HResult = WINAGI_ERR + 502
                     };
                     wex.Data["exception"] = e;
@@ -498,7 +468,7 @@ namespace WinAGI.Engine
                 }
             }
             //send text in source code string list
-            
+
             mSourceText = strInput;
             // replace tabs with indent spaces
             if (mSourceText.Contains('\t')) {
@@ -520,7 +490,8 @@ namespace WinAGI.Engine
                     mCompiledCRC = tmpCRC;
                     parent.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
                 }
-            } else {
+            }
+            else {
                 // update crc
                 mCRC = tmpCRC;
             }
@@ -529,16 +500,13 @@ namespace WinAGI.Engine
             mSourceDirty = false;
         }
 
-        public string SourceText
-        {
-            get
-            {
+        public string SourceText {
+            get {
                 // ********** SourceText is UNICODE, not CP byte code
                 // it gets converted to CP byte code when it gets compiled
                 return mSourceText;
             }
-            set
-            {
+            set {
                 mSourceText = value;
 
                 //strip off any CRs at the end (unless it's the only character)
@@ -572,8 +540,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void SaveSource(string SaveFile = "", bool Exporting = false)
-        {
+        public void SaveSource(string SaveFile = "", bool Exporting = false) {
             //saves the source code for this logic to file
             string strTempFile;
             bool blnUnload;
@@ -600,8 +567,7 @@ namespace WinAGI.Engine
                     if (blnUnload) {
                         Unload();
                     }
-                    WinAGIException wex = new(LoadResString(599))
-                    {
+                    WinAGIException wex = new(LoadResString(599)) {
                         HResult = WINAGI_ERR + 599
                     };
                     throw wex;
@@ -638,8 +604,7 @@ namespace WinAGI.Engine
                 if (blnUnload) {
                     Unload();
                 }
-                WinAGIException wex = new(LoadResString(582))
-                {
+                WinAGIException wex = new(LoadResString(582)) {
                     HResult = WINAGI_ERR + 582
                 };
                 throw wex;
@@ -654,8 +619,7 @@ namespace WinAGI.Engine
                 File.Move(strTempFile, SaveFile);
             }
             catch (Exception) {
-                WinAGIException wex = new(LoadResString(663))
-                {
+                WinAGIException wex = new(LoadResString(663)) {
                     HResult = WINAGI_ERR + 663
                 };
                 throw wex;
@@ -685,12 +649,10 @@ namespace WinAGI.Engine
                 Unload();
             }
         }
-        public void Compile()
-        {
+        public void Compile() {
             //compiles the source code for this logic
             //and saves the resource
-            TWinAGIEventInfo tmpInfo = new()
-            {
+            TWinAGIEventInfo tmpInfo = new() {
                 ID = "",
                 Module = "",
                 Text = ""
@@ -699,24 +661,21 @@ namespace WinAGI.Engine
 
             //if not in a game
             if (!mInGame) {
-                WinAGIException wex = new(LoadResString(618))
-                {
+                WinAGIException wex = new(LoadResString(618)) {
                     HResult = WINAGI_ERR + 618
                 };
                 throw wex;
             }
             //if not loaded, raise error
             if (!mLoaded) {
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
             }
             //if no data in sourcecode
             if (mSourceText.Length == 0) {
-                WinAGIException wex = new(LoadResString(546))
-                {
+                WinAGIException wex = new(LoadResString(546)) {
                     HResult = WINAGI_ERR + 546
                 };
                 throw wex;
@@ -752,8 +711,7 @@ namespace WinAGI.Engine
                 Save();
             }
         }
-        public new void Save(string SaveFile = "")
-        {
+        public new void Save(string SaveFile = "") {
             //this file saves the logic resource to next available VOL file
 
             //NOTE: this saves the compiled resource NOT the
@@ -794,10 +752,8 @@ namespace WinAGI.Engine
             //reset dirty flag
             mIsDirty = false;
         }
-        public override bool IsDirty
-        {
-            get
-            {
+        public override bool IsDirty {
+            get {
                 //if in a game,
                 if (InGame) {
                     //if resource is dirty, or prop values need writing,

@@ -31,17 +31,16 @@ namespace WinAGI.Engine {
 
             //if any other errors encountered, the Err object is set and the calling function
             //must deal with the error
-            byte CurResNum = 0;
-            int lngV3Offset;
+            byte CurResNum;
+            int lngError;
             string strMsg = "", strError;
-            bool blnWarning = false, blnUnloadRes = false;
+            bool blnWarning = false, blnUnloadRes;
 
             //add all resources of this type
             foreach (AGIResource tmpGameRes in tmpResCol) {
                 CurResNum = tmpGameRes.Number;
                 //update status
-                TWinAGIEventInfo tmpWarn = new()
-                {
+                TWinAGIEventInfo tmpWarn = new() {
                     Type = EventType.etInfo,
                     InfoType = EInfoType.itResources,
                     ResType = ResType,
@@ -258,8 +257,7 @@ namespace WinAGI.Engine {
                         }
                         else {
                             //file access error
-                            WinAGIException wex = new(LoadResString(638).Replace(Common.Base.ARG1, e.Message))
-                            {
+                            WinAGIException wex = new(LoadResString(638).Replace(Common.Base.ARG1, e.Message)) {
                                 HResult = WINAGI_ERR + 638
                             };
                             wex.Data["exception"] = e;
@@ -321,7 +319,8 @@ namespace WinAGI.Engine {
             //
             // only resources that are in a game can be added to a VOL file
             byte[] ResHeader;
-            string strID;
+            string strError, strID;
+            int lngError;
 
             if (!compileResCol) {
                 try {
@@ -381,8 +380,7 @@ namespace WinAGI.Engine {
                     fsVOL.Dispose();
                     bwVOL.Dispose();
                 }
-                WinAGIException wex = new(LoadResString(638))
-                {
+                WinAGIException wex = new(LoadResString(638)) {
                     HResult = lngError,
                 };
                 wex.Data["exception"] = e;
@@ -540,8 +538,7 @@ namespace WinAGI.Engine {
             }
             //if no room in any VOL file, raise an error
 
-            WinAGIException wex = new(LoadResString(593))
-            {
+            WinAGIException wex = new(LoadResString(593)) {
                 HResult = WINAGI_ERR + 593
             };
             throw wex;
@@ -837,8 +834,7 @@ namespace WinAGI.Engine {
                         bwVOL.Dispose();
                         //also, compiler should check for this error, as it is fatal
 
-                        WinAGIException wex = new(LoadResString(640))
-                        {
+                        WinAGIException wex = new(LoadResString(640)) {
                             HResult = WINAGI_ERR + 640
                         };
                         wex.Data["exception"] = e;
@@ -858,8 +854,7 @@ namespace WinAGI.Engine {
                 //raise error!
                 //also, compiler should check for this error, as it is fatal
 
-                WinAGIException wex1 = new(LoadResString(593))
-                {
+                WinAGIException wex1 = new(LoadResString(593)) {
                     HResult = WINAGI_ERR + 593
                 };
                 throw wex1;

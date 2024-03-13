@@ -321,22 +321,17 @@ namespace WinAGI.Engine
         internal static int defMaxVol0 = MAX_VOLSIZE;
         internal static EGAColors defaultColorEGA = new();
         internal static string agSrcFileExt = ".lgc";
-
-        //error number and string to return error values
-        //from various functions/subroutines
-        internal static int lngError = 0;
-        internal static string strError = "";
-        internal static string strErrSrc = "";
-        #endregion
-        //temp file location
+        //temp file locations
         internal static string agTemplateDir = "";
         internal static string TempFileDir = "";
+        #endregion
 
         public static EGAColors DefaultColors
         {
             get { return defaultColorEGA; }
             //set { colorEGA = value; }
         }
+
         public static string TemplateDir
         {
             get { return agTemplateDir; }

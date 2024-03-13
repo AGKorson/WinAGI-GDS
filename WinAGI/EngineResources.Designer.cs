@@ -2212,15 +2212,6 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error %1 while reading resource in %2..
-        /// </summary>
-        internal static string _507 {
-            get {
-                return ResourceManager.GetString("507", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid cursor position values for clear.text.rect command; R1 &amp; R2 must be &lt;=24; C1 &amp; C2 must be &lt;=39.
         /// </summary>
         internal static string _5070 {
@@ -3967,29 +3958,11 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in LoadLogic method(%1).
-        /// </summary>
-        internal static string _646 {
-            get {
-                return ResourceManager.GetString("646", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unhandled error in Pictures.Add method(%1).
         /// </summary>
         internal static string _647 {
             get {
                 return ResourceManager.GetString("647", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in LoadPicture method(%1).
-        /// </summary>
-        internal static string _648 {
-            get {
-                return ResourceManager.GetString("648", resourceCulture);
             }
         }
         
@@ -4003,29 +3976,11 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in LoadView method(%1).
-        /// </summary>
-        internal static string _650 {
-            get {
-                return ResourceManager.GetString("650", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unhandled error in Sounds.Add method(%1).
         /// </summary>
         internal static string _651 {
             get {
                 return ResourceManager.GetString("651", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in LoadSound method(%1).
-        /// </summary>
-        internal static string _652 {
-            get {
-                return ResourceManager.GetString("652", resourceCulture);
             }
         }
         

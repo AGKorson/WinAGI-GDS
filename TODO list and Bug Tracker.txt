@@ -77,27 +77,59 @@ Sound Load:
 598: invalid sound data
     Data["ID"] = mResID
 
-LoadTracks:
-598: invalid sound data
+    LoadTracks:
+    598: invalid sound data
+        Data["ID"] = mResID
+
+    565: load track error
+        Data["exception"] = exception
+        Data["ID"] = mResID
+
+
+
+View Load: (LoadLoops):
+595: invalid data
     Data["ID"] = mResID
 
-
-BuildSoundOutput:
-596: build sound error
-    Data["exception"] = exception
+548: invalid loop pointer
     Data["ID"] = mResID
+    Data["loop"] = bytLoop
+    
+    SetMirror:
+    563: not loaded (n/a during gameload)
+    
+    539: source>max (n/a during gameload)
+
+    539: invalid loop(>8)
+        Data["ID"] = mResID
+        Data["srcloop"] = srcloop
+        Data["tgtloop"] = tgtloop
+
+    550: tgt already mirrored
+        Data["ID"] = mResID
+        Data["tgtloop"] = tgtloop
+
+    551: src already mirrored
+        Data["ID"] = mResID
+        Data["srcloop"] = srcloop
 
 
-LoadTracks:
-565: load track error
-    Data["exception"] = exception
+553: invalid cel pointer
     Data["ID"] = mResID
+    Data["loop"] = bytLoop
+    Data["cel"] = bytCel
 
+
+other resource errors:
 CompileSound:
 566: compile sound error
     Data["exception"] = exception
     Data["ID"] = mResID
 
+BuildSoundOutput:
+596: build sound error
+    Data["exception"] = exception
+    Data["ID"] = mResID
 
 
 CompileResCol:
@@ -126,5 +158,5 @@ Word.tok Compile:
     Data["exception"] = exception
     Data["ID"] = mResID
 
-
     
+

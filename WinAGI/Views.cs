@@ -6,52 +6,40 @@ using static WinAGI.Engine.AGIGame;
 using System.IO;
 using static WinAGI.Common.Base;
 
-namespace WinAGI.Engine
-{
-    public class Views : IEnumerable<View>
-    {
+namespace WinAGI.Engine {
+    public class Views : IEnumerable<View> {
         AGIGame parent;
-        public Views(AGIGame parent)
-        {
+        public Views(AGIGame parent) {
             this.parent = parent;
             // create the initial Col object
             Col = [];
         }
-        internal SortedList<byte, View> Col
-        { get; private set; }
-        public View this[int index]
-        {
-            get
-            {
+        internal SortedList<byte, View> Col { get; private set; }
+        public View this[int index] {
+            get {
                 //validate index
                 if (index < 0 || index > 255)
                     throw new IndexOutOfRangeException();
                 return Col[(byte)index];
             }
         }
-        public byte Count
-        { get { return (byte)Col.Count; } private set { } }
-        public byte Max
-        {
-            get
-            {
+        public byte Count { get { return (byte)Col.Count; } private set { } }
+        public byte Max {
+            get {
                 byte max = 0;
                 if (Col.Count > 0)
                     max = Col.Keys[Col.Count - 1];
                 return max;
             }
         }
-        public bool Exists(byte ResNum)
-        {
+        public bool Exists(byte ResNum) {
             //check for thsi view in the collection
             return Col.ContainsKey(ResNum);
         }
-        public void Clear()
-        {
+        public void Clear() {
             Col = [];
         }
-        public View Add(byte ResNum, View NewView = null)
-        {
+        public View Add(byte ResNum, View NewView = null) {
             //adds a new view to a currently open game
             View agResource;
             int intNextNum = 0;
@@ -59,8 +47,7 @@ namespace WinAGI.Engine
             //if this view already exists
             if (Exists(ResNum)) {
                 //resource already exists
-                WinAGIException wex = new(LoadResString(602))
-                {
+                WinAGIException wex = new(LoadResString(602)) {
                     HResult = WINAGI_ERR + 602
                 };
                 throw wex;
@@ -95,8 +82,7 @@ namespace WinAGI.Engine
             //return the object created
             return agResource;
         }
-        public void Remove(byte Index)
-        {
+        public void Remove(byte Index) {
             //removes a view from the game file
 
             // if the resource exists
@@ -110,8 +96,7 @@ namespace WinAGI.Engine
                 Compiler.blnSetIDs = false;
             }
         }
-        public void Renumber(byte OldView, byte NewView)
-        {
+        public void Renumber(byte OldView, byte NewView) {
             //renumbers a resource
             View tmpView;
             int intNextNum = 0;
@@ -125,8 +110,7 @@ namespace WinAGI.Engine
             if (Col.ContainsKey(NewView)) {
                 //number already in use
 
-                WinAGIException wex = new(LoadResString(669))
-                {
+                WinAGIException wex = new(LoadResString(669)) {
                     HResult = WINAGI_ERR + 669
                 };
                 throw wex;
@@ -186,8 +170,7 @@ namespace WinAGI.Engine
             //reset compiler list of ids
             Compiler.blnSetIDs = false;
         }
-        internal void LoadView(byte bytResNum, sbyte bytVol, int lngLoc)
-        {
+        internal void LoadView(byte bytResNum, sbyte bytVol, int lngLoc) {
             //called by the resource loading method for the initial loading of
             //resources into logics collection
 
@@ -206,32 +189,25 @@ namespace WinAGI.Engine
             newResource.Volume = bytVol;
             newResource.Loc = lngLoc;
         }
-        ViewEnum GetEnumerator()
-        {
+        ViewEnum GetEnumerator() {
             return new ViewEnum(Col);
         }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
+        IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
-        IEnumerator<View> IEnumerable<View>.GetEnumerator()
-        {
+        IEnumerator<View> IEnumerable<View>.GetEnumerator() {
             return (IEnumerator<View>)GetEnumerator();
         }
     }
-    internal class ViewEnum : IEnumerator<View>
-    {
+    internal class ViewEnum : IEnumerator<View> {
         public SortedList<byte, View> _views;
         int position = -1;
-        public ViewEnum(SortedList<byte, View> list)
-        {
+        public ViewEnum(SortedList<byte, View> list) {
             _views = list;
         }
         object IEnumerator.Current => Current;
-        public View Current
-        {
-            get
-            {
+        public View Current {
+            get {
                 try {
                     return _views.Values[position];
                 }
@@ -241,17 +217,14 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool MoveNext()
-        {
+        public bool MoveNext() {
             position++;
             return (position < _views.Count);
         }
-        public void Reset()
-        {
+        public void Reset() {
             position = -1;
         }
-        public void Dispose()
-        {
+        public void Dispose() {
             _views = null;
         }
     }

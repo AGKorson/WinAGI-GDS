@@ -7,28 +7,23 @@ using WinAGI.Engine;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 
-namespace WinAGI.Engine
-{
-    public class Loop
-    {
+namespace WinAGI.Engine {
+    public class Loop {
         Cels mCelCol;
         int mMirrorPair;
         internal int mIndex;
         View mParent;
         //other
         string strErrSource;
-        internal Cels Cels
-        {
-            get
-            {
+        internal Cels Cels {
+            get {
                 //set mirror flag
                 mCelCol.SetMirror(mMirrorPair < 0);
 
                 //return the cels collection
                 return mCelCol;
             }
-            set
-            {
+            set {
                 //sets the cels collection
                 int i;
                 mCelCol = value;
@@ -50,8 +45,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void CopyLoop(Loop SourceLoop)
-        {
+        public void CopyLoop(Loop SourceLoop) {
             //copies the source loop into this loop
             //if this is mirrored, and the primary loop
             if (mMirrorPair > 0) {
@@ -75,21 +69,16 @@ namespace WinAGI.Engine
                 mParent.IsDirty = true;
             }
         }
-        public Cel this[int index]
-        {
-            get
-            {
+        public Cel this[int index] {
+            get {
                 return Cels[index];
             }
         }
-        public int Index
-        {
-            get
-            {
+        public int Index {
+            get {
                 return mIndex;
             }
-            internal set
-            {
+            internal set {
                 // validate
                 if (mIndex < 0 || mIndex > MAX_LOOPS) {
                     throw new Exception("index out of bounds");
@@ -97,10 +86,8 @@ namespace WinAGI.Engine
                 mIndex = value;
             }
         }
-        public int Mirrored
-        {
-            get
-            {
+        public int Mirrored {
+            get {
                 //if this loop is part of a mirror pair
                 //then it is mirrored
                 // return sign so calling function can tell if this is
@@ -108,18 +95,15 @@ namespace WinAGI.Engine
                 return Math.Sign(mMirrorPair);
             }
         }
-        public byte MirrorLoop
-        {
-            get
-            {
+        public byte MirrorLoop {
+            get {
                 // return the mirror loop
                 // by finding the other loop that has this mirror pair Value
                 byte i;
                 //if not mirrored
                 if (mMirrorPair == 0) {
                     // raise error
-                    WinAGIException wex = new(LoadResString(611))
-                    {
+                    WinAGIException wex = new(LoadResString(611)) {
                         HResult = WINAGI_ERR + 611
                     };
                     throw wex;
@@ -136,20 +120,16 @@ namespace WinAGI.Engine
             }
         }
 
-        internal int MirrorPair
-        {
-            get
-            {
+        internal int MirrorPair {
+            get {
                 return mMirrorPair;
             }
-            set
-            {
+            set {
                 mMirrorPair = value;
 
             }
         }
-        public void UnMirror()
-        {
+        public void UnMirror() {
             //if the loop is mirrored,
             //this method clears it
             //NOTE: unmirroring is handled by the
@@ -192,25 +172,21 @@ namespace WinAGI.Engine
                 mParent.IsDirty = true;
             }
         }
-        internal Loop Clone(View cloneparent)
-        {
+        internal Loop Clone(View cloneparent) {
             // returns a copy of this loop
-            Loop CopyLoop = new(cloneparent)
-            {
+            Loop CopyLoop = new(cloneparent) {
                 mMirrorPair = mMirrorPair,
                 mIndex = mIndex,
                 mCelCol = mCelCol.Clone(cloneparent)
             };
             return CopyLoop;
         }
-        public Loop()
-        {
+        public Loop() {
             //initialize cel collection object
             mCelCol = [];
             strErrSource = "WINAGI.AGILoop";
         }
-        internal Loop(View parent)
-        {
+        internal Loop(View parent) {
             //initialize cel collection object
             mCelCol = new Cels(parent);
             strErrSource = "WINAGI.AGILoop";

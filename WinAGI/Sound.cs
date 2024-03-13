@@ -125,7 +125,7 @@ namespace WinAGI.Engine {
             try {
                 switch (mFormat) {
                 case SoundFormat.sfAGI: //standard pc/pcjr sound
-                        //build the midi first
+                                        //build the midi first
                     SndPlayer.mMIDIData = BuildMIDI(this);
                     mLength = GetSoundLength();
                     break;
@@ -135,7 +135,7 @@ namespace WinAGI.Engine {
 
                     break;
                 case SoundFormat.sfMIDI: //IIgs MIDI sound
-                        //build the midi data and get length info
+                                         //build the midi data and get length info
                     SndPlayer.mMIDIData = BuildIIgsMIDI(this, ref mLength);
                     break;
                 }
@@ -144,8 +144,7 @@ namespace WinAGI.Engine {
             }
             catch (Exception e) {
 
-                WinAGIException wex = new(LoadResString(596))
-                {
+                WinAGIException wex = new(LoadResString(596)) {
                     HResult = WINAGI_ERR + 596
                 };
                 wex.Data["exception"] = e;
@@ -168,11 +167,11 @@ namespace WinAGI.Engine {
                 }
                 break;
             case SoundFormat.sfWAV:  //pcm sampling
-                     //since sampling is at 8000Hz, size is just data length/8000
+                                     //since sampling is at 8000Hz, size is just data length/8000
                 retval = ((double)mSize - 54) / 8000;
                 break;
             case SoundFormat.sfMIDI: //iigs midi
-                    //length has to be calculated during midi build
+                                     //length has to be calculated during midi build
                 BuildSoundOutput();
                 retval = mLength;
                 break;
@@ -181,15 +180,13 @@ namespace WinAGI.Engine {
             return retval;
         }
         public Track this[int index] {
-            get
-            {
+            get {
                 return Track(index);
             }
         }
         public int Key {
             get => mKey;
-            set
-            {
+            set {
                 //validate
                 if (value < -7 || value > 7) {
                     //raise error
@@ -209,8 +206,7 @@ namespace WinAGI.Engine {
             //  1 = //standard// agi
             //  2 = IIgs sampled sound
             //  3 = IIgs midi
-            get
-            {
+            get {
                 if (mLoaded) {
                     return mFormat;
                 }
@@ -239,15 +235,13 @@ namespace WinAGI.Engine {
             //  64 = bad track2 data
             // 128 = bad track3 data
             // 256 = missing track data
-            get
-            {
+            get {
                 return mErrLvl;
             }
         }
 
         internal void LoadTracks() {
             int i, lngLength = 0, lngTLength;
-            int lngTrackStart, lngTrackEnd;
             int lngStart, lngEnd, lngResPos, lngDur;
             short intFreq;
             byte bytAttn;
@@ -267,9 +261,10 @@ namespace WinAGI.Engine {
                 mTrack[3].Visible = parent.agGameProps.GetSetting("Sound" + mResNum, "Visible3", true);
             }
             else {
-                for (i = 0; i <= 3; i++) {
-                    mTrack[i].Visible = true;
-                } //next i
+                mTrack[0].Visible = true;
+                mTrack[1].Visible = true;
+                mTrack[0].Visible = true;
+                mTrack[0].Visible = true;
             }
             try {
                 //extract note information for each track from resource
@@ -287,8 +282,7 @@ namespace WinAGI.Engine {
                     //validate
                     if (lngStart < 0 || lngEnd < 0 || lngStart > mSize || lngEnd > mSize) {
                         //raise error
-                        WinAGIException wex = new(LoadResString(598))
-                        {
+                        WinAGIException wex = new(LoadResString(598)) {
                             HResult = WINAGI_ERR + 598
                         };
                         wex.Data["ID"] = mResID;
@@ -314,7 +308,7 @@ namespace WinAGI.Engine {
                     if (lngTLength > lngLength) {
                         lngLength = lngTLength;
                     }
-                } //next i
+                }
                 lngTLength = 0;
                 //getstart and end of noise track
                 lngStart = mRData[6] + 256 * mRData[7];
@@ -335,7 +329,7 @@ namespace WinAGI.Engine {
                         //add to length
                         lngTLength += lngDur;
                     }
-                } //next lngResPos
+                }
                   //if this is longest length
                 if (lngTLength > lngLength) {
                     lngLength = lngTLength;
@@ -343,8 +337,7 @@ namespace WinAGI.Engine {
             }
             catch (Exception e) {
 
-                WinAGIException wex = new(LoadResString(565).Replace(ARG1, e.Message))
-                {
+                WinAGIException wex = new(LoadResString(565).Replace(ARG1, e.Message)) {
                     HResult = WINAGI_ERR + 565
                 };
                 wex.Data["exception"] = e;
@@ -405,8 +398,7 @@ namespace WinAGI.Engine {
                 tmpRes.WriteByte(0xFF);
             }
             catch (Exception e) {
-                WinAGIException wex = new(LoadResString(566).Replace(ARG1, e.Message))
-                {
+                WinAGIException wex = new(LoadResString(566).Replace(ARG1, e.Message)) {
                     HResult = WINAGI_ERR + 566
                 };
                 wex.Data["exception"] = e;
@@ -432,8 +424,7 @@ namespace WinAGI.Engine {
             int i;
             if (!mLoaded) {
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -452,8 +443,7 @@ namespace WinAGI.Engine {
             //clear all tracks
             for (i = 0; i <= 3; i++) {
                 //clear out tracks by assigning to nothing, then new
-                mTrack[i] = new Track(this)
-                {
+                mTrack[i] = new Track(this) {
                     //set track defaults
                     Instrument = 0
                 };
@@ -464,8 +454,7 @@ namespace WinAGI.Engine {
             mLength = -1;
         }
         public double Length {
-            get
-            {
+            get {
                 //returns length of sound in seconds
                 int i;
                 //if not loaded,
@@ -487,8 +476,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -500,8 +488,7 @@ namespace WinAGI.Engine {
                 // need tomake sure all sounds get stopped- should this be a static function?
                 // YES...
 
-                WinAGIException wex = new(LoadResString(629))
-                {
+                WinAGIException wex = new(LoadResString(629)) {
                     HResult = WINAGI_ERR + 629
                 };
                 throw wex;
@@ -556,8 +543,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -593,7 +579,7 @@ namespace WinAGI.Engine {
             }
             //export accordind to desred format
             switch (FileFormat) {
-            case SoundFormat.sfAGI: 
+            case SoundFormat.sfAGI:
                 // all data formats OK
                 // export agi resource
                 base.Export(ExportFile);
@@ -634,8 +620,7 @@ namespace WinAGI.Engine {
                 // only agi format can be exported as script
                 //if wrong format
                 if (mFormat != SoundFormat.sfAGI) {
-                    WinAGIException wex = new("Only PC/PCjr sound resources can be exported as script files")
-                    {
+                    WinAGIException wex = new("Only PC/PCjr sound resources can be exported as script files") {
                         HResult = 596,
                     };
                     throw wex;
@@ -713,8 +698,7 @@ namespace WinAGI.Engine {
                 // only IIgs pcm can be exported as wav file
                 //if wrong format
                 if (mFormat != SoundFormat.sfWAV) {
-                    WinAGIException wex = new("Can't export MIDI formatted sound resource as .WAV file")
-                    {
+                    WinAGIException wex = new("Can't export MIDI formatted sound resource as .WAV file") {
                         HResult = 596,
                     };
                     throw wex;
@@ -770,8 +754,7 @@ namespace WinAGI.Engine {
                 fsSnd.Dispose();
                 brSnd.Dispose();
 
-                WinAGIException wex = new(LoadResString(681))
-                {
+                WinAGIException wex = new(LoadResString(681)) {
                     HResult = WINAGI_ERR + 681
                 };
                 throw wex;
@@ -1068,8 +1051,7 @@ namespace WinAGI.Engine {
                             mDescription = "";
                             //raise the error
 
-                            WinAGIException wex = new(LoadResString(681))
-                            {
+                            WinAGIException wex = new(LoadResString(681)) {
                                 HResult = WINAGI_ERR + 681
                             };
                             throw wex;
@@ -1094,12 +1076,10 @@ namespace WinAGI.Engine {
             mTracksSet = true;
         }
         public int TPQN {
-            get
-            {
+            get {
                 return mTPQN;
             }
-            set
-            {
+            set {
                 //validate it
                 value = (value / 4) * 4;
                 if (value < 4 || value > 64) {
@@ -1121,8 +1101,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -1165,8 +1144,8 @@ namespace WinAGI.Engine {
             }
             //if not ingame, the resource is already loaded
             if (!mInGame) {//TODO- not true?? can nongame resources be unloaded and loaded?
-                          // they just need a valid resfile to get data from
-                Debug.Assert(false);
+                           // they just need a valid resfile to get data from
+                Debug.Assert(mLoaded);
             }
             try {
                 //load base resource
@@ -1202,7 +1181,7 @@ namespace WinAGI.Engine {
             //   0x08 = PC/PCjr //standard//
             switch (ReadWord(0)) {
             case 1:
-                mFormat =  SoundFormat.sfWAV;
+                mFormat = SoundFormat.sfWAV;
                 //tracks are not applicable, so just set flag to true
                 mTracksSet = true;
                 break;
@@ -1225,8 +1204,7 @@ namespace WinAGI.Engine {
             default:
                 //bad sound
                 Unload();
-                WinAGIException wex = new(LoadResString(598))
-                {
+                WinAGIException wex = new(LoadResString(598)) {
                     HResult = WINAGI_ERR + 598
                 };
                 wex.Data["ID"] = mResID;
@@ -1237,15 +1215,13 @@ namespace WinAGI.Engine {
             WritePropState = false;
         }
         public byte[] MIDIData {
-            get
-            {
+            get {
                 //returns the MIDI data stream or WAV strem for this sound resource
                 //if not loaded
                 if (!mLoaded) {
                     //error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;

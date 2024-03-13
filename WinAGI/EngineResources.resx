@@ -1002,9 +1002,6 @@
   <data name="506" xml:space="preserve">
     <value>Invalid resource data at %1 in %2.</value>
   </data>
-  <data name="507" xml:space="preserve">
-    <value>Error %1 while reading resource in %2.</value>
-  </data>
   <data name="508" xml:space="preserve">
     <value>Template directory is missing its WinAGI game property file.</value>
   </data>
@@ -1419,26 +1416,14 @@
   <data name="645" xml:space="preserve">
     <value>Unhandled error in Logics.Add method(%1)</value>
   </data>
-  <data name="646" xml:space="preserve">
-    <value>Unhandled error in LoadLogic method(%1)</value>
-  </data>
   <data name="647" xml:space="preserve">
     <value>Unhandled error in Pictures.Add method(%1)</value>
-  </data>
-  <data name="648" xml:space="preserve">
-    <value>Unhandled error in LoadPicture method(%1)</value>
   </data>
   <data name="649" xml:space="preserve">
     <value>Unhandled error in Views.Add method(%1)</value>
   </data>
-  <data name="650" xml:space="preserve">
-    <value>Unhandled error in LoadView method(%1)</value>
-  </data>
   <data name="651" xml:space="preserve">
     <value>Unhandled error in Sounds.Add method(%1)</value>
-  </data>
-  <data name="652" xml:space="preserve">
-    <value>Unhandled error in LoadSound method(%1)</value>
   </data>
   <data name="653" xml:space="preserve">
     <value>Unhandled error in Cels.Add method(%1)</value>

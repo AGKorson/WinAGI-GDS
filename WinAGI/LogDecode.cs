@@ -14,10 +14,8 @@ using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.Base;
 using System.Diagnostics;
 
-namespace WinAGI.Engine
-{
-    public static partial class Compiler
-    {
+namespace WinAGI.Engine {
+    public static partial class Compiler {
         internal struct BlockType {
             internal bool IsIf = false;
             internal int StartPos = 0;
@@ -29,8 +27,7 @@ namespace WinAGI.Engine
             public BlockType() {
             }
         }
-        public enum AGICodeStyle
-        {
+        public enum AGICodeStyle {
             cstDefault,
             cstStdVisualStudio,
             cstModifiedVisualStudio
@@ -68,9 +65,8 @@ namespace WinAGI.Engine
         static List<string> strWarning = [];
 
 
-        public static byte IndentSize
-        {
-            get { 
+        public static byte IndentSize {
+            get {
                 if (mIndentSize == 0) {
                     mIndentSize = 4;
                 }
@@ -82,14 +78,12 @@ namespace WinAGI.Engine
         }
 
         internal static int LogicNum;
-        internal static string DecodeGameID
-        {
+        internal static string DecodeGameID {
             get;
             set;
         }
 
-        internal static string DecodeLogic(Logic SourceLogic, int LogNum = -1)
-        {
+        internal static string DecodeLogic(Logic SourceLogic, int LogNum = -1) {
             // converts logic bytecode into decompiled source, converting extended
             // characters to correct encoding
             byte bytCurData;
@@ -148,8 +142,7 @@ namespace WinAGI.Engine
             //if can't read messges,
             if (!ReadMessages(bytData, lngMsgSecStart, SourceLogic.V3Compressed != 2)) {
                 //raise error
-                WinAGIException wex = new($"LogDecode Error ({strError})")
-                {
+                WinAGIException wex = new($"LogDecode Error ({strError})") {
                     HResult = WINAGI_ERR + 688
                 };
                 wex.Data["error"] = strError;
@@ -174,16 +167,15 @@ namespace WinAGI.Engine
                     strError = "";
                     if (!FindLabels(bytData)) {
                         //use error string set by findlabels
-                        WinAGIException wex = new($"LogDecode Error ({strError})")
-                        {
+                        WinAGIException wex = new($"LogDecode Error ({strError})") {
                             HResult = WINAGI_ERR + 688
                         };
                         wex.Data["error"] = strError;
                         throw wex;
-                    } else {
+                    }
+                    else {
                         //use error string set by findlabels
-                        WinAGIException wex = new($"LogDecode Error ({strError})")
-                        {
+                        WinAGIException wex = new($"LogDecode Error ({strError})") {
                             HResult = WINAGI_ERR + 688
                         };
                         wex.Data["error"] = strError;
@@ -219,8 +211,7 @@ namespace WinAGI.Engine
                 case 0xFF:
                     //this byte starts an IF statement
                     if (!DecodeIf(bytData, stlOutput)) {
-                        WinAGIException wex = new($"LogDecode Error ({strError})")
-                        {
+                        WinAGIException wex = new($"LogDecode Error ({strError})") {
                             HResult = WINAGI_ERR + 688
                         };
                         wex.Data["error"] = strError;
@@ -264,7 +255,7 @@ namespace WinAGI.Engine
                             //set warning
                             AddDecodeWarning("DC13", "Goto destination at position " + lngPos + "past end of logic; adjusted to end of logic", stlOutput.Count);
                             //adjust it to end of resource
-                            lngLabelLoc =lngMsgSecStart - 1;
+                            lngLabelLoc = lngMsgSecStart - 1;
                         }
                         // find it in list of labels
                         for (i = 1; i <= bytLabelCount; i++) {
@@ -290,7 +281,7 @@ namespace WinAGI.Engine
                     // they are all validated in FindLabels)
                     //if this command is not within range of expected commands for targeted interpretr version,
                     if (bytCurData > ActionCount - 1) { //this byte is a command
-                         //show warning
+                                                        //show warning
                         AddDecodeWarning("DC10", "This command at position " + lngPos.ToString() + " is not valid for selected interpreter version (" + compGame.agIntVersion + ")", stlOutput.Count);
                     }
                     bytCmd = bytCurData;
@@ -299,7 +290,7 @@ namespace WinAGI.Engine
                         strCurrentLine += AddSpecialCmd(bytData, bytCmd);
                     }
                     else {
-                        strCurrentLine +=  ActionCommands[bytCmd].Name + "(";
+                        strCurrentLine += ActionCommands[bytCmd].Name + "(";
                         intArgStart = strCurrentLine.Length;
                         for (intArg = 0; intArg < ActionCommands[bytCmd].ArgType.Length; intArg++) {
                             bytCurData = bytData[lngPos];
@@ -431,8 +422,7 @@ namespace WinAGI.Engine
                             //if message error (no string returned)
                             if (strArg.Length == 0) {
                                 //error string set by ArgValue function
-                                WinAGIException wex = new($"LogDecode Error ({strError})")
-                                {
+                                WinAGIException wex = new($"LogDecode Error ({strError})") {
                                     HResult = WINAGI_ERR + 688
                                 };
                                 wex.Data["error"] = strError;
@@ -527,7 +517,7 @@ namespace WinAGI.Engine
                     }
                     // check for quit() arg count error
                     if (badQuit) {
-                        AddDecodeWarning("DC12", "quit() comand at position " + lngPos.ToString() + "coded with no argument",stlOutput.Count);
+                        AddDecodeWarning("DC12", "quit() comand at position " + lngPos.ToString() + "coded with no argument", stlOutput.Count);
                     }
                     strCurrentLine += D_TKN_EOL;
                     stlOutput.Add(strCurrentLine);
@@ -577,10 +567,8 @@ namespace WinAGI.Engine
             //return strOut;
             return string.Join(NEWLINE, [.. stlOutput]);
         }
-       static void AddDecodeWarning(string WarnID, string WarningText, int LineNum)
-        {
-            TWinAGIEventInfo dcWarnInfo = new()
-            {
+        static void AddDecodeWarning(string WarnID, string WarningText, int LineNum) {
+            TWinAGIEventInfo dcWarnInfo = new() {
                 ResNum = bytLogComp,
                 ResType = AGIResType.rtLogic,
                 Type = EventType.etWarning,
@@ -601,8 +589,7 @@ namespace WinAGI.Engine
             }
             strWarning.Add(WarningText);
         }
-        static string ArgValue(byte ArgNum, ArgTypeEnum ArgType, int VarVal = -1)
-        {
+        static string ArgValue(byte ArgNum, ArgTypeEnum ArgType, int VarVal = -1) {
             //if not showing reserved names (or if not using reserved defines)
             // AND not a msg (always substitute msgs)
             if ((!ReservedAsText || !UseReservedNames) && ArgType != ArgTypeEnum.atMsg) {
@@ -705,7 +692,7 @@ namespace WinAGI.Engine
                             if (compGame.agInvObj[ArgNum].ItemName == "?") {
                                 //use the inventory item number, and post a warning
                                 AddDecodeWarning("DC04", "Reference to null inventory item ('?') at position " + lngPos, stlOutput.Count);
-                            return "i" + ArgNum;
+                                return "i" + ArgNum;
                             }
                             else {
                                 //a unique, non-questionmark item- use it's string Value
@@ -754,8 +741,7 @@ namespace WinAGI.Engine
             //shouldn't be possible to get here, but compiler wants a return statement here
             return "";
         }
-        static bool ReadMessages(byte[] bytData, int lngMsgStart, bool Decrypt)
-        {
+        static bool ReadMessages(byte[] bytData, int lngMsgStart, bool Decrypt) {
             int lngMsgTextEnd;
             int[] MessageStart = new int[256];
             int intCurMsg;
@@ -912,8 +898,7 @@ namespace WinAGI.Engine
             }
             return true;
         }
-        static bool DecodeIf(byte[] bytData, List<string> stlOut)
-        {
+        static bool DecodeIf(byte[] bytData, List<string> stlOut) {
             bool blnInOrBlock;
             bool blnInNotBlock;
             bool blnFirstCmd;
@@ -932,7 +917,7 @@ namespace WinAGI.Engine
             blnFirstCmd = true;
             blnInOrBlock = false;
             strLine = MultStr(INDENT, bytBlockDepth) + D_TKN_IF;
-            
+
             //main loop - read in logic, one byte at a time, and write text accordingly
             do {
                 //always reset 'NOT' block status to false
@@ -1116,7 +1101,7 @@ namespace WinAGI.Engine
                     if (bytCmd == 19) {
                         //set warning text
                         AddDecodeWarning("DC06", "unknowntest19 at position " + lngPos + " is only valid in Amiga AGI versions", stlOutput.Count);
-                   }
+                    }
                 }
                 else if (bytCurByte == 0xFF) {
                     //done with if block; add //then//
@@ -1131,7 +1116,7 @@ namespace WinAGI.Engine
                     if (DecodeBlock[bytBlockDepth].Length == 0) {
                         //set warning text
                         AddDecodeWarning("DC07", "This block at position " + lngPos + " contains no commands", stlOutput.Count);
-                   }
+                    }
                     //validate end pos
                     DecodeBlock[bytBlockDepth].EndPos = DecodeBlock[bytBlockDepth].Length + lngPos;
                     if (DecodeBlock[bytBlockDepth].EndPos >= bytData.Length - 1) {
@@ -1175,8 +1160,7 @@ namespace WinAGI.Engine
             while (!blnIfFinished);
             return true;
         }
-        static bool SkipToEndIf(byte[] bytData)
-        {
+        static bool SkipToEndIf(byte[] bytData) {
             //used by the find label method
             //it moves the cursor to the end of the current if
             //statement
@@ -1264,8 +1248,7 @@ namespace WinAGI.Engine
             while (!IfFinished);
             return true;
         }
-        static bool FindLabels(byte[] bytData)
-        {
+        static bool FindLabels(byte[] bytData) {
             int i, j, CurBlock;
             byte bytCurData;
             int tmpBlockLength;
@@ -1294,7 +1277,7 @@ namespace WinAGI.Engine
                         // if otherwise not an exact match, it will be caught when the block ends are added
                         if (lngPos - DecodeBlock[CurBlock].EndPos == 1 && compGame.agIntVersion != "2.089" && DecodeBlock[CurBlock].HasQuit) {
                             strError = "CHECKQUIT";
-                                return false;
+                            return false;
                         }
                         //take this block off stack
                         bytBlockDepth--;
@@ -1421,8 +1404,7 @@ namespace WinAGI.Engine
             //return success
             return true;
         }
-        static void DisplayMessages(List<string> stlOut)
-        {
+        static void DisplayMessages(List<string> stlOut) {
             int lngMsg;
             stlOut.Add(D_TKN_COMMENT + "Messages");
             //always skip msg[0] since it's n/a
@@ -1432,8 +1414,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        static string AddSpecialCmd(byte[] bytData, byte bytCmd)
-        {
+        static string AddSpecialCmd(byte[] bytData, byte bytCmd) {
             byte bytArg1, bytArg2;
             //get first argument
             bytArg1 = bytData[lngPos];
@@ -1499,8 +1480,7 @@ namespace WinAGI.Engine
                 return "";
             }
         }
-        static string AddSpecialIf(byte bytCmd, byte bytArg1, byte bytArg2, bool NOTOn)
-        {
+        static string AddSpecialIf(byte bytCmd, byte bytArg1, byte bytArg2, bool NOTOn) {
             string retval = ArgValue(bytArg1, ArgTypeEnum.atVar);
             switch (bytCmd) {
             case 1:
@@ -1568,8 +1548,7 @@ namespace WinAGI.Engine
             }
             return retval;
         }
-        static void AddBlockEnds(List<string> stlOutput)
-        {
+        static void AddBlockEnds(List<string> stlOutput) {
             int CurBlock, i;
 
             for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--) {
@@ -1589,7 +1568,7 @@ namespace WinAGI.Engine
                     if (DecodeBlock[CurBlock].IsOutside) {
                         // end current block
                         stlOutput.Add(MultStr(INDENT, bytBlockDepth - 1) + D_TKN_ENDIF.Replace(ARG1, INDENT));
-                       if (ElseAsGoto) {
+                        if (ElseAsGoto) {
                             //add an goto to start new block
                             // TODO: check this - I think it's adding wrong goto tokens
                             stlOutput.Add(MultStr(INDENT, bytBlockDepth - 1) + D_TKN_GOTO);
@@ -1612,8 +1591,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        static void InitTokens(AGICodeStyle Style = AGICodeStyle.cstDefault)
-        {
+        static void InitTokens(AGICodeStyle Style = AGICodeStyle.cstDefault) {
             INDENT = "".PadLeft(IndentSize);
 
             switch (Style) {
@@ -1660,5 +1638,5 @@ namespace WinAGI.Engine
                 D_TKN_GOTO = "goto %1";
             }
         }
-   }
+    }
 }

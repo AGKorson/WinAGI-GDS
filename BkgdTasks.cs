@@ -12,13 +12,10 @@ using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIResType;
 using System.IO;
 
-namespace WinAGI.Editor
-{
-    class BkgdTasks
-    {
+namespace WinAGI.Editor {
+    class BkgdTasks {
         internal static BackgroundWorker bgwOpenGame = null;
-        public static void OpenGameBkgd(object sender, DoWorkEventArgs e)
-        {
+        public static void OpenGameBkgd(object sender, DoWorkEventArgs e) {
             bool blnLoaded = false;
             string strError = "";
             bool blnWarnings = false;
@@ -93,7 +90,8 @@ namespace WinAGI.Editor
                         strError = "UNKNOWN: " + (lngErr - WINAGI_ERR).ToString() + " - " + ex.Source + " - " + strError;
                         break;
                     }
-                } else {
+                }
+                else {
                     // unknown error
                     strError = "UNKNOWN: " + lngErr.ToString() + " - " + ex.Source + " - " + strError;
                 }
@@ -124,8 +122,7 @@ namespace WinAGI.Editor
             }
             e.Result = argval;
         }
-        public static void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
+        public static void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e) {
             // progress percentage used to identify different types of events
             switch (e.ProgressPercentage) {
             case 1: // load warning
@@ -169,10 +166,9 @@ namespace WinAGI.Editor
                 }
                 break;
             }
-            
+
         }
-        public static void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
+        public static void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
             //load is over
             ProgressWin.Close();
 

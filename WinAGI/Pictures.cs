@@ -6,52 +6,40 @@ using static WinAGI.Engine.AGIGame;
 using System.IO;
 using static WinAGI.Common.Base;
 
-namespace WinAGI.Engine
-{
-    public class Pictures : IEnumerable<Picture>
-    {
+namespace WinAGI.Engine {
+    public class Pictures : IEnumerable<Picture> {
         internal AGIGame parent;
-        public Pictures(AGIGame parent)
-        {
+        public Pictures(AGIGame parent) {
             this.parent = parent;
             // create the initial Col object
             Col = [];
         }
-        internal SortedList<byte, Picture> Col
-        { get; private set; }
-        public Picture this[int index]
-        {
-            get
-            {
+        internal SortedList<byte, Picture> Col { get; private set; }
+        public Picture this[int index] {
+            get {
                 //validate index
                 if (index < 0 || index > 255)
                     throw new IndexOutOfRangeException();
                 return Col[(byte)index];
             }
         }
-        public byte Count
-        { get { return (byte)Col.Count; } private set { } }
-        public byte Max
-        {
-            get
-            {
+        public byte Count { get { return (byte)Col.Count; } private set { } }
+        public byte Max {
+            get {
                 byte max = 0;
                 if (Col.Count > 0)
                     max = Col.Keys[Col.Count - 1];
                 return max;
             }
         }
-        public bool Exists(byte ResNum)
-        {
+        public bool Exists(byte ResNum) {
             //check for thsi picture in the collection
             return Col.ContainsKey(ResNum);
         }
-        public void Clear()
-        {
+        public void Clear() {
             Col = [];
         }
-        public Picture Add(byte ResNum, Picture NewPicture = null)
-        {
+        public Picture Add(byte ResNum, Picture NewPicture = null) {
             //adds a new picture to a currently open game
             Picture agResource;
             int intNextNum = 0;
@@ -59,8 +47,7 @@ namespace WinAGI.Engine
             //if this Picture already exists
             if (Exists(ResNum)) {
                 //resource already exists
-                WinAGIException wex = new(LoadResString(602))
-                {
+                WinAGIException wex = new(LoadResString(602)) {
                     HResult = WINAGI_ERR + 602
                 };
                 throw wex;
@@ -92,8 +79,7 @@ namespace WinAGI.Engine
             //return the object created
             return agResource;
         }
-        public void Remove(byte Index)
-        {
+        public void Remove(byte Index) {
             //removes a picture from the game file
 
             // if the resource exists
@@ -107,8 +93,7 @@ namespace WinAGI.Engine
                 Compiler.blnSetIDs = false;
             }
         }
-        public void Renumber(byte OldPic, byte NewPic)
-        {
+        public void Renumber(byte OldPic, byte NewPic) {
             //renumbers a resource
             Picture tmpPic;
             int intNextNum = 0;
@@ -122,8 +107,7 @@ namespace WinAGI.Engine
             if (Col.ContainsKey(NewPic)) {
                 //number already in use
 
-                WinAGIException wex = new(LoadResString(669))
-                {
+                WinAGIException wex = new(LoadResString(669)) {
                     HResult = WINAGI_ERR + 669
                 };
                 throw wex;
@@ -183,8 +167,7 @@ namespace WinAGI.Engine
             //reset compiler list of ids
             Compiler.blnSetIDs = false;
         }
-        internal void LoadPicture(byte bytResNum, sbyte bytVol, int lngLoc)
-        {
+        internal void LoadPicture(byte bytResNum, sbyte bytVol, int lngLoc) {
             //called by the resource loading method for the initial loading of
             //resources into logics collection
 
@@ -201,32 +184,25 @@ namespace WinAGI.Engine
             //add it
             Col.Add(bytResNum, newResource);
         }
-        PictureEnum GetEnumerator()
-        {
+        PictureEnum GetEnumerator() {
             return new PictureEnum(Col);
         }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
+        IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
-        IEnumerator<Picture> IEnumerable<Picture>.GetEnumerator()
-        {
+        IEnumerator<Picture> IEnumerable<Picture>.GetEnumerator() {
             return (IEnumerator<Picture>)GetEnumerator();
         }
     }
-    internal class PictureEnum : IEnumerator<Picture>
-    {
+    internal class PictureEnum : IEnumerator<Picture> {
         public SortedList<byte, Picture> _pictures;
         int position = -1;
-        public PictureEnum(SortedList<byte, Picture> list)
-        {
+        public PictureEnum(SortedList<byte, Picture> list) {
             _pictures = list;
         }
         object IEnumerator.Current => Current;
-        public Picture Current
-        {
-            get
-            {
+        public Picture Current {
+            get {
                 try {
                     return _pictures.Values[position];
                 }
@@ -236,17 +212,14 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool MoveNext()
-        {
+        public bool MoveNext() {
             position++;
             return (position < _pictures.Count);
         }
-        public void Reset()
-        {
+        public void Reset() {
             position = -1;
         }
-        public void Dispose()
-        {
+        public void Dispose() {
             _pictures = null;
         }
     }

@@ -6,6 +6,7 @@ using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using System.IO;
 using Microsoft.VisualStudio.TextManager.Interop;
+using System.Diagnostics;
 
 namespace WinAGI.Engine {
     public class View : AGIResource {
@@ -104,8 +105,7 @@ namespace WinAGI.Engine {
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -281,11 +281,14 @@ namespace WinAGI.Engine {
             //pass cel data to the cel
             TempCel.AllCelData = tmpCelData;
         }
-        byte GetMirrorPair() {  //this function will generate a unique mirrorpair number
-                                //that is used to identify a pair of mirrored loops
-                                //the source loop is positive; the copy is negative
+
+        int GetMirrorPair() {
+            //this function will generate a unique mirrorpair number
+            //that is used to identify a pair of mirrored loops
+            //the source loop is positive; the copy is negative
             byte i;
             bool goodnum;
+
             //start with 1
             byte retval = 1;
             do {
@@ -294,7 +297,7 @@ namespace WinAGI.Engine {
                 for (i = 0; i < mLoopCol.Count; i++) {
                     //if this loop is using this mirror pair
                     if (retval == Math.Abs(mLoopCol[i].MirrorPair)) {
-                        //try another number
+                        // try another number
                         goodnum = false;
                         break;
                     }
@@ -315,9 +318,8 @@ namespace WinAGI.Engine {
             byte bytNumLoops, bytNumCels;
             int[] lngLoopStart = new int[MAX_LOOPS];
             ushort lngCelStart, lngDescLoc;
-            int tmpLoopNo, bytLoop, bytCel;
+            byte tmpLoopNo, bytLoop, bytCel;
             byte[] bytInput = new byte[1];
-            byte[] bytMaxW = new byte[MAX_LOOPS], bytMaxH = new byte[MAX_LOOPS];
             byte bytWidth, bytHeight;
             byte bytTransCol;
             int result = 0; // assume OK
@@ -333,10 +335,10 @@ namespace WinAGI.Engine {
             if (bytNumLoops == 0) {
                 //error - invalid data
 
-                WinAGIException wex = new(LoadResString(595))
-                {
+                WinAGIException wex = new(LoadResString(595)) {
                     HResult = WINAGI_ERR + 595
                 };
+                wex.Data["ID"] = mResID;
                 throw wex;
             }
             //get loop offset data for each loop
@@ -347,14 +349,16 @@ namespace WinAGI.Engine {
                 if ((lngLoopStart[bytLoop] > mSize)) {
                     Unload();
 
-                    WinAGIException wex = new(LoadResString(548))
-                    {
+                    WinAGIException wex = new(LoadResString(548)) {
                         HResult = WINAGI_ERR + 548
                     };
+                    wex.Data["ID"] = mResID;
+                    wex.Data["loop"] = bytLoop;
                     throw wex;
                 }
             }
             //step through all loops
+            // TODO: max number of loops? should there be an error check here?
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
                 //add the loop
                 mLoopCol.Add(bytLoop);
@@ -367,13 +371,7 @@ namespace WinAGI.Engine {
                             //this loop is a mirror
                             try {
                                 //get a new mirror pair number
-                                byte i = GetMirrorPair();
-                                //set the mirror loop hasmirror property
-                                mLoopCol[tmpLoopNo].MirrorPair = i;
-                                //set the mirror loop mirrorloop property
-                                mLoopCol[bytLoop].MirrorPair = -i;
-                                //link to the cel collection
-                                mLoopCol[bytLoop].Cels = mLoopCol[tmpLoopNo].Cels;
+                                SetMirror(bytLoop, tmpLoopNo);
                             }
                             catch (Exception e) {
                                 //if error is because source is already mirrored
@@ -404,10 +402,12 @@ namespace WinAGI.Engine {
                         if ((lngCelStart > mSize)) {
                             Unload();
 
-                            WinAGIException wex = new(LoadResString(553))
-                            {
+                            WinAGIException wex = new(LoadResString(553)) {
                                 HResult = WINAGI_ERR + 553
                             };
+                            wex.Data["ID"] = mResID;
+                            wex.Data["loop"] = bytLoop;
+                            wex.Data["cel"] = bytCel;
                             throw wex;
                         }
                         //get height/width
@@ -456,13 +456,13 @@ namespace WinAGI.Engine {
             mIsDirty = false;
             return result;
         }
+
         public void Export(string ExportFile, bool ResetDirty = true) {
             //if not loaded
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -514,13 +514,13 @@ namespace WinAGI.Engine {
             mViewSet = false;
         }
         public override void Load() {
-            // ignore if already loaded
-            if (Loaded) {
-                return;
-            }
             //if not ingame, the resource should already be loaded
             if (!mInGame) {
-                throw new Exception("non-game view should already be loaded");
+                Debug.Assert(mLoaded);
+            }
+            // ignore if already loaded
+            if (mLoaded) {
+                return;
             }
             try {
                 //load base resource data
@@ -576,8 +576,7 @@ namespace WinAGI.Engine {
             }
         }
         public Loop this[int index] {
-            get
-            {
+            get {
                 try {
                     return Loops[index];
                 }
@@ -588,13 +587,11 @@ namespace WinAGI.Engine {
             }
         }
         public Loops Loops {
-            get
-            {
+            get {
                 //if not loaded
                 if (!mLoaded) {
                     //error
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -602,8 +599,7 @@ namespace WinAGI.Engine {
                 //if view not set,
                 if (!mViewSet) {
                     //error
-                    WinAGIException wex = new(LoadResString(563) + ": loops not load????")
-                    {
+                    WinAGIException wex = new(LoadResString(563) + ": loops not load????") {
                         HResult = WINAGI_ERR + 563,
                     };
                     throw wex;
@@ -613,8 +609,7 @@ namespace WinAGI.Engine {
             }
         }
         public string ViewDescription {
-            get
-            {
+            get {
                 //if not loaded
                 if (!mLoaded) {
                     try {
@@ -629,8 +624,7 @@ namespace WinAGI.Engine {
                 }
                 return mViewDesc;
             }
-            set
-            {
+            set {
                 //if changing,
                 if (mViewDesc != value) {
                     mViewDesc = Left(value, 255);
@@ -648,8 +642,7 @@ namespace WinAGI.Engine {
             //return 0 if successful, no errors/warnings
             // non-zero for error/warning:
             //     1 = invalid viewdesc pointer
-            get
-            {
+            get {
                 return mErrLvl;
             }
         }
@@ -662,9 +655,7 @@ namespace WinAGI.Engine {
             //if not loaded
             if (!mLoaded) {
                 //error
-
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -673,21 +664,22 @@ namespace WinAGI.Engine {
             //(must be less than or equal to max number of loops)
             if (SourceLoop >= mLoopCol.Count) {
                 //error - loop must exist
-
-                WinAGIException wex = new(LoadResString(539))
-                {
+                WinAGIException wex = new(LoadResString(539)) {
                     HResult = WINAGI_ERR + 539
                 };
                 throw wex;
             }
+            // TODO: shouldn't targetloop also be checked for being valid?
+
             //the source loop and the target loop must be less than 8
             if (SourceLoop >= 8 || TargetLoop >= 8) {
-                //error - loop must exist
-
-                WinAGIException wex = new(LoadResString(539))
-                {
+                //error - invalid mirror loop
+                WinAGIException wex = new(LoadResString(539)) {
                     HResult = WINAGI_ERR + 539
                 };
+                wex.Data["ID"] = mResID;
+                wex.Data["srcloop"] = SourceLoop;
+                wex.Data["tgtloop"] = TargetLoop;
                 throw wex;
             }
             //mirror source and target can't be the same
@@ -698,21 +690,22 @@ namespace WinAGI.Engine {
             //this loop can't be already mirrored
             if (mLoopCol[TargetLoop].Mirrored != 0) {
                 //error
-
-                WinAGIException wex = new(LoadResString(550))
-                {
+                WinAGIException wex = new(LoadResString(550)) {
                     HResult = WINAGI_ERR + 550
                 };
+                wex.Data["ID"] = mResID;
+                wex.Data["tgtloop"] = TargetLoop;
                 throw wex;
             }
             //the mirror loop can't already have a mirror
             if (mLoopCol[SourceLoop].Mirrored != 0) {
                 //error
 
-                WinAGIException wex = new(LoadResString(551))
-                {
+                WinAGIException wex = new(LoadResString(551)) {
                     HResult = WINAGI_ERR + 551
                 };
+                wex.Data["ID"] = mResID;
+                wex.Data["srcloop"] = SourceLoop;
                 throw wex;
             }
             //get a new mirror pair number

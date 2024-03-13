@@ -75,8 +75,7 @@ namespace WinAGI.Engine {
 
         public AGIGame(OpenGameMode mode, string gameSource) {
             InitGame();
-            TWinAGIEventInfo retval = new()
-            {
+            TWinAGIEventInfo retval = new() {
                 Type = EventType.etInfo,
                 ID = "",
                 Module = "",
@@ -94,8 +93,7 @@ namespace WinAGI.Engine {
             }
             if (retval.Type == EventType.etError) {
                 // throw return value as exception
-                WinAGIException wex = new(retval.Text)
-                {
+                WinAGIException wex = new(retval.Text) {
                     HResult = WINAGI_ERR + int.Parse(retval.ID),
                 };
                 wex.Data["retval"] = retval;
@@ -188,8 +186,7 @@ namespace WinAGI.Engine {
         }
         public string DOSExec {
             get { return agDOSExec; }
-            set
-            {
+            set {
                 string newExec = value;
 
                 //no validation required
@@ -204,8 +201,7 @@ namespace WinAGI.Engine {
         }
         public string GameAbout {
             get { return agAbout; }
-            set
-            {
+            set {
                 //limit to 4096 characters
                 if (value.Length > 4096)
                     agAbout = Left(value, 4096);
@@ -222,8 +218,7 @@ namespace WinAGI.Engine {
         }
         public string GameAuthor {
             get { return agAuthor; }
-            set
-            {
+            set {
                 //limit author to 256 bytes
                 if (value.Length > 256)
                     agAuthor = Left(value, 256);
@@ -239,8 +234,7 @@ namespace WinAGI.Engine {
         }
         public string GameDescription {
             get => agDescription;
-            set
-            {
+            set {
                 //comments limited to 4K
                 if (value.Length > 4096)
                     agDescription = Left(value, 4096);
@@ -254,8 +248,7 @@ namespace WinAGI.Engine {
             }
         }
         public string GameDir {
-            get
-            {
+            get {
                 //if a game is loaded,
                 if (agGameLoaded) {
                     //use resdir property
@@ -266,8 +259,7 @@ namespace WinAGI.Engine {
                     return CDir(Directory.GetCurrentDirectory());
                 }
             }
-            set
-            {
+            set {
                 //changing directory is only allowed if a game
                 //is loaded, but....
                 //
@@ -288,8 +280,7 @@ namespace WinAGI.Engine {
                     //validate gamedir
                     if (Directory.Exists(CDir(value))) {
                         //return error
-                        WinAGIException wex = new(LoadResString(630).Replace(ARG1, value))
-                        {
+                        WinAGIException wex = new(LoadResString(630).Replace(ARG1, value)) {
                             HResult = WINAGI_ERR + 630
                         };
                         wex.Data[0] = value;
@@ -309,24 +300,20 @@ namespace WinAGI.Engine {
             }
         }
         public string GameFile {
-            get
-            {
+            get {
                 //error if game not loaded
                 if (!agGameLoaded) {
-                    WinAGIException wex = new(LoadResString(693))
-                    {
+                    WinAGIException wex = new(LoadResString(693)) {
                         HResult = WINAGI_ERR + 693
                     };
                     throw wex;
                 }
                 return agGameFile;
             }
-            set
-            {
+            set {
                 //error if game not loaded
                 if (!agGameLoaded) {
-                    WinAGIException wex = new(LoadResString(693))
-                    {
+                    WinAGIException wex = new(LoadResString(693)) {
                         HResult = WINAGI_ERR + 693
                     };
                     throw wex;
@@ -350,8 +337,7 @@ namespace WinAGI.Engine {
         }
         public int PlatformType {
             get => agPlatformType;
-            set
-            {
+            set {
                 //only 0 - 4 are valid
                 if (value < 0 || value > 4) {
                     agPlatformType = 0;
@@ -368,8 +354,7 @@ namespace WinAGI.Engine {
         }
         public string Platform {
             get { return agPlatformFile; }
-            set
-            {
+            set {
                 // no validation needed
                 agPlatformFile = value;
                 if (agGameLoaded) {
@@ -379,8 +364,7 @@ namespace WinAGI.Engine {
         }
         public string PlatformOpts {
             get { return agPlatformOpts; }
-            set
-            {
+            set {
                 //no validation required
                 agPlatformOpts = value;
                 //if a game is loaded,
@@ -391,8 +375,7 @@ namespace WinAGI.Engine {
             }
         }
         public bool UseLE {
-            get
-            {
+            get {
                 //if a game is not loaded
                 if (!agGameLoaded)
                     //always return false
@@ -401,8 +384,7 @@ namespace WinAGI.Engine {
                     //return stored value
                     return agUseLE;
             }
-            set
-            {
+            set {
                 // no validation required
                 agUseLE = value;
                 System.Diagnostics.Debug.Print($"changing UseLE to {value}");
@@ -415,8 +397,7 @@ namespace WinAGI.Engine {
 
         public Encoding CodePage {
             get { return agCodePage; }
-            set
-            {
+            set {
                 // confirm new codepage is supported; ignore if it is not
                 switch (value.CodePage) {
                 case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
@@ -433,8 +414,7 @@ namespace WinAGI.Engine {
 
         public bool SierraSyntax {
             get { return agSierraSyntax; }
-            set
-            {
+            set {
                 agSierraSyntax = value;
                 // update property file if game loaded
                 if (agGameLoaded) {
@@ -445,8 +425,7 @@ namespace WinAGI.Engine {
 
         public bool PowerPack {
             get { return agPowerPack; }
-            set
-            {
+            set {
                 agPowerPack = value;
                 // update property file if game loaded
                 if (agGameLoaded) {
@@ -457,8 +436,7 @@ namespace WinAGI.Engine {
 
         public string GameVersion {
             get => agGameVersion;
-            set
-            {
+            set {
                 //limit to 256 bytes
                 if (value.Length > 256)
                     agGameVersion = Left(value, 256);
@@ -472,8 +450,7 @@ namespace WinAGI.Engine {
             }
         }
         public TDefine[] ReservedGameDefines {
-            get
-            {
+            get {
                 //returns the reserved defines that are game-specific:
                 //     gamever, gameabout, gameid, invobj Count
                 TDefine[] tmpDefines = agResGameDef;
@@ -532,8 +509,7 @@ namespace WinAGI.Engine {
             bool blnReplace, NewIsV3;
             string strFileName = "";
             int tmpMax = 0, i, j;
-            TWinAGIEventInfo compInfo = new()
-            {
+            TWinAGIEventInfo compInfo = new() {
                 Type = EventType.etInfo,
                 ID = "",
                 Module = "",
@@ -552,8 +528,7 @@ namespace WinAGI.Engine {
             if (!Directory.Exists(NewGameDir)) {
                 //this isn't a directory
                 CompleteCancel(true);
-                WinAGIException wex = new(LoadResString(561).Replace(ARG1, NewGameDir))
-                {
+                WinAGIException wex = new(LoadResString(561).Replace(ARG1, NewGameDir)) {
                     HResult = WINAGI_ERR + 561
                 };
                 throw wex;
@@ -580,8 +555,7 @@ namespace WinAGI.Engine {
                 if (agGameID.Length > 5) {
                     //invalid ID; calling function should know better!
                     CompleteCancel(true);
-                    WinAGIException wex = new(LoadResString(694))
-                    {
+                    WinAGIException wex = new(LoadResString(694)) {
                         HResult = WINAGI_ERR + 694
                     };
                     throw wex;
@@ -610,8 +584,7 @@ namespace WinAGI.Engine {
                     }
                     catch (Exception ex) {
                         // note it
-                        TWinAGIEventInfo tmpError = new()
-                        {
+                        TWinAGIEventInfo tmpError = new() {
                             Type = EventType.etError,
                             ID = "",
                             Module = "",
@@ -640,8 +613,7 @@ namespace WinAGI.Engine {
                     }
                     catch (Exception ex) {
                         //note error
-                        TWinAGIEventInfo tmpError = new()
-                        {
+                        TWinAGIEventInfo tmpError = new() {
                             Type = EventType.etError,
                             ID = "",
                             Module = "",
@@ -669,8 +641,7 @@ namespace WinAGI.Engine {
                     }
                     catch (Exception ex) {
                         // note it
-                        TWinAGIEventInfo tmpError = new()
-                        {
+                        TWinAGIEventInfo tmpError = new() {
                             Type = EventType.etError,
                             ID = "",
                             Module = "",
@@ -698,8 +669,7 @@ namespace WinAGI.Engine {
                     }
                     catch (Exception ex) {
                         // note error
-                        TWinAGIEventInfo tmpError = new()
-                        {
+                        TWinAGIEventInfo tmpError = new() {
                             Type = EventType.etError,
                             ID = "",
                             Module = "",
@@ -742,8 +712,7 @@ namespace WinAGI.Engine {
             }
             catch (Exception e) {
                 CompleteCancel(true);
-                WinAGIException wex = new(LoadResString(503).Replace(ARG1, NewGameDir + "NEW_VOL.0"))
-                {
+                WinAGIException wex = new(LoadResString(503).Replace(ARG1, NewGameDir + "NEW_VOL.0")) {
                     HResult = WINAGI_ERR + 503
                 };
                 wex.Data["exception"] = e;
@@ -1009,27 +978,23 @@ namespace WinAGI.Engine {
         }
 
         public string GameID {
-            get
-            {
+            get {
                 // id is undefined if a game is not loaded
                 if (!agGameLoaded) {
 
-                    WinAGIException wex = new(LoadResString(677))
-                    {
+                    WinAGIException wex = new(LoadResString(677)) {
                         HResult = WINAGI_ERR + 677
                     };
                     throw wex;
                 }
                 return agGameID;
             }
-            set
-            {
+            set {
                 // limit gameID to 6 characters for v2 games and 5 characters for v3 games
                 string NewID = value;
                 // id is undefined if a game is not loaded
                 if (!agGameLoaded) {
-                    WinAGIException wex = new(LoadResString(677))
-                    {
+                    WinAGIException wex = new(LoadResString(677)) {
                         HResult = WINAGI_ERR + 677
                     };
                     throw wex;
@@ -1071,8 +1036,7 @@ namespace WinAGI.Engine {
                         }
                     }
                     catch (Exception e) {
-                        WinAGIException wex = new(LoadResString(530).Replace(ARG1, e.HResult.ToString()))
-                        {
+                        WinAGIException wex = new(LoadResString(530).Replace(ARG1, e.HResult.ToString())) {
                             HResult = WINAGI_ERR + 530
                         };
                         wex.Data["exception"] = e;
@@ -1091,8 +1055,7 @@ namespace WinAGI.Engine {
         }
 
         public DateTime LastEdit {
-            get
-            {
+            get {
                 // if game loaded,
                 if (agGameLoaded) {
                     return agLastEdit;
@@ -1105,8 +1068,7 @@ namespace WinAGI.Engine {
 
         public int MaxVol0Size {
             get { return agMaxVol0; }
-            set
-            {
+            set {
                 //validate
                 if (value < 32768) {
                     agMaxVol0 = 32768;
@@ -1121,8 +1083,7 @@ namespace WinAGI.Engine {
         }
 
         public string InterpreterVersion {
-            get
-            {
+            get {
                 // if a game is loaded
                 if (agGameLoaded) {
                     return agIntVersion;
@@ -1135,8 +1096,7 @@ namespace WinAGI.Engine {
                 //otherwise return set value
                 return agIntVersion;
             }
-            set
-            {
+            set {
                 // attempts to set version to new Value
 
                 // validate new version
@@ -1203,8 +1163,7 @@ namespace WinAGI.Engine {
                 else {
                     // if not numeric
                     if (!IsNumeric(value)) {
-                        WinAGIException wex = new(LoadResString(597))
-                        {
+                        WinAGIException wex = new(LoadResString(597)) {
                             HResult = WINAGI_ERR + 597
                         };
                         throw wex;
@@ -1212,16 +1171,14 @@ namespace WinAGI.Engine {
                     else if (Double.Parse(value) < 2 || Double.Parse(value) > 3) {
                         //not a version 2 or 3 game
 
-                        WinAGIException wex = new(LoadResString(597))
-                        {
+                        WinAGIException wex = new(LoadResString(597)) {
                             HResult = WINAGI_ERR + 597
                         };
                         throw wex;
                     }
                     else {
                         //unsupported version 2 or 3 game
-                        WinAGIException wex = new(LoadResString(543))
-                        {
+                        WinAGIException wex = new(LoadResString(543)) {
                             HResult = WINAGI_ERR + 543
                         };
                         throw wex;
@@ -1231,8 +1188,7 @@ namespace WinAGI.Engine {
         }
 
         public string ResDir {
-            get
-            {
+            get {
                 // if a game is loaded
                 if (agGameLoaded) {
                     return agResDir;
@@ -1244,8 +1200,7 @@ namespace WinAGI.Engine {
 
         public string ResDirName {
             get { return agResDirName; }
-            set
-            {
+            set {
                 // validate- cant have  \/:*?<>|
                 string tmpName = value.Trim();
                 // if  blank use default
@@ -1280,8 +1235,7 @@ namespace WinAGI.Engine {
             // use the resources from that template directory
 
             // assume OK result
-            TWinAGIEventInfo retval = new()
-            {
+            TWinAGIEventInfo retval = new() {
                 Type = EventType.etInfo,
                 ID = "",
                 Module = "",
@@ -1296,8 +1250,7 @@ namespace WinAGI.Engine {
             // if a game is already open,
             if (agGameLoaded) {
                 //can't open a game if one is already open
-                WinAGIException wex = new(LoadResString(501))
-                {
+                WinAGIException wex = new(LoadResString(501)) {
                     HResult = WINAGI_ERR + 501
                 };
                 throw wex;
@@ -1305,8 +1258,7 @@ namespace WinAGI.Engine {
             // if not a valid directory
             if (!Directory.Exists(NewGameDir)) {
                 // raise error
-                WinAGIException wex = new(LoadResString(630).Replace(ARG1, NewGameDir))
-                {
+                WinAGIException wex = new(LoadResString(630).Replace(ARG1, NewGameDir)) {
                     HResult = WINAGI_ERR + 630
                 };
                 throw wex;
@@ -1314,16 +1266,14 @@ namespace WinAGI.Engine {
             // if a game already exists
             if (Directory.GetFiles(NewGameDir, "*.wag").Length != 0) {
                 // wag file already exists;
-                WinAGIException wex = new(LoadResString(687))
-                {
+                WinAGIException wex = new(LoadResString(687)) {
                     HResult = WINAGI_ERR + 687
                 };
                 throw wex;
             }
             if (IsValidGameDir(CDir(NewGameDir))) {
                 // game files already exist;
-                WinAGIException wex = new(LoadResString(687))
-                {
+                WinAGIException wex = new(LoadResString(687)) {
                     HResult = WINAGI_ERR + 687
                 };
                 throw wex;
@@ -1345,8 +1295,7 @@ namespace WinAGI.Engine {
                 // should be exactly one wag file
                 if (Directory.GetFiles(TemplateDir, "*.wag").Length != 1) {
                     //raise error
-                    WinAGIException wex = new(LoadResString(630))
-                    {
+                    WinAGIException wex = new(LoadResString(630)) {
                         HResult = WINAGI_ERR + 630
                     };
                     throw wex;
@@ -1377,16 +1326,14 @@ namespace WinAGI.Engine {
                 try {
                     if (!DirectoryCopy(TemplateDir, agGameDir, true)) {
                         // TODO: error number??? might need to rewrite this errmsg
-                        WinAGIException wex = new(LoadResString(683).Replace(ARG1, "unknown error"))
-                        {
+                        WinAGIException wex = new(LoadResString(683).Replace(ARG1, "unknown error")) {
                             HResult = WINAGI_ERR + 683
                         };
                         throw wex;
                     }
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(683).Replace(ARG1, e.Message))
-                    {
+                    WinAGIException wex = new(LoadResString(683).Replace(ARG1, e.Message)) {
                         HResult = WINAGI_ERR + 683
                     };
                     throw wex;
@@ -1403,8 +1350,7 @@ namespace WinAGI.Engine {
                     OpenGameWAG(agGameDir + strGameWAG);
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(684).Replace(ARG1, e.Message))
-                    {
+                    WinAGIException wex = new(LoadResString(684).Replace(ARG1, e.Message)) {
                         HResult = WINAGI_ERR + 684
                     };
                     wex.Data["exception"] = e;
@@ -1430,8 +1376,7 @@ namespace WinAGI.Engine {
                     GameID = NewID;
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(685).Replace(ARG1, e.Message))
-                    {
+                    WinAGIException wex = new(LoadResString(685).Replace(ARG1, e.Message)) {
                         HResult = WINAGI_ERR + 685
                     };
                     wex.Data["exception"] = e;
@@ -1469,16 +1414,14 @@ namespace WinAGI.Engine {
                 else {
                     if (Val(NewVersion) < 2 || Val(NewVersion) > 3) {
                         // not a version 2 or 3 game
-                        WinAGIException wex = new(LoadResString(597))
-                        {
+                        WinAGIException wex = new(LoadResString(597)) {
                             HResult = WINAGI_ERR + 597
                         };
                         throw wex;
                     }
                     else {
                         // unsupported version 2 or 3 game
-                        WinAGIException wex = new(LoadResString(543))
-                        {
+                        WinAGIException wex = new(LoadResString(543)) {
                             HResult = WINAGI_ERR + 543
                         };
                         throw wex;
@@ -1591,8 +1534,7 @@ namespace WinAGI.Engine {
             if (!Directory.Exists(agGameDir + agResDirName)) {
                 if (Directory.CreateDirectory(agGameDir + agResDirName) is null) {
                     // note the problem as a warning
-                    TWinAGIEventInfo warnInfo = new()
-                    {
+                    TWinAGIEventInfo warnInfo = new() {
                         Type = EventType.etWarning,
                         ResType = AGIResType.rtGame,
                         ResNum = 0,
@@ -1625,8 +1567,7 @@ namespace WinAGI.Engine {
             // if warnings or errors
             // TODO: convert error handler to function return value
             if (blnWarnings) {
-                WinAGIException wex = new(LoadResString(637))
-                {
+                WinAGIException wex = new(LoadResString(637)) {
                     HResult = WINAGI_ERR + 637
                 };
                 throw wex;
@@ -1638,16 +1579,14 @@ namespace WinAGI.Engine {
             //creates a new WinAGI game file from Sierra game directory
 
             // assume OK result
-            TWinAGIEventInfo retval = new()
-            {
+            TWinAGIEventInfo retval = new() {
                 Type = EventType.etInfo,
                 ID = "",
                 Module = "",
                 Text = ""
             };
             // periodically report status of the load back to calling function
-            TWinAGIEventInfo warnInfo = new()
-            {
+            TWinAGIEventInfo warnInfo = new() {
                 Type = EventType.etWarning,
                 ID = "",
                 Module = "",
@@ -1769,8 +1708,7 @@ namespace WinAGI.Engine {
 
         public TWinAGIEventInfo OpenGameWAG(string GameWAG) {
             //opens a WinAGI game file (must be passed as a full length file name)
-            TWinAGIEventInfo retval = new()
-            {
+            TWinAGIEventInfo retval = new() {
                 Type = EventType.etInfo,
                 ID = "",
                 Module = "",
@@ -1778,32 +1716,27 @@ namespace WinAGI.Engine {
             };
             string strVer;
 
-            // if a game is already open,
             if (agGameLoaded) {
                 // can't open a game if one is already open
                 retval.Type = EventType.etError;
                 retval.ID = 501.ToString();
                 return retval;
             }
-            // verify the wag file exists
             if (!File.Exists(GameWAG)) {
+                // invalid wag
+                retval.Type = EventType.etError;
                 // is the file missing?, or the directory?
                 if (Directory.Exists(JustPath(GameWAG, true))) {
                     // it's a missing file - return wagfile as error string
-                    // invalid wag
-                    retval.Type = EventType.etError;
                     retval.ID = 655.ToString();
                     retval.Text = GameWAG;
-                    return retval;
                 }
                 else {
                     // it's an invalid or missing directory - return directory as error string
-                    // invalid wag
-                    retval.Type = EventType.etError;
                     retval.ID = 541.ToString();
                     retval.Text = JustPath(GameWAG, true);
-                    return retval;
                 }
+                return retval;
             }
             // reset game variables
             ClearGameState();
@@ -1893,8 +1826,7 @@ namespace WinAGI.Engine {
             // (currently, no difference between them)
 
             // instead of throwing exceptions, errors get passed back as a return value
-            TWinAGIEventInfo retval = new()
-            {
+            TWinAGIEventInfo retval = new() {
                 Type = EventType.etInfo,
                 ID = "",
                 Text = "",
@@ -1902,8 +1834,7 @@ namespace WinAGI.Engine {
             };
             // provide feedback to calling function
             bool blnWarnings = false;
-            TWinAGIEventInfo loadInfo = new()
-            {
+            TWinAGIEventInfo loadInfo = new() {
                 Type = EventType.etInfo,
                 ID = "",
                 Module = "",
@@ -2332,8 +2263,7 @@ namespace WinAGI.Engine {
             //cleans up after a compile game cancel or error
 
             if (!NoEvent) {
-                TWinAGIEventInfo tmpWarn = new()
-                {
+                TWinAGIEventInfo tmpWarn = new() {
                     Type = EventType.etWarning,
                     ID = "",
                     Module = "",

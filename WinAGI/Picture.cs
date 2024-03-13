@@ -123,18 +123,15 @@ namespace WinAGI.Engine {
             return CopyPicture;
         }
         public string BkgdImgFile {
-            get
-            {
+            get {
                 return mBkImgFile;
             }
-            set
-            {
+            set {
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -144,18 +141,15 @@ namespace WinAGI.Engine {
             }
         }
         public string BkgdPosition {
-            get
-            {
+            get {
                 return mBkPos;
             }
-            set
-            {
+            set {
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -165,18 +159,15 @@ namespace WinAGI.Engine {
             }
         }
         public string BkgdSize {
-            get
-            {
+            get {
                 return mBkSize;
             }
-            set
-            {
+            set {
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -186,18 +177,15 @@ namespace WinAGI.Engine {
             }
         }
         public int BkgdTrans {
-            get
-            {
+            get {
                 return mBkTrans;
             }
-            set
-            {
+            set {
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -207,18 +195,15 @@ namespace WinAGI.Engine {
             }
         }
         public bool BkgdShow {
-            get
-            {
+            get {
                 return mBkShow;
             }
-            set
-            {
+            set {
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -228,8 +213,7 @@ namespace WinAGI.Engine {
             }
         }
         public long BMPErrLevel {
-            get
-            {
+            get {
                 //provides access to current error level of the BMP build
                 //
                 //can be used by calling programs to provide feedback
@@ -248,22 +232,19 @@ namespace WinAGI.Engine {
             }
         }
         public byte PriBase {
-            get
-            {
+            get {
                 //if not in a game, or if before v2.936, always return value of 48
                 if (!parent.agGameLoaded || Val(parent.agIntVersion) < 2.936) {
                     mPriBase = 48;
                 }
                 return mPriBase;
             }
-            set
-            {
+            set {
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -279,13 +260,11 @@ namespace WinAGI.Engine {
             }
         }
         public byte[] VisData {
-            get
-            {
+            get {
                 //if not loaded
                 if (!Loaded) {
                     //error
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -299,14 +278,12 @@ namespace WinAGI.Engine {
             }
         }
         public byte[] PriData {
-            get
-            {
+            get {
                 //if not loaded
                 if (!Loaded) {
                     //error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -320,14 +297,12 @@ namespace WinAGI.Engine {
             }
         }
         public PenStatus CurrentToolStatus {
-            get
-            {
+            get {
                 //if not loaded
                 if (!Loaded) {
                     //error
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -337,26 +312,22 @@ namespace WinAGI.Engine {
         }
 
         public int DrawPos {
-            get
-            {
+            get {
                 //if not loaded
                 if (!Loaded) {
                     //error
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
                 }
                 return mDrawPos;
             }
-            set
-            {
+            set {
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -389,8 +360,7 @@ namespace WinAGI.Engine {
             // if not loaded
             if (!Loaded) {
                 // error
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -431,8 +401,7 @@ namespace WinAGI.Engine {
             //if not loaded,
             if (!mLoaded) {
                 //raise error
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -471,8 +440,7 @@ namespace WinAGI.Engine {
             //if not loaded,
             if (!Loaded) {
                 //raise error
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -495,8 +463,7 @@ namespace WinAGI.Engine {
             //if not loaded,
             if (!Loaded) {
                 //raise error
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -520,8 +487,7 @@ namespace WinAGI.Engine {
             if (!Loaded) {
                 //raise error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -562,8 +528,7 @@ namespace WinAGI.Engine {
             if (!Loaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -608,8 +573,7 @@ namespace WinAGI.Engine {
                 if (!Loaded) {
                     //nothing to clear
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -662,14 +626,12 @@ namespace WinAGI.Engine {
         }
 
         public Bitmap VisualBMP {
-            get
-            {
+            get {
                 //returns a device context to the bitmap image of the visual screenoutput
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -684,13 +646,11 @@ namespace WinAGI.Engine {
         }
 
         public Bitmap PriorityBMP {
-            get
-            {
+            get {
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
@@ -824,25 +784,21 @@ namespace WinAGI.Engine {
         }
 
         public bool StepDraw {
-            get
-            {
+            get {
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
                 }
                 return mStepDraw;
             }
-            set
-            {
+            set {
                 if (!mLoaded) {
 
-                    WinAGIException wex = new(LoadResString(563))
-                    {
+                    WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;

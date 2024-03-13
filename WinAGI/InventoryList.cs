@@ -7,10 +7,8 @@ using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using System.IO;
 
-namespace WinAGI.Engine
-{
-    public class InventoryList : IEnumerable<InventoryItem>
-    {
+namespace WinAGI.Engine {
+    public class InventoryList : IEnumerable<InventoryItem> {
         byte mMaxScreenObjects;
         bool mEncrypted;
         bool mAmigaOBJ;
@@ -24,14 +22,12 @@ namespace WinAGI.Engine
         AGIGame parent = null;
         //other
         string strErrSource = "";
-        public InventoryList()
-        {
+        public InventoryList() {
             mInGame = false;
             mResFile = "";
             InitInvObj();
         }
-        public InventoryList(AGIGame parent, bool Loaded = false)
-        {
+        public InventoryList(AGIGame parent, bool Loaded = false) {
             this.parent = parent;
             mInGame = true;
             //if loaded property is passed, set loaded flag as well
@@ -40,30 +36,24 @@ namespace WinAGI.Engine
             mResFile = parent.agGameDir + "OBJECT";
             InitInvObj();
         }
-        private void InitInvObj()
-        {
+        private void InitInvObj() {
             // create the initial Col object
             mItems = [];
             InventoryItem tmpItem;
             strErrSource = "WINAGI.agiObjectFile";
             mMaxScreenObjects = 16;
             //add placeholder for item 0
-            tmpItem = new InventoryItem
-            {
+            tmpItem = new InventoryItem {
                 ItemName = "?",
                 Room = 0
             };
             tmpItem.SetParent(this);
             mItems.Add(tmpItem);
         }
-        internal List<InventoryItem> mItems
-        { get; private set; }
-        public InventoryItem this[byte index]
-        { get { return mItems[index]; } }
-        public byte Count
-        {
-            get
-            {
+        internal List<InventoryItem> mItems { get; private set; }
+        public InventoryItem this[byte index] { get { return mItems[index]; } }
+        public byte Count {
+            get {
                 //if not loaded
                 if (!mLoaded) {
                     //error
@@ -74,18 +64,14 @@ namespace WinAGI.Engine
                 //so everything works properly
                 return (byte)mItems.Count;
             }
-            private set
-            {
+            private set {
             }
         }
-        public bool AmigaOBJ
-        {
-            get
-            {
+        public bool AmigaOBJ {
+            get {
                 return mAmigaOBJ;
             }
-            set
-            {
+            set {
                 //for now, we only allow converting FROM Amiga TO DOS
                 //                                        (T)     (F)
                 //if trying to make it Amiga, exit
@@ -107,8 +93,7 @@ namespace WinAGI.Engine
                     theDir = parent.agGameDir;
                 }
                 try {
-                    if (File.Exists(theDir + "OBJECT.amg"))
-                    {
+                    if (File.Exists(theDir + "OBJECT.amg")) {
                         File.Delete(theDir + "OBJECT.amg");
                     }
                     File.Move(parent.agGameDir + "OBJECT", theDir + "OBJECT.amg");
@@ -124,8 +109,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void NewObjects()
-        {
+        public void NewObjects() {
             //marks the resource as loaded; this is needed so new 
             //resources can be created and edited
             //if already loaded
@@ -151,10 +135,8 @@ namespace WinAGI.Engine
             //use clear method to ensure object list is reset
             Clear();
         }
-        public string Description
-        {
-            get
-            {
+        public string Description {
+            get {
                 //if not loaded
                 if (!mLoaded) {
                     //error
@@ -162,8 +144,7 @@ namespace WinAGI.Engine
                 }
                 return mDescription;
             }
-            set
-            {
+            set {
                 //if not loaded
                 if (!mLoaded) {
                     //error
@@ -182,8 +163,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void Export(string ExportFile, bool ResetDirty = true)
-        {
+        public void Export(string ExportFile, bool ResetDirty = true) {
             //exports the list of inventory objects
 
             //if not loaded
@@ -208,49 +188,37 @@ namespace WinAGI.Engine
                 mResFile = ExportFile;
             }
         }
-        public bool InGame
-        {
-            get
-            {
+        public bool InGame {
+            get {
                 //only used by  setobjects method
                 return mInGame;
             }
-            internal set
-            {
+            internal set {
                 mInGame = value;
             }
         }
-        public bool IsDirty
-        {
-            get
-            {
+        public bool IsDirty {
+            get {
                 //if resource is dirty, or (prop values need writing AND in game)
                 return (mIsDirty || (mWriteProps && mInGame));
             }
-            set
-            {
+            set {
                 mIsDirty = value;
             }
         }
-        internal bool WriteProps
-        {
+        internal bool WriteProps {
             get { return mWriteProps; }
         }
-        public bool Loaded
-        {
-            get
-            {
+        public bool Loaded {
+            get {
                 return mLoaded;
             }
         }
-        public string ResFile
-        {
-            get
-            {
+        public string ResFile {
+            get {
                 return mResFile;
             }
-            set
-            {
+            set {
                 //resfile cannot be changed if resource is part of a game
                 if (mInGame) {
                     //error- resfile is readonly for ingame resources
@@ -261,14 +229,12 @@ namespace WinAGI.Engine
                 }
             }
         }
-        internal void SetFlags(ref bool IsDirty, ref bool WriteProps)
-        {
+        internal void SetFlags(ref bool IsDirty, ref bool WriteProps) {
             // used when copying a resource?
             IsDirty = mIsDirty;
             WriteProps = mWriteProps;
         }
-        bool LoadSierraFile(string LoadFile)
-        {
+        bool LoadSierraFile(string LoadFile) {
             //attempts to load a sierra OBJECT file
             //rturns true if successful
 
@@ -388,8 +354,7 @@ namespace WinAGI.Engine
             mLoading = false;
             return true;
         }
-        public InventoryItem Add(string NewItem, byte Room)
-        {
+        public InventoryItem Add(string NewItem, byte Room) {
             //adds new item to object list
             InventoryItem tmpItem;
             //if not currently loading, or not already loaded
@@ -413,8 +378,7 @@ namespace WinAGI.Engine
             mIsDirty = true;
             return tmpItem;
         }
-        public void Remove(byte Index)
-        {
+        public void Remove(byte Index) {
             //removes this from the object list
             //if not loaded
             if (!mLoaded) {
@@ -473,10 +437,8 @@ namespace WinAGI.Engine
             //set dirty flag
             mIsDirty = true;
         }
-        public bool Encrypted
-        {
-            get
-            {
+        public bool Encrypted {
+            get {
                 //if not loaded
                 if (!mLoaded) {
                     //error
@@ -484,8 +446,7 @@ namespace WinAGI.Engine
                 }
                 return mEncrypted;
             }
-            set
-            {
+            set {
                 //if not loaded
                 if (!mLoaded) {
                     //error
@@ -499,10 +460,8 @@ namespace WinAGI.Engine
                 mEncrypted = value;
             }
         }
-        public byte MaxScreenObjects
-        {
-            get
-            {
+        public byte MaxScreenObjects {
+            get {
                 //if not loaded
                 if (!mLoaded) {
                     // error
@@ -510,8 +469,7 @@ namespace WinAGI.Engine
                 }
                 return mMaxScreenObjects;
             }
-            set
-            {
+            set {
                 //if not loaded
                 if (!mLoaded) {
                     //error
@@ -524,8 +482,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void Load(string LoadFile = "")
-        {
+        public void Load(string LoadFile = "") {
             //this function loads inventory objects for the game
             //if not in a game, LoadFile must be specified
 
@@ -573,8 +530,7 @@ namespace WinAGI.Engine
             //reset dirty flag
             mIsDirty = false;
         }
-        int IsEncrypted(byte bytLast, int lngEndPos)
-        {
+        int IsEncrypted(byte bytLast, int lngEndPos) {
             //this routine checks the resource to determine if it is
             //encrypted with the string, "Avis Durgan"
             //it does this by checking the last byte in the resource. It should ALWAYS
@@ -606,15 +562,13 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void Save(string SaveFile = "")
-        {
+        public void Save(string SaveFile = "") {
             //saves the list of inventory objects
 
             //if not loaded
             if (!mLoaded) {
                 //error
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -632,8 +586,7 @@ namespace WinAGI.Engine
                 }
                 // if still no file
                 if (SaveFile.Length == 0) {
-                    WinAGIException wex = new(LoadResString(615))
-                    {
+                    WinAGIException wex = new(LoadResString(615)) {
                         HResult = WINAGI_ERR + 615
                     };
                     throw wex;
@@ -645,8 +598,7 @@ namespace WinAGI.Engine
             //mark as clean
             mIsDirty = false;
         }
-        public void SetObjects(InventoryList NewObjects)
-        {
+        public void SetObjects(InventoryList NewObjects) {
             //copies object list from NewObjects to
             //this object list
             int i;
@@ -654,8 +606,7 @@ namespace WinAGI.Engine
             if (!NewObjects.Loaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -689,22 +640,19 @@ namespace WinAGI.Engine
             //set load status
             mLoaded = true;
         }
-        void ToggleEncryption(ref byte[] bytData)
-        {  // this function encrypts/decrypts the data
-           // by XOR'ing it with the encryption string
+        void ToggleEncryption(ref byte[] bytData) {  // this function encrypts/decrypts the data
+                                                     // by XOR'ing it with the encryption string
 
             for (int lngPos = 0; lngPos < bytData.Length; lngPos++) {
                 bytData[lngPos] = (byte)(bytData[lngPos] ^ bytEncryptKey[lngPos % 11]);
             }
         }
-        public void Unload()
-        {  
+        public void Unload() {
             //unloads ther resource; same as clear, except file marked as not dirty
             //if not loaded
             if (!mLoaded) {
                 //error
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -714,8 +662,7 @@ namespace WinAGI.Engine
             mWriteProps = false;
             mIsDirty = false;
         }
-        public void Clear()
-        {
+        public void Clear() {
             //clears ALL objects and sets default values
             //adds placeholder for item 0
 
@@ -724,8 +671,7 @@ namespace WinAGI.Engine
             if (!mLoaded) {
                 //error
 
-                WinAGIException wex = new(LoadResString(563))
-                {
+                WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
@@ -736,8 +682,7 @@ namespace WinAGI.Engine
             mDescription = "";
             mItems = [];
             //add the placeholder
-            tmpItem = new InventoryItem
-            {
+            tmpItem = new InventoryItem {
                 ItemName = "?",
                 Room = 0
             };
@@ -748,8 +693,7 @@ namespace WinAGI.Engine
             //set dirty flag
             mIsDirty = true;
         }
-        void Compile(string CompileFile)
-        {
+        void Compile(string CompileFile) {
             //compiles the object list into a Sierra AGI compatible OBJECT file
 
             int lngFileSize;    //size of object file
@@ -763,8 +707,7 @@ namespace WinAGI.Engine
             int Dwidth;
             //if no file
             if (CompileFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(616))
-                {
+                WinAGIException wex = new(LoadResString(616)) {
                     HResult = WINAGI_ERR + 616
                 };
                 throw wex;
@@ -876,32 +819,25 @@ namespace WinAGI.Engine
                 throw new Exception("674, strErrSrc, Replace(LoadResString(674)");
             }
         }
-        ItemEnum GetEnumerator()
-        {
+        ItemEnum GetEnumerator() {
             return new ItemEnum(mItems);
         }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
+        IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
-        IEnumerator<InventoryItem> IEnumerable<InventoryItem>.GetEnumerator()
-        {
+        IEnumerator<InventoryItem> IEnumerable<InventoryItem>.GetEnumerator() {
             return (IEnumerator<InventoryItem>)GetEnumerator();
         }
     }
-    internal class ItemEnum : IEnumerator<InventoryItem>
-    {
+    internal class ItemEnum : IEnumerator<InventoryItem> {
         public List<InventoryItem> _invitems;
         int position = -1;
-        public ItemEnum(List<InventoryItem> list)
-        {
+        public ItemEnum(List<InventoryItem> list) {
             _invitems = list;
         }
         object IEnumerator.Current => Current;
-        public InventoryItem Current
-        {
-            get
-            {
+        public InventoryItem Current {
+            get {
                 try {
                     return _invitems[position];
                 }
@@ -911,17 +847,14 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool MoveNext()
-        {
+        public bool MoveNext() {
             position++;
             return (position < _invitems.Count);
         }
-        public void Reset()
-        {
+        public void Reset() {
             position = -1;
         }
-        public void Dispose()
-        {
+        public void Dispose() {
             _invitems = null;
         }
     }

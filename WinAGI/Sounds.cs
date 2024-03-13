@@ -6,47 +6,36 @@ using static WinAGI.Engine.AGIGame;
 using System.IO;
 using static WinAGI.Common.Base;
 
-namespace WinAGI.Engine
-{
-    public class Sounds(AGIGame parent) : IEnumerable<Sound>
-    {
+namespace WinAGI.Engine {
+    public class Sounds(AGIGame parent) : IEnumerable<Sound> {
         AGIGame parent = parent;
 
-        internal SortedList<byte, Sound> Col
-        { get; private set; } = [];
-        public Sound this[int index]
-        {
-            get
-            {
+        internal SortedList<byte, Sound> Col { get; private set; } = [];
+        public Sound this[int index] {
+            get {
                 //validate index
                 if (index < 0 || index > 255)
                     throw new IndexOutOfRangeException();
                 return Col[(byte)index];
             }
         }
-        public byte Count
-        { get { return (byte)Col.Count; } private set { } }
-        public byte Max
-        {
-            get
-            {
+        public byte Count { get { return (byte)Col.Count; } private set { } }
+        public byte Max {
+            get {
                 byte max = 0;
                 if (Col.Count > 0)
                     max = Col.Keys[Col.Count - 1];
                 return max;
             }
         }
-        public bool Exists(byte ResNum)
-        {
+        public bool Exists(byte ResNum) {
             //check for thsi sound in the collection
             return Col.ContainsKey(ResNum);
         }
-        public void Clear()
-        {
+        public void Clear() {
             Col = [];
         }
-        public Sound Add(byte ResNum, Sound NewSound = null)
-        {
+        public Sound Add(byte ResNum, Sound NewSound = null) {
             //adds a new sound to a currently open game
             Sound agResource;
             int intNextNum = 0;
@@ -54,8 +43,7 @@ namespace WinAGI.Engine
             //if this sound already exists
             if (Exists(ResNum)) {
                 //resource already exists
-                WinAGIException wex = new(LoadResString(602))
-                {
+                WinAGIException wex = new(LoadResString(602)) {
                     HResult = WINAGI_ERR + 602
                 };
                 throw wex;
@@ -87,8 +75,7 @@ namespace WinAGI.Engine
             //return the object created
             return agResource;
         }
-        public void Remove(byte Index)
-        {
+        public void Remove(byte Index) {
             //removes a sound from the game file
 
             // if the resource exists
@@ -102,8 +89,7 @@ namespace WinAGI.Engine
                 Compiler.blnSetIDs = false;
             }
         }
-        public void Renumber(byte OldSound, byte NewSound)
-        {
+        public void Renumber(byte OldSound, byte NewSound) {
             //renumbers a resource
             Sound tmpSound;
             int intNextNum = 0;
@@ -117,8 +103,7 @@ namespace WinAGI.Engine
             if (Col.ContainsKey(NewSound)) {
                 //number already in use
 
-                WinAGIException wex = new(LoadResString(669))
-                {
+                WinAGIException wex = new(LoadResString(669)) {
                     HResult = WINAGI_ERR + 669
                 };
                 throw wex;
@@ -178,8 +163,7 @@ namespace WinAGI.Engine
             //reset compiler list of ids
             Compiler.blnSetIDs = false;
         }
-        internal void LoadSound(byte bytResNum, sbyte bytVol, int lngLoc)
-        {
+        internal void LoadSound(byte bytResNum, sbyte bytVol, int lngLoc) {
             //called by the resource loading method for the initial loading of
             //resources into logics collection
 
@@ -196,32 +180,25 @@ namespace WinAGI.Engine
             //add it
             Col.Add(bytResNum, newResource);
         }
-        SoundEnum GetEnumerator()
-        {
+        SoundEnum GetEnumerator() {
             return new SoundEnum(Col);
         }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
+        IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
-        IEnumerator<Sound> IEnumerable<Sound>.GetEnumerator()
-        {
+        IEnumerator<Sound> IEnumerable<Sound>.GetEnumerator() {
             return (IEnumerator<Sound>)GetEnumerator();
         }
     }
-    internal class SoundEnum : IEnumerator<Sound>
-    {
+    internal class SoundEnum : IEnumerator<Sound> {
         public SortedList<byte, Sound> _sounds;
         int position = -1;
-        public SoundEnum(SortedList<byte, Sound> list)
-        {
+        public SoundEnum(SortedList<byte, Sound> list) {
             _sounds = list;
         }
         object IEnumerator.Current => Current;
-        public Sound Current
-        {
-            get
-            {
+        public Sound Current {
+            get {
                 try {
                     return _sounds.Values[position];
                 }
@@ -231,17 +208,14 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool MoveNext()
-        {
+        public bool MoveNext() {
             position++;
             return (position < _sounds.Count);
         }
-        public void Reset()
-        {
+        public void Reset() {
             position = -1;
         }
-        public void Dispose()
-        {
+        public void Dispose() {
             _sounds = null;
         }
     }
