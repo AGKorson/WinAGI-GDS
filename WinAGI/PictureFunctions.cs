@@ -37,7 +37,7 @@ namespace WinAGI.Engine
 
             //return 0 if successful, no errors/warnings
             // non-zero for error/warning:
-            //////  //  -1 = error- can't build the bitmap
+            // -1 = error- can't build the bitmap
             //  1 = no EOP marker
             //  2 = bad vis color data
             //  4 = invalid command byte
@@ -188,18 +188,9 @@ namespace WinAGI.Engine
                         break;
                     }
                 }
-                while (lngPos <= EndPos); // Loop Until lngPos > EndPos
+                while (lngPos <= EndPos);
             }
             catch (Exception e) {
-                ////capture error information
-                //strError = Err.Description;
-                //strErrSrc = Err.Source;
-                //lngError = Err.Number;
-
-                //pass back whatever is drawn, up to the error
-                VisData = VisBuildData;
-                PriData = PriBuildData;
-
                 //depending on error, set warning level
                 if (e is IndexOutOfRangeException) {
                     //case 9:  //subscript error- caused when a draw function expects
@@ -210,24 +201,23 @@ namespace WinAGI.Engine
                         retval |= 1;
                     }
                     else {
-                        //something else
+                        // something else
                         retval |= 8;
                     }
                 }
                 else {
-                    //any other error- just pass it along
+                    // any other error- just pass it along
                     retval |= 8;
                 }
             }
-
-            //if at end of resource, was last command end-of-resource flag?
+            // if at end of resource, was last command end-of-resource flag?
             if (lngPos >= bytPicData.Length) {
                 if (bytPicData[^1] != 0xFF) {
                     //set warning flag
                     retval |= 1;
                 }
             }
-            //copy resulting data back to calling function
+            // copy resulting data back to calling function
             VisData = VisBuildData;
             PriData = PriBuildData;
             return retval;

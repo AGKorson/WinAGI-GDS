@@ -34,8 +34,8 @@ namespace WinAGI.Engine {
             fsMidi.Dispose();
             //convert to shortname
             strShortFile = ShortFileName(strTempFile);
-            //if midi (format 1 or 3)
-            if (SndRes.SndFormat == 1 || SndRes.SndFormat == 3) {
+            //if midi (format 1 or 3converted from agi, or native IIg midi)
+            if (SndRes.SndFormat == SoundFormat.sfAGI || SndRes.SndFormat == SoundFormat.sfMIDI) {
                 strMode = "sequencer";
             }
             else {

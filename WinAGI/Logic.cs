@@ -80,6 +80,7 @@ namespace WinAGI.Engine
             IsDirty = false;
             mSourceDirty = false;
         }
+
         public override void Unload()
         {
             base.Unload();
@@ -90,7 +91,6 @@ namespace WinAGI.Engine
         private void InitLogic(Logic NewLogic = null) {
             //attach events
             base.PropertyChanged += ResPropChange;
-            strErrSource = "WinAGI.Logic";
             if (NewLogic is null) {
                 //set default resource data
                 // TODO: confirm correct empty logic data block; fix Clear to match
@@ -145,7 +145,6 @@ namespace WinAGI.Engine
 
             //attach events
             base.PropertyChanged += ResPropChange;
-            strErrSource = "WinAGI.Logic";
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 
@@ -529,6 +528,7 @@ namespace WinAGI.Engine
             mIsDirty = false;
             mSourceDirty = false;
         }
+
         public string SourceText
         {
             get

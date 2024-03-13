@@ -25,7 +25,6 @@ namespace WinAGI.Engine
 
         // last command 'adjust.ego.x.y', is not supported so it's not added
         // to the list of commands
-        internal static string strErrSource = "WinAGI.Commands";
 
         static Commands()
         {

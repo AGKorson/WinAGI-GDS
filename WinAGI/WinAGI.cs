@@ -134,10 +134,10 @@ namespace WinAGI.Engine
     public enum SoundFormat
     {
         sfUndefined,
-        sfAGI,    //native agi format (all)
+        sfAGI,    //native agi format
+        sfWAV,    //only IIgs pcm sounds can be exported as wav
         sfMIDI,   //only pc and IIgs can be saved as midi
         sfScript, //only pc can be exported as script
-        sfWAV     //only IIgs pcm sounds can be exported as wav
     };
     public enum ArgTypeEnum
     {

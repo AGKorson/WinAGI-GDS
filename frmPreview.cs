@@ -544,8 +544,8 @@ namespace WinAGI.Editor {
             }
 
             switch (agSound.SndFormat) {
-            case 1:  //standard agi
-                     //set instrument values
+            case SoundFormat.sfAGI:
+                //set instrument values
                 for (i = 0; i < 3; i++) {
                     cmbInst[i].Enabled = true;
                     cmbInst[i].SelectedIndex = agSound.Track(i).Instrument;
@@ -559,8 +559,8 @@ namespace WinAGI.Editor {
                 //set length (which loads mididata)
                 lblFormat.Text = "PC/PCjr Standard Sound";
                 break;
-            case 2:    //IIgs sampled sound
-                       //disable tracks and play
+            case SoundFormat.sfWAV:
+                //disable tracks and play
                 for (i = 0; i < 3; i++) {
                     cmbInst[i].Enabled = false;
                     cmbInst[i].SelectedIndex = -1;
@@ -571,8 +571,8 @@ namespace WinAGI.Editor {
                 chkTrack[3].Checked = false;
                 lblFormat.Text = "Apple IIgs PCM Sound";
                 break;
-            case 3:    //IIgs midi
-                       //disable tracks and play
+            case SoundFormat.sfMIDI:
+                //disable tracks and play
                 for (i = 0; i < 3; i++) {
                     cmbInst[i].Enabled = false;
                     cmbInst[i].SelectedIndex = -1;
@@ -604,11 +604,9 @@ namespace WinAGI.Editor {
             tmrSound.Enabled = false;
             picProgress.Width = pnlProgressBar.Width;
             picProgress.Refresh();
-            //long lngNow = DateTime.Now.Ticks;
-            //System.Diagnostics.Debug.Print($"Play time: {((double)(lngNow - lngStart) / 10000).ToString("0.0")} seconds");
             //if this is a PC/PCjr sound, re-enable track controls
             //now that sound is done
-            if (agSound.SndFormat == 1) {
+            if (agSound.SndFormat == SoundFormat.sfAGI) {
                 for (int i = 0; i < 3; i++) {
                     chkTrack[i].Enabled = true;
                     cmbInst[i].Enabled = true;

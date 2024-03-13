@@ -17,7 +17,6 @@ namespace WinAGI.Engine {
         private void InitView(View NewView = null) {
             //attach events
             base.PropertyChanged += ResPropChange;
-            strErrSource = "WinAGI.View";
             if (NewView is null) {
                 // add rempty loop col
                 mLoopCol = new Loops(this);
@@ -60,7 +59,6 @@ namespace WinAGI.Engine {
 
             //attach events
             base.PropertyChanged += ResPropChange;
-            strErrSource = "WinAGI.View";
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 

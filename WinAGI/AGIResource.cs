@@ -8,7 +8,6 @@ using static WinAGI.Common.Base;
 namespace WinAGI.Engine {
     //public abstract class AGIResource
     public class AGIResource {
-        protected string strErrSource = "WINAGI.agiResource";
         protected bool mLoaded = false;
         protected string mResID;
         protected sbyte mVolume = -1;

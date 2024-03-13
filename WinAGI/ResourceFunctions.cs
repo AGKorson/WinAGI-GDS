@@ -9,10 +9,8 @@ using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
 
-namespace WinAGI.Engine
-{
-    public static partial class Base
-    {
+namespace WinAGI.Engine {
+    public static partial class Base {
         //constants used in extracting compressed resources
         const int TABLE_SIZE = 18041;
         const int START_BITS = 9;
@@ -35,8 +33,7 @@ namespace WinAGI.Engine
         public const int MM_MCINOTIFY = 0x3B9;
         public const int MCI_NOTIFY_SUCCESSFUL = 0x1;
 
-        internal static bool ExtractResources(AGIGame game)
-        {
+        internal static bool ExtractResources(AGIGame game) {
             //gets the resources from VOL files, and adds them to the game
             //returns true if resources loaded with warnings
             //returns false if one or more errors occur during load
@@ -384,8 +381,7 @@ namespace WinAGI.Engine
             //return any warning codes
             return blnWarnings;
         }
-        internal static void AddLoadWarning(AGIResType resType, byte resNum, Exception eRes)
-        {
+        internal static void AddLoadWarning(AGIResType resType, byte resNum, Exception eRes) {
             // called when warning encountered while trying to extract resources
             // during game load
             TWinAGIEventInfo warnInfo = new()
@@ -410,7 +406,7 @@ namespace WinAGI.Engine
             case 505: //Invalid resource location (%1) in %2.
                 warnInfo.ID = "VW02";
                 warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid location ({eRes.Data["loc"]}) in volume file {eRes.Data["volname"]}";
-                warnInfo.Module = (string)eRes.Data["module"];
+                warnInfo.Module = (string)eRes.Data["ID"];
                 Raise_LoadGameEvent(warnInfo);
                 break;
             case 506: //invalid header
@@ -449,8 +445,7 @@ namespace WinAGI.Engine
                 break;
             }
         }
-        internal static byte[] DecompressPicture(byte[] bytOriginalData)
-        {
+        internal static byte[] DecompressPicture(byte[] bytOriginalData) {
             short intPosIn = 0;
             byte bytCurComp, bytBuffer = 0, bytCurUncomp;
             bool blnOffset = false;
@@ -509,8 +504,7 @@ namespace WinAGI.Engine
             Array.Resize(ref bytExpandedData, lngTempCurPos);
             return bytExpandedData;
         }
-        internal static byte[] ExpandV3ResData(byte[] bytOriginalData, int lngExpandedSize)
-        {
+        internal static byte[] ExpandV3ResData(byte[] bytOriginalData, int lngExpandedSize) {
             int intPosIn, intPosOut, intNextCode, i;
             uint intOldCode, intNewCode;
             string strDat;
@@ -622,8 +616,7 @@ namespace WinAGI.Engine
             bytAppend = [];
             return bytTempData;
         }
-        internal static byte[] CompressedCel(Cel Cel, bool blnMirror)
-        {
+        internal static byte[] CompressedCel(Cel Cel, bool blnMirror) {
             //this method compresses cel data
             //into run-length-encoded data that
             //can be written to an AGI View resource
@@ -712,8 +705,7 @@ namespace WinAGI.Engine
             //return the compressed data
             return bytTempRLE;
         }
-        internal static string DecodeString(uint intCode)
-        {
+        internal static string DecodeString(uint intCode) {
             //this function converts a code Value into its original string Value
 
             string retval = "";
@@ -733,8 +725,7 @@ namespace WinAGI.Engine
             retval = (char)intCode + retval;
             return retval;
         }
-        internal static uint InputCode(ref byte[] bytData, int intCodeSize, ref int intPosIn)
-        {
+        internal static uint InputCode(ref byte[] bytData, int intCodeSize, ref int intPosIn) {
             uint lngWord, lngRet;
             //this routine extracts the next code Value off the input stream
             //since the number of bits per code can vary between 9 and 12,
@@ -791,8 +782,7 @@ namespace WinAGI.Engine
             //and return code Value
             return lngRet;
         }
-        internal static int NewCodeSize(int intVal)
-        {
+        internal static int NewCodeSize(int intVal) {
             //this function supports the expansion of compressed resources
             //it sets the size of codes which the LZW routine uses. The size
             //of the code first starts at 9 bits, then increases as all code
@@ -824,8 +814,8 @@ namespace WinAGI.Engine
             }
             return retval;
         }
-        internal static byte[] BuildMIDI(Sound SoundIn)
-        {
+
+        internal static byte[] BuildMIDI(Sound SoundIn) {
             int lngWriteTrack = 0;
             int i, j;
             byte bytNote;
@@ -1180,8 +1170,8 @@ namespace WinAGI.Engine
             Array.Resize(ref SndPlayer.mMIDIData, lngPos);
             return SndPlayer.mMIDIData;
         }
-        internal static byte[] BuildIIgsMIDI(Sound SoundIn, ref double Length)
-        {
+
+        internal static byte[] BuildIIgsMIDI(Sound SoundIn, ref double Length) {
             int lngInPos, lngOutPos;
             byte[] midiIn, midiOut;
             int lngTicks = 0, lngTime;
@@ -1498,8 +1488,8 @@ namespace WinAGI.Engine
             Length = (double)lngTicks / 60;
             return midiOut;
         }
-        internal static byte[] BuildIIgsPCM(Sound SoundIn)
-        {
+
+        internal static byte[] BuildIIgsPCM(Sound SoundIn) {
             int i, lngSize;
             byte[] bData;
             //builds a wav file stream from an apple IIgs PCM sound resource
@@ -1585,8 +1575,7 @@ namespace WinAGI.Engine
             }
             return SndPlayer.mMIDIData;
         }
-        internal static void WriteSndDelta(int LongIn)
-        {
+        internal static void WriteSndDelta(int LongIn) {
             //writes variable delta times
             int i;
             i = LongIn << 21; //LngSHR(LongIn, 21)
@@ -1603,20 +1592,17 @@ namespace WinAGI.Engine
             }
             WriteSndByte((byte)(LongIn & 127));
         }
-        internal static void WriteSndWord(int IntegerIn)
-        {
+        internal static void WriteSndWord(int IntegerIn) {
             WriteSndByte((byte)(IntegerIn / 256));
             WriteSndByte((byte)(IntegerIn & 0xFF));
         }
-        internal static void WriteSndLong(int LongIn)
-        {
+        internal static void WriteSndLong(int LongIn) {
             WriteSndByte((byte)(LongIn >> 24));
             WriteSndByte((byte)((LongIn >> 16) & 0xFF));
             WriteSndByte((byte)((LongIn >> 8) & 0xFF));
             WriteSndByte((byte)(LongIn & 0xFF));
         }
-        internal static int GetTrack3Freq(Track Track3, int lngTarget)
-        {
+        internal static int GetTrack3Freq(Track Track3, int lngTarget) {
             //if noise channel needs the frequency of track 3,
             //must step through track three until the same point in time is found
             //then use that frequency for noise channel
@@ -1634,8 +1620,7 @@ namespace WinAGI.Engine
             //if nothing found, return 0
             return 0;
         }
-        internal static void WriteSndByte(byte ByteIn)
-        {
+        internal static void WriteSndByte(byte ByteIn) {
             SndPlayer.mMIDIData[lngPos] = ByteIn;
             lngPos++; ;
             //if at end

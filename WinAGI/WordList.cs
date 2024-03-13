@@ -17,10 +17,8 @@ using System.DirectoryServices;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace WinAGI.Engine
-{
-    public class WordList : IEnumerable<WordGroup>
-    {
+namespace WinAGI.Engine {
+    public class WordList : IEnumerable<WordGroup> {
         //collection of words (agiWord objects)
 
         SortedList<string, AGIWord> mWordCol;
@@ -34,8 +32,7 @@ namespace WinAGI.Engine
         bool mLoaded;
         int mErrLvl = 0;
         readonly string strErrSource = "WinAGI.AGIWordList";
-        public WordList()
-        {
+        public WordList() {
             //initialize the collections
             mWordCol = new SortedList<string, AGIWord>();
             mGroupCol = new SortedList<int, WordGroup>();
@@ -59,8 +56,7 @@ namespace WinAGI.Engine
             tmpGroup.AddWordToGroup("rol");
             mGroupCol.Add(9999, tmpGroup);
         }
-        internal WordList(AGIGame parent, bool Loaded = false)
-        {
+        internal WordList(AGIGame parent, bool Loaded = false) {
             //initialize the collections
             mWordCol = new SortedList<string, AGIWord>();
             mGroupCol = new SortedList<int, WordGroup>();
@@ -74,8 +70,7 @@ namespace WinAGI.Engine
             //it also sets the default name to //WORDS.TOK//
             mResFile = this.parent.agGameDir + "WORDS.TOK";
         }
-        public void NewWords()
-        {
+        public void NewWords() {
             //marks the resource as loaded
             //this is needed so new resources can be created and edited
             //if already loaded
@@ -112,8 +107,7 @@ namespace WinAGI.Engine
             AddWord("anyword", 1);
             AddWord("rol", 9999);
         }
-        public void Export(string ExportFile, int FileType = 0, bool ResetDirty = true)
-        {
+        public void Export(string ExportFile, int FileType = 0, bool ResetDirty = true) {
             //exports words.tok
             // filetype = 0 means AGI WORDS.TOK file
             // filetype = 1 means SCUMM SVE format
@@ -135,7 +129,8 @@ namespace WinAGI.Engine
                 else {
                     CompileSVE(ExportFile);
                 }
-            } catch {
+            }
+            catch {
                 throw;
             }
             //if NOT in a game,
@@ -149,19 +144,16 @@ namespace WinAGI.Engine
             }
             return;
         }
-        internal AGIWord ItemByIndex(int Index)
-        {  //used by SetWords method to retrieve words one by one
-           //NOTE: no error checking is done, because ONLY
-           //SetWords uses this function, and it ensures
-           //Index is valid
+        internal AGIWord ItemByIndex(int Index) {  //used by SetWords method to retrieve words one by one
+                                                   //NOTE: no error checking is done, because ONLY
+                                                   //SetWords uses this function, and it ensures
+                                                   //Index is valid
             return mWordCol.Values[Index];
         }
-        public bool Loaded
-        {
+        public bool Loaded {
             get { return mLoaded; }
         }
-        public int ErrLevel
-        {
+        public int ErrLevel {
             //provides access to current error level of the word list
 
             //can be used by calling programs to provide feedback
@@ -175,8 +167,7 @@ namespace WinAGI.Engine
                 return mErrLvl;
             }
         }
-        bool LoadSierraFile(string LoadFile)
-        {
+        bool LoadSierraFile(string LoadFile) {
             byte bytHigh, bytLow, bytExt;
             int lngPos;
             byte[] bytData = [];
@@ -264,7 +255,7 @@ namespace WinAGI.Engine
                     //continue until last character (indicated by flag) or endofresource is reached
                 }
                 while ((bytVal[0] < 0x80) && (lngPos < bytData.Length)); // Loop Until (bytVal >= 0x80) || lngPos > UBound(bytData)
-                                                                      //if end of file is reached before 0x80,
+                                                                         //if end of file is reached before 0x80,
                 if (lngPos >= bytData.Length) {
                     //invalid words.tok file!
                     throw new Exception("bad WORDS.TOK file");
@@ -315,8 +306,7 @@ namespace WinAGI.Engine
             }
             return true;
         }
-        public void Clone(WordList WordListToClone)
-        {
+        public void Clone(WordList WordListToClone) {
             //copies word list from NewWords to
             //this word list
             int i, j;
@@ -373,8 +363,7 @@ namespace WinAGI.Engine
             mLoaded = true;
         }
         internal bool WriteProps { get { return mWriteProps; } }
-        public string Description
-        {
+        public string Description {
             get
             {
                 //if not loaded
@@ -415,8 +404,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        internal bool InGame
-        {
+        internal bool InGame {
             get
             {
                 //only used by setword method
@@ -427,8 +415,7 @@ namespace WinAGI.Engine
                 mInGame = value;
             }
         }
-        public string ResFile
-        {
+        public string ResFile {
             get
             {
                 return mResFile;
@@ -450,8 +437,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void Clear()
-        {
+        public void Clear() {
             //clears the word group, and sets up a blank list
             //if not loaded
             if (!mLoaded) {
@@ -469,8 +455,7 @@ namespace WinAGI.Engine
             mDescription = "";
             mIsDirty = true;
         }
-        public WordGroup GroupN(int groupNum)
-        {
+        public WordGroup GroupN(int groupNum) {
             //returns a group by its group number
             //if not loaded
             if (!mLoaded) {
@@ -485,13 +470,11 @@ namespace WinAGI.Engine
             //return this group by it's number (key value)
             return mGroupCol[groupNum];
         }
-        public bool GroupExists(int GroupNumber)
-        {
+        public bool GroupExists(int GroupNumber) {
             //if this group exists, it returns true
             return mGroupCol.ContainsKey(GroupNumber);
         }
-        public bool IsDirty
-        {
+        public bool IsDirty {
             get
             {
                 //if resource is dirty, or (prop values need writing AND in game)
@@ -502,8 +485,7 @@ namespace WinAGI.Engine
                 mIsDirty = value;
             }
         }
-        public AGIWord this[dynamic vKeyIndex]
-        {
+        public AGIWord this[dynamic vKeyIndex] {
             get
             {
                 //access is by word string or index number
@@ -538,8 +520,7 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public void Save(string SaveFile = "")
-        {
+        public void Save(string SaveFile = "") {
             //saves wordlist
 
             //if not loaded
@@ -555,7 +536,7 @@ namespace WinAGI.Engine
             //if in a game,
             if (mInGame) {
                 SaveFile = mResFile;
-            } 
+            }
             else {
                 if (SaveFile.Length == 0) {
                     SaveFile = mResFile;
@@ -579,8 +560,7 @@ namespace WinAGI.Engine
             //mark as clean
             mIsDirty = false;
         }
-        public void Unload()
-        {
+        public void Unload() {
             //unloads the resource; same as clear, except file marked as not dirty
             //if not loaded
             if (!mLoaded) {
@@ -597,8 +577,7 @@ namespace WinAGI.Engine
             mWriteProps = false;
             mIsDirty = false;
         }
-        public int WordCount
-        {
+        public int WordCount {
             get
             {
                 //if not loaded
@@ -614,12 +593,10 @@ namespace WinAGI.Engine
                 return mWordCol.Count;
             }
         }
-        public bool WordExists(string aWord)
-        {
+        public bool WordExists(string aWord) {
             return mWordCol.ContainsKey(aWord);
         }
-        public void AddGroup(int GroupNumber)
-        {
+        public void AddGroup(int GroupNumber) {
             int i;
             WordGroup tmpGroup;
             //if not loaded
@@ -668,8 +645,7 @@ namespace WinAGI.Engine
             mGroupCol.Add(GroupNumber, tmpGroup);
             mIsDirty = true;
         }
-        void RemoveWord(string aWord)
-        {
+        void RemoveWord(string aWord) {
             //deletes aWord
             //if not loaded
             if (!mLoaded) {
@@ -703,8 +679,7 @@ namespace WinAGI.Engine
             //set dirty flag
             mIsDirty = true;
         }
-        public int GroupCount
-        {
+        public int GroupCount {
             get
             {
                 //if not loaded
@@ -721,8 +696,7 @@ namespace WinAGI.Engine
                 return mGroupCol.Count;
             }
         }
-        public void RemoveGroup(int GroupNumber)
-        {
+        public void RemoveGroup(int GroupNumber) {
             int i;
             //if not loaded
             if (!mLoaded) {
@@ -768,8 +742,7 @@ namespace WinAGI.Engine
             //set dirty flag
             mIsDirty = true;
         }
-        public void RenumberGroup(int OldGroupNumber, int NewGroupNumber)
-        {
+        public void RenumberGroup(int OldGroupNumber, int NewGroupNumber) {
             int i;
             WordGroup tmpGroup;
             //if not loaded
@@ -842,8 +815,7 @@ namespace WinAGI.Engine
             //set dirty flag
             mIsDirty = true;
         }
-        void Compile(string CompileFile)
-        {
+        void Compile(string CompileFile) {
             //compiles the word list into a Sierra WORDS.TOK file
             int i;
             byte CurByte;
@@ -1003,8 +975,7 @@ namespace WinAGI.Engine
                 throw wex;
             }
         }
-        void CompileSVE(string CompileFile)
-        {
+        void CompileSVE(string CompileFile) {
             // ScummVM Extended Word List File format
             //
             // header (1st line): Unofficial extended format to support ASCII range of 128-255
@@ -1049,8 +1020,7 @@ namespace WinAGI.Engine
                 throw;
             }
         }
-        public void Load(string LoadFile = "")
-        {
+        public void Load(string LoadFile = "") {
             //this function loads words for the game
             //if loading from a Sierra game, it extracts words
             //from the WORDS.TOK file;
@@ -1113,8 +1083,7 @@ namespace WinAGI.Engine
             mIsDirty = false;
             return;
         }
-        public WordGroup Group(int Index)
-        {
+        public WordGroup Group(int Index) {
             //returns a group by its index (NOT the same as group number)
             //if not loaded
             if (!mLoaded) {
@@ -1139,8 +1108,7 @@ namespace WinAGI.Engine
             //access the group by its index
             return mGroupCol.Values[Index];
         }
-        public void AddWord(string WordText, int Group)
-        {
+        public void AddWord(string WordText, int Group) {
             AGIWord NewWord;
             //if not loaded
             if (!mLoaded) {
@@ -1193,30 +1161,24 @@ namespace WinAGI.Engine
             //set dirty flag
             mIsDirty = true;
         }
-        public WGrpEnum GetEnumerator()
-        {
+        public WGrpEnum GetEnumerator() {
             return new WGrpEnum(mGroupCol);
         }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
+        IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
-        IEnumerator<WordGroup> IEnumerable<WordGroup>.GetEnumerator()
-        {
+        IEnumerator<WordGroup> IEnumerable<WordGroup>.GetEnumerator() {
             return (IEnumerator<WordGroup>)GetEnumerator();
         }
     }
-    public class WGrpEnum : IEnumerator<WordGroup>
-    {
+    public class WGrpEnum : IEnumerator<WordGroup> {
         public SortedList<int, WordGroup> _groups;
         int position = -1;
-        public WGrpEnum(SortedList<int, WordGroup> list)
-        {
+        public WGrpEnum(SortedList<int, WordGroup> list) {
             _groups = list;
         }
         object IEnumerator.Current => Current;
-        public WordGroup Current
-        {
+        public WordGroup Current {
             get
             {
                 try {
@@ -1228,17 +1190,14 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool MoveNext()
-        {
+        public bool MoveNext() {
             position++;
             return (position < _groups.Count);
         }
-        public void Reset()
-        {
+        public void Reset() {
             position = -1;
         }
-        public void Dispose()
-        {
+        public void Dispose() {
             _groups = null;
         }
     }

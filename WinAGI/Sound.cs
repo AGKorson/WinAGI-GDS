@@ -8,6 +8,7 @@ using static WinAGI.Common.Base;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.IO;
+using System.Diagnostics;
 
 namespace WinAGI.Engine {
     public class Sound : AGIResource {
@@ -16,7 +17,7 @@ namespace WinAGI.Engine {
         double mLength;
         int mKey;
         int mTPQN;
-        int mFormat;
+        SoundFormat mFormat;
         int mErrLvl;
         //variables to support MIDI file creation
         bool mMIDISet;
@@ -31,6 +32,7 @@ namespace WinAGI.Engine {
             }
             public bool NoError { get; }
         }
+
         internal void Raise_SoundCompleteEvent(bool noerror) {
             // Raise the event in a thread-safe manner using the ?. operator.
             this.SoundComplete?.Invoke(null, new SoundCompleteEventArgs(noerror));
@@ -39,10 +41,10 @@ namespace WinAGI.Engine {
             //for example - 
             // new AGISound newSound.CompileGameStatus += myForm.mySoundEventHandler;
         }
+
         private void InitSound(Sound NewSound = null) {
             //attach events
             base.PropertyChanged += ResPropChange;
-            strErrSource = "WinAGI.Sound";
             if (NewSound is null) {
                 //create default PC/PCjr sound with no notes in any tracks
                 mRData.AllData = [ 0x08, 0x00, 0x08, 0x00,
@@ -50,7 +52,7 @@ namespace WinAGI.Engine {
                                     0xff, 0xff];
                 // byte 0/1, 2/2, 4/5, 6/7 = offset to track data
                 // byte 8/9 are end of track markers
-                mFormat = 1;
+                mFormat = SoundFormat.sfAGI;
                 mTrack[0] = new Track(this);
                 mTrack[1] = new Track(this);
                 mTrack[2] = new Track(this);
@@ -70,6 +72,7 @@ namespace WinAGI.Engine {
                 NewSound.Clone(this);
             }
         }
+
         public Sound() : base(AGIResType.rtSound) {
             // new sound, not in game
 
@@ -96,7 +99,6 @@ namespace WinAGI.Engine {
 
             //attach events
             base.PropertyChanged += ResPropChange;
-            strErrSource = "WinAGI.Sound";
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
             // ID should be in the propertyfile
@@ -111,33 +113,33 @@ namespace WinAGI.Engine {
             //length is undefined until sound is built
             mLength = -1;
         }
+
         private void ResPropChange(object sender, AGIResPropChangedEventArgs e) {
             //sound data has changed- tracks no longer match
             mTracksSet = false;
             mIsDirty = true;
         }
+
         void BuildSoundOutput() {
             //creates midi/wav output data stream for this sound resource
             try {
                 switch (mFormat) {
-                case 1: //standard pc/pcjr sound
+                case SoundFormat.sfAGI: //standard pc/pcjr sound
                         //build the midi first
                     SndPlayer.mMIDIData = BuildMIDI(this);
-                    //get length
                     mLength = GetSoundLength();
                     break;
-                case 2:  //IIgs pcm sound
+                case SoundFormat.sfWAV:  //IIgs pcm sound
                     SndPlayer.mMIDIData = BuildIIgsPCM(this);
-                    //get length
                     mLength = GetSoundLength();
 
                     break;
-                case 3: //IIgs MIDI sound
+                case SoundFormat.sfMIDI: //IIgs MIDI sound
                         //build the midi data and get length info
                     SndPlayer.mMIDIData = BuildIIgsMIDI(this, ref mLength);
                     break;
-                } //switch
-                  //set flag
+                }
+                //set flag
                 mMIDISet = true;
             }
             catch (Exception e) {
@@ -151,24 +153,25 @@ namespace WinAGI.Engine {
                 throw wex;
             }
         }
+
         double GetSoundLength() {
             int i;
             double retval = 0;
             //this function assumes a sound has been loaded properly
             //get length
             switch (mFormat) {
-            case 1: //standard pc/pcjr resource
+            case SoundFormat.sfAGI: //standard pc/pcjr resource
                 for (i = 0; i <= 3; i++) {
                     if (retval < mTrack[i].Length && !mTrack[i].Muted) {
                         retval = mTrack[i].Length;
                     }
                 }
                 break;
-            case 2:  //pcm sampling
+            case SoundFormat.sfWAV:  //pcm sampling
                      //since sampling is at 8000Hz, size is just data length/8000
                 retval = ((double)mSize - 54) / 8000;
                 break;
-            case 3: //iigs midi
+            case SoundFormat.sfMIDI: //iigs midi
                     //length has to be calculated during midi build
                 BuildSoundOutput();
                 retval = mLength;
@@ -190,7 +193,7 @@ namespace WinAGI.Engine {
                 //validate
                 if (value < -7 || value > 7) {
                     //raise error
-                    throw new Exception("380, strErrSource, Invalid property Value");
+                    throw new ArgumentOutOfRangeException(nameof(value));
                 }
 
                 if (mKey != value) {
@@ -201,7 +204,7 @@ namespace WinAGI.Engine {
                 }
             }
         }
-        public int SndFormat {
+        public SoundFormat SndFormat {
             //  0 = not loaded
             //  1 = //standard// agi
             //  2 = IIgs sampled sound
@@ -212,10 +215,11 @@ namespace WinAGI.Engine {
                     return mFormat;
                 }
                 else {
-                    return 0;
+                    return SoundFormat.sfUndefined;
                 }
             }
         }
+
         public int ErrLevel {
 
             //provides access to current error level of the sound tracks
@@ -283,11 +287,11 @@ namespace WinAGI.Engine {
                     //validate
                     if (lngStart < 0 || lngEnd < 0 || lngStart > mSize || lngEnd > mSize) {
                         //raise error
-
                         WinAGIException wex = new(LoadResString(598))
                         {
                             HResult = WINAGI_ERR + 598
                         };
+                        wex.Data["ID"] = mResID;
                         throw wex;
                     }
 
@@ -589,8 +593,9 @@ namespace WinAGI.Engine {
             }
             //export accordind to desred format
             switch (FileFormat) {
-            case SoundFormat.sfAGI: //all data formats OK
-                                    //export agi resource
+            case SoundFormat.sfAGI: 
+                // all data formats OK
+                // export agi resource
                 base.Export(ExportFile);
                 if (!mInGame) {
                     if (ResetDirty) {
@@ -599,9 +604,10 @@ namespace WinAGI.Engine {
                     }
                 }
                 break;
-            case SoundFormat.sfMIDI: //pc and IIgs midi
-                                     //if wrong format
-                if (mFormat == 2) {
+            case SoundFormat.sfMIDI:
+                // pc and IIgs midi can be exported as midi
+                // if wrong format
+                if (mFormat == SoundFormat.sfWAV) {
                     throw new Exception("596, strErrSource, Can't export PCM formatted resource as MIDI file");
                 }
                 try {
@@ -624,10 +630,15 @@ namespace WinAGI.Engine {
                     throw;
                 }
                 break;
-            case SoundFormat.sfScript: //pc only
-                                       //if wrong format
-                if (mFormat != 1) {
-                    throw new Exception("596, strErrSource, Only PC/PCjr sound resources can be exported as script files");
+            case SoundFormat.sfScript:
+                // only agi format can be exported as script
+                //if wrong format
+                if (mFormat != SoundFormat.sfAGI) {
+                    WinAGIException wex = new("Only PC/PCjr sound resources can be exported as script files")
+                    {
+                        HResult = 596,
+                    };
+                    throw wex;
                 }
                 try {
                     //delete any existing file
@@ -698,10 +709,15 @@ namespace WinAGI.Engine {
                     mIsDirty = false;
                 }
                 break;
-            case SoundFormat.sfWAV: //IIgs pcm only
-                                    //if wrong format
-                if (mFormat != 2) {
-                    throw new Exception("596, strErrSource, Can't export MIDI formatted sound resource as .WAV file");
+            case SoundFormat.sfWAV:
+                // only IIgs pcm can be exported as wav file
+                //if wrong format
+                if (mFormat != SoundFormat.sfWAV) {
+                    WinAGIException wex = new("Can't export MIDI formatted sound resource as .WAV file")
+                    {
+                        HResult = 596,
+                    };
+                    throw wex;
                 }
                 try {
                     //if data not set
@@ -1144,13 +1160,13 @@ namespace WinAGI.Engine {
             //load data into the sound tracks
             int i;
             //if already loaded
-            if (Loaded) {
+            if (mLoaded) {
                 return;
             }
             //if not ingame, the resource is already loaded
-            if (!InGame) {//TODO- not true! nongame resources certainly can be unloaded and loaded;
+            if (!mInGame) {//TODO- not true?? can nongame resources be unloaded and loaded?
                           // they just need a valid resfile to get data from
-                throw new Exception("non-game sound should already be loaded");
+                Debug.Assert(false);
             }
             try {
                 //load base resource
@@ -1185,18 +1201,18 @@ namespace WinAGI.Engine {
             //   0x02 = IIgs midi sound
             //   0x08 = PC/PCjr //standard//
             switch (ReadWord(0)) {
-            case 1: //IIgs sampled sound
-                mFormat = 2;
+            case 1:
+                mFormat =  SoundFormat.sfWAV;
                 //tracks are not applicable, so just set flag to true
                 mTracksSet = true;
                 break;
-            case 2: //IIgs midi
-                mFormat = 3;
+            case 2:
+                mFormat = SoundFormat.sfMIDI;
                 //tracks are not applicable, so just set flag to true
                 mTracksSet = true;
                 break;
             case 8: //standard PC/PCjr
-                mFormat = 1;
+                mFormat = SoundFormat.sfAGI;
                 try {
                     //load notes
                     LoadTracks();
@@ -1213,6 +1229,7 @@ namespace WinAGI.Engine {
                 {
                     HResult = WINAGI_ERR + 598
                 };
+                wex.Data["ID"] = mResID;
                 throw wex;
             }
             //clear dirty flag

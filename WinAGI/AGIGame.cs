@@ -21,9 +21,7 @@ namespace WinAGI.Engine {
     public partial class AGIGame : IDisposable {
         private bool disposed = false;
 
-        internal SettingsList agGameProps; // = new SettingsList("");
-
-        static readonly string strErrSource = "WinAGI.Engine.AGIGame";
+        internal SettingsList agGameProps;
 
         //game compile variables
         internal bool agCompGame = false;

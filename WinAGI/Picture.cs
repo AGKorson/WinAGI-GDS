@@ -9,11 +9,10 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Diagnostics;
 
-namespace WinAGI.Engine
-{
-    public class Picture : AGIResource
-    {
+namespace WinAGI.Engine {
+    public class Picture : AGIResource {
         string mBkImgFile;
         bool mBkShow;
         int mBkTrans;
@@ -35,7 +34,6 @@ namespace WinAGI.Engine
         private void InitPicture(Picture NewPicture = null) {
             //attach events
             base.PropertyChanged += ResPropChange;
-            strErrSource = "WinAGI.Picture";
             if (NewPicture is null) {
                 //create default picture with no commands
                 //mRData = new RData(1);
@@ -47,7 +45,8 @@ namespace WinAGI.Engine
                 mPriBase = 48;
             }
             else {
-
+                // clone this picture
+                NewPicture.Clone(this);
             }
         }
 
@@ -71,14 +70,12 @@ namespace WinAGI.Engine
             base.InitInGame(parent, ResNum);
         }
 
-        public Picture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtPicture)
-        {
+        public Picture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtPicture) {
             //this internal function adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
 
             //attach events
             base.PropertyChanged += ResPropChange;
-            strErrSource = "WinAGI.Picture";
             //set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 
@@ -98,15 +95,13 @@ namespace WinAGI.Engine
             //default pribase is 48
             mPriBase = 48;
         }
-        void ResPropChange(object sender, AGIResPropChangedEventArgs e)
-        {
+        void ResPropChange(object sender, AGIResPropChangedEventArgs e) {
             //set flag to indicate picture data does not match picture bmps
             mPicBMPSet = false;
             //for picture only, changing resource sets dirty flag
             mIsDirty = true;
         }
-        internal Picture Clone()
-        {
+        internal Picture Clone() {
             //copies picture data from this picture and returns a completely separate object reference
             Picture CopyPicture = new();
             // copy base properties
@@ -127,8 +122,7 @@ namespace WinAGI.Engine
             CopyPicture.mBMPErrLvl = mBMPErrLvl;
             return CopyPicture;
         }
-        public string BkgdImgFile
-        {
+        public string BkgdImgFile {
             get
             {
                 return mBkImgFile;
@@ -149,8 +143,7 @@ namespace WinAGI.Engine
                 WritePropState = true;
             }
         }
-        public string BkgdPosition
-        {
+        public string BkgdPosition {
             get
             {
                 return mBkPos;
@@ -171,8 +164,7 @@ namespace WinAGI.Engine
                 WritePropState = true;
             }
         }
-        public string BkgdSize
-        {
+        public string BkgdSize {
             get
             {
                 return mBkSize;
@@ -193,8 +185,7 @@ namespace WinAGI.Engine
                 WritePropState = true;
             }
         }
-        public int BkgdTrans
-        {
+        public int BkgdTrans {
             get
             {
                 return mBkTrans;
@@ -215,8 +206,7 @@ namespace WinAGI.Engine
                 WritePropState = true;
             }
         }
-        public bool BkgdShow
-        {
+        public bool BkgdShow {
             get
             {
                 return mBkShow;
@@ -237,8 +227,7 @@ namespace WinAGI.Engine
                 WritePropState = true;
             }
         }
-        public long BMPErrLevel
-        {
+        public long BMPErrLevel {
             get
             {
                 //provides access to current error level of the BMP build
@@ -258,8 +247,7 @@ namespace WinAGI.Engine
                 return mBMPErrLvl;
             }
         }
-        public byte PriBase
-        {
+        public byte PriBase {
             get
             {
                 //if not in a game, or if before v2.936, always return value of 48
@@ -290,8 +278,7 @@ namespace WinAGI.Engine
                 WritePropState = true;
             }
         }
-        public byte[] VisData
-        {
+        public byte[] VisData {
             get
             {
                 //if not loaded
@@ -311,8 +298,7 @@ namespace WinAGI.Engine
                 return mVisData;
             }
         }
-        public byte[] PriData
-        {
+        public byte[] PriData {
             get
             {
                 //if not loaded
@@ -333,8 +319,7 @@ namespace WinAGI.Engine
                 return mPriData;
             }
         }
-        public PenStatus CurrentToolStatus
-        {
+        public PenStatus CurrentToolStatus {
             get
             {
                 //if not loaded
@@ -350,14 +335,13 @@ namespace WinAGI.Engine
                 return mCurrentPen;
             }
         }
-        public int DrawPos
-        {
+
+        public int DrawPos {
             get
             {
                 //if not loaded
                 if (!Loaded) {
                     //error
-
                     WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
@@ -371,7 +355,6 @@ namespace WinAGI.Engine
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
-
                     WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
@@ -396,153 +379,16 @@ namespace WinAGI.Engine
                 mPicBMPSet = false;
             }
         }
-        public bool ObjOnWater(byte X, byte Y, byte Length)
-        {
-            //returns true if testcel at position x,Y is entirely on water
+
+        public bool ObjOnWater(byte X, byte Y, byte Length) {
+            //returns true if testcel at position x,y is entirely on water
             byte i;
             AGIColorIndex CurPri;
             byte EndX;
-            //if not loaded
+
+            // if not loaded
             if (!Loaded) {
-                //error
-
-                WinAGIException wex = new(LoadResString(563))
-                {
-                    HResult = WINAGI_ERR + 563
-                };
-                throw wex;
-            }
-            //validate x,Y
-            if (X > 159 || Y > 167) {
-
-                WinAGIException wex = new(LoadResString(621))
-                {
-                    HResult = WINAGI_ERR + 621
-                };
-                throw wex;
-            }
-            //if picture data changed,
-            if (!mPicBMPSet) {
-                try {
-                    //load pictures
-                    BuildPictures();
-                }
-                catch (Exception) {
-                    //pass along error
-                    throw;
-                }
-            }
-            //ensure enough room for length
-            if (X + Length > 159) {
-                Length = (byte)(160 - X);
-            }
-
-            //step through all pixels on this line
-            EndX = (byte)(X + Length - 1);
-            for (i = X; i <= EndX; i++) {
-                CurPri = (AGIColorIndex)mPriData[i + 160 * Y];
-                if (CurPri != AGIColorIndex.agCyan) {
-                    //not on water- return false
-                    return false;
-                }
-            }
-            //if not exited, must be on water
-            return true;
-        }
-        public AGIColorIndex PixelControl(byte X, byte Y, byte Length = 1)
-        {
-            //returns the actual lowest priority code for a line,
-            //including control codes
-            byte i = 0;
-            AGIColorIndex CurPri, retval;
-            //if not loaded,
-            if (!Loaded) {
-                //raise error
-
-                WinAGIException wex = new(LoadResString(563))
-                {
-                    HResult = WINAGI_ERR + 563
-                };
-                throw wex;
-            }
-            //validate x,Y
-            if (X > 159 || Y > 167) {
-
-                WinAGIException wex = new(LoadResString(621))
-                {
-                    HResult = WINAGI_ERR + 621
-                };
-                throw wex;
-            }
-            //if picture data changed,
-            if (!mPicBMPSet) {
-                try {
-                    //load pictures
-                    BuildPictures();
-                }
-                catch (Exception) {
-                    // pass along the error
-                    throw;
-                }
-            }
-            //default to max Value
-            retval = AGIColorIndex.agWhite; //15
-                                            //ensure enough room for length
-            if (X + Length > 159) {
-                Length = (byte)(160 - X);
-            }
-            //get lowest pixel priority on the line
-            do {
-                CurPri = (AGIColorIndex)mPriData[X + i + 160 * Y];
-                if (CurPri < retval) {
-                    retval = CurPri;
-                }
-                i++;
-            }
-            while (i < Length); //Until i = Length
-            return retval;
-        }
-        public AGIColorIndex VisPixel(byte X, byte Y)
-        {
-            //returns visual pixel color
-            //if not loaded,
-            if (!Loaded) {
-                //raise error
-
-                WinAGIException wex = new(LoadResString(563))
-                {
-                    HResult = WINAGI_ERR + 563
-                };
-                throw wex;
-            }
-            //validate x,Y
-            if (X > 159 || Y > 167) {
-
-                WinAGIException wex = new(LoadResString(621))
-                {
-                    HResult = WINAGI_ERR + 621
-                };
-                throw wex;
-            }
-            //if picture data changed,
-            if (!mPicBMPSet) {
-                try {
-                    //load pictures
-                    BuildPictures();
-                }
-                catch (Exception) {
-                    // pass along the error
-                    throw;
-                }
-            }
-            return (AGIColorIndex)mVisData[X + 160 * Y];
-        }
-        public AGIColorIndex PriPixel(byte X, byte Y)
-        {
-            //if not loaded,
-            if (!Loaded) {
-                //raise error
-
+                // error
                 WinAGIException wex = new(LoadResString(563))
                 {
                     HResult = WINAGI_ERR + 563
@@ -550,29 +396,126 @@ namespace WinAGI.Engine
                 throw wex;
             }
             //validate x,y
-            if (X > 159 || Y > 167) {
+            if (X > 159) {
+                throw new ArgumentOutOfRangeException(nameof(X));
+            }
+            if (Y > 167) {
+                throw new ArgumentOutOfRangeException(nameof(Y));
+            }
+            // if picture data changed,
+            if (!mPicBMPSet) {
+                BuildPictures();
+            }
+            // ensure enough room for length
+            if (X + Length > 159) {
+                Length = (byte)(160 - X);
+            }
+            // step through all pixels on this line
+            EndX = (byte)(X + Length - 1);
+            for (i = X; i <= EndX; i++) {
+                CurPri = (AGIColorIndex)mPriData[i + 160 * Y];
+                if (CurPri != AGIColorIndex.agCyan) {
+                    // not on water- return false
+                    return false;
+                }
+            }
+            //if not exited, must be on water
+            return true;
+        }
 
-                WinAGIException wex = new(LoadResString(621))
+        public AGIColorIndex PixelControl(byte X, byte Y, byte Length = 1) {
+            //returns the actual lowest priority code for a line,
+            //including control codes
+            byte i = 0;
+            AGIColorIndex CurPri, retval;
+            //if not loaded,
+            if (!mLoaded) {
+                //raise error
+                WinAGIException wex = new(LoadResString(563))
                 {
-                    HResult = WINAGI_ERR + 621
+                    HResult = WINAGI_ERR + 563
                 };
                 throw wex;
             }
-            //if picture data changed,
+            // validate x,y
+            if (X > 159) {
+                throw new ArgumentOutOfRangeException(nameof(X));
+            }
+            if (Y > 167) {
+                throw new ArgumentOutOfRangeException(nameof(Y));
+            }
+            // if picture data changed,
             if (!mPicBMPSet) {
-                try {
-                    //load pictures
-                    BuildPictures();
+                BuildPictures();
+            }
+            // default to max (15 == white)
+            retval = AGIColorIndex.agWhite;
+            // ensure enough room for length
+            if (X + Length > 159) {
+                Length = (byte)(160 - X);
+            }
+            // get lowest pixel priority on the line
+            do {
+                CurPri = (AGIColorIndex)mPriData[X + i + 160 * Y];
+                if (CurPri < retval) {
+                    retval = CurPri;
                 }
-                catch (Exception) {
-                    // pass along the error
-                    throw;
-                }
+                i++;
+            }
+            while (i < Length);
+            return retval;
+        }
+
+        public AGIColorIndex VisPixel(byte X, byte Y) {
+            //returns visual pixel color
+            //if not loaded,
+            if (!Loaded) {
+                //raise error
+                WinAGIException wex = new(LoadResString(563))
+                {
+                    HResult = WINAGI_ERR + 563
+                };
+                throw wex;
+            }
+            // validate x,y
+            if (X > 159) {
+                throw new ArgumentOutOfRangeException(nameof(X));
+            }
+            if (Y > 167) {
+                throw new ArgumentOutOfRangeException(nameof(Y));
+            }
+            // if picture data changed,
+            if (!mPicBMPSet) {
+                BuildPictures();
+            }
+            return (AGIColorIndex)mVisData[X + 160 * Y];
+        }
+
+        public AGIColorIndex PriPixel(byte X, byte Y) {
+            //if not loaded,
+            if (!Loaded) {
+                //raise error
+                WinAGIException wex = new(LoadResString(563))
+                {
+                    HResult = WINAGI_ERR + 563
+                };
+                throw wex;
+            }
+            // validate x,y
+            if (X > 159) {
+                throw new ArgumentOutOfRangeException(nameof(X));
+            }
+            if (Y > 167) {
+                throw new ArgumentOutOfRangeException(nameof(Y));
+            }
+            // if picture data changed,
+            if (!mPicBMPSet) {
+                BuildPictures();
             }
             return (AGIColorIndex)mPriData[X + 160 * Y];
         }
-        public AGIColorIndex PixelPriority(byte X, byte Y)
-        {
+
+        public AGIColorIndex PixelPriority(byte X, byte Y) {
             //if not loaded,
             if (!Loaded) {
                 //raise error
@@ -583,39 +526,29 @@ namespace WinAGI.Engine
                 };
                 throw wex;
             }
-            //validate x,Y
-            if (X > 159 || Y > 167) {
-
-                WinAGIException wex = new(LoadResString(621))
-                {
-                    HResult = WINAGI_ERR + 621
-                };
-                throw wex;
+            // validate x,y
+            if (X > 159) {
+                throw new ArgumentOutOfRangeException(nameof(X));
+            }
+            if (Y > 167) {
+                throw new ArgumentOutOfRangeException(nameof(Y));
             }
             //if picture data changed,
             if (!mPicBMPSet) {
-                try {
-                    //load pictures
-                    BuildPictures();
-                }
-                catch (Exception) {
-                    // pass along any errors
-                    throw;
-                }
+                BuildPictures();
             }
             AGIColorIndex retval;
             //set default to 15
-            AGIColorIndex defval = AGIColorIndex.agWhite;// 15;
-
-            //need to loop to find first pixel that is NOT a control color (0-2)
+            AGIColorIndex defval = AGIColorIndex.agWhite;
+            // need to loop to find first pixel that is NOT a control color (0-2)
             do {
                 //get pixel priority
                 retval = (AGIColorIndex)mPriData[X + 160 * Y];
                 //move down to next row
                 Y++;
             }
-            while (retval < AGIColorIndex.agCyan && Y < 168);// Until PixelPriority >= 3 || Y = 168
-                                                             // if not valid
+            while (retval < AGIColorIndex.agCyan && Y < 168);
+            // if not valid
             if (retval < AGIColorIndex.agCyan) {
                 return defval;
             }
@@ -623,8 +556,8 @@ namespace WinAGI.Engine
                 return retval;
             }
         }
-        public void Export(string ExportFile, bool ResetDirty = true)
-        {
+
+        public void Export(string ExportFile, bool ResetDirty = true) {
             //if not loaded
             if (!Loaded) {
                 //error
@@ -650,8 +583,8 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public override void Import(string ImportFile)
-        {
+
+        public override void Import(string ImportFile) {
             //imports a picture resource
             try {
                 //use base function
@@ -669,8 +602,8 @@ namespace WinAGI.Engine
             //reset dirty flag
             mIsDirty = false;
         }
-        public override void Clear()
-        {
+
+        public override void Clear() {
             if (InGame) {
                 if (!Loaded) {
                     //nothing to clear
@@ -691,19 +624,17 @@ namespace WinAGI.Engine
             //load pictures
             BuildPictures();
         }
-        public override void Load()
-        {
-            //load data into the bitmap data area for
-            //this set of bitmaps
-            if (Loaded) {
+        public override void Load() {
+            // if not ingame, the resource is already loaded
+            if (!mInGame) {
+                Debug.Assert(mLoaded);
+            }
+            // load data into the bitmap data area for this set of bitmaps
+            if (mLoaded) {
                 return;
             }
-            //if not ingame, the resource is already loaded
-            if (!InGame) {
-                throw new Exception("non-game pic should already be loaded");
-            }
             try {
-                //load base resource
+                // load base resource
                 base.Load();
             }
             catch (Exception) {
@@ -718,32 +649,25 @@ namespace WinAGI.Engine
                 mBkPos = parent.agGameProps.GetSetting("Picture" + Number, "BkgdPosn", "");
                 mBkSize = parent.agGameProps.GetSetting("Picture" + Number, "BkgdSize", "");
             }
-            try {
-                //load picture bmps
-                BuildPictures();
-            }
-            catch (Exception) {
-                // pass along any errors
-                throw;
-            }
+            //load picture bmps
+            BuildPictures();
             //clear dirty flag
             mIsDirty = false;
         }
+
         // ResetBMP used to force reset when palette changes
         // (or any other reason that needs the cel to be refreshed)
-        public void ResetBMP()
-        {
+        public void ResetBMP() {
             mPicBMPSet = false;
         }
-        public Bitmap VisualBMP
-        {
+
+        public Bitmap VisualBMP {
             get
             {
                 //returns a device context to the bitmap image of the visual screenoutput
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
-
                     WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
@@ -752,20 +676,14 @@ namespace WinAGI.Engine
                 }
                 //if pictures not built, or have changed,
                 if (!mPicBMPSet) {
-                    try {
-                        //load pictures to get correct pictures
-                        BuildPictures();
-                    }
-                    catch (Exception) {
-                        // pass error along
-                        throw;
-                    }
+                    //load pictures to get correct pictures
+                    BuildPictures();
                 }
                 return bmpVis;
             }
         }
-        public Bitmap PriorityBMP
-        {
+
+        public Bitmap PriorityBMP {
             get
             {
                 //if not loaded,
@@ -779,20 +697,14 @@ namespace WinAGI.Engine
                 }
                 //if pictures not built, or have changed,
                 if (!mPicBMPSet) {
-                    try {
-                        //load pictures to get correct pictures
-                        BuildPictures();
-                    }
-                    catch (Exception) {
-                        // pass along any errors
-                        throw;
-                    }
+                    //load pictures to get correct pictures
+                    BuildPictures();
                 }
                 return bmpPri;
             }
         }
-        public void Save()
-        {
+
+        public new void Save() {
             //if properties need to be written
             if (WritePropState && mInGame) {
                 //saves the picture resource
@@ -826,7 +738,7 @@ namespace WinAGI.Engine
                 WritePropState = false;
             }
             //if not loaded
-            if (!Loaded) {
+            if (!mLoaded) {
                 //nothing to do
                 return;
             }
@@ -849,8 +761,7 @@ namespace WinAGI.Engine
             //reset flag
             mIsDirty = false;
         }
-        public void SetPictureData(byte[] PicData)
-        {
+        public void SetPictureData(byte[] PicData) {
             //sets the picture resource data to PicData()
             //
             //if the data are invalid, the resource will
@@ -870,21 +781,19 @@ namespace WinAGI.Engine
                 //ignore?
             }
         }
-        internal void BuildPictures()
-        {
-            int i;
+
+        internal void BuildPictures() {
             //create new visual picture bitmap
             bmpVis = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
             //create new priority picture bitmap
             bmpPri = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
             //modify color palette to match current AGI palette
             ColorPalette ncp = bmpVis.Palette;
-            for (i = 0; i < 16; i++) {
+            for (int i = 0; i < 16; i++) {
                 ncp.Entries[i] = Color.FromArgb(255,
                 parent.AGIColors[i].R,
                 parent.AGIColors[i].G,
                 parent.AGIColors[i].B);
-                // ncp.Entries[i] = EGAColor[i];
             }
             // both bitmaps use same palette
             bmpVis.Palette = ncp;
@@ -896,34 +805,30 @@ namespace WinAGI.Engine
             IntPtr ptrVis = bmpVisData.Scan0;
             BitmapData bmpPriData = bmpPri.LockBits(BoundsRect, ImageLockMode.WriteOnly, bmpPri.PixelFormat);
             IntPtr ptrPri = bmpPriData.Scan0;
-
-            //now we can create our custom data arrays
+            // now we can create our custom data arrays
             // array size is determined by stride (bytes per row) and height
             mVisData = new byte[26880];
             mPriData = new byte[26880];
-            //build arrays of bitmap data
-            //Build function returns an error level value
+            // build arrays of bitmap data
+            // Build function returns an error level value
             mBMPErrLvl = BuildBMPs(ref mVisData, ref mPriData, mRData.AllData, mStepDraw ? mDrawPos : -1, mDrawPos);
-
             // copy the picture data to the bitmaps
             Marshal.Copy(mVisData, 0, ptrVis, 26880);
             bmpVis.UnlockBits(bmpVisData);
             Marshal.Copy(mPriData, 0, ptrPri, 26880);
             bmpPri.UnlockBits(bmpPriData);
-
-            //get pen status
+            // get pen status
             mCurrentPen = GetToolStatus();
-            //set flag
+            // set flag
             mPicBMPSet = true;
         }
-        public bool StepDraw
-        {
+
+        public bool StepDraw {
             get
             {
                 //if not loaded,
                 if (!Loaded) {
                     //raise error
-
                     WinAGIException wex = new(LoadResString(563))
                     {
                         HResult = WINAGI_ERR + 563
@@ -950,8 +855,8 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public override void Unload()
-        {
+
+        public override void Unload() {
             //unload resource
             base.Unload();
             //cleanup picture resources

@@ -1048,7 +1048,6 @@ namespace WinAGI.Engine
                     }
                 }
             }
-
             //if any part of line should be ignored,
             if (intROLIgnore >= 0) {
                 //save the comment

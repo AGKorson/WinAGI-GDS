@@ -62,17 +62,27 @@ resource base errors:
     Data["volname"] = Path.GetFileName(fsVOL.Name);
     Data["ID"] = mResID
 
+Logic Load:
+    none
 
 Logic LoadSource:
 502: file access error
     Data["exception"] = exception
     Data["ID"] = mResID
 
+Picture Load:
+    none
+
+Sound Load:
+598: invalid sound data
+    Data["ID"] = mResID
+
+LoadTracks:
+598: invalid sound data
+    Data["ID"] = mResID
 
 
-
-
-BuildSound:
+BuildSoundOutput:
 596: build sound error
     Data["exception"] = exception
     Data["ID"] = mResID

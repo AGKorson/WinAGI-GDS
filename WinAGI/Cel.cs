@@ -27,7 +27,6 @@ namespace WinAGI.Engine {
         View mParent;
 
         public Cel() {
-            strErrSource = "WINAGI.AGICel";
             mCelData = new byte[1, 1];
             mWidth = 1;
             mHeight = 1;
@@ -36,7 +35,6 @@ namespace WinAGI.Engine {
         }
 
         internal Cel(View parent) {
-            strErrSource = "WINAGI.AGICel";
             mCelData = new byte[1, 1];
             mWidth = 1;
             mHeight = 1;
