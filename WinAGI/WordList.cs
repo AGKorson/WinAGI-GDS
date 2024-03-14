@@ -921,9 +921,8 @@ namespace WinAGI.Engine {
             }
             catch (Exception e) {
                 //raise the error
-                WinAGIException wex = new(LoadResString(672).Replace(ARG1, lngError.ToString()) + ": " + strError) {
+                WinAGIException wex = new(LoadResString(672).Replace(ARG1, e.HResult.ToString()) + ": " + e.Message) {
                     HResult = WINAGI_ERR + 672,
-                    Source = strErrSrc
                 };
                 wex.Data["exception"] = e;
                 wex.Data["ID"] = "WORDS.TOK";

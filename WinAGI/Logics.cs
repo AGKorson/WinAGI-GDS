@@ -206,7 +206,7 @@ namespace WinAGI.Engine {
             Logic newResource = new(parent, bytResNum, bytVol, lngLoc);
             // try to load it
             try {
-                newResource.Load();
+                newResource.LoadNoSource();
             }
             catch (Exception) {
                 // throw it

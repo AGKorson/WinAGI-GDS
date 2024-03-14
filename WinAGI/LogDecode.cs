@@ -41,6 +41,7 @@ namespace WinAGI.Engine {
         static bool[] blnMsgUsed = new bool[256];
         static bool[] blnMsgExists = new bool[256];
         static List<string> stlOutput = [];
+        private static string strError;
         static bool badQuit = false;
         static byte mIndentSize = 4;
 
@@ -238,7 +239,7 @@ namespace WinAGI.Engine {
                         else {
                             stlOutput.Add(MultStr(INDENT, bytBlockDepth - 1) + D_TKN_ENDIF.Replace(ARG1, INDENT));
                             // append else to end of curent if block
-                            stlOutput[^1] += D_TKN_ELSE.Replace(ARG1, MultStr(INDENT, bytBlockDepth - 1));
+                            stlOutput[^1] += D_TKN_ELSE.Replace(ARG1, NEWLINE + MultStr(INDENT, bytBlockDepth - 1));
                             // adjust length and endpos for the 'else' block
                             DecodeBlock[bytBlockDepth].Length = tmpBlockLen;
                             DecodeBlock[bytBlockDepth].EndPos = DecodeBlock[bytBlockDepth].Length + lngPos;
@@ -279,9 +280,9 @@ namespace WinAGI.Engine {
                 default: //case < MAX_CMDS:
                     //valid agi command (don't need to check for invalid command number;
                     // they are all validated in FindLabels)
-                    //if this command is not within range of expected commands for targeted interpretr version,
-                    if (bytCurData > ActionCount - 1) { //this byte is a command
-                                                        //show warning
+                    //if this command is not within range of expected commands for targeted interpreter version,
+                    if (bytCurData > ActionCount - 1) {
+                        //this byte is a command - show warning
                         AddDecodeWarning("DC10", "This command at position " + lngPos.ToString() + " is not valid for selected interpreter version (" + compGame.agIntVersion + ")", stlOutput.Count);
                     }
                     bytCmd = bytCurData;
@@ -746,7 +747,7 @@ namespace WinAGI.Engine {
             int[] MessageStart = new int[256];
             int intCurMsg;
             int lngMsgTextStart;
-            List<byte> bMsgText = [];
+            List<byte> bMsgText;
             bool blnEndOfMsg;
             byte bytInput;
             int NumMessages;
@@ -758,14 +759,11 @@ namespace WinAGI.Engine {
 
             //set position to beginning of msg section,
             lngPos = lngMsgStart;
-
             //set message section end initially to msgsection start
             lngMsgTextEnd = lngMsgStart;
-
             stlMsgs = [];
             // first msg, with index of zero, is null/not used
             stlMsgs.Add("");
-
             //read in number of messages
             NumMessages = bytData[lngPos];
             lngPos++;
@@ -781,7 +779,6 @@ namespace WinAGI.Engine {
                     // adjust it to end
                     lngMsgTextEnd = bytData.Length - 1;
                 }
-
                 //loop through all messages, extract offset
                 for (intCurMsg = 1; intCurMsg <= NumMessages; intCurMsg++) {
                     //set start of this msg as start of msg block, plus offset, plus one (for byte which gives number of msgs)
@@ -791,13 +788,10 @@ namespace WinAGI.Engine {
                         //invalid
                         AddDecodeWarning("DC17", "Message " + intCurMsg + " has invalid offset", stlOutput.Count);
                         MessageStart[intCurMsg] = 0;
-                        //strError = "Invalid message section data";
-                        //return false;
                     }
                     lngPos += 2;
 
                 }
-
                 // decrypt the entire message section, if needed
                 lngMsgTextStart = lngPos;
                 if (Decrypt) {
@@ -852,27 +846,6 @@ namespace WinAGI.Engine {
                                     bMsgText.Add(bytInput);
                                     break;
                                 }
-                                //if (bytInput == 0xA) {
-                                //    strMessage += "\\n"; 
-                                //}
-                                //else if (bytInput < 32) {
-                                //    strMessage = strMessage + "\\x" + bytInput.ToString("x2");
-                                //}
-                                //else if (bytInput == 0x22) {
-                                //    strMessage += "\\\"";
-                                //}
-                                //else if (bytInput == 0x5C) {
-                                //    strMessage += "\\\\"; //TODO: check this!!!!
-                                //}
-                                //else if (bytInput == 0x7F) {
-                                //    strMessage += "\\x7F";
-                                //}
-                                //else if (bytInput == 0xFF) {
-                                //    strMessage += "\\xFF";
-                                //}
-                                //else {
-                                //    strMessage += (char)(bytInput);
-                                //}
                             }
                         }
                         while (!blnEndOfMsg);
@@ -1206,7 +1179,7 @@ namespace WinAGI.Engine {
                         strError = "Too many nested blocks (" + (bytBlockDepth + 1) + ") at position " + lngPos;
                         return false;
                     }
-                    //increment block counter
+                    // increment block counter
                     bytBlockDepth++;
                     DecodeBlock[bytBlockDepth].IsIf = true;
                     DecodeBlock[bytBlockDepth].Length = 256 * bytData[lngPos + 1] + bytData[lngPos];
@@ -1260,8 +1233,6 @@ namespace WinAGI.Engine {
             //the label is created, and the next label position
             //is moved to top of stack
 
-            // this function also validates all command bytes
-            // by making sure none of them exceed max value of 181
             bytBlockDepth = 0;
             bytLabelCount = 0;
             lngPos = 2;
@@ -1273,7 +1244,7 @@ namespace WinAGI.Engine {
                     if (DecodeBlock[CurBlock].EndPos <= lngPos) {
                         // if off by exactly one, AND there's a quit cmd in this block
                         // AND this version is one that uses arg value for quit
-                        // this error ismost likely due to bad coding of quit cmd
+                        // this error is most likely due to bad coding of quit cmd
                         // if otherwise not an exact match, it will be caught when the block ends are added
                         if (lngPos - DecodeBlock[CurBlock].EndPos == 1 && compGame.agIntVersion != "2.089" && DecodeBlock[CurBlock].HasQuit) {
                             strError = "CHECKQUIT";
@@ -1309,7 +1280,7 @@ namespace WinAGI.Engine {
                     //  - this block is identified as an IF block
                     //  - this is NOT the main block
                     //  - the flag to set elses as gotos is turned off
-                    if ((DecodeBlock[bytBlockDepth].EndPos == lngPos) && (DecodeBlock[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!Compiler.ElseAsGoto)) {
+                    if ((DecodeBlock[bytBlockDepth].EndPos == lngPos) && (DecodeBlock[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!ElseAsGoto)) {
                         //this block is now in the 'else' part, so reset flag
                         DecodeBlock[bytBlockDepth].IsIf = false;
                         DecodeBlock[bytBlockDepth].IsOutside = false;
@@ -1368,9 +1339,8 @@ namespace WinAGI.Engine {
                 default:
                     //not a valid command - eror depends on value
                     if (bytCurData <= 182) {
+                        // it's a command, but not valid for this interpreter version -
                         // leave it to main decode function to deal with it
-                        //strError = "Unsupported action command 182 (adj.ego.move.to.x.y) at position " + lngPos;
-                        //return false;
                     }
                     else {
                         //major error
