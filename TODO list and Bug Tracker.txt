@@ -105,7 +105,7 @@ View Load: (LoadLoops):
         Data["srcloop"] = srcloop
         Data["tgtloop"] = tgtloop
 
-    550: tgt already mirrored
+    550: tgt already mirrored (n/a during gameload)
         Data["ID"] = mResID
         Data["tgtloop"] = tgtloop
 

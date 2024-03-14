@@ -411,28 +411,60 @@ namespace WinAGI.Engine {
                 break;
             case 539:
                 // invalid source loop for mirror/invalid mirror loop number
-
+                // TODO: need new load warning value
+                warnInfo.ID = "OW03";
+                warnInfo.Text = $"Invalid Mirror loop value detected (loop {eRes.Data["srcloop"]} and/or loop {eRes.Data["tgtloop"]})";
+                warnInfo.Module = (string)eRes.Data["ID"];
+                Raise_LoadGameEvent(warnInfo);
+                break;
             case 548:
-            // invalid loop pointer
-
-            case 550:
-            // target already a mirror
-
+                // invalid loop pointer
+                // TODO: need new load warning value
+                warnInfo.ID = "OW03";
+                warnInfo.Text = $"Invalid loop data pointer detected (loop {eRes.Data["loop"]})";
+                warnInfo.Module = (string)eRes.Data["ID"];
+                Raise_LoadGameEvent(warnInfo);
+                break;
             case 551:
-            // source already a mirror
-
+                // source already a mirror
+                // TODO: need new load warning value
+                warnInfo.ID = "OW03";
+                warnInfo.Text = $"Loop {eRes.Data["srcloop"]} is already mirrored";
+                warnInfo.Module = (string)eRes.Data["ID"];
+                Raise_LoadGameEvent(warnInfo);
+                break;
             case 553:
                 // invalid cel data pointer
-
+                // TODO: need new load warning value
+                warnInfo.ID = "OW03";
+                warnInfo.Text = $"Invalid cel pointer detected (cel {eRes.Data["cel"]} of loop {eRes.Data["loop"]})";
+                warnInfo.Module = (string)eRes.Data["ID"];
+                Raise_LoadGameEvent(warnInfo);
+                break;
             case 565:
-            // loadtrack error
-
+                // sound loadtrack error
+                // TODO: need new load warning value
+                warnInfo.ID = "OW03";
+                warnInfo.Text = $"Error encountered in LoadTracks ({((WinAGIException)eRes.Data["exception"]).HResult}), unable to load sound";
+                warnInfo.Module = (string)eRes.Data["ID"];
+                Raise_LoadGameEvent(warnInfo);
+                break;
             case 595:
                 // invalid view data
-
+                // TODO: need new load warning value
+                warnInfo.ID = "OW03";
+                warnInfo.Text = $"Invalid view data, unable to load view";
+                warnInfo.Module = (string)eRes.Data["ID"];
+                Raise_LoadGameEvent(warnInfo);
+                break;
             case 598:
                 // invalid sound data
-
+                // TODO: need new load warning value
+                warnInfo.ID = "OW03";
+                warnInfo.Text = $"Invalid sound data, unable to load tracks";
+                warnInfo.Module = (string)eRes.Data["ID"];
+                Raise_LoadGameEvent(warnInfo);
+                break;
             case 606:
                 //Can't load resource: file not found (%1)
                 warnInfo.ID = "VW03";
@@ -450,6 +482,7 @@ namespace WinAGI.Engine {
                 break;
             }
         }
+
         internal static byte[] DecompressPicture(byte[] bytOriginalData) {
             short intPosIn = 0;
             byte bytCurComp, bytBuffer = 0, bytCurUncomp;

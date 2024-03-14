@@ -1,25 +1,21 @@
-﻿namespace WinAGI.Editor
-{
-  using System.Windows.Forms;
-  partial class frmMDIMain
-  {
-    /// <summary>
-    ///  Required designer variable.
-    /// </summary>
-    private System.ComponentModel.IContainer components = null;
+﻿namespace WinAGI.Editor {
+    using System.Windows.Forms;
+    partial class frmMDIMain {
+        /// <summary>
+        ///  Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
 
-    /// <summary>
-    ///  Clean up any resources being used.
-    /// </summary>
-    /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-    protected override void Dispose(bool disposing)
-    {
-      if (disposing && (components != null))
-      {
-        components.Dispose();
-      }
-      base.Dispose(disposing);
-    }
+        /// <summary>
+        ///  Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing) {
+            if (disposing && (components != null)) {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
         #region Windows Form Designer generated code
 
@@ -27,8 +23,7 @@
         ///  Required method for Designer support - do not modify
         ///  the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent()
-        {
+        private void InitializeComponent() {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMDIMain));
             TreeNode treeNode1 = new TreeNode("Logics");
@@ -1685,197 +1680,197 @@
         #endregion
 
         private MenuStrip menuStrip1;
-    private ContextMenuStrip contextMenuStrip1;
-    private StatusStrip statusStrip1;
-    private ToolStrip toolStrip1;
-    private ToolStripStatusLabel CapsLockLabel;
-    private ToolStripMenuItem fileToolStripMenuItem;
-    private ToolStripMenuItem newToolStripMenuItem;
-    private ToolStripMenuItem mnuROpen;
-    private ToolStripSeparator toolStripSeparator2;
-    private ToolStripMenuItem saveToolStripMenuItem;
-    private ToolStripMenuItem saveAsToolStripMenuItem;
-    private ToolStripSeparator toolStripSeparator3;
-    private ToolStripMenuItem printToolStripMenuItem;
-    private ToolStripMenuItem mnuR;
-    private ToolStripSeparator toolStripSeparator4;
-    private ToolStripMenuItem exitToolStripMenuItem;
-    private ToolStripMenuItem editToolStripMenuItem;
-    private ToolStripMenuItem toolsToolStripMenuItem;
-    private ToolStripMenuItem customizeToolStripMenuItem;
-    private ToolStripMenuItem optionsToolStripMenuItem;
-    private ToolStripMenuItem mnuHelp;
-    private ToolStripMenuItem contentsToolStripMenuItem;
-    private ToolStripMenuItem indexToolStripMenuItem;
-    private ToolStripMenuItem searchToolStripMenuItem;
-    private ToolStripSeparator toolStripSeparator7;
-    private ToolStripMenuItem aboutToolStripMenuItem;
-    private ToolStripButton btnOpen;
-    private ToolStripButton btnClose;
-    private ToolStripButton saveToolStripButton;
-    private ToolStripButton printToolStripButton;
-    private ToolStripSeparator toolStripSeparator;
-    private ToolStripButton cutToolStripButton;
-    private ToolStripButton btnOject;
-    private ToolStripSeparator btnSep3;
-    private ToolStripButton helpToolStripButton;
-    private ToolStripMenuItem mnuGNew;
-    private ToolStripMenuItem mnuGNewTemplate;
-    private ToolStripMenuItem mnuGOpen;
-    private ToolStripMenuItem mnuGImport;
-    private ToolStripSeparator mnuGSep1;
-    private ToolStripMenuItem mnuGCompile;
-    private ToolStripSeparator toolStripSeparator10;
-    private ToolStripMenuItem mnuGRun;
-    private ToolStripSeparator toolStripSeparator11;
-    private ToolStripMenuItem mnuGProperties;
-    private ToolStripSeparator toolStripSeparator12;
-    private ToolStripMenuItem mnuGExit;
-    private ToolStripMenuItem mnuResources;
-    private ToolStripMenuItem mnuTools;
-    private ToolStripMenuItem mnuWindow;
-    private ToolStripMenuItem mnuWCascade;
-    private ToolStripMenuItem mnuWTileV;
-    private ToolStripMenuItem mnuWTileH;
-    private ToolStripMenuItem mnuWArrange;
-    private ToolStripMenuItem mnuWMinimize;
-    private ToolStripSeparator toolStripSeparator8;
-    private ToolStripMenuItem mnuWClose;
-    public Splitter splitResource;
-    public Splitter splitWarning;
-    private ToolStripMenuItem toolStripMenuItem1;
-    private ToolStripMenuItem mnuRNew;
-    private ToolStripMenuItem mnuRSave;
-    private ToolStripMenuItem mnuRExport;
-    private ToolStripMenuItem mnuRIDDesc;
-    private ToolStripMenuItem mnuRPrint;
-    private ToolStripMenuItem mnuRNLogic;
-    private ToolStripMenuItem mnuRNPicture;
-    private ToolStripMenuItem mnuRNSound;
-    private ToolStripMenuItem mnuRNView;
-    private ToolStripSeparator toolStripSeparator6;
-    private ToolStripMenuItem mnuRNObjects;
-    private ToolStripMenuItem mnuRNWords;
-    private ToolStripSeparator toolStripSeparator5;
-    private ToolStripMenuItem mnuRNText;
-    private ToolStripMenuItem mnuROLogic;
-    private ToolStripMenuItem mnuROPicture;
-    private ToolStripMenuItem mnuROSound;
-    private ToolStripMenuItem mnuROView;
-    private ToolStripSeparator toolStripSeparator13;
-    private ToolStripMenuItem mnuROObjects;
-    private ToolStripMenuItem mnuROWords;
-    private ToolStripSeparator toolStripSeparator14;
-    private ToolStripMenuItem mnuROText;
-    private ToolStripMenuItem mnuRILogic;
-    private ToolStripMenuItem mnuRIPicture;
-    private ToolStripMenuItem mnuRISound;
-    private ToolStripMenuItem mnuRIView;
-    private ToolStripSeparator toolStripSeparator15;
-    private ToolStripMenuItem mnuRIObjects;
-    private ToolStripMenuItem mnuRIWords;
-    private ToolStripSeparator mnuGSep2;
-    private ToolStripSeparator mnuGSep3;
-    private ToolStripSeparator mnuGSep5;
-    private ToolStripMenuItem mnuTSettings;
-    private ToolStripSeparator mnuTSep1;
-    private ToolStripMenuItem mnuTLayout;
-    private ToolStripMenuItem mnuTMenuEditor;
-    private ToolStripMenuItem mnuTGlobals;
-    private ToolStripMenuItem mnuReserved;
-    private ToolStripMenuItem mnuTSnippets;
-    private ToolStripMenuItem mnuTPalette;
-    private ToolStripSeparator mnuTSep2;
-    private ToolStripMenuItem mnuTCustom1;
-    private ToolStripMenuItem mnuTCustom2;
-    private ToolStripMenuItem mnuTCustom3;
-    private ToolStripMenuItem mnuTCustom4;
-    private ToolStripMenuItem mnuTCustom5;
-    private ToolStripMenuItem mnuTCustom6;
-    private ToolStripSeparator mnuTSep3;
-    private ToolStripMenuItem mnuTCustomize;
-    private ToolStripMenuItem mnuHContents;
-    private ToolStripMenuItem mnuHIndex;
-    private ToolStripSeparator mnuHSep1;
-    private ToolStripMenuItem mnuHCommands;
-    private ToolStripMenuItem mnuHReference;
-    private ToolStripSeparator mnuHSep2;
-    private ToolStripMenuItem mnuHAbout;
-    private ImageList imageList1;
-    private ToolStripButton btnOpenGame;
-    private ToolStripButton btnCloseGame;
-    private ToolStripButton btnRun;
-    private ToolStripSeparator btnSep1;
-    private ToolStripButton btnPrint;
-    private ToolStripSplitButton btnNewRes;
-    private ToolStripSplitButton btnOpenRes;
-    private ToolStripMenuItem btnOpenLogic;
-    private ToolStripMenuItem btnOpenPicture;
-    private ToolStripMenuItem btnOpenSound;
-    private ToolStripMenuItem btnOpenView;
-    private ToolStripSplitButton btnImportRes;
-    private ToolStripSeparator btnSep2;
-    private ToolStripMenuItem btnImportLogic;
-    private ToolStripMenuItem btnImportPicture;
-    private ToolStripMenuItem btnImportSound;
-    private ToolStripMenuItem btnImportView;
-    private ToolStripButton btnWords;
-    private ToolStripButton btnOjects;
-    private ToolStripButton btnSaveResource;
-    private ToolStripButton btnAddRemove;
-    private ToolStripButton btnExportRes;
-    private ToolStripSeparator btnSep4;
-    private ToolStripButton btnLayoutEd;
-    private ToolStripButton btnMenuEd;
-    private ToolStripButton btnGlobals;
-    private ToolStripSeparator btnSep5;
-    private ToolStripButton btnHelp;
-    private ToolStripMenuItem btnNewLogic;
-    private ToolStripMenuItem btnNewPicture;
-    private ToolStripMenuItem btnNewSound;
-    private ToolStripMenuItem btnNewView;
-    private Timer tmrNavList;
-    private ToolStripSplitButton toolStripSplitButton2;
-    private ToolStripSplitButton toolStripSplitButton3;
-    private ToolStripSplitButton toolStripSplitButton4;
-    public Button cmdForward;
-    public Button cmdBack;
-    internal Panel pnlResources;
-    public OpenFileDialog OpenDlg;
-    public SaveFileDialog SaveDlg;
-    public Panel pnlWarnings;
-    public ToolStripSeparator mnuGMRUBar;
-    public ToolStripMenuItem mnuGMRU0;
-    public ToolStripMenuItem mnuGMRU1;
-    public ToolStripMenuItem mnuGMRU2;
-    public ToolStripMenuItem mnuGMRU3;
-    public ToolStripMenuItem mnuGame;
-    public ListBox lstProperty;
-    public ImageList imlPropButtons;
-    public ToolStripMenuItem mnuRAddRemove;
-    public ToolStripMenuItem mnuGCompileTo;
-    public ToolStripMenuItem mnuGCompileDirty;
-    public ToolStripMenuItem mnuGNewBlank;
-    public ToolStripMenuItem mnuGRebuild;
-    public ToolStripMenuItem mnuRImport;
-    public ToolStripMenuItem mnuGClose;
-    public ToolStripMenuItem mnuRRenumber;
-    private ToolStripStatusLabel Label1;
-    private ToolStripStatusLabel Label2;
-    private ToolStripStatusLabel toolStripStatusLabel1;
-    private ToolStripStatusLabel springLabel;
-    private ToolStripStatusLabel NumLockLabel;
-    private ToolStripStatusLabel InsertLockLabel;
-    private ToolStripStatusLabel StatusPanel1;
-    private DataGridView fgWarnings;
-    private PictureBox picNavList;
-    public FolderBrowserDialog FolderDlg;
-    private SplitContainer splResource;
-    public TreeView tvwResources;
-    public ListView lstResources;
-    public ComboBox cmbResType;
-    private SplitContainer splitContainer1;
-    private PropertyGrid propertyGrid1;
+        private ContextMenuStrip contextMenuStrip1;
+        private StatusStrip statusStrip1;
+        private ToolStrip toolStrip1;
+        private ToolStripStatusLabel CapsLockLabel;
+        private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripMenuItem newToolStripMenuItem;
+        private ToolStripMenuItem mnuROpen;
+        private ToolStripSeparator toolStripSeparator2;
+        private ToolStripMenuItem saveToolStripMenuItem;
+        private ToolStripMenuItem saveAsToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator3;
+        private ToolStripMenuItem printToolStripMenuItem;
+        private ToolStripMenuItem mnuR;
+        private ToolStripSeparator toolStripSeparator4;
+        private ToolStripMenuItem exitToolStripMenuItem;
+        private ToolStripMenuItem editToolStripMenuItem;
+        private ToolStripMenuItem toolsToolStripMenuItem;
+        private ToolStripMenuItem customizeToolStripMenuItem;
+        private ToolStripMenuItem optionsToolStripMenuItem;
+        private ToolStripMenuItem mnuHelp;
+        private ToolStripMenuItem contentsToolStripMenuItem;
+        private ToolStripMenuItem indexToolStripMenuItem;
+        private ToolStripMenuItem searchToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator7;
+        private ToolStripMenuItem aboutToolStripMenuItem;
+        private ToolStripButton btnOpen;
+        private ToolStripButton btnClose;
+        private ToolStripButton saveToolStripButton;
+        private ToolStripButton printToolStripButton;
+        private ToolStripSeparator toolStripSeparator;
+        private ToolStripButton cutToolStripButton;
+        private ToolStripButton btnOject;
+        private ToolStripSeparator btnSep3;
+        private ToolStripButton helpToolStripButton;
+        private ToolStripMenuItem mnuGNew;
+        private ToolStripMenuItem mnuGNewTemplate;
+        private ToolStripMenuItem mnuGOpen;
+        private ToolStripMenuItem mnuGImport;
+        private ToolStripSeparator mnuGSep1;
+        private ToolStripMenuItem mnuGCompile;
+        private ToolStripSeparator toolStripSeparator10;
+        private ToolStripMenuItem mnuGRun;
+        private ToolStripSeparator toolStripSeparator11;
+        private ToolStripMenuItem mnuGProperties;
+        private ToolStripSeparator toolStripSeparator12;
+        private ToolStripMenuItem mnuGExit;
+        private ToolStripMenuItem mnuResources;
+        private ToolStripMenuItem mnuTools;
+        private ToolStripMenuItem mnuWindow;
+        private ToolStripMenuItem mnuWCascade;
+        private ToolStripMenuItem mnuWTileV;
+        private ToolStripMenuItem mnuWTileH;
+        private ToolStripMenuItem mnuWArrange;
+        private ToolStripMenuItem mnuWMinimize;
+        private ToolStripSeparator toolStripSeparator8;
+        private ToolStripMenuItem mnuWClose;
+        public Splitter splitResource;
+        public Splitter splitWarning;
+        private ToolStripMenuItem toolStripMenuItem1;
+        private ToolStripMenuItem mnuRNew;
+        private ToolStripMenuItem mnuRSave;
+        private ToolStripMenuItem mnuRExport;
+        private ToolStripMenuItem mnuRIDDesc;
+        private ToolStripMenuItem mnuRPrint;
+        private ToolStripMenuItem mnuRNLogic;
+        private ToolStripMenuItem mnuRNPicture;
+        private ToolStripMenuItem mnuRNSound;
+        private ToolStripMenuItem mnuRNView;
+        private ToolStripSeparator toolStripSeparator6;
+        private ToolStripMenuItem mnuRNObjects;
+        private ToolStripMenuItem mnuRNWords;
+        private ToolStripSeparator toolStripSeparator5;
+        private ToolStripMenuItem mnuRNText;
+        private ToolStripMenuItem mnuROLogic;
+        private ToolStripMenuItem mnuROPicture;
+        private ToolStripMenuItem mnuROSound;
+        private ToolStripMenuItem mnuROView;
+        private ToolStripSeparator toolStripSeparator13;
+        private ToolStripMenuItem mnuROObjects;
+        private ToolStripMenuItem mnuROWords;
+        private ToolStripSeparator toolStripSeparator14;
+        private ToolStripMenuItem mnuROText;
+        private ToolStripMenuItem mnuRILogic;
+        private ToolStripMenuItem mnuRIPicture;
+        private ToolStripMenuItem mnuRISound;
+        private ToolStripMenuItem mnuRIView;
+        private ToolStripSeparator toolStripSeparator15;
+        private ToolStripMenuItem mnuRIObjects;
+        private ToolStripMenuItem mnuRIWords;
+        private ToolStripSeparator mnuGSep2;
+        private ToolStripSeparator mnuGSep3;
+        private ToolStripSeparator mnuGSep5;
+        private ToolStripMenuItem mnuTSettings;
+        private ToolStripSeparator mnuTSep1;
+        private ToolStripMenuItem mnuTLayout;
+        private ToolStripMenuItem mnuTMenuEditor;
+        private ToolStripMenuItem mnuTGlobals;
+        private ToolStripMenuItem mnuReserved;
+        private ToolStripMenuItem mnuTSnippets;
+        private ToolStripMenuItem mnuTPalette;
+        private ToolStripSeparator mnuTSep2;
+        private ToolStripMenuItem mnuTCustom1;
+        private ToolStripMenuItem mnuTCustom2;
+        private ToolStripMenuItem mnuTCustom3;
+        private ToolStripMenuItem mnuTCustom4;
+        private ToolStripMenuItem mnuTCustom5;
+        private ToolStripMenuItem mnuTCustom6;
+        private ToolStripSeparator mnuTSep3;
+        private ToolStripMenuItem mnuTCustomize;
+        private ToolStripMenuItem mnuHContents;
+        private ToolStripMenuItem mnuHIndex;
+        private ToolStripSeparator mnuHSep1;
+        private ToolStripMenuItem mnuHCommands;
+        private ToolStripMenuItem mnuHReference;
+        private ToolStripSeparator mnuHSep2;
+        private ToolStripMenuItem mnuHAbout;
+        private ImageList imageList1;
+        private ToolStripButton btnOpenGame;
+        private ToolStripButton btnCloseGame;
+        private ToolStripButton btnRun;
+        private ToolStripSeparator btnSep1;
+        private ToolStripButton btnPrint;
+        private ToolStripSplitButton btnNewRes;
+        private ToolStripSplitButton btnOpenRes;
+        private ToolStripMenuItem btnOpenLogic;
+        private ToolStripMenuItem btnOpenPicture;
+        private ToolStripMenuItem btnOpenSound;
+        private ToolStripMenuItem btnOpenView;
+        private ToolStripSplitButton btnImportRes;
+        private ToolStripSeparator btnSep2;
+        private ToolStripMenuItem btnImportLogic;
+        private ToolStripMenuItem btnImportPicture;
+        private ToolStripMenuItem btnImportSound;
+        private ToolStripMenuItem btnImportView;
+        private ToolStripButton btnWords;
+        private ToolStripButton btnOjects;
+        private ToolStripButton btnSaveResource;
+        private ToolStripButton btnAddRemove;
+        private ToolStripButton btnExportRes;
+        private ToolStripSeparator btnSep4;
+        private ToolStripButton btnLayoutEd;
+        private ToolStripButton btnMenuEd;
+        private ToolStripButton btnGlobals;
+        private ToolStripSeparator btnSep5;
+        private ToolStripButton btnHelp;
+        private ToolStripMenuItem btnNewLogic;
+        private ToolStripMenuItem btnNewPicture;
+        private ToolStripMenuItem btnNewSound;
+        private ToolStripMenuItem btnNewView;
+        private Timer tmrNavList;
+        private ToolStripSplitButton toolStripSplitButton2;
+        private ToolStripSplitButton toolStripSplitButton3;
+        private ToolStripSplitButton toolStripSplitButton4;
+        public Button cmdForward;
+        public Button cmdBack;
+        internal Panel pnlResources;
+        public OpenFileDialog OpenDlg;
+        public SaveFileDialog SaveDlg;
+        public Panel pnlWarnings;
+        public ToolStripSeparator mnuGMRUBar;
+        public ToolStripMenuItem mnuGMRU0;
+        public ToolStripMenuItem mnuGMRU1;
+        public ToolStripMenuItem mnuGMRU2;
+        public ToolStripMenuItem mnuGMRU3;
+        public ToolStripMenuItem mnuGame;
+        public ListBox lstProperty;
+        public ImageList imlPropButtons;
+        public ToolStripMenuItem mnuRAddRemove;
+        public ToolStripMenuItem mnuGCompileTo;
+        public ToolStripMenuItem mnuGCompileDirty;
+        public ToolStripMenuItem mnuGNewBlank;
+        public ToolStripMenuItem mnuGRebuild;
+        public ToolStripMenuItem mnuRImport;
+        public ToolStripMenuItem mnuGClose;
+        public ToolStripMenuItem mnuRRenumber;
+        private ToolStripStatusLabel Label1;
+        private ToolStripStatusLabel Label2;
+        private ToolStripStatusLabel toolStripStatusLabel1;
+        private ToolStripStatusLabel springLabel;
+        private ToolStripStatusLabel NumLockLabel;
+        private ToolStripStatusLabel InsertLockLabel;
+        private ToolStripStatusLabel StatusPanel1;
+        private DataGridView fgWarnings;
+        private PictureBox picNavList;
+        public FolderBrowserDialog FolderDlg;
+        private SplitContainer splResource;
+        public TreeView tvwResources;
+        public ListView lstResources;
+        public ComboBox cmbResType;
+        private SplitContainer splitContainer1;
+        private PropertyGrid propertyGrid1;
         private ColumnHeader columnHeader1;
         private DataGridViewTextBoxColumn colWarning;
         private DataGridViewTextBoxColumn colDesc;

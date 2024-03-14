@@ -667,6 +667,8 @@ namespace WinAGI.Engine {
                 WinAGIException wex = new(LoadResString(539)) {
                     HResult = WINAGI_ERR + 539
                 };
+                wex.Data["ID"] = mResID;
+                wex.Data["srcloop"] = SourceLoop;
                 throw wex;
             }
             // TODO: shouldn't targetloop also be checked for being valid?
@@ -687,7 +689,7 @@ namespace WinAGI.Engine {
                 //ignore - can't be a mirror of itself
                 return;
             }
-            //this loop can't be already mirrored
+            //the target loop can't be already mirrored
             if (mLoopCol[TargetLoop].Mirrored != 0) {
                 //error
                 WinAGIException wex = new(LoadResString(550)) {
@@ -697,10 +699,9 @@ namespace WinAGI.Engine {
                 wex.Data["tgtloop"] = TargetLoop;
                 throw wex;
             }
-            //the mirror loop can't already have a mirror
+            //the source loop can't already have a mirror
             if (mLoopCol[SourceLoop].Mirrored != 0) {
                 //error
-
                 WinAGIException wex = new(LoadResString(551)) {
                     HResult = WINAGI_ERR + 551
                 };
