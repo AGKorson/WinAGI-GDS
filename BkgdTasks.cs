@@ -11,6 +11,7 @@ using static WinAGI.Editor.Base;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIResType;
 using System.IO;
+using System.Diagnostics;
 
 namespace WinAGI.Editor {
     class BkgdTasks {
@@ -22,26 +23,28 @@ namespace WinAGI.Editor {
             int lngErr;
             LoadGameResults argval = (LoadGameResults)e.Argument;
             try {
-                //and load the game/dir
+                // load the game/dir
                 // TODO: need to re-do game management; games should ALWAYS be loaded; 
-                // when created, they are either NEW, opened from WAG file, or imported from
-                // DIR; use overloads in the initializer function
-
+                // if constructor successfully loads game, it returns
+                // if game can't be loaded, constructor ALWAYS returns error
                 if (argval.Mode == 0) {
                     EditGame = new AGIGame(OpenGameMode.File, argval.Source);
                 }
                 else {
                     EditGame = new AGIGame(OpenGameMode.Directory, argval.Source);
                 }
+                // if no errors, means game loaded OK
                 blnLoaded = true;
+                Debug.Assert(EditGame.GameLoaded);
                 blnWarnings = EditGame.LoadWarnings;
             }
             catch (Exception ex) {
-                //catch any errors/warnings that were returned
+                // errors always causes failure to load
+                // ALWAYS release the game object if it fails to load
+                EditGame = null;
+                blnLoaded = false;
                 lngErr = ex.HResult;
                 strError = ex.Message;
-                // TODO: use data field to access additional error info
-                TWinAGIEventInfo errInfo = (TWinAGIEventInfo)ex.Data["retval"];
                 if ((lngErr & WINAGI_ERR) == WINAGI_ERR) {
                     bgwOpenGame.ReportProgress(0, "Error encountered, game not loaded");
                     //error
@@ -125,12 +128,19 @@ namespace WinAGI.Editor {
         public static void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e) {
             // progress percentage used to identify different types of events
             switch (e.ProgressPercentage) {
-            case 1: // load warning
+            case 1:
+                // load warning
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
                 break;
-            case 2: // TODO
+            case 2:
+                // TODO
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
                 break;
+            case 3:
+                // Decode warning
+                MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
+                break;
+
             default:
                 ProgressWin.lblProgress.Text = e.UserState.ToString();
                 if (e.ProgressPercentage == 50) {
@@ -186,5 +196,9 @@ namespace WinAGI.Editor {
                 }
             }
         }
+
+        internal static BackgroundWorker bgwLoadLogic = null;
+        // TODO: write event handlers to manage logic TODOs and warnings 
+        // when 
     }
 }

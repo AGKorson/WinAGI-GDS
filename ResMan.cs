@@ -586,7 +586,7 @@ namespace WinAGI.Editor
             public int CompileOnRun;  // //0 = ask; 1 = no; 2 = yes
             public int LogicUndo;  //
             public int WarnMsgs;  //  //0 = ask; 1 = keep all; 2 = keep only used
-            public LogicErrorLevel ErrorLevel; //default error level for new games
+            //public LogicErrorLevel ErrorLevel; //default error level for new games
             public bool DefUseResDef;  //default value for UseResDef
             public bool Snippets;  // determines if Snippets are used in logic/text code
                                    //pictures
@@ -1534,6 +1534,7 @@ namespace WinAGI.Editor
 
             //get a directory for importing
             MDIMain.FolderDlg.Description = "Select the directory of the game you wish to import:";
+            MDIMain.FolderDlg.AutoUpgradeEnabled = false;
             DialogResult result = MDIMain.FolderDlg.ShowDialog(MDIMain);
             if (result == DialogResult.OK) {
                 //if not canceled;
@@ -2080,8 +2081,7 @@ namespace WinAGI.Editor
             retval = retval.Replace((char)255, '%');
             return retval;
         }
-        public static void OpenMRUGame(int Index)
-        {
+        public static void OpenMRUGame(int Index) {
             int i;
 
             //skip if this MRU is blank (probably due to user manually editing
@@ -2092,38 +2092,38 @@ namespace WinAGI.Editor
             }
             //attempt to open this game
             if (OpenGame(0, strMRU[Index])) {
-                //if not successful
-                if (EditGame is null || !EditGame.GameLoaded) {
-                    //step through rest of mru entries
-                    for (i = Index + 1; i < 4; i++) {
-                        //move this mru entry up
-                        strMRU[i - 1] = strMRU[i];
-                        //if blank
-                        if (strMRU[i - 1].Length == 0) {
-                            //hide this mru item
-                            MDIMain.mnuGame.DropDownItems["mnuGMRU" + (i - 1)].Visible = false;
-                        }
-                        else {
-                            //change this mru item
-                            MDIMain.mnuGame.DropDownItems["mnuGMRU" + (i - 1)].Text = CompactPath(strMRU[i], 60);
-                        }
+                //reset browser start dir to this dir
+                BrowserStartDir = JustPath(strMRU[Index]);
+            }
+            else {
+                Debug.Assert(EditGame is null);
+                //Debug.Assert(!EditGame.GameLoaded);
+                //step through rest of mru entries
+                for (i = Index + 1; i < 4; i++) {
+                    //move this mru entry up
+                    strMRU[i - 1] = strMRU[i];
+                    //if blank
+                    if (strMRU[i - 1].Length == 0) {
+                        //hide this mru item
+                        MDIMain.mnuGame.DropDownItems["mnuGMRU" + (i - 1)].Visible = false;
                     }
-                    //remove last entry
-                    strMRU[3] = "";
-                    MDIMain.mnuGMRU3.Visible = false;
-
-                    //if none left
-                    if (strMRU[0].Length == 0) {
-                        //hide bar too
-                        MDIMain.mnuGMRUBar.Visible = false;
+                    else {
+                        //change this mru item
+                        MDIMain.mnuGame.DropDownItems["mnuGMRU" + (i - 1)].Text = CompactPath(strMRU[i], 60);
                     }
                 }
-                else {
-                    //reset browser start dir to this dir
-                    BrowserStartDir = JustPath(strMRU[Index]);
+                //remove last entry
+                strMRU[3] = "";
+                MDIMain.mnuGMRU3.Visible = false;
+
+                //if none left
+                if (strMRU[0].Length == 0) {
+                    //hide bar too
+                    MDIMain.mnuGMRUBar.Visible = false;
                 }
             }
         }
+
         public static void AddToMRU(string NewWAGFile)
         {
             //if NewWAGFile is already in the list,

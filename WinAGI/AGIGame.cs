@@ -18,15 +18,8 @@ namespace WinAGI.Engine {
     // all components for reading/editing
     //
     //***************************************************
-    public partial class AGIGame : IDisposable {
+    public partial class AGIGame { //  : IDisposable {
         private bool disposed = false;
-
-        internal SettingsList agGameProps;
-
-        //game compile variables
-        internal bool agCompGame = false;
-        internal bool agCancelComp = false;
-        internal bool agChangeVersion = false;
 
         //local variable(s) to hold property Value(s)
         //for game properties which need to be accessible
@@ -70,8 +63,14 @@ namespace WinAGI.Engine {
         internal bool agPowerPack = false;
         internal string agDefSrcExt = "lgc";
         internal string agSrcFileExt = "";
-
         internal TDefine[] agResGameDef = new TDefine[4];
+        internal SettingsList agGameProps;
+
+        //game compile variables
+        internal bool agCompGame = false;
+        internal bool agCancelComp = false;
+        internal bool agChangeVersion = false;
+
 
         public AGIGame(OpenGameMode mode, string gameSource) {
             InitGame();
@@ -81,8 +80,6 @@ namespace WinAGI.Engine {
                 Module = "",
                 Text = ""
             };
-            // give compiler access
-            compGame = this;
             switch (mode) {
             case OpenGameMode.File:
                 retval = OpenGameWAG(gameSource);
@@ -92,6 +89,8 @@ namespace WinAGI.Engine {
                 break;
             }
             if (retval.Type == EventType.etError) {
+                // release compGame
+                compGame = null;
                 // throw return value as exception
                 WinAGIException wex = new(retval.Text) {
                     HResult = WINAGI_ERR + int.Parse(retval.ID),
@@ -109,38 +108,38 @@ namespace WinAGI.Engine {
             NewGame(id, version, gamedir, resdir, template);
         }
 
-        public void Dispose() {
-            Dispose(true);
-            // This object will be cleaned up by the Dispose method.
-            // Therefore, you should call GC.SuppressFinalize to
-            // take this object off the finalization queue
-            // and prevent finalization code for this object
-            // from executing a second time.
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing) {
-            // If disposing equals true, dispose all managed
-            // and unmanaged resources.
-            if (disposing) {
-                // Dispose managed resources.
+        //public void Dispose() {
+        //    Dispose(true);
+        //    // This object will be cleaned up by the Dispose method.
+        //    // Therefore, you should call GC.SuppressFinalize to
+        //    // take this object off the finalization queue
+        //    // and prevent finalization code for this object
+        //    // from executing a second time.
+        //    GC.SuppressFinalize(this);
+        //}
+        //protected virtual void Dispose(bool disposing) {
+        //    // If disposing equals true, dispose all managed
+        //    // and unmanaged resources.
+        //    if (disposing) {
+        //        // Dispose managed resources.
 
-            }
+        //    }
 
-            // Call the appropriate methods to clean up
-            // unmanaged resources here.
-            // If disposing is false,
-            // only the following code is executed.
-            compGame = null;
+        //    // Call the appropriate methods to clean up
+        //    // unmanaged resources here.
+        //    // If disposing is false,
+        //    // only the following code is executed.
+        //    compGame = null;
 
-            // Note disposing has been done.
-            disposed = true;
-        }
-        ~AGIGame() {
-            // Do not re-create Dispose clean-up code here.
-            // Calling Dispose(disposing: false) is optimal in terms of
-            // readability and maintainability.
-            Dispose(false);
-        }
+        //    // Note disposing has been done.
+        //    disposed = true;
+        //}
+        //~AGIGame() {
+        //    // Do not re-create Dispose clean-up code here.
+        //    // Calling Dispose(disposing: false) is optimal in terms of
+        //    // readability and maintainability.
+        //    Dispose(false);
+        //}
         private void InitGame() {
             //get default max vol sizes
             agMaxVolSize = 1023 * 1024;
@@ -1576,7 +1575,10 @@ namespace WinAGI.Engine {
         }
 
         public TWinAGIEventInfo OpenGameDIR(string NewGameDir) {
-            //creates a new WinAGI game file from Sierra game directory
+            // creates a new WinAGI game file from Sierra game directory
+            //
+            // if successful, warning/load info is passed back
+            // if fails, error is thrown
 
             // assume OK result
             TWinAGIEventInfo retval = new() {
@@ -1592,11 +1594,14 @@ namespace WinAGI.Engine {
                 Module = "",
                 Text = ""
             };
-            // if a game is already open,
+
             if (agGameLoaded) {
+                ClearGameState();
                 // can't open a game if one is already open
-                retval.Type = EventType.etError;
-                retval.ID = 501.ToString();
+                WinAGIException wex = new(LoadResString(501)) {
+                    HResult = WINAGI_ERR + 501,
+                };
+                throw wex;
             }
             // set game directory
             agGameDir = CDir(NewGameDir);
@@ -1608,14 +1613,13 @@ namespace WinAGI.Engine {
             // check for valid DIR/VOL files
             // (which gets gameid, and sets version 3 status flag)
             if (!IsValidGameDir(agGameDir)) {
-                // save dir as error string
-                // clear game variables
                 ClearGameState();
                 // directory is not a valid AGI directory
-                retval.Type = EventType.etError;
-                retval.ID = 541.ToString();
-                retval.Text = CDir(NewGameDir);
-                return retval;
+                WinAGIException wex = new(LoadResString(541).Replace(ARG1, CDir(NewGameDir))) {
+                    HResult = WINAGI_ERR + 541,
+                };
+                wex.Data["baddir"] = CDir(NewGameDir);
+                throw wex;
             }
             // create a new wag file name
             agGameFile = agGameDir + agGameID + ".wag";
@@ -1629,14 +1633,14 @@ namespace WinAGI.Engine {
                 }
             }
             catch (Exception e) {
-                // clear game variables
                 ClearGameState();
                 // file error
-                // TODO: need a generic number for all non-enumerated errors that might be encountered
-                retval.Type = EventType.etError;
-                retval.ID = 999.ToString();
-                retval.Text = e.HResult.ToString() + ": " + e.Message;
-                return retval;
+                // TODO: need a new number for all error on backing up wag file
+                WinAGIException wex = new(LoadResString(999)) {
+                    HResult = WINAGI_ERR + 999,
+                };
+                wex.Data["exception"] = e;
+                throw wex;
             }
             // create new wag file
             agGameProps = new SettingsList(agGameFile);
@@ -1646,70 +1650,45 @@ namespace WinAGI.Engine {
             agGameProps.WriteSetting("General", "WinAGIVersion", WINAGI_VERSION);
             agGameProps.WriteSetting("General", "GameID", agGameID);
             // get version number (version3 flag already set)
-            agIntVersion = Base.GetIntVersion(agGameDir, agIsVersion3);
+            agIntVersion = GetIntVersion(agGameDir, agIsVersion3);
             // if not valid
             if (agIntVersion.Length == 0) {
                 // clear game variables
                 ClearGameState();
                 // invalid number found
-                retval.Type = EventType.etError;
-                retval.ID = 543.ToString();
-                retval.Text = "";
-                return retval;
+                WinAGIException wex = new(LoadResString(543)) {
+                    HResult = WINAGI_ERR + 543,
+                };
+                throw wex;
             }
-            //save version
+            // save version
             WriteGameSetting("General", "Interpreter", agIntVersion);
-            //finish the game load
-            return FinishGameLoad(OpenGameMode.Directory);
-        }
-
-        internal void ClearGameState() {
-            // clears basic game variables for a blank, unopened game
-            agGameLoaded = false;
-            agLogs = new Logics(this);
-            agPics = new Pictures(this);
-            agSnds = new Sounds(this);
-            agViews = new Views(this);
-            agInvObj = new InventoryList(this);
-            agVocabWords = new WordList(this);
-            agGlobals = new GlobalList(this);
-            // clear out game properties
-            agGameID = "";
-            agIntVersion = "";
-            agIsVersion3 = false;
-            agGameProps = new SettingsList("");
-            agLastEdit = new DateTime();
-            agSierraSyntax = false;
-            agPowerPack = false;
-            agLoadWarnings = false;
-            // reset directories
-            agGameDir = "";
-            agResDir = "";
-            agGameFile = "";
-            agSrcFileExt = agDefSrcExt;
-            // clear dev properties
-            agDescription = "";
-            agAuthor = "";
-            agGameVersion = "";
-            agAbout = "";
-            agResDirName = "";
-            agPlatformType = 0;
-            agPlatformFile = "";
-            agPlatformOpts = "";
-            agDOSExec = "";
-            // colors
-            for (int i = 0; i < 16; i++) {
-                agEGAcolors[i] = DefaultColors[i];
+            // give access to compiler
+            compGame = this;
+            // finish the game load
+            try {
+                return FinishGameLoad(OpenGameMode.Directory);
             }
-            // other properties
-            DecodeGameID = "";
-            IndentSize = 2; // TODO: set default indent?
+            catch (Exception) {
+                // pass it along
+                throw;
+            }
         }
 
         public TWinAGIEventInfo OpenGameWAG(string GameWAG) {
-            //opens a WinAGI game file (must be passed as a full length file name)
+            // opens a WinAGI game file (must be passed as a full length file name)
+            //
+            // if successful, warning/load info is passed back
+            // if fails, error is thrown
             TWinAGIEventInfo retval = new() {
                 Type = EventType.etInfo,
+                ID = "",
+                Module = "",
+                Text = ""
+            };
+            // periodically report status of the load back to calling function
+            TWinAGIEventInfo warnInfo = new() {
+                Type = EventType.etWarning,
                 ID = "",
                 Module = "",
                 Text = ""
@@ -1717,26 +1696,34 @@ namespace WinAGI.Engine {
             string strVer;
 
             if (agGameLoaded) {
+                ClearGameState();
                 // can't open a game if one is already open
-                retval.Type = EventType.etError;
-                retval.ID = 501.ToString();
-                return retval;
+                WinAGIException wex = new(LoadResString(501)) {
+                    HResult = WINAGI_ERR + 501,
+                };
+                throw wex;
             }
+            // TODO: add some status updates for openbywag
             if (!File.Exists(GameWAG)) {
                 // invalid wag
                 retval.Type = EventType.etError;
                 // is the file missing?, or the directory?
                 if (Directory.Exists(JustPath(GameWAG, true))) {
                     // it's a missing file - return wagfile as error string
-                    retval.ID = 655.ToString();
-                    retval.Text = GameWAG;
+                    WinAGIException wex = new(LoadResString(655).Replace(ARG1, GameWAG)) {
+                        HResult = WINAGI_ERR + 655,
+                    };
+                    wex.Data["badwag"] = GameWAG;
+                    throw wex;
                 }
                 else {
                     // it's an invalid or missing directory - return directory as error string
-                    retval.ID = 541.ToString();
-                    retval.Text = JustPath(GameWAG, true);
+                    WinAGIException wex = new(LoadResString(541).Replace(ARG1, JustPath(GameWAG, true))) {
+                        HResult = WINAGI_ERR + 541,
+                    };
+                    wex.Data["baddir"] = JustPath(GameWAG, true);
+                    throw wex;
                 }
-                return retval;
             }
             // reset game variables
             ClearGameState();
@@ -1750,21 +1737,20 @@ namespace WinAGI.Engine {
                 agGameProps.Open(false);
                 // check for readonly (not allowed)
                 if ((File.GetAttributes(GameWAG) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                    // pass along the error
-                    retval.Type = EventType.etError;
-                    retval.ID = 655.ToString();
-                    retval.Text = "WAG File is 'readonly'";
-                    return retval;
+                    WinAGIException wex = new(LoadResString(999).Replace(ARG1, GameWAG)) {
+                        HResult = WINAGI_ERR + 999,
+                    };
+                    throw wex;
                 }
             }
             catch (Exception e) {
                 // reset game variables
                 ClearGameState();
-                // pass along the error
-                retval.Type = EventType.etError;
-                retval.ID = 655.ToString();
-                retval.Text = e.HResult.ToString() + ": " + e.Message;
-                return retval;
+                WinAGIException wex = new(LoadResString(999)) {
+                    HResult = WINAGI_ERR + 999,
+                };
+                wex.Data["exception"] = e;
+                throw wex;
             }
             // check to see if it's valid
             strVer = agGameProps.GetSetting("General", "WinAGIVersion", "");
@@ -1778,10 +1764,11 @@ namespace WinAGI.Engine {
                     // clear game variables
                     ClearGameState();
                     // invalid wag
-                    retval.Type = EventType.etError;
-                    retval.ID = 665.ToString();
-                    retval.Text = GameWAG;
-                    return retval;
+                    WinAGIException wex = new(LoadResString(665).Replace(ARG1, GameWAG)) {
+                        HResult = 999,
+                    };
+                    wex.Data["badversion"] = strVer;
+                    throw wex;
                 }
             }
             // get gameID
@@ -1792,14 +1779,15 @@ namespace WinAGI.Engine {
                 agIntVersion = agGameProps.GetSetting("General", "Interpreter", "");
                 // validate it
                 if (!IntVersions.Contains(agIntVersion)) {
-                    // save intver in error msg
-                    retval.Text = agIntVersion.ToString();
+                    string badver = agIntVersion;
                     // clear game variables
                     ClearGameState();
                     // invalid int version inside wag file
-                    retval.Type = EventType.etError;
-                    retval.ID = 691.ToString();
-                    return retval;
+                    WinAGIException wex = new(LoadResString(691)) {
+                        HResult = WINAGI_ERR + 691,
+                    };
+                    wex.Data["badversion"] = badver;
+                    throw wex;
                 }
             }
             else {
@@ -1808,13 +1796,15 @@ namespace WinAGI.Engine {
                 // clear game variables
                 ClearGameState();
                 // invalid wag file
-                retval.Type = EventType.etError;
-                retval.ID = 690.ToString();
-                retval.Text = GameWAG;
-                return retval;
+                WinAGIException wex = new(LoadResString(690)) {
+                    HResult = WINAGI_ERR + 690,
+                };
+                throw wex;
             }
             // if a valid wag file was found, we now have agGameID, agGameFile
             // and correct interpreter version;
+            // give access to compiler
+            compGame = this;
             // finish the game load
             return FinishGameLoad(OpenGameMode.File);
         }
@@ -1823,11 +1813,13 @@ namespace WinAGI.Engine {
             // finishes game load
             // mode determines whether opening by wag file or
             // extracting from Sierra game files
-            // (currently, no difference between them)
+            //
+            // if successful, warning/load info is passed back
+            // if fails, error is thrown
 
-            // instead of throwing exceptions, errors get passed back as a return value
             TWinAGIEventInfo retval = new() {
                 Type = EventType.etInfo,
+                InfoType = EInfoType.itDone,
                 ID = "",
                 Text = "",
                 Module = ""
@@ -1895,14 +1887,9 @@ namespace WinAGI.Engine {
             try {
                 blnWarnings |= ExtractResources(this);
             }
-            catch (Exception e) {
-                // if there was an error, can't continue
-                // clear game variables
-                ClearGameState();
-                retval.Type = EventType.etError;
-                retval.ID = 999.ToString(); // TODO: need new error number
-                retval.Text = e.HResult.ToString() + ": " + e.Message;
-                return retval;
+            catch (Exception) {
+                // pass it along
+                throw;
             }
             // clear other game properties
             agAuthor = "";
@@ -2056,6 +2043,9 @@ namespace WinAGI.Engine {
                             loadInfo.Module = tmpLog.ID;
                             Raise_LoadGameEvent(loadInfo);
                         }
+                        else {
+                            //TODO: what about other errors? are they even possible?
+                        }
                     }
                     // then unload it
                     tmpLog.Unload();
@@ -2085,9 +2075,55 @@ namespace WinAGI.Engine {
             // if warnings or errors
             if (blnWarnings) {
                 retval.ID = 636.ToString();
+                retval.Type = EventType.etWarning;
                 retval.Text = "WARNINGS";
             }
             return retval;
+        }
+
+        internal void ClearGameState() {
+            // clears basic game variables for a blank, unopened game
+            agGameLoaded = false;
+            agLogs = new Logics(this);
+            agPics = new Pictures(this);
+            agSnds = new Sounds(this);
+            agViews = new Views(this);
+            agInvObj = new InventoryList(this);
+            agVocabWords = new WordList(this);
+            agGlobals = new GlobalList(this);
+            // clear out game properties
+            agGameID = "";
+            agIntVersion = "";
+            agIsVersion3 = false;
+            agGameProps = new SettingsList("");
+            agLastEdit = new DateTime();
+            agSierraSyntax = false;
+            agPowerPack = false;
+            agLoadWarnings = false;
+            // reset directories
+            agGameDir = "";
+            agResDir = "";
+            agGameFile = "";
+            agSrcFileExt = agDefSrcExt;
+            // clear dev properties
+            agDescription = "";
+            agAuthor = "";
+            agGameVersion = "";
+            agAbout = "";
+            agResDirName = "";
+            agPlatformType = 0;
+            agPlatformFile = "";
+            agPlatformOpts = "";
+            agDOSExec = "";
+            // colors
+            for (int i = 0; i < 16; i++) {
+                agEGAcolors[i] = DefaultColors[i];
+            }
+            // other properties
+            DecodeGameID = "";
+            IndentSize = 2; // TODO: set default indent?
+            // release compGame reference
+            compGame = null;
         }
 
         internal void WriteGameSetting(string Section, string Key, dynamic Value, string Group = "") {

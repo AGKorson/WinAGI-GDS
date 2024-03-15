@@ -192,18 +192,24 @@ namespace WinAGI.Editor
                 // add to warning list
                 bgwOpenGame.ReportProgress(1, e.LoadInfo);
                 break;
+                //MDIMain.AddWarning(e.LoadInfo);
+                //break;
             case etTODO:
                 bgwOpenGame.ReportProgress(0, $"{e.LoadInfo.ID} TODO: : {e.LoadInfo.Text}");
                 // add to warning list
                 bgwOpenGame.ReportProgress(2, e.LoadInfo);
                 break;
+                //MDIMain.AddWarning(e.LoadInfo);
+                //break;
             }
         }
         private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e) {
 
         }
         private void GameEvents_DecodeLogicStatus(object sender, DecodeLogicEventArgs e) {
-
+            Debug.Print($"decode it: {e.DecodeInfo.Text}");
+            bgwOpenGame?.ReportProgress(2, e.DecodeInfo);
+            //MDIMain.AddWarning(e.DecodeInfo);
         }
         private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
 
@@ -289,12 +295,6 @@ namespace WinAGI.Editor
 
             CalcWidth = MIN_WIDTH;
             CalcHeight = MIN_HEIGHT;
-            //      //need to calculate height of top margin (for use by logic editor in displaying tips)
-            //      lngMainTopBorder = (this.Height - this.ScaleHeight - this.StatusBar1.Height - (this.Width - this.ScaleWidth) / 2) / ScreenTWIPSY;
-            //      lngMainLeftBorder = (this.Width - this.ScaleWidth) / ScreenTWIPSY / 2;
-            //        //and also need border values to facilitate positioning of the warnings list
-            //        WLOffsetH = this.Height - this.ScaleHeight;
-            //        WLOffsetW = this.Width - this.ScaleWidth;
 
             // toolbar stuff;
             btnNewRes.DefaultItem = btnNewLogic;
@@ -1141,12 +1141,11 @@ namespace WinAGI.Editor
                 Settings.WarnMsgs = 0;
             if (Settings.WarnMsgs > 2)
                 Settings.WarnMsgs = 2;
-            // TODO: when loading a game, need to set error level? NO!! error level is global!!!!!!
-            Settings.ErrorLevel = (LogicErrorLevel)GameSettings.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
-            if (Settings.ErrorLevel < 0)
-                Settings.ErrorLevel = LogicErrorLevel.leLow;
-            if ((int)Settings.ErrorLevel > 2)
-                Settings.ErrorLevel = LogicErrorLevel.leHigh;
+            Compiler.ErrorLevel = (LogicErrorLevel)GameSettings.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
+            if (Compiler.ErrorLevel < 0)
+                Compiler.ErrorLevel = LogicErrorLevel.leLow;
+            if ((int)Compiler.ErrorLevel > 2)
+                Compiler.ErrorLevel = LogicErrorLevel.leHigh;
             Settings.DefUseResDef = GameSettings.GetSetting(sLOGICS, "DefUseResDef", DEFAULT_DEFUSERESDEF);
             Settings.Snippets = GameSettings.GetSetting(sLOGICS, "Snippets", DEFAULT_SNIPPETS);
             //SYNTAXHIGHLIGHTFORMAT

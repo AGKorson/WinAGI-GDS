@@ -34,9 +34,10 @@ namespace WinAGI.Engine {
         public const int MCI_NOTIFY_SUCCESSFUL = 0x1;
 
         internal static bool ExtractResources(AGIGame game) {
-            //gets the resources from VOL files, and adds them to the game
-            //returns true if resources loaded with warnings
-            //returns false if one or more errors occur during load
+            // gets the resources from VOL files, and adds them to the game
+            // returns true if resources loaded with warnings
+            // returns false if one or more recoverable errors occur during load
+            // throws error if critical error enountered that prevents game from loading
 
             byte bytResNum;
             AGIResType bytResType;
@@ -69,6 +70,7 @@ namespace WinAGI.Engine {
                     WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 524
                     };
+                    wex.Data["dirfile"] = strDirFile;
                     throw wex;
                 }
                 try {
@@ -83,7 +85,7 @@ namespace WinAGI.Engine {
                         HResult = WINAGI_ERR + 502
                     };
                     wex.Data["exception"] = e;
-                    wex.Data["ID"] = Path.GetFileName(strDirFile);
+                    wex.Data["dirfile"] = Path.GetFileName(strDirFile);
                     throw wex;
                 }
 
@@ -138,6 +140,7 @@ namespace WinAGI.Engine {
                         WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
                             HResult = WINAGI_ERR + 524
                         };
+                        wex.Data["dirfile"] = strDirFile;
                         throw wex;
                     }
                     try {
@@ -147,10 +150,12 @@ namespace WinAGI.Engine {
                             fsDIR.Read(bytBuffer);
                         }
                     }
-                    catch (Exception) {
+                    catch (Exception e) {
                         WinAGIException wex = new(LoadResString(502)) {
                             HResult = WINAGI_ERR + 502
                         };
+                        wex.Data["exception"] = e;
+                        wex.Data["dirfile"] = strDirFile;
                         throw wex;
                     }
 
@@ -158,7 +163,7 @@ namespace WinAGI.Engine {
                     lngDirSize = bytBuffer.Length;
                 }
 
-                //if invalid dir information, return false
+                // if invalid dir information, return false
                 if ((lngDirOffset < 0) || (lngDirSize < 0)) {
                     WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 542
@@ -166,11 +171,11 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
 
-                //if at least one resource,
+                // if at least one resource,
                 if (lngDirSize >= 3) {
                     if (lngDirOffset + lngDirSize > bytBuffer.Length) {
                         WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
-                            HResult = WINAGI_ERR + 524
+                            HResult = WINAGI_ERR + 542
                         };
                         throw wex;
                     }
@@ -343,8 +348,14 @@ namespace WinAGI.Engine {
                                 fsDIR.Write(bytBuffer);
                             }
                         }
-                        catch (Exception) {
-                            //error!
+                        catch (Exception e) {
+                            // error!
+                            WinAGIException wex = new(LoadResString(999)) {
+                                HResult = WINAGI_ERR + 999,
+                            };
+                            wex.Data["exception"] = e;
+                            wex.Data["dirfile"] = strDirFile;
+                            throw wex;
                         }
                         //reset the dirty flag
                         blnDirtyDIR = false;
@@ -365,8 +376,14 @@ namespace WinAGI.Engine {
                         fsDIR.Write(bytBuffer);
                     }
                 }
-                catch (Exception) {
-                    //error!
+                catch (Exception e) {
+                    // error!
+                    WinAGIException wex = new(LoadResString(999)) {
+                        HResult = WINAGI_ERR + 999,
+                    };
+                    wex.Data["exception"] = e;
+                    wex.Data["dirfile"] = strDirFile;
+                    throw wex;
                 }
             }
             //return any warning codes
