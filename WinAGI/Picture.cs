@@ -6,10 +6,9 @@ using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using System.Runtime.InteropServices;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 
 namespace WinAGI.Engine {
     public class Picture : AGIResource {
@@ -233,8 +232,8 @@ namespace WinAGI.Engine {
         }
         public byte PriBase {
             get {
-                //if not in a game, or if before v2.936, always return value of 48
-                if (!parent.agGameLoaded || Val(parent.agIntVersion) < 2.936) {
+                //if before v2.936, always return value of 48
+                if (int.Parse(parent.agIntVersion) < 2.936) {
                     mPriBase = 48;
                 }
                 return mPriBase;

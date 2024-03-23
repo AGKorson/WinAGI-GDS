@@ -20,7 +20,7 @@ namespace WinAGI.Engine
             { // validate
               //validate
                 if (index < 0 || index > mCol.Count - 1) {
-                    throw new Exception("index out of bounds");
+                    throw new ArgumentOutOfRangeException();
                 }
                 return mCol[index];
             }
@@ -77,7 +77,7 @@ namespace WinAGI.Engine
         {
             //validate
             if (Index < 0 || Index > mCol.Count - 1) {
-                throw new Exception("index out of bounds");
+                throw new ArgumentOutOfRangeException();
             }
             mCol.RemoveAt(Index);
             //if parent is assigned

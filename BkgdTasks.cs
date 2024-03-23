@@ -35,7 +35,6 @@ namespace WinAGI.Editor {
                 }
                 // if no errors, means game loaded OK
                 blnLoaded = true;
-                Debug.Assert(EditGame.GameLoaded);
                 blnWarnings = EditGame.LoadWarnings;
             }
             catch (Exception ex) {
@@ -44,53 +43,75 @@ namespace WinAGI.Editor {
                 EditGame = null;
                 blnLoaded = false;
                 lngErr = ex.HResult;
-                strError = ex.Message;
                 if ((lngErr & WINAGI_ERR) == WINAGI_ERR) {
                     bgwOpenGame.ReportProgress(0, "Error encountered, game not loaded");
-                    //error
                     switch (lngErr - WINAGI_ERR) {
                     case 501:
                         strError = "A game is already loaded. Close it before opening another game.";
                         break;
                     case 502:
-                        strError = "A file access error occurred while trying to open this game: " + Environment.NewLine + Environment.NewLine + strError;
+                        // DIR file access error
+                        // ["exception"] Exception = ex
+                        // ["dirfile"] = string dirfile
+                        strError = $"A file access error occurred while trying to open {Path.GetFileName((string)ex.Data["dirfile"])}:{Environment.NewLine}{Environment.NewLine}{((WinAGIException)ex.Data["exception"]).HResult}: {((WinAGIException)ex.Data["exception"]).Message}";
                         break;
                     case 524:
-                        strError = "A critical game file (" + Path.GetFileName(strError) + " is missing.";
+                        // missing v2 DIR file
+                        // ["missingfile"] = string dirfile
+                        strError = $"A critical game file ({Path.GetFileName((string)ex.Data["missingfile"])}) is missing.";
                         break;
                     case 541:
-                        strError = "Missing or invalid directory '" + strError + "'";
+                        // Not a valid AGI directory
+                        //["baddir"] = string gamedir
+                        strError = $"Invalid or missing directory file '{Path.GetFileName((string)ex.Data["baddir"])}'";
                         break;
                     case 542:
-                        strError = "'" + Left(strError, strError.Length - 31) + "' is an invalid directory file.";
+                        // invalid DIR file
+                        //["baddir"] = string DIRfile
+                        strError = $"'{ex.Data["baddir"]}' is an invalid directory file.";
                         break;
                     case 543:
                         //invalid interpreter version - couldn't find correct version from the AGI
-                        //files; current error string is sufficient
-                        break;
-                    case 545:
-                        //resource loading error; current error string is sufficient
-                        break;
-                    case 597:
-                        strError = "WinAGI GDS only supports version 2 and 3 of AGI.";
+                        //files
+                        strError = ex.Message;
                         break;
                     case 655:
-                        strError = "Missing game property file (" + strError + ").";
+                        strError = $"Missing game property file ({ex.Data["badwag"]}).";
                         break;
                     case 665:
-                        strError = "Invalid or corrupt game property file (" + strError + ").";
+                        strError = $"Invalid WINAGE property file ({ex.Data["badversion"]}).";
                         break;
                     case 690:
-                        //invalid gameID in wag file
+                        //missing gameID in wag file
                         strError = "Game property file does not contain a valid GameID.";
                         break;
                     case 691:
                         //invalid intVersion in wag file
-                        strError = "Game property file does not contain a valid Interpreter Version.";
+                        strError = $"{ex.Data["badversion"]} is not a valid Interpreter Version.";
+                        break;
+                    case 699:
+                        // Unable to backup existing wag file
+                        // ["exception"] = Exception ex
+                        strError = $"Unable to backup existing WAG file - {ex.HResult}: {ex.Message}";
+                        break;
+                    case 700:
+                        // file / dir(WAG) is readonly
+                        strError = "Game directory and/or WAG File is readonly";
+                        break;
+                    case 701:
+                        //file error accessing WAG
+                        // ["exception"] = Exception ex
+                        strError = $"File access error when reading WAG file - {ex.HResult}: {ex.Message}";
+                        break;
+                    case 703:
+                        // file access error in DIR file
+                        // ["exception"] Exception = ex
+                        // ["dirfile"] = string dirfile
+                        strError = $"File access error when reading {Path.GetFileName(ex.Data["dirfile"].ToString())} file - {ex.HResult}: {ex.Message}";
                         break;
                     default:
                         // unknown error
-                        strError = "UNKNOWN: " + (lngErr - WINAGI_ERR).ToString() + " - " + ex.Source + " - " + strError;
+                        Debug.Assert(false);
                         break;
                     }
                 }

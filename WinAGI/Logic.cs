@@ -1,19 +1,9 @@
 ﻿using System;
-using System.ComponentModel;
 using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.Compiler;
 using static WinAGI.Common.Base;
 using System.IO;
-using System.Linq;
-using System.Text;
-using EnvDTE;
-using Microsoft.VisualBasic.Logging;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using Microsoft.VisualStudio.TextManager.Interop;
 using System.Diagnostics;
 
 namespace WinAGI.Engine {
@@ -197,10 +187,13 @@ namespace WinAGI.Engine {
         }
         public bool IsRoom {
             get { return mIsRoom; }
-            internal set {
+            set {
                 //if in a game, and logic 0
                 if (mInGame && (Number == 0)) {
-                    throw new Exception("450, Can't assign to read-only property");
+                    WinAGIException wex = new(LoadResString(450)) {
+                        HResult = WINAGI_ERR + 450,
+                    };
+                    throw wex;
                 }
 
                 //if changing
@@ -228,7 +221,10 @@ namespace WinAGI.Engine {
                 //if in a game,
                 if (mInGame) {
                     //sourcefile is predefined; raise error
-                    throw new Exception("450, Can't assign to read-only property");
+                    WinAGIException wex = new(LoadResString(450)) {
+                        HResult = WINAGI_ERR + 450,
+                    };
+                    throw wex;
                 }
                 else {
                     mSourceFile = value;
@@ -368,9 +364,9 @@ namespace WinAGI.Engine {
                         mSourceFile = "";
                     }
                 }
-                catch (Exception e) {
+                catch (Exception) {
                     Unload();
-                    throw new Exception(e.Message);
+                    throw;
                 }
             }
             //set ID to the filename without extension;
@@ -383,7 +379,7 @@ namespace WinAGI.Engine {
         }
         public override string ID {
             get => base.ID;
-            internal set {
+            set {
                 base.ID = value;
                 if (mInGame) {
                     //source file always tracks ID for ingame resources
@@ -445,25 +441,40 @@ namespace WinAGI.Engine {
 
             //if forcing decompile
             if (Decompile) {
-                //get source code by decoding the resource, decrypting messages if not v3compressed
+                // get source code by decoding the resource, decrypting messages if not v3compressed
                 strInput = DecodeLogic(this, mInGame ? Number : -1);
 
                 //make sure decompile flag is set (so crc can be saved)
                 Decompile = true;
-                //if in a game, always save this newly created source
+                // if in a game, always save this newly created source
             }
             else {
-                //FileStream fsLogic;
+                // verify file exists
+                if (!File.Exists(LoadFile)) {
+                    WinAGIException wex = new(LoadResString(704).Replace(ARG1, LoadFile)) {
+                        HResult = WINAGI_ERR + 704
+                    };
+                    wex.Data["missingfile"] = LoadFile;
+                    throw wex;
+                }
+                // check for readonly
+                if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                    WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
+                        HResult = WINAGI_ERR + 700,
+                    };
+                    wex.Data["badfile"] = LoadFile;
+                    throw wex;
+                }
                 try {
                     //load sourcecode from file
                     strInput = File.ReadAllText(LoadFile, parent.agCodePage);
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, LoadFile).Replace(ARG2, e.Message)) {
+                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, LoadFile)) {
                         HResult = WINAGI_ERR + 502
                     };
                     wex.Data["exception"] = e;
-                    wex.Data["ID"] = mResID;
+                    wex.Data["badfile"] = LoadFile;
                     throw wex;
                 }
             }

@@ -17,8 +17,7 @@ using static WinAGI.Editor.Base;
 using static WinAGI.Engine.Sound;
 
 namespace WinAGI.Editor {
-    public partial class frmPreview : Form
-    {
+    public partial class frmPreview : Form {
         private ComboBox[] cmbInst = new ComboBox[3];
         private CheckBox[] chkTrack = new CheckBox[4];
 
@@ -57,8 +56,7 @@ namespace WinAGI.Editor {
         bool blnViewHSB, blnViewVSB;
         bool blnPicVSB, blnPicHSB;
         const int PW_MARGIN = 4;
-        public frmPreview()
-        {
+        public frmPreview() {
             InitializeComponent();
             cmbInst[0] = cmbInst0;
             cmbInst[1] = cmbInst1;
@@ -68,15 +66,13 @@ namespace WinAGI.Editor {
             chkTrack[2] = chkTrack2;
             chkTrack[3] = chkTrack3;
         }
-        private void udPZoom_ValueChanged(object sender, EventArgs e)
-        {
+        private void udPZoom_ValueChanged(object sender, EventArgs e) {
             //set zoom
             PicScale = (int)udPZoom.Value;
             //force update
             DisplayPicture();
         }
-        public void LoadPreview(AGIResType ResType, int ResNum)
-        {
+        public void LoadPreview(AGIResType ResType, int ResNum) {
             // the desired resource must be loaded before showing its preview
 
             //show wait cursor
@@ -144,8 +140,7 @@ namespace WinAGI.Editor {
             //set restype
             PrevResType = ResType;
         }
-        public void ClearPreviewWin()
-        {
+        public void ClearPreviewWin() {
             //if the resource being cleared has recently been deleted
             //we don't need to unload it, just dereference it
             //unload view
@@ -207,8 +202,7 @@ namespace WinAGI.Editor {
             mnuRLoopGIF.Visible = false;
             mnuRSep1.Visible = false;
         }
-        public void UpdateCaption(AGIResType ResType, byte ResNum)
-        {
+        public void UpdateCaption(AGIResType ResType, byte ResNum) {
             string strID = "";
             // update window caption
             this.Text = "Preview - " + ResTypeName[(int)ResType] + " " + ResNum;
@@ -233,8 +227,7 @@ namespace WinAGI.Editor {
                 this.Text += strID;
             }
         }
-        bool PreviewLogic(byte LogNum)
-        {
+        bool PreviewLogic(byte LogNum) {
             //get the logic
             agLogic = EditGame.Logics[LogNum];
             try {
@@ -265,13 +258,11 @@ namespace WinAGI.Editor {
                 return false;
             }
         }
-        private void optVisual_CheckedChanged(object sender, EventArgs e)
-        {
+        private void optVisual_CheckedChanged(object sender, EventArgs e) {
             //force a redraw
             DisplayPicture();
         }
-        private void pnlPicImage_Resize(object sender, EventArgs e)
-        {
+        private void pnlPicImage_Resize(object sender, EventArgs e) {
             //position scrollbars
             //hsbPic.Top = pnlPicture.Bounds.Height - hsbPic.Height;
             hsbPic.Width = pnlPicImage.Bounds.Width;
@@ -280,18 +271,15 @@ namespace WinAGI.Editor {
             //     System.Diagnostics.Debug.Print($"p2 W: {panel2.Width}, H: {panel2.Height}");
             SetPScrollbars();
         }
-        private void vsbPic_Scroll(object sender, ScrollEventArgs e)
-        {
+        private void vsbPic_Scroll(object sender, ScrollEventArgs e) {
             // position image
             imgPicture.Top = -vsbPic.Value;
         }
-        private void hsbPic_Scroll(object sender, ScrollEventArgs e)
-        {
+        private void hsbPic_Scroll(object sender, ScrollEventArgs e) {
             //position picture
             imgPicture.Left = -hsbPic.Value;
         }
-        private void frmPreview_FormClosing(object sender, FormClosingEventArgs e)
-        {
+        private void frmPreview_FormClosing(object sender, FormClosingEventArgs e) {
             //ensure preview resources are cleared,
             if (agLogic is not null) {
                 //unload it
@@ -323,8 +311,7 @@ namespace WinAGI.Editor {
             GameSettings.WriteSetting(sPOSITION, "PreviewWidth", Width);
             GameSettings.WriteSetting(sPOSITION, "PreviewHeight", Height);
         }
-        bool PreviewPic(byte PicNum)
-        {
+        bool PreviewPic(byte PicNum) {
             try {
                 //get new picture
                 agPic = EditGame.Pictures[PicNum];
@@ -343,8 +330,7 @@ namespace WinAGI.Editor {
                 return false;
             }
         }
-        void DisplayPicture()
-        {
+        void DisplayPicture() {
             //resize picture Image holder
             imgPicture.Width = 320 * PicScale;
             imgPicture.Height = 168 * PicScale;
@@ -361,8 +347,7 @@ namespace WinAGI.Editor {
             //set scrollbars if necessary
             SetPScrollbars();
         }
-        private void btnPlay_Click(object sender, EventArgs e)
-        {
+        private void btnPlay_Click(object sender, EventArgs e) {
             int i;
             //if nothing to play
             if (agSound.Length == 0) {
@@ -399,8 +384,7 @@ namespace WinAGI.Editor {
             //enable timer
             tmrSound.Enabled = true;
         }
-        private void Timer1_Tick(object sender, EventArgs e)
-        {
+        private void Timer1_Tick(object sender, EventArgs e) {
             //update progress bar
 
             long lngNow;
@@ -420,8 +404,7 @@ namespace WinAGI.Editor {
                 picProgress.Width = (int)(pnlProgressBar.Width * dblPos);
             }
         }
-        public void StopSoundPreview()
-        {
+        public void StopSoundPreview() {
             //disable stop and enable play
             btnPlay.Enabled = !Settings.NoMIDI;
             //cmdPlay.Focus()   //DON'T do this - setting focus to a control also
@@ -442,8 +425,7 @@ namespace WinAGI.Editor {
             chkTrack[3].Enabled = true;
             cmdReset.Enabled = true;
         }
-        void SetPScrollbars()
-        {
+        void SetPScrollbars() {
             //// if panel is not visible, no need to adjust scrollbars
             //if (!panel2.Visible) {
             //  return;
@@ -498,36 +480,28 @@ namespace WinAGI.Editor {
             hsbPic.Visible = blnPicHSB;
             vsbPic.Visible = blnPicVSB;
         }
-        private void chkTrack0_CheckedChanged(object sender, EventArgs e)
-        {
+        private void chkTrack0_CheckedChanged(object sender, EventArgs e) {
             chkTrack_Click(0);
         }
-        private void chkTrack1_CheckedChanged(object sender, EventArgs e)
-        {
+        private void chkTrack1_CheckedChanged(object sender, EventArgs e) {
             chkTrack_Click(1);
         }
-        private void chkTrack2_CheckedChanged(object sender, EventArgs e)
-        {
+        private void chkTrack2_CheckedChanged(object sender, EventArgs e) {
             chkTrack_Click(2);
         }
-        private void chkTrack3_CheckedChanged(object sender, EventArgs e)
-        {
+        private void chkTrack3_CheckedChanged(object sender, EventArgs e) {
             chkTrack_Click(3);
         }
-        private void cmbInst0_SelectionChangeCommitted(object sender, EventArgs e)
-        {
+        private void cmbInst0_SelectionChangeCommitted(object sender, EventArgs e) {
             cmbInst_Click(0);
         }
-        private void cmbInst1_SelectionChangeCommitted(object sender, EventArgs e)
-        {
+        private void cmbInst1_SelectionChangeCommitted(object sender, EventArgs e) {
             cmbInst_Click(1);
         }
-        private void cmbInst2_SelectionChangeCommitted(object sender, EventArgs e)
-        {
+        private void cmbInst2_SelectionChangeCommitted(object sender, EventArgs e) {
             cmbInst_Click(2);
         }
-        bool PreviewSound(byte SndNum)
-        {
+        bool PreviewSound(byte SndNum) {
             int i;
 
             //get new sound
@@ -589,15 +563,13 @@ namespace WinAGI.Editor {
             btnPlay.Enabled = !Settings.NoMIDI;
             return true;
         }
-        private void cmdReset_Click(object sender, EventArgs e)
-        {
+        private void cmdReset_Click(object sender, EventArgs e) {
             //reset instruments to default
             cmbInst[0].SelectedIndex = 80;
             cmbInst[1].SelectedIndex = 80;
             cmbInst[2].SelectedIndex = 80;
         }
-        private void This_SoundComplete(object sender, SoundCompleteEventArgs e)
-        {
+        private void This_SoundComplete(object sender, SoundCompleteEventArgs e) {
             //disable stop and enable play
             btnPlay.Enabled = !Settings.NoMIDI;
             btnStop.Enabled = false;
@@ -617,8 +589,7 @@ namespace WinAGI.Editor {
             //now reset the progress bar
             picProgress.Width = 0;
         }
-        private void cmdVPlay_Click(object sender, EventArgs e)
-        {
+        private void cmdVPlay_Click(object sender, EventArgs e) {
             //toggle motion
             tmrMotion.Enabled = !tmrMotion.Enabled;
 
@@ -656,8 +627,7 @@ namespace WinAGI.Editor {
             }
             picCel.Focus();
         }
-        private void chkTrans_Click(object sender, EventArgs e)
-        {
+        private void chkTrans_Click(object sender, EventArgs e) {
             //toggle transparency
             blnTrans = !blnTrans;
             //force update
@@ -670,8 +640,7 @@ namespace WinAGI.Editor {
                 pnlCel.CreateGraphics().Clear(BackColor);
             }
         }
-        private void dLoop_Click(object sender, EventArgs e)
-        {
+        private void dLoop_Click(object sender, EventArgs e) {
             if (agView.Loops.Count > 1) {
                 //stop motion
                 tmrMotion.Enabled = false;
@@ -680,8 +649,7 @@ namespace WinAGI.Editor {
                 DisplayLoop();
             }
         }
-        private void uLoop_Click(object sender, EventArgs e)
-        {
+        private void uLoop_Click(object sender, EventArgs e) {
             if (agView.Loops.Count > 1) {
                 //stop motion
                 tmrMotion.Enabled = false;
@@ -690,8 +658,7 @@ namespace WinAGI.Editor {
                 DisplayLoop();
             }
         }
-        private void dCel_Click(object sender, EventArgs e)
-        {
+        private void dCel_Click(object sender, EventArgs e) {
             if (agView[CurLoop].Cels.Count > 1) {
                 //stop motion
                 tmrMotion.Enabled = false;
@@ -700,8 +667,7 @@ namespace WinAGI.Editor {
                 DisplayCel();
             }
         }
-        private void uCel_Click(object sender, EventArgs e)
-        {
+        private void uCel_Click(object sender, EventArgs e) {
             if (agView[CurLoop].Cels.Count > 1) {
                 //stop motion
                 tmrMotion.Enabled = false;
@@ -710,16 +676,13 @@ namespace WinAGI.Editor {
                 DisplayCel();
             }
         }
-        private void tbbZoomIn_Click(object sender, EventArgs e)
-        {
+        private void tbbZoomIn_Click(object sender, EventArgs e) {
             ZoomPrev(1);
         }
-        private void tbbZoomOut_Click(object sender, EventArgs e)
-        {
+        private void tbbZoomOut_Click(object sender, EventArgs e) {
             ZoomPrev(-1);
         }
-        void ZoomPrev(int Dir)
-        {
+        void ZoomPrev(int Dir) {
             int mW, mH;
             //get current maxH and maxW (by de-calculating)
             mW = picCel.Width / ViewScale / 2;
@@ -747,59 +710,49 @@ namespace WinAGI.Editor {
             //then redraw the cel
             DisplayCel();
         }
-        private void tbbAlignLeft_Click(object sender, EventArgs e)
-        {
+        private void tbbAlignLeft_Click(object sender, EventArgs e) {
             lngHAlign = 0;
             HAlign.ImageIndex = lngHAlign + 2;
         }
-        private void tbbAlignCenter_Click(object sender, EventArgs e)
-        {
+        private void tbbAlignCenter_Click(object sender, EventArgs e) {
             // update alignment, and redraw
             lngHAlign = 1;
             HAlign.ImageIndex = lngHAlign + 2;
         }
-        private void tbbAlignRight_Click(object sender, EventArgs e)
-        {
+        private void tbbAlignRight_Click(object sender, EventArgs e) {
             lngHAlign = 2;
             HAlign.ImageIndex = lngHAlign + 2;
         }
-        private void tbbTop_Click(object sender, EventArgs e)
-        {
+        private void tbbTop_Click(object sender, EventArgs e) {
             lngVAlign = 0;
             VAlign.ImageIndex = lngVAlign + 5;
         }
-        private void tbbMiddle_Click(object sender, EventArgs e)
-        {
+        private void tbbMiddle_Click(object sender, EventArgs e) {
             lngVAlign = 1;
             VAlign.ImageIndex = lngVAlign + 5;
         }
-        private void tbbBottom_Click(object sender, EventArgs e)
-        {
+        private void tbbBottom_Click(object sender, EventArgs e) {
             lngVAlign = 2;
             VAlign.ImageIndex = lngVAlign + 5;
         }
-        private void sldSpeed_ValueChanged(object sender, EventArgs e)
-        {
+        private void sldSpeed_ValueChanged(object sender, EventArgs e) {
             tmrMotion.Interval = 600 / sldSpeed.Value - 45;
         }
-        private void hsbView_Scroll(object sender, ScrollEventArgs e)
-        {
+        private void hsbView_Scroll(object sender, ScrollEventArgs e) {
             //position the cel
             picCel.Left = -hsbView.Value;
             if (blnTrans) {
                 DrawTransGrid();
             }
         }
-        private void vsbView_Scroll(object sender, ScrollEventArgs e)
-        {
+        private void vsbView_Scroll(object sender, ScrollEventArgs e) {
             //position the cel
             picCel.Top = -vsbView.Value;
             if (blnTrans) {
                 DrawTransGrid();
             }
         }
-        private void pnlCel_Resize(object sender, EventArgs e)
-        {
+        private void pnlCel_Resize(object sender, EventArgs e) {
             //position scrollbars
             hsbView.Top = pnlCel.Height - hsbView.Height;
             hsbView.Width = pnlCel.Width;
@@ -810,8 +763,7 @@ namespace WinAGI.Editor {
                 DrawTransGrid();
             }
         }
-        bool PreviewView(byte ViewNum)
-        {
+        bool PreviewView(byte ViewNum) {
             //get the view
             agView = EditGame.Views[ViewNum];
             try {
@@ -840,33 +792,19 @@ namespace WinAGI.Editor {
             //return true
             return true;
         }
-        private void pnlCel_Paint(object sender, PaintEventArgs e)
-        {
+        private void pnlCel_Paint(object sender, PaintEventArgs e) {
             if (chkTrans.Checked) {
-                int offsetX, offsetY;
-                offsetX = (picCel.Left) % 10;
-                offsetY = (picCel.Top) % 10;
-
-                //DisableRedraw(pnlCel);
-                for (int i = 0; i <= pnlCel.Width + 1; i += 10) {
-                    for (int j = 0; j < pnlCel.Height + 1; j += 10) {
-                        //gc.DrawLine(pen, i, j, i, j);
-                        e.Graphics.FillRectangle(Brushes.Black, new Rectangle(i + offsetX, j + offsetY, 1, 1));
-                    }
-                }
-                //EnableRedraw(pnlCel);
+                DrawTransGrid();
             }
         }
-        private void mnuRLoopGIF_Click(object sender, EventArgs e)
-        {
+        private void mnuRLoopGIF_Click(object sender, EventArgs e) {
             if (PrevResType == rtView && agView is not null) {
                 //export a loop as a gif
                 //export a picture as bmp or gif
                 ExportLoop(agView.Loops[CurLoop]);
             }
         }
-        private void mnuRSavePicAs_Click(object sender, EventArgs e)
-        {
+        private void mnuRSavePicAs_Click(object sender, EventArgs e) {
             switch (SelResNum) {
             case -1:
                 ExportAllPicImgs();
@@ -878,8 +816,7 @@ namespace WinAGI.Editor {
                 break;
             }
         }
-        void cmbInst_Click(int Index)
-        {
+        void cmbInst_Click(int Index) {
             //if changing,
             if (agSound.Track(Index).Instrument != cmbInst[Index].SelectedIndex) {
                 //set instrument for this sound
@@ -887,8 +824,7 @@ namespace WinAGI.Editor {
             }
 
         }
-        void DisplayLoop()
-        {
+        void DisplayLoop() {
             int i, mW, mH;
             //disable updating while
             //changing loop and cel controls
@@ -924,8 +860,7 @@ namespace WinAGI.Editor {
             blnNoUpdate = false;
             DisplayCel();
         }
-        void SetVScrollbars()
-        {
+        void SetVScrollbars() {
             // determine if scrollbars are necessary
             blnViewHSB = (picCel.Width > (pnlCel.Width - 2 * PW_MARGIN));
             //int a = panel5.Controls.GetChildIndex(hsbView);
@@ -974,8 +909,7 @@ namespace WinAGI.Editor {
             DontDraw = false;
             return;
         }
-        private void frmPreview_Activated(object sender, EventArgs e)
-        {
+        private void frmPreview_Activated(object sender, EventArgs e) {
             //if findform is visible,
             if (FindingForm.Visible) {
                 //hide it it
@@ -988,8 +922,7 @@ namespace WinAGI.Editor {
             //no need to adjust statusstrip; the default works for preview form
 
         }
-        private void frmPreview_Deactivate(object sender, EventArgs e)
-        {
+        private void frmPreview_Deactivate(object sender, EventArgs e) {
             //if previewing a sound,
             if (SelResType == rtSound) {
                 StopSoundPreview();
@@ -1002,23 +935,19 @@ namespace WinAGI.Editor {
                 cmdVPlay.BackgroundImage = imageList1.Images[9];
             }
         }
-        private void frmPreview_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
-        {
+        private void frmPreview_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e) {
             Debug.Print($"Main - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
         }
-        private void frmPreview_KeyPress(object sender, KeyPressEventArgs e)
-        {
+        private void frmPreview_KeyPress(object sender, KeyPressEventArgs e) {
 
             KeyHandler(e);
             e.Handled = true;
         }
-        private void btnStop_Click(object sender, EventArgs e)
-        {
+        private void btnStop_Click(object sender, EventArgs e) {
             //stop sounds
             StopSoundPreview();
         }
-        private void frmPreview_KeyDown(object sender, KeyEventArgs e)
-        {
+        private void frmPreview_KeyDown(object sender, KeyEventArgs e) {
             Keys KeyCode = e.KeyCode;
 
             //check for global shortcut keys
@@ -1082,18 +1011,15 @@ namespace WinAGI.Editor {
             // if not handled, send it to main form to check for 
             // navigation keys
         }
-        private void imgPicture_DoubleClick(object sender, EventArgs e)
-        {
+        private void imgPicture_DoubleClick(object sender, EventArgs e) {
             //open picture for editing
             OpenPicture((byte)SelResNum);
         }
-        private void picCel_DoubleClick(object sender, EventArgs e)
-        {
+        private void picCel_DoubleClick(object sender, EventArgs e) {
             //open view for editing
             OpenView((byte)SelResNum);
         }
-        void picCel_MouseDown(object sender, MouseEventArgs e)
-        {
+        void picCel_MouseDown(object sender, MouseEventArgs e) {
             //if either scrollbar is visible,
             if (hsbView.Visible || vsbView.Visible) {
                 //set dragView mode
@@ -1106,13 +1032,11 @@ namespace WinAGI.Editor {
                 intOffsetY = e.Y;
             }
         }
-        public bool DisplayCel()
-        {
+        public bool DisplayCel() {
             //this function copies the bitmap Image
             //from CurLoop.CurCel into the view Image box,
             //and resizes it to be correct size
             int tgtX = 0, tgtY = 0, tgtH, tgtW;
-
             // update ud caption
             udCel.Text = $"Cel {CurCel} / {agView[CurLoop].Cels.Count - 1}";
             //set transparent color for the toolbox image
@@ -1121,17 +1045,6 @@ namespace WinAGI.Editor {
 
             // create new image in the picture box that is desired size
             picCel.Image = new Bitmap(picCel.Width, picCel.Height);
-            if (chkTrans.Checked) {
-                //DisableRedraw(pnlCel);
-                // draws single pixel dots spaced 10 pixels apart
-                using Graphics gc = Graphics.FromImage(picCel.Image);
-                for (int i = 0; i <= picCel.Width + 1; i += 10) {
-                    for (int j = 0; j < picCel.Height + 1; j += 10) {
-                        gc.FillRectangle(Brushes.Black, new Rectangle(i, j, 1, 1));
-                    }
-                }
-                //EnableRedraw(pnlCel);
-            }
             //copy view Image
             tgtW = agView[CurLoop][CurCel].Width * 2 * ViewScale;
             tgtH = agView[CurLoop][CurCel].Height * ViewScale;
@@ -1161,24 +1074,32 @@ namespace WinAGI.Editor {
             agView[CurLoop][CurCel].Transparency = blnTrans;
             //load the cel Image
             ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, tgtX, tgtY, tgtW, tgtH);
+            if (blnTrans) {
+                // draws single pixel dots spaced 10 pixels apart over transparent pixels only
+                using Graphics gc = Graphics.FromImage(picCel.Image);
+                Bitmap b = new(picCel.Image);
+                for (int i = 0; i < picCel.Width; i += 10) {
+                    for (int j = 0; j < picCel.Height; j += 10) {
+                        if (b.GetPixel(i, j).ToArgb() == picCel.BackColor.ToArgb()) {
+                            gc.FillRectangle(Brushes.Black, new Rectangle(i, j, 1, 1));
+                        }
+                    }
+                }
+            }
             //success
             return true;
         }
-        private void imgPicture_Validated(object sender, EventArgs e)
-        {
+        private void imgPicture_Validated(object sender, EventArgs e) {
             Debug.Print("validate - did it work?");
         }
-        private void pnlPicture_Leave(object sender, EventArgs e)
-        {
+        private void pnlPicture_Leave(object sender, EventArgs e) {
             Debug.Print("pnlpic leave - did it work?");
         }
-        private void imgPicture_MouseLeave(object sender, EventArgs e)
-        {
+        private void imgPicture_MouseLeave(object sender, EventArgs e) {
             // clear the status bar
             MainStatusBar.Items["StatusPanel1"].Text = "";
         }
-        private void imgPicture_MouseDown(object sender, MouseEventArgs e)
-        {
+        private void imgPicture_MouseDown(object sender, MouseEventArgs e) {
             //if either scrollbar is visible,
             if (hsbPic.Visible || vsbPic.Visible) {
                 //set dragpic mode
@@ -1190,8 +1111,7 @@ namespace WinAGI.Editor {
                 intOffsetY = e.Y;
             }
         }
-        private void imgPicture_MouseUp(object sender, MouseEventArgs e)
-        {
+        private void imgPicture_MouseUp(object sender, MouseEventArgs e) {
             //if dragging
             if (blnDraggingPic) {
                 //cancel dragmode
@@ -1200,8 +1120,7 @@ namespace WinAGI.Editor {
                 imgPicture.Cursor = Cursors.Default;
             }
         }
-        private void imgPicture_MouseMove(object sender, MouseEventArgs e)
-        {
+        private void imgPicture_MouseMove(object sender, MouseEventArgs e) {
             // if left mouse button is down and either or both scrollbars are
             // visible, scroll the image;
             // if mouse button is up, show coordinates
@@ -1270,8 +1189,7 @@ namespace WinAGI.Editor {
                 MainStatusBar.Items["StatusPanel1"].Text = $"X: {e.X / 2 / PicScale}    Y: {e.Y / PicScale}";
             }
         }
-        private void tmrMotion_Tick(object sender, EventArgs e)
-        {
+        private void tmrMotion_Tick(object sender, EventArgs e) {
             //advance to next cel, depending on mode
             switch (cmbMotion.SelectedIndex) {
             case 0:  //normal
@@ -1306,8 +1224,7 @@ namespace WinAGI.Editor {
             }
             DisplayCel();
         }
-        void chkTrack_Click(int Index)
-        {
+        void chkTrack_Click(int Index) {
             //if disabled, just exit
             if (!chkTrack[Index].Enabled) {
                 return;
@@ -1321,8 +1238,7 @@ namespace WinAGI.Editor {
             //enable play button if at least one track is NOT muted AND midi not disabled AND length>0
             btnPlay.Enabled = (chkTrack[0].Checked || chkTrack[1].Checked || chkTrack[2].Checked || chkTrack[3].Checked) && !Settings.NoMIDI && (agSound.Length > 0);
         }
-        private void picCel_MouseUp(object sender, MouseEventArgs e)
-        {
+        private void picCel_MouseUp(object sender, MouseEventArgs e) {
             //if dragging
             if (blnDraggingView) {
                 //cancel dragmode
@@ -1331,14 +1247,12 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void rtfLogPrev_DoubleClick(object sender, EventArgs e)
-        {
+        private void rtfLogPrev_DoubleClick(object sender, EventArgs e) {
             //open logic for editing
             OpenLogic((byte)SelResNum);
         }
 
-        private void rtfLogPrev_KeyDown(object sender, KeyEventArgs e)
-        {
+        private void rtfLogPrev_KeyDown(object sender, KeyEventArgs e) {
             if (e.Handled = true) {
                 return;
             }
@@ -1367,8 +1281,7 @@ namespace WinAGI.Editor {
             e.Handled = true;
         }
 
-        private void rtfLogPrev_MouseDown(object sender, MouseEventArgs e)
-        {
+        private void rtfLogPrev_MouseDown(object sender, MouseEventArgs e) {
             //with right mouse click, show the context menu, but only
             //allow user to copy text, if some was selected
             if (e.Button == MouseButtons.Right) {
@@ -1384,8 +1297,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void frmPreview_Load(object sender, EventArgs e)
-        {
+        private void frmPreview_Load(object sender, EventArgs e) {
             int i;
             int sngLeft, sngTop;
             int sngWidth, sngHeight;
@@ -1495,29 +1407,20 @@ namespace WinAGI.Editor {
 
             // 
         }
-        void DrawTransGrid()
-        {
-            //*// grid function takes way too much time
-            return;
-            // redraws the grid of dots on the background panel to 
-            // align with grid on cel image
-            using Graphics gp = pnlCel.CreateGraphics();
-            gp.Clear(BackColor);
+        void DrawTransGrid() {
             int offsetX, offsetY;
             offsetX = (picCel.Left) % 10;
             offsetY = (picCel.Top) % 10;
 
-            //DisableRedraw(pnlCel);
+            using Graphics gp = pnlCel.CreateGraphics();
             for (int i = 0; i <= pnlCel.Width + 1; i += 10) {
                 for (int j = 0; j < pnlCel.Height + 1; j += 10) {
-                    //gc.DrawLine(pen, i, j, i, j);
                     gp.FillRectangle(Brushes.Black, new Rectangle(i + offsetX, j + offsetY, 1, 1));
                 }
             }
-            //EnableRedraw(pnlCel);
         }
-        public void KeyHandler(KeyPressEventArgs e)
-        {
+
+        public void KeyHandler(KeyPressEventArgs e) {
             switch (SelResType) {
             case rtPicture:
                 switch ((int)e.KeyChar) {
@@ -1569,8 +1472,7 @@ namespace WinAGI.Editor {
                 break;
             }
         }
-        void MenuClickFind(FindFormFunction ffValue = FindFormFunction.ffFindLogic)
-        {
+        void MenuClickFind(FindFormFunction ffValue = FindFormFunction.ffFindLogic) {
             //don't need the find form; just go directly to the find function
 
             //set form defaults
@@ -1600,8 +1502,7 @@ namespace WinAGI.Editor {
 
             FindInLogic(GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc);
         }
-        void MenuClickHelp()
-        {
+        void MenuClickHelp() {
             string strTopic;
             //show preview window help
             strTopic = "htm\\winagi\\preview.htm";
@@ -1614,13 +1515,11 @@ namespace WinAGI.Editor {
             //show preview window help
             _ = API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, strTopic);
         }
-        void pnlSound_DoubleClick(object sender, EventArgs e)
-        {
+        void pnlSound_DoubleClick(object sender, EventArgs e) {
             //open sound for editing, if standard agi
             OpenSound((byte)SelResNum);
         }
-        void pnlView_DoubleClick(object sender, EventArgs e)
-        {
+        void pnlView_DoubleClick(object sender, EventArgs e) {
             //let user change background color
             frmPalette NewPallete = new(1);
             NewPallete.ShowDialog(MDIMain);
@@ -1634,8 +1533,7 @@ namespace WinAGI.Editor {
                 DrawTransGrid();
             }
         }
-        void picCel_MouseMove(object sender, MouseEventArgs e)
-        {
+        void picCel_MouseMove(object sender, MouseEventArgs e) {
             // if left mouse button is down and either or both scrollbars are
             // visible, scroll the image;
             // if mouse button is up, show coordinates

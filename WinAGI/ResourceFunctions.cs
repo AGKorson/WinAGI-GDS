@@ -65,12 +65,20 @@ namespace WinAGI.Engine {
             if (game.agIsVersion3) {
                 //get combined dir Volume
                 strDirFile = game.agGameDir + game.agGameID + "DIR";
-                //verify it exists
+                // verify file exists
                 if (!File.Exists(strDirFile)) {
                     WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 524
                     };
-                    wex.Data["dirfile"] = strDirFile;
+                    wex.Data["missingfile"] = strDirFile;
+                    throw wex;
+                }
+                // check for readonly
+                if ((File.GetAttributes(strDirFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                    WinAGIException wex = new(LoadResString(700).Replace(ARG1, strDirFile)) {
+                        HResult = WINAGI_ERR + 700,
+                    };
+                    wex.Data["badfile"] = strDirFile;
                     throw wex;
                 }
                 try {
@@ -81,30 +89,24 @@ namespace WinAGI.Engine {
                     }
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(502)) {
+                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
                         HResult = WINAGI_ERR + 502
                     };
                     wex.Data["exception"] = e;
                     wex.Data["dirfile"] = Path.GetFileName(strDirFile);
                     throw wex;
                 }
-
                 //if not enough bytes to hold at least the 4 dir pointers + 1 resource
                 if (bytBuffer.Length < 11) // 11 + bytes
                 {
                     WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 542
-                    };
+                };
+                    wex.Data["baddir"] = Path.GetFileName(strDirFile);
                     throw wex;
                 }
-
             }
-            else {
-                //no id
-                //        strID = "";
-            }
-
-            //step through all four resource types
+            // step through all four resource types
             for (bytResType = 0; bytResType <= AGIResType.rtView; bytResType++) {
                 //if version 3
                 if (game.agIsVersion3) {
@@ -140,7 +142,15 @@ namespace WinAGI.Engine {
                         WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
                             HResult = WINAGI_ERR + 524
                         };
-                        wex.Data["dirfile"] = strDirFile;
+                        wex.Data["missingfile"] = strDirFile;
+                        throw wex;
+                    }
+                    // readonly not allowed
+                    if ((File.GetAttributes(strDirFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                        WinAGIException wex = new(LoadResString(700).Replace(ARG1, strDirFile)) {
+                            HResult = WINAGI_ERR + 700,
+                        };
+                        wex.Data["badfile"] = strDirFile;
                         throw wex;
                     }
                     try {
@@ -151,11 +161,11 @@ namespace WinAGI.Engine {
                         }
                     }
                     catch (Exception e) {
-                        WinAGIException wex = new(LoadResString(502)) {
+                        WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
                             HResult = WINAGI_ERR + 502
                         };
                         wex.Data["exception"] = e;
-                        wex.Data["dirfile"] = strDirFile;
+                        wex.Data["badfile"] = strDirFile;
                         throw wex;
                     }
 
@@ -168,6 +178,7 @@ namespace WinAGI.Engine {
                     WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 542
                     };
+                    wex.Data["baddir"] = Path.GetFileName(strDirFile);
                     throw wex;
                 }
 
@@ -177,6 +188,7 @@ namespace WinAGI.Engine {
                         WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
                             HResult = WINAGI_ERR + 542
                         };
+                        wex.Data["baddir"] = Path.GetFileName(strDirFile);
                         throw wex;
                     }
                 }
@@ -190,8 +202,8 @@ namespace WinAGI.Engine {
                         warnInfo.ResNum = 0;
                         warnInfo.ID = "DW01";
                         warnInfo.Text = ResTypeAbbrv[(int)bytResType] + " portion of DIR file is larger than expected; it may be corrupted";
-                        warnInfo.Line = 0;
-                        warnInfo.Module = "";
+                        warnInfo.Line = "--";
+                        warnInfo.Module = "--";
                         Raise_LoadGameEvent(warnInfo);
                     }
                     else {
@@ -199,8 +211,8 @@ namespace WinAGI.Engine {
                         warnInfo.ResNum = 0;
                         warnInfo.ID = "DW02";
                         warnInfo.Text = ResTypeAbbrv[(int)bytResType] + "DIR file is larger than expected; it may be corrupted";
-                        warnInfo.Line = 0;
-                        warnInfo.Module = "";
+                        warnInfo.Line = "--";
+                        warnInfo.Module = "--";
                         Raise_LoadGameEvent(warnInfo);
                     }
                     //assume the max for now
@@ -221,8 +233,8 @@ namespace WinAGI.Engine {
                         warnInfo.ResNum = bytResNum;
                         warnInfo.ID = "";
                         warnInfo.Text = "";
-                        warnInfo.Line = 0;
-                        warnInfo.Module = "";
+                        warnInfo.Line = "--";
+                        warnInfo.Module = "--";
                         Raise_LoadGameEvent(warnInfo);
                         warnInfo.Type = EventType.etWarning;
 
@@ -241,10 +253,13 @@ namespace WinAGI.Engine {
                                 try {
                                     game.agLogs.LoadLogic(bytResNum, bytVol, lngLoc);
                                 }
-                                catch (Exception e) {
-                                    //deal with load errors
+                                catch (WinAGIException e) {
                                     AddLoadWarning(AGIResType.rtLogic, bytResNum, e);
                                     loadWarnings = true;
+                                }
+                                catch (Exception) {
+                                    //deal with other load errors
+                                    throw;
                                 }
                                 //make sure it was added before doing follow-on checks
                                 if (game.agLogs.Exists(bytResNum)) {
@@ -256,10 +271,13 @@ namespace WinAGI.Engine {
                                 try {
                                     game.agPics.LoadPicture(bytResNum, bytVol, lngLoc);
                                 }
-                                catch (Exception e) {
-                                    //deal with load errors
+                                catch (WinAGIException e) {
                                     AddLoadWarning(AGIResType.rtPicture, bytResNum, e);
                                     loadWarnings = true;
+                                }
+                                catch (Exception) {
+                                    // deal with other load errors
+                                    throw;
                                 }
                                 //make sure it was added before doing follow-on checks
                                 if (game.agPics.Exists(bytResNum)) {
@@ -292,10 +310,13 @@ namespace WinAGI.Engine {
                                 try {
                                     game.agSnds.LoadSound(bytResNum, bytVol, lngLoc);
                                 }
-                                catch (Exception e) {
-                                    //deal with load errors
+                                catch (WinAGIException e) {
                                     AddLoadWarning(AGIResType.rtSound, bytResNum, e);
                                     loadWarnings = true;
+                                }
+                                catch (Exception) {
+                                    // deal with other load errors
+                                    throw;
                                 }
                                 //make sure it was added before doing follow-on checks
                                 if (game.agSnds.Exists(bytResNum)) {
@@ -314,10 +335,13 @@ namespace WinAGI.Engine {
                                 try {
                                     game.agViews.LoadView(bytResNum, bytVol, lngLoc);
                                 }
-                                catch (Exception e) {
-                                    //deal with load errors
+                                catch (WinAGIException e) {
                                     AddLoadWarning(AGIResType.rtView, bytResNum, e);
                                     loadWarnings = true;
+                                }
+                                catch (Exception) {
+                                    //deal with load errors
+                                    throw;
                                 }
                                 //make sure it was added before doing follow-on checks
                                 if (game.agViews.Exists(bytResNum)) {
@@ -350,8 +374,8 @@ namespace WinAGI.Engine {
                         }
                         catch (Exception e) {
                             // error!
-                            WinAGIException wex = new(LoadResString(999)) {
-                                HResult = WINAGI_ERR + 999,
+                            WinAGIException wex = new(LoadResString(703)) {
+                                HResult = WINAGI_ERR + 703,
                             };
                             wex.Data["exception"] = e;
                             wex.Data["dirfile"] = strDirFile;
@@ -378,8 +402,8 @@ namespace WinAGI.Engine {
                 }
                 catch (Exception e) {
                     // error!
-                    WinAGIException wex = new(LoadResString(999)) {
-                        HResult = WINAGI_ERR + 999,
+                    WinAGIException wex = new(LoadResString(703)) {
+                        HResult = WINAGI_ERR + 703,
                     };
                     wex.Data["exception"] = e;
                     wex.Data["dirfile"] = strDirFile;
@@ -397,9 +421,9 @@ namespace WinAGI.Engine {
                 ResType = resType,
                 ResNum = resNum,
                 ID = "",
-                Module = "",
+                Module = "--",
                 Text = "",
-                Line = 0
+                Line = "--"
             };
 
             // warning info depends on error
@@ -483,13 +507,13 @@ namespace WinAGI.Engine {
                 Raise_LoadGameEvent(warnInfo);
                 break;
             case 606:
-                //Can't load resource: file not found (%1)
+                // Can't load resource: file not found (%1)
                 warnInfo.ID = "VW03";
                 warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} is in a VOL file ({Path.GetFileName(fsVOL.Name)}) that does not exist";
                 warnInfo.Module = (string)eRes.Data["ID"];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            // TODO: remove loadwarning "RW11"
+            // TODO: remove loadwarning "RW11" (unhandled load error)
             default:
                 // any other unhandled error
                 string strError = (eRes.HResult - WINAGI_ERR) + ": " + eRes.Message;
@@ -505,8 +529,11 @@ namespace WinAGI.Engine {
             byte bytCurComp, bytBuffer = 0, bytCurUncomp;
             bool blnOffset = false;
             int lngTempCurPos = 0;
-            byte[] bytExpandedData = new byte[MAX_RES_SIZE];// Array.Empty<byte>();
-                                                            //decompress the picture
+            byte[] bytExpandedData = new byte[MAX_RES_SIZE];
+            // TODO: should resize array to the uncompressed size; it's 
+            // included in the header, so no reason not to use it.
+
+            //decompress the picture
             do {
                 //get current compressed byte
                 bytCurComp = bytOriginalData[intPosIn];
@@ -554,7 +581,6 @@ namespace WinAGI.Engine {
             }
             //continue until all original data has been read
             while (intPosIn < bytOriginalData.Length);
-
             //redim to array to actual size
             Array.Resize(ref bytExpandedData, lngTempCurPos);
             return bytExpandedData;
@@ -599,7 +625,10 @@ namespace WinAGI.Engine {
                 intPrefix = [];
                 bytAppend = [];
                 //TODO: wrong error msg here!
-                throw new Exception(LoadResString(559).Replace(ARG1, "123"));//, Replace(LoadResString(559), ARG1, CStr(Err.Number))");
+                WinAGIException wex = new(LoadResString(559).Replace(ARG1, "123")) {
+                    HResult = WINAGI_ERR + 559,
+                };
+                throw wex;
             }
 
             //now begin decompressing actual data

@@ -1,8 +1,4 @@
-﻿using Microsoft.VisualStudio.Shell.Interop;
-using System;
-
-namespace WinAGI.Engine
-{
+﻿namespace WinAGI.Engine {
     public class CompileGameEventArgs(ECStatus status, AGIResType restype, byte num, TWinAGIEventInfo errInfo)
     {
         public ECStatus CStatus { get; } = status;
@@ -29,9 +25,9 @@ namespace WinAGI.Engine
     public partial class AGIGame
     {
         // Declare the delegate.
-        internal delegate void CompileGameEventHandler(object sender, CompileGameEventArgs e);
+        public delegate void CompileGameEventHandler(object sender, CompileGameEventArgs e);
         // Declare the event.
-        internal static event CompileGameEventHandler CompileGameStatus;
+        public static event CompileGameEventHandler CompileGameStatus;
         // Declare access method to raise the event 
         internal static void Raise_CompileGameEvent(ECStatus cStatus, AGIResType ResType, byte ResNum, TWinAGIEventInfo CompileInfo)
         {
@@ -44,9 +40,9 @@ namespace WinAGI.Engine
         }
 
         // Declare the delegate.
-        internal delegate void LoadGameEventHandler(object sender, LoadGameEventArgs e);
+        public delegate void LoadGameEventHandler(object sender, LoadGameEventArgs e);
         // Declare the event.
-        internal static event LoadGameEventHandler LoadGameStatus;
+        public static event LoadGameEventHandler LoadGameStatus;
         // Declare access method to raise the event 
         internal static void Raise_LoadGameEvent(TWinAGIEventInfo LoadInfo)
         {
@@ -55,9 +51,9 @@ namespace WinAGI.Engine
         }
 
         // Declare the delegate.
-        internal delegate void CompileLogicEventHandler(object sender, CompileLogicEventArgs e);
+        public delegate void CompileLogicEventHandler(object sender, CompileLogicEventArgs e);
         // Declare the event.
-        internal static event CompileLogicEventHandler CompileLogicStatus;
+        public static event CompileLogicEventHandler CompileLogicStatus;
         // Declare access method to raise the event 
         internal static void Raise_CompileLogicEvent(TWinAGIEventInfo CompInfo)
         {
@@ -65,9 +61,9 @@ namespace WinAGI.Engine
             CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(CompInfo));
         }
         // Declare the delegate
-        internal delegate void DecodeLogicEventHandler(object sender, DecodeLogicEventArgs e);
+        public delegate void DecodeLogicEventHandler(object sender, DecodeLogicEventArgs e);
         // Declare the event
-        internal static event DecodeLogicEventHandler DecodeLogicStatus;
+        public static event DecodeLogicEventHandler DecodeLogicStatus;
         // Declare access method to raise the event 
         internal static void Raise_DecodeLogicEvent(TWinAGIEventInfo DecodeInfo)
         {

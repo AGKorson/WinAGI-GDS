@@ -250,7 +250,7 @@ namespace WinAGI.Engine {
         public AGIResType ResType { get { return mResType; } }
         public virtual string ID {
             get { return mResID; }
-            internal set {
+            set {
                 //sets the ID for a resource;
                 //resource IDs must be unique to each resource type
                 //max length of ID is 64 characters
@@ -336,7 +336,7 @@ namespace WinAGI.Engine {
         }
         public string Description {
             get { return mDescription; }
-            internal set {
+            set {
                 //limit description to 1K
                 string newDesc = Left(value, 1024);
                 if (newDesc != mDescription) {
@@ -369,8 +369,11 @@ namespace WinAGI.Engine {
             get {
                 //if not loaded
                 if (!mLoaded) {
-                    //error
-                    throw new Exception(LoadResString(563));
+                    // error
+                    WinAGIException wex = new(LoadResString(563)) {
+                        HResult = WINAGI_ERR + 563,
+                    };
+                    throw wex;
                 }
                 return mRData;
             }
@@ -457,6 +460,14 @@ namespace WinAGI.Engine {
                 wex.Data["ID"] = mResID;
                 throw wex;
             }
+            // check for readonly
+            if ((File.GetAttributes(strLoadResFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, strLoadResFile)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = strLoadResFile;
+                throw wex;
+            }
             // open file (VOL or individual resource)
             try {
                 fsVOL = new FileStream(strLoadResFile, FileMode.Open);
@@ -465,11 +476,11 @@ namespace WinAGI.Engine {
             catch (Exception e1) {
                 fsVOL.Dispose();
                 brVOL.Dispose();
-                WinAGIException wex = new(LoadResString(502)) {
+                WinAGIException wex = new(LoadResString(502).Replace(ARG1, e1.HResult.ToString()).Replace(ARG2, strLoadResFile)) {
                     HResult = WINAGI_ERR + 502,
                 };
                 wex.Data["exception"] = e1;
-                wex.Data["ID"] = mResID;
+                wex.Data["badfile"] = strLoadResFile;
                 throw wex;
             }
             // verify resource is within file bounds
@@ -604,8 +615,8 @@ namespace WinAGI.Engine {
                 }
                 catch (Exception e) {
                     // pass error along
-                    WinAGIException wex = new(LoadResString(999)) {
-                        HResult = WINAGI_ERR + 999,
+                    WinAGIException wex = new(LoadResString(702)) {
+                        HResult = WINAGI_ERR + 702,
                     };
                     wex.Data["error"] = e;
                     throw wex;
@@ -736,6 +747,7 @@ namespace WinAGI.Engine {
                 WinAGIException wex = new(LoadResString(524).Replace(ARG1, ImportFile)) {
                     HResult = WINAGI_ERR + 524,
                 };
+                wex.Data["missingfile"] = ImportFile;
                 throw wex;
             }
             //if resource is currently loaded,

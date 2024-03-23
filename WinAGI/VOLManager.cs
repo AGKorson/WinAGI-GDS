@@ -327,12 +327,9 @@ namespace WinAGI.Engine {
                     // get vol number and location where there is room for this resource
                     FindFreeVOLSpace(AddRes);
                 }
-                catch (Exception e) {
+                catch (Exception) {
                     //pass it along
-                    lngError = e.HResult;
-                    strError = e.Message;
-                    //strErrSrc = Err.Source
-                    throw new Exception(strError);
+                    throw;
                 }
                 lngLoc = AddRes.Loc;
                 lngVol = AddRes.Volume;
@@ -402,15 +399,14 @@ namespace WinAGI.Engine {
                     //update location in dir file
                     UpdateDirFile(AddRes);
                 }
-                catch (Exception e) {
+                catch (Exception) {
                     //only error that will be returned is expandv3dir error
                     //pass it along
-                    lngError = e.HResult;
-                    strError = e.Message;
-                    throw new Exception("lngError" + strError);
+                    throw;
                 }
             }
         }
+
         private static void AddResInfo(sbyte ResVOL, int ResLOC, int ResSize, int[,] VOLLoc, int[,] VOLSize) {
             // TODO: replace this mess with Sorted Lists!
             //adds TempRes to volume loc/size arrays, sorted by LOC
@@ -605,15 +601,36 @@ namespace WinAGI.Engine {
             else {
                 strDirFile = UpdateResource.parent.agGameDir + ResTypeAbbrv[(int)UpdateResource.ResType] + "DIR";
             }
+            // verify file exists
+            if (!File.Exists(strDirFile)) {
+                WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
+                    HResult = WINAGI_ERR + 524
+                };
+                wex.Data["missingfile"] = strDirFile;
+                throw wex;
+            }
+            // check for readonly
+            if ((File.GetAttributes(strDirFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, strDirFile)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = strDirFile;
+                throw wex;
+            }
             try {
                 using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
                     bytDIR = new byte[fsDIR.Length];
                     fsDIR.Read(bytDIR, 0, (int)fsDIR.Length);
                 }
             }
-            catch (Exception) {
-                // error? what to do???
-                throw new Exception("can't open DIR for updating");
+            catch (Exception e) {
+                // "can't open DIR for updating"
+                WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
+                    HResult = WINAGI_ERR + 502,
+                };
+                wex.Data["exception"] = e;
+                wex.Data["badfile"] = strDirFile;
+                throw wex;
             }
             //calculate old max and offset (for v3 files)
             if (UpdateResource.parent.agIsVersion3) {
@@ -656,8 +673,14 @@ namespace WinAGI.Engine {
                     }
                     return;
                 }
-                catch (Exception) {
-                    throw new Exception("unable to update the DIR file...");
+                catch (Exception e) {
+                    //throw new Exception("unable to update the DIR file...");
+                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
+                        HResult = WINAGI_ERR + 502,
+                    };
+                    wex.Data["exception"] = e;
+                    wex.Data["badfile"] = strDirFile;
+                    throw wex;
                 }
             }
             // size has changed!
@@ -715,8 +738,14 @@ namespace WinAGI.Engine {
                         fsDIR.Write(bytDIR, 0, bytDIR.Length);
                     }
                 }
-                catch (Exception) {
-                    throw new Exception("unable to update the DIR file...");
+                catch (Exception e) {
+                    // throw new Exception("unable to update the DIR file...");
+                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
+                        HResult = WINAGI_ERR + 502,
+                    };
+                    wex.Data["exception"] = e;
+                    wex.Data["badfile"] = strDirFile;
+                    throw wex;
                 }
             }
             else {
@@ -795,8 +824,14 @@ namespace WinAGI.Engine {
                         fsDIR.Write(bytDIR, 0, bytDIR.Length);
                     }
                 }
-                catch (Exception) {
-                    throw new Exception("unable to update the DIR file...");
+                catch (Exception e) {
+                    // throw new Exception("unable to update the DIR file...");
+                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
+                        HResult = WINAGI_ERR + 502,
+                    };
+                    wex.Data["exception"] = e;
+                    wex.Data["badfile"] = strDirFile;
+                    throw wex;
                 }
             }
         }

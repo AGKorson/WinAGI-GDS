@@ -1566,4 +1566,22 @@
   <data name="999" xml:space="preserve">
     <value>TBD: need a new custom error string</value>
   </data>
+  <data name="699" xml:space="preserve">
+    <value>File access error while backing up WAG file</value>
+  </data>
+  <data name="700" xml:space="preserve">
+    <value>%1 is readonly</value>
+  </data>
+  <data name="701" xml:space="preserve">
+    <value>File access error when opening WAG file</value>
+  </data>
+  <data name="702" xml:space="preserve">
+    <value>AddToVOL error</value>
+  </data>
+  <data name="703" xml:space="preserve">
+    <value>File access error when saving DIR file</value>
+  </data>
+  <data name="704" xml:space="preserve">
+    <value>Missing source file (%1)</value>
+  </data>
 </root>

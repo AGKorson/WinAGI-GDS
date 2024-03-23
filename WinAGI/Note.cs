@@ -25,7 +25,7 @@ namespace WinAGI.Engine
                 //validate
                 if (value > 15) {
                     //invalid item
-                    throw new Exception("6, strErrSource, Overflow");
+                    throw new ArgumentOutOfRangeException();
                 }
                 mAttenuation = value;
                 //if parent is assigned
@@ -44,7 +44,7 @@ namespace WinAGI.Engine
                 //validate
                 if (value < 0 || value > 0xFFFF) {
                     //invalid frequency
-                    throw new Exception("6, strErrSource, Overflow");
+                    throw new ArgumentOutOfRangeException();
                 }
                 mDuration = value;
                 //notify parents, if applicable
@@ -65,7 +65,7 @@ namespace WinAGI.Engine
                 // convert it to MIDI
                 if (value < 0 || value > 1023) {
                     //invalid frequency
-                    throw new Exception("6, strErrSource, Overflow");
+                    throw new ArgumentOutOfRangeException();
                 }
                 mFreqDiv = value;
                 //if parent is assigned
@@ -83,19 +83,19 @@ namespace WinAGI.Engine
             //validate freqdiv
             if (freqdiv < 0 || freqdiv > 1023) {
                 //invalid frequency
-                throw new Exception("6, strErrSource, Overflow");
+                throw new ArgumentOutOfRangeException();
             }
             mFreqDiv = freqdiv;
             //validate duration
             if (duration < 0 || duration > 0xFFFF) {
                 //invalid frequency
-                throw new Exception("6, strErrSource, Overflow");
+                throw new ArgumentOutOfRangeException();
             }
             mDuration = duration;
             //validate attenuation
             if (attenuation > 15) {
                 //invalid item
-                throw new Exception("6, strErrSource, Overflow");
+                throw new ArgumentOutOfRangeException();
             }
             mAttenuation = attenuation;
         }

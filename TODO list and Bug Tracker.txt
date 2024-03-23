@@ -48,6 +48,7 @@ resource base errors:
 
 502: file access error
     Data["exception"] = exception
+    Data["badfile"] = string vol/resfile
     Data["ID"] = mResID
 
 505: invalid mLoc (exceeds size of vol file)
@@ -66,8 +67,12 @@ Logic Load:
     none
 
 Logic LoadSource:
+704: missing source file
+    Data["missingfile"] = string LoadFile
+
 502: file access error
     Data["exception"] = exception
+    Data["badfile"] = string vol/resfile
     Data["ID"] = mResID
 
 Picture Load:
@@ -158,51 +163,55 @@ Word.tok Compile:
     Data["exception"] = exception
     Data["ID"] = mResID
 
-    
+=========================================================================
 LoadGame Errors:
-     Import:
-     501: game already loaded
-     541: Not a valid AGI directory
-         ["baddir"] = string gamedir
-     999 (unable to backup existing wag file)
-         ["exception"] = Exception ex
-     543: invalid interpreter version
+    Import:
+        501: game already loaded
+        541: Not a valid AGI directory
+            ["baddir"] = string gamedir
+        699: Unable to backup existing wag file
+            ["exception"] = Exception ex
+        543: invalid interpreter version
          
-     Open:
-     501: game already loaded
-     655: missing WAG file
-         ["badwag"] = string wagfilename
-     541: Not a valid AGI directory
-         ["baddir"] = string gamedir
-     999: file/dir(WAG) is readonly
-     999: file error accessing WAG
-         ["exception"] = Exception ex
-     999: unsupported WinAGI version
-         ["badversion"] = string version
-     691: invalid interpreter version
-         ["badversion"] = string version
-     690: missing GameID in WAG
+    Open:
+        501: game already loaded
+        655: missing WAG file
+            ["badwag"] = string wagfilename
+        541: Not a valid AGI directory
+            ["baddir"] = string gamedir
+        700: file (WAG) is readonly
+            ["badfile"] =string filename
+        701: file error accessing WAG
+            ["exception"] = Exception ex
+        665: unsupported WinAGI version
+            ["badversion"] = string version
+        691: invalid interpreter version
+            ["badversion"] = string version
+        690: missing GameID in WAG
 
-     FinishGameLoad:
-     none- passes errors from ExtractResources
+    FinishGameLoad:
+    none- passes errors from ExtractResources
 
-     ExtractResources:
-     524: missing v3 DIR file
-         ["dirfile"] = string dirfile
-     502: v3 DIR file access error
-         ["exception"] Exception = ex
-         ["dirfile"] = string dirfile
-     542: invalid v3 DIR file
-     524: missing v2 DIR file
-         ["dirfile"] = string dirfile
-     502: v2 DIR file access error
-         ["exception"] Exception = ex
-         ["dirfile"] = string dirfile
-     542: invalid v2 DIR file
-     542: invalid DIR file (v3 offset invalid)
-     999: file access error v2 DIR
-         ["exception"] Exception = ex
-         ["dirfile"] = string dirfile
-     999: file access error v3 DIR
-         ["exception"] Exception = ex
-         ["dirfile"] = string dirfile
+    ExtractResources:
+        524: missing v3 DIR file
+            ["missingfile"] = string dirfile
+        502: v3 DIR file access error
+            ["exception"] Exception = ex
+            ["badfile"] = string dirfile
+        542: invalid v3 DIR file
+            ["baddir"] = string gamedir
+        524: missing v2 DIR file
+            ["missingfile"] = string dirfile
+        502: v2 DIR file access error
+            ["exception"] Exception = ex
+            ["badfile"] = string dirfile
+        542: invalid v2 DIR file
+            ["baddir"] = string gamedir
+        542: invalid DIR file (v3 offset invalid)
+            ["baddir"] = string gamedir
+        703: file access error v2 DIR
+            ["exception"] Exception = ex
+            ["dirfile"] = string dirfile
+        703: file access error v3 DIR
+            ["exception"] Exception = ex
+            ["dirfile"] = string dirfile

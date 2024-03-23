@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using static WinAGI.Common.Base;
 
-namespace WinAGI.Engine
-{
+namespace WinAGI.Engine {
     using System.Drawing;
 
-    public class SettingsList(string filename)
-    {
+    public class SettingsList(string filename) {
         //elements of a settings list file:
         //
         //  #comments begin with hashtag; all characters on line after hashtag are ignored
@@ -20,15 +18,14 @@ namespace WinAGI.Engine
         //  key=value         key/value pairs separated by an equal sign; no quotes around values means only
         //                      single word; use quotes for multiword strings
         //  if string is multline, use '\n' control code (and use multiline option)
-        internal List<string> Lines = [];
-        public string Filename
-        {
+        public List<string> Lines = [];
+
+        public string Filename {
             get;
             set;
         } = filename;
 
-        public void WriteSetting(string Section, string Key, dynamic Value, string Group = "")
-        {
+        public void WriteSetting(string Section, string Key, dynamic Value, string Group = "") {
             int lngPos, i;
             string strLine, strCheck;
             int lngSectionEnd = 0;
@@ -378,8 +375,8 @@ namespace WinAGI.Engine
                 }
             }
         }
-        internal void Save()
-        {
+
+        public void Save() {
             //open temp file
             //string TempFile = Path.GetTempFileName();
             try {
@@ -400,8 +397,8 @@ namespace WinAGI.Engine
                 throw;
             }
         }
-        internal void Open(bool CreateNew = true)
-        {
+
+        public void Open(bool CreateNew = true) {
             // opens this SettingsList
 
             // if file does not exist, a blank list object is created
@@ -441,8 +438,8 @@ namespace WinAGI.Engine
                 Lines.Add("#");
             }
         }
-        public string GetSetting(string Section, string Key, string Default = "", bool DontAdd = false)
-        {
+        
+        public string GetSetting(string Section, string Key, string Default = "", bool DontAdd = false) {
             //need to make sure there is a list to read from
             if (Lines.Count == 0) {
                 //return the default
@@ -466,8 +463,7 @@ namespace WinAGI.Engine
             int lngSection = FindSettingSection(Section);
             //if not found,
             if (lngSection < 0) {
-                if (!DontAdd)
-                {
+                if (!DontAdd) {
                     //add the section and the value
                     WriteSetting(Section, Key, Default, "");
                 }
@@ -541,8 +537,7 @@ namespace WinAGI.Engine
                     }
                 }
                 // not found - 
-                if (DontAdd)
-                {
+                if (DontAdd) {
                     //return the default
                     return Default;
                 }
@@ -582,54 +577,44 @@ namespace WinAGI.Engine
                 return sReturn;
             }
         }
-        public int GetSetting(string Section, string Key, int Default = 0, bool hex = false, bool DontAdd = false)
-        {
+        
+        public int GetSetting(string Section, string Key, int Default = 0, bool hex = false, bool DontAdd = false) {
             //get the setting value; if it converts to long value, use it;
             //if any kind of error, return the default value
             string strValue = GetSetting(Section, Key, hex ? "0x" + Default.ToString("x8") : Default.ToString(), DontAdd);
-            if (strValue.Length == 0)
-            {
+            if (strValue.Length == 0) {
                 return Default;
             }
-            else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                {
+            else if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase)) {
+                try {
                     return Convert.ToInt32(strValue, 16);
                 }
-                catch (Exception)
-                {
+                catch (Exception) {
                     return Default;
                 }
             }
-            else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase))
-            {
-                try
-                { // TODO: check all number conversions for correct type
+            else if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
+                try { // TODO: check all number conversions for correct type
                     int retval = Convert.ToInt32(Right(strValue, strValue.Length - 2), 16);
                     //write the value in correct format
                     WriteSetting(Section, Key, "0x" + retval.ToString("x8"));
                     return retval;
                 }
-                catch (Exception)
-                {
+                catch (Exception) {
                     return Default;
                 }
             }
-            else
-            {
-                if (int.TryParse(strValue, out int iResult))
-                {
+            else {
+                if (int.TryParse(strValue, out int iResult)) {
                     return iResult;
                 }
-                else
-                {
+                else {
                     return Default;
                 }
             }
         }
-        public uint GetSetting(string Section, string Key, uint Default = 0, bool DontAdd = false)
-        {
+        
+        public uint GetSetting(string Section, string Key, uint Default = 0, bool DontAdd = false) {
             //get the setting value; if it converts to long value, use it;
             //if any kind of error, return the default value
             string strValue = GetSetting(Section, Key, Default.ToString(), DontAdd);
@@ -666,8 +651,8 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public byte GetSetting(string Section, string Key, byte Default = 0, bool DontAdd = false)
-        {
+        
+        public byte GetSetting(string Section, string Key, byte Default = 0, bool DontAdd = false) {
             //get the setting value; if it converts to byte value, use it;
             //if any kind of error, return the default value
             string strValue = GetSetting(Section, Key, Default.ToString(), DontAdd);
@@ -683,8 +668,8 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public double GetSetting(string Section, string Key, double Default = 0, bool DontAdd = false)
-        {
+        
+        public double GetSetting(string Section, string Key, double Default = 0, bool DontAdd = false) {
             //get the setting value; if it converts to single value, use it;
             //if any kind of error, return the default value
             string strValue = GetSetting(Section, Key, Default.ToString(), DontAdd);
@@ -701,8 +686,8 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool GetSetting(string Section, string Key, bool Default = false, bool DontAdd = false)
-        {
+        
+        public bool GetSetting(string Section, string Key, bool Default = false, bool DontAdd = false) {
             //get the setting value; if it converts to boolean value, use it;
             //if any kind of error, return the default value
             string strValue = GetSetting(Section, Key, Default.ToString(), DontAdd);
@@ -718,14 +703,14 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public Color GetSetting(string Section, string Key, Color Default, bool DontAdd = false)
-        {
+        
+        public Color GetSetting(string Section, string Key, Color Default, bool DontAdd = false) {
             //get the setting value; if it converts to long value, use it;
             //if any kind of error, return the default value
             string strValue = GetSetting(Section, Key, "", DontAdd);
             if (strValue.Length == 0) {
                 // for blank entries, replace with default
-                if (!DontAdd) { 
+                if (!DontAdd) {
                     WriteSetting(Section, Key, EGAColors.ColorText(Default));
                 }
                 return Default;
@@ -797,8 +782,8 @@ namespace WinAGI.Engine
                 return retColor;
             }
         }
-        public void DeleteSection(string Section)
-        {
+        
+        public void DeleteSection(string Section) {
             //elements of a settings file:
             //
             //  #comments begin with hashtag; all characters on line after hashtag are ignored
@@ -860,8 +845,8 @@ namespace WinAGI.Engine
                 }
             } while (true);
         }
-        public void DeleteKey(string Section, string Key)
-        {
+        
+        public void DeleteKey(string Section, string Key) {
             //elements of a settings file:
             //
             //  #comments begin with hashtag; all characters on line after hashtag are ignored
@@ -905,8 +890,8 @@ namespace WinAGI.Engine
             }
             //not found - nothing to delete
         }
-        private int FindSettingSection(string Section)
-        {
+        
+        public int FindSettingSection(string Section) {
             int i, lngPos;
             string strLine;
             //find the section we are looking for (skip 1st line; it's the filename)

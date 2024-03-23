@@ -10,7 +10,7 @@ namespace WinAGI.Engine {
     public class Sounds(AGIGame parent) : IEnumerable<Sound> {
         AGIGame parent = parent;
 
-        internal SortedList<byte, Sound> Col { get; private set; } = [];
+        public SortedList<byte, Sound> Col { get; private set; } = [];
         public Sound this[int index] {
             get {
                 //validate index
@@ -177,8 +177,10 @@ namespace WinAGI.Engine {
                 // throw it
                 throw;
             }
-            //add it
-            Col.Add(bytResNum, newResource);
+            finally {
+                //add it
+                Col.Add(bytResNum, newResource);
+            }
         }
         SoundEnum GetEnumerator() {
             return new SoundEnum(Col);

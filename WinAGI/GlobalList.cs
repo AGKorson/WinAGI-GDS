@@ -5,7 +5,6 @@ using static WinAGI.Common.Base;
 using System.Linq;
 using static WinAGI.Engine.DefineNameCheck;
 using static WinAGI.Engine.DefineValueCheck;
-using Microsoft.VisualStudio.OLE.Interop;
 namespace WinAGI.Engine
 {
     public class GlobalList {

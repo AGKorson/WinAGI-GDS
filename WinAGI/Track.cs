@@ -27,7 +27,7 @@ namespace WinAGI.Engine
                 //validate
                 if (value >= 128) {
                     //error
-                    throw new Exception("380, strErrSource, Invalid property Value");
+                    throw new ArgumentOutOfRangeException();
                 }
                 if (mInstrument != value) {
                     mInstrument = value;

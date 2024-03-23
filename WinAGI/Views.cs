@@ -14,7 +14,7 @@ namespace WinAGI.Engine {
             // create the initial Col object
             Col = [];
         }
-        internal SortedList<byte, View> Col { get; private set; }
+        public SortedList<byte, View> Col { get; private set; }
         public View this[int index] {
             get {
                 //validate index

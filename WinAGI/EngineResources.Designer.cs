@@ -4399,6 +4399,60 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File access error while backing up WAG file.
+        /// </summary>
+        internal static string _699 {
+            get {
+                return ResourceManager.GetString("699", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1 is readonly.
+        /// </summary>
+        internal static string _700 {
+            get {
+                return ResourceManager.GetString("700", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File access error when opening WAG file.
+        /// </summary>
+        internal static string _701 {
+            get {
+                return ResourceManager.GetString("701", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AddToVOL error.
+        /// </summary>
+        internal static string _702 {
+            get {
+                return ResourceManager.GetString("702", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File access error when saving DIR file.
+        /// </summary>
+        internal static string _703 {
+            get {
+                return ResourceManager.GetString("703", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing source file (%1).
+        /// </summary>
+        internal static string _704 {
+            get {
+                return ResourceManager.GetString("704", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to TBD: need a new custom error string.
         /// </summary>
         internal static string _999 {

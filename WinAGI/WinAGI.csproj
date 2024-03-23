@@ -6,6 +6,8 @@
     <Authors>Andrew Korson</Authors>
     <Description>Contains all Library functions to access and modify AGI games as implemented by WinAGI</Description>
     <PackageIcon>winagi.jpg</PackageIcon>
+    <OutputType>Library</OutputType>
+    <UseWindowsForms>True</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,21 +16,12 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>EngineResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="ResourceTest.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ResourceTest.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="EngineResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>EngineResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="ResourceTest.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ResourceTest.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

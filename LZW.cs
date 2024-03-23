@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WinAGI.Common
-{
-    public static class LZW
-    {
+namespace WinAGI.Common {
+    public static class LZW {
         static ushort intNextCode, intCurCodeSize;
         static string[] strCodeValues;
         static byte[] bytCompData;
@@ -19,52 +17,7 @@ namespace WinAGI.Common
         static ushort intClearCode, intEndCode;
         static bool blnMaxedOut;
 
-        public static void ExpandFile(string strFileIn, ushort intCodeSize = 5)
-        {
-            //currently not used anywhere
-
-            //  short intFreeFile;
-            //  string strFileOut;
-            //
-            //  On Error GoTo ErrHandler
-            //
-            ////////        strFileIn = "C:\Users\d3m294\Documents\output.dat"
-            //
-            //  //open input file
-            //  using FileStream fsIn = new FileStream(strFileIn);
-            //  //copy data to input array
-            //  bytCelData = new byte[fsIn.Length];
-            //  bytCelData = fsIn.Read();
-            //  //close input file
-            //  fsIn.Dispose();
-            //
-            //  lngInPos = 0;
-            //  lngOutPos = 0;
-            //
-            //  if (ExpandLZW(intCodeSize)) {
-            //    //resize output buffer to match actual amount of data
-            //    Array.Resize(ref bytCompData, lngOutPos);
-            //    //store the data in a temporary output file
-            //    strFileOut = Path.GetTempFileName();
-            //    try
-            //    {
-            //      if (File.Exists(strFileOut)) {
-            //      File.Delete(strFileOut);
-            //      intFreeFile = FreeFile()
-            //      Open strFileOut For Binary;
-            //      Put #intFreeFile, 1, bytCompData()
-            //      Close #intFreeFile
-            //    }
-            //    catch (Exception)
-            //    {
-            //      throw;
-            //    }
-            //  } else {
-            //    throw new Exception("error in compress function :-(");
-            //  }
-        }
-        public static byte[] GifLZW(ref byte[] bytCelData)
-        {
+        public static byte[] GifLZW(ref byte[] bytCelData) {
             //used by picture and view export functions for creating GIFs
             int lngLen;
             string wSTRING, wCHAR;
@@ -104,9 +57,8 @@ namespace WinAGI.Common
             //first code is just the character value of first byte
             oldCode = bytCelData[0];
 
-            while (lngInPos < lngLen) // Until lngInPos > lngLen
-                                      //get next character
-            {
+            while (lngInPos < lngLen) {
+                //get next character
                 wCHAR = ((char)bytCelData[lngInPos]).ToString();
                 lngInPos++;
                 //if the combination of wSTRING+wCHAR is already in the table, then
@@ -174,8 +126,7 @@ namespace WinAGI.Common
             //if no errors, return compressed array
             return bytCompData;
         }
-        static short FindCodeInTable(string strCodeVal)
-        {
+        static short FindCodeInTable(string strCodeVal) {
             //used by GifLZW
             //searches the code table, and returns the code number if strCodeVal is found
             //otherwise returns -1
@@ -189,8 +140,7 @@ namespace WinAGI.Common
             //not found
             return -1;
         }
-        static void WriteCode(ushort CodeValue)
-        {
+        static void WriteCode(ushort CodeValue) {
             //adds this codevalue to the output buffer,
             //and writes bytes to the buffer when enough bits are in the buffer
 
@@ -235,8 +185,7 @@ namespace WinAGI.Common
                 intBitCount -= 8;
             }
         }
-        public static bool ExpandLZW(short intCodeSize)
-        {
+        public static bool ExpandLZW(short intCodeSize) {
             //only used by ExpandFile
             short intCode, intAppendCode;
             //reset everything
@@ -328,8 +277,7 @@ namespace WinAGI.Common
             } while (lngInPos < bytCelData.Length); // Until lngInPos > UBound(bytCelData)
             return true;
         }
-        static short OutputCode(short intCodeIn)
-        {
+        static short OutputCode(short intCodeIn) {
             //only used by ExpandLZW
             byte[] bytOutput;
             short intPos;
@@ -372,40 +320,34 @@ namespace WinAGI.Common
             //return first char so it can be used in adding table entries
             return bytOutput[0];
         }
-        static void WriteByte(byte ByteVal)
-        {
-            //used by ExpandLZW and OutputCode
-            //make sure output buffer has room; if not, expand it by 256 bytes
+        static void WriteByte(byte ByteVal) {
+            // used by ExpandLZW and OutputCode
+            // make sure output buffer has room; if not, expand it by 256 bytes
             if (lngOutPos >= bytCompData.Length) {
                 Array.Resize(ref bytCompData, bytCompData.Length + 256);
             }
-            //add the byte
+            // add the byte
             bytCompData[lngOutPos] = ByteVal;
-            //increment pointer
             lngOutPos++;
         }
-        public static short GetNextCode()
-        {
+        public static short GetNextCode() {
             short intCodeMask;
             int lngNextByte;
             //only used by ExpandLZW
             //add bits to the buffer until enough are added to read out the next code
-            while (intBitCount < intCurCodeSize) { // Until intBitCount >= intCurCodeSize
-                                                   //get next byte from input and shift it to end of current bitbuffer
-                lngNextByte = bytCelData[lngInPos] << intBitCount; //SHL(CLng(bytCelData(lngInPos)), intBitCount)
-                                                                   //increment pointer
+            while (intBitCount < intCurCodeSize) {
+                // get next byte from input and shift it to end of current bitbuffer
+                lngNextByte = bytCelData[lngInPos] << intBitCount;
                 lngInPos++;
-                //add byte to buffer
                 lngBitBuffer |= lngNextByte;
-                //increment bit counter
                 intBitCount += 8;
             }
             //now extract off the code
             intCodeMask = (short)((1 << intCurCodeSize) - 1);
             short retval = (short)(lngBitBuffer & intCodeMask);
             //shift buffer to right
-            lngBitBuffer >>= intCurCodeSize; //SHR(lngBitBuffer, intCurCodeSize)
-                                             //decrement bit Count
+            lngBitBuffer >>= intCurCodeSize;
+            //decrement bit Count
             intBitCount = (ushort)(intBitCount - intCurCodeSize);
             return retval;
         }

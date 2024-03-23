@@ -23,8 +23,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 
-namespace WinAGI.Editor
-{
+namespace WinAGI.Editor {
     //***************************************************
     // Resource Manager Class
     //
@@ -34,8 +33,7 @@ namespace WinAGI.Editor
     //
     //***************************************************
 
-    public static class Base
-    {
+    public static class Base {
         //***************************************************
         // GLOBAL CONSTANTS
         //***************************************************
@@ -235,8 +233,7 @@ namespace WinAGI.Editor
         // ENUMERATIONS
         //***************************************************
         #region
-        public enum UndoNameID
-        {
+        public enum UndoNameID {
             UID_UNKNOWN = 0,
             UID_TYPING = 1,
             UID_DELETE = 2,
@@ -244,15 +241,13 @@ namespace WinAGI.Editor
             UID_CUT = 4,
             UID_PASTE = 5,
         }
-        public enum ReplaceMode
-        {
+        public enum ReplaceMode {
             rpYes,
             rpYesToAll,
             rpNo,
             rpNoToAll,
         }
-        public enum EGetRes
-        {
+        public enum EGetRes {
             grAddNew,
             grRenumber,
             grOpen,
@@ -265,43 +260,36 @@ namespace WinAGI.Editor
             grAddInGame,
             grRenumberRoom
         }
-        public enum GameSettingFunction
-        {
+        public enum GameSettingFunction {
             gsEdit,
             gsNew,
         }
-        public enum UpdateModeType
-        {
+        public enum UpdateModeType {
             umResList = 1,
             umProperty = 2,
             umPreview = 4,
         }
-        public enum ViewEditMode
-        {
+        public enum ViewEditMode {
             vmBitmap,
             vmView,
             vmLoop,
             vmCel,
         }
-        public enum ELogicFormMode
-        {
+        public enum ELogicFormMode {
             fmLogic,
             fmText,
         }
-        public enum FindDirection
-        {
+        public enum FindDirection {
             fdAll,
             fdDown,
             fdUp,
         }
-        public enum FindLocation
-        {
+        public enum FindLocation {
             flCurrent,
             flOpen,
             flAll,
         }
-        public enum FindFormFunction
-        {
+        public enum FindFormFunction {
             ffFindWord,
             ffReplaceWord,
             ffFindObject,
@@ -315,15 +303,13 @@ namespace WinAGI.Editor
             ffFindNone,      // used to temporarily disable find form
                              // when active form is not searchable
         }
-        public enum FindFormAction
-        {
+        public enum FindFormAction {
             faFind,
             faReplace,
             faReplaceAll,
             faCancel,
         }
-        public enum TPicToolTypeEnum
-        {
+        public enum TPicToolTypeEnum {
             ttEdit = 0,      //indicates edit tool is selected; mouse ops move coords and commands
             ttSetPen = 1,    //not used, but included for possible updated capabilities
             ttLine = 2,      //line drawing tool; mouse ops set start/end points
@@ -336,8 +322,7 @@ namespace WinAGI.Editor
             ttEllipse = 9,   //for drawing ellipses
             ttSelectArea = 10, //for selecting bitmap areas of the Image
         }
-        public enum TPicDrawOpEnum
-        {
+        public enum TPicDrawOpEnum {
             doNone = 0,          //indicates no drawing op is in progress; mouse operations generally don't do anything
             doLine = 1,          //lines being drawn; mouse ops set start/end points
             doFill = 2,          //fill or plot commands being drawn; mouse ops set starting point of fill operations
@@ -346,13 +331,11 @@ namespace WinAGI.Editor
             doMoveCmds = 5,      //to move a set of commands
             doMovePt = 6,        //to move a single coordinate point
         }
-        public enum EPicMode
-        {
+        public enum EPicMode {
             pmEdit,
             pmTest,
         }
-        public enum EPicCur
-        {
+        public enum EPicCur {
             pcEdit,
             pcCross,
             pcMove,
@@ -364,27 +347,23 @@ namespace WinAGI.Editor
             pcNormal,
             pcEditSel,
         }
-        public enum EPicCursorMode
-        {
+        public enum EPicCursorMode {
             pcmWinAGI,
             pcmXMode,
         }
-        public enum EButtonFace
-        {
+        public enum EButtonFace {
             bfDown,
             bfOver,
             bfDialog,
             bfNone = -1,
         }
-        public enum ENoteTone
-        {
+        public enum ENoteTone {
             ntNone,
             ntNatural,
             ntSharp,
             ntFlat,
         }
-        public enum ELSelection
-        {
+        public enum ELSelection {
             lsNone,
             lsRoom,
             lsExit,
@@ -393,20 +372,17 @@ namespace WinAGI.Editor
             lsErrPt,
             lsMultiple,
         }
-        public enum ELLeg
-        {
+        public enum ELLeg {
             llNoTrans,   //  0 means no trans pt
             llFirst,     //  1 means first leg of trans pt
             llSecond,    //  2 means second leg of trans pt
         }
-        public enum ELTwoWay
-        {
+        public enum ELTwoWay {
             ltwSingle,    //  0 means a single direction exit
             ltwOneWay,    //  1 means a two way exit but only one way selected
             ltwBothWays,  //  2 means a two way exit and both are considered //selected//
         }
-        public enum ELayoutTool
-        {
+        public enum ELayoutTool {
             ltNone,
             ltSelect,
             ltEdge1,
@@ -415,8 +391,7 @@ namespace WinAGI.Editor
             ltRoom,
             ltComment,
         }
-        public enum EEReason
-        {
+        public enum EEReason {
             erNone,      //no exit reason specified (reason not yet assigned)
             erHorizon,   //exit is //if ego=horizon// Type
             erRight,     //exit is //if ego=right// Type
@@ -424,24 +399,21 @@ namespace WinAGI.Editor
             erLeft,      //exit is //if ego=left// Type
             erOther,     //exit can//t be easily determined to be a simple edge exit
         }
-        public enum EEStatus
-        {
+        public enum EEStatus {
             esOK,        //exit is drawn in layout editor, and exists in source code correctly
             esNew,       //exit that is drawn in layout editor, but hasn//t been saved to source code yet
             esChanged,   //exit that has been changed in the layout editor, but not updated in source code
             esDeleted,   //exit that has been deleted in layout editor, but not updated in source code
             esHidden,    //exit is valid, but to a logic currently marked as not IsRoom
         }
-        public enum EUReason
-        {
+        public enum EUReason {
             euAddRoom,         //new room added in layout editor
             euShowRoom,        //existing room toggled to show in layout editor
             euRemoveRoom,      //room removed by hiding (IsRoom to false), or actual removal from game
             euRenumberRoom,    //room//s logic number is changed
             euUpdateRoom,      //existing room updated in logic editor
         }
-        public enum EArgListType
-        {
+        public enum EArgListType {
             alNone = -2,
             alAll = -1,
             alByte = 0,
@@ -463,8 +435,7 @@ namespace WinAGI.Editor
             alView = 16,
             alPicture = 17,
         }
-        public enum EImgFormat
-        {
+        public enum EImgFormat {
             effBMP = 0,
             effGIF = 1,
             effPNG = 2,
@@ -476,18 +447,15 @@ namespace WinAGI.Editor
         //***************************************************
         #region
         //property accessors
-        public struct tDefaultScale
-        {
+        public struct tDefaultScale {
             public int Edit;
             public int Preview;
         }
-        public struct tDisplayNote
-        {
+        public struct tDisplayNote {
             public int Pos;
             public ENoteTone Tone;
         }
-        public struct TPicTest
-        {
+        public struct TPicTest {
             public int ObjSpeed;
             public int ObjPriority;  //16 means auto; 4-15 correspond to priority bands
             public int ObjRestriction;  //0 = no restriction
@@ -500,13 +468,11 @@ namespace WinAGI.Editor
             public int TestCel;
             public bool CycleAtRest;
         }//need to define type here so it is available publicly
-        public struct LEObjColor
-        {
+        public struct LEObjColor {
             public Color Edge;
             public Color Fill;
         }
-        public struct TLEColors
-        {
+        public struct TLEColors {
             public LEObjColor Room;
             public LEObjColor ErrPt;
             public LEObjColor TransPt;
@@ -514,8 +480,7 @@ namespace WinAGI.Editor
             public Color Edge;
             public Color Other;
         }
-        public struct GifOptions
-        {
+        public struct GifOptions {
             public int Zoom;
             public bool Transparency;
             public int Delay;
@@ -523,8 +488,7 @@ namespace WinAGI.Editor
             public int VAlign;
             public int HAlign;
         }
-        public struct agiSettings
-        {
+        public struct agiSettings {
             //general
             public bool ShowSplashScreen;  //if true, the splash screen is shown at startup
             public bool SkipPrintWarning;  //if true, no warning shown if no printers found at startup
@@ -643,24 +607,20 @@ namespace WinAGI.Editor
             public double GENameFrac;
             public double GEValFrac;
         }
-        public struct LCoord
-        {
+        public struct LCoord {
             public double X;
             public double Y;
         }
-        public struct PT
-        {
+        public struct PT {
             public byte X;
             public byte Y;
         }
-        public struct tResource
-        {
+        public struct tResource {
             public int NameCase; //0=lower, 1=upper, 2=proper
             public string Separator;
             public string NumFormat;
         }
-        public struct LoadGameResults
-        {
+        public struct LoadGameResults {
             public int Mode;
             public string Source;
             public bool Warnings;
@@ -746,7 +706,7 @@ namespace WinAGI.Editor
         public static int DefUpdateVal;
         //mru variables
         public static string[] strMRU = ["", "", "", ""];
-                                                                          //clipboard variables
+        //clipboard variables
         public static Notes SoundClipboard;
         public static int SoundCBMode;
         public static Loop ClipViewLoop;
@@ -817,8 +777,7 @@ namespace WinAGI.Editor
         //***************************************************
         // GLOBAL STATIC FUNCTIONS
         //***************************************************
-        public static void AddToQueue(AGIResType ResType, int ResNum)
-        {
+        public static void AddToQueue(AGIResType ResType, int ResNum) {
             //adds this resource to the navigation queue
             // ResNum is 256 for non-collection types (game, objects, words)
             //
@@ -844,15 +803,13 @@ namespace WinAGI.Editor
             ResQueue[ResQPtr] = lngRes;
 
         }
-        public static void ResetQueue()
-        {
+        public static void ResetQueue() {
             ResQueue = [];
             ResQPtr = -1;
             MDIMain.cmdBack.Enabled = false;
             MDIMain.cmdForward.Enabled = false;
         }
-        public static void GetResDefOverrides()
-        {
+        public static void GetResDefOverrides() {
             string strIn;
             string[] strDef;
             int intCount, lngGrp;
@@ -887,8 +844,7 @@ namespace WinAGI.Editor
                 SaveResDefOverrides();
             }
         }
-        public static void SaveResDefOverrides()
-        {
+        public static void SaveResDefOverrides() {
             //if any reserved define names are different from the default values,
             //write them to the app settings;
             int intCount = 0, i, j;
@@ -912,8 +868,7 @@ namespace WinAGI.Editor
             //write the count value
             GameSettings.WriteSetting("ResDefOverrides", "Count", intCount.ToString());
         }
-        public static void InitializeResMan()
-        {
+        public static void InitializeResMan() {
             bool blnCourier = false, blnArial = false;
             bool blnTimes = false, blnConsolas = false;
             //set default fonts
@@ -969,8 +924,7 @@ namespace WinAGI.Editor
             //initialize code snippet array
             CodeSnippets = [];
         }
-        public static void ExportLoop(Loop ThisLoop)
-        {
+        public static void ExportLoop(Loop ThisLoop) {
             //export a loop as a gif
             bool blnCanceled;
             DialogResult rtn;
@@ -1018,8 +972,7 @@ namespace WinAGI.Editor
             //if NOT canceled, then export!
             if (!blnCanceled) {
                 //show ProgressWin form
-                ProgressWin = new frmProgress
-                {
+                ProgressWin = new frmProgress {
                     Text = "Exporting Loop as GIF"
                 };
                 ProgressWin.lblProgress.Text = "Depending in size of loop, this may take awhile. Please wait...";
@@ -1036,8 +989,8 @@ namespace WinAGI.Editor
             //done with the options form
             frmVGO.Close();
         }
-        public static bool MakeLoopGif(Loop GifLoop, GifOptions GifOps, string ExportFile)
-        {
+
+        public static bool MakeLoopGif(Loop GifLoop, GifOptions GifOps, string ExportFile) {
             string strTempFile;
             byte[] bytData;
             int lngPos; //data that will be written to the gif file
@@ -1283,15 +1236,13 @@ namespace WinAGI.Editor
             }
             return true;
         }
-        public static void ExportAllPicImgs()
-        {
+        public static void ExportAllPicImgs() {
             //exports all picture images as one format in src dir
             int lngZoom, lngMode, lngFormat;
             string strExt = "";
             bool blnLoaded;
             //show options form, force image only
-            frmPicExpOptions frmPEO = new(1)
-            {
+            frmPicExpOptions frmPEO = new(1) {
                 Text = "Export All Picture Images"
             };
             frmPEO.ShowDialog(MDIMain);
@@ -1335,8 +1286,7 @@ namespace WinAGI.Editor
             }
             //if not canceled, export them all
             //setup ProgressWin form
-            ProgressWin = new frmProgress
-            {
+            ProgressWin = new frmProgress {
                 Text = "Exporting All Picture Images"
             };
             ProgressWin.pgbStatus.Maximum = EditGame.Pictures.Count;
@@ -1365,8 +1315,7 @@ namespace WinAGI.Editor
             //restore cursor
             MDIMain.UseWaitCursor = false;
         }
-        static void ExportImg(Picture ExportPic, string ExportFile, int ImgFormat, int ImgMode, int ImgZoom)
-        {
+        static void ExportImg(Picture ExportPic, string ExportFile, int ImgFormat, int ImgMode, int ImgZoom) {
             //exports pic gdpImg
             Bitmap ExportBMP;
             int Count = 0;
@@ -1424,15 +1373,13 @@ namespace WinAGI.Editor
                 }
             } while (true);
         }
-        static Bitmap ResizeAGIBitmap(Bitmap agiBmp, int scale = 1, InterpolationMode mode = InterpolationMode.NearestNeighbor)
-        {
+        static Bitmap ResizeAGIBitmap(Bitmap agiBmp, int scale = 1, InterpolationMode mode = InterpolationMode.NearestNeighbor) {
             //resizes a bitmap using APIs so it can be exported
             // NearestNeighbor, with PixelMode set to Half, gives clean scaling of pixels with 
             // no blurring
 
             Bitmap newBmp;
-            Size bSize = new()
-            {
+            Size bSize = new() {
                 Width = agiBmp.Width * scale * 2,
                 Height = agiBmp.Height * scale
             };
@@ -1444,8 +1391,7 @@ namespace WinAGI.Editor
             g.DrawImage(agiBmp, 0, 0, bSize.Width, bSize.Height);
             return newBmp;
         }
-        public static void ExportOnePicImg(Picture ThisPicture)
-        {
+        public static void ExportOnePicImg(Picture ThisPicture) {
             //exports a picture vis screen and/or pri screen as either bmp or gif, or png
             int lngZoom, lngMode, lngFormat;
             //show options form, save image only
@@ -1491,8 +1437,7 @@ namespace WinAGI.Editor
                 MDIMain.UseWaitCursor = false;
             }
         }
-        public static void OpenWAGFile(string ThisGameFile = "")
-        {
+        public static void OpenWAGFile(string ThisGameFile = "") {
             // opens a wag file for editing
             //if no game file passed,
             if (ThisGameFile.Length == 0) {
@@ -1527,8 +1472,7 @@ namespace WinAGI.Editor
                 //}
             }
         }
-        public static void OpenDIR()
-        {
+        public static void OpenDIR() {
             string strMsg;
             string ThisGameDir;
 
@@ -1559,52 +1503,53 @@ namespace WinAGI.Editor
                     }
                 }
                 // open the game in this directory
-                if (OpenGame(1, ThisGameDir)) {
-                    // if not loaded,
-                    if (EditGame is null || !EditGame.GameLoaded) {
-                        // user canceled close of currently open game, or
-                        //must have encountered error;
-                        return;
-                    }
-
-                    //set default directory
-                    BrowserStartDir = EditGame.GameDir;
-
-                    //set default text file directory to game source file directory
-                    DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
-
-                    //did the resource directory change? (is this even possible?)
-                    //YES it is; if only one dir exists, and it has a different name,
-                    //it's assumed to be the resource directory
-                    strMsg = "Game file '" + EditGame.GameID + ".wag'  has been created." + Environment.NewLine + Environment.NewLine;
-                    if (EditGame.ResDirName != DefResDir) {
-                        strMsg = strMsg + "The existing subdirectory '" + EditGame.ResDirName + "' will be used ";
-                    }
-                    else {
-                        strMsg = strMsg + "The subdirectory '" + EditGame.ResDirName + "' has been created ";
-                    }
-                    strMsg = strMsg + "to store logic " +
-                    "source files and exported resources. You can change the " +
-                    "source directory for this game on the Game Properties dialog.";
-
-                    //warn user that resource dir set to default
-                    MessageBox.Show(strMsg, "Import Game", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    //does the game have an Amiga OBJECT file?
-                    //very rare, but we check for it anyway
-                    if (EditGame.InvObjects.AmigaOBJ) {
-                        MessageBox.Show("The OBJECT file for this game is formatted" + Environment.NewLine +
-                               "for the Amiga." + Environment.NewLine + Environment.NewLine +
-                               "If you intend to run this game on a DOS " + Environment.NewLine +
-                               "platform, you will need to convert the file" + Environment.NewLine +
-                               "to DOS format (use the Convert menu option" + Environment.NewLine +
-                               "on the OBJECT Editor's Resource menu)", "Amiga OBJECT File detected", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
+                if (!OpenGame(1, ThisGameDir)) {
+                    // user cancelled closing of currently open game
+                    return;
                 }
+                // check for error
+                if (EditGame is null) {
+                    return;
+                }
+
+                //set default directory
+                BrowserStartDir = EditGame.GameDir;
+
+                //set default text file directory to game source file directory
+                DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
+
+                //did the resource directory change? (is this even possible?)
+                //YES it is; if only one dir exists, and it has a different name,
+                //it's assumed to be the resource directory
+                strMsg = "Game file '" + EditGame.GameID + ".wag'  has been created." + Environment.NewLine + Environment.NewLine;
+                if (EditGame.ResDirName != DefResDir) {
+                    strMsg = strMsg + "The existing subdirectory '" + EditGame.ResDirName + "' will be used ";
+                }
+                else {
+                    strMsg = strMsg + "The subdirectory '" + EditGame.ResDirName + "' has been created ";
+                }
+                strMsg = strMsg + "to store logic " +
+                "source files and exported resources. You can change the " +
+                "source directory for this game on the Game Properties dialog.";
+
+                //warn user that resource dir set to default
+                MessageBox.Show(strMsg, "Import Game", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                //does the game have an Amiga OBJECT file?
+                //very rare, but we check for it anyway
+                if (EditGame.InvObjects.AmigaOBJ) {
+                    MessageBox.Show("The OBJECT file for this game is formatted" + Environment.NewLine +
+                           "for the Amiga." + Environment.NewLine + Environment.NewLine +
+                           "If you intend to run this game on a DOS " + Environment.NewLine +
+                           "platform, you will need to convert the file" + Environment.NewLine +
+                           "to DOS format (use the Convert menu option" + Environment.NewLine +
+                           "on the OBJECT Editor's Resource menu)", "Amiga OBJECT File detected", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
             }
         }
-        public static bool OpenGame(int mode, string gameSource)
-        {
+
+        public static bool OpenGame(int mode, string gameSource) {
             // opens a game by directory or wag file depending on mode
             // mode 0 == open source as a wag file
             // mode 1 == open source as a sierra game directory;
@@ -1621,8 +1566,7 @@ namespace WinAGI.Editor
             MDIMain.UseWaitCursor = true;
             MDIMain.Refresh();
             //show the progress window
-            ProgressWin = new frmProgress
-            {
+            ProgressWin = new frmProgress {
                 Text = "Loading Game"
             };
             ProgressWin.lblProgress.Text = "Checking WinAGI Game file ...";
@@ -1638,8 +1582,7 @@ namespace WinAGI.Editor
             bgwOpenGame.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgw_RunWorkerCompleted);
             bgwOpenGame.WorkerReportsProgress = true;
             // pass mode and source
-            LoadResults = new()
-            {
+            LoadResults = new() {
                 Mode = mode,
                 Source = gameSource,
                 Failed = false,
@@ -1663,7 +1606,8 @@ namespace WinAGI.Editor
             //add wag file to mru, if opened successfully
             if (EditGame is not null) {
                 AddToMRU(EditGame.GameFile);
-            } else {
+            }
+            else {
                 //make sure warning grid is hidden
                 if (MDIMain.pnlWarnings.Visible) {
                     MDIMain.HideWarningList(true);
@@ -1674,12 +1618,11 @@ namespace WinAGI.Editor
             MainStatusBar.Items[1].Text = "";
             return !LoadResults.Failed;
         }
-        public static bool CloseThisGame()
-        {
+        public static bool CloseThisGame() {
             int i, j;
             DialogResult rtn;
             //if no game is open
-            if (EditGame is null || !EditGame.GameLoaded) {
+            if (EditGame is null) {
                 //just return success
                 return true;
             }
@@ -1687,24 +1630,20 @@ namespace WinAGI.Editor
             // if any editors cancel closing, CloseGame
             // returns false
 
-            //unload sound editors
+            // unload in-game sound editors
             for (i = SoundEditors.Count - 1; i >= 0; i--) {
-                //if in game
                 if (SoundEditors[i].InGame) {
-                    //save Count
                     j = SoundEditors.Count;
                     SoundEditors[i].Close();
-                    //check for cancellation
+                    // check for cancellation
                     if (j == SoundEditors.Count) {
                         return false;
                     }
                 }
             }
-            //unload view edit windows
+            // unload ingame view edit windows
             for (i = ViewEditors.Count - 1; i >= 0; i--) {
-                //if in game
                 if (ViewEditors[i].InGame) {
-                    //save Count
                     j = ViewEditors.Count;
                     ViewEditors[i].Close();
                     //check for cancellation
@@ -1713,35 +1652,31 @@ namespace WinAGI.Editor
                     }
                 }
             }
-            //unload picture edit windows
+            // unload ingame picture edit windows
             for (i = PictureEditors.Count - 1; i >= 0; i--) {
-                //if in game
                 if (PictureEditors[i].InGame) {
-                    //save Count
                     j = PictureEditors.Count;
                     PictureEditors[i].Close();
-                    //check for cancellation
+                    // check for cancellation
                     if (j == PictureEditors.Count) {
                         return false;
                     }
                 }
             }
-            //unload any logic editors
+            // unload ingame logic editors
             for (i = LogicEditors.Count - 1; i >= 0; i--) {
                 if (LogicEditors[i].FormMode == ELogicFormMode.fmLogic) {
-                    //if in game
                     if (LogicEditors[i].InGame) {
-                        //save Count
                         j = LogicEditors.Count;
                         LogicEditors[i].Close();
-                        //check for cancellation
+                        // check for cancellation
                         if (j == LogicEditors.Count) {
                             return false;
                         }
                     }
                 }
             }
-            //unload Objects Editor
+            // unload ingame Objects Editor
             if (OEInUse) {
                 ObjectEditor.Close();
                 // if user canceled, 
@@ -1749,61 +1684,55 @@ namespace WinAGI.Editor
                     return false;
                 }
             }
-            //unload word editor
+            //unload ingame word editor
             if (WEInUse) {
                 WordEditor.Close();
-                //if it is still there,
                 if (WEInUse) {
-                    //user canceled
                     return false;
                 }
             }
-            //unload layout editor
+            // unload layout editor
             if (LEInUse) {
                 LayoutEditor.Close();
                 if (LEInUse) {
                     return false;
                 }
             }
-            //unload globals editor
+            // unload globals editor
             if (GEInUse) {
                 GlobalsEditor.Close();
                 if (GEInUse) {
                 }
             }
-            //unload the menu editor
+            // unload the menu editor
             if (MEInUse) {
                 MenuEditor.Close();
                 if (MEInUse) {
                     return false;
                 }
             }
-            //always clear and hide warning list if it is showing
+            // always clear and hide warning list if it is showing
             if (MDIMain.pnlWarnings.Visible) {
                 MDIMain.HideWarningList(true);
             }
-            //always hide find dialog if it's showing
+            // always hide find dialog if it's showing
             if (FindingForm.Visible) {
                 FindingForm.Visible = false;
             }
             if (Settings.ShowPreview) {
-                //clear preview window
+                // clear preview window
                 PreviewWin.ClearPreviewWin();
             }
-            //resource editors and preview are closed so all resources
+            // resource editors and preview are closed so all resources
             // should now be unloaded, but just in case...
 
-            //unload all resources
+            // unload all resources
             foreach (Logic tmpLog in EditGame.Logics) {
                 if (tmpLog.Loaded) {
-                    //Debug.Print tmpLog.ID
-                    //if dirty
                     if (tmpLog.IsDirty) {
-                        //ask about saving
                         rtn = MessageBox.Show(tmpLog.ID + " has changed. Do you want to save the changes?", "Save Changes", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                         switch (rtn) {
                         case DialogResult.Yes:
-                            //save the resource
                             tmpLog.Save();
                             break;
                         case DialogResult.Cancel:
@@ -1814,15 +1743,11 @@ namespace WinAGI.Editor
                 }
             }
             foreach (Picture tmpPic in EditGame.Pictures) {
-                //Debug.Assert !tmpPic.Loaded
                 if (tmpPic.Loaded) {
-                    //if dirty
                     if (tmpPic.IsDirty) {
-                        //ask about saving
                         rtn = MessageBox.Show(tmpPic.ID + " has changed. Do you want to save the changes?", "Save Changes", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                         switch (rtn) {
                         case DialogResult.Yes:
-                            //save the resource
                             tmpPic.Save();
                             break;
                         case DialogResult.Cancel:
@@ -1833,15 +1758,11 @@ namespace WinAGI.Editor
                 }
             }
             foreach (Sound tmpSnd in EditGame.Sounds) {
-                //Debug.Assert !tmpSnd.Loaded
                 if (tmpSnd.Loaded) {
-                    //if dirty
                     if (tmpSnd.IsDirty) {
-                        //ask about saving
                         rtn = MessageBox.Show(tmpSnd.ID + " has changed. Do you want to save the changes?", "Save Changes", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                         switch (rtn) {
                         case DialogResult.Yes:
-                            //save the resource
                             tmpSnd.Save();
                             break;
                         case DialogResult.Cancel:
@@ -1852,54 +1773,47 @@ namespace WinAGI.Editor
                 }
             }
             foreach (Engine.View tmpView in EditGame.Views) {
-                //Debug.Assert !tmpView.Loaded
                 if (tmpView.Loaded) {
-                    //if dirty
                     if (tmpView.IsDirty) {
-                        //ask about saving
                         rtn = MessageBox.Show(tmpView.ID + " has changed. Do you want to save the changes?", "Save Changes", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                         switch (rtn) {
                         case DialogResult.Yes:
-                            //save the resource
                             tmpView.Save();
                             break;
                         case DialogResult.Cancel:
-                            //exit
                             return false;
                         }
                     }
                     tmpView.Unload();
                 }
             }
-            //if using resource tree
+            // clear resource list and preview window
             if (Settings.ResListType != 0) {
                 MDIMain.HideResTree();
-                //clear resource list
                 MDIMain.ClearResourceList();
             }
-            //if using preview window
             if (Settings.ShowPreview) {
                 PreviewWin.Visible = false;
             }
-            //now close the game
+            // now close the game
+            // TODO: will a dispose function help???
             EditGame.CloseGame();
-            //colors get restored to AGI default when a game closes
-            //change them to match preferred defaults
+            EditGame = null;
+            // restore colors to AGI default when a game closes
             GetDefaultColors();
             // restore default resdef
             Compiler.UseReservedNames = Settings.DefUseResDef;
-            //update caption
+            // update main form caption
             MDIMain.Text = "WinAGI GDS";
-            //reset node marker so selection of resources
-            //works correctly first time after another game loaded
+            // reset node marker so selection of resources
+            // works correctly first time after another game loaded
             MDIMain.LastNodeName = "";
-            //reset default text location to program dir
+            // reset default text location to program dir
             DefaultResDir = ProgramDir;
-            //game is closed
+            // game is closed
             return true;
         }
-        public static void BuildResourceTree()
-        {
+        public static void BuildResourceTree() {
             //builds the resource tree list
             //for the current open game
             int i;
@@ -1964,8 +1878,7 @@ namespace WinAGI.Editor
             }
             return;
         }
-        public static void BuildRDefLookup()
-        {
+        public static void BuildRDefLookup() {
             //populate the lookup list that logics will
             //use to support tooltips and define list lookups
             //reserve define count:
@@ -2005,8 +1918,7 @@ namespace WinAGI.Editor
                 }
             }
         }
-        public static void BuildSnippets()
-        {
+        public static void BuildSnippets() {
             //loads snippet file, and creates array of snippets
             SettingsList SnipList = new(ProgramDir + "snippets.txt");
             int lngCount;
@@ -2057,8 +1969,7 @@ namespace WinAGI.Editor
                 Array.Resize(ref CodeSnippets, lngAdded);
             }
         }
-        public static string DecodeSnippet(string SnipText)
-        {
+        public static string DecodeSnippet(string SnipText) {
             //replaces control codes in SnipText and returns
             //the full expanded text
             //(does not handle argument values; they are left in
@@ -2124,8 +2035,7 @@ namespace WinAGI.Editor
             }
         }
 
-        public static void AddToMRU(string NewWAGFile)
-        {
+        public static void AddToMRU(string NewWAGFile) {
             //if NewWAGFile is already in the list,
             //it is moved to the top;
             //otherwise, it is added to the top, and other
@@ -2165,8 +2075,7 @@ namespace WinAGI.Editor
             //ensure bar is visible
             MDIMain.mnuGMRUBar.Visible = true;
         }
-        public static void BuildIDefLookup()
-        {
+        public static void BuildIDefLookup() {
             //adds all resource IDs to the table, making sure
             //anything that//s blank gets reset
 
@@ -2180,8 +2089,7 @@ namespace WinAGI.Editor
             int i;
             int last;
             TDefine tmpDef = new();
-            TDefine tmpBlank = new()
-            {
+            TDefine tmpBlank = new() {
                 //blanks have a type of 11 (>highest available)
                 Type = (ArgTypeEnum)11
             };
@@ -2267,8 +2175,7 @@ namespace WinAGI.Editor
             //only called when a game is first loaded; changes to the
             //ID lookup list are handled by the add/remove resource functions
         }
-        public static void BuildGDefLookup()
-        {
+        public static void BuildGDefLookup() {
             //loads all global defines into single list for use by
             //the logic tooltip lookup function
 
@@ -2364,8 +2271,7 @@ namespace WinAGI.Editor
             //only called when a game is first loaded; changes to the
             //global lookup list are handled by the Global Editor
         }
-        public static ArgTypeEnum DefTypeFromValue(string strValue)
-        {
+        public static ArgTypeEnum DefTypeFromValue(string strValue) {
             if (IsNumeric(strValue)) {
                 return atNum;
             }
@@ -2396,8 +2302,7 @@ namespace WinAGI.Editor
                 }
             }
         }
-        public static void DrawProp(Graphics gPic, string PropID, string PropValue, int RowNum, bool AllowSelect, int SelectedProp, int PropScroll, bool PropEnabled, EButtonFace ButtonFace = EButtonFace.bfNone)
-        {
+        public static void DrawProp(Graphics gPic, string PropID, string PropValue, int RowNum, bool AllowSelect, int SelectedProp, int PropScroll, bool PropEnabled, EButtonFace ButtonFace = EButtonFace.bfNone) {
             bool blnIsSelected;
             //determine if this prop is selected
             blnIsSelected = (AllowSelect && (SelectedProp == RowNum));
@@ -2432,8 +2337,7 @@ namespace WinAGI.Editor
                 }
             }
         }
-        public static void AddOrRemoveRes()
-        {
+        public static void AddOrRemoveRes() {
             //*//
             /*
           int i;
@@ -2514,8 +2418,7 @@ namespace WinAGI.Editor
           Resume Next
             */
         }
-        public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = false)
-        {
+        public static void CompileAGIGame(string CompGameDir = "", bool RebuildOnly = false) {
             /*
           DialogResult rtn;
           string strTemp;
@@ -3024,8 +2927,7 @@ namespace WinAGI.Editor
           Resume Next
             */
         }
-        public static bool CompileDirtyLogics(bool NoMsg = false)
-        {
+        public static bool CompileDirtyLogics(bool NoMsg = false) {
             return false;
             //*//
             /*
@@ -3278,8 +3180,7 @@ namespace WinAGI.Editor
           Resume Next
             */
         }
-        public static void NewAGIGame(bool UseTemplate)
-        {
+        public static void NewAGIGame(bool UseTemplate) {
             /*
 
           bool blnClosed;
@@ -3486,8 +3387,7 @@ namespace WinAGI.Editor
           Resume Next
             */
         }
-        public static int ValidateID(string NewID, string OldID)
-        {
+        public static int ValidateID(string NewID, string OldID) {
             //validates if a resource ID is agreeable or not
             //returns zero if ok;
             //error Value if not
@@ -3567,8 +3467,7 @@ namespace WinAGI.Editor
             //ok - 
             return 0;
         }
-        static void tmpResMan()
-        {
+        static void tmpResMan() {
             /*
 
 
@@ -11218,8 +11117,7 @@ namespace WinAGI.Editor
       */
         }
 
-        public static void UpdateSelection(AGIResType ResType, int ResNum, UpdateModeType UpDateMode)
-        {
+        public static void UpdateSelection(AGIResType ResType, int ResNum, UpdateModeType UpDateMode) {
             //updates the resource list, property box, and preview window for a given resource
             if (ResNum < 0 | ResNum > 255) {
                 return;
@@ -11309,8 +11207,7 @@ namespace WinAGI.Editor
                 }
             }
         }
-        public static void UpdateResFile(AGIResType ResType, byte ResNum, string OldFileName)
-        {
+        public static void UpdateResFile(AGIResType ResType, byte ResNum, string OldFileName) {
             //updates ingame id for resource files and the resource tree
             DialogResult rtn;
 
@@ -11459,8 +11356,7 @@ namespace WinAGI.Editor
             //update property window and resource list
             UpdateSelection(ResType, ResNum, UpdateModeType.umProperty | UpdateModeType.umResList);
         }
-        public static void UpdateExitInfo(EUReason Reason, int LogicNumber, Logic ThisLogic, int NewNum = 0)
-        {
+        public static void UpdateExitInfo(EUReason Reason, int LogicNumber, Logic ThisLogic, int NewNum = 0) {
             /*
           //   frmMDIMain|SelectedItemRenumber:  UpdateExitInfo euRenumberRoom, OldResNum, null, NewResNum
           //  frmMDIMain|lstProperty_LostFocus:  UpdateExitInfo Reason, SelResNum, Logics(SelResNum) //showroom or removeroom
@@ -11571,8 +11467,7 @@ namespace WinAGI.Editor
           ParseExits = null
             */
         }
-        public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bool IsDirty)
-        {
+        public static void AdjustMenus(AGIResType NewMode, bool InGame, bool Editing, bool IsDirty) {
             ToolStripItem tmpPanel;
 
             //possible choices:
@@ -11862,8 +11757,7 @@ namespace WinAGI.Editor
               }
             } */
         }
-        public static void AddNewLogic(int NewLogicNumber, Logic NewLogic, bool blnTemplate, bool Importing)
-        {
+        public static void AddNewLogic(int NewLogicNumber, Logic NewLogic, bool blnTemplate, bool Importing) {
             string strLogic;
             int lngPos = 0;
 
@@ -11961,8 +11855,7 @@ namespace WinAGI.Editor
             // unload it once all done getting it added
             EditGame.Logics[NewLogicNumber].Unload();
         }
-        public static void AddNewPicture(int NewPictureNumber, Picture NewPicture)
-        {
+        public static void AddNewPicture(int NewPictureNumber, Picture NewPicture) {
             int lngPos = 0;
             //add picture to game collection
             EditGame.Pictures.Add((byte)NewPictureNumber, NewPicture);
@@ -12010,8 +11903,7 @@ namespace WinAGI.Editor
             //last node marker is no longer accurate; reset
             MDIMain.LastNodeName = "";
         }
-        public static void AddNewSound(int NewSoundNumber, Sound NewSound)
-        {
+        public static void AddNewSound(int NewSoundNumber, Sound NewSound) {
             int lngPos = 0;
             //add sound to game collection
             EditGame.Sounds.Add((byte)NewSoundNumber, NewSound);
@@ -12059,8 +11951,7 @@ namespace WinAGI.Editor
             //last node marker is no longer accurate; reset
             MDIMain.LastNodeName = "";
         }
-        public static void AddNewView(int NewViewNumber, Engine.View NewView)
-        {
+        public static void AddNewView(int NewViewNumber, Engine.View NewView) {
             int lngPos = 0;
             //add view to game collection
             EditGame.Views.Add((byte)NewViewNumber, NewView);
@@ -12106,28 +11997,22 @@ namespace WinAGI.Editor
             //last node marker is no longer accurate; reset
             MDIMain.LastNodeName = "";
         }
-        public static void NewLogic(string ImportLogicFile = "")
-        {
-            //creates a new logic resource and opens an editor
-
+        public static void NewLogic(string ImportLogicFile = "") {
+            // creates a new logic resource and opens an editor
             frmLogicEdit frmNew;
             bool blnInGame = false;
             Logic tmpLogic;
             bool blnOpen = false;
-
             string strFile = "";
             bool blnSource = false, blnImporting = false;
 
-            //show wait cursor
+            // show wait cursor
             MDIMain.UseWaitCursor = true;
-
-            //create temporary logic
+            // create temporary logic
             tmpLogic = new Logic();
-
-            //if an import filename passed,
             if (ImportLogicFile.Length != 0) {
                 blnImporting = true;
-                //open file to see if it is sourcecode or compiled logic
+                // open file to see if it is sourcecode or compiled logic
                 try {
                     using FileStream fsNewLog = new(ImportLogicFile, FileMode.Open);
                     using StreamReader srNewLog = new(fsNewLog);
@@ -12138,188 +12023,168 @@ namespace WinAGI.Editor
                 catch (Exception) {
                     // ignore errors; import method will have to handle it
                 }
-
-                //check if logic is a compiled logic:
-                //(check for existence of characters <8)
+                // check if logic is a compiled logic:
+                // (check for existence of characters <8)
                 string lChars = "";
                 for (int i = 1; i <= 8; i++) {
                     lChars += ((char)i).ToString();
                     blnSource = !strFile.Any(lChars.Contains);
                 }
-                //import the logic
-                //(and check for error)
+                // import the logic
+                // (and check for error)
                 try {
                     tmpLogic.Import(ImportLogicFile, blnSource);
                 }
                 catch (Exception e) {
-                    //if a compile error occurred,
+                    // if a compile error occurred,
                     if (e.HResult == WINAGI_ERR + 567) {
-                        //can't open this resource
+                        // can't open this resource
                         ErrMsgBox(e, "An error occurred while trying to decompile this logic resource:", "Unable to open this logic.", "Invalid Logic Resource");
-                        //restore main form mousepointer and exit
+                        // restore main form mousepointer and exit
                         MDIMain.UseWaitCursor = false;
                         return;
                     }
                     else {
-                        //maybe we assumed source status incorrectly- try again
+                        // maybe we assumed source status incorrectly- try again
                         try {
                             tmpLogic.Import(ImportLogicFile, !blnSource);
                         }
                         catch (Exception) {
-                            //if STILL error
-                            //something wrong
+                            // if STILL error, something wrong
                             ErrMsgBox(e, "Unable to load this logic resource. It can't be decompiled, and does not appear to be a text file.", "", "Invalid Logic Resource");
-                            //restore main form mousepointer and exit
+                            // restore main form mousepointer and exit
                             MDIMain.UseWaitCursor = false;
                             return;
                         }
                     }
                 }
             }
-            //if a game is loaded,
-            if (EditGame.GameLoaded) {
-                // get logic number, id , description
-                frmGetResourceNum GetResNum = new()
-                {
-                    ResType = rtLogic
-                };
-                if (blnImporting) {
-                    GetResNum.WindowFunction = EGetRes.grImport;
-                }
-                else {
-                    GetResNum.WindowFunction = EGetRes.grAddNew;
-                }
-                //setup before loading so ghosts don't show up
-                GetResNum.FormSetup();
-                //suggest ID based on filename
-                if (ImportLogicFile.Length > 0) {
-                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportLogicFile).Replace(" ", "");
-                }
-                //restore cursor while getting resnum
-                MDIMain.UseWaitCursor = false;
-                GetResNum.ShowDialog(MDIMain);
-                //show wait cursor while resource is added
-                MDIMain.UseWaitCursor = true;
-
-                //if canceled, release the temporary logic, restore mousepointer and exit
-                if (GetResNum.Canceled) {
-                    tmpLogic = null;
-                    //restore mousepointer and exit
-                    GetResNum.Dispose();
-                    MDIMain.UseWaitCursor = false;
-                    return;
-                }
-                //if user wants logic added to current game
-                else if (!GetResNum.DontImport) {
-                    //add ID and description to tmpLogic
-                    tmpLogic.ID = GetResNum.txtID.Text;
-                    tmpLogic.Description = GetResNum.txtDescription.Text;
-
-                    //add Logic
-                    AddNewLogic(GetResNum.NewResNum, tmpLogic, (GetResNum.chkRoom.Checked), blnImporting);
-                    //reset tmplogic to point to the new game logic
-                    tmpLogic = EditGame.Logics[GetResNum.NewResNum];
-
-                    //if using layout editor AND a room,
-                    if (EditGame.UseLE && (GetResNum.chkRoom.Checked)) {
-                        //update editor and data file to show this room is now in the game
-                        UpdateExitInfo(EUReason.euShowRoom, GetResNum.NewResNum, EditGame.Logics[GetResNum.NewResNum]);
-                    }
-                    //if including picture
-                    if (GetResNum.chkIncludePic.Checked) {
-                        //if replacing an existing pic
-                        if (EditGame.Pictures.Exists(GetResNum.NewResNum)) {
-                            RemovePicture(GetResNum.NewResNum);
-                        }
-                        AddNewPicture(GetResNum.NewResNum, null);
-                        //help user out if they chose a naming scheme
-                        if (Left(GetResNum.txtID.Text, 3).Equals("rm.", StringComparison.OrdinalIgnoreCase) && GetResNum.txtID.Text.Length >= 4) {
-                            //change ID (if able)
-                            if (ValidateID("pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3), "") == 0) {
-                                //save old resfile name
-                                strFile = EditGame.ResDir + EditGame.Pictures[GetResNum.NewResNum].ID + ".agp";
-                                //change this picture//s ID
-                                EditGame.Pictures[GetResNum.NewResNum].ID = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
-                                //update the resfile, tree and properties
-                                UpdateResFile(rtPicture, GetResNum.NewResNum, strFile);
-                                //update lookup table
-                                IDefLookup[768 + GetResNum.NewResNum].Name = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
-                            }
-                        }
-                        //pic is still loaded so we need to unload it now
-                        EditGame.Pictures[GetResNum.NewResNum].Unload();
-                    }
-                    //set ingame flag
-                    blnInGame = true;
-                }
-                else {
-                    // not adding to game; still allowed to use template
-                    if (GetResNum.chkRoom.Checked) {
-                        //add template text
-                        tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
-                    }
-                    else {
-                        //add default text
-                        tmpLogic.SourceText = "[ " + Keys.Enter + "[ " + GetResNum.txtID.Text + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****";
-                    }
-                }
-
-                blnOpen = (GetResNum.chkOpenRes.Checked);
-
-                //make sure resource form is unloaded
-                GetResNum.Dispose();
+            // get logic number, id , description
+            frmGetResourceNum GetResNum = new() {
+                ResType = rtLogic
+            };
+            if (blnImporting) {
+                GetResNum.WindowFunction = EGetRes.grImport;
             }
+            else {
+                GetResNum.WindowFunction = EGetRes.grAddNew;
+            }
+            //setup before loading so ghosts don't show up
+            GetResNum.FormSetup();
+            // suggest ID based on filename
+            if (ImportLogicFile.Length > 0) {
+                GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportLogicFile).Replace(" ", "");
+            }
+            // restore cursor while getting resnum
+            MDIMain.UseWaitCursor = false;
+            GetResNum.ShowDialog(MDIMain);
+            // show wait cursor while resource is added
+            MDIMain.UseWaitCursor = true;
 
-            //only open if user wants it open (or if not in a game or if opening/not importing)
-            if (blnOpen || !EditGame.GameLoaded || !blnInGame) {
-                //open a new logic editing window
-                frmNew = new frmLogicEdit
-                {
+            // if canceled, release the temporary logic, restore mousepointer and exit
+            if (GetResNum.Canceled) {
+                tmpLogic = null;
+                // restore mousepointer and exit
+                GetResNum.Dispose();
+                MDIMain.UseWaitCursor = false;
+                return;
+            }
+            // if user wants logic added to current game
+            else if (!GetResNum.DontImport) {
+                // add ID and description to tmpLogic
+                tmpLogic.ID = GetResNum.txtID.Text;
+                tmpLogic.Description = GetResNum.txtDescription.Text;
+
+                //add Logic
+                AddNewLogic(GetResNum.NewResNum, tmpLogic, (GetResNum.chkRoom.Checked), blnImporting);
+                // reset tmplogic to point to the new game logic
+                tmpLogic = EditGame.Logics[GetResNum.NewResNum];
+
+                // if using layout editor AND a room,
+                if (EditGame.UseLE && (GetResNum.chkRoom.Checked)) {
+                    // update editor and data file to show this room is now in the game
+                    UpdateExitInfo(EUReason.euShowRoom, GetResNum.NewResNum, EditGame.Logics[GetResNum.NewResNum]);
+                }
+                //if including picture
+                if (GetResNum.chkIncludePic.Checked) {
+                    // if replacing an existing pic
+                    if (EditGame.Pictures.Exists(GetResNum.NewResNum)) {
+                        RemovePicture(GetResNum.NewResNum);
+                    }
+                    AddNewPicture(GetResNum.NewResNum, null);
+                    // help user out if they chose a naming scheme
+                    if (Left(GetResNum.txtID.Text, 3).Equals("rm.", StringComparison.OrdinalIgnoreCase) && GetResNum.txtID.Text.Length >= 4) {
+                        // change ID (if able)
+                        if (ValidateID("pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3), "") == 0) {
+                            // save old resfile name
+                            strFile = EditGame.ResDir + EditGame.Pictures[GetResNum.NewResNum].ID + ".agp";
+                            // change this picture//s ID
+                            EditGame.Pictures[GetResNum.NewResNum].ID = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
+                            // update the resfile, tree and properties
+                            UpdateResFile(rtPicture, GetResNum.NewResNum, strFile);
+                            // update lookup table
+                            IDefLookup[768 + GetResNum.NewResNum].Name = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
+                        }
+                    }
+                    // pic is still loaded so we need to unload it now
+                    EditGame.Pictures[GetResNum.NewResNum].Unload();
+                }
+                // set ingame flag
+                blnInGame = true;
+            }
+            else {
+                // not adding to game; still allowed to use template
+                if (GetResNum.chkRoom.Checked) {
+                    // add template text
+                    tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
+                }
+                else {
+                    // add default text
+                    tmpLogic.SourceText = "[ " + Keys.Enter + "[ " + GetResNum.txtID.Text + Keys.Enter + "[ " + Keys.Enter + Keys.Enter + "return();" + Keys.Enter + Keys.Enter + "[*****" + Keys.Enter + "[ messages         [  declared messages go here" + Keys.Enter + "[*****";
+                }
+            }
+            blnOpen = (GetResNum.chkOpenRes.Checked);
+            //make sure resource form is unloaded
+            GetResNum.Dispose();
+            // only open if user wants it open (or if not in a game or if opening/not importing)
+            if (blnOpen || !blnInGame) {
+                // open a new logic editing window
+                frmNew = new frmLogicEdit {
                     MdiParent = MDIMain
                 };
-                //pass the logic to the editor
+                // pass the logic to the editor
                 if (frmNew.EditLogic(tmpLogic)) {
-                    //show the form
                     frmNew.Show();
-                    //add form to collection
+                    // add form to collection
                     LogicEditors.Add(frmNew);
                 }
                 else {
                     frmNew.Close();
                 }
             }
-            if (EditGame.GameLoaded) {
-                //save openres value
-                Settings.OpenNew = blnOpen;
-            }
-            //if logic was added to game
+            // save openres value
+            Settings.OpenNew = blnOpen;
+            // if logic was added to game
             if (blnInGame) {
-                //unload it
+                // unload it
                 EditGame.Logics[tmpLogic.Number].Unload();
             }
 
             //restore mousepointer and exit
             MDIMain.UseWaitCursor = false;
         }
-        public static void NewPicture(string ImportPictureFile = "")
-        {
+        public static void NewPicture(string ImportPictureFile = "") {
             //creates a new picture resource and opens an editor
-
             frmPicEdit frmNew;
             bool blnInGame = false;
             Picture tmpPic;
             bool blnOpen = false;
 
-            //show wait cursor
             MDIMain.UseWaitCursor = true;
-
             //create temporary picture
             tmpPic = new Picture();
-
-            //if an import filename was passed
             if (ImportPictureFile.Length != 0) {
-                //import the picture
-                //(and check for error)
+                // import the picture (and check for error)
                 try {
                     tmpPic.Import(ImportPictureFile);
                 }
@@ -12331,7 +12196,7 @@ namespace WinAGI.Editor
                     return;
                 }
                 try {
-                    //now check to see if it's a valid picture resource (by trying to reload it)
+                    // now check to see if it's a valid picture resource (by trying to reload it)
                     tmpPic.Load();
                 }
                 catch (Exception e) {
@@ -12342,108 +12207,92 @@ namespace WinAGI.Editor
                 }
             }
 
-            //if a game is loaded
-            if (EditGame.GameLoaded) {
-                // get picture number, id , description
-                frmGetResourceNum GetResNum = new()
-                {
-                    ResType = rtPicture
-                };
-                if (ImportPictureFile.Length == 0) {
-                    GetResNum.WindowFunction = EGetRes.grAddNew;
-                }
-                else {
-                    GetResNum.WindowFunction = EGetRes.grImport;
-                }
-                //setup before loading so ghosts don't show up
-                GetResNum.FormSetup();
-                //suggest ID based on filename
-                if (ImportPictureFile.Length > 0) {
-                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportPictureFile).Replace(" ", "");
-                }
-                //restore cursor while getting resnum
-                MDIMain.UseWaitCursor = false;
-                GetResNum.ShowDialog(MDIMain);
-                //show wait cursor while resource is added
-                MDIMain.UseWaitCursor = true;
-
-                //if canceled, release the temporary picture, restore cursor and exit method
-                if (GetResNum.Canceled) {
-                    //restore mousepointer and exit
-                    GetResNum.Close();
-                    MDIMain.UseWaitCursor = false;
-                    return;
-                }
-                //if user wants picture added to current game
-                else if (!GetResNum.DontImport) {
-                    //add new id and description
-                    tmpPic.ID = GetResNum.txtID.Text;
-                    tmpPic.Description = GetResNum.txtDescription.Text;
-
-                    //add picture
-                    AddNewPicture(GetResNum.NewResNum, tmpPic);
-                    //reset tmpPic to point to the new game picture
-                    tmpPic = EditGame.Pictures[GetResNum.NewResNum];
-                    //set ingame flag
-                    blnInGame = true;
-                }
-
-                blnOpen = (GetResNum.chkOpenRes.Checked);
-
-                //make sure resource form is unloaded
-                GetResNum.Close();
+            // get picture number, id , description
+            frmGetResourceNum GetResNum = new() {
+                ResType = rtPicture
+            };
+            if (ImportPictureFile.Length == 0) {
+                GetResNum.WindowFunction = EGetRes.grAddNew;
             }
+            else {
+                GetResNum.WindowFunction = EGetRes.grImport;
+            }
+            // setup before loading so ghosts don't show up
+            GetResNum.FormSetup();
+            // suggest ID based on filename
+            if (ImportPictureFile.Length > 0) {
+                GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportPictureFile).Replace(" ", "");
+            }
+            // restore cursor while getting resnum
+            MDIMain.UseWaitCursor = false;
+            GetResNum.ShowDialog(MDIMain);
+            // show wait cursor while resource is added
+            MDIMain.UseWaitCursor = true;
 
-            //only open if user wants it open (or if not in a game or if opening/not importing)
-            if (blnOpen || !EditGame.GameLoaded || !blnInGame) {
-                //open a new picture editing window
-                frmNew = new frmPicEdit()
-                {
+            // if canceled, release the temporary picture, restore cursor and exit method
+            if (GetResNum.Canceled) {
+                // restore mousepointer and exit
+                GetResNum.Close();
+                MDIMain.UseWaitCursor = false;
+                return;
+            }
+            // if user wants picture added to current game
+            else if (!GetResNum.DontImport) {
+                //add new id and description
+                tmpPic.ID = GetResNum.txtID.Text;
+                tmpPic.Description = GetResNum.txtDescription.Text;
+
+                // add picture
+                AddNewPicture(GetResNum.NewResNum, tmpPic);
+                // reset tmpPic to point to the new game picture
+                tmpPic = EditGame.Pictures[GetResNum.NewResNum];
+                // set ingame flag
+                blnInGame = true;
+            }
+            blnOpen = (GetResNum.chkOpenRes.Checked);
+
+            // make sure resource form is unloaded
+            GetResNum.Close();
+            // only open if user wants it open (or if not in a game or if opening/not importing)
+            if (blnOpen || !blnInGame) {
+                // open a new picture editing window
+                frmNew = new frmPicEdit() {
                     MdiParent = MDIMain
                 };
-                //pass the picture to the editor
+                // pass the picture to the editor
                 if (frmNew.EditPicture(tmpPic)) {
-                    //show form
                     frmNew.Show();
-                    //add to collection
                     PictureEditors.Add(frmNew);
                 }
                 else {
-                    //error
+                    // error
                     frmNew.Close();
                 }
             }
-
-            if (EditGame.GameLoaded) {
-                //save openres value
-                Settings.OpenNew = blnOpen;
-            }
-
-            //if added to a game
+            // save openres value
+            Settings.OpenNew = blnOpen;
+            // if added to a game
             if (blnInGame) {
-                //unload it
+                // unload it
                 EditGame.Pictures[tmpPic.Number].Unload();
             }
-
-            //restore main form mousepointer and exit
+            // restore main form mousepointer and exit
             MDIMain.UseWaitCursor = false;
         }
-        public static void NewSound(string ImportSoundFile = "")
-        {
-            //creates a new sound resource and opens and editor
 
+        public static void NewSound(string ImportSoundFile = "") {
+            //creates a new sound resource and opens and editor
             frmSoundEdit frmNew;
             bool blnInGame = false;
             Sound tmpSound;
             bool blnOpen = false;
 
-            //show wait cursor
+            // show wait cursor
             MDIMain.UseWaitCursor = true;
-
-            //create temporary sound
+            // create temporary sound
             tmpSound = new Sound();
-            //set default instrument settings;
-            //if a sound is being imported, these may be overridden...
+            // set default instrument settings;
+            // if a sound is being imported, these may be overridden...
             tmpSound.Track(0).Instrument = Settings.DefInst0;
             tmpSound.Track(1).Instrument = Settings.DefInst1;
             tmpSound.Track(2).Instrument = Settings.DefInst2;
@@ -12452,21 +12301,20 @@ namespace WinAGI.Editor
             tmpSound.Track(2).Muted = Settings.DefMute2;
             tmpSound.Track(3).Muted = Settings.DefMute3;
 
-            //if an import filename was passed
+            // if an import filename was passed
             if (ImportSoundFile.Length != 0) {
-                //import the sound
-                //(and check for error)
+                // import the sound and (and check for error)
                 try {
                     tmpSound.Import(ImportSoundFile);
                 }
                 catch (Exception e) {
-                    //something wrong
+                    // something wrong
                     ErrMsgBox(e, "Error occurred while importing sound:", "Unable to load this sound resource", "Import Sound Error");
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
                 try {
-                    //now check to see if it's a valid sound resource (by trying to reload it)
+                    // now check to see if it's a valid sound resource (by trying to reload it)
                     tmpSound.Load();
                 }
                 catch (Exception e) {
@@ -12477,128 +12325,102 @@ namespace WinAGI.Editor
                 // only PC sounds are editable
                 if (tmpSound.SndFormat != 0) {
                     MessageBox.Show("Error reading Picture data:" + NEWLINE + NEWLINE + "This is not a valid picture resource.", "Invalid Picture Resource", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    //restore main form mousepointer and exit
+                    // restore main form mousepointer and exit
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
             }
+            // get picture number, id , description
+            frmGetResourceNum GetResNum = new() {
+                ResType = rtSound
+            };
+            if (ImportSoundFile.Length == 0) {
+                GetResNum.WindowFunction = EGetRes.grAddNew;
+            }
+            else {
+                GetResNum.WindowFunction = EGetRes.grImport;
+            }
+            // setup before loading so ghosts don't show up
+            GetResNum.FormSetup();
+            // suggest ID based on filename
+            if (ImportSoundFile.Length > 0) {
+                GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportSoundFile).Replace(" ", "");
+            }
 
-            //if a game is loaded
-            if (EditGame.GameLoaded) {
-                // get picture number, id , description
-                frmGetResourceNum GetResNum = new()
-                {
-                    ResType = rtSound
-                };
-                if (ImportSoundFile.Length == 0) {
-                    GetResNum.WindowFunction = EGetRes.grAddNew;
-                }
-                else {
-                    GetResNum.WindowFunction = EGetRes.grImport;
-                }
-                //setup before loading so ghosts don't show up
-                GetResNum.FormSetup();
-                //suggest ID based on filename
-                if (ImportSoundFile.Length > 0) {
-                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportSoundFile).Replace(" ", "");
-                }
+            // restore cursor while getting resnum
+            MDIMain.UseWaitCursor = false;
+            GetResNum.ShowDialog(MDIMain);
+            // show wait cursor again while finishing creating the new sound
+            MDIMain.UseWaitCursor = true;
 
-                //restore cursor while getting resnum
-                MDIMain.UseWaitCursor = false;
-                GetResNum.ShowDialog(MDIMain);
-                //show wait cursor again while finishing creating the new sound
-                MDIMain.UseWaitCursor = true;
-
-                //if canceled, release the temporary sound, restore cursor and exit method
-                if (GetResNum.Canceled) {
-                    //restore mousepointer, unload form and exit
-                    GetResNum.Close();
-                    MDIMain.UseWaitCursor = false;
-                    return;
-                }
-                //if user wants sound added to current game
-                else if (!GetResNum.DontImport) {
-                    //add new id and description
-                    tmpSound.ID = GetResNum.txtID.Text;
-                    tmpSound.Description = GetResNum.txtDescription.Text;
-
-                    //add sound
-                    AddNewSound(GetResNum.NewResNum, tmpSound);
-                    //reset tmpSound to point to the new game sound
-                    tmpSound = EditGame.Sounds[GetResNum.NewResNum];
-
-                    //set flag
-                    blnInGame = true;
-                }
-
-                blnOpen = (GetResNum.chkOpenRes.Checked);
-
-                //make sure resource form is unloaded
+            // if canceled, release the temporary sound, restore cursor and exit method
+            if (GetResNum.Canceled) {
+                // restore mousepointer, unload form and exit
                 GetResNum.Close();
+                MDIMain.UseWaitCursor = false;
+                return;
             }
+            // if user wants sound added to current game
+            else if (!GetResNum.DontImport) {
+                // add new id and description
+                tmpSound.ID = GetResNum.txtID.Text;
+                tmpSound.Description = GetResNum.txtDescription.Text;
+                // add sound
+                AddNewSound(GetResNum.NewResNum, tmpSound);
+                // reset tmpSound to point to the new game sound
+                tmpSound = EditGame.Sounds[GetResNum.NewResNum];
+                blnInGame = true;
+            }
+            blnOpen = (GetResNum.chkOpenRes.Checked);
 
-            //only open if user wants it open (or if not in a game or if opening/not importing)
-            if (blnOpen || !EditGame.GameLoaded || !blnInGame) {
-
-                //open a new sound editing window
-                frmNew = new frmSoundEdit()
-                {
+            // make sure resource form is unloaded
+            GetResNum.Close();
+            // only open if user wants it open (or if not in a game or if opening/not importing)
+            if (blnOpen || !blnInGame) {
+                // open a new sound editing window
+                frmNew = new frmSoundEdit() {
                     MdiParent = MDIMain
                 };
-                //pass the sound to the editor
+                // pass the sound to the editor
                 if (frmNew.EditSound(tmpSound)) {
-                    //show form
                     frmNew.Show();
-                    //add to collection
                     SoundEditors.Add(frmNew);
                 }
                 else {
-                    //error
+                    // error
                     frmNew.Close();
                 }
             }
-
-            if (EditGame.GameLoaded) {
-                //save openres value
-                Settings.OpenNew = blnOpen;
-            }
-
-            //if added to a game
+            // save openres value
+            Settings.OpenNew = blnOpen;
             if (blnInGame) {
-                //unload it
                 EditGame.Sounds[tmpSound.Number].Unload();
             }
-
             //restore mousepointer and exit
             MDIMain.UseWaitCursor = false;
         }
-        public static void NewView(string ImportViewFile = "")
-        {
-            //creates a new view editor with a view that is
-            //not attached to a game
 
+        public static void NewView(string ImportViewFile = "") {
+            // creates a new view editor with a view that is not attached to a game
             frmViewEdit frmNew;
             bool blnInGame = false;
             Engine.View tmpView;
             bool blnOpen = false;
 
-            //show wait cursor
+            // show wait cursor
             MDIMain.UseWaitCursor = true;
-
-            //create temporary view
+            // create temporary view
             tmpView = new Engine.View();
-
-            //if an import filename was passed
+            // if an import filename was passed
             if (ImportViewFile.Length != 0) {
-                //import the view
-                //(and check for error)
+                // import the view and (and check for error)
                 try {
                     tmpView.Import(ImportViewFile);
                 }
                 catch (Exception e) {
-                    //something wrong
+                    // something wrong
                     ErrMsgBox(e, "An error occurred during import:", "", "Import View Error");
-                    //restore main form mousepointer and exit
+                    // restore main form mousepointer and exit
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
@@ -12608,7 +12430,7 @@ namespace WinAGI.Editor
                 }
                 catch (Exception e) {
                     ErrMsgBox(e, "Error reading View data:", "This is not a valid view resource.", "Invalid View Resource");
-                    //restore main form mousepointer and exit
+                    // restore main form mousepointer and exit
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
@@ -12620,96 +12442,76 @@ namespace WinAGI.Editor
                 tmpView[0][0].Height = Settings.DefCelH;
                 tmpView[0][0].Width = Settings.DefCelW;
             }
-
-            //if a game is loaded
-            if (EditGame.GameLoaded) {
-                // get picture number, id , description
-                frmGetResourceNum GetResNum = new()
-                {
-                    ResType = rtView
-                };
-                if (ImportViewFile.Length == 0) {
-                    GetResNum.WindowFunction = EGetRes.grAddNew;
-                }
-                else {
-                    GetResNum.WindowFunction = EGetRes.grImport;
-                }
-                //setup before loading so ghosts don't show up
-                GetResNum.FormSetup();
-                //suggest ID based on filename
-                if (ImportViewFile.Length > 0) {
-                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportViewFile).Replace(" ", "");
-                }
-                //restore cursor while getting resnum
-                MDIMain.UseWaitCursor = false;
-                GetResNum.ShowDialog(MDIMain);
-                //show wait cursor while resource is added
-                MDIMain.UseWaitCursor = true;
-
-                //if canceled, release the temporary view, restore cursor and exit method
-                if (GetResNum.Canceled) {
-                    tmpView = null;
-                    //restore mousepointer and exit
-                    GetResNum.Close();
-                    MDIMain.UseWaitCursor = false;
-                    return;
-                }
-                //if user wants view added to current game
-                else if (!GetResNum.DontImport) {
-                    //add new id and description
-                    tmpView.ID = GetResNum.txtID.Text;
-                    tmpView.Description = GetResNum.txtDescription.Text;
-
-                    //add view
-                    AddNewView(GetResNum.NewResNum, tmpView);
-                    //reset tmpView to point to the new game view
-                    tmpView = EditGame.Views[GetResNum.NewResNum];
-                    //set ingame flag
-                    blnInGame = true;
-                }
-
-                blnOpen = (GetResNum.chkOpenRes.Checked);
-
-                //make sure resource form is unloaded
-                GetResNum.Close();
+            // get picture number, id , description
+            frmGetResourceNum GetResNum = new() {
+                ResType = rtView
+            };
+            if (ImportViewFile.Length == 0) {
+                GetResNum.WindowFunction = EGetRes.grAddNew;
             }
-
-            //only open if user wants it open (or if not in a game or if opening/not importing)
-            if (blnOpen || !EditGame.GameLoaded || !blnInGame) {
-                //open a new view editing window
-                frmNew = new frmViewEdit()
-                {
+            else {
+                GetResNum.WindowFunction = EGetRes.grImport;
+            }
+            // setup before loading so ghosts don't show up
+            GetResNum.FormSetup();
+            // suggest ID based on filename
+            if (ImportViewFile.Length > 0) {
+                GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportViewFile).Replace(" ", "");
+            }
+            // restore cursor while getting resnum
+            MDIMain.UseWaitCursor = false;
+            GetResNum.ShowDialog(MDIMain);
+            // show wait cursor while resource is added
+            MDIMain.UseWaitCursor = true;
+            // if canceled, release the temporary view, restore cursor and exit method
+            if (GetResNum.Canceled) {
+                tmpView = null;
+                // restore mousepointer and exit
+                GetResNum.Close();
+                MDIMain.UseWaitCursor = false;
+                return;
+            }
+            // if user wants view added to current game
+            else if (!GetResNum.DontImport) {
+                // add new id and description
+                tmpView.ID = GetResNum.txtID.Text;
+                tmpView.Description = GetResNum.txtDescription.Text;
+                // add view
+                AddNewView(GetResNum.NewResNum, tmpView);
+                // reset tmpView to point to the new game view
+                tmpView = EditGame.Views[GetResNum.NewResNum];
+                blnInGame = true;
+            }
+            blnOpen = (GetResNum.chkOpenRes.Checked);
+            GetResNum.Close();
+            // only open if user wants it open (or if not in a game or if opening/not importing)
+            if (blnOpen || !blnInGame) {
+                // open a new view editing window
+                frmNew = new frmViewEdit() {
                     MdiParent = MDIMain
                 };
-                //pass the view to the editor
+                // pass the view to the editor
                 if (frmNew.EditView(tmpView)) {
-                    //show form
                     frmNew.Show();
-                    //add to collection
                     ViewEditors.Add(frmNew);
                 }
                 else {
-                    //error
+                    // error
                     frmNew.Close();
                 }
             }
-
-            if (EditGame.GameLoaded) {
-                //save openres value
-                Settings.OpenNew = blnOpen;
-            }
-
+            // save openres value
+            Settings.OpenNew = blnOpen;
             //if added to game
             if (blnInGame) {
-                //unload the game resource
+                // unload the game resource
                 EditGame.Views[tmpView.Number].Unload();
             }
-
-            //restore main form mousepointer and exit
+            // restore main form mousepointer and exit
             MDIMain.UseWaitCursor = false;
         }
-        public static void OpenLogic(byte ResNum, bool Quiet = false)
-        {
+
+        public static void OpenLogic(byte ResNum, bool Quiet = false) {
             /*
             //this method opens a logic editor window
 
@@ -12787,8 +12589,7 @@ namespace WinAGI.Editor
           Resume Next
             */
         }
-        public static void OpenPicture(byte ResNum, bool Quiet = false)
-        {
+        public static void OpenPicture(byte ResNum, bool Quiet = false) {
             //*//
             /*
             //this method opens a picture editor window
@@ -12870,8 +12671,7 @@ namespace WinAGI.Editor
           Resume Next
             */
         }
-        public static void OpenSound(byte ResNum, bool Quiet = false)
-        {
+        public static void OpenSound(byte ResNum, bool Quiet = false) {
             /*
             //this method opens a standard agi Sound editor window
 
@@ -12966,8 +12766,7 @@ namespace WinAGI.Editor
           Resume Next
             */
         }
-        public static void OpenView(byte ResNum, bool Quiet = false)
-        {
+        public static void OpenView(byte ResNum, bool Quiet = false) {
             //*//
             /*
           //this method opens a view editor window
@@ -13054,14 +12853,16 @@ namespace WinAGI.Editor
           Resume Next
             */
         }
-        public static void RemovePicture(byte PicNum)
-        {
+        public static void RemovePicture(byte PicNum) {
             //removes a picture from the game, and updates
             //preview and resource windows
             //and deletes resource file from source directory
             if (!EditGame.Pictures.Exists(PicNum)) {
-                //raise error
-                throw new Exception("WINAGIERR + 502, ResMan, Invalid Picture number passed to RemovePicture (picture does not exist)");
+                // error
+                WinAGIException wex = new("Invalid Picture number passed to RemovePicture (picture does not exist)") {
+                    HResult = WINAGI_ERR + 999,
+                };
+                throw wex;
             }
 
             string strPicFile = EditGame.ResDir + EditGame.Pictures[PicNum].ID + ".agp";
@@ -13128,8 +12929,7 @@ namespace WinAGI.Editor
                 }
             }
         }
-        public static string LogTemplateText(string NewID, string NewDescription)
-        {
+        public static string LogTemplateText(string NewID, string NewDescription) {
             string strLogic = "";
             bool blnNoFile = false;
             //first, get the default file, if there is one
@@ -13189,8 +12989,7 @@ namespace WinAGI.Editor
             //return the formatted text
             return strLogic;
         }
-        public static void CheckShortcuts(KeyEventArgs e)
-        {
+        public static void CheckShortcuts(KeyEventArgs e) {
             //*// shouldn't need this anymore; key assignments included in menu definitions
 
             //check for game-wide shortcut keys
@@ -13331,8 +13130,7 @@ namespace WinAGI.Editor
             //no mask:
             // currently nothing to process
         }
-        internal static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, bool MatchCase, FindLocation LogicLoc, bool Replacing = false, string ReplaceText = "")
-        {
+        internal static void FindInLogic(string FindText, FindDirection FindDir, bool MatchWord, bool MatchCase, FindLocation LogicLoc, bool Replacing = false, string ReplaceText = "") {
             //*//
             /*
           //logic search strategy:
@@ -13938,8 +13736,7 @@ namespace WinAGI.Editor
           Resume Next
             */
         }
-        public static void KillCopyFile(string ResFile, bool KeepOld)
-        {
+        public static void KillCopyFile(string ResFile, bool KeepOld) {
             string strOldName;
             int lngNextNum;
             string strName, strExt;
@@ -13970,8 +13767,7 @@ namespace WinAGI.Editor
                 //ignore
             }
         }
-        public static void ErrMsgBox(Exception e, string ErrMsg1, string ErrMsg2, string ErrCaption)
-        {
+        public static void ErrMsgBox(Exception e, string ErrMsg1, string ErrMsg2, string ErrCaption) {
             //displays a messagebox showing ErrMsg and includes error passed as AGIErrObj
             //Debug.Assert Err.Number != 0
 
@@ -13992,8 +13788,7 @@ namespace WinAGI.Editor
             }
             MessageBox.Show(MDIMain, strErrMsg, ErrCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-        public static void GetDefaultColors()
-        {
+        public static void GetDefaultColors() {
             // reads default custom colors from winagi.confg
             for (int i = 0; i < 16; i++) {  //TODO: is this right? use original value as default-default?
                                             // this is all wrong - need set of colors for the App to use; those colors get set to 
@@ -14003,8 +13798,7 @@ namespace WinAGI.Editor
             }
 
         }
-        public static string ResourceName(AGIResource ThisResource, bool IsInGame, bool NoNumber = false)
-        {
+        public static string ResourceName(AGIResource ThisResource, bool IsInGame, bool NoNumber = false) {
             //formats resource name based on user preference
             //format includes: option for upper, lower or title case of Type;
             //                 space or period for separator;
@@ -14037,14 +13831,12 @@ namespace WinAGI.Editor
             }
             return retval;
         }
-        public static string InstrumentName(int instrument)
-        {
+        public static string InstrumentName(int instrument) {
 
             //returns a string Value of an instrument
             return LoadResString(INSTRUMENTNAMETEXT + instrument);
         }
-        public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int tgtX, int tgtY, int tgtW, int tgtH, InterpolationMode mode = InterpolationMode.NearestNeighbor)
-        {
+        public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int tgtX, int tgtY, int tgtW, int tgtH, InterpolationMode mode = InterpolationMode.NearestNeighbor) {
             // draws the agi bitmap in target picture box using passed target size/location
 
             //to scale the picture without blurring, need to use NearestNeighbor interpolation
@@ -14064,8 +13856,7 @@ namespace WinAGI.Editor
             // draw the bitmap, at correct resolution
             g.DrawImage(agiBMP, tgtX, tgtY, tgtW, tgtH);
         }
-        public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1, InterpolationMode mode = InterpolationMode.NearestNeighbor)
-        {
+        public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1, InterpolationMode mode = InterpolationMode.NearestNeighbor) {
             // draws the agi bitmap in target picture box, using scale factor provided
 
             int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
@@ -14081,8 +13872,7 @@ namespace WinAGI.Editor
             g.PixelOffsetMode = PixelOffsetMode.Half;
             g.DrawImage(agiBMP, 0, 0, bWidth, bHeight);
         }
-        public static string LoadResString(int index)
-        {
+        public static string LoadResString(int index) {
             // this function is just a handy way to get resource strings by number
             // instead of by stringkey
             try {

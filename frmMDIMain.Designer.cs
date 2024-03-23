@@ -1585,53 +1585,48 @@
             // 
             // colWarning
             // 
-            colWarning.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colWarning.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             colWarning.FillWeight = 20F;
             colWarning.HeaderText = "Warning";
             colWarning.MinimumWidth = 10;
             colWarning.Name = "colWarning";
             colWarning.ReadOnly = true;
-            colWarning.Width = 224;
             // 
             // colDesc
             // 
-            colDesc.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colDesc.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             colDesc.FillWeight = 50F;
             colDesc.HeaderText = "Description";
             colDesc.MinimumWidth = 10;
             colDesc.Name = "colDesc";
             colDesc.ReadOnly = true;
-            colDesc.Width = 225;
             // 
             // colResNum
             // 
-            colResNum.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colResNum.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             colResNum.FillWeight = 10F;
             colResNum.HeaderText = "Res#";
             colResNum.MinimumWidth = 10;
             colResNum.Name = "colResNum";
             colResNum.ReadOnly = true;
-            colResNum.Width = 224;
             // 
             // colLIne
             // 
-            colLIne.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colLIne.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             colLIne.FillWeight = 10F;
             colLIne.HeaderText = "Line#";
             colLIne.MinimumWidth = 10;
             colLIne.Name = "colLIne";
             colLIne.ReadOnly = true;
-            colLIne.Width = 225;
             // 
             // colModule
             // 
-            colModule.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+            colModule.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             colModule.FillWeight = 20F;
             colModule.HeaderText = "Module";
             colModule.MinimumWidth = 10;
             colModule.Name = "colModule";
             colModule.ReadOnly = true;
-            colModule.Width = 224;
             // 
             // frmMDIMain
             // 

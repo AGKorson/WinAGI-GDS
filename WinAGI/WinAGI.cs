@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using static System.Windows.Forms.DataFormats;
 using static WinAGI.Common.Base;
 namespace WinAGI.Engine
 {
-    using System.Data;
     using System.Diagnostics;
     using System.Drawing;
 
@@ -252,7 +249,7 @@ namespace WinAGI.Engine
         public byte ResNum;                 // resource number for logics,pics,views,sounds
         public string ID;                   // warning or error number (could be alphanumeric)
         public string Text;                 // info, warning or error msg
-        public int Line;                    // line number for comp/decomp errors and warnings
+        public string Line;                    // line number for comp/decomp errors and warnings
         public string Module;               // module name, if comp error occurs in an #include file
     }
     public enum EInfoType
@@ -338,9 +335,12 @@ namespace WinAGI.Engine
             set
             {
                 // directory has to exist
-                if (!Directory.Exists(value))
-                    throw new Exception(LoadResString(630).Replace(ARG1, value));
-
+                if (!Directory.Exists(value)) {
+                    WinAGIException wex = new(LoadResString(630).Replace(ARG1, value)) {
+                        HResult = WINAGI_ERR + 630,
+                    };
+                    throw wex;
+                }
                 agTemplateDir = CDir(value);
             }
         }
@@ -350,7 +350,7 @@ namespace WinAGI.Engine
             // initialize all winagi stuff here? no, put it in a method that can be called
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
-        internal static void InitWinAGI()
+        public static void InitWinAGI()
         {
             // TEMP CHECK - verify the string resource file is still working correctly
             try {
@@ -376,11 +376,9 @@ namespace WinAGI.Engine
                 NewDir = NewDir.Trim();
 
                 if (NewDir.Length == 0) {
-                    //throw new Exception("380, strErrSource, "Invalid property Value"
                     throw new ArgumentOutOfRangeException("DefResDir","Empty string not allowed");
                 }
                 if (NewDir.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
-                    //throw new Exception("380, strErrSource, "Invalid property Value"
                     throw new ArgumentOutOfRangeException("Invalid characters in path name");
                 }
                 //save new resdir name
@@ -543,18 +541,6 @@ namespace WinAGI.Engine
             defaultColorEGA[13] = Color.FromArgb(0xFF, 0x55, 0xFF); // FF55FF = light magenta
             defaultColorEGA[14] = Color.FromArgb(0xFF, 0xFF, 0x55); // FFFF55 = yellow
             defaultColorEGA[15] = Color.FromArgb(0xFF, 0xFF, 0xFF); // FFFFFF = white
-        }
-        public static string LoadResString(int index)
-        {
-            // this function is just a handy way to get resource strings by number
-            // instead of by stringkey
-            try {
-                return EngineResources.ResourceManager.GetString(index.ToString());
-            }
-            catch (Exception) {
-                // return nothing if string doesn't exist
-                return "";
-            }
         }
     }
 }

@@ -9,7 +9,7 @@ using static WinAGI.Engine.AGIGame;
 using System.Collections;
 
 namespace WinAGI.Engine {
-    class Cels : IEnumerable<Cel> {
+    public class Cels : IEnumerable<Cel> {
         //local variable to hold array of cels
         internal readonly List<Cel> mCelCol;
         View mParent;
@@ -27,6 +27,7 @@ namespace WinAGI.Engine {
                 return mCelCol[index];
             }
         }
+        
         public int Count {
             get
             {
@@ -34,6 +35,7 @@ namespace WinAGI.Engine {
                 return mCelCol.Count;
             }
         }
+        
         public Cel Add(int Pos, byte CelWidth = 1, byte CelHeight = 1, AGIColorIndex TransColor = AGIColorIndex.agBlack) {
             Cel agNewCel;
             int i;
@@ -84,6 +86,7 @@ namespace WinAGI.Engine {
             //return the object created
             return agNewCel;
         }
+        
         public void Remove(int index) {
             int i;
             //if this is last cel
@@ -114,6 +117,7 @@ namespace WinAGI.Engine {
                 mParent.IsDirty = true;
             }
         }
+        
         internal void SetMirror(bool NewState) {
             //this method is called just before the cels collection
             //is referenced by a mirrored loop
@@ -124,17 +128,21 @@ namespace WinAGI.Engine {
                 tmpCel.SetMirror(NewState);
             }
         }
+        
         public View Parent { get { return mParent; } internal set { mParent = value; } }
+        
         public Cels() {
             mCelCol = [];
             strErrSource = "WINAGI.agiCels";
         }
+        
         internal Cels(View parent) {
             mCelCol = [];
             strErrSource = "WINAGI.agiCels";
             mParent = parent;
         }
-        internal Cels Clone(View cloneparent) {
+        
+        public Cels Clone(View cloneparent) {
             Cels CopyCels = new(cloneparent);
             foreach (Cel tmpCel in mCelCol) {
                 CopyCels.mCelCol.Add(tmpCel.Clone(cloneparent));
@@ -142,12 +150,15 @@ namespace WinAGI.Engine {
             CopyCels.mSetMirror = mSetMirror;
             return CopyCels;
         }
+        
         CelEnum GetEnumerator() {
             return new CelEnum(mCelCol);
         }
+        
         IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
+        
         IEnumerator<Cel> IEnumerable<Cel>.GetEnumerator() {
             return (IEnumerator<Cel>)GetEnumerator();
         }

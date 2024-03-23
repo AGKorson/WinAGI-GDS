@@ -57,7 +57,10 @@ namespace WinAGI.Engine {
                 //if not loaded
                 if (!mLoaded) {
                     //error
-                    throw new Exception(LoadResString(563));
+                    WinAGIException wex = new(LoadResString(563)) {
+                        HResult = WINAGI_ERR + 563,
+                    };
+                    throw wex;
                 }
                 //although first object does not Count as an object
                 //it must be returned as part of the Count
@@ -105,6 +108,7 @@ namespace WinAGI.Engine {
                     Save();
                 }
                 catch (Exception) {
+                    // TODO: need new exception code
                     throw new Exception("error during Amiga conversion");
                 }
             }
@@ -115,12 +119,19 @@ namespace WinAGI.Engine {
             //if already loaded
             if (mLoaded) {
                 //error
+                WinAGIException wex = new(LoadResString(642)) {
+                    HResult = WINAGI_ERR + 642,
+                };
+                throw wex;
                 throw new Exception(LoadResString(642));
             }
             //can't call NewResource if already in a game;
             //clear it instead
             if (mInGame) {
-                throw new Exception(LoadResString(510));
+                WinAGIException wex = new(LoadResString(510)) {
+                    HResult = WINAGI_ERR + 510,
+                };
+                throw wex;
             }
 
             //mark as loaded
@@ -140,7 +151,10 @@ namespace WinAGI.Engine {
                 //if not loaded
                 if (!mLoaded) {
                     //error
-                    throw new Exception(LoadResString(563));
+                    WinAGIException wex = new(LoadResString(563)) {
+                        HResult = WINAGI_ERR + 563,
+                    };
+                    throw wex;
                 }
                 return mDescription;
             }
@@ -148,7 +162,10 @@ namespace WinAGI.Engine {
                 //if not loaded
                 if (!mLoaded) {
                     //error
-                    throw new Exception(LoadResString(563));
+                    WinAGIException wex = new(LoadResString(563)) {
+                        HResult = WINAGI_ERR + 563,
+                    };
+                    throw wex;
                 }
 
                 //limit description to 1K
@@ -169,13 +186,20 @@ namespace WinAGI.Engine {
             //if not loaded
             if (!mLoaded) {
                 //error
-                throw new Exception(LoadResString(563));
+                WinAGIException wex = new(LoadResString(563)) {
+                    HResult = WINAGI_ERR + 563,
+                };
+                throw wex;
             }
             try {
                 Compile(ExportFile);
             }
             catch (Exception) {
                 //return error condition
+                WinAGIException wex = new(LoadResString(582)) {
+                    HResult = WINAGI_ERR + 582,
+                };
+                throw wex;
                 throw new Exception(LoadResString(582));
             }
             //if NOT in a game,
@@ -222,7 +246,10 @@ namespace WinAGI.Engine {
                 //resfile cannot be changed if resource is part of a game
                 if (mInGame) {
                     //error- resfile is readonly for ingame resources
-                    throw new Exception(LoadResString(680));
+                    WinAGIException wex = new(LoadResString(680)) {
+                        HResult = WINAGI_ERR + 680,
+                    };
+                    throw wex;
                 }
                 else {
                     mResFile = value;
@@ -245,6 +272,23 @@ namespace WinAGI.Engine {
             byte[] bytData = [], bytChar = new byte[1];
             int lngDataOffset, lngNameOffset;
             int lngPos, Dwidth;
+
+            // verify file exists
+            if (!File.Exists(LoadFile)) {
+                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 606,
+                };
+                wex.Data["ID"] = "OBJECT";
+                throw wex;
+            }
+            // check for readonly
+            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = LoadFile;
+                throw wex;
+            }
             //open the file
             FileStream fsObj = new(LoadFile, FileMode.Open);
             //if no data,
@@ -360,12 +404,18 @@ namespace WinAGI.Engine {
             //if not currently loading, or not already loaded
             if (!mLoading && !mLoaded) {
                 //error
-                throw new Exception(LoadResString(563));
+                WinAGIException wex = new(LoadResString(563)) {
+                    HResult = WINAGI_ERR + 563,
+                };
+                throw wex;
             }
             //if already have max number of items,
             if (mItems.Count == MAX_ITEMS) {
                 //error
-                throw new Exception(LoadResString(569));
+                WinAGIException wex = new(LoadResString(569)) {
+                    HResult = WINAGI_ERR + 569,
+                };
+                throw wex;
             }
             //add the item
             tmpItem = new InventoryItem();
@@ -383,7 +433,10 @@ namespace WinAGI.Engine {
             //if not loaded
             if (!mLoaded) {
                 //error
-                throw new Exception(LoadResString(563));
+                WinAGIException wex = new(LoadResString(563)) {
+                    HResult = WINAGI_ERR + 563,
+                };
+                throw wex;
             }
             InventoryItem tmpItem = mItems[Index];
 
@@ -442,7 +495,10 @@ namespace WinAGI.Engine {
                 //if not loaded
                 if (!mLoaded) {
                     //error
-                    throw new Exception(LoadResString(563));
+                    WinAGIException wex = new(LoadResString(563)) {
+                        HResult = WINAGI_ERR + 563,
+                    };
+                    throw wex;
                 }
                 return mEncrypted;
             }
@@ -450,7 +506,10 @@ namespace WinAGI.Engine {
                 //if not loaded
                 if (!mLoaded) {
                     //error
-                    throw new Exception(LoadResString(563));
+                    WinAGIException wex = new(LoadResString(563)) {
+                        HResult = WINAGI_ERR + 563,
+                    };
+                    throw wex;
                 }
                 //if change in encryption
                 if (mEncrypted != value) {
@@ -465,7 +524,10 @@ namespace WinAGI.Engine {
                 //if not loaded
                 if (!mLoaded) {
                     // error
-                    throw new Exception(LoadResString(563));
+                    WinAGIException wex = new(LoadResString(563)) {
+                        HResult = WINAGI_ERR + 563,
+                    };
+                    throw wex;
                 }
                 return mMaxScreenObjects;
             }
@@ -473,7 +535,10 @@ namespace WinAGI.Engine {
                 //if not loaded
                 if (!mLoaded) {
                     //error
-                    throw new Exception(LoadResString(563));
+                    WinAGIException wex = new(LoadResString(563)) {
+                        HResult = WINAGI_ERR + 563,
+                    };
+                    throw wex;
                 }
                 //if change in max objects
                 if (value != mMaxScreenObjects) {
@@ -502,7 +567,10 @@ namespace WinAGI.Engine {
                     //reset objects resource using Clear method
                     Clear();
                     //error
-                    throw new Exception(LoadResString(692));
+                    WinAGIException wex = new(LoadResString(692)) {
+                        HResult = WINAGI_ERR + 692,
+                    };
+                    throw wex;
                 }
                 //get description, if there is one
                 mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "");
@@ -511,15 +579,26 @@ namespace WinAGI.Engine {
                 //if NOT in a game, file must be specified
                 if (LoadFile.Length == 0) {
                     //no file specified; return error
-                    throw new Exception(LoadResString(599));
+                    WinAGIException wex = new(LoadResString(599)) {
+                        HResult = WINAGI_ERR + 599,
+                    };
+                    throw wex;
                 }
                 //verify file exists
                 if (!File.Exists(LoadFile)) {
                     //error
-                    throw new Exception(LoadResString(524).Replace(ARG1, LoadFile));
+                    WinAGIException wex = new(LoadResString(524).Replace(ARG1, LoadFile)) {
+                        HResult = WINAGI_ERR + 524,
+                    };
+                    wex.Data["missingfile"] = LoadFile;
+                    throw wex;
                 }
                 if (!LoadSierraFile(LoadFile)) {
                     //error
+                    WinAGIException wex = new(LoadResString(692)) {
+                        HResult = WINAGI_ERR + 692,
+                    };
+                    throw wex;
                     throw new Exception(LoadResString(692));
                 }
                 //save filename
@@ -812,11 +891,14 @@ namespace WinAGI.Engine {
                 //move tempfile to savefile
                 File.Move(strTempFile, CompileFile);
             }
-            catch (Exception) {
+            catch (Exception e) {
                 //delete temporary file
                 File.Delete(strTempFile);
                 //raise the error
-                throw new Exception("674, strErrSrc, Replace(LoadResString(674)");
+                WinAGIException wex = new(LoadResString(674).Replace(ARG1, e.HResult.ToString())) {
+                    HResult = WINAGI_ERR + 674,
+                };
+                throw wex;
             }
         }
         ItemEnum GetEnumerator() {

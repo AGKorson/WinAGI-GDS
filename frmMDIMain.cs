@@ -485,142 +485,152 @@ namespace WinAGI.Editor
             //frmNew.Show();
         }
         private void cmbResType_SelectedIndexChanged(object sender, EventArgs e) {
-            //fill list box with resources for selected type
-            if (EditGame.GameLoaded) {
-                AGIResType selRes;
+            // fill list box with resources for selected type
+            AGIResType selRes;
 
-                // clear current list
-                lstResources.Items.Clear();
+            Debug.Assert(EditGame is not null);
+            // clear current list
+            lstResources.Items.Clear();
 
-                selRes = (AGIResType)cmbResType.SelectedIndex;
-                ListViewItem tmpItem;
-                switch (cmbResType.SelectedIndex) {
-                case 0: // game
-                    selRes = rtGame;
-                    break;
-                case 1: //logics
-                    foreach (Logic tmpRes in EditGame.Logics) {
-                        tmpItem = lstResources.Items.Add("l" + tmpRes.Number, ResourceName(tmpRes, true), 0);
-                        tmpItem.Tag = tmpRes;
-                        //set color based on compiled status;
-                        if (tmpRes.Compiled) {
-                            tmpItem.ForeColor = Color.Black;
-                        }
-                        else {
-                            tmpItem.ForeColor = Color.Red;
-                        }
+            selRes = (AGIResType)cmbResType.SelectedIndex;
+            ListViewItem tmpItem;
+            switch (cmbResType.SelectedIndex) {
+            case 0: // game
+                selRes = rtGame;
+                break;
+            case 1:
+                //logics
+                foreach (Logic tmpRes in EditGame.Logics) {
+                    tmpItem = lstResources.Items.Add("l" + tmpRes.Number, ResourceName(tmpRes, true), 0);
+                    tmpItem.Tag = tmpRes;
+                    //set color based on compiled status;
+                    if (tmpRes.Compiled) {
+                        tmpItem.ForeColor = Color.Black;
                     }
-                    selRes = rtLogic;
-                    break;
-                case 2://pictures
-                    foreach (Picture tmpRes in EditGame.Pictures) {
-                        tmpItem = lstResources.Items.Add("p" + tmpRes.Number, ResourceName(tmpRes, true), 0);
-                        tmpItem.Tag = tmpRes;
+                    else {
+                        tmpItem.ForeColor = Color.Red;
                     }
-                    selRes = rtPicture;
-                    break;
-                case 3: //sounds
-                    foreach (Sound tmpRes in EditGame.Sounds) {
-                        tmpItem = lstResources.Items.Add("s" + tmpRes.Number, ResourceName(tmpRes, true), 0);
-                        tmpItem.Tag = tmpRes;
-                    }
-                    selRes = rtSound;
-                    break;
-                case 4: //views
-                    foreach (Engine.View tmpRes in EditGame.Views) {
-                        tmpItem = lstResources.Items.Add("v" + tmpRes.Number, ResourceName(tmpRes, true), 0);
-                        tmpItem.Tag = tmpRes;
-                    }
-                    selRes = rtView;
-                    break;
-                case 5: //objects
-                    selRes = rtObjects;
-                    break;
-                case 6: //words
-                    selRes = rtWords;
-                    break;
                 }
-                SelectResource(selRes, -1, true);
+                selRes = rtLogic;
+                break;
+            case 2:
+                //pictures
+                foreach (Picture tmpRes in EditGame.Pictures) {
+                    tmpItem = lstResources.Items.Add("p" + tmpRes.Number, ResourceName(tmpRes, true), 0);
+                    tmpItem.Tag = tmpRes;
+                }
+                selRes = rtPicture;
+                break;
+            case 3:
+                //sounds
+                foreach (Sound tmpRes in EditGame.Sounds) {
+                    tmpItem = lstResources.Items.Add("s" + tmpRes.Number, ResourceName(tmpRes, true), 0);
+                    tmpItem.Tag = tmpRes;
+                }
+                selRes = rtSound;
+                break;
+            case 4:
+                //views
+                foreach (Engine.View tmpRes in EditGame.Views) {
+                    tmpItem = lstResources.Items.Add("v" + tmpRes.Number, ResourceName(tmpRes, true), 0);
+                    tmpItem.Tag = tmpRes;
+                }
+                selRes = rtView;
+                break;
+            case 5:
+                //objects
+                selRes = rtObjects;
+                break;
+            case 6:
+                //words
+                selRes = rtWords;
+                break;
             }
+            SelectResource(selRes, -1, true);
         }
+
         private void lstResources_SelectedIndexChanged(object sender, EventArgs e) {
-            if (EditGame.GameLoaded) {
+            AGIResType NewType = rtGame;
+            int NewNum = 0;
 
-                AGIResType NewType = rtGame; int NewNum = 0;
-                switch (cmbResType.SelectedIndex) {
-                case 0: //game
-                        //root
-                    NewType = rtGame;
-                    NewNum = -1;
-                    // currently no list items
-                    break;
-                case 1: //logics
-                        //if nothing to select
-                    if (lstResources.SelectedItems.Count == 0) {
-                        //just exit
-                        return;
-                    }
-                    NewType = rtLogic;
-                    AGIResource tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
-                    NewNum = tmp.Number;
-                    //show id, number, description, compiled status, isroom
-                    PropRows = 8;
-                    //don't need to adjust context menu; preview window will do that
-                    break;
-                case 2: //pictures
-                        //if nothing to select
-                    if (lstResources.SelectedItems.Count == 0) {
-                        //just exit
-                        return;
-                    }
-                    NewType = rtPicture;
-                    tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
-                    NewNum = tmp.Number;
-                    //show id, number, description
-                    PropRows = 6;
-                    //don't need to adjust context menu; preview window will do that
-                    break;
-                case 3: //sounds
-                        //if nothing to select
-                    if (lstResources.SelectedItems.Count == 0) {
-                        //just exit
-                        return;
-                    }
-                    NewType = rtSound;
-                    tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
-                    NewNum = tmp.Number;
-                    //show id, number, description
-                    PropRows = 6;
-                    //don't need to adjust context menu; preview window will do that
-                    break;
-                case 4: //views
-                        //if nothing to select
-                    if (lstResources.SelectedItems.Count == 0) {
-                        //just exit
-                        return;
-                    }
-                    NewType = rtView;
-                    tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
-                    NewNum = tmp.Number;
-                    //show id, number, description
-                    PropRows = 7;
-                    //don't need to adjust context menu; preview window will do that
-                    break;
-                case 5: //objects
-                        //no listitems
-                    NewType = rtObjects;
-                    NewNum = -1;
-                    break;
-
-                case 6: //words
-                        //no listitems
-                    NewType = rtWords;
-                    NewNum = -1;
-                    break;
+            switch (cmbResType.SelectedIndex) {
+            case 0:
+                // game - root
+                NewType = rtGame;
+                NewNum = -1;
+                // currently no list items
+                break;
+            case 1: 
+                // logics
+                // if nothing to select
+                if (lstResources.SelectedItems.Count == 0) {
+                    // just exit
+                    return;
                 }
-                if (!DontQueue) {
-                    SelectResource(NewType, NewNum);
+                NewType = rtLogic;
+                AGIResource tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
+                NewNum = tmp.Number;
+                // show id, number, description, compiled status, isroom
+                PropRows = 8;
+                // don't need to adjust context menu; preview window will do that
+                break;
+            case 2: 
+                // pictures
+                // if nothing to select
+                if (lstResources.SelectedItems.Count == 0) {
+                    // just exit
+                    return;
                 }
+                NewType = rtPicture;
+                tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
+                NewNum = tmp.Number;
+                // show id, number, description
+                PropRows = 6;
+                // don't need to adjust context menu; preview window will do that
+                break;
+            case 3: 
+                // sounds
+                // if nothing to select
+                if (lstResources.SelectedItems.Count == 0) {
+                    // just exit
+                    return;
+                }
+                NewType = rtSound;
+                tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
+                NewNum = tmp.Number;
+                // show id, number, description
+                PropRows = 6;
+                // don't need to adjust context menu; preview window will do that
+                break;
+            case 4: 
+                // views
+                // if nothing to select
+                if (lstResources.SelectedItems.Count == 0) {
+                    // just exit
+                    return;
+                }
+                NewType = rtView;
+                tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
+                NewNum = tmp.Number;
+                // show id, number, description
+                PropRows = 7;
+                // don't need to adjust context menu; preview window will do that
+                break;
+            case 5: 
+                // objects
+                // no listitems
+                NewType = rtObjects;
+                NewNum = -1;
+                break;
+            case 6:
+                // words
+                // no listitems
+                NewType = rtWords;
+                NewNum = -1;
+                break;
+            }
+            if (!DontQueue) {
+                SelectResource(NewType, NewNum);
             }
         }
         private void SplashTimer(object sender, EventArgs e) {
@@ -748,7 +758,7 @@ namespace WinAGI.Editor
                 }
                 else {
                     // always load before selecting
-                    EditGame.Sounds[NewResNum].Load();
+                    EditGame.Views[NewResNum].Load();
                     //show view properties
                     PropRows = 7;
                     ViewProperties pView = new(EditGame.Views[NewResNum]);
@@ -822,10 +832,9 @@ namespace WinAGI.Editor
             // update default button function
             btnNewRes.Image = btnNewView.Image;
 
-            //create new view and enter edit mode
+            // create new view and enter edit mode
             NewView();
 
-            if (!EditGame.GameLoaded) return;
             // show editor form
             frmViewEdit frmNew = new()
             {
@@ -2192,13 +2201,13 @@ namespace WinAGI.Editor
             // adds a warning/error/TODO item to the warning grid
             int tmpRow = fgWarnings.Rows.Add(warnInfo.ID,
                          warnInfo.Text,
-                         (int)warnInfo.ResType < 4 ? warnInfo.ResNum.ToString() : "--",
-                         warnInfo.ResType == rtLogic ? warnInfo.Line.ToString() : "--",
                         // To avoid runtime errors during sort, all items in a column must be same 
                         // object type, that's why resnum and line must be strings
+                         (int)warnInfo.ResType < 4 ? warnInfo.ResNum.ToString() : "--",
+                         warnInfo.Line,
                          warnInfo.Module.Length > 0 ? Path.GetFileName(warnInfo.Module) : "--");
-            //save restype in row data tag
-            fgWarnings.Rows[tmpRow].Tag = rtLogic.ToString();
+            // save restype in row data tag
+            fgWarnings.Rows[tmpRow].Tag = warnInfo.ResType.ToString();
             switch (warnInfo.Type) {
             case etError:
                 // bold, red
@@ -8580,22 +8589,24 @@ namespace WinAGI.Editor
             */
         }
         public void ClearResourceList() {
-            //reset the navigation queue
+            // reset the navigation queue
             ResetQueue();
-            //don't add to queue while clearing
+            // don't add to queue while clearing
             DontQueue = true;
-            //list type determines clear actions
+            // list type determines clear actions
             switch (Settings.ResListType) {
-            case 0: //none
+            case 0: 
+                // none
                 break;
-            case 1: //tree
+            case 1: 
+                // tree
                 if (tvwResources.Nodes.Count > 0) {
-                    //always collapse first
+                    // always collapse first
                     tvwResources.Nodes[0].Collapse();
-                    //clear the treelist
+                    // clear the treelist
                     tvwResources.Nodes.Clear();
                 }
-                //add the base nodes
+                // add the base nodes
                 tvwResources.Nodes.Add("root", "AGIGame");
                 tvwResources.Nodes[0].Nodes.Add(sLOGICS, sLOGICS);
                 tvwResources.Nodes[0].Nodes.Add(sPICTURES, sPICTURES);
@@ -8610,67 +8621,44 @@ namespace WinAGI.Editor
                 for (int i = 0; i < 6; i++) {
                     HdrNode[i] = RootNode.Nodes[i];
                 }
-                ////select resource root
-                ////deselect property
-                //SelectedProp = 1;
-                //PaintPropertyWindow();
                 break;
-            case 2: //combo/list box
-                if (EditGame.GameLoaded) {
-                    cmbResType.Items[0] = EditGame.GameID;
-                }
-                else {
-                    cmbResType.Items[0] = "AGIGame";
-                }
+            case 2: 
+                // combo/list box
+                cmbResType.Items[0] = EditGame.GameID;
                 //select top item (game level)
                 cmbResType.SelectedIndex = 0;
-                ////select resource root
-                ////deselect property
-                //SelectedProp = 1;
-                //PaintPropertyWindow();
                 break;
             }
             //allow queuing
             DontQueue = false;
         }
         public void ShowResTree() {
-
-            // need to make sure resource list (tree or listbox)
-            // is set to proper height based on current number of
-            // rows in the properties window (including 
-            //pnlProp.Height = PropRowHeight * (PropRowCount + 1) + 2;
-            //pnlProp.Top = pnlResources.Height - pnlProp.Height;
-            //int lngSplitLoc = pnlResources.Height - pnlProp.Height;
-            //if (lngSplitLoc < tvwResources.Top) {
-            //  lngSplitLoc = tvwResources.Top + 1;
-            //}
-
             switch (Settings.ResListType) {
-            case 0: //no tree
-                    //shouldn't get here, but
+            case 0: 
+                // no tree
+                // shouldn't get here, but
                 return;
 
-            case 1: //treeview list
+            case 1: 
+                // treeview list
                 tvwResources.Visible = true;
                 cmbResType.Visible = false;
                 lstResources.Visible = false;
-                //set tree height
-                //tvwResources.Height = lngSplitLoc - tvwResources.Top;
-                //change font to match current preview font
+                // change font to match current preview font
                 tvwResources.Font = new Font(Settings.PFontName, Settings.PFontSize);
                 break;
-            case 2: //combo/list boxes
+            case 2: 
+                // combo/list boxes
                 tvwResources.Visible = false;
-                //set combo and listbox height, and set fonts
+                // set combo and listbox height, and set fonts
                 cmbResType.Visible = true;
                 cmbResType.Font = new Font(Settings.EFontName, Settings.EFontSize);
                 lstResources.Top = cmbResType.Top + cmbResType.Height + 2;
-                //lstResources.Height = lngSplitLoc - lstResources.Top;
                 lstResources.Visible = true;
                 lstResources.Font = new Font(Settings.PFontName, Settings.PFontSize);
                 break;
             }
-            //show and position the resource list panels
+            // show and position the resource list panels
             pnlResources.Visible = true;
             splitResource.Visible = true;
         }
@@ -8682,7 +8670,7 @@ namespace WinAGI.Editor
                 blnLastLoad = false;
             }
             else {
-                blnLastLoad = EditGame.GameLoaded;
+                blnLastLoad = EditGame is not null;
             }
             if (blnLastLoad) {
                 //close open game (get cancel flag, in case user cancels)

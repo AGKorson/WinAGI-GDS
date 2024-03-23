@@ -13,18 +13,20 @@ namespace WinAGI.Engine {
         List<Loop> mLoopCol;
         View mParent;
         string strErrSource;
+
         public Loop this[int index] {
             get {
                 //validate
                 if (index < 0) {
-                    throw new Exception("index out of bounds");
+                    throw new ArgumentOutOfRangeException();
                 }
                 if (index >= mLoopCol.Count) {
-                    throw new Exception("index out of bounds");
+                    throw new ArgumentOutOfRangeException();
                 }
                 return mLoopCol[index];
             }
         }
+        
         public Loop Add(int Pos) {
             //Pos is position of this loop in the loop collection
             Loop agNewLoop;
@@ -80,11 +82,13 @@ namespace WinAGI.Engine {
             //return the object created
             return agNewLoop;
         }
+        
         public int Count {
             get {
                 return mLoopCol.Count;
             }
         }
+        
         public void Remove(byte Index) {
             byte i;
             //if this is last loop
@@ -125,7 +129,7 @@ namespace WinAGI.Engine {
             }
         }
 
-        internal Loops Clone(View cloneparent) {
+        public Loops Clone(View cloneparent) {
             // returns a copy of this loop collection
             Loops CopyLoops = new(cloneparent);
             foreach (Loop tmpLoop in mLoopCol) {
@@ -133,23 +137,28 @@ namespace WinAGI.Engine {
             }
             return CopyLoops;
         }
+        
         public Loops() {
             //creates the collection when this class is created
             mLoopCol = [];
         }
+        
         public View Parent { get { return mParent; } internal set { mParent = value; } }
-        internal Loops(View parent) {
+        public Loops(View parent) {
             //create the collection when this class is created
             mLoopCol = [];
             // set parent
             mParent = parent;
         }
+        
         LoopEnum GetEnumerator() {
             return new LoopEnum(mLoopCol);
         }
+        
         IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
+        
         IEnumerator<Loop> IEnumerable<Loop>.GetEnumerator() {
             return (IEnumerator<Loop>)GetEnumerator();
         }

@@ -15,7 +15,7 @@ namespace WinAGI.Engine
         // game object that is attached to the compiler
         private static AGIGame game;
         // compiler warnings
-        internal const int WARNCOUNT = 107;
+        public const int WARNCOUNT = 107;
         internal static bool[] agNoCompWarn = new bool[WARNCOUNT];
         // reserved defines
         internal static TDefine[] agResVar = new TDefine[27];    // 27: text name of built in variables
@@ -342,7 +342,7 @@ namespace WinAGI.Engine
             {
                 // must be non-zero length
                 if (value.Length == 0) {
-                    throw new Exception("non-blank not allowed");
+                    throw new ArgumentException("non-blank not allowed");
                 }
                 //must start with a period
                 if (value[0] != '.') {
@@ -981,7 +981,7 @@ namespace WinAGI.Engine
             }
             return !embedded;
         }
-        internal static string StripComments(string strLine, ref string strComment, bool NoTrim) {
+        public static string StripComments(string strLine, ref string strComment, bool NoTrim) {
             //strips off any comments on the line
             //if NoTrim is false, the string is also
             //stripped of any blank space

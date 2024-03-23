@@ -13,18 +13,14 @@
     <PackageIcon>winagi.jpg</PackageIcon>
     <ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <VersionPrefix>1.0.1</VersionPrefix>
+    <VersionSuffix>alpha</VersionSuffix>
   </PropertyGroup>
-
   <ItemGroup>
-    <Compile Remove="WinAGI\obj\Release\**" />
-    <EmbeddedResource Remove="WinAGI\obj\Release\**" />
-    <None Remove="WinAGI\obj\Release\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="RichEdAGI.cs" />
-    <Compile Remove="WinAGI\obj\Debug\net5.0\.NETCoreApp,Version=v5.0.AssemblyAttributes.cs" />
-    <Compile Remove="WinAGI\obj\Debug\net5.0\WinAGI.AssemblyInfo.cs" />
+    <Compile Remove="WinAGI\**" />
+    <EmbeddedResource Remove="WinAGI\**" />
+    <None Remove="WinAGI\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,11 +35,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="WinAGI\WinAGI.csproj" />
+    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="17.0.32112.339" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="17.0.32112.339" />
+    <ProjectReference Include="WinAGI\WinAGI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,13 +48,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>EditorResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="WinAGI\EngineResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>EngineResources.resx</DependentUpon>
-      <CustomToolNamespace>WinAGI.Engine</CustomToolNamespace>
-      <Generator></Generator>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -66,17 +55,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>EditorResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Update="WinAGI\EngineResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>EngineResources.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>WinAGI.Engine</CustomToolNamespace>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="WinAGI\bin\Debug\net5.0\ref\" />
-    <Folder Include="WinAGI\bin\Release\net5.0\ref\" />
-    <Folder Include="WinAGI\obj\Debug\net5.0\ref\" />
   </ItemGroup>
 
 </Project>

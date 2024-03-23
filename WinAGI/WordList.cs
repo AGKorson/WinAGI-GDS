@@ -173,13 +173,36 @@ namespace WinAGI.Engine {
             int lngGrpNum;
             byte bytPrevWordCharCount;
             FileStream fsWords;
+
+            // verify file exists
+            if (!File.Exists(LoadFile)) {
+                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 606,
+                };
+                wex.Data["ID"] = "WORDS.TOK";
+                throw wex;
+            }
+            // check for readonly
+            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = LoadFile;
+                throw wex;
+            }
             try {
                 //open the file
                 fsWords = new FileStream(LoadFile, FileMode.Open);
             }
-            catch (Exception) {
+            catch (Exception e) {
                 // no good
-                throw new Exception("bad WORDS.TOK file");
+                //throw new Exception("bad WORDS.TOK file");
+                WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, LoadFile)) {
+                    HResult = WINAGI_ERR + 502,
+                };
+                wex.Data["exception"] = e;
+                wex.Data["badfile"] = LoadFile;
+                throw wex;
             }
             //if no data,
             if (fsWords.Length == 0) {
@@ -208,9 +231,13 @@ namespace WinAGI.Engine {
                 }
                 else {
                     mLoaded = false;
-                    return false;
-                    ////invalid words.tok file!
+                    //invalid words.tok file!
                     //throw new Exception("bad WORDS.TOK file");
+                    WinAGIException wex = new(LoadResString(529)) {
+                        HResult = WINAGI_ERR + 529,
+                    };
+                    throw wex;
+                    //return false;
                 }
             }
             //for first word, there is no previous word
@@ -250,11 +277,15 @@ namespace WinAGI.Engine {
                     lngPos++;
                     //continue until last character (indicated by flag) or endofresource is reached
                 }
-                while ((bytVal[0] < 0x80) && (lngPos < bytData.Length)); // Loop Until (bytVal >= 0x80) || lngPos > UBound(bytData)
-                                                                         //if end of file is reached before 0x80,
+                while ((bytVal[0] < 0x80) && (lngPos < bytData.Length));                                                          
+                //if end of file is reached before 0x80,
                 if (lngPos >= bytData.Length) {
                     //invalid words.tok file!
-                    throw new Exception("bad WORDS.TOK file");
+                    // TODO: error? or warning? why not return with words that were loaded?
+                    WinAGIException wex = new(LoadResString(529)) {
+                        HResult = WINAGI_ERR + 529,
+                    };
+                    throw wex;
                 }
                 //add last character (after stripping off flag)
                 bytVal[0] ^= 0xFF;
@@ -473,7 +504,6 @@ namespace WinAGI.Engine {
                 //if not loaded
                 if (!mLoaded) {
                     //error
-
                     WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
@@ -496,7 +526,7 @@ namespace WinAGI.Engine {
                     return mWordCol[vKeyIndex];
                 }
                 else {
-                    throw new Exception("invalid key/index");
+                    throw new ArgumentException("invalid key/index");
                 }
             }
         }
@@ -1013,7 +1043,11 @@ namespace WinAGI.Engine {
                 //verify file exists
                 if (!File.Exists(LoadFile)) {
                     //error
-                    throw new Exception("524, strErrSource, Replace(LoadResString(524), ARG1, LoadFile)");
+                    WinAGIException wex = new(LoadResString(524).Replace(ARG1, LoadFile)) {
+                        HResult = WINAGI_ERR + 524,
+                    };
+                    wex.Data["missingfile"] = LoadFile;
+                    throw wex;
                 }
                 //try sierra format
                 if (!LoadSierraFile(LoadFile)) {

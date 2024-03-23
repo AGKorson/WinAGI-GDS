@@ -266,7 +266,7 @@ namespace WinAGI.Engine {
                                 if (blnWarning) {
                                     //add warning lines
                                     for (j = 0; j < strWarning.Count; j++) {
-                                        stlOutput.Add(D_TKN_COMMENT + "WARNING: " + strWarning[j]);
+                                        stlOutput.Add(D_TKN_COMMENT + " WARNING: " + strWarning[j]);
                                     }
                                     //reset warning flag + string
                                     blnWarning = false;
@@ -327,7 +327,7 @@ namespace WinAGI.Engine {
                                     }
                                     else {
                                         //sound doesn't exist
-                                        AddDecodeWarning("DC11", "sound " + bytCurData + " in discard.sound() does not exist", stlOutput.Count);
+                                        AddDecodeWarning("DC11", "Sound " + bytCurData + " in discard.sound() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 32:  //discard.view,  only arg (V)
@@ -336,7 +336,7 @@ namespace WinAGI.Engine {
                                     }
                                     else {
                                         //view doesn't exist
-                                        AddDecodeWarning("DC11", "view " + bytCurData + " in discard.view() does not exist", stlOutput.Count);
+                                        AddDecodeWarning("DC11", "View " + bytCurData + " in discard.view() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 20:  //load.logics,   only arg (L)
@@ -345,7 +345,7 @@ namespace WinAGI.Engine {
                                     }
                                     else {
                                         //logic doesn't exist
-                                        AddDecodeWarning("DC11", "logic " + bytCurData + " in loadlogics() does not exist", stlOutput.Count);
+                                        AddDecodeWarning("DC11", "Logic " + bytCurData + " in loadlogics() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 98:  //load.sound,    only arg (S)
@@ -354,7 +354,7 @@ namespace WinAGI.Engine {
                                     }
                                     else {
                                         //sound doesn't exist
-                                        AddDecodeWarning("DC11", "sound " + bytCurData + " in load.sound() does not exist", stlOutput.Count);
+                                        AddDecodeWarning("DC11", "Sound " + bytCurData + " in load.sound() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 30:  //load.view,     only arg (V)
@@ -363,7 +363,7 @@ namespace WinAGI.Engine {
                                     }
                                     else {
                                         //view doesn't exist
-                                        AddDecodeWarning("DC11", "view " + bytCurData + " in load.view() does not exist", stlOutput.Count);
+                                        AddDecodeWarning("DC11", "View " + bytCurData + " in load.view() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 18:  //new.room,      only arg (L)
@@ -372,7 +372,7 @@ namespace WinAGI.Engine {
                                     }
                                     else {
                                         //logic doesn't exist
-                                        AddDecodeWarning("DC11", "logic " + bytCurData + " in new.room() does not exist", stlOutput.Count);
+                                        AddDecodeWarning("DC11", "Logic " + bytCurData + " in new.room() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 41:  //set.view,      2nd arg (V)
@@ -382,7 +382,7 @@ namespace WinAGI.Engine {
                                         }
                                         else {
                                             //view doesn't exist
-                                            AddDecodeWarning("DC11", "view " + bytCurData + " in set.view() does not exist", stlOutput.Count);
+                                            AddDecodeWarning("DC11", "View " + bytCurData + " in set.view() does not exist", stlOutput.Count);
                                         }
                                     }
                                     break;
@@ -392,7 +392,7 @@ namespace WinAGI.Engine {
                                     }
                                     else {
                                         //view doesn't exist
-                                        AddDecodeWarning("DC11", "view " + bytCurData + " in show.obj() does not exist", stlOutput.Count);
+                                        AddDecodeWarning("DC11", "View " + bytCurData + " in show.obj() does not exist", stlOutput.Count);
                                     }
                                     break;
                                 case 99:  //sound,         1st arg (S)
@@ -402,7 +402,7 @@ namespace WinAGI.Engine {
                                         }
                                         else {
                                             //sound doesn't exist
-                                            AddDecodeWarning("DC11", "sound " + bytCurData + " in sound() does not exist", stlOutput.Count);
+                                            AddDecodeWarning("DC11", "Sound " + bytCurData + " in sound() does not exist", stlOutput.Count);
                                         }
                                     }
                                     break;
@@ -413,7 +413,7 @@ namespace WinAGI.Engine {
                                         }
                                         else {
                                             //logic doesn't exist
-                                            AddDecodeWarning("DC11", "logic " + bytCurData + " in trace.info() does not exist", stlOutput.Count);
+                                            AddDecodeWarning("DC11", "Logic " + bytCurData + " in trace.info() does not exist", stlOutput.Count);
                                         }
                                     }
                                     break;
@@ -423,7 +423,7 @@ namespace WinAGI.Engine {
                             //if message error (no string returned)
                             if (strArg.Length == 0) {
                                 //error string set by ArgValue function
-                                WinAGIException wex = new($"LogDecode Error ({strError})") {
+                                WinAGIException wex = new($"LogDecode Error: {strError}") {
                                     HResult = WINAGI_ERR + 688
                                 };
                                 wex.Data["error"] = strError;
@@ -526,7 +526,7 @@ namespace WinAGI.Engine {
                     if (blnWarning) {
                         //add warning lines
                         for (i = 0; i < strWarning.Count; i++) {
-                            stlOutput.Add(D_TKN_COMMENT + "WARNING: " + strWarning[i]);
+                            stlOutput.Add(D_TKN_COMMENT + " WARNING: " + strWarning[i]);
                         }
                         //reset warning flag + string
                         blnWarning = false;
@@ -576,7 +576,7 @@ namespace WinAGI.Engine {
                 ID = WarnID,
                 Module = "",
                 Text = WarningText,
-                Line = LineNum,
+                Line = LineNum.ToString(),
             };
             Raise_DecodeLogicEvent(dcWarnInfo);
 
@@ -669,7 +669,7 @@ namespace WinAGI.Engine {
                 }
                 else {
                     //message doesn't exist; raise a warning
-                    AddDecodeWarning("DC01", "invalid message: " + ArgNum + " at position " + lngPos, stlOutput.Count);
+                    AddDecodeWarning("DC01", "Invalid message: " + ArgNum + " at position " + lngPos, stlOutput.Count);
                     //store as number
                     return "m" + ArgNum;
                 }
@@ -684,8 +684,7 @@ namespace WinAGI.Engine {
                 }
             case atInvItem:
                 //if a game is loaded AND OBJECT file is loaded and not displaying objects by number,
-                // TODO: shouldn't a game always be loaded to decode a logic?
-                if (compGame.agGameLoaded && compGame.agInvObj.Loaded && !IObjsByNumber) {
+                if (compGame.agInvObj.Loaded && !IObjsByNumber) {
                     if (ArgNum < compGame.agInvObj.Count) {
                         //if object is unique
                         if (compGame.agInvObj[ArgNum].Unique) {
@@ -702,8 +701,10 @@ namespace WinAGI.Engine {
                         }
                         else {
                             //use obj number instead
-                            if (ErrorLevel != leLow) {
+                            switch (ErrorLevel) {
+                            case leHigh or leMedium:
                                 AddDecodeWarning("DC05", "Non-unique inventory item '" + compGame.agInvObj[ArgNum].ItemName + "' at position " + lngPos, stlOutput.Count);
+                                break;
                             }
                             return "i" + ArgNum;
                         }
@@ -971,8 +972,7 @@ namespace WinAGI.Engine {
                             for (intArg1Val = 1; intArg1Val <= bytNumSaidArgs; intArg1Val++) {
                                 lngWordGroupNum = 256 * bytData[lngPos + 1] + bytData[lngPos];
                                 lngPos += 2;
-                                //if a game is loaded and not skipping wordtext, TODO: shouldn't a game always be loaded to compile a logic?
-                                if (compGame.agGameLoaded && !WordsByNumber) {
+                                if (!WordsByNumber) {
                                     //enable error trapping to catch any nonexistent words
                                     try {
                                         //if word exists,
@@ -1115,7 +1115,7 @@ namespace WinAGI.Engine {
                     if (blnWarning) {
                         //add warning lines
                         for (i = 0; i < strWarning.Count; i++) {
-                            stlOut.Add(MultStr(INDENT, bytBlockDepth) + D_TKN_COMMENT + "WARNING: " + strWarning[i]);
+                            stlOut.Add(MultStr(INDENT, bytBlockDepth) + D_TKN_COMMENT + " WARNING: " + strWarning[i]);
                         } //Next i
                           //reset warning flag + string
                         blnWarning = false;

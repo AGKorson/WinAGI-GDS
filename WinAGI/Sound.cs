@@ -481,7 +481,6 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-
             //if sound is already open
             if (SndPlayer.blnPlaying) {
                 // TODO: change this to just stop the sound instead of error; also
@@ -504,7 +503,8 @@ namespace WinAGI.Engine {
                 try {
                     BuildSoundOutput();
                 }
-                catch (Exception) {
+                catch (Exception e) {
+                    // TODO: fix sound resource error handlers
                     throw new Exception("lngError, strErrSrc, strError");
                 }
             }
@@ -513,6 +513,7 @@ namespace WinAGI.Engine {
                 SndPlayer.PlaySound(this);
             }
             catch (Exception) {
+                // TODO: fix sound resource error handlers
                 throw new Exception("lngError, strErrSrc, strError");
             }
         }
@@ -577,7 +578,7 @@ namespace WinAGI.Engine {
                     throw;
                 }
             }
-            //export accordind to desred format
+            //export according to desred format
             switch (FileFormat) {
             case SoundFormat.sfAGI:
                 // all data formats OK
@@ -594,7 +595,10 @@ namespace WinAGI.Engine {
                 // pc and IIgs midi can be exported as midi
                 // if wrong format
                 if (mFormat == SoundFormat.sfWAV) {
-                    throw new Exception("596, strErrSource, Can't export PCM formatted resource as MIDI file");
+                    WinAGIException wex = new(LoadResString(596)) {
+                        HResult = 596,
+                    };
+                    throw wex;
                 }
                 try {
                     //if midi not set
@@ -1083,8 +1087,7 @@ namespace WinAGI.Engine {
                 //validate it
                 value = (value / 4) * 4;
                 if (value < 4 || value > 64) {
-                    //raise error
-                    throw new Exception("380, strErrSource, Invalid property Value");
+                    throw new ArgumentOutOfRangeException();
                 }
                 if (mTPQN != value) {
                     mTPQN = value;

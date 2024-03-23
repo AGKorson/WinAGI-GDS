@@ -19,7 +19,7 @@ namespace WinAGI.Engine {
             Col = [];
             mSourceFileExt = Compiler.DefaultSrcExt;
         }
-        internal SortedList<byte, Logic> Col { get; private set; }
+        public SortedList<byte, Logic> Col { get; private set; }
         public Logic this[int index] {
             get {
                 //validate index
@@ -42,9 +42,6 @@ namespace WinAGI.Engine {
                 return mSourceFileExt;
             }
             set {
-                if (!parent.agGameLoaded) {
-                    return;
-                }
                 if (value.Length == 0) {
                     // lower case, max four characters, not null
                     // use default?
@@ -128,7 +125,10 @@ namespace WinAGI.Engine {
             //verify new number is not in collection
             if (Col.ContainsKey(NewLogic)) {
                 //number already in use
-                throw new Exception(LoadResString(669));
+                WinAGIException wex = new(LoadResString(669)) {
+                    HResult = WINAGI_ERR + 669,
+                };
+                throw wex;
             }
             //get logic being renumbered
             tmpLogic = Col[OldLogic];
@@ -164,7 +164,11 @@ namespace WinAGI.Engine {
                     File.Move(parent.agResDir + "Logic" + OldLogic + agSrcFileExt, parent.agResDir + tmpLogic.ID + agSrcFileExt);
                 }
                 catch (Exception e) {
-                    throw new Exception(LoadResString(670) + e.Message);
+                    WinAGIException wex = new(LoadResString(670)) {
+                        HResult = WINAGI_ERR + 670,
+                    };
+                    wex.Data["exception"] = e;
+                    throw wex;
                 }
                 File.Delete(parent.agResDir + tmpLogic.ID + agSrcFileExt);
                 //rename sourcefile
@@ -234,7 +238,7 @@ namespace WinAGI.Engine {
         public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false) {
             //tie function to allow access to the LogCompile variable conversion function
             //if in a game
-            if (parent.agGameLoaded) {
+            if (parent is not null) {
                 //initialize global defines
                 if (!parent.GlobalDefines.IsSet) {
                     parent.GlobalDefines.GetGlobalDefines();

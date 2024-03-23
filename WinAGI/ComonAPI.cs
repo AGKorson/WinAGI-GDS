@@ -6,63 +6,59 @@ using System.Runtime.InteropServices;
 using System.Text;
 using WinAGI.Engine;
 
-namespace WinAGI.Common
-{
-    public static partial class API
-    {
+namespace WinAGI.Common {
+    public static partial class API {
         //constants used to build bitmaps
-        internal const int BI_RGB = 0;
-        internal const int DIB_RGB_COLORS = 0;
-        internal const int DIB_PAL_COLORS = 1;
-        internal const int FLOODFILLBORDER = 0;
-        internal const int FLOODFILLSURFACE = 1;
-        internal const int BLACKNESS = 0x42;
-        internal const int DSTINVERT = 0x550009;
-        internal const int MERGECOPY = 0xC000CA;
-        internal const int MERGEPAINT = 0xBB0226;
-        internal const int NOTSRCCOPY = 0x330008;
-        internal const int NOTSRCERASE = 0x1100A6;
-        internal const int PATCOPY = 0xF00021;
-        internal const int PATINVERT = 0x5A0049;
-        internal const int PATPAINT = 0xFB0A09;
-        internal const int SRCAND = 0x8800C6;
-        internal const int SRCCOPY = 0xCC0020;
-        internal const int SRCERASE = 0x440328;
-        internal const int SRCINVERT = 0x660046;
-        internal const int SRCPAINT = 0xEE0086;
-        internal const int WHITENESS = 0xFF0062;
-        internal const int TRANSCOPY = 0xB8074A;
+        public const int BI_RGB = 0;
+        public const int DIB_RGB_COLORS = 0;
+        public const int DIB_PAL_COLORS = 1;
+        public const int FLOODFILLBORDER = 0;
+        public const int FLOODFILLSURFACE = 1;
+        public const int BLACKNESS = 0x42;
+        public const int DSTINVERT = 0x550009;
+        public const int MERGECOPY = 0xC000CA;
+        public const int MERGEPAINT = 0xBB0226;
+        public const int NOTSRCCOPY = 0x330008;
+        public const int NOTSRCERASE = 0x1100A6;
+        public const int PATCOPY = 0xF00021;
+        public const int PATINVERT = 0x5A0049;
+        public const int PATPAINT = 0xFB0A09;
+        public const int SRCAND = 0x8800C6;
+        public const int SRCCOPY = 0xCC0020;
+        public const int SRCERASE = 0x440328;
+        public const int SRCINVERT = 0x660046;
+        public const int SRCPAINT = 0xEE0086;
+        public const int WHITENESS = 0xFF0062;
+        public const int TRANSCOPY = 0xB8074A;
 
         //apis for midi sound handling
         [DllImport("Winmm.dll", SetLastError = true)]
-        internal static extern int mciSendString(string lpszCommand, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn, IntPtr hwndCallback);
+        public static extern int mciSendString(string lpszCommand, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn, IntPtr hwndCallback);
         [DllImport("Winmm.dll", SetLastError = true)]
-        internal static extern int mciGetErrorString(int errNum, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn);
+        public static extern int mciGetErrorString(int errNum, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn);
         [DllImport("hhctrl.ocx")]
-        internal static extern int HtmlHelpS(IntPtr hwndCaller, string pszFile, int uCommand, string dwData);
+        public static extern int HtmlHelpS(IntPtr hwndCaller, string pszFile, int uCommand, string dwData);
         [DllImport("hhctrl.ocx")]
-        internal static extern int HtmlHelp(IntPtr hwndCaller, string pszFile, int uCommand, int dwData);
-        internal const int HH_DISPLAY_TOPIC = 0x0;
-        internal const int HH_DISPLAY_INDEX = 0x2;
-        internal const int HH_DISPLAY_SEARCH = 0x3;
-        internal const int HH_DISPLAY_TOC = 0x1;
-        internal const int HH_SET_WIN_TYPE = 0x4;
-        internal const int HH_GET_WIN_TYPE = 0x5;
-        internal const int HH_GET_WIN_HANDLE = 0x6;
+        public static extern int HtmlHelp(IntPtr hwndCaller, string pszFile, int uCommand, int dwData);
+        public const int HH_DISPLAY_TOPIC = 0x0;
+        public const int HH_DISPLAY_INDEX = 0x2;
+        public const int HH_DISPLAY_SEARCH = 0x3;
+        public const int HH_DISPLAY_TOC = 0x1;
+        public const int HH_SET_WIN_TYPE = 0x4;
+        public const int HH_GET_WIN_TYPE = 0x5;
+        public const int HH_GET_WIN_HANDLE = 0x6;
         // Display string resource ID or text in a popupwin.
-        internal const int HH_DISPLAY_TEXT_POPUP = 0xE;
+        public const int HH_DISPLAY_TEXT_POPUP = 0xE;
         // Display mapped numeric Value in dwdata
-        internal const int HH_HELP_CONTEXT = 0xF;
+        public const int HH_HELP_CONTEXT = 0xF;
         // Text pop-up help, similar to WinHelp's HELP_CONTEXTMENU
-        internal const int HH_TP_HELP_CONTEXTMENU = 0x10;
+        public const int HH_TP_HELP_CONTEXTMENU = 0x10;
         // Text pop-up help, similar to WinHelp's HELP_WM_HELP
-        internal const int HH_TP_HELP_WM_HELP = 0x11;
+        public const int HH_TP_HELP_WM_HELP = 0x11;
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        internal static extern int GetShortPathName(string pathName, StringBuilder shortName, int cbShortName);
-
-        static void tmpAPIFunctions()
-        {
+        [DllImport("kernel32", EntryPoint = "GetShortPathName", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern int GetShortPathName(string longPath, StringBuilder shortPath, int bufSize);
+        static void tmpAPIFunctions() {
             /*
         //subclassing variables
         internal PrevLEWndProc As Long
@@ -580,28 +576,26 @@ namespace WinAGI.Common
         }
 
     }
-    public static partial class Base
-    {
-        internal const double LOG10_1_12 = 2.50858329719984E-02; // = Log10(2 ^ (1/12))
-        internal const char QUOTECHAR = '\"';
-        internal const string ARG1 = "%1";
-        internal const string ARG2 = "%2";
-        internal const string ARG3 = "%3";
-        internal const string sAPPNAME = "WinAGI Game Development System 3.0 alpha";
-        internal const string COPYRIGHT_YEAR = "2024";
-        internal static uint[] CRC32Table = new uint[256];
-        internal static bool CRC32Loaded;
-        internal static readonly string CTRL_CHARS; // contains all chars <32; used for comparisons
-        internal static readonly string EXT_CHARS; // all extended chars; used for comparisons
-        internal static readonly string INVALID_ID_CHARS;
-        internal static readonly string INVALID_DEFNAME_CHARS;
-        internal static readonly string INVALID_FILENAME_CHARS;
-        internal static readonly string TOKEN_CHARS;
+    public static partial class Base {
+        public const char QUOTECHAR = '\"';
+        public static readonly string CTRL_CHARS; // contains all chars <32; used for comparisons
+        public static readonly string NEWLINE = Environment.NewLine;
 
-        internal static readonly string NEWLINE = Environment.NewLine;
+        public const double LOG10_1_12 = 2.50858329719984E-02; // = Log10(2 ^ (1/12))
+        public const string ARG1 = "%1";
+        public const string ARG2 = "%2";
+        public const string ARG3 = "%3";
+        public const string sAPPNAME = "WinAGI Game Development System 3.0 alpha";
+        public const string COPYRIGHT_YEAR = "2024";
+        public static uint[] CRC32Table = new uint[256];
+        public static bool CRC32Loaded;
+        public static readonly string EXT_CHARS; // all extended chars; used for comparisons
+        public static readonly string INVALID_ID_CHARS;
+        public static readonly string INVALID_DEFNAME_CHARS;
+        public static readonly string INVALID_FILENAME_CHARS;
+        public static readonly string TOKEN_CHARS;
 
-        static Base()
-        {
+        static Base() {
             // create invalid control char string
             CTRL_CHARS = "";
             for (int i = 1; i < 32; i++) {
@@ -644,18 +638,26 @@ namespace WinAGI.Common
             }
         }
 
-        internal static string UnicodeToCP(string strIn, Encoding enc)
-        {
+        public static string LoadResString(int index) {
+            // this function is just a handy way to get resource strings by number
+            // instead of by stringkey
+            try {
+                return EngineResources.ResourceManager.GetString(index.ToString());
+            }
+            catch (Exception) {
+                // return nothing if string doesn't exist
+                return "";
+            }
+        }
+        public static string UnicodeToCP(string strIn, Encoding enc) {
             return enc.GetString(Encoding.Unicode.GetBytes(strIn));
         }
-        
-        internal static string CPToUnicode(string strIn, Encoding oldCP)
-        {
+
+        public static string CPToUnicode(string strIn, Encoding oldCP) {
             return Encoding.Unicode.GetString(oldCP.GetBytes(strIn));
         }
-        
-        internal static Array ResizeArray(Array arr, int[] newSizes)
-        {
+
+        public static Array ResizeArray(Array arr, int[] newSizes) {
             if (newSizes.Length != arr.Rank)
                 throw new ArgumentException("arr must have the same number of dimensions " +
                                             "as there are elements in newSizes", nameof(newSizes));
@@ -664,54 +666,49 @@ namespace WinAGI.Common
             Array.ConstrainedCopy(arr, 0, temp, 0, length);
             return temp;
         }
-        
-        internal static string Right(string strIn, int length)
-        {
+
+        public static string Right(string strIn, int length) {
             if (length >= strIn.Length)
                 return strIn;
             else
                 return strIn[^length..];
         }
-        
-        internal static string Left(string strIn, int length)
-        {
+
+        public static string Left(string strIn, int length) {
             if (length >= strIn.Length)
                 return strIn;
             else
                 return strIn[..length];
         }
-        
-        internal static string Mid(string strIn, int pos, int length)
-        {
+
+        public static string Mid(string strIn, int pos, int length) {
             // mimic VB mid function; if length is too long, return
             // max amount
             if (pos + length > strIn.Length)
                 return strIn[pos..];
             return strIn.Substring(pos, length);
         }
-        
-        internal static string MultStr(string strIn, int NumCopies)
-        {
+
+        public static string MultStr(string strIn, int NumCopies) {
             return new StringBuilder(strIn.Length * NumCopies).Insert(0, strIn, NumCopies).ToString();
             //string retval = "";
             //for (int i = 1; i <= NumCopies; i++)
             //  retval += strIn;
             //return retval;
         }
-        
+
         /// <summary>
         /// Extension method that works out if a string is numeric or not
         /// </summary>
         /// <param name="str">string that may be a number</param>
         /// <returns>true if numeric, false if not</returns>
-        internal static bool IsNumeric(string str)
-        { // TODO: do I need another test specifically for int values?
+        public static bool IsNumeric(string str) { // TODO: do I need another test specifically for int values?
             if (Double.TryParse(str, out _)) {
                 return true;
             }
             return false;
         }
-        
+
         /// <summary>
         /// Extension that mimics the VB Val() function; returns 0
         /// if the string is non-numeric
@@ -719,8 +716,7 @@ namespace WinAGI.Common
         /// <param name="strIn">The string that will be converted to a number</param>
         /// <returns>Returns a double value of strIn; if strIn can't be converted
         /// to a double, it returns 0</returns>
-        internal static double Val(string strIn)
-        {
+        public static double Val(string strIn) {
             if (double.TryParse(strIn, out double dResult)) {
                 //return this value
                 return dResult;
@@ -735,8 +731,7 @@ namespace WinAGI.Common
         /// </summary>
         /// <param name="strDirIn"></param>
         /// <returns></returns>
-        internal static string CDir(string strDirIn)
-        {
+        public static string CDir(string strDirIn) {
             //this function ensures a trailing "\" is included on strDirIn
             if (strDirIn.Length != 0) {
                 return !strDirIn.EndsWith('\\') ? strDirIn + '\\' : strDirIn;
@@ -745,10 +740,9 @@ namespace WinAGI.Common
                 return strDirIn;
             }
         }
-        
-        internal static string JustPath(string strFullPathName, bool NoSlash = false)
-        {  //will extract just the path name by removing the filename
-           //if optional NoSlash is true, the trailing backslash will be dropped
+
+        public static string JustPath(string strFullPathName, bool NoSlash = false) {  //will extract just the path name by removing the filename
+                                                                                       //if optional NoSlash is true, the trailing backslash will be dropped
 
             //return Path.GetFullPath(strFullPathName);
 
@@ -775,9 +769,8 @@ namespace WinAGI.Common
                 return sReturn;
             }
         }
-        
-        internal static uint CRC32(byte[] DataIn)
-        {
+
+        public static uint CRC32(byte[] DataIn) {
             //calculates the CRC32 for an input array of bytes
             //a special table is necessary; the table is loaded
             //at program startup
@@ -804,9 +797,8 @@ namespace WinAGI.Common
             //xor to create final answer
             return result ^ 0xFFFFFFFF;
         }
-        
-        internal static void CRC32Setup()
-        {
+
+        public static void CRC32Setup() {
             //build the CRC table
             uint z;
             uint index;
@@ -821,8 +813,6 @@ namespace WinAGI.Common
                     }
                 }
             }
-
-            //set flag
             CRC32Loaded = true;
 
             // keep the real values until I'm sure the calculated table is
@@ -1086,9 +1076,8 @@ namespace WinAGI.Common
             //CRC32Table[255] = 0x2D02EF8D;
 
         }
-        
-        internal static bool DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
-        {
+
+        public static bool DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs) {
             // Get the subdirectories for the specified directory.
             DirectoryInfo dir = new(sourceDirName);
             if (!dir.Exists) {
@@ -1113,18 +1102,19 @@ namespace WinAGI.Common
                 }
             }
             catch (Exception) {
-                throw new  Exception("directory copy error");
+                throw new Exception("directory copy error");
             }
             // success
             return true;
         }
-        
-        internal static string CompactPath(string LongPath, int MaxLength = 40)
-        {
-            //this method will ensure LongPath is compacted
-            //to be less than MaxLength characters long, if possible
-            //by eliminating directories and replacing them with ellipse(...)
-
+        /// <summary>
+        /// this methodcompacts a full filename by eliminating directories and replacing
+        /// them with ellipse(...)
+        /// </summary>
+        /// <param name="LongPath"></param>
+        /// <param name="MaxLength"></param>
+        /// <returns></returns>
+        public static string CompactPath(string LongPath, int MaxLength = 40) {
             string strDir, strFile;
 
             //if already fits,
@@ -1132,7 +1122,7 @@ namespace WinAGI.Common
                 //return entire path
                 return LongPath;
             }
-            //if no subdirectories
+            // if no subdirectories
             if (!LongPath.Contains('\\')) {
                 //return truncated path
                 return Left(LongPath, MaxLength - 3) + "...";
@@ -1147,49 +1137,46 @@ namespace WinAGI.Common
                 // return truncated filename
                 return Left(strFile, MaxLength - 3) + "...";
             }
-            //truncate directory, pad with ... and return combined dir/filename
+            // truncate directory, pad with ... and return combined dir/filename
             return Left(strDir, MaxLength - 4) + "...\\" + strFile;
         }
-        
-        internal static string ShortFileName(string strLongFileName)
-        {
-            //returns the short filename of a file
-            //to make it compatible with DOS programs
+        /// <summary>
+        /// gets the short filename of a file to make it compatible with MSDOS programs
+        /// </summary>
+        /// <param name="strLongFileName"></param>
+        /// <returns>short path</returns>
+        public static string ShortFileName(string strLongFileName) {
             int rtn;
             int lngStrLen;
             StringBuilder strTemp = new(0);
             try {
-                //get size of required buffer
+                // get size of required buffer
                 lngStrLen = API.GetShortPathName(strLongFileName, strTemp, 0);
-                strTemp = new StringBuilder((char)0, lngStrLen);
-                //now get path
+                strTemp = new StringBuilder(lngStrLen);
+                // now get path
                 rtn = API.GetShortPathName(strLongFileName, strTemp, lngStrLen);
-                //if error
+                // if error
                 if (lngStrLen == 0) {
-                    //ignore error
+                    // ignore error
                     return "";
                 }
-                ////strip off null char
-                //strTemp = Left(strTemp, strTemp.Length - 1);
                 return strTemp.ToString();
             }
             catch (Exception) {
-                //ignore errors
+                // ignore errors
                 return "";
             }
         }
-        
-        internal static List<string> SplitLines(string strText)
-        {
+
+        internal static List<string> SplitLines(string strText) {
             // splits the input text into lines, by CR, LF, or CRLF
             // strategy is to replace CRLFs with CRs, then LFs with CRs,
             // and then slpit by CRs
             List<string> retval = [.. strText.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n')];
             return retval;
         }
-        
-        internal static string ChangeExtension(ref string FileName, string Filter, int Index)
-        {
+
+        public static string ChangeExtension(ref string FileName, string Filter, int Index) {
             //compares the extension on Filename to the extension belonging to
             //first extension for filter that numbered as Index
             //
@@ -1264,7 +1251,7 @@ namespace WinAGI.Common
             }
             return retval;
         }
-        
+
         public static string FullFileName(string startdir, string relpath) {
             // TODO: add error checking
             try {
@@ -1275,8 +1262,8 @@ namespace WinAGI.Common
                 return "";
             }
         }
-        static void tmpCommon()
-        {
+
+        static void tmpCommon() {
             /*
       Option Explicit
 
@@ -1443,8 +1430,8 @@ namespace WinAGI.Common
         Resume Next
       */
         }
-        static void tmpStuff2()
-        {
+
+        static void tmpStuff2() {
             /*
 
           internal bool IsInvObject(int lngStartPos, string strText)
@@ -1659,7 +1646,7 @@ namespace WinAGI.Common
             int Tpos, lngLine, Cpos;
             string strTODO;
             List<string> stlText;
-            List <TWinAGIEventInfo> retval = [];
+            List<TWinAGIEventInfo> retval = [];
 
             // if TODO marker isn't in the logic, just exit
             if (!SourceText.Contains("TODO:"))
@@ -1682,12 +1669,11 @@ namespace WinAGI.Common
                             strTODO = stlText[lngLine][(Tpos + 5)..].Trim();
                             if (strTODO.Length > 0) {
                                 //add this TODO (adjust line by 1)
-                                TWinAGIEventInfo tmpInfo = new()
-                                {
+                                TWinAGIEventInfo tmpInfo = new() {
                                     ID = "TODO",
                                     //InfoType = EInfoType.itInitialize,
-                                    Line = lngLine + 1,
-                                    Module = Module, 
+                                    Line = (lngLine + 1).ToString(),
+                                    Module = Module,
                                     ResNum = LogicNum,
                                     ResType = AGIResType.rtLogic,
                                     Text = strTODO,
@@ -1702,8 +1688,7 @@ namespace WinAGI.Common
             }
             return retval;
         }
-        public static List<TWinAGIEventInfo> ExtractDecompWarn(byte LogicNum, string SourceText, string Module)
-        {
+        public static List<TWinAGIEventInfo> ExtractDecompWarn(byte LogicNum, string SourceText, string Module) {
             // extracts decompiler warnings from logics
             //
             // look for WARNING DC## comments
@@ -1728,11 +1713,10 @@ namespace WinAGI.Common
                         strDCWarn = stlText[lngLine][(Cpos + 9)..].Trim();
                         if (strDCWarn.Length > 0) {
                             //add this TODO (adjust line by 1)
-                            TWinAGIEventInfo tmpInfo = new()
-                            {
+                            TWinAGIEventInfo tmpInfo = new() {
                                 ID = strDCWarn[..4],
                                 //InfoType = EInfoType.itInitialize,
-                                Line = lngLine + 1,
+                                Line = (lngLine + 1).ToString(),
                                 Module = Module,
                                 ResNum = LogicNum,
                                 ResType = AGIResType.rtLogic,

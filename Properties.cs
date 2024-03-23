@@ -119,6 +119,14 @@ namespace WinAGI.Editor {
             LOC = pSound.Loc;
             Size = pSound.Size;
         }
+        public SoundProperties(byte number, string id, string description, int volume, int loc, int size) {
+            Number = number;
+            ID = id;
+            Description = description;
+            Volume = volume;
+            LOC = loc;
+            Size = size;
+        }
         public int Number { get; set; }
         public string ID { get; set; }
         public string Description { get; set; }

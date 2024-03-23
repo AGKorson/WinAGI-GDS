@@ -497,8 +497,8 @@ namespace WinAGI.Editor
             // 
             // picTrans
             // 
-            picTrans.Location = new System.Drawing.Point(235, 0);
-            picTrans.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            picTrans.Location = new System.Drawing.Point(235, 4);
+            picTrans.Margin = new System.Windows.Forms.Padding(2);
             picTrans.Name = "picTrans";
             picTrans.Size = new System.Drawing.Size(19, 17);
             picTrans.TabIndex = 10;
@@ -507,7 +507,7 @@ namespace WinAGI.Editor
             // chkTrans
             // 
             chkTrans.AutoSize = true;
-            chkTrans.Location = new System.Drawing.Point(137, 1);
+            chkTrans.Location = new System.Drawing.Point(137, 4);
             chkTrans.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             chkTrans.Name = "chkTrans";
             chkTrans.Size = new System.Drawing.Size(95, 19);
@@ -524,13 +524,13 @@ namespace WinAGI.Editor
             tableLayoutPanel2.Controls.Add(pnlViewFtr, 0, 2);
             tableLayoutPanel2.Controls.Add(pnlCel, 0, 1);
             tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            tableLayoutPanel2.Location = new System.Drawing.Point(0, 39);
+            tableLayoutPanel2.Location = new System.Drawing.Point(0, 25);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 3;
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            tableLayoutPanel2.Size = new System.Drawing.Size(541, 353);
+            tableLayoutPanel2.Size = new System.Drawing.Size(541, 367);
             tableLayoutPanel2.TabIndex = 13;
             // 
             // pnlViewHdr
@@ -621,7 +621,7 @@ namespace WinAGI.Editor
             pnlViewFtr.Controls.Add(sldSpeed);
             pnlViewFtr.Controls.Add(cmbMotion);
             pnlViewFtr.Controls.Add(cmdVPlay);
-            pnlViewFtr.Location = new System.Drawing.Point(3, 317);
+            pnlViewFtr.Location = new System.Drawing.Point(3, 331);
             pnlViewFtr.Name = "pnlViewFtr";
             pnlViewFtr.Size = new System.Drawing.Size(276, 33);
             pnlViewFtr.TabIndex = 10;
@@ -665,7 +665,7 @@ namespace WinAGI.Editor
             pnlCel.Dock = System.Windows.Forms.DockStyle.Fill;
             pnlCel.Location = new System.Drawing.Point(3, 28);
             pnlCel.Name = "pnlCel";
-            pnlCel.Size = new System.Drawing.Size(535, 283);
+            pnlCel.Size = new System.Drawing.Size(535, 297);
             pnlCel.TabIndex = 11;
             pnlCel.Paint += pnlCel_Paint;
             pnlCel.DoubleClick += picCel_DoubleClick;
@@ -674,7 +674,7 @@ namespace WinAGI.Editor
             // fraVCorner
             // 
             fraVCorner.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            fraVCorner.Location = new System.Drawing.Point(526, 275);
+            fraVCorner.Location = new System.Drawing.Point(526, 289);
             fraVCorner.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             fraVCorner.Name = "fraVCorner";
             fraVCorner.Size = new System.Drawing.Size(20, 20);
@@ -696,7 +696,7 @@ namespace WinAGI.Editor
             // hsbView
             // 
             hsbView.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            hsbView.Location = new System.Drawing.Point(0, 275);
+            hsbView.Location = new System.Drawing.Point(0, 289);
             hsbView.Minimum = -4;
             hsbView.Name = "hsbView";
             hsbView.Size = new System.Drawing.Size(157, 16);
@@ -723,7 +723,7 @@ namespace WinAGI.Editor
             tsViewPrev.Location = new System.Drawing.Point(0, 0);
             tsViewPrev.Name = "tsViewPrev";
             tsViewPrev.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
-            tsViewPrev.Size = new System.Drawing.Size(541, 39);
+            tsViewPrev.Size = new System.Drawing.Size(541, 25);
             tsViewPrev.TabIndex = 0;
             tsViewPrev.Text = "toolStrip1";
             // 
@@ -731,9 +731,10 @@ namespace WinAGI.Editor
             // 
             tbbZoomIn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             tbbZoomIn.Image = (System.Drawing.Image)resources.GetObject("tbbZoomIn.Image");
+            tbbZoomIn.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbZoomIn.ImageTransparentColor = System.Drawing.Color.Magenta;
             tbbZoomIn.Name = "tbbZoomIn";
-            tbbZoomIn.Size = new System.Drawing.Size(36, 36);
+            tbbZoomIn.Size = new System.Drawing.Size(23, 36);
             tbbZoomIn.Text = "toolStripButton1";
             tbbZoomIn.Click += tbbZoomIn_Click;
             // 
@@ -741,9 +742,10 @@ namespace WinAGI.Editor
             // 
             tbbZoomOut.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             tbbZoomOut.Image = (System.Drawing.Image)resources.GetObject("tbbZoomOut.Image");
+            tbbZoomOut.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbZoomOut.ImageTransparentColor = System.Drawing.Color.Magenta;
             tbbZoomOut.Name = "tbbZoomOut";
-            tbbZoomOut.Size = new System.Drawing.Size(36, 36);
+            tbbZoomOut.Size = new System.Drawing.Size(23, 36);
             tbbZoomOut.Text = "toolStripButton2";
             tbbZoomOut.Click += tbbZoomOut_Click;
             // 
@@ -757,31 +759,35 @@ namespace WinAGI.Editor
             HAlign.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             HAlign.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { tbbAlignLeft, tbbAlignCenter, tbbAlignRight });
             HAlign.Image = (System.Drawing.Image)resources.GetObject("HAlign.Image");
+            HAlign.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             HAlign.ImageTransparentColor = System.Drawing.Color.Magenta;
             HAlign.Name = "HAlign";
-            HAlign.Size = new System.Drawing.Size(48, 36);
+            HAlign.Size = new System.Drawing.Size(32, 22);
             // 
             // tbbAlignLeft
             // 
             tbbAlignLeft.Image = (System.Drawing.Image)resources.GetObject("tbbAlignLeft.Image");
+            tbbAlignLeft.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbAlignLeft.Name = "tbbAlignLeft";
-            tbbAlignLeft.Size = new System.Drawing.Size(109, 22);
+            tbbAlignLeft.Size = new System.Drawing.Size(196, 38);
             tbbAlignLeft.Text = "Left";
             tbbAlignLeft.Click += tbbAlignLeft_Click;
             // 
             // tbbAlignCenter
             // 
             tbbAlignCenter.Image = (System.Drawing.Image)resources.GetObject("tbbAlignCenter.Image");
+            tbbAlignCenter.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbAlignCenter.Name = "tbbAlignCenter";
-            tbbAlignCenter.Size = new System.Drawing.Size(109, 22);
+            tbbAlignCenter.Size = new System.Drawing.Size(180, 22);
             tbbAlignCenter.Text = "Center";
             tbbAlignCenter.Click += tbbAlignCenter_Click;
             // 
             // tbbAlignRight
             // 
             tbbAlignRight.Image = (System.Drawing.Image)resources.GetObject("tbbAlignRight.Image");
+            tbbAlignRight.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbAlignRight.Name = "tbbAlignRight";
-            tbbAlignRight.Size = new System.Drawing.Size(109, 22);
+            tbbAlignRight.Size = new System.Drawing.Size(180, 22);
             tbbAlignRight.Text = "Right";
             tbbAlignRight.Click += tbbAlignRight_Click;
             // 
@@ -790,31 +796,35 @@ namespace WinAGI.Editor
             VAlign.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             VAlign.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { tbbTop, tbbMiddle, tbbBottom });
             VAlign.Image = (System.Drawing.Image)resources.GetObject("VAlign.Image");
+            VAlign.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             VAlign.ImageTransparentColor = System.Drawing.Color.Magenta;
             VAlign.Name = "VAlign";
-            VAlign.Size = new System.Drawing.Size(48, 36);
+            VAlign.Size = new System.Drawing.Size(32, 22);
             // 
             // tbbTop
             // 
             tbbTop.Image = (System.Drawing.Image)resources.GetObject("tbbTop.Image");
+            tbbTop.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbTop.Name = "tbbTop";
-            tbbTop.Size = new System.Drawing.Size(114, 22);
+            tbbTop.Size = new System.Drawing.Size(180, 22);
             tbbTop.Text = "Top";
             tbbTop.Click += tbbTop_Click;
             // 
             // tbbMiddle
             // 
             tbbMiddle.Image = (System.Drawing.Image)resources.GetObject("tbbMiddle.Image");
+            tbbMiddle.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbMiddle.Name = "tbbMiddle";
-            tbbMiddle.Size = new System.Drawing.Size(114, 22);
+            tbbMiddle.Size = new System.Drawing.Size(180, 22);
             tbbMiddle.Text = "Middle";
             tbbMiddle.Click += tbbMiddle_Click;
             // 
             // tbbBottom
             // 
             tbbBottom.Image = (System.Drawing.Image)resources.GetObject("tbbBottom.Image");
+            tbbBottom.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbBottom.Name = "tbbBottom";
-            tbbBottom.Size = new System.Drawing.Size(114, 22);
+            tbbBottom.Size = new System.Drawing.Size(180, 22);
             tbbBottom.Text = "Bottom";
             tbbBottom.Click += tbbBottom_Click;
             // 

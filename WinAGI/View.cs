@@ -5,7 +5,6 @@ using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using System.IO;
-using Microsoft.VisualStudio.TextManager.Interop;
 using System.Diagnostics;
 
 namespace WinAGI.Engine {
@@ -82,7 +81,8 @@ namespace WinAGI.Engine {
             //// increment number everytime data changes
             //Number++;
         }
-        internal View Clone() {
+
+        public View Clone() {
             //copies view data from this view and returns a completely separate object reference
             View CopyView = new();
             // copy base properties
@@ -282,7 +282,7 @@ namespace WinAGI.Engine {
             TempCel.AllCelData = tmpCelData;
         }
 
-        int GetMirrorPair() {
+        private int GetMirrorPair() {
             //this function will generate a unique mirrorpair number
             //that is used to identify a pair of mirrored loops
             //the source loop is positive; the copy is negative
@@ -312,6 +312,7 @@ namespace WinAGI.Engine {
             } while (true);
             return retval;
         }
+
         internal int LoadLoops() {
             // used by load function to extract the view
             // loops and cels from the data stream
@@ -489,6 +490,7 @@ namespace WinAGI.Engine {
                 }
             }
         }
+        
         public override void Import(string ImportFile) {  //imports a view resource
             try {
                 //import the resource
@@ -513,6 +515,7 @@ namespace WinAGI.Engine {
             //loops need rebuilding
             mViewSet = false;
         }
+        
         public override void Load() {
             //if not ingame, the resource should already be loaded
             if (!mInGame) {
@@ -536,6 +539,7 @@ namespace WinAGI.Engine {
             mIsDirty = false;
             WritePropState = false;
         }
+        
         public override void Unload() {
             //unload resource
             base.Unload();
@@ -545,7 +549,7 @@ namespace WinAGI.Engine {
             mErrLvl = 0;
             mViewSet = false;
         }
-        public void Save() {
+        public new void Save() {
             //saves an ingame view
             //if properties need to be written
             if (WritePropState && mInGame) {
@@ -575,6 +579,7 @@ namespace WinAGI.Engine {
                 mIsDirty = false;
             }
         }
+        
         public Loop this[int index] {
             get {
                 try {
@@ -586,6 +591,7 @@ namespace WinAGI.Engine {
                 }
             }
         }
+        
         public Loops Loops {
             get {
                 //if not loaded
@@ -608,6 +614,7 @@ namespace WinAGI.Engine {
                 return mLoopCol;
             }
         }
+        
         public string ViewDescription {
             get {
                 //if not loaded
@@ -632,8 +639,8 @@ namespace WinAGI.Engine {
                 }
             }
         }
+        
         public int ErrLevel {
-
             //provides access to current error level of the view
 
             //can be used by calling programs to provide feedback
