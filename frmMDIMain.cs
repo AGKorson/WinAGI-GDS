@@ -704,12 +704,8 @@ namespace WinAGI.Editor
                 }
                 else {
                     // always load before selecting
-                    try {
-                        EditGame.Logics[NewResNum].Load();
-                    }
-                    catch {
-                        // ignore error here; the source code is still usable
-                    }
+                    EditGame.Logics[NewResNum].Load();
+                    // ignore error level
                     // show logic properties
                     PropRows = 8;
                     // if compiled state doesn't match correct tree color, fix it now

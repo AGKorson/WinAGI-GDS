@@ -283,7 +283,7 @@ namespace WinAGI.Engine {
                                 if (game.agPics.Exists(bytResNum)) {
                                     game.agPics[bytResNum].IsDirty = false;
                                     // check for picture errors
-                                    switch (game.agPics[bytResNum].BMPErrLevel) {
+                                    switch (game.agPics[bytResNum].ErrLevel) {
                                     case 0:
                                         // ok
                                         break;
@@ -291,14 +291,14 @@ namespace WinAGI.Engine {
                                     case >= 8:
                                         // unhandled error
                                         warnInfo.ID = "RW05";
-                                        warnInfo.Text = $"Unhandled error in Picture {bytResNum} data- picture may not display correctly ({game.agPics[bytResNum].BMPErrLevel})";
+                                        warnInfo.Text = $"Unhandled error in Picture {bytResNum} data- picture may not display correctly ({game.agPics[bytResNum].ErrLevel})";
                                         warnInfo.Module = game.agPics[bytResNum].ID;
                                         Raise_LoadGameEvent(warnInfo);
                                         break;
                                     default:
                                         //missing EOP marker, bad color or bad cmd
                                         warnInfo.ID = "RW06";
-                                        warnInfo.Text = $"Data anomalies in Picture {bytResNum} cannot be decompiled ({game.agPics[bytResNum].BMPErrLevel})";
+                                        warnInfo.Text = $"Data anomalies in Picture {bytResNum} cannot be decompiled ({game.agPics[bytResNum].ErrLevel})";
                                         warnInfo.Module = game.agPics[bytResNum].ID;
                                         Raise_LoadGameEvent(warnInfo);
                                         break;

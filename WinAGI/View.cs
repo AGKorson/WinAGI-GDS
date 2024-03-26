@@ -95,13 +95,9 @@ namespace WinAGI.Engine {
             return CopyView;
         }
         public override void Clear() {
-            //resets the view
-            //to a single loop with
-            //a single view with
-            //a height and witdh of 1
-            //and transparent color of 0
-            //and no description
-            int i, j;
+            // resets the view to a single loop with a single view with a height and witdh of 1
+            // and transparent color of 0 and no description
+
             if (!mLoaded) {
                 //error
 
@@ -123,7 +119,6 @@ namespace WinAGI.Engine {
             // byte2 = loop count
             // byte3 = high byte of viewdesc
             // byte4 = low byte of viewdesc
-            //set dirty flag
             mIsDirty = true;
         }
         void CompileView() {
@@ -525,11 +520,18 @@ namespace WinAGI.Engine {
             if (mLoaded) {
                 return;
             }
-            try {
-                //load base resource data
-                base.Load();
-                mErrLvl = LoadLoops();
+            mIsDirty = false;
+            WritePropState = false;
+            // load base resource data
+            base.Load();
+            if (mErrLevel < 0) {
+                // return empty view, with no loops
+                Clear();
+                return;
             }
+            // extract loops/cels
+                mErrLvl = LoadLoops();
+            
             catch (Exception) {
                 Unload();
                 //pass along error

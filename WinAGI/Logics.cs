@@ -29,6 +29,7 @@ namespace WinAGI.Engine {
             }
         }
         public byte Count { get { return (byte)Col.Count; } private set { } }
+        
         public byte Max {
             get {
                 byte max = 0;
@@ -37,6 +38,7 @@ namespace WinAGI.Engine {
                 return max;
             }
         }
+        
         public string SourceFileExt {
             get {
                 return mSourceFileExt;
@@ -51,21 +53,24 @@ namespace WinAGI.Engine {
 
             }
         }
+        
         public bool Exists(byte ResNum) {
             //check for this logic in the collection
             return Col.ContainsKey(ResNum);
         }
+        
         internal void Clear() {
             Col = [];
         }
+        
         public Logic Add(byte ResNum, Logic NewLogic = null) {
             //adds a new logic to a currently open game
             Logic agResource;
             int intNextNum = 0;
             string strID, strBaseID;
-            //if this Logic already exists
+            // if this Logic already exists
             if (Exists(ResNum)) {
-                //resource already exists
+                // resource already exists
                 WinAGIException wex = new(LoadResString(602)) {
                     HResult = WINAGI_ERR + 602
                 };
@@ -73,13 +78,13 @@ namespace WinAGI.Engine {
             }
             // create new ingame logic
             agResource = new Logic(parent, ResNum, NewLogic);
-            //if an object was not passed
+            // if an object was not passed
             if (NewLogic is null) {
-                //proposed ID will be default
+                // proposed ID will be default
                 strID = "Logic" + ResNum;
             }
             else {
-                //get proposed id
+                // get proposed id
                 strID = agResource.ID;
             }
             // validate id
@@ -88,16 +93,17 @@ namespace WinAGI.Engine {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }
-            //add it
+            // add it
             Col.Add(ResNum, agResource);
-            //force flags so save function will work
+            // force flags so save function will work
             agResource.IsDirty = true;
             agResource.WritePropState = true;
             //save new logic
             agResource.Save();
-            //return the object created
+            // return the object created
             return agResource;
         }
+
         public void Remove(byte Index) {
             //removes a logic from the game file
 
@@ -112,6 +118,7 @@ namespace WinAGI.Engine {
                 Compiler.blnSetIDs = false;
             }
         }
+
         public void Renumber(byte OldLogic, byte NewLogic) {
             //renumbers a resource
             Logic tmpLogic;
@@ -202,6 +209,7 @@ namespace WinAGI.Engine {
             //reset compiler list of ids
             Compiler.blnSetIDs = false;
         }
+        
         internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
             // called by the resource loading method for the initial loading of
             // resources into logics collection
@@ -224,6 +232,7 @@ namespace WinAGI.Engine {
                 // are loaded
             }
         }
+        
         public void MarkAllAsDirty() {
             foreach (Logic tmpLogic in Col.Values) {
                 tmpLogic.CompiledCRC = 0;
@@ -231,6 +240,7 @@ namespace WinAGI.Engine {
             }
             parent.agGameProps.Save();
         }
+        
         public void MarkAsDirty(byte ResNum) {
             //mark this logic as dirty by setting its compiledCRC value to zero
             //(ignore if resource is not valid)
@@ -240,6 +250,7 @@ namespace WinAGI.Engine {
                 return;
             }
         }
+        
         public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false) {
             //tie function to allow access to the LogCompile variable conversion function
             //if in a game
@@ -258,6 +269,7 @@ namespace WinAGI.Engine {
             //return it
             return ArgIn;
         }
+
         LogicEnum GetEnumerator() {
             return new LogicEnum(Col);
         }
@@ -268,6 +280,7 @@ namespace WinAGI.Engine {
             return (IEnumerator<Logic>)GetEnumerator();
         }
     }
+
     internal class LogicEnum : IEnumerator<Logic> {
         public SortedList<byte, Logic> _logics;
         int position = -1;

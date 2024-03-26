@@ -23,9 +23,6 @@ namespace WinAGI.Engine {
         PenStatus mCurrentPen;
         byte[] mVisData;
         byte[] mPriData;
-        int mBMPErrLvl; //holds current error level of the BMP build
-                        //gets updated everytime bitmaps get built
-                        //variables used for low level graphics handling
         Bitmap bmpVis;
         Bitmap bmpPri;
 
@@ -115,7 +112,7 @@ namespace WinAGI.Engine {
             CopyPicture.mCurrentPen = mCurrentPen;
             CopyPicture.mVisData = mVisData;
             CopyPicture.mPriData = mPriData;
-            CopyPicture.mBMPErrLvl = mBMPErrLvl;
+            CopyPicture.ErrLevel = ErrLevel;
             return CopyPicture;
         }
         public string BkgdImgFile {
@@ -208,25 +205,7 @@ namespace WinAGI.Engine {
                 WritePropState = true;
             }
         }
-        public long BMPErrLevel {
-            get {
-                //provides access to current error level of the BMP build
-                //
-                //can be used by calling programs to provide feedback
-                //on errors in the picture data
-                // it's most useful when entire picture is built; not as
-                // useful for partial builds
 
-                //return 0 if successful, no errors/warnings
-                // non-zero for error/warning:
-                //  -1 = error- can't build the bitmap
-                //  1 = no EOP marker
-                //  2 = bad vis color data
-                //  4 = invalid command byte
-                //  8 = other error
-                return mBMPErrLvl;
-            }
-        }
         public byte PriBase {
             get {
                 //if before v2.936, always return value of 48
@@ -576,13 +555,10 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
             }
-            base.Clear();
-            //after clearing, resource has NO data; so we need
-            //to ADD a byte; not try to change byte0
-            WriteByte(0xFF);
-            //reset position pointer
+            mRData.AllData = [0xff];
+            // reset position pointer
             mDrawPos = 1;
-            //load pictures
+            // load pictures
             BuildPictures();
         }
 
@@ -595,15 +571,17 @@ namespace WinAGI.Engine {
             if (mLoaded) {
                 return;
             }
-            try {
-                // load base resource
-                base.Load();
+            mIsDirty = false;
+            WritePropState = false;
+            // load base resource
+            base.Load();
+            if (mErrLevel < 0) {
+                // return a blank picture resource
+                Clear();
+                // ignore background image stats
+                return;
             }
-            catch (Exception) {
-                // pass along any error
-                throw;
-            }
-            //load bkgd info, if there is such
+            // load bkgd info, if there is such
             mBkImgFile = parent.agGameProps.GetSetting("Picture" + Number, "BkgdImg", "");
             if (mBkImgFile.Length != 0) {
                 mBkShow = parent.agGameProps.GetSetting("Picture" + Number, "BkgdShow", false);
@@ -611,10 +589,7 @@ namespace WinAGI.Engine {
                 mBkPos = parent.agGameProps.GetSetting("Picture" + Number, "BkgdPosn", "");
                 mBkSize = parent.agGameProps.GetSetting("Picture" + Number, "BkgdSize", "");
             }
-            //load picture bmps
             BuildPictures();
-            //clear dirty flag
-            mIsDirty = false;
         }
 
         /// <summary>
@@ -631,11 +606,11 @@ namespace WinAGI.Engine {
                 //if not loaded,
                 if (!mLoaded) {
                     return null;
-                    //raise error
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563
-                    };
-                    throw wex;
+                    ////raise error
+                    //WinAGIException wex = new(LoadResString(563)) {
+                    //    HResult = WINAGI_ERR + 563
+                    //};
+                    //throw wex;
                 }
                 //if pictures not built, or have changed,
                 if (!mPicBMPSet) {
@@ -651,11 +626,11 @@ namespace WinAGI.Engine {
                 //if not loaded,
                 if (!mLoaded) {
                     return null;
-                    //raise error
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563
-                    };
-                    throw wex;
+                    ////raise error
+                    //WinAGIException wex = new(LoadResString(563)) {
+                    //    HResult = WINAGI_ERR + 563
+                    //};
+                    //throw wex;
                 }
                 //if pictures not built, or have changed,
                 if (!mPicBMPSet) {
@@ -781,7 +756,7 @@ namespace WinAGI.Engine {
             mPriData = new byte[26880];
             // build arrays of bitmap data
             // Build function returns an error level value
-            mBMPErrLvl = BuildBMPs(ref mVisData, ref mPriData, mRData.AllData, mStepDraw ? mDrawPos : -1, mDrawPos);
+            ErrLevel = BuildBMPs(ref mVisData, ref mPriData, mRData.AllData, mStepDraw ? mDrawPos : -1, mDrawPos);
             // copy the picture data to the bitmaps
             Marshal.Copy(mVisData, 0, ptrVis, 26880);
             bmpVis.UnlockBits(bmpVisData);
@@ -830,7 +805,7 @@ namespace WinAGI.Engine {
             bmpVis = null;
             bmpPri = null;
             mPicBMPSet = false;
-            mBMPErrLvl = 0;
+            ErrLevel = 0;
         }
     }
 }

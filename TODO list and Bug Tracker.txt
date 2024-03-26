@@ -39,6 +39,22 @@ wrapper around that text - now I wonder if there's a similar conversion availabl
 (MultiByteToWideChar and WideCharToMultiByte) might work, but I haven't been able to figure them out yet
 
 
+Resource Error Levels:
+0 = NO ERRORS or WARNINGS
+-1 = (606) resource file missing (typically ingame, invalid VOL file given)
+-2 = (700) resource file is readonly
+-3 = (502) file access error
+-4 = (505) invalid locator index
+-5 = (506) invalid resource header
+-6 = (704) logic sourcefile missing
+-7 = (700) logic sourcefile is readonly
+-8 = (502) logic sourcfile access error
+-9 = (688) error in decompile: messages
+-10 = (688) error in decompile: labels
+-11 = (688) error in decompile: if-block
+-12 = (688) error in decompile: invalid message value
+-13 = (598) sound invalid data
+
 ERROR HANDLER info:
 resource base errors:
 626: no resfile (outgame only)

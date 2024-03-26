@@ -430,10 +430,10 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             base.Clear();
-            //write data for default view
-            //set default resource data
-            //create default PC/PCjr sound with no notes in any tracks
-            //set default resource data
+            // write data for default view
+            // set default resource data
+            // create default PC/PCjr sound with no notes in any tracks
+            // set default resource data
             mRData.AllData = [ 0x08, 0x00, 0x08, 0x00,
                                     0x08, 0x00, 0x08, 0x00,
                                     0xff, 0xff];
@@ -442,16 +442,14 @@ namespace WinAGI.Engine {
 
             //clear all tracks
             for (i = 0; i <= 3; i++) {
-                //clear out tracks by assigning to nothing, then new
                 mTrack[i] = new Track(this) {
-                    //set track defaults
                     Instrument = 0
                 };
                 mTrack[0].Muted = false;
                 mTrack[0].Visible = true;
-            } //next i
-              //reset length
-            mLength = -1;
+            }
+             // reset length
+            mLength = 0;
         }
         public double Length {
             get {
@@ -1139,83 +1137,89 @@ namespace WinAGI.Engine {
             WritePropState = true;
         }
         public override void Load() {
-            //load data into the sound tracks
+            // load data into the sound tracks
             int i;
-            //if already loaded
+            // if already loaded
             if (mLoaded) {
                 return;
             }
-            //if not ingame, the resource is already loaded
-            if (!mInGame) {//TODO- not true?? can nongame resources be unloaded and loaded?
+            // if not ingame, the resource is already loaded
+            if (!mInGame) {// TODO- not true?? can nongame resources be unloaded and loaded?
                            // they just need a valid resfile to get data from
                 Debug.Assert(mLoaded);
             }
-            try {
-                //load base resource
-                base.Load();
-            }
-            catch (Exception) {
-                // pass along any error
-                throw;
-            }
-            mKey = parent.agGameProps.GetSetting("Sound" + mResNum, "Key", 0);
-            //validate it
-            if (mKey < -7 || mKey > 7) {
-                mKey = 0;
-            }
-            mTPQN = parent.agGameProps.GetSetting("Sound" + mResNum, "TPQN", 0);
-            //validate it
-            mTPQN = (mTPQN / 4) * 4;
-            if (mTPQN < 4) {
-                mTPQN = 4;
-            }
-            if (mTPQN > 64) {
-                mTPQN = 64;
-            }
-            // initialize tracks
-            for (i = 0; i <= 3; i++) {
-                //clear out tracks by assigning to nothing, then new
-                mTrack[i] = new Track(this);
-            } //next i
-
-            //check header to determine what type of sound resource;
-            //   0x01 = IIgs sampled sound
-            //   0x02 = IIgs midi sound
-            //   0x08 = PC/PCjr //standard//
-            switch (ReadWord(0)) {
-            case 1:
-                mFormat = SoundFormat.sfWAV;
-                //tracks are not applicable, so just set flag to true
-                mTracksSet = true;
-                break;
-            case 2:
-                mFormat = SoundFormat.sfMIDI;
-                //tracks are not applicable, so just set flag to true
-                mTracksSet = true;
-                break;
-            case 8: //standard PC/PCjr
-                mFormat = SoundFormat.sfAGI;
-                try {
-                    //load notes
-                    LoadTracks();
-                }
-                catch (Exception) {
-                    // pass along error
-                    throw;
-                }
-                break;
-            default:
-                //bad sound
-                Unload();
-                WinAGIException wex = new(LoadResString(598)) {
-                    HResult = WINAGI_ERR + 598
-                };
-                wex.Data["ID"] = mResID;
-                throw wex;
-            }
-            //clear dirty flag
+            // clear dirty flag
             mIsDirty = false;
             WritePropState = false;
+            // load base resource
+            base.Load();
+            if (mErrLevel < 0) {
+                // clear the sound to empty set of tracks
+                Clear();
+            }
+            else {
+                // finish loading sound
+                mKey = parent.agGameProps.GetSetting("Sound" + mResNum, "Key", 0);
+                //validate it
+                if (mKey < -7 || mKey > 7) {
+                    mKey = 0;
+                }
+                mTPQN = parent.agGameProps.GetSetting("Sound" + mResNum, "TPQN", 0);
+                //validate it
+                mTPQN = (mTPQN / 4) * 4;
+                if (mTPQN < 4) {
+                    mTPQN = 4;
+                }
+                if (mTPQN > 64) {
+                    mTPQN = 64;
+                }
+                // initialize tracks
+                for (i = 0; i <= 3; i++) {
+                    //clear out tracks by assigning to nothing, then new
+                    mTrack[i] = new Track(this);
+                }
+
+                //check header to determine what type of sound resource;
+                //   0x01 = IIgs sampled sound
+                //   0x02 = IIgs midi sound
+                //   0x08 = PC/PCjr //standard//
+                switch (ReadWord(0)) {
+                case 1:
+                    mFormat = SoundFormat.sfWAV;
+                    //tracks are not applicable, so just set flag to true
+                    mTracksSet = true;
+                    break;
+                case 2:
+                    mFormat = SoundFormat.sfMIDI;
+                    //tracks are not applicable, so just set flag to true
+                    mTracksSet = true;
+                    break;
+                case 8: //standard PC/PCjr
+                    mFormat = SoundFormat.sfAGI;
+                    try {
+                        //load notes
+                        LoadTracks();
+                    }
+                    catch (Exception) {
+                        // pass along error
+                        throw;
+                    }
+                    break;
+                default:
+                    // bad sound
+                    mErrLevel = -13;
+                    ErrData["ID"] = mResID;
+                    // clear to set blank tracks
+                    Clear();
+                    //Unload();
+                    //WinAGIException wex = new(LoadResString(598)) {
+                    //    HResult = WINAGI_ERR + 598
+                    //};
+                    //wex.Data["ID"] = mResID;
+                    //throw wex;
+                    break;
+                }
+            }
         }
         public byte[] MIDIData {
             get {

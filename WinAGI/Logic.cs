@@ -22,21 +22,15 @@ namespace WinAGI.Engine {
             // logic data without loading the sourcecode
             // can skip the error checks
 
-            try {
-                // load the base resource data
-                base.Load();
+            // load the base resource data
+            base.Load();
+            if (mErrLevel < 0) {
+                // set code size (add 2 to msgstart offset)
+                CodeSize = ReadWord(0) + 2;
             }
-            catch {
-                // if it fails, pass along exception
-                throw;
-            }
-            finally {
-                // clear dirty flag
-                mIsDirty = false;
-                mSourceDirty = false;
-            }
-            // set code size (add 2 to msgstart offset)
-            CodeSize = ReadWord(0) + 2;
+            // clear dirty flag
+            mIsDirty = false;
+            mSourceDirty = false;
         }
 
         public override void Load() {
@@ -50,34 +44,21 @@ namespace WinAGI.Engine {
             }
             mIsDirty = false;
             mSourceDirty = false;
+            WritePropState = false;
             // compiledCRC Value should already be set,
             // and source crc gets calculated when source is loaded
 
-            try {
-                // load the base resource data
-                base.Load();
+            // load the base resource data
+            base.Load();
+            if (mErrLevel < 0) {
+                Clear();
+                // create empty logic with blank source code
+            }
+            else {
                 // set code size (add 2 to msgstart offset)
                 CodeSize = ReadWord(0) + 2;
-            }
-            catch {
-                // base failed to load- try loading source, but ignore any exceptions
-                try {
-                    // load the sourcetext
-                    LoadSource();
-                }
-                catch {
-                    // ignore exceptions
-                }
-                // pass along original exception
-                throw;
-            }
-            // no exception in base - try loading the sourcetext
-            try {
-            LoadSource();
-            }
-            catch {
-                // pass along the exception
-                throw;
+                //  load the sourcetext
+                LoadSource();
             }
         }
 
@@ -88,22 +69,15 @@ namespace WinAGI.Engine {
         }
 
         private void InitLogic(Logic NewLogic = null) {
-            //attach events
+            // attach events
             base.PropertyChanged += ResPropChange;
             if (NewLogic is null) {
-                //set default resource data
-                // TODO: confirm correct empty logic data block; fix Clear to match
-                mRData.AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00];
-                // byte0 = low byte of msg section offset (relative to byte 2)
-                // byte1 = high byte of msg section offset
-                // byte2 = first byte of code data (a single return)
-                // byte3 = first byte of msg section = # of messages
-                // byte4 = high byte of msg end offset
-                // byte5 = low byte of msg end offset
+                // set default resource data by clearing
+                Clear();
 
                 // set default source
                 mSourceText = ActionCommands[0].Name + "();" + NEWLINE + NEWLINE + "[ messages" + NEWLINE;
-                //to avoid having compile property read true if both values are 0, set compiled to -1 on initialization
+                // to avoid having compile property read true if both values are 0, set compiled to -1 on initialization
                 CompiledCRC = 0xffffffff;
                 CRC = 0;
             }
@@ -306,11 +280,16 @@ namespace WinAGI.Engine {
             //clear resource
             base.Clear();
             //set default resource data
-            Data = new RData(6) {
-                AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00]
-            };
+            // TODO: confirm correct empty logic data block; fix Clear to match
+            mRData.AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00];
+            // byte0 = low byte of msg section offset (relative to byte 2)
+            // byte1 = high byte of msg section offset
+            // byte2 = first byte of code data (a single return)
+            // byte3 = first byte of msg section = # of messages
+            // byte4 = high byte of msg end offset
+            // byte5 = low byte of msg end offset
 
-            //clear the source code by setting it to //return// command
+            // clear the source code by setting it to 'return' command
             mSourceText = ActionCommands[0].Name + "();" + NEWLINE + NEWLINE + "[ messages" + NEWLINE;
             if (mInGame) {
                 // reset crcs
@@ -322,6 +301,7 @@ namespace WinAGI.Engine {
             // TODO: for a completely empty logic, is it two? or three? 
             CodeSize = 3;
         }
+
         public void Export(string ExportFile, bool ResetDirty) {
             // exports a compiled resource; ingame only
             // (since only ingame logics can be compiled)
@@ -405,7 +385,7 @@ namespace WinAGI.Engine {
 
             //if in a game,
             if (mInGame) {
-                //load file is predefined
+                // load file is predefined
                 LoadFile = parent.agResDir + mResID + agSrcFileExt;
                 //    Debug.Assert(mSourceFile == LoadFile);
 
@@ -450,47 +430,73 @@ namespace WinAGI.Engine {
 
             // if forcing decompile
             if (Decompile) {
-                if (mLoaded) {
+                if (mErrLevel == 0) {
                     // get source code by decoding the resource, decrypting messages if not v3compressed
                     mSourceText = DecodeLogic(this, mInGame ? Number : -1);
+                    if (mErrLevel < 0) {
+                        // unable to decompile; force uncompiled state
+                        mCRC = 0;
+                        mCompiledCRC = 0xffffffff;
+                        return;
+                    }
                     // make sure decompile flag is set (so crc can be saved)
                     Decompile = true;
                 }
                 else {
                     // if base failed to load, there is nothing to decompile
                     mSourceText = "return();" + NEWLINE;
-                    // or save - 
+                    // force uncompile state
+                    mCRC = 0;
+                    mCompiledCRC = 0xffffffff;
                     return;
                 }
             }
             else {
                 // verify file exists
                 if (!File.Exists(LoadFile)) {
-                    WinAGIException wex = new(LoadResString(704).Replace(ARG1, LoadFile)) {
-                        HResult = WINAGI_ERR + 704
-                    };
-                    wex.Data["missingfile"] = LoadFile;
-                    throw wex;
+                    mErrLevel = -6;
+                    mSourceText = "return();" + NEWLINE;
+                    // force uncompile state
+                    mCRC = 0;
+                    mCompiledCRC = 0xffffffff;
+                    return;
+                    //WinAGIException wex = new(LoadResString(704).Replace(ARG1, LoadFile)) {
+                    //    HResult = WINAGI_ERR + 704
+                    //};
+                    //wex.Data["missingfile"] = LoadFile;
+                    //throw wex;
                 }
                 // check for readonly
                 if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                    WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
-                        HResult = WINAGI_ERR + 700,
-                    };
-                    wex.Data["badfile"] = LoadFile;
-                    throw wex;
+                    mErrLevel = -7;
+                    mSourceText = "return();" + NEWLINE;
+                    // force uncompile state
+                    mCRC = 0;
+                    mCompiledCRC = 0xffffffff;
+                    return;
+                    //WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
+                    //    HResult = WINAGI_ERR + 700,
+                    //};
+                    //wex.Data["badfile"] = LoadFile;
+                    //throw wex;
                 }
                 try {
                     // load sourcecode from file
                     mSourceText = File.ReadAllText(LoadFile, parent.agCodePage);
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, LoadFile)) {
-                        HResult = WINAGI_ERR + 502
-                    };
-                    wex.Data["exception"] = e;
-                    wex.Data["badfile"] = LoadFile;
-                    throw wex;
+                    mErrLevel = -8;
+                    mSourceText = "return();" + NEWLINE;
+                    // force uncompile state
+                    mCRC = 0;
+                    mCompiledCRC = 0xffffffff;
+                    return;
+                    //WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, LoadFile)) {
+                    //    HResult = WINAGI_ERR + 502
+                    //};
+                    //wex.Data["exception"] = e;
+                    //wex.Data["badfile"] = LoadFile;
+                    //throw wex;
                 }
             }
             // replace tabs with indent spaces

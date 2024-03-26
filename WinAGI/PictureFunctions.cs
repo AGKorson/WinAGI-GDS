@@ -4,15 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WinAGI.Engine
-{
-    public enum CornerDirection
-    {
+namespace WinAGI.Engine {
+    public enum CornerDirection {
         cdX,
         cdY,
     }
-    public static partial class Base
-    {
+    public static partial class Base {
         //picture resource global variables
         private static byte[] VisBuildData, PriBuildData, agPicData;
         private static int lngPos;
@@ -23,19 +20,16 @@ namespace WinAGI.Engine
         private static readonly byte[] CircleData = new byte[64];
         private static bool InitPlotData;
 
-        internal static PenStatus GetToolStatus()
-        {
+        internal static PenStatus GetToolStatus() {
             //NOTE: this method should ONLY be called
             //by the form that just completed a buildbmp call
             //otherwise, the results are meaningless
             return SavePen;
         }
-        internal static int BuildBMPs(ref byte[] VisData, ref byte[] PriData, byte[] bytPicData, int EndPos, int StatusPos)
-        {
-            //converts the data extracted from the picture resource into
-            //a 256 bit color DIBitmap
+        internal static int BuildBMPs(ref byte[] VisData, ref byte[] PriData, byte[] bytPicData, int EndPos, int StatusPos) {
+            // converts the data extracted from the picture resource into a 256 bit color DIBitmap
 
-            //return 0 if successful, no errors/warnings
+            // return 0 if successful, no errors/warnings
             // non-zero for error/warning:
             // -1 = error- can't build the bitmap
             //  1 = no EOP marker
@@ -222,8 +216,7 @@ namespace WinAGI.Engine
             PriData = PriBuildData;
             return retval;
         }
-        private static void InitializePlotData()
-        {
+        private static void InitializePlotData() {
             //circle data used by the
             //brush drawing functions to paint
             //pictures
@@ -295,8 +288,7 @@ namespace WinAGI.Engine
             //set flag
             InitPlotData = true;
         }
-        private static void DrawPixel(int xPos, int yPos)
-        {
+        private static void DrawPixel(int xPos, int yPos) {
             int lngIndex = xPos + yPos * 160;
 
             if (lngIndex <= 26879) {
@@ -308,8 +300,8 @@ namespace WinAGI.Engine
                 }
             }
         }
-        private static void DrawLine(int X1, int Y1, int X2, int Y2)
-        {
+
+        private static void DrawLine(int X1, int Y1, int X2, int Y2) {
             int xPos, yPos;
             int DY, DX;
             int vDir, hDir;
@@ -391,8 +383,8 @@ namespace WinAGI.Engine
                 }
             }
         }
-        private static void DrawCorner(CornerDirection CurAxis)
-        {
+
+        private static void DrawCorner(CornerDirection CurAxis) {
             byte X1, Y1, X2, Y2;
             //read in start coordinates
             X1 = agPicData[lngPos];
@@ -425,8 +417,8 @@ namespace WinAGI.Engine
                 lngPos++;
             }
         }
-        private static void DrawAbsLine()
-        {
+        
+        private static void DrawAbsLine() {
             byte X1, Y1, X2, Y2;
 
             //read in start position
@@ -452,8 +444,8 @@ namespace WinAGI.Engine
                 lngPos++;
             }
         }
-        private static void DrawRelLine()
-        {
+        
+        private static void DrawRelLine() {
             short xdisp, ydisp;
             byte X1, Y1;
 
@@ -494,8 +486,8 @@ namespace WinAGI.Engine
                 lngPos++;
             }
         }
-        private static void BrushPlot()
-        {
+        
+        private static void BrushPlot() {
             int PlotX, PlotY;
             byte PatternNum = 0;
             int rtn;
@@ -606,8 +598,7 @@ namespace WinAGI.Engine
                 lngPos++;
             }
         }
-        private static void PicFloodFill()
-        {
+        private static void PicFloodFill() {
             int QueueStart, QueueEnd, lngOffset;
             byte X, Y;
 
@@ -828,12 +819,12 @@ namespace WinAGI.Engine
                 lngPos++;
             }//Loop
         }
-        public static int GetColVal(int lngEGAIn)
-        {
-            //basically it attempts to convert a long color Value
-            //into the corresponding AGI color index with the least
-            //amount of calculations
-            //it is an empirically derived algorithm
+        
+        public static int GetColVal(int lngEGAIn) {
+            // basically it attempts to convert a long color Value
+            // into the corresponding AGI color index with the least
+            // amount of calculations
+            // it is an empirically derived algorithm
 
             //NOTE: if (this method is called with a color Value
             //other than the defined EGA color values for AGI, then
@@ -845,8 +836,8 @@ namespace WinAGI.Engine
 
             //split the color up
             cR = lngEGAIn % 256;
-            cG = (lngEGAIn / 256) % 256;
-            cB = (lngEGAIn / 65536) % 256;
+            cG = lngEGAIn / 256 % 256;
+            cB = lngEGAIn / 65536 % 256;
             //convert to component numbers
             if (cR == 0xFF) {
                 vR = 32;

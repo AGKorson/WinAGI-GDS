@@ -142,12 +142,15 @@ namespace WinAGI.Engine {
 
             //if can't read messges,
             if (!ReadMessages(bytData, lngMsgSecStart, SourceLogic.V3Compressed != 2)) {
-                //raise error
-                WinAGIException wex = new($"LogDecode Error ({strError})") {
-                    HResult = WINAGI_ERR + 688
-                };
-                wex.Data["error"] = strError;
-                throw wex;
+                // return error
+                SourceLogic.ErrLevel = -9;
+                SourceLogic.ErrData["error"] = strError;
+                return "return();" + NEWLINE;
+                //WinAGIException wex = new($"LogDecode Error ({strError})") {
+                //    HResult = WINAGI_ERR + 688
+                //};
+                //wex.Data["error"] = strError;
+                //throw wex;
             }
 
             //set main block info
@@ -168,19 +171,25 @@ namespace WinAGI.Engine {
                     strError = "";
                     if (!FindLabels(bytData)) {
                         //use error string set by findlabels
-                        WinAGIException wex = new($"LogDecode Error ({strError})") {
-                            HResult = WINAGI_ERR + 688
-                        };
-                        wex.Data["error"] = strError;
-                        throw wex;
+                        SourceLogic.ErrLevel = -10;
+                        SourceLogic.ErrData["error"] = strError;
+                        return "return();" + NEWLINE;
+                        //WinAGIException wex = new($"LogDecode Error ({strError})") {
+                        //    HResult = WINAGI_ERR + 688
+                        //};
+                        //wex.Data["error"] = strError;
+                        //throw wex;
                     }
                     else {
-                        //use error string set by findlabels
-                        WinAGIException wex = new($"LogDecode Error ({strError})") {
-                            HResult = WINAGI_ERR + 688
-                        };
-                        wex.Data["error"] = strError;
-                        throw wex;
+                        SourceLogic.ErrLevel = -10;
+                        SourceLogic.ErrData["error"] = strError;
+                        return "return();" + NEWLINE;
+                        ////use error string set by findlabels
+                        //WinAGIException wex = new($"LogDecode Error ({strError})") {
+                        //    HResult = WINAGI_ERR + 688
+                        //};
+                        //wex.Data["error"] = strError;
+                        //throw wex;
                     }
                 }
             }
@@ -212,11 +221,14 @@ namespace WinAGI.Engine {
                 case 0xFF:
                     //this byte starts an IF statement
                     if (!DecodeIf(bytData, stlOutput)) {
-                        WinAGIException wex = new($"LogDecode Error ({strError})") {
-                            HResult = WINAGI_ERR + 688
-                        };
-                        wex.Data["error"] = strError;
-                        throw wex;
+                        SourceLogic.ErrLevel = -11;
+                        SourceLogic.ErrData["error"] = strError;
+                        return "return();" + NEWLINE;
+                        //WinAGIException wex = new($"LogDecode Error ({strError})") {
+                        //    HResult = WINAGI_ERR + 688
+                        //};
+                        //wex.Data["error"] = strError;
+                        //throw wex;
                     }
                     break;
                 case 0xFE:
@@ -301,7 +313,8 @@ namespace WinAGI.Engine {
                             if (ReservedAsText && UseReservedNames) {
                                 //some commands use resources as arguments; substitute as appropriate
                                 switch (bytCmd) {
-                                case 122: //add.to.pic,    1st arg (V)
+                                case 122:
+                                    //add.to.pic,    1st arg (V)
                                     if (intArg == 0) {
                                         if (compGame.agViews.Exists(bytCurData)) {
                                             strArg = compGame.agViews[bytCurData].ID;
@@ -312,7 +325,8 @@ namespace WinAGI.Engine {
                                         }
                                     }
                                     break;
-                                case 22:  //call,          only arg (L)
+                                case 22:
+                                    //call,          only arg (L)
                                     if (compGame.agLogs.Exists(bytCurData)) {
                                         strArg = compGame.agLogs[bytCurData].ID;
                                     }
@@ -321,34 +335,38 @@ namespace WinAGI.Engine {
                                         AddDecodeWarning("DC11", "Logic " + bytCurData.ToString() + " in call() at position " + lngPos.ToString() + " does not exist", stlOutput.Count);
                                     }
                                     break;
-                                case 175: //discard.sound, only arg (S)
+                                case 175:
+                                    // discard.sound, only arg (S)
                                     if (compGame.agSnds.Exists(bytCurData)) {
                                         strArg = compGame.agSnds[bytCurData].ID;
                                     }
                                     else {
-                                        //sound doesn't exist
+                                        // sound doesn't exist
                                         AddDecodeWarning("DC11", "Sound " + bytCurData + " in discard.sound() does not exist", stlOutput.Count);
                                     }
                                     break;
-                                case 32:  //discard.view,  only arg (V)
+                                case 32: 
+                                    //discard.view,  only arg (V)
                                     if (compGame.agViews.Exists(bytCurData)) {
                                         strArg = compGame.agViews[bytCurData].ID;
                                     }
                                     else {
-                                        //view doesn't exist
+                                        // view doesn't exist
                                         AddDecodeWarning("DC11", "View " + bytCurData + " in discard.view() does not exist", stlOutput.Count);
                                     }
                                     break;
-                                case 20:  //load.logics,   only arg (L)
+                                case 20: 
+                                    //load.logics,   only arg (L)
                                     if (compGame.agLogs.Exists(bytCurData)) {
                                         strArg = compGame.agLogs[bytCurData].ID;
                                     }
                                     else {
-                                        //logic doesn't exist
+                                        // logic doesn't exist
                                         AddDecodeWarning("DC11", "Logic " + bytCurData + " in loadlogics() does not exist", stlOutput.Count);
                                     }
                                     break;
-                                case 98:  //load.sound,    only arg (S)
+                                case 98:  
+                                    // load.sound,    only arg (S)
                                     if (compGame.agSnds.Exists(bytCurData)) {
                                         strArg = compGame.agSnds[bytCurData].ID;
                                     }
@@ -357,62 +375,68 @@ namespace WinAGI.Engine {
                                         AddDecodeWarning("DC11", "Sound " + bytCurData + " in load.sound() does not exist", stlOutput.Count);
                                     }
                                     break;
-                                case 30:  //load.view,     only arg (V)
+                                case 30:  
+                                    // load.view,     only arg (V)
                                     if (compGame.agViews.Exists(bytCurData)) {
                                         strArg = compGame.agViews[bytCurData].ID;
                                     }
                                     else {
-                                        //view doesn't exist
+                                        // view doesn't exist
                                         AddDecodeWarning("DC11", "View " + bytCurData + " in load.view() does not exist", stlOutput.Count);
                                     }
                                     break;
-                                case 18:  //new.room,      only arg (L)
+                                case 18:  
+                                    // new.room,      only arg (L)
                                     if (compGame.agLogs.Exists(bytCurData)) {
                                         strArg = compGame.agLogs[bytCurData].ID;
                                     }
                                     else {
-                                        //logic doesn't exist
+                                        // logic doesn't exist
                                         AddDecodeWarning("DC11", "Logic " + bytCurData + " in new.room() does not exist", stlOutput.Count);
                                     }
                                     break;
-                                case 41:  //set.view,      2nd arg (V)
+                                case 41: 
+                                    // set.view,      2nd arg (V)
                                     if (intArg == 1) {
                                         if (compGame.agViews.Exists(bytCurData)) {
                                             strArg = compGame.agViews[bytCurData].ID;
                                         }
                                         else {
-                                            //view doesn't exist
+                                            // view doesn't exist
                                             AddDecodeWarning("DC11", "View " + bytCurData + " in set.view() does not exist", stlOutput.Count);
                                         }
                                     }
                                     break;
-                                case 129: //show.obj,      only arg (V)
+                                case 129: 
+                                    // show.obj,      only arg (V)
                                     if (compGame.agViews.Exists(bytCurData)) {
                                         strArg = compGame.agViews[bytCurData].ID;
                                     }
                                     else {
-                                        //view doesn't exist
+                                        // view doesn't exist
                                         AddDecodeWarning("DC11", "View " + bytCurData + " in show.obj() does not exist", stlOutput.Count);
                                     }
                                     break;
-                                case 99:  //sound,         1st arg (S)
+                                case 99: 
+                                    // sound,         1st arg (S)
                                     if (intArg == 0) {
                                         if (compGame.agSnds.Exists(bytCurData)) {
                                             strArg = compGame.agSnds[bytCurData].ID;
                                         }
                                         else {
-                                            //sound doesn't exist
+                                            // sound doesn't exist
                                             AddDecodeWarning("DC11", "Sound " + bytCurData + " in sound() does not exist", stlOutput.Count);
                                         }
                                     }
                                     break;
-                                case 150: //trace.info,    1st arg (L)
+                                case 150:
+                                    // trace.info,    1st arg (L)
                                     if (intArg == 0) {
                                         if (compGame.agLogs.Exists(bytCurData)) {
                                             strArg = compGame.agLogs[bytCurData].ID;
                                         }
                                         else {
-                                            //logic doesn't exist
+                                            // logic doesn't exist
                                             AddDecodeWarning("DC11", "Logic " + bytCurData + " in trace.info() does not exist", stlOutput.Count);
                                         }
                                     }
@@ -420,32 +444,38 @@ namespace WinAGI.Engine {
                                 }
                             }
 
-                            //if message error (no string returned)
+                            // if message error (no string returned)
                             if (strArg.Length == 0) {
-                                //error string set by ArgValue function
-                                WinAGIException wex = new($"LogDecode Error: {strError}") {
-                                    HResult = WINAGI_ERR + 688
-                                };
-                                wex.Data["error"] = strError;
-                                throw wex;
+                                // error string set by ArgValue function
+                                SourceLogic.ErrLevel = -12;
+                                SourceLogic.ErrData["error"] = strError;
+                                return "return();" + NEWLINE;
+                                //WinAGIException wex = new($"LogDecode Error: {strError}") {
+                                //    HResult = WINAGI_ERR + 688
+                                //};
+                                //wex.Data["error"] = strError;
+                                //throw wex;
                             }
                             //check for commands that use colors here
                             switch (bytCmd) {
-                            case 105: //clear.lines, 3rd arg
+                            case 105:
+                                // clear.lines, 3rd arg
                                 if (intArg == 2) {
                                     if (Val(strArg) < 16) {
                                         strArg = agResColor[(int)Val(strArg)].Name;
                                     }
                                 }
                                 break;
-                            case 154: //clear.text.rect, 5th arg
+                            case 154: 
+                                // clear.text.rect, 5th arg
                                 if (intArg == 4) {
                                     if (Val(strArg) < 16) {
                                         strArg = agResColor[(int)Val(strArg)].Name;
                                     }
                                 }
                                 break;
-                            case 109: //set.text.attribute, all args
+                            case 109: 
+                                // set.text.attribute, all args
                                 if (Val(strArg) < 16) {
                                     strArg = agResColor[(int)Val(strArg)].Name;
                                 }
@@ -497,7 +527,7 @@ namespace WinAGI.Engine {
                                     }
                                 }
                                 //continue adding new lines until entire message is split && added
-                                while (strArg != ""); // Until strArg = ""
+                                while (strArg != "");
                             }
                             else {
                                 //add arg
@@ -549,25 +579,10 @@ namespace WinAGI.Engine {
                 ActionCommands[134].ArgType = new ArgTypeEnum[1];
                 ActionCommands[134].ArgType[0] = atNum;
             }
-
-
-
-            //// convert array to single string, then to byte array
-            //// using the Latin1 encoding (this converts the string
-            //// characters to the correct byte values
-            //byte[] chrLog = System.Text.Encoding.Latin1.GetBytes(string.Join(NEWLINE, stlOutput.ToArray()));
-            //// then use a stream reader to convert the byte code array
-            //// into the correct encoding to display them as cp437 characters
-            //MemoryStream msLog = new MemoryStream(chrLog);
-            //StreamReader srLogic = new(msLog, Encoding.GetEncoding(437));
-            //string strOut = srLogic.ReadToEnd();
-            //srLogic.Dispose();
-            //msLog.Dispose();
-
-            ////return results
-            //return strOut;
+            // return results
             return string.Join(NEWLINE, [.. stlOutput]);
         }
+
         static void AddDecodeWarning(string WarnID, string WarningText, int LineNum) {
             TWinAGIEventInfo dcWarnInfo = new() {
                 ResNum = bytLogComp,

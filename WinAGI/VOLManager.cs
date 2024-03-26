@@ -161,7 +161,7 @@ namespace WinAGI.Engine {
                         // need a special check here
                         if (tmpGameRes is Picture tmpPic) {
                             //check bmp error level by property, not error number
-                            if (tmpPic.BMPErrLevel >= 0) {
+                            if (tmpPic.ErrLevel > 0) {
                                 //case 0:
                                 //ok
                                 //unhandled error
