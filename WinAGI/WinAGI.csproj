@@ -2,13 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
-    <AssemblyName>WinAGI Library</AssemblyName>
+    <AssemblyName>WinAGI</AssemblyName>
     <Authors>Andrew Korson</Authors>
     <Description>Contains all Library functions to access and modify AGI games as implemented by WinAGI</Description>
     <PackageIcon>winagi.jpg</PackageIcon>
     <OutputType>Library</OutputType>
     <UseWindowsForms>True</UseWindowsForms>
+    <ApplicationIcon>fWinAGI32.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="fWinAGI32.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="EngineResources.Designer.cs">

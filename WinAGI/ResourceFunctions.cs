@@ -251,7 +251,7 @@ namespace WinAGI.Engine {
                             switch (bytResType) {
                             case AGIResType.rtLogic:
                                 try {
-                                    game.agLogs.LoadLogic(bytResNum, bytVol, lngLoc);
+                                    game.agLogs.InitLoad(bytResNum, bytVol, lngLoc);
                                 }
                                 catch (WinAGIException e) {
                                     AddLoadWarning(AGIResType.rtLogic, bytResNum, e);
@@ -269,7 +269,7 @@ namespace WinAGI.Engine {
                                 break;
                             case AGIResType.rtPicture:
                                 try {
-                                    game.agPics.LoadPicture(bytResNum, bytVol, lngLoc);
+                                    game.agPics.InitLoad(bytResNum, bytVol, lngLoc);
                                 }
                                 catch (WinAGIException e) {
                                     AddLoadWarning(AGIResType.rtPicture, bytResNum, e);
@@ -308,7 +308,7 @@ namespace WinAGI.Engine {
                                 break;
                             case AGIResType.rtSound:
                                 try {
-                                    game.agSnds.LoadSound(bytResNum, bytVol, lngLoc);
+                                    game.agSnds.InitLoad(bytResNum, bytVol, lngLoc);
                                 }
                                 catch (WinAGIException e) {
                                     AddLoadWarning(AGIResType.rtSound, bytResNum, e);
@@ -333,7 +333,7 @@ namespace WinAGI.Engine {
                                 break;
                             case AGIResType.rtView:
                                 try {
-                                    game.agViews.LoadView(bytResNum, bytVol, lngLoc);
+                                    game.agViews.InitLoad(bytResNum, bytVol, lngLoc);
                                 }
                                 catch (WinAGIException e) {
                                     AddLoadWarning(AGIResType.rtView, bytResNum, e);
@@ -509,7 +509,7 @@ namespace WinAGI.Engine {
             case 606:
                 // Can't load resource: file not found (%1)
                 warnInfo.ID = "VW03";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} is in a VOL file ({Path.GetFileName(fsVOL.Name)}) that does not exist";
+                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} is in a VOL file ({Path.GetFileName((string)eRes.Data["missingfile"])}) that does not exist";
                 warnInfo.Module = (string)eRes.Data["ID"];
                 Raise_LoadGameEvent(warnInfo);
                 break;

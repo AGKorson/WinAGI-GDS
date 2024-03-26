@@ -278,6 +278,7 @@ namespace WinAGI.Engine {
                 WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
                     HResult = WINAGI_ERR + 606,
                 };
+                wex.Data["missingfile"] = LoadFile;
                 wex.Data["ID"] = "OBJECT";
                 throw wex;
             }

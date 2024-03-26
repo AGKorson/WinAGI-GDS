@@ -9,11 +9,12 @@ namespace WinAGI.Engine {
     //public abstract class AGIResource
     public class AGIResource {
         protected bool mLoaded = false;
+        protected bool mInvalid = false;
         protected string mResID;
         protected sbyte mVolume = -1;
         protected int mLoc = -1;
-        protected int mSize = -1; //actual size, if compressed this is different from mSizeInVol
-        protected int mSizeInVol = -1;  //size as stored in VOL
+        protected int mSize = -1; // actual size, if compressed this is different from mSizeInVol
+        protected int mSizeInVol = -1;  // size as stored in VOL
         /*
         size- if NOT in a game:
           - SizeInVol is always -1
@@ -42,6 +43,7 @@ namespace WinAGI.Engine {
 
         internal delegate void AGIResPropChangedEventHandler(object sender, AGIResPropChangedEventArgs e);
         internal event AGIResPropChangedEventHandler PropertyChanged;
+        
         protected AGIResource(AGIResType ResType) {
             // can ONLY create new resource from within other game resources
             // when first created, a resource MUST have a type assigned
@@ -414,9 +416,9 @@ namespace WinAGI.Engine {
             NewRes.mlngCurPos = mlngCurPos;
         }
         public virtual void Load() {
-            //loads the data for this resource
-            //from its VOL file, if in a game
-            //or from its resfile
+            // loads the data for this resource
+            // from its VOL file, if in a game
+            // or from its resfile
             byte bytLow, bytHigh, bytVolNum;
             bool blnIsPicture = false;
             int intSize, lngExpandedSize = 0;
@@ -457,6 +459,7 @@ namespace WinAGI.Engine {
                 WinAGIException wex = new(LoadResString(606).Replace(ARG1, Path.GetFileName(strLoadResFile))) {
                     HResult = WINAGI_ERR + 606,
                 };
+                wex.Data["missingfile"] = strLoadResFile;
                 wex.Data["ID"] = mResID;
                 throw wex;
             }
@@ -555,7 +558,7 @@ namespace WinAGI.Engine {
                 else {
                     // if resource is LZW compressed,
                     if (mRData.Length != lngExpandedSize) {
-                        //all other resources use LZW compression
+                        // all other resources use LZW compression
                         V3Compressed = 2;
                         mRData.AllData = ExpandV3ResData(mRData.AllData, lngExpandedSize);
                         // update size
@@ -594,7 +597,7 @@ namespace WinAGI.Engine {
             // saves a resource into a VOL file if in a game
             // saves to standalone resource file if not in a game
 
-            //if not loaded
+            // if not loaded
             if (!mLoaded) {
                 // error
                 WinAGIException wex = new(LoadResString(563)) {
@@ -602,7 +605,7 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            //if in game,
+            // if in game,
             if (mInGame) {
                 try {
                     //add resource to VOL file to save it

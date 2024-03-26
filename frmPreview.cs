@@ -98,7 +98,7 @@ namespace WinAGI.Editor {
                 mnuRSavePicAs.Visible = true;
                 mnuRSep1.Visible = true;
             }
-            //if one of the four main resource types and not a header
+            // if one of the four main resource types and not a header
             if ((int)ResType >= 0 && (int)ResType <= 3 && ResNum >= 0) {
                 UpdateCaption(ResType, (byte)ResNum);
                 //get size, show preview
@@ -231,19 +231,11 @@ namespace WinAGI.Editor {
             //get the logic
             agLogic = EditGame.Logics[LogNum];
             try {
-                Debug.Assert(agLogic.Loaded);
                 // get the source code
                 rtfLogPrev.Text = agLogic.SourceText;
                 rtfLogPrev.ScrollToCaret();
-                //if logic is compiled
-                if (agLogic.Compiled) {
-                    //use current background
-                    rtfLogPrev.BackColor = Color.FromArgb(0xE0, 0xFF, 0xE0);
-                }
-                else {
-                    //use pink background
-                    rtfLogPrev.BackColor = Color.FromArgb(0xff, 0xE0, 0xe0);
-                }
+                // set background
+                rtfLogPrev.BackColor = agLogic.Compiled ? Color.FromArgb(0xE0, 0xFF, 0xE0) : Color.FromArgb(0xFF, 0xE0, 0xe0);
                 return true;
             }
             catch (Exception e) {
@@ -253,7 +245,7 @@ namespace WinAGI.Editor {
                 //  ErrMsgBox "No source code found: ", "Unable to decode the logic resource.", "Preview Logic Error"
                 //default:
                 //  ErrMsgBox "Error while loading logic resource", "", "Preview Logic Error"
-                //always unload
+                // TODO: always unload???
                 agLogic.Unload();
                 return false;
             }
@@ -317,8 +309,13 @@ namespace WinAGI.Editor {
                 agPic = EditGame.Pictures[PicNum];
 
                 if (!agPic.Loaded) {
-                    //load resource for this view
-                    agPic.Load();
+                    // load resource for this view
+                    try {
+                        agPic.Load();
+                    }
+                    catch {
+                        // ignore?
+                    }
                 }
                 //draw picture
                 DisplayPicture();
@@ -341,7 +338,7 @@ namespace WinAGI.Editor {
                 ShowAGIBitmap(imgPicture, agPic.VisualBMP, PicScale);
             }
             else {
-                //load priority Image
+                // load priority Image
                 ShowAGIBitmap(imgPicture, agPic.PriorityBMP, PicScale);
             }
             //set scrollbars if necessary

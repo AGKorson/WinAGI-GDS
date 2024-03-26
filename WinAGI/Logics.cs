@@ -202,22 +202,27 @@ namespace WinAGI.Engine {
             //reset compiler list of ids
             Compiler.blnSetIDs = false;
         }
-        internal void LoadLogic(byte bytResNum, sbyte bytVol, int lngLoc) {
-            //called by the resource loading method for the initial loading of
-            //resources into logics collection
+        internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
+            // called by the resource loading method for the initial loading of
+            // resources into logics collection
 
-            //create new logic object
+            // create new logic object
             Logic newResource = new(parent, bytResNum, bytVol, lngLoc);
             // try to load it
             try {
                 newResource.LoadNoSource();
             }
             catch (Exception) {
-                // throw it
+                // pass along errors
                 throw;
             }
-            //add it
-            Col.Add(bytResNum, newResource);
+            finally {
+                // add it
+                Col.Add(bytResNum, newResource);
+                // don't unload logics; they are
+                // checked again after all other resources
+                // are loaded
+            }
         }
         public void MarkAllAsDirty() {
             foreach (Logic tmpLogic in Col.Values) {

@@ -367,18 +367,13 @@ namespace WinAGI.Engine {
                 bwVOL.Write(AddRes.Data.AllData, 0, AddRes.Data.Length);
             }
             catch (Exception e) {
-                //save error
-                strError = e.Message;
-                //strErrSrc = Err.Source
-                lngError = e.HResult;
-
-                //if not compiling, close volfile
+                // if not compiling, close volfile
                 if (!compileResCol) {
                     fsVOL.Dispose();
                     bwVOL.Dispose();
                 }
                 WinAGIException wex = new(LoadResString(638)) {
-                    HResult = lngError,
+                    HResult = WINAGI_ERR +638,
                 };
                 wex.Data["exception"] = e;
                 wex.Data["ID"] = AddRes.ID;
@@ -387,12 +382,7 @@ namespace WinAGI.Engine {
             //if adding to a new vol file
             if (compileResCol) {
                 //increment loc pointer
-                lngCurrentLoc = lngCurrentLoc + AddRes.Size + 5;
-                //if version3
-                if (Version3) {
-                    //add two more
-                    lngCurrentLoc += 2;
-                }
+                lngCurrentLoc = lngCurrentLoc + AddRes.Size + (Version3 ? 7 : 5);
             }
             else {
                 try {

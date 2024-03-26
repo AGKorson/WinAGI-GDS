@@ -1850,7 +1850,7 @@ namespace WinAGI.Engine {
                     // if there is a source file, need to verify source CRC value
                     if (File.Exists(tmpLog.SourceFile)) {
                         // recalculate the CRC value for this sourcefile by loading the source
-                        tmpLog.LoadSource(false);
+                        tmpLog.LoadSource();
                         // check it for TODO items
                         List<TWinAGIEventInfo> TODOs = ExtractTODO(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
                         if (TODOs.Count > 0) {
@@ -1869,9 +1869,34 @@ namespace WinAGI.Engine {
                         tmpLog.Unload();
                     }
                     else {
-                        // no source; consider logic as clean
-                        tmpLog.CRC = 0;
-                        tmpLog.CompiledCRC = 0;
+                        // no source - decompile it now
+                        try {
+                            // force decompile
+                            tmpLog.LoadSource(true);
+                        }
+                        catch (Exception e) {
+                            if (e.HResult == WINAGI_ERR + 688) {
+                                // create a blank file for this bad logic
+                                tmpLog.Clear();
+                                // use export function to save it without any other updating
+                                tmpLog.SaveSource("", true);
+                                // finally, change the compiled CRC value to default, since
+                                // it no longer matches the source CRC
+                                tmpLog.CompiledCRC = 0;
+                                loadInfo.Type = EventType.etWarning;
+                                loadInfo.ID = "RW04";
+                                loadInfo.Text = $"Logic {tmpLog.Number} cannot be decompiled ({e.HResult}: {e.Message}); inserting blank source file";
+                                loadInfo.Module = tmpLog.ID;
+                                Raise_LoadGameEvent(loadInfo);
+                            }
+                            else {
+                                // TODO: what about other errors? are they even possible?
+                            }
+                        }
+                        finally {
+                            // unload the logic after decompile is done
+                            tmpLog.Unload();
+                        }
                     }
                     break;
                 case OpenGameMode.Directory:
@@ -1888,7 +1913,8 @@ namespace WinAGI.Engine {
                     loadInfo.InfoType = EInfoType.itDecompiling;
                     Raise_LoadGameEvent(loadInfo);
                     try {
-                        tmpLog.Load();
+                        // force decompile
+                        tmpLog.LoadSource(true);
                     }
                     catch (Exception e) {
                         if (e.HResult == WINAGI_ERR + 688) {
@@ -1906,11 +1932,13 @@ namespace WinAGI.Engine {
                             Raise_LoadGameEvent(loadInfo);
                         }
                         else {
-                            //TODO: what about other errors? are they even possible?
+                            // TODO: what about other errors? are they even possible?
                         }
                     }
-                    // then unload it
-                    tmpLog.Unload();
+                    finally {
+                        // unload the logic after decompile is done
+                        tmpLog.Unload();
+                    }
                     // if a new ID found, use it
                     if (DecodeGameID.Length != 0) {
                         agGameID = DecodeGameID;

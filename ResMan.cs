@@ -743,7 +743,7 @@ namespace WinAGI.Editor {
         public static bool RestartSearch;
         public static bool ClosedLogics;
         public static int ReplaceCount;
-        public static bool SearchStartDlg; //true if search started by clicking //find// or //find next//
+        public static bool SearchStartDlg; // true if search started by clicking 'find' or 'find next'
                                            // on FindingForm
         internal static int SearchLogCount;
         internal static int SearchLogVal;
@@ -1813,16 +1813,19 @@ namespace WinAGI.Editor {
             // game is closed
             return true;
         }
+
         public static void BuildResourceTree() {
-            //builds the resource tree list
-            //for the current open game
+            // builds the resource tree list
+            // for the current open game
             int i;
             TreeNode tmpNode;
+
             switch (Settings.ResListType) {
-            case 0:  // no tree
+            case 0:
+                // no tree
                 return;
-            case 1: // treeview list
-                    //if a game id was passed
+            case 1:
+                // treeview list
                 if (EditGame.GameID.Length != 0) {
                     //update root
                     MDIMain.tvwResources.Nodes[0].Text = EditGame.GameID;
@@ -1833,7 +1836,7 @@ namespace WinAGI.Editor {
                             if (EditGame.Logics.Exists((byte)i)) {
                                 tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sLOGICS].Nodes.Add("l" + i, ResourceName(EditGame.Logics[(byte)i], true));
                                 tmpNode.Tag = i;
-                                //load source to set compiled status
+                                // get compiled status
                                 if (EditGame.Logics[(byte)i].Compiled) {
                                     tmpNode.ForeColor = Color.Black;
                                 }
@@ -1869,8 +1872,9 @@ namespace WinAGI.Editor {
                     }
                 }
                 break;
-            case 2: //combo/list boxes
-                    //update root
+            case 2:
+                //combo/list boxes
+                //update root
                 MDIMain.cmbResType.Items[0] = EditGame.GameID;
                 //select root
                 MDIMain.cmbResType.SelectedIndex = 0;
@@ -11124,11 +11128,12 @@ namespace WinAGI.Editor {
             }
 
             switch (Settings.ResListType) {
-            case 0: //no tree
-                    //do nothing
+            case 0:
+                //no tree - do nothing
                 break;
-            case 1: //treeview list
-                    //if updating tree OR updating a logic
+            case 1:
+                //treeview list
+                //if updating tree OR updating a logic
                 if ((UpDateMode & UpdateModeType.umResList) == UpdateModeType.umResList || ResType == rtLogic) {
                     //update the node for this resource
                     switch (ResType) {
@@ -11154,8 +11159,9 @@ namespace WinAGI.Editor {
                     }
                 }
                 break;
-            case 2: //combo/list boxes
-                    //only update if current type is listed
+            case 2:
+                //combo/list boxes
+                //only update if current type is listed
                 if (MDIMain.cmbResType.SelectedIndex - 1 == (int)ResType) {
                     //if updating tree OR updating a logic (because color of
                     //logic text might need updating)
@@ -11166,12 +11172,7 @@ namespace WinAGI.Editor {
                             ListViewItem tmpItem = MDIMain.lstResources.Items["l" + ResNum.ToString()];
                             tmpItem.Text = ResourceName(EditGame.Logics[ResNum], true);
                             //also set compiled status
-                            if (!EditGame.Logics[ResNum].Compiled) {
-                                tmpItem.ForeColor = Color.Red;
-                            }
-                            else {
-                                tmpItem.ForeColor = Color.Black;
-                            }
+                            tmpItem.ForeColor = EditGame.Logics[ResNum].Compiled ? Color.Black : Color.Red;
                             break;
                         case rtPicture:
                             MDIMain.lstResources.Items["p" + ResNum.ToString()].Text = ResourceName(EditGame.Pictures[ResNum], true);
@@ -11189,9 +11190,8 @@ namespace WinAGI.Editor {
                     }
                 }
                 break;
-            }//switch
-
-            //if the selected item matches the update item
+            }
+            // if the selected item matches the update item
             if (SelResType == ResType && SelResNum == ResNum) {
                 //if updating properties OR updating tree AND tree is visible
                 if (((UpDateMode & UpdateModeType.umProperty) == UpdateModeType.umProperty || (UpDateMode & UpdateModeType.umResList) == UpdateModeType.umProperty) && Settings.ResListType != 0) {
@@ -11810,12 +11810,7 @@ namespace WinAGI.Editor {
                 tmpNode = HdrNode[0].Nodes.Insert(lngPos, "l" + NewLogicNumber, ResourceName(EditGame.Logics[NewLogicNumber], true));
                 tmpNode.Tag = NewLogicNumber;
                 //load source to set compiled status
-                if (EditGame.Logics[NewLogicNumber].Compiled) {
-                    tmpNode.ForeColor = Color.Black;
-                }
-                else {
-                    tmpNode.ForeColor = Color.Red;
-                }
+                tmpNode.ForeColor = EditGame.Logics[NewLogicNumber].Compiled ? Color.Black : Color.Red;
                 break;
             case 2:
                 //only update if logics are being listed
@@ -11830,14 +11825,8 @@ namespace WinAGI.Editor {
                     //i is index position we are looking for
                     tmpListItem = MDIMain.lstResources.Items.Insert(lngPos, "l" + NewLogicNumber, ResourceName(EditGame.Logics[NewLogicNumber], true), 0);
                     tmpListItem.Tag = NewLogicNumber.ToString();
-                    if (!EditGame.Logics[NewLogicNumber].Compiled) {
-                        tmpListItem.ForeColor = Color.Red;
-                    }
+                    tmpListItem.ForeColor = EditGame.Logics[NewLogicNumber].Compiled ? Color.Black : Color.Red;
                 }
-                // //expand column width if necessary
-                //if (1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text) > MDIMain.lstResources.ColumnHeaders(1).Width) {
-                //   MDIMain.lstResources.ColumnHeaders(1).Width = 1.2 * MDIMain.picResources.TextWidth(tmpListItem.Text)
-                // }
                 break;
             }
             //update the logic tooltip lookup table
@@ -13856,10 +13845,21 @@ namespace WinAGI.Editor {
             // draw the bitmap, at correct resolution
             g.DrawImage(agiBMP, tgtX, tgtY, tgtW, tgtH);
         }
+        /// <summary>
+        /// Draws the agi bitmap in target picture box, using scale factor provided
+        /// </summary>
+        /// <param name="pic"></param>
+        /// <param name="agiBMP"></param>
+        /// <param name="scale"></param>
+        /// <param name="mode"></param>
         public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1, InterpolationMode mode = InterpolationMode.NearestNeighbor) {
-            // draws the agi bitmap in target picture box, using scale factor provided
-
+            if (agiBMP is null) {
+                // clear the pic
+                pic.CreateGraphics().Clear(pic.BackColor);
+                return;
+            }
             int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
+            // pictures and views with errors will pass null value
             // first, create new image in the picture box that is desired size
             pic.Image = new Bitmap(bWidth, bHeight);
             //intialize a graphics object for the image just created
@@ -13872,6 +13872,7 @@ namespace WinAGI.Editor {
             g.PixelOffsetMode = PixelOffsetMode.Half;
             g.DrawImage(agiBMP, 0, 0, bWidth, bHeight);
         }
+
         public static string LoadResString(int index) {
             // this function is just a handy way to get resource strings by number
             // instead of by stringkey

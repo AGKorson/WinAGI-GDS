@@ -44,7 +44,7 @@ resource base errors:
 626: no resfile (outgame only)
 
 606: resfile (volfile for ingame) missing
-    Data["ID"] = mResID
+    Data["missingfile"] = string filename
 
 502: file access error
     Data["exception"] = exception

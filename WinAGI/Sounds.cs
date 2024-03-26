@@ -163,11 +163,12 @@ namespace WinAGI.Engine {
             //reset compiler list of ids
             Compiler.blnSetIDs = false;
         }
-        internal void LoadSound(byte bytResNum, sbyte bytVol, int lngLoc) {
-            //called by the resource loading method for the initial loading of
-            //resources into logics collection
 
-            //create new sound object
+        internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
+            // called by the resource loading method for the initial loading of
+            // resources into logics collection
+
+            // create new sound object
             Sound newResource = new(parent, bytResNum, bytVol, lngLoc);
             // try to load it
             try {
@@ -178,10 +179,13 @@ namespace WinAGI.Engine {
                 throw;
             }
             finally {
-                //add it
+                // add it
                 Col.Add(bytResNum, newResource);
+                // unload it
+                newResource.Unload();
             }
         }
+
         SoundEnum GetEnumerator() {
             return new SoundEnum(Col);
         }

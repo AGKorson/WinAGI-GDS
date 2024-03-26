@@ -170,7 +170,8 @@ namespace WinAGI.Engine {
             //reset compiler list of ids
             Compiler.blnSetIDs = false;
         }
-        internal void LoadView(byte bytResNum, sbyte bytVol, int lngLoc) {
+
+        internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
             //called by the resource loading method for the initial loading of
             //resources into logics collection
 
@@ -184,11 +185,14 @@ namespace WinAGI.Engine {
                 // throw it
                 throw;
             }
-            Col.Add(bytResNum, newResource);
-            // update VOL and LOC
-            newResource.Volume = bytVol;
-            newResource.Loc = lngLoc;
+            finally {
+                // add it
+                Col.Add(bytResNum, newResource);
+                // unload it
+                newResource.Unload();
+            }
         }
+
         ViewEnum GetEnumerator() {
             return new ViewEnum(Col);
         }

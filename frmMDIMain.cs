@@ -499,17 +499,12 @@ namespace WinAGI.Editor
                 selRes = rtGame;
                 break;
             case 1:
-                //logics
+                // logics
                 foreach (Logic tmpRes in EditGame.Logics) {
                     tmpItem = lstResources.Items.Add("l" + tmpRes.Number, ResourceName(tmpRes, true), 0);
                     tmpItem.Tag = tmpRes;
                     //set color based on compiled status;
-                    if (tmpRes.Compiled) {
-                        tmpItem.ForeColor = Color.Black;
-                    }
-                    else {
-                        tmpItem.ForeColor = Color.Red;
-                    }
+                    tmpItem.ForeColor = tmpRes.Compiled ? Color.Black : Color.Red;
                 }
                 selRes = rtLogic;
                 break;
@@ -665,8 +660,8 @@ namespace WinAGI.Editor
             // then edit it
         }
         public void SelectResource(AGIResType NewResType, int NewResNum, bool UpdatePreview = true) {
-            //selects a resource for previewing
-            //(always synched with the resource list)
+            // selects a resource for previewing
+            // (always synched with the resource list)
 
             // always unload the current resource, if it's logic/pic/sound/view
             if (SelResNum != -1) {
@@ -685,34 +680,39 @@ namespace WinAGI.Editor
                     break;
                 }
             }
-            //reset selprop
+            // reset selprop
             SelectedProp = 0;
             propertyGrid1.SelectedObject = null;
-            //get number of rows to display based on new selection
+            // get number of rows to display based on new selection
             switch (NewResType) {
             case rtNone:
-                //nothing to show
+                // nothing to show
                 PropRows = 0;
                 return;
             case rtGame:
-                //show gameid, gameauthor, description,etc
+                // show gameid, gameauthor, description,etc
                 PropRows = 10;
                 GameProperties pGame = new(EditGame);
                 propertyGrid1.SelectedObject = pGame;
                 break;
             case rtLogic:
                 if (NewResNum == -1) {
-                    //logic header
+                    // logic header
                     PropRows = 3;
                     LogicHdrProperties pLgcHdr = new(EditGame.Logics.Count, Compiler.UseReservedNames);
                     propertyGrid1.SelectedObject = pLgcHdr;
                 }
                 else {
                     // always load before selecting
-                    EditGame.Logics[NewResNum].Load();
-                    //show logic properties
+                    try {
+                        EditGame.Logics[NewResNum].Load();
+                    }
+                    catch {
+                        // ignore error here; the source code is still usable
+                    }
+                    // show logic properties
                     PropRows = 8;
-                    //if compiled state doesn't match correct tree color, fix it now
+                    // if compiled state doesn't match correct tree color, fix it now
                     LogicProperties pLog = new(EditGame.Logics[NewResNum]);
                     propertyGrid1.SelectedObject = pLog;
                 }
@@ -726,7 +726,12 @@ namespace WinAGI.Editor
                 }
                 else {
                     // always load before selecting
-                    EditGame.Pictures[NewResNum].Load();
+                    try {
+                        EditGame.Pictures[NewResNum].Load();
+                    }
+                    catch {
+                        // ignore error here
+                    }
                     //show picture properties
                     PropRows = 6;
                     PictureProperties pPicture = new(EditGame.Pictures[NewResNum]);
@@ -780,8 +785,6 @@ namespace WinAGI.Editor
                 propertyGrid1.SelectedObject = pWordList;
                 break;
             }
-
-            //if previewing
             if (Settings.ShowPreview) {
                 //if update is requested
                 if (Settings.ShowPreview && UpdatePreview) {

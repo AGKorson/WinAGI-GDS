@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Commands;
@@ -31,16 +30,14 @@ namespace WinAGI.Engine {
         Bitmap bmpPri;
 
         private void InitPicture(Picture NewPicture = null) {
-            //attach events
+            // attach events
             base.PropertyChanged += ResPropChange;
             if (NewPicture is null) {
-                //create default picture with no commands
-                //mRData = new RData(1);
-                //mRData[0] = 0xff;
+                // create default picture with no commands
                 base.WriteByte(0xff);
-                //default to entire image
+                // default to entire image
                 mDrawPos = -1;
-                //default pribase is 48
+                // default pribase is 48
                 mPriBase = 48;
             }
             else {
@@ -240,9 +237,8 @@ namespace WinAGI.Engine {
             }
             set {
                 //if not loaded,
-                if (!Loaded) {
+                if (!mLoaded) {
                     //raise error
-
                     WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
@@ -258,6 +254,7 @@ namespace WinAGI.Engine {
                 WritePropState = true;
             }
         }
+
         public byte[] VisData {
             get {
                 //if not loaded
@@ -276,6 +273,7 @@ namespace WinAGI.Engine {
                 return mVisData;
             }
         }
+
         public byte[] PriData {
             get {
                 //if not loaded
@@ -295,6 +293,7 @@ namespace WinAGI.Engine {
                 return mPriData;
             }
         }
+
         public PenStatus CurrentToolStatus {
             get {
                 //if not loaded
@@ -485,7 +484,6 @@ namespace WinAGI.Engine {
             //if not loaded,
             if (!Loaded) {
                 //raise error
-
                 WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
@@ -587,6 +585,7 @@ namespace WinAGI.Engine {
             //load pictures
             BuildPictures();
         }
+
         public override void Load() {
             // if not ingame, the resource is already loaded
             if (!mInGame) {
@@ -618,8 +617,10 @@ namespace WinAGI.Engine {
             mIsDirty = false;
         }
 
-        // ResetBMP used to force reset when palette changes
-        // (or any other reason that needs the cel to be refreshed)
+        /// <summary>
+        /// Forces bitmap to reload. Use when palette changes
+        /// (or any other reason that needs the cel to be refreshed)
+        /// </summary>
         public void ResetBMP() {
             mPicBMPSet = false;
         }
@@ -628,7 +629,8 @@ namespace WinAGI.Engine {
             get {
                 //returns a device context to the bitmap image of the visual screenoutput
                 //if not loaded,
-                if (!Loaded) {
+                if (!mLoaded) {
+                    return null;
                     //raise error
                     WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
@@ -647,7 +649,8 @@ namespace WinAGI.Engine {
         public Bitmap PriorityBMP {
             get {
                 //if not loaded,
-                if (!Loaded) {
+                if (!mLoaded) {
+                    return null;
                     //raise error
                     WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
@@ -664,7 +667,12 @@ namespace WinAGI.Engine {
         }
 
         public new void Save() {
-            //if properties need to be written
+            if (!mLoaded) {
+                // do nothing? error?
+                return;
+            }
+
+            // if properties need to be written
             if (WritePropState && mInGame) {
                 //saves the picture resource
                 //save ID and description to ID file
@@ -696,16 +704,10 @@ namespace WinAGI.Engine {
                 }
                 WritePropState = false;
             }
-            //if not loaded
-            if (!mLoaded) {
-                //nothing to do
-                return;
-            }
-            //if dirty
             if (mIsDirty) {
-                //(no picture-specific action needed, since changes in picture are
-                //made directly to resource data)
-                //use the base save method
+                // (no picture-specific action needed, since changes in picture are
+                // made directly to resource data)
+                // use the base save method
                 // any bmp errors will remain until they are fixed by the
                 // user, so don't reset error flag
                 try {
@@ -715,23 +717,32 @@ namespace WinAGI.Engine {
                     // pass along any errors
                     throw;
                 }
-                //check for errors
+                // check for errors
+
+                // reset flag
+                mIsDirty = false;
             }
-            //reset flag
-            mIsDirty = false;
         }
+        
         public void SetPictureData(byte[] PicData) {
-            //sets the picture resource data to PicData()
+            // sets the picture resource data to PicData()
             //
-            //if the data are invalid, the resource will
-            //be identified as corrupted
-            //(clear the picture, replace it with valid data
-            //or unload it without saving to recover from
-            //invalid input data)
-            //copy the picture data
+            // if the data are invalid, the resource will
+            // be identified as corrupted
+            // (clear the picture, replace it with valid data
+            // or unload it without saving to recover from
+            // invalid input data)
+            // copy the picture data
+            if (!mLoaded) {
+                //raise error
+                WinAGIException wex = new(LoadResString(563)) {
+                    HResult = WINAGI_ERR + 563
+                };
+                throw wex;
+            }
             try {
                 mRData.AllData = PicData;
-                if (Loaded) {
+                if (mLoaded) {
                     //rebuild pictures
                     BuildPictures();
                 }
@@ -784,8 +795,9 @@ namespace WinAGI.Engine {
 
         public bool StepDraw {
             get {
-                //if not loaded,
-                if (!Loaded) {
+                if (!mLoaded) {
+                    // TODO: return false? or exception?
+
                     //raise error
                     WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
