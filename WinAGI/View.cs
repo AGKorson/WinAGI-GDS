@@ -229,9 +229,10 @@ namespace WinAGI.Engine {
             //set viewloaded flag
             mViewSet = true;
         }
-        void ExpandCelData(int StartPos, Cel TempCel) {  //this function will expand the RLE data beginning at
-                                                         //position StartPos
-                                                         //it then passes the expanded data to the cel
+        void ExpandCelData(int StartPos, Cel TempCel) {
+            // this function will expand the RLE data beginning at
+            // position StartPos
+            // it then passes the expanded data to the cel
             byte bytWidth, bytHeight, bytTransColor;
             byte bytCelX, bytCelY = 0;
             byte bytIn;
@@ -240,40 +241,39 @@ namespace WinAGI.Engine {
             bytWidth = TempCel.Width;
             bytHeight = TempCel.Height;
             bytTransColor = (byte)TempCel.TransColor;
-            //reset size of data array
+            // reset size of data array
             tmpCelData = new byte[bytWidth, bytHeight];
-            //set resource to starting position
+            // set resource to starting position
             Pos = StartPos;
             // extract pixel data
             do {
                 bytCelX = 0;
                 do {
-                    //read each byte, where lower four bits are number of pixels,
-                    //and upper four bits are color for these pixels
+                    // read each byte, where lower four bits are number of pixels,
+                    // and upper four bits are color for these pixels
                     bytIn = ReadByte();
-                    //skip zero values
+                    // skip zero values
                     if (bytIn > 0) {
-                        //extract color
+                        // extract color
                         bytChunkColor = (byte)(bytIn / 0x10);
                         bytChunkCount = (byte)(bytIn % 0x10);
-                        //add data to bitmap data array
-                        //now store this color for correct number of pixels
+                        // add data to bitmap data array
+                        // now store this color for correct number of pixels
                         for (int i = 0; i < bytChunkCount; i++) {
                             tmpCelData[bytCelX, bytCelY] = bytChunkColor;
                             bytCelX++;
                         }
                     }
-                } while (bytIn != 0); //Loop Until bytIn = 0
-                                      //fill in rest of this line with transparent color, if necessary
-                while (bytCelX < bytWidth) { // Until bytCelX >= bytWidth
+                } while (bytIn != 0);
+                // fill in rest of this line with transparent color, if necessary
+                while (bytCelX < bytWidth) {
                     tmpCelData[bytCelX, bytCelY] = bytTransColor;
                     bytCelX++;
                 }
                 bytCelY++;
 
-            } while (bytCelY < bytHeight); // Until bytCelY >= bytHeight
-
-            //pass cel data to the cel
+            } while (bytCelY < bytHeight);
+            // pass cel data to the cel
             TempCel.AllCelData = tmpCelData;
         }
 
@@ -320,22 +320,25 @@ namespace WinAGI.Engine {
             byte bytTransCol;
             int result = 0; // assume OK
 
-            //clear out loop collection by assigning a new one
+            // clear out loop collection by assigning a new one
             mLoopCol = new Loops(this);
 
-            //get number of loops and strDescription location
+            // get number of loops and strDescription location
             bytNumLoops = ReadByte(2);
-            //get offset to description
+            // get offset to description
             lngDescLoc = ReadWord();
-            //if no loops
+            // if no loops
             if (bytNumLoops == 0) {
-                //error - invalid data
-
-                WinAGIException wex = new(LoadResString(595)) {
-                    HResult = WINAGI_ERR + 595
-                };
-                wex.Data["ID"] = mResID;
-                throw wex;
+                // error - invalid data
+                ErrData[0] = mResID;
+                mViewSet = true;
+                mIsDirty = false;
+                return -14;
+                //WinAGIException wex = new(LoadResString(595)) {
+                //    HResult = WINAGI_ERR + 595
+                //};
+                //wex.Data["ID"] = mResID;
+                //throw wex;
             }
             //get loop offset data for each loop
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
@@ -343,20 +346,24 @@ namespace WinAGI.Engine {
                 lngLoopStart[bytLoop] = ReadWord();
                 //if loop data is past end of resource
                 if ((lngLoopStart[bytLoop] > mSize)) {
-                    Unload();
-
-                    WinAGIException wex = new(LoadResString(548)) {
-                        HResult = WINAGI_ERR + 548
-                    };
-                    wex.Data["ID"] = mResID;
-                    wex.Data["loop"] = bytLoop;
-                    throw wex;
+                    // invalid loop; let any that are alreay loaded stay loaded
+                    ErrData[0] = mResID;
+                    ErrData[1] = bytLoop.ToString();
+                    mViewSet = true;
+                    mIsDirty = false;
+                    return -15;
+                    //WinAGIException wex = new(LoadResString(548)) {
+                    //    HResult = WINAGI_ERR + 548
+                    //};
+                    //wex.Data["ID"] = mResID;
+                    //wex.Data["loop"] = bytLoop;
+                    //throw wex;
                 }
             }
-            //step through all loops
+            // step through all loops
             // TODO: max number of loops? should there be an error check here?
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
-                //add the loop
+                // add the loop
                 mLoopCol.Add(bytLoop);
                 //loop zero is NEVER mirrored
                 if (bytLoop > 0) {
@@ -370,41 +377,65 @@ namespace WinAGI.Engine {
                                 SetMirror(bytLoop, tmpLoopNo);
                             }
                             catch (Exception e) {
-                                //if error is because source is already mirrored
-                                //continue without setting mirror; data will be
-                                //treated as a completely separate loop; otherwise
+                                // if error is because source is already mirrored
+                                // continue without setting mirror; data will be
+                                // treated as a completely separate loop; otherwise
                                 // error is unrecoverable
+                                switch (e.HResult) {
+                                case WINAGI_ERR + 563:
+                                case WINAGI_ERR + 551:
+                                    // ignore these two
+                                    break;
+                                case WINAGI_ERR + 539:
+                                    break;
+                                case WINAGI_ERR + 550:
+                                    break;
+                                }
                                 if (e.HResult != WINAGI_ERR + 551) {
-                                    //pass along the error
-                                    Unload();
-                                    //error
-                                    throw;
+                                    // keep loops loaded up to this point
+                                    ErrData[0] = mResID;
+                                    ErrData[1] = e.Message;
+                                    ErrData[2] = bytLoop.ToString();
+                                    ErrData[3] = tmpLoopNo.ToString();
+                                    mViewSet = true;
+                                    mIsDirty = false;
+                                    return -16;
+                                    //Unload();
+                                    ////error
+                                    //throw;
                                 }
                             }
                             break;
                         }
                     }
                 }
-                //if loop not mirrored,
+                // if loop not mirrored,
                 if (mLoopCol[bytLoop].Mirrored == 0) {
-                    //point to start of this loop
+                    // point to start of this loop
                     Pos = lngLoopStart[bytLoop];
-                    //read number of cels
+                    // read number of cels
                     bytNumCels = ReadByte();
-                    //step through all cels in this loop
+                    // step through all cels in this loop
                     for (bytCel = 0; bytCel < bytNumCels; bytCel++) {
-                        //read starting position
+                        // read starting position
                         lngCelStart = (ushort)(ReadWord(lngLoopStart[bytLoop] + 2 * bytCel + 1) + lngLoopStart[bytLoop]);
                         if ((lngCelStart > mSize)) {
-                            Unload();
+                            // keep view data already loaded
+                            ErrData[0] = mResID;
+                            ErrData[1] = bytLoop.ToString();
+                            ErrData[2] = bytCel.ToString();
+                            mViewSet = true;
+                            mIsDirty = false;
+                            return -17;
+                            //Unload();
 
-                            WinAGIException wex = new(LoadResString(553)) {
-                                HResult = WINAGI_ERR + 553
-                            };
-                            wex.Data["ID"] = mResID;
-                            wex.Data["loop"] = bytLoop;
-                            wex.Data["cel"] = bytCel;
-                            throw wex;
+                            //WinAGIException wex = new(LoadResString(553)) {
+                            //    HResult = WINAGI_ERR + 553
+                            //};
+                            //wex.Data["ID"] = mResID;
+                            //wex.Data["loop"] = bytLoop;
+                            //wex.Data["cel"] = bytCel;
+                            //throw wex;
                         }
                         //get height/width
                         bytWidth = ReadByte(lngCelStart);
@@ -440,15 +471,17 @@ namespace WinAGI.Engine {
                     while (!EORes && bytInput[0] != 0 && mViewDesc.Length < 255);
                 }
                 else {
-                    // pointer is not valid; fix it (reset to zero)
-                    WriteWord(0, 3);
+                    // pointer is not valid
+                    //// fix it (reset to zero)
+                    //WriteWord(0, 3);
                     // return error level
+                    ErrData[0] = mResID;
                     result = 1;
                 }
             }
-            //set flag indicating view matches resource data
+            // set flag indicating view matches resource data
             mViewSet = true;
-            //MUST be clean, since loaded from resource data
+            // MUST be clean, since loaded from resource data
             mIsDirty = false;
             return result;
         }

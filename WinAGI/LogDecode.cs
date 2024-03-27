@@ -309,7 +309,7 @@ namespace WinAGI.Engine {
                             bytCurData = bytData[lngPos];
                             lngPos++;
                             strArg = ArgValue(bytCurData, ActionCommands[bytCmd].ArgType[intArg]);
-                            //if showing reserved names && using reserved defines
+                            // if showing reserved names && using reserved defines
                             if (ReservedAsText && UseReservedNames) {
                                 //some commands use resources as arguments; substitute as appropriate
                                 switch (bytCmd) {
@@ -443,7 +443,6 @@ namespace WinAGI.Engine {
                                     break;
                                 }
                             }
-
                             // if message error (no string returned)
                             if (strArg.Length == 0) {
                                 // error string set by ArgValue function
@@ -456,7 +455,7 @@ namespace WinAGI.Engine {
                                 //wex.Data["error"] = strError;
                                 //throw wex;
                             }
-                            //check for commands that use colors here
+                            // check for commands that use colors here
                             switch (bytCmd) {
                             case 105:
                                 // clear.lines, 3rd arg

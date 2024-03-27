@@ -26,33 +26,28 @@ namespace WinAGI.Engine {
             //otherwise, the results are meaningless
             return SavePen;
         }
+
         internal static int BuildBMPs(ref byte[] VisData, ref byte[] PriData, byte[] bytPicData, int EndPos, int StatusPos) {
             // converts the data extracted from the picture resource into a 256 bit color DIBitmap
 
             // return 0 if successful, no errors/warnings
             // non-zero for error/warning:
-            // -1 = error- can't build the bitmap
             //  1 = no EOP marker
             //  2 = bad vis color data
             //  4 = invalid command byte
             //  8 = other error
 
-            //assume ok
+            // assume ok
             int retval = 0;
-            //if plot data not set yet
             if (!InitPlotData) {
-                //initialize them
                 InitializePlotData();
             }
-            //if no end passed,
             if (EndPos == -1) {
-                //get size of data
+                //use all data
                 EndPos = bytPicData.Length - 1;
             }
-
-            //if no status pos passed
             if (StatusPos == -1) {
-                //status pos is end pos
+                // status pos is end pos
                 StatusPos = EndPos;
             }
 
@@ -216,6 +211,7 @@ namespace WinAGI.Engine {
             PriData = PriBuildData;
             return retval;
         }
+
         private static void InitializePlotData() {
             //circle data used by the
             //brush drawing functions to paint

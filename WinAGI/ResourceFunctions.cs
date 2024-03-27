@@ -251,103 +251,53 @@ namespace WinAGI.Engine {
                             switch (bytResType) {
                             case AGIResType.rtLogic:
                                 game.agLogs.InitLoad(bytResNum, bytVol, lngLoc);
-                                if (game.agLogs[bytResNum].ErrLevel < 0) {
+                                if (game.agLogs[bytResNum].ErrLevel != 0) {
                                     AddLoadWarning(AGIResType.rtLogic, bytResNum, game.agLogs[bytResNum].ErrLevel, game.agLogs[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
-                                //make sure it was added before doing follow-on checks
+                                // make sure it was added before finishing
                                 if (game.agLogs.Exists(bytResNum)) {
+                                    game.agViews[bytResNum].WritePropState = false;
                                     game.agLogs[bytResNum].IsDirty = false;
-                                    // logic source checks come after all resources loaded
+                                    // logic source checks come after all resources loaded so leave it loaded
                                 }
                                 break;
                             case AGIResType.rtPicture:
-                                try {
-                                    game.agPics.InitLoad(bytResNum, bytVol, lngLoc);
-                                }
-                                catch (WinAGIException e) {
-                                    AddLoadWarning(AGIResType.rtPicture, bytResNum, e);
+                                game.agPics.InitLoad(bytResNum, bytVol, lngLoc);
+                                if (game.agPics[bytResNum].ErrLevel != 0) {
+                                    AddLoadWarning(AGIResType.rtPicture, bytResNum, game.agPics[bytResNum].ErrLevel, game.agPics[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
-                                catch (Exception) {
-                                    // deal with other load errors
-                                    throw;
-                                }
-                                //make sure it was added before doing follow-on checks
+                                // make sure it was added before finishing
                                 if (game.agPics.Exists(bytResNum)) {
+                                    game.agViews[bytResNum].WritePropState = false;
                                     game.agPics[bytResNum].IsDirty = false;
-                                    // check for picture errors
-                                    switch (game.agPics[bytResNum].ErrLevel) {
-                                    case 0:
-                                        // ok
-                                        break;
-                                    case -1:
-                                    case >= 8:
-                                        // unhandled error
-                                        warnInfo.ID = "RW05";
-                                        warnInfo.Text = $"Unhandled error in Picture {bytResNum} data- picture may not display correctly ({game.agPics[bytResNum].ErrLevel})";
-                                        warnInfo.Module = game.agPics[bytResNum].ID;
-                                        Raise_LoadGameEvent(warnInfo);
-                                        break;
-                                    default:
-                                        //missing EOP marker, bad color or bad cmd
-                                        warnInfo.ID = "RW06";
-                                        warnInfo.Text = $"Data anomalies in Picture {bytResNum} cannot be decompiled ({game.agPics[bytResNum].ErrLevel})";
-                                        warnInfo.Module = game.agPics[bytResNum].ID;
-                                        Raise_LoadGameEvent(warnInfo);
-                                        break;
-                                    }
                                     game.agPics[bytResNum].Unload();
                                 }
                                 break;
                             case AGIResType.rtSound:
-                                try {
-                                    game.agSnds.InitLoad(bytResNum, bytVol, lngLoc);
-                                }
-                                catch (WinAGIException e) {
-                                    AddLoadWarning(AGIResType.rtSound, bytResNum, e);
+                                game.agSnds.InitLoad(bytResNum, bytVol, lngLoc);
+                                if (game.agSnds[bytResNum].ErrLevel != 0) {
+                                    AddLoadWarning(AGIResType.rtSound, bytResNum, game.agSnds[bytResNum].ErrLevel, game.agSnds[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
-                                catch (Exception) {
-                                    // deal with other load errors
-                                    throw;
-                                }
-                                //make sure it was added before doing follow-on checks
+                                // make sure it was added before finishing
                                 if (game.agSnds.Exists(bytResNum)) {
+                                    game.agViews[bytResNum].WritePropState = false;
                                     game.agSnds[bytResNum].IsDirty = false;
-                                    // check for sound errors
-                                    if (game.agSnds[bytResNum].ErrLevel != 0) {
-                                        warnInfo.ID = "RW07";
-                                        warnInfo.Text = $"Sound {bytResNum} invalid track pointer ({game.agSnds[bytResNum].ErrLevel})";
-                                        warnInfo.Module = game.agSnds[bytResNum].ID;
-                                        Raise_LoadGameEvent(warnInfo);
-                                    }
                                     game.agSnds[bytResNum].Unload();
                                 }
                                 break;
                             case AGIResType.rtView:
-                                try {
-                                    game.agViews.InitLoad(bytResNum, bytVol, lngLoc);
-                                }
-                                catch (WinAGIException e) {
-                                    AddLoadWarning(AGIResType.rtView, bytResNum, e);
+                                game.agViews.InitLoad(bytResNum, bytVol, lngLoc);
+                                if (game.agViews[bytResNum].ErrLevel != 0) {
+                                    AddLoadWarning(AGIResType.rtView, bytResNum, game.agViews[bytResNum].ErrLevel, game.agViews[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
-                                catch (Exception) {
-                                    //deal with load errors
-                                    throw;
-                                }
-                                //make sure it was added before doing follow-on checks
+                                //make sure it was added before finishing
                                 if (game.agViews.Exists(bytResNum)) {
                                     game.agViews[bytResNum].WritePropState = false;
                                     game.agViews[bytResNum].IsDirty = false;
-                                    // check for view errors
-                                    if (game.agViews[bytResNum].ErrLevel == 1) {
-                                        warnInfo.ID = "RW08";
-                                        warnInfo.Text = $"View {bytResNum} has an invalid view description pointer";
-                                        warnInfo.Module = game.agViews[bytResNum].ID;
-                                        Raise_LoadGameEvent(warnInfo);
-                                    }
                                     game.agViews[bytResNum].Unload();
                                 }
                                 break;
@@ -421,6 +371,54 @@ namespace WinAGI.Engine {
                 Line = "--"
             };
 
+            // include check for positive warning values
+            // check for picture errors
+            switch (game.agPics[bytResNum].ErrLevel) {
+            case 0:
+                // ok
+                break;
+            case -1:
+            case >= 8:
+                // unhandled error
+                warnInfo.ID = "RW05";
+                warnInfo.Text = $"Unhandled error in Picture {bytResNum} data- picture may not display correctly ({game.agPics[bytResNum].ErrLevel})";
+                warnInfo.Module = game.agPics[bytResNum].ID;
+                Raise_LoadGameEvent(warnInfo);
+                break;
+            default:
+                //missing EOP marker, bad color or bad cmd
+                warnInfo.ID = "RW06";
+                warnInfo.Text = $"Data anomalies in Picture {bytResNum} cannot be decompiled ({game.agPics[bytResNum].ErrLevel})";
+                warnInfo.Module = game.agPics[bytResNum].ID;
+                Raise_LoadGameEvent(warnInfo);
+                break;
+            }
+            // check for sound errors
+            if (game.agSnds[bytResNum].ErrLevel > 0) {
+                warnInfo.ID = "RW07";
+                warnInfo.Text = $"Sound {bytResNum} invalid track pointer ({game.agSnds[bytResNum].ErrLevel})";
+                warnInfo.Module = game.agSnds[bytResNum].ID;
+                Raise_LoadGameEvent(warnInfo);
+            }
+            // check for view errors
+            if (game.agViews[bytResNum].ErrLevel == 1) {
+                warnInfo.ID = "RW08";
+                warnInfo.Text = $"View {bytResNum} has an invalid view description pointer";
+                warnInfo.Module = game.agViews[bytResNum].ID;
+                Raise_LoadGameEvent(warnInfo);
+            }
+
+
+
+
+
+
+
+
+
+
+
+
             // warning info depends on error
             switch (errlevel) {
             case -1: // 606:
@@ -445,18 +443,18 @@ namespace WinAGI.Engine {
                 warnInfo.Module = errdata[1];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            case 505:
+            case -4: // 505:
                 //Invalid resource location (%1) in %2.
                 warnInfo.ID = "VW02";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid location ({eRes.Data["loc"]}) in volume file {eRes.Data["volname"]}";
-                warnInfo.Module = (string)eRes.Data["ID"];
+                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid location ({errdata[0]}) in volume file {errdata[2]}";
+                warnInfo.Module = errdata[3];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            case 506:
-                //invalid header
+            case 5: // 506:
+                // invalid header
                 warnInfo.ID = "RW09";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid resource header";
-                warnInfo.Module = (string)eRes.Data["ID"];
+                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid resource header at location {errdata[0]} in {errdata[2]}";
+                warnInfo.Module = errdata[3];
                 Raise_LoadGameEvent(warnInfo);
                 break;
             case 539:

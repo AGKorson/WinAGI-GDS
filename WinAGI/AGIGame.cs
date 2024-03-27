@@ -1124,8 +1124,8 @@ namespace WinAGI.Engine {
             // if a template directory is passed,
             // use the resources from that template directory
 
-            string strGameWAG, strTmplResDir, strTempDir, oldExt;
-            int i, lngDirCount;
+            string strGameWAG, strTmplResDir, oldExt;
+            int i;
             bool blnWarnings = false;
             SettingsList stlGlobals;
             // assume OK result
@@ -1135,7 +1135,6 @@ namespace WinAGI.Engine {
                 Module = "",
                 Text = ""
             };
-            // TODO: convert error handler to function return value
 
             // if not a valid directory
             if (!Directory.Exists(NewGameDir)) {

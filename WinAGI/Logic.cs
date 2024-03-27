@@ -454,6 +454,7 @@ namespace WinAGI.Engine {
                 // verify file exists
                 if (!File.Exists(LoadFile)) {
                     mErrLevel = -6;
+                    ErrData[0] = LoadFile;
                     mSourceText = "return();" + NEWLINE;
                     // force uncompile state
                     mCRC = 0;
@@ -468,6 +469,7 @@ namespace WinAGI.Engine {
                 // check for readonly
                 if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                     mErrLevel = -7;
+                    ErrData[0] = LoadFile;
                     mSourceText = "return();" + NEWLINE;
                     // force uncompile state
                     mCRC = 0;
@@ -485,6 +487,8 @@ namespace WinAGI.Engine {
                 }
                 catch (Exception e) {
                     mErrLevel = -8;
+                    ErrData[0] = e.Message;
+                    ErrData[1] = mResID;
                     mSourceText = "return();" + NEWLINE;
                     // force uncompile state
                     mCRC = 0;

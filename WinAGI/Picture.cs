@@ -728,11 +728,11 @@ namespace WinAGI.Engine {
         }
 
         internal void BuildPictures() {
-            //create new visual picture bitmap
+            // create new visual picture bitmap
             bmpVis = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
-            //create new priority picture bitmap
+            // create new priority picture bitmap
             bmpPri = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
-            //modify color palette to match current AGI palette
+            // modify color palette to match current AGI palette
             ColorPalette ncp = bmpVis.Palette;
             for (int i = 0; i < 16; i++) {
                 ncp.Entries[i] = Color.FromArgb(255,
@@ -756,7 +756,10 @@ namespace WinAGI.Engine {
             mPriData = new byte[26880];
             // build arrays of bitmap data
             // Build function returns an error level value
-            ErrLevel = BuildBMPs(ref mVisData, ref mPriData, mRData.AllData, mStepDraw ? mDrawPos : -1, mDrawPos);
+            mErrLevel = BuildBMPs(ref mVisData, ref mPriData, mRData.AllData, mStepDraw ? mDrawPos : -1, mDrawPos);
+            if (mErrLevel != 0) {
+                ErrData[0] = mResID;
+            }
             // copy the picture data to the bitmaps
             Marshal.Copy(mVisData, 0, ptrVis, 26880);
             bmpVis.UnlockBits(bmpVisData);

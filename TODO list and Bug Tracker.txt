@@ -38,22 +38,98 @@ use that strategy to replace the ExtChar custom functions I wrote! should be eas
 wrapper around that text - now I wonder if there's a similar conversion available in VB... the API functions
 (MultiByteToWideChar and WideCharToMultiByte) might work, but I haven't been able to figure them out yet
 
+LoadGame exception/error/warning strategy:
+Exceptions are thrown when the game can't be loaded; when that happens, the calling function must
+make sure the game object is nulled; the game object must have a valid game loaded to function correctly
 
-Resource Error Levels:
-0 = NO ERRORS or WARNINGS
--1 = (606) resource file missing (typically ingame, invalid VOL file given)
--2 = (700) resource file is readonly
--3 = (502) file access error
--4 = (505) invalid locator index
--5 = (506) invalid resource header
--6 = (704) logic sourcefile missing
--7 = (700) logic sourcefile is readonly
--8 = (502) logic sourcfile access error
--9 = (688) error in decompile: messages
--10 = (688) error in decompile: labels
--11 = (688) error in decompile: if-block
--12 = (688) error in decompile: invalid message value
--13 = (598) sound invalid data
+If the game can be loaded (has DIR/VOL files that have resources, not marked readonly, etc) then 
+no exceptions thrown; instead any issues with resources are passed back as error/warning markers that
+the calling function must handle; invalid entries in DIR files, invalid resource data; anomalies in data
+that affects resource extraction, etc.
+
+Warnings are similar to errors, but of lower significance; mostly decompiler warnings, but a few other
+resource related warnings.
+
+GAME EXCEPTIONS: 
+    Import:
+        501: game already loaded
+        541: Not a valid AGI directory
+            ["baddir"] = string gamedir
+        699: Unable to backup existing wag file
+            ["exception"] = Exception ex
+        543: invalid interpreter version
+         
+    Open:
+        501: game already loaded
+        655: missing WAG file
+            ["badwag"] = string wagfilename
+        541: Not a valid AGI directory
+            ["baddir"] = string gamedir
+        700: file (WAG) is readonly
+            ["badfile"] =string filename
+        701: file error accessing WAG
+            ["exception"] = Exception ex
+        665: unsupported WinAGI version
+            ["badversion"] = string version
+        691: invalid interpreter version
+            ["badversion"] = string version
+        690: missing GameID in WAG
+
+    FinishGameLoad:
+    none- passes exceptions from ExtractResources
+
+    ExtractResources:
+        524: missing v3 DIR file
+            ["missingfile"] = string dirfile
+        502: v3 DIR file access error
+            ["exception"] Exception = ex
+            ["badfile"] = string dirfile
+        542: invalid v3 DIR file
+            ["baddir"] = string gamedir
+        524: missing v2 DIR file
+            ["missingfile"] = string dirfile
+        502: v2 DIR file access error
+            ["exception"] Exception = ex
+            ["badfile"] = string dirfile
+        542: invalid v2 DIR file
+            ["baddir"] = string gamedir
+        542: invalid DIR file (v3 offset invalid)
+            ["baddir"] = string gamedir
+        703: file access error v2 DIR
+            ["exception"] Exception = ex
+            ["dirfile"] = string dirfile
+        703: file access error v3 DIR
+            ["exception"] Exception = ex
+            ["dirfile"] = string dirfile
+
+GAME ERRORS:
+
+RESOURCE ERRORS/WARNINGS:
+    errors indicated by negative ErrLevel value
+    warnings indicated by positive ErrLevel value
+    zero means no warnings or errors
+
+    NEGATIVE VALUES represent invalid resources
+    -1 = (606) resource file missing (typically ingame, invalid VOL file given) : 0 = file, 1 = resid
+    -2 = (700) resource file is readonly : 0 = file
+    -3 = (502) file access error : 0 = errmsg, 1 = resid
+    -4 = (505) invalid locator index : 0 = loc; 1 = vol; 2 = filename; 3 = resid
+    -5 = (506) invalid resource header : 0 = loc; 1 = vol; 2 = filename; 3 = resid
+    -6 = (704) logic sourcefile missing : 0 = file
+    -7 = (700) logic sourcefile is readonly : 0 = file
+    -8 = (502) logic sourcfile access error
+    -9 = (688) error in decompile messages : 0 = errmsg
+    -10 = (688) error in decompile labels : 0 = errmsg
+    -11 = (688) error in decompile if-block : 0 = errmsg
+    -12 = (688) error in decompile invalid message value : 0 = errmsg
+    -13 = (598) sound invalid data : 0 = resid
+    -14 = (595) view invalid - no loops : 0 = resid
+    -15 = (548) view invalid loop pointer : 0 = resid; 1 = loopnum
+    -16 = (!551) view set-mirror error : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
+    -17  = (553) view invalid cel data : 0 = resid; 1 = loop; 2 = cel
+    +1  = () view invalid description text : 0 = resid;
+    1/2/4/8 = corrupt data, picture still valid : 0 = mresid;
+    -18 = (703) DIR file access error : 
 
 ERROR HANDLER info:
 resource base errors:
@@ -181,53 +257,3 @@ Word.tok Compile:
 
 =========================================================================
 LoadGame Errors:
-    Import:
-        501: game already loaded
-        541: Not a valid AGI directory
-            ["baddir"] = string gamedir
-        699: Unable to backup existing wag file
-            ["exception"] = Exception ex
-        543: invalid interpreter version
-         
-    Open:
-        501: game already loaded
-        655: missing WAG file
-            ["badwag"] = string wagfilename
-        541: Not a valid AGI directory
-            ["baddir"] = string gamedir
-        700: file (WAG) is readonly
-            ["badfile"] =string filename
-        701: file error accessing WAG
-            ["exception"] = Exception ex
-        665: unsupported WinAGI version
-            ["badversion"] = string version
-        691: invalid interpreter version
-            ["badversion"] = string version
-        690: missing GameID in WAG
-
-    FinishGameLoad:
-    none- passes errors from ExtractResources
-
-    ExtractResources:
-        524: missing v3 DIR file
-            ["missingfile"] = string dirfile
-        502: v3 DIR file access error
-            ["exception"] Exception = ex
-            ["badfile"] = string dirfile
-        542: invalid v3 DIR file
-            ["baddir"] = string gamedir
-        524: missing v2 DIR file
-            ["missingfile"] = string dirfile
-        502: v2 DIR file access error
-            ["exception"] Exception = ex
-            ["badfile"] = string dirfile
-        542: invalid v2 DIR file
-            ["baddir"] = string gamedir
-        542: invalid DIR file (v3 offset invalid)
-            ["baddir"] = string gamedir
-        703: file access error v2 DIR
-            ["exception"] Exception = ex
-            ["dirfile"] = string dirfile
-        703: file access error v3 DIR
-            ["exception"] Exception = ex
-            ["dirfile"] = string dirfile
