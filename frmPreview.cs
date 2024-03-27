@@ -304,28 +304,12 @@ namespace WinAGI.Editor {
             GameSettings.WriteSetting(sPOSITION, "PreviewHeight", Height);
         }
         bool PreviewPic(byte PicNum) {
-            try {
-                //get new picture
-                agPic = EditGame.Pictures[PicNum];
-
-                if (!agPic.Loaded) {
-                    // load resource for this view
-                    try {
-                        agPic.Load();
-                    }
-                    catch {
-                        // ignore?
-                    }
-                }
-                //draw picture
-                DisplayPicture();
-                return true;
-            }
-            catch (Exception ex) {
-                //error occurred,
-                ErrMsgBox(ex, "Error while loading picture resource: ", "", "Preview Picture Error");
-                return false;
-            }
+            //get new picture
+            agPic = EditGame.Pictures[PicNum];
+            agPic.Load();
+            // ignore errors
+            DisplayPicture();
+            return true;
         }
         void DisplayPicture() {
             //resize picture Image holder
@@ -502,18 +486,13 @@ namespace WinAGI.Editor {
             int i;
 
             //get new sound
-            try {
-                agSound = EditGame.Sounds[SndNum];
-                if (!agSound.Loaded) {
-                    //load the resource
-                    agSound.Load();
-                }
-            }
-            catch (Exception) {
-                //ErrMsgBox "Error while loading sound resource", "", "Preview Sound Error"
+            agSound = EditGame.Sounds[SndNum];
+            // load the resource
+            agSound.Load();
+            if (agSound.ErrLevel < 0) {
+                ErrMsgBox(agSound.ErrLevel, "Error while loading sound resource", "", "Preview Sound Error");
                 return false;
             }
-
             switch (agSound.SndFormat) {
             case SoundFormat.sfAGI:
                 //set instrument values
@@ -763,15 +742,11 @@ namespace WinAGI.Editor {
         bool PreviewView(byte ViewNum) {
             //get the view
             agView = EditGame.Views[ViewNum];
-            try {
-                if (!agView.Loaded) {
                     //load resource for this view
                     agView.Load();
-                }
-            }
-            catch (Exception) {
-                ////error occurred,
-                //ErrMsgBox "Error while loading view resource", "", "Preview View Error"
+            if (agView.ErrLevel < 0) {
+                // error occurred,
+                ErrMsgBox(agView.ErrLevel, "Error while loading view resource", "", "Preview View Error");
                 return false;
             }
             //show correct toolbars for alignment

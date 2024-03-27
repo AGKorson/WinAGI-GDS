@@ -1299,13 +1299,15 @@ namespace WinAGI.Editor {
                 ProgressWin.lblProgress.Text = "Exporting " + ThisPic.ID + " Image...";
                 ProgressWin.pgbStatus.Value++;
                 ProgressWin.Refresh();
-
-                //load pic if necessary
+                // load pic if necessary
                 blnLoaded = ThisPic.Loaded;
                 if (!blnLoaded) {
                     ThisPic.Load();
                 }
-                ExportImg(ThisPic, EditGame.ResDir + ThisPic.ID + strExt, lngFormat, lngMode, lngZoom);
+                // skip if errors
+                if (ThisPic.ErrLevel >= 0) {
+                    ExportImg(ThisPic, EditGame.ResDir + ThisPic.ID + strExt, lngFormat, lngMode, lngZoom);
+                }
                 if (!blnLoaded) {
                     ThisPic.Unload();
                 }
@@ -11227,7 +11229,7 @@ namespace WinAGI.Editor {
                 }
 
                 if (rtn == DialogResult.Yes) {
-                    //keep old file with new name as new name; basically import it by reloading, if currently loaded
+                    // keep old file with updated new name; basically import it by reloading, if currently loaded
                     if (EditGame.Logics[ResNum].Loaded) {
                         EditGame.Logics[ResNum].Unload();
                         EditGame.Logics[ResNum].Load();
@@ -12184,12 +12186,10 @@ namespace WinAGI.Editor {
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
-                try {
-                    // now check to see if it's a valid picture resource (by trying to reload it)
-                    tmpPic.Load();
-                }
-                catch (Exception e) {
-                    ErrMsgBox(e, "Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource");
+                // now check to see if it's a valid picture resource (by trying to reload it)
+                tmpPic.Load();
+                if (tmpPic.ErrLevel < 0) {
+                    ErrMsgBox(tmpPic.ErrLevel, "Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource");
                     //restore main form mousepointer and exit
                     MDIMain.UseWaitCursor = false;
                     return;
@@ -12302,12 +12302,10 @@ namespace WinAGI.Editor {
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
-                try {
-                    // now check to see if it's a valid sound resource (by trying to reload it)
-                    tmpSound.Load();
-                }
-                catch (Exception e) {
-                    ErrMsgBox(e, "Error reading Sound data:", "This is not a valid sound resource.", "Invalid Sound Resource");
+                // now check to see if it's a valid sound resource (by trying to reload it)
+                tmpSound.Load();
+                if (tmpSound.ErrLevel < 0) {
+                    ErrMsgBox(tmpSound.ErrLevel, "Error reading Sound data:", "This is not a valid sound resource.", "Invalid Sound Resource");
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
@@ -12413,12 +12411,10 @@ namespace WinAGI.Editor {
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
-                try {
-                    //now check to see if it's a valid picture resource (by trying to reload it)
-                    tmpView.Load();
-                }
-                catch (Exception e) {
-                    ErrMsgBox(e, "Error reading View data:", "This is not a valid view resource.", "Invalid View Resource");
+                // now check to see if it's a valid picture resource (by trying to reload it)
+                tmpView.Load();
+                if (tmpView.ErrLevel < 0) {
+                    ErrMsgBox(tmpView.ErrLevel, "Error reading View data:", "This is not a valid view resource.", "Invalid View Resource");
                     // restore main form mousepointer and exit
                     MDIMain.UseWaitCursor = false;
                     return;
@@ -13756,6 +13752,19 @@ namespace WinAGI.Editor {
                 //ignore
             }
         }
+
+        public static void ErrMsgBox(int ErrNum, string ErrMsg1, string ErrMsg2, string ErrCaption) {
+            // show errmsg baed on agi resource error level
+            string strErrMsg;
+
+            // TODO: new string resources for load errors
+            strErrMsg = ErrMsg1 + Environment.NewLine + Environment.NewLine + ErrNum + ": " + LoadResString(ErrNum);
+            if (ErrMsg2.Length > 0) {
+                strErrMsg = strErrMsg + Environment.NewLine + Environment.NewLine + ErrMsg2;
+            }
+            MessageBox.Show(MDIMain, strErrMsg, ErrCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
         public static void ErrMsgBox(Exception e, string ErrMsg1, string ErrMsg2, string ErrCaption) {
             //displays a messagebox showing ErrMsg and includes error passed as AGIErrObj
             //Debug.Assert Err.Number != 0

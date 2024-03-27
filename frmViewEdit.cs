@@ -28,10 +28,8 @@ namespace WinAGI.Editor {
             thisView?.Unload();
 
             thisView = (Engine.View)cmbView.SelectedItem;
-            try {
-                thisView.Load();
-            }
-            catch (Exception) {
+            thisView.Load();
+            if (thisView.ErrLevel < 0) {
                 //ignore error
                 thisView.Unload();
                 thisView = null;

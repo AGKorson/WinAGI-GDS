@@ -705,7 +705,7 @@ namespace WinAGI.Editor
                 else {
                     // always load before selecting
                     EditGame.Logics[NewResNum].Load();
-                    // ignore error level
+                    // TODO: mark properties in red if error?
                     // show logic properties
                     PropRows = 8;
                     // if compiled state doesn't match correct tree color, fix it now
@@ -722,13 +722,9 @@ namespace WinAGI.Editor
                 }
                 else {
                     // always load before selecting
-                    try {
-                        EditGame.Pictures[NewResNum].Load();
-                    }
-                    catch {
-                        // ignore error here
-                    }
-                    //show picture properties
+                    EditGame.Pictures[NewResNum].Load();
+                    // ignore error here
+                    // show picture properties
                     PropRows = 6;
                     PictureProperties pPicture = new(EditGame.Pictures[NewResNum]);
                     propertyGrid1.SelectedObject = pPicture;
@@ -736,7 +732,7 @@ namespace WinAGI.Editor
                 break;
             case rtSound:
                 if (NewResNum == -1) {
-                    //sound header
+                    // sound header
                     PropRows = 1;
                     SoundHdrProperties pSndHdr = new(EditGame.Sounds.Count);
                     propertyGrid1.SelectedObject = pSndHdr;
@@ -760,7 +756,7 @@ namespace WinAGI.Editor
                 else {
                     // always load before selecting
                     EditGame.Views[NewResNum].Load();
-                    //show view properties
+                    // show view properties
                     PropRows = 7;
                     ViewProperties pView = new(EditGame.Views[NewResNum]);
                     propertyGrid1.SelectedObject = pView;

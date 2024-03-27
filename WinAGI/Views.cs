@@ -120,6 +120,7 @@ namespace WinAGI.Engine {
 
             //if not loaded,
             if (!tmpView.Loaded) {
+                // TODO: ignore errors when renumbering?
                 tmpView.Load();
                 blnUnload = true;
             }
@@ -177,20 +178,11 @@ namespace WinAGI.Engine {
 
             //create new logic object
             View newResource = new(parent, bytResNum, bytVol, lngLoc);
-            // try to load it
-            try {
-                newResource.Load();
-            }
-            catch (Exception) {
-                // throw it
-                throw;
-            }
-            finally {
-                // add it
-                Col.Add(bytResNum, newResource);
-                // unload it
-                newResource.Unload();
-            }
+            // load it
+            newResource.Load();
+            // add it
+            Col.Add(bytResNum, newResource);
+            // leave it loaded, so error level can be addressed by loader
         }
 
         ViewEnum GetEnumerator() {

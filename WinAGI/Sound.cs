@@ -1208,7 +1208,7 @@ namespace WinAGI.Engine {
                 default:
                     // bad sound
                     mErrLevel = -13;
-                    ErrData["ID"] = mResID;
+                    ErrData[0] = mResID;
                     // clear to set blank tracks
                     Clear();
                     //Unload();

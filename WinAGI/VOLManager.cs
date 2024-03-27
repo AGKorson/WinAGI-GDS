@@ -56,26 +56,24 @@ namespace WinAGI.Engine {
                     return;
                 }
 
-                //use a loop to add resources;
-                //exit loop when an error occurs, or after
-                //resource is successfully added to vol file
+                // use a loop to add resources;
+                // exit loop when an error occurs, or after
+                // resource is successfully added to vol file
                 do {
-                    //set flag to force unload, if resource not currently loaded
+                    // set flag to force unload, if resource not currently loaded
                     blnUnloadRes = !tmpGameRes.Loaded;
-                    //then load resource if necessary
+                    // then load resource if necessary
                     if (blnUnloadRes) {
-                        try {
-                            //always reset warning flag
+                        // load resource
+                        tmpGameRes.Load();
+                        if (tmpGameRes.ErrLevel >= 0) {
+                            // always reset warning flag
                             blnWarning = false;
-
-                            //load resource
-                            tmpGameRes.Load();
                         }
-                        catch (Exception e) {
-
+                        else  {
                             if (RebuildOnly) {
                                 //note it
-                                tmpWarn.Text = "Unable to load " + tmpGameRes.ID + " (" + e.Message + ")";
+                                tmpWarn.Text = $"Unable to load {tmpGameRes.ID} ({LoadResString(tmpGameRes.ErrLevel)})";
                                 Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
                                 //check for cancellation
                                 if (!tmpGameRes.parent.agCompGame) {
@@ -87,48 +85,46 @@ namespace WinAGI.Engine {
                                 }
                             }
                             else {
-                                //if error,
-                                if (e.HResult != 610) {
-                                    //the 610 error is the one related to bitmap creation; it doesn't really
-                                    //mean there's an error
-
-                                    //assume a resource error until determined otherwise
-                                    strMsg = "Unable to load " + tmpGameRes.ID + " (" + e.Message + ")";
-                                    //reset warning flag
-                                    blnWarning = false;
-                                    switch (ResType) {
-                                    case AGIResType.rtPicture:
-                                    case AGIResType.rtView:
-                                        //check for invalid view data errors
-                                        switch (e.HResult - WINAGI_ERR) {
-                                        case 537:
-                                        case 548:
-                                        case 552:
-                                        case 553:
-                                        case 513:
-                                        case 563:
-                                        case 539:
-                                        case 540:
-                                        case 550:
-                                        case 551:
-                                            //can add view, but it is invalid
-                                            strMsg = "Invalid view data (" + e.Message + ")";
-                                            blnWarning = true;
-                                            break;
-                                        }
-                                        break;
-                                    case AGIResType.rtSound:
-                                        //check for invalid sound data errors
-                                        if (e.HResult == 598) {
-                                            //can add sound, but it is invalid
-                                            strMsg = "Invalid sound data (" + e.Message + ")";
-                                            blnWarning = true;
-                                        }
-                                        break;
-                                    case AGIResType.rtLogic:
-                                        //always a resource error
-                                        break;
-                                    }
+                                // deal with the error
+                                switch (tmpGameRes.ErrLevel) {
+                                case 610:
+                                    // assume a resource error until determined otherwise
+                                    //strMsg = "Unable to load " + tmpGameRes.ID + " (" + e.Message + ")";
+                                    ////reset warning flag
+                                    //blnWarning = false;
+                                    //switch (ResType) {
+                                    //case AGIResType.rtPicture:
+                                    //case AGIResType.rtView:
+                                    //    //check for invalid view data errors
+                                    //    switch (e.HResult - WINAGI_ERR) {
+                                    //    case 537:
+                                    //    case 548:
+                                    //    case 552:
+                                    //    case 553:
+                                    //    case 513:
+                                    //    case 563:
+                                    //    case 539:
+                                    //    case 540:
+                                    //    case 550:
+                                    //    case 551:
+                                    //        //can add view, but it is invalid
+                                    //        strMsg = "Invalid view data (" + e.Message + ")";
+                                    //        blnWarning = true;
+                                    //        break;
+                                    //    }
+                                    //    break;
+                                    //case AGIResType.rtSound:
+                                    //    //check for invalid sound data errors
+                                    //    if (e.HResult == 598) {
+                                    //        //can add sound, but it is invalid
+                                    //        strMsg = "Invalid sound data (" + e.Message + ")";
+                                    //        blnWarning = true;
+                                    //    }
+                                    //    break;
+                                    //case AGIResType.rtLogic:
+                                    //    //always a resource error
+                                    //    break;
+                                    //}
                                     //if error (warning not set)
                                     if (!blnWarning) {
                                         //note the error
@@ -146,9 +142,10 @@ namespace WinAGI.Engine {
                                         //if not canceled, user has already removed bad resource from game
                                         break;
                                     }
+                                    break;
                                 }
                             }
-                            //if not canceled, user has already removed bad resource
+                            // if not canceled, user has already removed bad resource
                             break;
                         }
                     }
@@ -157,23 +154,23 @@ namespace WinAGI.Engine {
                     if (!RebuildOnly) {
                         //game resource is verified open; check for warnings
 
-                        //picture warnings aren't in error handler anymore and 
-                        // need a special check here
-                        if (tmpGameRes is Picture tmpPic) {
-                            //check bmp error level by property, not error number
-                            if (tmpPic.ErrLevel > 0) {
-                                //case 0:
-                                //ok
-                                //unhandled error
-                                strMsg = "Unhandled error in picture data- picture may not display correctly";
-                                blnWarning = true;
-                            }
-                            else {
-                                //missing EOP marker, bad color or bad cmd
-                                strMsg = "Data anomalies in picture data but picture should display";
-                                blnWarning = true;
-                            }
-                        }
+                        ////picture warnings aren't in error handler anymore and 
+                        //// need a special check here
+                        //if (tmpGameRes is Picture tmpPic) {
+                        //    //check bmp error level by property, not error number
+                        //    if (tmpPic.ErrLevel > 0) {
+                        //        //case 0:
+                        //        //ok
+                        //        //unhandled error
+                        //        strMsg = "Unhandled error in picture data- picture may not display correctly";
+                        //        blnWarning = true;
+                        //    }
+                        //    else {
+                        //        // missing EOP marker, bad color or bad cmd
+                        //        strMsg = "Data anomalies in picture data but picture should display";
+                        //        blnWarning = true;
+                        //    }
+                        //}
 
                         //if a warning
                         if (blnWarning) {
@@ -190,7 +187,7 @@ namespace WinAGI.Engine {
                                 return;
                             }
                         }
-                        //for logics, compile the sourcetext
+                        // for logics, compile the sourcetext
                         //load actual object
                         if (tmpGameRes is Logic tmpLog) {
                             try {
@@ -212,7 +209,7 @@ namespace WinAGI.Engine {
                                         // then stop compiling
                                         return;
                                     }
-                                    //if user wants to continue, the logic will already have been removed; no other action needed
+                                    // if user wants to continue, the logic will already have been removed; no other action needed
                                     break;
                                 default:
                                     //any other error; note it
@@ -250,13 +247,13 @@ namespace WinAGI.Engine {
                         //unload resource, if applicable
                         if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
 
-                        //raise appropriate error
+                        // raise appropriate error
                         if (lngError == WINAGI_ERR + 593) {
                             //exceed max storage- pass it along
                             throw;
                         }
                         else {
-                            //file access error
+                            // file access error
                             WinAGIException wex = new(LoadResString(638).Replace(Common.Base.ARG1, e.Message)) {
                                 HResult = WINAGI_ERR + 638
                             };
@@ -266,8 +263,8 @@ namespace WinAGI.Engine {
                         }
                     }
 
-                    //new strategy is to use arrays for DIR data, and then
-                    //to build the DIR files after compiling all resources
+                    // use arrays for DIR data, and then to build the DIR files after
+                    // compiling all resources
                     bytDIR[(int)ResType, tmpGameRes.Number * 3] = (byte)((lngCurrentVol << 4) + (lngCurrentLoc >> 16));
                     bytDIR[(int)ResType, tmpGameRes.Number * 3 + 1] = (byte)((lngCurrentLoc % 0x10000) >> 8);
                     bytDIR[(int)ResType, tmpGameRes.Number * 3 + 2] = (byte)(lngCurrentLoc % 0x100);
@@ -293,11 +290,11 @@ namespace WinAGI.Engine {
                         // so exit loop to move to next resource
                         break;
                     }
-                    //always exit loop
+                    // always exit loop
                 }
                 while (false);
 
-                //done with resource; unload if applicable
+                // done with resource; unload if applicable
                 if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
             }
         }

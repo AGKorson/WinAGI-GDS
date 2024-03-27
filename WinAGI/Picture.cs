@@ -28,10 +28,10 @@ namespace WinAGI.Engine {
 
         private void InitPicture(Picture NewPicture = null) {
             // attach events
-            base.PropertyChanged += ResPropChange;
+            PropertyChanged += ResPropChange;
             if (NewPicture is null) {
                 // create default picture with no commands
-                base.WriteByte(0xff);
+                WriteByte(0xff);
                 // default to entire image
                 mDrawPos = -1;
                 // default pribase is 48
@@ -46,7 +46,7 @@ namespace WinAGI.Engine {
         public Picture() : base(AGIResType.rtPicture) {
             // new picture, not in game
 
-            //initialize
+            // initialize
             InitPicture();
             // create a default ID
             mResID = "NewPicture";

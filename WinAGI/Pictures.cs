@@ -118,19 +118,16 @@ namespace WinAGI.Engine {
             //if not loaded,
             if (!tmpPic.Loaded) {
                 tmpPic.Load();
+                // TODO: ignore errors when renumbering?
                 blnUnload = true;
             }
-
             //remove old properties
             parent.agGameProps.DeleteSection("Picture" + OldPic);
-
             //remove from collection
             Col.Remove(OldPic);
-
             //delete picture from old number in dir file
             //by calling update directory file method
             UpdateDirFile(tmpPic, true);
-
             //if id is default
             if (tmpPic.ID.Equals("Picture" + OldPic, StringComparison.OrdinalIgnoreCase)) {
                 //change default ID to new ID
@@ -142,13 +139,10 @@ namespace WinAGI.Engine {
             }
             //change number
             tmpPic.Number = NewPic;
-
             //add with new number
             Col.Add(NewPic, tmpPic);
-
             //update new picture number in dir file
             UpdateDirFile(tmpPic);
-
             //add properties back with new picture number
             strSection = "Picture" + NewPic;
             parent.WriteGameSetting(strSection, "ID", tmpPic.ID, "Pictures");
@@ -159,7 +153,6 @@ namespace WinAGI.Engine {
 
             //force writeprop state back to false
             tmpPic.WritePropState = false;
-
             //unload if necessary
             if (blnUnload) {
                 tmpPic.Unload();
@@ -174,20 +167,11 @@ namespace WinAGI.Engine {
 
             // create new logic object
             Picture newResource = new(parent, bytResNum, bytVol, lngLoc);
-            // try to load it
-            try {
-                newResource.Load();
-            }
-            catch (Exception) {
-                // throw it
-                throw;
-            }
-            finally {
-                // add it
-                Col.Add(bytResNum, newResource);
-                // unload it
-                newResource.Unload();
-            }
+            // load it
+            newResource.Load();
+            // add it
+            Col.Add(bytResNum, newResource);
+            // leave it loaded, so error level can be addressed by loader
         }
 
         PictureEnum GetEnumerator() {

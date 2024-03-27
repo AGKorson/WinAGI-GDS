@@ -6,6 +6,15 @@ using static WinAGI.Engine.AGIGame;
 using static WinAGI.Common.Base;
 using System.Collections;
 
+using System.Collections;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Collections.Generic;
+
 namespace WinAGI.Engine {
     //public abstract class AGIResource
     public class AGIResource {
@@ -44,7 +53,7 @@ namespace WinAGI.Engine {
 
         internal delegate void AGIResPropChangedEventHandler(object sender, AGIResPropChangedEventArgs e);
         internal event AGIResPropChangedEventHandler PropertyChanged;
-        
+
         protected AGIResource(AGIResType ResType) {
             // can ONLY create new resource from within other game resources
             // when first created, a resource MUST have a type assigned
@@ -53,15 +62,11 @@ namespace WinAGI.Engine {
             mInGame = false;
             mVolume = -1;
             mLoc = -1;
-            // calling resource constructor is responsible for creating
-            // default data
+            // calling resource constructor is responsible for creating default data
             // assume no compression
             V3Compressed = 0;
-            //new resources start as loaded by default, and can only be unloaded when
-            // in a game
-            //           mLoaded = true;
         }
-       
+
         public class AGIResPropChangedEventArgs(string name) {
             public string Name { get; } = name;
         }
@@ -81,7 +86,7 @@ namespace WinAGI.Engine {
             AddToVol(this, parent.agIsVersion3);
             UpdateDirFile(this);
         }
-        
+
         protected void InitInGame(AGIGame parent, byte ResNum, sbyte VOL, int Loc) {
             //attaches an existing resource to a game
             this.parent = parent;
@@ -92,7 +97,7 @@ namespace WinAGI.Engine {
             //// ingame resources start loaded
             ////mLoaded = true;
         }
-        
+
         public sbyte Volume {
             get {
                 if (!mInGame) {
@@ -104,7 +109,7 @@ namespace WinAGI.Engine {
             }
             internal set { mVolume = value; }
         }
-        
+
         public int Loc {
             get {
                 if (mInGame) {
@@ -118,7 +123,7 @@ namespace WinAGI.Engine {
                 mLoc = value;
             }
         }
-        
+
         public int Size {
             get {
                 // returns the uncompressed size of the resource
@@ -148,7 +153,7 @@ namespace WinAGI.Engine {
                 mSize = value;
             }
         }
-        
+
         public virtual int SizeInVOL {
             get {
                 //returns the size of the resource on the volume
@@ -177,7 +182,7 @@ namespace WinAGI.Engine {
                 mSizeInVol = value;
             }
         }
-        
+
         internal int GetSizeInVOL() {
             //returns the size of this resource in its VOL file
 
@@ -234,28 +239,25 @@ namespace WinAGI.Engine {
             // if size not found, return -1
             return -1;
         }
-        
+
         public int V3Compressed { get; internal set; }// 0 = not compressed; 1 = picture compress; 2 = LZW compress
-        
+
         public bool InGame { get { return mInGame; } internal set { mInGame = value; } }
-        
+
         public byte Number {
             get { if (mInGame) return mResNum; return 0; }//TODO: number is meaningless if not in a game
             internal set { mResNum = value; }
         }
-        
+
         public bool Loaded { get => mLoaded; internal set { } }
 
         public int ErrLevel { get => mErrLevel; internal set { } }
 
-        //
-        // Summary:
-        //     Gets a collection of key/value pairs that provide additional error information
-        //
-        // Returns:
-        //     An object that implements the System.Collections.IDictionary interface and contains
-        //     a collection of user-defined key/value pairs. The default is an empty collection.
-        public virtual IDictionary ErrData { get; private set; }
+        string[] mErrData = ["","","","",""];
+        public string[] ErrData {
+            get => mErrData;
+            private set => mErrData = value;
+        }
 
         public string ResFile {
             get {
@@ -473,25 +475,14 @@ namespace WinAGI.Engine {
                 }
             }
             else {
-                // if no filename
-                //if (mResFile.Length == 0) {
-                //    // TODO: need to rewrite non-InGame initialization to prevent this from being an option
-                //    // error- nothing to load
-                //    WinAGIException wex = new(LoadResString(626)) {
-                //        HResult = WINAGI_ERR + 626,
-                //    };
-                //    throw wex;
-                //}
-                //else {
-                    // use resource filename
-                    strLoadResFile = mResFile;
-                //}
+                // use resource filename
+                strLoadResFile = mResFile;
             }
             // verify file exists
             if (!File.Exists(strLoadResFile)) {
                 mErrLevel = -1;
-                ErrData["missingfile"] = strLoadResFile;
-                ErrData["ID"] = mResID;
+                ErrData[0] = strLoadResFile;
+                ErrData[1] = mResID;
                 return;
                 //WinAGIException wex = new(LoadResString(606).Replace(ARG1, Path.GetFileName(strLoadResFile))) {
                 //    HResult = WINAGI_ERR + 606,
@@ -503,7 +494,7 @@ namespace WinAGI.Engine {
             // check for readonly
             if ((File.GetAttributes(strLoadResFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                 mErrLevel = -2;
-                ErrData["badfile"] = strLoadResFile;
+                ErrData[0] = strLoadResFile;
                 return;
                 //WinAGIException wex = new(LoadResString(700).Replace(ARG1, strLoadResFile)) {
                 //    HResult = WINAGI_ERR + 700,
@@ -520,8 +511,8 @@ namespace WinAGI.Engine {
                 fsVOL.Dispose();
                 brVOL.Dispose();
                 mErrLevel = -3;
-                ErrData["exception"] = e1;
-                ErrData["badfile"] = strLoadResFile;
+                ErrData[0] = e1.Message;
+                ErrData[1] = mResID;
                 return;
                 //WinAGIException wex = new(LoadResString(502).Replace(ARG1, e1.HResult.ToString()).Replace(ARG2, strLoadResFile)) {
                 //    HResult = WINAGI_ERR + 502,
@@ -535,10 +526,10 @@ namespace WinAGI.Engine {
                 fsVOL.Dispose();
                 brVOL.Dispose();
                 mErrLevel = -4;
-                ErrData["loc"] = mLoc;
-                ErrData["vol"] = mVolume;
-                ErrData["volname"] = Path.GetFileName(fsVOL.Name);
-                ErrData["ID"] = mResID;
+                ErrData[0] = mLoc.ToString();
+                ErrData[1] = mVolume.ToString();
+                ErrData[2] = Path.GetFileName(fsVOL.Name);
+                ErrData[3] = mResID;
                 return;
                 //WinAGIException wex = new(LoadResString(505).Replace(ARG1, mLoc.ToString()).Replace(ARG2, fsVOL.Name).Replace(ARG2, mVolume.ToString())) {
                 //    HResult = WINAGI_ERR + 505,
@@ -559,10 +550,10 @@ namespace WinAGI.Engine {
                     fsVOL.Dispose();
                     brVOL.Dispose();
                     mErrLevel = -5;
-                    ErrData["loc"] = mLoc;
-                    ErrData["vol"] = mVolume;
-                    ErrData["volname"] = Path.GetFileName(fsVOL.Name);
-                    ErrData["ID"] = mResID;
+                    ErrData[0] = mLoc.ToString();
+                    ErrData[1] = mVolume.ToString();
+                    ErrData[2] = Path.GetFileName(fsVOL.Name);
+                    ErrData[3] = mResID;
                     return;
                     //WinAGIException wex = new(LoadResString(506)) {
                     //    HResult = WINAGI_ERR + 506,

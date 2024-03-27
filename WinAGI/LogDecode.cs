@@ -144,7 +144,7 @@ namespace WinAGI.Engine {
             if (!ReadMessages(bytData, lngMsgSecStart, SourceLogic.V3Compressed != 2)) {
                 // return error
                 SourceLogic.ErrLevel = -9;
-                SourceLogic.ErrData["error"] = strError;
+                SourceLogic.ErrData[0] = strError;
                 return "return();" + NEWLINE;
                 //WinAGIException wex = new($"LogDecode Error ({strError})") {
                 //    HResult = WINAGI_ERR + 688
@@ -172,7 +172,7 @@ namespace WinAGI.Engine {
                     if (!FindLabels(bytData)) {
                         //use error string set by findlabels
                         SourceLogic.ErrLevel = -10;
-                        SourceLogic.ErrData["error"] = strError;
+                        SourceLogic.ErrData[0] = strError;
                         return "return();" + NEWLINE;
                         //WinAGIException wex = new($"LogDecode Error ({strError})") {
                         //    HResult = WINAGI_ERR + 688
@@ -182,7 +182,7 @@ namespace WinAGI.Engine {
                     }
                     else {
                         SourceLogic.ErrLevel = -10;
-                        SourceLogic.ErrData["error"] = strError;
+                        SourceLogic.ErrData[0] = strError;
                         return "return();" + NEWLINE;
                         ////use error string set by findlabels
                         //WinAGIException wex = new($"LogDecode Error ({strError})") {
@@ -222,7 +222,7 @@ namespace WinAGI.Engine {
                     //this byte starts an IF statement
                     if (!DecodeIf(bytData, stlOutput)) {
                         SourceLogic.ErrLevel = -11;
-                        SourceLogic.ErrData["error"] = strError;
+                        SourceLogic.ErrData[0] = strError;
                         return "return();" + NEWLINE;
                         //WinAGIException wex = new($"LogDecode Error ({strError})") {
                         //    HResult = WINAGI_ERR + 688
@@ -448,7 +448,7 @@ namespace WinAGI.Engine {
                             if (strArg.Length == 0) {
                                 // error string set by ArgValue function
                                 SourceLogic.ErrLevel = -12;
-                                SourceLogic.ErrData["error"] = strError;
+                                SourceLogic.ErrData[0] = strError;
                                 return "return();" + NEWLINE;
                                 //WinAGIException wex = new($"LogDecode Error: {strError}") {
                                 //    HResult = WINAGI_ERR + 688

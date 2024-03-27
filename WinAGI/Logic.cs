@@ -20,11 +20,10 @@ namespace WinAGI.Engine {
         internal void LoadNoSource() {
             // used by extractresources function to load
             // logic data without loading the sourcecode
-            // can skip the error checks
 
             // load the base resource data
             base.Load();
-            if (mErrLevel < 0) {
+            if (mErrLevel == 0) {
                 // set code size (add 2 to msgstart offset)
                 CodeSize = ReadWord(0) + 2;
             }
@@ -90,7 +89,7 @@ namespace WinAGI.Engine {
         public Logic() : base(AGIResType.rtLogic) {
             // new logic, not in game
 
-            //initialize
+            // initialize
             InitLogic();
             // create a default ID
             mResID = "NewLogic";

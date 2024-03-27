@@ -4177,6 +4177,7 @@ namespace WinAGI.Engine {
                         //loop property and be handled there
                         if (blnUnload) {
                             compGame.agViews[ArgVal[0]].Load();
+                            // ignore any errors/warnings
                         }
                         //validate loop
                         if (ArgVal[1] >= compGame.agViews[ArgVal[0]].Loops.Count) {

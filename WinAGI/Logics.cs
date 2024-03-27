@@ -137,23 +137,20 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            //get logic being renumbered
+            // get logic being renumbered
             tmpLogic = Col[OldLogic];
 
-            //if not loaded,
+            // if not loaded,
             if (!tmpLogic.Loaded) {
                 tmpLogic.Load();
+                // TODO: ignore error values when renumbering?
                 blnUnload = true;
             }
-
-            //remove old properties
+            // remove old properties
             parent.agGameProps.DeleteSection("Logic" + OldLogic);
-
-            //remove from collection
+            // remove from collection
             Col.Remove(OldLogic);
-
-            //delete logic from old number in dir file
-            //by calling update directory file method
+            // delete logic from old number in dir file by calling update directory file method
             UpdateDirFile(tmpLogic, true);
 
             //if id is default
@@ -181,56 +178,39 @@ namespace WinAGI.Engine {
                 //rename sourcefile
                 File.Move(parent.agResDir + "Logic" + OldLogic.ToString() + agSrcFileExt, parent.agResDir + tmpLogic.ID + agSrcFileExt);
             }
-
-            //change number
+            // change number
             tmpLogic.Number = NewLogic;
-
-            //add with new number
+            // add with new number
             Col.Add(NewLogic, tmpLogic);
-
-            //update new logic number in dir file
+            // update new logic number in dir file
             UpdateDirFile(tmpLogic);
-
-            //add properties back with new logic number
+            // add properties back with new logic number
             strSection = "Logic" + NewLogic;
             parent.WriteGameSetting(strSection, "ID", tmpLogic.ID, "Logics");
             parent.WriteGameSetting(strSection, "Description", tmpLogic.Description);
             parent.WriteGameSetting(strSection, "CRC32", "0x" + tmpLogic.CRC.ToString("x8"));
             parent.WriteGameSetting(strSection, "CompCRC32", "0x" + (tmpLogic.CompiledCRC.ToString("x8")));
             parent.WriteGameSetting(strSection, "IsRoom", tmpLogic.IsRoom.ToString());
-
-            //force writeprop state back to false
+            // force writeprop state back to false
             tmpLogic.WritePropState = false;
-
-            //unload if necessary
+            // unload if necessary
             if (blnUnload) {
                 tmpLogic.Unload();
             }
-            //reset compiler list of ids
+            // reset compiler list of ids
             Compiler.blnSetIDs = false;
         }
-        
+
         internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
             // called by the resource loading method for the initial loading of
             // resources into logics collection
 
             // create new logic object
             Logic newResource = new(parent, bytResNum, bytVol, lngLoc);
-            // try to load it
-            try {
-                newResource.LoadNoSource();
-            }
-            catch (Exception) {
-                // pass along errors
-                throw;
-            }
-            finally {
-                // add it
-                Col.Add(bytResNum, newResource);
-                // don't unload logics; they are
-                // checked again after all other resources
-                // are loaded
-            }
+            newResource.LoadNoSource();
+            // add it
+            Col.Add(bytResNum, newResource);
+            // leave it loaded, so error level can be addressed by loader
         }
         
         public void MarkAllAsDirty() {

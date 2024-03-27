@@ -530,16 +530,7 @@ namespace WinAGI.Engine {
                 return;
             }
             // extract loops/cels
-                mErrLvl = LoadLoops();
-            
-            catch (Exception) {
-                Unload();
-                //pass along error
-                throw;
-            }
-            //clear dirty flags
-            mIsDirty = false;
-            WritePropState = false;
+            mErrLvl = LoadLoops();
         }
         
         public override void Unload() {
@@ -619,17 +610,13 @@ namespace WinAGI.Engine {
         
         public string ViewDescription {
             get {
-                //if not loaded
+                // if not loaded
                 if (!mLoaded) {
-                    try {
+                    // TODO: should raise error if not loaded?
                         Load();
                         string tmpVal = mViewDesc;
                         Unload();
                         return tmpVal;
-                    }
-                    catch (Exception) {
-                        return "";
-                    }
                 }
                 return mViewDesc;
             }
