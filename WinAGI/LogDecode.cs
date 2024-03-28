@@ -145,6 +145,7 @@ namespace WinAGI.Engine {
                 // return error
                 SourceLogic.ErrLevel = -9;
                 SourceLogic.ErrData[0] = strError;
+                SourceLogic.ErrData[1] = SourceLogic.ID;
                 return "return();" + NEWLINE;
                 //WinAGIException wex = new($"LogDecode Error ({strError})") {
                 //    HResult = WINAGI_ERR + 688
@@ -173,6 +174,7 @@ namespace WinAGI.Engine {
                         //use error string set by findlabels
                         SourceLogic.ErrLevel = -10;
                         SourceLogic.ErrData[0] = strError;
+                        SourceLogic.ErrData[1] = SourceLogic.ID;
                         return "return();" + NEWLINE;
                         //WinAGIException wex = new($"LogDecode Error ({strError})") {
                         //    HResult = WINAGI_ERR + 688
@@ -183,6 +185,7 @@ namespace WinAGI.Engine {
                     else {
                         SourceLogic.ErrLevel = -10;
                         SourceLogic.ErrData[0] = strError;
+                        SourceLogic.ErrData[1] = SourceLogic.ID;
                         return "return();" + NEWLINE;
                         ////use error string set by findlabels
                         //WinAGIException wex = new($"LogDecode Error ({strError})") {
@@ -223,6 +226,7 @@ namespace WinAGI.Engine {
                     if (!DecodeIf(bytData, stlOutput)) {
                         SourceLogic.ErrLevel = -11;
                         SourceLogic.ErrData[0] = strError;
+                        SourceLogic.ErrData[1] = SourceLogic.ID;
                         return "return();" + NEWLINE;
                         //WinAGIException wex = new($"LogDecode Error ({strError})") {
                         //    HResult = WINAGI_ERR + 688
@@ -448,6 +452,7 @@ namespace WinAGI.Engine {
                                 // error string set by ArgValue function
                                 SourceLogic.ErrLevel = -12;
                                 SourceLogic.ErrData[0] = strError;
+                                SourceLogic.ErrData[1] = SourceLogic.ID;
                                 return "return();" + NEWLINE;
                                 //WinAGIException wex = new($"LogDecode Error: {strError}") {
                                 //    HResult = WINAGI_ERR + 688

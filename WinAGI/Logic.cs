@@ -455,6 +455,7 @@ namespace WinAGI.Engine {
                 if (!File.Exists(LoadFile)) {
                     mErrLevel = -6;
                     ErrData[0] = LoadFile;
+                    ErrData[1] = mResID;
                     mSourceText = "return();" + NEWLINE;
                     // force uncompile state
                     mCRC = 0;
@@ -470,11 +471,12 @@ namespace WinAGI.Engine {
                 if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                     mErrLevel = -7;
                     ErrData[0] = LoadFile;
-                    mSourceText = "return();" + NEWLINE;
-                    // force uncompile state
-                    mCRC = 0;
-                    mCompiledCRC = 0xffffffff;
-                    return;
+                    ErrData[1] = mResID;
+                    //mSourceText = "return();" + NEWLINE;
+                    //// force uncompile state
+                    //mCRC = 0;
+                    //mCompiledCRC = 0xffffffff;
+                    //return;
                     //WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
                     //    HResult = WINAGI_ERR + 700,
                     //};

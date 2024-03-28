@@ -333,7 +333,7 @@ namespace WinAGI.Engine {
                 ErrData[0] = mResID;
                 mViewSet = true;
                 mIsDirty = false;
-                return -14;
+                return -15;
                 //WinAGIException wex = new(LoadResString(595)) {
                 //    HResult = WINAGI_ERR + 595
                 //};
@@ -351,7 +351,7 @@ namespace WinAGI.Engine {
                     ErrData[1] = bytLoop.ToString();
                     mViewSet = true;
                     mIsDirty = false;
-                    return -15;
+                    return -16;
                     //WinAGIException wex = new(LoadResString(548)) {
                     //    HResult = WINAGI_ERR + 548
                     //};
@@ -365,11 +365,11 @@ namespace WinAGI.Engine {
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
                 // add the loop
                 mLoopCol.Add(bytLoop);
-                //loop zero is NEVER mirrored
+                //  zero is NEVER mirrored
                 if (bytLoop > 0) {
-                    //for all other loops, check to see if it mirrors an earlier loop
+                    // for all other loops, check to see if it mirrors an earlier loop
                     for (tmpLoopNo = 0; tmpLoopNo < bytLoop; tmpLoopNo++) {
-                        //if the loops have the same starting position,
+                        // if the loops have the same starting position,
                         if (lngLoopStart[bytLoop] == lngLoopStart[tmpLoopNo]) {
                             //this loop is a mirror
                             try {
@@ -380,32 +380,25 @@ namespace WinAGI.Engine {
                                 // if error is because source is already mirrored
                                 // continue without setting mirror; data will be
                                 // treated as a completely separate loop; otherwise
-                                // error is unrecoverable
-                                switch (e.HResult) {
-                                case WINAGI_ERR + 563:
-                                case WINAGI_ERR + 551:
-                                    // ignore these two
-                                    break;
-                                case WINAGI_ERR + 539:
-                                    break;
-                                case WINAGI_ERR + 550:
-                                    break;
-                                }
-                                if (e.HResult != WINAGI_ERR + 551) {
-                                    // keep loops loaded up to this point
+                                // assume rest of view is unrecoverable
+                                if (e.HResult == WINAGI_ERR + 539 || e.HResult == WINAGI_ERR + 550) {
                                     ErrData[0] = mResID;
                                     ErrData[1] = e.Message;
                                     ErrData[2] = bytLoop.ToString();
                                     ErrData[3] = tmpLoopNo.ToString();
                                     mViewSet = true;
                                     mIsDirty = false;
-                                    return -16;
-                                    //Unload();
-                                    ////error
-                                    //throw;
+                                    if (e.HResult == WINAGI_ERR + 539) {
+                                        // invalid mirror loop
+                                        return -17;
+                                    }
+                                    else  {
+                                        // WINAGI_ERR + 550
+                                        // target loop already mirrored
+                                        return -18;
+                                    }
                                 }
                             }
-                            break;
                         }
                     }
                 }
@@ -426,9 +419,8 @@ namespace WinAGI.Engine {
                             ErrData[2] = bytCel.ToString();
                             mViewSet = true;
                             mIsDirty = false;
-                            return -17;
+                            return -20;
                             //Unload();
-
                             //WinAGIException wex = new(LoadResString(553)) {
                             //    HResult = WINAGI_ERR + 553
                             //};
@@ -715,12 +707,12 @@ namespace WinAGI.Engine {
             }
             //mirror source and target can't be the same
             if (SourceLoop == TargetLoop) {
-                //ignore - can't be a mirror of itself
+                // ignore - can't be a mirror of itself
                 return;
             }
-            //the target loop can't be already mirrored
+            // the target loop can't be already mirrored
             if (mLoopCol[TargetLoop].Mirrored != 0) {
-                //error
+                // error
                 WinAGIException wex = new(LoadResString(550)) {
                     HResult = WINAGI_ERR + 550
                 };
@@ -728,9 +720,9 @@ namespace WinAGI.Engine {
                 wex.Data["tgtloop"] = TargetLoop;
                 throw wex;
             }
-            //the source loop can't already have a mirror
+            // the source loop can't already have a mirror
             if (mLoopCol[SourceLoop].Mirrored != 0) {
-                //error
+                // error
                 WinAGIException wex = new(LoadResString(551)) {
                     HResult = WINAGI_ERR + 551
                 };

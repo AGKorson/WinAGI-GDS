@@ -81,22 +81,28 @@ namespace WinAGI.Engine {
             try {
                 do {
                     switch (bytIn) {
-                    case 0xF6: //Absolute line (long lines).
+                    case 0xF6:
+                        // Absolute line (long lines).
                         DrawAbsLine();
                         break;
-                    case 0xF7: //Relative line (short lines).
+                    case 0xF7:
+                        // Relative line (short lines).
                         DrawRelLine();
                         break;
-                    case 0xF8: //Fill.
+                    case 0xF8:
+                        // Fill.
                         PicFloodFill();
                         break;
-                    case 0xF4: //Draw a Y corner.
+                    case 0xF4:
+                        // Draw a Y corner.
                         DrawCorner(CornerDirection.cdY);
                         break;
-                    case 0xF5: //Draw an X corner.
+                    case 0xF5:
+                        // Draw an X corner.
                         DrawCorner(CornerDirection.cdX);
                         break;
-                    case 0xF9: //Change pen size and style.
+                    case 0xF9:
+                        // Change pen size and style.
                         bytIn = bytPicData[lngPos];
                         lngPos++;
                         CurrentPen.PlotStyle = (EPlotStyle)((bytIn & 0x20) / 0x20);
@@ -105,71 +111,76 @@ namespace WinAGI.Engine {
                         bytIn = bytPicData[lngPos];
                         lngPos++;
                         break;
-                    case 0xFA: //Plot with pen.
+                    case 0xFA:
+                        // Plot with pen.
                         BrushPlot();
                         break;
-                    case 0xF0: //Change picture color and enable picture draw.
-                               //get color (only lower nibble is used)
+                    case 0xF0:
+                        // Change picture color and enable picture draw.
+                        // get color (only lower nibble is used)
                         CurrentPen.VisColor = (AGIColorIndex)(bytPicData[lngPos] & 0xF);
-                        //AGI has a slight bug; if color is > 15, the
-                        //upper nibble will overwrite the priority color
+                        // AGI has a slight bug; if color is > 15, the
+                        // upper nibble will overwrite the priority color
                         if (bytPicData[lngPos] > 15) {
-                            //pass upper nibble to priority
+                            // pass upper nibble to priority
                             CurrentPen.PriColor |= (AGIColorIndex)(bytPicData[lngPos] / 16);
-                            //set warning flag
+                            // set warning flag
                             retval |= 2;
                         }
                         lngPos++;
-                        //get next command byte
+                        // get next command byte
                         bytIn = bytPicData[lngPos];
                         lngPos++;
                         break;
-                    case 0xF1: //Disable picture draw.
-                               //disable visual drawing
+                    case 0xF1:
+                        // Disable visual draw.
                         CurrentPen.VisColor = AGIColorIndex.agNone;
                         //get next command byte
                         bytIn = bytPicData[lngPos];
                         lngPos++;
                         break;
-                    case 0xF2: //Change priority color and enable priority draw.
-                               //get color
-                               //AGI uses ONLY priority color; if the passed value is
-                               //greater than 15, the upper nibble gets ignored
+                    case 0xF2:
+                        // Change priority color and enable priority draw.
+                        // get color
+                        // AGI uses ONLY priority color; if the passed value is
+                        // greater than 15, the upper nibble gets ignored
                         CurrentPen.PriColor = ((AGIColorIndex)(bytPicData[lngPos] & 0xF));
                         lngPos++;
-                        //get next command byte
+                        // get next command byte
                         bytIn = bytPicData[lngPos];
                         lngPos++;
                         break;
-                    case 0xF3: //Disable priority draw.
-                               //disable priority
+                    case 0xF3:
+                        // Disable priority draw.
+                        // disable priority
                         CurrentPen.PriColor = AGIColorIndex.agNone;
-                        //get next command byte
+                        // get next command byte
                         bytIn = bytPicData[lngPos];
                         lngPos++;
                         break;
-                    case 0xFF: //end of drawing
-                               //if pen status position is end of drawing
+                    case 0xFF:
+                        // end of drawing
+                        // if pen status position is end of drawing
                         if (StatusPos == EndPos) {
-                            //save tool status
+                            // save tool status
                             SavePen = CurrentPen;
                         }
                         break;
                     default:
-                        //if expecting a command, and byte is <240 but >250 (not 255)
-                        //just ignore it
-                        //get next command byte
+                        // if expecting a command, and byte is <240 but >250 (not 255)
+                        // just ignore it
+                        // get next command byte
                         bytIn = bytPicData[lngPos];
                         lngPos++;
-                        //set warning flag
+                        // set warning flag
                         retval |= 4;
                         break;
                     }
-                    //if at Pen Status position
+                    // if at Pen Status position
                     if (lngPos > StatusPos) {
-                        //save tool status
+                        // save tool status
                         SavePen = CurrentPen;
-                        //reset statuspos to avoid changing save status
+                        // reset statuspos to avoid changing save status
                         StatusPos = 0x7FFFFFFF;
                     }
                     // if end byte found
@@ -180,13 +191,13 @@ namespace WinAGI.Engine {
                 while (lngPos <= EndPos);
             }
             catch (Exception e) {
-                //depending on error, set warning level
+                // depending on error, set warning level
                 if (e is IndexOutOfRangeException) {
-                    //case 9:  //subscript error- caused when a draw function expects
-                    //another byte of data, but end of data is reached
-                    //confirm it
+                    // subscript error- caused when a draw function expects
+                    // another byte of data, but end of data is reached
+                    // confirm it
                     if (lngPos > EndPos) {
-                        //set warning flag
+                        // set warning flag
                         retval |= 1;
                     }
                     else {
@@ -202,7 +213,7 @@ namespace WinAGI.Engine {
             // if at end of resource, was last command end-of-resource flag?
             if (lngPos >= bytPicData.Length) {
                 if (bytPicData[^1] != 0xFF) {
-                    //set warning flag
+                    // set warning flag
                     retval |= 1;
                 }
             }

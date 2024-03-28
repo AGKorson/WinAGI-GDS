@@ -8,6 +8,7 @@ using static WinAGI.Engine.AudioPlayer;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
+using System.Diagnostics;
 
 namespace WinAGI.Engine {
     public static partial class Base {
@@ -372,54 +373,43 @@ namespace WinAGI.Engine {
             };
 
             // include check for positive warning values
-            // check for picture errors
-            switch (game.agPics[bytResNum].ErrLevel) {
-            case 0:
-                // ok
-                break;
-            case -1:
-            case >= 8:
-                // unhandled error
-                warnInfo.ID = "RW05";
-                warnInfo.Text = $"Unhandled error in Picture {bytResNum} data- picture may not display correctly ({game.agPics[bytResNum].ErrLevel})";
-                warnInfo.Module = game.agPics[bytResNum].ID;
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            default:
-                //missing EOP marker, bad color or bad cmd
-                warnInfo.ID = "RW06";
-                warnInfo.Text = $"Data anomalies in Picture {bytResNum} cannot be decompiled ({game.agPics[bytResNum].ErrLevel})";
-                warnInfo.Module = game.agPics[bytResNum].ID;
-                Raise_LoadGameEvent(warnInfo);
-                break;
+            if (errlevel > 0) {
+                switch (resType) {
+                case AGIResType.rtLogic:
+                    // none
+                    break;
+                case AGIResType.rtPicture:
+                    if (errlevel >= 8) {
+                        // unhandled error
+                        warnInfo.ID = "RW05";
+                        warnInfo.Text = $"Unhandled error in Picture {resNum} data- picture may not display correctly ({errlevel})";
+                        warnInfo.Module = errdata[0];
+                        Raise_LoadGameEvent(warnInfo);
+                    }
+                    else {
+                        // missing EOP marker, bad color or bad cmd
+                        warnInfo.ID = "RW06";
+                        warnInfo.Text = $"Data anomalies in Picture {resNum} cannot be decompiled ({errlevel})";
+                        warnInfo.Module = errdata[0];
+                        Raise_LoadGameEvent(warnInfo);
+                    }
+                    break;
+                case AGIResType.rtSound:
+                    warnInfo.ID = "RW07";
+                    warnInfo.Text = $"Sound {resNum} has an invalid track pointer ({errlevel})";
+                    warnInfo.Module = errdata[0];
+                    Raise_LoadGameEvent(warnInfo);
+                    break;
+                case AGIResType.rtView:
+                    warnInfo.ID = "RW08";
+                    warnInfo.Text = $"View {resNum} has an invalid view description pointer";
+                    warnInfo.Module = errdata[0];
+                    Raise_LoadGameEvent(warnInfo);
+                    break;
+                }
+                return;
             }
-            // check for sound errors
-            if (game.agSnds[bytResNum].ErrLevel > 0) {
-                warnInfo.ID = "RW07";
-                warnInfo.Text = $"Sound {bytResNum} invalid track pointer ({game.agSnds[bytResNum].ErrLevel})";
-                warnInfo.Module = game.agSnds[bytResNum].ID;
-                Raise_LoadGameEvent(warnInfo);
-            }
-            // check for view errors
-            if (game.agViews[bytResNum].ErrLevel == 1) {
-                warnInfo.ID = "RW08";
-                warnInfo.Text = $"View {bytResNum} has an invalid view description pointer";
-                warnInfo.Module = game.agViews[bytResNum].ID;
-                Raise_LoadGameEvent(warnInfo);
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-            // warning info depends on error
+            // resource errors:
             switch (errlevel) {
             case -1: // 606:
                 // Can't load resource: file not found (%1)
@@ -436,8 +426,7 @@ namespace WinAGI.Engine {
                 Raise_LoadGameEvent(warnInfo);
                 break;
             case -3: // 502:
-                //Error %1 occurred while trying to access %2.
-                // TODO: LoadSource also uses this error,but it should get its own
+                // Error %1 occurred while trying to access %2.
                 warnInfo.ID = "VW01";
                 warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} is invalid due to file access error ({errdata[0]})";
                 warnInfo.Module = errdata[1];
@@ -450,187 +439,137 @@ namespace WinAGI.Engine {
                 warnInfo.Module = errdata[3];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            case 5: // 506:
+            case -5: // 506:
                 // invalid header
                 warnInfo.ID = "RW09";
                 warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid resource header at location {errdata[0]} in {errdata[2]}";
                 warnInfo.Module = errdata[3];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            case 539:
-                // invalid source loop for mirror/invalid mirror loop number
+            case -6: // 704:
+                // sourcefile missing
                 // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Invalid Mirror loop value detected (loop {eRes.Data["srcloop"]} and/or loop {eRes.Data["tgtloop"]})";
-                warnInfo.Module = (string)eRes.Data["ID"];
+                warnInfo.ID = "RW99";
+                warnInfo.Text = $"Logic {resNum} source file is missing ({errdata[0]})";
+                warnInfo.Module = errdata[1];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            case 548:
-                // invalid loop pointer
+            case -7: // 700:
+                // sourcefile is readonly
                 // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Invalid loop data pointer detected (loop {eRes.Data["loop"]})";
-                warnInfo.Module = (string)eRes.Data["ID"];
+                warnInfo.ID = "RW98";
+                warnInfo.Text = $"Logic {resNum} source file is marked readonly ({errdata[0]})";
+                warnInfo.Module = errdata[1];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            case 551:
-                // source already a mirror
+            case -8: // 502: 
+                // Error %1 occurred while trying to access logic source file(%2).
                 // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Loop {eRes.Data["srcloop"]} is already mirrored";
-                warnInfo.Module = (string)eRes.Data["ID"];
+                warnInfo.ID = "RW97";
+                warnInfo.Text = $"Logic {resNum} is invalid due to file access error ({errdata[0]})";
+                warnInfo.Module = errdata[1];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            case 553:
-                // invalid cel data pointer
+            case -9: // 688: 
+                // Error %1 occurred while decompiling message section.
                 // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Invalid cel pointer detected (cel {eRes.Data["cel"]} of loop {eRes.Data["loop"]})";
-                warnInfo.Module = (string)eRes.Data["ID"];
+                warnInfo.ID = "RW96";
+                warnInfo.Text = $"Logic {resNum} is invalid due to error in message section ({errdata[0]})";
+                warnInfo.Module = errdata[1];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            case 565:
-                // sound loadtrack error
+            case -10: // 688: 
+                // Error %1 occurred while decompiling labels.
                 // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Error encountered in LoadTracks ({((WinAGIException)eRes.Data["exception"]).HResult}), unable to load sound";
-                warnInfo.Module = (string)eRes.Data["ID"];
+                warnInfo.ID = "RW95";
+                warnInfo.Text = $"Logic {resNum} is invalid due to error in label search ({errdata[0]})";
+                warnInfo.Module = errdata[1];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            case 595:
-                // invalid view data
+            case -11: // 688: 
+                // Error %1 occurred while decompiling if block.
                 // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Invalid view data, unable to load view";
-                warnInfo.Module = (string)eRes.Data["ID"];
+                warnInfo.ID = "RW94";
+                warnInfo.Text = $"Logic {resNum} is invalid due to error in if block section ({errdata[0]})";
+                warnInfo.Module = errdata[1];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            case 598:
+            case -12: // 688: 
+                // Error %1 occurred while decompiling - invalid message.
+                // TODO: need new load warning value
+                warnInfo.ID = "RW93";
+                warnInfo.Text = $"Logic {resNum} is invalid due to invalid message value ({errdata[0]})";
+                warnInfo.Module = errdata[1];
+                Raise_LoadGameEvent(warnInfo);
+                break;
+            case -13: // 598:
                 // invalid sound data
                 // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Invalid sound data, unable to load tracks";
-                warnInfo.Module = (string)eRes.Data["ID"];
+                warnInfo.ID = "RW92";
+                warnInfo.Text = $"Invalid sound data format, unable to load tracks";
+                warnInfo.Module = errdata[0];
+                Raise_LoadGameEvent(warnInfo);
+                break;
+            case -14: // 565:
+                // sound invalid data error
+                // TODO: need new load warning value
+                warnInfo.ID = "RW91";
+                warnInfo.Text = $"Error encountered in LoadTracks ({errdata[1]})";
+                warnInfo.Module = errdata[0];
+                Raise_LoadGameEvent(warnInfo);
+                break;
+            case -15: // 595:
+                // invalid view data
+                // TODO: need new load warning value
+                warnInfo.ID = "RW90";
+                warnInfo.Text = $"Invalid view data, unable to load view";
+                warnInfo.Module = errdata[0];
+                Raise_LoadGameEvent(warnInfo);
+                break;
+            case -16: // 548:
+                // invalid loop pointer
+                // TODO: need new load warning value
+                warnInfo.ID = "RW89";
+                warnInfo.Text = $"Invalid loop data pointer detected (loop {errdata[1]})";
+                warnInfo.Module = errdata[0];
+                Raise_LoadGameEvent(warnInfo);
+                break;
+            case -17: // 539:
+                // invalid source loop for mirror/invalid mirror loop number
+                // TODO: need new load warning value
+                warnInfo.ID = "RW88";
+                warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} and/or loop {errdata[3]})";
+                warnInfo.Module = errdata[0];
+                Raise_LoadGameEvent(warnInfo);
+                break;
+            case -18: // 550:
+                // invalid mirror data, target loop already mirrored
+                // TODO: need new load warning value
+                warnInfo.ID = "RW87";
+                warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[3]} already mirrored)";
+                warnInfo.Module = errdata[0];
+                Raise_LoadGameEvent(warnInfo);
+                break;
+            case -19: // 551:
+                // invalid mirror data, source already a mirror
+                // TODO: need new load warning value
+                warnInfo.ID = "RW86";
+                warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} already mirrored)";
+                warnInfo.Module = errdata[0];
+                Raise_LoadGameEvent(warnInfo);
+                break;
+            case -20: // 553:
+                // invalid cel data pointer
+                // TODO: need new load warning value
+                warnInfo.ID = "RW85";
+                warnInfo.Text = $"Invalid cel pointer detected (cel {errdata[2]} of loop {errdata[1]})";
+                warnInfo.Module = errdata[0];
                 Raise_LoadGameEvent(warnInfo);
                 break;
             // TODO: remove loadwarning "RW11" (unhandled load error)
             default:
-                // any other unhandled error
-                string strError = (eRes.HResult - WINAGI_ERR) + ": " + eRes.Message;
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Unhandled resource error in {ResTypeName[(int)resType]} {resNum} ({strError})";
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            }
-        }
-
-        internal static void AddLoadWarning(AGIResType resType, byte resNum, Exception eRes) {
-            // called when warning encountered while trying to extract resources
-            // during game load
-            TWinAGIEventInfo warnInfo = new() {
-                Type = EventType.etWarning,
-                ResType = resType,
-                ResNum = resNum,
-                ID = "",
-                Module = "--",
-                Text = "",
-                Line = "--"
-            };
-
-            // warning info depends on error
-            switch (eRes.HResult - WINAGI_ERR) {
-            case 502:
-                //Error %1 occurred while trying to access %2.
-                // TODO: LoadSource also uses this error,but it should get its own
-                warnInfo.ID = "VW01";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} is invalid due to file access error ({((WinAGIException)eRes.Data["exception"]).Message})";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            case 505:
-                //Invalid resource location (%1) in %2.
-                warnInfo.ID = "VW02";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid location ({eRes.Data["loc"]}) in volume file {eRes.Data["volname"]}";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            case 506:
-                //invalid header
-                warnInfo.ID = "RW09";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid resource header";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            case 539:
-                // invalid source loop for mirror/invalid mirror loop number
-                // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Invalid Mirror loop value detected (loop {eRes.Data["srcloop"]} and/or loop {eRes.Data["tgtloop"]})";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            case 548:
-                // invalid loop pointer
-                // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Invalid loop data pointer detected (loop {eRes.Data["loop"]})";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            case 551:
-                // source already a mirror
-                // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Loop {eRes.Data["srcloop"]} is already mirrored";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            case 553:
-                // invalid cel data pointer
-                // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Invalid cel pointer detected (cel {eRes.Data["cel"]} of loop {eRes.Data["loop"]})";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            case 565:
-                // sound loadtrack error
-                // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Error encountered in LoadTracks ({((WinAGIException)eRes.Data["exception"]).HResult}), unable to load sound";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            case 595:
-                // invalid view data
-                // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Invalid view data, unable to load view";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            case 598:
-                // invalid sound data
-                // TODO: need new load warning value
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Invalid sound data, unable to load tracks";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            case 606:
-                // Can't load resource: file not found (%1)
-                warnInfo.ID = "VW03";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} is in a VOL file ({Path.GetFileName((string)eRes.Data["missingfile"])}) that does not exist";
-                warnInfo.Module = (string)eRes.Data["ID"];
-                Raise_LoadGameEvent(warnInfo);
-                break;
-            // TODO: remove loadwarning "RW11" (unhandled load error)
-            default:
-                // any other unhandled error
-                string strError = (eRes.HResult - WINAGI_ERR) + ": " + eRes.Message;
-                warnInfo.ID = "OW03";
-                warnInfo.Text = $"Unhandled resource error in {ResTypeName[(int)resType]} {resNum} ({strError})";
-                Raise_LoadGameEvent(warnInfo);
+                // should be no others
+                Debug.Assert(false);
                 break;
             }
         }
@@ -644,7 +583,7 @@ namespace WinAGI.Engine {
             // TODO: should resize array to the uncompressed size; it's 
             // included in the header, so no reason not to use it.
 
-            //decompress the picture
+            // decompress the picture
             do {
                 //get current compressed byte
                 bytCurComp = bytOriginalData[intPosIn];

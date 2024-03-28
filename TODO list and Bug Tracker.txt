@@ -118,18 +118,21 @@ RESOURCE ERRORS/WARNINGS:
     -6 = (704) logic sourcefile missing : 0 = file
     -7 = (700) logic sourcefile is readonly : 0 = file
     -8 = (502) logic sourcfile access error
-    -9 = (688) error in decompile messages : 0 = errmsg
-    -10 = (688) error in decompile labels : 0 = errmsg
-    -11 = (688) error in decompile if-block : 0 = errmsg
+    -9 = (688) error in decompile messages : 0 = errmsg; 1 = resid
+    -10 = (688) error in decompile labels : 0 = errmsg; 1 = resid
+    -11 = (688) error in decompile if-block : 0 = errmsg; 1 = resid
     -12 = (688) error in decompile invalid message value : 0 = errmsg
-    -13 = (598) sound invalid data : 0 = resid
+    -13 = (598) sound invalid format : 0 = resid
+    -14 = (565) sound invalid data : 0 = resid; 1 = errmsg
     -14 = (595) view invalid - no loops : 0 = resid
     -15 = (548) view invalid loop pointer : 0 = resid; 1 = loopnum
-    -16 = (!551) view set-mirror error : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
-    -17  = (553) view invalid cel data : 0 = resid; 1 = loop; 2 = cel
+    -16 = (539) view set-mirror invalid loop : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
+    -17 = (550) view target loop already mirrored : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
+    -18 = (551) view source loop already a mirror : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
+    -19 = (553) view invalid cel data : 0 = resid; 1 = loop; 2 = cel
     +1  = () view invalid description text : 0 = resid;
     1/2/4/8 = corrupt data, picture still valid : 0 = mresid;
-    -18 = (703) DIR file access error : 
+
 
 ERROR HANDLER info:
 resource base errors:

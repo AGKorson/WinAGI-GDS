@@ -336,22 +336,25 @@ namespace WinAGI.Engine {
                 }
             }
             catch (Exception e) {
-
-                WinAGIException wex = new(LoadResString(565).Replace(ARG1, e.Message)) {
-                    HResult = WINAGI_ERR + 565
-                };
-                wex.Data["exception"] = e;
-                wex.Data["ID"] = mResID;
-                throw wex;
+                // bad sound data
+                mErrLevel = -14;
+                ErrData[0] = mResID;
+                ErrData[1] = e.Message;
+                //WinAGIException wex = new(LoadResString(565).Replace(ARG1, e.Message)) {
+                //    HResult = WINAGI_ERR + 565
+                //};
+                //wex.Data["exception"] = e;
+                //wex.Data["ID"] = mResID;
+                //throw wex;
             }
-            //save length
-            // original playsound dos app used, sound tick of 1/64 sec
+            // save length
+            // original playsound DOS app used sound timing of 1/64 sec
             // but correct value is 1/60 sec
             mLength = (double)lngLength / 60;
 
-            //set flag to indicate tracks loaded
+            // set flag to indicate tracks loaded
             mTracksSet = true;
-            //MUST be clean, since loaded from resource data
+            // MUST be clean, since loaded from resource data
             mIsDirty = false;
         }
         void CompileSound() {
@@ -1144,8 +1147,9 @@ namespace WinAGI.Engine {
                 return;
             }
             // if not ingame, the resource is already loaded
-            if (!mInGame) {// TODO- not true?? can nongame resources be unloaded and loaded?
-                           // they just need a valid resfile to get data from
+            if (!mInGame) {
+                // TODO- not true?? can nongame resources be unloaded and loaded?
+                // they just need a valid resfile to get data from
                 Debug.Assert(mLoaded);
             }
             // clear dirty flag
@@ -1196,14 +1200,8 @@ namespace WinAGI.Engine {
                     break;
                 case 8: //standard PC/PCjr
                     mFormat = SoundFormat.sfAGI;
-                    try {
-                        //load notes
-                        LoadTracks();
-                    }
-                    catch (Exception) {
-                        // pass along error
-                        throw;
-                    }
+                    // load notes
+                    LoadTracks();
                     break;
                 default:
                     // bad sound
