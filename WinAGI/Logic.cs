@@ -23,10 +23,12 @@ namespace WinAGI.Engine {
 
             // load the base resource data
             base.Load();
-            if (mErrLevel == 0) {
-                // set code size (add 2 to msgstart offset)
-                CodeSize = ReadWord(0) + 2;
+            if (mErrLevel < 0) {
+                // return a blank logic resource
+                ErrClear();
             }
+            // set code size (add 2 to msgstart offset)
+            CodeSize = ReadWord(0) + 2;
             // clear dirty flag
             mIsDirty = false;
             mSourceDirty = false;
@@ -50,15 +52,13 @@ namespace WinAGI.Engine {
             // load the base resource data
             base.Load();
             if (mErrLevel < 0) {
-                Clear();
-                // create empty logic with blank source code
+                ErrClear();
             }
-            else {
-                // set code size (add 2 to msgstart offset)
-                CodeSize = ReadWord(0) + 2;
-                //  load the sourcetext
-                LoadSource();
-            }
+            // create empty logic with blank source code
+            // set code size (add 2 to msgstart offset)
+            CodeSize = ReadWord(0) + 2;
+            //  load the sourcetext
+            LoadSource();
         }
 
         public override void Unload() {
@@ -73,7 +73,6 @@ namespace WinAGI.Engine {
             if (NewLogic is null) {
                 // set default resource data by clearing
                 Clear();
-
                 // set default source
                 mSourceText = ActionCommands[0].Name + "();" + NEWLINE + NEWLINE + "[ messages" + NEWLINE;
                 // to avoid having compile property read true if both values are 0, set compiled to -1 on initialization
@@ -99,7 +98,7 @@ namespace WinAGI.Engine {
 
         internal Logic(AGIGame parent, byte ResNum, Logic NewLogic = null) : base(AGIResType.rtLogic) {
             // internal method to add a new logic and find place for it in vol files
-
+            // TODO: why doesn't this constructor assign events?
             // initialize
             InitLogic(NewLogic);
             // set up base resource
@@ -263,7 +262,7 @@ namespace WinAGI.Engine {
                 }
             }
         }
-        
+
         public override void Clear() {
             // clears out source code text
             // and clears the resource data
@@ -276,10 +275,10 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
             }
-            //clear resource
+            // clear resource
             base.Clear();
             //set default resource data
-            // TODO: confirm correct empty logic data block; fix Clear to match
+            // TODO: confirm correct empty logic data block
             mRData.AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00];
             // byte0 = low byte of msg section offset (relative to byte 2)
             // byte1 = high byte of msg section offset
@@ -297,8 +296,8 @@ namespace WinAGI.Engine {
             }
             // note change by marking source as dirty
             mSourceDirty = true;
-            // TODO: for a completely empty logic, is it two? or three? 
-            CodeSize = 3;
+            // TODO: for a completely empty logic, is it two? or three? or 4?
+            CodeSize = 4;
         }
 
         public void Export(string ExportFile, bool ResetDirty) {
@@ -327,7 +326,7 @@ namespace WinAGI.Engine {
             // imports a logic resource
             // i.e., opens from a standalone file
             // doesn't matter if ingame or not
-            //if importing a logic resource, it will overwrite current source text with decompiled source
+            // if importing a logic resource, it will overwrite current source text with decompiled source
 
             // clear existing resource
             Clear();
@@ -338,6 +337,17 @@ namespace WinAGI.Engine {
                     mSourceFile = ImportFile;
                 }
                 LoadSource();
+                // set ID to the filename without extension;
+                // the calling function will take care or reassigning it later, if needed
+                // (for example, if the new logic will be added to a game)
+                mResID = Path.GetFileNameWithoutExtension(ImportFile);
+                // TODO: all resources need to validate ID when importing
+                if (mResID.Length > 64) {
+                    mResID = Left(mResID, 64);
+                }
+                //reset dirty flags
+                mIsDirty = false;
+                mSourceDirty = false;
             }
             else {
                 try {
@@ -354,14 +364,20 @@ namespace WinAGI.Engine {
                     Unload();
                     throw;
                 }
+                finally {
+                    // set ID to the filename without extension;
+                    // the calling function will take care or reassigning it later, if needed
+                    // (for example, if the new logic will be added to a game)
+                    mResID = Path.GetFileNameWithoutExtension(ImportFile);
+                    // TODO: all resources need to validate ID when importing
+                    if (mResID.Length > 64) {
+                        mResID = Left(mResID, 64);
+                    }
+                    //reset dirty flags
+                    mIsDirty = false;
+                    mSourceDirty = false;
+                }
             }
-            //set ID to the filename without extension;
-            //the calling function will take care or reassigning it later, if needed
-            //(for example, if the new logic will be added to a game)
-            ID = Path.GetFileNameWithoutExtension(ImportFile);
-            //reset dirty flags
-            IsDirty = false;
-            mSourceDirty = false;
         }
         
         public override string ID {

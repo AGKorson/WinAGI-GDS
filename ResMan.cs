@@ -1839,7 +1839,7 @@ namespace WinAGI.Editor {
                                 tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sLOGICS].Nodes.Add("l" + i, ResourceName(EditGame.Logics[(byte)i], true));
                                 tmpNode.Tag = i;
                                 // get compiled status
-                                if (EditGame.Logics[(byte)i].Compiled) {
+                                if (EditGame.Logics[(byte)i].Compiled && EditGame.Logics[(byte)i].ErrLevel >= 0) {
                                     tmpNode.ForeColor = Color.Black;
                                 }
                                 else {
@@ -1852,7 +1852,9 @@ namespace WinAGI.Editor {
                         for (i = 0; i <= 255; i++) {
                             //if a valid resource
                             if (EditGame.Pictures.Exists((byte)i)) {
-                                MDIMain.tvwResources.Nodes[0].Nodes[sPICTURES].Nodes.Add("p" + i, ResourceName(EditGame.Pictures[(byte)i], true)).Tag = i;
+                                tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sPICTURES].Nodes.Add("p" + i, ResourceName(EditGame.Pictures[(byte)i], true));
+                                tmpNode.Tag = i;
+                                tmpNode.ForeColor = EditGame.Pictures[(byte)i].ErrLevel >= 0 ? Color.Black : Color.Red;
                             }
                         }
                     }
@@ -1860,7 +1862,9 @@ namespace WinAGI.Editor {
                         for (i = 0; i <= 255; i++) {
                             //if a valid resource
                             if (EditGame.Sounds.Exists((byte)i)) {
-                                MDIMain.tvwResources.Nodes[0].Nodes[sSOUNDS].Nodes.Add("s" + i, ResourceName(EditGame.Sounds[(byte)i], true)).Tag = i;
+                                tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sSOUNDS].Nodes.Add("s" + i, ResourceName(EditGame.Sounds[(byte)i], true));
+                                tmpNode.Tag = i;
+                                tmpNode.ForeColor = EditGame.Sounds[(byte)i].ErrLevel >= 0 ? Color.Black : Color.Red;
                             }
                         }
                     }
@@ -1868,7 +1872,9 @@ namespace WinAGI.Editor {
                         for (i = 0; i <= 255; i++) {
                             //if a valid resource
                             if (EditGame.Views.Exists((byte)i)) {
-                                MDIMain.tvwResources.Nodes[0].Nodes[sVIEWS].Nodes.Add("v" + i, ResourceName(EditGame.Views[(byte)i], true)).Tag = i;
+                                tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sVIEWS].Nodes.Add("v" + i, ResourceName(EditGame.Views[(byte)i], true));
+                                tmpNode.Tag = i;
+                                tmpNode.ForeColor = EditGame.Views[(byte)i].ErrLevel >= 0 ? Color.Black : Color.Red;
                             }
                         }
                     }

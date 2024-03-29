@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 
 namespace WinAGI.Engine {
     public class Sound : AGIResource {
@@ -18,7 +19,6 @@ namespace WinAGI.Engine {
         int mKey;
         int mTPQN;
         SoundFormat mFormat;
-        int mErrLvl;
         //variables to support MIDI file creation
         bool mMIDISet;
 
@@ -216,30 +216,6 @@ namespace WinAGI.Engine {
             }
         }
 
-        public int ErrLevel {
-
-            //provides access to current error level of the sound tracks
-
-            //can be used by calling programs to provide feedback
-            //on errors in the sound data
-
-            //return 0 if successful, no errors/warnings
-            // non-zero for error/warning:
-            //  -1 = error- can't build sound tracks
-            //   1 = bad track0 offset
-            //   2 = bad track1 offset
-            //   4 = bad track2 offset
-            //   8 = bad track3 offset
-            //  16 = bad track0 data
-            //  32 = bad track1 data
-            //  64 = bad track2 data
-            // 128 = bad track3 data
-            // 256 = missing track data
-            get {
-                return mErrLvl;
-            }
-        }
-
         internal void LoadTracks() {
             int i, lngLength = 0, lngTLength;
             int lngStart, lngEnd, lngResPos, lngDur;
@@ -269,7 +245,7 @@ namespace WinAGI.Engine {
             try {
                 //extract note information for each track from resource
                 //write the sound tracks
-                for (i = 0; i <= 2; i++) {
+                for (i = 0; i <= 3; i++) {
                     //reset length for this track
                     lngTLength = 0;
                     //get start and end of this track (stored at beginning of resource
@@ -277,62 +253,62 @@ namespace WinAGI.Engine {
                     //  track 0 start is byte 0-1, track 1 start is byte 2-3
                     //  track 2 start is byte 4-5, noise start is byte 6-7
                     lngStart = mRData[i * 2 + 0] + 256 * mRData[i * 2 + 1];
-                    //end is start of next track -5 (5 bytes per note in each track) -2 (trailing 0xFFFF)
-                    lngEnd = mRData[i * 2 + 2] + 256 * mRData[i * 2 + 3] - 7;
-                    //validate
+                    if (i < 3) {
+                        //end is start of next track -5 (5 bytes per note in each track) -2 (trailing 0xFFFF)
+                        lngEnd = mRData[i * 2 + 2] + 256 * mRData[i * 2 + 3] - 7;
+                    }
+                    else {
+                        lngEnd = mSize - 7;
+                    }
+                    // validate
                     if (lngStart < 0 || lngEnd < 0 || lngStart > mSize || lngEnd > mSize) {
-                        //raise error
-                        WinAGIException wex = new(LoadResString(598)) {
-                            HResult = WINAGI_ERR + 598
-                        };
-                        wex.Data["ID"] = mResID;
-                        throw wex;
+                        mErrLevel = -13;
+                        ErrData[0] = mResID;
+                        //// raise error
+                        //WinAGIException wex = new(LoadResString(598)) {
+                        //    HResult = WINAGI_ERR + 598
+                        //};
+                        //wex.Data["ID"] = mResID;
+                        //throw wex;
+                        break;
                     }
 
                     //step through notes in this track (5 bytes at a time)
                     for (lngResPos = lngStart; lngResPos <= lngEnd; lngResPos += 5) {
-                        //get duration
-                        lngDur = (mRData[lngResPos] + 256 * mRData[lngResPos + 1]);
+                        if (i < 3) {
+                            //get duration
+                            lngDur = (mRData[lngResPos] + 256 * mRData[lngResPos + 1]);
 
-                        //get frequency
-                        intFreq = (short)(16 * (mRData[lngResPos + 2] & 0x3F) + (mRData[lngResPos + 3] & 0xF));
-                        //attenuation information in byte5
-                        bytAttn = ((byte)(mRData[lngResPos + 4] & 0xF));
-                        //add the note
-                        mTrack[i].Notes.Add(intFreq, lngDur, bytAttn);
-                        //add length
-                        lngTLength += lngDur;
-                    } //next lngResPos
-
+                            //get frequency
+                            intFreq = (short)(16 * (mRData[lngResPos + 2] & 0x3F) + (mRData[lngResPos + 3] & 0xF));
+                            //attenuation information in byte5
+                            bytAttn = ((byte)(mRData[lngResPos + 4] & 0xF));
+                            //add the note
+                            mTrack[i].Notes.Add(intFreq, lngDur, bytAttn);
+                            //add length
+                            lngTLength += lngDur;
+                        }
+                        else {
+                            // first and second byte: Note duration
+                            lngDur = (mRData[lngResPos] + 256 * mRData[lngResPos + 1]);
+                            // get freq divisor (first two bits of fourth byte)
+                            // and noise type (3rd bit) as a single number
+                            intFreq = ((short)(mRData[lngResPos + 3] & 7));
+                            // Fifth byte: volume attenuation
+                            bytAttn = (byte)(mRData[lngResPos + 4] & 0xF);
+                            // if duration>0
+                            if (lngDur > 0) {
+                                // add the note
+                                mTrack[3].Notes.Add(intFreq, lngDur, bytAttn);
+                                // add to length
+                                lngTLength += lngDur;
+                            }
+                        }
+                    }
                     //if this is longest length
                     if (lngTLength > lngLength) {
                         lngLength = lngTLength;
                     }
-                }
-                lngTLength = 0;
-                //getstart and end of noise track
-                lngStart = mRData[6] + 256 * mRData[7];
-                lngEnd = mSize - 7;
-                for (lngResPos = lngStart; lngResPos <= lngEnd; lngResPos += 5) {
-                    //First and second byte: Note duration
-                    lngDur = (mRData[lngResPos] + 256 * mRData[lngResPos + 1]);
-                    //get freq divisor (first two bits of fourth byte)
-                    //and noise type (3rd bit) as a single number
-                    intFreq = ((short)(mRData[lngResPos + 3] & 7));
-                    //Fifth byte: volume attenuation
-                    bytAttn = (byte)(mRData[lngResPos + 4] & 0xF);
-
-                    //if duration>0
-                    if (lngDur > 0) {
-                        //add the note
-                        mTrack[3].Notes.Add(intFreq, lngDur, bytAttn);
-                        //add to length
-                        lngTLength += lngDur;
-                    }
-                }
-                  //if this is longest length
-                if (lngTLength > lngLength) {
-                    lngLength = lngTLength;
                 }
             }
             catch (Exception e) {
@@ -423,6 +399,7 @@ namespace WinAGI.Engine {
             //and resets sound length
             mLength = -1;
         }
+
         public override void Clear() {
             int i;
             if (!mLoaded) {
@@ -740,7 +717,7 @@ namespace WinAGI.Engine {
             }
         }
         public override void Import(string ImportFile) {
-            //imports a sound resource
+            // imports a sound resource
             short intData;
             string strLine;
             string[] strLines, strTag;
@@ -749,8 +726,10 @@ namespace WinAGI.Engine {
             bool blnError = false;
             short intFreq;
             byte bytVol;
-            //determine file format by checking for '8'-'0' start to file
-            //(that is how all sound resources will begin)
+            // determine file format by checking for '8'-'0' start to file
+            // (that is how all sound resources will begin)
+            // TODO: do I need a 'using' here? also error handler in case file is 
+            // missing or invalid or readonly?
             FileStream fsSnd = new(ImportFile, FileMode.Open);
             BinaryReader brSnd = new(fsSnd);
             //verify long enough
@@ -814,7 +793,7 @@ namespace WinAGI.Engine {
                 //split based on cr
                 strLines = strLine.Split("\r");
                 i = 0;
-                bool bVal = false;
+                bool bVal;
                 while (i < strLines.Length) // Until i > UBound(strLines)
                 {
                     //get next line
@@ -925,7 +904,7 @@ namespace WinAGI.Engine {
                                     mKey = 7;
                                 }
                                 break;
-                            } //switch
+                            }
                         }
                     }
                     else {
@@ -1062,10 +1041,10 @@ namespace WinAGI.Engine {
                             throw wex;
                         }
                     }
-                    //increment line counter
+                    // increment line counter
                     i++;
-                } //while
-                  //compile the sound so the resource matches the tracks
+                }
+                // compile the sound so the resource matches the tracks
                 try {
                     CompileSound();
                 }
@@ -1080,6 +1059,7 @@ namespace WinAGI.Engine {
             //reset track flag
             mTracksSet = true;
         }
+
         public int TPQN {
             get {
                 return mTPQN;
@@ -1159,7 +1139,7 @@ namespace WinAGI.Engine {
             base.Load();
             if (mErrLevel < 0) {
                 // clear the sound to empty set of tracks
-                Clear();
+                ErrClear();
             }
             else {
                 // finish loading sound
@@ -1208,7 +1188,7 @@ namespace WinAGI.Engine {
                     mErrLevel = -13;
                     ErrData[0] = mResID;
                     // clear to set blank tracks
-                    Clear();
+                    ErrClear();
                     //Unload();
                     //WinAGIException wex = new(LoadResString(598)) {
                     //    HResult = WINAGI_ERR + 598
@@ -1306,7 +1286,6 @@ namespace WinAGI.Engine {
         public void StopSound() {
             //stops the sound, if it is playing
             //calling this for ANY sound will stop ALL sound
-            int rtn;
             //if not loaded
             if (!mLoaded) {
                 //do nothing
@@ -1314,7 +1293,7 @@ namespace WinAGI.Engine {
             }
             //if playing
             if (SndPlayer.blnPlaying) {
-                rtn = API.mciSendString("close all", null, 0, (IntPtr)null);
+                _ = API.mciSendString("close all", null, 0, (IntPtr)null);
                 SndPlayer.blnPlaying = false;
             }
         }

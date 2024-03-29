@@ -12,7 +12,6 @@ namespace WinAGI.Engine {
         bool mViewSet; //flag to note loops loaded from res data
         internal Loops mLoopCol;
         string mViewDesc;
-        int mErrLvl;
 
         private void InitView(View NewView = null) {
             //attach events
@@ -86,14 +85,15 @@ namespace WinAGI.Engine {
             //copies view data from this view and returns a completely separate object reference
             View CopyView = new();
             // copy base properties
-            base.Clone(CopyView);
-            //add WinAGI items
+            Clone(CopyView);
+            // add WinAGI items
             CopyView.mViewSet = mViewSet;
             CopyView.mViewDesc = mViewDesc;
             CopyView.mLoopCol = mLoopCol.Clone(this);
-            CopyView.mErrLvl = mErrLvl;
+            CopyView.ErrLevel = mErrLevel;
             return CopyView;
         }
+
         public override void Clear() {
             // resets the view to a single loop with a single view with a height and witdh of 1
             // and transparent color of 0 and no description
@@ -224,9 +224,10 @@ namespace WinAGI.Engine {
                 //add terminating null char
                 WriteByte(0);
             }
-            // clear viewdesc ptr error
-            mErrLvl = 0;
-            //set viewloaded flag
+            // clear error level
+            mErrLevel = 0;
+            ErrData = ["", "", "", "", ""];
+            // set viewloaded flag
             mViewSet = true;
         }
         void ExpandCelData(int StartPos, Cel TempCel) {
@@ -551,11 +552,11 @@ namespace WinAGI.Engine {
             base.Load();
             if (mErrLevel < 0) {
                 // return empty view, with no loops
-                Clear();
+                ErrClear();
                 return;
             }
             // extract loops/cels
-            mErrLvl = LoadLoops();
+            mErrLevel = LoadLoops();
         }
         
         public override void Unload() {
@@ -564,7 +565,6 @@ namespace WinAGI.Engine {
             mIsDirty = false;
             //clear out loop collection
             mLoopCol = new Loops(this);
-            mErrLvl = 0;
             mViewSet = false;
         }
         public new void Save() {
@@ -654,20 +654,6 @@ namespace WinAGI.Engine {
             }
         }
         
-        public int ErrLevel {
-            //provides access to current error level of the view
-
-            //can be used by calling programs to provide feedback
-            //on errors in the view data
-
-            //return 0 if successful, no errors/warnings
-            // non-zero for error/warning:
-            //     1 = invalid viewdesc pointer
-            get {
-                return mErrLvl;
-            }
-        }
-
         public void SetMirror(byte TargetLoop, byte SourceLoop) {
             //TargetLoop is the loop that will be a mirror of
             //SourceLoop; the cels collection in TargetLoop will be lost

@@ -1402,7 +1402,6 @@ namespace WinAGI.Engine {
                 CorrectCommands(agIntVersion);
                 // add logic zero
                 agLogs.Add(0);
-                agLogs[0].Clear();
                 agLogs[0].Save();
                 agLogs[0].Unload();
                 // force id reset
@@ -1846,6 +1845,8 @@ namespace WinAGI.Engine {
                     loadInfo.Type = EventType.etInfo;
                     loadInfo.InfoType = EInfoType.itCheckCRC;
                     Raise_LoadGameEvent(loadInfo);
+                    // cache error level 
+                    int tmpErr = tmpLog.ErrLevel;
                     // if there is a source file, need to verify source CRC value
                     if (File.Exists(tmpLog.SourceFile)) {
                         // recalculate the CRC value for this sourcefile by loading the source
@@ -1869,33 +1870,16 @@ namespace WinAGI.Engine {
                     }
                     else {
                         // no source - decompile it now
-                        try {
-                            // force decompile
-                            tmpLog.LoadSource(true);
-                        }
-                        catch (Exception e) {
-                            if (e.HResult == WINAGI_ERR + 688) {
-                                // create a blank file for this bad logic
-                                tmpLog.Clear();
-                                // use export function to save it without any other updating
-                                tmpLog.SaveSource("", true);
-                                // finally, change the compiled CRC value to default, since
-                                // it no longer matches the source CRC
-                                tmpLog.CompiledCRC = 0;
-                                loadInfo.Type = EventType.etWarning;
-                                loadInfo.ID = "RW04";
-                                loadInfo.Text = $"Logic {tmpLog.Number} cannot be decompiled ({e.HResult}: {e.Message}); inserting blank source file";
-                                loadInfo.Module = tmpLog.ID;
-                                Raise_LoadGameEvent(loadInfo);
-                            }
-                            else {
-                                // TODO: what about other errors? are they even possible?
-                            }
-                        }
-                        finally {
-                            // unload the logic after decompile is done
-                            tmpLog.Unload();
-                        }
+                        // force decompile
+                        tmpLog.LoadSource(true);
+                        // unload the logic after decompile is done
+                        tmpLog.Unload();
+                    }
+                    // TODO: what if resource AND source both have errors????
+                    // the resource and the source file have now been checked; display error if applicable
+                    if (tmpErr != tmpLog.ErrLevel && tmpLog.ErrLevel < 0) {
+                        AddLoadWarning(AGIResType.rtLogic, tmpLog.Number, tmpLog.ErrLevel, tmpLog.ErrData);
+                        blnWarnings = true;
                     }
                     break;
                 case OpenGameMode.Directory:
@@ -1911,40 +1895,23 @@ namespace WinAGI.Engine {
                     loadInfo.Type = EventType.etInfo;
                     loadInfo.InfoType = EInfoType.itDecompiling;
                     Raise_LoadGameEvent(loadInfo);
-                    try {
-                        // force decompile
-                        tmpLog.LoadSource(true);
+                    // force decompile
+                    tmpLog.LoadSource(true);
+                    if (tmpLog.ErrLevel < 0) {
+                        AddLoadWarning(AGIResType.rtSound, tmpLog.Number, tmpLog.ErrLevel, tmpLog.ErrData);
+                        blnWarnings = true;
                     }
-                    catch (Exception e) {
-                        if (e.HResult == WINAGI_ERR + 688) {
-                            // create a blank file for this bad logic
-                            tmpLog.Clear();
-                            // use export function to save it without any other updating
-                            tmpLog.SaveSource("", true);
-                            // finally, change the compiled CRC value to default, since
-                            // it no longer matches the source CRC
-                            tmpLog.CompiledCRC = 0;
-                            loadInfo.Type = EventType.etWarning;
-                            loadInfo.ID = "RW04";
-                            loadInfo.Text = $"Logic {tmpLog.Number} cannot be decompiled ({e.HResult}: {e.Message}); inserting blank source file";
-                            loadInfo.Module = tmpLog.ID;
-                            Raise_LoadGameEvent(loadInfo);
-                        }
-                        else {
-                            // TODO: what about other errors? are they even possible?
-                        }
-                    }
-                    finally {
-                        // unload the logic after decompile is done
-                        tmpLog.Unload();
-                    }
+                    // unload the logic after decompile is done
+                    tmpLog.Unload();
                     // if a new ID found, use it
                     if (DecodeGameID.Length != 0) {
                         agGameID = DecodeGameID;
                         DecodeGameID = "";
                         File.Move(agGameFile, agGameDir + agGameID + ".wag", true);
+                        //// File.Move is supposed to delete the old file, but it doesn't seem to work that way...
+                        //File.Delete(agGameFile);
                         agGameFile = agGameDir + agGameID + ".wag";
-                        agGameProps.Lines[0] = agGameFile;
+                        agGameProps.Filename = agGameFile;
                         WriteGameSetting("General", "GameID", agGameID);
                     }
                     break;

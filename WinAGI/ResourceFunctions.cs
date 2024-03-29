@@ -194,9 +194,9 @@ namespace WinAGI.Engine {
                     }
                 }
 
-                //max size of useable directory is 768 (256*3)
+                // max size of useable directory is 768 (256*3)
                 if (lngDirSize > 768) {
-                    //warning- file might be invalid
+                    // warning- file might be invalid
                     loadWarnings = true;
                     if (game.agIsVersion3) {
                         warnInfo.ResType = AGIResType.rtGame;
@@ -216,7 +216,7 @@ namespace WinAGI.Engine {
                         warnInfo.Module = "--";
                         Raise_LoadGameEvent(warnInfo);
                     }
-                    //assume the max for now
+                    // assume the max for now
                     intResCount = 256;
                 }
                 else {
@@ -258,7 +258,7 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agLogs.Exists(bytResNum)) {
-                                    game.agViews[bytResNum].WritePropState = false;
+                                    game.agLogs[bytResNum].WritePropState = false;
                                     game.agLogs[bytResNum].IsDirty = false;
                                     // logic source checks come after all resources loaded so leave it loaded
                                 }
@@ -271,7 +271,7 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agPics.Exists(bytResNum)) {
-                                    game.agViews[bytResNum].WritePropState = false;
+                                    game.agPics[bytResNum].WritePropState = false;
                                     game.agPics[bytResNum].IsDirty = false;
                                     game.agPics[bytResNum].Unload();
                                 }
@@ -284,7 +284,7 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agSnds.Exists(bytResNum)) {
-                                    game.agViews[bytResNum].WritePropState = false;
+                                    game.agSnds[bytResNum].WritePropState = false;
                                     game.agSnds[bytResNum].IsDirty = false;
                                     game.agSnds[bytResNum].Unload();
                                 }

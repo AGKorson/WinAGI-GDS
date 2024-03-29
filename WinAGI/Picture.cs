@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.Diagnostics;
 using System.Drawing.Imaging;
+using System.Configuration;
 
 namespace WinAGI.Engine {
     public class Picture : AGIResource {
@@ -526,35 +527,41 @@ namespace WinAGI.Engine {
         }
 
         public override void Import(string ImportFile) {
-            //imports a picture resource
+            // imports a picture resource
+
             try {
-                //use base function
+                // use base function
                 Import(ImportFile);
             }
             catch (Exception) {
+                // reset to empty picture
+                Clear();
                 // pass along any errors
                 throw;
             }
-            //set ID
-            mResID = Path.GetFileName(ImportFile);
-            if (mResID.Length > 64) {
-                mResID = Left(mResID, 64);
+            finally {
+                // set ID to the filename without extension;
+                // the calling function will take care or reassigning it later, if needed
+                // (for example, if the new logic will be added to a game)
+                mResID = Path.GetFileName(ImportFile);
+                if (mResID.Length > 64) {
+                    mResID = Left(mResID, 64);
+                }
+                mIsDirty = false;
             }
-            //reset dirty flag
-            mIsDirty = false;
         }
 
         public override void Clear() {
             if (InGame) {
                 if (!Loaded) {
                     //nothing to clear
-
                     WinAGIException wex = new(LoadResString(563)) {
                         HResult = WINAGI_ERR + 563
                     };
                     throw wex;
                 }
             }
+            base.Clear();
             mRData.AllData = [0xff];
             // reset position pointer
             mDrawPos = 1;
@@ -576,8 +583,8 @@ namespace WinAGI.Engine {
             // load base resource
             base.Load();
             if (mErrLevel < 0) {
-                // return a blank picture resource
-                Clear();
+                // return a blank picture resource without adjusting error level
+                ErrClear();
                 // ignore background image stats
                 return;
             }
@@ -808,7 +815,6 @@ namespace WinAGI.Engine {
             bmpVis = null;
             bmpPri = null;
             mPicBMPSet = false;
-            ErrLevel = 0;
         }
     }
 }

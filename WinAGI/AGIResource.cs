@@ -253,10 +253,10 @@ namespace WinAGI.Engine {
 
         public int ErrLevel { get => mErrLevel; internal set { } }
 
-        string[] mErrData = ["","","","",""];
+        string[] mErrData = ["", "", "", "", ""];
         public string[] ErrData {
             get => mErrData;
-            private set => mErrData = value;
+            private protected set => mErrData = value;
         }
 
         public string ResFile {
@@ -638,6 +638,9 @@ namespace WinAGI.Engine {
             // don't mess with sizes though! they remain accessible even when unloaded
             mblnEORes = true;
             mlngCurPos = 0;
+            //// clear error info - it might clear when reloaded
+            //mErrLevel = 0;
+            //mErrData = ["", "", "", "", ""];
             // detach events
             mRData.PropertyChanged -= Raise_DataChange;
         }
@@ -1241,6 +1244,16 @@ namespace WinAGI.Engine {
             //raise change event
             OnPropertyChanged("Data");
         }
+
+        private protected void ErrClear() {
+            int errlevel = mErrLevel;
+            string[] errdata = ErrData;
+            // use public clear method
+            Clear();
+            // restore error info
+            mErrLevel = errlevel;
+            ErrData = errdata;
+        }
         public virtual void Clear() {
             //if not loaded
             if (!mLoaded) {
@@ -1258,6 +1271,8 @@ namespace WinAGI.Engine {
             mSizeInVol = -1;
             mblnEORes = false;
             mIsDirty = true;
+            mErrLevel = 0;
+            mErrData = ["", "", "", "", ""];
         }
         public override string ToString() {
             if (mResID.Length > 0) {
