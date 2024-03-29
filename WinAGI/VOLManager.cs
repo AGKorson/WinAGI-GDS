@@ -298,11 +298,12 @@ namespace WinAGI.Engine {
                 if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
             }
         }
+
         internal static void AddToVol(AGIResource AddRes, bool Version3, bool compileResCol = false, sbyte lngVol = -1, int lngLoc = -1) {
             // this method adds a resource to a VOL file
             //
             // if the compileResCol flag is true, it adds the resource
-            //  the specified vol file at the specified location
+            // to the specified vol file at the specified location
             // the DIR file is not updated; that is done by the
             // CompileGame method (which calls this method)
             //
@@ -311,13 +312,11 @@ namespace WinAGI.Engine {
             // the method will add the resource at a new location based
             // on first open position; it will not delete the resource
             // data from its old position (but the area will be available
-            // for future use by another resource)
-            // and then it updates the DIR file
+            // for future use by another resource) and then it updates the DIR file
             //
             // only resources that are in a game can be added to a VOL file
             byte[] ResHeader;
-            string strError, strID;
-            int lngError;
+            string strID;
 
             if (!compileResCol) {
                 try {

@@ -408,20 +408,20 @@ namespace WinAGI.Engine {
             StreamReader srConfig;
 
             if (File.Exists(Filename) || CreateNew) {
-                //open the config file for create/write
+                // open the config file for create/write
                 fsConfig = new FileStream(Filename, FileMode.OpenOrCreate);
                 long lngLen = fsConfig.Length;
-                //if this is an empty file (either previously empty or created by this call)
+                // if this is an empty file (either previously empty or created by this call)
                 if (lngLen == 0) {
                     swConfig = new StreamWriter(fsConfig);
-                    //add a single comment to the file
+                    // add a single comment to the file
                     Lines.Add("#");
                     // and write it to the file
                     swConfig.WriteLine("#");
                     swConfig.Dispose();
                 }
                 else {
-                    //grab the file data
+                    // grab the file data
                     srConfig = new StreamReader(fsConfig);
                     while (!srConfig.EndOfStream) {
 

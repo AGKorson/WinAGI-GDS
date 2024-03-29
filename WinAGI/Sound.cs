@@ -715,6 +715,10 @@ namespace WinAGI.Engine {
         }
         public override void Import(string ImportFile) {
             // imports a sound resource
+            // TODO: importing also has to load the resource and set error level
+            // TODO: create individual overload functions for different types of importing
+            // (instead of trying to analyze the data)
+
             short intData;
             string strLine;
             string[] strLines, strTag;
@@ -729,6 +733,7 @@ namespace WinAGI.Engine {
             // missing or invalid or readonly?
             FileStream fsSnd = new(ImportFile, FileMode.Open);
             BinaryReader brSnd = new(fsSnd);
+
             //verify long enough
             if (fsSnd.Length <= 2) {
                 //error
@@ -755,7 +760,7 @@ namespace WinAGI.Engine {
             //if sound resource, intData = 8
             if (intData == 8) {
                 try {
-                    //import the resource
+                    // import the resource
                     base.Import(ImportFile);
                 }
                 catch (Exception) {

@@ -512,10 +512,13 @@ namespace WinAGI.Engine {
             }
         }
         
-        public override void Import(string ImportFile) {  //imports a view resource
+        public override void Import(string ImportFile) {
+            // imports a view resource
+            // TODO: importing also has to load the resource and set error level
+
             try {
                 //import the resource
-                Import(ImportFile);
+                base.Import(ImportFile);
             }
             catch (Exception) {
                 //pass along error

@@ -320,11 +320,19 @@ namespace WinAGI.Engine {
             base.Export(ExportFile);
         }
 
+        public override void Import(string ImportFile) {
+            // use import, assuming as logic source
+            Import(ImportFile, true);
+        }
+
         public void Import(string ImportFile, bool AsSource) {
-            // imports a logic resource
-            // i.e., opens from a standalone file
+            // imports a logic resource from a standalone file
             // doesn't matter if ingame or not
+
+            // TODO: importing also has to load the resource and set error level
+
             // if importing a logic resource, it will overwrite current source text with decompiled source
+            // if importing a source file, ther resource data is left alone, and compiled status is adjusted
 
             // clear existing resource
             Clear();
@@ -349,8 +357,8 @@ namespace WinAGI.Engine {
             }
             else {
                 try {
-                    //import the compiled resource
-                    Import(ImportFile);
+                    // import the compiled resource
+                    base.Import(ImportFile);
                     //load the source code by decompiling
                     LoadSource(true);
                     if (!mInGame) {

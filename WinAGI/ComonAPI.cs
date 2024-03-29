@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using WinAGI.Engine;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WinAGI.Common {
     public static partial class API {
@@ -636,6 +637,19 @@ namespace WinAGI.Common {
             public WinAGIException(string message, Exception inner)
                 : base(message, inner) {
             }
+
+            /// <summary>Throws a WinAGIException if resource is not loaded.</summary>
+            public static void ThrowIfNotLoaded(AGIResource value) {
+                if (!value.Loaded)
+                    ThrowResourceNotLoaded();
+            }
+            [DoesNotReturn]
+            private static void ThrowResourceNotLoaded() {
+                WinAGIException wex = new("Resource not loaded") {
+                    HResult = 563,
+                };
+                throw wex;
+            }
         }
 
         public static string LoadResString(int index) {
@@ -1077,7 +1091,7 @@ namespace WinAGI.Common {
 
         }
 
-        public static bool DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs) {
+        public static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs) {
             // Get the subdirectories for the specified directory.
             DirectoryInfo dir = new(sourceDirName);
             if (!dir.Exists) {
@@ -1104,8 +1118,6 @@ namespace WinAGI.Common {
             catch (Exception) {
                 throw new Exception("directory copy error");
             }
-            // success
-            return true;
         }
         /// <summary>
         /// this methodcompacts a full filename by eliminating directories and replacing

@@ -5,16 +5,6 @@
       the user should be told that, and (if in game) given option to create a new one; 
       
       
-      // Linq feature makes it easy to check for invalid characters
-      // Any applies the test inside to each element of the source
-      // so testList.Any(checkItem.Op) returns true if checkItem.Op is true
-      // for any element in testList!
-      // to get control chars, I use a pre-built string
-      if ((CTRL_CHARS + " !\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~").Any(DefName.Contains)) {
-        // bad
-        return 13;
-      }
-
       to print text:
       use graphics.DrawString
 
@@ -49,6 +39,87 @@ that affects resource extraction, etc.
 
 Warnings are similar to errors, but of lower significance; mostly decompiler warnings, but a few other
 resource related warnings.
+
+
+Exceptions:
+CLASS             FUNCTION:                 TYPE/NUMBER:          DESCRIPTION
+AGIGame           AGIGame                   PASS                  pass-through OpenGameWAG/OpenGameDIR
+AGIGame           GameDir/set               630                   new game directory does not exist
+AGIGame           CodePage/set              ArgOutOfRange         new value is invalid codepage value
+AGIGame           CompileGame               561                   new compile directory does not exist
+AGIGame           CompileGame               694                   invalid gameID for v3 (> 5 chars)
+AGIGame           CompileGame               503                   file access error while creating new VOL file
+AGIGame           CompileGame               PASS                  pass-through CompileResCol/logics
+AGIGame           CompileGame               PASS                  pass-through CompileResCol/pictures
+AGIGame           CompileGame               PASS                  pass-through CompileResCol/views
+AGIGame           CompileGame               PASS                  pass-through CompileResCol/sounds
+AGIGame           GameID/set                530                   file access error while renaming v3  DIR/VOL files
+AGIGame           InterpreterVersion/set    PASS                  pass-through CompileGame
+AGIGame           InterpreterVersion/set    597                   new value is not numeric
+AGIGame           InterpreterVersion/set    597                   new value is invalid major version
+AGIGame           InterpreterVersion/set    543                   new value is invalid minor version
+AGIGame           ResDirName/set            ArgOutOfRange         new value is invalid directory name
+AGIGame           NewGame                   630                   new game directory does not exist
+AGIGame           NewGame                   687                   new game directory has existing WAG file
+AGIGame           NewGame                   687                   new game directory has existing AGI game files
+AGIGame           NewGame                   630                   template (source) directory doesn't have single WAG file
+AGIGame           NewGame                   683                   file access error while copying template to new directory
+AGIGame           NewGame                   684                   unable to open game in new folder
+AGIGame           NewGame                   685                   invalid new GameID (***move this to beginning of method)
+AGIGame           NewGame                   597                   new intver is invalid major version
+AGIGame           NewGame                   543                   new intver is invalid minor version
+AGIGame           NewGame                   637                   new game has warnings/errors (*** convert to warninfo return value insteadof throwing error)
+AGIGame           OpenGameDIR               541                   directory does not contain AGI files
+AGIGame           OpenGameDIR               699                   file access error while creating backup (*.OLD) files
+AGIGame           OpenGameDIR               PASS                  pass-through FinishGameLoad
+AGIGame           OpenGameWAG               655                   missing WAG file
+AGIGame           OpenGameWAG               541                   invalid or missing game directory
+AGIGame           OpenGameWAG               700                   WAG file is readonly
+AGIGame           OpenGameWAG               701                   file access error while opening WAG file
+AGIGame           OpenGameWAG               665                   invalid WAG file version
+AGIGame           OpenGameWAG               691                   invalid IntVersion in WAG file
+AGIGame           OpenGameWAG               690                   missing GameID in WAG file
+AGIGame           FinishGameLoad            PASS                  pass-through ExtractResources
+AGIResource       EORes/get                 563                   resource not loaded
+AGIResource       Data/get                  563                   resource not loaded
+AGIResource       Save                      563                   resource not loaded
+AGIResource       Save                      PASS                  pass-through AddtoVol
+AGIResource       Save                      PASS                  pass-through AGIResource.Export
+AGIResource       Export                    599                   missing ExportFile argument
+AGIResource       Export                    601                   can't export resource that has errors
+AGIResource       Export                    582                   file access error while exporting resource
+AGIResource       Import                    604                   missing ImportFile argument
+AGIResource       Import                    524                   missing import file
+AGIResource       Import                    605                   file access error when importing resource
+AGIResource       Import                    605                   import resource file is empty
+AGIResource       Import                    PASS                  pass-through AGIResource.Save
+AGIResource       WriteByte                 563                   resource not loaded
+AGIResource       WriteByte                 ArgOutOfRange         Pos value is invalid
+AGIResource       WriteWord                 563                   resource not loaded
+AGIResource       WriteWord                 ArgOutOfRange         Pos value is invalid
+AGIResource       Pos/get                   563                   resource not loaded
+AGIResource       Pos/set                   563                   resource not loaded
+AGIResource       Pos/set                   ArgOutOfRange         new Pos value is invalid
+AGIResource       ReadWord                  563                   resource not loaded
+AGIResource       ReadWord                  ArgOutOfRange         Pos value is invalid
+AGIResource       ReadByte                  563                   resource not loaded
+AGIResource       ReadByte                  ArgOutOfRange         Pos value is invalid
+AGIResource       InsertData                563                   resource not loaded
+AGIResource       InsertData                ArgException          Data type mismatch (string)
+AGIResource       InsertData                ArgException          Data type mismatch (other)
+AGIResource       InsertData                ArgOutOfRange         InsertPos value is invalid
+AGIResource       RemoveData                563                   resource not loaded
+AGIResource       RemoveData                ArgOutOfRange         RemoveCount value is invalid
+AGIResource       RemoveData                ArgOutOfRange         RemovePos value is invalid
+AGIResource       Clear                     563                   resource not loaded
+
+
+
+AGIResource properties
+  Available all the time:
+  Available only when loaded:
+
+
 
 GAME EXCEPTIONS: 
     Import:

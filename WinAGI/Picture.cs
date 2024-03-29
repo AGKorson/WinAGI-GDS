@@ -528,10 +528,11 @@ namespace WinAGI.Engine {
 
         public override void Import(string ImportFile) {
             // imports a picture resource
+            // TODO: importing also has to load the resource and set error level
 
             try {
                 // use base function
-                Import(ImportFile);
+                base.Import(ImportFile);
             }
             catch (Exception) {
                 // reset to empty picture

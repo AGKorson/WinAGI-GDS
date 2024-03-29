@@ -622,7 +622,7 @@ namespace WinAGI.Engine {
                 }
             }
             try {
-                //ensure all temp vol files are removed
+                // ensure all temp vol files are removed
                 for (int v = 0; v < 15; v++) {
                     if (File.Exists(NewGameDir + "NEW_VOL." + v.ToString())) {
                         File.Delete(NewGameDir + "NEW_VOL." + v.ToString());
@@ -630,7 +630,7 @@ namespace WinAGI.Engine {
                 }
             }
             catch (Exception) {
-                //ignore errors
+                // ignore errors
             }
             try {
                 //open first new vol file
@@ -645,7 +645,7 @@ namespace WinAGI.Engine {
                 wex.Data["exception"] = e;
                 throw wex;
             }
-            //add all logic resources
+            // add all logic resources
             try {
                 CompileResCol(agLogs, AGIResType.rtLogic, RebuildOnly, NewIsV3);
             }
@@ -931,20 +931,14 @@ namespace WinAGI.Engine {
                 if (agIsVersion3) {
                     //TODO: need error trap for all file ops
                     try {
-                        //need to rename the dir file
+                        // dir file
                         File.Move(agGameDir + agGameID + "DIR", agGameDir + NewID + "DIR");
-                        //delete old dirfile
-                        File.Delete(agGameDir + agGameID + "DIR");
                         //and vol files
                         foreach (string strVolFile in Directory.EnumerateFiles(agGameDir, agGameID + "VOL.*")) {
                             //if an archived (OLD) file, skip it
                             if (!strVolFile[^4..].Equals(".OLD", StringComparison.OrdinalIgnoreCase)) {
-                                //get extension
                                 string[] strExtension = strVolFile.Split(".");
-                                //rename
                                 File.Move(agGameDir + strVolFile, agGameDir + NewID + "VOL." + strExtension[1]);
-                                //TODO: delete the old one
-                                File.Delete(agGameDir + strVolFile);
                             }
                         }
                     }
@@ -1101,7 +1095,7 @@ namespace WinAGI.Engine {
                     return;
                 }
                 if (Path.GetInvalidPathChars().Any(tmpName.Contains)) {
-                    throw new ArgumentOutOfRangeException("Invalid property Value");
+                    throw new ArgumentOutOfRangeException(nameof(ResDirName), "Invalid property Value");
                 }
                 // save new resdir name
                 agResDirName = tmpName;
@@ -1205,18 +1199,13 @@ namespace WinAGI.Engine {
                 }
                 // copy all files from the templatedir into gamedir
                 try {
-                    if (!DirectoryCopy(TemplateDir, agGameDir, true)) {
-                        // TODO: error number??? might need to rewrite this errmsg
-                        WinAGIException wex = new(LoadResString(683).Replace(ARG1, "unknown error")) {
-                            HResult = WINAGI_ERR + 683
-                        };
-                        throw wex;
-                    }
+                    DirectoryCopy(TemplateDir, agGameDir, true);
                 }
                 catch (Exception e) {
                     WinAGIException wex = new(LoadResString(683).Replace(ARG1, e.Message)) {
                         HResult = WINAGI_ERR + 683
                     };
+                    // TODO: error number??? might need to rewrite this errmsg
                     throw wex;
                 }
                 if (!oldExt.Equals(NewExt, StringComparison.OrdinalIgnoreCase)) {
@@ -1520,16 +1509,6 @@ namespace WinAGI.Engine {
             agGameProps.WriteSetting("General", "GameID", agGameID);
             // get version number (version3 flag already set)
             agIntVersion = GetIntVersion(agGameDir, agIsVersion3);
-            // if not valid
-            if (agIntVersion.Length == 0) {
-                // clear game variables
-                ClearGameState();
-                // invalid number found
-                WinAGIException wex = new(LoadResString(543)) {
-                    HResult = WINAGI_ERR + 543,
-                };
-                throw wex;
-            }
             // save version
             WriteGameSetting("General", "Interpreter", agIntVersion);
             // give access to compiler
@@ -1592,18 +1571,18 @@ namespace WinAGI.Engine {
             agGameFile = GameWAG;
             // set game directory
             agGameDir = JustPath(GameWAG);
-            // open the property file (file has to already exist)
+            // check for readonly (not allowed)
+            if ((File.GetAttributes(GameWAG) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, GameWAG)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = GameWAG;
+                throw wex;
+            }
             try {
+                // open the WAG
                 agGameProps = new SettingsList(agGameFile);
                 agGameProps.Open(false);
-                // check for readonly (not allowed)
-                if ((File.GetAttributes(GameWAG) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                    WinAGIException wex = new(LoadResString(700).Replace(ARG1, GameWAG)) {
-                        HResult = WINAGI_ERR + 700,
-                    };
-                    wex.Data["badfile"] = GameWAG;
-                    throw wex;
-                }
             }
             catch (Exception e) {
                 // reset game variables
@@ -1652,6 +1631,7 @@ namespace WinAGI.Engine {
                     wex.Data["badversion"] = badver;
                     throw wex;
                 }
+                // TODO: gameid hasn't been validated! what if it's bad?
             }
             else {
                 // missing GameID in wag file - make user address it
@@ -1661,15 +1641,23 @@ namespace WinAGI.Engine {
                 // invalid wag file
                 WinAGIException wex = new(LoadResString(690)) {
                     HResult = WINAGI_ERR + 690,
+                    
                 };
+                wex.Data["badfile"] = GameWAG;
                 throw wex;
             }
             // if a valid wag file was found, we now have agGameID, agGameFile
             // and correct interpreter version;
             // give access to compiler
             compGame = this;
-            // finish the game load
-            return FinishGameLoad(OpenGameMode.File);
+            try {
+                // finish the game load
+                return FinishGameLoad(OpenGameMode.File);
+            }
+            catch {
+                // pass exceptions
+                throw;
+            }
         }
 
         public TWinAGIEventInfo FinishGameLoad(OpenGameMode Mode) {
@@ -2056,7 +2044,7 @@ namespace WinAGI.Engine {
                         foreach (string strLoader in Directory.EnumerateFiles(strDir, "*.COM")) {
                             // open file and get chunk
                             string strChunk = new(' ', 6);
-                            // readonly will throw exeption
+                            // readonly, and other access errors will throw exeption
                             try {
                                 using (fsCOM = new FileStream(strLoader, FileMode.Open)) {
                                     // see if the word 'LOADER' is at position 3 of the file
@@ -2071,7 +2059,7 @@ namespace WinAGI.Engine {
                                         if (strLoader != "SIERRA.COM") {
                                             // use this filename as ID
                                             agGameID = Left(strFile, strFile.Length - 4).ToUpper();
-                                            return true;
+                                            break;
                                         }
                                     }
                                 }
@@ -2083,9 +2071,10 @@ namespace WinAGI.Engine {
                             }
                         }
                         // if no loader file found (looped through all files, no luck)
-                        // use default
-                        agGameID = "AGI";
-                        return true;
+                        if (agGameID.Length == 0) {
+                            // use default
+                            agGameID = "AGI";
+                        }
                     }
                 }
                 else if (dirCount == 1) {
@@ -2096,14 +2085,23 @@ namespace WinAGI.Engine {
                     if (File.Exists(strDir + agGameID + "VOL.0")) {
                         // set version3 flag
                         agIsVersion3 = true;
-                        return true;
                     }
-                    // if no vol file, assume not valid
-                    agGameID = "";
+                    else {
+                        // if no vol file, assume not valid
+                        return false;
+                    }
+                }
+                // DIR/VOL files found; ID set; look for OBJECT/WORDS.TOK
+                if (!File.Exists(strDir + "OBJECT")) {
                     return false;
                 }
+                if (!File.Exists(strDir + "WORDS.TOK")) {
+                    return false;
+                }
+                // all necessary files exist; this is a valid AGI directory
+                return true;
             }
-            // no valid files/loader found; not an AGI directory
+            // no valid files found; not an AGI directory
             return false;
         }
 
