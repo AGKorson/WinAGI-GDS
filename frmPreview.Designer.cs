@@ -1,25 +1,21 @@
 ﻿
-namespace WinAGI.Editor
-{
-  partial class frmPreview
-  {
-    /// <summary>
-    /// Required designer variable.
-    /// </summary>
-    private System.ComponentModel.IContainer components = null;
+namespace WinAGI.Editor {
+    partial class frmPreview {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
 
-    /// <summary>
-    /// Clean up any resources being used.
-    /// </summary>
-    /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-    protected override void Dispose(bool disposing)
-    {
-      if (disposing && (components != null))
-      {
-        components.Dispose();
-      }
-      base.Dispose(disposing);
-    }
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing) {
+            if (disposing && (components != null)) {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
         #region Windows Form Designer generated code
 
@@ -734,7 +730,7 @@ namespace WinAGI.Editor
             tbbZoomIn.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbZoomIn.ImageTransparentColor = System.Drawing.Color.Magenta;
             tbbZoomIn.Name = "tbbZoomIn";
-            tbbZoomIn.Size = new System.Drawing.Size(23, 36);
+            tbbZoomIn.Size = new System.Drawing.Size(23, 22);
             tbbZoomIn.Text = "toolStripButton1";
             tbbZoomIn.Click += tbbZoomIn_Click;
             // 
@@ -745,14 +741,14 @@ namespace WinAGI.Editor
             tbbZoomOut.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbZoomOut.ImageTransparentColor = System.Drawing.Color.Magenta;
             tbbZoomOut.Name = "tbbZoomOut";
-            tbbZoomOut.Size = new System.Drawing.Size(23, 36);
+            tbbZoomOut.Size = new System.Drawing.Size(23, 22);
             tbbZoomOut.Text = "toolStripButton2";
             tbbZoomOut.Click += tbbZoomOut_Click;
             // 
             // tsSep1
             // 
             tsSep1.Name = "tsSep1";
-            tsSep1.Size = new System.Drawing.Size(6, 39);
+            tsSep1.Size = new System.Drawing.Size(6, 25);
             // 
             // HAlign
             // 
@@ -769,7 +765,7 @@ namespace WinAGI.Editor
             tbbAlignLeft.Image = (System.Drawing.Image)resources.GetObject("tbbAlignLeft.Image");
             tbbAlignLeft.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbAlignLeft.Name = "tbbAlignLeft";
-            tbbAlignLeft.Size = new System.Drawing.Size(196, 38);
+            tbbAlignLeft.Size = new System.Drawing.Size(109, 22);
             tbbAlignLeft.Text = "Left";
             tbbAlignLeft.Click += tbbAlignLeft_Click;
             // 
@@ -778,7 +774,7 @@ namespace WinAGI.Editor
             tbbAlignCenter.Image = (System.Drawing.Image)resources.GetObject("tbbAlignCenter.Image");
             tbbAlignCenter.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbAlignCenter.Name = "tbbAlignCenter";
-            tbbAlignCenter.Size = new System.Drawing.Size(180, 22);
+            tbbAlignCenter.Size = new System.Drawing.Size(109, 22);
             tbbAlignCenter.Text = "Center";
             tbbAlignCenter.Click += tbbAlignCenter_Click;
             // 
@@ -787,7 +783,7 @@ namespace WinAGI.Editor
             tbbAlignRight.Image = (System.Drawing.Image)resources.GetObject("tbbAlignRight.Image");
             tbbAlignRight.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbAlignRight.Name = "tbbAlignRight";
-            tbbAlignRight.Size = new System.Drawing.Size(180, 22);
+            tbbAlignRight.Size = new System.Drawing.Size(109, 22);
             tbbAlignRight.Text = "Right";
             tbbAlignRight.Click += tbbAlignRight_Click;
             // 
@@ -806,7 +802,7 @@ namespace WinAGI.Editor
             tbbTop.Image = (System.Drawing.Image)resources.GetObject("tbbTop.Image");
             tbbTop.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbTop.Name = "tbbTop";
-            tbbTop.Size = new System.Drawing.Size(180, 22);
+            tbbTop.Size = new System.Drawing.Size(114, 22);
             tbbTop.Text = "Top";
             tbbTop.Click += tbbTop_Click;
             // 
@@ -815,7 +811,7 @@ namespace WinAGI.Editor
             tbbMiddle.Image = (System.Drawing.Image)resources.GetObject("tbbMiddle.Image");
             tbbMiddle.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbMiddle.Name = "tbbMiddle";
-            tbbMiddle.Size = new System.Drawing.Size(180, 22);
+            tbbMiddle.Size = new System.Drawing.Size(114, 22);
             tbbMiddle.Text = "Middle";
             tbbMiddle.Click += tbbMiddle_Click;
             // 
@@ -824,7 +820,7 @@ namespace WinAGI.Editor
             tbbBottom.Image = (System.Drawing.Image)resources.GetObject("tbbBottom.Image");
             tbbBottom.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             tbbBottom.Name = "tbbBottom";
-            tbbBottom.Size = new System.Drawing.Size(180, 22);
+            tbbBottom.Size = new System.Drawing.Size(114, 22);
             tbbBottom.Text = "Bottom";
             tbbBottom.Click += tbbBottom_Click;
             // 
@@ -919,6 +915,8 @@ namespace WinAGI.Editor
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             KeyPreview = true;
             Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            MaximizeBox = false;
+            MinimizeBox = false;
             Name = "frmPreview";
             Text = "Form1";
             Activated += frmPreview_Activated;
@@ -965,75 +963,75 @@ namespace WinAGI.Editor
         #endregion
 
         private System.Windows.Forms.Panel pnlLogic;
-    private System.Windows.Forms.RichTextBox rtfLogPrev;
-    private System.Windows.Forms.Panel pnlPicture;
-    private System.Windows.Forms.Panel pnlSound;
-    private System.Windows.Forms.Panel pnlView;
-    private System.Windows.Forms.ToolStrip tsViewPrev;
-    private System.Windows.Forms.ToolStripButton tbbZoomIn;
-    private System.Windows.Forms.ToolStripButton tbbZoomOut;
-    private System.Windows.Forms.ToolStripSeparator tsSep1;
-    private System.Windows.Forms.ToolStripSplitButton HAlign;
-    private System.Windows.Forms.ToolStripMenuItem tbbAlignLeft;
-    private System.Windows.Forms.ToolStripMenuItem tbbAlignCenter;
-    private System.Windows.Forms.ToolStripMenuItem tbbAlignRight;
-    private System.Windows.Forms.ToolStripSplitButton VAlign;
-    private System.Windows.Forms.ToolStripMenuItem tbbTop;
-    private System.Windows.Forms.ToolStripMenuItem tbbMiddle;
-    private System.Windows.Forms.ToolStripMenuItem tbbBottom;
-    private System.Windows.Forms.Timer tmrMotion;
-    private System.Windows.Forms.Timer tmrSound;
-    private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-    private System.Windows.Forms.Panel pnlPicHeader;
-    private System.Windows.Forms.RadioButton optPriority;
-    private System.Windows.Forms.RadioButton optVisual;
-    private System.Windows.Forms.NumericUpDown udPZoom;
-    private System.Windows.Forms.Label label1;
-    private System.Windows.Forms.Panel pnlPicImage;
-    private System.Windows.Forms.VScrollBar vsbPic;
-    private System.Windows.Forms.HScrollBar hsbPic;
-    private System.Windows.Forms.PictureBox imgPicture;
-    private System.Windows.Forms.PictureBox fraPCorner;
-    private System.Windows.Forms.Button btnStop;
-    private System.Windows.Forms.ImageList imageList1;
-    private System.Windows.Forms.Button btnPlay;
-    private System.Windows.Forms.Label lblLength;
-    private System.Windows.Forms.Button cmdReset;
-    private System.Windows.Forms.ComboBox cmbInst2;
-    private System.Windows.Forms.ComboBox cmbInst1;
-    private System.Windows.Forms.ComboBox cmbInst0;
-    private System.Windows.Forms.CheckBox chkTrack3;
-    private System.Windows.Forms.CheckBox chkTrack2;
-    private System.Windows.Forms.CheckBox chkTrack1;
-    private System.Windows.Forms.CheckBox chkTrack0;
-    private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
-    private System.Windows.Forms.Panel pnlViewHdr;
-    private System.Windows.Forms.Label udCel;
-    private System.Windows.Forms.Label udLoop;
-    private System.Windows.Forms.Panel pnlViewFtr;
-    private System.Windows.Forms.TrackBar sldSpeed;
-    private System.Windows.Forms.ComboBox cmbMotion;
-    private System.Windows.Forms.Button cmdVPlay;
-    private System.Windows.Forms.Panel pnlCel;
-    private System.Windows.Forms.HScrollBar hsbView;
-    private System.Windows.Forms.VScrollBar vsbView;
-    private System.Windows.Forms.Label lblFormat;
-    private System.Windows.Forms.Button dCel;
-    private System.Windows.Forms.Button uCel;
-    private System.Windows.Forms.Button uLoop;
-    private System.Windows.Forms.Button dLoop;
-    private System.Windows.Forms.CheckBox chkTrans;
-    private System.Windows.Forms.PictureBox picTrans;
-    private System.Windows.Forms.PictureBox picCel;
-    private System.Windows.Forms.PictureBox fraVCorner;
-    private System.Windows.Forms.Panel pnlProgressBar;
-    private System.Windows.Forms.PictureBox picProgress;
-    private System.Windows.Forms.MenuStrip menuStrip1;
-    private System.Windows.Forms.ToolStripMenuItem mnuResource;
-    private System.Windows.Forms.ToolStripSeparator mnuRSep1;
-    private System.Windows.Forms.ToolStripMenuItem mnuRSavePicAs;
-    private System.Windows.Forms.ToolStripMenuItem mnuRLoopGIF;
-    private System.Windows.Forms.StatusStrip statusStrip1;
-    private System.Windows.Forms.ToolStripStatusLabel tspPreviewText;
-  }
+        private System.Windows.Forms.RichTextBox rtfLogPrev;
+        private System.Windows.Forms.Panel pnlPicture;
+        private System.Windows.Forms.Panel pnlSound;
+        private System.Windows.Forms.Panel pnlView;
+        private System.Windows.Forms.ToolStrip tsViewPrev;
+        private System.Windows.Forms.ToolStripButton tbbZoomIn;
+        private System.Windows.Forms.ToolStripButton tbbZoomOut;
+        private System.Windows.Forms.ToolStripSeparator tsSep1;
+        private System.Windows.Forms.ToolStripSplitButton HAlign;
+        private System.Windows.Forms.ToolStripMenuItem tbbAlignLeft;
+        private System.Windows.Forms.ToolStripMenuItem tbbAlignCenter;
+        private System.Windows.Forms.ToolStripMenuItem tbbAlignRight;
+        private System.Windows.Forms.ToolStripSplitButton VAlign;
+        private System.Windows.Forms.ToolStripMenuItem tbbTop;
+        private System.Windows.Forms.ToolStripMenuItem tbbMiddle;
+        private System.Windows.Forms.ToolStripMenuItem tbbBottom;
+        private System.Windows.Forms.Timer tmrMotion;
+        private System.Windows.Forms.Timer tmrSound;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.Panel pnlPicHeader;
+        private System.Windows.Forms.RadioButton optPriority;
+        private System.Windows.Forms.RadioButton optVisual;
+        private System.Windows.Forms.NumericUpDown udPZoom;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Panel pnlPicImage;
+        private System.Windows.Forms.VScrollBar vsbPic;
+        private System.Windows.Forms.HScrollBar hsbPic;
+        private System.Windows.Forms.PictureBox imgPicture;
+        private System.Windows.Forms.PictureBox fraPCorner;
+        private System.Windows.Forms.Button btnStop;
+        private System.Windows.Forms.ImageList imageList1;
+        private System.Windows.Forms.Button btnPlay;
+        private System.Windows.Forms.Label lblLength;
+        private System.Windows.Forms.Button cmdReset;
+        private System.Windows.Forms.ComboBox cmbInst2;
+        private System.Windows.Forms.ComboBox cmbInst1;
+        private System.Windows.Forms.ComboBox cmbInst0;
+        private System.Windows.Forms.CheckBox chkTrack3;
+        private System.Windows.Forms.CheckBox chkTrack2;
+        private System.Windows.Forms.CheckBox chkTrack1;
+        private System.Windows.Forms.CheckBox chkTrack0;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
+        private System.Windows.Forms.Panel pnlViewHdr;
+        private System.Windows.Forms.Label udCel;
+        private System.Windows.Forms.Label udLoop;
+        private System.Windows.Forms.Panel pnlViewFtr;
+        private System.Windows.Forms.TrackBar sldSpeed;
+        private System.Windows.Forms.ComboBox cmbMotion;
+        private System.Windows.Forms.Button cmdVPlay;
+        private System.Windows.Forms.Panel pnlCel;
+        private System.Windows.Forms.HScrollBar hsbView;
+        private System.Windows.Forms.VScrollBar vsbView;
+        private System.Windows.Forms.Label lblFormat;
+        private System.Windows.Forms.Button dCel;
+        private System.Windows.Forms.Button uCel;
+        private System.Windows.Forms.Button uLoop;
+        private System.Windows.Forms.Button dLoop;
+        private System.Windows.Forms.CheckBox chkTrans;
+        private System.Windows.Forms.PictureBox picTrans;
+        private System.Windows.Forms.PictureBox picCel;
+        private System.Windows.Forms.PictureBox fraVCorner;
+        private System.Windows.Forms.Panel pnlProgressBar;
+        private System.Windows.Forms.PictureBox picProgress;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem mnuResource;
+        private System.Windows.Forms.ToolStripSeparator mnuRSep1;
+        private System.Windows.Forms.ToolStripMenuItem mnuRSavePicAs;
+        private System.Windows.Forms.ToolStripMenuItem mnuRLoopGIF;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel tspPreviewText;
+    }
 }

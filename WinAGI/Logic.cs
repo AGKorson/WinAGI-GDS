@@ -43,9 +43,7 @@ namespace WinAGI.Engine {
             if (mLoaded) {
                 return;
             }
-            mIsDirty = false;
             mSourceDirty = false;
-            WritePropState = false;
             // compiledCRC Value should already be set,
             // and source crc gets calculated when source is loaded
 

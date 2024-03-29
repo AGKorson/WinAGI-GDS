@@ -3,8 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using static WinAGI.Common.Base;
-namespace WinAGI.Engine
-{
+namespace WinAGI.Engine {
     using System.Diagnostics;
     using System.Drawing;
 
@@ -30,8 +29,7 @@ namespace WinAGI.Engine
 
     //enums 
     #region
-    public enum AGIResType
-    {
+    public enum AGIResType {
         rtLogic = 0,
         rtPicture = 1,
         rtSound = 2,
@@ -49,8 +47,7 @@ namespace WinAGI.Engine
         rtDecompWarn = 100, // add decompile warnings to warning list
         rtNone = 255
     };
-    public enum AGIColorIndex
-    {
+    public enum AGIColorIndex {
         agBlack,
         agBlue,
         agGreen,
@@ -69,8 +66,7 @@ namespace WinAGI.Engine
         agWhite,
         agNone
     };
-    public enum ObjDirection
-    {
+    public enum ObjDirection {
         odStopped,
         odUp,
         odUpRight,
@@ -81,18 +77,15 @@ namespace WinAGI.Engine
         odLeft,
         odUpLeft
     };
-    public enum EPlotShape
-    {
+    public enum EPlotShape {
         psCircle,
         psRectangle
     };
-    public enum EPlotStyle
-    {
+    public enum EPlotStyle {
         psSolid,
         psSplatter
     };
-    public enum DrawFunction
-    {
+    public enum DrawFunction {
         dfEnableVis = 0xf0,   //Change picture color and enable picture draw.
         dfDisableVis = 0xF1,   //Disable picture draw.
         dfEnablePri = 0xF2,    //Change priority color and enable priority draw.
@@ -106,8 +99,7 @@ namespace WinAGI.Engine
         dfPlotPen = 0xFA,      //Plot with pen.
         dfEnd = 0xFF          //end of drawing
     };
-    public enum LogicErrorLevel
-    {
+    public enum LogicErrorLevel {
         leLow,     //only errors that prevent compilation/decompiliation
                    //are passed; no warnings are given
         leMedium,  //only errors that prevent compilation/decompilation
@@ -115,8 +107,7 @@ namespace WinAGI.Engine
                    //source code on compilation
         leHigh,    //all compile/decompile problems are returned as errors
     };
-    public enum ECStatus
-    { //used to update editor as components are completed,
+    public enum ECStatus { //used to update editor as components are completed,
         csCompWords,
         csCompObjects,
         csAddResource,
@@ -128,16 +119,14 @@ namespace WinAGI.Engine
         csLogicError,
         csCanceled
     };
-    public enum SoundFormat
-    {
+    public enum SoundFormat {
         sfUndefined,
         sfAGI,    //native agi format
         sfWAV,    //only IIgs pcm sounds can be exported as wav
         sfMIDI,   //only pc and IIgs can be saved as midi
         sfScript, //only pc can be exported as script
     };
-    public enum ArgTypeEnum
-    {
+    public enum ArgTypeEnum {
         atNum = 0,      //i.e. numeric Value
         atVar = 1,      //v##
         atFlag = 2,     //f##
@@ -157,8 +146,7 @@ namespace WinAGI.Engine
         //   atNum, atVar, atFlag, atDefStr[msg only], atVocWrd,
         //   atActionCmd, atTestCmd, atObj, atView
     }
-    public enum ResDefGroup
-    {
+    public enum ResDefGroup {
         rgVariable,
         rgFlag,
         rgEdgeCode,
@@ -169,8 +157,7 @@ namespace WinAGI.Engine
         rgObject,
         rgString,
     }
-    public enum DefineNameCheck
-    {
+    public enum DefineNameCheck {
         ncOK,            // 0 = name is valid
         ncEmpty,         // 1 = no name
         ncNumeric,       // 2 = name is numeric
@@ -187,8 +174,7 @@ namespace WinAGI.Engine
         ncReservedStr,   // 13 = name is reserved string
         ncReservedMsg,   // 14 = name is reserved message
     }
-    public enum DefineValueCheck
-    {
+    public enum DefineValueCheck {
         vcOK,           // 0 = value is valid
         vcEmpty,        // 1 = no Value
         vcOutofBounds,  // 2 = Value is not byte(0-255) or marker value is not byte
@@ -197,13 +183,11 @@ namespace WinAGI.Engine
         vcReserved,     // 5 = Value is already defined by a reserved name
         vcGlobal,       // 6 = Value is already defined by a global name
     }
-    public enum OpenGameMode
-    {
+    public enum OpenGameMode {
         File,
         Directory,
     }
-    public enum EventType
-    {
+    public enum EventType {
         etInfo,
         etError,
         etWarning,
@@ -212,28 +196,24 @@ namespace WinAGI.Engine
     #endregion
     //structs
     #region Structures  
-    public struct PenStatus
-    {
+    public struct PenStatus {
         public AGIColorIndex VisColor;
         public AGIColorIndex PriColor;
         public EPlotShape PlotShape;
         public EPlotStyle PlotStyle;
         public int PlotSize;
     }
-    public struct AGIWord
-    {
+    public struct AGIWord {
         public string WordText;
         public int Group;
     }
-    public struct FreeSpaceInfo
-    {
+    public struct FreeSpaceInfo {
         public byte VOL;
         public int Start;
         public int End;
     }
     //type used for defined names
-    public struct TDefine
-    {
+    public struct TDefine {
         public string Name;
         public string Default; //for reserved, this is default name; not used for other defines
         public string Value;
@@ -241,8 +221,7 @@ namespace WinAGI.Engine
         public string Comment;
     }
 
-    public struct TWinAGIEventInfo
-    {
+    public struct TWinAGIEventInfo {
         public EventType Type;              // type of data being reported - error/warning/info/TODO
         public EInfoType InfoType;          // sub-type for game load warnings ??? is this even needed anymore???
         public AGIResType ResType;          // resource type, if applicable to warning or error
@@ -252,8 +231,7 @@ namespace WinAGI.Engine
         public string Line;                    // line number for comp/decomp errors and warnings
         public string Module;               // module name, if comp error occurs in an #include file
     }
-    public enum EInfoType
-    { //used to update editor during a game load
+    public enum EInfoType { //used to update editor during a game load
         itInitialize,
         itValidating,     //add check for dirty source code
         itPropertyFile,
@@ -265,8 +243,7 @@ namespace WinAGI.Engine
     };
 
 
-    public struct CommandStruct
-    {
+    public struct CommandStruct {
         public string Name;
         public ArgTypeEnum[] ArgType; //7
     }
@@ -277,8 +254,7 @@ namespace WinAGI.Engine
     // and methods that the engine uses
     //
     //***************************************************
-    public static partial class Base
-    {
+    public static partial class Base {
         // arrays that hold constant values
         #region
         public static readonly string[] ResTypeAbbrv = ["LOG", "PIC", "SND", "VIEW"];
@@ -323,17 +299,14 @@ namespace WinAGI.Engine
         internal static string TempFileDir = "";
         #endregion
 
-        public static EGAColors DefaultColors
-        {
+        public static EGAColors DefaultColors {
             get { return defaultColorEGA; }
             //set { colorEGA = value; }
         }
 
-        public static string TemplateDir
-        {
+        public static string TemplateDir {
             get { return agTemplateDir; }
-            set
-            {
+            set {
                 // directory has to exist
                 if (!Directory.Exists(value)) {
                     WinAGIException wex = new(LoadResString(630).Replace(ARG1, value)) {
@@ -345,13 +318,11 @@ namespace WinAGI.Engine
             }
         }
 
-        static Base()
-        {
-            // initialize all winagi stuff here? no, put it in a method that can be called
+        static Base() {
+            // this makes the codepages used in WinAGI available
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
-        public static void InitWinAGI()
-        {
+        public static void InitWinAGI() {
             // TEMP CHECK - verify the string resource file is still working correctly
             try {
                 Debug.Print(LoadResString(505));
@@ -366,17 +337,15 @@ namespace WinAGI.Engine
             Compiler.AssignReservedDefines();
         }
 
-        public static string DefResDir
-        {
+        public static string DefResDir {
             get { return agDefResDir; }
-            set
-            {
+            set {
                 string NewDir = value;
 
                 NewDir = NewDir.Trim();
 
                 if (NewDir.Length == 0) {
-                    throw new ArgumentOutOfRangeException("DefResDir","Empty string not allowed");
+                    throw new ArgumentOutOfRangeException("DefResDir", "Empty string not allowed");
                 }
                 if (NewDir.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
                     throw new ArgumentOutOfRangeException("Invalid characters in path name");
@@ -386,11 +355,9 @@ namespace WinAGI.Engine
             }
         }
 
-        public static int DefMaxVol0Size
-        {
+        public static int DefMaxVol0Size {
             get { return defMaxVol0; }
-            set
-            {
+            set {
                 //validate
                 if (value < 32768) {
                     defMaxVol0 = 32768;
@@ -403,8 +370,8 @@ namespace WinAGI.Engine
                 }
             }
         }
-        internal static string GetIntVersion(string gameDir, bool isV3)
-        {
+
+        internal static string GetIntVersion(string gameDir, bool isV3) {
             byte[] bytBuffer = [0];
             FileStream fsVer;
 
@@ -449,10 +416,9 @@ namespace WinAGI.Engine
                 //this function gets the version number of a Sierra AGI game
                 //if found, it is validated against list of versions
                 //that WinAGI recognizes
-                //
+                
                 //returns version number for a valid number
                 //returns null string for invalid number
-
 
                 string strVersion;
                 int i;
@@ -523,8 +489,7 @@ namespace WinAGI.Engine
                                  // the one that all the "new" AGI games should be based on.
             }
         }
-        internal static void ResetDefaultColors()
-        {
+        internal static void ResetDefaultColors() {
             defaultColorEGA[0] = Color.FromArgb(0, 0, 0);           // 000000 = black
             defaultColorEGA[1] = Color.FromArgb(0, 0, 0xAA);        // 0000AA = blue
             defaultColorEGA[2] = Color.FromArgb(0, 0xAA, 0);        // 00AA00 = green

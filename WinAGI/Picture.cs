@@ -578,8 +578,6 @@ namespace WinAGI.Engine {
             if (mLoaded) {
                 return;
             }
-            mIsDirty = false;
-            WritePropState = false;
             // load base resource
             base.Load();
             if (mErrLevel < 0) {

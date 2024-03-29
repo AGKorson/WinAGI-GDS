@@ -37,7 +37,7 @@ namespace WinAGI.Editor {
         int PicScale;
         bool blnDraggingPic;
 
-        //sound preview
+        // sound preview
         Sound agSound;
         long lngStart;
 
@@ -105,32 +105,52 @@ namespace WinAGI.Editor {
                 switch (ResType) {
                 case rtLogic:
                     if (PreviewLogic((byte)ResNum)) {
-                        //show it
                         pnlLogic.Visible = true;
+                    }
+                    else {
+                        pnlLogic.Visible = false;
+                        // TODO: need res strings to display resource errors
+                        // based on the ErrLevel value
+                        CreateGraphics().DrawString("Invalid logic resource: {errinfo}", this.Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 case rtPicture:
                     if (PreviewPic((byte)ResNum)) {
-                        //show it
                         pnlPicture.Visible = true;
                         // show pic save as menu item
                         mnuRSavePicAs.Visible = true;
                         mnuRSep1.Visible = true;
                     }
+                    else {
+                        pnlPicture.Visible = false;
+                        // TODO: need res strings to display resource errors
+                        // based on the ErrLevel value
+                        this.CreateGraphics().DrawString("Invalid picture resource: {errinfo}", this.Font, new SolidBrush(Color.Black), 0, 0);
+                    }
                     break;
                 case rtSound:
                     if (PreviewSound((byte)ResNum)) {
-                        //show it
                         pnlSound.Visible = true;
                     }
+                    else {
+                        pnlSound.Visible = false;
+                        // TODO: need res strings to display resource errors
+                        // based on the ErrLevel value
+                        this.CreateGraphics().DrawString("Invalid sound resource: {errinfo}", this.Font, new SolidBrush(Color.Black), 0, 0);
+                    }
                     break;
-                case rtView: //VIEW
+                case rtView:
                     if (PreviewView((byte)ResNum)) {
-                        //show it
                         pnlView.Visible = true;
                         // show loop export menu item
                         mnuRLoopGIF.Visible = true;
                         mnuRSep1.Visible = false;
+                    }
+                    else {
+                        pnlView.Visible = false;
+                        // TODO: need res strings to display resource errors
+                        // based on the ErrLevel value
+                        this.CreateGraphics().DrawString("Invalid view resource: {errinfo}", this.Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 }
@@ -230,26 +250,20 @@ namespace WinAGI.Editor {
         bool PreviewLogic(byte LogNum) {
             //get the logic
             agLogic = EditGame.Logics[LogNum];
-            try {
-                // get the source code
-                rtfLogPrev.Text = agLogic.SourceText;
-                rtfLogPrev.ScrollToCaret();
-                // set background
-                rtfLogPrev.BackColor = agLogic.Compiled ? Color.FromArgb(0xE0, 0xFF, 0xE0) : Color.FromArgb(0xFF, 0xE0, 0xe0);
-                return true;
-            }
-            catch (Exception e) {
-                //check for error
-                //switch (Err.Number
-                //case WINAGI_ERR + 688
-                //  ErrMsgBox "No source code found: ", "Unable to decode the logic resource.", "Preview Logic Error"
-                //default:
-                //  ErrMsgBox "Error while loading logic resource", "", "Preview Logic Error"
-                // TODO: always unload???
+            agLogic.Load();
+            // check for errors
+            if (agLogic.ErrLevel < 0) {
                 agLogic.Unload();
                 return false;
             }
+            // get the source code
+            rtfLogPrev.Text = agLogic.SourceText;
+            rtfLogPrev.ScrollToCaret();
+            // set background
+            rtfLogPrev.BackColor = agLogic.Compiled ? Color.FromArgb(0xE0, 0xFF, 0xE0) : Color.FromArgb(0xFF, 0xE0, 0xe0);
+            return true;
         }
+
         private void optVisual_CheckedChanged(object sender, EventArgs e) {
             //force a redraw
             DisplayPicture();
@@ -304,10 +318,14 @@ namespace WinAGI.Editor {
             GameSettings.WriteSetting(sPOSITION, "PreviewHeight", Height);
         }
         bool PreviewPic(byte PicNum) {
-            //get new picture
+            //get the picture
             agPic = EditGame.Pictures[PicNum];
             agPic.Load();
-            // ignore errors
+            // check for errors
+            if (agPic.ErrLevel < 0) {
+                agPic.Unload();
+                return false;
+            }
             DisplayPicture();
             return true;
         }
@@ -385,27 +403,12 @@ namespace WinAGI.Editor {
                 picProgress.Width = (int)(pnlProgressBar.Width * dblPos);
             }
         }
+
         public void StopSoundPreview() {
-            //disable stop and enable play
-            btnPlay.Enabled = !Settings.NoMIDI;
-            //cmdPlay.Focus()   //DON'T do this - setting focus to a control also
-            //sets focus to the form, which creates an unending
-            //cycle of getfocus/lostfocus
-            btnStop.Enabled = false;
-            //stop sound
+            // stop sound
             agSound?.StopSound();
-            //disable timer
-            tmrSound.Enabled = false;
-            //reset progress bar
-            picProgress.Width = 0;
-            //re-enable track/instrument controls when sound is stopped
-            for (int i = 0; i < 3; i++) {
-                chkTrack[i].Enabled = true;
-                cmbInst[i].Enabled = true;
-            }
-            chkTrack[3].Enabled = true;
-            cmdReset.Enabled = true;
         }
+
         void SetPScrollbars() {
             //// if panel is not visible, no need to adjust scrollbars
             //if (!panel2.Visible) {
@@ -489,8 +492,9 @@ namespace WinAGI.Editor {
             agSound = EditGame.Sounds[SndNum];
             // load the resource
             agSound.Load();
+            // check for errors
             if (agSound.ErrLevel < 0) {
-                ErrMsgBox(agSound.ErrLevel, "Error while loading sound resource", "", "Preview Sound Error");
+                agSound.Unload();
                 return false;
             }
             switch (agSound.SndFormat) {
@@ -546,14 +550,13 @@ namespace WinAGI.Editor {
             cmbInst[2].SelectedIndex = 80;
         }
         private void This_SoundComplete(object sender, SoundCompleteEventArgs e) {
-            //disable stop and enable play
+            // disable stop and enable play
             btnPlay.Enabled = !Settings.NoMIDI;
             btnStop.Enabled = false;
             tmrSound.Enabled = false;
             picProgress.Width = pnlProgressBar.Width;
             picProgress.Refresh();
-            //if this is a PC/PCjr sound, re-enable track controls
-            //now that sound is done
+            // if this is a PC/PCjr sound, re-enable track controls
             if (agSound.SndFormat == SoundFormat.sfAGI) {
                 for (int i = 0; i < 3; i++) {
                     chkTrack[i].Enabled = true;
@@ -562,7 +565,6 @@ namespace WinAGI.Editor {
                 chkTrack[3].Enabled = true;
                 cmdReset.Enabled = true;
             }
-            //now reset the progress bar
             picProgress.Width = 0;
         }
         private void cmdVPlay_Click(object sender, EventArgs e) {
@@ -740,28 +742,26 @@ namespace WinAGI.Editor {
             }
         }
         bool PreviewView(byte ViewNum) {
-            //get the view
+            //load resource for this view
             agView = EditGame.Views[ViewNum];
-                    //load resource for this view
-                    agView.Load();
+            agView.Load();
+            // check for errors
             if (agView.ErrLevel < 0) {
-                // error occurred,
-                ErrMsgBox(agView.ErrLevel, "Error while loading view resource", "", "Preview View Error");
+                agView.Unload();
                 return false;
             }
             //show correct toolbars for alignment
             HAlign.ImageIndex = lngHAlign + 2;
             VAlign.ImageIndex = lngVAlign + 5;
-            //success-disable updating until
-            //loop updowns is set
-            blnNoUpdate = true;
+            ////success-disable updating until
+            ////loop updowns is set
+            //blnNoUpdate = true;
 
-            CurLoop = 0;
-            //reenable updates
+            //CurLoop = 0;
+            //// reenable updates
             blnNoUpdate = false;
             //display the first loop (which will display the first cel!)
             DisplayLoop();
-            //return true
             return true;
         }
         private void pnlCel_Paint(object sender, PaintEventArgs e) {
@@ -1225,7 +1225,7 @@ namespace WinAGI.Editor {
         }
 
         private void rtfLogPrev_KeyDown(object sender, KeyEventArgs e) {
-            if (e.Handled = true) {
+            if (e.Handled == true) {
                 return;
             }
 

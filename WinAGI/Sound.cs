@@ -35,11 +35,7 @@ namespace WinAGI.Engine {
 
         internal void Raise_SoundCompleteEvent(bool noerror) {
             // Raise the event in a thread-safe manner using the ?. operator.
-            this.SoundComplete?.Invoke(null, new SoundCompleteEventArgs(noerror));
-            //TODO: need to attach events when object instantiated?
-
-            //for example - 
-            // new AGISound newSound.CompileGameStatus += myForm.mySoundEventHandler;
+            SoundComplete?.Invoke(null, new SoundCompleteEventArgs(noerror));
         }
 
         private void InitSound(Sound NewSound = null) {
@@ -124,18 +120,21 @@ namespace WinAGI.Engine {
             //creates midi/wav output data stream for this sound resource
             try {
                 switch (mFormat) {
-                case SoundFormat.sfAGI: //standard pc/pcjr sound
-                                        //build the midi first
+                case SoundFormat.sfAGI:
+                    // standard pc/pcjr sound
+                    // build the midi first
                     SndPlayer.mMIDIData = BuildMIDI(this);
                     mLength = GetSoundLength();
                     break;
-                case SoundFormat.sfWAV:  //IIgs pcm sound
+                case SoundFormat.sfWAV:
+                    // IIgs pcm sound
                     SndPlayer.mMIDIData = BuildIIgsPCM(this);
                     mLength = GetSoundLength();
 
                     break;
-                case SoundFormat.sfMIDI: //IIgs MIDI sound
-                                         //build the midi data and get length info
+                case SoundFormat.sfMIDI:
+                    // IIgs MIDI sound
+                    // build the midi data and get length info
                     SndPlayer.mMIDIData = BuildIIgsMIDI(this, ref mLength);
                     break;
                 }
@@ -447,22 +446,20 @@ namespace WinAGI.Engine {
                 return mLength;
             }
         }
-        public void PlaySound() {  //plays sound asynchronously by generating a MIDI stream
-                                   //that is fed to a MIDI output
+        public void PlaySound() {
+            // plays sound asynchronously by generating a MIDI stream
+            // that is fed to a MIDI output
 
-            //if not loaded
             if (!mLoaded) {
-                //error
-
                 WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
                 };
                 throw wex;
             }
-            //if sound is already open
+            // if sound is already open
             if (SndPlayer.blnPlaying) {
                 // TODO: change this to just stop the sound instead of error; also
-                // need tomake sure all sounds get stopped- should this be a static function?
+                // need to make sure all sounds get stopped- should this be a static function?
                 // YES...
 
                 WinAGIException wex = new(LoadResString(629)) {
@@ -470,13 +467,13 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            //dont need to worry if tracks are properly loaded because
-            //changing track data causes mMIDISet to be reset; this forces
-            //midi rebuild, which references the Tracks throught the Track
-            //property, which forces rebuild of track data when the
-            //BUILDMIDI method first access the track property
+            // don't need to worry if tracks are properly loaded because
+            // changing track data causes mMIDISet to be reset; this forces
+            // midi rebuild, which references the Tracks throught the Track
+            // property, which forces rebuild of track data when the
+            // BUILDMIDI method first access the track property
 
-            //if sound data not set to play
+            // if sound data not set to play
             if (!mMIDISet) {
                 try {
                     BuildSoundOutput();
@@ -1132,9 +1129,6 @@ namespace WinAGI.Engine {
                 // they just need a valid resfile to get data from
                 Debug.Assert(mLoaded);
             }
-            // clear dirty flag
-            mIsDirty = false;
-            WritePropState = false;
             // load base resource
             base.Load();
             if (mErrLevel < 0) {
@@ -1225,6 +1219,7 @@ namespace WinAGI.Engine {
                 return SndPlayer.mMIDIData;
             }
         }
+
         public void Save() {
             //saves the sound
             string strSection;
@@ -1293,8 +1288,7 @@ namespace WinAGI.Engine {
             }
             //if playing
             if (SndPlayer.blnPlaying) {
-                _ = API.mciSendString("close all", null, 0, (IntPtr)null);
-                SndPlayer.blnPlaying = false;
+                SndPlayer.StopSound();
             }
         }
         public override void Unload() {

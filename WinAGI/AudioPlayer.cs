@@ -13,21 +13,48 @@ namespace WinAGI.Engine {
         internal byte PlaySndResNum;
         internal Sound SndPlaying;
         internal byte[] mMIDIData;
+        //private int windowHandle;
+        
         internal AudioPlayer() {
             CreateParams cpSndPlayer = new()
             {
-                //Style = 1
+                Caption = String.Empty,
             };
-            this.CreateHandle(cpSndPlayer);
+            
+            CreateHandle(cpSndPlayer);
         }
+        // Listen to when the handle changes to keep the variable in sync
+        protected override void OnHandleChange() {
+            //windowHandle = (int)Handle;
+        }
+
+        protected override void WndProc(ref Message m) {
+            // Listen for messages that are sent to the sndplayer window.
+            switch (m.Msg) {
+            case MM_MCINOTIFY:
+                //determine success status
+                bool blnSuccess = (m.WParam == MCI_NOTIFY_SUCCESSFUL);
+                // close the sound
+                _ = mciSendString("close all", null, 0, (IntPtr)0);
+                // raise the 'done' event
+                SndPlaying.Raise_SoundCompleteEvent(blnSuccess);
+                // reset the flag
+                blnPlaying = false;
+                // release the object
+                SndPlaying = null;
+                break;
+            }
+            base.WndProc(ref m);
+        }
+
         internal void PlaySound(Sound SndRes) {
             string strTempFile, strShortFile;
             int rtn;
             string strID, strMode;
             StringBuilder strError = new(255);
-            //no spaces allowed in id
+            // no spaces allowed in id
             strID = SndRes.ID.Replace(" ", "_");
-            //create MIDI sound file
+            // create MIDI sound file
             strTempFile = Path.GetTempFileName();
             FileStream fsMidi = new(strTempFile, FileMode.Open);
             fsMidi.Write(SndRes.MIDIData);
@@ -41,7 +68,7 @@ namespace WinAGI.Engine {
             else {
                 strMode = "waveaudio";
             }
-            //open midi file and assign alias
+            // open midi file and assign alias
             rtn = mciSendString("open " + strShortFile + " type " + strMode + " alias " + strID, null, 0, IntPtr.Zero);
             //check for error
             if (rtn != 0) {
@@ -54,19 +81,19 @@ namespace WinAGI.Engine {
                 wex.Data["error"] = strError;
                 throw wex;
             }
-            //set playing flag and number of sound being played
+            // set playing flag and number of sound being played
             blnPlaying = true;
             PlaySndResNum = SndRes.Number;
             SndPlaying = SndRes;
-            //play the file
-            _ = mciSendString("play " + strID + " notify", null, 0, this.Handle);
-            //check for errors
+            // play the file
+            _ = mciSendString("play " + strID + " notify", null, 0, Handle);
+            // check for errors
             if (rtn != 0) {
                 _ = mciGetErrorString(rtn, strError, 255);
                 //reset playing flag
                 blnPlaying = false;
                 SndPlaying = null;
-                //close sound
+                // close sound
                 _ = mciSendString("close all", null, 0, (IntPtr)0);
                 //return the error
                 WinAGIException wex = new(LoadResString(628))
@@ -76,6 +103,11 @@ namespace WinAGI.Engine {
                 wex.Data["error"] = strError;
                 throw wex;
             }
+        }
+
+        internal void StopSound() {
+            _ = mciSendString("close all", null, 0, (IntPtr)null);
+            blnPlaying = false;
         }
 
         public void Dispose() {
@@ -90,16 +122,16 @@ namespace WinAGI.Engine {
 
         protected virtual void Dispose(bool disposing) {
             // check to see if Dispose has already been called
-            if (!this.disposed) {
+            if (!disposed) {
                 // if disposing is true, dispose all managed and unmanaged resources
                 if (disposing) {
-                    this.DestroyHandle();
+                    DestroyHandle();
                 }
                 // Call the appropriate methods to clean up
                 // unmanaged resources here.
                 // If disposing is false,
                 // only the following code is executed.
-                this.DestroyHandle();
+                DestroyHandle();
                 // Note disposing has been done.
                 disposed = true;
             }

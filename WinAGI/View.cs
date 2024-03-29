@@ -546,13 +546,13 @@ namespace WinAGI.Engine {
             if (mLoaded) {
                 return;
             }
-            mIsDirty = false;
-            WritePropState = false;
             // load base resource data
             base.Load();
             if (mErrLevel < 0) {
-                // return empty view, with no loops
+                // return empty view, with one loop, one cel, one pixel
                 ErrClear();
+                mRData.AllData = [1, 1, 1, 0, 0, 7, 0, 1, 3, 0, 1, 1, 0, 0];
+                mViewSet = true;
                 return;
             }
             // extract loops/cels
@@ -612,7 +612,7 @@ namespace WinAGI.Engine {
         
         public Loops Loops {
             get {
-                //if not loaded
+                // if not loaded
                 if (!mLoaded) {
                     //error
                     WinAGIException wex = new(LoadResString(563)) {
@@ -620,7 +620,7 @@ namespace WinAGI.Engine {
                     };
                     throw wex;
                 }
-                //if view not set,
+                // if view not set,
                 if (!mViewSet) {
                     //error
                     WinAGIException wex = new(LoadResString(563) + ": loops not load????") {
@@ -628,7 +628,7 @@ namespace WinAGI.Engine {
                     };
                     throw wex;
                 }
-                //return the loop collection
+                // return the loop collection
                 return mLoopCol;
             }
         }

@@ -463,6 +463,8 @@ namespace WinAGI.Engine {
             }
             // always return success
             mLoaded = true;
+            mIsDirty = false;
+            WritePropState = false;
 
             //if in a game,
             if (mInGame) {
