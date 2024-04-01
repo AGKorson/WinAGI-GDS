@@ -237,7 +237,7 @@ namespace WinAGI.Engine {
             if (parent is not null) {
                 //initialize global defines
                 if (!parent.GlobalDefines.IsSet) {
-                    parent.GlobalDefines.GetGlobalDefines();
+                    parent.GlobalDefines.LoadGlobalDefines();
                 }
                 //if ids not set yet
                 if (!Compiler.blnSetIDs) {

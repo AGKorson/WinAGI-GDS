@@ -1,7 +1,6 @@
 ﻿using System;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
-using static WinAGI.Engine.Commands;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -14,17 +13,17 @@ namespace WinAGI.Engine {
         internal EGAColors colorEGA;
         internal byte[,] mCelData;
         internal int mIndex;
-        internal bool blnCelBMPSet;  //means cel bitmap needs to be rebuilt
+        // when blnCelBMPSet is false, means cel bitmap needs to be rebuilt
+        internal bool blnCelBMPSet;
         internal bool mTransparency;
-        internal bool mCelChanged;   // means cel data has change? who cares?
+        // when mCelChanged is true, means cel data has changed
+        internal bool mCelChanged;
         internal Bitmap mCelBMP;
-        //mSetMirror is true if cel is supposed to show the mirror
+        // mSetMirror is true if cel is supposed to show the mirror
         bool mSetMirror;
-        //mMirror is true if the cel IS showing the mirror
+        // mMirrored is true if the cel IS showing the mirror
         bool mMirrored;
-        // mForceReload used to reload the bitmaps when
-
-        View mParent;
+        readonly View mParent;
 
         public Cel() {
             mCelData = new byte[1, 1];
@@ -39,7 +38,7 @@ namespace WinAGI.Engine {
             mWidth = 1;
             mHeight = 1;
             mParent = parent;
-            //if parent view is part of a game, use the game's colors
+            // if parent view is part of a game, use the game's colors
             if (mParent is not null) {
                 if (mParent.parent is not null) {
                     colorEGA = mParent.parent.agEGAcolors;
@@ -51,21 +50,19 @@ namespace WinAGI.Engine {
 
         public byte this[byte xPos, byte yPos] {
             get {
-                //returns the cel data for the pixel at xPos, yPos
-                //verify within bounds
+                // returns the cel data for the pixel at xPos, yPos
+                // verify within bounds
                 if (xPos > mWidth - 1) {
                     throw new ArgumentOutOfRangeException(nameof(xPos));
                 }
                 if (yPos > mHeight - 1) {
                     throw new ArgumentOutOfRangeException(nameof(yPos));
                 }
-                //if cel is in mirror state
                 if (mSetMirror) {
-                    //reverse x direction
+                    // reverse x direction
                     return mCelData[mWidth - 1 - xPos, yPos];
                 }
                 else {
-                    //get pixel Value
                     return mCelData[xPos, yPos];
                 }
             }
@@ -99,34 +96,32 @@ namespace WinAGI.Engine {
 
         public byte[,] AllCelData {
             get {
-                //returns the entire array of cel data
-                //flips the data if the cel is mirrored, and
-                //not the primary loop
+                // returns the entire array of cel data
+                // flips the data if the cel is mirrored, and
+                // not the primary loop
                 byte[,] tmpData;
                 int i, j;
                 if (mSetMirror) {
-                    //need to flip the data
+                    // need to flip the data
                     tmpData = new byte[mWidth, mHeight];
                     for (i = 0; i < mWidth; i++) {
                         for (j = 0; j < mHeight; j++) {
-                            //copy backwards
+                            // copy backwards
                             tmpData[mWidth - 1 - i, j] = mCelData[i, j];
                         }
                     }
-                    //return temp data
                     return tmpData;
                 }
                 else {
-                    //fine to return as is
+                    // fine to return as is
                     return mCelData;
                 }
             }
             set {
-                //this method allows the entire cel data
-                //to be set as an array
-                //validate dimensions match height/width
+                // allows the entire cel data to be set as an array
+                // validate dimensions match height/width
                 if (value.GetUpperBound(0) != mWidth - 1) {
-                    //invalid data
+                    // invalid data
                     WinAGIException wex = new(LoadResString(614)) {
                         HResult = WINAGI_ERR + 614,
                     };
@@ -139,14 +134,10 @@ namespace WinAGI.Engine {
                     };
                     throw wex;
                 }
-                //set the celdata
                 mCelData = value;
-                //if there is a parent object
                 if (mParent is not null) {
-                    //set dirty flag
                     mParent.IsDirty = true;
                 }
-                //note change
                 mCelChanged = true;
             }
         }
@@ -164,7 +155,6 @@ namespace WinAGI.Engine {
                     mTransparency = value;
                     mCelChanged = true;
                     if (mParent is not null) {
-                        //set dirty flag
                         mParent.IsDirty = true;
                     }
                 }
@@ -324,18 +314,9 @@ namespace WinAGI.Engine {
                 //adjusts height of cel
                 int i, j;
                 byte[,] tmpData;
-                //must be non-zero
-                if (value == 0) {
-                    WinAGIException wex = new(LoadResString(532)) {
-                        HResult = WINAGI_ERR + 532,
-                    };
-                    throw wex;
-                }
-                if (value > MAX_CEL_HEIGHT) {
-                    WinAGIException wex = new(LoadResString(532)) {
-                        HResult = WINAGI_ERR + 532,
-                    };
-                    throw wex;
+
+                if (value == 0 || value > MAX_CEL_HEIGHT) {
+                    throw new ArgumentOutOfRangeException(nameof(value));
                 }
                 //if changed
                 if (mHeight != value) {
@@ -412,31 +393,20 @@ namespace WinAGI.Engine {
         public byte Width {
             get { return mWidth; }
             set {
-                //adjusts width of cel
+                // adjusts width of cel
                 int i, j;
                 byte[,] tmpData;
-                //width must be non zero
-                if (value == 0) {
-                    WinAGIException wex = new(LoadResString(533)) {
-                        HResult = WINAGI_ERR + 533,
-                    };
-                    throw wex;
+                // width must be non zero
+                if (value == 0 || value > MAX_CEL_WIDTH) {
+                    throw new ArgumentOutOfRangeException(nameof(value));
                 }
-                //width must not exceed max Value
-                if (value > MAX_CEL_WIDTH) {
-                    WinAGIException wex = new(LoadResString(533)) {
-                        HResult = WINAGI_ERR + 533,
-                    };
-                    throw wex;
-                }
-                //if changed,
                 if (mWidth != value) {
-                    //can't easily resize multidimensional arrays, so 
+                    // can't easily resize multidimensional arrays, so 
                     // make a new array, copy desired data over
                     tmpData = new byte[value, mHeight];
                     for (i = 0; i < mWidth; i++) {
                         for (j = 0; j < mHeight; j++) {
-                            //if past oldwidth
+                            // if past oldwidth
                             if (i >= mWidth) {
                                 //add a transparent color pixel
                                 tmpData[i, j] = (byte)mTransColor;
@@ -447,16 +417,11 @@ namespace WinAGI.Engine {
                             }
                         }
                     }
-                    // save new data
                     mCelData = tmpData;
-                    //set new width
                     mWidth = value;
-                    //if there is a parent object
                     if (mParent is not null) {
-                        //set dirty flag
                         mParent.IsDirty = true;
                     }
-                    //note change
                     mCelChanged = true;
                 }
             }
@@ -469,21 +434,14 @@ namespace WinAGI.Engine {
         public AGIColorIndex TransColor {
             get { return mTransColor; }
             set {
-                //ensure a valid range is passed,
+                // ensure a valid range is passed,
                 if (value < 0 || (byte)value > 15) {
-                    //error
-                    WinAGIException wex = new(LoadResString(556)) {
-                        HResult = WINAGI_ERR + 556,
-                    };
-                    throw wex;
+                    throw new ArgumentOutOfRangeException(nameof(value));
                 }
-                //if changed,
                 if (value != mTransColor) {
-                    //change it
                     mTransColor = value;
                     mCelChanged = true;
                     if (mParent is not null) {
-                        //set dirty flag
                         mParent.IsDirty = true;
                     }
                 }

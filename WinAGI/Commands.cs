@@ -1,17 +1,12 @@
 ﻿using System;
-using System.IO;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.ArgTypeEnum;
-using Microsoft.VisualBasic.Devices;
 using System.Linq;
+using static WinAGI.Engine.ArgTypeEnum;
+using static WinAGI.Engine.Base;
 
-namespace WinAGI.Engine
-{
-    public static class Commands
-    {
-        //this class holds objects that contain information relating to
-        //current game action commands
-        //test commands are in a separate object class
+namespace WinAGI.Engine {
+    public static class Commands {
+        // This class holds objects that contain information relating to
+        // current game action and test commands.
         //
         internal static readonly string[] agArgTypPref = ["", "v", "f", "m", "o", "i", "s", "w", "c"];
         internal static readonly string[] agArgTypName =
@@ -26,8 +21,7 @@ namespace WinAGI.Engine
         // last command 'adjust.ego.x.y', is not supported so it's not added
         // to the list of commands
 
-        static Commands()
-        {
+        static Commands() {
             // default is to make all 182 commands visible
             agNumCmds = MAX_CMDS;
 
@@ -816,8 +810,7 @@ namespace WinAGI.Engine
             agCmds[175].ArgType[0] = atNum;
 
             agCmds[176].Name = "hide.mouse";
-            //////  agCmds[176].ArgType.Length = 0
-            //i think arg count  should always be 1
+            // i think arg count  should always be 1
             agCmds[176].ArgType = new ArgTypeEnum[1];
             agCmds[176].ArgType[0] = atNum;
 
@@ -826,8 +819,7 @@ namespace WinAGI.Engine
             agCmds[177].ArgType[0] = atNum;
 
             agCmds[178].Name = "show.mouse";
-            //////  agCmds[178].ArgType.Length = 0
-            //i think ArgType.Length should be 1
+            // i think ArgType.Length should be 1
             agCmds[178].ArgType = new ArgTypeEnum[1];
             agCmds[178].ArgType[0] = atNum;
 
@@ -922,7 +914,8 @@ namespace WinAGI.Engine
             agTestCmds[13].ArgType = [];
 
             agTestCmds[14].Name = "said";
-            //special command so we don't need to set the argument types for it
+            // said is special because it has variable number of arguments;
+            // set it blank here, compiler adjusts it as needed
             agTestCmds[14].ArgType = [];
 
             agTestCmds[15].Name = "compare.strings";
@@ -955,28 +948,32 @@ namespace WinAGI.Engine
             agTestCmds[18].ArgType[4] = atNum;
 
             // in.motion.using.mouse
-            // this command is not confirmed; I *think* I found it
+            // This command is not confirmed; I *think* I found it
             // described in an Apple or Atari version, but I can't
-            // seem to find it again
+            // seem to find it again.
             agTestCmds[19].Name = "in.motion.using.mouse";
             agTestCmds[19].ArgType = [];
         }
-        public static CommandStruct[] TestCommands
-        {
+
+        public static CommandStruct[] TestCommands {
             get { return agTestCmds; }
         }
-        public static byte TestCount
-        { get { return agNumTestCmds; } private set { } }
-        public static CommandStruct[] ActionCommands
-        {
+
+        public static byte TestCount {
+            get { return agNumTestCmds; }
+        }
+
+        public static CommandStruct[] ActionCommands {
             get { return agCmds; }
         }
-        public static byte ActionCount
-        { get { return agNumCmds; } private set { } }
-        internal static void CorrectCommands(string Version)
-        {
+
+        public static byte ActionCount {
+            get { return agNumCmds; }
+        }
+
+        internal static void CorrectCommands(string Version) {
             // This procedure adjusts the logic commands for a given int. version
-            if (!IntVersions.Contains(Version)) { 
+            if (!IntVersions.Contains(Version)) {
                 //error
                 throw new ArgumentOutOfRangeException(nameof(Version));
                 //return;

@@ -3463,8 +3463,11 @@ namespace WinAGI.Editor {
                 }
             }
 
-            //check name against improper character list
-            if (NewID.IndexOfAny([.. INVALID_ID_CHARS]) >= 0) {
+            //check name against improper character lists
+            if (NewID.Any(INVALID_ID_CHARS.Contains)) {
+                return 14;
+            }
+            if (NewID.Any(ch => ch > 127 || ch < 32)) {
                 return 14;
             }
 

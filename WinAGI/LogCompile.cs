@@ -97,7 +97,7 @@ namespace WinAGI.Engine {
 
             //initialize global defines
             if (!compGame.GlobalDefines.IsSet) {
-                compGame.GlobalDefines.GetGlobalDefines();
+                compGame.GlobalDefines.LoadGlobalDefines();
             }
             //if ids not set yet
             if (!blnSetIDs) {

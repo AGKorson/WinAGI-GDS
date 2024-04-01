@@ -13,29 +13,22 @@ namespace WinAGI.Engine {
         internal byte PlaySndResNum;
         internal Sound SndPlaying;
         internal byte[] mMIDIData;
-        //private int windowHandle;
-        
+
         internal AudioPlayer() {
-            CreateParams cpSndPlayer = new()
-            {
+            CreateParams cpSndPlayer = new() {
                 Caption = String.Empty,
             };
-            
             CreateHandle(cpSndPlayer);
-        }
-        // Listen to when the handle changes to keep the variable in sync
-        protected override void OnHandleChange() {
-            //windowHandle = (int)Handle;
         }
 
         protected override void WndProc(ref Message m) {
             // Listen for messages that are sent to the sndplayer window.
             switch (m.Msg) {
             case MM_MCINOTIFY:
-                //determine success status
+                // determine success status
                 bool blnSuccess = (m.WParam == MCI_NOTIFY_SUCCESSFUL);
                 // close the sound
-                _ = mciSendString("close all", null, 0, (IntPtr)0);
+                _ = mciSendString("close all", null, 0, 0);
                 // raise the 'done' event
                 SndPlaying.Raise_SoundCompleteEvent(blnSuccess);
                 // reset the flag
@@ -47,21 +40,22 @@ namespace WinAGI.Engine {
             base.WndProc(ref m);
         }
 
+        /// <summary>
+        /// Plays the wav or midi output of an AGI sound resource. MSDOS sounds are
+        /// converted to MIDI; IIg sounds are natively MIDI or wav.
+        /// </summary>
+        /// <param name="SndRes"></param>
         internal void PlaySound(Sound SndRes) {
-            string strTempFile, strShortFile;
+            string strTempFile;
             int rtn;
-            string strID, strMode;
+            string strMode;
             StringBuilder strError = new(255);
-            // no spaces allowed in id
-            strID = SndRes.ID.Replace(" ", "_");
             // create MIDI sound file
             strTempFile = Path.GetTempFileName();
             FileStream fsMidi = new(strTempFile, FileMode.Open);
             fsMidi.Write(SndRes.MIDIData);
             fsMidi.Dispose();
-            //convert to shortname
-            strShortFile = ShortFileName(strTempFile);
-            //if midi (format 1 or 3converted from agi, or native IIg midi)
+            //if midi (format 1 or 3 converted from agi, or native IIg midi)
             if (SndRes.SndFormat == SoundFormat.sfAGI || SndRes.SndFormat == SoundFormat.sfMIDI) {
                 strMode = "sequencer";
             }
@@ -69,35 +63,31 @@ namespace WinAGI.Engine {
                 strMode = "waveaudio";
             }
             // open midi file and assign alias
-            rtn = mciSendString("open " + strShortFile + " type " + strMode + " alias " + strID, null, 0, IntPtr.Zero);
-            //check for error
+            rtn = mciSendString("open " + strTempFile + " type " + strMode + " alias " + SndRes.ID, null, 0, IntPtr.Zero);
+            // check for error
             if (rtn != 0) {
                 _ = mciGetErrorString(rtn, strError, 255);
-                //return the error
-                WinAGIException wex = new(LoadResString(628))
-                {
+                WinAGIException wex = new(LoadResString(628)) {
                     HResult = WINAGI_ERR + 628,
                 };
                 wex.Data["error"] = strError;
                 throw wex;
             }
-            // set playing flag and number of sound being played
             blnPlaying = true;
             PlaySndResNum = SndRes.Number;
             SndPlaying = SndRes;
             // play the file
-            _ = mciSendString("play " + strID + " notify", null, 0, Handle);
+            _ = mciSendString("play " + SndRes.ID + " notify", null, 0, Handle);
             // check for errors
             if (rtn != 0) {
                 _ = mciGetErrorString(rtn, strError, 255);
-                //reset playing flag
+                // reset playing flag
                 blnPlaying = false;
                 SndPlaying = null;
                 // close sound
-                _ = mciSendString("close all", null, 0, (IntPtr)0);
-                //return the error
-                WinAGIException wex = new(LoadResString(628))
-                {
+                _ = mciSendString("close all", null, 0, 0);
+                // return the error
+                WinAGIException wex = new(LoadResString(628)) {
                     HResult = WINAGI_ERR + 628,
                 };
                 wex.Data["error"] = strError;

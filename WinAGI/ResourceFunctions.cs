@@ -1087,8 +1087,8 @@ namespace WinAGI.Engine {
                             //?????? well, here we are, months later; now the 36.376 sounds crappy! WTH?
                             // by using 'round' instead of 'floor' (which is what I think (byte) conversion
                             // does, 36.376 sounds right again; smh
-                            //bytNote = (byte)((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.5);
-                            bytNote = (byte)Math.Round((Math.Log10(111860 / (double)SoundIn[i].Notes[j].FreqDivisor) / LOG10_1_12) - 36.376);
+                            bytNote = (byte)            ((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.5);
+                            //bytNote = (byte)Math.Round((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.376);
                             //
                             //f = 111860 / (((Byte2 + 0x3F) << 4) + (Byte3 + 0x0F))
                             //
@@ -1712,15 +1712,15 @@ namespace WinAGI.Engine {
         internal static void WriteSndDelta(int LongIn) {
             //writes variable delta times
             int i;
-            i = LongIn << 21; //LngSHR(LongIn, 21)
+            i = LongIn >> 21;
             if ((i > 0)) {
                 WriteSndByte((byte)((i & 127) | 128));
             }
-            i = LongIn << 14; //LngSHR(LongIn, 14)
+            i = LongIn >> 14;
             if (i > 0) {
                 WriteSndByte((byte)((i & 127) | 128));
             }
-            i = LongIn << 7; //LngSHR(LongIn, 7)
+            i = LongIn >> 7;
             if ((i > 0)) {
                 WriteSndByte((byte)((i & 127) | 128));
             }

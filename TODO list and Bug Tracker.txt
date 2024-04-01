@@ -85,6 +85,7 @@ AGIResource       Data/get                  563                   resource not l
 AGIResource       Save                      563                   resource not loaded
 AGIResource       Save                      PASS                  pass-through AddtoVol
 AGIResource       Save                      PASS                  pass-through AGIResource.Export
+AGIResource       Export                    563                   resource not loaded
 AGIResource       Export                    599                   missing ExportFile argument
 AGIResource       Export                    601                   can't export resource that has errors
 AGIResource       Export                    582                   file access error while exporting resource
@@ -93,6 +94,8 @@ AGIResource       Import                    524                   missing import
 AGIResource       Import                    605                   file access error when importing resource
 AGIResource       Import                    605                   import resource file is empty
 AGIResource       Import                    PASS                  pass-through AGIResource.Save
+AGIResource       IsDirty/get               563                   resource not loaded
+AGIResource       IsDirty/set               563                   resource not loaded
 AGIResource       WriteByte                 563                   resource not loaded
 AGIResource       WriteByte                 ArgOutOfRange         Pos value is invalid
 AGIResource       WriteWord                 563                   resource not loaded
@@ -112,66 +115,100 @@ AGIResource       RemoveData                563                   resource not l
 AGIResource       RemoveData                ArgOutOfRange         RemoveCount value is invalid
 AGIResource       RemoveData                ArgOutOfRange         RemovePos value is invalid
 AGIResource       Clear                     563                   resource not loaded
+AudioPlayer       PlaySound                 628                   media player open media error
+AudioPlayer       PlaySound                 628                   media player play media error
+Cel               this/get                  ArgOutOfRange         xPos value is invalid
+Cel               this/get                  ArgOutOfRange         yPos value is invalid
+Cel               this/set                  ArgOutOfRange         xPos value is invalid
+Cel               this/set                  ArgOutOfRange         yPos value is invalid
+Cel               AllCelData/set            614                   array Width is invalid
+Cel               AllCelData/set            614                   array Height is invalid
+Cel               Height/set                ArgOutOfRange         invalid new height value
+Cel               Width/set                 ArgOutOfRange         invalid new width value
+Cel               TransColor/set            ArgOutOfRange         invalid new width value
+Cels              this/get                  ArgOutOfRange         invalid index
+Cels              Add                       552                   invalid insert pos
+Cels              Remove                    612                   invalid remove pos
+Cels              Remove                    IndexOutOfRange       invalid index
+Cels              CelEnum.Current           InvalidOperation      invalid position
+CommonAPI         ResizeArray               ArgException          array dimension mismatch
+CommonAPI         CopyDirectory             DirNotFound           invalid directory name
+CommonAPI         CopyDirectory             Exception             file access error
+Compiler          ArgTypePrefix             IndexOutOfRange       invalid index
+Compiler          ArgTypeName               IndexOutOfRange       invalid index
+Compiler          SetIgnoreWarning          IndexOutOfRange       invalid index
+Compiler          IgnoreWarning             IndexOutOfRange       invalid index
+Compiler          ResDefByGrp               IndexOutOfRange       invalid index
+Compiler          SetResDef                 IndexOutOfRange       invalid var index
+Compiler          SetResDef                 IndexOutOfRange       invalid flag index
+Compiler          SetResDef                 IndexOutOfRange       invalid edgecode index
+Compiler          SetResDef                 IndexOutOfRange       invalid direction index
+Compiler          SetResDef                 IndexOutOfRange       invalid videomode index
+Compiler          SetResDef                 IndexOutOfRange       invalid computertype index
+Compiler          SetResDef                 IndexOutOfRange       invalid color index
+Compiler          SetResDef                 IndexOutOfRange       invalid object index
+Compiler          SetResDef                 IndexOutOfRange       invalid string index
+Compiler          SetResDef                 IndexOutOfRange       invalid type
+EGAColors         this/get                  IndexOutOfRange       invalid color index
+EGAColors         this/set                  IndexOutOfRange       invalid color index
+EGAColors         ColorText                 IndexOutOfRange       invalid color index
+WordList          Export                    563                   resource not loaded
+WordList          Export                    PASS                  pass-through Compile        
+WordList          Export                    PASS                  pass-through CompileSVE
+WordList          LoadSierraFile            606                   loadfile missing
+WordList          LoadSierraFile            700                   loadfile is readonly
+WordList          LoadSierraFile            502                   file access error while reading words.tok
+WordList          LoadSierraFile            529                   invalid words.tok data
+WordList          Clone                     563                   resource not loaded
+WordList          GroupN                    563                   resource not loaded
+WordList          GroupExists               563                   resource not loaded
+WordList          IsDirty/get               563                   resource not loaded
+WordList          this[index/key]           563                   resource not loaded
+WordList          this[index/key]           IndexOutOfRange       invalid word index
+WordList          this[index/key]           IndexOutOfRange       invalid word index
+WordList          this[index/key]           ArgException          invalid index/key
+WordList          Save                      563                   resource not loaded
+WordList          Save                      PASS                  pass-through Compile
+WordList          WordCount                 563                   resource not loaded
+WordList          AddGroup                  563                   resource not loaded
+WordList          AddGroup                  ArgOutORange          invalid group number (<0)
+WordList          AddGroup                  ArgOutORange          invalid group number (>Max)
+WordList          AddGroup                  ArgException          group number already exists
+WordList          RemoveWord                563                   resource not loaded
+WordList          RemoveWord                ArgException          word does not exist
+WordList          GroupCount                563                   resource not loaded
+WordList          RemoveGroup               563                   resource not loaded
+WordList          RemoveGroup               ArgOutORange          invalid group number (<0)
+WordList          RemoveGroup               ArgOutORange          invalid group number (>Max)
+WordList          RemoveGroup               ArgException          group number does not exist
+WordList          RenumberGroup             563                   resource not loaded
+WordList          RenumberGroup             ArgOutORange          invalid oldgroup number (<0)
+WordList          RenumberGroup             ArgOutORange          invalid oldgroup number (>Max)
+WordList          RenumberGroup             ArgOutORange          invalid newgroup number (<0)
+WordList          RenumberGroup             ArgOutORange          invalid newgroup number (>Max)
+WordList          RenumberGroup             ArgException          oldgroup number does not exist
+WordList          RenumberGroup             ArgException          newgroup number does not exist
+WordList          Compile                   616                   invalid savefile name
+WordList          Compile                   672                   no words in list
 
 
 
-AGIResource properties
+
+
+
+
+
+
+
+
+
+AGIResource properties/methods
   Available all the time:
   Available only when loaded:
 
 
 
 GAME EXCEPTIONS: 
-    Import:
-        501: game already loaded
-        541: Not a valid AGI directory
-            ["baddir"] = string gamedir
-        699: Unable to backup existing wag file
-            ["exception"] = Exception ex
-        543: invalid interpreter version
-         
-    Open:
-        501: game already loaded
-        655: missing WAG file
-            ["badwag"] = string wagfilename
-        541: Not a valid AGI directory
-            ["baddir"] = string gamedir
-        700: file (WAG) is readonly
-            ["badfile"] =string filename
-        701: file error accessing WAG
-            ["exception"] = Exception ex
-        665: unsupported WinAGI version
-            ["badversion"] = string version
-        691: invalid interpreter version
-            ["badversion"] = string version
-        690: missing GameID in WAG
-
-    FinishGameLoad:
-    none- passes exceptions from ExtractResources
-
-    ExtractResources:
-        524: missing v3 DIR file
-            ["missingfile"] = string dirfile
-        502: v3 DIR file access error
-            ["exception"] Exception = ex
-            ["badfile"] = string dirfile
-        542: invalid v3 DIR file
-            ["baddir"] = string gamedir
-        524: missing v2 DIR file
-            ["missingfile"] = string dirfile
-        502: v2 DIR file access error
-            ["exception"] Exception = ex
-            ["badfile"] = string dirfile
-        542: invalid v2 DIR file
-            ["baddir"] = string gamedir
-        542: invalid DIR file (v3 offset invalid)
-            ["baddir"] = string gamedir
-        703: file access error v2 DIR
-            ["exception"] Exception = ex
-            ["dirfile"] = string dirfile
-        703: file access error v3 DIR
-            ["exception"] Exception = ex
-            ["dirfile"] = string dirfile
 
 GAME ERRORS:
 
@@ -201,8 +238,21 @@ RESOURCE ERRORS/WARNINGS:
     -17 = (550) view target loop already mirrored : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
     -18 = (551) view source loop already a mirror : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
     -19 = (553) view invalid cel data : 0 = resid; 1 = loop; 2 = cel
-    +1  = () view invalid description text : 0 = resid;
-    1/2/4/8 = corrupt data, picture still valid : 0 = mresid;
+
+    POSITIVE VALUES represent warnings, but resource is usable
+    LOGICS:
+    PICTURES:
+      1/2/4/8 = corrupt data, picture still valid
+    SOUNDS:
+    VIEWS:
+      1 = viewdescription has invalid pointer
+
+    OBJECT:
+    WORDS.TOK:
+      1 = invalid index (see KQ1 for example)
+      2 = file has invalid ending
+      4 = one or more words contains an upper case character
+
 
 
 ERROR HANDLER info:

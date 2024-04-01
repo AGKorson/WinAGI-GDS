@@ -1011,8 +1011,10 @@ namespace WinAGI.Editor
             if (DefResDir == "") {
                 DefResDir = "src";
             }
-            else if ((CTRL_CHARS + " \\/:*?\"<>|").Any(DefResDir.Contains)) {
-                //invalid character; reset to default
+            else if ((" \\/:*?\"<>|").Any(DefResDir.Contains)) {
+                DefResDir = "src";
+            }
+            else if (DefResDir.Any(ch => ch > 127 || ch < 32)) {
                 DefResDir = "src";
             }
             Settings.MaxSO = GameSettings.GetSetting(sGENERAL, "MaxSO", DEFAULT_MAXSO);

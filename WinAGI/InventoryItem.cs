@@ -4,42 +4,34 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WinAGI.Engine
-{
-    public class InventoryItem
-    {
+namespace WinAGI.Engine {
+    public class InventoryItem {
         private string mItemName = "";
         private byte mRoom;
-        //unique flag used to identify objects that are unique to the list
-        //if two or more objects have the same name, then all are flagged
-        //as NOT unique; that way the compilers and decompilers can handle
-        //the duplicate objects correctly
-        private bool mUnique;
         private InventoryList mParent;
-        public InventoryItem()
-        {
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public InventoryItem() {
             // always unique until proven otherwise
-            mUnique = true;
+            Unique = true;
         }
-        public bool Unique
-        {
-            get
-            {
-                return mUnique;
-            }
-            internal set
-            {
-                mUnique = value;
-            }
-        }
-        public byte Room
-        {
-            get
-            {
-                return mRoom;
-            }
-            set
-            {
+
+        /// <summary>
+        /// A unique flag is used to identify objects that are unique to the list.
+        /// If two or more objects have the same name, then all are flagged
+        /// as NOT unique; that way the compilers and decompilers can handle
+        /// the duplicate objects correctly.
+        /// </summary>
+        public bool Unique { get; internal set; }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public byte Room {
+            get => mRoom;
+            set {
                 mRoom = value;
                 //if there is a parent
                 if (mParent is not null) {
@@ -47,20 +39,23 @@ namespace WinAGI.Engine
                 }
             }
         }
-        internal void SetParent(InventoryList Parent)
-        {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Parent"></param>
+        internal void SetParent(InventoryList Parent) {
             //sets parent for this item; needed so we can update the item's unique property
             // when it changes
             mParent = Parent;
         }
-        public string ItemName
-        {
-            get
-            {
-                return mItemName;
-            }
-            set
-            {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string ItemName {
+            get => mItemName;
+            set {
                 int i;
                 // first, 'unduplicate' the current item name
                 // then, assign the new item name, and then
@@ -69,14 +64,14 @@ namespace WinAGI.Engine
                 //if there is a parent
                 if (mParent is not null) {
                     //if this item is currently a duplicate
-                    if (!mUnique) {
-                        //there are at least two objects with this item name;
-                        //this object and one or more duplicates
-                        //if there is only one other duplicate, it needs to have its
-                        //unique property reset because it will no longer be unique
-                        //after this object is changed
-                        //if there are multiple duplicates, the unique property does
-                        //not need to be reset
+                    if (!Unique) {
+                        // there are at least two objects with this item name;
+                        // this object and one or more duplicates
+                        // if there is only one other duplicate, it needs to have its
+                        // unique property reset because it will no longer be unique
+                        // after this object is changed
+                        // if there are multiple duplicates, the unique property does
+                        // not need to be reset
                         byte dupItem = 0, dupCount = 0;
                         for (i = 0; i < mParent.Count; i++) {
                             if (mParent[(byte)i] != this) {
@@ -98,7 +93,7 @@ namespace WinAGI.Engine
                             }
                         }
                         // assume this item is now unique
-                        mUnique = true;
+                        Unique = true;
                         // if only one duplicate found
                         if (dupCount == 1) {
                             // also assume it's now unique
@@ -106,21 +101,18 @@ namespace WinAGI.Engine
                         }
                     }
                 }
-                //assign name
+                // assign name (blanks become "?"
                 mItemName = value.Length == 0 ? "?" : value;
-                //if there is a parent
                 if (mParent is not null) {
                     mParent.IsDirty = true;
-                    // if this item is NOT an unassigned object ('?')
                     if (mItemName != "?") {
-                        //check for duplicates
+                        // check for duplicates
                         for (i = 0; i < mParent.Count; i++) {
-                            //skip this item
                             if (mParent[(byte)i] != this) {
                                 if (mItemName == mParent[(byte)i].ItemName) {
-                                    //mark both as NOT unique
+                                    // mark both as NOT unique
                                     mParent[(byte)i].Unique = false;
-                                    mUnique = false;
+                                    Unique = false;
                                     // no need to continue
                                     break;
                                 }

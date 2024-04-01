@@ -6,12 +6,9 @@ using static WinAGI.Engine.DefineNameCheck;
 using static WinAGI.Engine.DefineValueCheck;
 using static WinAGI.Engine.Base;
 using static WinAGI.Common.Base;
-using System.Reflection.Metadata.Ecma335;
 
-namespace WinAGI.Engine
-{
-    public static partial class Compiler
-    {
+namespace WinAGI.Engine {
+    public static partial class Compiler {
         // game object that is attached to the compiler
         private static AGIGame game;
         // compiler warnings
@@ -30,220 +27,203 @@ namespace WinAGI.Engine
         internal static bool agSierraSyntax = false;
         internal static string agDefSrcExt = ".lgc";
         internal static AGICodeStyle mCodeStyle = AGICodeStyle.cstDefault;
-        public static string ArgTypePrefix(byte index)
-        {
+        
+        public static string ArgTypePrefix(byte index) {
             if (index > 8) {
                 throw new IndexOutOfRangeException("subscript out of range");
             }
             return agArgTypPref[index];
         }
-        public static string ArgTypeName(byte index)
-        {
+        
+        public static string ArgTypeName(byte index) {
             if (index > 8) {
                 throw new IndexOutOfRangeException("subscript out of range");
             }
             return agArgTypName[index];
         }
-        public static void SetIgnoreWarning(int WarningNumber, bool NewVal)
-        {
-            //validate index
+        
+        public static void SetIgnoreWarning(int WarningNumber, bool NewVal) {
             if (WarningNumber < 5001 || WarningNumber > 5000 + WARNCOUNT) {
                 throw new IndexOutOfRangeException("subscript out of range");
             }
             agNoCompWarn[WarningNumber - 5000] = NewVal;
         }
-        public static bool IgnoreWarning(int WarningNumber)
-        {
-            //validate index
+        
+        public static bool IgnoreWarning(int WarningNumber) {
             if (WarningNumber < 5001 || WarningNumber > 5000 + WARNCOUNT) {
                 throw new IndexOutOfRangeException("subscript out of range");
             }
             return agNoCompWarn[WarningNumber - 5000];
         }
-        public static TDefine[] ReservedDefines(ArgTypeEnum ArgType)
-        {
-            //returns the reserved defines that match this argtype as an array of defines
-            //NOT the same as reporting by //group// (which is used for saving changes to resdef names)
-            int i;
+
+        /// <summary>
+        /// Returns the reserved defines that match this argtype as an array of defines.
+        /// NOT the same as reporting by 'group' (which is used for saving changes to resdef names)
+        /// </summary>
+        /// <param name="ArgType"></param>
+        /// <returns></returns>
+        public static TDefine[] ReservedDefines(ArgTypeEnum ArgType) {
             TDefine[] tmpDefines = [];
+
             switch (ArgType) {
             case atNum:
-                //return all numerical reserved defines
-                tmpDefines = new TDefine[44];
-                for (i = 0; i <= 4; i++) {
-                    tmpDefines[i] = agEdgeCodes[i];
-                }
-                for (i = 0; i <= 8; i++) {
-                    tmpDefines[i + 5] = agEgoDir[i];
-                }
-                for (i = 0; i <= 4; i++) {
-                    tmpDefines[i + 14] = agVideoMode[i];
-                }
-                for (i = 0; i <= 8; i++) {
-                    tmpDefines[i + 19] = agCompType[i];
-                }
-                for (i = 0; i <= 15; i++) {
-                    tmpDefines[i + 28] = agResColor[i];
-                }
+                // return all numerical reserved defines
+                tmpDefines = [];
+                tmpDefines = (TDefine[])tmpDefines.Concat(agEdgeCodes);
+                tmpDefines = (TDefine[])tmpDefines.Concat(agEgoDir);
+                tmpDefines = (TDefine[])tmpDefines.Concat(agVideoMode);
+                tmpDefines = (TDefine[])tmpDefines.Concat(agCompType);
+                tmpDefines = (TDefine[])tmpDefines.Concat(agResColor);
                 break;
             case atVar:
-                //return all variable reserved defines
+                // return all variable reserved defines
                 tmpDefines = agResVar;
                 break;
             case atFlag:
-                //return all flag reserved defines
+                // return all flag reserved defines
                 tmpDefines = agResFlag;
                 break;
             case atMsg:
-                //none
+                // none
                 tmpDefines = [];
                 break;
             case atSObj:
-                //one - ego
+                // one - ego
                 tmpDefines = agResObj;
                 break;
             case atInvItem:
-                //none
+                // none
                 tmpDefines = [];
                 break;
             case atStr:
-                //one - input prompt
+                // one - input prompt
                 tmpDefines = agResStr;
                 break;
             case atWord:
-                //none
+                // none
                 tmpDefines = [];
                 break;
             case atCtrl:
-                //none
+                // none
                 tmpDefines = [];
                 break;
             case atDefStr:
-                //none
+                // none
                 tmpDefines = [];
                 break;
             case atVocWrd:
-                //none
+                // none
                 tmpDefines = [];
                 break;
             }
-            //return the defines
             return tmpDefines;
         }
-        public static TDefine[] ResDefByGrp(ResDefGroup Group)
-        {
-            //this returns the reserved defines by their //group// instead by by variable type
+
+        /// <summary>
+        /// Returns reserved defines by their 'group' instead by by variable type.
+        /// </summary>
+        /// <param name="Group"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public static TDefine[] ResDefByGrp(ResDefGroup Group) {
             switch (Group) {
-            case ResDefGroup.rgVariable: //var
+            case ResDefGroup.rgVariable:
                 return agResVar;
-            case ResDefGroup.rgFlag: //flag
+            case ResDefGroup.rgFlag:
                 return agResFlag;
-            case ResDefGroup.rgEdgeCode: //edgecodes
+            case ResDefGroup.rgEdgeCode:
                 return agEdgeCodes;
-            case ResDefGroup.rgObjectDir: //direction
+            case ResDefGroup.rgObjectDir:
                 return agEgoDir;
-            case ResDefGroup.rgVideoMode: //vidmode
+            case ResDefGroup.rgVideoMode:
                 return agVideoMode;
-            case ResDefGroup.rgComputerType: //comp type
+            case ResDefGroup.rgComputerType:
                 return agCompType;
-            case ResDefGroup.rgColor: //colors
+            case ResDefGroup.rgColor:
                 return agResColor;
-            case ResDefGroup.rgObject: //object
+            case ResDefGroup.rgObject:
                 return agResObj;
-            case ResDefGroup.rgString: //string
+            case ResDefGroup.rgString:
                 return agResStr;
             default:
-                //raise error
                 throw new IndexOutOfRangeException("bad form");
             }
         }
-        public static void SetResDef(int DefType, int DefIndex, string DefName)
-        {
-            //this property lets user update a reserved define name;
-            //it is up to calling procedure to make sure there are no conflicts
-            //if the define value doesn't match an actual reserved item, error is raised
 
-            //type is a numeric value that maps to the six different types(catgories) of reserved defines
+        /// <summary>
+        /// This property lets user update a reserved define name. It is up
+        /// to calling procedure to make sure there are no conflicts. If the
+        /// define value doesn't match an actual reserved item, an exception
+        /// is thrown.
+        /// </summary>
+        /// <param name="DefType"></param>
+        /// <param name="DefIndex"></param>
+        /// <param name="DefName"></param>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public static void SetResDef(int DefType, int DefIndex, string DefName) {
+            // type is a numeric value that maps to the six different types(catgories) of reserved defines
             switch (DefType) {
-            case 1: //variable
-                    //value must be 0-26
+            case 1:
+                // value must be 0-26
                 if (DefIndex < 0 || DefIndex > 27) {
-                    //raise error
                     throw new IndexOutOfRangeException("bad form");
                 }
-                //change the resvar name
                 agResVar[DefIndex].Name = DefName;
                 break;
-            case 2: //flag
-                    //value must be 0-17
+            case 2:
+                // value must be 0-17
                 if (DefIndex < 0 || DefIndex > 17) {
-                    //raise error
                     throw new IndexOutOfRangeException("bad form");
                 }
-                //change the resflag name
                 agResFlag[DefIndex].Name = DefName;
                 break;
-            case 3: //edgecode
-                    //value must be 0-4
+            case 3:
+                // value must be 0-4
                 if (DefIndex < 0 || DefIndex > 4) {
-                    //raise error
                     throw new IndexOutOfRangeException("bad form");
                 }
-                //change the edgecode name
                 agEdgeCodes[DefIndex].Name = DefName;
                 break;
-            case 4: //direction
-                    //value must be 0-8
+            case 4:
+                // value must be 0-8
                 if (DefIndex < 0 || DefIndex > 8) {
-                    //raise error
                     throw new IndexOutOfRangeException("bad form");
                 }
-                //change the direction name
                 agEgoDir[DefIndex].Name = DefName;
                 break;
-            case 5: //vidmode
-                    //value must be 0-4
+            case 5:
+                // value must be 0-4
                 if (DefIndex < 0 || DefIndex > 4) {
-                    //raise error
                     throw new IndexOutOfRangeException("bad form");
                 }
-                //change the vidmode name
                 agVideoMode[DefIndex].Name = DefName;
                 break;
-            case 6: //comptypes
-                    //value must be 0-8
+            case 6:
+                // value must be 0-8
                 if (DefIndex < 0 || DefIndex > 8) {
-                    //raise error
                     throw new IndexOutOfRangeException("bad form");
                 }
-                //change the comptype name
                 agCompType[DefIndex].Name = DefName;
                 break;
-            case 7: //color
-                    //value must be 0-15
+            case 7:
+                // value must be 0-15
                 if (DefIndex < 0 || DefIndex > 15) {
-                    //raise error
                     throw new IndexOutOfRangeException("bad form");
                 }
-                //change the color resdef name
                 agResColor[DefIndex].Name = DefName;
                 break;
-            case 8: //object
-                    //only 0 (ego)
+            case 8:
+                // only 0 (ego)
                 if (DefIndex != 0) {
-                    //raise error
                     throw new IndexOutOfRangeException("bad form");
                 }
-                //change the object resdef name
                 agResObj[DefIndex].Name = DefName;
                 break;
-            case 9: //string
-                    //only 0 (input prompt)
+            case 9:
+                // only 0 (input prompt)
                 if (DefIndex != 0) {
-                    //raise error
                     throw new IndexOutOfRangeException("bad form");
                 }
-                //change the string resdef name
                 agResStr[DefIndex].Name = DefName;
                 break;
             default:
@@ -251,10 +231,16 @@ namespace WinAGI.Engine
                 throw new IndexOutOfRangeException("bad form");
             }
         }
-        public static LogicErrorLevel ErrorLevel
-        { get; set; }
-        public static AGICodeStyle CodeStyle
-        {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static LogicErrorLevel ErrorLevel { get; set; }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public static AGICodeStyle CodeStyle {
             get { return mCodeStyle; }
             set {
                 mCodeStyle = value;
@@ -263,40 +249,55 @@ namespace WinAGI.Engine
 
             }
         }
-        public static bool ShowAllMessages
-        {
-            get;
-            set;
-        }
-        public static bool MsgsByNumber
-        {
-            get;
-            set;
-        }
-        public static bool IObjsByNumber
-        {
-            get;
-            set;
-        }
-        public static bool WordsByNumber
-        {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool ShowAllMessages {
             get;
             set;
         }
 
-        public static bool ElseAsGoto
-        {
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool MsgsByNumber {
             get;
             set;
         }
-        public static string DefaultSrcExt
-        {
-            get
-            {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool IObjsByNumber {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool WordsByNumber {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool ElseAsGoto {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static string DefaultSrcExt {
+            get {
                 return agDefSrcExt;
             }
-            set
-            {
+            set {
                 //must start with a period
                 if (value[0] != 46) {
                     agDefSrcExt = "." + value;
@@ -307,20 +308,27 @@ namespace WinAGI.Engine
             }
         }
 
-        public static bool SpecialSyntax
-        {
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool SpecialSyntax {
             get;
             set;
         }
-        public static bool ReservedAsText
-        {
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool ReservedAsText {
             //if true, reserved variables and flags show up as text when decompiling
             //not used if agUseRes is FALSE
             get;
             set;
         }
-        public static bool UseReservedNames
-        {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool UseReservedNames {
             //if true, predefined variables and flags are used during compilation
             get;
             set;
@@ -332,19 +340,21 @@ namespace WinAGI.Engine
             //  }
             //}
         }
-        public static string SourceExt
-        {
-            get
-            {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static string SourceExt {
+            get {
                 return agSrcFileExt;
             }
-            set
-            {
+            set {
                 // must be non-zero length
                 if (value.Length == 0) {
-                    throw new ArgumentException("non-blank not allowed");
+                    // ignore
+                    return;
                 }
-                //must start with a period
+                // must start with a period
                 if (value[0] != '.') {
                     agSrcFileExt = "." + value;
                 }
@@ -354,8 +364,10 @@ namespace WinAGI.Engine
             }
         }
 
-        public static void AssignReservedDefines()
-        {
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void AssignReservedDefines() {
             // predefined variables, flags, and objects
             // Variables v0 - v26
             // Flags f0 - f16, f20 [in version 3.102 and above]
@@ -601,15 +613,19 @@ namespace WinAGI.Engine
             agResStr[0].Type = ArgTypeEnum.atStr;
             agResStr[0].Default = agResStr[0].Name;
         }
-        public static bool ValidateResDefs()
-        {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static bool ValidateResDefs() {
             //makes sure reserved defines are OK- replace any bad defines with their defaults
             // if all are OK returns true; if one or more are bad, returns false
 
             // assume OK
             bool retval = true;
             int i;
-            //check variables
+            // check variables
             for (i = 0; i < agResVar.Length; i++) {
                 if (ValidateName(agResVar[i], true) != DefineNameCheck.ncOK) {
                     agResVar[i].Name = agResVar[i].Default;
@@ -617,7 +633,7 @@ namespace WinAGI.Engine
                 }
             }
 
-            //check flags
+            // check flags
             for (i = 0; i < agResFlag.Length; i++) {
                 if (ValidateName(agResFlag[i], true) != DefineNameCheck.ncOK) {
                     agResFlag[i].Name = agResFlag[i].Default;
@@ -625,7 +641,7 @@ namespace WinAGI.Engine
                 }
             }
 
-            //check edgecodes
+            // check edgecodes
             for (i = 0; i < agEdgeCodes.Length; i++) {
                 if (ValidateName(agEdgeCodes[i], true) != DefineNameCheck.ncOK) {
                     agEdgeCodes[i].Name = agEdgeCodes[i].Default;
@@ -633,7 +649,7 @@ namespace WinAGI.Engine
                 }
             }
 
-            //check directions
+            // check directions
             for (i = 0; i < agEgoDir.Length; i++) {
                 if (ValidateName(agEgoDir[i], true) != DefineNameCheck.ncOK) {
                     agEgoDir[i].Name = agEgoDir[i].Default;
@@ -641,7 +657,7 @@ namespace WinAGI.Engine
                 }
             }
 
-            //check video modes
+            // check video modes
             for (i = 0; i < agVideoMode.Length; i++) {
                 if (ValidateName(agVideoMode[i], true) != DefineNameCheck.ncOK) {
                     agVideoMode[i].Name = agVideoMode[i].Default;
@@ -649,7 +665,7 @@ namespace WinAGI.Engine
                 }
             }
 
-            //check computer types
+            // check computer types
             for (i = 0; i < agCompType.Length; i++) {
                 if (ValidateName(agCompType[i], true) != DefineNameCheck.ncOK) {
                     agCompType[i].Name = agCompType[i].Default;
@@ -657,7 +673,7 @@ namespace WinAGI.Engine
                 }
             }
 
-            //check colors
+            // check colors
             for (i = 0; i < agResColor.Length; i++) {
                 if (ValidateName(agResColor[i], true) != DefineNameCheck.ncOK) {
                     agResColor[i].Name = agResColor[i].Default;
@@ -665,7 +681,7 @@ namespace WinAGI.Engine
                 }
             }
 
-            //check objects
+            // check objects
             for (i = 0; i < agResObj.Length; i++) {
                 if (ValidateName(agResObj[i], true) != DefineNameCheck.ncOK) {
                     agResObj[i].Name = agResObj[i].Default;
@@ -673,7 +689,7 @@ namespace WinAGI.Engine
                 }
             }
 
-            //check strings
+            // check strings
             for (i = 0; i < agResStr.Length; i++) {
                 if (ValidateName(agResStr[i], true) != DefineNameCheck.ncOK) {
                     agResStr[i].Name = agResStr[i].Default;
@@ -683,39 +699,45 @@ namespace WinAGI.Engine
             // return result
             return retval;
         }
-        internal static DefineNameCheck ValidateName(TDefine TestDef, bool Reserved = false)
-        {
-            //validates if a reserved define name is agreeable or not
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="TestDef"></param>
+        /// <param name="Reserved"></param>
+        /// <returns></returns>
+        internal static DefineNameCheck ValidateName(TDefine TestDef, bool Reserved = false) {
+            // validates if a reserved define name is agreeable or not
             int i;
             TDefine[] tmpDefines;
-            //get name to test
+
+            // get name to test
             string NewDefName = TestDef.Name;
-            //if already at default, just exit
+            // if already at default, just exit
             if (TestDef.Name == TestDef.Default) {
                 return DefineNameCheck.ncOK;
             }
-            //if no name,
+            // if no name,
             if (NewDefName.Length == 0) {
                 return DefineNameCheck.ncEmpty;
             }
-            //name cant be numeric
+            // name cant be numeric
             if (IsNumeric(NewDefName)) {
                 return DefineNameCheck.ncNumeric;
             }
-            //check against regular commands
+            // check against regular commands
             for (i = 0; i < ActionCount; i++) {
                 if (NewDefName.Equals(ActionCommands[i].Name, StringComparison.OrdinalIgnoreCase)) {
                     return DefineNameCheck.ncActionCommand;
                 }
             }
-            //check against test commands
+            // check against test commands
             for (i = 0; i < TestCount; i++) {
                 if (NewDefName.Equals(TestCommands[i].Name, StringComparison.OrdinalIgnoreCase)) {
                     return DefineNameCheck.ncTestCommand;
                 }
             }
-            //check against compiler keywords
+            // check against compiler keywords
             if (NewDefName.Equals("if", StringComparison.OrdinalIgnoreCase) || NewDefName.Equals("else", StringComparison.OrdinalIgnoreCase) || NewDefName.Equals("goto", StringComparison.OrdinalIgnoreCase)) {
                 return DefineNameCheck.ncKeyWord;
             }
@@ -744,7 +766,7 @@ namespace WinAGI.Engine
                         }
                     }
                 }
-                //reserved flags
+                // reserved flags
                 tmpDefines = ReservedDefines(atFlag);
                 for (i = 0; i < tmpDefines.Length; i++) {
                     if (NewDefName.Equals(tmpDefines[i].Name, StringComparison.OrdinalIgnoreCase)) {
@@ -755,7 +777,7 @@ namespace WinAGI.Engine
                         }
                     }
                 }
-                //reserved numbers
+                // reserved numbers
                 tmpDefines = ReservedDefines(atNum);
                 for (i = 0; i < tmpDefines.Length; i++) {
                     if (NewDefName.Equals(tmpDefines[i].Name, StringComparison.OrdinalIgnoreCase)) {
@@ -766,7 +788,7 @@ namespace WinAGI.Engine
                         }
                     }
                 }
-                //reserved objects
+                // reserved objects
                 tmpDefines = ReservedDefines(atSObj);
                 for (i = 0; i < tmpDefines.Length; i++) {
                     if (NewDefName.Equals(tmpDefines[i].Name, StringComparison.OrdinalIgnoreCase)) {
@@ -777,7 +799,7 @@ namespace WinAGI.Engine
                         }
                     }
                 }
-                //reserved strings
+                // reserved strings
                 tmpDefines = ReservedDefines(atStr);
                 for (i = 0; i < tmpDefines.Length; i++) {
                     if (NewDefName.Equals(tmpDefines[i].Name, StringComparison.OrdinalIgnoreCase)) {
@@ -789,13 +811,16 @@ namespace WinAGI.Engine
                     }
                 }
             }
-            //check name against improper character list
+            // check name against improper character list
             for (i = 1; i < NewDefName.Length; i++) {
                 if ((INVALID_DEFNAME_CHARS).Any(NewDefName.Contains)) {
                     // bad
                     return DefineNameCheck.ncBadChar;
                 }
-
+                if (NewDefName.Any(ch => ch > 127 || ch < 32)) {
+                    // bad
+                    return DefineNameCheck.ncBadChar;
+                }
                 // sierra syntax allows ' ? 
                 if (("'?").Any(NewDefName.Contains)) {
                     if (!agSierraSyntax) {
@@ -811,9 +836,15 @@ namespace WinAGI.Engine
                     }
                 }
             }
-            //must be OK!
+            // must be OK!
             return DefineNameCheck.ncOK;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="CheckDef"></param>
+        /// <returns></returns>
         internal static DefineNameCheck ValidateDefName(TDefine CheckDef) {
             // validates that DefValue is a valid define Value
             int i;
@@ -845,37 +876,48 @@ namespace WinAGI.Engine
                 // bad
                 return ncBadChar;
             }
+            if (CheckDef.Name.Any(ch => ch > 127 || ch < 32)) {
+                // bad
+                return ncBadChar;
+            }
             // if no error conditions, it's OK
             return ncOK;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="CheckName"></param>
+        /// <returns></returns>
         internal static DefineNameCheck ValidateDefName(string CheckName) {
-            TDefine CheckDef = new()
-            {
+            TDefine CheckDef = new() {
                 Name = CheckName
             };
             return ValidateDefName(CheckDef);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="TestDefine"></param>
+        /// <returns></returns>
         internal static DefineValueCheck ValidateDefValue(TDefine TestDefine) {
             //validates that TestDefine.Value is a valid define Value
             string strVal;
 
             if (TestDefine.Value.Length == 0)
                 return vcEmpty;
-            //values must be a variable/flag/etc, string, or a number
+            // values must be a variable/flag/etc, string, or a number
             if (!int.TryParse(TestDefine.Value, out int intVal)) {
                 // if Value is an argument marker
-                if ("vfmoiswc".Any(TestDefine.Value.ToLower().StartsWith)) {
+                if ("vfmoiswc".Any(ch => ch == TestDefine.Value[0])) {
                     //if rest of Value is numeric,
-                    strVal = TestDefine.Value[..^1];
+                    strVal = TestDefine.Value[1..];
                     if (int.TryParse(strVal, out intVal)) {
-                        //if Value is not between 0-255
                         if (intVal < 0 || intVal > 255)
                             return vcOutofBounds;
-                        //check defined globals
+                        // check defined globals
                         for (int i = 0; i < compGame.GlobalDefines.Count; i++) {
-                            //if this define has same Value
                             if (compGame.GlobalDefines[i].Value == TestDefine.Value)
                                 return vcGlobal;
                         }
@@ -884,12 +926,11 @@ namespace WinAGI.Engine
                         case 'f':
                             TestDefine.Type = atFlag;
                             if (UseReservedNames) {
-                                //if already defined as a reserved flag
                                 if (intVal <= 15)
                                     return vcReserved;
                                 if (intVal == 20) {
                                     switch (compGame.agIntVersion) {
-                                    case "3.002.098" or "3.002.102" or "3.002.107"or "3.002.149":
+                                    case "3.002.098" or "3.002.102" or "3.002.107" or "3.002.149":
                                         return vcReserved;
                                     }
                                 }
@@ -898,7 +939,6 @@ namespace WinAGI.Engine
                         case 'v':
                             TestDefine.Type = atVar;
                             if (UseReservedNames)
-                                //if already defined as a reserved variable
                                 if (intVal <= 26)
                                     return vcReserved;
                             break;
@@ -908,14 +948,14 @@ namespace WinAGI.Engine
                         case 'o':
                             TestDefine.Type = atSObj;
                             if (UseReservedNames)
-                                //can't be ego
+                                // can't be ego
                                 if (intVal == 0)
                                     return vcReserved;
                             break;
                         case 'i':
                             TestDefine.Type = atInvItem;
                             break;
-                        case 's': //string
+                        case 's':
                             TestDefine.Type = atStr;
                             if (intVal > 23 || (intVal > 11 &&
                               (compGame.agIntVersion == "2.089" ||
@@ -935,36 +975,43 @@ namespace WinAGI.Engine
                                 return vcBadArgNumber;
                             }
                             break;
-                        case 'c': //controller
-                                 //controllers limited to 0-49
+                        case 'c':
+                            // controllers limited to 0-49
                             TestDefine.Type = atCtrl;
                             if (intVal > 49)
                                 return vcBadArgNumber;
                             break;
                         }
-                        //Value is ok
                         return vcOK;
                     }
                 }
-                //non-numeric, non-marker and most likely a string
+                // non-numeric, non-marker and most likely a string
                 TestDefine.Type = atDefStr;
-                //check Value for string delimiters in Value
-                if (IsAGIString(TestDefine.Value))
+                if (IsAGIString(TestDefine.Value)) {
                     return vcOK;
-                else
+                }
+                else {
                     return vcNotAValue;
+                }
             }
             else {
                 // numeric
                 TestDefine.Type = atNum;
-                //unsigned byte (0-255) or signed byte (-128 to 127) are OK
-                if (intVal > -128 && intVal < 256)
+                // unsigned byte (0-255) or signed byte (-128 to 127) are OK
+                if (intVal > -128 && intVal < 256) {
                     return vcOK;
-                else
+                }
+                else {
                     return vcOutofBounds;
+                }
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="CheckString"></param>
+        /// <returns></returns>
         public static bool IsAGIString(string CheckString) {
             // this function returns true if CheckString begins
             // with a quote, and ends with a non-embedded quote
@@ -981,36 +1028,38 @@ namespace WinAGI.Engine
             }
             return !embedded;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="strLine"></param>
+        /// <param name="strComment"></param>
+        /// <param name="NoTrim"></param>
+        /// <returns></returns>
         public static string StripComments(string strLine, ref string strComment, bool NoTrim) {
-            //strips off any comments on the line
-            //if NoTrim is false, the string is also
-            //stripped of any blank space
+            // strips off any comments on the line
+            // if NoTrim is false, the string is also
+            // stripped of any blank space
 
-            //if there is a comment, it is passed back in the strComment argument
-
-            //On Error GoTo ErrHandler
+            // if there is a comment, it is passed back in the strComment argument
 
             // if line is empty, nothing to do
             if (strLine.Length == 0) return "";
 
-            //reset rol ignore
+            // reset rol ignore
             int intROLIgnore = -1;
 
-            //reset comment start + char ptr, and inquotes
+            // reset comment start + char ptr, and inquotes
             int lngPos = -1;
             bool blnInQuotes = false;
             bool blnSlash = false;
             bool blnDblSlash = false;
 
-            //assume no comment
+            // assume no comment
             string strOut = strLine;
             strComment = "";
-
-            //Do Until lngPos >= Len(strLine)
             while (lngPos < strLine.Length - 1) {
-                //get next character from string
                 lngPos++;
-                //if NOT inside a quotation,
                 if (!blnInQuotes) {
                     //check for comment characters at this position
                     if (Mid(strLine, lngPos, 2) == "//") {
@@ -1024,46 +1073,43 @@ namespace WinAGI.Engine
                     }
                     // slash codes never occur outside quotes
                     blnSlash = false;
-                    //if this character is a quote mark, it starts a string
+                    // if this character is a quote mark, it starts a string
                     blnInQuotes = strLine.ElementAt(lngPos) == '"';
                 }
                 else {
-                    //if last character was a slash, ignore this character
-                    //because it's part of a slash code
+                    // if last character was a slash, ignore this character
+                    // because it's part of a slash code
                     if (blnSlash) {
-                        //always reset  the slash
+                        // always reset  the slash
                         blnSlash = false;
                     }
                     else {
-                        //check for slash or quote mark
-                        switch (strLine.ElementAt(lngPos)) {
-                        case '"': // 34 //quote mark
-                                  //a quote marks end of string
+                        // check for slash or quote mark
+                        switch (strLine[lngPos]) {
+                        case '"':
+                            // a quote marks end of string
                             blnInQuotes = false;
                             break;
-                        case '\\': // 92 //slash
+                        case '\\':
                             blnSlash = true;
                             break;
                         }
                     }
                 }
             }
-            //if any part of line should be ignored,
             if (intROLIgnore >= 0) {
-                //save the comment
-                strComment = Right(strLine, strLine.Length - intROLIgnore).Trim();
-
-                //strip off the comment (intROLIgnore is 0 based, so add one)
+                // save the comment
+                strComment = strLine[intROLIgnore..].Trim();
+                // strip off the comment
                 if (blnDblSlash) {
-                    strOut = Left(strLine, intROLIgnore - 1);
+                    strOut = strLine[..(intROLIgnore - 1)];
                 }
                 else {
-                    strOut = Left(strLine, intROLIgnore);
+                    strOut = strLine[..intROLIgnore];
                 }
             }
-
             if (!NoTrim) {
-                //return the line, trimmed
+                // return the line, trimmed
                 strOut = strOut.Trim();
             }
             return strOut;

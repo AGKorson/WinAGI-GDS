@@ -10,40 +10,34 @@ using System.Collections;
 
 namespace WinAGI.Engine {
     public class Cels : IEnumerable<Cel> {
-        //local variable to hold array of cels
+        // local variable to hold array of cels
         internal readonly List<Cel> mCelCol;
         View mParent;
         bool mSetMirror;
-        //other
-        string strErrSource;
+
         public Cel this[int index] {
-            get
-            {
-                //validate
+            get {
+                // validate
                 ArgumentOutOfRangeException.ThrowIfNegative(index);
                 ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, mCelCol.Count);
-                // mirror status is already set; just
-                // pass the desired cel
+                // mirror status is already set; just pass the desired cel
                 return mCelCol[index];
             }
         }
-        
+
         public int Count {
-            get
-            {
-                //return number of cels
+            get {
                 return mCelCol.Count;
             }
         }
-        
+
         public Cel Add(int Pos, byte CelWidth = 1, byte CelHeight = 1, AGIColorIndex TransColor = AGIColorIndex.agBlack) {
             Cel agNewCel;
             int i;
             //if too many cels, or invalid pos
             if (mCelCol.Count == MAX_CELS || Pos < 0) {
-                //error - too many cels
-                WinAGIException wex = new(LoadResString(552).Replace("ARG1", ""))
-                {
+                // error - too many cels
+                WinAGIException wex = new(LoadResString(552).Replace("ARG1", "")) {
                     HResult = WINAGI_ERR + 552,
                 };
                 throw wex;
@@ -55,8 +49,7 @@ namespace WinAGI.Engine {
                 Pos = mCelCol.Count;
             }
             //create new cel object
-            agNewCel = new Cel(mParent)
-            {
+            agNewCel = new Cel(mParent) {
                 mWidth = CelWidth,
                 mHeight = CelHeight,
                 mTransColor = TransColor,
@@ -86,20 +79,19 @@ namespace WinAGI.Engine {
             //return the object created
             return agNewCel;
         }
-        
+
         public void Remove(int index) {
             int i;
             //if this is last cel
             if (mCelCol.Count == 1) {
-                //cant remove last cel
-                WinAGIException wex = new(LoadResString(612))
-                {
+                //can't remove last cel
+                WinAGIException wex = new(LoadResString(612)) {
                     HResult = WINAGI_ERR + 612,
                 };
                 throw wex;
             }
             //if past end
-            if (index >= mCelCol.Count) {
+            if (index < 0 || index >= mCelCol.Count) {
                 //invalid item
                 throw new IndexOutOfRangeException();
             }
@@ -117,7 +109,7 @@ namespace WinAGI.Engine {
                 mParent.IsDirty = true;
             }
         }
-        
+
         internal void SetMirror(bool NewState) {
             //this method is called just before the cels collection
             //is referenced by a mirrored loop
@@ -128,20 +120,18 @@ namespace WinAGI.Engine {
                 tmpCel.SetMirror(NewState);
             }
         }
-        
+
         public View Parent { get { return mParent; } internal set { mParent = value; } }
-        
+
         public Cels() {
             mCelCol = [];
-            strErrSource = "WINAGI.agiCels";
         }
-        
+
         internal Cels(View parent) {
             mCelCol = [];
-            strErrSource = "WINAGI.agiCels";
             mParent = parent;
         }
-        
+
         public Cels Clone(View cloneparent) {
             Cels CopyCels = new(cloneparent);
             foreach (Cel tmpCel in mCelCol) {
@@ -150,15 +140,15 @@ namespace WinAGI.Engine {
             CopyCels.mSetMirror = mSetMirror;
             return CopyCels;
         }
-        
+
         CelEnum GetEnumerator() {
             return new CelEnum(mCelCol);
         }
-        
+
         IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
-        
+
         IEnumerator<Cel> IEnumerable<Cel>.GetEnumerator() {
             return (IEnumerator<Cel>)GetEnumerator();
         }
@@ -171,13 +161,11 @@ namespace WinAGI.Engine {
         }
         object IEnumerator.Current => Current;
         public Cel Current {
-            get
-            {
+            get {
                 try {
                     return _cels[position];
                 }
                 catch (IndexOutOfRangeException) {
-
                     throw new InvalidOperationException();
                 }
             }
