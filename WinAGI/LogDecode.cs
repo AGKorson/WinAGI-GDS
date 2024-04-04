@@ -772,14 +772,12 @@ namespace WinAGI.Engine {
             byte bytInput;
             int NumMessages;
 
-            //NOTE: There is no message 0 (it is not supported by the file format).
+            // NOTE: There is no message 0 (it is not supported by the file format).
             // the word which corresponds to message 0 offset is used to hold the
-            //end of text ptr so AGI can decrypt the message text when the logic
-            //is initially loaded
+            // end of text ptr so AGI can decrypt the message text when the logic
+            // is initially loaded
 
-            //set position to beginning of msg section,
             lngPos = lngMsgStart;
-            //set message section end initially to msgsection start
             lngMsgTextEnd = lngMsgStart;
             stlMsgs = [];
             // first msg, with index of zero, is null/not used
@@ -790,11 +788,10 @@ namespace WinAGI.Engine {
             if (NumMessages > 0) {
                 // TODO: add more checks for bad msg data, and add new warnings as necessary
 
-                //retrieve and adjust end of message section
+                // retrieve and adjust end of message section
                 lngMsgTextEnd = lngMsgTextEnd + 256 * bytData[lngPos + 1] + bytData[lngPos];
                 lngPos += 2;
                 if (lngMsgTextEnd != bytData.Length - 1) {
-                    // error!
                     AddDecodeWarning("DC16", "Message section has invalid end-of-text marker", stlOutput.Count);
                     // adjust it to end
                     lngMsgTextEnd = bytData.Length - 1;
@@ -803,9 +800,8 @@ namespace WinAGI.Engine {
                 for (intCurMsg = 1; intCurMsg <= NumMessages; intCurMsg++) {
                     //set start of this msg as start of msg block, plus offset, plus one (for byte which gives number of msgs)
                     MessageStart[intCurMsg] = 256 * bytData[lngPos + 1] + bytData[lngPos] + lngMsgStart + 1;
-                    //validate msg start
+                    // validate msg start
                     if (MessageStart[intCurMsg] >= bytData.Length) {
-                        //invalid
                         AddDecodeWarning("DC17", "Message " + intCurMsg + " has invalid offset", stlOutput.Count);
                         MessageStart[intCurMsg] = 0;
                     }
@@ -869,21 +865,17 @@ namespace WinAGI.Engine {
                             }
                         }
                         while (!blnEndOfMsg);
-                        // convert to correct codepage
-                        // TO READ:
-                        // read in as a byte array; then convert the
-                        // byte array to current codepage:
-                        //   strIn = agCodePage.GetString(bIn);
                         if (bMsgText.Count == 0) {
                             stlMsgs.Add("\"\"");
                         }
                         else {
+                            // convert to correct codepage
                             stlMsgs.Add(QUOTECHAR + compGame.CodePage.GetString(bMsgText.ToArray()) + QUOTECHAR);
                         }
                         blnMsgExists[intCurMsg] = true;
                     }
                     else {
-                        //add nothing (so numbers work out)
+                        // add nothing (so numbers work out)
                         stlMsgs.Add("");
                         blnMsgExists[intCurMsg] = false;
                     }
@@ -891,6 +883,7 @@ namespace WinAGI.Engine {
             }
             return true;
         }
+
         static bool DecodeIf(byte[] bytData, List<string> stlOut) {
             bool blnInOrBlock;
             bool blnInNotBlock;

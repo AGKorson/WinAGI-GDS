@@ -152,6 +152,7 @@ Compiler          SetResDef                 IndexOutOfRange       invalid type
 EGAColors         this/get                  IndexOutOfRange       invalid color index
 EGAColors         this/set                  IndexOutOfRange       invalid color index
 EGAColors         ColorText                 IndexOutOfRange       invalid color index
+WordList          CodePage                  ArgOutOfRange         invalid codepage value
 WordList          Export                    563                   resource not loaded
 WordList          Export                    PASS                  pass-through Compile        
 WordList          Export                    PASS                  pass-through CompileSVE
@@ -170,6 +171,7 @@ WordList          this[index/key]           ArgException          invalid index/
 WordList          Save                      563                   resource not loaded
 WordList          Save                      PASS                  pass-through Compile
 WordList          WordCount                 563                   resource not loaded
+WordList          WordExists                563                   resource not loaded
 WordList          AddGroup                  563                   resource not loaded
 WordList          AddGroup                  ArgOutORange          invalid group number (<0)
 WordList          AddGroup                  ArgOutORange          invalid group number (>Max)
@@ -190,10 +192,39 @@ WordList          RenumberGroup             ArgException          oldgroup numbe
 WordList          RenumberGroup             ArgException          newgroup number does not exist
 WordList          Compile                   616                   invalid savefile name
 WordList          Compile                   672                   no words in list
-
-
-
-
+WordList          Compile                   672                   file access error while writing data
+WordList          CompileSVE                616                   invalid savefile name
+WordList          CompileSVE                672                   no words in list
+WordList          CompileSVE                672                   file access error while writing data
+WordList          Load                      529                   sierra format load error
+WordList          Load                      599                   invalid (empty) loadfile name
+WordList          Load                      524                   missing loadfile
+WordList          Load                      529                   sierra format load error
+WordList          Group                     563                   resource not loaded
+WordList          Group                     IndexOutOfRange       invalid wordgroup index
+WordList          AddWord                   563                   resource not loaded
+WordList          AddWord                   579                   duplicate word
+WordList          AddWord                   581                   invalid group number
+WordList          Enum:Current              InvalidOps            invalid position value
+InventoryList     CodePage                  ArgOutOfRange         invalid codepage value
+InventoryList     Count                     563                   resource not loaded
+InventoryList     AmigaOBJ                  neednumber            error during Amiga conversion
+InventoryList     Export                    563                   resource not loaded
+InventoryList     Export                    582                   error during compilation
+InventoryList     LoadSierraFile            606                   missing resource file
+InventoryList     LoadSierraFile            700                   resource file is readonly
+InventoryList     LoadSierraFile            502                   file access error while loading resource file
+InventoryList     Add                       563                   resource not loaded
+IventoryList      Add                       569                   too many inventory items
+InventoryList     Remove                    563                   resource not loaded
+InventoryList     Encrypted/get             563                   resource not loaded
+InventoryList     Encrypted/set             563                   resource not loaded
+InventoryList     MaxScreenObjects/get      563                   resource not loaded
+InventoryList     MaxScreenObjects/set      563                   resource not loaded
+InventoryList     Load                      PASS                  pass-through LoadSierraFile
+InventoryList     Load                      692                   unable to load list
+InventoryList     Load                      599                   invalid (empty) loadfile name
+InventoryList 
 
 
 

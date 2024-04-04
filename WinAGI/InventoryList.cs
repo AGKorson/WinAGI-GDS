@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Collections;
 using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using System.IO;
+using System.Text;
 
 namespace WinAGI.Engine {
     public class InventoryList : IEnumerable<InventoryItem> {
@@ -18,10 +17,9 @@ namespace WinAGI.Engine {
         bool mIsDirty;
         bool mWriteProps;
         bool mLoaded;
-        bool mLoading;
         AGIGame parent = null;
+        Encoding mCodePage = Encoding.GetEncoding(437);
         //other
-        string strErrSource = "";
         public InventoryList() {
             mInGame = false;
             mResFile = "";
@@ -40,7 +38,6 @@ namespace WinAGI.Engine {
             // create the initial Col object
             mItems = [];
             InventoryItem tmpItem;
-            strErrSource = "WINAGI.agiObjectFile";
             mMaxScreenObjects = 16;
             //add placeholder for item 0
             tmpItem = new InventoryItem {
@@ -52,19 +49,36 @@ namespace WinAGI.Engine {
         }
         internal List<InventoryItem> mItems { get; private set; }
         public InventoryItem this[byte index] { get { return mItems[index]; } }
+
+        public Encoding CodePage {
+            get => parent is null ? mCodePage : parent.agCodePage;
+            set {
+                if (parent is null) {
+                    // confirm new codepage is supported; ignore if it is not
+                    switch (value.CodePage) {
+                    case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
+                         861 or 862 or 863 or 865 or 866 or 869 or 858:
+                        mCodePage = value;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
+                    }
+                }
+                else {
+                    // ignore; the game sets codepage
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public byte Count {
             get {
-                //if not loaded
-                if (!mLoaded) {
-                    //error
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563,
-                    };
-                    throw wex;
-                }
-                //although first object does not Count as an object
-                //it must be returned as part of the Count
-                //so everything works properly
+                WinAGIException.ThrowIfNotLoaded(this);
+                // although first object does not Count as an object
+                // it must be returned as part of the Count
+                // so everything works properly
                 return (byte)mItems.Count;
             }
             private set {
@@ -75,17 +89,17 @@ namespace WinAGI.Engine {
                 return mAmigaOBJ;
             }
             set {
-                //for now, we only allow converting FROM Amiga TO DOS
-                //                                        (T)     (F)
-                //if trying to make it Amiga, exit
+                // for now, we only allow converting FROM Amiga TO DOS
+                //                                         (T)     (F)
+                // if trying to make it Amiga, exit
                 if (value) {
                     return;
                 }
-                //if aready DOS, exit
+                // if aready DOS, exit
                 if (!mAmigaOBJ) {
                     return;
                 }
-                //set the flag to be NON-Amiga
+                // set the flag to be NON-Amiga
                 mAmigaOBJ = value;
                 //save the current file as 'OBJECT.amg'
                 string theDir;
@@ -113,84 +127,37 @@ namespace WinAGI.Engine {
                 }
             }
         }
-        public void NewObjects() {
-            //marks the resource as loaded; this is needed so new 
-            //resources can be created and edited
-            //if already loaded
-            if (mLoaded) {
-                //error
-                WinAGIException wex = new(LoadResString(642)) {
-                    HResult = WINAGI_ERR + 642,
-                };
-                throw wex;
-                throw new Exception(LoadResString(642));
-            }
-            //can't call NewResource if already in a game;
-            //clear it instead
-            if (mInGame) {
-                WinAGIException wex = new(LoadResString(510)) {
-                    HResult = WINAGI_ERR + 510,
-                };
-                throw wex;
-            }
 
-            //mark as loaded
-            mLoaded = true;
+        /// <summary>
+        /// 
+        /// </summary>
 
-            //clear resname and description
-            mResFile = "";
-            mDescription = "";
-            mMaxScreenObjects = 16;
-            mEncrypted = true;
-
-            //use clear method to ensure object list is reset
-            Clear();
-        }
         public string Description {
             get {
-                //if not loaded
-                if (!mLoaded) {
-                    //error
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563,
-                    };
-                    throw wex;
-                }
                 return mDescription;
             }
             set {
-                //if not loaded
-                if (!mLoaded) {
-                    //error
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563,
-                    };
-                    throw wex;
-                }
-
-                //limit description to 1K
+                // limit description to 1K
                 value = Left(value, 1024);
-                //if changing
                 if (value != mDescription) {
                     mDescription = value;
-                    //if in a game
                     if (mInGame) {
                         parent.WriteProperty("OBJECT", "Description", mDescription);
                     }
                 }
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ExportFile"></param>
+        /// <param name="ResetDirty"></param>
+        /// <exception cref="Exception"></exception>
         public void Export(string ExportFile, bool ResetDirty = true) {
             //exports the list of inventory objects
 
-            //if not loaded
-            if (!mLoaded) {
-                //error
-                WinAGIException wex = new(LoadResString(563)) {
-                    HResult = WINAGI_ERR + 563,
-                };
-                throw wex;
-            }
+            WinAGIException.ThrowIfNotLoaded(this);
             try {
                 Compile(ExportFile);
             }
@@ -200,7 +167,6 @@ namespace WinAGI.Engine {
                     HResult = WINAGI_ERR + 582,
                 };
                 throw wex;
-                throw new Exception(LoadResString(582));
             }
             //if NOT in a game,
             if (!mInGame) {
@@ -212,6 +178,10 @@ namespace WinAGI.Engine {
                 mResFile = ExportFile;
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public bool InGame {
             get {
                 //only used by  setobjects method
@@ -221,6 +191,10 @@ namespace WinAGI.Engine {
                 mInGame = value;
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public bool IsDirty {
             get {
                 //if resource is dirty, or (prop values need writing AND in game)
@@ -230,50 +204,67 @@ namespace WinAGI.Engine {
                 mIsDirty = value;
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
         internal bool WriteProps {
             get { return mWriteProps; }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public bool Loaded {
             get {
                 return mLoaded;
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public string ResFile {
             get {
                 return mResFile;
             }
             set {
-                //resfile cannot be changed if resource is part of a game
+                // resfile cannot be changed if resource is part of a game
                 if (mInGame) {
-                    //error- resfile is readonly for ingame resources
-                    WinAGIException wex = new(LoadResString(680)) {
-                        HResult = WINAGI_ERR + 680,
-                    };
-                    throw wex;
+                    return;
                 }
                 else {
                     mResFile = value;
                 }
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="IsDirty"></param>
+        /// <param name="WriteProps"></param>
         internal void SetFlags(ref bool IsDirty, ref bool WriteProps) {
             // used when copying a resource?
             IsDirty = mIsDirty;
             WriteProps = mWriteProps;
         }
-        bool LoadSierraFile(string LoadFile) {
-            //attempts to load a sierra OBJECT file
-            //rturns true if successful
 
-            string strItem;
+        /// <summary>
+        /// Loads an OBJECT file in original Sierra format.
+        /// </summary>
+        /// <param name="LoadFile"></param>
+        /// <returns>true if successful, false if it fails</returns>
+        bool LoadSierraFile(string LoadFile) {
+            StringBuilder sbItem;
+            string sItem;
             int intItem;
             byte bytRoom;
             int rtn;
             byte[] bytData = [], bytChar = new byte[1];
             int lngDataOffset, lngNameOffset;
             int lngPos, Dwidth;
+            FileStream fsObj;
 
-            // verify file exists
             if (!File.Exists(LoadFile)) {
                 WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
                     HResult = WINAGI_ERR + 606,
@@ -282,7 +273,6 @@ namespace WinAGI.Engine {
                 wex.Data["ID"] = "OBJECT";
                 throw wex;
             }
-            // check for readonly
             if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                 WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
                     HResult = WINAGI_ERR + 700,
@@ -290,126 +280,128 @@ namespace WinAGI.Engine {
                 wex.Data["badfile"] = LoadFile;
                 throw wex;
             }
-            //open the file
-            FileStream fsObj = new(LoadFile, FileMode.Open);
+            // open the file
+            try {
+                fsObj = new(LoadFile, FileMode.Open);
+            }
+            catch (Exception e) {
+                WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, LoadFile)) {
+                    HResult = WINAGI_ERR + 502,
+                };
+                wex.Data["exception"] = e;
+                wex.Data["badfile"] = LoadFile;
+                throw wex;
+            }
+            // no major errors; consider it loaded
+            // (even if data problems, it's still considered loaded)
+            mLoaded = true;
+
             //if no data,
             if (fsObj.Length == 0) {
                 fsObj.Dispose();
+                // TODO: why isn't this an error? an empty file is unreadable
                 return false;
             }
-            //read in entire resource
+            // read in entire resource
             Array.Resize(ref bytData, (int)fsObj.Length);
             fsObj.Read(bytData);
             fsObj.Dispose();
-            //determine if file is encrypted or clear
+            // determine if file is encrypted or clear
             rtn = IsEncrypted(bytData[^1], bytData.Length - 1);
             switch (rtn) {
-            case 0:  //unencrypted
+            case 0:
+                // unencrypted
                 mEncrypted = false;
                 break;
-            case 1: //encrypted
-                    //unencrypt file
+            case 1: 
+                // encrypted - need to decrypt
                 ToggleEncryption(ref bytData);
-                //set flag
                 mEncrypted = true;
                 break;
-            case 2: //error
-                    //error in object file- return false
-                mLoaded = false;
+            case 2: 
+                // error in object file- return false
                 return false;
             }
-            //set loading flag (avoids recursing and stuff like that)
-            mLoading = true;
-            //PC files always have data element widths of 3 bytes;
-            //Amigas have four; need to make sure correct value is used
+            // MSDOS files always have data element widths of 3 bytes;
+            // Amigas have four; need to make sure correct value is used
             Dwidth = 3;
             do {
-                //get offset to start of string data
                 lngDataOffset = (bytData[1] << 8) + bytData[0] + Dwidth;
-
-                //first char of first item should be a question mark ('?')
-                if (bytData[lngDataOffset] != 63) {
-                    //try again, with four
-                    Dwidth++;
-                }
-                else {
-                    //correct file type found
+                // first char of first item should be a question mark ('?')
+                if (bytData[lngDataOffset] == 63) {
+                    // correct file type found
                     mAmigaOBJ = (Dwidth == 4);
                     break;
                 }
+                else {
+                    // try again, with four
+                    Dwidth++;
+                }
             }
             while (Dwidth <= 4);
-            //dwidth will be 5 if valid item data not found
             if (Dwidth == 5) {
-                //error
-                mLoading = false;
+                // error
                 return false;
             }
-            //max scrn objects is always at position 2
             mMaxScreenObjects = bytData[2];
-            //set counter to zero, and extract item info
             intItem = 0;
-            //extract each item offset, and then its string data
-            //(intItem*3) is offset address of string data;
-            //stop if this goes past beginning of actual data
+            // extract each item offset, and then its string data
+            // (intItem*3) is offset address of string data;
+            // stop if this goes past beginning of actual data
             do {
-                //extract and build offset to string data
                 lngNameOffset = (bytData[(intItem + 1) * Dwidth + 1] << 8) + bytData[(intItem + 1) * Dwidth] + Dwidth;
-                //get room number for this object
                 bytRoom = bytData[Dwidth + intItem * Dwidth + 2];
-                //set pointer to beginning of name string data
                 lngPos = lngNameOffset;
                 //if past end of resource,
                 if (lngPos > bytData.Length) {
                     //error in object file- return false
-                    mLoading = false;
                     return false;
                 }
                 //build item name string
-                strItem = "";
+                sbItem = new();
                 while (lngPos < bytData.Length) {
                     if (bytData[lngPos] == 0) {
                         break;
                     }
                     bytChar[0] = bytData[lngPos];
-                    strItem += parent.agCodePage.GetString(bytChar);
+                    sbItem.Append(bytChar);
                     lngPos++;
                 }
-                //first item IS USUALLY a '?'  , but NOT always
-                //(See MH2 for example!!!!)
+                sItem = sbItem.ToString();
+                // first item IS USUALLY a '?'  , but NOT always
+                // (See MH2 for example!!!!)
                 if (intItem == 0) {
                     // don't add first item; it is already added
                     // but it might not be a '?'
-                    if (strItem != "?") {
-                        //rename first object
-                        mItems[0].ItemName = strItem;
+                    if (sItem != "?") {
+                        // rename first object
+                        mItems[0].ItemName = sItem;
                         mItems[0].Room = bytRoom;
-                        //TODO: if game is being imported, make a note of this!
+                        // TODO: if game is being imported, make a note of this!
+                        // (raise the warning in OpenGameWAG/DIR)
                     }
                 }
                 else {
-                    //add without key (to avoid duplicate key error)
-                    Add(strItem, bytRoom);
+                    // add without key (to avoid duplicate key error)
+                    Add(sItem, bytRoom);
                 }
                 intItem++;
             }
-            while (((intItem * Dwidth) + Dwidth < lngDataOffset) && (intItem < MAX_ITEMS)); //Until ((intItem * Dwidth) + Dwidth >= lngDataOffset) || (intItem >= MAX_ITEMS)
-
-            //reset loading flag
-            mLoading = false;
+            while (((intItem * Dwidth) + Dwidth < lngDataOffset) && (intItem < MAX_ITEMS));
             return true;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="NewItem"></param>
+        /// <param name="Room"></param>
+        /// <returns></returns>
         public InventoryItem Add(string NewItem, byte Room) {
             //adds new item to object list
             InventoryItem tmpItem;
-            //if not currently loading, or not already loaded
-            if (!mLoading && !mLoaded) {
-                //error
-                WinAGIException wex = new(LoadResString(563)) {
-                    HResult = WINAGI_ERR + 563,
-                };
-                throw wex;
-            }
+
+            WinAGIException.ThrowIfNotLoaded(this);
             //if already have max number of items,
             if (mItems.Count == MAX_ITEMS) {
                 //error
@@ -429,43 +421,40 @@ namespace WinAGI.Engine {
             mIsDirty = true;
             return tmpItem;
         }
+
+        /// <summary>
+        /// Removes an item from the inventory list.
+        /// </summary>
+        /// <param name="Index"></param>
         public void Remove(byte Index) {
-            //removes this from the object list
-            //if not loaded
-            if (!mLoaded) {
-                //error
-                WinAGIException wex = new(LoadResString(563)) {
-                    HResult = WINAGI_ERR + 563,
-                };
-                throw wex;
-            }
+            WinAGIException.ThrowIfNotLoaded(this);
             InventoryItem tmpItem = mItems[Index];
 
             //if this item is currently a duplicate, 
             // need to de-unique-ify this item
             if (!tmpItem.Unique) {
-                //there are at least two objects with this item name;
-                //this object and one or more duplicates
-                //if there is only one other duplicate, it needs to have its
-                //unique property reset because it will no longer be unique
-                //after this object is changed
-                //if there are multiple duplicates, the unique property does
-                //not need to be reset
+                // there are at least two objects with this item name;
+                // this object and one or more duplicates
+                // if there is only one other duplicate, it needs to have its
+                // unique property reset because it will no longer be unique
+                // after this object is changed
+                // if there are multiple duplicates, the unique property does
+                // not need to be reset
                 byte dupItem = 0, dupCount = 0;
                 for (int i = 0; i < mItems.Count; i++) {
                     if (mItems[(byte)i] != tmpItem) {
                         if (tmpItem.ItemName.Equals(mItems[(byte)i].ItemName, StringComparison.OrdinalIgnoreCase)) {
-                            //duplicate found- is this the second?
+                            // duplicate found- is this the second?
                             if (dupCount == 1) {
-                                //the other's are still non-unique
+                                // the other's are still non-unique
                                 // so don't reset them
                                 dupCount = 2;
                                 break;
                             }
                             else {
-                                //set duplicate count
+                                // set duplicate count
                                 dupCount = 1;
-                                //save dupitem number
+                                // save dupitem number
                                 dupItem = (byte)i;
                             }
                         }
@@ -488,152 +477,138 @@ namespace WinAGI.Engine {
                 mItems[Index].ItemName = "?";
                 mItems[Index].Room = 0;
             }
-            //set dirty flag
             mIsDirty = true;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public bool Encrypted {
             get {
-                //if not loaded
-                if (!mLoaded) {
-                    //error
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563,
-                    };
-                    throw wex;
-                }
+                WinAGIException.ThrowIfNotLoaded(this);
                 return mEncrypted;
             }
             set {
-                //if not loaded
-                if (!mLoaded) {
-                    //error
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563,
-                    };
-                    throw wex;
-                }
-                //if change in encryption
+                WinAGIException.ThrowIfNotLoaded(this);
                 if (mEncrypted != value) {
-                    //set dirty flag
+                    mEncrypted = value;
                     mIsDirty = true;
                 }
-                mEncrypted = value;
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public byte MaxScreenObjects {
             get {
-                //if not loaded
-                if (!mLoaded) {
-                    // error
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563,
-                    };
-                    throw wex;
-                }
+                WinAGIException.ThrowIfNotLoaded(this);
                 return mMaxScreenObjects;
             }
             set {
-                //if not loaded
-                if (!mLoaded) {
-                    //error
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563,
-                    };
-                    throw wex;
-                }
-                //if change in max objects
+                WinAGIException.ThrowIfNotLoaded(this);
                 if (value != mMaxScreenObjects) {
                     mMaxScreenObjects = value;
                     mIsDirty = true;
                 }
             }
         }
-        public void Load(string LoadFile = "") {
-            //this function loads inventory objects for the game
-            //if not in a game, LoadFile must be specified
 
-            //if already loaded,
+        /// <summary>
+        /// Loads inventory items for the game from an OBJECT file. If not in a game, LoadFile must be specified.
+        /// </summary>
+        /// <param name="LoadFile"></param>
+        /// <exception cref="Exception"></exception>
+        public void Load(string LoadFile = "") {
+            bool retval;
+
             if (mLoaded) {
-                // do nothing
                 return;
             }
-            //if in a game
             if (mInGame) {
                 // always set load flag for ingame resource, regardless of error status
                 mLoaded = true;
                 //use default Sierra name
+                // TODO: isn't this already set?
                 LoadFile = parent.agGameDir + "OBJECT";
-                //attempt to load
-                if (!LoadSierraFile(LoadFile)) {
-                    //reset objects resource using Clear method
-                    Clear();
-                    //error
+                try {
+                    retval = LoadSierraFile(LoadFile);
+                }
+                catch {
+                    throw;
+                }
+                finally {
+                    mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "", true);
+                }
+                if (!retval) {
+                    // TODO: replace this error return value with ErrLevel numbers
                     WinAGIException wex = new(LoadResString(692)) {
                         HResult = WINAGI_ERR + 692,
                     };
                     throw wex;
                 }
-                //get description, if there is one
-                mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "");
             }
             else {
-                //if NOT in a game, file must be specified
+                // if NOT in a game, file must be specified
                 if (LoadFile.Length == 0) {
-                    //no file specified; return error
                     WinAGIException wex = new(LoadResString(599)) {
                         HResult = WINAGI_ERR + 599,
                     };
                     throw wex;
                 }
-                //verify file exists
-                if (!File.Exists(LoadFile)) {
-                    //error
-                    WinAGIException wex = new(LoadResString(524).Replace(ARG1, LoadFile)) {
-                        HResult = WINAGI_ERR + 524,
-                    };
-                    wex.Data["missingfile"] = LoadFile;
-                    throw wex;
+                try {
+                    retval = LoadSierraFile(LoadFile);
                 }
-                if (!LoadSierraFile(LoadFile)) {
-                    //error
+                catch {
+                    // pass along error
+                    throw;
+                }
+                finally {
+                    mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "", true);
+                }
+                mResFile = LoadFile;
+                mLoaded = true;
+                if (!retval) {
+                    // TODO: replace error handler with ErrLevel values
                     WinAGIException wex = new(LoadResString(692)) {
                         HResult = WINAGI_ERR + 692,
                     };
                     throw wex;
-                    throw new Exception(LoadResString(692));
                 }
-                //save filename
-                mResFile = LoadFile;
-                // mark as loaded
-                mLoaded = true;
             }
-            //reset dirty flag
             mIsDirty = false;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bytLast"></param>
+        /// <param name="lngEndPos"></param>
+        /// <returns></returns>
         int IsEncrypted(byte bytLast, int lngEndPos) {
-            //this routine checks the resource to determine if it is
-            //encrypted with the string, "Avis Durgan"
-            //it does this by checking the last byte in the resource. It should ALWAYS
-            //be Chr$(0):
-            //   if the resource is NOT encrypted,
-            //     the last byte will have a Value of 0x00
-            //     the function will return a Value of 0
+            // this routine checks the resource to determine if it is
+            // encrypted with the string, "Avis Durgan"
+            // it does this by checking the last byte in the resource. It should ALWAYS
+            // be Chr$(0):
+            //    if the resource is NOT encrypted,
+            //      the last byte will have a Value of 0x00
+            //      the function will return a Value of 0
             //
-            //   if it IS encrypted,
-            //     it will be a character from the "Avis Durgan"
-            //     string, dependent on the offset of the last
-            //     byte from a multiple of 11 (the length of "Avis Durgan")
-            //     the function will return a Value of 1
-            //if the last character doesn't properly decrypt to Chr$(0)
-            //the function returns an error Value (2)
+            //    if it IS encrypted,
+            //      it will be a character from the "Avis Durgan"
+            //      string, dependent on the offset of the last
+            //      byte from a multiple of 11 (the length of "Avis Durgan")
+            //      the function will return a Value of 1
+            // if the last character doesn't properly decrypt to Chr$(0)
+            // the function returns an error Value (2)
             if (bytLast == 0) {
-                //return unencrypted
+                // return unencrypted
                 return 0;
             }
             else {
-                //decrypt character
+                // decrypt character
                 bytLast = (byte)(bytLast ^ bytEncryptKey[lngEndPos % 11]);
-                //now, it should be zero
+                // now, it should be zero
                 if (bytLast == 0) {
                     return 1;
                 }
@@ -642,17 +617,15 @@ namespace WinAGI.Engine {
                 }
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="SaveFile"></param>
         public void Save(string SaveFile = "") {
             //saves the list of inventory objects
 
-            //if not loaded
-            if (!mLoaded) {
-                //error
-                WinAGIException wex = new(LoadResString(563)) {
-                    HResult = WINAGI_ERR + 563
-                };
-                throw wex;
-            }
+            WinAGIException.ThrowIfNotLoaded(this);
             //if in a game,
             if (mInGame) {
                 //compile the file

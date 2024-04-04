@@ -4637,16 +4637,21 @@ namespace WinAGI.Engine {
             // no other warnings needed
             return;
         }
+
+        /// <summary>
+        /// Writes the messages for a logic at the end of the resource.
+        /// Messages are encrypted with the string 'Avis Durgan'. No gaps
+        /// are allowed, so messages that are skipped must be included as
+        /// zero length messages.
+        /// </summary>
+        /// <returns></returns>
         static internal bool WriteMsgs() {
-            //this function will write the messages for a logic at the end of
-            //the resource.
-            //messages are encrypted with the string 'Avis Durgan'. No gaps
-            //are allowed, so messages that are skipped must be included as
-            //zero length messages
+            //this function will 
             int lngMsgSecStart;
             int[] lngMsgPos = new int[256];
             int intCharPos;
             byte bytCharVal;
+            byte[] strMessage = [];
             int lngMsg;
             int lngMsgCount;
             int lngCryptStart;
@@ -4688,11 +4693,13 @@ namespace WinAGI.Engine {
                     lngMsgPos[lngMsg] = 0;
                 }
                 if (lngMsgLen > 0) {
-                    //step through all characters in this msg
+                    // convert to byte array based on codepage
+                    strMessage = game.agCodePage.GetBytes(strMsg[lngMsg]);
+                    // step through all characters in this msg
                     intCharPos = 0;
-                    while (intCharPos < strMsg[lngMsg].Length) // Until intCharPos > Len(strMsg(lngMsg))
+                    while (intCharPos < strMessage.Length) // Until intCharPos > Len(strMsg(lngMsg))
                      {                                          //get ascii code for this character
-                        bytCharVal = (byte)strMsg[lngMsg][intCharPos];
+                        bytCharVal = strMessage[intCharPos];
                         //check for invalid codes (8,9,10,13)
                         switch (bytCharVal) {
                         case 8 or 9:
@@ -4707,7 +4714,7 @@ namespace WinAGI.Engine {
                         case 92: // '\'
                                  //check next character for special codes
                             if (intCharPos < lngMsgLen - 1) {
-                                switch ((byte)strMsg[lngMsg][intCharPos + 1]) {
+                                switch (strMessage[intCharPos + 1]) {
                                 case 110:
                                     //  '\n' = new line
                                     bytCharVal = 0xA;
@@ -4729,7 +4736,7 @@ namespace WinAGI.Engine {
                                     //make sure at least two more characters
                                     if (intCharPos < lngMsgLen - 3) {
                                         //get next 2 chars and hexify them
-                                        strHex = "0x" + strMsg[lngMsg][(intCharPos + 2)..(intCharPos + 4)];
+                                        strHex = "0x" + strMessage[(intCharPos + 2)..(intCharPos + 4)];
                                         //if this hex value >=1 and <256, use it
                                         try {
                                             i = Convert.ToInt32(strHex, 16);

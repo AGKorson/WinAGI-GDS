@@ -95,9 +95,21 @@ namespace WinAGI.Common {
 
             /// <summary>Throws a WinAGIException if resource is not loaded.</summary>
             public static void ThrowIfNotLoaded(AGIResource value) {
-                if (!value.Loaded)
+                if (!value.Loaded) {
                     ThrowResourceNotLoaded();
+                }
             }
+            public static void ThrowIfNotLoaded(WordList value) {
+                if (!value.Loaded) {
+                    ThrowResourceNotLoaded();
+                }
+            }
+            public static void ThrowIfNotLoaded(InventoryList value) {
+                if (!value.Loaded) {
+                    ThrowResourceNotLoaded();
+                }
+            }
+
             [DoesNotReturn]
             private static void ThrowResourceNotLoaded() {
                 WinAGIException wex = new("Resource not loaded") {
@@ -136,7 +148,23 @@ namespace WinAGI.Common {
             Array.ConstrainedCopy(arr, 0, temp, 0, length);
             return temp;
         }
-
+        /// <summary>
+        /// Converts only ascii characters in a string to lower case. Extended
+        /// characters are not adjusted.
+        /// </summary>
+        /// <param name="strIn"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static string LowerAGI(string strIn) {
+            StringBuilder sb = new StringBuilder(strIn);
+            for (int i = 0; i < sb.Length; i++) {
+                if (sb[i] >= 65 && sb[i] <= 90) {
+                    sb[i] |= ' ';
+                }
+            }
+            return sb.ToString();  
+        }
+        
         public static string Right(string strIn, int length) {
             if (length >= strIn.Length)
                 return strIn;

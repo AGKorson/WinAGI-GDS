@@ -1885,6 +1885,8 @@ namespace WinAGI.Engine {
                 // set warning flag
                 blnWarnings = true;
             }
+            // get description, if there is one
+            agVocabWords.Description = agGameProps.GetSetting("WORDS.TOK", "Description", "", true);
             // load inventory objects list
             loadInfo.Type = EventType.etInfo;
             loadInfo.InfoType = EInfoType.itResources;
@@ -1903,9 +1905,10 @@ namespace WinAGI.Engine {
                 loadInfo.Text = $"An error occurred while loading OBJECT:(Error {e.HResult}: {e.Message}";
                 loadInfo.Module = "OBJECT";
                 Raise_LoadGameEvent(loadInfo);
-                // set warning flag
                 blnWarnings = true;
             }
+            // get description, if there is one
+            agInvObj.Description = agGameProps.GetSetting("OBJECT", "Description", "", true);
             // adust commands based on AGI version
             CorrectCommands(agIntVersion);
             // check for decompile warnings, TODO entries and validate logic CRC values

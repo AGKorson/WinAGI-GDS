@@ -33,7 +33,6 @@ namespace WinAGI.Engine {
             get => mRoom;
             set {
                 mRoom = value;
-                //if there is a parent
                 if (mParent is not null) {
                     mParent.IsDirty = true;
                 }
@@ -41,12 +40,11 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Sets parent for this item. Needed so we can update the item's unique property when it changes.
         /// </summary>
         /// <param name="Parent"></param>
         internal void SetParent(InventoryList Parent) {
-            //sets parent for this item; needed so we can update the item's unique property
-            // when it changes
+            // 
             mParent = Parent;
         }
 

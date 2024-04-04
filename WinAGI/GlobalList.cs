@@ -1,13 +1,16 @@
 ﻿using System;
 using System.IO;
-using static WinAGI.Engine.Base;
 using static WinAGI.Common.Base;
-using System.Linq;
 using static WinAGI.Engine.DefineNameCheck;
 using static WinAGI.Engine.DefineValueCheck;
 namespace WinAGI.Engine {
     public class GlobalList {
         // user defined global defines
+        // TODO: no more global list; instead provide 'define list' object that lets users 
+        // edit defines in the same editor, but all files must be manually included;
+        // create a scope property allowing files to be tagged 'global' (which will
+        // automatically add them to existing/new logics) or identify which logics they
+        // apply to; add a branch to resource tree to list define files
         TDefine[] agGlobal;
         AGIGame parent;
         uint agGlobalCRC = 0xffffffff;
