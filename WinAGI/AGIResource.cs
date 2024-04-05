@@ -977,9 +977,9 @@ namespace WinAGI.Engine {
                 }
                 mlngCurPos = Pos;
             }
-            mlngCurPos++;
+            byte retval = mRData[mlngCurPos++];
             mblnEORes = (mlngCurPos == mRData.Length);
-            return mRData[mlngCurPos];
+            return retval;
         }
 
         /// <summary>
