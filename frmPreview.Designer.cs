@@ -289,6 +289,7 @@ namespace WinAGI.Editor {
             imgPicture.MouseMove += imgPicture_MouseMove;
             imgPicture.MouseUp += imgPicture_MouseUp;
             imgPicture.Validated += imgPicture_Validated;
+            imgPicture.MouseWheel += imgPicture_MouseWheel;
             // 
             // pnlSound
             // 

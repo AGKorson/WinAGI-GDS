@@ -147,11 +147,6 @@ namespace WinAGI.Engine {
                 SourceLogic.ErrData[0] = strError;
                 SourceLogic.ErrData[1] = SourceLogic.ID;
                 return "return();" + NEWLINE;
-                //WinAGIException wex = new($"LogDecode Error ({strError})") {
-                //    HResult = WINAGI_ERR + 688
-                //};
-                //wex.Data["error"] = strError;
-                //throw wex;
             }
 
             //set main block info
@@ -176,23 +171,12 @@ namespace WinAGI.Engine {
                         SourceLogic.ErrData[0] = strError;
                         SourceLogic.ErrData[1] = SourceLogic.ID;
                         return "return();" + NEWLINE;
-                        //WinAGIException wex = new($"LogDecode Error ({strError})") {
-                        //    HResult = WINAGI_ERR + 688
-                        //};
-                        //wex.Data["error"] = strError;
-                        //throw wex;
                     }
                     else {
                         SourceLogic.ErrLevel = -10;
                         SourceLogic.ErrData[0] = strError;
                         SourceLogic.ErrData[1] = SourceLogic.ID;
                         return "return();" + NEWLINE;
-                        ////use error string set by findlabels
-                        //WinAGIException wex = new($"LogDecode Error ({strError})") {
-                        //    HResult = WINAGI_ERR + 688
-                        //};
-                        //wex.Data["error"] = strError;
-                        //throw wex;
                     }
                 }
             }
@@ -228,11 +212,6 @@ namespace WinAGI.Engine {
                         SourceLogic.ErrData[0] = strError;
                         SourceLogic.ErrData[1] = SourceLogic.ID;
                         return "return();" + NEWLINE;
-                        //WinAGIException wex = new($"LogDecode Error ({strError})") {
-                        //    HResult = WINAGI_ERR + 688
-                        //};
-                        //wex.Data["error"] = strError;
-                        //throw wex;
                     }
                     break;
                 case 0xFE:
@@ -454,11 +433,6 @@ namespace WinAGI.Engine {
                                 SourceLogic.ErrData[0] = strError;
                                 SourceLogic.ErrData[1] = SourceLogic.ID;
                                 return "return();" + NEWLINE;
-                                //WinAGIException wex = new($"LogDecode Error: {strError}") {
-                                //    HResult = WINAGI_ERR + 688
-                                //};
-                                //wex.Data["error"] = strError;
-                                //throw wex;
                             }
                             // check for commands that use colors here
                             switch (bytCmd) {

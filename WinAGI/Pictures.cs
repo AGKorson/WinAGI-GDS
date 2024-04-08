@@ -65,7 +65,7 @@ namespace WinAGI.Engine {
             }
             // validate id
             strBaseID = strID;
-            while (!agResource.IsUniqueResID(strID)) {
+            while (NotUniqueID(strID, parent)) {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }
@@ -73,7 +73,7 @@ namespace WinAGI.Engine {
             Col.Add(ResNum, agResource);
             //force flags so save function will work
             agResource.IsDirty = true;
-            agResource.WritePropState = true;
+            agResource.PropDirty = true;
             //save new picture
             agResource.Save();
             //return the object created
@@ -132,7 +132,7 @@ namespace WinAGI.Engine {
             if (tmpPic.ID.Equals("Picture" + OldPic, StringComparison.OrdinalIgnoreCase)) {
                 //change default ID to new ID
                 strID = strBaseID = "Picture" + NewPic;
-                while (!tmpPic.IsUniqueResID(strID)) {
+                while (NotUniqueID(strID, parent)) {
                     intNextNum++;
                     strID = strBaseID + "_" + intNextNum;
                 }
@@ -152,7 +152,7 @@ namespace WinAGI.Engine {
             //
 
             //force writeprop state back to false
-            tmpPic.WritePropState = false;
+            tmpPic.PropDirty = false;
             //unload if necessary
             if (blnUnload) {
                 tmpPic.Unload();

@@ -1,22 +1,98 @@
 ﻿using System;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.Commands;
-using static WinAGI.Common.Base;
-using System.Runtime.InteropServices;
-using System.Drawing;
-using System.IO;
 using System.Diagnostics;
+using System.Drawing;
 using System.Drawing.Imaging;
-using System.Configuration;
+using System.IO;
+using System.Runtime.InteropServices;
+using static WinAGI.Common.Base;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
+
+    public struct PicBkgdPos {
+        public float srcX;
+        public float srcY;
+        public float tgtX;
+        public float tgtY;
+
+        public PicBkgdPos() {
+            srcX = 0;
+            srcY = 0;
+            tgtX = 0;
+            tgtY = 0;
+        }
+        public override readonly string ToString() {
+            return srcX.ToString() + "|" + srcY.ToString() + "|" + tgtX.ToString() + "|" + tgtY.ToString();
+        }
+        public void FromString(string value) {
+            string[] strings = value.Split('|');
+            if (strings.Length == 4) {
+                if (!float.TryParse(strings[0], out srcX)) {
+                    srcX = 0;
+                }
+                if (!float.TryParse(strings[0], out srcY)) {
+                    srcY = 0;
+                }
+                if (!float.TryParse(strings[0], out tgtX)) {
+                    tgtX = 0;
+                }
+                if (!float.TryParse(strings[0], out tgtY)) {
+                    tgtY = 0;
+                }
+            }
+            else {
+                srcX = 0;
+                srcY = 0;
+                tgtX = 0;
+                tgtY = 0;
+            }
+        }
+    }
+    public struct PicBkgdSize {
+        public float srcW;
+        public float srcH;
+        public float tgtW;
+        public float tgtH;
+        public PicBkgdSize() {
+            srcW = 0;
+            srcH = 0;
+            tgtW = 0;
+            tgtH = 0;
+        }
+        public override readonly string ToString() {
+            return srcW.ToString() + "|" + srcH.ToString() + "|" + tgtW.ToString() + "|" + tgtH.ToString();
+        }
+        public void FromString(string value) {
+            string[] strings = value.Split('|');
+            if (strings.Length == 4) {
+                if (!float.TryParse(strings[0], out srcW)) {
+                    srcW = 0;
+                }
+                if (!float.TryParse(strings[0], out srcH)) {
+                    srcH = 0;
+                }
+                if (!float.TryParse(strings[0], out tgtW)) {
+                    tgtW = 0;
+                }
+                if (!float.TryParse(strings[0], out tgtH)) {
+                    tgtH = 0;
+                }
+            }
+            else {
+                srcW = 0;
+                srcH = 0;
+                tgtW = 0;
+                tgtH = 0;
+            }
+        }
+    }
+
     public class Picture : AGIResource {
         string mBkImgFile;
         bool mBkShow;
         int mBkTrans;
-        string mBkPos;
-        string mBkSize;
+        PicBkgdPos mBkPos;
+        PicBkgdSize mBkSize;
         byte mPriBase;
         bool mPicBMPSet;
         int mDrawPos;
@@ -27,16 +103,27 @@ namespace WinAGI.Engine {
         Bitmap bmpVis;
         Bitmap bmpPri;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="NewPicture"></param>
         private void InitPicture(Picture NewPicture = null) {
             // attach events
             PropertyChanged += ResPropChange;
             if (NewPicture is null) {
                 // create default picture with no commands
-                WriteByte(0xff);
-                // default to entire image
+                mRData.ReSize(1);
+                mRData[0] = 0xff;
                 mDrawPos = -1;
-                // default pribase is 48
                 mPriBase = 48;
+                mBkImgFile = "";
+                mBkShow = false;
+                mBkTrans = 0;
+                mBkPos = new();
+                mBkSize = new();
+                mPicBMPSet = false;
+                mStepDraw = false;
+                mCurrentPen = new PenStatus();
             }
             else {
                 // clone this picture
@@ -44,17 +131,23 @@ namespace WinAGI.Engine {
             }
         }
 
+        /// <summary>
+        /// new picture, not in game
+        /// </summary>
         public Picture() : base(AGIResType.rtPicture) {
-            // new picture, not in game
-
-            // initialize
             InitPicture();
-            // create a default ID
+            // use a default ID
             mResID = "NewPicture";
-            // if not in a game, resource is always loaded
+            // not in a game so resource is always loaded
             mLoaded = true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="NewPicture"></param>
         internal Picture(AGIGame parent, byte ResNum, Picture NewPicture = null) : base(AGIResType.rtPicture) {
             // internal method to a new picture and find place for it in vol files
 
@@ -64,16 +157,23 @@ namespace WinAGI.Engine {
             base.InitInGame(parent, ResNum);
         }
 
-        public Picture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtPicture) {
-            //this internal function adds this resource to a game, setting its resource 
+        /// <summary>
+        /// Represents a new picture resource being added to a game during initial load.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="VOL"></param>
+        /// <param name="Loc"></param>
+        internal Picture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtPicture) {
+            // adds a picture from dir/vol files, setting its resource 
             //location properties, and reads properties from the wag file
 
-            //attach events
+            // attach events
             base.PropertyChanged += ResPropChange;
-            //set up base resource
+            // set up base resource
             base.InitInGame(parent, ResNum, VOL, Loc);
 
-            //if importing, there will be nothing in the propertyfile
+            // if importing, there will be nothing in the propertyfile
             mResID = parent.agGameProps.GetSetting("Picture" + ResNum, "ID", "", true);
             if (mResID.Length == 0) {
                 //no properties to load; save default ID
@@ -89,14 +189,24 @@ namespace WinAGI.Engine {
             //default pribase is 48
             mPriBase = 48;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void ResPropChange(object sender, AGIResPropChangedEventArgs e) {
             //set flag to indicate picture data does not match picture bmps
             mPicBMPSet = false;
             //for picture only, changing resource sets dirty flag
             mIsDirty = true;
         }
+
+        /// <summary>
+        /// Copies picture data from this picture and returns a completely separate object reference
+        /// </summary>
+        /// <returns></returns>
         internal Picture Clone() {
-            //copies picture data from this picture and returns a completely separate object reference
             Picture CopyPicture = new();
             // copy base properties
             base.Clone(CopyPicture);
@@ -116,43 +226,33 @@ namespace WinAGI.Engine {
             CopyPicture.ErrLevel = ErrLevel;
             return CopyPicture;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public string BkgdImgFile {
             get {
                 return mBkImgFile;
             }
             set {
-                //if not loaded,
-                if (!Loaded) {
-                    //raise error
-
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563
-                    };
-                    throw wex;
-                }
                 mBkImgFile = value;
-                WritePropState = true;
+                PropDirty = true;
             }
         }
-        public string BkgdPosition {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public PicBkgdPos BkgdPosition {
             get {
                 return mBkPos;
             }
             set {
-                //if not loaded,
-                if (!Loaded) {
-                    //raise error
-
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563
-                    };
-                    throw wex;
-                }
                 mBkPos = value;
-                WritePropState = true;
+                PropDirty = true;
             }
         }
-        public string BkgdSize {
+        public PicBkgdSize BkgdSize {
             get {
                 return mBkSize;
             }
@@ -167,7 +267,7 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
                 mBkSize = value;
-                WritePropState = true;
+                PropDirty = true;
             }
         }
         public int BkgdTrans {
@@ -185,7 +285,7 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
                 mBkTrans = value;
-                WritePropState = true;
+                PropDirty = true;
             }
         }
         public bool BkgdShow {
@@ -203,14 +303,14 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
                 mBkShow = value;
-                WritePropState = true;
+                PropDirty = true;
             }
         }
 
         public byte PriBase {
             get {
-                //if before v2.936, always return value of 48
-                if (int.Parse(parent.agIntVersion) < 2.936) {
+                // if before v2.936, always return value of 48
+                if (parent is not null && int.Parse(parent.agIntVersion) < 2.936) {
                     mPriBase = 48;
                 }
                 return mPriBase;
@@ -231,7 +331,7 @@ namespace WinAGI.Engine {
                 else {
                     mPriBase = value;
                 }
-                WritePropState = true;
+                PropDirty = true;
             }
         }
 
@@ -267,7 +367,7 @@ namespace WinAGI.Engine {
                 }
                 //if picture data changed,
                 if (!mPicBMPSet) {
-                    //load pictures
+                    // load pictures
                     BuildPictures();
                 }
                 return mPriData;
@@ -592,8 +692,8 @@ namespace WinAGI.Engine {
             if (mBkImgFile.Length != 0) {
                 mBkShow = parent.agGameProps.GetSetting("Picture" + Number, "BkgdShow", false);
                 mBkTrans = parent.agGameProps.GetSetting("Picture" + Number, "BkgdTrans", 0);
-                mBkPos = parent.agGameProps.GetSetting("Picture" + Number, "BkgdPosn", "");
-                mBkSize = parent.agGameProps.GetSetting("Picture" + Number, "BkgdSize", "");
+                mBkPos.FromString(parent.agGameProps.GetSetting("Picture" + Number, "BkgdPosn", ""));
+                mBkSize.FromString(parent.agGameProps.GetSetting("Picture" + Number, "BkgdSize", ""));
             }
             BuildPictures();
         }
@@ -647,14 +747,12 @@ namespace WinAGI.Engine {
             }
         }
 
-        public new void Save() {
-            if (!mLoaded) {
-                // do nothing? error?
-                return;
-            }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SaveProps() {
             // if properties need to be written
-            if (WritePropState && mInGame) {
+            if (PropDirty && mInGame) {
                 //saves the picture resource
                 //save ID and description to ID file
                 string strPicKey = "Picture" + Number;
@@ -683,7 +781,20 @@ namespace WinAGI.Engine {
                     parent.WriteGameSetting(strPicKey, "BkgdPosn", mBkPos);
                     parent.WriteGameSetting(strPicKey, "BkgdSize", mBkSize);
                 }
-                WritePropState = false;
+                PropDirty = false;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public new void Save() {
+            if (!mLoaded) {
+                // do nothing? error?
+                return;
+            }
+            if (PropDirty && mInGame) {
+                SaveProps();
             }
             if (mIsDirty) {
                 // (no picture-specific action needed, since changes in picture are

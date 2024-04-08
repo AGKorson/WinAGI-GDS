@@ -12033,7 +12033,12 @@ namespace WinAGI.Editor {
                 // import the logic
                 // (and check for error)
                 try {
-                    tmpLogic.Import(ImportLogicFile, blnSource);
+                    if (blnSource) {
+                        tmpLogic.ImportSource(ImportLogicFile);
+                    }
+                    else {
+                        tmpLogic.Import(ImportLogicFile);
+                    }
                 }
                 catch (Exception e) {
                     // if a compile error occurred,
@@ -12047,7 +12052,12 @@ namespace WinAGI.Editor {
                     else {
                         // maybe we assumed source status incorrectly- try again
                         try {
-                            tmpLogic.Import(ImportLogicFile, !blnSource);
+                            if (blnSource) {
+                                tmpLogic.Import(ImportLogicFile);
+                            }
+                            else {
+                                tmpLogic.ImportSource(ImportLogicFile);
+                            }
                         }
                         catch (Exception) {
                             // if STILL error, something wrong

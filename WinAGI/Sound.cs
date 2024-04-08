@@ -196,7 +196,7 @@ namespace WinAGI.Engine {
                     //assign it
                     mKey = value;
                     //set props flag
-                    WritePropState = true;
+                    PropDirty = true;
                 }
             }
         }
@@ -1057,7 +1057,7 @@ namespace WinAGI.Engine {
             }
             //reset dirty flags
             mIsDirty = false;
-            WritePropState = false;
+            PropDirty = false;
             //reset track flag
             mTracksSet = true;
         }
@@ -1074,7 +1074,7 @@ namespace WinAGI.Engine {
                 }
                 if (mTPQN != value) {
                     mTPQN = value;
-                    WritePropState = true;
+                    PropDirty = true;
                 }
             }
         }
@@ -1119,7 +1119,7 @@ namespace WinAGI.Engine {
                 mMIDISet = false;
             }
             //change in track sets writeprop to true
-            WritePropState = true;
+            PropDirty = true;
         }
         public override void Load() {
             // load data into the sound tracks
@@ -1225,12 +1225,12 @@ namespace WinAGI.Engine {
             }
         }
 
-        public void Save() {
-            //saves the sound
-            string strSection;
-            //if properties need to be written
-            if (WritePropState && mInGame) {
-                strSection = "Sound" + mResNum;
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SaveProps() {
+            if (PropDirty && mInGame) {
+                string strSection = "Sound" + mResNum;
                 //save ID and description to ID file
                 parent.WriteGameSetting(strSection, "ID", mResID, "Sounds");
                 parent.WriteGameSetting(strSection, "Description", mDescription);
@@ -1248,12 +1248,23 @@ namespace WinAGI.Engine {
                 parent.WriteGameSetting(strSection, "Visible1", mTrack[1].Visible);
                 parent.WriteGameSetting(strSection, "Visible2", mTrack[2].Visible);
                 parent.WriteGameSetting(strSection, "Visible3", mTrack[3].Visible);
-                WritePropState = false;
+                PropDirty = false;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Save() {
+            //saves the sound
             //if not loaded
             if (!mLoaded) {
                 //nothing to do
                 return;
+            }
+            // if properties need to be written
+            if (PropDirty && mInGame) {
+                SaveProps();
             }
             //if dirty
             if (mIsDirty) {

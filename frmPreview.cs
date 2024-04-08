@@ -1064,6 +1064,22 @@ namespace WinAGI.Editor {
         private void imgPicture_Validated(object sender, EventArgs e) {
             Debug.Print("validate - did it work?");
         }
+        private void imgPicture_MouseWheel(object sender, MouseEventArgs e) {
+            switch (e.Delta) {
+            case < 0:
+                // wheel down
+                if (udPZoom.Value > udPZoom.Minimum) {
+                    udPZoom.Value--;
+                }
+                break;
+            case > 0:
+                // wheel up
+                if (udPZoom.Value < udPZoom.Maximum) {
+                    udPZoom.Value++;
+                }
+                break;
+            }
+        }
         private void pnlPicture_Leave(object sender, EventArgs e) {
             Debug.Print("pnlpic leave - did it work?");
         }

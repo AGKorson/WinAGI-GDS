@@ -94,8 +94,6 @@ AGIResource       Import                    524                   missing import
 AGIResource       Import                    605                   file access error when importing resource
 AGIResource       Import                    605                   import resource file is empty
 AGIResource       Import                    PASS                  pass-through AGIResource.Save
-AGIResource       IsDirty/get               563                   resource not loaded
-AGIResource       IsDirty/set               563                   resource not loaded
 AGIResource       WriteByte                 563                   resource not loaded
 AGIResource       WriteByte                 ArgOutOfRange         Pos value is invalid
 AGIResource       WriteWord                 563                   resource not loaded
@@ -156,17 +154,14 @@ WordList          CodePage                  ArgOutOfRange         invalid codepa
 WordList          Export                    563                   resource not loaded
 WordList          Export                    PASS                  pass-through Compile        
 WordList          Export                    PASS                  pass-through CompileSVE
-WordList          LoadSierraFile            606                   loadfile missing
-WordList          LoadSierraFile            700                   loadfile is readonly
 WordList          LoadSierraFile            502                   file access error while reading words.tok
-WordList          LoadSierraFile            529                   invalid words.tok data
 WordList          Clone                     563                   resource not loaded
 WordList          GroupN                    563                   resource not loaded
 WordList          GroupExists               563                   resource not loaded
 WordList          IsDirty/get               563                   resource not loaded
-WordList          this[index/key]           563                   resource not loaded
-WordList          this[index/key]           IndexOutOfRange       invalid word index
-WordList          this[index/key]           IndexOutOfRange       invalid word index
+WordList          this[index/key]/get       563                   resource not loaded
+WordList          this[index/key]/get       IndexOutOfRange       invalid word index
+WordList          this[index/key]/get       IndexOutOfRange       invalid word key
 WordList          this[index/key]           ArgException          invalid index/key
 WordList          Save                      563                   resource not loaded
 WordList          Save                      PASS                  pass-through Compile
@@ -189,17 +184,17 @@ WordList          RenumberGroup             ArgOutORange          invalid oldgro
 WordList          RenumberGroup             ArgOutORange          invalid newgroup number (<0)
 WordList          RenumberGroup             ArgOutORange          invalid newgroup number (>Max)
 WordList          RenumberGroup             ArgException          oldgroup number does not exist
-WordList          RenumberGroup             ArgException          newgroup number does not exist
+WordList          RenumberGroup             ArgException          newgroup number already exists
 WordList          Compile                   616                   invalid savefile name
 WordList          Compile                   672                   no words in list
 WordList          Compile                   672                   file access error while writing data
 WordList          CompileSVE                616                   invalid savefile name
 WordList          CompileSVE                672                   no words in list
 WordList          CompileSVE                672                   file access error while writing data
-WordList          Load                      529                   sierra format load error
-WordList          Load                      599                   invalid (empty) loadfile name
-WordList          Load                      524                   missing loadfile
-WordList          Load                      529                   sierra format load error
+WordList          Load                      599                   invalid loadfile name (empty)
+WordList          Load                      606                   loadfile missing
+WordList          Load                      700                   loadfile is readonly
+WordList          Load                      PASS                  pass-through LoadSierraFile
 WordList          Group                     563                   resource not loaded
 WordList          Group                     IndexOutOfRange       invalid wordgroup index
 WordList          AddWord                   563                   resource not loaded
@@ -211,8 +206,6 @@ InventoryList     Count                     563                   resource not l
 InventoryList     AmigaOBJ                  neednumber            error during Amiga conversion
 InventoryList     Export                    563                   resource not loaded
 InventoryList     Export                    582                   error during compilation
-InventoryList     LoadSierraFile            606                   missing resource file
-InventoryList     LoadSierraFile            700                   resource file is readonly
 InventoryList     LoadSierraFile            502                   file access error while loading resource file
 InventoryList     Add                       563                   resource not loaded
 IventoryList      Add                       569                   too many inventory items
@@ -221,12 +214,54 @@ InventoryList     Encrypted/get             563                   resource not l
 InventoryList     Encrypted/set             563                   resource not loaded
 InventoryList     MaxScreenObjects/get      563                   resource not loaded
 InventoryList     MaxScreenObjects/set      563                   resource not loaded
+InventoryList     Load                      599                   invalid (empty) loadfile name
+InventoryList     Load                      606                   missing loadfile
+InventoryList     Load                      700                   loadfile is readonly
 InventoryList     Load                      PASS                  pass-through LoadSierraFile
 InventoryList     Load                      692                   unable to load list
-InventoryList     Load                      599                   invalid (empty) loadfile name
-InventoryList 
-
-
+InventoryList     Save                      563                   resource not loaded
+InventoryList     Save                      615                   invalid savefile name (empty)
+InventoryList     Compile                   674                   error while copying to
+InventoryList     Enum:Current              InvalidOps            invalid position value
+Logic             CodeSize/get              563                   resource not loaded
+Logic             Clear                     563                   resource not loaded
+Logic             ExportSource              563                   resource not loaded
+Logic             ExportSource              582                   file error during export
+Logic             Import                    615                   invalid filename (empty)
+Logic             Import                    PASS                  pass-through base.Import
+Logic             ImportSource              615                   invalid filename (empty)
+Logic             SaveSource                599                   sourcefile is missing
+Logic             SaveSource                582                   file accessverror while writing source
+Logic             Compile                   563                   resource not loaded
+Logic             Compile                   618                   compiling not allowed if not in game
+Logic             Compile                   546                   no source code (empty)
+Logic             Compile                   546                   no source code (empty)
+Logics            this/get                  IndexOutOfRange       invalid index value
+Logics            SourceFileExt             ArgException          unallowable characters
+Logics            SourceFileExt             ArgException          unallowable characters
+Logics            Add                       602                   resource number already in use
+Logics            Renumber                  IndexOutOfRange       resource not in collection
+Logics            Renumber                  669                   new number already in use
+Logics            Renumber                  670                   file access error while renumbering
+Logics            Enum:Current              InvalidOps            invalid position value
+Loop              Index/set                 IndexOutOfRange       invalid index
+Loops             this/get                  IndexOutOfRange       invalid index
+Loops             Add                       IndexOutOfRange       invalid index
+Loops             Remove                    613                   can't remove last loop
+Loops             Remove                    IndexOutOfRange       invalid index
+Loops             Enum:Current              InvalidOps            invalid
+Note              Attenuation/set           ArgOutOfRange         invalid attenuation value
+Note              Duration/set              ArgOutOfRange         invalid duration value
+Note              FreqDivisor/set           ArgOutOfRange         invalid freqdivisor value
+Note              constructor               ArgOutOfRange         invalid attenuation value
+Note              constructor               ArgOutOfRange         invalid duration value
+Note              constructor               ArgOutOfRange         invalid freqdivisor value
+Notes             this/get                  IndexOutOfRange       invalid index
+Notes             Add                       ArgOutOfRange         invalid attenuation value
+Notes             Add                       ArgOutOfRange         invalid duration value
+Notes             Add                       ArgOutOfRange         invalid freqdivisor value
+Notes             Remove                    IndexOutOfRange       invalid index
+Notes             Enum:Current              InvalidOps            invalid
 
 
 

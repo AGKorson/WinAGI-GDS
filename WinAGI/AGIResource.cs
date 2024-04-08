@@ -4,6 +4,7 @@ using static WinAGI.Engine.Base;
 using static WinAGI.Common.Base;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace WinAGI.Engine {
     //public abstract class AGIResource
@@ -20,9 +21,9 @@ namespace WinAGI.Engine {
         internal AGIGame parent;
         internal bool mIsDirty;
         protected byte mResNum;
-        protected string mDescription;
+        protected string mDescription = "";
         protected readonly AGIResType mResType;
-        protected string mResFile;
+        protected string mResFile = "";
         private bool mblnEORes; //flag indicating pointer is at beginning of resource (CurPos=0)
         private int mlngCurPos;  //current position of pointer in resource data
 
@@ -286,32 +287,42 @@ namespace WinAGI.Engine {
         public string ResFile {
             get {
                 if (mInGame) {
-                    return mResFile;
-                }
-                else {
                     return "";
                 }
+                else {
+                    return mResFile;
+                }
             }
-            set {
+            internal set {
+                // TODO: validate name?
                 mResFile = value;
             }
         }
         
         /// <summary>
-        /// 
+        /// When true, indicates resource properties in resource need to be updated
+        /// in the game's WAG file. Meaningless if resource is not in a game.
         /// </summary>
-        internal bool WritePropState { get; set; }
+        internal bool PropDirty { get; set; }
         
         /// <summary>
-        /// 
+        /// For resources in a game, IsDirty is true if the data in the resource does not
+        /// match the data in the VOL file. For resources not in a game, IsDirty is true
+        /// if the data in the resource does not match the data in the resource file.
         /// </summary>
         public virtual bool IsDirty {
             get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return mIsDirty;
+                // if not loaded, resource is never dirty
+                if (mLoaded) {
+                    return mIsDirty;
+                }
+                else {
+                    return false;
+                }
             }
             internal set {
-                WinAGIException.ThrowIfNotLoaded(this);
+                // DEBUG: should only change if resource is loaded
+                Debug.Assert(mLoaded);
                 mIsDirty = value;
             }
         }
@@ -362,32 +373,9 @@ namespace WinAGI.Engine {
 
                 if (NewID != mResID) {
                     // ingame resources must have unique IDs
-                    if (InGame) {
-                        // step through other resources
-                        foreach (Logic tmpRes in parent.agLogs) {
-                            if (tmpRes.ID.Equals(NewID) && this != tmpRes) {
-                                // duplicate - ignore change request
-                                return;
-                            }
-                        }
-                        foreach (Picture tmpRes in parent.agPics) {
-                            if (tmpRes.ID.Equals(NewID) && this != tmpRes) {
-                                // duplicate - ignore change request
-                                return;
-                            }
-                        }
-                        foreach (Sound tmpRes in parent.agSnds) {
-                            if (tmpRes.ID.Equals(NewID) && this != tmpRes) {
-                                // duplicate - ignore change request
-                                return;
-                            }
-                        }
-                        foreach (View tmpRes in parent.agViews) {
-                            //if resource IDs are same
-                            if (tmpRes.ID.Equals(NewID) && this != tmpRes) {
-                                // duplicate - ignore change request
-                                return;
-                            }
+                    if (mInGame) {
+                        if (NotUniqueID(this)) {
+                            return;
                         }
                     }
                     mResID = NewID;
@@ -464,7 +452,7 @@ namespace WinAGI.Engine {
             NewRes.mLoaded = mLoaded;
             NewRes.Data.AllData = mRData.AllData;
             NewRes.mIsDirty = mIsDirty;
-            NewRes.WritePropState = WritePropState;
+            NewRes.PropDirty = PropDirty;
             NewRes.mSize = mSize;
             NewRes.mSizeInVol = mSizeInVol;
             NewRes.mblnEORes = mblnEORes;
@@ -492,7 +480,7 @@ namespace WinAGI.Engine {
             // always return success
             mLoaded = true;
             mIsDirty = false;
-            WritePropState = false;
+            PropDirty = false;
 
             //if in a game,
             if (mInGame) {
@@ -704,14 +692,7 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            // resource has to be loaded
-            // TODO: should I change this to an error if not loaded?
-            // make the calling function make sure it's loaded first?
-            if (!mLoaded) {
-                blnUnload = true;
-                Load();
-            }
-            // check for errors
+            // resources with errors can't be exported
             if (mErrLevel < 0) {
                 WinAGIException wex = new(LoadResString(601)) {
                     HResult = WINAGI_ERR + 601,
@@ -1128,37 +1109,6 @@ namespace WinAGI.Engine {
         internal void Raise_DataChange(object sender, RData.RDataChangedEventArgs e) {
             //pass it along
             OnPropertyChanged("Data");
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="checkID"></param>
-        /// <returns></returns>
-        internal bool IsUniqueResID(string checkID) {
-            // check all resids
-            foreach (AGIResource tmpRes in parent.agLogs.Col.Values) {
-                if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase)) {
-                    return false;
-                }
-            }
-            foreach (AGIResource tmpRes in parent.agPics.Col.Values) {
-                if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase)) {
-                    return false;
-                }
-            }
-            foreach (AGIResource tmpRes in parent.agSnds.Col.Values) {
-                if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase)) {
-                    return false;
-                }
-            }
-            foreach (AGIResource tmpRes in parent.agViews.Col.Values) {
-                if (tmpRes.ID.Equals(checkID, StringComparison.OrdinalIgnoreCase)) {
-                    return false;
-                }
-            }
-            // not found; must be unique
-            return true;
         }
 
         /// <summary>

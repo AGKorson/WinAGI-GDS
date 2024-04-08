@@ -65,7 +65,7 @@ namespace WinAGI.Engine {
             }
             // validate id
             strBaseID = strID;
-            while (!agResource.IsUniqueResID(strID)) {
+            while (NotUniqueID(strID, parent)) {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }
@@ -73,7 +73,7 @@ namespace WinAGI.Engine {
             Col.Add(ResNum, agResource);
             //force flags so save function will work
             agResource.IsDirty = true;
-            agResource.WritePropState = true;
+            agResource.PropDirty = true;
             //save new view
             agResource.Save();
             // TODO: does adding a resource automatically update resid lists? or should
@@ -139,7 +139,7 @@ namespace WinAGI.Engine {
             if (tmpView.ID.Equals("View" + OldView, StringComparison.OrdinalIgnoreCase)) {
                 //change default ID to new ID
                 strID = strBaseID = "View" + NewView;
-                while (!tmpView.IsUniqueResID(strID)) {
+                while (NotUniqueID(strID, parent)) {
                     intNextNum++;
                     strID = strBaseID + "_" + intNextNum;
                 }
@@ -162,7 +162,7 @@ namespace WinAGI.Engine {
             //
 
             //force writeprop state back to false
-            tmpView.WritePropState = false;
+            tmpView.PropDirty = false;
 
             //unload if necessary
             if (blnUnload) {

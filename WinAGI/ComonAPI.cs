@@ -58,10 +58,6 @@ namespace WinAGI.Common {
         public static readonly char[] INVALID_DEFNAME_CHARS;
 
         static Base() {
-            // create extended char string
-            // TODO: extchar string won't work; chars are unicode; limitation has to
-            // be aby char > 127
-
             // TODO: first char restictions are (should be) different than rest
             // invalid ID characters: these, plus control chars and extended chars
             //        3       4         5         6         7         8         9         0         1         2

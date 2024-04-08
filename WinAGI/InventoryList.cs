@@ -17,6 +17,11 @@ namespace WinAGI.Engine {
         bool mIsDirty;
         bool mWriteProps;
         bool mLoaded;
+        int mErrLevel = 0;
+        // 1 = empty file
+        // 2 = invalid data (decrypt failure)
+        // 3 = invalid data (datawidth failure)
+        // 4 = invalid data (invalid text pointer)
         AGIGame parent = null;
         Encoding mCodePage = Encoding.GetEncoding(437);
         //other
@@ -254,7 +259,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="LoadFile"></param>
         /// <returns>true if successful, false if it fails</returns>
-        bool LoadSierraFile(string LoadFile) {
+        private int LoadSierraFile(string LoadFile) {
             StringBuilder sbItem;
             string sItem;
             int intItem;
@@ -265,22 +270,6 @@ namespace WinAGI.Engine {
             int lngPos, Dwidth;
             FileStream fsObj;
 
-            if (!File.Exists(LoadFile)) {
-                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 606,
-                };
-                wex.Data["missingfile"] = LoadFile;
-                wex.Data["ID"] = "OBJECT";
-                throw wex;
-            }
-            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 700,
-                };
-                wex.Data["badfile"] = LoadFile;
-                throw wex;
-            }
-            // open the file
             try {
                 fsObj = new(LoadFile, FileMode.Open);
             }
@@ -299,8 +288,7 @@ namespace WinAGI.Engine {
             //if no data,
             if (fsObj.Length == 0) {
                 fsObj.Dispose();
-                // TODO: why isn't this an error? an empty file is unreadable
-                return false;
+                return 1;
             }
             // read in entire resource
             Array.Resize(ref bytData, (int)fsObj.Length);
@@ -319,8 +307,8 @@ namespace WinAGI.Engine {
                 mEncrypted = true;
                 break;
             case 2: 
-                // error in object file- return false
-                return false;
+                // error in object file
+                return 2;
             }
             // MSDOS files always have data element widths of 3 bytes;
             // Amigas have four; need to make sure correct value is used
@@ -341,7 +329,7 @@ namespace WinAGI.Engine {
             while (Dwidth <= 4);
             if (Dwidth == 5) {
                 // error
-                return false;
+                return 3;
             }
             mMaxScreenObjects = bytData[2];
             intItem = 0;
@@ -352,12 +340,12 @@ namespace WinAGI.Engine {
                 lngNameOffset = (bytData[(intItem + 1) * Dwidth + 1] << 8) + bytData[(intItem + 1) * Dwidth] + Dwidth;
                 bytRoom = bytData[Dwidth + intItem * Dwidth + 2];
                 lngPos = lngNameOffset;
-                //if past end of resource,
+                // if past end of resource,
                 if (lngPos > bytData.Length) {
-                    //error in object file- return false
-                    return false;
+                    // error
+                    return 4;
                 }
-                //build item name string
+                // build item name string
                 sbItem = new();
                 while (lngPos < bytData.Length) {
                     if (bytData[lngPos] == 0) {
@@ -388,7 +376,7 @@ namespace WinAGI.Engine {
                 intItem++;
             }
             while (((intItem * Dwidth) + Dwidth < lngDataOffset) && (intItem < MAX_ITEMS));
-            return true;
+            return 0;
         }
 
         /// <summary>
@@ -520,63 +508,52 @@ namespace WinAGI.Engine {
         /// <param name="LoadFile"></param>
         /// <exception cref="Exception"></exception>
         public void Load(string LoadFile = "") {
-            bool retval;
-
             if (mLoaded) {
                 return;
             }
             if (mInGame) {
-                // always set load flag for ingame resource, regardless of error status
+                LoadFile = mResFile;
+            }
+            if (LoadFile.Length == 0) {
+                WinAGIException wex = new(LoadResString(599)) {
+                    HResult = WINAGI_ERR + 599
+                };
+                throw wex;
+            }
+            // verify file exists
+            if (!File.Exists(LoadFile)) {
+                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 606,
+                };
+                wex.Data["missingfile"] = LoadFile;
+                wex.Data["ID"] = "WORDS.TOK";
+                throw wex;
+            }
+            // check for readonly
+            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = LoadFile;
+                throw wex;
+            }
+            try {
+                mErrLevel = LoadSierraFile(LoadFile);
+            }
+            catch {
+                throw;
+            }
+            finally {
+                // always set loaded flag regardless of error status
                 mLoaded = true;
-                //use default Sierra name
-                // TODO: isn't this already set?
-                LoadFile = parent.agGameDir + "OBJECT";
-                try {
-                    retval = LoadSierraFile(LoadFile);
-                }
-                catch {
-                    throw;
-                }
-                finally {
+                if (mInGame) {
                     mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "", true);
                 }
-                if (!retval) {
-                    // TODO: replace this error return value with ErrLevel numbers
-                    WinAGIException wex = new(LoadResString(692)) {
-                        HResult = WINAGI_ERR + 692,
-                    };
-                    throw wex;
+                else {
+                    mResFile = LoadFile;
                 }
+                mIsDirty = false;
             }
-            else {
-                // if NOT in a game, file must be specified
-                if (LoadFile.Length == 0) {
-                    WinAGIException wex = new(LoadResString(599)) {
-                        HResult = WINAGI_ERR + 599,
-                    };
-                    throw wex;
-                }
-                try {
-                    retval = LoadSierraFile(LoadFile);
-                }
-                catch {
-                    // pass along error
-                    throw;
-                }
-                finally {
-                    mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "", true);
-                }
-                mResFile = LoadFile;
-                mLoaded = true;
-                if (!retval) {
-                    // TODO: replace error handler with ErrLevel values
-                    WinAGIException wex = new(LoadResString(692)) {
-                        HResult = WINAGI_ERR + 692,
-                    };
-                    throw wex;
-                }
-            }
-            mIsDirty = false;
         }
 
         /// <summary>
@@ -623,7 +600,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="SaveFile"></param>
         public void Save(string SaveFile = "") {
-            //saves the list of inventory objects
+            // saves the list of inventory objects
 
             WinAGIException.ThrowIfNotLoaded(this);
             //if in a game,
@@ -651,84 +628,38 @@ namespace WinAGI.Engine {
             //mark as clean
             mIsDirty = false;
         }
-        public void SetObjects(InventoryList NewObjects) {
-            //copies object list from NewObjects to
-            //this object list
-            int i;
-            //if source objectlist is not loaded
-            if (!NewObjects.Loaded) {
-                //error
 
-                WinAGIException wex = new(LoadResString(563)) {
-                    HResult = WINAGI_ERR + 563
-                };
-                throw wex;
-            }
-            //first, clear current list
-            Clear();
-            //first item of new objects should normally be a '?'
-            //add all objects EXCEPT for first //?// object
-            //which is already preloaded with the clear method
-            for (i = 1; i < NewObjects.Count; i++) {
-                Add(NewObjects[(byte)i].ItemName, NewObjects[(byte)i].Room);
-            }
-            //RARE, but check for name/room change to item 0
-            if (NewObjects[0].ItemName != "?") {
-                this[0].ItemName = NewObjects[0].ItemName;
-            }
-            if (NewObjects[0].Room != 0) {
-                this[0].Room = NewObjects[0].Room;
-            }
-            //set max screenobjects
-            mMaxScreenObjects = NewObjects.MaxScreenObjects;
-            //set encryption flag
-            mEncrypted = NewObjects.Encrypted;
-            //set description
-            mDescription = NewObjects.Description;
-            //set dirty flags
-            mIsDirty = NewObjects.IsDirty;
-            mWriteProps = NewObjects.WriteProps;
-            //set filename
-            mResFile = NewObjects.ResFile;
-            //set load status
-            mLoaded = true;
-        }
-        void ToggleEncryption(ref byte[] bytData) {  // this function encrypts/decrypts the data
-                                                     // by XOR'ing it with the encryption string
-
+        /// <summary>
+        /// Encrypts/decrypts the data by XOR'ing it with the encryption string
+        /// </summary>
+        /// <param name="bytData"></param>
+        private void ToggleEncryption(ref byte[] bytData) {
             for (int lngPos = 0; lngPos < bytData.Length; lngPos++) {
                 bytData[lngPos] = (byte)(bytData[lngPos] ^ bytEncryptKey[lngPos % 11]);
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public void Unload() {
             //unloads ther resource; same as clear, except file marked as not dirty
-            //if not loaded
             if (!mLoaded) {
-                //error
-                WinAGIException wex = new(LoadResString(563)) {
-                    HResult = WINAGI_ERR + 563
-                };
-                throw wex;
+                return;
             }
             Clear();
             mLoaded = false;
             mWriteProps = false;
             mIsDirty = false;
         }
+
+        /// <summary>
+        /// Clears all objects and sets default values adds placeholder for item 0.
+        /// </summary>
         public void Clear() {
-            //clears ALL objects and sets default values
-            //adds placeholder for item 0
-
             InventoryItem tmpItem;
-            //if not loaded
-            if (!mLoaded) {
-                //error
 
-                WinAGIException wex = new(LoadResString(563)) {
-                    HResult = WINAGI_ERR + 563
-                };
-                throw wex;
-            }
+            WinAGIException.ThrowIfNotLoaded(this);
             mEncrypted = false;
             mMaxScreenObjects = 16;
             mAmigaOBJ = false;
@@ -746,9 +677,12 @@ namespace WinAGI.Engine {
             //set dirty flag
             mIsDirty = true;
         }
-        void Compile(string CompileFile) {
-            //compiles the object list into a Sierra AGI compatible OBJECT file
 
+        /// <summary>
+        /// c\Compiles the object list into a Sierra AGI compatible OBJECT file
+        /// </summary>
+        /// <param name="CompileFile"></param>
+        void Compile(string CompileFile) {
             int lngFileSize;    //size of object file
             int CurrentChar;    //current character in name
             int lngDataOffset;  //start of item names
@@ -758,77 +692,70 @@ namespace WinAGI.Engine {
             byte bytLow, bytHigh;
             int i;
             int Dwidth;
-            //if no file
+
             if (CompileFile.Length == 0) {
                 WinAGIException wex = new(LoadResString(616)) {
                     HResult = WINAGI_ERR + 616
                 };
                 throw wex;
             }
-
             //if not dirty AND compilefile=resfile
             if (!mIsDirty && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) {
                 return;
             }
-
-            //PC version (most common) has 3 bytes per item in offest table; amiga version has four bytes per item
+            // PC version (most common) has 3 bytes per item in offest table; amiga version has four bytes per item
             Dwidth = mAmigaOBJ ? 4 : 3;
 
-            //calculate min filesize
-            //(offset table size plus header + null obj '?')
+            // calculate min filesize
+            // (offset table size plus header + null obj '?')
             lngFileSize = (mItems.Count + 1) * Dwidth + 2;
-            //step through all items to determine length of each, and add it to file length counter
+            // step through all items to determine length of each, and add it to file length counter
             foreach (InventoryItem tmpItem in mItems) {
-                //if this item is NOT "?"
                 if (tmpItem.ItemName != "?") {
-                    //add size of object name to file size
-                    //(include null character at end of string)
+                    // add size of object name to file size
+                    // (include null character at end of string)
                     lngFileSize += tmpItem.ItemName.Length + 1;
                 }
             }
-            //initialize byte array to final size of file
+            // initialize byte array to final size of file
             Array.Resize(ref bytTemp, lngFileSize);
-            //set offset from index to start of string data
+            // set offset from index to start of string data
             lngDataOffset = mItems.Count * Dwidth;
             bytHigh = (byte)(lngDataOffset / 256);
             bytLow = (byte)(lngDataOffset % 256);
-            //write offest for beginning of text data
             bytTemp[0] = bytLow;
             bytTemp[1] = bytHigh;
-            //write max number of screen objects
             bytTemp[2] = mMaxScreenObjects;
-            //increment offset by width (to take into account file header)
-            //this is also pointer to the null item
+            // increment offset by width (to take into account file header)
+            // this is also pointer to the null item
             lngDataOffset += Dwidth;
-            //set counter to beginning of data
+            // set counter to beginning of data
             lngPos = lngDataOffset;
             //write string for null object (?)
-            bytTemp[lngPos] = 63; //(?)
+            bytTemp[lngPos] = 63;
             bytTemp[lngPos + 1] = 0;
             lngPos += 2;
             //now step through all items
-            // TODO: should not assume first obj is null??? hmmmm... not sure
+            // TODO: should I not assume first obj is null??? hmmmm... not sure
             // (i.e. start at 1? or 0?)
             for (i = 1; i < mItems.Count - 1; i++) {
-                //if object is //?//
                 if (mItems[i].ItemName == "?") {
                     //write offset data to null item
                     bytTemp[i * Dwidth] = (byte)(lngDataOffset % 256);
                     bytTemp[i * Dwidth + 1] = (byte)(lngDataOffset / 256);
-                    //set room number for this object
+                    // set room number for this object
                     bytTemp[i * Dwidth + 2] = mItems[i].Room;
                 }
                 else {
-                    //write offset data for start of this word
-                    //subtract data element width because offset is from end of header,
-                    //not beginning of file; lngPos is referenced from position zero)
+                    // write offset data for start of this word
+                    // subtract data element width because offset is from end of header,
+                    // not beginning of file; lngPos is referenced from position zero)
                     bytHigh = (byte)((lngPos - Dwidth) / 256);
                     bytLow = (byte)((lngPos - Dwidth) % 256);
                     bytTemp[i * Dwidth] = bytLow;
                     bytTemp[i * Dwidth + 1] = bytHigh;
-                    //write room number for this object
                     bytTemp[i * Dwidth + 2] = mItems[i].Room;
-                    //write all characters of this object
+                    // write all characters of this object
                     for (CurrentChar = 0; CurrentChar < mItems[i].ItemName.Length; CurrentChar++) {
                         // TODO: make sure extended charcters are working for all codepages
                         bytTemp[lngPos] = (byte)mItems[i].ItemName[CurrentChar];
@@ -846,29 +773,23 @@ namespace WinAGI.Engine {
             if (mEncrypted) {
                 //step through entire file
                 for (lngPos = 0; lngPos < bytTemp.Length; i++) {
-                    //encrypt with //Avis Durgan//
+                    //encrypt with 'Avis Durgan'
                     bytTemp[lngPos] ^= bytEncryptKey[lngPos % 11];
                 }
             }
             try {
-                //open temp file
+                // write output to a temp file
                 strTempFile = Path.GetTempFileName();
-                //write the data to file
                 FileStream fsObj = new(strTempFile, FileMode.Open);
                 fsObj.Write(bytTemp, 0, bytTemp.Length);
                 fsObj.Dispose();
-                //if savefile already exists
                 if (File.Exists(CompileFile)) {
-                    //delete it
                     File.Delete(CompileFile);
                 }
-                //move tempfile to savefile
                 File.Move(strTempFile, CompileFile);
             }
             catch (Exception e) {
-                //delete temporary file
                 File.Delete(strTempFile);
-                //raise the error
                 WinAGIException wex = new(LoadResString(674).Replace(ARG1, e.HResult.ToString())) {
                     HResult = WINAGI_ERR + 674,
                 };

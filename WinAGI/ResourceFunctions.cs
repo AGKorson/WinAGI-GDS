@@ -258,7 +258,7 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agLogs.Exists(bytResNum)) {
-                                    game.agLogs[bytResNum].WritePropState = false;
+                                    game.agLogs[bytResNum].PropDirty = false;
                                     game.agLogs[bytResNum].IsDirty = false;
                                     // logic source checks come after all resources loaded so leave it loaded
                                 }
@@ -271,7 +271,7 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agPics.Exists(bytResNum)) {
-                                    game.agPics[bytResNum].WritePropState = false;
+                                    game.agPics[bytResNum].PropDirty = false;
                                     game.agPics[bytResNum].IsDirty = false;
                                     game.agPics[bytResNum].Unload();
                                 }
@@ -284,7 +284,7 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agSnds.Exists(bytResNum)) {
-                                    game.agSnds[bytResNum].WritePropState = false;
+                                    game.agSnds[bytResNum].PropDirty = false;
                                     game.agSnds[bytResNum].IsDirty = false;
                                     game.agSnds[bytResNum].Unload();
                                 }
@@ -297,7 +297,7 @@ namespace WinAGI.Engine {
                                 }
                                 //make sure it was added before finishing
                                 if (game.agViews.Exists(bytResNum)) {
-                                    game.agViews[bytResNum].WritePropState = false;
+                                    game.agViews[bytResNum].PropDirty = false;
                                     game.agViews[bytResNum].IsDirty = false;
                                     game.agViews[bytResNum].Unload();
                                 }
@@ -750,6 +750,76 @@ namespace WinAGI.Engine {
             bytAppend = [];
             return bytTempData;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="agRes"></param>
+        /// <returns></returns>
+        internal static bool NotUniqueID(AGIResource agRes) {
+            string checkID = agRes.ID;
+            foreach (Logic tmpRes in agRes.parent.agLogs) {
+                if (agRes != tmpRes && tmpRes.ID == checkID) {
+                    // duplicate
+                    return true;
+                }
+            }
+            foreach (Picture tmpRes in agRes.parent.agPics) {
+                if (agRes != tmpRes && tmpRes.ID == checkID) {
+                    // duplicate
+                    return true;
+                }
+            }
+            foreach (Sound tmpRes in agRes.parent.agSnds) {
+                if (agRes != tmpRes && tmpRes.ID == checkID) {
+                    // duplicate
+                    return true;
+                }
+            }
+            foreach (View tmpRes in agRes.parent.agViews) {
+                if (agRes != tmpRes && tmpRes.ID == checkID) {
+                    // duplicate
+                    return true;
+                }
+            }
+            // not a duplicate
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="checkID"></param>
+        /// <returns></returns>
+        internal static bool NotUniqueID(string checkID, AGIGame game) {
+            foreach (Logic tmpRes in game.agLogs) {
+                if (tmpRes.ID == checkID) {
+                    // duplicate
+                    return true;
+                }
+            }
+            foreach (Picture tmpRes in game.agPics) {
+                if (tmpRes.ID == checkID) {
+                    // duplicate
+                    return true;
+                }
+            }
+            foreach (Sound tmpRes in game.agSnds) {
+                if (tmpRes.ID == checkID) {
+                    // duplicate
+                    return true;
+                }
+            }
+            foreach (View tmpRes in game.agViews) {
+                if (tmpRes.ID == checkID) {
+                    // duplicate
+                    return true;
+                }
+            }
+            // not a duplicate
+            return false;
+        }
+
         internal static byte[] CompressedCel(Cel Cel, bool blnMirror) {
             //this method compresses cel data
             //into run-length-encoded data that

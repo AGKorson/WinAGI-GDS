@@ -51,7 +51,14 @@ namespace WinAGI.Engine {
         bool mIsDirty;
         bool mWriteProps;
         bool mLoaded;
-        int mErrLvl = 0;
+        int mErrLevel = 0;
+        // 0 = no errors or warnings
+        // 1 = nonstandard letter index
+        // 2 = invalid eof marker
+        // 4 = upper case detected
+        // 8 = empty word file
+        // 16 = corrupt index file
+
         readonly string strErrSource = "WinAGI.AGIWordList";
 
         /// <summary>
@@ -167,18 +174,18 @@ namespace WinAGI.Engine {
         /// Provides access to current error level of the WordList to
         /// get feedback on errors in the sound data.
         /// </summary>
-        public int ErrLevel => mErrLvl;
+        public int ErrLevel => mErrLevel;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="LoadFile"></param>
         /// <returns></returns>
-        bool LoadSierraFile(string LoadFile) {
+        private int LoadSierraFile(string LoadFile) {
             byte bytHigh, bytLow, bytExt;
-            int lngPos;
+            int lngPos, retval = 0;
             byte[] bytData = [];
-            StringBuilder strThisWord;
+            StringBuilder sbThisWord;
             string sThisWord;
             string strPrevWord;
             byte[] bytVal = new byte[1];
@@ -186,23 +193,6 @@ namespace WinAGI.Engine {
             byte bytPrevWordCharCount;
             FileStream fsWords;
 
-            // verify file exists
-            if (!File.Exists(LoadFile)) {
-                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 606,
-                };
-                wex.Data["missingfile"] = LoadFile;
-                wex.Data["ID"] = "WORDS.TOK";
-                throw wex;
-            }
-            // check for readonly
-            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 700,
-                };
-                wex.Data["badfile"] = LoadFile;
-                throw wex;
-            }
             try {
                 fsWords = new FileStream(LoadFile, FileMode.Open);
             }
@@ -220,9 +210,8 @@ namespace WinAGI.Engine {
             // if no data,
             if (fsWords.Length == 0) {
                 // TODO: why does this need to be disposed? other resources don't do this
-                // also, why not an error if empty? or should it return an empty resource?
                 fsWords.Dispose();
-                return false;
+                return 8;
             }
             // read in entire resource
             Array.Resize(ref bytData, (int)fsWords.Length);
@@ -238,15 +227,10 @@ namespace WinAGI.Engine {
                 // byte is zero, give it a try
                 if (bytData[lngPos] == 0) {
                     // note the problem in a warning
-                    mErrLvl = 1;
+                    retval = 1;
                 }
                 else {
-                    mLoaded = false;
-                    // invalid words.tok file!
-                    WinAGIException wex = new(LoadResString(529)) {
-                        HResult = WINAGI_ERR + 529,
-                    };
-                    throw wex;
+                    return 16;
                 }
             }
             // for first word, there is no previous word
@@ -257,10 +241,10 @@ namespace WinAGI.Engine {
             // continue loading words until end of resource is reached
             while (lngPos < bytData.Length) {
                 if (bytPrevWordCharCount > 0) {
-                    strThisWord = new(strPrevWord[..bytPrevWordCharCount]);
+                    sbThisWord = new(strPrevWord[..bytPrevWordCharCount]);
                 }
                 else {
-                    strThisWord = new();
+                    sbThisWord = new();
                 }
                 do {
                     bytVal[0] = bytData[lngPos];
@@ -277,7 +261,7 @@ namespace WinAGI.Engine {
                     }
                     if (bytVal[0] < 0x80) {
                         bytVal[0] = (byte)(bytVal[0] ^ 0x7F + bytExt);
-                        strThisWord.Append(parent.agCodePage.GetString(bytVal));
+                        sbThisWord.Append(parent.agCodePage.GetString(bytVal));
                     }
                     lngPos++;
                     // continue until last character (indicated by flag) or
@@ -287,17 +271,16 @@ namespace WinAGI.Engine {
                 // if end of file is reached before 0x80,
                 if (lngPos >= bytData.Length) {
                     // invalid words.tok file ending
-                    // TODO: add support for another warning level
-                    mErrLvl |= 2;
+                    mErrLevel |= 2;
                     break;
                 }
                 // add last character (after stripping off flag)
                 bytVal[0] ^= 0xFF;
-                strThisWord.Append(parent.agCodePage.GetString(bytVal));
-                sThisWord = strThisWord.ToString();
-                // check for upper case (allowed, but not useful)
-                if (sThisWord.Any(char.IsUpper)) {
-                    mErrLvl |= 4;
+                sbThisWord.Append(parent.agCodePage.GetString(bytVal));
+                sThisWord = sbThisWord.ToString();
+                // check for ascii upper case (allowed, but not useful)
+                if (sThisWord.Any(ch => (ch >= 65 && ch <= 90))) {
+                    mErrLevel |= 4;
                 }
                 sThisWord = sThisWord.ToLower();
                 lngGrpNum = (bytData[lngPos] << 8) + bytData[lngPos + 1];
@@ -318,26 +301,7 @@ namespace WinAGI.Engine {
                 bytPrevWordCharCount = bytData[lngPos];
                 lngPos++;
             }
-            // TODO: if default words/groups not included, should they be added?
-            // or leave them out? (I think leaving them out is correct approach)
-            //// if no words
-            //if (mWordCol.Count == 0) {
-            //    //add default words
-            //    AddWord("a", 0);
-            //    AddWord("anyword", 1);
-            //    AddWord("rol", 9999);
-            //}
-            ////if reserved groups are empty, add default words
-            //if (!GroupExists(0)) {
-            //    AddWord("a", 0);
-            //}
-            //if (!GroupExists(1)) {
-            //    AddWord("anyword", 1);
-            //}
-            //if (!GroupExists(9999)) {
-            //    AddWord("rol", 9999);
-            //}
-            return true;
+            return retval;
         }
 
         /// <summary>
@@ -882,62 +846,52 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="LoadFile"></param>
         public void Load(string LoadFile = "") {
-            bool retval;
-
             if (mLoaded) {
                 return;
             }
             if (mInGame) {
-                // always set loaded flag for ingame resource regardless of error status
+                LoadFile = mResFile;
+            }
+            if (LoadFile.Length == 0) {
+                WinAGIException wex = new(LoadResString(599)) {
+                    HResult = WINAGI_ERR + 599
+                };
+                throw wex;
+            }
+            // verify file exists
+            if (!File.Exists(LoadFile)) {
+                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 606,
+                };
+                wex.Data["missingfile"] = LoadFile;
+                wex.Data["ID"] = "WORDS.TOK";
+                throw wex;
+            }
+            // check for readonly
+            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = LoadFile;
+                throw wex;
+            }
+            try {
+                mErrLevel = LoadSierraFile(LoadFile);
+            }
+            catch {
+                throw;
+            }
+            finally {
+                // always set loaded flag regardless of error status
                 mLoaded = true;
-                // use default filename
-                // TODO: isn't this already set?
-                LoadFile = parent.agGameDir + "WORDS.TOK";
-                try {
-                    retval = LoadSierraFile(LoadFile);
-                }
-                catch {
-                    throw;
-                }
-                finally {
+                if (mInGame) {
                     mDescription = parent.agGameProps.GetSetting("WORDS.TOK", "Description", "", true);
                 }
-                if (!retval) {
-                    // TODO: replace error handler with ErrLevel values
-                    WinAGIException wex = new(LoadResString(529)) {
-                        HResult = WINAGI_ERR + 529
-                    };
-                    throw wex;
+                else {
+                    mResFile = LoadFile;
                 }
+                mIsDirty = false;
             }
-            else {
-                // if not in a game, must have a valid filename
-                if (LoadFile.Length == 0) {
-                    WinAGIException wex = new(LoadResString(599)) {
-                        HResult = WINAGI_ERR + 599
-                    };
-                    throw wex;
-                }
-                try {
-                    retval = LoadSierraFile(LoadFile);
-                }
-                catch {
-                    throw;
-                }
-                finally {
-                    mDescription = parent.agGameProps.GetSetting("WORDS.TOK", "Description", "", true);
-                }
-                mLoaded = true;
-                mResFile = LoadFile;
-                if (!retval) {
-                    // TODO: replace error handler with ErrLevel values
-                    WinAGIException wex = new(LoadResString(529)) {
-                        HResult = WINAGI_ERR + 529
-                    };
-                    throw wex;
-                }
-            }
-            mIsDirty = false;
         }
 
         /// <summary>

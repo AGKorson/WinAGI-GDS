@@ -61,7 +61,7 @@ namespace WinAGI.Engine {
             }
             // validate id
             strBaseID = strID;
-            while (!agResource.IsUniqueResID(strID)) {
+            while (NotUniqueID(strID, parent)) {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }
@@ -69,7 +69,7 @@ namespace WinAGI.Engine {
             Col.Add(ResNum, agResource);
             //force flags so save function will work
             agResource.IsDirty = true;
-            agResource.WritePropState = true;
+            agResource.PropDirty = true;
             //save new sound
             agResource.Save();
             //return the object created
@@ -132,7 +132,7 @@ namespace WinAGI.Engine {
             if (tmpSound.ID.Equals("Sound" + OldSound, StringComparison.OrdinalIgnoreCase)) {
                 //change default ID to new ID
                 strID = strBaseID = "Sound" + NewSound;
-                while (!tmpSound.IsUniqueResID(strID)) {
+                while (NotUniqueID(strID, parent)) {
                     intNextNum++;
                     strID = strBaseID + "_" + intNextNum;
                 }
@@ -155,7 +155,7 @@ namespace WinAGI.Engine {
             //
 
             //force writeprop state back to false
-            tmpSound.WritePropState = false;
+            tmpSound.PropDirty = false;
 
             //unload if necessary
             if (blnUnload) {

@@ -535,7 +535,7 @@ namespace WinAGI.Engine {
             }
             //reset dirty flag
             mIsDirty = false;
-            WritePropState = false;
+            PropDirty = false;
             //loops need rebuilding
             mViewSet = false;
         }
@@ -570,19 +570,29 @@ namespace WinAGI.Engine {
             mLoopCol = new Loops(this);
             mViewSet = false;
         }
-        public new void Save() {
-            //saves an ingame view
-            //if properties need to be written
-            if (WritePropState && mInGame) {
+
+        public void SaveProps() {
+            if (PropDirty && mInGame) {
                 //save ID and description to ID file
                 parent.WriteGameSetting("View" + Number, "ID", mResID, "Views");
                 parent.WriteGameSetting("View" + Number, "Description", mDescription);
-                WritePropState = false;
+                PropDirty = false;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public new void Save() {
+            //saves an ingame view
             //if not loaded
             if (!mLoaded) {
                 //nothing to do
                 return;
+            }
+            //if properties need to be written
+            if (PropDirty && mInGame) {
+                SaveProps();
             }
             //if dirty,
             if (mIsDirty) {

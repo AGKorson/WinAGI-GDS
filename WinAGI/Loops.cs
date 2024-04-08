@@ -1,94 +1,87 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
+using System.Collections.Generic;
 using static WinAGI.Common.Base;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
     public class Loops : IEnumerable<Loop> {
         List<Loop> mLoopCol;
         View mParent;
-        string strErrSource;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
         public Loop this[int index] {
             get {
-                //validate
-                if (index < 0) {
-                    throw new ArgumentOutOfRangeException();
-                }
-                if (index >= mLoopCol.Count) {
-                    throw new ArgumentOutOfRangeException();
+                if (index < 0 || index >= mLoopCol.Count) {
+                    throw new IndexOutOfRangeException();
                 }
                 return mLoopCol[index];
             }
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Pos"></param>
+        /// <returns></returns>
         public Loop Add(int Pos) {
-            //Pos is position of this loop in the loop collection
+            // Pos is position of this loop in the loop collection
             Loop agNewLoop;
             int i;
-            //if too many loops or invalid pos
+            // if too many loops or invalid pos
             if (mLoopCol.Count == MAX_LOOPS || Pos < 0) {
-                //error - too many loops
-                WinAGIException wex = new(LoadResString(537)) {
-                    HResult = WINAGI_ERR + 537
-                };
-                throw wex;
+                throw new IndexOutOfRangeException();
             }
-            //if no position is past end
             if (Pos > mLoopCol.Count) {
-                //set it to end
+                // set it to end
                 Pos = mLoopCol.Count;
             }
-            //if adding a loop in position 0-7
-            //(which could push a mirror loop out of position
+            // if adding a loop in position 0-7
+            // (which could push a mirror loop out of position
             if (Pos < 7 && mLoopCol.Count >= 7) {
-                //if loop 7(index of 6) is a mirror
+                // if loop 7(index of 6) is a mirror
                 if (mLoopCol[6].Mirrored != 0) {
-                    //unmirror it
+                    // unmirror it
                     mLoopCol[6].UnMirror();
                 }
             }
-            //create new loop object
             agNewLoop = new Loop(mParent) {
-                //set index
                 mIndex = Pos
             };
-            //if no loops yet
             if (mLoopCol.Count == 0) {
-                //just add it
                 mLoopCol.Add(agNewLoop);
-                //} else if ( Pos == 0) {
-                //  //add new loop to front
-                //  mLoopCol.Insert(0, agNewLoop);
             }
             else {
-                //add it after the current loop with that number
                 mLoopCol.Insert(Pos, agNewLoop);
             }
-            //update index of all loops
             for (i = 0; i < mLoopCol.Count; i++) {
                 mLoopCol[i].Index = (byte)i;
             }
-            //if there is a parent view
             if (mParent is not null) {
-                //set dirty flag
                 mParent.IsDirty = true;
             }
-            //return the object created
             return agNewLoop;
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
         public int Count {
             get {
                 return mLoopCol.Count;
             }
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Index"></param>
+        /// <exception cref="IndexOutOfRangeException"></exception>
         public void Remove(byte Index) {
             byte i;
             //if this is last loop
@@ -99,18 +92,15 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            // if past the end
             if (Index >= mLoopCol.Count) {
-                //invalid item
                 throw new IndexOutOfRangeException("index out of bounds");
             }
-            //if this loop is a mirrored loop
             if (mLoopCol[Index].Mirrored != 0) {
-                //clear mirrorpair for the mirror
+                // first, unmirror the match for this loop
                 mLoopCol[mLoopCol[Index].MirrorLoop].MirrorPair = 0;
-                //if the mirror is the primary loop
+                // if that loop was the primary loop
                 if (mLoopCol[mLoopCol[Index].MirrorLoop].MirrorPair > 0) {
-                    //need to permanently flip that loop's cel data
+                    // permanently flip that loop's cel data
                     for (i = 0; i < mLoopCol[mLoopCol[Index].MirrorLoop].Cels.Count; i++) {
                         mLoopCol[mLoopCol[Index].MirrorLoop].Cels[i].FlipCel();
                     }
@@ -129,6 +119,11 @@ namespace WinAGI.Engine {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cloneparent"></param>
+        /// <returns></returns>
         public Loops Clone(View cloneparent) {
             // returns a copy of this loop collection
             Loops CopyLoops = new(cloneparent);
@@ -138,19 +133,39 @@ namespace WinAGI.Engine {
             return CopyLoops;
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
         public Loops() {
-            //creates the collection when this class is created
             mLoopCol = [];
         }
         
-        public View Parent { get { return mParent; } internal set { mParent = value; } }
+        /// <summary>
+        /// 
+        /// </summary>
+        public View Parent { 
+            get {
+                return mParent;
+            }
+            internal set {
+                mParent = value;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parent"></param>
         public Loops(View parent) {
-            //create the collection when this class is created
             mLoopCol = [];
             // set parent
             mParent = parent;
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         LoopEnum GetEnumerator() {
             return new LoopEnum(mLoopCol);
         }
@@ -176,7 +191,6 @@ namespace WinAGI.Engine {
                     return _loops[position];
                 }
                 catch (IndexOutOfRangeException) {
-
                     throw new InvalidOperationException();
                 }
             }

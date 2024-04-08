@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using WinAGI.Common;
+using System.Linq;
 using static WinAGI.Common.Base;
-using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.ArgTypeEnum;
-using static WinAGI.Engine.LogicErrorLevel;
+using static WinAGI.Engine.Base;
+using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.DefineNameCheck;
 using static WinAGI.Engine.DefineValueCheck;
+using static WinAGI.Engine.LogicErrorLevel;
 
 namespace WinAGI.Engine {
     public static partial class Compiler {
         // reminder: in VB6, the compiler was not case sensitive
-        //EXCEPT strings in messages; now all tokens are case sensitive
+        // EXCEPT strings in messages; now all tokens are case sensitive
 
         internal struct LogicGoto {
             internal byte LabelNum;
@@ -31,10 +28,9 @@ namespace WinAGI.Engine {
         internal static Logic tmpLogRes;
         internal static AGIGame compGame;
         internal static byte[] mbytData;
-        internal const int MAX_BLOCK_DEPTH = 64; //used by LogDecode functions too
+        internal const int MAX_BLOCK_DEPTH = 64;
         internal const int MAX_LABELS = 255;
         internal const bool UseTypeChecking = true;
-
         internal const string NOT_TOKEN = "!";
         internal const string OR_TOKEN = " || ";
         internal const string AND_TOKEN = "&&";
@@ -43,14 +39,13 @@ namespace WinAGI.Engine {
         internal const string CONST_TOKEN = "#define ";
         private const string MSG_TOKEN = "#message";
         internal const string CMT1_TOKEN = "[";
-        internal const string CMT2_TOKEN = "//";
+        internal const string CMT2_TOKEN = "//"; // deprecated
         internal const char INDIR_CHAR = '*';
         internal static byte bytLogComp;
         internal static string strLogCompID;
         internal static bool blnCriticalError, blnMinorError;
         internal static int lngQuoteAdded;
-        internal static TWinAGIEventInfo errInfo = new()
-        {
+        internal static TWinAGIEventInfo errInfo = new() {
             Type = EventType.etError,
             ID = "",
             Text = "",
@@ -61,10 +56,10 @@ namespace WinAGI.Engine {
         internal static bool blnNewRoom;
         internal static string INCLUDE_MARK = ((char)31).ToString() + "!";
         internal static string[] strIncludeFile;
-        internal static int lngIncludeOffset; //to correct line number due to added include lines
+        internal static int lngIncludeOffset; // to correct line number due to added include lines
         internal static int intFileCount;
-        internal static List<string> stlInput = [];  //the entire text to be compiled; includes the
-                                                     //original logic text, includes, and defines
+        internal static List<string> stlInput = [];  // the entire text to be compiled; includes the
+                                                     // original logic text, includes, and defines
         internal static int lngLine;
         internal static int lngPos;
         internal static string strCurrentLine;
@@ -75,7 +70,6 @@ namespace WinAGI.Engine {
         internal static byte bytLabelCount;
         internal static TDefine[] tdDefines;
         internal static int lngDefineCount;
-        static string EXTCHARS = "";
         internal static bool blnSetIDs;
         internal static string[] strLogID;
         internal static string[] strPicID;
@@ -102,10 +96,6 @@ namespace WinAGI.Engine {
             //if ids not set yet
             if (!blnSetIDs) {
                 SetResourceIDs(compGame);
-            }
-            // extended character string for msg checks
-            for (int i = 128; i < 256; i++) {
-                EXTCHARS += ((char)i).ToString();
             }
             // always reset command name assignments
             CorrectCommands(compGame.agIntVersion);
@@ -149,7 +139,7 @@ namespace WinAGI.Engine {
             while (stlInput[^1].Length == 0 && stlInput.Count > 0) {
                 stlInput.RemoveAt(stlInput.Count - 1);
             }
-            //if nothing to compile, throw an error
+            //if nothing to compile, return an error
             if (stlInput.Count == 0) {
                 //return error
                 errInfo.ID = "4159";
@@ -1319,7 +1309,7 @@ namespace WinAGI.Engine {
                     case leHigh:
                         AddMinorError(4090, LoadResString(4090).Replace(ARG1, (ArgPos + 1).ToString()));
                         break;
-                        case leMedium or leLow:
+                    case leMedium or leLow:
                         AddMinorError(4066, LoadResString(4066).Replace(ARG1, (ArgPos + 1).ToString()));
                         break;
                     }
@@ -1669,8 +1659,7 @@ namespace WinAGI.Engine {
             // if next token matches tokenval, return true,
             // otherwise return false
             string tmpToken = NextToken(nonewline);
-            if ( tmpToken == tokenval)
-            {
+            if (tmpToken == tokenval) {
                 return true;
             }
             // backup so this token stays in queue
@@ -1756,8 +1745,7 @@ namespace WinAGI.Engine {
                 //only characters <32 that we need to use are return, and linefeed
                 if (retval != 0) {
                     if (retval < 32) {
-                        return retval switch
-                        {
+                        return retval switch {
                             (char)10 or (char)13 => '\n',
                             _ => ' ',
                         };
@@ -4624,7 +4612,7 @@ namespace WinAGI.Engine {
                 return;
             }
             //extended characters
-            if ((EXTCHARS).Any(strMsg.Contains)) {
+            if (strMsg.Any(ch => ch > 127)) {
                 switch (ErrorLevel) {
                 case leHigh or leMedium:
                     AddWarning(5094);
@@ -4932,7 +4920,7 @@ namespace WinAGI.Engine {
             byte[] bytArg = new byte[8];
             LogicGoto[] Gotos = new LogicGoto[MAXGOTOS + 1];
             BlockType[] Block = new BlockType[256];
-            
+
             //reset compiler
             ResetCompiler();
             //get first command
@@ -5271,7 +5259,7 @@ namespace WinAGI.Engine {
                                 tmpLogRes.WriteByte(bytArg[i]);
                             }
                             if (blnArgsOK) {
-                                 //validate arguments for this command
+                                //validate arguments for this command
                                 if (!ValidateArgs(intCmdNum, ref bytArg)) {
                                     return false;
                                 }
@@ -5308,7 +5296,8 @@ namespace WinAGI.Engine {
                 if (blnLastCmdRtn) {
                     AddWarning(5112);
                 }
-            } else {
+            }
+            else {
                 if (!blnLastCmdRtn) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -5708,8 +5697,7 @@ namespace WinAGI.Engine {
                 switch (ErrorLevel) {
                 case leHigh or leMedium:
                     //for version 2.089, 2.272, and 3.002149 only 12 strings
-                    maxStr = compGame.agIntVersion switch
-                    {
+                    maxStr = compGame.agIntVersion switch {
                         "2.089" or "2.272" or "3.002149" => 11,
                         _ => 23,
                     };
@@ -5792,7 +5780,7 @@ namespace WinAGI.Engine {
                             return true;
                         }
                         break;
-                        case "+=" or "-=" or "*=" or "/=" or "++" or "--":
+                    case "+=" or "-=" or "*=" or "/=" or "++" or "--":
                         // error- math ops not allowed on indirect variables
                         AddMinorError(4105);
                         break;
