@@ -89,8 +89,9 @@ AGIResource       Export                    563                   resource not l
 AGIResource       Export                    599                   missing ExportFile argument
 AGIResource       Export                    601                   can't export resource that has errors
 AGIResource       Export                    582                   file access error while exporting resource
-AGIResource       Import                    604                   missing ImportFile argument
-AGIResource       Import                    524                   missing import file
+AGIResource       Import                    604                   invalid importfile argument (empty)
+AGIResource       Import                    524                   missing importfile
+AGIResource       Import                    700                   importfile is readonly
 AGIResource       Import                    605                   file access error when importing resource
 AGIResource       Import                    605                   import resource file is empty
 AGIResource       Import                    PASS                  pass-through AGIResource.Save

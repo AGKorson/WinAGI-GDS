@@ -731,16 +731,17 @@ namespace WinAGI.Engine {
             lngDataOffset += Dwidth;
             // set counter to beginning of data
             lngPos = lngDataOffset;
-            //write string for null object (?)
+            // write string for null item (?)
             bytTemp[lngPos] = 63;
             bytTemp[lngPos + 1] = 0;
             lngPos += 2;
-            //now step through all items
-            // TODO: should I not assume first obj is null??? hmmmm... not sure
+            // now step through all items
+            // TODO: should I not assume first obj is null??? no- but 
+            // still need to add the null item (?); 
             // (i.e. start at 1? or 0?)
             for (i = 1; i < mItems.Count - 1; i++) {
                 if (mItems[i].ItemName == "?") {
-                    //write offset data to null item
+                    // write offset data to null item
                     bytTemp[i * Dwidth] = (byte)(lngDataOffset % 256);
                     bytTemp[i * Dwidth + 1] = (byte)(lngDataOffset / 256);
                     // set room number for this object

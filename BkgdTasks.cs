@@ -154,7 +154,7 @@ namespace WinAGI.Editor {
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
                 break;
             case 2:
-                // TODO
+                // TODOs
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
                 break;
             case 3:

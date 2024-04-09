@@ -183,9 +183,9 @@ namespace WinAGI.Engine {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void ResPropChange(object sender, AGIResPropChangedEventArgs e) {
-            //set flag to indicate picture data does not match picture bmps
+            // set flag to indicate picture data does not match picture bmps
             mPicBMPSet = false;
-            //for picture only, changing resource sets dirty flag
+            // for picture only, changing resource sets dirty flag
             mIsDirty = true;
         }
 
@@ -536,49 +536,25 @@ namespace WinAGI.Engine {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="ImportFile"></param>
-        public override void Import(string ImportFile) {
-            // imports a picture resource
-
-            try {
-                // use base function
-                base.Import(ImportFile);
-            }
-            catch (Exception) {
-                Unload();
-                // pass along any errors
-                throw;
-            }
-            finally {
-                // set ID to the filename without extension;
-                // the calling function will take care or reassigning it later, if needed
-                // (for example, if the new logic will be added to a game)
-                mResID = Path.GetFileName(ImportFile);
-                if (mResID.Length > 64) {
-                    mResID = Left(mResID, 64);
-                }
-                mIsDirty = false;
-            }
-        }
-
         public override void Clear() {
-            if (InGame) {
-                if (!Loaded) {
-                    //nothing to clear
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563
-                    };
-                    throw wex;
-                }
-            }
+            WinAGIException.ThrowIfNotLoaded(this);
             base.Clear();
             mRData.AllData = [0xff];
-            // reset position pointer
-            mDrawPos = 1;
-            // load pictures
+            mDrawPos = -1;
+            mStepDraw = false;
+            mBkImgFile = "";
+            mBkPos = new();
+            mBkSize = new();
+            mBkTrans = 0;
+            mBkShow = false;
+            mPriBase = 48;
+            mCurrentPen = new();
             BuildPictures();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override void Load() {
             // if not ingame, the resource is already loaded
             if (!mInGame) {
@@ -609,47 +585,36 @@ namespace WinAGI.Engine {
 
         /// <summary>
         /// Forces bitmap to reload. Use when palette changes
-        /// (or any other reason that needs the cel to be refreshed)
+        /// (or any other reason that needs the cel to be refreshed).
         /// </summary>
         public void ResetBMP() {
             mPicBMPSet = false;
         }
 
+        /// <summary>
+        /// Returns a bitmap image of the visual screenoutput
+        /// </summary>
         public Bitmap VisualBMP {
             get {
-                //returns a device context to the bitmap image of the visual screenoutput
-                //if not loaded,
                 if (!mLoaded) {
                     return null;
-                    ////raise error
-                    //WinAGIException wex = new(LoadResString(563)) {
-                    //    HResult = WINAGI_ERR + 563
-                    //};
-                    //throw wex;
                 }
-                //if pictures not built, or have changed,
                 if (!mPicBMPSet) {
-                    //load pictures to get correct pictures
                     BuildPictures();
                 }
                 return bmpVis;
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Bitmap PriorityBMP {
             get {
-                //if not loaded,
                 if (!mLoaded) {
                     return null;
-                    ////raise error
-                    //WinAGIException wex = new(LoadResString(563)) {
-                    //    HResult = WINAGI_ERR + 563
-                    //};
-                    //throw wex;
                 }
-                //if pictures not built, or have changed,
                 if (!mPicBMPSet) {
-                    //load pictures to get correct pictures
                     BuildPictures();
                 }
                 return bmpPri;
@@ -660,10 +625,7 @@ namespace WinAGI.Engine {
         /// 
         /// </summary>
         public void SaveProps() {
-            // if properties need to be written
             if (PropDirty && mInGame) {
-                //saves the picture resource
-                //save ID and description to ID file
                 string strPicKey = "Picture" + Number;
                 parent.WriteGameSetting(strPicKey, "ID", mResID, "Pictures");
                 parent.WriteGameSetting(strPicKey, "Description", mDescription);
@@ -698,16 +660,12 @@ namespace WinAGI.Engine {
         /// 
         /// </summary>
         public new void Save() {
-            if (!mLoaded) {
-                // do nothing? error?
-                return;
-            }
+            WinAGIException.ThrowIfNotLoaded(this);
             if (PropDirty && mInGame) {
                 SaveProps();
             }
             if (mIsDirty) {
-                // (no picture-specific action needed, since changes in picture are
-                // made directly to resource data)
+                // (no picture-specific action needed, since changes in picture are made directly to resource data)
                 // use the base save method
                 // any bmp errors will remain until they are fixed by the
                 // user, so don't reset error flag
@@ -718,41 +676,27 @@ namespace WinAGI.Engine {
                     // pass along any errors
                     throw;
                 }
-                // check for errors
-
-                // reset flag
-                mIsDirty = false;
             }
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="PicData"></param>
         public void SetPictureData(byte[] PicData) {
             // sets the picture resource data to PicData()
-            //
-            // if the data are invalid, the resource will
-            // be identified as corrupted
-            // (clear the picture, replace it with valid data
-            // or unload it without saving to recover from
-            // invalid input data)
-            // copy the picture data
-            if (!mLoaded) {
-                //raise error
-                WinAGIException wex = new(LoadResString(563)) {
-                    HResult = WINAGI_ERR + 563
-                };
-                throw wex;
-            }
-            try {
-                mRData.AllData = PicData;
-                if (mLoaded) {
-                    //rebuild pictures
-                    BuildPictures();
-                }
-            }
-            catch (Exception) {
-                //ignore?
+
+            WinAGIException.ThrowIfNotLoaded(this);
+            mRData.AllData = PicData;
+            if (mLoaded) {
+                // rebuild pictures
+                BuildPictures();
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         internal void BuildPictures() {
             // create new visual picture bitmap
             bmpVis = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
@@ -760,11 +704,15 @@ namespace WinAGI.Engine {
             bmpPri = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
             // modify color palette to match current AGI palette
             ColorPalette ncp = bmpVis.Palette;
-            for (int i = 0; i < 16; i++) {
-                ncp.Entries[i] = Color.FromArgb(255,
-                parent.AGIColors[i].R,
-                parent.AGIColors[i].G,
-                parent.AGIColors[i].B);
+            if (parent is null) {
+
+            } else {
+                for (int i = 0; i < 16; i++) {
+                    ncp.Entries[i] = Color.FromArgb(255,
+                    parent.AGIColors[i].R,
+                    parent.AGIColors[i].G,
+                    parent.AGIColors[i].B);
+                }
             }
             // both bitmaps use same palette
             bmpVis.Palette = ncp;
@@ -797,40 +745,30 @@ namespace WinAGI.Engine {
             mPicBMPSet = true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public bool StepDraw {
             get {
-                if (!mLoaded) {
-                    // TODO: return false? or exception?
-
-                    //raise error
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563
-                    };
-                    throw wex;
-                }
+                WinAGIException.ThrowIfNotLoaded(this);
                 return mStepDraw;
             }
             set {
-                if (!mLoaded) {
-
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563
-                    };
-                    throw wex;
-                }
-                // if a change
+                WinAGIException.ThrowIfNotLoaded(this);
                 if (mStepDraw != value) {
                     mStepDraw = value;
-                    //set flag to force redraw
                     mPicBMPSet = false;
                 }
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public override void Unload() {
-            //unload resource
+
             base.Unload();
-            //cleanup picture resources
+            // cleanup picture resources
             bmpVis = null;
             bmpPri = null;
             mPicBMPSet = false;

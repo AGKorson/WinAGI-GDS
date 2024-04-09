@@ -107,14 +107,11 @@ namespace WinAGI.Engine {
 
             //if nothing in the resource,
             if (bytData.Length == 0) {
-                //single 'return()' command
                 return "return();";
             }
-            // if tokens not set yet, set them now
             if (!blnTokensSet) {
                 InitTokens(CodeStyle);
             }
-            //clear block info
             for (i = 0; i < MAX_BLOCK_DEPTH; i++) {
                 DecodeBlock[i].EndPos = 0;
                 DecodeBlock[i].IsIf = false;
@@ -753,6 +750,13 @@ namespace WinAGI.Engine {
 
             lngPos = lngMsgStart;
             lngMsgTextEnd = lngMsgStart;
+            // validate msg start
+            if (lngMsgStart >= bytData.Length) {
+                // invalid logic
+                AddDecodeWarning("DCxx", "Invalid message section data", stlOutput.Count);
+                // exit with failure
+                return false;
+            }
             stlMsgs = [];
             // first msg, with index of zero, is null/not used
             stlMsgs.Add("");

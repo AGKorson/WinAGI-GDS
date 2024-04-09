@@ -204,6 +204,7 @@ namespace WinAGI.Engine {
                 wex.Data["badfile"] = LoadFile;
                 throw wex;
             }
+            mLoaded = true;
             // reset word and group columns
             mWordCol = [];
             mGroupCol = [];

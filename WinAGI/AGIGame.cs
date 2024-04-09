@@ -612,7 +612,6 @@ namespace WinAGI.Engine {
                             Type = EventType.etError,
                             ID = "",
                             Module = "",
-                            // TODO: complete refactor of load/compile error & warnings needed
                             Text = "Error during compilation of WORDS.TOK (" + ex.Message + ")"
                         };
                         Raise_CompileGameEvent(ECStatus.csResError, AGIResType.rtWords, 0, tmpError);
@@ -1008,7 +1007,6 @@ namespace WinAGI.Engine {
                     return;
                 }
                 if (agIsVersion3) {
-                    //TODO: need error trap for all file ops
                     try {
                         // dir file
                         File.Move(agGameDir + agGameID + "DIR", agGameDir + NewID + "DIR");
@@ -1516,12 +1514,14 @@ namespace WinAGI.Engine {
             for (i = 0; i < 16; i++) {
                 WriteGameSetting("Palette", "Color" + i, agEGAcolors.ColorText(i));
             }
-            // TODO: convert error handler to function return value
+            // done
+            retval.InfoType = EInfoType.itDone;
             if (blnWarnings) {
-                WinAGIException wex = new(LoadResString(637)) {
-                    HResult = WINAGI_ERR + 637
-                };
-                throw wex;
+                retval.Type = EventType.etWarning;
+                retval.Text = LoadResString(637);
+            }
+            else {
+                retval.Type = EventType.etInfo;
             }
             return retval;
         }
@@ -2250,7 +2250,7 @@ namespace WinAGI.Engine {
             for (int i = 0; i < 16; i++) {
                 AGIColors[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), DefaultColors[i]);
             }
-            agCodePage = Encoding.GetEncoding(agGameProps.GetSetting("General", "CodePage", 437));
+            agCodePage = Encoding.GetEncoding(agGameProps.GetSetting("General", "CodePage", 437)); // TODO: need to validate codepage
             agDescription = agGameProps.GetSetting("General", "Description", "");
             agAuthor = agGameProps.GetSetting("General", "Author", "");
             agAbout = agGameProps.GetSetting("General", "About", "").Replace("\n", "\\n");

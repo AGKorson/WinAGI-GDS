@@ -85,7 +85,7 @@ namespace WinAGI.Editor
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(451, 223);
+            ClientSize = new System.Drawing.Size(447, 219);
             ControlBox = false;
             Controls.Add(pictureBox1);
             Controls.Add(label5);
@@ -99,7 +99,7 @@ namespace WinAGI.Editor
             ShowIcon = false;
             ShowInTaskbar = false;
             SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-            StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
             PerformLayout();

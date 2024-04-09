@@ -323,7 +323,7 @@ namespace WinAGI.Engine {
             mSourceText = ActionCommands[0].Name + "();" + NEWLINE + NEWLINE + "[ messages" + NEWLINE;
             if (mInGame) {
                 // reset crcs
-                mCRC = CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(mSourceText));
+                mCRC = CRC32(Encoding.GetEncoding(437).GetBytes(mSourceText));
                 mCompiledCRC = mCRC;
             }
             // note change by marking source as dirty
@@ -358,13 +358,13 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Imports a logic resource. This will overwrite current source text with decompiled resource.
+        /// Use ImportSource to import source code.
         /// </summary>
         /// <param name="ImportFile"></param>
         /// <param name="AsSource"></param>
         public override void Import(string ImportFile) {
-            // importing a logic resource will overwrite current source text with decompiled source
-
+            // 
             try {
                 // use base function
                 base.Import(ImportFile);
@@ -553,8 +553,8 @@ namespace WinAGI.Engine {
                 mSourceText = mSourceText.Replace("\t", INDENT);
             }
             // calculate source crc
-            tmpCRC = CRC32(parent.agCodePage.GetBytes(mSourceText));
             if (mInGame) {
+                tmpCRC = CRC32(parent.agCodePage.GetBytes(mSourceText));
                 if (mCRC != tmpCRC) {
                     // update crc
                     mCRC = tmpCRC;
@@ -570,7 +570,8 @@ namespace WinAGI.Engine {
             }
             else {
                 // update crc
-                mCRC = tmpCRC;
+                mCRC = tmpCRC = CRC32(Encoding.GetEncoding(437).GetBytes(mSourceText));
+                ;
             }
             // set dirty status
             mSourceDirty = false;
@@ -725,13 +726,17 @@ namespace WinAGI.Engine {
         /// 
         /// </summary>
         public void SaveProps() {
-            string strSection = "Logic" + Number;
-            parent.WriteGameSetting(strSection, "ID", ID, "Logics");
-            parent.WriteGameSetting(strSection, "Description", Description);
-            parent.WriteGameSetting(strSection, "CRC32", "0x" + mCRC.ToString("x8"));
-            parent.WriteGameSetting(strSection, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
-            parent.WriteGameSetting(strSection, "IsRoom", mIsRoom.ToString());
-            PropDirty = false;
+            if (mInGame) {
+                // TODO: why no 'PropsDirty' property for logics? or better question
+                // why bother with it in other resources? why not just write them as requested?
+                string strSection = "Logic" + Number;
+                parent.WriteGameSetting(strSection, "ID", ID, "Logics");
+                parent.WriteGameSetting(strSection, "Description", Description);
+                parent.WriteGameSetting(strSection, "CRC32", "0x" + mCRC.ToString("x8"));
+                parent.WriteGameSetting(strSection, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
+                parent.WriteGameSetting(strSection, "IsRoom", mIsRoom.ToString());
+                PropDirty = false;
+            }
         }
 
         /// <summary>
@@ -748,11 +753,7 @@ namespace WinAGI.Engine {
             //it calls the SaveSource method automatically
             // TODO: if not ingame, should be same as other resources?
 
-            //if not loaded
-            if (!mLoaded) {
-                //nothing to do
-                return;
-            }
+            WinAGIException.ThrowIfNotLoaded(this);
             //if properties need to be written
             if (PropDirty && mInGame) {
                 SaveProps();

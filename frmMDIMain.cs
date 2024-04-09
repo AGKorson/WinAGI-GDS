@@ -24,7 +24,6 @@ namespace WinAGI.Editor
 {
     public partial class frmMDIMain : Form {
         //constants for control/window placement
-        int CalcWidth, CalcHeight;
         const int MIN_HEIGHT = 361;
         const int MIN_WIDTH = 360;
 
@@ -84,7 +83,7 @@ namespace WinAGI.Editor
             // Update the panels when the program is idle.
             bool newCapsLock = Console.CapsLock;
             bool newNumLock = Console.NumberLock;
-            bool newInsertLock = Control.IsKeyLocked(Keys.Insert);
+            bool newInsertLock = IsKeyLocked(Keys.Insert);
             if (newCapsLock != CapsLock) {
                 CapsLock = newCapsLock;
                 if (CapsLockLabel is not null) {
@@ -289,15 +288,17 @@ namespace WinAGI.Editor
             //Debug.Print(sTest);
             // TODO: need converter for v2.3.7 sourcefiles; text now stored as utf8
             // and only converted to appropriate codepage byte values when compiling
-            Logic log1 = new();
+            // OR... do I stick with strategy for logics of converting to codepage
+            // when writing to the Logic.SourceText property?
+
+            Picture tmpRes = new();
+            tmpRes.Import(@"C:\Users\d3m294\OneDrive - PNNL\Desktop\agisound\test1\wagi_src\Picture78.agp");
+
 
             //what is resolution?
             Debug.Print($"DeviceDPI: {this.DeviceDpi}");
             Debug.Print($"AutoScaleFactor: {this.AutoScaleFactor}");
             Debug.Print($"AutoscaleDimensions: {this.AutoScaleDimensions}");
-
-            CalcWidth = MIN_WIDTH;
-            CalcHeight = MIN_HEIGHT;
 
             // toolbar stuff;
             btnNewRes.DefaultItem = btnNewLogic;
@@ -431,7 +432,6 @@ namespace WinAGI.Editor
             if (Settings.SkipPrintWarning) {
                 GameSettings.WriteSetting(sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning);
             }
-            //      UseWaitCursor = false;
         }
         private void btnNewLogic_Click(object sender, EventArgs e) {
             MessageBox.Show("new logic...");
@@ -1344,30 +1344,6 @@ namespace WinAGI.Editor
             if (sngTop > SystemInformation.VirtualScreen.Height * 0.85) {
                 sngTop = SystemInformation.VirtualScreen.Height * 0.85;
             }
-            //if (sngWidth <= Screen.PrimaryScreen.Bounds.Width * 0.2) {
-            //    sngWidth = Screen.PrimaryScreen.Bounds.Width * 0.2;
-            //}
-            //if (sngWidth > Screen.PrimaryScreen.Bounds.Width) {
-            //    sngWidth = Screen.PrimaryScreen.Bounds.Width;
-            //}
-            //if (sngHeight <= Screen.PrimaryScreen.Bounds.Height * 0.2) {
-            //    sngHeight = Screen.PrimaryScreen.Bounds.Height * 0.2;
-            //}
-            //else if (sngHeight > Screen.PrimaryScreen.Bounds.Height) {
-            //    sngHeight = Screen.PrimaryScreen.Bounds.Height;
-            //}
-            //if (sngLeft < 0) {
-            //    sngLeft = 0;
-            //}
-            //else if (sngLeft > Screen.PrimaryScreen.Bounds.Width * 0.85) {
-            //    sngLeft = Screen.PrimaryScreen.Bounds.Width * 0.85;
-            //}
-            //if (sngTop < 0) {
-            //    sngTop = 0;
-            //}
-            //else if (sngTop > Screen.PrimaryScreen.Bounds.Height * 0.85) {
-            //    sngTop = Screen.PrimaryScreen.Bounds.Height * 0.85;
-            //}
             //now move the form
             MDIMain.Bounds = new Rectangle((int)sngLeft, (int)sngTop, (int)sngWidth, (int)sngHeight);
             //if maximized

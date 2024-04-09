@@ -468,7 +468,7 @@ namespace WinAGI.Engine {
         public virtual void Load() {
             byte bytLow, bytHigh, bytVolNum;
             bool blnIsPicture = false;
-            int intSize, lngExpandedSize = 0;
+            int diskSize, fullSize = 0;
             string strLoadResFile;
 
             // if already loaded,
@@ -554,55 +554,45 @@ namespace WinAGI.Engine {
                 // get size info
                 bytLow = brVOL.ReadByte();
                 bytHigh = brVOL.ReadByte();
-                intSize = (bytHigh << 8) + bytLow;
+                fullSize = (bytHigh << 8) + bytLow;
                 // if version3,
                 if (parent.agIsVersion3) {
-                    // the size retreived is the expanded size
-                    lngExpandedSize = intSize;
-                    // now get compressed size
+                    // compressed size
                     bytLow = brVOL.ReadByte();
                     bytHigh = brVOL.ReadByte();
-                    intSize = (bytHigh << 8) + bytLow;
+                    diskSize = (bytHigh << 8) + bytLow;
+                } else {
+                    diskSize = fullSize;
                 }
             }
             else {
                 // get size from total file length
-                intSize = (int)fsVOL.Length;
+                fullSize = (int)fsVOL.Length;
                 // version 3 files are never compressed when loaded as individual files
-                lngExpandedSize = intSize;
+                diskSize = fullSize;
             }
             // get resource data
-            mRData.ReSize(intSize);
-            mRData.AllData = brVOL.ReadBytes(intSize);
+            mRData.ReSize(diskSize);
+            mRData.AllData = brVOL.ReadBytes(diskSize);
             fsVOL.Dispose();
             brVOL.Dispose();
-            // if version3
-            if (intSize != lngExpandedSize) {
-            //if (parent.agIsVersion3) {
-                // if resource is a compressed picture
-                if (blnIsPicture) {
-                    // pictures use this decompression
-                    V3Compressed = 1;
-                    mRData.AllData = DecompressPicture(mRData.AllData);
-                    // adjust size
-                    intSize = lngExpandedSize;
-                }
-                else {
-                    // if resource is LZW compressed,
-                    if (mRData.Length != lngExpandedSize) {
-                        // all other resources use LZW compression
-                        V3Compressed = 2;
-                        mRData.AllData = ExpandV3ResData(mRData.AllData, lngExpandedSize);
-                        // update size
-                        intSize = lngExpandedSize;
-                    }
+            if (blnIsPicture) {
+                // pictures use this decompression
+                V3Compressed = 1;
+                mRData.AllData = DecompressPicture(mRData.AllData);
+            }
+            else {
+                if (mRData.Length != fullSize) {
+                    // all other resources use LZW compression
+                    V3Compressed = 2;
+                    mRData.AllData = ExpandV3ResData(mRData.AllData, fullSize);
                 }
             }
             // reset resource markers
             mlngCurPos = 0;
             mblnEORes = false;
             // update size property
-            mSize = intSize;
+            mSize = fullSize;
             // attach events
             mRData.PropertyChanged += Raise_DataChange;
             return;
@@ -668,6 +658,8 @@ namespace WinAGI.Engine {
                     throw;
                 }
             }
+            // no longer dirty
+            mIsDirty = false;
         }
 
         /// <summary>
@@ -756,12 +748,11 @@ namespace WinAGI.Engine {
             }
             // check for readonly
             if ((File.GetAttributes(ImportFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                mErrLevel = -2;
-                ErrData[0] = ImportFile;
-                return;
-            }
-            if (mLoaded) {
-                Unload();
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, ImportFile)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = ImportFile;
+                throw wex;
             }
             // open file for binary
             FileStream fsImport;
@@ -782,6 +773,7 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             // load resource data from file
+            mRData.ReSize((int)fsImport.Length);
             fsImport.Read(mRData.AllData, 0, (int)fsImport.Length);
             // reset resource markers
             mlngCurPos = 0;
@@ -792,8 +784,8 @@ namespace WinAGI.Engine {
             mSize = (int)fsImport.Length;
             // always return success
             mLoaded = true;
-            // raise change event
-            OnPropertyChanged("Data");
+            // DON'T raise change event - calling function knows there's a change
+            //OnPropertyChanged("Data");
             if (mInGame) {
                 try {
                     // save resource (which finds a place for it in VOL files)

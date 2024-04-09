@@ -6,6 +6,7 @@ using static WinAGI.Engine.Commands;
 using static WinAGI.Common.Base;
 using System.IO;
 using System.Diagnostics;
+using System.Text;
 
 namespace WinAGI.Engine {
     public class View : AGIResource {
@@ -449,17 +450,20 @@ namespace WinAGI.Engine {
             if (lngDescLoc > 0) {
                 //ensure it can be loaded
                 if (lngDescLoc < mSize - 1) {
-                    //set resource pointer to beginning of description string
+                    // set resource pointer to beginning of description string
                     Pos = lngDescLoc;
                     do {
                         //get character
                         bytInput[0] = ReadByte();
                         //if not zero, and string not yet up to 255 characters,
                         if ((bytInput[0] > 0) && (mViewDesc.Length < 255)) {
-                            //add the character
-                            mViewDesc += parent.agCodePage.GetString(bytInput);
+                            if (parent is null) {
+                                mViewDesc += Encoding.GetEncoding(437).GetString(bytInput);
+                            }
+                            else {
+                                mViewDesc += parent.agCodePage.GetString(bytInput);
+                            }
                         }
-                        //stop if zero reached, end of resource reached, or 255 characters read
                     }
                     while (!EORes && bytInput[0] != 0 && mViewDesc.Length < 255);
                 }
