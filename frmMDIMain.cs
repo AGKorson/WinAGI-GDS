@@ -289,7 +289,7 @@ namespace WinAGI.Editor
             //Debug.Print(sTest);
             // TODO: need converter for v2.3.7 sourcefiles; text now stored as utf8
             // and only converted to appropriate codepage byte values when compiling
-            Picture pic1 = new Picture();
+            Logic log1 = new();
 
             //what is resolution?
             Debug.Print($"DeviceDPI: {this.DeviceDpi}");

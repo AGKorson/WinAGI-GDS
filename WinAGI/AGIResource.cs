@@ -466,7 +466,6 @@ namespace WinAGI.Engine {
         /// or from its resfile.
         /// </summary>
         public virtual void Load() {
-            // 
             byte bytLow, bytHigh, bytVolNum;
             bool blnIsPicture = false;
             int intSize, lngExpandedSize = 0;
@@ -482,7 +481,6 @@ namespace WinAGI.Engine {
             mIsDirty = false;
             PropDirty = false;
 
-            //if in a game,
             if (mInGame) {
                 // resource data is loaded from the AGI VOL file
                 if (parent.agIsVersion3) {
@@ -579,7 +577,8 @@ namespace WinAGI.Engine {
             fsVOL.Dispose();
             brVOL.Dispose();
             // if version3
-            if (parent.agIsVersion3) {
+            if (intSize != lngExpandedSize) {
+            //if (parent.agIsVersion3) {
                 // if resource is a compressed picture
                 if (blnIsPicture) {
                     // pictures use this decompression
@@ -685,7 +684,7 @@ namespace WinAGI.Engine {
             bool blnUnload = false;
 
             WinAGIException.ThrowIfNotLoaded(this);
-            //if no filename passed
+            // if no filename passed
             if (ExportFile.Length == 0) {
                 WinAGIException wex = new(LoadResString(599)) {
                     HResult = WINAGI_ERR + 599,
@@ -724,8 +723,13 @@ namespace WinAGI.Engine {
             }
             // if NOT in a game,
             if (!mInGame) {
-                //change resfile to match new export filename
+                // change resfile to match new export filename
                 mResFile = ExportFile;
+                // ID always tracks the resfile name
+                mResID = Path.GetFileName(ExportFile);
+                if (mResID.Length > 64) {
+                    mResID = Left(mResID, 64);
+                }
             }
         }
 
@@ -738,19 +742,23 @@ namespace WinAGI.Engine {
         /// <param name="ImportFile"></param>
         public virtual void Import(string ImportFile) {
             if (ImportFile.Length == 0) {
-                // error
                 WinAGIException wex = new(LoadResString(604)) {
                     HResult = WINAGI_ERR + 604,
                 };
                 throw wex;
             }
             if (!File.Exists(ImportFile)) {
-                //error
                 WinAGIException wex = new(LoadResString(524).Replace(ARG1, ImportFile)) {
                     HResult = WINAGI_ERR + 524,
                 };
                 wex.Data["missingfile"] = ImportFile;
                 throw wex;
+            }
+            // check for readonly
+            if ((File.GetAttributes(ImportFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                mErrLevel = -2;
+                ErrData[0] = ImportFile;
+                return;
             }
             if (mLoaded) {
                 Unload();
@@ -778,8 +786,11 @@ namespace WinAGI.Engine {
             // reset resource markers
             mlngCurPos = 0;
             mblnEORes = false;
-            // TODO: why is loaded set to true? only the data is added
-            // the actual resource isn't yet loaded...
+            mIsDirty = false;
+            PropDirty = false;
+            // update size property
+            mSize = (int)fsImport.Length;
+            // always return success
             mLoaded = true;
             // raise change event
             OnPropertyChanged("Data");
@@ -794,18 +805,39 @@ namespace WinAGI.Engine {
                 }
             }
             else {
-                // save the resource filename
+                // update the resource filename
                 mResFile = ImportFile;
             }
+            // set ID to the filename without extension;
+            // the calling function will take care or reassigning it later, if needed
+            // (for example, if being added to a game)
+            string tmpID = Path.GetFileNameWithoutExtension(ImportFile);
+            if (tmpID.Length > 64) {
+                tmpID = tmpID[..64];
+            }
+            if (mInGame) {
+                if (NotUniqueID(tmpID, parent)) {
+                    // create one
+                    int i = 0;
+                    string baseid = mResID;
+                    do {
+                        mResID = baseid + "_" + i++.ToString();
+                    }
+                    while (NotUniqueID(this));
+                    // reset dirty flags
+                    mIsDirty = false;
+                }
+            }
+            mResID = tmpID;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="InputByte"></param>
-        /// <param name="Pos"></param>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public void WriteByte(byte InputByte, int Pos = -1) {
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="InputByte"></param>
+            /// <param name="Pos"></param>
+            /// <exception cref="ArgumentOutOfRangeException"></exception>
+            public void WriteByte(byte InputByte, int Pos = -1) {
             bool bNoEvent = false;
 
             WinAGIException.ThrowIfNotLoaded(this);

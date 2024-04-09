@@ -97,11 +97,11 @@ namespace WinAGI.Engine {
         /// Represents a new logic resource, not in a game.
         /// </summary>
         public Logic() : base(AGIResType.rtLogic) {
+            // not in a game so resource is always loaded
+            mLoaded = true;
             InitLogic();
             // use a default ID
             mResID = "NewLogic";
-            // not in a game so resource is always loaded
-            mLoaded = true;
         }
 
         /// <summary>
@@ -307,8 +307,6 @@ namespace WinAGI.Engine {
         /// Clears out source code text and clears the resource data.
         /// </summary>
         public override void Clear() {
-            // 
-
             WinAGIException.ThrowIfNotLoaded(this);
             // clear resource
             base.Clear();
@@ -365,21 +363,10 @@ namespace WinAGI.Engine {
         /// <param name="ImportFile"></param>
         /// <param name="AsSource"></param>
         public override void Import(string ImportFile) {
-            // imports a logic resource from a standalone file
-            // doesn't matter if ingame or not
+            // importing a logic resource will overwrite current source text with decompiled source
 
-            if (ImportFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(615)) {
-                    HResult = WINAGI_ERR + 615
-                };
-                throw wex;
-            }
-            // if importing a logic resource, it will overwrite current source text with decompiled source
-
-            // clear existing resource
-            Clear();
             try {
-                // import the compiled resource
+                // use base function
                 base.Import(ImportFile);
                 // load the source code by decompiling
                 LoadSource(true);
@@ -392,26 +379,7 @@ namespace WinAGI.Engine {
                 Unload();
                 throw;
             }
-            // set ID to the filename without extension;
-            // the calling function will take care or reassigning it later, if needed
-            // (for example, if the new logic will be added to a game)
-            mResID = Path.GetFileNameWithoutExtension(ImportFile);
-            // TODO: all resources need to validate ID when importing
-            if (mResID.Length > 64) {
-                mResID = Left(mResID, 64);
-            }
-            if (NotUniqueID(this)) {
-                // create one
-                int i = 0;
-                string baseid = mResID;
-                do {
-                    mResID = baseid + "_" + i++.ToString();
-                }
-                while (NotUniqueID(this));
-                // reset dirty flags
-                mIsDirty = false;
-                mSourceDirty = false;
-            }
+            mSourceDirty = false;
         }
 
         /// <summary>

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
+using System;
 using System.Text;
 using System.IO;
 using static WinAGI.Engine.Base;
