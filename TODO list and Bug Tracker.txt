@@ -472,5 +472,21 @@ Word.tok Compile:
     Data["exception"] = exception
     Data["ID"] = mResID
 
+
+AudioPlayer PlayWAVSound
+ 705: invalid sound playback format
+ 628: error opening midi for output
+     Data["error"] = errmsg
+ 628: error playing midi
+     Data["error"] = errmsg
+
+AudioPlayer PlayMIDISound
+ 705: invalid sound playback format
+ 628: error opening midi for output
+     Data["error"] = errmsg
+ 628: error playing midi
+     Data["error"] = errmsg
+
+
 =========================================================================
 LoadGame Errors:

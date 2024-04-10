@@ -1584,4 +1584,7 @@
   <data name="704" xml:space="preserve">
     <value>Missing source file (%1)</value>
   </data>
+  <data name="705" xml:space="preserve">
+    <value>Invalid sound playback format</value>
+  </data>
 </root>

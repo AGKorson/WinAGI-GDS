@@ -97,6 +97,8 @@ namespace WinAGI.Editor {
             mnuRLoopGIF = new System.Windows.Forms.ToolStripMenuItem();
             statusStrip1 = new System.Windows.Forms.StatusStrip();
             tspPreviewText = new System.Windows.Forms.ToolStripStatusLabel();
+            optPCjr = new System.Windows.Forms.RadioButton();
+            optMIDI = new System.Windows.Forms.RadioButton();
             pnlLogic.SuspendLayout();
             pnlPicture.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -288,11 +290,13 @@ namespace WinAGI.Editor {
             imgPicture.MouseLeave += imgPicture_MouseLeave;
             imgPicture.MouseMove += imgPicture_MouseMove;
             imgPicture.MouseUp += imgPicture_MouseUp;
-            imgPicture.Validated += imgPicture_Validated;
             imgPicture.MouseWheel += imgPicture_MouseWheel;
+            imgPicture.Validated += imgPicture_Validated;
             // 
             // pnlSound
             // 
+            pnlSound.Controls.Add(optMIDI);
+            pnlSound.Controls.Add(optPCjr);
             pnlSound.Controls.Add(pnlProgressBar);
             pnlSound.Controls.Add(lblFormat);
             pnlSound.Controls.Add(btnStop);
@@ -902,16 +906,39 @@ namespace WinAGI.Editor {
             tspPreviewText.Text = "blah";
             tspPreviewText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // optPCjr
+            // 
+            optPCjr.AutoSize = true;
+            optPCjr.Checked = true;
+            optPCjr.Location = new System.Drawing.Point(393, 60);
+            optPCjr.Name = "optPCjr";
+            optPCjr.Size = new System.Drawing.Size(84, 19);
+            optPCjr.TabIndex = 14;
+            optPCjr.TabStop = true;
+            optPCjr.Text = "PCjr Sound";
+            optPCjr.UseVisualStyleBackColor = true;
+            // 
+            // optMIDI
+            // 
+            optMIDI.AutoSize = true;
+            optMIDI.Location = new System.Drawing.Point(393, 85);
+            optMIDI.Name = "optMIDI";
+            optMIDI.Size = new System.Drawing.Size(87, 19);
+            optMIDI.TabIndex = 15;
+            optMIDI.TabStop = true;
+            optMIDI.Text = "MIDI Sound";
+            optMIDI.UseVisualStyleBackColor = true;
+            // 
             // frmPreview
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(541, 392);
+            Controls.Add(pnlSound);
             Controls.Add(menuStrip1);
             Controls.Add(statusStrip1);
             Controls.Add(pnlView);
             Controls.Add(pnlPicture);
-            Controls.Add(pnlSound);
             Controls.Add(pnlLogic);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             KeyPreview = true;
@@ -1034,5 +1061,7 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuRLoopGIF;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel tspPreviewText;
+        private System.Windows.Forms.RadioButton optMIDI;
+        private System.Windows.Forms.RadioButton optPCjr;
     }
 }

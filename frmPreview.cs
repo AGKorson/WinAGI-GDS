@@ -366,7 +366,7 @@ namespace WinAGI.Editor {
             try {
                 // hook the sound_complete event and play the sound
                 agSound.SoundComplete += This_SoundComplete;
-                agSound.PlaySound(0);
+                agSound.PlaySound(optPCjr.Checked ?  0 : 1);
             }
             catch (Exception) {
                 //ErrMsgBox "An error occurred during playback: ", "Disabling MIDI playback.", "Play Sound Error"

@@ -459,12 +459,12 @@ namespace WinAGI.Engine {
             switch (mode) {
             case 0:
                 // pcjr multichannel
-                soundPlayer.PlayPCjrSound(this);
+                pcjrPlayer.PlayPCjrSound(this);
                 break;
             case 1:
                 // midi
                 // if sound is already open
-                if (midiPlayer.blnPlaying) {
+                if (bPlayingMIDI) {
                     // TODO: change this to just stop the sound instead of error; also
                     // need to make sure all sounds get stopped- should this be a static function?
                     // YES...
@@ -1306,15 +1306,12 @@ namespace WinAGI.Engine {
         public void StopSound() {
             //stops the sound, if it is playing
             //calling this for ANY sound will stop ALL sound
-            //if not loaded
+
             if (!mLoaded) {
-                //do nothing
-                //        return;
+                return;
             }
-            //if playing
-            if (midiPlayer.blnPlaying) {
-                midiPlayer.StopSound();
-            }
+            // stop all modes
+            StopAllSound();
         }
         public override void Unload() {
             //unload resource

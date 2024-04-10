@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using static WinAGI.Engine.Commands;
-using static WinAGI.Engine.AudioPlayer;
+using static WinAGI.Engine.MIDIPlayer;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
@@ -24,9 +24,6 @@ namespace WinAGI.Engine {
         private static uint lngBitBuffer;
         private static int lngOriginalSize;
 
-        //sound subclassing variables, constants, declarations
-        internal static AudioPlayer midiPlayer = new();
-        internal static SoundPlayer soundPlayer = new();
         //public Declare int CallWindowProc Lib "user32" Alias "CallWindowProcA" (int lpPrevWndFunc, int hWnd, int uMsg, int wParam, int lParam)
         //public Declare int SetWindowLong Lib "user32" Alias "SetWindowLongA" (int hWnd, int nIndex, int dwNewLong)
         public const int GWL_WNDPROC = (-4);

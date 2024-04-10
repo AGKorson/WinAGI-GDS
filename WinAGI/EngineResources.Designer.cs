@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WinAGI.Engine {
+namespace WinAGI {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace WinAGI.Engine {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI.Editor.WinAGI.EngineResources", typeof(EngineResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI.EngineResources", typeof(EngineResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -4449,6 +4449,15 @@ namespace WinAGI.Engine {
         internal static string _704 {
             get {
                 return ResourceManager.GetString("704", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid sound playback format.
+        /// </summary>
+        internal static string _705 {
+            get {
+                return ResourceManager.GetString("705", resourceCulture);
             }
         }
         
