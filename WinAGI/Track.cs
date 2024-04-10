@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WinAGI.Engine
-{
-    public class Track
-    {
+namespace WinAGI.Engine {
+    public class Track {
         //local variable(s) to hold property Value(s)
         Notes mNotes;
         bool mMuted;
@@ -16,14 +14,11 @@ namespace WinAGI.Engine
         internal Sound mParent;
         bool mLengthDirty;
         double mLength;
-        public byte Instrument
-        {
-            get
-            {
+        public byte Instrument {
+            get {
                 return mInstrument;
             }
-            set
-            {
+            set {
                 //validate
                 if (value >= 128) {
                     //error
@@ -36,24 +31,19 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public bool Muted
-        {
-            get
-            {
+        public bool Muted {
+            get {
                 return mMuted;
             }
-            set
-            {
+            set {
                 if (mMuted != value) {
                     mMuted = value;
                     mParent.TrackChanged();
                 }
             }
         }
-        public double Length
-        {
-            get
-            {
+        public double Length {
+            get {
                 //returns the length of this track, in seconds
                 int i, lngTickCount = 0;
                 //if length has changed,
@@ -68,56 +58,45 @@ namespace WinAGI.Engine
                 return mLength;
             }
         }
-        public Notes Notes
-        {
-            get
-            {
+        public Notes Notes {
+            get {
                 return mNotes;
             }
-            internal set
-            {
+            internal set {
                 mNotes = value;
             }
         }
-        internal void SetLengthDirty()
-        {
+        internal void SetLengthDirty() {
             //used by tracks to let parent sound know that length needs to be recalculated
             mLengthDirty = true;
         }
-        public bool Visible
-        {
-            get
-            {
+        public bool Visible {
+            get {
                 return mVisible;
             }
-            set
-            {
+            set {
                 if (mVisible != value) {
                     mVisible = value;
                     mParent.TrackChanged(false);
                 }
             }
         }
-        public Track()
-        {
+        public Track() {
             mNotes = [];
             mLengthDirty = true;
             mVisible = true;
             mInstrument = 80;
         }
-        internal Track(Sound parent)
-        {
+        internal Track(Sound parent) {
             mNotes = new Notes(parent, this);
             mLengthDirty = true;
             mVisible = true;
             mInstrument = 80;
             mParent = parent;
         }
-        public Track Clone(Sound cloneparent)
-        {
+        public Track Clone(Sound cloneparent) {
             //returns a copy of this track
-            Track CopyTrack = new(cloneparent)
-            {
+            Track CopyTrack = new(cloneparent) {
                 mNotes = mNotes.Clone(this),
                 mMuted = mMuted,
                 mInstrument = mInstrument,

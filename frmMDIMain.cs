@@ -291,8 +291,6 @@ namespace WinAGI.Editor
             // OR... do I stick with strategy for logics of converting to codepage
             // when writing to the Logic.SourceText property?
 
-            Picture tmpRes = new();
-            tmpRes.Import(@"C:\Users\d3m294\OneDrive - PNNL\Desktop\agisound\test1\wagi_src\Picture78.agp");
 
 
             //what is resolution?

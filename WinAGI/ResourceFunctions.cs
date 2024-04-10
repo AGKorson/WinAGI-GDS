@@ -25,7 +25,8 @@ namespace WinAGI.Engine {
         private static int lngOriginalSize;
 
         //sound subclassing variables, constants, declarations
-        internal static AudioPlayer SndPlayer = new();
+        internal static AudioPlayer midiPlayer = new();
+        internal static SoundPlayer soundPlayer = new();
         //public Declare int CallWindowProc Lib "user32" Alias "CallWindowProcA" (int lpPrevWndFunc, int hWnd, int uMsg, int wParam, int lParam)
         //public Declare int SetWindowLong Lib "user32" Alias "SetWindowLongA" (int hWnd, int nIndex, int dwNewLong)
         public const int GWL_WNDPROC = (-4);
@@ -1046,13 +1047,13 @@ namespace WinAGI.Engine {
             }
 
             //set intial size of midi data array
-            SndPlayer.mMIDIData = new byte[70 + 256];
+            midiPlayer.mMIDIData = new byte[70 + 256];
 
             // write header
-            SndPlayer.mMIDIData[0] = 77; //"M"
-            SndPlayer.mMIDIData[1] = 84; //"T"
-            SndPlayer.mMIDIData[2] = 104; //"h"
-            SndPlayer.mMIDIData[3] = 100; //"d"
+            midiPlayer.mMIDIData[0] = 77; //"M"
+            midiPlayer.mMIDIData[1] = 84; //"T"
+            midiPlayer.mMIDIData[2] = 104; //"h"
+            midiPlayer.mMIDIData[3] = 100; //"d"
             lngPos = 4;
 
 
@@ -1065,7 +1066,7 @@ namespace WinAGI.Engine {
             if (lngTrackCount == 0) {
                 //need to build a //null// set of data!!!
 
-                Array.Resize(array: ref SndPlayer.mMIDIData, 38);
+                Array.Resize(array: ref midiPlayer.mMIDIData, 38);
 
                 //one track, with one note of smallest length, and no sound
                 WriteSndWord(1);  //one track
@@ -1097,7 +1098,7 @@ namespace WinAGI.Engine {
                 WriteSndByte(0x2F);
                 WriteSndByte(0x0);
                 //return
-                return SndPlayer.mMIDIData;
+                return midiPlayer.mMIDIData;
             }
             //add track count
             WriteSndWord(lngTrackCount);
@@ -1371,8 +1372,8 @@ namespace WinAGI.Engine {
             }
 
             //remove any extra padding from the data array (-1?)
-            Array.Resize(ref SndPlayer.mMIDIData, lngPos);
-            return SndPlayer.mMIDIData;
+            Array.Resize(ref midiPlayer.mMIDIData, lngPos);
+            return midiPlayer.mMIDIData;
         }
 
         internal static byte[] BuildIIgsMIDI(Sound SoundIn, ref double Length) {
@@ -1725,59 +1726,59 @@ namespace WinAGI.Engine {
             lngSize = bData.Length - 54;
             //expand midi data array to hold the sound resource data plus
             //the WAV file header
-            SndPlayer.mMIDIData = new byte[44 + lngSize];
-            SndPlayer.mMIDIData[0] = 82;
-            SndPlayer.mMIDIData[1] = 73;
-            SndPlayer.mMIDIData[2] = 70;
-            SndPlayer.mMIDIData[3] = 70;
-            SndPlayer.mMIDIData[4] = (byte)((lngSize + 36) & 0xFF);
-            SndPlayer.mMIDIData[5] = (byte)(((lngSize + 36) >> 8) & 0xFF);
-            SndPlayer.mMIDIData[6] = (byte)(((lngSize + 36) >> 16) & 0xFF);
-            SndPlayer.mMIDIData[7] = (byte)((lngSize + 36) >> 24);
-            SndPlayer.mMIDIData[8] = 87;
-            SndPlayer.mMIDIData[9] = 65;
-            SndPlayer.mMIDIData[10] = 86;
-            SndPlayer.mMIDIData[11] = 69;
-            SndPlayer.mMIDIData[12] = 102;
-            SndPlayer.mMIDIData[13] = 109;
-            SndPlayer.mMIDIData[14] = 116;
-            SndPlayer.mMIDIData[15] = 32;
-            SndPlayer.mMIDIData[16] = 16;
-            SndPlayer.mMIDIData[17] = 0;
-            SndPlayer.mMIDIData[18] = 0;
-            SndPlayer.mMIDIData[19] = 0;
-            SndPlayer.mMIDIData[20] = 1;
-            SndPlayer.mMIDIData[21] = 0;
-            SndPlayer.mMIDIData[22] = 1;
-            SndPlayer.mMIDIData[23] = 0;
-            SndPlayer.mMIDIData[24] = 64;
-            SndPlayer.mMIDIData[25] = 31;
-            SndPlayer.mMIDIData[26] = 0;
-            SndPlayer.mMIDIData[27] = 0;
-            SndPlayer.mMIDIData[28] = 64;
-            SndPlayer.mMIDIData[29] = 31;
-            SndPlayer.mMIDIData[30] = 0;
-            SndPlayer.mMIDIData[31] = 0;
-            SndPlayer.mMIDIData[32] = 1;
-            SndPlayer.mMIDIData[33] = 0;
-            SndPlayer.mMIDIData[34] = 8;
-            SndPlayer.mMIDIData[35] = 0;
-            SndPlayer.mMIDIData[36] = 100;
-            SndPlayer.mMIDIData[37] = 97;
-            SndPlayer.mMIDIData[38] = 116;
-            SndPlayer.mMIDIData[39] = 97;
-            SndPlayer.mMIDIData[40] = (byte)((lngSize - 2) & 0xFF);
-            SndPlayer.mMIDIData[41] = (byte)(((lngSize - 2) >> 8) & 0xFF);
-            SndPlayer.mMIDIData[42] = (byte)(((lngSize - 2) >> 16) & 0xFF);
-            SndPlayer.mMIDIData[43] = (byte)((lngSize - 2) >> 24);
+            midiPlayer.mMIDIData = new byte[44 + lngSize];
+            midiPlayer.mMIDIData[0] = 82;
+            midiPlayer.mMIDIData[1] = 73;
+            midiPlayer.mMIDIData[2] = 70;
+            midiPlayer.mMIDIData[3] = 70;
+            midiPlayer.mMIDIData[4] = (byte)((lngSize + 36) & 0xFF);
+            midiPlayer.mMIDIData[5] = (byte)(((lngSize + 36) >> 8) & 0xFF);
+            midiPlayer.mMIDIData[6] = (byte)(((lngSize + 36) >> 16) & 0xFF);
+            midiPlayer.mMIDIData[7] = (byte)((lngSize + 36) >> 24);
+            midiPlayer.mMIDIData[8] = 87;
+            midiPlayer.mMIDIData[9] = 65;
+            midiPlayer.mMIDIData[10] = 86;
+            midiPlayer.mMIDIData[11] = 69;
+            midiPlayer.mMIDIData[12] = 102;
+            midiPlayer.mMIDIData[13] = 109;
+            midiPlayer.mMIDIData[14] = 116;
+            midiPlayer.mMIDIData[15] = 32;
+            midiPlayer.mMIDIData[16] = 16;
+            midiPlayer.mMIDIData[17] = 0;
+            midiPlayer.mMIDIData[18] = 0;
+            midiPlayer.mMIDIData[19] = 0;
+            midiPlayer.mMIDIData[20] = 1;
+            midiPlayer.mMIDIData[21] = 0;
+            midiPlayer.mMIDIData[22] = 1;
+            midiPlayer.mMIDIData[23] = 0;
+            midiPlayer.mMIDIData[24] = 64;
+            midiPlayer.mMIDIData[25] = 31;
+            midiPlayer.mMIDIData[26] = 0;
+            midiPlayer.mMIDIData[27] = 0;
+            midiPlayer.mMIDIData[28] = 64;
+            midiPlayer.mMIDIData[29] = 31;
+            midiPlayer.mMIDIData[30] = 0;
+            midiPlayer.mMIDIData[31] = 0;
+            midiPlayer.mMIDIData[32] = 1;
+            midiPlayer.mMIDIData[33] = 0;
+            midiPlayer.mMIDIData[34] = 8;
+            midiPlayer.mMIDIData[35] = 0;
+            midiPlayer.mMIDIData[36] = 100;
+            midiPlayer.mMIDIData[37] = 97;
+            midiPlayer.mMIDIData[38] = 116;
+            midiPlayer.mMIDIData[39] = 97;
+            midiPlayer.mMIDIData[40] = (byte)((lngSize - 2) & 0xFF);
+            midiPlayer.mMIDIData[41] = (byte)(((lngSize - 2) >> 8) & 0xFF);
+            midiPlayer.mMIDIData[42] = (byte)(((lngSize - 2) >> 16) & 0xFF);
+            midiPlayer.mMIDIData[43] = (byte)((lngSize - 2) >> 24);
             lngPos = 44;
             //copy data from sound resource, beginning at pos 2
             for (i = 54; i < bData.Length; i++) {
                 //copy this one over
-                SndPlayer.mMIDIData[lngPos] = bData[i];
+                midiPlayer.mMIDIData[lngPos] = bData[i];
                 lngPos++;
             }
-            return SndPlayer.mMIDIData;
+            return midiPlayer.mMIDIData;
         }
         internal static void WriteSndDelta(int LongIn) {
             //writes variable delta times
@@ -1825,12 +1826,12 @@ namespace WinAGI.Engine {
             return 0;
         }
         internal static void WriteSndByte(byte ByteIn) {
-            SndPlayer.mMIDIData[lngPos] = ByteIn;
+            midiPlayer.mMIDIData[lngPos] = ByteIn;
             lngPos++; ;
             //if at end
-            if (lngPos >= SndPlayer.mMIDIData.Length) {
+            if (lngPos >= midiPlayer.mMIDIData.Length) {
                 //jack it up
-                Array.Resize(ref SndPlayer.mMIDIData, lngPos + 256);
+                Array.Resize(ref midiPlayer.mMIDIData, lngPos + 256);
             }
         }
     }

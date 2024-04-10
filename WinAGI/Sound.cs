@@ -123,19 +123,19 @@ namespace WinAGI.Engine {
                 case SoundFormat.sfAGI:
                     // standard pc/pcjr sound
                     // build the midi first
-                    SndPlayer.mMIDIData = BuildMIDI(this);
+                    midiPlayer.mMIDIData = BuildMIDI(this);
                     mLength = GetSoundLength();
                     break;
                 case SoundFormat.sfWAV:
                     // IIgs pcm sound
-                    SndPlayer.mMIDIData = BuildIIgsPCM(this);
+                    midiPlayer.mMIDIData = BuildIIgsPCM(this);
                     mLength = GetSoundLength();
 
                     break;
                 case SoundFormat.sfMIDI:
                     // IIgs MIDI sound
                     // build the midi data and get length info
-                    SndPlayer.mMIDIData = BuildIIgsMIDI(this, ref mLength);
+                    midiPlayer.mMIDIData = BuildIIgsMIDI(this, ref mLength);
                     break;
                 }
                 //set flag
@@ -220,7 +220,7 @@ namespace WinAGI.Engine {
             int lngStart, lngEnd, lngResPos, lngDur;
             short intFreq;
             byte bytAttn;
-            //if in a game,
+
             if (mInGame) {
                 //get track properties from the .WAG file
                 mTrack[0].Instrument = parent.agGameProps.GetSetting("Sound" + mResNum, "Inst0", (byte)80);
@@ -263,18 +263,13 @@ namespace WinAGI.Engine {
                     if (lngStart < 0 || lngEnd < 0 || lngStart > mSize || lngEnd > mSize) {
                         mErrLevel = -13;
                         ErrData[0] = mResID;
-                        //// raise error
-                        //WinAGIException wex = new(LoadResString(598)) {
-                        //    HResult = WINAGI_ERR + 598
-                        //};
-                        //wex.Data["ID"] = mResID;
-                        //throw wex;
                         break;
                     }
 
                     //step through notes in this track (5 bytes at a time)
                     for (lngResPos = lngStart; lngResPos <= lngEnd; lngResPos += 5) {
                         if (i < 3) {
+                            
                             //get duration
                             lngDur = (mRData[lngResPos] + 256 * mRData[lngResPos + 1]);
 
@@ -282,8 +277,13 @@ namespace WinAGI.Engine {
                             intFreq = (short)(16 * (mRData[lngResPos + 2] & 0x3F) + (mRData[lngResPos + 3] & 0xF));
                             //attenuation information in byte5
                             bytAttn = ((byte)(mRData[lngResPos + 4] & 0xF));
-                            //add the note
-                            mTrack[i].Notes.Add(intFreq, lngDur, bytAttn);
+                            // add the note
+                            mTrack[i].Notes.Add(intFreq, lngDur, bytAttn).mrawData = 
+                                [mRData[lngResPos],
+                                mRData[lngResPos + 1],
+                                mRData[lngResPos + 2],
+                                mRData[lngResPos + 3],
+                                mRData[lngResPos + 4]];
                             //add length
                             lngTLength += lngDur;
                         }
@@ -446,7 +446,7 @@ namespace WinAGI.Engine {
                 return mLength;
             }
         }
-        public void PlaySound() {
+        public void PlaySound(int mode) {
             // plays sound asynchronously by generating a MIDI stream
             // that is fed to a MIDI output
 
@@ -456,40 +456,49 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            // if sound is already open
-            if (SndPlayer.blnPlaying) {
-                // TODO: change this to just stop the sound instead of error; also
-                // need to make sure all sounds get stopped- should this be a static function?
-                // YES...
+            switch (mode) {
+            case 0:
+                // pcjr multichannel
+                soundPlayer.PlayPCjrSound(this);
+                break;
+            case 1:
+                // midi
+                // if sound is already open
+                if (midiPlayer.blnPlaying) {
+                    // TODO: change this to just stop the sound instead of error; also
+                    // need to make sure all sounds get stopped- should this be a static function?
+                    // YES...
 
-                WinAGIException wex = new(LoadResString(629)) {
-                    HResult = WINAGI_ERR + 629
-                };
-                throw wex;
-            }
-            // don't need to worry if tracks are properly loaded because
-            // changing track data causes mMIDISet to be reset; this forces
-            // midi rebuild, which references the Tracks throught the Track
-            // property, which forces rebuild of track data when the
-            // BUILDMIDI method first access the track property
-
-            // if sound data not set to play
-            if (!mMIDISet) {
-                try {
-                    BuildSoundOutput();
+                    WinAGIException wex = new(LoadResString(629)) {
+                        HResult = WINAGI_ERR + 629
+                    };
+                    throw wex;
                 }
-                catch (Exception e) {
+                // don't need to worry if tracks are properly loaded because
+                // changing track data causes mMIDISet to be reset; this forces
+                // midi rebuild, which references the Tracks throught the Track
+                // property, which forces rebuild of track data when the
+                // BUILDMIDI method first access the track property
+
+                // if sound data not set to play
+                if (!mMIDISet) {
+                    try {
+                        BuildSoundOutput();
+                    }
+                    catch (Exception e) {
+                        // TODO: fix sound resource error handlers
+                        throw new Exception("lngError, strErrSrc, strError");
+                    }
+                }
+                try {
+                    //play the sound
+                    midiPlayer.PlayMIDISound(this);
+                }
+                catch (Exception) {
                     // TODO: fix sound resource error handlers
                     throw new Exception("lngError, strErrSrc, strError");
                 }
-            }
-            try {
-                //play the sound
-                SndPlayer.PlaySound(this);
-            }
-            catch (Exception) {
-                // TODO: fix sound resource error handlers
-                throw new Exception("lngError, strErrSrc, strError");
+                break;
             }
         }
         public Sound Clone() {
@@ -587,7 +596,7 @@ namespace WinAGI.Engine {
                     }
                     //create midi file
                     FileStream fsSnd = new(ExportFile, FileMode.Open);
-                    fsSnd.Write(SndPlayer.mMIDIData);
+                    fsSnd.Write(midiPlayer.mMIDIData);
                     fsSnd.Dispose();
                 }
                 catch (Exception) {
@@ -695,7 +704,7 @@ namespace WinAGI.Engine {
                     }
                     //create midi file
                     FileStream fsSnd = new(ExportFile, FileMode.Open);
-                    fsSnd.Write(SndPlayer.mMIDIData);
+                    fsSnd.Write(midiPlayer.mMIDIData);
                     fsSnd.Dispose();
                 }
                 catch (Exception) {
@@ -1221,7 +1230,7 @@ namespace WinAGI.Engine {
                         throw;
                     }
                 }
-                return SndPlayer.mMIDIData;
+                return midiPlayer.mMIDIData;
             }
         }
 
@@ -1303,8 +1312,8 @@ namespace WinAGI.Engine {
                 //        return;
             }
             //if playing
-            if (SndPlayer.blnPlaying) {
-                SndPlayer.StopSound();
+            if (midiPlayer.blnPlaying) {
+                midiPlayer.StopSound();
             }
         }
         public override void Unload() {
@@ -1312,7 +1321,7 @@ namespace WinAGI.Engine {
             base.Unload();
             mIsDirty = false;
             //clear midi data
-            SndPlayer.mMIDIData = [];
+            midiPlayer.mMIDIData = [];
             mMIDISet = false;
             //reset length
             mLength = -1;

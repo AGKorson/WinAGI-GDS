@@ -48,7 +48,7 @@ namespace WinAGI.Editor {
             Sound tmpSnd = (Sound)listBox1.SelectedItem;
             tmpSnd.Load();
             tmpSnd.SoundComplete += This_SoundComplete;
-            tmpSnd.PlaySound();
+            tmpSnd.PlaySound(1);
         }
         private void This_SoundComplete(object sender, SoundCompleteEventArgs e) {
             MessageBox.Show("all done!");
@@ -5218,7 +5218,7 @@ namespace WinAGI.Editor {
             KillMIDI
 
             'play sound
-            SoundEdit.PlaySound
+            SoundEdit.PlaySound(1)
             'shouldnt ever get to this
             'because errhandling is set to
             'goto ErrHandler already

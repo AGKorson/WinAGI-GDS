@@ -114,8 +114,8 @@ AGIResource       RemoveData                563                   resource not l
 AGIResource       RemoveData                ArgOutOfRange         RemoveCount value is invalid
 AGIResource       RemoveData                ArgOutOfRange         RemovePos value is invalid
 AGIResource       Clear                     563                   resource not loaded
-AudioPlayer       PlaySound                 628                   media player open media error
-AudioPlayer       PlaySound                 628                   media player play media error
+AudioPlayer       PlayMIDISound             628                   media player open media error
+AudioPlayer       PlayMIDISound             628                   media player play media error
 Cel               this/get                  ArgOutOfRange         xPos value is invalid
 Cel               this/get                  ArgOutOfRange         yPos value is invalid
 Cel               this/set                  ArgOutOfRange         xPos value is invalid
@@ -263,6 +263,32 @@ Notes             Add                       ArgOutOfRange         invalid durati
 Notes             Add                       ArgOutOfRange         invalid freqdivisor value
 Notes             Remove                    IndexOutOfRange       invalid index
 Notes             Enum:Current              InvalidOps            invalid
+Picture           VisData/get               563                   resource not loaded
+Picture           PriData/get               563                   resource not loaded
+Picture           CurrentToolStatus/get     563                   resource not loaded
+Picture           DrawPos/get               563                   resource not loaded
+Picture           DrawPos/set               563                   resource not loaded
+Picture           ObjOnWater                563                   resource not loaded
+Picture           ObjOnWater                ArgOutOfRange         invalid X value
+Picture           ObjOnWater                ArgOutOfRange         invalid Y value
+Picture           ControlPixel              563                   resource not loaded
+Picture           ControlPixel              ArgOutOfRange         invalid X value
+Picture           ControlPixel              ArgOutOfRange         invalid Y value
+Picture           VisPixel                  563                   resource not loaded
+Picture           VisPixel                  ArgOutOfRange         invalid X value
+Picture           VisPixel                  ArgOutOfRange         invalid Y value
+Picture           PriPixel                  563                   resource not loaded
+Picture           PriPixel                  ArgOutOfRange         invalid X value
+Picture           PriPixel                  ArgOutOfRange         invalid Y value
+Picture           PixelPri                  563                   resource not loaded
+Picture           PixelPri                  ArgOutOfRange         invalid X value
+Picture           PixelPri                  ArgOutOfRange         invalid Y value
+Picture           Clear                     563                   resource not loaded
+Picture           Save                      563                   resource not loaded
+Picture           Save                      PASS                  pass-through base.Save
+Picture           SetPictureData            563                   resource not loaded
+Picture           StepDraw/get              563                   resource not loaded
+Picture           StepDraw/set              563                   resource not loaded
 
 
 

@@ -419,7 +419,7 @@ namespace WinAGI.Engine {
         /// <param name="Length"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public AGIColorIndex PixelControl(byte X, byte Y, byte Length = 1) {
+        public AGIColorIndex ControlPixel(byte X, byte Y, byte Length = 1) {
             byte i = 0;
             AGIColorIndex CurPri, retval;
 
@@ -497,13 +497,13 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Return priority of pixel, skipping over
+        /// Return priority of pixel, exclusive of control lines.
         /// </summary>
         /// <param name="X"></param>
         /// <param name="Y"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public AGIColorIndex PixelPriority(byte X, byte Y) {
+        public AGIColorIndex PixelPri(byte X, byte Y) {
             WinAGIException.ThrowIfNotLoaded(this);
             // validate x,y
             if (X > 159) {

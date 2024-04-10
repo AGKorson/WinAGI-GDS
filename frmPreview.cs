@@ -366,7 +366,7 @@ namespace WinAGI.Editor {
             try {
                 // hook the sound_complete event and play the sound
                 agSound.SoundComplete += This_SoundComplete;
-                agSound.PlaySound();
+                agSound.PlaySound(0);
             }
             catch (Exception) {
                 //ErrMsgBox "An error occurred during playback: ", "Disabling MIDI playback.", "Play Sound Error"
@@ -551,21 +551,43 @@ namespace WinAGI.Editor {
         }
         private void This_SoundComplete(object sender, SoundCompleteEventArgs e) {
             // disable stop and enable play
-            btnPlay.Enabled = !Settings.NoMIDI;
-            btnStop.Enabled = false;
-            tmrSound.Enabled = false;
-            picProgress.Width = pnlProgressBar.Width;
-            picProgress.Refresh();
-            // if this is a PC/PCjr sound, re-enable track controls
-            if (agSound.SndFormat == SoundFormat.sfAGI) {
-                for (int i = 0; i < 3; i++) {
-                    chkTrack[i].Enabled = true;
-                    cmbInst[i].Enabled = true;
+
+            // need to check if invoke is required- accessing the UI elements
+            // is done differently if that's the case
+            if (btnPlay.InvokeRequired) {
+                btnPlay.Invoke(new Action(() => { btnPlay.Enabled = !Settings.NoMIDI; }));
+                btnStop.Invoke(new Action(() => { btnStop.Enabled = false; }));
+                tmrSound.Enabled = false;
+                picProgress.Invoke(new Action(() => { picProgress.Width = pnlProgressBar.Width; }));
+                picProgress.Invoke(new Action(() => { picProgress.Refresh(); }));
+                // if this is a PC/PCjr sound, re-enable track controls
+                if (agSound.SndFormat == SoundFormat.sfAGI) {
+                    for (int i = 0; i < 3; i++) {
+                        chkTrack[i].Invoke(new Action(() => { chkTrack[i].Enabled = true; }));
+                        cmbInst[i].Invoke(new Action(() => { cmbInst[i].Enabled = true; }));
+                    }
+                    chkTrack[3].Invoke(new Action(() => { chkTrack[3].Enabled = true; }));
+                    cmdReset.Invoke(new Action(() => { cmdReset.Enabled = true; }));
                 }
-                chkTrack[3].Enabled = true;
-                cmdReset.Enabled = true;
+                picProgress.Invoke(new Action(() => { picProgress.Width = 0; }));
             }
-            picProgress.Width = 0;
+            else {
+                btnPlay.Enabled = !Settings.NoMIDI;
+                btnStop.Enabled = false;
+                tmrSound.Enabled = false;
+                picProgress.Width = pnlProgressBar.Width;
+                picProgress.Refresh();
+                // if this is a PC/PCjr sound, re-enable track controls
+                if (agSound.SndFormat == SoundFormat.sfAGI) {
+                    for (int i = 0; i < 3; i++) {
+                        chkTrack[i].Enabled = true;
+                        cmbInst[i].Enabled = true;
+                    }
+                    chkTrack[3].Enabled = true;
+                    cmdReset.Enabled = true;
+                }
+                picProgress.Width = 0;
+            }
         }
         private void cmdVPlay_Click(object sender, EventArgs e) {
             //toggle motion
