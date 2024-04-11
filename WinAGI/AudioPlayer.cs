@@ -23,14 +23,18 @@ namespace WinAGI.Engine {
         internal static Sound soundPlaying;
 
         internal static void StopAllSound() {
+            // this will send a msg to WndProc which will raise the 'sound complete'
+            // event and release the sound object
             _ = mciSendString("close all", null, 0, (IntPtr)null);
             bPlayingWAV = false;
             bPlayingMIDI = false;
             pcjrPlayer.Reset();
-            soundPlaying = null;
         }
     }
 
+    /// <summary>
+    /// A class for playing AGI Sounds as a MIDI stream.
+    /// </summary>
     internal class MIDIPlayer : NativeWindow, IDisposable {
         private bool disposed = false;
         internal byte[] mMIDIData;
@@ -76,7 +80,7 @@ namespace WinAGI.Engine {
             // if midi (format 1 or 3 converted from agi, or native IIg midi)
             if (SndRes.SndFormat != SoundFormat.sfAGI && SndRes.SndFormat != SoundFormat.sfMIDI) {
                 // exception
-                WinAGIException wex = new WinAGIException(LoadResString(705)) {
+                WinAGIException wex = new(LoadResString(705)) {
                     HResult = 705,
                 };
                 throw wex;
@@ -153,6 +157,9 @@ namespace WinAGI.Engine {
         }
     }
 
+    /// <summary>
+    /// A class for playing WAV files (found in some Apple IIgs sound resources).
+    /// </summary>
     internal class WAVPlayer : NativeWindow, IDisposable {
         private bool disposed = false;
         internal byte[] mMIDIData;
@@ -199,7 +206,7 @@ namespace WinAGI.Engine {
             //if not native IIg wav 
             if (SndRes.SndFormat!= SoundFormat.sfWAV) {
                 // exception
-                WinAGIException wex = new WinAGIException(LoadResString(705)) {
+                WinAGIException wex = new(LoadResString(705)) {
                     HResult = 705,
                 };
                 throw wex;
@@ -292,12 +299,12 @@ namespace WinAGI.Engine {
         /// <summary>
         /// A cache of the generated WAVE data for loaded sounds.
         /// </summary>
-        public Dictionary<string, byte[]> SoundCache { get; }
+        public byte[] soundCache { get; set; }
 
         /// <summary>
         /// NAudio output device that we play the generated WAVE data with.
         /// </summary>
-        private readonly WaveOutEvent outputDevice;
+        private readonly IWavePlayer outputDevice;
 
         /// <summary>
         /// NAudio ISampleProvider that mixes multiple sounds together.
@@ -337,7 +344,7 @@ namespace WinAGI.Engine {
         /// Constructor for PCjrPlayer.
         /// </summary>
         public PCjrPlayer() {
-            SoundCache = [];
+            soundCache = [];
             bPlayingPCjr = false;
 
             // Set up the NAudio mixer. Using a single WaveOutEvent instance, and associated mixer eliminates
@@ -351,7 +358,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Loads and generates an AGI Sound, caching it in a ready to play state.
+        /// Generates an wav stream from an AGI Sound, caching it in a ready to play state.
         /// </summary>
         /// <param name="sound">The AGI Sound to load.</param>
         public void LoadSoundCache(Sound sound) {
@@ -411,8 +418,8 @@ namespace WinAGI.Engine {
                 sampleStream.WriteByte((byte)((sample >> 8) & 0xFF));
             }
 
-            // Cache for use when the sound is played. This reduces overhead of generating WAV on every play.
-            SoundCache.Add(sound.ID, sampleStream.ToArray());
+            // store it for use when the sound is played
+            soundCache = sampleStream.ToArray();
         }
 
         /// <summary>
@@ -447,6 +454,14 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="sound">The AGI Sound to play.</param>
         public void PlayPCjrSound(Sound sound) {
+            //if not standard AGI sound format 
+            if (sound.SndFormat != SoundFormat.sfAGI) {
+                // exception
+                WinAGIException wex = new(LoadResString(705)) {
+                    HResult = 705,
+                };
+                throw wex;
+            }
             // Stop any currently playing sound.
             StopAllSound();
 
@@ -454,14 +469,10 @@ namespace WinAGI.Engine {
             // load the sound cache first
             LoadSoundCache(sound);
 
-            // Get WAV data from the cache.
-            byte[] waveData = null;
-            if (SoundCache.TryGetValue(sound.ID, out waveData)) {
-                // Now play the Wave file.
-                MemoryStream memoryStream = new(waveData);
-                playerThread = new Thread(() => PlayWaveStreamAndWait(memoryStream));
-                playerThread.Start();
-            }
+            // Now play the Wave file.
+            MemoryStream memoryStream = new(soundCache);
+            playerThread = new Thread(() => PlayWaveStreamAndWait(memoryStream));
+            playerThread.Start();
         }
 
         /// <summary>
@@ -513,12 +524,12 @@ namespace WinAGI.Engine {
         /// </summary>
         internal void Reset() {
             StopPCjrSound(false);
-            SoundCache.Clear();
+            soundCache = [];
             mixer.RemoveAllMixerInputs();
         }
 
         /// <summary>
-        /// Fully shuts down the SoundPlayer. Only intended for when AGILE is closing down.
+        /// Fully shuts down the SoundPlayer. Only intended for ...
         /// </summary>
         public void Shutdown() {
             Reset();
@@ -553,7 +564,7 @@ namespace WinAGI.Engine {
         public sealed class SN76496 {
             private const float IBM_PCJR_CLOCK = 3579545f;
 
-            private static float[] volumeTable = new float[] {
+            private static float[] volumeTable = [
                 8191.5f,
                 6506.73973474395f,
                 5168.4870873095f,
@@ -570,15 +581,14 @@ namespace WinAGI.Engine {
                 410.54752242578f,
                 326.109488758897f,
                 0.0f
-            };
+            ];
 
-            private int[] channelVolume = new int[4] { 15, 15, 15, 15 };
+            private int[] channelVolume = [15, 15, 15, 15];
             private int[] channelCounterReload = new int[4];
             private int[] channelCounter = new int[4];
             private int[] channelOutput = new int[4];
             private uint lfsr;
             private uint latchedChannel;
-            private bool updateVolume;
             private float ticksPerSample;
             private float ticksCount;
 
@@ -586,12 +596,11 @@ namespace WinAGI.Engine {
                 ticksPerSample = IBM_PCJR_CLOCK / 16 / SAMPLE_RATE;
                 ticksCount = ticksPerSample;
                 latchedChannel = 0;
-                updateVolume = false;
                 lfsr = 0x4000;
             }
 
             public void SetVolByNumber(int channel, int volume) {
-                channelVolume[channel] = (int)(volume & 0x0F);
+                channelVolume[channel] = volume & 0x0F;
             }
 
             public int GetVolByNumber(int channel) {
@@ -611,40 +620,64 @@ namespace WinAGI.Engine {
                  * 
                  *  f = 111860 / (((Byte2 & 0x3F) << 4) + (Byte1 & 0x0F))
                  */
+                // First Byte of TONE frequency info:
+                // 7  6  5  4  3  2  1  0
+                // 1  .  .  .  .  .  .  .      Identifies first byte (command byte)
+                // .  R0 R1 .  .  .  .  .      Voice number (i.e. channel)
+                // .  .  .  0  .  .  .  .      0 = Frequency count
+                // .  .  .  .  F6 F7 F8 F9     4 of 10 - bits in frequency count.
+                //
+                // Second Byte of TONE frequency info:
+                // 7  6  5  4  3  2  1  0
+                // 0  .  .  .  .  .  .  .      Identifies second byte (completing byte for frequency count)
+                // .  X  .  .  .  .  .  .      Unused, ignored.
+                // .  .  F0 F1 F2 F3 F4 F5     6 of 10 - bits in frequency count.
+                //
+                // First Byte of attenuation info:
+                // 7  6  5  4  3  2  1  0
+                // 1  .  .  .  .  .  .  .      Identifies first byte (command byte)
+                // .  R0 R1 .  .  .  .  .      Voice number (i.e. channel)
+                // .  .  .  1  .  .  .  .      1 = Update attenuation
+                // .  .  .  .  A0 A1 A2 A3     4-bit attenuation value.
+                //
+                // First Byte of NOISE frequency info:
+                // 7  6  5  4  3  2  1  0
+                // 1  .  .  .  .  .  .  .      Identifies first byte (command byte)
+                // .  1  1  .  .  .  .  .      Voice number (3 for noise channel)
+                // .  .  .  0  .  .  .  .      0 = Frequency count
+                // .  .  .  .  X  .  .  .      unused; can be ignored
+                // .  .  .  .  .  FB .  .      1 for white noise, 0 for periodic
+                // .  .  .  .  .  .  F0 F1     noise frequency control bits
+                //                             0 0 = 2330 Hz
+                //                             0 1 = 1165 Hz
+                //                             1 0 = 583 Hz
+                //                             1 1 = Borrow from track 3
+                //
                 int counterReloadValue;
+                bool updateVolume = false;
 
+                // check for command byte (first byte of freq info, or attenuation)
                 if ((data & 0x80) != 0) {
-                    // First Byte
-                    // 7  6  5  4  3  2  1  0
-                    // 1  .  .  .  .  .  .  .      Identifies first byte (command byte)
-                    // .  R0 R1 .  .  .  .  .      Voice number (i.e. channel)
-                    // .  .  .  R2 .  .  .  .      1 = Update attenuation, 0 = Frequency count
-                    // .  .  .  .  A0 A1 A2 A3     4-bit attenuation value.
-                    // .  .  .  .  F6 F7 F8 F9     4 of 10 - bits in frequency count.
                     latchedChannel = (uint)(data >> 5) & 0x03;
-                    counterReloadValue = (int)(((uint)channelCounterReload[latchedChannel] & 0xfff0) | ((uint)data & 0x0F));
-                    // Third Byte is volume/attenuation 
-                    updateVolume = ((data & 0x10) != 0) ? true : false;
+                    counterReloadValue = data & 0x0F;
+                    updateVolume = (data & 0x10) != 0;
                 }
                 else {
-                    // Second Byte - Frequency count only
-                    // 7  6  5  4  3  2  1  0
-                    // 0  .  .  .  .  .  .  .      Identifies second byte (completing byte for frequency count)
-                    // .  X  .  .  .  .  .  .      Unused, ignored.
-                    // .  .  F0 F1 F2 F3 F4 F5     6 of 10 - bits in frequency count.
-                    counterReloadValue = (int)(((uint)channelCounterReload[latchedChannel] & 0x000F) | (((uint)data & 0x3F) << 4));
+                    counterReloadValue = (int)(((uint)channelCounterReload[latchedChannel]) | (((uint)data & 0x3F) << 4));
                 }
 
                 if (updateVolume) {
-                    // Volume latched. Update attenuation for latched channel.
-                    channelVolume[latchedChannel] = (data & 0x0F);
+                    // Update attenuation for latched channel.
+                    channelVolume[latchedChannel] = data & 0x0F;
                 }
                 else {
                     // Data latched. Update counter reload register for channel.
                     channelCounterReload[latchedChannel] = counterReloadValue;
 
                     // If it is for the noise control register, then set LFSR back to starting value.
-                    if (latchedChannel == 3) lfsr = 0x4000;
+                    if (latchedChannel == 3) {
+                        lfsr = 0x4000;
+                    }
                 }
             }
 
@@ -672,7 +705,8 @@ namespace WinAGI.Engine {
                     if (channelCounter[3] < 0) {
                         // Reload noise counter.
                         if ((channelCounterReload[3] & 0x03) < 3) {
-                            channelCounter[3] = (0x20 << (channelCounterReload[3] & 3));
+                            channelCounter[3] = 0x20 << (channelCounterReload[3] & 3);
+                            // 00=>32(2330Hz), 01=>64(1165Hz), 10=>128(583Hz)
                         }
                         else {
                             // In this mode, the counter reload value comes from tone register 2.
@@ -689,10 +723,8 @@ namespace WinAGI.Engine {
                         lfsr = (lfsr >> 1) | (feedback << 14);
                         channelOutput[3] = (int)(lfsr & 1);
                     }
-
                     ticksCount -= 1;
                 }
-
                 ticksCount += ticksPerSample;
 
                 return (float)((volumeTable[channelVolume[0] & 0x0F] * ((channelOutput[0] - 0.5) * 2)) +
@@ -702,5 +734,4 @@ namespace WinAGI.Engine {
             }
         }
     }
-
 }

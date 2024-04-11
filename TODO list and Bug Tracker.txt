@@ -114,8 +114,13 @@ AGIResource       RemoveData                563                   resource not l
 AGIResource       RemoveData                ArgOutOfRange         RemoveCount value is invalid
 AGIResource       RemoveData                ArgOutOfRange         RemovePos value is invalid
 AGIResource       Clear                     563                   resource not loaded
-AudioPlayer       PlayMIDISound             628                   media player open media error
-AudioPlayer       PlayMIDISound             628                   media player play media error
+AudioPlayer       PlayMIDISound             705                   wrong sound output format
+AudioPlayer       PlayMIDISound             628                   media player error when opening
+AudioPlayer       PlayMIDISound             628                   media player error when playing
+AudioPlayer       PlayWAVSound              705                   wrong sound output format
+AudioPlayer       PlayWAVSound              628                   media player error when opening
+AudioPlayer       PlayWAVSound              628                   media player error when playing
+AudioPlayer       PlayPCjrSound             705                   wrong sound output format
 Cel               this/get                  ArgOutOfRange         xPos value is invalid
 Cel               this/get                  ArgOutOfRange         yPos value is invalid
 Cel               this/set                  ArgOutOfRange         xPos value is invalid

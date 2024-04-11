@@ -15,6 +15,7 @@ using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.AGIResType;
 using static WinAGI.Editor.Base;
 using static WinAGI.Engine.Sound;
+using System.Media;
 
 namespace WinAGI.Editor {
     public partial class frmPreview : Form {
@@ -347,8 +348,7 @@ namespace WinAGI.Editor {
             SetPScrollbars();
         }
         private void btnPlay_Click(object sender, EventArgs e) {
-            int i;
-            //if nothing to play
+            // if nothing to play
             if (agSound.Length == 0) {
                 //this could happen if the sound has no notes in any tracks
                 return;
@@ -356,12 +356,7 @@ namespace WinAGI.Editor {
             btnStop.Enabled = true;
             btnPlay.Enabled = false;
             // disable other controls while sound is playing
-            for (i = 0; i < 3; i++) {
-                chkTrack[i].Enabled = false;
-                cmbInst[i].Enabled = false;
-            }
-            chkTrack[3].Enabled = false;
-            cmdReset.Enabled = false;
+            SetMIDIControls(false);
             try {
                 // hook the sound_complete event and play the sound
                 agSound.SoundComplete += This_SoundComplete;
@@ -498,22 +493,22 @@ namespace WinAGI.Editor {
             }
             switch (agSound.SndFormat) {
             case SoundFormat.sfAGI:
-                //set instrument values
+                optMIDI.Text = "MIDI Sound";
+                optPCjr.Enabled = true;
                 for (i = 0; i < 3; i++) {
-                    cmbInst[i].Enabled = true;
+                    cmbInst[i].Enabled = optMIDI.Checked;
                     cmbInst[i].SelectedIndex = agSound.Track(i).Instrument;
-                    chkTrack[i].Enabled = true;
+                    chkTrack[i].Enabled = optMIDI.Checked;
                     chkTrack[i].Checked = !agSound.Track(i).Muted;
                 }
-                //add noise track
                 chkTrack[3].Checked = !agSound.Track(3).Muted;
-                chkTrack[3].Enabled = true;
-
-                //set length (which loads mididata)
+                chkTrack[3].Enabled = optMIDI.Checked;
                 lblFormat.Text = "PC/PCjr Standard Sound";
                 break;
             case SoundFormat.sfWAV:
-                //disable tracks and play
+                optMIDI.Text = "WAV Sound";
+                optMIDI.Checked = true;
+                optPCjr.Enabled = false;
                 for (i = 0; i < 3; i++) {
                     cmbInst[i].Enabled = false;
                     cmbInst[i].SelectedIndex = -1;
@@ -525,7 +520,9 @@ namespace WinAGI.Editor {
                 lblFormat.Text = "Apple IIgs PCM Sound";
                 break;
             case SoundFormat.sfMIDI:
-                //disable tracks and play
+                optMIDI.Text = "MIDI Sound";
+                optMIDI.Checked = true;
+                optPCjr.Enabled= false;
                 for (i = 0; i < 3; i++) {
                     cmbInst[i].Enabled = false;
                     cmbInst[i].SelectedIndex = -1;
@@ -562,10 +559,10 @@ namespace WinAGI.Editor {
                 // if playing MIDI sound, re-enable track controls
                 if (optMIDI.Checked) {
                     for (int i = 0; i < 3; i++) {
-                        chkTrack[i].Invoke(new Action(() => { chkTrack[i].Enabled = true; }));
-                        cmbInst[i].Invoke(new Action(() => { cmbInst[i].Enabled = true; }));
+                        chkTrack[i].Invoke(new Action(() => { chkTrack[i].Enabled = optMIDI.Checked && agSound.SndFormat == SoundFormat.sfAGI && !agSound[i].Muted; }));
+                        cmbInst[i].Invoke(new Action(() => { cmbInst[i].Enabled = optMIDI.Checked && agSound.SndFormat == SoundFormat.sfAGI && !agSound[i].Muted; }));
                     }
-                    chkTrack[3].Invoke(new Action(() => { chkTrack[3].Enabled = true; }));
+                    chkTrack[3].Invoke(new Action(() => { chkTrack[3].Enabled = optMIDI.Checked && agSound.SndFormat == SoundFormat.sfAGI && !agSound[3].Muted; }));
                     cmdReset.Invoke(new Action(() => { cmdReset.Enabled = true; }));
                 }
                 picProgress.Invoke(new Action(() => { picProgress.Width = 0; }));
@@ -1618,11 +1615,11 @@ namespace WinAGI.Editor {
 
         void SetMIDIControls(bool enabled) {
             for (int i = 0; i < 3; i++) {
-                chkTrack[i].Enabled = enabled;
-                cmbInst[i].Enabled = enabled;
+                chkTrack[i].Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.sfAGI && !agSound[i].Muted;
+                cmbInst[i].Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.sfAGI && !agSound[i].Muted;
             }
-            chkTrack[3].Enabled = enabled;
-            cmdReset.Enabled = enabled;
+            chkTrack[3].Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.sfAGI && !agSound[3].Muted;
+            cmdReset.Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.sfAGI && !agSound[3].Muted;
         }
         private void optPCjr_CheckedChanged(object sender, EventArgs e) {
             SetMIDIControls(false);

@@ -298,7 +298,12 @@ namespace WinAGI.Engine {
                             // if duration>0
                             if (lngDur > 0) {
                                 // add the note
-                                mTrack[3].Notes.Add(intFreq, lngDur, bytAttn);
+                                mTrack[3].Notes.Add(intFreq, lngDur, bytAttn).mrawData =
+                                [mRData[lngResPos],
+                                mRData[lngResPos + 1],
+                                mRData[lngResPos + 2],
+                                mRData[lngResPos + 3],
+                                mRData[lngResPos + 4]];
                                 // add to length
                                 lngTLength += lngDur;
                             }

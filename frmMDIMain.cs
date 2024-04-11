@@ -292,7 +292,6 @@ namespace WinAGI.Editor
             // when writing to the Logic.SourceText property?
 
 
-
             //what is resolution?
             Debug.Print($"DeviceDPI: {this.DeviceDpi}");
             Debug.Print($"AutoScaleFactor: {this.AutoScaleFactor}");
@@ -358,6 +357,8 @@ namespace WinAGI.Editor
                 Visible = true;
                 Refresh();
                 splash = new frmSplash();
+                // the 'CenterParent' option for StartPosition property does NOT work...
+                splash.Location = new Point(Left + (Width - splash.Width) / 2, Top + (Height - splash.Height) / 2);
                 splash.Show(this);
                 splash.Refresh();
             }
