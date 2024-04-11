@@ -26,7 +26,7 @@ namespace WinAGI.Engine {
             _ = mciSendString("close all", null, 0, (IntPtr)null);
             bPlayingWAV = false;
             bPlayingMIDI = false;
-            // TODO: how to stop a PCjr sound?
+            pcjrPlayer.Reset();
             soundPlaying = null;
         }
     }
@@ -474,7 +474,7 @@ namespace WinAGI.Engine {
             // The above call blocks until the sound has finished playing. If sound is not on, then it happens immediately.
             bPlayingPCjr = false;
             // raise the 'done' event
-            soundPlaying.Raise_SoundCompleteEvent(true);
+            soundPlaying?.Raise_SoundCompleteEvent(true);
         }
 
         /// <summary>
@@ -486,7 +486,6 @@ namespace WinAGI.Engine {
             RawSourceWaveStream rs = new(memoryStream, new WaveFormat(44100, 16, 2));
             ISampleProvider soundMixerInput = rs.ToSampleProvider();
             mixer.AddMixerInput(soundMixerInput);
-
             // Register a handler for when this specific sound ends.
             bool playbackEnded = false;
             void handlePlaybackEnded(object sender, SampleProviderEventArgs args) {
@@ -512,8 +511,8 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Resets the internal state of the SoundPlayer.
         /// </summary>
-        public void Reset() {
-            StopSound();
+        internal void Reset() {
+            StopPCjrSound(false);
             SoundCache.Clear();
             mixer.RemoveAllMixerInputs();
         }
@@ -531,7 +530,7 @@ namespace WinAGI.Engine {
         /// Stops the currently playing sound
         /// </summary>
         /// <param name="wait">true to wait for the player thread to stop; otherwise false to not wait.</param>
-        public void StopSound(bool wait = true) {
+        internal void StopPCjrSound(bool wait = true) {
             if (bPlayingPCjr) {
                 // This tells the thread to stop.
                 bPlayingPCjr = false;

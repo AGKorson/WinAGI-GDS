@@ -353,10 +353,9 @@ namespace WinAGI.Editor {
                 //this could happen if the sound has no notes in any tracks
                 return;
             }
-            //disable play and enable stop
             btnStop.Enabled = true;
             btnPlay.Enabled = false;
-            //disable other controls while sound is playing
+            // disable other controls while sound is playing
             for (i = 0; i < 3; i++) {
                 chkTrack[i].Enabled = false;
                 cmbInst[i].Enabled = false;
@@ -366,7 +365,7 @@ namespace WinAGI.Editor {
             try {
                 // hook the sound_complete event and play the sound
                 agSound.SoundComplete += This_SoundComplete;
-                agSound.PlaySound(optPCjr.Checked ?  0 : 1);
+                agSound.PlaySound(optPCjr.Checked ? 0 : 1);
             }
             catch (Exception) {
                 //ErrMsgBox "An error occurred during playback: ", "Disabling MIDI playback.", "Play Sound Error"
@@ -560,8 +559,8 @@ namespace WinAGI.Editor {
                 tmrSound.Enabled = false;
                 picProgress.Invoke(new Action(() => { picProgress.Width = pnlProgressBar.Width; }));
                 picProgress.Invoke(new Action(() => { picProgress.Refresh(); }));
-                // if this is a PC/PCjr sound, re-enable track controls
-                if (agSound.SndFormat == SoundFormat.sfAGI) {
+                // if playing MIDI sound, re-enable track controls
+                if (optMIDI.Checked) {
                     for (int i = 0; i < 3; i++) {
                         chkTrack[i].Invoke(new Action(() => { chkTrack[i].Enabled = true; }));
                         cmbInst[i].Invoke(new Action(() => { cmbInst[i].Enabled = true; }));
@@ -577,14 +576,9 @@ namespace WinAGI.Editor {
                 tmrSound.Enabled = false;
                 picProgress.Width = pnlProgressBar.Width;
                 picProgress.Refresh();
-                // if this is a PC/PCjr sound, re-enable track controls
-                if (agSound.SndFormat == SoundFormat.sfAGI) {
-                    for (int i = 0; i < 3; i++) {
-                        chkTrack[i].Enabled = true;
-                        cmbInst[i].Enabled = true;
-                    }
-                    chkTrack[3].Enabled = true;
-                    cmdReset.Enabled = true;
+                // if playing MIDI sound, re-enable track controls
+                if (optMIDI.Checked) {
+                    SetMIDIControls(true);
                 }
                 picProgress.Width = 0;
             }
@@ -938,9 +932,20 @@ namespace WinAGI.Editor {
             e.Handled = true;
         }
         private void btnStop_Click(object sender, EventArgs e) {
-            //stop sounds
+            // stop sounds
             StopSoundPreview();
+            btnPlay.Enabled = !Settings.NoMIDI;
+            btnStop.Enabled = false;
+            tmrSound.Enabled = false;
+            picProgress.Width = pnlProgressBar.Width;
+            picProgress.Refresh();
+            // if playing MIDI, re-enable track controls
+            if (optMIDI.Checked) {
+                SetMIDIControls(true);
+            }
+            picProgress.Width = 0;
         }
+
         private void frmPreview_KeyDown(object sender, KeyEventArgs e) {
             Keys KeyCode = e.KeyCode;
 
@@ -1609,6 +1614,22 @@ namespace WinAGI.Editor {
                 //// show coordinates in statusbar
                 //MainStatusBar.Items["StatusPanel1"].Text = $"X: {e.X / 2 / ViewScale}    Y: {e.Y / ViewScale}";
             }
+        }
+
+        void SetMIDIControls(bool enabled) {
+            for (int i = 0; i < 3; i++) {
+                chkTrack[i].Enabled = enabled;
+                cmbInst[i].Enabled = enabled;
+            }
+            chkTrack[3].Enabled = enabled;
+            cmdReset.Enabled = enabled;
+        }
+        private void optPCjr_CheckedChanged(object sender, EventArgs e) {
+            SetMIDIControls(false);
+        }
+
+        private void optMIDI_CheckedChanged(object sender, EventArgs e) {
+            SetMIDIControls(true);
         }
     }
 }
