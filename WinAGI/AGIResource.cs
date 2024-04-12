@@ -352,8 +352,10 @@ namespace WinAGI.Engine {
                 else if (NewID.Length > 64) {
                     NewID = NewID[..64];
                 }
-                // TODO: why not throw exception if newID is invalid
-                // check for invalid characters (what about ctrl,>127?)
+                // check for invalid characters
+                if (INVALID_FIRST_CHARS.Any(ch => ch == value[0])) {
+                    value = "_" + value[1..];
+                }
                 if (value.Any(INVALID_ID_CHARS.Contains)) {
                     // replace them with '_'
                     StringBuilder sb = new(value);
@@ -579,7 +581,7 @@ namespace WinAGI.Engine {
             if (blnIsPicture) {
                 // pictures use this decompression
                 V3Compressed = 1;
-                mRData.AllData = DecompressPicture(mRData.AllData);
+                mRData.AllData = DecompressPicture(mRData.AllData, fullSize);
             }
             else {
                 if (mRData.Length != fullSize) {

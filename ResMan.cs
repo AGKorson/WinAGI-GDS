@@ -3464,6 +3464,9 @@ namespace WinAGI.Editor {
             }
 
             //check name against improper character lists
+            if (INVALID_FIRST_CHARS.Any(ch => ch == NewID[0])) {
+                return 14;
+            }
             if (NewID.Any(INVALID_ID_CHARS.Contains)) {
                 return 14;
             }

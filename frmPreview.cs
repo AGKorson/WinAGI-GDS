@@ -112,7 +112,9 @@ namespace WinAGI.Editor {
                         pnlLogic.Visible = false;
                         // TODO: need res strings to display resource errors
                         // based on the ErrLevel value
-                        CreateGraphics().DrawString("Invalid logic resource: {errinfo}", this.Font, new SolidBrush(Color.Black), 0, 0);
+                        using Graphics cg = CreateGraphics();
+                        cg.Clear(BackColor);
+                        cg.DrawString("Invalid logic resource: {errinfo}", Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 case rtPicture:
@@ -126,7 +128,9 @@ namespace WinAGI.Editor {
                         pnlPicture.Visible = false;
                         // TODO: need res strings to display resource errors
                         // based on the ErrLevel value
-                        this.CreateGraphics().DrawString("Invalid picture resource: {errinfo}", this.Font, new SolidBrush(Color.Black), 0, 0);
+                        using Graphics cg = CreateGraphics();
+                        cg.Clear(BackColor);
+                        cg.DrawString("Invalid picture resource: {errinfo}", Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 case rtSound:
@@ -137,7 +141,9 @@ namespace WinAGI.Editor {
                         pnlSound.Visible = false;
                         // TODO: need res strings to display resource errors
                         // based on the ErrLevel value
-                        this.CreateGraphics().DrawString("Invalid sound resource: {errinfo}", this.Font, new SolidBrush(Color.Black), 0, 0);
+                        using Graphics cg = CreateGraphics();
+                        cg.Clear(BackColor);
+                        cg.DrawString("Invalid sound resource: {errinfo}", Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 case rtView:
@@ -151,7 +157,9 @@ namespace WinAGI.Editor {
                         pnlView.Visible = false;
                         // TODO: need res strings to display resource errors
                         // based on the ErrLevel value
-                        this.CreateGraphics().DrawString("Invalid view resource: {errinfo}", this.Font, new SolidBrush(Color.Black), 0, 0);
+                        using Graphics cg = CreateGraphics();
+                        cg.Clear(BackColor);
+                        cg.DrawString("Invalid view resource: {errinfo}", Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 }
@@ -249,7 +257,6 @@ namespace WinAGI.Editor {
             }
         }
         bool PreviewLogic(byte LogNum) {
-            //get the logic
             agLogic = EditGame.Logics[LogNum];
             agLogic.Load();
             // check for errors

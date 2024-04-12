@@ -294,7 +294,22 @@ Picture           Save                      PASS                  pass-through b
 Picture           SetPictureData            563                   resource not loaded
 Picture           StepDraw/get              563                   resource not loaded
 Picture           StepDraw/set              563                   resource not loaded
-
+Pictures          this/get                  IndexOutOfRange       invalid index
+Pictures          Add                       602                   picture already exists
+Pictures          Renumber                  IndexOutOfRange       resource not in collection
+Pictures          Renumber                  669                   new number already in use
+Pictures          Enum:Current              InvalidOps            invalid position value
+RData             ReSize                    IndexOutOfRange       invalid size value
+ResourceFunctions ExtractResources          524                   missing v3 DIR file
+ResourceFunctions ExtractResources          700                   v3 DIR file is readonly
+ResourceFunctions ExtractResources          502                   file access error while reading v3 DIR file
+ResourceFunctions ExtractResources          542                   invalid v3 DIR file (too small)
+ResourceFunctions ExtractResources          524                   missing v2 DIR file
+ResourceFunctions ExtractResources          700                   v2 DIR file is readonly
+ResourceFunctions ExtractResources          502                   file access error while reading v2 DIR file
+ResourceFunctions ExtractResources          542                   invalid v3 DIR file (bad offset/size)
+ResourceFunctions ExtractResources          542                   invalid v3 DIR file (bad offset)
+ResourceFunctions ExpandV3ResData           559                   
 
 
 

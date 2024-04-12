@@ -1,29 +1,40 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
-using System.IO;
+using System.Collections.Generic;
 using static WinAGI.Common.Base;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// 
+    /// </summary>
     public class Pictures : IEnumerable<Picture> {
-        internal AGIGame parent;
+        readonly AGIGame parent;
         public Pictures(AGIGame parent) {
             this.parent = parent;
-            // create the initial Col object
             Col = [];
         }
         public SortedList<byte, Picture> Col { get; private set; }
         public Picture this[int index] {
             get {
-                //validate index
-                if (index < 0 || index > 255)
+                if (index < 0 || index > 255 || !Exists((byte)index)) {
                     throw new IndexOutOfRangeException();
+                }
                 return Col[(byte)index];
             }
         }
-        public byte Count { get { return (byte)Col.Count; } private set { } }
+
+        /// <summary>
+        /// Returns the number of pictures in this collection.
+        /// </summary>
+        public byte Count {
+            get {
+                return (byte)Col.Count;
+            }
+        }
+        /// <summary>
+        /// Returns the highest index in use in this collection.
+        /// </summary>
         public byte Max {
             get {
                 byte max = 0;
@@ -32,15 +43,31 @@ namespace WinAGI.Engine {
                 return max;
             }
         }
+
+        /// <summary>
+        /// Returns true if a picture with number ResNum exists in this collection.
+        /// </summary>
+        /// <param name="ResNum"></param>
+        /// <returns></returns>
         public bool Exists(byte ResNum) {
-            //check for thsi picture in the collection
             return Col.ContainsKey(ResNum);
         }
+
+        /// <summary>
+        /// Clears the collection by deleting all pictures.
+        /// </summary>
         public void Clear() {
             Col = [];
         }
+
+        /// <summary>
+        /// Adds a picture to the collection. If NewPicture is null a blank
+        /// picture is added, otherwise the new picture is cloned from NewPicture.
+        /// </summary>
+        /// <param name="ResNum"></param>
+        /// <param name="NewPicture"></param>
+        /// <returns>A reference to the newly added picture.</returns>
         public Picture Add(byte ResNum, Picture NewPicture = null) {
-            //adds a new picture to a currently open game
             Picture agResource;
             int intNextNum = 0;
             string strID, strBaseID;
@@ -60,7 +87,6 @@ namespace WinAGI.Engine {
                 strID = "Picture" + ResNum;
             }
             else {
-                //get proposed id
                 strID = agResource.ID;
             }
             // validate id
@@ -69,111 +95,99 @@ namespace WinAGI.Engine {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }
-            //add it
             Col.Add(ResNum, agResource);
-            //force flags so save function will work
+            // force flags so save function will work
             agResource.IsDirty = true;
             agResource.PropDirty = true;
-            //save new picture
+            // save new picture
             agResource.Save();
-            //return the object created
+            // return the new picture
             return agResource;
         }
-        public void Remove(byte Index) {
-            //removes a picture from the game file
 
-            // if the resource exists
+        /// <summary>
+        /// Removes a picture from the collection.
+        /// </summary>
+        /// <param name="Index"></param>
+        public void Remove(byte Index) {
             if (Col.TryGetValue(Index, out Picture value)) {
                 //need to clear the directory file first
                 UpdateDirFile(value, true);
                 Col.Remove(Index);
-                //remove all properties from the wag file
+                // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Picture" + Index);
                 //remove ID from compiler list
                 Compiler.blnSetIDs = false;
             }
         }
+
+        /// <summary>
+        /// Changes the number of a picture in this collection.
+        /// </summary>
+        /// <param name="OldPic"></param>
+        /// <param name="NewPic"></param>
         public void Renumber(byte OldPic, byte NewPic) {
-            //renumbers a resource
             Picture tmpPic;
             int intNextNum = 0;
             bool blnUnload = false;
             string strSection, strID, strBaseID;
-            //if no change
             if (OldPic == NewPic) {
                 return;
             }
+            // verify old number exists
+            if (!Col.ContainsKey(OldPic)) {
+                throw new IndexOutOfRangeException("picture does not exist");
+            }
             //verify new number is not in collection
             if (Col.ContainsKey(NewPic)) {
-                //number already in use
-
                 WinAGIException wex = new(LoadResString(669)) {
                     HResult = WINAGI_ERR + 669
                 };
                 throw wex;
             }
-            //get picture being renumbered
             tmpPic = Col[OldPic];
-
-            //if not loaded,
-            if (!tmpPic.Loaded) {
-                tmpPic.Load();
-                // TODO: ignore errors when renumbering?
-                blnUnload = true;
-            }
-            //remove old properties
+            // remove old picture
             parent.agGameProps.DeleteSection("Picture" + OldPic);
-            //remove from collection
             Col.Remove(OldPic);
-            //delete picture from old number in dir file
-            //by calling update directory file method
             UpdateDirFile(tmpPic, true);
-            //if id is default
-            if (tmpPic.ID.Equals("Picture" + OldPic, StringComparison.OrdinalIgnoreCase)) {
-                //change default ID to new ID
+            // adjust id if it is default
+            if (tmpPic.ID == "Picture" + OldPic) {
                 strID = strBaseID = "Picture" + NewPic;
                 while (NotUniqueID(strID, parent)) {
-                    intNextNum++;
                     strID = strBaseID + "_" + intNextNum;
+                    intNextNum++;
                 }
             }
-            //change number
+            // add it back with new number
             tmpPic.Number = NewPic;
-            //add with new number
             Col.Add(NewPic, tmpPic);
-            //update new picture number in dir file
             UpdateDirFile(tmpPic);
-            //add properties back with new picture number
             strSection = "Picture" + NewPic;
             parent.WriteGameSetting(strSection, "ID", tmpPic.ID, "Pictures");
             parent.WriteGameSetting(strSection, "Description", tmpPic.Description);
-            //
-            //TODO: add rest of default property values
-            //
-
-            //force writeprop state back to false
-            tmpPic.PropDirty = false;
-            //unload if necessary
-            if (blnUnload) {
-                tmpPic.Unload();
+            if (tmpPic.PriBase != 48) {
+                parent.WriteGameSetting(strSection, "PriBase", tmpPic.PriBase.ToString());
             }
-            //reset compiler list of ids
+            // always drop background; user will have to re-add it themselves
+            tmpPic.PropDirty = false;
             Compiler.blnSetIDs = false;
         }
 
+        /// <summary>
+        /// Called by the load game methods for the initial loading of
+        /// resources into pictures collection.
+        /// </summary>
+        /// <param name="bytResNum"></param>
+        /// <param name="bytVol"></param>
+        /// <param name="lngLoc"></param>
         internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
-            // called by the resource loading method for the initial loading of
-            // resources into logics collection
-
-            // create new logic object
             Picture newResource = new(parent, bytResNum, bytVol, lngLoc);
-            // load it
             newResource.Load();
-            // add it
             Col.Add(bytResNum, newResource);
             // leave it loaded, so error level can be addressed by loader
         }
 
+        // Collection enumerator methods
         PictureEnum GetEnumerator() {
             return new PictureEnum(Col);
         }
@@ -197,7 +211,6 @@ namespace WinAGI.Engine {
                     return _pictures.Values[position];
                 }
                 catch (IndexOutOfRangeException) {
-
                     throw new InvalidOperationException();
                 }
             }

@@ -12,11 +12,11 @@ using System.Diagnostics;
 
 namespace WinAGI.Engine {
     public static partial class Base {
-        //constants used in extracting compressed resources
+        // constants used in extracting compressed resources
         const int TABLE_SIZE = 18041;
         const int START_BITS = 9;
 
-        //variables used in extracting compressed resources
+        // variables used in extracting compressed resources
         private static int lngMaxCode;
         private static uint[] intPrefix;
         private static byte[] bytAppend;
@@ -24,25 +24,19 @@ namespace WinAGI.Engine {
         private static uint lngBitBuffer;
         private static int lngOriginalSize;
 
-        //public Declare int CallWindowProc Lib "user32" Alias "CallWindowProcA" (int lpPrevWndFunc, int hWnd, int uMsg, int wParam, int lParam)
-        //public Declare int SetWindowLong Lib "user32" Alias "SetWindowLongA" (int hWnd, int nIndex, int dwNewLong)
-        public const int GWL_WNDPROC = (-4);
-        //public Declare int mciGetErrorString Lib "winmm.dll" Alias "mciGetErrorStringA" (int dwError, string lpstrBuffer, int uLength)
-        //public Declare int mciSendString Lib "winmm.dll" Alias "mciSendStringA" (string lpstrCommand, string lpstrReturnString, int uReturnLength, int hwndCallback)
-        public const int MM_MCINOTIFY = 0x3B9;
-        public const int MCI_NOTIFY_SUCCESSFUL = 0x1;
 
+        /// <summary>
+        /// Gets the resources from VOL files, and adds them to the game.
+        /// </summary>
+        /// <param name="game"></param>
+        /// <returns> false if resources loaded with no warnings or errors<br />
+        /// true if one or more recoverable errors occur during load<br />
+        /// throws an exception if critical error enountered that prevents game from loading</returns>
         internal static bool ExtractResources(AGIGame game) {
-            // gets the resources from VOL files, and adds them to the game
-            // returns true if resources loaded with warnings
-            // returns false if one or more recoverable errors occur during load
-            // throws error if critical error enountered that prevents game from loading
-
             byte bytResNum;
             AGIResType bytResType;
             string strDirFile = "";
             byte[] bytBuffer = [];
-            bool blnDirtyDIR = false;
             byte byte1, byte2, byte3;
             int lngDirOffset = 0;  // offset of this resource's directory in Dir file (for v3)
             int lngDirSize = 0, intResCount, i;
@@ -60,11 +54,8 @@ namespace WinAGI.Engine {
             // set up for warnings
             warnInfo.Type = EventType.etWarning;
 
-            //if version 3
             if (game.agIsVersion3) {
-                //get combined dir Volume
                 strDirFile = game.agGameDir + game.agGameID + "DIR";
-                // verify file exists
                 if (!File.Exists(strDirFile)) {
                     WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 524
@@ -96,11 +87,10 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
                 //if not enough bytes to hold at least the 4 dir pointers + 1 resource
-                if (bytBuffer.Length < 11) // 11 + bytes
-                {
+                if (bytBuffer.Length < 11) {
                     WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 542
-                };
+                    };
                     wex.Data["baddir"] = Path.GetFileName(strDirFile);
                     throw wex;
                 }
@@ -132,9 +122,8 @@ namespace WinAGI.Engine {
                     }
                 }
                 else {
-                    //no offset for version 2
+                    // no offset for version 2
                     lngDirOffset = 0;
-                    //get name of resource dir file
                     strDirFile = game.agGameDir + ResTypeAbbrv[(int)bytResType] + "DIR";
                     //verify it exists
                     if (!File.Exists(strDirFile)) {
@@ -167,11 +156,8 @@ namespace WinAGI.Engine {
                         wex.Data["badfile"] = strDirFile;
                         throw wex;
                     }
-
-                    //get size
                     lngDirSize = bytBuffer.Length;
                 }
-
                 // if invalid dir information, return false
                 if ((lngDirOffset < 0) || (lngDirSize < 0)) {
                     WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
@@ -180,7 +166,6 @@ namespace WinAGI.Engine {
                     wex.Data["baddir"] = Path.GetFileName(strDirFile);
                     throw wex;
                 }
-
                 // if at least one resource,
                 if (lngDirSize >= 3) {
                     if (lngDirOffset + lngDirSize > bytBuffer.Length) {
@@ -191,7 +176,6 @@ namespace WinAGI.Engine {
                         throw wex;
                     }
                 }
-
                 // max size of useable directory is 768 (256*3)
                 if (lngDirSize > 768) {
                     // warning- file might be invalid
@@ -220,10 +204,8 @@ namespace WinAGI.Engine {
                 else {
                     intResCount = lngDirSize / 3;
                 }
-
-                //if this resource type has entries,
                 if (intResCount > 0) {
-                    //check for bad resources
+                    // check for bad resources
                     for (i = 0; i < intResCount; i++) {
                         bytResNum = (byte)i;
                         warnInfo.Type = EventType.etInfo;
@@ -236,17 +218,14 @@ namespace WinAGI.Engine {
                         warnInfo.Module = "--";
                         Raise_LoadGameEvent(warnInfo);
                         warnInfo.Type = EventType.etWarning;
-
-                        //get location data for this resource
+                        // get location data for this resource
                         byte1 = bytBuffer[lngDirOffset + bytResNum * 3];
                         byte2 = bytBuffer[lngDirOffset + bytResNum * 3 + 1];
                         byte3 = bytBuffer[lngDirOffset + bytResNum * 3 + 2];
-                        //ignore any 0xFFFFFF sequences,
+                        // ignore any 0xFFFFFF sequences,
                         if (byte1 != 0xff) {
-                            //extract volume and location
                             bytVol = (sbyte)(byte1 >> 4);
                             lngLoc = ((byte1 & 0xF) << 16) + (byte2 << 8) + byte3;
-                            //add a resource of this res type
                             switch (bytResType) {
                             case AGIResType.rtLogic:
                                 game.agLogs.InitLoad(bytResNum, bytVol, lngLoc);
@@ -293,7 +272,7 @@ namespace WinAGI.Engine {
                                     AddLoadWarning(AGIResType.rtView, bytResNum, game.agViews[bytResNum].ErrLevel, game.agViews[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
-                                //make sure it was added before finishing
+                                // make sure it was added before finishing
                                 if (game.agViews.Exists(bytResNum)) {
                                     game.agViews[bytResNum].PropDirty = false;
                                     game.agViews[bytResNum].IsDirty = false;
@@ -303,63 +282,20 @@ namespace WinAGI.Engine {
                             }
                         }
                     }
-                    //if a v2 DIR was modified, save it
-                    if (!game.agIsVersion3 && blnDirtyDIR) {
-                        try {
-                            //save the new DIR file
-                            if (File.Exists(strDirFile + ".OLD")) {
-                                File.Delete(strDirFile + ".OLD");
-                                File.Move(strDirFile, strDirFile + ".OLD");
-                            }
-                            using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
-                                fsDIR.Write(bytBuffer);
-                            }
-                        }
-                        catch (Exception e) {
-                            // error!
-                            WinAGIException wex = new(LoadResString(703)) {
-                                HResult = WINAGI_ERR + 703,
-                            };
-                            wex.Data["exception"] = e;
-                            wex.Data["dirfile"] = strDirFile;
-                            throw wex;
-                        }
-                        //reset the dirty flag
-                        blnDirtyDIR = false;
-                    }
                 }
             }
-
-            //if a V3 DIR file was modified, save it
-            if (game.agIsVersion3 && blnDirtyDIR) {
-                //save the new DIR file
-                try {
-                    //save the new DIR file
-                    if (File.Exists(strDirFile + ".OLD")) {
-                        File.Delete(strDirFile + ".OLD");
-                        File.Move(strDirFile, strDirFile + ".OLD");
-                    }
-                    using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
-                        fsDIR.Write(bytBuffer);
-                    }
-                }
-                catch (Exception e) {
-                    // error!
-                    WinAGIException wex = new(LoadResString(703)) {
-                        HResult = WINAGI_ERR + 703,
-                    };
-                    wex.Data["exception"] = e;
-                    wex.Data["dirfile"] = strDirFile;
-                    throw wex;
-                }
-            }
-            //return any warning codes
+            // return any warning codes
             return loadWarnings;
         }
 
+        /// <summary>
+        /// Sends warnings encountered during game load to the main app window as events. 
+        /// </summary>
+        /// <param name="resType"></param>
+        /// <param name="resNum"></param>
+        /// <param name="errlevel"></param>
+        /// <param name="errdata"></param>
         internal static void AddLoadWarning(AGIResType resType, byte resNum, int errlevel, string[] errdata) {
-            // called when warning encountered while trying to extract resources
-            // during game load
             TWinAGIEventInfo warnInfo = new() {
                 Type = EventType.etWarning,
                 ResType = resType,
@@ -369,7 +305,6 @@ namespace WinAGI.Engine {
                 Text = "",
                 Line = "--"
             };
-
             // include check for positive warning values
             if (errlevel > 0) {
                 switch (resType) {
@@ -572,24 +507,23 @@ namespace WinAGI.Engine {
             }
         }
 
-        internal static byte[] DecompressPicture(byte[] bytOriginalData) {
+        /// <summary>
+        /// Expands a version 3 picture resource using Sierra's custom run length encoding.
+        /// </summary>
+        /// <param name="bytOriginalData"></param>
+        /// <param name="fullsize"></param>
+        /// <returns></returns>
+        internal static byte[] DecompressPicture(byte[] bytOriginalData, int fullsize) {
             short intPosIn = 0;
             byte bytCurComp, bytBuffer = 0, bytCurUncomp;
             bool blnOffset = false;
             int lngTempCurPos = 0;
-            byte[] bytExpandedData = new byte[MAX_RES_SIZE];
-            // TODO: should resize array to the uncompressed size; it's 
-            // included in the header, so no reason not to use it.
+            byte[] bytExpandedData = new byte[fullsize];
 
             // decompress the picture
             do {
-                //get current compressed byte
-                bytCurComp = bytOriginalData[intPosIn];
-                intPosIn++;
-
-                //if currently offset,
+                bytCurComp = bytOriginalData[intPosIn++];
                 if (blnOffset) {
-                    //adjust buffer byte
                     bytBuffer += (byte)(bytCurComp >> 4);
                     //extract uncompressed byte
                     bytCurUncomp = bytBuffer;
@@ -597,105 +531,86 @@ namespace WinAGI.Engine {
                     bytBuffer = (byte)(bytCurComp << 4);
                 }
                 else {
-                    //byte is not compressed
+                    // byte is not compressed
                     bytCurUncomp = bytCurComp;
                 }
-                //save byte to temp resource
-                bytExpandedData[lngTempCurPos] = bytCurUncomp;
-                lngTempCurPos++;
-
-                //check if byte sets or restores offset
+                bytExpandedData[lngTempCurPos++] = bytCurUncomp;
+                // check if byte sets or restores offset
                 if (((bytCurUncomp == 0xF0) || (bytCurUncomp == 0xF2)) && (intPosIn < bytOriginalData.Length)) {
-                    //if currently offset
                     if (blnOffset) {
                         //write rest of buffer byte
-                        bytExpandedData[lngTempCurPos] = (byte)(bytBuffer >> 4);
-                        lngTempCurPos++;
-                        //restore offset
+                        bytExpandedData[lngTempCurPos++] = (byte)(bytBuffer >> 4);
                         blnOffset = false;
                     }
                     else {
-                        //get next byte
-                        bytCurComp = bytOriginalData[intPosIn];
-                        intPosIn++;
-                        //save the byte, after shifting
-                        bytExpandedData[lngTempCurPos] = (byte)(bytCurComp >> 4);
-                        lngTempCurPos++;
-                        //fill buffer
+                        bytCurComp = bytOriginalData[intPosIn++];
+                        bytExpandedData[lngTempCurPos++] = (byte)(bytCurComp >> 4);
+                        //f ill buffer
                         bytBuffer = (byte)(bytCurComp << 4);
                         blnOffset = true;
                     }
                 }
             }
-            //continue until all original data has been read
+            // continue until all original data has been read
             while (intPosIn < bytOriginalData.Length);
-            //redim to array to actual size
-            Array.Resize(ref bytExpandedData, lngTempCurPos);
             return bytExpandedData;
         }
-        internal static byte[] ExpandV3ResData(byte[] bytOriginalData, int lngExpandedSize) {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bytOriginalData"></param>
+        /// <param name="fullsize"></param>
+        /// <returns></returns>
+        internal static byte[] ExpandV3ResData(byte[] bytOriginalData, int fullsize) {
             int intPosIn, intPosOut, intNextCode, i;
             uint intOldCode, intNewCode;
             string strDat;
             char strChar;
             int intCodeSize;
             byte[] bytTempData;
-            //initialize variables
-            intPrefix = new uint[TABLE_SIZE]; //remember to correct index by 257
-            bytAppend = new byte[TABLE_SIZE]; //remember to correct index by 257
-
-            //set temporary data field
-            bytTempData = new byte[lngExpandedSize];
-            //original size is determined by array bounds
+            intPrefix = new uint[TABLE_SIZE];
+            bytAppend = new byte[TABLE_SIZE];
+            // set temporary data field
+            bytTempData = new byte[fullsize];
+            // original size is determined by array bounds
             lngOriginalSize = bytOriginalData.Length;
-
-            //reset variables used in expansion
             intPosIn = 0;
             intPosOut = 0;
-
             lngBitBuffer = 0;
             lngBitsInBuffer = 0;
 
-            //set initial Value for code size
+            // initialize
             intCodeSize = NewCodeSize(START_BITS);
-            //first code is 257
             intNextCode = 257;
-            //this seems wrong! first code should be 258, right?
-            //isn't 257 the 'end' code?
-
-            //Read in the first code.
-            intOldCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
-            //!!!!why is this set???
             strChar = (char)0;
-            //first code for  SIERRA resouces should always be 256
-            //if first code is NOT 256
+
+            // read in the first code.
+            intOldCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+            // first code for SIERRA resouces should always be 256
             if (intOldCode != 256) {
                 intPrefix = [];
                 bytAppend = [];
-                //TODO: wrong error msg here!
-                WinAGIException wex = new(LoadResString(559).Replace(ARG1, "123")) {
+                WinAGIException wex = new(LoadResString(559).Replace(ARG1, "(invalid compression data)")) {
                     HResult = WINAGI_ERR + 559,
                 };
                 throw wex;
             }
-
-            //now begin decompressing actual data
+            // now begin decompressing actual data
             intNewCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
-
-            //continue extracting data, until all bytes are read (or end code is reached)
+            // continue extracting data, until all bytes are read (or end code is reached)
             while ((intPosIn <= lngOriginalSize) && (intNewCode != 0x101)) {
-                //if new code is 0x100,(256)
+                // check for reset
                 if (intNewCode == 0x100) {
-                    //Restart LZW process (should tables be flushed?)
+                    // Restart LZW process
                     intNextCode = 258;
                     intCodeSize = NewCodeSize(START_BITS);
-                    //Read in the first code.
+                    // read in the first code
                     intOldCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
-                    //the character Value is same as code for beginning
+                    // the character Value is same as code for beginning
                     strChar = (char)intOldCode;
                     //write out the first character
-                    bytTempData[intPosOut] = (byte)intOldCode;
-                    intPosOut++;
+                    bytTempData[intPosOut++] = (byte)intOldCode;
                     //now get next code
                     intNewCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
                 }
@@ -708,52 +623,47 @@ namespace WinAGI.Engine {
                     if ((intNewCode >= intNextCode)) {
                         //decode the string using old code
                         strDat = DecodeString(intOldCode);
-                        //append the character code
+                        // append the character code
                         strDat += strChar;
                     }
                     else {
-                        //decode the string using new code
+                        // decode the string using new code
                         strDat = DecodeString(intNewCode);
                     }
-                    //retreive the character Value
+                    // retreive the character Value
                     strChar = strDat[0];
-                    //now send out decoded data (it's backwards in the string, so
-                    //start at end and work back to beginning)
+                    // now send out decoded data (it's backwards in the string, so
+                    // start at end and work back to beginning)
                     for (i = 0; i < strDat.Length; i++) {
-                        bytTempData[intPosOut] = (byte)strDat[i];
-                        intPosOut++;
+                        bytTempData[intPosOut++] = (byte)strDat[i];
                     }
-                    //if no more room in the current bit-code table,
-                    if ((intNextCode > lngMaxCode)) {
-                        //get new code size (in number of bits per code)
+                    // if no more room in the current bit-code table,
+                    if (intNextCode > lngMaxCode) {
+                        // get new code size (in number of bits per code)
                         intCodeSize = NewCodeSize(intCodeSize + 1);
                     }
-                    //store code in prefix table
+                    // store code in prefix table
                     intPrefix[intNextCode - 257] = intOldCode;
-                    //store append character in table
+                    // store append character in table
                     bytAppend[intNextCode - 257] = (byte)strChar;
-                    //increment next code pointer
+                    // increment next code pointer
                     intNextCode++;
                     intOldCode = intNewCode;
-                    //get the next code
+                    // get the next code
                     intNewCode = InputCode(ref bytOriginalData, intCodeSize, ref intPosIn);
                 }
             }
-
-            ////copy array
-            //Array.Resize(ref bytOriginalData, lngExpandedSize);
-            //bytOriginalData = bytTempData;
-            //free lzw arrays
+            // free lzw arrays
             intPrefix = [];
             bytAppend = [];
             return bytTempData;
         }
 
         /// <summary>
-        /// 
+        /// Checks all resource IDs looking for duplicates.
         /// </summary>
         /// <param name="agRes"></param>
-        /// <returns></returns>
+        /// <returns>true if another resource in this game has same ID as agRes</returns>
         internal static bool NotUniqueID(AGIResource agRes) {
             string checkID = agRes.ID;
             foreach (Logic tmpRes in agRes.parent.agLogs) {
@@ -785,10 +695,11 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Checks all resource IDs to see if ceckID is already in use. 
         /// </summary>
         /// <param name="checkID"></param>
-        /// <returns></returns>
+        /// <returns>true if any resource in the game equals checkID<br />
+        /// false if checkID is unique</returns>
         internal static bool NotUniqueID(string checkID, AGIGame game) {
             foreach (Logic tmpRes in game.agLogs) {
                 if (tmpRes.ID == checkID) {
@@ -1155,7 +1066,7 @@ namespace WinAGI.Engine {
                             //?????? well, here we are, months later; now the 36.376 sounds crappy! WTH?
                             // by using 'round' instead of 'floor' (which is what I think (byte) conversion
                             // does, 36.376 sounds right again; smh
-                            bytNote = (byte)            ((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.5);
+                            bytNote = (byte)((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.5);
                             //bytNote = (byte)Math.Round((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.376);
                             //
                             //f = 111860 / (((Byte2 + 0x3F) << 4) + (Byte3 + 0x0F))

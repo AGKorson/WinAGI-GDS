@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WinAGI.Engine {
-    public enum CornerDirection {
-        cdX,
-        cdY,
-    }
     public static partial class Base {
-        //picture resource global variables
+        public enum CornerDirection {
+            cdX,
+            cdY,
+        }
+        // picture resource variables
         private static byte[] VisBuildData, PriBuildData, agPicData;
         private static int lngPos;
         private static int lngEndPos;
@@ -20,43 +20,52 @@ namespace WinAGI.Engine {
         private static readonly byte[] CircleData = new byte[64];
         private static bool InitPlotData;
 
+        /// <summary>
+        /// Returns the picture pen status as of the last drawn command.
+        /// This method should ONLY be called by code that just completed 
+        /// a BuildBMPs call; otherwise the results are meaningless.
+        /// </summary>
+        /// <returns></returns>
         internal static PenStatus GetToolStatus() {
-            //NOTE: this method should ONLY be called
-            //by the form that just completed a buildbmp call
-            //otherwise, the results are meaningless
             return SavePen;
         }
 
+        /// <summary>
+        /// Converts the data extracted from the picture resource into 
+        /// a 256 bit color DIBitmap.
+        /// </summary>
+        /// <param name="VisData"></param>
+        /// <param name="PriData"></param>
+        /// <param name="bytPicData"></param>
+        /// <param name="EndPos"></param>
+        /// <param name="StatusPos"></param>
+        /// <returns>0 if successful, no errors/warnings<br />
+        /// non-zero for error/warning:<br />
+        ///  1 = no EOP marker<br />
+        ///  2 = bad vis color data<br />
+        ///  4 = invalid command byte<br />
+        ///  8 = other error</returns>
         internal static int BuildBMPs(ref byte[] VisData, ref byte[] PriData, byte[] bytPicData, int EndPos, int StatusPos) {
-            // converts the data extracted from the picture resource into a 256 bit color DIBitmap
-
-            // return 0 if successful, no errors/warnings
-            // non-zero for error/warning:
-            //  1 = no EOP marker
-            //  2 = bad vis color data
-            //  4 = invalid command byte
-            //  8 = other error
-
             // assume ok
             int retval = 0;
             if (!InitPlotData) {
                 InitializePlotData();
             }
             if (EndPos == -1) {
-                //use all data
+                // use all data
                 EndPos = bytPicData.Length - 1;
             }
             if (StatusPos == -1) {
-                // status pos is end pos
+                // use end pos
                 StatusPos = EndPos;
             }
 
-            //save endpos locally
+            // save endpos locally
             lngEndPos = EndPos;
             // pointer to input data so other draw functions can reach it
             agPicData = bytPicData;
 
-            //set default picture values
+            // set starting/default pen status
             CurrentPen.VisColor = AGIColorIndex.agNone;
             CurrentPen.PriColor = AGIColorIndex.agNone;
             CurrentPen.PlotSize = 0;
@@ -71,13 +80,8 @@ namespace WinAGI.Engine {
                 PriBuildData[i] = 4;  //red
             }
 
-            //begin at position 1
             lngPos = 0;
-
-            //read first command byte
-            bytIn = bytPicData[lngPos];
-            lngPos++;
-
+            bytIn = bytPicData[lngPos++];
             try {
                 do {
                     switch (bytIn) {
@@ -103,13 +107,11 @@ namespace WinAGI.Engine {
                         break;
                     case 0xF9:
                         // Change pen size and style.
-                        bytIn = bytPicData[lngPos];
-                        lngPos++;
+                        bytIn = bytPicData[lngPos++];
                         CurrentPen.PlotStyle = (EPlotStyle)((bytIn & 0x20) / 0x20);
                         CurrentPen.PlotShape = (EPlotShape)((bytIn & 0x10) / 0x10);
                         CurrentPen.PlotSize = bytIn & 0x7;
-                        bytIn = bytPicData[lngPos];
-                        lngPos++;
+                        bytIn = bytPicData[lngPos++];
                         break;
                     case 0xFA:
                         // Plot with pen.
@@ -117,52 +119,40 @@ namespace WinAGI.Engine {
                         break;
                     case 0xF0:
                         // Change picture color and enable picture draw.
-                        // get color (only lower nibble is used)
-                        CurrentPen.VisColor = (AGIColorIndex)(bytPicData[lngPos] & 0xF);
+                        bytIn = bytPicData[lngPos++];
+                        CurrentPen.VisColor = (AGIColorIndex)(bytIn & 0xF);
                         // AGI has a slight bug; if color is > 15, the
                         // upper nibble will overwrite the priority color
-                        if (bytPicData[lngPos] > 15) {
+                        if (bytIn > 15) {
                             // pass upper nibble to priority
-                            CurrentPen.PriColor |= (AGIColorIndex)(bytPicData[lngPos] / 16);
-                            // set warning flag
+                            CurrentPen.PriColor |= (AGIColorIndex)(bytIn / 16);
                             retval |= 2;
                         }
-                        lngPos++;
-                        // get next command byte
-                        bytIn = bytPicData[lngPos];
-                        lngPos++;
+                        bytIn = bytPicData[lngPos++];
                         break;
                     case 0xF1:
                         // Disable visual draw.
                         CurrentPen.VisColor = AGIColorIndex.agNone;
-                        //get next command byte
-                        bytIn = bytPicData[lngPos];
-                        lngPos++;
+                        bytIn = bytPicData[lngPos++];
                         break;
                     case 0xF2:
                         // Change priority color and enable priority draw.
-                        // get color
+                        bytIn = bytPicData[lngPos++];
                         // AGI uses ONLY priority color; if the passed value is
                         // greater than 15, the upper nibble gets ignored
-                        CurrentPen.PriColor = ((AGIColorIndex)(bytPicData[lngPos] & 0xF));
-                        lngPos++;
-                        // get next command byte
-                        bytIn = bytPicData[lngPos];
-                        lngPos++;
+                        CurrentPen.PriColor = ((AGIColorIndex)(bytIn & 0xF));
+                        bytIn = bytPicData[lngPos++];
                         break;
                     case 0xF3:
                         // Disable priority draw.
-                        // disable priority
                         CurrentPen.PriColor = AGIColorIndex.agNone;
-                        // get next command byte
                         bytIn = bytPicData[lngPos];
                         lngPos++;
                         break;
                     case 0xFF:
                         // end of drawing
-                        // if pen status position is end of drawing
                         if (StatusPos == EndPos) {
-                            // save tool status
+                            // save pen status
                             SavePen = CurrentPen;
                         }
                         break;
@@ -170,15 +160,11 @@ namespace WinAGI.Engine {
                         // if expecting a command, and byte is <240 but >250 (not 255)
                         // just ignore it
                         // get next command byte
-                        bytIn = bytPicData[lngPos];
-                        lngPos++;
-                        // set warning flag
+                        bytIn = bytPicData[lngPos++];
                         retval |= 4;
                         break;
                     }
-                    // if at Pen Status position
                     if (lngPos > StatusPos) {
-                        // save tool status
                         SavePen = CurrentPen;
                         // reset statuspos to avoid changing save status
                         StatusPos = 0x7FFFFFFF;
@@ -223,6 +209,9 @@ namespace WinAGI.Engine {
             return retval;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private static void InitializePlotData() {
             //circle data used by the
             //brush drawing functions to paint
@@ -291,13 +280,16 @@ namespace WinAGI.Engine {
             CircleData[61] = 0x7E;
             CircleData[62] = 0x3C;
             CircleData[63] = 0x18;
-
-            //set flag
             InitPlotData = true;
         }
+
+        /// <summary>
+        /// Adds the color to visual and priority picture based on current pen status.
+        /// </summary>
+        /// <param name="xPos"></param>
+        /// <param name="yPos"></param>
         private static void DrawPixel(int xPos, int yPos) {
             int lngIndex = xPos + yPos * 160;
-
             if (lngIndex <= 26879) {
                 if (CurrentPen.VisColor < AGIColorIndex.agNone) {
                     VisBuildData[lngIndex] = (byte)CurrentPen.VisColor;
@@ -308,63 +300,64 @@ namespace WinAGI.Engine {
             }
         }
 
+        /// <summary>
+        /// Draws a line on visual and priority pictures based on current pen status.
+        /// </summary>
+        /// <param name="X1"></param>
+        /// <param name="Y1"></param>
+        /// <param name="X2"></param>
+        /// <param name="Y2"></param>
         private static void DrawLine(int X1, int Y1, int X2, int Y2) {
+            // this method mirrors the AGI MSDOS draw function so 
+            // lines are guaranteed to be an exact match.
             int xPos, yPos;
             int DY, DX;
             int vDir, hDir;
             int XC, YC, MaxDelta;
             int i;
-            //Sierra sucked at checking for overflows; if a bad value for coords was used that
-            //overflowed the designated picture buffer, AGI didn't care; it would just draw the pixel
-            //in invalid memory and plod on; so we're just going to ignore invalid pixels and
+            // Sierra sucked at checking for overflows; if a bad value for
+            // coords was used that overflowed the designated picture buffer,
+            // AGI didn't care; it would just draw the pixelin invalid memory
+            // and plod on. To mimic that we just ignore invalid pixels and
             //plod on too. ugh...
-            //(would be nice if there was a way to warn the user; not sure I can do that though)
-            //determine delta x/delta y and direction
+            // (would be nice if there was a way to warn the user; not sure
+            // I can do that though)
+
+            // determine deltaX/deltaY and direction
             DY = Y2 - Y1;
             vDir = Math.Sign(DY);
             DX = X2 - X1;
             hDir = Math.Sign(DX);
 
-            //if a point
             if (DY == 0 && DX == 0) {
-                //set the point
                 DrawPixel(X1, Y1);
-                //if horizontal
             }
+            // if horizontal
             else if (DY == 0) {
                 for (i = X1; i != X2; i += hDir) {
-                    //set point
                     DrawPixel(i, Y1);
                 }
-                // draw last point
                 DrawPixel(X2, Y1);
             }
-            //if vertical
+            // if vertical
             else if (DX == 0) {
                 for (i = Y1; i != Y2; i += vDir) {
-                    //set point
                     DrawPixel(X1, i);
                 }
-                // draw last point
                 DrawPixel(X1, Y2);
             }
             else {
-                //this line drawing function EXACTLY matches the Sierra
-                //drawing function
-
-                //set the starting point
                 DrawPixel(X1, Y1);
                 xPos = X1;
                 yPos = Y1;
-                //invert DX and DY if they are negative
+                // invert DX and DY if they are negative
                 if (DY < 0) {
                     DY *= -1;
                 }
                 if ((DX < 0)) {
                     DX *= -1;
                 }
-
-                //set up the loop, depending on which direction is largest
+                // set up the loop, depending on which direction is largest
                 if (DX >= DY) {
                     MaxDelta = DX;
                     YC = DX / 2;
@@ -391,19 +384,20 @@ namespace WinAGI.Engine {
             }
         }
 
+        /// <summary>
+        /// Draws a series of alternating horizontal and vertical lines.
+        /// </summary>
+        /// <param name="CurAxis"></param>
         private static void DrawCorner(CornerDirection CurAxis) {
             byte X1, Y1, X2, Y2;
-            //read in start coordinates
-            X1 = agPicData[lngPos];
-            lngPos++;
-            Y1 = agPicData[lngPos];
-            lngPos++;
-            //draw first pixel
+            // read in start coordinates
+            X1 = agPicData[lngPos++];
+            Y1 = agPicData[lngPos++];
+            // draw first pixel
             DrawPixel(X1, Y1);
             //get next byte
-            bytIn = agPicData[lngPos];
-            lngPos++;
-            while (bytIn < 0xF0 && lngPos <= lngEndPos) // Do Until bytIn >= 0xF0 || lngPos > lngEndPos
+            bytIn = agPicData[lngPos++];
+            while (bytIn < 0xF0 && lngPos <= lngEndPos)
             {
                 if (CurAxis == CornerDirection.cdX) {
                     X2 = (byte)bytIn;
@@ -419,67 +413,55 @@ namespace WinAGI.Engine {
                     CurAxis = CornerDirection.cdX;
                     Y1 = Y2;
                 }
-                //get next byte
-                bytIn = agPicData[lngPos];
-                lngPos++;
+                bytIn = agPicData[lngPos++];
             }
         }
-        
+
+        /// <summary>
+        /// Draws a series of absolute lines.
+        /// </summary>
         private static void DrawAbsLine() {
             byte X1, Y1, X2, Y2;
 
-            //read in start position
-            X1 = agPicData[lngPos];
-            lngPos++;
-            Y1 = agPicData[lngPos];
-            lngPos++;
-            //draw first pixel
+            X1 = agPicData[lngPos++];
+            Y1 = agPicData[lngPos++];
             DrawPixel(X1, Y1);
             //get next potential coordinate
-            bytIn = agPicData[lngPos];
-            lngPos++;
+            bytIn = agPicData[lngPos++];
 
-            while (bytIn < 0xF0 && lngPos <= lngEndPos) // Do Until bytIn >= 0xF0 || lngPos > lngEndPos
-            {
+            while (bytIn < 0xF0 && lngPos <= lngEndPos) {
                 X2 = (byte)bytIn;
-                Y2 = agPicData[lngPos];
-                lngPos++;
+                Y2 = agPicData[lngPos++];
                 DrawLine(X1, Y1, X2, Y2);
                 X1 = X2;
                 Y1 = Y2;
-                bytIn = agPicData[lngPos];
-                lngPos++;
+                bytIn = agPicData[lngPos++];
             }
         }
         
+        /// <summary>
+        /// Draws a series of relative lines.
+        /// </summary>
         private static void DrawRelLine() {
             short xdisp, ydisp;
             byte X1, Y1;
 
-            //read in starting position
-            X1 = agPicData[lngPos];
-            lngPos++;
-            Y1 = agPicData[lngPos];
-            lngPos++;
-            //set pixel of starting position
+            X1 = agPicData[lngPos++];
+            Y1 = agPicData[lngPos++];
             DrawPixel(X1, Y1);
-
-            //get next potential command
-            bytIn = agPicData[lngPos];
-            lngPos++;
-
-            while (bytIn < 0xF0 && lngPos <= lngEndPos) //Do Until bytIn >= 0xF0 || lngPos > lngEndPos
-            {  //if horizontal high bit set
+            bytIn = agPicData[lngPos++];
+            while (bytIn < 0xF0 && lngPos <= lngEndPos) {
+                // check x sign bit
                 if ((bytIn & 0x80) == 0x80) {
-                    //displacement is negative
+                    // displacement is negative
                     xdisp = (short)(0 - ((bytIn & 0x70) / 0x10));
                 }
                 else {
                     xdisp = ((short)((bytIn & 0x70) / 0x10));
                 }
-                //if vertical high bit set
+                // check y sign bit
                 if ((bytIn & 0x8) == 0x8) {
-                    //displacement is negative
+                    // displacement is negative
                     ydisp = (short)(0 - (bytIn & 0x7));
                 }
                 else {
@@ -488,58 +470,51 @@ namespace WinAGI.Engine {
                 DrawLine(X1, Y1, X1 + xdisp, Y1 + ydisp);
                 X1 += (byte)xdisp;
                 Y1 += (byte)ydisp;
-                // next byte
-                bytIn = agPicData[lngPos];
-                lngPos++;
+                bytIn = agPicData[lngPos++];
             }
         }
         
+        /// <summary>
+        /// Draws a series of plot patterns using current pen settings. 
+        /// </summary>
         private static void BrushPlot() {
             int PlotX, PlotY;
             byte PatternNum = 0;
-            int rtn;
             int X, Y;
 
-            //get next value (Xpos or splatter code)
-            bytIn = agPicData[lngPos];
-            lngPos++;
+            // get next value (Xpos or splatter code)
+            bytIn = agPicData[lngPos++];
 
-            while (bytIn < 0xF0 && lngPos <= lngEndPos) //Do Until bytIn >= 0xF0 || lngPos > lngEndPos
-            {
-                //if spatter mode is active,  current data point is the splatter value
+            while (bytIn < 0xF0 && lngPos <= lngEndPos) {
                 if (CurrentPen.PlotStyle == EPlotStyle.psSplatter) {
                     PatternNum = (byte)(bytIn | 1);
-                    //next byte will be the Xpos
-                    bytIn = agPicData[lngPos];
-                    lngPos++;
+                    // next byte is Xpos
+                    bytIn = agPicData[lngPos++];
                     if (bytIn >= 0xF0) {
-                        //exit if a draw command is found
+                        // exit if a draw command is found
                         break;
                     }
                 }
-                //store x value
                 PlotX = bytIn;
-                //get y value
-                bytIn = agPicData[lngPos];
-                lngPos++;
+                bytIn = agPicData[lngPos++];
                 if (bytIn >= 0xF0) {
-                    //exit if a draw command is found
+                    // exit if a draw command is found
                     break;
                 }
-                //store y value
                 PlotY = bytIn;
-                //convert to correct upper/left values to start the plotting
+                // adjust coordinates to upper/left values
+                // needed based on pen size
                 PlotX -= (CurrentPen.PlotSize + 1) / 2;
                 if (PlotX < 0) {
                     PlotX = 0;
                 }
                 else if (PlotX > 160 - CurrentPen.PlotSize) {
-                    //there is a bug in AGI that uses 160 instead of 159
-                    //well, actually, it doubles the X value for the check
+                    // there is a bug in AGI that uses 160 instead of 159
+                    // well, actually, it doubles the X value for the check
                     // and uses a value of 320, but it's the same effect)
                     //
-                    //WinAGI needs to mimic that bug so pictures look
-                    //exactly the same
+                    // we need to mimic that bug so pictures look
+                    // exactly the same
                     PlotX = 160 - CurrentPen.PlotSize;
                 }
                 PlotY -= CurrentPen.PlotSize;
@@ -549,40 +524,36 @@ namespace WinAGI.Engine {
                 else if (PlotY > 167 - CurrentPen.PlotSize) {
                     PlotY = 167 - CurrentPen.PlotSize;
                 }
-                //if brush is a circle
                 if (CurrentPen.PlotShape == EPlotShape.psCircle) {
                     for (Y = 0; Y <= CurrentPen.PlotSize * 2; Y++) {
                         for (X = 0; X <= CurrentPen.PlotSize; X++) {
-                            //if pixel is within circle shape,
                             if ((CircleData[(CurrentPen.PlotSize * CurrentPen.PlotSize) + Y] & (1 << (7 - X))) == (1 << (7 - X))) {
-                                //if style is splatter
                                 if (CurrentPen.PlotStyle == EPlotStyle.psSplatter) {
-                                    //adjust pattern bit using Sierra's algorithm
+                                    // adjust pattern bit using Sierra's algorithm
                                     if ((PatternNum & 1) == 1) {
                                         PatternNum = (byte)((PatternNum / 2) ^ 0xB8);
                                     }
                                     else {
                                         PatternNum /= 2;
                                     }
-                                    //only draw if pattern bit is set
+                                    // only draw if pattern bit is set
                                     if ((PatternNum & 3) == 2) {
                                         DrawPixel(X + PlotX, Y + PlotY);
                                     }
                                 }
-                                else { //solid
-                                       //set all pixels
+                                else {
+                                     // solid - set all pixels
                                     DrawPixel(X + PlotX, Y + PlotY);
                                 }
                             }
-                        } //Next X
-                    } //Next Y
+                        }
+                    }
                 }
-                else { //square
+                else {
+                    // square
                     for (Y = 0; Y <= CurrentPen.PlotSize * 2; Y++) {
                         for (X = 0; X <= CurrentPen.PlotSize; X++) {
-                            //if style is splatter
                             if (CurrentPen.PlotStyle == EPlotStyle.psSplatter) {
-                                //only draw if pattern bit is set
                                 if ((PatternNum & 1) == 1) {
                                     PatternNum = (byte)((PatternNum / 2) ^ 0xB8);
                                 }
@@ -593,251 +564,199 @@ namespace WinAGI.Engine {
                                     DrawPixel(X + PlotX, Y + PlotY);
                                 }
                             }
-                            else {  //solid
-                                    //set all pixels
+                            else {
+                                // solid - set all pixels
                                 DrawPixel(X + PlotX, Y + PlotY);
                             }
-                        } //Next X
-                    } //Next Y
+                        }
+                    }
                 }
                 //get next byte
-                bytIn = agPicData[lngPos];
-                lngPos++;
+                bytIn = agPicData[lngPos++];
             }
         }
+
+        /// <summary>
+        /// Performs a series of flood-fill actions.
+        /// </summary>
         private static void PicFloodFill() {
             int QueueStart, QueueEnd, lngOffset;
             byte X, Y;
 
-            //get next byte
-            bytIn = agPicData[lngPos];
-            lngPos++;
-            while (bytIn < 0xF0 && lngPos <= lngEndPos) //Do Until bytIn >= 0xF0 || lngPos > lngEndPos
-            {
-                //save x, get Y
+            bytIn = agPicData[lngPos++];
+            while (bytIn < 0xF0 && lngPos <= lngEndPos) {
                 X = (byte)bytIn;
-                Y = agPicData[lngPos];
-                lngPos++;
-                //if visual OR priority but not both
+                Y = agPicData[lngPos++];
+                // if visual OR priority but not both
                 if ((CurrentPen.VisColor < AGIColorIndex.agNone) ^ (CurrentPen.PriColor < AGIColorIndex.agNone)) {
-                    //if drawing visual
                     if (CurrentPen.VisColor < AGIColorIndex.agNone) {
-                        //if color is not white, and current pixel IS white,
+                        // fill visual screen
                         if (CurrentPen.VisColor != AGIColorIndex.agWhite && (AGIColorIndex)VisBuildData[X + 160 * Y] == AGIColorIndex.agWhite) {
-                            //store the starting point in first queue position
                             QueueStart = 0;
                             QueueEnd = 1;
                             lngOffset = Y * 160 + X;
                             Queue[QueueStart] = lngOffset;
-                            //set first point
                             VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
-
                             do {
-                                lngOffset = Queue[QueueStart];
+                                lngOffset = Queue[QueueStart++];
                                 X = (byte)(lngOffset % 160);
                                 Y = (byte)(lngOffset / 160);
-                                QueueStart++;
-
-                                //if pixel above is white,
+                                // check above
                                 if (Y > 0) {
                                     lngOffset = (Y - 1) * 160 + X;
                                     if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
-                                        //set it
                                         VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
-                                        //add to queue
-                                        Queue[QueueEnd] = lngOffset;
-                                        QueueEnd++;
+                                        Queue[QueueEnd++] = lngOffset;
                                     }
                                 }
-                                //if pixel to left is white,
+                                // check left
                                 if (X > 0) {
                                     lngOffset = Y * 160 + X - 1;
                                     if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
-                                        //set it
                                         VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
-                                        //add to queue
-                                        Queue[QueueEnd] = lngOffset;
-                                        QueueEnd++;
+                                        Queue[QueueEnd++] = lngOffset;
                                     }
                                 }
-                                //if pixel to right is white,
+                                // check right
                                 if (X < 159) {
                                     lngOffset = Y * 160 + X + 1;
                                     if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
-                                        //set it
                                         VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
-                                        //add to queue
-                                        Queue[QueueEnd] = lngOffset;
-                                        QueueEnd++;
+                                        Queue[QueueEnd++] = lngOffset;
                                     }
                                 }
-                                //if pixel below is white
+                                // check below
                                 if (Y < 167) {
                                     lngOffset = (Y + 1) * 160 + X;
                                     if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
-                                        //set it
                                         VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
-                                        //add to queue
-                                        Queue[QueueEnd] = lngOffset;
-                                        QueueEnd++;
+                                        Queue[QueueEnd++] = lngOffset;
                                     }
                                 }
                             }
-                            while (QueueStart != QueueEnd); //Loop Until QueueStart = QueueEnd
+                            while (QueueStart != QueueEnd);
                         }
                     }
                     else {
-                        //if color is not red, and current pixel IS red,
+                        // fill priority screen
                         if (CurrentPen.PriColor != AGIColorIndex.agRed && (AGIColorIndex)PriBuildData[X + 160 * Y] == AGIColorIndex.agRed) {
-                            //store the starting point in first queue position
                             QueueStart = 0;
                             QueueEnd = 1;
                             lngOffset = Y * 160 + X;
                             Queue[QueueStart] = lngOffset;
-                            //set first point
                             PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
                             do {
-                                lngOffset = Queue[QueueStart];
+                                lngOffset = Queue[QueueStart++];
                                 X = (byte)(lngOffset % 160);
                                 Y = (byte)(lngOffset / 160);
-                                QueueStart++;
-                                //if pixel above is red,
+                                // check above
                                 if (Y > 0) {
                                     lngOffset = (Y - 1) * 160 + X;
                                     if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed) {
-                                        //set it
                                         PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
-                                        //add to queue
-                                        Queue[QueueEnd] = lngOffset;
-                                        QueueEnd++;
+                                        Queue[QueueEnd++] = lngOffset;
                                     }
                                 }
-                                //if pixel to left is red,
+                                // check left
                                 if (X > 0) {
                                     lngOffset = Y * 160 + X - 1;
                                     if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed) {
-                                        //set it
                                         PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
-                                        //add to queue
-                                        Queue[QueueEnd] = lngOffset;
-                                        QueueEnd++;
+                                        Queue[QueueEnd++] = lngOffset;
                                     }
                                 }
-                                //if pixel to right is red,
+                                // check right
                                 if (X < 159) {
                                     lngOffset = Y * 160 + X + 1;
                                     if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed) {
-                                        //set it
                                         PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
-                                        //add to queue
-                                        Queue[QueueEnd] = lngOffset;
-                                        QueueEnd++;
+                                        Queue[QueueEnd++] = lngOffset;
                                     }
                                 }
-                                //if pixel below is red
+                                // check below
                                 if (Y < 167) {
                                     lngOffset = (Y + 1) * 160 + X;
                                     if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed) {
-                                        //set it
                                         PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
-                                        //add to queue
-                                        Queue[QueueEnd] = lngOffset;
-                                        QueueEnd++;
+                                        Queue[QueueEnd++] = lngOffset;
                                     }
                                 }
                             }
-                            while (QueueStart != QueueEnd); // Loop Until QueueStart = QueueEnd
+                            while (QueueStart != QueueEnd);
                         }
                     }
-                    //if drawing both
                 }
                 else if ((CurrentPen.VisColor < AGIColorIndex.agNone) && (CurrentPen.VisColor < AGIColorIndex.agNone)) {
-                    //if picture draw color is NOT white, and current pixel is white
+                    // drawing both
                     if (CurrentPen.VisColor != AGIColorIndex.agWhite && (AGIColorIndex)VisBuildData[X + 160 * Y] == AGIColorIndex.agWhite) {
-                        //store the starting point in first queue position
                         QueueStart = 0;
                         QueueEnd = 1;
                         lngOffset = Y * 160 + X;
                         Queue[QueueStart] = lngOffset;
-                        //set first point
                         VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                         PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
 
                         do {
-                            lngOffset = Queue[QueueStart];
+                            lngOffset = Queue[QueueStart++];
                             X = (byte)(lngOffset % 160);
                             Y = (byte)(lngOffset / 160);
-                            QueueStart++;
-
-                            //if pixel above is white,
+                            // check above
                             if (Y > 0) {
                                 lngOffset = (Y - 1) * 160 + X;
                                 if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
-                                    //set it
                                     VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                     PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
-                                    //add to queue
-                                    Queue[QueueEnd] = lngOffset;
-                                    QueueEnd++;
+                                    Queue[QueueEnd++] = lngOffset;
                                 }
                             }
-                            //if pixel to left is white,
+                            // check left
                             if (X > 0) {
                                 lngOffset = Y * 160 + X - 1;
                                 if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
-                                    //set it
                                     VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                     PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
-                                    //add to queue
-                                    Queue[QueueEnd] = lngOffset;
-                                    QueueEnd++;
+                                    Queue[QueueEnd++] = lngOffset;
                                 }
                             }
-                            //if pixel to right is white,
+                            // check right
                             if (X < 159) {
                                 lngOffset = Y * 160 + X + 1;
                                 if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
-                                    //set it
                                     VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                     PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
-                                    //add to queue
-                                    Queue[QueueEnd] = lngOffset;
-                                    QueueEnd++;
+                                    Queue[QueueEnd++] = lngOffset;
                                 }
                             }
-                            //if pixel below is white
+                            // check below
                             if (Y < 167) {
                                 lngOffset = (Y + 1) * 160 + X;
                                 if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
-                                    //set it
                                     VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                     PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
-                                    //add to queue
-                                    Queue[QueueEnd] = lngOffset;
-                                    QueueEnd++;
+                                    Queue[QueueEnd++] = lngOffset;
                                 }
                             }
                         }
-                        while (QueueStart != QueueEnd); //Loop Until QueueStart = QueueEnd
+                        while (QueueStart != QueueEnd);
                     }
                 }
-                //get next byte
-                bytIn = agPicData[lngPos];
-                lngPos++;
-            }//Loop
+                bytIn = agPicData[lngPos++];
+            }
         }
         
+        /// <summary>
+        /// This method attempts to convert a long color Value
+        /// into the corresponding AGI color index with the least
+        /// amount of calculations. It is an empirically derived
+        /// algorithm.
+        /// </summary>
+        /// <param name="lngEGAIn"></param>
+        /// <returns></returns>
         public static int GetColVal(int lngEGAIn) {
-            // basically it attempts to convert a long color Value
-            // into the corresponding AGI color index with the least
-            // amount of calculations
-            // it is an empirically derived algorithm
-
-            //NOTE: if (this method is called with a color Value
-            //other than the defined EGA color values for AGI, then
-            //I have absolutely no idea what the return Value may
-            //look like.
-
+            // If this method is called with a color Value
+            // other than the defined EGA color values for AGI, then
+            // I have absolutely no idea what the return Value may
+            // look like.
             int cR, cG, cB, vR, vG, vB;
             int retval;
 
@@ -875,24 +794,21 @@ namespace WinAGI.Engine {
             }
             //build composite
             retval = (vB + vG * 2 + vR * 4) / 16;
-            //if <5
             if (retval < 5) {
                 return retval;
             }
-            //if >9
             if (retval > 9) {
                 return retval++;
             }
-            //if red is >80(0x50)
             if (cR > 0x50) {
                 return retval;
             }
-            //three cases left:
-            //7,8,5 corresponding to 8,9,10
+            // three cases left:
+            // 7,8,5 corresponding to 8,9,10
             if (retval > 6) {
                 return retval++;
             }
-            //only one left is light green
+            // only one left is light green
             return 10;
         }
     }

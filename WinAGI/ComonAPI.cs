@@ -13,6 +13,8 @@ namespace WinAGI.Common {
         //apis for midi sound handling
         [DllImport("Winmm.dll", SetLastError = true)]
         public static extern int mciSendString(string lpszCommand, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn, IntPtr hwndCallback);
+        public const int MM_MCINOTIFY = 0x3B9;
+        public const int MCI_NOTIFY_SUCCESSFUL = 0x1;
 
         [DllImport("Winmm.dll", SetLastError = true)]
         public static extern int mciGetErrorString(int errNum, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn);
@@ -52,19 +54,20 @@ namespace WinAGI.Common {
         public const string ARG3 = "%3";
         public const string sAPPNAME = "WinAGI Game Development System 3.0 alpha";
         public const string COPYRIGHT_YEAR = "2024";
-        public static uint[] CRC32Table = new uint[256];
-        public static bool CRC32Loaded;
+        internal static uint[] CRC32Table = new uint[256];
+        internal static bool CRC32Loaded;
         public static readonly char[] INVALID_ID_CHARS;
+        public static readonly char[] INVALID_FIRST_CHARS;
         public static readonly char[] INVALID_DEFNAME_CHARS;
 
         static Base() {
-            // TODO: first char restictions are (should be) different than rest
             // invalid ID characters: these, plus control chars and extended chars
             //        3       4         5         6         7         8         9         0         1         2
             //        234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
             //NOT OK  .!"   &'()*+,- /          :;<=>?                           [\]^ `                          {|}~x
             //    OK     #$%        . 0123456789      @ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz    
             INVALID_ID_CHARS = " !\"&'()*+,-/:;<=>?[\\]^`{|}~".ToCharArray();
+            INVALID_FIRST_CHARS = (INVALID_ID_CHARS.ToString() + "#$%.0123456789@").ToCharArray();
 
             // invalid Define Name characters: these, plus control chars and extended chars
             //        3       4         5         6         7         8         9         0         1         2
