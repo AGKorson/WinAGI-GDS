@@ -80,14 +80,20 @@ namespace WinAGI.Engine {
         /// <param name="ResNum"></param>
         /// <param name="VOL"></param>
         /// <param name="Loc"></param>
-        protected void InitInGame(AGIGame parent, byte ResNum, sbyte VOL, int Loc) {
+        protected void InitInGame(AGIGame parent, AGIResType resType, byte resNum, sbyte VOL, int Loc) {
             this.parent = parent;
             mInGame = true;
-            mResNum = ResNum;
+            mResNum = resNum;
             mVolume = VOL;
             mLoc = Loc;
-            //// ingame resources start loaded
-            ////mLoaded = true;
+            // ID should be in the propertyfile
+            mResID = parent.agGameProps.GetSetting(ResTypeName[(int)resType] + resNum, "ID", "", true);
+            if (ID.Length == 0) {
+                // ID not found; save default ID
+                ID = ResTypeName[(int)resType] + resNum;
+                parent.WriteGameSetting(ID, "ID", ID, ResTypeName[(int)resType]);
+            }
+            mDescription = parent.agGameProps.GetSetting(ResTypeName[(int)resType] + resNum, "Description", "");
         }
 
         /// <summary>

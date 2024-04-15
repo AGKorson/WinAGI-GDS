@@ -1998,7 +1998,7 @@ namespace WinAGI.Engine {
             // if extracting a game
             if (Mode == OpenGameMode.Directory) {
                 // write create date
-                WriteGameSetting("General", "LastEdit", agLastEdit);
+                WriteGameSetting("General", "LastEdit", agLastEdit.ToString());
             }
             // if warnings or errors
             if (blnWarnings) {
@@ -2063,13 +2063,20 @@ namespace WinAGI.Engine {
         /// <param name="Key"></param>
         /// <param name="Value"></param>
         /// <param name="Group"></param>
-        internal void WriteGameSetting(string Section, string Key, dynamic Value, string Group = "") {
+        internal void WriteGameSetting(string Section, string Key, string Value, string Group = "") {
             agGameProps.WriteSetting(Section, Key, Value.ToString(), Group);
             if (!Key.Equals("lastedit", StringComparison.CurrentCultureIgnoreCase) && !Key.Equals("winagiversion", StringComparison.CurrentCultureIgnoreCase) && !Key.Equals("palette", StringComparison.CurrentCultureIgnoreCase)) {
                 agLastEdit = DateTime.Now;
             }
             // always save settings file
             agGameProps.Save();
+        }
+
+        internal void WriteGameSetting(string Section, string Key, int Value, string Group = "") {
+            WriteGameSetting(Section, Key, Value.ToString(), Group);
+        }
+        internal void WriteGameSetting(string Section, string Key, bool Value, string Group = "") {
+            WriteGameSetting(Section, Key, Value.ToString(), Group);
         }
 
         /// <summary>

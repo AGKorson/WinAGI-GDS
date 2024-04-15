@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Runtime.InteropServices;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
@@ -74,6 +73,9 @@ namespace WinAGI.Engine {
         }
     }
 
+    /// <summary>
+    /// A class that represents an AGI Picture resource, with WinAGI extensions.
+    /// </summary>
     public class Picture : AGIResource {
         string mBkImgFile;
         bool mBkShow;
@@ -91,7 +93,54 @@ namespace WinAGI.Engine {
         Bitmap bmpPri;
 
         /// <summary>
-        /// 
+        /// Initializes a new AGI picture resource that is not in a game.
+        /// </summary>
+        public Picture() : base(AGIResType.rtPicture) {
+            // not in a game so resource is always loaded
+            mLoaded = true;
+            InitPicture();
+            // use a default ID
+            mResID = "NewPicture";
+        }
+
+        /// <summary>
+        /// Internal constructor to initialize a new or cloned picture resource being added to an AGI game.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="NewPicture"></param>
+        internal Picture(AGIGame parent, byte ResNum, Picture NewPicture = null) : base(AGIResType.rtPicture) {
+            // initialize
+            InitPicture(NewPicture);
+            // set up base resource
+            base.InitInGame(parent, ResNum);
+        }
+
+        /// <summary>
+        /// Internal constructor to add a new picture resource during initial game load.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="VOL"></param>
+        /// <param name="Loc"></param>
+        internal Picture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtPicture) {
+            // adds a picture from dir/vol files, setting its resource 
+            // location properties, and reads properties from the wag file
+
+            // attach events
+            base.PropertyChanged += ResPropChange;
+            // set up base resource
+            base.InitInGame(parent, AGIResType.rtPicture, ResNum, VOL, Loc);
+            // default to entire image
+            mDrawPos = -1;
+            // default pribase is 48
+            mPriBase = 48;
+        }
+
+        /// <summary>
+        /// Initializes a new picture resource when first instantiated. If NewPicture is null, 
+        /// a blank picture resource is created. If NewPicture is not null, it is cloned into
+        /// the new picture.
         /// </summary>
         /// <param name="NewPicture"></param>
         private void InitPicture(Picture NewPicture = null) {
@@ -116,65 +165,6 @@ namespace WinAGI.Engine {
                 // clone this picture
                 NewPicture.Clone(this);
             }
-        }
-
-        /// <summary>
-        /// new picture, not in game
-        /// </summary>
-        public Picture() : base(AGIResType.rtPicture) {
-            // not in a game so resource is always loaded
-            mLoaded = true;
-            InitPicture();
-            // use a default ID
-            mResID = "NewPicture";
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="ResNum"></param>
-        /// <param name="NewPicture"></param>
-        internal Picture(AGIGame parent, byte ResNum, Picture NewPicture = null) : base(AGIResType.rtPicture) {
-            // internal method to add a new picture and find place for it in vol files
-
-            // initialize
-            InitPicture(NewPicture);
-            // set up base resource
-            base.InitInGame(parent, ResNum);
-        }
-
-        /// <summary>
-        /// Represents a new picture resource being added to a game during initial load.
-        /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="ResNum"></param>
-        /// <param name="VOL"></param>
-        /// <param name="Loc"></param>
-        internal Picture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtPicture) {
-            // adds a picture from dir/vol files, setting its resource 
-            //location properties, and reads properties from the wag file
-
-            // attach events
-            base.PropertyChanged += ResPropChange;
-            // set up base resource
-            base.InitInGame(parent, ResNum, VOL, Loc);
-
-            // if importing, there will be nothing in the propertyfile
-            mResID = parent.agGameProps.GetSetting("Picture" + ResNum, "ID", "", true);
-            if (mResID.Length == 0) {
-                //no properties to load; save default ID
-                mResID = "Picture" + ResNum;
-                parent.WriteGameSetting("Picture" + ResNum, "ID", ID, "Pictures");
-            }
-            else {
-                //get description and other properties from wag file
-                mDescription = parent.agGameProps.GetSetting("Picture" + ResNum, "Description", "");
-            }
-            // default to entire image
-            mDrawPos = -1;
-            // default pribase is 48
-            mPriBase = 48;
         }
 
         /// <summary>
@@ -649,8 +639,8 @@ namespace WinAGI.Engine {
                     parent.WriteGameSetting(strPicKey, "BkgdImg", mBkImgFile);
                     parent.WriteGameSetting(strPicKey, "BkgdShow", mBkShow.ToString());
                     parent.WriteGameSetting(strPicKey, "BkgdTrans", mBkTrans.ToString());
-                    parent.WriteGameSetting(strPicKey, "BkgdPosn", mBkPos);
-                    parent.WriteGameSetting(strPicKey, "BkgdSize", mBkSize);
+                    parent.WriteGameSetting(strPicKey, "BkgdPosn", mBkPos.ToString());
+                    parent.WriteGameSetting(strPicKey, "BkgdSize", mBkSize.ToString());
                 }
                 PropDirty = false;
             }

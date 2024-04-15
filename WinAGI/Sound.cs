@@ -1,17 +1,13 @@
 ﻿using System;
-using System.ComponentModel;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.Commands;
-using WinAGI.Common;
-using static WinAGI.Common.Base;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.IO;
 using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
+using System.IO;
+using static WinAGI.Common.Base;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// A class that represents an AGI Sound resource, with WinAGI extensions.
+    /// </summary>
     public class Sound : AGIResource {
         Track[] mTrack = new Track[4];
         bool mTracksSet;
@@ -19,11 +15,12 @@ namespace WinAGI.Engine {
         int mKey;
         int mTPQN;
         SoundFormat mFormat;
-        //variables to support MIDI file creation
         bool mMIDISet;
 
-        //other
-        // Declare the event delegate, and event
+        // Sound resources include an event to notify calling programs when playback
+        // of a sound is complete.
+
+        // declare the event delegate, and event
         public delegate void SoundCompleteEventHandler(object sender, SoundCompleteEventArgs e);
         public event SoundCompleteEventHandler SoundComplete;
         public class SoundCompleteEventArgs {
@@ -38,11 +35,63 @@ namespace WinAGI.Engine {
             SoundComplete?.Invoke(null, new SoundCompleteEventArgs(noerror));
         }
 
+        /// <summary>
+        /// Initializes a new AGI sound resource that is not in a game.
+        /// </summary>
+        public Sound() : base(AGIResType.rtSound) {
+            // new sound, not in game
+
+            //initialize
+            InitSound();
+            // create a default ID
+            mResID = "NewSound";
+            // if not in a game, resource is always loaded
+            mLoaded = true;
+        }
+
+        /// <summary>
+        /// Internal constructor to initialize a new or cloned sound resource being added to an AGI game.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="NewSound"></param>
+        internal Sound(AGIGame parent, byte ResNum, Sound NewSound = null) : base(AGIResType.rtSound) {
+            // initialize
+            InitSound(NewSound);
+            //set up base resource
+            base.InitInGame(parent, ResNum);
+        }
+
+        /// <summary>
+        /// Internal constructor to add a new sound resource during initial game load.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="VOL"></param>
+        /// <param name="Loc"></param>
+        internal Sound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtSound) {
+            // adds this resource to a game, setting its resource 
+            // location properties, and reads properties from the wag file
+
+            // attach events
+            base.PropertyChanged += ResPropChange;
+            // set up base resource
+            base.InitInGame(parent, AGIResType.rtSound, ResNum, VOL, Loc);
+            //length is undefined until sound is built
+            mLength = -1;
+        }
+
+        /// <summary>
+        /// Initializes a new sound resource when first instantiated. If NewSound is null, 
+        /// a blank sound resource is created. If NewSound is not null, it is cloned into
+        /// the new sound.
+        /// </summary>
+        /// <param name="NewSound"></param>
         private void InitSound(Sound NewSound = null) {
-            //attach events
+            // attach events
             base.PropertyChanged += ResPropChange;
             if (NewSound is null) {
-                //create default PC/PCjr sound with no notes in any tracks
+                // create default PC/PCjr sound with no notes in any tracks
                 mRData.AllData = [ 0x08, 0x00, 0x08, 0x00,
                                     0x08, 0x00, 0x08, 0x00,
                                     0xff, 0xff];
@@ -67,47 +116,6 @@ namespace WinAGI.Engine {
                 // clone the new sound
                 NewSound.Clone(this);
             }
-        }
-
-        public Sound() : base(AGIResType.rtSound) {
-            // new sound, not in game
-
-            //initialize
-            InitSound();
-            // create a default ID
-            mResID = "NewSound";
-            // if not in a game, resource is always loaded
-            mLoaded = true;
-        }
-
-        internal Sound(AGIGame parent, byte ResNum, Sound NewSound = null) : base(AGIResType.rtSound) {
-            // internal method to add a new sound and find place for it in vol files
-
-            // initialize
-            InitSound(NewSound);
-            //set up base resource
-            base.InitInGame(parent, ResNum);
-        }
-
-        internal Sound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtSound) {
-            //this internal function adds this resource to a game, setting its resource 
-            //location properties, and reads properties from the wag file
-
-            //attach events
-            base.PropertyChanged += ResPropChange;
-            //set up base resource
-            base.InitInGame(parent, ResNum, VOL, Loc);
-            // ID should be in the propertyfile
-            mResID = parent.agGameProps.GetSetting("Sound" + ResNum, "ID", "", true);
-            if (ID.Length == 0) {
-                // ID not found; save default ID
-                ID = "Sound" + ResNum;
-                parent.WriteGameSetting("Sound" + ResNum, "ID", ID, "Sounds");
-            }
-            //get description and other properties from wag file
-            mDescription = parent.agGameProps.GetSetting("Sound" + ResNum, "Description", "");
-            //length is undefined until sound is built
-            mLength = -1;
         }
 
         private void ResPropChange(object sender, AGIResPropChangedEventArgs e) {

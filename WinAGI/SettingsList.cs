@@ -64,11 +64,16 @@ namespace WinAGI.Engine {
                 if (File.Exists(filename)) {
                     // existing file can't be write-protected
                     if ((File.GetAttributes(filename) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                        WinAGIException wex = new(LoadResString(700).Replace(ARG1, Filename)) {
-                            HResult = WINAGI_ERR + 700,
-                        };
-                        wex.Data["badfile"] = Filename;
-                        throw wex;
+                        try {
+                            File.SetAttributes(filename, FileAttributes.Normal);
+                        }
+                        catch {
+                            WinAGIException wex = new(LoadResString(700).Replace(ARG1, Filename)) {
+                                HResult = WINAGI_ERR + 700,
+                            };
+                            wex.Data["badfile"] = Filename;
+                            throw wex;
+                        }
                     }
                 }
                 break;
@@ -581,9 +586,16 @@ namespace WinAGI.Engine {
                             if (strLine.Length > 0) {
                                 if (strLine[0] == '"') {
                                     // string delimiter; find ending delimiter
-                                    endPos = strLine.LastIndexOf('"', strLine.Length - 1) + 1;
-                                    if (endPos <= 0) {
+                                    endPos = strLine.LastIndexOf('"', strLine.Length - 1);
+                                    if (endPos < 0) {
                                         endPos = strLine.Length;
+                                    }
+                                    else {
+                                        // if only one (end == start == 0)
+                                        if (endPos == 0) {
+                                            // set end to line length
+                                            endPos = strLine.Length;
+                                        }
                                     }
                                 }
                                 else {
@@ -598,11 +610,13 @@ namespace WinAGI.Engine {
                                 if (strLine.Length > 0) {
                                     if (strLine[0] == '"') {
                                         strLine = strLine[1..];
-                                        if (strLine[^1] == '"') {
-                                            strLine = strLine[..^1];
-                                        } 
-                                        else {
-                                            strLine = strLine.Trim();
+                                        if (strLine.Length > 0) {
+                                            if (strLine[^1] == '"') {
+                                                strLine = strLine[..^1];
+                                            } 
+                                            else {
+                                                strLine = strLine.TrimEnd();
+                                            }
                                         }
                                     }
                                 }

@@ -53,6 +53,13 @@ namespace WinAGI.Engine {
             base.InitInGame(parent, ResNum);
         }
 
+        /// <summary>
+        /// Internal constructor to add a new view resource during initial game load.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="VOL"></param>
+        /// <param name="Loc"></param>
         internal View(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtView) {
             //this internal function adds this resource to a game, setting its resource 
             //location properties, and reads properties from the wag file
@@ -60,20 +67,9 @@ namespace WinAGI.Engine {
             //attach events
             base.PropertyChanged += ResPropChange;
             //set up base resource
-            base.InitInGame(parent, ResNum, VOL, Loc);
+            base.InitInGame(parent, AGIResType.rtView, ResNum, VOL, Loc);
 
-            //if importing, there will be nothing in the propertyfile
-            mResID = this.parent.agGameProps.GetSetting("View" + ResNum, "ID", "", true);
-            if (ID.Length == 0) {
-                //no properties to load; save default ID
-                ID = "View" + ResNum;
-                this.parent.WriteGameSetting("View" + ResNum, "ID", ID, "Views");
-            }
-            else {
-                //get description and other properties from wag file
-                mDescription = parent.agGameProps.GetSetting("View" + ResNum, "Description", "");
-            }
-            // add rempty loop col
+            // add empty loop col as placeholder
             mLoopCol = new Loops(this);
         }
         private void ResPropChange(object sender, AGIResPropChangedEventArgs e) {

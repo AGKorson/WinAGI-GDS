@@ -967,13 +967,39 @@ namespace WinAGI.Editor
             double sngTop, sngLeft;
             double sngWidth, sngHeight;
             int i, lngNoCompVal;
-            string strCaption, strTool;
-            bool blnErrors, blnMax;
+            bool blnMax;
 
             //open the program settings  file
-            GameSettings = new SettingsList(ProgramDir + "winagi.config", FileMode.OpenOrCreate);
-            //don't have to worry about missing file; defaults will be added automatically
-            //GENERAL settings
+            try {
+                GameSettings = new SettingsList(ProgramDir + "winagi.config", FileMode.OpenOrCreate);
+            }
+            catch (WinAGIException wex) {
+                if (wex.HResult == WINAGI_ERR + 700) {
+                    // readonly - unable to change it
+                    MessageBox.Show("Configuration file (winagi.config) is marked 'readonly'. It must be 'read/write' " +
+                                    "for WinAGI to load. Change the file's property then try again.",
+                                    "Configuration File Error",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Close();
+                }
+                else {
+                    // file access error; try renaming it and creating a default list
+                    try {
+                        // bad file; 
+                        File.Move(ProgramDir + "winagi.config", ProgramDir + "winagi.config.OLD");
+                        GameSettings = new SettingsList(ProgramDir + "winagi.config", FileMode.Create);
+                    }
+                    catch {
+                        // unrecoverable error
+                        MessageBox.Show("Unable to read configuration file (winagi.config). It may be corrupt. Try " +
+                                        "deleting it then restart WinAGI to restore default settings.",
+                                        "Configuration File Error",
+                                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Close();
+                    }
+                }
+            }
+            // GENERAL settings
             Settings.ShowSplashScreen = GameSettings.GetSetting(sGENERAL, "ShowSplashScreen", DEFAULT_SHOWSPLASHSCREEN);
             Settings.SkipPrintWarning = GameSettings.GetSetting(sGENERAL, "SkipPrintWarning", DEFAULT_SKIPPRINTWARNING);
             Settings.WarnCompile = GameSettings.GetSetting(sGENERAL, "WarnCompile", DEFAULT_WARNCOMPILE);
