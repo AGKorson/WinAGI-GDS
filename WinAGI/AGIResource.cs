@@ -735,7 +735,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ImportFile"></param>
         public virtual void Import(string ImportFile) {
-            if (ImportFile.Length == 0) {
+            if (ImportFile is null || ImportFile.Length == 0) {
                 WinAGIException wex = new(LoadResString(604)) {
                     HResult = WINAGI_ERR + 604,
                 };

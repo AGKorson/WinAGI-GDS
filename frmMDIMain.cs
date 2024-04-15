@@ -971,8 +971,7 @@ namespace WinAGI.Editor
             bool blnErrors, blnMax;
 
             //open the program settings  file
-            GameSettings = new SettingsList(ProgramDir + "winagi.config");
-            GameSettings.Open();
+            GameSettings = new SettingsList(ProgramDir + "winagi.config", FileMode.OpenOrCreate);
             //don't have to worry about missing file; defaults will be added automatically
             //GENERAL settings
             Settings.ShowSplashScreen = GameSettings.GetSetting(sGENERAL, "ShowSplashScreen", DEFAULT_SHOWSPLASHSCREEN);
@@ -1361,7 +1360,7 @@ namespace WinAGI.Editor
             //set width
             pnlResources.Width = (int)sngProp;
 
-            //get mru settings
+            // get mru settings
             Settings.AutoOpen = GameSettings.GetSetting(sMRULIST, "AutoOpen", DEFAULT_AUTOOPEN);
             for (i = 0; i < 4; i++) {
                 strMRU[i] = GameSettings.GetSetting(sMRULIST, "MRUGame" + (i + 1), "");

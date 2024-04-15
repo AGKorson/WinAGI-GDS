@@ -1307,19 +1307,6 @@ namespace WinAGI.Engine {
                             //save this label position
                             lngLabelPos[bytLabelCount] = LabelLoc;
                         }
-                        //for (i = 1; i <= bytLabelCount; i++) {
-                        //    if (lngLabelPos[i] == LabelLoc) {
-                        //        break;
-                        //    }
-                        //}
-                        ////if loop exited normally (i will equal bytLabelCount+1)
-                        //if (i == bytLabelCount + 1) {
-                        //    //increment label Count
-                        //    bytLabelCount++;
-                        //    Array.Resize(ref lngLabelPos, bytLabelCount + 1);
-                        //    //save this label position
-                        //    lngLabelPos[bytLabelCount] = LabelLoc;
-                        //}
                     }
                     break;
                 case < MAX_CMDS: //byte is an AGI command

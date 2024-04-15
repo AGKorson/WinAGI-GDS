@@ -1275,8 +1275,7 @@ namespace WinAGI.Engine {
                 // need to open current wag file to get original extension
                 // open the property file (file has to already exist)
                 try {
-                    SettingsList oldProps = new(agGameFile);
-                    oldProps.Open(false);
+                    SettingsList oldProps = new(agGameFile, FileMode.Open);
                     oldExt = oldProps.GetSetting("General", "SourceFileExt", DefaultSrcExt);
                     oldProps = null;
                 }
@@ -1296,7 +1295,7 @@ namespace WinAGI.Engine {
                 }
                 if (!oldExt.Equals(NewExt, StringComparison.OrdinalIgnoreCase)) {
                     // update source extension BEFORE opening wag file
-                    SettingsList newProps = new(agGameDir + strGameWAG);
+                    SettingsList newProps = new(agGameDir + strGameWAG, FileMode.Open);
                     newProps.WriteSetting("General", "SourceFileExt", NewExt);
                     newProps.Save();
                 }
@@ -1348,8 +1347,7 @@ namespace WinAGI.Engine {
                     File.Move(agGameDir + Path.GetFileNameWithoutExtension(strGameWAG) + ".wal", agGameDir + NewID + ".wal");
                 }
                 // update global file header
-                stlGlobals = new SettingsList(agGameDir + "globals.txt");
-                stlGlobals.Open(false);
+                stlGlobals = new SettingsList(agGameDir + "globals.txt", FileMode.OpenOrCreate);
                 if (stlGlobals.Lines.Count > 3) {
                     if (Left(stlGlobals.Lines[2].Trim(), 1) == "[") {
                         stlGlobals.Lines[2] = "[ global defines file for " + NewID;
@@ -1393,11 +1391,7 @@ namespace WinAGI.Engine {
                 }
                 // create empty property file
                 agGameFile = agGameDir + agGameID + ".wag";
-                if (File.Exists(agGameFile)) {
-                    File.Delete(agGameFile);
-                }
-                agGameProps = new SettingsList(agGameFile);
-                agGameProps.Open();
+                agGameProps = new SettingsList(agGameFile, FileMode.Create);
                 agGameProps.Lines.Add("#");
                 agGameProps.Lines.Add("# WinAGI Game Property File for " + agGameID);
                 agGameProps.Lines.Add("#");
@@ -1586,8 +1580,7 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             // create new wag file
-            agGameProps = new SettingsList(agGameFile);
-            agGameProps.Open(false);
+            agGameProps = new SettingsList(agGameFile, FileMode.Create);
             agGameProps.Lines.Add("# WinAGI Game Property File");
             agGameProps.Lines.Add("#");
             agGameProps.WriteSetting("General", "WinAGIVersion", WINAGI_VERSION);
@@ -1660,17 +1653,16 @@ namespace WinAGI.Engine {
             // set game directory
             agGameDir = JustPath(GameWAG);
             // check for readonly (not allowed)
-            if ((File.GetAttributes(GameWAG) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+            if ((File.GetAttributes(agGameFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                 WinAGIException wex = new(LoadResString(700).Replace(ARG1, GameWAG)) {
                     HResult = WINAGI_ERR + 700,
                 };
-                wex.Data["badfile"] = GameWAG;
+                wex.Data["badfile"] = agGameFile;
                 throw wex;
             }
             try {
                 // open the WAG
-                agGameProps = new SettingsList(agGameFile);
-                agGameProps.Open(false);
+                agGameProps = new SettingsList(agGameFile, FileMode.Open);
             }
             catch (Exception e) {
                 // reset game variables
@@ -1695,7 +1687,7 @@ namespace WinAGI.Engine {
                     ClearGameState();
                     // invalid wag
                     WinAGIException wex = new(LoadResString(665).Replace(ARG1, GameWAG)) {
-                        HResult = 665,
+                        HResult = WINAGI_ERR + 665,
                     };
                     wex.Data["badversion"] = strVer;
                     throw wex;
@@ -2032,7 +2024,7 @@ namespace WinAGI.Engine {
             agGameID = "";
             agIntVersion = "";
             agIsVersion3 = false;
-            agGameProps = new SettingsList("");
+            agGameProps = new SettingsList();
             agLastEdit = new DateTime();
             agSierraSyntax = false;
             agPowerPack = false;

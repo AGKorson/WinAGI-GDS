@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using WinAGI.Engine;
 using System.Diagnostics.CodeAnalysis;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Common {
     public static partial class API {
@@ -112,7 +113,7 @@ namespace WinAGI.Common {
             [DoesNotReturn]
             private static void ThrowResourceNotLoaded() {
                 WinAGIException wex = new("Resource not loaded") {
-                    HResult = 563,
+                    HResult = WINAGI_ERR + 563,
                 };
                 throw wex;
             }
@@ -139,6 +140,9 @@ namespace WinAGI.Common {
         }
 
         public static Array ResizeArray(Array arr, int[] newSizes) {
+            // TODO: is this ever called by multi-dimensional? if not 
+            // it can be simplified; if true, then need to confirm it actually
+            // works- I wonder how it handles changes in the various dimension
             if (newSizes.Length != arr.Rank)
                 throw new ArgumentException("arr must have the same number of dimensions " +
                                             "as there are elements in newSizes", nameof(newSizes));
@@ -147,6 +151,7 @@ namespace WinAGI.Common {
             Array.ConstrainedCopy(arr, 0, temp, 0, length);
             return temp;
         }
+
         /// <summary>
         /// Converts only ascii characters in a string to lower case. Extended
         /// characters are not adjusted.
@@ -163,7 +168,14 @@ namespace WinAGI.Common {
             }
             return sb.ToString();  
         }
-        
+
+        /// <summary>
+        /// A safe version of SubString(string.Length-length, string.Length) that avoids
+        /// exception if length > string.Length.
+        /// </summary>
+        /// <param name="strIn"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
         public static string Right(string strIn, int length) {
             if (length >= strIn.Length)
                 return strIn;
@@ -171,6 +183,12 @@ namespace WinAGI.Common {
                 return strIn[^length..];
         }
 
+        /// <summary>
+        /// A safe version of SubString(0, len) that avoids exception if len > string.Length.
+        /// </summary>
+        /// <param name="strIn"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
         public static string Left(string strIn, int length) {
             if (length >= strIn.Length)
                 return strIn;
@@ -178,9 +196,14 @@ namespace WinAGI.Common {
                 return strIn[..length];
         }
 
+        /// <summary>
+        /// A safe version of SubString that avoids exception if pos+length > string.Length
+        /// </summary>
+        /// <param name="strIn"></param>
+        /// <param name="pos"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
         public static string Mid(string strIn, int pos, int length) {
-            // mimic VB mid function; if length is too long, return
-            // max amount
             if (pos + length > strIn.Length)
                 return strIn[pos..];
             return strIn.Substring(pos, length);

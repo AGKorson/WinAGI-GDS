@@ -1931,13 +1931,11 @@ namespace WinAGI.Editor {
             }
         }
         public static void BuildSnippets() {
-            //loads snippet file, and creates array of snippets
-            SettingsList SnipList = new(ProgramDir + "snippets.txt");
+            // loads snippet file, and creates array of snippets
+            SettingsList SnipList = new(ProgramDir + "snippets.txt", FileMode.OpenOrCreate);
             int lngCount;
             int i, lngAdded;
 
-            //open the snippet file
-            SnipList.Open(false);
             // if nothing returned (meaning file was empty)
             if (SnipList.Lines.Count == 0) {
                 return;

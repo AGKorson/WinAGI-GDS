@@ -233,11 +233,10 @@ Logic             CodeSize/get              563                   resource not l
 Logic             Clear                     563                   resource not loaded
 Logic             ExportSource              563                   resource not loaded
 Logic             ExportSource              582                   file error during export
-Logic             Import                    615                   invalid filename (empty)
 Logic             Import                    PASS                  pass-through base.Import
 Logic             ImportSource              615                   invalid filename (empty)
 Logic             SaveSource                599                   sourcefile is missing
-Logic             SaveSource                582                   file accessverror while writing source
+Logic             SaveSource                582                   file access error while writing source
 Logic             Compile                   563                   resource not loaded
 Logic             Compile                   618                   compiling not allowed if not in game
 Logic             Compile                   546                   no source code (empty)
@@ -309,7 +308,16 @@ ResourceFunctions ExtractResources          700                   v2 DIR file is
 ResourceFunctions ExtractResources          502                   file access error while reading v2 DIR file
 ResourceFunctions ExtractResources          542                   invalid v3 DIR file (bad offset/size)
 ResourceFunctions ExtractResources          542                   invalid v3 DIR file (bad offset)
-ResourceFunctions ExpandV3ResData           559                   
+ResourceFunctions ExpandV3ResData           559                   inalid compression data
+SettingList       ctor                      604                   invalid list filename (empty)
+SettingList       ctor                      700                   list file is readonly
+SettingList       ctor                      524                   list file is missing
+SettingList       ctor                      700                   list file is readonly
+SettingList       ctor                      ArgException          invalid filemode
+SettingList       ctor                      502                   file access error while opening list file
+SettingList       Save                      563                   list not loaded
+SettingList       Save                      502                   file access error while opening list file
+
 
 
 

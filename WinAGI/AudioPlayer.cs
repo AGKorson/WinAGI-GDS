@@ -81,7 +81,7 @@ namespace WinAGI.Engine {
             if (SndRes.SndFormat != SoundFormat.sfAGI && SndRes.SndFormat != SoundFormat.sfMIDI) {
                 // exception
                 WinAGIException wex = new(LoadResString(705)) {
-                    HResult = 705,
+                    HResult = WINAGI_ERR + 705,
                 };
                 throw wex;
             }
@@ -207,7 +207,7 @@ namespace WinAGI.Engine {
             if (SndRes.SndFormat!= SoundFormat.sfWAV) {
                 // exception
                 WinAGIException wex = new(LoadResString(705)) {
-                    HResult = 705,
+                    HResult = WINAGI_ERR + 705,
                 };
                 throw wex;
             }
@@ -458,7 +458,7 @@ namespace WinAGI.Engine {
             if (sound.SndFormat != SoundFormat.sfAGI) {
                 // exception
                 WinAGIException wex = new(LoadResString(705)) {
-                    HResult = 705,
+                    HResult = WINAGI_ERR + 705,
                 };
                 throw wex;
             }

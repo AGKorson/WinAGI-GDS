@@ -11,11 +11,8 @@ namespace WinAGI.Common {
         static byte[] bytCompData;
         static int lngBitBuffer;
         static ushort intBitCount;
-        static byte[] bytCelData;
         static int lngInPos, lngOutPos;
-        static ushort[] intAppendChar, intCodePrefix;
         static ushort intClearCode, intEndCode;
-        static bool blnMaxedOut;
 
         public static byte[] GifLZW(ref byte[] bytCelData) {
             //used by picture and view export functions for creating GIFs
@@ -126,6 +123,7 @@ namespace WinAGI.Common {
             //if no errors, return compressed array
             return bytCompData;
         }
+        
         static short FindCodeInTable(string strCodeVal) {
             //used by GifLZW
             //searches the code table, and returns the code number if strCodeVal is found
@@ -140,6 +138,7 @@ namespace WinAGI.Common {
             //not found
             return -1;
         }
+        
         static void WriteCode(ushort CodeValue) {
             //adds this codevalue to the output buffer,
             //and writes bytes to the buffer when enough bits are in the buffer
@@ -184,172 +183,6 @@ namespace WinAGI.Common {
                                     //decrement bit Count
                 intBitCount -= 8;
             }
-        }
-        public static bool ExpandLZW(short intCodeSize) {
-            //only used by ExpandFile
-            short intCode, intAppendCode;
-            //reset everything
-            intCurCodeSize = (ushort)intCodeSize;
-            intClearCode = (ushort)(1 << (intCodeSize - 1)); //2 ^ (intCodeSize - 1)
-                                                             //reserve 'end' code (clear code +1)
-            intEndCode = (ushort)(intClearCode + 1);
-            //set pointer for next available code
-            intNextCode = (ushort)(intEndCode + 1);
-            lngBitBuffer = 0;
-            intBitCount = 0;
-            //initialize code tables (values up to clear code are not needed in the tables)
-            intAppendChar = new ushort[4096 - (1 << (intCodeSize - 1)) + 1]; //4095 - 2 ^ (intCodeSize - 1) + 1)
-            intCodePrefix = new ushort[4096 - (1 << (intCodeSize - 1)) + 1]; //(4095 - 2 ^ (intCodeSize - 1) + 1)
-                                                                             //intialize output buffer
-            bytCompData = new byte[256];
-            //get first code
-            intCode = GetNextCode();
-            //verify it's a clear code
-            if (intCode != intClearCode) {
-                return false;
-            }
-            //get next code (first code of actual data)
-            intCode = GetNextCode();
-            //write it to output
-            WriteByte((byte)intCode);
-            //store this byte as prefix for first code after the 'end' code
-            intCodePrefix[intNextCode - intEndCode - 1] = (ushort)intCode;
-            //increment nextcode pointer
-            intNextCode++;
-            //now read off codes, one at a time
-            do {
-                intCode = GetNextCode();
-                //if it's an end code, exit
-                if (intCode == intEndCode) {
-                    return true;
-                }
-
-                //if it's a clear code
-                if (intCode == intClearCode) {
-                    //need to reset
-                    blnMaxedOut = false;
-                    intCurCodeSize = (ushort)intCodeSize;
-                    intAppendChar = new ushort[4096 - (1 << (intCodeSize - 1)) + 1];
-                    intCodePrefix = new ushort[4096 - (1 << (intCodeSize - 1)) + 1];
-                    intNextCode = (ushort)(intEndCode + 1);
-                    //start over
-                    intCode = GetNextCode();
-                    //write it to output
-                    WriteByte((byte)intCode);
-                    //store this byte as prefix for first code after the 'end' code
-                    intCodePrefix[intNextCode - intEndCode - 1] = (ushort)intCode;
-                    //increment nextcode pointer
-                    intNextCode++;
-                }
-                else {
-                    //if it is a base char,
-                    if (intCode < intEndCode) {
-                        //just output it to output stream
-                        WriteByte((byte)intCode);
-                        intAppendCode = intCode;
-                    }
-                    else {
-                        //convert code to string of bytes and write them to output
-                        //return Value is first character of string, which is needed
-                        //to build the table entry
-                        intAppendCode = (short)(ushort)OutputCode(intCode);
-                    }
-                    //store this byte as prefix for next code
-                    intCodePrefix[intNextCode - intEndCode - 1] = (ushort)intCode;
-                    //add this code as append char to previous code
-                    intAppendChar[intNextCode - intEndCode - 2] = (ushort)intAppendCode;
-                    //increment nextcode pointer
-                    intNextCode++;
-                    if (intNextCode == (1 << intCurCodeSize) + 1) {
-                        //need to assess potential reset here?
-                        //if already at 12 bits
-                        if (intCurCodeSize == 12) {
-                            //tell compiler no more codes until a reset comes
-                            blnMaxedOut = true;
-                            //for now, we don't do anything, as we expect the
-                            //compressor to properly reset before we have this problem
-                        }
-                        else {
-                            intCurCodeSize++;
-                        }
-                    }
-                }
-            } while (lngInPos < bytCelData.Length); // Until lngInPos > UBound(bytCelData)
-            return true;
-        }
-        static short OutputCode(short intCodeIn) {
-            //only used by ExpandLZW
-            byte[] bytOutput;
-            short intPos;
-            short intCode, i;
-            //intCode should never be greater than next code Value;
-            //need to recurse through code table until we build the completed string of output characters
-            bytOutput = new byte[1];
-            intCode = intCodeIn;
-            do {
-                //expand output buffer by one byte
-                Array.Resize(ref bytOutput, bytOutput.Length + 1);
-                //move everything over one space
-                for (i = (short)(bytOutput.Length - 1); i >= 1; i--) {
-                    bytOutput[i] = bytOutput[i - 1];
-                }
-                //get prefix code
-                intCode = (short)intCodePrefix[intCode - intEndCode - 1];
-                if (intCode < intEndCode) {
-                    //add this code
-                    bytOutput[0] = (byte)intCode;
-                }
-                else {
-                    //add the prefix
-                    bytOutput[0] = (byte)intAppendChar[intCode - intEndCode - 1];
-                }
-            }
-            while (intCode >= intEndCode); // Until intCode < intEndCode
-            if (intCodeIn == intNextCode - 1) {
-                //end char is same as start char
-                bytOutput[^1] = bytOutput[0];
-            }
-            else {
-                //add append char for input code
-                bytOutput[^1] = (byte)intAppendChar[intCodeIn - intEndCode - 1];
-            }
-            //now output the bytes
-            for (i = 0; i < bytOutput.Length; i++) {
-                WriteByte(bytOutput[i]);
-            }
-            //return first char so it can be used in adding table entries
-            return bytOutput[0];
-        }
-        static void WriteByte(byte ByteVal) {
-            // used by ExpandLZW and OutputCode
-            // make sure output buffer has room; if not, expand it by 256 bytes
-            if (lngOutPos >= bytCompData.Length) {
-                Array.Resize(ref bytCompData, bytCompData.Length + 256);
-            }
-            // add the byte
-            bytCompData[lngOutPos] = ByteVal;
-            lngOutPos++;
-        }
-        public static short GetNextCode() {
-            short intCodeMask;
-            int lngNextByte;
-            //only used by ExpandLZW
-            //add bits to the buffer until enough are added to read out the next code
-            while (intBitCount < intCurCodeSize) {
-                // get next byte from input and shift it to end of current bitbuffer
-                lngNextByte = bytCelData[lngInPos] << intBitCount;
-                lngInPos++;
-                lngBitBuffer |= lngNextByte;
-                intBitCount += 8;
-            }
-            //now extract off the code
-            intCodeMask = (short)((1 << intCurCodeSize) - 1);
-            short retval = (short)(lngBitBuffer & intCodeMask);
-            //shift buffer to right
-            lngBitBuffer >>= intCurCodeSize;
-            //decrement bit Count
-            intBitCount = (ushort)(intBitCount - intCurCodeSize);
-            return retval;
         }
     }
 }

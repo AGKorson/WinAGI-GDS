@@ -320,12 +320,6 @@ namespace WinAGI.Engine {
                 mErrLevel = -14;
                 ErrData[0] = mResID;
                 ErrData[1] = e.Message;
-                //WinAGIException wex = new(LoadResString(565).Replace(ARG1, e.Message)) {
-                //    HResult = WINAGI_ERR + 565
-                //};
-                //wex.Data["exception"] = e;
-                //wex.Data["ID"] = mResID;
-                //throw wex;
             }
             // save length
             // original playsound DOS app used sound timing of 1/64 sec
@@ -585,7 +579,7 @@ namespace WinAGI.Engine {
                 // if wrong format
                 if (mFormat == SoundFormat.sfWAV) {
                     WinAGIException wex = new(LoadResString(596)) {
-                        HResult = 596,
+                        HResult = WINAGI_ERR + 596,
                     };
                     throw wex;
                 }
@@ -614,7 +608,7 @@ namespace WinAGI.Engine {
                 //if wrong format
                 if (mFormat != SoundFormat.sfAGI) {
                     WinAGIException wex = new("Only PC/PCjr sound resources can be exported as script files") {
-                        HResult = 596,
+                        HResult = WINAGI_ERR + 596,
                     };
                     throw wex;
                 }
@@ -692,7 +686,7 @@ namespace WinAGI.Engine {
                 //if wrong format
                 if (mFormat != SoundFormat.sfWAV) {
                     WinAGIException wex = new("Can't export MIDI formatted sound resource as .WAV file") {
-                        HResult = 596,
+                        HResult = WINAGI_ERR + 596,
                     };
                     throw wex;
                 }
@@ -1201,13 +1195,8 @@ namespace WinAGI.Engine {
                     mErrLevel = -13;
                     ErrData[0] = mResID;
                     // clear to set blank tracks
+                    // TODO: I don't think this resets the tracks correctly???
                     ErrClear();
-                    //Unload();
-                    //WinAGIException wex = new(LoadResString(598)) {
-                    //    HResult = WINAGI_ERR + 598
-                    //};
-                    //wex.Data["ID"] = mResID;
-                    //throw wex;
                     break;
                 }
             }
