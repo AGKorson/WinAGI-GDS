@@ -112,9 +112,6 @@ namespace WinAGI.Editor
             CompileLogicStatus += GameEvents_CompileLogicStatus;
             DecodeLogicStatus += GameEvents_DecodeLogicStatus;
 
-            //initialize the WinAGI engine
-            InitWinAGI();
-
             //use idle time to update caps/num/ins
             Application.Idle += new System.EventHandler(OnIdle);
 

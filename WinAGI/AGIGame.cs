@@ -517,7 +517,7 @@ namespace WinAGI.Engine {
             agVocabWords.Unload();
             agVocabWords.InGame = false;
             //restore default AGI colors
-            ResetDefaultColors();
+            DefaultColors = new();
             //write date of last edit
             WriteGameSetting("General", "LastEdit", agLastEdit.ToString());
             //now save it
@@ -2245,7 +2245,7 @@ namespace WinAGI.Engine {
             //     logic sourcefile extension
 
             // Palette: (make sure AGI defaults set first)
-            ResetDefaultColors();
+            DefaultColors = new();
             for (int i = 0; i < 16; i++) {
                 AGIColors[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), DefaultColors[i]);
             }

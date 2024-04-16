@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
+using static WinAGI.Engine.Compiler;
 
 namespace WinAGI.Engine {
     /// <summary>

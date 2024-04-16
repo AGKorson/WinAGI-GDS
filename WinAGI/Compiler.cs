@@ -27,7 +27,8 @@ namespace WinAGI.Engine {
         internal static bool agSierraSyntax = false;
         internal static string agDefSrcExt = ".lgc";
         internal static AGICodeStyle mCodeStyle = AGICodeStyle.cstDefault;
-        
+        internal static string agSrcFileExt = ".lgc";
+
         public static string ArgTypePrefix(byte index) {
             if (index > 8) {
                 throw new IndexOutOfRangeException("subscript out of range");

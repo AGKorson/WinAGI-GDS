@@ -5,10 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WinAGI.Engine
-{
-    public class WordGroup : IEnumerable<AGIWord>
-    {
+namespace WinAGI.Engine {
+    public class WordGroup : IEnumerable<AGIWord> {
         internal List<string> mWords;
         //internal System.Collections.Generic.SortedDictionary<string, string> mWordsD;
         //internal System.Collections.Generic.SortedSet<string> mWordsS;
@@ -16,15 +14,12 @@ namespace WinAGI.Engine
         internal int mGroupNum;
         internal readonly string strErrSource = "WinAGI.AGIWordGroup";
         //access to word list is by index only
-        public string this[byte index]
-        { get { return mWords[index]; } }
-        public WordGroup()
-        {
+        public string this[byte index] { get { return mWords[index]; } }
+        public WordGroup() {
             //initialze the word collection
             mWords = [];
         }
-        internal void AddWordToGroup(string aWord)
-        {
+        internal void AddWordToGroup(string aWord) {
             // TODO: need to make sure passed string is byte-code (i.e. converted from
             // unicode to actual byte values- or do I do that here????
 
@@ -40,7 +35,7 @@ namespace WinAGI.Engine
             else {
                 // TODO: need to add extended char words
                 // and non-lettered words to BEGINNING of list
-               
+
                 //step through all words
                 for (i = 0; i < mWords.Count; i++) {
                     //if new word is less than current word
@@ -54,18 +49,15 @@ namespace WinAGI.Engine
             }
             return;
         }
-        internal void DeleteWordFromGroup(string aWord)
-        {
+        internal void DeleteWordFromGroup(string aWord) {
             //delete word from group
             //the fact that this word exists in this group is
             //tested BEFORE this function is called
             mWords.Remove(aWord);
             return;
         }
-        public string GroupName
-        {
-            get
-            {
+        public string GroupName {
+            get {
                 //return first word in group
                 if (mWords.Count == 0) {
                     //return empty string
@@ -76,69 +68,55 @@ namespace WinAGI.Engine
                 }
             }
         }
-        public int GroupNum
-        {
-            get
-            {
+        public int GroupNum {
+            get {
 
                 return mGroupNum;
             }
-            internal set
-            {
+            internal set {
                 mGroupNum = value;
             }
         }
-        public int WordCount
-        {
+        public int WordCount {
             get { return mWords.Count; }
         }
-        WordEnum GetEnumerator()
-        {
+        WordEnum GetEnumerator() {
             return new WordEnum(mWords);
         }
-        IEnumerator IEnumerable.GetEnumerator()
-        {
+        IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
-        IEnumerator<AGIWord> IEnumerable<AGIWord>.GetEnumerator()
-        {
+        IEnumerator<AGIWord> IEnumerable<AGIWord>.GetEnumerator() {
             return (IEnumerator<AGIWord>)GetEnumerator();
         }
-    }
-    internal class WordEnum : IEnumerator<string>
-    {
-        public List<string> _words;
-        int position = -1;
-        public WordEnum(List<string> list)
-        {
-            _words = list;
-        }
-        object IEnumerator.Current => Current;
-        public string Current
-        {
-            get
-            {
-                try {
-                    return _words[position];
-                }
-                catch (IndexOutOfRangeException) {
+        internal class WordEnum : IEnumerator<string> {
+            public List<string> _words;
+            int position = -1;
+            public WordEnum(List<string> list) {
+                _words = list;
+            }
+            object IEnumerator.Current => Current;
+            public string Current {
+                get {
+                    try {
+                        return _words[position];
+                    }
+                    catch (IndexOutOfRangeException) {
 
-                    throw new InvalidOperationException();
+                        throw new InvalidOperationException();
+                    }
                 }
             }
-        }
-        public bool MoveNext()
-        {
-            position++;
-            return (position < _words.Count);
-        }
-        public void Reset()
-        {
-            position = -1;
-        }
-        public void Dispose()
-        {
-            _words = null;
+            public bool MoveNext() {
+                position++;
+                return (position < _words.Count);
+            }
+            public void Reset() {
+                position = -1;
+            }
+            public void Dispose() {
+                _words = null;
+            }
         }
     }
 }
