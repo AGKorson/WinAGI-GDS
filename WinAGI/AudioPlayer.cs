@@ -13,15 +13,19 @@ using System.Windows.Forms;
 namespace WinAGI.Engine {
 
     public static partial class Base {
-        //sound subclassing variables, constants, declarations
+        // sound subclassing variables, constants, declarations
         internal static MIDIPlayer midiPlayer = new();
         internal static PCjrPlayer pcjrPlayer = new();
-        internal static WAVPlayer WAVPlayer = new();
+        internal static WAVPlayer wavPlayer = new();
         internal static bool bPlayingMIDI = false;
         internal static bool bPlayingPCjr = false;
         internal static bool bPlayingWAV = false;
         internal static Sound soundPlaying;
 
+        /// <summary>
+        /// If a sound is playing, this method stops it, regardless of mode. No effect
+        /// if no sound is playing.
+        /// </summary>
         internal static void StopAllSound() {
             // this will send a msg to WndProc which will raise the 'sound complete'
             // event and release the sound object
@@ -29,6 +33,66 @@ namespace WinAGI.Engine {
             bPlayingWAV = false;
             bPlayingMIDI = false;
             pcjrPlayer.Reset();
+        }
+    }
+
+    /// <summary>
+    /// A class for writing data stream to be played as a MIDI  or WAV sound.
+    /// </summary>
+    internal class SoundData() {
+        public byte[] Data = [];
+        public int Pos = 0;
+
+        /// <summary>
+        /// Writes a four byte long value to midi array data.
+        /// </summary>
+        /// <param name="ByteIn"></param>
+        internal void WriteSndByte(byte ByteIn) {
+            Data[Pos++] = ByteIn;
+            if (Pos >= Data.Length) {
+                // bump up size to hold more data
+                Array.Resize(ref Data, Pos + 256);
+            }
+        }
+
+        /// <summary>
+        /// Writes a two byte integer value to midi array data.
+        /// </summary>
+        /// <param name="IntegerIn"></param>
+        internal void WriteSndWord(int IntegerIn) {
+            WriteSndByte((byte)(IntegerIn / 256));
+            WriteSndByte((byte)(IntegerIn & 0xFF));
+        }
+
+        /// <summary>
+        /// Writes a four byte long value to midi array data.
+        /// </summary>
+        /// <param name="LongIn"></param>
+        internal void WriteSndLong(int LongIn) {
+            WriteSndByte((byte)(LongIn >> 24));
+            WriteSndByte((byte)((LongIn >> 16) & 0xFF));
+            WriteSndByte((byte)((LongIn >> 8) & 0xFF));
+            WriteSndByte((byte)(LongIn & 0xFF));
+        }
+
+        /// <summary>
+        /// Writes variable delta times to midi data array.
+        /// </summary>
+        /// <param name="LongIn"></param>
+        internal void WriteSndDelta(int LongIn) {
+            int i = LongIn >> 21;
+            if ((i > 0)) {
+                WriteSndByte((byte)((i & 127) | 128));
+            }
+            i = LongIn >> 14;
+            if (i > 0) {
+                WriteSndByte((byte)((i & 127) | 128));
+            }
+            i = LongIn >> 7;
+            if ((i > 0)) {
+                WriteSndByte((byte)((i & 127) | 128));
+            }
+            WriteSndByte((byte)(LongIn & 127));
         }
     }
 
@@ -66,25 +130,20 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Plays a MIDI sound, either an MSDOS sound converted to MIDI, or a native IIg NIDI sound.
+        /// Plays a MIDI sound, either an MSDOS sound converted to MIDI, or a native IIg MIDI sound.
         /// </summary>
         /// <param name="SndRes"></param>
         internal void PlayMIDISound(Sound SndRes) {
             StringBuilder strError = new(255);
+
+            // Stop any currently playing sound.
+            StopAllSound();
 
             // create MIDI sound file
             string strTempFile = Path.GetTempFileName();
             FileStream fsMidi = new(strTempFile, FileMode.Open);
             fsMidi.Write(SndRes.MIDIData);
             fsMidi.Dispose();
-            // if midi (format 1 or 3 converted from agi, or native IIg midi)
-            if (SndRes.SndFormat != SoundFormat.sfAGI && SndRes.SndFormat != SoundFormat.sfMIDI) {
-                // exception
-                WinAGIException wex = new(LoadResString(705)) {
-                    HResult = WINAGI_ERR + 705,
-                };
-                throw wex;
-            }
             // open midi file and assign alias
             int rtn = mciSendString("open " + strTempFile + " type sequencer alias " + SndRes.ID, null, 0, IntPtr.Zero);
             // check for error
@@ -162,7 +221,7 @@ namespace WinAGI.Engine {
     /// </summary>
     internal class WAVPlayer : NativeWindow, IDisposable {
         private bool disposed = false;
-        internal byte[] mMIDIData;
+        internal byte[] mWAVData;
 
         internal WAVPlayer() {
             CreateParams cpWAVPlayer = new() {
@@ -297,12 +356,12 @@ namespace WinAGI.Engine {
         private Thread playerThread;
 
         /// <summary>
-        /// A cache of the generated WAVE data for loaded sounds.
+        /// A cache of the generated WAVE data for PCjr sounds.
         /// </summary>
-        public byte[] soundCache { get; set; }
+        private byte[] soundCache { get; set; }
 
         /// <summary>
-        /// NAudio output device that we play the generated WAVE data with.
+        /// NAudio output device that will play the generated WAVE data.
         /// </summary>
         private readonly IWavePlayer outputDevice;
 
@@ -454,14 +513,6 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="sound">The AGI Sound to play.</param>
         public void PlayPCjrSound(Sound sound) {
-            //if not standard AGI sound format 
-            if (sound.SndFormat != SoundFormat.sfAGI) {
-                // exception
-                WinAGIException wex = new(LoadResString(705)) {
-                    HResult = WINAGI_ERR + 705,
-                };
-                throw wex;
-            }
             // Stop any currently playing sound.
             StopAllSound();
 
@@ -492,7 +543,7 @@ namespace WinAGI.Engine {
         /// Plays the WAVE file data contained in the given MemoryStream using the NAudio library.
         /// </summary>
         /// <param name="memoryStream">The MemoryStream containing the WAVE file data.</param>
-        public void PlayWithNAudioMix(MemoryStream memoryStream) {
+        private void PlayWithNAudioMix(MemoryStream memoryStream) {
             // Add the new sound as an input to the NAudio mixer.
             RawSourceWaveStream rs = new(memoryStream, new WaveFormat(44100, 16, 2));
             ISampleProvider soundMixerInput = rs.ToSampleProvider();

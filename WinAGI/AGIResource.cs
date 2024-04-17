@@ -446,6 +446,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="NewRes"></param>
         internal void Clone(AGIResource NewRes) {
+
             NewRes.parent = parent;
             // resource data are copied manually as necessary by calling method
             // EORes and CurPos are calculated; don't need to copy them
@@ -593,7 +594,7 @@ namespace WinAGI.Engine {
                 if (mRData.Length != fullSize) {
                     // all other resources use LZW compression
                     V3Compressed = 2;
-                    mRData.AllData = ExpandV3ResData(mRData.AllData, fullSize);
+                    mRData.AllData = AGILZW.ExpandV3ResData(mRData.AllData, fullSize);
                 }
             }
             // reset resource markers

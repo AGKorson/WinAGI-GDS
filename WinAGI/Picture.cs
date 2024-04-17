@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using static WinAGI.Common.Base;
-using static WinAGI.Engine.Base;
+using static WinAGI.Engine.PictureFunctions;
 
 namespace WinAGI.Engine {
 
@@ -180,14 +180,15 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Copies picture data from this picture and returns a completely separate object reference
+        /// Copies picture data from this picture and returns a completely separate object
+        /// reference.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>a clone of this picture</returns>
         internal Picture Clone() {
             Picture CopyPicture = new();
             // copy base properties
             base.Clone(CopyPicture);
-            //add WinAGI items
+            // copy WinAGI items
             CopyPicture.mBkImgFile = mBkImgFile;
             CopyPicture.mBkShow = mBkShow;
             CopyPicture.mBkTrans = mBkTrans;

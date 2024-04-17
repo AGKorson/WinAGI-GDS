@@ -1,30 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using System.IO;
-using static WinAGI.Engine.Commands;
-using static WinAGI.Engine.MIDIPlayer;
-using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
-using System.Diagnostics;
 
 namespace WinAGI.Engine {
     public static partial class Base {
-        // constants used in extracting compressed resources
-        const int TABLE_SIZE = 18041;
-        const int START_BITS = 9;
-
-        // variables used in extracting compressed resources
-        private static int lngMaxCode;
-        private static uint[] intPrefix;
-        private static byte[] bytAppend;
-        private static int lngBitsInBuffer;
-        private static uint lngBitBuffer;
-        private static int lngOriginalSize;
-
-
         /// <summary>
         /// Gets the resources from VOL files, and adds them to the game.
         /// </summary>
@@ -557,109 +538,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="bytOriginalData"></param>
-        /// <param name="fullsize"></param>
-        /// <returns></returns>
-        internal static byte[] ExpandV3ResData(byte[] bytOriginalData, int fullsize) {
-            int intPosIn, intPosOut, intNextCode, i;
-            uint intOldCode, intNewCode;
-            string strDat;
-            char strChar;
-            int intCodeSize;
-            byte[] bytTempData;
-            intPrefix = new uint[TABLE_SIZE];
-            bytAppend = new byte[TABLE_SIZE];
-            // set temporary data field
-            bytTempData = new byte[fullsize];
-            // original size is determined by array bounds
-            lngOriginalSize = bytOriginalData.Length;
-            intPosIn = 0;
-            intPosOut = 0;
-            lngBitBuffer = 0;
-            lngBitsInBuffer = 0;
-
-            // initialize
-            intCodeSize = NewCodeSize(START_BITS);
-            intNextCode = 257;
-            strChar = (char)0;
-
-            // read in the first code.
-            intOldCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
-            // first code for SIERRA resouces should always be 256
-            if (intOldCode != 256) {
-                intPrefix = [];
-                bytAppend = [];
-                WinAGIException wex = new(LoadResString(559).Replace(ARG1, "(invalid compression data)")) {
-                    HResult = WINAGI_ERR + 559,
-                };
-                throw wex;
-            }
-            // now begin decompressing actual data
-            intNewCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
-            // continue extracting data, until all bytes are read (or end code is reached)
-            while ((intPosIn <= lngOriginalSize) && (intNewCode != 0x101)) {
-                // check for reset
-                if (intNewCode == 0x100) {
-                    // Restart LZW process
-                    intNextCode = 258;
-                    intCodeSize = NewCodeSize(START_BITS);
-                    // read in the first code
-                    intOldCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
-                    // the character Value is same as code for beginning
-                    strChar = (char)intOldCode;
-                    //write out the first character
-                    bytTempData[intPosOut++] = (byte)intOldCode;
-                    //now get next code
-                    intNewCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
-                }
-                else {
-                    // This code checks for the special STRING+character+STRING+character+STRING
-                    // case which generates an undefined code.  It handles it by decoding
-                    // the last code, and adding a single Character to the end of the decode string.
-                    // (new_code will ONLY return a next_code Value if the condition exists;
-                    // it should otherwise return a known code, or a ascii Value)
-                    if ((intNewCode >= intNextCode)) {
-                        //decode the string using old code
-                        strDat = DecodeString(intOldCode);
-                        // append the character code
-                        strDat += strChar;
-                    }
-                    else {
-                        // decode the string using new code
-                        strDat = DecodeString(intNewCode);
-                    }
-                    // retreive the character Value
-                    strChar = strDat[0];
-                    // now send out decoded data (it's backwards in the string, so
-                    // start at end and work back to beginning)
-                    for (i = 0; i < strDat.Length; i++) {
-                        bytTempData[intPosOut++] = (byte)strDat[i];
-                    }
-                    // if no more room in the current bit-code table,
-                    if (intNextCode > lngMaxCode) {
-                        // get new code size (in number of bits per code)
-                        intCodeSize = NewCodeSize(intCodeSize + 1);
-                    }
-                    // store code in prefix table
-                    intPrefix[intNextCode - 257] = intOldCode;
-                    // store append character in table
-                    bytAppend[intNextCode - 257] = (byte)strChar;
-                    // increment next code pointer
-                    intNextCode++;
-                    intOldCode = intNewCode;
-                    // get the next code
-                    intNewCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
-                }
-            }
-            // free lzw arrays
-            intPrefix = [];
-            bytAppend = [];
-            return bytTempData;
-        }
-
-        /// <summary>
         /// Checks all resource IDs looking for duplicates.
         /// </summary>
         /// <param name="agRes"></param>
@@ -803,107 +681,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// LZW Decompression: A method that converts a code value into its original string value.
-        /// </summary>
-        /// <param name="intCode"></param>
-        /// <returns></returns>
-        internal static string DecodeString(uint intCode) {
-            string retval = "";
-
-            while (intCode > 255) {
-                if (intCode > TABLE_SIZE) {
-                    return retval;
-                }
-                else {
-                    retval = (char)bytAppend[intCode - 257] + retval;
-                    intCode = intPrefix[intCode - 257];
-                }
-            }
-            retval = (char)intCode + retval;
-            return retval;
-        }
-
-        /// <summary>
-        /// LZW Decompression: This method extracts the next code Value off the input stream.
-        /// Since the number of bits per code can vary between 9 and 12, we can't read in
-        /// directly from the stream.
-        /// </summary>
-        /// <param name="bytData"></param>
-        /// <param name="intCodeSize"></param>
-        /// <param name="intPosIn"></param>
-        /// <returns></returns>
-        internal static uint ReadCode(ref byte[] bytData, int intCodeSize, ref int intPosIn) {
-            uint lngWord, lngRet;
-            // Unlike normal LZW, the bytes are actually written so the code boundaries work
-            // from right to left, NOT left to right. For example, if the input stream needs
-            // to be split on a 9 bit boundary it will use eight bits of first byte, plus LOWEST
-            // bit of byte 2. The second code is then the upper seven bits of byte 2 and the
-            // lower 2 bits of byte 3 etc:
-            //                           byte boundaries (8 bits per byte)
-            //           byte4           byte3           byte2           byte1           byte0
-            //  ...|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0
-            //  ... x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x
-            //  ... 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0
-            //                    code3             code2             code1             code0
-            //                           code boundaries (9 bits per code)
-            //
-            // The data stream is read into a bit buffer 8 bits at a time (i.e. a single byte).
-            // Once the buffer is full of data, the input code is pulled out, and the buffer
-            // is shifted.
-            // The input data from the stream must be shifted to ensure it lines up with data
-            // currently in the buffer.
-
-            // Read bytes into the buffer until has 24 or mor bits. This ensures that the
-            // eight bits read from the input stream will fit in the buffer (which is a long
-            // integer [4 bytes==32 bits]). Also stop reading data if end of data stream is
-            // reached.
-            while ((lngBitsInBuffer <= 24) && (intPosIn < lngOriginalSize)) {
-                lngWord = bytData[intPosIn++];
-                // shift the data to the left by enough bits so the byte being added will not
-                //overwrite the bits currently in the buffer, and add the bits to the buffer
-                lngBitBuffer |= (lngWord << lngBitsInBuffer);
-                //increment count of how many bits are currently in the buffer
-                lngBitsInBuffer += 8;
-            }
-            // The input code starts at the lowest bit in the buffer. Since the buffer has
-            // 32 bits total, we need to clear out all bits above the desired number of bits
-            // to define the code (i.e. if 9 bits, AND with 0x1FF; 10 bits,AND with 0x3FF,
-            // etc.)
-            lngRet = (uint)(lngBitBuffer & ((1 << intCodeSize) - 1));
-            // then shift the buffer to the right by the number of bits per code
-            lngBitBuffer >>= intCodeSize;
-            lngBitsInBuffer -= intCodeSize;
-            // return code Value
-            return lngRet;
-        }
-
-        /// <summary>
-        /// LZW Decompression: This method supports the expansion of compressed resources.
-        /// It sets the size of codes which the LZW routine uses. The code size starts at
-        /// 9 bits, then increases as all code tables are filled. The max code size is 11;
-        /// if an attempt is made to set a code size above that, the function does nothing.
-        /// <br />
-        /// The function also recalculates the maximum number of codes available to the
-        /// expand subroutine. This number is used to determine when to call this function
-        /// again.
-        /// </summary>
-        /// <param name="intVal"></param>
-        /// <returns></returns>
-        internal static int NewCodeSize(int intVal) {
-            const int MAXBITS = 11;
-            int retval;
-
-            if (intVal >= MAXBITS) {
-                retval = 11;
-            }
-            else {
-                retval = intVal;
-                lngMaxCode = (1 << retval) - 2;
-            }
-            return retval;
-        }
-
-        /// <summary>
         /// This method converts a standard AGI sound resource into a MIDI stream.
         /// </summary>
         /// <param name="SoundIn"></param>
@@ -916,6 +693,7 @@ namespace WinAGI.Engine {
             byte bytVol;
             int lngTrackCount = 0, lngTickCount;
             int lngStart, lngEnd;
+            SoundData sndOut = new();
 
             if (!SoundIn[0].Muted && SoundIn[0].Notes.Count > 0) {
                 lngTrackCount = 1;
@@ -933,92 +711,92 @@ namespace WinAGI.Engine {
                 lngTrackCount += 2;
             }
             // set intial size of midi data array
-            midiPlayer.mMIDIData = new byte[70 + 256];
+            sndOut.Data = new byte[70 + 256];
 
             // header
-            midiPlayer.mMIDIData[0] = 77;  // "M"
-            midiPlayer.mMIDIData[1] = 84;  // "T"
-            midiPlayer.mMIDIData[2] = 104; // "h"
-            midiPlayer.mMIDIData[3] = 100; // "d"
-            lngPos = 4;
+            sndOut.Data[0] = 77;  // "M"
+            sndOut.Data[1] = 84;  // "T"
+            sndOut.Data[2] = 104; // "h"
+            sndOut.Data[3] = 100; // "d"
+            sndOut.Pos = 4;
             // remaining length of header
-            WriteSndLong(6);
+            sndOut.WriteSndLong(6);
             // track mode
             //   mode 0 = single track
             //   mode 1 = multiple tracks, all start at zero
             //   mode 2 = multiple tracks, independent start times
-            WriteSndWord(1);
+            sndOut.WriteSndWord(1);
             if (lngTrackCount == 0) {
                 // create an empty MIDI stream
-                Array.Resize(array: ref midiPlayer.mMIDIData, 38);
+                sndOut.Data = new byte[38];
                 // one track, with one note of smallest length, and no sound
-                WriteSndWord(1);
+                sndOut.WriteSndWord(1);
                 // pulses per quarter note
-                WriteSndWord(30);
-                WriteSndByte(77);  // "M"
-                WriteSndByte(84);  // "T"
-                WriteSndByte(114); // "r"
-                WriteSndByte(107); // "k"
+                sndOut.WriteSndWord(30);
+                sndOut.WriteSndByte(77);  // "M"
+                sndOut.WriteSndByte(84);  // "T"
+                sndOut.WriteSndByte(114); // "r"
+                sndOut.WriteSndByte(107); // "k"
                 // track length
-                WriteSndLong(15);
+                sndOut.WriteSndLong(15);
                 // track number
-                WriteSndDelta(0);
+                sndOut.WriteSndDelta(0);
                 //  set instrument status byte
-                WriteSndByte(0xC0);
+                sndOut.WriteSndByte(0xC0);
                 // instrument number
-                WriteSndByte(0);
+                sndOut.WriteSndByte(0);
                 // add a slight delay note with no volume to end
-                WriteSndDelta(0);
-                WriteSndByte(0x90);
-                WriteSndByte(60);
-                WriteSndByte(0);
-                WriteSndDelta(16);
-                WriteSndByte(0x80);
-                WriteSndByte(60);
-                WriteSndByte(0);
+                sndOut.WriteSndDelta(0);
+                sndOut.WriteSndByte(0x90);
+                sndOut.WriteSndByte(60);
+                sndOut.WriteSndByte(0);
+                sndOut.WriteSndDelta(16);
+                sndOut.WriteSndByte(0x80);
+                sndOut.WriteSndByte(60);
+                sndOut.WriteSndByte(0);
                 // add end of track info
-                WriteSndDelta(0);
-                WriteSndByte(0xFF);
-                WriteSndByte(0x2F);
-                WriteSndByte(0x0);
-                return midiPlayer.mMIDIData;
+                sndOut.WriteSndDelta(0);
+                sndOut.WriteSndByte(0xFF);
+                sndOut.WriteSndByte(0x2F);
+                sndOut.WriteSndByte(0x0);
+                return sndOut.Data;
             }
             // track count
-            WriteSndWord(lngTrackCount);
+            sndOut.WriteSndWord(lngTrackCount);
             // pulses per quarter note
             // (agi sound tick is 1/60 sec; each tick of an AGI note
             // is 1/60 of a second; by default, MIDI defines a whole
             // note as 2 seconds; therefore, a quarter note is 1/2
             // second, or 30 ticks
-            WriteSndWord(30);
+            sndOut.WriteSndWord(30);
             // sound tracks
             for (i = 0; i < 3; i++) {
                 if (!SoundIn[i].Muted && SoundIn[i].Notes.Count > 0) {
-                    WriteSndByte(77);  // "M"
-                    WriteSndByte(84);  // "T"
-                    WriteSndByte(114); //"r"
-                    WriteSndByte(107); //"k"
+                    sndOut.WriteSndByte(77);  // "M"
+                    sndOut.WriteSndByte(84);  // "T"
+                    sndOut.WriteSndByte(114); //"r"
+                    sndOut.WriteSndByte(107); //"k"
                     // starting position for this track's data
-                    lngStart = lngPos;
+                    lngStart = sndOut.Pos;
                     // place holder for data size
-                    WriteSndLong(0);
+                    sndOut.WriteSndLong(0);
                     // track number
                     //     *********** i think this should be zero for all tracks
                     //     it's the delta sound value for the instrument setting
-                    WriteSndDelta(0);
+                    sndOut.WriteSndDelta(0);
                     // instrument status byte
-                    WriteSndByte((byte)(0xC0 + lngWriteTrack));
+                    sndOut.WriteSndByte((byte)(0xC0 + lngWriteTrack));
                     // instrument number
-                    WriteSndByte(SoundIn[i].Instrument);
+                    sndOut.WriteSndByte(SoundIn[i].Instrument);
                     // add a slight delay note with no volume to start
-                    WriteSndDelta(0);
-                    WriteSndByte((byte)(0x90 + lngWriteTrack));
-                    WriteSndByte(60);
-                    WriteSndByte(0);
-                    WriteSndDelta(4);
-                    WriteSndByte((byte)(0x80 + lngWriteTrack));
-                    WriteSndByte(60);
-                    WriteSndByte(0);
+                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte((byte)(0x90 + lngWriteTrack));
+                    sndOut.WriteSndByte(60);
+                    sndOut.WriteSndByte(0);
+                    sndOut.WriteSndDelta(4);
+                    sndOut.WriteSndByte((byte)(0x80 + lngWriteTrack));
+                    sndOut.WriteSndByte(60);
+                    sndOut.WriteSndByte(0);
                     // add notes from this track
                     for (j = 0; j <= SoundIn[i].Notes.Count - 1; j++) {
                         // calculate note to play - convert FreqDivisor to frequency
@@ -1050,37 +828,37 @@ namespace WinAGI.Engine {
                             bytVol = 0;
                         }
                         // NOTE ON
-                        WriteSndDelta(0);
-                        WriteSndByte((byte)(0x90 + lngWriteTrack));
-                        WriteSndByte(bytNote);
-                        WriteSndByte(bytVol);
+                        sndOut.WriteSndDelta(0);
+                        sndOut.WriteSndByte((byte)(0x90 + lngWriteTrack));
+                        sndOut.WriteSndByte(bytNote);
+                        sndOut.WriteSndByte(bytVol);
                         // NOTE OFF
-                        WriteSndDelta(SoundIn[i].Notes[j].Duration);
-                        WriteSndByte((byte)(0x80 + lngWriteTrack));
-                        WriteSndByte(bytNote);
-                        WriteSndByte(0);
+                        sndOut.WriteSndDelta(SoundIn[i].Notes[j].Duration);
+                        sndOut.WriteSndByte((byte)(0x80 + lngWriteTrack));
+                        sndOut.WriteSndByte(bytNote);
+                        sndOut.WriteSndByte(0);
                     }
                     // add a slight delay note with no volume to end of track
-                    WriteSndDelta(0);
-                    WriteSndByte((byte)(0x90 + lngWriteTrack));
-                    WriteSndByte(60);
-                    WriteSndByte(0);
-                    WriteSndDelta(4);
-                    WriteSndByte((byte)(0x80 + lngWriteTrack));
-                    WriteSndByte(60);
-                    WriteSndByte(0);
+                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte((byte)(0x90 + lngWriteTrack));
+                    sndOut.WriteSndByte(60);
+                    sndOut.WriteSndByte(0);
+                    sndOut.WriteSndDelta(4);
+                    sndOut.WriteSndByte((byte)(0x80 + lngWriteTrack));
+                    sndOut.WriteSndByte(60);
+                    sndOut.WriteSndByte(0);
                     // add end of track info
-                    WriteSndDelta(0);
-                    WriteSndByte(0xFF);
-                    WriteSndByte(0x2F);
-                    WriteSndByte(0x0);
+                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte(0xFF);
+                    sndOut.WriteSndByte(0x2F);
+                    sndOut.WriteSndByte(0x0);
                     //save track end position
-                    lngEnd = lngPos;
+                    lngEnd = sndOut.Pos;
                     // set cursor to start of track
-                    lngPos = lngStart;
+                    sndOut.Pos = lngStart;
                     // add the track length
-                    WriteSndLong((lngEnd - lngStart) - 4);
-                    lngPos = lngEnd;
+                    sndOut.WriteSndLong((lngEnd - lngStart) - 4);
+                    sndOut.Pos = lngEnd;
                 }
                 lngWriteTrack++;
             }
@@ -1093,48 +871,48 @@ namespace WinAGI.Engine {
                 // 0 means add tone, 1 means add white noise
                 for (i = 0; i < 2; i++) {
                     // add track header
-                    WriteSndByte(77);  // "M"
-                    WriteSndByte(84);  // "T"
-                    WriteSndByte(114); // "r"
-                    WriteSndByte(107); // "k"
+                    sndOut.WriteSndByte(77);  // "M"
+                    sndOut.WriteSndByte(84);  // "T"
+                    sndOut.WriteSndByte(114); // "r"
+                    sndOut.WriteSndByte(107); // "k"
                     // store starting position for this track's data
-                    lngStart = lngPos;
+                    lngStart = sndOut.Pos;
                     // place holder for chunklength
-                    WriteSndLong(0);
+                    sndOut.WriteSndLong(0);
                     // track number
-                    WriteSndDelta(lngWriteTrack);
+                    sndOut.WriteSndDelta(lngWriteTrack);
                     // instrument
-                    WriteSndByte((byte)(0xC0 + lngWriteTrack));
+                    sndOut.WriteSndByte((byte)(0xC0 + lngWriteTrack));
                     // instrument number
                     switch (i) {
                     case 0:
                         // tone - use harpsichord
-                        WriteSndByte(6);
+                        sndOut.WriteSndByte(6);
                         break;
                     case 1:
                         // white noise - use seashore
-                        WriteSndByte(122);
+                        sndOut.WriteSndByte(122);
                         //crank up the volume
-                        WriteSndByte(0);
-                        WriteSndByte((byte)(0xB0 + lngWriteTrack));
-                        WriteSndByte(7);
-                        WriteSndByte(127);
+                        sndOut.WriteSndByte(0);
+                        sndOut.WriteSndByte((byte)(0xB0 + lngWriteTrack));
+                        sndOut.WriteSndByte(7);
+                        sndOut.WriteSndByte(127);
                         // set legato
-                        WriteSndByte(0);
-                        WriteSndByte((byte)(0xB0 + lngWriteTrack));
-                        WriteSndByte(68);
-                        WriteSndByte(127);
+                        sndOut.WriteSndByte(0);
+                        sndOut.WriteSndByte((byte)(0xB0 + lngWriteTrack));
+                        sndOut.WriteSndByte(68);
+                        sndOut.WriteSndByte(127);
                         break;
                     }
                     // add a slight delay note with no volume to start the track
-                    WriteSndDelta(0);
-                    WriteSndByte((byte)(0x90 + lngWriteTrack));
-                    WriteSndByte(60);
-                    WriteSndByte(0);
-                    WriteSndDelta(4);
-                    WriteSndByte((byte)(0x80 + lngWriteTrack));
-                    WriteSndByte(60);
-                    WriteSndByte(0);
+                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte((byte)(0x90 + lngWriteTrack));
+                    sndOut.WriteSndByte(60);
+                    sndOut.WriteSndByte(0);
+                    sndOut.WriteSndDelta(4);
+                    sndOut.WriteSndByte((byte)(0x80 + lngWriteTrack));
+                    sndOut.WriteSndByte(60);
+                    sndOut.WriteSndByte(0);
                     // reset tick counter (used in case of need to borrow track 3 freq)
                     lngTickCount = 0;
                     for (j = 0; j < SoundIn[3].Notes.Count; j++) {
@@ -1189,42 +967,42 @@ namespace WinAGI.Engine {
                         }
 
                         // NOTE ON
-                        WriteSndDelta(0);
-                        WriteSndByte((byte)(0x90 + lngWriteTrack));
-                        WriteSndByte(bytNote);
-                        WriteSndByte(bytVol);
+                        sndOut.WriteSndDelta(0);
+                        sndOut.WriteSndByte((byte)(0x90 + lngWriteTrack));
+                        sndOut.WriteSndByte(bytNote);
+                        sndOut.WriteSndByte(bytVol);
                         // NOTE OFF
-                        WriteSndDelta(SoundIn[3].Notes[j].Duration);
-                        WriteSndByte((byte)(0x80 + lngWriteTrack));
-                        WriteSndByte(bytNote);
-                        WriteSndByte(0);
+                        sndOut.WriteSndDelta(SoundIn[3].Notes[j].Duration);
+                        sndOut.WriteSndByte((byte)(0x80 + lngWriteTrack));
+                        sndOut.WriteSndByte(bytNote);
+                        sndOut.WriteSndByte(0);
                     }
                     // add a slight delay note with no volume to end
-                    WriteSndDelta(0);
-                    WriteSndByte((byte)(0x90 + lngWriteTrack));
-                    WriteSndByte(60);
-                    WriteSndByte(0);
-                    WriteSndDelta(4);
-                    WriteSndByte((byte)(0x80 + lngWriteTrack));
-                    WriteSndByte(60);
-                    WriteSndByte(0);
+                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte((byte)(0x90 + lngWriteTrack));
+                    sndOut.WriteSndByte(60);
+                    sndOut.WriteSndByte(0);
+                    sndOut.WriteSndDelta(4);
+                    sndOut.WriteSndByte((byte)(0x80 + lngWriteTrack));
+                    sndOut.WriteSndByte(60);
+                    sndOut.WriteSndByte(0);
                     // add end of track data
-                    WriteSndDelta(0);
-                    WriteSndByte(0xFF);
-                    WriteSndByte(0x2F);
-                    WriteSndByte(0x0);
+                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte(0xFF);
+                    sndOut.WriteSndByte(0x2F);
+                    sndOut.WriteSndByte(0x0);
                     // save ending position
-                    lngEnd = lngPos;
+                    lngEnd = sndOut.Pos;
                     // go back to start of track, and add track length
-                    lngPos = lngStart;
-                    WriteSndLong((lngEnd - lngStart) - 4);
-                    lngPos = lngEnd;
+                    sndOut.Pos = lngStart;
+                    sndOut.WriteSndLong(lngEnd - lngStart - 4);
+                    sndOut.Pos = lngEnd;
                     lngWriteTrack++;
                 }
             }
             // remove any extra padding from the data array
-            Array.Resize(ref midiPlayer.mMIDIData, lngPos);
-            return midiPlayer.mMIDIData;
+            Array.Resize(ref sndOut.Data, sndOut.Pos);
+            return sndOut.Data;
         }
 
         /// <summary>
@@ -1482,30 +1260,30 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// This method formats a native Apple IIgs PCM sound for playback on
+        /// This method creates a data stream from a native Apple IIgs PCM sound for playback on
         /// modern WAV devices.
         /// </summary>
         /// <param name="SoundIn"></param>
         /// <returns></returns>
         internal static byte[] BuildIIgsPCM(Sound SoundIn) {
-            int i, lngSize;
-            byte[] bData;
+            int lngSize;
+            byte[] bData, bOutput;
             // required format for WAV data file:
-            //Positions     Value           Description
-            // 0 - 3        "RIFF"          Marks the file as a riff (WAV) file.
-            // 4 - 7        <varies>        Size of the overall file
-            // 8 -11        "WAVE"          File Type Header. (should always equals "WAVE")
-            // 12-15        "fmt "          Format chunk marker. Includes trailing space
-            // 16-19        16              Length of format header data as listed above
-            // 20-21        1               Type of format (1 is PCM)
-            // 22-23        1               Number of Channels
-            // 24-27        8000            Sample Rate
-            // 28-31        8000            (Sample Rate * BitsPerSample * Channels) / 8
-            // 32-33        1               (BitsPerSample * Channels) / 8 (1 - 8 bit mono)
-            // 34-35        8               Bits per sample
-            // 36-39        "data"          "data" chunk header. Marks the beginning of the data section.
-            // 40-43        <varies>        Size of the data section.
-            // 44+          data
+            // Positions      Value           Description
+            //   0 - 3        "RIFF"          Marks the file as a riff (WAV) file.
+            //   4 - 7        <varies>        Size of the overall file
+            //   8 -11        "WAVE"          File Type Header. (should always equals "WAVE")
+            //   12-15        "fmt "          Format chunk marker. Includes trailing space
+            //   16-19        16              Length of format header data as listed above
+            //   20-21        1               Type of format (1 is PCM)
+            //   22-23        1               Number of Channels
+            //   24-27        8000            Sample Rate
+            //   28-31        8000            (Sample Rate * BitsPerSample * Channels) / 8
+            //   32-33        1               (BitsPerSample * Channels) / 8 (1 - 8 bit mono)
+            //   34-35        8               Bits per sample
+            //   36-39        "data"          "data" chunk header. Marks the beginning of the data section.
+            //   40-43        <varies>        Size of the data section.
+            //   44+          data
 
             // IIgs header for pcm sounds is 54 bytes, but its purpose is still
             // mostly unknown; the total size is at pos 8-9; the rest of the
@@ -1521,98 +1299,58 @@ namespace WinAGI.Engine {
             lngSize = bData.Length - 54;
             // expand midi data array to hold the sound resource data plus
             // the WAV file header
-            midiPlayer.mMIDIData = new byte[44 + lngSize];
+            bOutput = new byte[44 + lngSize];
             // add header
-            midiPlayer.mMIDIData[0] = 82;
-            midiPlayer.mMIDIData[1] = 73;
-            midiPlayer.mMIDIData[2] = 70;
-            midiPlayer.mMIDIData[3] = 70;
-            midiPlayer.mMIDIData[4] = (byte)((lngSize + 36) & 0xFF);
-            midiPlayer.mMIDIData[5] = (byte)(((lngSize + 36) >> 8) & 0xFF);
-            midiPlayer.mMIDIData[6] = (byte)(((lngSize + 36) >> 16) & 0xFF);
-            midiPlayer.mMIDIData[7] = (byte)((lngSize + 36) >> 24);
-            midiPlayer.mMIDIData[8] = 87;
-            midiPlayer.mMIDIData[9] = 65;
-            midiPlayer.mMIDIData[10] = 86;
-            midiPlayer.mMIDIData[11] = 69;
-            midiPlayer.mMIDIData[12] = 102;
-            midiPlayer.mMIDIData[13] = 109;
-            midiPlayer.mMIDIData[14] = 116;
-            midiPlayer.mMIDIData[15] = 32;
-            midiPlayer.mMIDIData[16] = 16;
-            midiPlayer.mMIDIData[17] = 0;
-            midiPlayer.mMIDIData[18] = 0;
-            midiPlayer.mMIDIData[19] = 0;
-            midiPlayer.mMIDIData[20] = 1;
-            midiPlayer.mMIDIData[21] = 0;
-            midiPlayer.mMIDIData[22] = 1;
-            midiPlayer.mMIDIData[23] = 0;
-            midiPlayer.mMIDIData[24] = 64;
-            midiPlayer.mMIDIData[25] = 31;
-            midiPlayer.mMIDIData[26] = 0;
-            midiPlayer.mMIDIData[27] = 0;
-            midiPlayer.mMIDIData[28] = 64;
-            midiPlayer.mMIDIData[29] = 31;
-            midiPlayer.mMIDIData[30] = 0;
-            midiPlayer.mMIDIData[31] = 0;
-            midiPlayer.mMIDIData[32] = 1;
-            midiPlayer.mMIDIData[33] = 0;
-            midiPlayer.mMIDIData[34] = 8;
-            midiPlayer.mMIDIData[35] = 0;
-            midiPlayer.mMIDIData[36] = 100;
-            midiPlayer.mMIDIData[37] = 97;
-            midiPlayer.mMIDIData[38] = 116;
-            midiPlayer.mMIDIData[39] = 97;
-            midiPlayer.mMIDIData[40] = (byte)((lngSize - 2) & 0xFF);
-            midiPlayer.mMIDIData[41] = (byte)(((lngSize - 2) >> 8) & 0xFF);
-            midiPlayer.mMIDIData[42] = (byte)(((lngSize - 2) >> 16) & 0xFF);
-            midiPlayer.mMIDIData[43] = (byte)((lngSize - 2) >> 24);
+            bOutput[0] = 82;
+            bOutput[1] = 73;
+            bOutput[2] = 70;
+            bOutput[3] = 70;
+            bOutput[4] = (byte)((lngSize + 36) & 0xFF);
+            bOutput[5] = (byte)(((lngSize + 36) >> 8) & 0xFF);
+            bOutput[6] = (byte)(((lngSize + 36) >> 16) & 0xFF);
+            bOutput[7] = (byte)((lngSize + 36) >> 24);
+            bOutput[8] = 87;
+            bOutput[9] = 65;
+            bOutput[10] = 86;
+            bOutput[11] = 69;
+            bOutput[12] = 102;
+            bOutput[13] = 109;
+            bOutput[14] = 116;
+            bOutput[15] = 32;
+            bOutput[16] = 16;
+            bOutput[17] = 0;
+            bOutput[18] = 0;
+            bOutput[19] = 0;
+            bOutput[20] = 1;
+            bOutput[21] = 0;
+            bOutput[22] = 1;
+            bOutput[23] = 0;
+            bOutput[24] = 64;
+            bOutput[25] = 31;
+            bOutput[26] = 0;
+            bOutput[27] = 0;
+            bOutput[28] = 64;
+            bOutput[29] = 31;
+            bOutput[30] = 0;
+            bOutput[31] = 0;
+            bOutput[32] = 1;
+            bOutput[33] = 0;
+            bOutput[34] = 8;
+            bOutput[35] = 0;
+            bOutput[36] = 100;
+            bOutput[37] = 97;
+            bOutput[38] = 116;
+            bOutput[39] = 97;
+            bOutput[40] = (byte)((lngSize - 2) & 0xFF);
+            bOutput[41] = (byte)(((lngSize - 2) >> 8) & 0xFF);
+            bOutput[42] = (byte)(((lngSize - 2) >> 16) & 0xFF);
+            bOutput[43] = (byte)((lngSize - 2) >> 24);
             // copy data from sound resource
-            lngPos = 44;
-            for (i = 54; i < bData.Length; i++) {
-                midiPlayer.mMIDIData[lngPos++] = bData[i];
+            int pos = 44;
+            for (int i = 54; i < bData.Length; i++) {
+                bOutput[pos++] = bData[i];
             }
-            return midiPlayer.mMIDIData;
-        }
-
-        /// <summary>
-        /// Writes variable delta times to midi data array.
-        /// </summary>
-        /// <param name="LongIn"></param>
-        internal static void WriteSndDelta(int LongIn) {
-            int i = LongIn >> 21;
-            if ((i > 0)) {
-                WriteSndByte((byte)((i & 127) | 128));
-            }
-            i = LongIn >> 14;
-            if (i > 0) {
-                WriteSndByte((byte)((i & 127) | 128));
-            }
-            i = LongIn >> 7;
-            if ((i > 0)) {
-                WriteSndByte((byte)((i & 127) | 128));
-            }
-            WriteSndByte((byte)(LongIn & 127));
-        }
-
-        /// <summary>
-        /// Writes a two byte integer value to midi array data.
-        /// </summary>
-        /// <param name="IntegerIn"></param>
-        internal static void WriteSndWord(int IntegerIn) {
-            WriteSndByte((byte)(IntegerIn / 256));
-            WriteSndByte((byte)(IntegerIn & 0xFF));
-        }
-
-        /// <summary>
-        /// Writes a four byte long value to midi array data.
-        /// </summary>
-        /// <param name="LongIn"></param>
-        internal static void WriteSndLong(int LongIn) {
-            WriteSndByte((byte)(LongIn >> 24));
-            WriteSndByte((byte)((LongIn >> 16) & 0xFF));
-            WriteSndByte((byte)((LongIn >> 8) & 0xFF));
-            WriteSndByte((byte)(LongIn & 0xFF));
+            return bOutput;
         }
 
         /// <summary>
@@ -1636,17 +1374,227 @@ namespace WinAGI.Engine {
             // if nothing found, return 0
             return 0;
         }
+    }
+
+    /// <summary>
+    /// A class to provide LZW decompression support for AGI v3 resources.
+    /// </summary>
+    internal static class AGILZW {
+        // constants used in extracting compressed resources
+        const int TABLE_SIZE = 18041;
+        const int START_BITS = 9;
+
+        // variables used in extracting compressed resources
+        private static int lngMaxCode;
+        private static uint[] intPrefix;
+        private static byte[] bytAppend;
+        private static int lngBitsInBuffer;
+        private static uint lngBitBuffer;
+        private static int lngOriginalSize;
 
         /// <summary>
-        /// Writes a four byte long value to midi array data.
+        /// Expands a v3 AGI resource that is compressed using Sierra's custom LZW
+        /// implementation.
         /// </summary>
-        /// <param name="ByteIn"></param>
-        internal static void WriteSndByte(byte ByteIn) {
-            midiPlayer.mMIDIData[lngPos++] = ByteIn;
-            if (lngPos >= midiPlayer.mMIDIData.Length) {
-                // bump up size to hold more data
-                Array.Resize(ref midiPlayer.mMIDIData, lngPos + 256);
+        /// <param name="bytOriginalData"></param>
+        /// <param name="fullsize"></param>
+        /// <returns></returns>
+        internal static byte[] ExpandV3ResData(byte[] bytOriginalData, int fullsize) {
+            int intPosIn, intPosOut, intNextCode, i;
+            uint intOldCode, intNewCode;
+            string strDat;
+            char strChar;
+            int intCodeSize;
+            byte[] bytTempData;
+            intPrefix = new uint[TABLE_SIZE];
+            bytAppend = new byte[TABLE_SIZE];
+            // set temporary data field
+            bytTempData = new byte[fullsize];
+            // original size is determined by array bounds
+            lngOriginalSize = bytOriginalData.Length;
+            intPosIn = 0;
+            intPosOut = 0;
+            lngBitBuffer = 0;
+            lngBitsInBuffer = 0;
+
+            // initialize
+            intCodeSize = NewCodeSize(START_BITS);
+            intNextCode = 257;
+            strChar = (char)0;
+
+            // read in the first code.
+            intOldCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+            // first code for SIERRA resouces should always be 256
+            if (intOldCode != 256) {
+                intPrefix = [];
+                bytAppend = [];
+                WinAGIException wex = new(LoadResString(559).Replace(ARG1, "(invalid compression data)")) {
+                    HResult = Base.WINAGI_ERR + 559,
+                };
+                throw wex;
             }
+            // now begin decompressing actual data
+            intNewCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+            // continue extracting data, until all bytes are read (or end code is reached)
+            while ((intPosIn <= lngOriginalSize) && (intNewCode != 0x101)) {
+                // check for reset
+                if (intNewCode == 0x100) {
+                    // Restart LZW process
+                    intNextCode = 258;
+                    intCodeSize = NewCodeSize(START_BITS);
+                    // read in the first code
+                    intOldCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+                    // the character Value is same as code for beginning
+                    strChar = (char)intOldCode;
+                    //write out the first character
+                    bytTempData[intPosOut++] = (byte)intOldCode;
+                    //now get next code
+                    intNewCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+                }
+                else {
+                    // This code checks for the special STRING+character+STRING+character+STRING
+                    // case which generates an undefined code.  It handles it by decoding
+                    // the last code, and adding a single Character to the end of the decode string.
+                    // (new_code will ONLY return a next_code Value if the condition exists;
+                    // it should otherwise return a known code, or a ascii Value)
+                    if ((intNewCode >= intNextCode)) {
+                        //decode the string using old code
+                        strDat = DecodeString(intOldCode);
+                        // append the character code
+                        strDat += strChar;
+                    }
+                    else {
+                        // decode the string using new code
+                        strDat = DecodeString(intNewCode);
+                    }
+                    // retreive the character Value
+                    strChar = strDat[0];
+                    // now send out decoded data (it's backwards in the string, so
+                    // start at end and work back to beginning)
+                    for (i = 0; i < strDat.Length; i++) {
+                        bytTempData[intPosOut++] = (byte)strDat[i];
+                    }
+                    // if no more room in the current bit-code table,
+                    if (intNextCode > lngMaxCode) {
+                        // get new code size (in number of bits per code)
+                        intCodeSize = NewCodeSize(intCodeSize + 1);
+                    }
+                    // store code in prefix table
+                    intPrefix[intNextCode - 257] = intOldCode;
+                    // store append character in table
+                    bytAppend[intNextCode - 257] = (byte)strChar;
+                    // increment next code pointer
+                    intNextCode++;
+                    intOldCode = intNewCode;
+                    // get the next code
+                    intNewCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
+                }
+            }
+            // free lzw arrays
+            intPrefix = [];
+            bytAppend = [];
+            return bytTempData;
+        }
+
+        /// <summary>
+        /// LZW Decompression: A method that converts a code value into its original string value.
+        /// </summary>
+        /// <param name="intCode"></param>
+        /// <returns></returns>
+        internal static string DecodeString(uint intCode) {
+            string retval = "";
+
+            while (intCode > 255) {
+                if (intCode > TABLE_SIZE) {
+                    return retval;
+                }
+                else {
+                    retval = (char)bytAppend[intCode - 257] + retval;
+                    intCode = intPrefix[intCode - 257];
+                }
+            }
+            retval = (char)intCode + retval;
+            return retval;
+        }
+
+        /// <summary>
+        /// LZW Decompression: This method extracts the next code Value off the input stream.
+        /// Since the number of bits per code can vary between 9 and 12, we can't read in
+        /// directly from the stream.
+        /// </summary>
+        /// <param name="bytData"></param>
+        /// <param name="intCodeSize"></param>
+        /// <param name="intPosIn"></param>
+        /// <returns></returns>
+        internal static uint ReadCode(ref byte[] bytData, int intCodeSize, ref int intPosIn) {
+            uint lngWord, lngRet;
+            // Unlike normal LZW, the bytes are actually written so the code boundaries work
+            // from right to left, NOT left to right. For example, if the input stream needs
+            // to be split on a 9 bit boundary it will use eight bits of first byte, plus LOWEST
+            // bit of byte 2. The second code is then the upper seven bits of byte 2 and the
+            // lower 2 bits of byte 3 etc:
+            //                           byte boundaries (8 bits per byte)
+            //           byte4           byte3           byte2           byte1           byte0
+            //  ...|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0
+            //  ... x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x
+            //  ... 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0
+            //                    code3             code2             code1             code0
+            //                           code boundaries (9 bits per code)
+            //
+            // The data stream is read into a bit buffer 8 bits at a time (i.e. a single byte).
+            // Once the buffer is full of data, the input code is pulled out, and the buffer
+            // is shifted.
+            // The input data from the stream must be shifted to ensure it lines up with data
+            // currently in the buffer.
+
+            // Read bytes into the buffer until has 24 or mor bits. This ensures that the
+            // eight bits read from the input stream will fit in the buffer (which is a long
+            // integer [4 bytes==32 bits]). Also stop reading data if end of data stream is
+            // reached.
+            while ((lngBitsInBuffer <= 24) && (intPosIn < lngOriginalSize)) {
+                lngWord = bytData[intPosIn++];
+                // shift the data to the left by enough bits so the byte being added will not
+                //overwrite the bits currently in the buffer, and add the bits to the buffer
+                lngBitBuffer |= (lngWord << lngBitsInBuffer);
+                //increment count of how many bits are currently in the buffer
+                lngBitsInBuffer += 8;
+            }
+            // The input code starts at the lowest bit in the buffer. Since the buffer has
+            // 32 bits total, we need to clear out all bits above the desired number of bits
+            // to define the code (i.e. if 9 bits, AND with 0x1FF; 10 bits,AND with 0x3FF,
+            // etc.)
+            lngRet = (uint)(lngBitBuffer & ((1 << intCodeSize) - 1));
+            // then shift the buffer to the right by the number of bits per code
+            lngBitBuffer >>= intCodeSize;
+            lngBitsInBuffer -= intCodeSize;
+            // return code Value
+            return lngRet;
+        }
+
+        /// <summary>
+        /// LZW Decompression: This method supports the expansion of compressed resources.
+        /// It sets the size of codes which the LZW routine uses. The code size starts at
+        /// 9 bits, then increases as all code tables are filled. The max code size is 11;
+        /// if an attempt is made to set a code size above that, the function does nothing.
+        /// <br />
+        /// The function also recalculates the maximum number of codes available to the
+        /// expand subroutine. This number is used to determine when to call this function
+        /// again.
+        /// </summary>
+        /// <param name="intVal"></param>
+        /// <returns></returns>
+        internal static int NewCodeSize(int intVal) {
+            const int MAXBITS = 11;
+            int retval;
+
+            if (intVal >= MAXBITS) {
+                retval = 11;
+            }
+            else {
+                retval = intVal;
+                lngMaxCode = (1 << retval) - 2;
+            }
+            return retval;
         }
     }
 }

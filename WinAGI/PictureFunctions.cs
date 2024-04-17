@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WinAGI.Engine {
-    public static partial class Base {
-        public enum CornerDirection {
+    public static partial class PictureFunctions {
+        private enum CornerDirection {
             cdX,
             cdY,
         }
