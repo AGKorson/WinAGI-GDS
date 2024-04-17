@@ -15,10 +15,8 @@ namespace WinAGI.Engine {
     public static partial class Base {
         // sound subclassing variables, constants, declarations
         internal static MIDIPlayer midiPlayer = new();
-        internal static PCjrPlayer pcjrPlayer = new();
         internal static WAVPlayer wavPlayer = new();
         internal static bool bPlayingMIDI = false;
-        internal static bool bPlayingPCjr = false;
         internal static bool bPlayingWAV = false;
         internal static Sound soundPlaying;
 
@@ -32,7 +30,7 @@ namespace WinAGI.Engine {
             _ = mciSendString("close all", null, 0, (IntPtr)null);
             bPlayingWAV = false;
             bPlayingMIDI = false;
-            pcjrPlayer.Reset();
+            wavPlayer.Reset();
         }
     }
 
@@ -217,137 +215,11 @@ namespace WinAGI.Engine {
     }
 
     /// <summary>
-    /// A class for playing WAV files (found in some Apple IIgs sound resources).
+    /// A class for playing WAV data streams.
     /// </summary>
-    internal class WAVPlayer : NativeWindow, IDisposable {
-        private bool disposed = false;
-        internal byte[] mWAVData;
-
-        internal WAVPlayer() {
-            CreateParams cpWAVPlayer = new() {
-                Caption = "",
-            };
-            CreateHandle(cpWAVPlayer);
-        }
-
-        protected override void WndProc(ref Message m) {
-            // Listen for messages that are sent to the sndplayer window.
-            switch (m.Msg) {
-            case MM_MCINOTIFY:
-                // determine success status
-                bool blnSuccess = (m.WParam == MCI_NOTIFY_SUCCESSFUL);
-                // close the sound
-                _ = mciSendString("close all", null, 0, 0);
-                // raise the 'done' event
-                soundPlaying.Raise_SoundCompleteEvent(blnSuccess);
-                // reset the flag
-                bPlayingMIDI = false;
-                // release the object
-                soundPlaying = null;
-                break;
-            }
-            base.WndProc(ref m);
-        }
-
-        /// <summary>
-        /// Plays a IIg WAV sound.
-        /// </summary>
-        /// <param name="SndRes"></param>
-        internal void PlayWAVSound(Sound SndRes) {
-            StringBuilder strError = new(255);
-
-            // create WAV sound file
-            string strTempFile = Path.GetTempFileName();
-            FileStream fsWAV = new(strTempFile, FileMode.Open);
-            // MIDIData stream is used for both MIDI and WAV, depending on sound format
-            fsWAV.Write(SndRes.MIDIData);
-            fsWAV.Dispose();
-            //if not native IIg wav 
-            if (SndRes.SndFormat!= SoundFormat.sfWAV) {
-                // exception
-                WinAGIException wex = new(LoadResString(705)) {
-                    HResult = WINAGI_ERR + 705,
-                };
-                throw wex;
-            }
-            // open wav file and assign alias
-            int rtn = mciSendString("open " + strTempFile + " type waveaudio alias " + SndRes.ID, null, 0, IntPtr.Zero);
-            // check for error
-            if (rtn != 0) {
-                _ = mciGetErrorString(rtn, strError, 255);
-                WinAGIException wex = new(LoadResString(628)) {
-                    HResult = WINAGI_ERR + 628,
-                };
-                wex.Data["error"] = strError;
-                throw wex;
-            }
-            bPlayingWAV = true;
-            soundPlaying = SndRes;
-            // play the file
-            rtn = mciSendString("play " + SndRes.ID + " notify", null, 0, Handle);
-            // check for errors
-            if (rtn != 0) {
-                _ = mciGetErrorString(rtn, strError, 255);
-                // reset playing flag
-                bPlayingWAV = false;
-                soundPlaying = null;
-                // close sound
-                _ = mciSendString("close all", null, 0, 0);
-                // return the error
-                WinAGIException wex = new(LoadResString(628)) {
-                    HResult = WINAGI_ERR + 628,
-                };
-                wex.Data["error"] = strError;
-                throw wex;
-            }
-        }
-
-        public void Dispose() {
-            Dispose(disposing: true);
-            // This object will be cleaned up by the Dispose method.
-            // Therefore, you should call GC.SuppressFinalize to
-            // take this object off the finalization queue
-            // and prevent finalization code for this object
-            // from executing a second time.
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing) {
-            // check to see if Dispose has already been called
-            if (!disposed) {
-                // if disposing is true, dispose all managed and unmanaged resources
-                if (disposing) {
-                    DestroyHandle();
-                }
-                // Call the appropriate methods to clean up
-                // unmanaged resources here.
-                // If disposing is false,
-                // only the following code is executed.
-                DestroyHandle();
-                // Note disposing has been done.
-                disposed = true;
-            }
-        }
-
-        // Use C# finalizer syntax for finalization code.
-        // This finalizer will run only if the Dispose method
-        // does not get called.
-        // It gives your base class the opportunity to finalize.
-        // Do not provide finalizer in types derived from this class.
-        ~WAVPlayer() {
-            // Do not re-create Dispose clean-up code here.
-            // Calling Dispose(disposing: false) is optimal in terms of
-            // readability and maintainability.
-            Dispose(disposing: false);
-        }
-    }
-
-    /// <summary>
-    /// A class for playing AGI Sounds using an emulated PCjr sound chip.
-    /// </summary>
-    internal class PCjrPlayer {
+    internal class WAVPlayer {
         private const int SAMPLE_RATE = 44100;
-        // PCjrPlayer code based on prior work by Lance Ewing in 
+        // WAVPlayer code based on prior work by Lance Ewing in 
         // AGILE. Thank you Lance
 
         /// <summary>
@@ -356,19 +228,16 @@ namespace WinAGI.Engine {
         private Thread playerThread;
 
         /// <summary>
-        /// A cache of the generated WAVE data for PCjr sounds.
-        /// </summary>
-        private byte[] soundCache { get; set; }
-
-        /// <summary>
         /// NAudio output device that will play the generated WAVE data.
         /// </summary>
-        private readonly IWavePlayer outputDevice;
+        private IWavePlayer outputDevice;
 
         /// <summary>
         /// NAudio ISampleProvider that mixes multiple sounds together.
         /// </summary>
-        private readonly MixingSampleProvider mixer;
+        private MixingSampleProvider mixer;
+
+        private SoundFormat soundFormat;
 
         private readonly short[] dissolveDataV2 =
         [
@@ -400,27 +269,52 @@ namespace WinAGI.Engine {
         private short[] dissolveData;
 
         /// <summary>
-        /// Constructor for PCjrPlayer.
+        /// Constructor for WAVPlayer.
         /// </summary>
-        public PCjrPlayer() {
-            soundCache = [];
-            bPlayingPCjr = false;
-
+        public WAVPlayer() {
             // Set up the NAudio mixer. Using a single WaveOutEvent instance, and associated mixer eliminates
             // delays caused by creation of a WaveOutEvent per sound.
-            outputDevice = new WaveOutEvent();
+
+            // default is AGI pcjr sound format
+            soundFormat = SoundFormat.sfAGI;
+            bPlayingWAV = false;
             mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(SAMPLE_RATE, 2)) {
                 ReadFully = true
             };
+            outputDevice = new WaveOutEvent();
             outputDevice.Init(mixer);
             outputDevice.Play();
         }
 
         /// <summary>
-        /// Generates an wav stream from an AGI Sound, caching it in a ready to play state.
+        /// Sets the output device for playback to correct sample rate and channel count based on sound format.
         /// </summary>
-        /// <param name="sound">The AGI Sound to load.</param>
-        public void LoadSoundCache(Sound sound) {
+        /// <param name="format"></param>
+        internal void SetFormat(SoundFormat format) {
+            outputDevice.Dispose();
+            outputDevice = new WaveOutEvent();
+            soundFormat = format;
+            if (format == SoundFormat.sfAGI) {
+                mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(SAMPLE_RATE, 2)) {
+                    ReadFully = true
+                };
+                outputDevice.Init(mixer);
+                outputDevice.Play();
+            }
+            else {
+                //mixer = new MixingSampleProvider(new WaveFormat(8000, 8, 1)) {
+                //    ReadFully = true
+                //};
+            }
+
+        }
+        /// <summary>
+        /// This method creates a WAV audio data stream from a PCjr formatted sound resource
+        /// for playback.
+        /// </summary>
+        /// <param name="sound"></param>
+        /// <returns></returns>
+        internal byte[] BuildPCjrWAV(Sound sound) {
             Note[] voiceCurrentNote = new Note[4];
             bool[] voicePlaying = [true, true, true, true];
             int[] voiceSampleCount = new int[4];
@@ -434,7 +328,6 @@ namespace WinAGI.Engine {
             else {
                 dissolveData = sound.parent.agIsVersion3 ? dissolveDataV3 : dissolveDataV2;
             }
-
             // A single note duration unit is 1/60th of a second
             int samplesPerDurationUnit = SAMPLE_RATE / 60;
             MemoryStream sampleStream = new();
@@ -478,7 +371,7 @@ namespace WinAGI.Engine {
             }
 
             // store it for use when the sound is played
-            soundCache = sampleStream.ToArray();
+            return sampleStream.ToArray();
         }
 
         /// <summary>
@@ -512,16 +405,12 @@ namespace WinAGI.Engine {
         /// Plays the given AGI Sound using emulated PCjr sound chip.
         /// </summary>
         /// <param name="sound">The AGI Sound to play.</param>
-        public void PlayPCjrSound(Sound sound) {
+        internal void PlayWAVSound(Sound sound) {
+            soundPlaying = sound;
             // Stop any currently playing sound.
             StopAllSound();
-
-            soundPlaying = sound;
-            // load the sound cache first
-            LoadSoundCache(sound);
-
             // Now play the Wave file.
-            MemoryStream memoryStream = new(soundCache);
+            MemoryStream memoryStream = new(sound.WAVData);
             playerThread = new Thread(() => PlayWaveStreamAndWait(memoryStream));
             playerThread.Start();
         }
@@ -531,10 +420,10 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="waveStream">The MemoryStream containing the Wave file data to play.</param>
         private void PlayWaveStreamAndWait(MemoryStream waveStream) {
-            bPlayingPCjr = true;
+            bPlayingWAV = true;
             PlayWithNAudioMix(waveStream);
             // The above call blocks until the sound has finished playing. If sound is not on, then it happens immediately.
-            bPlayingPCjr = false;
+            bPlayingWAV = false;
             // raise the 'done' event
             soundPlaying?.Raise_SoundCompleteEvent(true);
         }
@@ -545,28 +434,48 @@ namespace WinAGI.Engine {
         /// <param name="memoryStream">The MemoryStream containing the WAVE file data.</param>
         private void PlayWithNAudioMix(MemoryStream memoryStream) {
             // Add the new sound as an input to the NAudio mixer.
-            RawSourceWaveStream rs = new(memoryStream, new WaveFormat(44100, 16, 2));
-            ISampleProvider soundMixerInput = rs.ToSampleProvider();
-            mixer.AddMixerInput(soundMixerInput);
+                var wo = new WaveOutEvent();
+            RawSourceWaveStream rs;
+            if (soundFormat == SoundFormat.sfAGI) {
+                // WAV generated from PCjr sounds are 44100 sample rate, 16bit, two channel
+                rs = new(memoryStream, new WaveFormat(44100, 16, 2));
+                wo.Init(rs);
+                wo.Play();
+                //mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(SAMPLE_RATE, 2)) {
+                //    ReadFully = true
+                //};
+            }
+            else {
+                // WAV extracted from IIgs sounds are 8000 sample rate, 8bit, one channel
+                rs = new(memoryStream, new WaveFormat(8000, 8, 1));
+                wo.Init(rs);
+                wo.Play();
+                //mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(SAMPLE_RATE, 2)) {
+                //    ReadFully = true
+                //};
+            }
+            //ISampleProvider soundMixerInput = rs.ToSampleProvider();
+            //mixer.AddMixerInput(soundMixerInput);
             // Register a handler for when this specific sound ends.
             bool playbackEnded = false;
             void handlePlaybackEnded(object sender, SampleProviderEventArgs args) {
                 // It is possible that we get sound overlaps, so we check that this is the same sound.
-                if (ReferenceEquals(args.SampleProvider, soundMixerInput)) {
-                    mixer.MixerInputEnded -= handlePlaybackEnded;
+                //if (ReferenceEquals(args.SampleProvider, soundMixerInput)) {
+                    //mixer.MixerInputEnded -= handlePlaybackEnded;
                     playbackEnded = true;
-                }
+                //}
             };
-            mixer.MixerInputEnded += handlePlaybackEnded;
+            //mixer.MixerInputEnded += handlePlaybackEnded;
 
             // Wait until either the sound has ended, or we have been told to stop.
-            while (!playbackEnded && bPlayingPCjr) {
+            while (!playbackEnded && bPlayingWAV) {
                 Thread.Sleep(10);
             }
 
             // If we didn't stop due to the playback ending, then tell it to stop playing.
             if (!playbackEnded) {
-                mixer.RemoveMixerInput(soundMixerInput);
+                //mixer.RemoveMixerInput(soundMixerInput);
+                wo.Stop();
             }
         }
 
@@ -575,7 +484,6 @@ namespace WinAGI.Engine {
         /// </summary>
         internal void Reset() {
             StopPCjrSound(false);
-            soundCache = [];
             mixer.RemoveAllMixerInputs();
         }
 
@@ -593,14 +501,14 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="wait">true to wait for the player thread to stop; otherwise false to not wait.</param>
         internal void StopPCjrSound(bool wait = true) {
-            if (bPlayingPCjr) {
+            if (bPlayingWAV) {
                 // This tells the thread to stop.
-                bPlayingPCjr = false;
+                bPlayingWAV = false;
                 if (playerThread != null) {
                     // We wait for the thread to stop only if instructed to do so.
                     if (wait) {
                         while (playerThread.ThreadState != ThreadState.Stopped) {
-                            bPlayingPCjr = false;
+                            bPlayingWAV = false;
                             Thread.Sleep(10);
                         }
                     }

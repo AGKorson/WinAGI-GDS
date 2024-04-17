@@ -15,6 +15,8 @@ namespace WinAGI.Engine {
         int mKey;
         int mTPQN;
         SoundFormat mFormat;
+        byte[] midiData = [];
+        byte[] wavData = [];
         bool mOutputSet;
 
         // Sound resources include an event to notify calling programs when playback
@@ -134,25 +136,21 @@ namespace WinAGI.Engine {
             try {
                 switch (mFormat) {
                 case SoundFormat.sfAGI:
-                    // standard pc/pcjr sound as MIDI
-                    // ( no need to build the PCjr emulator
-                    // output, because the audio player does
-                    // that when it is played)
-
-                    // build the MIDI output and get length
-                    midiPlayer.mMIDIData = BuildMIDI(this);
+                    // standard pc/pcjr is playable as both WAV and MIDI
+                    midiData = BuildMIDI(this);
                     mLength = GetSoundLength();
+                    wavData = wavPlayer.BuildPCjrWAV(this);
                     break;
                 case SoundFormat.sfWAV:
                     // IIgs pcm sound
-                    wavPlayer.mWAVData = BuildIIgsPCM(this);
+                    wavData = BuildIIgsPCM(this);
                     mLength = GetSoundLength();
 
                     break;
                 case SoundFormat.sfMIDI:
                     // IIgs MIDI sound
                     // build the midi data and get length info
-                    midiPlayer.mMIDIData = BuildIIgsMIDI(this, ref mLength);
+                    midiData = BuildIIgsMIDI(this, ref mLength);
                     break;
                 }
                 mOutputSet = true;
@@ -475,7 +473,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="mode"></param>
         /// <exception cref="Exception"></exception>
-        public void PlaySound(int mode) {
+        public void PlaySound(SoundFormat mode) {
             if (!mLoaded) {
                 WinAGIException wex = new(LoadResString(563)) {
                     HResult = WINAGI_ERR + 563
@@ -483,19 +481,11 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             switch (mode) {
-            case 0:
-                // pcjr multichannel
-                if (mFormat != SoundFormat.sfAGI) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
-                    };
-                    throw wex;
-                }
-                pcjrPlayer.PlayPCjrSound(this);
-                break;
-            case 1:
-                // midi (format 1 or 3 converted from agi, or native IIg midi)
-                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfMIDI) {
+            case SoundFormat.sfAGI:
+            case SoundFormat.sfWAV:
+                // default for PCjr is WAV
+                // IIgs PCM can only be played as WAV
+                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfWAV) {
                     WinAGIException wex = new(LoadResString(705)) {
                         HResult = WINAGI_ERR + 705,
                     };
@@ -511,20 +501,22 @@ namespace WinAGI.Engine {
                     }
                 }
                 try {
-                    //play the sound
-                    midiPlayer.PlayMIDISound(this);
+                    // play the sound
+                    wavPlayer.SetFormat(mFormat);
+                    wavPlayer.PlayWAVSound(this);
                 }
                 catch (Exception) {
                     // pass along exception
                     throw;
                 }
                 break;
-            case 2:
-                // pcm WAV file
-                if (mFormat != SoundFormat.sfWAV) {
-                    throw new WinAGIException(LoadResString(705)) {
+            case SoundFormat.sfMIDI:
+                // midi (format 1 or 3 converted from agi, or native IIg midi)
+                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfMIDI) {
+                    WinAGIException wex = new(LoadResString(705)) {
                         HResult = WINAGI_ERR + 705,
                     };
+                    throw wex;
                 }
                 if (!mOutputSet) {
                     try {
@@ -563,7 +555,7 @@ namespace WinAGI.Engine {
             CopySound.mTracksSet = mTracksSet;
             CopySound.mLength = mLength;
             CopySound.mFormat = mFormat;
-            //never copy midiset; cloned sound will have to build it
+            //never copy output build status; cloned sound will have to rebuild it
             CopySound.mOutputSet = false;
             // clone the tracks
             for (int i = 0; i < 4; i++) {
@@ -655,9 +647,10 @@ namespace WinAGI.Engine {
                 if (File.Exists(WAVFile)) {
                     File.Delete(WAVFile);
                 }
-                //create midi file
+                //create WAV file
+                // TODO: need to include header data here,not in Build function
                 FileStream fsSnd = new(WAVFile, FileMode.Open);
-                fsSnd.Write(wavPlayer.mWAVData);
+                fsSnd.Write(wavData);
                 fsSnd.Dispose();
             }
             catch (Exception) {
@@ -1217,24 +1210,25 @@ namespace WinAGI.Engine {
                     ErrClear();
                     break;
                 }
+                // midi/wav data not set
+                mOutputSet = false;
             }
         }
-        public byte[] MIDIData {
+        /// <summary>
+        /// Gets the WAV data stream for this sound for playback. Only appliciable for
+        /// PCjr and IIgs PCM sounds.
+        /// </summary>
+        public byte[] WAVData {
             get {
-                //returns the MIDI data stream or WAV strem for this sound resource
-                //if not loaded
-                if (!mLoaded) {
-                    //error
-
-                    WinAGIException wex = new(LoadResString(563)) {
-                        HResult = WINAGI_ERR + 563
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfWAV) {
+                    WinAGIException wex = new(LoadResString(596)) {
+                        HResult = WINAGI_ERR + 596,
                     };
                     throw wex;
                 }
-                //if resource changed,
                 if (!mOutputSet) {
                     try {
-                        //build the midi first
                         BuildSoundOutput();
                     }
                     catch (Exception) {
@@ -1242,7 +1236,33 @@ namespace WinAGI.Engine {
                         throw;
                     }
                 }
-                return midiPlayer.mMIDIData;
+                return wavData;
+            }
+        }
+
+        /// <summary>
+        /// Gets the MIDI data stream for this sound for playback. Only applicable for
+        /// PCjr and IIgs MIDI sounds.
+        /// </summary>
+        public byte[] MIDIData {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfMIDI) {
+                    WinAGIException wex = new(LoadResString(596)) {
+                        HResult = WINAGI_ERR + 596,
+                    };
+                    throw wex;
+                }
+                if (!mOutputSet) {
+                    try {
+                        BuildSoundOutput();
+                    }
+                    catch (Exception) {
+                        // pass along errors
+                        throw;
+                    }
+                }
+                return midiData;
             }
         }
 

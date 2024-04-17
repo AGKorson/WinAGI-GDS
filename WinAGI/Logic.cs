@@ -63,21 +63,23 @@ namespace WinAGI.Engine {
 
             // attach events
             base.PropertyChanged += ResPropChange;
-            // check for blank/missing ID before initializing
-            mResID = parent.agGameProps.GetSetting("Logic" + ResNum, "ID", "", true);
-            if (mResID.Length == 0) {
-                // ID not found; save default ID
-                mResID = "Logic" + ResNum;
-                parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Logics");
-                // save CRC and CompCRC values as defaults; they'll be adjusted first time logic is accessed
-                parent.WriteGameSetting("Logic" + ResNum, "CRC32", "0x00000000", "Logics");
-                parent.WriteGameSetting("Logic" + ResNum, "CompCRC32", "0xffffffff", "Logics");
-            }
+            //// check for blank/missing ID before initializing
+            //mResID = parent.agGameProps.GetSetting("Logic" + ResNum, "ID", "", true);
+            //if (mResID.Length == 0) {
+            //    // ID not found; save default ID
+            //    mResID = "Logic" + ResNum;
+            //    parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Logics");
+            //    save CRC and CompCRC values as defaults; they'll be adjusted first time logic is accessed
+            //    parent.WriteGameSetting("Logic" + ResNum, "CRC32", "0x00000000", "Logics");
+            //    parent.WriteGameSetting("Logic" + ResNum, "CompCRC32", "0xffffffff", "Logics");
+            //}
+
             // set up base resource
             base.InitInGame(parent, AGIResType.rtLogic, ResNum, VOL, Loc);
             // get rest of properties
             mCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
             mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
+            mSourceFile = parent.agResDir + mResID + agSrcFileExt;
             if (ResNum == 0) {
                 // logic0 can never be a room
                 mIsRoom = false;
@@ -102,6 +104,7 @@ namespace WinAGI.Engine {
             }
             // set code size (add 2 to msgstart offset)
             mCodeSize = ReadWord(0) + 2;
+            //
             // clear dirty flag
             mIsDirty = false;
             mSourceDirty = false;
@@ -233,8 +236,8 @@ namespace WinAGI.Engine {
                 if (mInGame) {
                     // sourcefile is predefined
                     // TODO: force re-sync of name
-                    //Debug.Assert(mSourceFile == parent.agResDir + mResID + agSrcFileExt);
-                    mSourceFile = parent.agResDir + mResID + agSrcFileExt;
+                    Debug.Assert(mSourceFile == parent.agResDir + mResID + agSrcFileExt);
+           //         mSourceFile = parent.agResDir + mResID + agSrcFileExt;
                 }
                 return mSourceFile;
             }

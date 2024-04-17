@@ -365,9 +365,25 @@ namespace WinAGI.Editor {
             // disable other controls while sound is playing
             SetMIDIControls(false);
             try {
+                // TODO: need error check here; button and playback bar need 
+                // to be reset if sound doesn't play
+
                 // hook the sound_complete event and play the sound
                 agSound.SoundComplete += This_SoundComplete;
-                agSound.PlaySound(optPCjr.Checked ? 0 : 1);
+                switch (agSound.SndFormat) {
+                case SoundFormat.sfAGI:
+                    // wav or midi, depending on button option
+                    agSound.PlaySound(optPCjr.Checked ? SoundFormat.sfWAV : SoundFormat.sfMIDI);
+                    break;
+                case SoundFormat.sfMIDI:
+                    // MIDI only
+                    agSound.PlaySound(SoundFormat.sfMIDI);
+                    break;
+                case SoundFormat.sfWAV:
+                    // WAV only
+                    agSound.PlaySound(SoundFormat.sfWAV);
+                    break;
+                }
             }
             catch (Exception) {
                 //ErrMsgBox "An error occurred during playback: ", "Disabling MIDI playback.", "Play Sound Error"

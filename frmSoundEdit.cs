@@ -48,7 +48,7 @@ namespace WinAGI.Editor {
             Sound tmpSnd = (Sound)listBox1.SelectedItem;
             tmpSnd.Load();
             tmpSnd.SoundComplete += This_SoundComplete;
-            tmpSnd.PlaySound(1);
+            tmpSnd.PlaySound(tmpSnd.SndFormat);
         }
         private void This_SoundComplete(object sender, SoundCompleteEventArgs e) {
             MessageBox.Show("all done!");
