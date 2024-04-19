@@ -1,305 +1,67 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static WinAGI.Engine.AGIGame;
+﻿using NAudio.Wave;
+using System;
 using System.IO;
 using static WinAGI.Common.Base;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
-    public static partial class Base {
-        internal static int lngCurrentLoc;
-        internal static sbyte lngCurrentVol;
-        internal static FileStream fsDIR, fsVOL;
-        internal static BinaryWriter bwDIR, bwVOL;
-        internal static BinaryReader brVOL;
-        internal static byte[,] bytDIR = new byte[4, 768]; // (3, 767)
-        internal static string strNewDir;
+    /// <summary>
+    /// Internal class used to track current DIR and VOL information during game compilation.
+    /// </summary>
+    internal class VOLManager {
+        internal FileStream fsVOL, fsDIR;
+        internal AGIGame parent;
 
-        internal static void CompileResCol(dynamic tmpResCol, AGIResType ResType, bool RebuildOnly, bool NewIsV3) {
-
-            //compiles all the resources of ResType that are in the tmpResCol collection object
-            //by adding them to the new VOL files
-            //if RebuildOnly is passed, it won//t try to compile the logic; it will only add
-            //the items into the new VOL files
-            //the NewIsV3 flag is used when the compiling activity is being done because
-            //the version is changing from a V2 game to a V3 game
-
-            //if a resource error is encountered, the function returns a Value of false
-            //if no resource errors encountered, the function returns true
-
-            //if any other errors encountered, the Err object is set and the calling function
-            //must deal with the error
-            byte CurResNum;
-            int lngError;
-            string strMsg = "", strError;
-            bool blnWarning = false, blnUnloadRes;
-
-            //add all resources of this type
-            foreach (AGIResource tmpGameRes in tmpResCol) {
-                CurResNum = tmpGameRes.Number;
-                //update status
-                TWinAGIEventInfo tmpWarn = new() {
-                    Type = EventType.etInfo,
-                    InfoType = EInfoType.itResources,
-                    ResType = ResType,
-                    ResNum = CurResNum,
-                    ID = "",
-                    Module = "",
-                    Text = ""
-                };
-                Raise_CompileGameEvent(ECStatus.csAddResource, ResType, CurResNum, tmpWarn);
-                //check for cancellation
-                if (!tmpGameRes.parent.agCompGame) {
-                    tmpGameRes.parent.CompleteCancel();
-                    return;
+        internal VOLManager (AGIGame game) {
+            // for dir files, use arrays during compiling process
+            // then build the dir files at the end
+            DIRData = new byte[4, 768];
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; i < 768; i++) {
+                    DIRData[i, j] = 255;
                 }
-
-                // use a loop to add resources;
-                // exit loop when an error occurs, or after
-                // resource is successfully added to vol file
-                do {
-                    // set flag to force unload, if resource not currently loaded
-                    blnUnloadRes = !tmpGameRes.Loaded;
-                    // then load resource if necessary
-                    if (blnUnloadRes) {
-                        // load resource
-                        tmpGameRes.Load();
-                        if (tmpGameRes.ErrLevel >= 0) {
-                            // always reset warning flag
-                            blnWarning = false;
-                        }
-                        else  {
-                            if (RebuildOnly) {
-                                //note it
-                                tmpWarn.Text = $"Unable to load {tmpGameRes.ID} ({LoadResString(tmpGameRes.ErrLevel)})";
-                                Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
-                                //check for cancellation
-                                if (!tmpGameRes.parent.agCompGame) {
-                                    tmpGameRes.parent.CompleteCancel();
-                                    // make sure unloaded
-                                    tmpGameRes.Unload();
-                                    // and stop compiling
-                                    return;
-                                }
-                            }
-                            else {
-                                // deal with the error
-                                switch (tmpGameRes.ErrLevel) {
-                                case 610:
-                                    // assume a resource error until determined otherwise
-                                    //strMsg = "Unable to load " + tmpGameRes.ID + " (" + e.Message + ")";
-                                    ////reset warning flag
-                                    //blnWarning = false;
-                                    //switch (ResType) {
-                                    //case AGIResType.rtPicture:
-                                    //case AGIResType.rtView:
-                                    //    //check for invalid view data errors
-                                    //    switch (e.HResult - WINAGI_ERR) {
-                                    //    case 537:
-                                    //    case 548:
-                                    //    case 552:
-                                    //    case 553:
-                                    //    case 513:
-                                    //    case 563:
-                                    //    case 539:
-                                    //    case 540:
-                                    //    case 550:
-                                    //    case 551:
-                                    //        //can add view, but it is invalid
-                                    //        strMsg = "Invalid view data (" + e.Message + ")";
-                                    //        blnWarning = true;
-                                    //        break;
-                                    //    }
-                                    //    break;
-                                    //case AGIResType.rtSound:
-                                    //    //check for invalid sound data errors
-                                    //    if (e.HResult == 598) {
-                                    //        //can add sound, but it is invalid
-                                    //        strMsg = "Invalid sound data (" + e.Message + ")";
-                                    //        blnWarning = true;
-                                    //    }
-                                    //    break;
-                                    //case AGIResType.rtLogic:
-                                    //    //always a resource error
-                                    //    break;
-                                    //}
-                                    //if error (warning not set)
-                                    if (!blnWarning) {
-                                        //note the error
-                                        tmpWarn.Type = EventType.etWarning;
-                                        tmpWarn.Text = strMsg;
-                                        Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
-                                        //check for cancellation
-                                        if (!tmpGameRes.parent.agCompGame) {
-                                            tmpGameRes.parent.CompleteCancel();
-                                            // make sure unloaded
-                                            tmpGameRes.Unload();
-                                            //and stop compiling
-                                            return;
-                                        }
-                                        //if not canceled, user has already removed bad resource from game
-                                        break;
-                                    }
-                                    break;
-                                }
-                            }
-                            // if not canceled, user has already removed bad resource
-                            break;
-                        }
-                    }
-
-                    //if full compile (not rebuild only)
-                    if (!RebuildOnly) {
-                        //game resource is verified open; check for warnings
-
-                        ////picture warnings aren't in error handler anymore and 
-                        //// need a special check here
-                        //if (tmpGameRes is Picture tmpPic) {
-                        //    //check bmp error level by property, not error number
-                        //    if (tmpPic.ErrLevel > 0) {
-                        //        //case 0:
-                        //        //ok
-                        //        //unhandled error
-                        //        strMsg = "Unhandled error in picture data- picture may not display correctly";
-                        //        blnWarning = true;
-                        //    }
-                        //    else {
-                        //        // missing EOP marker, bad color or bad cmd
-                        //        strMsg = "Data anomalies in picture data but picture should display";
-                        //        blnWarning = true;
-                        //    }
-                        //}
-
-                        //if a warning
-                        if (blnWarning) {
-                            //note the warning
-                            tmpWarn.Type = EventType.etWarning;
-                            tmpWarn.Text = strMsg;
-                            Raise_CompileGameEvent(ECStatus.csWarning, ResType, CurResNum, tmpWarn);
-                            //check for cancellation
-                            if (!tmpGameRes.parent.agCompGame) {
-                                tmpGameRes.parent.CompleteCancel();
-                                // unload if needed
-                                if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                                // then stop compiling
-                                return;
-                            }
-                        }
-                        // for logics, compile the sourcetext
-                        //load actual object
-                        if (tmpGameRes is Logic tmpLog) {
-                            try {
-                                //compile it
-                                Compiler.CompileLogic(tmpLog);
-                            }
-                            catch (Exception e) {
-                                switch (e.HResult - WINAGI_ERR) {
-                                case 635: //compile error
-                                          //raise compile event
-                                    tmpWarn.Type = EventType.etWarning;
-                                    tmpWarn.Text = e.Message;
-                                    Raise_CompileGameEvent(ECStatus.csLogicError, ResType, CurResNum, tmpWarn);
-                                    //check for cancellation
-                                    if (!tmpGameRes.parent.agCompGame) {
-                                        tmpGameRes.parent.CompleteCancel();
-                                        // unload if needed
-                                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                                        // then stop compiling
-                                        return;
-                                    }
-                                    // if user wants to continue, the logic will already have been removed; no other action needed
-                                    break;
-                                default:
-                                    //any other error; note it
-                                    tmpWarn.Type = EventType.etWarning;
-                                    tmpWarn.Text = "Unable to compile Logic (" + e.Message + ")";
-                                    Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
-                                    //check for cancellation
-                                    if (!tmpGameRes.parent.agCompGame) {
-                                        tmpGameRes.parent.CompleteCancel();
-                                        // unload if needed
-                                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                                        // then stop compiling
-                                        return;
-                                    }
-                                    //if user did not cancel, resource will already have been removed
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    try {
-                        //validate vol and loc
-                        ValidateVolAndLoc(tmpGameRes);
-                    }
-                    catch (Exception e) {
-                        //save error msg
-                        strError = e.Message;
-                        //strErrSrc = Err.Source;
-                        lngError = e.HResult;
-
-                        //clean up compiler
-                        tmpGameRes.parent.CompleteCancel(true);
-
-                        //unload resource, if applicable
-                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-
-                        // raise appropriate error
-                        if (lngError == WINAGI_ERR + 593) {
-                            //exceed max storage- pass it along
-                            throw;
-                        }
-                        else {
-                            // file access error
-                            WinAGIException wex = new(LoadResString(638).Replace(Common.Base.ARG1, e.Message)) {
-                                HResult = WINAGI_ERR + 638
-                            };
-                            wex.Data["exception"] = e;
-                            wex.Data["ID"] = tmpGameRes.ID;
-                            throw wex;
-                        }
-                    }
-
-                    // use arrays for DIR data, and then to build the DIR files after
-                    // compiling all resources
-                    bytDIR[(int)ResType, tmpGameRes.Number * 3] = (byte)((lngCurrentVol << 4) + (lngCurrentLoc >> 16));
-                    bytDIR[(int)ResType, tmpGameRes.Number * 3 + 1] = (byte)((lngCurrentLoc % 0x10000) >> 8);
-                    bytDIR[(int)ResType, tmpGameRes.Number * 3 + 2] = (byte)(lngCurrentLoc % 0x100);
-
-                    try {
-                        //add it to vol
-                        AddToVol(tmpGameRes, NewIsV3, true, lngCurrentVol, lngCurrentLoc);
-                    }
-                    catch (Exception e) {
-                        //note it
-                        tmpWarn.Type = EventType.etWarning;
-                        tmpWarn.Text = "Unable to add Logic resource to VOL file (" + e.Message + ")";
-                        Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
-                        //check for cancellation
-                        if (!tmpGameRes.parent.agCompGame) {
-                            tmpGameRes.parent.CompleteCancel();
-                            //unload resource, if applicable
-                            if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                            // then stop compiling
-                            return;
-                        }
-                        // if not canceled, user deleted bad resource
-                        // so exit loop to move to next resource
-                        break;
-                    }
-                    // always exit loop
-                }
-                while (false);
-
-                // done with resource; unload if applicable
-                if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+            }
+            parent = game;
+            NewDir = "";
+            Loc = 0;
+            Index = 0;
+            Count = 1;
+            // file access members will be intialized by calling code
+        }
+        public byte[,] DIRData { get; set; }
+        public FileStream DIRFile {
+            get => fsDIR;
+            set {
+                fsDIR = value;
+                DIRWriter = new BinaryWriter(fsDIR);
             }
         }
+        public FileStream VOLFile { get => fsVOL;
+            set {
+                fsVOL = value;
+                VOLWriter = new BinaryWriter(fsVOL);
+                VOLReader = new BinaryReader(fsVOL);
+            }
+        }
+        public BinaryWriter DIRWriter { get; private set; }
+        // TODO: need way to determine which DIR is active!
+        public BinaryWriter VOLWriter { get; private set; }
+        public BinaryReader VOLReader { get; private set; }
+        public string NewDir { get; set; }
+        public int Loc { get; set; }
+        public int Index { get; set; }
+        public int Count { get; private set; }
+        public bool IsV3 { get; set; }
 
-        internal static void AddToVol(AGIResource AddRes, bool Version3, bool compileResCol = false, sbyte lngVol = -1, int lngLoc = -1) {
+        internal void Clear() {
+            VOLFile?.Dispose();
+            VOLWriter?.Dispose();
+            VOLReader?.Dispose();
+            DIRFile?.Dispose();
+            DIRWriter?.Dispose();
+        }
+        internal void AddToVol(AGIResource AddRes, bool Version3, bool compileResCol = false, sbyte lngVol = -1, int lngLoc = -1) {
             // this method adds a resource to a VOL file
             //
             // if the compileResCol flag is true, it adds the resource
@@ -353,23 +115,22 @@ namespace WinAGI.Engine {
             if (!compileResCol) {
                 //save the resource into the vol file
                 fsVOL = new FileStream(AddRes.parent.agGameDir + strID + "VOL." + lngVol.ToString(), FileMode.Open);
-                bwVOL = new BinaryWriter(fsVOL);
             }
             try {
                 fsVOL.Seek(lngLoc, SeekOrigin.Begin);
-                //add header to vol file
-                bwVOL.Write(ResHeader, 0, AddRes.parent.agIsVersion3 ? 7 : 5);
+                // add header to vol file
+                VOLWriter.Write(ResHeader, 0, AddRes.parent.agIsVersion3 ? 7 : 5);
                 // add resource data to vol file
-                bwVOL.Write(AddRes.Data.AllData, 0, AddRes.Data.Length);
+                VOLWriter.Write(AddRes.Data.AllData, 0, AddRes.Data.Length);
             }
             catch (Exception e) {
                 // if not compiling, close volfile
                 if (!compileResCol) {
                     fsVOL.Dispose();
-                    bwVOL.Dispose();
+                    VOLWriter.Dispose();
                 }
                 WinAGIException wex = new(LoadResString(638)) {
-                    HResult = WINAGI_ERR +638,
+                    HResult = WINAGI_ERR + 638,
                 };
                 wex.Data["exception"] = e;
                 wex.Data["ID"] = AddRes.ID;
@@ -378,7 +139,7 @@ namespace WinAGI.Engine {
             //if adding to a new vol file
             if (compileResCol) {
                 //increment loc pointer
-                lngCurrentLoc = lngCurrentLoc + AddRes.Size + (Version3 ? 7 : 5);
+                lngLoc = lngLoc + AddRes.Size + (Version3 ? 7 : 5);
             }
             else {
                 try {
@@ -393,7 +154,7 @@ namespace WinAGI.Engine {
             }
         }
 
-        private static void AddResInfo(sbyte ResVOL, int ResLOC, int ResSize, int[,] VOLLoc, int[,] VOLSize) {
+        private void AddResInfo(sbyte ResVOL, int ResLOC, int ResSize, int[,] VOLLoc, int[,] VOLSize) {
             // TODO: replace this mess with Sorted Lists!
             //adds TempRes to volume loc/size arrays, sorted by LOC
             //1st element of each VOL section is number of entries for that VOL
@@ -430,102 +191,8 @@ namespace WinAGI.Engine {
                 VOLSize[ResVOL, i] = ResSize;
             }
         }
-        private static void FindFreeVOLSpace(AGIResource NewResource) {
-            //this method will try to find a volume and location to store a resource
-            //if a resource is being updated, it will have its volume set to 255
 
-            //sizes are adjusted to include the header that AGI uses at the beginning of each
-            //resource; 5 bytes for v2 and 7 bytes for v3
-
-            int[,] resLoc = new int[15, 1023];
-            int[,] resSize = new int[15, 1023];
-            //AGIResource tmpRes;
-            int tmpSize, lngHeader, lngMaxVol, j;
-            int lngStart, lngEnd, lngFree, NewResSize;
-            string strID;
-            AGIResType NewResType;
-            byte NewResNum;
-            //set header size, max# of VOL files and ID string depending on version
-            if (NewResource.parent.agIsVersion3) {
-                lngHeader = 7;
-                strID = NewResource.parent.agGameID;
-                lngMaxVol = 15;
-            }
-            else {
-                lngHeader = 5;
-                strID = "";
-                lngMaxVol = 4;
-            }
-            //local copy of restype and resnum (for improved speed)
-            NewResType = NewResource.ResType;
-            NewResNum = NewResource.Number;
-            NewResSize = NewResource.Size + lngHeader;
-            //build array of all resources, sorted by VOL order (except the one being loaded)
-            foreach (Logic tmpRes in NewResource.parent.agLogs.Col.Values) {
-                //if not the resource being replaced
-                if (NewResType != AGIResType.rtLogic || tmpRes.Number != NewResNum) {
-                    tmpSize = tmpRes.SizeInVOL + lngHeader;
-                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
-                }
-            }
-            foreach (Picture tmpRes in NewResource.parent.agPics.Col.Values) {
-                //if not the resource being replaced
-                if (NewResType != AGIResType.rtPicture || tmpRes.Number != NewResNum) {
-                    tmpSize = tmpRes.SizeInVOL + lngHeader;
-                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
-                }
-            }
-            foreach (Sound tmpRes in NewResource.parent.agSnds.Col.Values) {
-                //if not the resource being replaced
-                if (NewResType != AGIResType.rtSound || tmpRes.Number != NewResNum) {
-                    tmpSize = tmpRes.SizeInVOL + lngHeader;
-                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
-                }
-            }
-            foreach (View tmpRes in NewResource.parent.agViews.Col.Values) {
-                //if not the resource being replaced
-                if (NewResType != AGIResType.rtView || tmpRes.Number != NewResNum) {
-                    tmpSize = tmpRes.SizeInVOL + lngHeader;
-                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
-                }
-            }
-            //step through volumes,
-            for (sbyte i = 0; i <= lngMaxVol; i++) {
-                //start at beginning
-                lngStart = 0;
-                // check for space between resources
-                for (j = 1; j <= resLoc[i, 0] + 1; j++) {
-                    //if this is not the end of the list
-                    if (j < resLoc[i, 0] + 1) {
-                        lngEnd = resLoc[i, j];
-                    }
-                    else {
-                        lngEnd = MAX_VOLSIZE;
-                    }
-                    //calculate space between end of one resource and start of next
-                    lngFree = lngEnd - lngStart;
-
-                    //if enough space is found
-                    if (lngFree >= NewResSize) {
-                        //it fits here!
-                        //set volume and location
-                        NewResource.Volume = i;
-                        NewResource.Loc = lngStart;
-                        return;
-                    }
-                    // not enough room; 
-                    // adjust start to end of current resource
-                    lngStart = resLoc[i, j] + resSize[i, j];
-                }
-            }
-            //if no room in any VOL file, raise an error
-
-            WinAGIException wex = new(LoadResString(593)) {
-                HResult = WINAGI_ERR + 593
-            };
-            throw wex;
-        }
-        internal static void UpdateDirFile(AGIResource UpdateResource, bool Remove = false) {
+        internal void UpdateDirFile(AGIResource UpdateResource, bool Remove = false) {
             //this method updates the DIR file with the volume and location
             //of a resource
             //if Remove option passed as true,
@@ -821,38 +488,33 @@ namespace WinAGI.Engine {
                 }
             }
         }
-        private static void ValidateVolAndLoc(AGIResource resource) {
-            //this method ensures current vol has room for resource with given size
-            //if not, it closes current vol file, and opens next one
-            //this method is only used by the game compiler when doing a
-            //complete compile or resource rebuild
 
+        /// <summary>
+        /// This method is used by the game compiler to find the next valid location for a resource
+        /// to be added to the VOL files It checks the current VOL file to determine if there is
+        /// room for a resource. If not, it closes current VOL file, and opens next one.
+        /// </summary>
+        /// <param name="resource"></param>
+        internal void ValidateVolAndLoc(AGIResource resource, string gamedir) {
             int i = 0, lngMaxVol = 0;
-            //this ressource doesn't fit (goes past end, OR if it's vol 0, and it exceeds vol0 size)
-            if (lngCurrentLoc + resource.Size > MAX_VOLSIZE || (lngCurrentVol == 0 && (lngCurrentLoc + resource.Size > resource.parent.agMaxVol0))) {
+            // check if resource is too long
+            if (Loc + resource.Size > MAX_VOLSIZE || (Index == 0 && (Loc + resource.Size > resource.parent.agMaxVol0))) {
                 //set maxvol count to 4 or 15, depending on version
-                if (resource.parent.agIsVersion3) {
-                    lngMaxVol = 15;
-                }
-                else {
-                    lngMaxVol = 4;
-                }
+                lngMaxVol = resource.parent.agIsVersion3 ? 15 : 4;
 
                 //close current vol
-                fsVOL.Dispose();
-                bwVOL.Dispose();
+                VOLFile.Dispose();
+                VOLWriter.Dispose();
 
                 //first check previous vol files, to see if there is room at end of one of those
                 for (i = 0; i <= lngMaxVol; i++) {
                     try {
                         //open this file (if the file doesn't exist, this will create it
                         //and it will then be set as the next vol, with pos=0
-                        fsVOL = new FileStream(strNewDir + "NEW_VOL." + i, FileMode.OpenOrCreate);
-                        bwVOL = new BinaryWriter(fsVOL);
+                        VOLFile = new FileStream(gamedir + "NEW_VOL." + i, FileMode.OpenOrCreate);
                     }
                     catch (Exception e) {
-                        fsVOL.Dispose();
-                        bwVOL.Dispose();
+                        Clear();
                         //also, compiler should check for this error, as it is fatal
 
                         WinAGIException wex = new(LoadResString(640)) {
@@ -863,10 +525,10 @@ namespace WinAGI.Engine {
                         throw wex;
                     }
                     //is there room at the end of this file?
-                    if ((i > 0 && (fsVOL.Length + resource.Size <= MAX_VOLSIZE)) || (fsVOL.Length + resource.Size <= resource.parent.agMaxVol0)) {
+                    if ((i > 0 && (VOLFile.Length + resource.Size <= MAX_VOLSIZE)) || (VOLFile.Length + resource.Size <= resource.parent.agMaxVol0)) {
                         //if so, set pointer to end of the file, and exit
-                        lngCurrentVol = (sbyte)i;
-                        lngCurrentLoc = (int)fsVOL.Length;
+                        Index = (sbyte)i;
+                        Loc = (int)VOLFile.Length;
                         return;
                     }
                 } //Next i
@@ -879,6 +541,440 @@ namespace WinAGI.Engine {
                     HResult = WINAGI_ERR + 593
                 };
                 throw wex1;
+            }
+        }
+
+        private void FindFreeVOLSpace(AGIResource NewResource) {
+            //this method will try to find a volume and location to store a resource
+            //if a resource is being updated, it will have its volume set to 255
+
+            //sizes are adjusted to include the header that AGI uses at the beginning of each
+            //resource; 5 bytes for v2 and 7 bytes for v3
+
+            int[,] resLoc = new int[15, 1023];
+            int[,] resSize = new int[15, 1023];
+            //AGIResource tmpRes;
+            int tmpSize, lngHeader, lngMaxVol, j;
+            int lngStart, lngEnd, lngFree, NewResSize;
+            string strID;
+            AGIResType NewResType;
+            byte NewResNum;
+            //set header size, max# of VOL files and ID string depending on version
+            if (NewResource.parent.agIsVersion3) {
+                lngHeader = 7;
+                strID = NewResource.parent.agGameID;
+                lngMaxVol = 15;
+            }
+            else {
+                lngHeader = 5;
+                strID = "";
+                lngMaxVol = 4;
+            }
+            //local copy of restype and resnum (for improved speed)
+            NewResType = NewResource.ResType;
+            NewResNum = NewResource.Number;
+            NewResSize = NewResource.Size + lngHeader;
+            //build array of all resources, sorted by VOL order (except the one being loaded)
+            foreach (Logic tmpRes in NewResource.parent.agLogs.Col.Values) {
+                //if not the resource being replaced
+                if (NewResType != AGIResType.rtLogic || tmpRes.Number != NewResNum) {
+                    tmpSize = tmpRes.SizeInVOL + lngHeader;
+                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
+                }
+            }
+            foreach (Picture tmpRes in NewResource.parent.agPics.Col.Values) {
+                //if not the resource being replaced
+                if (NewResType != AGIResType.rtPicture || tmpRes.Number != NewResNum) {
+                    tmpSize = tmpRes.SizeInVOL + lngHeader;
+                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
+                }
+            }
+            foreach (Sound tmpRes in NewResource.parent.agSnds.Col.Values) {
+                //if not the resource being replaced
+                if (NewResType != AGIResType.rtSound || tmpRes.Number != NewResNum) {
+                    tmpSize = tmpRes.SizeInVOL + lngHeader;
+                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
+                }
+            }
+            foreach (View tmpRes in NewResource.parent.agViews.Col.Values) {
+                //if not the resource being replaced
+                if (NewResType != AGIResType.rtView || tmpRes.Number != NewResNum) {
+                    tmpSize = tmpRes.SizeInVOL + lngHeader;
+                    AddResInfo(tmpRes.Volume, tmpRes.Loc, tmpSize, resLoc, resSize);
+                }
+            }
+            //step through volumes,
+            for (sbyte i = 0; i <= lngMaxVol; i++) {
+                //start at beginning
+                lngStart = 0;
+                // check for space between resources
+                for (j = 1; j <= resLoc[i, 0] + 1; j++) {
+                    //if this is not the end of the list
+                    if (j < resLoc[i, 0] + 1) {
+                        lngEnd = resLoc[i, j];
+                    }
+                    else {
+                        lngEnd = MAX_VOLSIZE;
+                    }
+                    //calculate space between end of one resource and start of next
+                    lngFree = lngEnd - lngStart;
+
+                    //if enough space is found
+                    if (lngFree >= NewResSize) {
+                        //it fits here!
+                        //set volume and location
+                        NewResource.Volume = i;
+                        NewResource.Loc = lngStart;
+                        return;
+                    }
+                    // not enough room; 
+                    // adjust start to end of current resource
+                    lngStart = resLoc[i, j] + resSize[i, j];
+                }
+            }
+            //if no room in any VOL file, raise an error
+
+            WinAGIException wex = new(LoadResString(593)) {
+                HResult = WINAGI_ERR + 593
+            };
+            throw wex;
+        }
+
+        internal int SizeInVOL(AGIResource resource) {
+
+            //if an error occurs while trying to read the size of this
+            //resource, the function returns -1
+            byte bytHigh, bytLow;
+            int lngV3Offset;
+            string strVolFile;
+            //any file access errors
+            //result in invalid size
+
+            //if version 3
+            if (IsV3) {
+                //adjusts header so compressed size is retrieved
+                lngV3Offset = 2;
+                //set filename
+                strVolFile = parent.agGameDir + parent.agGameID + "VOL." + resource.Volume;
+            }
+            else {
+                lngV3Offset = 0;
+                //set filename
+                strVolFile = parent.agGameDir + "VOL." + resource.Volume;
+            }
+            try {
+                // open the volume file
+                VOLFile = new FileStream(strVolFile, FileMode.Open);
+                // verify enough room to get length of resource
+                if (VOLFile.Length >= resource.Loc + 5 + lngV3Offset) {
+                    //get size low and high bytes
+                    VOLFile.Seek(resource.Loc, SeekOrigin.Begin);
+                    bytLow = VOLReader.ReadByte();
+                    bytHigh = VOLReader.ReadByte();
+                    //verify this is a proper resource
+                    if ((bytLow == 0x12) && (bytHigh == 0x34)) {
+                        //now get the low and high bytes of the size
+                        VOLFile.Seek(1, SeekOrigin.Current);
+                        bytLow = VOLReader.ReadByte();
+                        bytHigh = VOLReader.ReadByte();
+                        Clear();
+                        return (bytHigh << 8) + bytLow;
+                    }
+                }
+            }
+            catch (Exception) {
+                // treat all errors the same
+            }
+            finally {
+                // ensure file is closed
+                Clear();
+            }
+            // if size not found, return -1
+            return -1;
+        }
+    }
+
+    public static partial class Base {
+
+        internal static void CompileResCol(AGIGame game, dynamic tmpResCol, AGIResType ResType, bool RebuildOnly, bool NewIsV3) {
+
+            //compiles all the resources of ResType that are in the tmpResCol collection object
+            //by adding them to the new VOL files
+            //if RebuildOnly is passed, it won//t try to compile the logic; it will only add
+            //the items into the new VOL files
+            //the NewIsV3 flag is used when the compiling activity is being done because
+            //the version is changing from a V2 game to a V3 game
+
+            //if a resource error is encountered, the function returns a Value of false
+            //if no resource errors encountered, the function returns true
+
+            //if any other errors encountered, the Err object is set and the calling function
+            //must deal with the error
+            byte CurResNum;
+            int lngError;
+            string strMsg = "", strError;
+            bool blnWarning = false, blnUnloadRes;
+
+            //add all resources of this type
+            foreach (AGIResource tmpGameRes in tmpResCol) {
+                CurResNum = tmpGameRes.Number;
+                //update status
+                TWinAGIEventInfo tmpWarn = new() {
+                    Type = EventType.etInfo,
+                    InfoType = EInfoType.itResources,
+                    ResType = ResType,
+                    ResNum = CurResNum,
+                    ID = "",
+                    Module = "",
+                    Text = ""
+                };
+                Raise_CompileGameEvent(ECStatus.csAddResource, ResType, CurResNum, tmpWarn);
+                //check for cancellation
+                if (!tmpGameRes.parent.agCompGame) {
+                    tmpGameRes.parent.CompleteCancel();
+                    return;
+                }
+
+                // use a loop to add resources;
+                // exit loop when an error occurs, or after
+                // resource is successfully added to vol file
+                do {
+                    // set flag to force unload, if resource not currently loaded
+                    blnUnloadRes = !tmpGameRes.Loaded;
+                    // then load resource if necessary
+                    if (blnUnloadRes) {
+                        // load resource
+                        tmpGameRes.Load();
+                        if (tmpGameRes.ErrLevel >= 0) {
+                            // always reset warning flag
+                            blnWarning = false;
+                        }
+                        else  {
+                            if (RebuildOnly) {
+                                //note it
+                                tmpWarn.Text = $"Unable to load {tmpGameRes.ID} ({LoadResString(tmpGameRes.ErrLevel)})";
+                                Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
+                                //check for cancellation
+                                if (!tmpGameRes.parent.agCompGame) {
+                                    tmpGameRes.parent.CompleteCancel();
+                                    // make sure unloaded
+                                    tmpGameRes.Unload();
+                                    // and stop compiling
+                                    return;
+                                }
+                            }
+                            else {
+                                // deal with the error
+                                switch (tmpGameRes.ErrLevel) {
+                                case 610:
+                                    // assume a resource error until determined otherwise
+                                    //strMsg = "Unable to load " + tmpGameRes.ID + " (" + e.Message + ")";
+                                    ////reset warning flag
+                                    //blnWarning = false;
+                                    //switch (ResType) {
+                                    //case AGIResType.rtPicture:
+                                    //case AGIResType.rtView:
+                                    //    //check for invalid view data errors
+                                    //    switch (e.HResult - WINAGI_ERR) {
+                                    //    case 537:
+                                    //    case 548:
+                                    //    case 552:
+                                    //    case 553:
+                                    //    case 513:
+                                    //    case 563:
+                                    //    case 539:
+                                    //    case 540:
+                                    //    case 550:
+                                    //    case 551:
+                                    //        //can add view, but it is invalid
+                                    //        strMsg = "Invalid view data (" + e.Message + ")";
+                                    //        blnWarning = true;
+                                    //        break;
+                                    //    }
+                                    //    break;
+                                    //case AGIResType.rtSound:
+                                    //    //check for invalid sound data errors
+                                    //    if (e.HResult == 598) {
+                                    //        //can add sound, but it is invalid
+                                    //        strMsg = "Invalid sound data (" + e.Message + ")";
+                                    //        blnWarning = true;
+                                    //    }
+                                    //    break;
+                                    //case AGIResType.rtLogic:
+                                    //    //always a resource error
+                                    //    break;
+                                    //}
+                                    //if error (warning not set)
+                                    if (!blnWarning) {
+                                        //note the error
+                                        tmpWarn.Type = EventType.etWarning;
+                                        tmpWarn.Text = strMsg;
+                                        Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
+                                        //check for cancellation
+                                        if (!tmpGameRes.parent.agCompGame) {
+                                            tmpGameRes.parent.CompleteCancel();
+                                            // make sure unloaded
+                                            tmpGameRes.Unload();
+                                            //and stop compiling
+                                            return;
+                                        }
+                                        //if not canceled, user has already removed bad resource from game
+                                        break;
+                                    }
+                                    break;
+                                }
+                            }
+                            // if not canceled, user has already removed bad resource
+                            break;
+                        }
+                    }
+
+                    //if full compile (not rebuild only)
+                    if (!RebuildOnly) {
+                        //game resource is verified open; check for warnings
+
+                        ////picture warnings aren't in error handler anymore and 
+                        //// need a special check here
+                        //if (tmpGameRes is Picture tmpPic) {
+                        //    //check bmp error level by property, not error number
+                        //    if (tmpPic.ErrLevel > 0) {
+                        //        //case 0:
+                        //        //ok
+                        //        //unhandled error
+                        //        strMsg = "Unhandled error in picture data- picture may not display correctly";
+                        //        blnWarning = true;
+                        //    }
+                        //    else {
+                        //        // missing EOP marker, bad color or bad cmd
+                        //        strMsg = "Data anomalies in picture data but picture should display";
+                        //        blnWarning = true;
+                        //    }
+                        //}
+
+                        //if a warning
+                        if (blnWarning) {
+                            //note the warning
+                            tmpWarn.Type = EventType.etWarning;
+                            tmpWarn.Text = strMsg;
+                            Raise_CompileGameEvent(ECStatus.csWarning, ResType, CurResNum, tmpWarn);
+                            //check for cancellation
+                            if (!tmpGameRes.parent.agCompGame) {
+                                tmpGameRes.parent.CompleteCancel();
+                                // unload if needed
+                                if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                                // then stop compiling
+                                return;
+                            }
+                        }
+                        // for logics, compile the sourcetext
+                        //load actual object
+                        if (tmpGameRes is Logic tmpLog) {
+                            try {
+                                //compile it
+                                Compiler.CompileLogic(tmpLog);
+                            }
+                            catch (Exception e) {
+                                switch (e.HResult - WINAGI_ERR) {
+                                case 635: //compile error
+                                          //raise compile event
+                                    tmpWarn.Type = EventType.etWarning;
+                                    tmpWarn.Text = e.Message;
+                                    Raise_CompileGameEvent(ECStatus.csLogicError, ResType, CurResNum, tmpWarn);
+                                    //check for cancellation
+                                    if (!tmpGameRes.parent.agCompGame) {
+                                        tmpGameRes.parent.CompleteCancel();
+                                        // unload if needed
+                                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                                        // then stop compiling
+                                        return;
+                                    }
+                                    // if user wants to continue, the logic will already have been removed; no other action needed
+                                    break;
+                                default:
+                                    //any other error; note it
+                                    tmpWarn.Type = EventType.etWarning;
+                                    tmpWarn.Text = "Unable to compile Logic (" + e.Message + ")";
+                                    Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
+                                    //check for cancellation
+                                    if (!tmpGameRes.parent.agCompGame) {
+                                        tmpGameRes.parent.CompleteCancel();
+                                        // unload if needed
+                                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                                        // then stop compiling
+                                        return;
+                                    }
+                                    //if user did not cancel, resource will already have been removed
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    try {
+                        //validate vol and loc
+                        game.volManager.ValidateVolAndLoc(tmpGameRes, game.ResDir);
+                    }
+                    catch (Exception e) {
+                        //save error msg
+                        strError = e.Message;
+                        //strErrSrc = Err.Source;
+                        lngError = e.HResult;
+
+                        //clean up compiler
+                        tmpGameRes.parent.CompleteCancel(true);
+
+                        //unload resource, if applicable
+                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+
+                        // raise appropriate error
+                        if (lngError == WINAGI_ERR + 593) {
+                            //exceed max storage- pass it along
+                            throw;
+                        }
+                        else {
+                            // file access error
+                            WinAGIException wex = new(LoadResString(638).Replace(Common.Base.ARG1, e.Message)) {
+                                HResult = WINAGI_ERR + 638
+                            };
+                            wex.Data["exception"] = e;
+                            wex.Data["ID"] = tmpGameRes.ID;
+                            throw wex;
+                        }
+                    }
+
+                    // use arrays for DIR data, and then build the DIR files later, after
+                    // compiling all resources is complete
+                    game.volManager.DIRData[(int)ResType, tmpGameRes.Number * 3] = (byte)((game.volManager.Index << 4) + (game.volManager.Loc >> 16));
+                    game.volManager.DIRData[(int)ResType, tmpGameRes.Number * 3 + 1] = (byte)((game.volManager.Loc % 0x10000) >> 8);
+                    game.volManager.DIRData[(int)ResType, tmpGameRes.Number * 3 + 2] = (byte)(game.volManager.Loc % 0x100);
+
+                    try {
+                        //add it to vol
+                        game.volManager.AddToVol(tmpGameRes, NewIsV3, true); //TODO: , lngCurrentVol, lngCurrentLoc);
+                    }
+                    catch (Exception e) {
+                        //note it
+                        tmpWarn.Type = EventType.etWarning;
+                        tmpWarn.Text = "Unable to add Logic resource to VOL file (" + e.Message + ")";
+                        Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
+                        //check for cancellation
+                        if (!tmpGameRes.parent.agCompGame) {
+                            tmpGameRes.parent.CompleteCancel();
+                            //unload resource, if applicable
+                            if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                            // then stop compiling
+                            return;
+                        }
+                        // if not canceled, user deleted bad resource
+                        // so exit loop to move to next resource
+                        break;
+                    }
+                    // always exit loop
+                }
+                while (false);
+
+                // done with resource; unload if applicable
+                if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
             }
         }
     }

@@ -69,8 +69,8 @@ namespace WinAGI.Engine {
             // ingame resources start loaded
             mLoaded = true;
             // set vol/loc
-            AddToVol(this, parent.agIsVersion3);
-            UpdateDirFile(this);
+            parent.volManager.AddToVol(this, parent.agIsVersion3);
+            parent.volManager.UpdateDirFile(this);
         }
 
         /// <summary>
@@ -194,60 +194,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <returns>Size of this resource in its VOL file</returns>
         internal int GetSizeInVOL() {
-            //returns the 
-
-            //if an error occurs while trying to read the size of this
-            //resource, the function returns -1
-            byte bytHigh, bytLow;
-            int lngV3Offset;
-            string strVolFile;
-            //any file access errors
-            //result in invalid size
-
-            //if version 3
-            if (parent.agIsVersion3) {
-                //adjusts header so compressed size is retrieved
-                lngV3Offset = 2;
-                //set filename
-                strVolFile = parent.agGameDir + parent.agGameID + "VOL." + mVolume;
-            }
-            else {
-                lngV3Offset = 0;
-                //set filename
-                strVolFile = parent.agGameDir + "VOL." + mVolume;
-            }
-            try {
-                //open the volume file
-                fsVOL = new FileStream(strVolFile, FileMode.Open);
-                brVOL = new BinaryReader(fsVOL);
-                //verify enough room to get length of resource
-                if (fsVOL.Length >= mLoc + 5 + lngV3Offset) {
-                    //get size low and high bytes
-                    fsVOL.Seek(mLoc, SeekOrigin.Begin);
-                    bytLow = brVOL.ReadByte();
-                    bytHigh = brVOL.ReadByte();
-                    //verify this is a proper resource
-                    if ((bytLow == 0x12) && (bytHigh == 0x34)) {
-                        //now get the low and high bytes of the size
-                        fsVOL.Seek(1, SeekOrigin.Current);
-                        bytLow = brVOL.ReadByte();
-                        bytHigh = brVOL.ReadByte();
-                        fsVOL.Dispose();
-                        brVOL.Dispose();
-                        return (bytHigh << 8) + bytLow;
-                    }
-                }
-            }
-            catch (Exception) {
-                // treat all errors the same
-            }
-            finally {
-                //ensure file is closed
-                fsVOL.Dispose();
-                brVOL.Dispose();
-            }
-            // if size not found, return -1
-            return -1;
+            return parent.volManager.SizeInVOL(this);
         }
 
         /// <summary>
@@ -517,13 +464,15 @@ namespace WinAGI.Engine {
                 return;
             }
             // open file (VOL or individual resource)
+            FileStream fsVOL = null;
+            BinaryReader brVOL = null;
             try {
                 fsVOL = new FileStream(strLoadResFile, FileMode.Open);
                 brVOL = new BinaryReader(fsVOL);
             }
             catch (Exception e1) {
-                fsVOL.Dispose();
-                brVOL.Dispose();
+                fsVOL?.Dispose();
+                brVOL?.Dispose();
                 mErrLevel = -3;
                 ErrData[0] = e1.Message;
                 ErrData[1] = mResID;
@@ -643,7 +592,7 @@ namespace WinAGI.Engine {
             if (mInGame) {
                 try {
                     //add resource to VOL file to save it
-                    AddToVol(this, parent.agIsVersion3);
+                    parent.volManager.AddToVol(this, parent.agIsVersion3);
                     // update saved size
                     mSize = mRData.Length;
                     // resource is no longer compressed

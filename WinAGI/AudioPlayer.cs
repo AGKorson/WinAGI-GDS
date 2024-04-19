@@ -472,7 +472,6 @@ namespace WinAGI.Engine {
             while (!playbackEnded && bPlayingWAV) {
                 Thread.Sleep(10);
             }
-
             // If we didn't stop due to the playback ending, then tell it to stop playing.
             if (!playbackEnded) {
                 wo.Stop();

@@ -24,6 +24,7 @@ namespace WinAGI.Engine {
         // local variable(s) to hold property Value(s)
         // for game properties which need to be accessible
         // from all objects in the game system
+        internal VOLManager volManager;
         internal Logics agLogs;
         internal Sounds agSnds;
         internal Views agViews;
@@ -157,6 +158,9 @@ namespace WinAGI.Engine {
         /// 
         /// </summary>
         private void InitGame() {
+            // set up volume manager
+            volManager = new(this);
+
             //get default max vol sizes
             agMaxVolSize = 1023 * 1024;
 
@@ -695,17 +699,9 @@ namespace WinAGI.Engine {
                 }
             }
             // reset game compiler variables
-            lngCurrentVol = 0;
-            lngCurrentLoc = 0;
-            strNewDir = NewGameDir;
+            volManager.Clear();
+            volManager.NewDir = NewGameDir;
 
-            // for dir files, use arrays during compiling process
-            // then build the dir files at the end
-            for (i = 0; i < 4; i++) {
-                for (j = 0; i < 768; i++) {
-                    bytDIR[i, j] = 255;
-                }
-            }
             try {
                 // ensure all temp vol files are removed
                 for (int v = 0; v < 15; v++) {
@@ -719,8 +715,7 @@ namespace WinAGI.Engine {
             }
             try {
                 // open first new vol file
-                fsVOL = File.Create(NewGameDir + "NEW_VOL.0");
-                bwVOL = new BinaryWriter(fsVOL);
+                volManager.VOLFile = File.Create(NewGameDir + "NEW_VOL.0");
             }
             catch (Exception e) {
                 CompleteCancel(true);
@@ -732,7 +727,7 @@ namespace WinAGI.Engine {
             }
             // add all logic resources
             try {
-                CompileResCol(agLogs, AGIResType.rtLogic, RebuildOnly, NewIsV3);
+                CompileResCol(this, agLogs, AGIResType.rtLogic, RebuildOnly, NewIsV3);
             }
             catch {
                 CompleteCancel(true);
@@ -745,7 +740,7 @@ namespace WinAGI.Engine {
             }
             // add all picture resources
             try {
-                CompileResCol(agPics, AGIResType.rtPicture, RebuildOnly, NewIsV3);
+                CompileResCol(this, agPics, AGIResType.rtPicture, RebuildOnly, NewIsV3);
             }
             catch {
                 CompleteCancel(true);
@@ -758,7 +753,7 @@ namespace WinAGI.Engine {
             }
             // add all view resources
             try {
-                CompileResCol(agViews, AGIResType.rtView, RebuildOnly, NewIsV3);
+                CompileResCol(this, agViews, AGIResType.rtView, RebuildOnly, NewIsV3);
             }
             catch {
                 CompleteCancel(true);
@@ -771,7 +766,7 @@ namespace WinAGI.Engine {
             }
             // add all sound resources
             try {
-                CompileResCol(agSnds, AGIResType.rtSound, RebuildOnly, NewIsV3);
+                CompileResCol(this, agSnds, AGIResType.rtSound, RebuildOnly, NewIsV3);
             }
             catch {
                 CompleteCancel(true);
@@ -830,60 +825,59 @@ namespace WinAGI.Engine {
             // now build the new DIR files
             if (NewIsV3) {
                 strFileName = NewGameDir + agGameID + "DIR";
-                using (fsDIR = File.Create(strFileName))
-                using (bwDIR = new BinaryWriter(fsDIR)) {
+                using (volManager.DIRWriter) {
                     // add offsets - logdir offset is always 8
-                    bwDIR.Write(Convert.ToInt16(8));
+                    volManager.DIRWriter.Write(Convert.ToInt16(8));
                     // pic offset is 8 + 3*logmax
                     tmpMax = agLogs.Max + 1;
                     if (tmpMax == 0) {
                         // always put at least one; even if it's all FFs
                         tmpMax = 1;
                     }
-                    bwDIR.Write((short)(8 + 3 * tmpMax));
+                    volManager.DIRWriter.Write((short)(8 + 3 * tmpMax));
                     i = 8 + 3 * tmpMax;
                     // view offset is pic offset + 3*picmax
                     tmpMax = agPics.Max + 1;
                     if (tmpMax == 0) {
                         tmpMax = 1;
                     }
-                    bwDIR.Write((short)(i + 3 * tmpMax));
+                    volManager.DIRWriter.Write((short)(i + 3 * tmpMax));
                     i += 3 * tmpMax;
                     // sound is view offset + 3*viewmax
                     tmpMax = agViews.Max + 1;
                     if (tmpMax == 0) {
                         tmpMax = 1;
                     }
-                    bwDIR.Write((short)(i + 3 * tmpMax));
+                    volManager.DIRWriter.Write((short)(i + 3 * tmpMax));
                     // now add all the dir entries (we can't use a for-next loop
                     // because sound and view dirs are swapped in v3 directory
                     // logics first
                     tmpMax = agLogs.Max;
                     for (i = 0; i <= tmpMax; i++) {
-                        bwDIR.Write(bytDIR[0, 3 * i]);
-                        bwDIR.Write(bytDIR[0, 3 * i + 1]);
-                        bwDIR.Write(bytDIR[0, 3 * i + 2]);
+                        volManager.DIRWriter.Write(volManager.DIRData[0, 3 * i]);
+                        volManager.DIRWriter.Write(volManager.DIRData[0, 3 * i + 1]);
+                        volManager.DIRWriter.Write(volManager.DIRData[0, 3 * i + 2]);
                     }
                     // next are pictures
                     tmpMax = agPics.Max;
                     for (i = 0; i <= tmpMax; i++) {
-                        bwDIR.Write(bytDIR[1, 3 * i]);
-                        bwDIR.Write(bytDIR[1, 3 * i + 1]);
-                        bwDIR.Write(bytDIR[1, 3 * i + 2]);
+                        volManager.DIRWriter.Write(volManager.DIRData[1, 3 * i]);
+                        volManager.DIRWriter.Write(volManager.DIRData[1, 3 * i + 1]);
+                        volManager.DIRWriter.Write(volManager.DIRData[1, 3 * i + 2]);
                     }
                     // then views
                     tmpMax = agViews.Max;
                     for (i = 0; i <= tmpMax; i++) {
-                        bwDIR.Write(bytDIR[3, 3 * i]);
-                        bwDIR.Write(bytDIR[3, 3 * i + 1]);
-                        bwDIR.Write(bytDIR[3, 3 * i + 2]);
+                        volManager.DIRWriter.Write(volManager.DIRData[3, 3 * i]);
+                        volManager.DIRWriter.Write(volManager.DIRData[3, 3 * i + 1]);
+                        volManager.DIRWriter.Write(volManager.DIRData[3, 3 * i + 2]);
                     }
                     // and finally, sounds
                     tmpMax = agSnds.Max;
                     for (i = 0; i <= tmpMax; i++) {
-                        bwDIR.Write(bytDIR[2, 3 * i]);
-                        bwDIR.Write(bytDIR[2, 3 * i + 1]);
-                        bwDIR.Write(bytDIR[2, 3 * i + 2]);
+                        volManager.DIRWriter.Write(volManager.DIRData[2, 3 * i]);
+                        volManager.DIRWriter.Write(volManager.DIRData[2, 3 * i + 1]);
+                        volManager.DIRWriter.Write(volManager.DIRData[2, 3 * i + 2]);
                     }
                 }
             }
@@ -909,12 +903,11 @@ namespace WinAGI.Engine {
                         break;
                     }
                     // create the dir file
-                    using (fsDIR = File.Create(strFileName))
-                    using (bwDIR = new BinaryWriter(fsDIR)) {
+                    using (volManager.DIRWriter) {
                         for (i = 0; i <= tmpMax; i++) {
-                            bwDIR.Write(bytDIR[j, 3 * i]);
-                            bwDIR.Write(bytDIR[j, 3 * i + 1]);
-                            bwDIR.Write(bytDIR[j, 3 * i + 2]);
+                            volManager.DIRWriter.Write(volManager.DIRData[j, 3 * i]);
+                            volManager.DIRWriter.Write(volManager.DIRData[j, 3 * i + 1]);
+                            volManager.DIRWriter.Write(volManager.DIRData[j, 3 * i + 2]);
                         }
                     }
                 }
@@ -946,7 +939,7 @@ namespace WinAGI.Engine {
                 }
             }
             // now rename VOL files
-            for (i = 0; i <= lngCurrentVol; i++) {
+            for (i = 0; i < volManager.Count; i++) {
                 strFileName = strID + "VOL." + i.ToString();
                 File.Move(NewGameDir + "NEW_VOL." + i.ToString(), NewGameDir + strFileName);
             }
@@ -959,20 +952,20 @@ namespace WinAGI.Engine {
                 // if there's an error, or the user cancels, we don't want the directories
                 // to point to the wrong place
                 foreach (Logic tmpLogic in agLogs.Col.Values) {
-                    tmpLogic.Volume = (sbyte)(bytDIR[0, tmpLogic.Number * 3] >> 4);
-                    tmpLogic.Loc = ((bytDIR[0, tmpLogic.Number * 3] & 0xF) << 16) + (bytDIR[0, tmpLogic.Number * 3 + 1] << 8) + bytDIR[0, tmpLogic.Number * 3 + 2];
+                    tmpLogic.Volume = (sbyte)(volManager.DIRData[0, tmpLogic.Number * 3] >> 4);
+                    tmpLogic.Loc = ((volManager.DIRData[0, tmpLogic.Number * 3] & 0xF) << 16) + (volManager.DIRData[0, tmpLogic.Number * 3 + 1] << 8) + volManager.DIRData[0, tmpLogic.Number * 3 + 2];
                 }
                 foreach (Picture tmpPicture in agPics.Col.Values) {
-                    tmpPicture.Volume = (sbyte)(bytDIR[1, tmpPicture.Number * 3] >> 4);
-                    tmpPicture.Loc = ((bytDIR[1, tmpPicture.Number * 3] & 0xF) << 16) + (bytDIR[1, tmpPicture.Number * 3 + 1] << 8) + bytDIR[1, tmpPicture.Number * 3 + 2];
+                    tmpPicture.Volume = (sbyte)(volManager.DIRData[1, tmpPicture.Number * 3] >> 4);
+                    tmpPicture.Loc = ((volManager.DIRData[1, tmpPicture.Number * 3] & 0xF) << 16) + (volManager.DIRData[1, tmpPicture.Number * 3 + 1] << 8) + volManager.DIRData[1, tmpPicture.Number * 3 + 2];
                 }
                 foreach (Sound tmpSound in agSnds.Col.Values) {
-                    tmpSound.Volume = (sbyte)(bytDIR[2, tmpSound.Number * 3] >> 4);
-                    tmpSound.Loc = ((bytDIR[2, tmpSound.Number * 3] & 0xF) << 16) + (bytDIR[2, tmpSound.Number * 3 + 1] << 8) + bytDIR[2, tmpSound.Number * 3 + 2];
+                    tmpSound.Volume = (sbyte)(volManager.DIRData[2, tmpSound.Number * 3] >> 4);
+                    tmpSound.Loc = ((volManager.DIRData[2, tmpSound.Number * 3] & 0xF) << 16) + (volManager.DIRData[2, tmpSound.Number * 3 + 1] << 8) + volManager.DIRData[2, tmpSound.Number * 3 + 2];
                 }
                 foreach (View tmpView in agViews.Col.Values) {
-                    tmpView.Volume = (sbyte)(bytDIR[3, tmpView.Number * 3] >> 4);
-                    tmpView.Loc = ((bytDIR[3, tmpView.Number * 3] & 0xF) << 16) + (bytDIR[3, tmpView.Number * 3 + 1] << 8) + bytDIR[3, tmpView.Number * 3 + 2];
+                    tmpView.Volume = (sbyte)(volManager.DIRData[3, tmpView.Number * 3] >> 4);
+                    tmpView.Loc = ((volManager.DIRData[3, tmpView.Number * 3] & 0xF) << 16) + (volManager.DIRData[3, tmpView.Number * 3 + 1] << 8) + volManager.DIRData[3, tmpView.Number * 3 + 2];
                 }
             }
             // save the wag file
@@ -2285,8 +2278,7 @@ namespace WinAGI.Engine {
                 Raise_CompileGameEvent(ECStatus.csCanceled, 0, 0, tmpWarn);
             }
             agCompGame = false;
-            fsVOL.Dispose();
-            bwVOL.Dispose();
+            volManager.Clear();
         }
     }
 }

@@ -54,7 +54,7 @@ namespace WinAGI.Engine {
                 }
                 try {
                     //open the file, load it into buffer, and close it
-                    using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
+                    using (FileStream fsDIR = new FileStream(strDirFile, FileMode.Open)) {
                         bytBuffer = new byte[fsDIR.Length];
                         fsDIR.Read(bytBuffer);
                     }
@@ -124,7 +124,7 @@ namespace WinAGI.Engine {
                     }
                     try {
                         //open the file, load it into buffer, and close it
-                        using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
+                        using (FileStream fsDIR = new FileStream(strDirFile, FileMode.Open)) {
                             bytBuffer = new byte[fsDIR.Length];
                             fsDIR.Read(bytBuffer);
                         }
@@ -325,27 +325,27 @@ namespace WinAGI.Engine {
                     case 1:
                         warnInfo.ID = "RW20";
                         warnInfo.Text = "OBJECT file has no items";
-                        warnInfo.Module = "";
+                        warnInfo.Module = "OBJECT";
                         break;
                     case 12:
                         warnInfo.ID = "RW21";
                         warnInfo.Text = "Unable to decrypt OBJECT file";
-                        warnInfo.Module = "";
+                        warnInfo.Module = "OBJECT";
                         break;
                     case 3:
                         warnInfo.ID = "RW22";
                         warnInfo.Text = "Unable to parse OBJECT file";
-                        warnInfo.Module = "";
+                        warnInfo.Module = "OBJECT";
                         break;
                     case 4:
                         warnInfo.ID = "RW23";
                         warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
-                        warnInfo.Module = "";
+                        warnInfo.Module = "OBJECT";
                         break;
                     case 5:
                         warnInfo.ID = "RW24";
                         warnInfo.Text = "First item is not the null '?' item";
-                        warnInfo.Module = "";
+                        warnInfo.Module = "OBJECT";
                         break;
                     }
                     Raise_LoadGameEvent(warnInfo);

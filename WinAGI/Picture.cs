@@ -575,6 +575,24 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
+        /// Imports a picture resource from a file into this picture.
+        /// </summary>
+        /// <param name="ImportFile"></param>
+        public void Import(string ImportFile) {
+            try {
+                // use base function
+                base.Import(ImportFile);
+                // mark as undrawn
+                mPicBMPSet = false;
+            }
+            catch (Exception) {
+                Unload();
+                throw;
+            }
+
+        }
+
+        /// <summary>
         /// Forces bitmap to reload. Use when palette changes
         /// (or any other reason that needs the cel to be refreshed).
         /// </summary>
@@ -583,7 +601,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns a bitmap image of the visual screenoutput
+        /// Returns a bitmap image of the visual screen.
         /// </summary>
         public Bitmap VisualBMP {
             get {
@@ -598,7 +616,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Returns a bitmap image of the priority screen.
         /// </summary>
         public Bitmap PriorityBMP {
             get {
@@ -626,12 +644,11 @@ namespace WinAGI.Engine {
                 else {
                     parent.agGameProps.DeleteKey(strPicKey, "PriBase");
                 }
-                //if no bkgdfile, delete other settings
+                // if no bkgdfile, delete other settings
                 if (mBkImgFile.Length == 0) {
                     mBkShow = false;
                     parent.agGameProps.DeleteKey(strPicKey, "BkgdImg");
                     parent.agGameProps.DeleteKey(strPicKey, "BkgdShow");
-                    //mBkTrans = 0
                     parent.agGameProps.DeleteKey(strPicKey, "BkgdTrans");
                     parent.agGameProps.DeleteKey(strPicKey, "BkgdPosn");
                     parent.agGameProps.DeleteKey(strPicKey, "BkgdSize");
@@ -648,7 +665,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Saves this picture resource. If in a game, it updates the DIR and VOL files. If standalone,
+        /// the resource is saved to file specified by this resources FileName property.
         /// </summary>
         public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);

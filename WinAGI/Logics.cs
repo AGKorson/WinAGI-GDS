@@ -144,7 +144,7 @@ namespace WinAGI.Engine {
         public void Remove(byte Index) {
             if (Col.TryGetValue(Index, out Logic value)) {
                 // need to clear the directory file first
-                UpdateDirFile(value, true);
+                parent.volManager.UpdateDirFile(value, true);
                 Col.Remove(Index);
                 // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Logic" + Index);
@@ -180,7 +180,7 @@ namespace WinAGI.Engine {
             // remove old logic
             parent.agGameProps.DeleteSection("Logic" + OldLogic);
             Col.Remove(OldLogic);
-            UpdateDirFile(tmpLogic, true);
+            parent.volManager.UpdateDirFile(tmpLogic, true);
             // adjust ID if it is default
             if (tmpLogic.ID == "Logic" + OldLogic) {
                 strID = strBaseID = "Logic" + NewLogic;
@@ -204,7 +204,7 @@ namespace WinAGI.Engine {
             // add it back with new number
             tmpLogic.Number = NewLogic;
             Col.Add(NewLogic, tmpLogic);
-            UpdateDirFile(tmpLogic);
+            parent.volManager.UpdateDirFile(tmpLogic);
             strSection = "Logic" + NewLogic;
             parent.WriteGameSetting(strSection, "ID", tmpLogic.ID, "Logics");
             parent.WriteGameSetting(strSection, "Description", tmpLogic.Description);

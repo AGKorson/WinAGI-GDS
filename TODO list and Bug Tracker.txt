@@ -216,6 +216,7 @@ Notes             Add                       ArgOutOfRange         invalid durati
 Notes             Add                       ArgOutOfRange         invalid freqdivisor value
 Notes             Remove                    IndexOutOfRange       invalid index
 Notes             Enum:Current              InvalidOps            invalid
+Picture           Import                    PASS                  pass-through base.Import
 Picture           VisData/get               563                   resource not loaded
 Picture           PriData/get               563                   resource not loaded
 Picture           CurrentToolStatus/get     563                   resource not loaded
@@ -267,7 +268,8 @@ SettingList       ctor                      502                   file access er
 SettingList       Save                      563                   list not loaded
 SettingList       Save                      502                   file access error while opening list file
 
-
+WinAGI            DefResDir/set             ArgOutOfRange         invalid defresdir value (empty)
+WinAGI            DefResDir/set             ArgOutOfRange         invalid defresdir value (bad chars)
 WordList          CodePage                  ArgOutOfRange         invalid codepage value
 WordList          Export                    563                   resource not loaded
 WordList          Export                    PASS                  pass-through Compile        

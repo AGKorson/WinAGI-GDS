@@ -88,7 +88,7 @@ namespace WinAGI.Engine {
             // if the resource exists
             if (Col.TryGetValue(Index, out View value)) {
                 //need to clear the directory file first
-                UpdateDirFile(value, true);
+                parent.volManager.UpdateDirFile(value, true);
                 Col.Remove(Index);
                 //remove all properties from the wag file
                 parent.agGameProps.DeleteSection("View" + Index);
@@ -133,7 +133,7 @@ namespace WinAGI.Engine {
 
             //delete view from old number in dir file
             //by calling update directory file method
-            UpdateDirFile(tmpView, true);
+            parent.volManager.UpdateDirFile(tmpView, true);
 
             //if id is default
             if (tmpView.ID.Equals("View" + OldView, StringComparison.OrdinalIgnoreCase)) {
@@ -151,7 +151,7 @@ namespace WinAGI.Engine {
             Col.Add(NewView, tmpView);
 
             //update new view number in dir file
-            UpdateDirFile(tmpView);
+            parent.volManager.UpdateDirFile(tmpView);
 
             //add properties back with new view number
             strSection = "View" + NewView;

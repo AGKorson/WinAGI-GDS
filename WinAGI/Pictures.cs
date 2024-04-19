@@ -112,7 +112,7 @@ namespace WinAGI.Engine {
         public void Remove(byte Index) {
             if (Col.TryGetValue(Index, out Picture value)) {
                 //need to clear the directory file first
-                UpdateDirFile(value, true);
+                parent.volManager.UpdateDirFile(value, true);
                 Col.Remove(Index);
                 // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Picture" + Index);
@@ -149,7 +149,7 @@ namespace WinAGI.Engine {
             // remove old picture
             parent.agGameProps.DeleteSection("Picture" + OldPic);
             Col.Remove(OldPic);
-            UpdateDirFile(tmpPic, true);
+            parent.volManager.UpdateDirFile(tmpPic, true);
             // adjust id if it is default
             if (tmpPic.ID == "Picture" + OldPic) {
                 strID = strBaseID = "Picture" + NewPic;
@@ -161,7 +161,7 @@ namespace WinAGI.Engine {
             // add it back with new number
             tmpPic.Number = NewPic;
             Col.Add(NewPic, tmpPic);
-            UpdateDirFile(tmpPic);
+            parent.volManager.UpdateDirFile(tmpPic);
             strSection = "Picture" + NewPic;
             parent.WriteGameSetting(strSection, "ID", tmpPic.ID, "Pictures");
             parent.WriteGameSetting(strSection, "Description", tmpPic.Description);

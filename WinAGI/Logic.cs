@@ -360,13 +360,12 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Imports a logic resource. This will overwrite current source text with decompiled resource.
-        /// Use ImportSource to import source code.
+        /// Imports a logic from a file into this resource. This will overwrite current source
+        /// text with decompiled resource. Use ImportSource to import source code.
         /// </summary>
         /// <param name="ImportFile"></param>
         /// <param name="AsSource"></param>
         public override void Import(string ImportFile) {
-            // 
             try {
                 // use base function
                 base.Import(ImportFile);
@@ -385,11 +384,11 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Imports a an existing source code file into this logic resource. It does not 
+        /// compile the logic so the resource data remains unchanged.
         /// </summary>
         /// <param name="ImportFile"></param>
         public void ImportSource(string ImportFile) {
-            // if importing a source file, ther resource data is left alone, and compiled status is adjusted
             if (ImportFile.Length == 0) {
                 WinAGIException wex = new(LoadResString(615)) {
                     HResult = WINAGI_ERR + 615

@@ -81,7 +81,7 @@ namespace WinAGI.Engine {
             // if the resource exists
             if (Col.TryGetValue(Index, out Sound value)) {
                 //need to clear the directory file first
-                UpdateDirFile(value, true);
+                parent.volManager.UpdateDirFile(value, true);
                 Col.Remove(Index);
                 //remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Sound" + Index);
@@ -126,7 +126,7 @@ namespace WinAGI.Engine {
 
             //delete sound from old number in dir file
             //by calling update directory file method
-            UpdateDirFile(tmpSound, true);
+            parent.volManager.UpdateDirFile(tmpSound, true);
 
             //if id is default
             if (tmpSound.ID.Equals("Sound" + OldSound, StringComparison.OrdinalIgnoreCase)) {
@@ -144,7 +144,7 @@ namespace WinAGI.Engine {
             Col.Add(NewSound, tmpSound);
 
             //update new sound number in dir file
-            UpdateDirFile(tmpSound);
+            parent.volManager.UpdateDirFile(tmpSound);
 
             //add properties back with new sound number
             strSection = "Sound" + NewSound;
