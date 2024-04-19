@@ -502,7 +502,6 @@ namespace WinAGI.Engine {
                 }
                 try {
                     // play the sound
-                    wavPlayer.SetFormat(mFormat);
                     wavPlayer.PlayWAVSound(this);
                 }
                 catch (Exception) {

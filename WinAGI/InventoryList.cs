@@ -22,6 +22,7 @@ namespace WinAGI.Engine {
         // 2 = invalid data (decrypt failure)
         // 3 = invalid data (datawidth failure)
         // 4 = invalid data (invalid text pointer)
+        // 5 = first object is not '?'
         AGIGame parent = null;
         Encoding mCodePage = Encoding.GetEncoding(437);
         //other
@@ -134,9 +135,17 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
+        /// Gets the error level associated with this inventory item list.
+        /// </summary>
+        public int ErrLevel {
+            get {
+                return mErrLevel;
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
-
         public string Description {
             get {
                 return mDescription;
@@ -264,7 +273,7 @@ namespace WinAGI.Engine {
             string sItem;
             int intItem;
             byte bytRoom;
-            int rtn;
+            int retval = 0;
             byte[] bytData = [], bytChar = new byte[1];
             int lngDataOffset, lngNameOffset;
             int lngPos, Dwidth;
@@ -295,8 +304,7 @@ namespace WinAGI.Engine {
             fsObj.Read(bytData);
             fsObj.Dispose();
             // determine if file is encrypted or clear
-            rtn = IsEncrypted(bytData[^1], bytData.Length - 1);
-            switch (rtn) {
+            switch (IsEncrypted(bytData[^1], bytData.Length - 1)) {
             case 0:
                 // unencrypted
                 mEncrypted = false;
@@ -352,7 +360,7 @@ namespace WinAGI.Engine {
                         break;
                     }
                     bytChar[0] = bytData[lngPos];
-                    sbItem.Append(bytChar);
+                    sbItem.Append(parent.agCodePage.GetString(bytChar));
                     lngPos++;
                 }
                 sItem = sbItem.ToString();
@@ -365,8 +373,7 @@ namespace WinAGI.Engine {
                         // rename first object
                         mItems[0].ItemName = sItem;
                         mItems[0].Room = bytRoom;
-                        // TODO: if game is being imported, make a note of this!
-                        // (raise the warning in OpenGameWAG/DIR)
+                        retval = 5;
                     }
                 }
                 else {
@@ -376,7 +383,7 @@ namespace WinAGI.Engine {
                 intItem++;
             }
             while (((intItem * Dwidth) + Dwidth < lngDataOffset) && (intItem < MAX_ITEMS));
-            return 0;
+            return retval;
         }
 
         /// <summary>

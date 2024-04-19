@@ -1867,14 +1867,9 @@ namespace WinAGI.Engine {
                 // set warning flag
                 blnWarnings = true;
             }
-            if (agVocabWords.ErrLevel == 1) {
-                loadInfo.ResType = AGIResType.rtWords;
-                loadInfo.Type = EventType.etWarning;
-                loadInfo.ID = "RW02";
-                loadInfo.Text = "Abnormal index in WORDS.TOK, file may be corrupt";
-                loadInfo.Module = "WORDS.TOK";
-                Raise_LoadGameEvent(loadInfo);
-                // set warning flag
+            if (agVocabWords.ErrLevel != 0) {
+                // note the problem as a warning
+                AddLoadWarning(AGIResType.rtWords, 0, agVocabWords.ErrLevel, []);
                 blnWarnings = true;
             }
             // get description, if there is one
@@ -1901,6 +1896,12 @@ namespace WinAGI.Engine {
             }
             // get description, if there is one
             agInvObj.Description = agGameProps.GetSetting("OBJECT", "Description", "", true);
+            // check for warnings
+            if (agInvObj.ErrLevel != 0) {
+                // note the problem as a warning
+                AddLoadWarning(AGIResType.rtObjects, 0, agInvObj.ErrLevel, []);
+                blnWarnings = true;
+            }
             // adust commands based on AGI version
             CorrectCommands(agIntVersion);
             // check for decompile warnings, TODO entries and validate logic CRC values

@@ -287,28 +287,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Sets the output device for playback to correct sample rate and channel count based on sound format.
-        /// </summary>
-        /// <param name="format"></param>
-        internal void SetFormat(SoundFormat format) {
-            outputDevice.Dispose();
-            outputDevice = new WaveOutEvent();
-            soundFormat = format;
-            if (format == SoundFormat.sfAGI) {
-                mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(SAMPLE_RATE, 2)) {
-                    ReadFully = true
-                };
-                outputDevice.Init(mixer);
-                outputDevice.Play();
-            }
-            else {
-                //mixer = new MixingSampleProvider(new WaveFormat(8000, 8, 1)) {
-                //    ReadFully = true
-                //};
-            }
-
-        }
-        /// <summary>
         /// This method creates a WAV audio data stream from a PCjr formatted sound resource
         /// for playback.
         /// </summary>
@@ -407,7 +385,8 @@ namespace WinAGI.Engine {
         /// <param name="sound">The AGI Sound to play.</param>
         internal void PlayWAVSound(Sound sound) {
             soundPlaying = sound;
-            // Stop any currently playing sound.
+            soundFormat = sound.SndFormat;
+
             StopAllSound();
             // Now play the Wave file.
             MemoryStream memoryStream = new(sound.WAVData);
@@ -422,6 +401,7 @@ namespace WinAGI.Engine {
         private void PlayWaveStreamAndWait(MemoryStream waveStream) {
             bPlayingWAV = true;
             PlayWithNAudioMix(waveStream);
+            //PlayWithWaveOut(waveStream);
             // The above call blocks until the sound has finished playing. If sound is not on, then it happens immediately.
             bPlayingWAV = false;
             // raise the 'done' event
@@ -434,38 +414,59 @@ namespace WinAGI.Engine {
         /// <param name="memoryStream">The MemoryStream containing the WAVE file data.</param>
         private void PlayWithNAudioMix(MemoryStream memoryStream) {
             // Add the new sound as an input to the NAudio mixer.
-                var wo = new WaveOutEvent();
+            RawSourceWaveStream rs;
+            ISampleProvider soundMixerInput;
+
+            if (soundFormat == SoundFormat.sfAGI) {
+                // WAV generated from PCjr sounds are 44100 sample rate, 16bit, two channel
+                rs = new(memoryStream, new WaveFormat(44100, 16, 2));
+                soundMixerInput = rs.ToSampleProvider();
+            }
+            else {
+                // WAV generated from IIgs sounds are 8000 sample rate, 8bit, one channel
+                rs = new(memoryStream, new WaveFormat(8000, 8, 1));
+                // to add to mixer, need to convert to IEEE float, 44100, 16bit, 2 channel
+                var resampler = new MediaFoundationResampler(rs, new WaveFormat(44100, 16, 2));
+                soundMixerInput = resampler.ToSampleProvider();
+            }
+            mixer.AddMixerInput(soundMixerInput);
+            // Register a handler for when this specific sound ends.
+            bool playbackEnded = false;
+            void handlePlaybackEnded(object sender, SampleProviderEventArgs args) {
+                mixer.MixerInputEnded -= handlePlaybackEnded;
+                playbackEnded = true;
+            };
+            mixer.MixerInputEnded += handlePlaybackEnded;
+            // Wait until either the sound has ended, or we have been told to stop.
+            while (!playbackEnded && bPlayingWAV) {
+                Thread.Sleep(10);
+            }
+            // If we didn't stop due to the playback ending, then tell it to stop playing.
+            if (!playbackEnded) {
+                mixer.RemoveMixerInput(soundMixerInput);
+            }
+        }
+
+        private void PlayWithWaveOut(MemoryStream memoryStream) {
+            // Add the new sound as an input to the NAudio mixer.
+            WaveOutEvent wo = new();
             RawSourceWaveStream rs;
             if (soundFormat == SoundFormat.sfAGI) {
                 // WAV generated from PCjr sounds are 44100 sample rate, 16bit, two channel
                 rs = new(memoryStream, new WaveFormat(44100, 16, 2));
-                wo.Init(rs);
-                wo.Play();
-                //mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(SAMPLE_RATE, 2)) {
-                //    ReadFully = true
-                //};
             }
             else {
                 // WAV extracted from IIgs sounds are 8000 sample rate, 8bit, one channel
                 rs = new(memoryStream, new WaveFormat(8000, 8, 1));
-                wo.Init(rs);
-                wo.Play();
-                //mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(SAMPLE_RATE, 2)) {
-                //    ReadFully = true
-                //};
             }
-            //ISampleProvider soundMixerInput = rs.ToSampleProvider();
-            //mixer.AddMixerInput(soundMixerInput);
+            wo.Init(rs);
+            wo.PlaybackStopped += handlePlaybackEnded;
+            wo.Play();
             // Register a handler for when this specific sound ends.
             bool playbackEnded = false;
-            void handlePlaybackEnded(object sender, SampleProviderEventArgs args) {
-                // It is possible that we get sound overlaps, so we check that this is the same sound.
-                //if (ReferenceEquals(args.SampleProvider, soundMixerInput)) {
-                    //mixer.MixerInputEnded -= handlePlaybackEnded;
-                    playbackEnded = true;
-                //}
+            void handlePlaybackEnded(object sender, StoppedEventArgs args) {
+                playbackEnded = true;
             };
-            //mixer.MixerInputEnded += handlePlaybackEnded;
 
             // Wait until either the sound has ended, or we have been told to stop.
             while (!playbackEnded && bPlayingWAV) {
@@ -474,7 +475,6 @@ namespace WinAGI.Engine {
 
             // If we didn't stop due to the playback ending, then tell it to stop playing.
             if (!playbackEnded) {
-                //mixer.RemoveMixerInput(soundMixerInput);
                 wo.Stop();
             }
         }
@@ -488,7 +488,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Fully shuts down the SoundPlayer. Only intended for ...
+        /// Fully shuts down the SoundPlayer.
         /// </summary>
         public void Shutdown() {
             Reset();

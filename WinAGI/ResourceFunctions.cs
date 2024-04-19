@@ -320,6 +320,38 @@ namespace WinAGI.Engine {
                     warnInfo.Module = errdata[0];
                     Raise_LoadGameEvent(warnInfo);
                     break;
+                case AGIResType.rtObjects:
+                    switch (errlevel) {
+                    case 1:
+                        warnInfo.ID = "RW20";
+                        warnInfo.Text = "OBJECT file has no items";
+                        warnInfo.Module = "";
+                        break;
+                    case 12:
+                        warnInfo.ID = "RW21";
+                        warnInfo.Text = "Unable to decrypt OBJECT file";
+                        warnInfo.Module = "";
+                        break;
+                    case 3:
+                        warnInfo.ID = "RW22";
+                        warnInfo.Text = "Unable to parse OBJECT file";
+                        warnInfo.Module = "";
+                        break;
+                    case 4:
+                        warnInfo.ID = "RW23";
+                        warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
+                        warnInfo.Module = "";
+                        break;
+                    case 5:
+                        warnInfo.ID = "RW24";
+                        warnInfo.Text = "First item is not the null '?' item";
+                        warnInfo.Module = "";
+                        break;
+                    }
+                    Raise_LoadGameEvent(warnInfo);
+                    break;
+                case AGIResType.rtWords:
+                    break;
                 }
                 return;
             }
@@ -480,7 +512,7 @@ namespace WinAGI.Engine {
                 warnInfo.Module = errdata[0];
                 Raise_LoadGameEvent(warnInfo);
                 break;
-            // TODO: remove loadwarning "RW11" (unhandled load error)
+            // TODO: remove loadwarnings "RW04",  "RW11" (unhandled load error)
             default:
                 // should be no others
                 Debug.Assert(false);
@@ -1300,7 +1332,7 @@ namespace WinAGI.Engine {
             // local copy of data -easier to manipulate
             bData = SoundIn.Data.AllData;
             // size of sound data is total file size, minus the PCM header 
-            lngSize = bData.Length - 54;
+            lngSize = bData.Length - 50; // 54;
             bOutput = new byte[lngSize];
             //// expand midi data array to hold the sound resource data plus
             //// the WAV file header
@@ -1355,6 +1387,10 @@ namespace WinAGI.Engine {
             for (int i = 54; i < bData.Length; i++) {
                 bOutput[pos++] = bData[i];
             }
+            bOutput[^1] = 255;
+            bOutput[^2] = 255;
+            bOutput[^3] = 255;
+            bOutput[^4] = 255;
             return bOutput;
         }
 
