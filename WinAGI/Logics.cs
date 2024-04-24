@@ -9,17 +9,17 @@ using static WinAGI.Engine.Compiler;
 
 namespace WinAGI.Engine {
     /// <summary>
-    /// 
+    /// A class that holds all the logics in an AGI game.
     /// </summary>
     public class Logics : IEnumerable<Logic> {
         readonly AGIGame parent;
         internal string mSourceFileExt = "";
+
         internal Logics(AGIGame parent) {
             this.parent = parent;
-            Col = [];
             mSourceFileExt = Compiler.DefaultSrcExt;
         }
-        public SortedList<byte, Logic> Col { get; private set; }
+        public SortedList<byte, Logic> Col { get; private set; } = [];
         public Logic this[int index] {
             get {
                 if (index < 0 || index > 255 || !Exists((byte)index)) {
@@ -30,7 +30,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the number of logics in this collection.
+        /// Returns the number of logics in this AGI game.
         /// </summary>
         public byte Count { 
             get { 
@@ -39,7 +39,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the highest index in use in this collection.
+        /// Returns the highest index in use in the logics collection.
         /// </summary>
         public byte Max {
             get {
@@ -73,12 +73,11 @@ namespace WinAGI.Engine {
                 if (mSourceFileExt.Any(Path.GetInvalidFileNameChars().Contains)) {
                     throw new ArgumentException("unallowable characters");
                 }
-                mSourceFileExt = value;
-            }
+                mSourceFileExt = value.ToLower();            }
         }
         
         /// <summary>
-        /// Returns true if a logic with number ResNum exists in this collection.
+        /// Returns true if a logic with number ResNum exists in this game.
         /// </summary>
         /// <param name="ResNum"></param>
         /// <returns></returns>
@@ -87,15 +86,15 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        /// Clears the collection by deleting all logics.
+        /// Removes all logics from the game.
         /// </summary>
         internal void Clear() {
             Col = [];
         }
 
         /// <summary>
-        /// Adds a logic to the collection. If NewLogic is null a blank
-        /// logic is added, otherwise the new logic is cloned from NewLogic.
+        /// Adds a logic to the game. If NewLogic is null a blank logic is
+        /// added, otherwise the added logic is cloned from NewLogic.
         /// </summary>
         /// <param name="ResNum"></param>
         /// <param name="NewLogic"></param>
@@ -104,9 +103,7 @@ namespace WinAGI.Engine {
             Logic agResource;
             int intNextNum = 0;
             string strID, strBaseID;
-            // if this Logic already exists
             if (Exists(ResNum)) {
-                // resource already exists
                 WinAGIException wex = new(LoadResString(602)) {
                     HResult = WINAGI_ERR + 602
                 };
@@ -114,15 +111,12 @@ namespace WinAGI.Engine {
             }
             // create new ingame logic
             agResource = new Logic(parent, ResNum, NewLogic);
-            // if an object was not passed
             if (NewLogic is null) {
-                // proposed ID will be default
                 strID = "Logic" + ResNum;
             }
             else {
                 strID = agResource.ID;
             }
-            // validate id
             strBaseID = strID;
             while (NotUniqueID(strID, parent)) {
                 intNextNum++;
@@ -132,36 +126,40 @@ namespace WinAGI.Engine {
             // force flags so save function will work
             agResource.IsDirty = true;
             agResource.PropDirty = true;
+            // save new logic to add it to VOL file
             agResource.Save();
+            // id list needs to be updated
+            blnSetIDs = false;
             // return the new logic
             return agResource;
         }
 
         /// <summary>
-        /// Removes a logic from the collection.
+        /// Removes a logic from the game.
         /// </summary>
         /// <param name="Index"></param>
         public void Remove(byte Index) {
             if (Col.TryGetValue(Index, out Logic value)) {
                 // need to clear the directory file first
-                parent.volManager.UpdateDirFile(value, true);
+                VOLManager.Base.UpdateDirFile(value, true);
                 Col.Remove(Index);
                 // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Logic" + Index);
-                //remove ID from compiler list
-                Compiler.blnSetIDs = false;
+                // remove ID from compiler list
+                blnSetIDs = false;
             }
         }
 
         /// <summary>
-        /// Changes the number of a logic in this collection.
+        /// Changes the number of a logic in this game.
         /// </summary>
         /// <param name="OldLogic"></param>
         /// <param name="NewLogic"></param>
         public void Renumber(byte OldLogic, byte NewLogic) {
             Logic tmpLogic;
             int intNextNum = 0;
-            string strSection, strID, strBaseID;
+            string strID, strBaseID;
+
             if (OldLogic == NewLogic) {
                 return;
             }
@@ -180,7 +178,7 @@ namespace WinAGI.Engine {
             // remove old logic
             parent.agGameProps.DeleteSection("Logic" + OldLogic);
             Col.Remove(OldLogic);
-            parent.volManager.UpdateDirFile(tmpLogic, true);
+            VOLManager.Base.UpdateDirFile(tmpLogic, true);
             // adjust ID if it is default
             if (tmpLogic.ID == "Logic" + OldLogic) {
                 strID = strBaseID = "Logic" + NewLogic;
@@ -204,15 +202,10 @@ namespace WinAGI.Engine {
             // add it back with new number
             tmpLogic.Number = NewLogic;
             Col.Add(NewLogic, tmpLogic);
-            parent.volManager.UpdateDirFile(tmpLogic);
-            strSection = "Logic" + NewLogic;
-            parent.WriteGameSetting(strSection, "ID", tmpLogic.ID, "Logics");
-            parent.WriteGameSetting(strSection, "Description", tmpLogic.Description);
-            parent.WriteGameSetting(strSection, "CRC32", "0x" + tmpLogic.CRC.ToString("x8"));
-            parent.WriteGameSetting(strSection, "CompCRC32", "0x" + (tmpLogic.CompiledCRC.ToString("x8")));
-            parent.WriteGameSetting(strSection, "IsRoom", tmpLogic.IsRoom.ToString());
-            tmpLogic.PropDirty = false;
-            Compiler.blnSetIDs = false;
+            VOLManager.Base.UpdateDirFile(tmpLogic);
+            // id list needs updating
+            tmpLogic.SaveProps();
+            blnSetIDs = false;
         }
 
         /// <summary>
@@ -266,11 +259,11 @@ namespace WinAGI.Engine {
                 if (!parent.GlobalDefines.IsSet) {
                     parent.GlobalDefines.LoadGlobalDefines();
                 }
-                if (!Compiler.blnSetIDs) {
-                    Compiler.SetResourceIDs(parent);
+                if (!blnSetIDs) {
+                    SetResourceIDs(parent);
                 }
             }
-            Compiler.ConvertArgument(ref ArgIn, ArgType, ref VarOrNum);
+            ConvertArgument(ref ArgIn, ArgType, ref VarOrNum);
             return ArgIn;
         }
 

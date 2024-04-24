@@ -127,8 +127,6 @@ namespace WinAGI.Engine {
             // adds a picture from dir/vol files, setting its resource 
             // location properties, and reads properties from the wag file
 
-            // attach events
-            base.PropertyChanged += ResPropChange;
             // set up base resource
             base.InitInGame(parent, AGIResType.rtPicture, ResNum, VOL, Loc);
             // default to entire image
@@ -144,12 +142,10 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="NewPicture"></param>
         private void InitPicture(Picture NewPicture = null) {
-            // attach events
-            PropertyChanged += ResPropChange;
             if (NewPicture is null) {
                 // create default picture with no commands
-                mRData.ReSize(1);
-                mRData[0] = 0xff;
+                mData = new byte[1];
+                mData[0] = 0xff;
                 mDrawPos = -1;
                 mPriBase = 48;
                 mBkImgFile = "";
@@ -162,33 +158,34 @@ namespace WinAGI.Engine {
                 mCurrentPen = new PenStatus();
             }
             else {
-                // clone this picture
-                NewPicture.Clone(this);
+                // copy base properties
+                NewPicture.CloneTo(this);
+                // copy picture properties
+                mBkImgFile = NewPicture.mBkImgFile;
+                mBkShow = NewPicture.mBkShow;
+                mBkTrans = NewPicture.mBkTrans;
+                mBkPos = NewPicture.mBkPos;
+                mBkSize = NewPicture.mBkSize;
+                mPriBase = NewPicture.mPriBase;
+                mPicBMPSet = NewPicture.mPicBMPSet;
+                mDrawPos = NewPicture.mDrawPos;
+                mStepDraw = NewPicture.mStepDraw;
+                mCurrentPen = NewPicture.mCurrentPen;
+                mVisData = NewPicture.mVisData;
+                mPriData = NewPicture.mPriData;
             }
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void ResPropChange(object sender, AGIResPropChangedEventArgs e) {
-            // set flag to indicate picture data does not match picture bmps
-            mPicBMPSet = false;
-            // for picture only, changing resource sets dirty flag
-            mIsDirty = true;
-        }
-
-        /// <summary>
-        /// Copies picture data from this picture and returns a completely separate object
-        /// reference.
+        /// Copies picture data from this picture and returns a completely separate
+        /// object reference.
         /// </summary>
         /// <returns>a clone of this picture</returns>
         internal Picture Clone() {
             Picture CopyPicture = new();
             // copy base properties
-            base.Clone(CopyPicture);
-            // copy WinAGI items
+            base.CloneTo(CopyPicture);
+            // copy picture properties
             CopyPicture.mBkImgFile = mBkImgFile;
             CopyPicture.mBkShow = mBkShow;
             CopyPicture.mBkTrans = mBkTrans;
@@ -196,7 +193,7 @@ namespace WinAGI.Engine {
             CopyPicture.mBkSize = mBkSize;
             CopyPicture.mPriBase = mPriBase;
             CopyPicture.mPicBMPSet = mPicBMPSet;
-            CopyPicture.DrawPos = DrawPos;
+            CopyPicture.mDrawPos = mDrawPos;
             CopyPicture.mStepDraw = mStepDraw;
             CopyPicture.mCurrentPen = mCurrentPen;
             CopyPicture.mVisData = mVisData;
@@ -530,7 +527,8 @@ namespace WinAGI.Engine {
         public override void Clear() {
             WinAGIException.ThrowIfNotLoaded(this);
             base.Clear();
-            mRData.AllData = [0xff];
+            mData = [0xff];
+            //mRData.AllData = [0xff];
             mDrawPos = -1;
             mStepDraw = false;
             mBkImgFile = "";
@@ -544,18 +542,13 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Loads this picture resource by reading its data from the VOL file. Only
+        /// applies to pictures in a game. Non-game pictures are always loaded.
         /// </summary>
         public override void Load() {
-            // if not ingame, the resource is already loaded
-            if (!mInGame) {
-                Debug.Assert(mLoaded);
-            }
-            // load data into the bitmap data area for this set of bitmaps
             if (mLoaded) {
                 return;
             }
-            // load base resource
             base.Load();
             if (mErrLevel < 0) {
                 // return a blank picture resource without adjusting error level
@@ -578,18 +571,20 @@ namespace WinAGI.Engine {
         /// Imports a picture resource from a file into this picture.
         /// </summary>
         /// <param name="ImportFile"></param>
-        public void Import(string ImportFile) {
+        public override void Import(string ImportFile) {
             try {
-                // use base function
                 base.Import(ImportFile);
-                // mark as undrawn
-                mPicBMPSet = false;
             }
-            catch (Exception) {
-                Unload();
+            catch {
+                // pass along any errors
                 throw;
             }
-
+            BuildPictures();
+            mBkImgFile = "";
+            mBkShow = false;
+            mBkTrans = 0;
+            mBkPos.FromString("");
+            mBkSize.FromString("");
         }
 
         /// <summary>
@@ -631,10 +626,10 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Saves properties of this picture to the game's WAG file.
         /// </summary>
         public void SaveProps() {
-            if (PropDirty && mInGame) {
+            if (mInGame) {
                 string strPicKey = "Picture" + Number;
                 parent.WriteGameSetting(strPicKey, "ID", mResID, "Pictures");
                 parent.WriteGameSetting(strPicKey, "Description", mDescription);
@@ -665,8 +660,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Saves this picture resource. If in a game, it updates the DIR and VOL files. If standalone,
-        /// the resource is saved to file specified by this resources FileName property.
+        /// Saves this picture resource. If in a game, it updates the DIR and VOL files. 
+        /// If not in a game the picture is saved to its resource file specified by FileName.
         /// </summary>
         public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);
@@ -674,8 +669,8 @@ namespace WinAGI.Engine {
                 SaveProps();
             }
             if (mIsDirty) {
-                // (no picture-specific action needed, since changes in picture are made directly to resource data)
-                // use the base save method
+                // (no picture-specific action needed, since changes in picture are made
+                // directly to resource data); use the base save method
                 // any bmp errors will remain until they are fixed by the
                 // user, so don't reset error flag
                 try {
@@ -696,7 +691,8 @@ namespace WinAGI.Engine {
             // sets the picture resource data to PicData()
 
             WinAGIException.ThrowIfNotLoaded(this);
-            mRData.AllData = PicData;
+            mData = PicData;
+            //mRData.AllData = PicData;
             if (mLoaded) {
                 // rebuild pictures
                 BuildPictures();
@@ -739,7 +735,7 @@ namespace WinAGI.Engine {
             mPriData = new byte[26880];
             // build arrays of bitmap data
             // Build function returns an error level value
-            mErrLevel = BuildBMPs(ref mVisData, ref mPriData, mRData.AllData, mStepDraw ? mDrawPos : -1, mDrawPos);
+            mErrLevel = BuildBMPs(ref mVisData, ref mPriData, mData, mStepDraw ? mDrawPos : -1, mDrawPos);
             if (mErrLevel != 0) {
                 ErrData[0] = mResID;
             }
@@ -772,10 +768,14 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Unloads this picture resource. Data elements are undefined and non-accessible
+        /// while unloaded. Only pictures that are in a game can be unloaded.
         /// </summary>
         public override void Unload() {
-
+            // only ingame resources can be unloaded
+            if (!mInGame) {
+                return;
+            }
             base.Unload();
             // cleanup picture resources
             bmpVis = null;

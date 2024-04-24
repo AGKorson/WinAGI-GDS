@@ -91,7 +91,6 @@ AGIResource       Export                    601                   can't export r
 AGIResource       Export                    582                   file access error while exporting resource
 AGIResource       Import                    604                   invalid importfile argument (empty)
 AGIResource       Import                    524                   missing importfile
-AGIResource       Import                    700                   importfile is readonly
 AGIResource       Import                    605                   file access error when importing resource
 AGIResource       Import                    605                   import resource file is empty
 AGIResource       Import                    PASS                  pass-through AGIResource.Save
@@ -114,13 +113,8 @@ AGIResource       RemoveData                563                   resource not l
 AGIResource       RemoveData                ArgOutOfRange         RemoveCount value is invalid
 AGIResource       RemoveData                ArgOutOfRange         RemovePos value is invalid
 AGIResource       Clear                     563                   resource not loaded
-AudioPlayer       PlayMIDISound             705                   wrong sound output format
 AudioPlayer       PlayMIDISound             628                   media player error when opening
 AudioPlayer       PlayMIDISound             628                   media player error when playing
-AudioPlayer       PlayWAVSound              705                   wrong sound output format
-AudioPlayer       PlayWAVSound              628                   media player error when opening
-AudioPlayer       PlayWAVSound              628                   media player error when playing
-AudioPlayer       PlayPCjrSound             705                   wrong sound output format
 Cel               this/get                  ArgOutOfRange         xPos value is invalid
 Cel               this/get                  ArgOutOfRange         yPos value is invalid
 Cel               this/set                  ArgOutOfRange         xPos value is invalid
@@ -248,7 +242,6 @@ Pictures          Add                       602                   picture alread
 Pictures          Renumber                  IndexOutOfRange       resource not in collection
 Pictures          Renumber                  669                   new number already in use
 Pictures          Enum:Current              InvalidOps            invalid position value
-RData             ReSize                    IndexOutOfRange       invalid size value
 ResourceFunctions ExtractResources          524                   missing v3 DIR file
 ResourceFunctions ExtractResources          700                   v3 DIR file is readonly
 ResourceFunctions ExtractResources          502                   file access error while reading v3 DIR file
@@ -267,7 +260,78 @@ SettingList       ctor                      ArgException          invalid filemo
 SettingList       ctor                      502                   file access error while opening list file
 SettingList       Save                      563                   list not loaded
 SettingList       Save                      502                   file access error while opening list file
-
+Sound             BuildSoundOutput          596                   error while building sound output
+Sound             this/get                  IndexOutOfRange       invalid track number
+Sound             Key/set                   ArgOutOfRange         invalid value
+Sound             CompileSound              566                   error while compiling sound tracks
+Sound             PlaySound                 563                   sound not loaded
+Sound             PlaySound                 705                   wrong sound format
+Sound             PlaySound                 PASS                  pass-through BuildSoundOutput
+Sound             PlaySound                 PASS                  pass-through WavPlayer.PlayWAVSound
+Sound             PlaySound                 705                   wrong sound format
+Sound             PlaySound                 PASS                  pass-through BuildSoundOutput
+Sound             PlaySound                 PASS                  pass-through MIDIPlayer.PlayMIDISound
+Sound             Export                    PASS                  pass-through CompileSound
+Sound             ExportAsMIDI              PASS                  pass-through CompileSound
+Sound             ExportAsMIDI              705                   wrong sound format
+Sound             ExportAsMIDI              PASS                  pass-through BuildSoundOutput
+Sound             ExportAsWAV               PASS                  pass-through CompileSound
+Sound             ExportAsWAV               705                   wrong sound format
+Sound             ExportAsWAV               PASS                  pass-through BuildSoundOutput
+Sound             ExportAsScript            PASS                  pass-through CompileSound
+Sound             ExportAsScript            705                   wrong sound format
+Sound             ExportAsScript            PASS                  pass-through file access errors
+Sound             Import                    PASS                  pass-through base.Import
+Sound             ImportScript              604                   invalid file name (empty)
+Sound             ImportScript              524                   missing scriptfile
+Sound             ImportScript              PASS                  pass-through file access errors
+Sound             ImportScript              681                   error while reading script
+Sound             ImportScript              PASS                  pass-through CompileSound
+Sound             TPQN/set                  ArgOutOfRange         invalid value
+Sound             Track                     IndexOutOfRange       invalid index value
+Sound             Track                     PASS                  pass-through LoadTracks
+Sound             FinishLoad                PASS                  pass-through BuildSoundOutput
+Sound             WAVData/get               705                   wrong format
+Sound             WAVData/get               PASS                  pass-through BuildSoundOutput
+Sound             MIDIData/get              705                   wrong format
+Sound             MIDIData/get              PASS                  pass-through BuildSoundOutput
+Sound             Save                      PASS                  pass-through CompileSound
+Sounds            this/get                  IndexOutOfRange       sound not in collection
+Sounds            Add                       602                   this index already exists
+Sounds            Renumber                  IndexOutOfRange       sound not in collection
+Sounds            Renumber                  669                   new number already in collection
+Sounds            Enum:Current              InvalidOps            invalid position value
+Track             Instrument/set            ArgOutOfRange         invalid instrument value
+View              Clear                     563                   view not loaded
+View              Export                    563                   view not loaded
+View              Export                    PASS                  pass-through base.Export
+View              Import                    PASS                  pass-through base.Import
+View              Save                      PASS                  pass-through base.Save
+View              Save                      563                   view not loaded
+View              this/get                  563                   view not loaded
+View              this/get                  ArgOutOfRange         invalid loop index
+View              Loops                     563                   view not loaded
+View              ViewDescription/get       563                   view not loaded
+View              ViewDescription/set       563                   view not loaded
+Views             this/get                  IndexOutOfRange       view not in collection
+Views             Add                       602                   this index already exists
+Views             Renumber                  IndexOutOfRange       view not in collection
+Views             Renumber                  669                   new number already in collection
+Views             Enum:Current              InvalidOps            invalid position value
+VOLManager        AddNextRes                638                   file access error while writing to VOL file
+VOLManager        ValidateVolAndLoc         640                   file access error while creating new VOL file
+VOLManager        ValidateVolAndLoc         593                   no room for resource in VOL files
+VOLManager        CompileResCol             PASS                  pass-through ValidateVolAndLoc
+VOLManager        FindFreeVOLSpace          593                   no room for resource in VOL files
+VOLManager        UpdateInVol               PASS                  pass-through FindFreeVOLSpace
+VOLManager        UpdateInVol               638                   file access error while writing to VOL file
+VOLManager        UpdateInVol               PASS                  pass-through UpdateDirFile
+VOLManager        UpdateDirFile             524                   missing DIR file
+VOLManager        UpdateDirFile             700                   DIR file is readonly
+VOLManager        UpdateDirFile             502                   file access error while reading DIR file
+VOLManager        UpdateDirFile             502                   file access error while writing DIR file
+VOLManager        UpdateDirFile             502                   file access error while creating DIR file
+VOLManager        UpdateDirFile             502                   file access error while writing DIR file
 WinAGI            DefResDir/set             ArgOutOfRange         invalid defresdir value (empty)
 WinAGI            DefResDir/set             ArgOutOfRange         invalid defresdir value (bad chars)
 WordList          CodePage                  ArgOutOfRange         invalid codepage value

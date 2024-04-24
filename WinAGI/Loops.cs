@@ -5,6 +5,9 @@ using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// 
+    /// </summary>
     public class Loops : IEnumerable<Loop> {
         List<Loop> mLoopCol;
         View mParent;
@@ -131,8 +134,9 @@ namespace WinAGI.Engine {
                 CopyLoops.mLoopCol.Add(tmpLoop.Clone(cloneparent));
             }
             return CopyLoops;
+            // TODO: need to confirm loops and cels clone correctly
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -158,7 +162,6 @@ namespace WinAGI.Engine {
         /// <param name="parent"></param>
         public Loops(View parent) {
             mLoopCol = [];
-            // set parent
             mParent = parent;
         }
         

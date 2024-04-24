@@ -1,29 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
-using System.IO;
+using System.Collections.Generic;
 using static WinAGI.Common.Base;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// A class that holds all the views in an AGI game.
+    /// </summary>
     public class Views : IEnumerable<View> {
-        AGIGame parent;
-        public Views(AGIGame parent) {
+        readonly AGIGame parent;
+
+        internal Views(AGIGame parent) {
             this.parent = parent;
-            // create the initial Col object
-            Col = [];
         }
-        public SortedList<byte, View> Col { get; private set; }
+        public SortedList<byte, View> Col { get; private set; } = [];
         public View this[int index] {
             get {
-                //validate index
-                if (index < 0 || index > 255)
+                if (index < 0 || index > 255 || !Exists((byte)index)) {
                     throw new IndexOutOfRangeException();
+                }
                 return Col[(byte)index];
             }
         }
-        public byte Count { get { return (byte)Col.Count; } private set { } }
+
+        /// <summary>
+        /// Returns the number of sounds in this AGI game.
+        /// </summary>
+        public byte Count {
+            get {
+                return (byte)Col.Count;
+            } 
+        }
+
+        /// <summary>
+        /// Returns the highest index in use in the views collection.
+        /// </summary>
         public byte Max {
             get {
                 byte max = 0;
@@ -32,159 +44,142 @@ namespace WinAGI.Engine {
                 return max;
             }
         }
+
+        /// <summary>
+        /// Returns true if a picture with number ResNum exists in this game.
+        /// </summary>
+        /// <param name="ResNum"></param>
+        /// <returns></returns>
         public bool Exists(byte ResNum) {
-            //check for thsi view in the collection
             return Col.ContainsKey(ResNum);
         }
+
+        /// <summary>
+        /// Removes all views from this game.
+        /// </summary>
         public void Clear() {
             Col = [];
         }
+
+        /// <summary>
+        /// Adds a view to the game. If NewView is null a blank view is 
+        /// added, otherwise the added view is cloned from NewView.
+        /// </summary>
+        /// <param name="ResNum"></param>
+        /// <param name="NewView"></param>
+        /// <returns></returns>
         public View Add(byte ResNum, View NewView = null) {
-            //adds a new view to a currently open game
             View agResource;
             int intNextNum = 0;
             string strID, strBaseID;
-            //if this view already exists
             if (Exists(ResNum)) {
-                //resource already exists
                 WinAGIException wex = new(LoadResString(602)) {
                     HResult = WINAGI_ERR + 602
                 };
                 throw wex;
             }
-            // create new ingame view resource
+            // create new ingame view
             agResource = new View(parent, ResNum, NewView);
-            // if no object was passed
             if ((NewView is null)) {
-                //proposed ID will be default
                 strID = "View" + ResNum;
             }
             else {
-                //get proposed id
                 strID = agResource.ID;
             }
-            // validate id
             strBaseID = strID;
             while (NotUniqueID(strID, parent)) {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }
-            //add it
             Col.Add(ResNum, agResource);
             //force flags so save function will work
             agResource.IsDirty = true;
             agResource.PropDirty = true;
-            //save new view
+            //save new view to add it to VOL file
             agResource.Save();
-            // TODO: does adding a resource automatically update resid lists? or should
-            // they be reset here as well?
-            //Compiler.blnSetIDs = false;
-            //return the object created
+            // id list needs to be updated
+            Compiler.blnSetIDs = false;
+            //return the new view
             return agResource;
         }
-        public void Remove(byte Index) {
-            //removes a view from the game file
 
-            // if the resource exists
+        /// <summary>
+        /// Removes a view from the game.
+        /// </summary>
+        /// <param name="Index"></param>
+        public void Remove(byte Index) {
             if (Col.TryGetValue(Index, out View value)) {
-                //need to clear the directory file first
-                parent.volManager.UpdateDirFile(value, true);
+                // need to clear the directory file first
+                VOLManager.Base.UpdateDirFile(value, true);
                 Col.Remove(Index);
-                //remove all properties from the wag file
+                // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("View" + Index);
-                //remove ID from compiler list
+                // remove ID from compiler list
                 Compiler.blnSetIDs = false;
             }
         }
+
+        /// <summary>
+        /// Changes the number of a view in this game.
+        /// </summary>
+        /// <param name="OldView"></param>
+        /// <param name="NewView"></param>
         public void Renumber(byte OldView, byte NewView) {
-            //renumbers a resource
             View tmpView;
             int intNextNum = 0;
-            bool blnUnload = false;
-            string strSection, strID, strBaseID;
-            //if no change
+            string strID, strBaseID;
+
             if (OldView == NewView) {
                 return;
             }
+            // verify old number exists
+            if (!Col.ContainsKey(OldView)) {
+                throw new IndexOutOfRangeException("view does not exist");
+            }
             //verify new number is not in collection
             if (Col.ContainsKey(NewView)) {
-                //number already in use
-
                 WinAGIException wex = new(LoadResString(669)) {
                     HResult = WINAGI_ERR + 669
                 };
                 throw wex;
             }
-            //get view being renumbered
             tmpView = Col[OldView];
-
-            //if not loaded,
-            if (!tmpView.Loaded) {
-                // TODO: ignore errors when renumbering?
-                tmpView.Load();
-                blnUnload = true;
-            }
-
-            //remove old properties
+            // remove old view
             parent.agGameProps.DeleteSection("View" + OldView);
-
-            //remove from collection
             Col.Remove(OldView);
-
-            //delete view from old number in dir file
-            //by calling update directory file method
-            parent.volManager.UpdateDirFile(tmpView, true);
-
-            //if id is default
-            if (tmpView.ID.Equals("View" + OldView, StringComparison.OrdinalIgnoreCase)) {
-                //change default ID to new ID
+            VOLManager.Base.UpdateDirFile(tmpView, true);
+            // adjust id if it is default
+            if (tmpView.ID == "View" + OldView) {
                 strID = strBaseID = "View" + NewView;
                 while (NotUniqueID(strID, parent)) {
-                    intNextNum++;
                     strID = strBaseID + "_" + intNextNum;
+                    intNextNum++;
                 }
             }
-            //change number
+            // add it back with new number
             tmpView.Number = NewView;
-
-            //add with new number
             Col.Add(NewView, tmpView);
-
-            //update new view number in dir file
-            parent.volManager.UpdateDirFile(tmpView);
-
-            //add properties back with new view number
-            strSection = "View" + NewView;
-            parent.WriteGameSetting(strSection, "ID", tmpView.ID, "Views");
-            parent.WriteGameSetting(strSection, "Description", tmpView.Description);
-            //
-            //TODO: add rest of default property values
-            //
-
-            //force writeprop state back to false
-            tmpView.PropDirty = false;
-
-            //unload if necessary
-            if (blnUnload) {
-                tmpView.Unload();
-            }
-            //reset compiler list of ids
+            VOLManager.Base.UpdateDirFile(tmpView);
+            tmpView.SaveProps();
+            // id list needs updating
             Compiler.blnSetIDs = false;
         }
 
+        /// <summary>
+        /// Called by the load game methods for the initial loading of
+        /// resources into views collection.
+        /// </summary>
+        /// <param name="bytResNum"></param>
+        /// <param name="bytVol"></param>
+        /// <param name="lngLoc"></param>
         internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
-            //called by the resource loading method for the initial loading of
-            //resources into logics collection
-
-            //create new logic object
             View newResource = new(parent, bytResNum, bytVol, lngLoc);
-            // load it
             newResource.Load();
-            // add it
             Col.Add(bytResNum, newResource);
             // leave it loaded, so error level can be addressed by loader
         }
 
+        // Collection enumerator methods
         ViewEnum GetEnumerator() {
             return new ViewEnum(Col);
         }

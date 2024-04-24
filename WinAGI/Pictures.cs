@@ -6,15 +6,15 @@ using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
     /// <summary>
-    /// 
+    /// A class that holds all the picture resources in an AGI game.
     /// </summary>
     public class Pictures : IEnumerable<Picture> {
         readonly AGIGame parent;
-        public Pictures(AGIGame parent) {
+
+        internal Pictures(AGIGame parent) {
             this.parent = parent;
-            Col = [];
         }
-        public SortedList<byte, Picture> Col { get; private set; }
+        public SortedList<byte, Picture> Col { get; private set; } = [];
         public Picture this[int index] {
             get {
                 if (index < 0 || index > 255 || !Exists((byte)index)) {
@@ -32,8 +32,9 @@ namespace WinAGI.Engine {
                 return (byte)Col.Count;
             }
         }
+
         /// <summary>
-        /// Returns the highest index in use in this collection.
+        /// Returns the highest index in use in the pictures collection.
         /// </summary>
         public byte Max {
             get {
@@ -45,7 +46,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns true if a picture with number ResNum exists in this collection.
+        /// Returns true if a picture with number ResNum exists in this game.
         /// </summary>
         /// <param name="ResNum"></param>
         /// <returns></returns>
@@ -54,15 +55,15 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Clears the collection by deleting all pictures.
+        /// Removes all pictures from this game.
         /// </summary>
         public void Clear() {
             Col = [];
         }
 
         /// <summary>
-        /// Adds a picture to the collection. If NewPicture is null a blank
-        /// picture is added, otherwise the new picture is cloned from NewPicture.
+        /// Adds a picture to the game. If NewPicture is null a blank picture is 
+        /// added, otherwise the added picture is cloned from NewPicture.
         /// </summary>
         /// <param name="ResNum"></param>
         /// <param name="NewPicture"></param>
@@ -71,25 +72,20 @@ namespace WinAGI.Engine {
             Picture agResource;
             int intNextNum = 0;
             string strID, strBaseID;
-            //if this Picture already exists
             if (Exists(ResNum)) {
-                //resource already exists
                 WinAGIException wex = new(LoadResString(602)) {
                     HResult = WINAGI_ERR + 602
                 };
                 throw wex;
             }
-            //create new ingame picture object
+            //create new ingame picture
             agResource = new Picture(parent, ResNum, NewPicture);
-            //if no object was passed
             if (NewPicture is null) {
-                //proposed ID will be default
                 strID = "Picture" + ResNum;
             }
             else {
                 strID = agResource.ID;
             }
-            // validate id
             strBaseID = strID;
             while (NotUniqueID(strID, parent)) {
                 intNextNum++;
@@ -99,77 +95,73 @@ namespace WinAGI.Engine {
             // force flags so save function will work
             agResource.IsDirty = true;
             agResource.PropDirty = true;
-            // save new picture
+            // save new picture to add it to VOL file
             agResource.Save();
+            // id list needs to be updated
+            Compiler.blnSetIDs = false;
             // return the new picture
             return agResource;
         }
 
         /// <summary>
-        /// Removes a picture from the collection.
+        /// Removes a picture from the game.
         /// </summary>
         /// <param name="Index"></param>
         public void Remove(byte Index) {
             if (Col.TryGetValue(Index, out Picture value)) {
-                //need to clear the directory file first
-                parent.volManager.UpdateDirFile(value, true);
+                // need to clear the directory file first
+                VOLManager.Base.UpdateDirFile(value, true);
                 Col.Remove(Index);
                 // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Picture" + Index);
-                //remove ID from compiler list
+                // remove ID from compiler list
                 Compiler.blnSetIDs = false;
             }
         }
 
         /// <summary>
-        /// Changes the number of a picture in this collection.
+        /// Changes the number of a picture in this game.
         /// </summary>
-        /// <param name="OldPic"></param>
-        /// <param name="NewPic"></param>
-        public void Renumber(byte OldPic, byte NewPic) {
+        /// <param name="OldPicture"></param>
+        /// <param name="NewPicture"></param>
+        public void Renumber(byte OldPicture, byte NewPicture) {
             Picture tmpPic;
             int intNextNum = 0;
-            bool blnUnload = false;
-            string strSection, strID, strBaseID;
-            if (OldPic == NewPic) {
+            string strID, strBaseID;
+
+            if (OldPicture == NewPicture) {
                 return;
             }
             // verify old number exists
-            if (!Col.ContainsKey(OldPic)) {
+            if (!Col.ContainsKey(OldPicture)) {
                 throw new IndexOutOfRangeException("picture does not exist");
             }
             //verify new number is not in collection
-            if (Col.ContainsKey(NewPic)) {
+            if (Col.ContainsKey(NewPicture)) {
                 WinAGIException wex = new(LoadResString(669)) {
                     HResult = WINAGI_ERR + 669
                 };
                 throw wex;
             }
-            tmpPic = Col[OldPic];
+            tmpPic = Col[OldPicture];
             // remove old picture
-            parent.agGameProps.DeleteSection("Picture" + OldPic);
-            Col.Remove(OldPic);
-            parent.volManager.UpdateDirFile(tmpPic, true);
+            parent.agGameProps.DeleteSection("Picture" + OldPicture);
+            Col.Remove(OldPicture);
+            VOLManager.Base.UpdateDirFile(tmpPic, true);
             // adjust id if it is default
-            if (tmpPic.ID == "Picture" + OldPic) {
-                strID = strBaseID = "Picture" + NewPic;
+            if (tmpPic.ID == "Picture" + OldPicture) {
+                strID = strBaseID = "Picture" + NewPicture;
                 while (NotUniqueID(strID, parent)) {
                     strID = strBaseID + "_" + intNextNum;
                     intNextNum++;
                 }
             }
             // add it back with new number
-            tmpPic.Number = NewPic;
-            Col.Add(NewPic, tmpPic);
-            parent.volManager.UpdateDirFile(tmpPic);
-            strSection = "Picture" + NewPic;
-            parent.WriteGameSetting(strSection, "ID", tmpPic.ID, "Pictures");
-            parent.WriteGameSetting(strSection, "Description", tmpPic.Description);
-            if (tmpPic.PriBase != 48) {
-                parent.WriteGameSetting(strSection, "PriBase", tmpPic.PriBase.ToString());
-            }
-            // always drop background; user will have to re-add it themselves
-            tmpPic.PropDirty = false;
+            tmpPic.Number = NewPicture;
+            Col.Add(NewPicture, tmpPic);
+            VOLManager.Base.UpdateDirFile(tmpPic);
+            tmpPic.SaveProps();
+            // id list needs updating
             Compiler.blnSetIDs = false;
         }
 

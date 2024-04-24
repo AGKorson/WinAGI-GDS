@@ -227,8 +227,8 @@ namespace WinAGI.Common {
         }
 
         /// <summary>
-        /// Extension that mimics the VB Val() function; returns 0
-        /// if the string is non-numeric
+        /// Extension that uses TryParse to get value of a string, returning 0
+        /// if the string is null, empty or non-numeric
         /// </summary>
         /// <param name="strIn">The string that will be converted to a number</param>
         /// <returns>Returns a double value of strIn; if strIn can't be converted

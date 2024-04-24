@@ -61,19 +61,6 @@ namespace WinAGI.Engine {
             // adds a logic from dir/vol files, setting its resource 
             // location properties, and reads properties from the wag file
 
-            // attach events
-            base.PropertyChanged += ResPropChange;
-            //// check for blank/missing ID before initializing
-            //mResID = parent.agGameProps.GetSetting("Logic" + ResNum, "ID", "", true);
-            //if (mResID.Length == 0) {
-            //    // ID not found; save default ID
-            //    mResID = "Logic" + ResNum;
-            //    parent.WriteGameSetting("Logic" + ResNum, "ID", ID, "Logics");
-            //    save CRC and CompCRC values as defaults; they'll be adjusted first time logic is accessed
-            //    parent.WriteGameSetting("Logic" + ResNum, "CRC32", "0x00000000", "Logics");
-            //    parent.WriteGameSetting("Logic" + ResNum, "CompCRC32", "0xffffffff", "Logics");
-            //}
-
             // set up base resource
             base.InitInGame(parent, AGIResType.rtLogic, ResNum, VOL, Loc);
             // get rest of properties
@@ -111,45 +98,45 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Loads this logic resource by reading its data from the VOL file. Only
+        /// applies to logics in a game. Non-game logics are always loaded.
         /// </summary>
         public override void Load() {
-            // if already loaded, just exit
             if (mLoaded) {
                 return;
             }
-            mSourceDirty = false;
-            // compiledCRC Value should already be set,
-            // and source crc gets calculated when source is loaded
-
-            // load the base resource data
             base.Load();
             if (mErrLevel < 0) {
                 ErrClear();
             }
-            // create empty logic with blank source code
-            // set code size (add 2 to msgstart offset)
+            mSourceDirty = false;
+            // get code size (add 2 to msgstart offset)
             mCodeSize = ReadWord(0) + 2;
-            //  load the sourcetext
+            // load the sourcetext
             LoadSource();
         }
 
         /// <summary>
-        /// 
+        /// Unloads this logic resource. Data elements are undefined and non-accessible
+        /// while unloaded. Only logics that are in a game can be unloaded.
         /// </summary>
         public override void Unload() {
+            // only ingame resources can be unloaded
+            if (!mInGame) {
+                return;
+            }
             base.Unload();
             mSourceDirty = false;
             mSourceText = "";
         }
 
         /// <summary>
-        /// 
+        /// Initializes a new logic resource when first instantiated. If NewLogic is null, 
+        /// a blank logic resource is created. If NewLogic is not null, it is cloned into
+        /// the new picture.
         /// </summary>
         /// <param name="NewLogic"></param>
         private void InitLogic(Logic NewLogic = null) {
-            // attach events
-            base.PropertyChanged += ResPropChange;
             if (NewLogic is null) {
                 // set default resource data by clearing
                 Clear();
@@ -160,31 +147,39 @@ namespace WinAGI.Engine {
                 CRC = 0;
             }
             else {
-                // clone this logic
-                NewLogic.Clone(this);
+                // copy base properties
+                NewLogic.CloneTo(this);
+                // copy logic properties
+                mIsRoom = NewLogic.mIsRoom;
+                mLoaded = NewLogic.mLoaded;
+                mCompiledCRC = NewLogic.mCompiledCRC;
+                mCRC = NewLogic.mCRC;
+                mSourceText = NewLogic.mSourceText;
+                mSourceDirty = NewLogic.mSourceDirty;
+                mSourceFile = NewLogic.mSourceFile;
             }
         }
         
         /// <summary>
-        /// Copies logic data from this logic and returns a completely separate object reference.
+        /// Copies logic data from this logic and returns a completely separate
+        /// object reference.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>a clone of this logic</returns>
         public Logic Clone() {
             Logic CopyLogic = new();
             // copy base properties
-            base.Clone(CopyLogic);
-            //add WinAGI items
-            CopyLogic.mIsRoom = IsRoom;
+            base.CloneTo(CopyLogic);
+            // add WinAGI items
+            CopyLogic.mIsRoom = mIsRoom;
             CopyLogic.mLoaded = mLoaded;
-            //crc data
             CopyLogic.mCompiledCRC = mCompiledCRC;
             CopyLogic.mCRC = mCRC;
             CopyLogic.mSourceText = mSourceText;
             CopyLogic.mSourceDirty = mSourceDirty;
-            // TODO: figure out how to handle source filename when cloning
             CopyLogic.mSourceFile = mSourceFile;
             return CopyLogic;
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -278,17 +273,6 @@ namespace WinAGI.Engine {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ResPropChange(object sender, AGIResPropChangedEventArgs e) {
-            ////let's do a test
-            //// increment number everytime data changes
-            //Number++;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         public bool Compiled {
             get {
                 // ingame:
@@ -313,7 +297,8 @@ namespace WinAGI.Engine {
             // clear resource
             base.Clear();
             // set default resource data
-            mRData.AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00];
+            //mRData.AllData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00];
+            mData = [0x01, 0x00, 0x00, 0x00, 0x02, 0x00];
             // byte0 = low byte of msg section offset (relative to byte 2)
             // byte1 = high byte of msg section offset
             // byte2 = first byte of code data (a single return)
@@ -367,7 +352,6 @@ namespace WinAGI.Engine {
         /// <param name="AsSource"></param>
         public override void Import(string ImportFile) {
             try {
-                // use base function
                 base.Import(ImportFile);
                 // load the source code by decompiling
                 LoadSource(true);
@@ -724,12 +708,10 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Saves properties of this logic to the game's WAG file.
         /// </summary>
         public void SaveProps() {
             if (mInGame) {
-                // TODO: why no 'PropsDirty' property for logics? or better question
-                // why bother with it in other resources? why not just write them as requested?
                 string strSection = "Logic" + Number;
                 parent.WriteGameSetting(strSection, "ID", ID, "Logics");
                 parent.WriteGameSetting(strSection, "Description", Description);
@@ -741,46 +723,32 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// If INGAME: <br/>
+        /// Same as SaveSource. To update an igame logic resource, use the 
+        /// Compile method.<br />
+        /// If NOT INGAME:<br />
+        /// Saves this logic resource to its resource file specified by FileName.
+        /// This does NOT save the source file; use SaveSource to do that.
         /// </summary>
         /// <param name="SaveFile"></param>
-        public void Save(string SaveFile = "") {
-            // this file saves the logic resource to next available VOL file
-
-            // NOTE: this saves the compiled resource NOT the
-            // text based source code; 
-            // SaveSource saves the source code
-            // if Save method is called for a resource NOT in a game,
-            // it calls the SaveSource method automatically
-            // TODO: if not ingame, should be same as other resources?
-
+        public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);
-            //if properties need to be written
             if (PropDirty && mInGame) {
                 SaveProps();
             }
-            //if in a game
             if (mInGame) {
-                //if dirty
+                SaveSource();
+            }
+            else {
                 if (mIsDirty) {
                     try {
-                        //use the base resource save method
                         base.Save();
                     }
-                    catch (Exception) {
+                    catch {
                         throw;
                     }
                 }
             }
-            else {
-                //if source is dirty
-                if (mSourceDirty) {
-                    // same as savesource
-                    SaveSource(SaveFile);
-                }
-            }
-            // reset dirty flag
-            mIsDirty = false;
         }
     }
 }

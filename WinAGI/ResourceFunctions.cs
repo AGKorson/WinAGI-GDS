@@ -1068,7 +1068,7 @@ namespace WinAGI.Engine {
             int lngTicks = 0, lngTime;
             byte bytIn, bytCmd = 0, bytChannel = 0;
             //local copy of data -easier to manipulate
-            midiIn = SoundIn.Data.AllData;
+            midiIn = SoundIn.Data;
 
             // start with size of input data, assuming it all gets used, plus
             // space for headers and track end command; need 22 bytes for header;
@@ -1322,75 +1322,19 @@ namespace WinAGI.Engine {
             //   40-43        <varies>        Size of the data section.
             //   44+          data
 
-            // IIgs header for pcm sounds is 54 bytes, but its purpose is still
-            // mostly unknown; the total size is at pos 8-9; the rest of the
-            // header appears identical across resources, with exception of
-            // position 2- it seems to vary from low thirties to upper 60s,
-            // (maybe it's a volume thing?)
-            // All resources appear to end with a byte value of 0; not sure if
-            // it's necessary for wav files, but we keep it anyway.
-            // local copy of data -easier to manipulate
-            bData = SoundIn.Data.AllData;
+            bData = SoundIn.Data;
             // size of sound data is total file size, minus the PCM header 
             lngSize = bData.Length - 50; // 54;
             bOutput = new byte[lngSize];
-            //// expand midi data array to hold the sound resource data plus
-            //// the WAV file header
-            //bOutput = new byte[44 + lngSize];
-            //// add header
-            //bOutput[0] = 82;
-            //bOutput[1] = 73;
-            //bOutput[2] = 70;
-            //bOutput[3] = 70;
-            //bOutput[4] = (byte)((lngSize + 36) & 0xFF);
-            //bOutput[5] = (byte)(((lngSize + 36) >> 8) & 0xFF);
-            //bOutput[6] = (byte)(((lngSize + 36) >> 16) & 0xFF);
-            //bOutput[7] = (byte)((lngSize + 36) >> 24);
-            //bOutput[8] = 87;
-            //bOutput[9] = 65;
-            //bOutput[10] = 86;
-            //bOutput[11] = 69;
-            //bOutput[12] = 102;
-            //bOutput[13] = 109;
-            //bOutput[14] = 116;
-            //bOutput[15] = 32;
-            //bOutput[16] = 16;
-            //bOutput[17] = 0;
-            //bOutput[18] = 0;
-            //bOutput[19] = 0;
-            //bOutput[20] = 1;
-            //bOutput[21] = 0;
-            //bOutput[22] = 1;
-            //bOutput[23] = 0;
-            //bOutput[24] = 64;
-            //bOutput[25] = 31;
-            //bOutput[26] = 0;
-            //bOutput[27] = 0;
-            //bOutput[28] = 64;
-            //bOutput[29] = 31;
-            //bOutput[30] = 0;
-            //bOutput[31] = 0;
-            //bOutput[32] = 1;
-            //bOutput[33] = 0;
-            //bOutput[34] = 8;
-            //bOutput[35] = 0;
-            //bOutput[36] = 100;
-            //bOutput[37] = 97;
-            //bOutput[38] = 116;
-            //bOutput[39] = 97;
-            //bOutput[40] = (byte)((lngSize - 2) & 0xFF);
-            //bOutput[41] = (byte)(((lngSize - 2) >> 8) & 0xFF);
-            //bOutput[42] = (byte)(((lngSize - 2) >> 16) & 0xFF);
-            //bOutput[43] = (byte)((lngSize - 2) >> 24);
             // copy data from sound resource
             int pos = 0;
             for (int i = 54; i < bData.Length; i++) {
                 bOutput[pos++] = bData[i];
             }
-            bOutput[^1] = 255;
-            bOutput[^2] = 255;
-            bOutput[^3] = 255;
-            bOutput[^4] = 255;
+            bOutput[^1] = 127;
+            bOutput[^2] = 127;
+            bOutput[^3] = 127;
+            bOutput[^4] = 127;
             return bOutput;
         }
 

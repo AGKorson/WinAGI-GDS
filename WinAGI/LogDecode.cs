@@ -101,7 +101,7 @@ namespace WinAGI.Engine {
             // TODO: what about logics that aren't in a game?? they have no number
             Debug.Assert(SourceLogic.Loaded);
             bytLogComp = (byte)LogNum;
-            byte[] bytData = SourceLogic.Data.AllData;
+            byte[] bytData = SourceLogic.Data; //.AllData;
             stlOutput = [];
             strError = "";
 

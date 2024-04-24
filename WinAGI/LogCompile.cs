@@ -167,7 +167,8 @@ namespace WinAGI.Engine {
             //assign temporary resource object
             tmpLogRes = new Logic();
             // and clear the data
-            tmpLogRes.Data.Clear();
+            tmpLogRes.Data = [];
+            //tmpLogRes.Data.Clear();
             //write a word as a place holder for offset to msg section start
             tmpLogRes.WriteWord(0, 0);
             //run agi compiler
@@ -191,7 +192,7 @@ namespace WinAGI.Engine {
             // if no minor errors
             if (!blnMinorError) {
                 //assign resource data
-                SourceLogic.Data.AllData = tmpLogRes.Data.AllData;
+                SourceLogic.Data = tmpLogRes.Data;
                 //update compiled crc
                 SourceLogic.CompiledCRC = SourceLogic.CRC;
                 // and write the new crc values to property file

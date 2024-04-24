@@ -7,7 +7,9 @@ using System.Text;
 using System.Diagnostics;
 
 namespace WinAGI.Engine {
-    //public abstract class AGIResource
+    /// <summary>
+    /// 
+    /// </summary>
     public class AGIResource {
         protected bool mLoaded = false;
         protected int mErrLevel = 0; // <0 means unreadable data; 0 means no errors; >0 means minor errors but resource is readable
@@ -16,7 +18,8 @@ namespace WinAGI.Engine {
         protected int mLoc = -1;
         protected int mSize = -1; // actual size, if compressed this is different from mSizeInVol
         protected int mSizeInVol = -1;  // size as stored in VOL
-        protected RData mRData = new(0);
+                                        //        protected RData mRData = new(0);
+        protected byte[] mData = [];
         protected bool mInGame;
         internal AGIGame parent;
         internal bool mIsDirty;
@@ -26,9 +29,6 @@ namespace WinAGI.Engine {
         protected string mResFile = "";
         private bool mblnEORes; //flag indicating pointer is at beginning of resource (CurPos=0)
         private int mlngCurPos;  //current position of pointer in resource data
-
-        internal delegate void AGIResPropChangedEventHandler(object sender, AGIResPropChangedEventArgs e);
-        internal event AGIResPropChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// 
@@ -47,16 +47,17 @@ namespace WinAGI.Engine {
             V3Compressed = 0;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name"></param>
-        public class AGIResPropChangedEventArgs(string name) {
-            public string Name { get; } = name;
-        }
-        protected void OnPropertyChanged(string name) {
-            PropertyChanged?.Invoke(this, new AGIResPropChangedEventArgs(name));
-        }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="name"></param>
+        //public class AGIResPropChangedEventArgs(string name) {
+        //    public string Name { get; } = name;
+        //}
+        //protected void OnPropertyChanged(string name) {
+        //    PropertyChanged?.Invoke(this, new AGIResPropChangedEventArgs(name));
+        //}
+
         /// <summary>
         /// Attaches a new resource to a game and finds a location in VOL file.
         /// </summary>
@@ -69,8 +70,8 @@ namespace WinAGI.Engine {
             // ingame resources start loaded
             mLoaded = true;
             // set vol/loc
-            parent.volManager.AddToVol(this, parent.agIsVersion3);
-            parent.volManager.UpdateDirFile(this);
+            //parent.volManager.AddToVol(this, false);
+            //parent.volManager.UpdateDirFile(this);
         }
 
         /// <summary>
@@ -136,7 +137,7 @@ namespace WinAGI.Engine {
             get {
                 if (mInGame) {
                     if (mLoaded) {
-                        return mRData.Length;
+                        return mData.Length;
                     }
                     else {
                         return mSize;
@@ -144,7 +145,7 @@ namespace WinAGI.Engine {
                 }
                 else {
                     if (mLoaded) {
-                        return mRData.Length;
+                        return mData.Length;
                     }
                     else {
                         return 0;
@@ -168,7 +169,7 @@ namespace WinAGI.Engine {
                 //              - update in WAG file when resource is saved
                 //  if NOT in a game:
                 //  - SizeInVol - is always -1
-                
+
                 if (mInGame) {
                     if (mErrLevel < 0) {
                         // invalid
@@ -190,12 +191,57 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets the size of this resource that it takes up in its VOL file. 
         /// </summary>
         /// <returns>Size of this resource in its VOL file</returns>
         internal int GetSizeInVOL() {
-            return parent.volManager.SizeInVOL(this);
+            //if an error occurs while trying to read the size of this
+            //resource, the function returns -1
+            byte bytHigh, bytLow;
+            string strLoadResFile;
+            FileStream fsVOL = null;
+            BinaryReader brVOL = null;
+            //any file access errors
+            //result in invalid size
+
+            if (parent.agIsVersion3) {
+                strLoadResFile = parent.agGameDir + parent.agGameID + "VOL." + mVolume.ToString();
+            }
+            else {
+                strLoadResFile = parent.agGameDir + "VOL." + mVolume.ToString();
+            }
+            try {
+                // open the volume file
+                fsVOL = new FileStream(strLoadResFile, FileMode.Open);
+                brVOL = new BinaryReader(fsVOL);
+                // verify enough room to get length of resource
+                if (fsVOL.Length >= mLoc + (parent.agIsVersion3 ? 7 : 5)) {
+                    //get size low and high bytes
+                    fsVOL.Seek(mLoc, SeekOrigin.Begin);
+                    bytLow = brVOL.ReadByte();
+                    bytHigh = brVOL.ReadByte();
+                    //verify this is a proper resource
+                    if ((bytLow == 0x12) && (bytHigh == 0x34)) {
+                        //now get the low and high bytes of the size
+                        fsVOL.Seek(1, SeekOrigin.Current);
+                        bytLow = brVOL.ReadByte();
+                        bytHigh = brVOL.ReadByte();
+                        return (bytHigh << 8) + bytLow;
+                    }
+                }
+            }
+            catch {
+                // treat all errors the same
+            }
+            finally {
+                // ensure file is closed
+                brVOL.Dispose();
+                fsVOL.Dispose();
+            }
+            // if size not found, return -1
+            return -1;
         }
+
 
         /// <summary>
         /// 0 = not compressed; 1 = picture compression; 2 = LZW compression
@@ -251,13 +297,13 @@ namespace WinAGI.Engine {
                 mResFile = value;
             }
         }
-        
+
         /// <summary>
         /// When true, indicates resource properties in resource need to be updated
         /// in the game's WAG file. Meaningless if resource is not in a game.
         /// </summary>
         internal bool PropDirty { get; set; }
-        
+
         /// <summary>
         /// For resources in a game, IsDirty is true if the data in the resource does not
         /// match the data in the VOL file. For resources not in a game, IsDirty is true
@@ -284,7 +330,7 @@ namespace WinAGI.Engine {
         /// 
         /// </summary>
         public AGIResType ResType { get { return mResType; } }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -320,7 +366,7 @@ namespace WinAGI.Engine {
                 if (value.Any(ch => ch > 127) || value.Any(ch => ch < 32)) {
                     StringBuilder sb = new(value);
                     for (int i = 0; i < sb.Length; i++) {
-                        if (sb[i] <32 || sb[i] > 127) {
+                        if (sb[i] < 32 || sb[i] > 127) {
                             sb[i] = '_';
                         }
                     }
@@ -338,7 +384,7 @@ namespace WinAGI.Engine {
                 }
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -362,27 +408,28 @@ namespace WinAGI.Engine {
                 }
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
         public bool EORes {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                return mlngCurPos >= mRData.Length;
+                return mlngCurPos >= mData.Length;
             }
         }
 
         // to allow indexing of data property, a separate class needs to
         // be created
-        public RData Data {
+        //public RData Data {
+        public byte[] Data {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                return mRData;
+                return mData;
             }
             internal set {
                 // can only set the data object internally
-                mRData = value;
+                mData = value;
             }
         }
 
@@ -392,7 +439,7 @@ namespace WinAGI.Engine {
         /// methods for adding/removing resources to/from game.
         /// </summary>
         /// <param name="NewRes"></param>
-        internal void Clone(AGIResource NewRes) {
+        internal void CloneTo(AGIResource NewRes) {
 
             NewRes.parent = parent;
             // resource data are copied manually as necessary by calling method
@@ -406,7 +453,7 @@ namespace WinAGI.Engine {
             NewRes.mVolume = mVolume;
             NewRes.mLoc = mLoc;
             NewRes.mLoaded = mLoaded;
-            NewRes.Data.AllData = mRData.AllData;
+            NewRes.Data = mData;
             NewRes.mIsDirty = mIsDirty;
             NewRes.PropDirty = PropDirty;
             NewRes.mSize = mSize;
@@ -416,7 +463,7 @@ namespace WinAGI.Engine {
             NewRes.ErrLevel = mErrLevel;
             NewRes.ErrData = ErrData;
         }
-        
+
         /// <summary>
         /// Loads the data for this resource from its VOL file, if in a game,
         /// or from its resfile.
@@ -436,6 +483,9 @@ namespace WinAGI.Engine {
             mLoaded = true;
             mIsDirty = false;
             PropDirty = false;
+            // clear error info before loading
+            mErrLevel = 0;
+            mErrData = ["", "", "", "", ""];
 
             if (mInGame) {
                 // resource data is loaded from the AGI VOL file
@@ -519,7 +569,8 @@ namespace WinAGI.Engine {
                     bytLow = brVOL.ReadByte();
                     bytHigh = brVOL.ReadByte();
                     diskSize = (bytHigh << 8) + bytLow;
-                } else {
+                }
+                else {
                     diskSize = fullSize;
                 }
             }
@@ -530,20 +581,20 @@ namespace WinAGI.Engine {
                 diskSize = fullSize;
             }
             // get resource data
-            mRData.ReSize(diskSize);
-            mRData.AllData = brVOL.ReadBytes(diskSize);
+            mData = new byte[diskSize];
+            mData = brVOL.ReadBytes(diskSize);
             fsVOL.Dispose();
             brVOL.Dispose();
             if (blnIsPicture) {
                 // pictures use this decompression
                 V3Compressed = 1;
-                mRData.AllData = DecompressPicture(mRData.AllData, fullSize);
+                mData = DecompressPicture(mData, fullSize);
             }
             else {
-                if (mRData.Length != fullSize) {
+                if (mData.Length != fullSize) {
                     // all other resources use LZW compression
                     V3Compressed = 2;
-                    mRData.AllData = AGILZW.ExpandV3ResData(mRData.AllData, fullSize);
+                    mData = AGILZW.ExpandV3ResData(mData, fullSize);
                 }
             }
             // reset resource markers
@@ -551,8 +602,6 @@ namespace WinAGI.Engine {
             mblnEORes = false;
             // update size property
             mSize = fullSize;
-            // attach events
-            mRData.PropertyChanged += Raise_DataChange;
             return;
         }
 
@@ -560,41 +609,27 @@ namespace WinAGI.Engine {
         /// 
         /// </summary>
         public virtual void Unload() {
-            // only ingame resources can be unloaded
-            if (!mInGame) {
-                //just exit
-                return;
-            }
             // reset flag first so size doesn't get cleared for in game resources
             mLoaded = false;
             mIsDirty = false;
             // reset resource variables
-            mRData.Clear();
+            mData = [];
             // don't mess with sizes though! they remain accessible even when unloaded
             mblnEORes = true;
             mlngCurPos = 0;
-            //// clear error info - it might clear when reloaded
-            //mErrLevel = 0;
-            //mErrData = ["", "", "", "", ""];
-            // detach events
-            mRData.PropertyChanged -= Raise_DataChange;
         }
 
         /// <summary>
-        /// 
+        /// This method saves the resource into a VOL file if in a game. If not
+        /// in a game, it saves the resource into a standalone resource file.
         /// </summary>
         internal void Save() {
-            // saves a resource into a VOL file if in a game
-            // saves to standalone resource file if not in a game
-
             WinAGIException.ThrowIfNotLoaded(this);
-            // if in game,
             if (mInGame) {
                 try {
-                    //add resource to VOL file to save it
-                    parent.volManager.AddToVol(this, parent.agIsVersion3);
+                    VOLManager.Base.UpdateInVol(this);
                     // update saved size
-                    mSize = mRData.Length;
+                    mSize = mData.Length;
                     // resource is no longer compressed
                     V3Compressed = 0;
                     mSizeInVol = mSize;
@@ -603,7 +638,7 @@ namespace WinAGI.Engine {
                     // pass error along
                     throw;
                 }
-                //change date of last edit
+                // change date of last edit
                 parent.agLastEdit = DateTime.Now;
             }
             else {
@@ -621,17 +656,13 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Exports this resource to a standalone file.
         /// </summary>
         /// <param name="ExportFile"></param>
         public void Export(string ExportFile) {
-            // exports resource to file
-            // doesn't affect the current resource filename
             // MUST specify a valid export file
             // if export file already exists, it is overwritten
             // caller is responsible for verifying overwrite is ok or not
-
-            bool blnUnload = false;
 
             WinAGIException.ThrowIfNotLoaded(this);
             // if no filename passed
@@ -654,7 +685,7 @@ namespace WinAGI.Engine {
                 // open file for output
                 fsExport = new FileStream(ExportFile, FileMode.Open);
                 // write data
-                fsExport.Write(mRData.AllData, 0, mRData.Length);
+                fsExport.Write(mData, 0, mData.Length);
             }
             catch (Exception e) {
                 WinAGIException wex = new(LoadResString(582)) {
@@ -666,10 +697,6 @@ namespace WinAGI.Engine {
             finally {
                 // close file,
                 fsExport.Dispose();
-                // unload if necessary
-                if (blnUnload) {
-                    Unload();
-                }
             }
             // if NOT in a game,
             if (!mInGame) {
@@ -684,10 +711,11 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Imports resource from a file, and loads it. If in a game, it also saves the
-        /// new resource in a VOL file. Import does not check if the imported resource
-        /// is valid or not, nor if it is of the correct resource type. The calling 
-        /// program is responsible for that check.
+        /// Imports resource from a file, and loads it. Existing data are overwritten
+        /// without warning. If in a game, it also saves the new resource in a VOL
+        /// file. Import does not check if the imported resource is valid or not, nor
+        /// if it is of the correct resource type. The calling program is responsible
+        /// for that check.
         /// </summary>
         /// <param name="ImportFile"></param>
         public virtual void Import(string ImportFile) {
@@ -702,14 +730,6 @@ namespace WinAGI.Engine {
                     HResult = WINAGI_ERR + 524,
                 };
                 wex.Data["missingfile"] = ImportFile;
-                throw wex;
-            }
-            // check for readonly
-            if ((File.GetAttributes(ImportFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(700).Replace(ARG1, ImportFile)) {
-                    HResult = WINAGI_ERR + 700,
-                };
-                wex.Data["badfile"] = ImportFile;
                 throw wex;
             }
             // open file for binary
@@ -731,8 +751,8 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             // load resource data from file
-            mRData.ReSize((int)fsImport.Length);
-            fsImport.Read(mRData.AllData, 0, (int)fsImport.Length);
+            mData = new byte[(int)fsImport.Length];
+            fsImport.Read(mData, 0, (int)fsImport.Length);
             // reset resource markers
             mlngCurPos = 0;
             mblnEORes = false;
@@ -774,46 +794,37 @@ namespace WinAGI.Engine {
                         mResID = baseid + "_" + i++.ToString();
                     }
                     while (NotUniqueID(this));
-                    // reset dirty flags
-                    mIsDirty = false;
                 }
             }
             mResID = tmpID;
         }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="InputByte"></param>
-            /// <param name="Pos"></param>
-            /// <exception cref="ArgumentOutOfRangeException"></exception>
-            public void WriteByte(byte InputByte, int Pos = -1) {
-            bool bNoEvent = false;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="InputByte"></param>
+        /// <param name="Pos"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public void WriteByte(byte InputByte, int Pos = -1) {
 
             WinAGIException.ThrowIfNotLoaded(this);
             if (Pos != -1) {
                 // validate location
-                if (Pos < 0 || Pos > mRData.Length) {
+                if (Pos < 0 || Pos > mData.Length) {
                     throw new ArgumentOutOfRangeException(nameof(Pos));
                 }
             }
             else {
                 // otherwise, default to end of resource
-                Pos = mRData.Length;
+                Pos = mData.Length;
             }
-            if (Pos == mRData.Length) {
+            if (Pos == mData.Length) {
                 //adjust to make room for new data being added
-                mRData.ReSize(mRData.Length + 1);
-                // this calls a change event, don't need to do another
-                bNoEvent = true;
+                Array.Resize(ref mData, mData.Length + 1);
             }
-            mRData[Pos] = InputByte;
+            mData[Pos] = InputByte;
             mlngCurPos = Pos + 1;
-            mblnEORes = (mlngCurPos == mRData.Length);
-
-            if (!bNoEvent) {
-                OnPropertyChanged("Data");
-            }
+            mblnEORes = (mlngCurPos == mData.Length);
             return;
         }
 
@@ -825,48 +836,41 @@ namespace WinAGI.Engine {
         /// <param name="blnMSLS"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public void WriteWord(ushort InputInt, int Pos = -1, bool blnMSLS = false) {
-            bool bNoEvent = false;
             byte bytHigh, bytLow;
 
             WinAGIException.ThrowIfNotLoaded(this);
             if (Pos != -1) {
                 // validate location
-                if (Pos < 0 || Pos > mRData.Length) {
+                if (Pos < 0 || Pos > mData.Length) {
                     throw new ArgumentOutOfRangeException(nameof(Pos));
                 }
             }
             else {
                 // otherwise, default to end of resource
-                Pos = mRData.Length;
+                Pos = mData.Length;
             }
             // if at end of resource
-            if (Pos == mRData.Length) {
+            if (Pos == mData.Length) {
                 // adjust to make room for new data being added
-                mRData.ReSize(mRData.Length + 2);
-                // this calls a change event, don't need to do another
-                bNoEvent = true;
+                Array.Resize(ref mData, mData.Length + 2);
             }
             //if one byte away from end of resource
-            else if (Pos == mRData.Length - 1) {
-                mRData.ReSize(mRData.Length + 1);
-                bNoEvent = true;
+            else if (Pos == mData.Length - 1) {
+                Array.Resize(ref mData, mData.Length + 1);
             }
             // split integer portion into two bytes and add it
             bytHigh = (byte)(InputInt >> 8);
             bytLow = (byte)(InputInt % 256);
             if (blnMSLS) {
-                mRData[Pos] = bytHigh;
-                mRData[Pos + 1] = bytLow;
+                mData[Pos] = bytHigh;
+                mData[Pos + 1] = bytLow;
             }
             else {
-                mRData[Pos] = bytLow;
-                mRData[Pos + 1] = bytHigh;
+                mData[Pos] = bytLow;
+                mData[Pos + 1] = bytHigh;
             }
             mlngCurPos = Pos + 2;
-            mblnEORes = (mlngCurPos == mRData.Length);
-            if (!bNoEvent) {
-                OnPropertyChanged("Data");
-            }
+            mblnEORes = (mlngCurPos == mData.Length);
         }
 
         /// <summary>
@@ -880,11 +884,11 @@ namespace WinAGI.Engine {
             set {
                 WinAGIException.ThrowIfNotLoaded(this);
                 // validate position
-                if (value < 0 || value > mRData.Length) {
+                if (value < 0 || value > mData.Length) {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
                 mlngCurPos = value;
-                mblnEORes = (mlngCurPos == mRData.Length);
+                mblnEORes = (mlngCurPos == mData.Length);
                 return;
             }
         }
@@ -904,23 +908,23 @@ namespace WinAGI.Engine {
             // if a position is passed,
             if (Pos != -1) {
                 //validate position
-                if (Pos < 0 || Pos >= mRData.Length - 1) {
+                if (Pos < 0 || Pos >= mData.Length - 1) {
                     throw new ArgumentOutOfRangeException(nameof(Pos));
                 }
                 mlngCurPos = Pos;
             }
             if (MSLS) {
                 // high first
-                bytHigh = mRData[mlngCurPos];
-                bytLow = mRData[mlngCurPos + 1];
+                bytHigh = mData[mlngCurPos];
+                bytLow = mData[mlngCurPos + 1];
             }
             else {
                 // low first
-                bytLow = mRData[mlngCurPos];
-                bytHigh = mRData[mlngCurPos + 1];
+                bytLow = mData[mlngCurPos];
+                bytHigh = mData[mlngCurPos + 1];
             }
             mlngCurPos += 2;
-            mblnEORes = mlngCurPos == mRData.Length;
+            mblnEORes = mlngCurPos == mData.Length;
             return (ushort)((bytHigh << 8) + bytLow);
         }
 
@@ -935,13 +939,13 @@ namespace WinAGI.Engine {
             // if a position is passed
             if (Pos != -1) {
                 // validate position
-                if (Pos < 0 || Pos >= mRData.Length) {
+                if (Pos < 0 || Pos >= mData.Length) {
                     throw new ArgumentOutOfRangeException(nameof(Pos));
                 }
                 mlngCurPos = Pos;
             }
-            byte retval = mRData[mlngCurPos++];
-            mblnEORes = (mlngCurPos == mRData.Length);
+            byte retval = mData[mlngCurPos++];
+            mblnEORes = (mlngCurPos == mData.Length);
             return retval;
         }
 
@@ -984,34 +988,32 @@ namespace WinAGI.Engine {
                 }
             }
             // get resource end and length of data being inserted
-            lngResEnd = mRData.Length;
+            lngResEnd = mData.Length;
             lngNewDatLen = bNewData.Length;
 
             if (InsertPos != -1) {
                 // validate position
-                if (Pos < 0 || Pos >= mRData.Length) {
+                if (Pos < 0 || Pos >= mData.Length) {
                     throw new ArgumentOutOfRangeException(nameof(InsertPos));
                 }
                 // insert pos is OK
-                mRData.ReSize(mRData.Length + lngNewDatLen);
+                Array.Resize(ref mData, mData.Length + lngNewDatLen);
                 // move current data forward to make room for inserted data
                 for (i = lngResEnd + lngNewDatLen - 1; i >= InsertPos + lngNewDatLen; i--) {
-                    mRData[i] = mRData[i - lngNewDatLen];
+                    mData[i] = mData[i - lngNewDatLen];
                 }
                 // add newdata at insertpos
                 for (i = 0; i < lngNewDatLen; i++) {
-                    mRData[InsertPos + i] = bNewData[i];
+                    mData[InsertPos + i] = bNewData[i];
                 }
             }
             else {
                 // insert at end
-                mRData.ReSize(mRData.Length + lngNewDatLen);
+                Array.Resize(ref mData, mData.Length + lngNewDatLen);
                 for (i = 0; i < lngNewDatLen; i++) {
-                    mRData[lngResEnd + i] = bNewData[i];
+                    mData[lngResEnd + i] = bNewData[i];
                 }
             }
-            // raise change event
-            OnPropertyChanged("Data");
         }
 
         /// <summary>
@@ -1029,18 +1031,17 @@ namespace WinAGI.Engine {
             // validate Count
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(RemoveCount);
             // validate removepos
-            if (RemovePos < 0 || RemovePos >= mRData.Length) {
+            if (RemovePos < 0 || RemovePos >= mData.Length) {
                 throw new ArgumentOutOfRangeException(nameof(RemovePos));
             }
             // adjust count so it does not exceed array length
-            if (RemovePos + RemoveCount > mRData.Length) {
-                RemoveCount = mRData.Length - RemovePos;
+            if (RemovePos + RemoveCount > mData.Length) {
+                RemoveCount = mData.Length - RemovePos;
             }
-            for (i = RemovePos; i >= (mRData.Length - RemoveCount); i++) {
-                mRData[i] = mRData[i + RemoveCount];
+            for (i = RemovePos; i >= (mData.Length - RemoveCount); i++) {
+                mData[i] = mData[i + RemoveCount];
             }
-            mRData.ReSize(mRData.Length - RemoveCount);
-            OnPropertyChanged("Data");
+            Array.Resize(ref mData, mData.Length - RemoveCount);
         }
 
         /// <summary>
@@ -1062,9 +1063,9 @@ namespace WinAGI.Engine {
         public virtual void Clear() {
             WinAGIException.ThrowIfNotLoaded(this);
             //clears the resource data
-            mRData.Clear();
+            mData = [];
             mlngCurPos = 0;
-            //mSizeInVol is undefined
+            // mSizeInVol is undefined
             mSizeInVol = -1;
             mblnEORes = false;
             mIsDirty = true;
@@ -1081,16 +1082,6 @@ namespace WinAGI.Engine {
                 return mResID;
             }
             return "blank " + ResTypeName[(int)mResType];
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        internal void Raise_DataChange(object sender, RData.RDataChangedEventArgs e) {
-            //pass it along
-            OnPropertyChanged("Data");
         }
 
         /// <summary>

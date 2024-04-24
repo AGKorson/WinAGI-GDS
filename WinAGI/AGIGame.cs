@@ -121,50 +121,15 @@ namespace WinAGI.Engine {
             NewGame(id, version, gamedir, resdir, template);
         }
 
-        //public void Dispose() {
-        //    Dispose(true);
-        //    // This object will be cleaned up by the Dispose method.
-        //    // Therefore, you should call GC.SuppressFinalize to
-        //    // take this object off the finalization queue
-        //    // and prevent finalization code for this object
-        //    // from executing a second time.
-        //    GC.SuppressFinalize(this);
-        //}
-        //protected virtual void Dispose(bool disposing) {
-        //    // If disposing equals true, dispose all managed
-        //    // and unmanaged resources.
-        //    if (disposing) {
-        //        // Dispose managed resources.
-
-        //    }
-
-        //    // Call the appropriate methods to clean up
-        //    // unmanaged resources here.
-        //    // If disposing is false,
-        //    // only the following code is executed.
-        //    compGame = null;
-
-        //    // Note disposing has been done.
-        //    disposed = true;
-        //}
-        //~AGIGame() {
-        //    // Do not re-create Dispose clean-up code here.
-        //    // Calling Dispose(disposing: false) is optimal in terms of
-        //    // readability and maintainability.
-        //    Dispose(false);
-        //}
-
         /// <summary>
         /// 
         /// </summary>
         private void InitGame() {
             // set up volume manager
             volManager = new(this);
-
-            //get default max vol sizes
+            // get default max vol sizes
             agMaxVolSize = 1023 * 1024;
-
-            //set max vol0 size
+            // set max vol0 size
             agMaxVol0 = agMaxVolSize;
 
             // reserved game defines
@@ -545,7 +510,7 @@ namespace WinAGI.Engine {
         /// <returns></returns>
         public bool CompileGame(bool RebuildOnly, string NewGameDir = "") {
             bool blnReplace, NewIsV3;
-            string strFileName = "";
+      //      string strFileName = "";
             int tmpMax = 0, i, j;
             TWinAGIEventInfo compInfo = new() {
                 Type = EventType.etInfo,
@@ -700,7 +665,6 @@ namespace WinAGI.Engine {
             }
             // reset game compiler variables
             volManager.Clear();
-            volManager.NewDir = NewGameDir;
 
             try {
                 // ensure all temp vol files are removed
@@ -715,7 +679,7 @@ namespace WinAGI.Engine {
             }
             try {
                 // open first new vol file
-                volManager.VOLFile = File.Create(NewGameDir + "NEW_VOL.0");
+                volManager.InitVol(NewGameDir);
             }
             catch (Exception e) {
                 CompleteCancel(true);
@@ -727,7 +691,7 @@ namespace WinAGI.Engine {
             }
             // add all logic resources
             try {
-                CompileResCol(this, agLogs, AGIResType.rtLogic, RebuildOnly, NewIsV3);
+                VOLManager.Base.CompileResCol(this, agLogs, AGIResType.rtLogic, RebuildOnly, NewIsV3);
             }
             catch {
                 CompleteCancel(true);
@@ -740,7 +704,7 @@ namespace WinAGI.Engine {
             }
             // add all picture resources
             try {
-                CompileResCol(this, agPics, AGIResType.rtPicture, RebuildOnly, NewIsV3);
+                VOLManager.Base.CompileResCol(this, agPics, AGIResType.rtPicture, RebuildOnly, NewIsV3);
             }
             catch {
                 CompleteCancel(true);
@@ -753,7 +717,7 @@ namespace WinAGI.Engine {
             }
             // add all view resources
             try {
-                CompileResCol(this, agViews, AGIResType.rtView, RebuildOnly, NewIsV3);
+                VOLManager.Base.CompileResCol(this, agViews, AGIResType.rtView, RebuildOnly, NewIsV3);
             }
             catch {
                 CompleteCancel(true);
@@ -766,7 +730,7 @@ namespace WinAGI.Engine {
             }
             // add all sound resources
             try {
-                CompileResCol(this, agSnds, AGIResType.rtSound, RebuildOnly, NewIsV3);
+                VOLManager.Base.CompileResCol(this, agSnds, AGIResType.rtSound, RebuildOnly, NewIsV3);
             }
             catch {
                 CompleteCancel(true);
@@ -824,7 +788,7 @@ namespace WinAGI.Engine {
             }
             // now build the new DIR files
             if (NewIsV3) {
-                strFileName = NewGameDir + agGameID + "DIR";
+                volManager.DIRFile = File.Create(NewGameDir + agGameID + "DIR");
                 using (volManager.DIRWriter) {
                     // add offsets - logdir offset is always 8
                     volManager.DIRWriter.Write(Convert.ToInt16(8));
@@ -886,19 +850,19 @@ namespace WinAGI.Engine {
                 for (j = 0; j < 4; j++) {
                     switch ((AGIResType)j) {
                     case AGIResType.rtLogic:
-                        strFileName = NewGameDir + "LOGDIR";
+                        volManager.DIRFile = File.Create(NewGameDir + "LOGDIR");
                         tmpMax = agLogs.Max;
                         break;
                     case AGIResType.rtPicture:
-                        strFileName = NewGameDir + "PICDIR";
+                        volManager.DIRFile = File.Create(NewGameDir + "PICDIR");
                         tmpMax = agPics.Max;
                         break;
                     case AGIResType.rtSound:
-                        strFileName = NewGameDir + "SNDDIR";
+                        volManager.DIRFile = File.Create(NewGameDir + "SNDDIR");
                         tmpMax = agSnds.Max;
                         break;
                     case AGIResType.rtView:
-                        strFileName = NewGameDir + "VIEWDIR";
+                        volManager.DIRFile = File.Create(NewGameDir + "VIEWDIR");
                         tmpMax = agViews.Max;
                         break;
                     }
@@ -940,8 +904,7 @@ namespace WinAGI.Engine {
             }
             // now rename VOL files
             for (i = 0; i < volManager.Count; i++) {
-                strFileName = strID + "VOL." + i.ToString();
-                File.Move(NewGameDir + "NEW_VOL." + i.ToString(), NewGameDir + strFileName);
+                File.Move(NewGameDir + "NEW_VOL." + i.ToString(), NewGameDir + strID + "VOL." + i.ToString());
             }
             // update status to indicate complete
             compInfo.Text = "";
