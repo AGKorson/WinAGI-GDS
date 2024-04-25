@@ -117,7 +117,7 @@ namespace WinAGI.Engine {
                 // close the sound
                 _ = mciSendString("close all", null, 0, 0);
                 // raise the 'done' event
-                soundPlaying.Raise_SoundCompleteEvent(blnSuccess);
+                soundPlaying.OnSoundComplete(blnSuccess);
                 // reset the flag
                 bPlayingMIDI = false;
                 // release the object
@@ -405,7 +405,7 @@ namespace WinAGI.Engine {
             // The above call blocks until the sound has finished playing. If sound is not on, then it happens immediately.
             bPlayingWAV = false;
             // raise the 'done' event
-            soundPlaying?.Raise_SoundCompleteEvent(true);
+            soundPlaying?.OnSoundComplete(true);
         }
 
         /// <summary>

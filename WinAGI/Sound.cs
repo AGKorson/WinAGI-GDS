@@ -23,18 +23,19 @@ namespace WinAGI.Engine {
         // of a sound is complete.
 
         // declare the event delegate, and event
-        public delegate void SoundCompleteEventHandler(object sender, SoundCompleteEventArgs e);
+        public delegate void SoundCompleteEventHandler(object? sender, SoundCompleteEventArgs args);
         public event SoundCompleteEventHandler SoundComplete;
-        public class SoundCompleteEventArgs {
+        public class SoundCompleteEventArgs : EventArgs {
             public SoundCompleteEventArgs(bool noerror) {
                 NoError = noerror;
             }
             public bool NoError { get; }
         }
 
-        internal void Raise_SoundCompleteEvent(bool noerror) {
+        internal void OnSoundComplete(bool noerror) {
             // Raise the event in a thread-safe manner using the ?. operator.
-            SoundComplete?.Invoke(null, new SoundCompleteEventArgs(noerror));
+            SoundComplete?.Invoke(this, new SoundCompleteEventArgs(noerror));
+
         }
 
         /// <summary>

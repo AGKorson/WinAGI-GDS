@@ -136,6 +136,8 @@ namespace WinAGI.Editor {
                 case rtSound:
                     if (PreviewSound((byte)ResNum)) {
                         pnlSound.Visible = true;
+                        // hook the sound_complete event
+                        agSound.SoundComplete += This_SoundComplete;
                     }
                     else {
                         pnlSound.Visible = false;
@@ -368,8 +370,6 @@ namespace WinAGI.Editor {
                 // TODO: need error check here; button and playback bar need 
                 // to be reset if sound doesn't play
 
-                // hook the sound_complete event and play the sound
-                agSound.SoundComplete += This_SoundComplete;
                 switch (agSound.SndFormat) {
                 case SoundFormat.sfAGI:
                     // wav or midi, depending on button option

@@ -361,7 +361,7 @@ namespace WinAGI.Editor {
             picProgress.Location = new System.Drawing.Point(0, 0);
             picProgress.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             picProgress.Name = "picProgress";
-            picProgress.Size = new System.Drawing.Size(0, 9);
+            picProgress.Size = new System.Drawing.Size(0, 12);
             picProgress.TabIndex = 0;
             picProgress.TabStop = false;
             // 
