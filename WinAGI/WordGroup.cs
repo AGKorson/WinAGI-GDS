@@ -12,8 +12,7 @@ namespace WinAGI.Engine {
         //internal System.Collections.Generic.SortedSet<string> mWordsS;
 
         internal int mGroupNum;
-        internal readonly string strErrSource = "WinAGI.AGIWordGroup";
-        //access to word list is by index only
+        // access to word list is by index only
         public string this[byte index] { get { return mWords[index]; } }
         public WordGroup() {
             //initialze the word collection

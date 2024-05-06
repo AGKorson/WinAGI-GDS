@@ -1,46 +1,66 @@
 ﻿using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System;
-using System.Text;
 using System.IO;
-using System.Collections.Generic;
+using System.Text;
 using System.Threading;
-using static WinAGI.Engine.Base;
+using System.Windows.Forms;
+using WinAGI.Common;
 using static WinAGI.Common.API;
 using static WinAGI.Common.Base;
-using System.Windows.Forms;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
 
     public static partial class Base {
+        #region Local Members
         // sound subclassing variables, constants, declarations
         internal static MIDIPlayer midiPlayer = new();
         internal static WAVPlayer wavPlayer = new();
         internal static bool bPlayingMIDI = false;
         internal static bool bPlayingWAV = false;
         internal static Sound soundPlaying;
+        #endregion
 
+        #region Constructors
+        // none
+        #endregion
+
+        #region Properties
+        // none
+        #endregion
+
+        #region Methods
         /// <summary>
         /// If a sound is playing, this method stops it, regardless of mode. No effect
         /// if no sound is playing.
         /// </summary>
         internal static void StopAllSound() {
-            // this will send a msg to WndProc which will raise the 'sound complete'
-            // event and release the sound object
+            // stop MIDI:
             _ = mciSendString("close all", null, 0, (IntPtr)null);
+            // stop WAV:
+            wavPlayer.Reset();
             bPlayingWAV = false;
             bPlayingMIDI = false;
-            wavPlayer.Reset();
         }
+    #endregion
     }
 
+    #region Classes
     /// <summary>
     /// A class for writing data stream to be played as a MIDI  or WAV sound.
     /// </summary>
     internal class SoundData() {
+        #region Local Members
         public byte[] Data = [];
         public int Pos = 0;
+        #endregion
 
+        #region Properties
+        // none
+        #endregion
+
+        #region Methods
         /// <summary>
         /// Writes a four byte long value to midi array data.
         /// </summary>
@@ -92,22 +112,38 @@ namespace WinAGI.Engine {
             }
             WriteSndByte((byte)(LongIn & 127));
         }
+        #endregion
     }
-
     /// <summary>
     /// A class for playing AGI Sounds as a MIDI stream.
     /// </summary>
     internal class MIDIPlayer : NativeWindow, IDisposable {
+        #region Local Members
         private bool disposed = false;
         internal byte[] mMIDIData;
+        #endregion
 
+        #region Constructors
+        /// <summary>
+        /// Initializes a MIDIplayer to play AGI sounds.
+        /// </summary>
         internal MIDIPlayer() {
             CreateParams cpMIDIPlayer = new() {
                 Caption = "",
             };
             CreateHandle(cpMIDIPlayer);
         }
+        #endregion
 
+        #region Properties
+        // none
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Override WndProc method that processes midi messages.
+        /// </summary>
+        /// <param name="m"></param>
         protected override void WndProc(ref Message m) {
             // Listen for messages that are sent to the sndplayer window.
             switch (m.Msg) {
@@ -128,15 +164,14 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Plays a MIDI sound, either an MSDOS sound converted to MIDI, or a native IIg MIDI sound.
+        /// Plays a MIDI sound, either an MSDOS sound converted to MIDI, 
+        /// or a native IIg MIDI sound.
         /// </summary>
         /// <param name="SndRes"></param>
         internal void PlayMIDISound(Sound SndRes) {
             StringBuilder strError = new(255);
 
-            // Stop any currently playing sound.
             StopAllSound();
-
             // create MIDI sound file
             string strTempFile = Path.GetTempFileName();
             FileStream fsMidi = new(strTempFile, FileMode.Open);
@@ -160,12 +195,10 @@ namespace WinAGI.Engine {
             // check for errors
             if (rtn != 0) {
                 _ = mciGetErrorString(rtn, strError, 255);
-                // reset playing flag
                 bPlayingMIDI = false;
                 soundPlaying = null;
                 // close sound
                 _ = mciSendString("close all", null, 0, 0);
-                // return the error
                 WinAGIException wex = new(LoadResString(628)) {
                     HResult = WINAGI_ERR + 628,
                 };
@@ -174,6 +207,9 @@ namespace WinAGI.Engine {
             }
         }
 
+        /// <summary>
+        /// Disposes the MIDIPlayer when it is no longer needed.
+        /// </summary>
         public void Dispose() {
             Dispose(disposing: true);
             // This object will be cleaned up by the Dispose method.
@@ -184,6 +220,10 @@ namespace WinAGI.Engine {
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Disposes the MIDIPlayer when it is no longer needed.
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing) {
             // check to see if Dispose has already been called
             if (!disposed) {
@@ -201,27 +241,31 @@ namespace WinAGI.Engine {
             }
         }
 
-        // Use C# finalizer syntax for finalization code.
-        // This finalizer will run only if the Dispose method
-        // does not get called.
-        // It gives your base class the opportunity to finalize.
-        // Do not provide finalizer in types derived from this class.
+        /// <summary>
+        /// Use C# finalizer syntax for finalization code.
+        /// This finalizer will run only if the Dispose method
+        /// does not get called.
+        /// It gives your base class the opportunity to finalize.
+        /// Do not provide finalizer in types derived from this class.
+        /// </summary>
         ~MIDIPlayer() {
             // Do not re-create Dispose clean-up code here.
             // Calling Dispose(disposing: false) is optimal in terms of
             // readability and maintainability.
             Dispose(disposing: false);
         }
+        #endregion
     }
 
     /// <summary>
-    /// A class for playing WAV data streams.
+    /// A class for playing AGI sounds as WAV data streams.
     /// </summary>
     internal class WAVPlayer {
-        private const int SAMPLE_RATE = 44100;
         // WAVPlayer code based on prior work by Lance Ewing in 
-        // AGILE. Thank you Lance
+        // AGILE. Thank you Lance.
 
+        #region Local Members
+        private const int SAMPLE_RATE = 44100;
         /// <summary>
         /// The Thread that is waiting for the sound to finish.
         /// </summary>
@@ -267,13 +311,16 @@ namespace WinAGI.Engine {
         ];
 
         private short[] dissolveData;
+        #endregion
 
+        #region Constructors
         /// <summary>
-        /// Constructor for WAVPlayer.
+        /// Initializes a WAVPlayer to play AGI sounds.
         /// </summary>
         public WAVPlayer() {
-            // Set up the NAudio mixer. Using a single WaveOutEvent instance, and associated mixer eliminates
-            // delays caused by creation of a WaveOutEvent per sound.
+            // Set up the NAudio mixer. Using a single WaveOutEvent instance, and
+            // associated mixer eliminates delays caused by creation of a WaveOutEvent
+            // per sound.
 
             // default is AGI pcjr sound format
             soundFormat = SoundFormat.sfAGI;
@@ -285,7 +332,13 @@ namespace WinAGI.Engine {
             outputDevice.Init(mixer);
             outputDevice.Play();
         }
+        #endregion
 
+        #region Properties
+        // none
+        #endregion
+
+        #region Methods
         /// <summary>
         /// This method creates a WAV audio data stream from a PCjr formatted sound resource
         /// for playback.
@@ -353,9 +406,10 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Updates the volume of the given channel, by applying the dissolve data and master volume to the 
-        /// given base volume and then sets that in the SN76496 PSG. The noise channel does not apply the
-        /// dissolve data, so skips that bit.
+        /// Updates the volume of the given channel, by applying the dissolve data 
+        /// and master volume to the given base volume and then sets that in the 
+        /// SN76496 PSG. The noise channel does not apply the dissolve data, so skips
+        /// that bit.
         /// </summary>
         /// <param name="psg">The SN76496 PSG to set the calculated volume in.</param>
         /// <param name="baseVolume">The base volume to apply the dissolve data and master volume to.</param>
@@ -402,14 +456,14 @@ namespace WinAGI.Engine {
             bPlayingWAV = true;
             PlayWithNAudioMix(waveStream);
             //PlayWithWaveOut(waveStream);
-            // The above call blocks until the sound has finished playing. If sound is not on, then it happens immediately.
+            // The above call blocks until the sound has finished playing.
             bPlayingWAV = false;
-            // raise the 'done' event
             soundPlaying?.OnSoundComplete(true);
         }
 
         /// <summary>
-        /// Plays the WAVE file data contained in the given MemoryStream using the NAudio library.
+        /// Plays the WAV data contained in the given MemoryStream using
+        /// a mixer from the NAudio library.
         /// </summary>
         /// <param name="memoryStream">The MemoryStream containing the WAVE file data.</param>
         private void PlayWithNAudioMix(MemoryStream memoryStream) {
@@ -447,8 +501,12 @@ namespace WinAGI.Engine {
             }
         }
 
+        /// <summary>
+        /// Plays the WAV data contained in the given MemoryStream using
+        /// the WaveOutEvent method from the NAudio library
+        /// </summary>
+        /// <param name="memoryStream"></param>
         private void PlayWithWaveOut(MemoryStream memoryStream) {
-            // Add the new sound as an input to the NAudio mixer.
             WaveOutEvent wo = new();
             RawSourceWaveStream rs;
             if (soundFormat == SoundFormat.sfAGI) {
@@ -498,7 +556,8 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Stops the currently playing sound
         /// </summary>
-        /// <param name="wait">true to wait for the player thread to stop; otherwise false to not wait.</param>
+        /// <param name="wait">true to wait for the player thread to stop; otherwise
+        /// false to not wait.</param>
         internal void StopPCjrSound(bool wait = true) {
             if (bPlayingWAV) {
                 // This tells the thread to stop.
@@ -515,11 +574,16 @@ namespace WinAGI.Engine {
                 }
             }
         }
+        #endregion
 
+        #region Classes
         /// <summary>
-        /// SN76496 is the audio chip used in the IBM PC JR and therefore what the original AGI sound format was designed for.
+        /// A class to emulate the SN76496 audio chip. The SN76496 is the audio
+        /// chip used in the IBM PC JR and therefore what the original AGI sound 
+        /// format was designed for.
         /// </summary>
         public sealed class SN76496 {
+            #region Local Members
             private const float IBM_PCJR_CLOCK = 3579545f;
 
             private static float[] volumeTable = [
@@ -540,7 +604,6 @@ namespace WinAGI.Engine {
                 326.109488758897f,
                 0.0f
             ];
-
             private int[] channelVolume = [15, 15, 15, 15];
             private int[] channelCounterReload = new int[4];
             private int[] channelCounter = new int[4];
@@ -549,22 +612,48 @@ namespace WinAGI.Engine {
             private uint latchedChannel;
             private float ticksPerSample;
             private float ticksCount;
+            #endregion
 
+            #region Constructors
+            /// <summary>
+            /// Initializes the SN76496 audio chip emulator.
+            /// </summary>
             public SN76496() {
                 ticksPerSample = IBM_PCJR_CLOCK / 16 / SAMPLE_RATE;
                 ticksCount = ticksPerSample;
                 latchedChannel = 0;
                 lfsr = 0x4000;
             }
+            #endregion
 
+            #region Properties
+            // none
+            #endregion
+
+            #region Methods
+            /// <summary>
+            /// Sets volume for specified channel.
+            /// </summary>
+            /// <param name="channel"></param>
+            /// <param name="volume"></param>
             public void SetVolByNumber(int channel, int volume) {
                 channelVolume[channel] = volume & 0x0F;
             }
 
+            /// <summary>
+            /// Gets volume for specified channel
+            /// </summary>
+            /// <param name="channel"></param>
+            /// <returns></returns>
             public int GetVolByNumber(int channel) {
                 return (channelVolume[channel] & 0x0F);
             }
 
+            /// <summary>
+            /// Converts a Sierra/IBM PCjr tone data byte into the corresponding
+            /// SN76496 data output to reproduce the correct sound.
+            /// </summary>
+            /// <param name="data"></param>
             public void Write(int data) {
                 /*
                  * A tone is produced on a voice by passing the sound chip a 3-bit register address 
@@ -639,11 +728,16 @@ namespace WinAGI.Engine {
                 }
             }
 
+            /// <summary>
+            /// Updates the tone channel.
+            /// </summary>
+            /// <param name="channel"></param>
             private void UpdateToneChannel(int channel) {
                 // If the tone counter reload register is 0, then skip update.
                 if (channelCounterReload[channel] == 0) return;
 
-                // Note: For some reason SQ2 intro, in docking scene, is quite sensitive to how this is decremented and tested.
+                // Note: For some reason SQ2 intro, in docking scene, is quite sensitive
+                // to how this is decremented and tested.
 
                 // Decrement channel counter. If zero, then toggle output and reload from
                 // the tone counter reload register.
@@ -653,6 +747,11 @@ namespace WinAGI.Engine {
                 }
             }
 
+            /// <summary>
+            /// Creates the WAV samples from the audio chip based on currently
+            /// playing tone channels.
+            /// </summary>
+            /// <returns></returns>
             public float Render() {
                 while (ticksCount > 0) {
                     UpdateToneChannel(0);
@@ -690,6 +789,10 @@ namespace WinAGI.Engine {
                                (volumeTable[channelVolume[2] & 0x0F] * ((channelOutput[2] - 0.5) * 2)) +
                                (volumeTable[channelVolume[3] & 0x0F] * ((channelOutput[3] - 0.5) * 2)));
             }
+            #endregion
         }
+        #endregion
     }
+    #endregion
+
 }

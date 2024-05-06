@@ -41,6 +41,11 @@ Warnings are similar to errors, but of lower significance; mostly decompiler war
 resource related warnings.
 
 
+
+
+
+
+
 Exceptions:
 CLASS             FUNCTION:                 TYPE/NUMBER:          DESCRIPTION
 AGIGame           AGIGame                   PASS                  pass-through OpenGameWAG/OpenGameDIR
@@ -385,7 +390,7 @@ WordList          AddWord                   563                   resource not l
 WordList          AddWord                   579                   duplicate word
 WordList          AddWord                   581                   invalid group number
 WordList          Enum:Current              InvalidOps            invalid position value
-
+342! vs 372
 
 
 

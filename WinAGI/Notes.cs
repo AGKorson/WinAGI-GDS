@@ -118,10 +118,10 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns a copy of this notes collection.
+        /// Creates an exact copy of this Notes object.
         /// </summary>
         /// <param name="cloneTparent"></param>
-        /// <returns></returns>
+        /// <returns>The Notes object this method creates.</returns>
         internal Notes Clone(Track cloneTparent) {
             Notes CopyNotes = new(mParent, cloneTparent);
             foreach (Note tmpNote in mCol) {

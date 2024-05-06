@@ -44,7 +44,8 @@ namespace WinAGI.Engine {
         ///  1 = no EOP marker<br />
         ///  2 = bad vis color data<br />
         ///  4 = invalid command byte<br />
-        ///  8 = other error</returns>
+        ///  8 = unused data at end of resource<br />
+        ///  16 = other error</returns>
         internal static int BuildBMPs(ref byte[] VisData, ref byte[] PriData, byte[] bytPicData, int EndPos, int StatusPos) {
             // assume ok
             int retval = 0;
@@ -59,8 +60,10 @@ namespace WinAGI.Engine {
                 // use end pos
                 StatusPos = EndPos;
             }
+            // TODO: move draw functions inside this function and eliminate
+            // the module level vars
 
-            // save endpos locally
+            // save endpos so other draw functions can access it
             lngEndPos = EndPos;
             // pointer to input data so other draw functions can reach it
             agPicData = bytPicData;
@@ -188,19 +191,25 @@ namespace WinAGI.Engine {
                     }
                     else {
                         // something else
-                        retval |= 8;
+                        retval |= 16;
                     }
                 }
                 else {
                     // any other error- just pass it along
-                    retval |= 8;
+                    retval |= 16;
                 }
             }
-            // if at end of resource, was last command end-of-resource flag?
-            if (lngPos >= bytPicData.Length) {
-                if (bytPicData[^1] != 0xFF) {
+            // if building entire picture
+            if (EndPos == agPicData.Length - 1) {
+                // confirm last command is end-of-picture marker
+                if (bytIn != 0xFF) {
                     // set warning flag
                     retval |= 1;
+                }
+                // check for unused data after end marker
+                if (lngPos != agPicData.Length) {
+                    // set warning flag
+                    retval |= 8;
                 }
             }
             // copy resulting data back to calling function

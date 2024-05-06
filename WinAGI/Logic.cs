@@ -2,6 +2,7 @@
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.Compiler;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 using System.IO;
 using System.Diagnostics;
@@ -66,7 +67,7 @@ namespace WinAGI.Engine {
             // get rest of properties
             mCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
             mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
-            mSourceFile = parent.agResDir + mResID + agSrcFileExt;
+            mSourceFile = parent.agResDir + mResID + parent.agSrcFileExt;
             if (ResNum == 0) {
                 // logic0 can never be a room
                 mIsRoom = false;
@@ -161,10 +162,9 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        /// Copies logic data from this logic and returns a completely separate
-        /// object reference.
+        /// Creates an exact copy of this Logic resource.
         /// </summary>
-        /// <returns>a clone of this logic</returns>
+        /// <returns>The Logic resource this method creates.</returns>
         public Logic Clone() {
             Logic CopyLogic = new();
             // copy base properties
@@ -231,7 +231,7 @@ namespace WinAGI.Engine {
                 if (mInGame) {
                     // sourcefile is predefined
                     // TODO: force re-sync of name
-                    Debug.Assert(mSourceFile == parent.agResDir + mResID + agSrcFileExt);
+                    Debug.Assert(mSourceFile == parent.agResDir + mResID + parent.agSrcFileExt);
            //         mSourceFile = parent.agResDir + mResID + agSrcFileExt;
                 }
                 return mSourceFile;
@@ -414,7 +414,7 @@ namespace WinAGI.Engine {
                 if (mInGame) {
                     // TODO: need to move/rename file when id changes
                     // source file always tracks ID for ingame resources
-                    mSourceFile = parent.agResDir + base.ID + agSrcFileExt;
+                    mSourceFile = parent.agResDir + base.ID + parent.agSrcFileExt;
                     parent.WriteGameSetting("Logic" + Number, "ID", mResID, "Logics");
                 }
             }
@@ -433,7 +433,7 @@ namespace WinAGI.Engine {
             if (mInGame) {
                 // load file is predefined
                 LoadFile = mSourceFile;
-                 Debug.Assert(LoadFile == parent.agResDir + mResID + agSrcFileExt);
+                 Debug.Assert(LoadFile == parent.agResDir + mResID + parent.agSrcFileExt);
                 if (!File.Exists(LoadFile)) {
                     // check for AGI Studio file format
                     if (File.Exists(parent.agResDir + "logic" + Number + ".txt")) {
@@ -718,7 +718,7 @@ namespace WinAGI.Engine {
                 parent.WriteGameSetting(strSection, "CRC32", "0x" + mCRC.ToString("x8"));
                 parent.WriteGameSetting(strSection, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
                 parent.WriteGameSetting(strSection, "IsRoom", mIsRoom.ToString());
-                PropDirty = false;
+                PropsDirty = false;
             }
         }
 
@@ -733,7 +733,7 @@ namespace WinAGI.Engine {
         /// <param name="SaveFile"></param>
         public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);
-            if (PropDirty && mInGame) {
+            if (PropsDirty && mInGame) {
                 SaveProps();
             }
             if (mInGame) {

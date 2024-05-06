@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
 using System.Text;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 
@@ -83,10 +82,9 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Copies view data from this view and returns a completely separate
-        /// object reference.
+        /// Creates an exact copy of this View resource.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The View resource this method creates.</returns>
         public View Clone() {
             View CopyView = new();
             // copy base properties
@@ -512,7 +510,7 @@ namespace WinAGI.Engine {
             if (mInGame) {
                 parent.WriteGameSetting("View" + Number, "ID", mResID, "Views");
                 parent.WriteGameSetting("View" + Number, "Description", mDescription);
-                PropDirty = false;
+                PropsDirty = false;
             }
         }
         
@@ -522,7 +520,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);
-            if (PropDirty && mInGame) {
+            if (PropsDirty && mInGame) {
                 SaveProps();
             }
             if (mIsDirty) {

@@ -4,14 +4,17 @@ using static WinAGI.Engine.ArgTypeEnum;
 using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// A class to hold all members related to AGI's action and test commands.
+    /// </summary>
     public static class Commands {
-        // This class holds objects that contain information relating to
-        // current game action and test commands.
-        //
+        #region Local Members
         internal static readonly string[] agArgTypPref = ["", "v", "f", "m", "o", "i", "s", "w", "c"];
         internal static readonly string[] agArgTypName =
-        [ "number", "variable", "flag", "message", "object",
-      "inventory item", "string", "word", "controller" ];
+            [
+            "number", "variable", "flag", "message", "object",
+            "inventory item", "string", "word", "controller"
+            ];
         internal const int MAX_CMDS = 182;
         internal static byte agNumCmds;
         internal static byte agNumTestCmds;
@@ -20,12 +23,17 @@ namespace WinAGI.Engine {
 
         // last command 'adjust.ego.x.y', is not supported so it's not added
         // to the list of commands
+        #endregion
 
+        #region Constructors
+        /// <summary>
+        /// Creates and initializes the Commands object.
+        /// </summary>
         static Commands() {
             // default is to make all 182 commands visible
             agNumCmds = MAX_CMDS;
 
-            //agi commands:
+            // agi commands:
             agCmds[0].Name = "return";
             agCmds[0].ArgType = [];
 
@@ -954,34 +962,52 @@ namespace WinAGI.Engine {
             agTestCmds[19].Name = "in.motion.using.mouse";
             agTestCmds[19].ArgType = [];
         }
+        #endregion
 
+        #region Properties
+        /// <summary>
+        /// Gets the test commands collection.
+        /// </summary>
         public static CommandStruct[] TestCommands {
             get { return agTestCmds; }
         }
 
+        /// <summary>
+        /// Gets the number of test commands.
+        /// </summary>
         public static byte TestCount {
             get { return agNumTestCmds; }
         }
 
+        /// <summary>
+        /// Gets the action commands collection.
+        /// </summary>
         public static CommandStruct[] ActionCommands {
             get { return agCmds; }
         }
 
+        /// <summary>
+        /// Gets the number of action commands.
+        /// </summary>
         public static byte ActionCount {
             get { return agNumCmds; }
         }
+        #endregion
 
+        #region Methods
+        /// <summary>
+        /// This method adjusts the commands to conform to the given 
+        /// interpreter version.
+        /// </summary>
+        /// <param name="Version"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         internal static void CorrectCommands(string Version) {
-            // This procedure adjusts the logic commands for a given int. version
             if (!IntVersions.Contains(Version)) {
-                //error
                 throw new ArgumentOutOfRangeException(nameof(Version));
-                //return;
             }
-            double verNum = Double.Parse(Version);
-            //now adjust quit cmd for version
+            double verNum = double.Parse(Version);
+            // quit command
             if (verNum <= 2.089) {
-                // quit command
                 agCmds[134].ArgType = [];
             }
             else {
@@ -991,20 +1017,21 @@ namespace WinAGI.Engine {
 
             // adjust number of available commands
             if (verNum <= 2.089)
-                agNumCmds = 156; // 155;
+                agNumCmds = 156;
             else if (verNum <= 2.272)
-                agNumCmds = 162; // 161;
+                agNumCmds = 162;
             else if (verNum <= 2.44)
-                agNumCmds = 170; // 169;
+                agNumCmds = 170;
             else if (verNum <= 2.917)
-                agNumCmds = 174; // 173;
+                agNumCmds = 174;
             else if (verNum <= 2.936)
-                agNumCmds = 176; // 175;
+                agNumCmds = 176;
             else if (verNum <= 3.002086)
-                agNumCmds = 178; // 177;
+                agNumCmds = 178;
             else
                 // all are available
-                agNumCmds = MAX_CMDS; // 181;
+                agNumCmds = MAX_CMDS;
         }
+        #endregion
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 
@@ -123,10 +124,10 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Creates an exact copy of this Loops object.
         /// </summary>
         /// <param name="cloneparent"></param>
-        /// <returns></returns>
+        /// <returns>The Loops object this method creates.</returns>
         public Loops Clone(View cloneparent) {
             // returns a copy of this loop collection
             Loops CopyLoops = new(cloneparent);

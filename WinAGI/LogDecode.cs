@@ -568,7 +568,7 @@ namespace WinAGI.Engine {
                 Text = WarningText,
                 Line = LineNum.ToString(),
             };
-            Raise_DecodeLogicEvent(dcWarnInfo);
+            compGame.OnDecodeLogicStatus(dcWarnInfo);
 
             // add warning text to the stack so it can be added
             //to output once the current line is decompiled

@@ -186,10 +186,10 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        /// 
+        /// Creates an exact copy of this Loop.
         /// </summary>
         /// <param name="cloneparent"></param>
-        /// <returns></returns>
+        /// <returns>The Loop this method creates.</returns>
         public Loop Clone(View cloneparent) {
             // returns a copy of this loop
             Loop CopyLoop = new(cloneparent) {

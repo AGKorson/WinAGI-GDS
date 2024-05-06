@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using static WinAGI.Common.Base;
+using WinAGI.Common;
 using static WinAGI.Engine.PictureFunctions;
 
 namespace WinAGI.Engine {
@@ -177,10 +176,9 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Copies picture data from this picture and returns a completely separate
-        /// object reference.
+        /// Creates an exact copy of this Picture resource.
         /// </summary>
-        /// <returns>a clone of this picture</returns>
+        /// <returns>The Picture resource this method creates.</returns>
         internal Picture Clone() {
             Picture CopyPicture = new();
             // copy base properties
@@ -211,7 +209,7 @@ namespace WinAGI.Engine {
             }
             set {
                 mBkImgFile = value;
-                PropDirty = true;
+                PropsDirty = true;
             }
         }
 
@@ -224,7 +222,7 @@ namespace WinAGI.Engine {
             }
             set {
                 mBkPos = value;
-                PropDirty = true;
+                PropsDirty = true;
             }
         }
 
@@ -237,7 +235,7 @@ namespace WinAGI.Engine {
             }
             set {
                 mBkSize = value;
-                PropDirty = true;
+                PropsDirty = true;
             }
         }
 
@@ -250,7 +248,7 @@ namespace WinAGI.Engine {
             }
             set {
                 mBkTrans = value;
-                PropDirty = true;
+                PropsDirty = true;
             }
         }
 
@@ -263,7 +261,7 @@ namespace WinAGI.Engine {
             }
             set {
                 mBkShow = value;
-                PropDirty = true;
+                PropsDirty = true;
             }
         }
 
@@ -290,7 +288,7 @@ namespace WinAGI.Engine {
                 else {
                     mPriBase = value;
                 }
-                PropDirty = true;
+                PropsDirty = true;
             }
         }
 
@@ -655,7 +653,7 @@ namespace WinAGI.Engine {
                     parent.WriteGameSetting(strPicKey, "BkgdPosn", mBkPos.ToString());
                     parent.WriteGameSetting(strPicKey, "BkgdSize", mBkSize.ToString());
                 }
-                PropDirty = false;
+                PropsDirty = false;
             }
         }
 
@@ -665,7 +663,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);
-            if (PropDirty && mInGame) {
+            if (PropsDirty && mInGame) {
                 SaveProps();
             }
             if (mIsDirty) {
@@ -709,9 +707,7 @@ namespace WinAGI.Engine {
             bmpPri = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
             // modify color palette to match current AGI palette
             ColorPalette ncp = bmpVis.Palette;
-            if (parent is null) {
-
-            } else {
+            if (parent is not null) {
                 for (int i = 0; i < 16; i++) {
                     ncp.Entries[i] = Color.FromArgb(255,
                     parent.AGIColors[i].R,

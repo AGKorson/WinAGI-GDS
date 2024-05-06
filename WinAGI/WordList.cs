@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections;
 using static WinAGI.Engine.Base;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 using System.IO;
 using System.Linq;
@@ -306,37 +307,37 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Copies word list from NewWords to this word list.
+        /// Creates an exact copy of this WordList.
         /// </summary>
-        /// <param name="wordlist"></param>
-        public void Clone(WordList wordlist) {
-            //
+        /// <returns>The WordList that this method creates</returns>
+        public WordList Clone(WordList wordlist) {
+            WordList clonelist = new();
             int lngGrpNum;
             string strWord;
             WordGroup tmpGroup;
             AGIWord tmpWord;
 
             WinAGIException.ThrowIfNotLoaded(this);
-            Clear();
-            foreach (WordGroup oldGroup in wordlist) {
+            foreach (WordGroup group in wordlist) {
                 tmpGroup = new WordGroup();
-                lngGrpNum = oldGroup.GroupNum;
+                lngGrpNum = group.GroupNum;
                 tmpGroup.GroupNum = lngGrpNum;
-                mGroupCol.Add(lngGrpNum, tmpGroup);
+                clonelist.mGroupCol.Add(lngGrpNum, tmpGroup);
             }
-            foreach (AGIWord oldWord in wordlist.mWordCol.Values) {
-                strWord = oldWord.WordText;
-                lngGrpNum = oldWord.Group;
+            foreach (AGIWord word in wordlist.mWordCol.Values) {
+                strWord = word.WordText;
+                lngGrpNum = word.Group;
                 tmpWord.WordText = strWord;
                 tmpWord.Group = lngGrpNum;
-                mWordCol.Add(strWord, tmpWord);
-                mGroupCol[lngGrpNum].AddWordToGroup(strWord);
+                clonelist.mWordCol.Add(strWord, tmpWord);
+                clonelist.mGroupCol[lngGrpNum].AddWordToGroup(strWord);
             }
-            mDescription = wordlist.Description;
-            mIsDirty = wordlist.IsDirty;
-            mWriteProps = wordlist.WriteProps;
-            mResFile = wordlist.ResFile;
-            mLoaded = true;
+            clonelist.mDescription = wordlist.Description;
+            clonelist.mIsDirty = wordlist.IsDirty;
+            clonelist.mWriteProps = wordlist.WriteProps;
+            clonelist.mResFile = wordlist.ResFile;
+            clonelist.mLoaded = true;
+            return clonelist;
         }
 
         /// <summary>

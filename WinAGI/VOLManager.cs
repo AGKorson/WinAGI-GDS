@@ -1,10 +1,8 @@
-﻿using NAudio.Wave;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
-using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
@@ -23,10 +21,12 @@ namespace WinAGI.Engine {
         internal VOLManager(AGIGame game) {
             // for dir files, use arrays during compiling process
             // then build the dir files at the end
-            DIRData = new byte[4, 768];
+            DIRData = new byte[4, 256, 3];
             for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 768; j++) {
-                    DIRData[i, j] = 255;
+                for (int j = 0; j < 256; j++) {
+                    for (int k = 0; k < 3; k++) {
+                        DIRData[i, j, k] = 255;
+                    }
                 }
             }
             parent = game;
@@ -35,7 +35,7 @@ namespace WinAGI.Engine {
             Count = 1;
             // file access members will be intialized by calling code
         }
-        public byte[,] DIRData { get; set; }
+        public byte[,,] DIRData { get; set; }
         public FileStream DIRFile {
             get => fsDIR;
             set {
@@ -87,9 +87,9 @@ namespace WinAGI.Engine {
             // the DIR file is not updated; that is done by the
             // CompileGame method AFTER all VOL files are built
             // using the data stored in a temporary array
-            DIRData[(int)AddRes.ResType, AddRes.Number * 3] = (byte)((Index << 4) + (Loc >> 16));
-            DIRData[(int)AddRes.ResType, AddRes.Number * 3 + 1] = (byte)((Loc % 0x10000) >> 8);
-            DIRData[(int)AddRes.ResType, AddRes.Number * 3 + 2] = (byte)(Loc % 0x100);
+            DIRData[(int)AddRes.ResType, AddRes.Number, 0] = (byte)((Index << 4) + (Loc >> 16));
+            DIRData[(int)AddRes.ResType, AddRes.Number, 1] = (byte)((Loc % 0x10000) >> 8);
+            DIRData[(int)AddRes.ResType, AddRes.Number, 2] = (byte)(Loc % 0x100);
             // build header
             ResHeader = new byte[5];
             ResHeader[0] = 0x12;
@@ -182,7 +182,7 @@ namespace WinAGI.Engine {
             /// <param name="ResType"></param>
             /// <param name="RebuildOnly"></param>
             /// <param name="NewIsV3"></param>
-            internal static void CompileResCol(AGIGame game, dynamic tmpResCol, AGIResType ResType, bool RebuildOnly, bool NewIsV3) {
+            internal static bool CompileResCol(AGIGame game, dynamic tmpResCol, AGIResType ResType, bool RebuildOnly, bool NewIsV3) {
                 // compiles all the resources of ResType that are in the tmpResCol collection object
                 // by adding them to the new VOL files
                 // if RebuildOnly is passed, it won//t try to compile the logic; it will only add
@@ -212,11 +212,9 @@ namespace WinAGI.Engine {
                         Module = "",
                         Text = ""
                     };
-                    Raise_CompileGameEvent(ECStatus.csAddResource, ResType, CurResNum, tmpWarn);
-                    //check for cancellation
-                    if (!tmpGameRes.parent.agCompGame) {
-                        tmpGameRes.parent.CompleteCancel();
-                        return;
+                    // check for cancellation
+                    if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csAddResource, ResType, CurResNum, tmpWarn)) {
+                        return false;
                     }
 
                     // use a loop to add resources;
@@ -238,14 +236,12 @@ namespace WinAGI.Engine {
                                 if (RebuildOnly) {
                                     //note it
                                     tmpWarn.Text = $"Unable to load {tmpGameRes.ID} ({LoadResString(tmpGameRes.ErrLevel)})";
-                                    Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
-                                    //check for cancellation
-                                    if (!tmpGameRes.parent.agCompGame) {
-                                        tmpGameRes.parent.CompleteCancel();
+                                    // check for cancellation
+                                    if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, ResType, CurResNum, tmpWarn)) {
                                         // make sure unloaded
                                         tmpGameRes.Unload();
                                         // and stop compiling
-                                        return;
+                                        return false;
                                     }
                                 }
                                 else {
@@ -294,14 +290,12 @@ namespace WinAGI.Engine {
                                             //note the error
                                             tmpWarn.Type = EventType.etWarning;
                                             tmpWarn.Text = strMsg;
-                                            Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
-                                            //check for cancellation
-                                            if (!tmpGameRes.parent.agCompGame) {
-                                                tmpGameRes.parent.CompleteCancel();
+                                            // check for cancellation
+                                            if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, ResType, CurResNum, tmpWarn)) {
                                                 // make sure unloaded
                                                 tmpGameRes.Unload();
                                                 //and stop compiling
-                                                return;
+                                                return false;
                                             }
                                             //if not canceled, user has already removed bad resource from game
                                             break;
@@ -321,14 +315,12 @@ namespace WinAGI.Engine {
                                 //note the warning
                                 tmpWarn.Type = EventType.etWarning;
                                 tmpWarn.Text = strMsg;
-                                Raise_CompileGameEvent(ECStatus.csWarning, ResType, CurResNum, tmpWarn);
-                                //check for cancellation
-                                if (!tmpGameRes.parent.agCompGame) {
-                                    tmpGameRes.parent.CompleteCancel();
+                                // check for cancellation
+                                if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csWarning, ResType, CurResNum, tmpWarn)) {
                                     // unload if needed
                                     if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                                     // then stop compiling
-                                    return;
+                                    return false;
                                 }
                             }
                             // for logics, compile the sourcetext
@@ -344,14 +336,12 @@ namespace WinAGI.Engine {
                                               //raise compile event
                                         tmpWarn.Type = EventType.etWarning;
                                         tmpWarn.Text = e.Message;
-                                        Raise_CompileGameEvent(ECStatus.csLogicError, ResType, CurResNum, tmpWarn);
-                                        //check for cancellation
-                                        if (!tmpGameRes.parent.agCompGame) {
-                                            tmpGameRes.parent.CompleteCancel();
+                                        // check for cancellation
+                                        if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csLogicError, ResType, CurResNum, tmpWarn)) {
                                             // unload if needed
                                             if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                                             // then stop compiling
-                                            return;
+                                            return false;
                                         }
                                         // if user wants to continue, the logic will already have been removed; no other action needed
                                         break;
@@ -359,14 +349,12 @@ namespace WinAGI.Engine {
                                         //any other error; note it
                                         tmpWarn.Type = EventType.etWarning;
                                         tmpWarn.Text = "Unable to compile Logic (" + e.Message + ")";
-                                        Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
                                         //check for cancellation
-                                        if (!tmpGameRes.parent.agCompGame) {
-                                            tmpGameRes.parent.CompleteCancel();
+                                        if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, ResType, CurResNum, tmpWarn)) {
                                             // unload if needed
                                             if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                                             // then stop compiling
-                                            return;
+                                            return false;
                                         }
                                         //if user did not cancel, resource will already have been removed
                                         break;
@@ -395,14 +383,12 @@ namespace WinAGI.Engine {
                             //note it
                             tmpWarn.Type = EventType.etWarning;
                             tmpWarn.Text = "Unable to add Logic resource to VOL file (" + e.Message + ")";
-                            Raise_CompileGameEvent(ECStatus.csResError, ResType, CurResNum, tmpWarn);
                             //check for cancellation
-                            if (!tmpGameRes.parent.agCompGame) {
-                                tmpGameRes.parent.CompleteCancel();
+                            if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, ResType, CurResNum, tmpWarn)) {
                                 //unload resource, if applicable
                                 if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                                 // then stop compiling
-                                return;
+                                return false;
                             }
                             // if not canceled, user deleted bad resource
                             // so exit loop to move to next resource
@@ -414,6 +400,7 @@ namespace WinAGI.Engine {
                     // done with resource; unload if applicable
                     if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                 }
+                return true;
             }
 
             /// <summary>

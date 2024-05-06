@@ -4,13 +4,17 @@ using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
     /// <summary>
-    /// 
+    /// Represents the sixteen EGA colors used in AGI as ARGB equivalent Color
+    /// values. 
     /// </summary>
     public class EGAColors {
+        #region Local Members
         Color[] colorList = new Color[16];
+        #endregion
 
+        #region Constructors
         /// <summary>
-        /// 
+        /// Initializes the EGA colors to the AGI default values.
         /// </summary>
         public EGAColors() {
             // reset colors to default Sierra AGI values.
@@ -31,7 +35,15 @@ namespace WinAGI.Engine {
             colorList[14] = Color.FromArgb(0xFF, 0xFF, 0x55); // FFFF55 = yellow
             colorList[15] = Color.FromArgb(0xFF, 0xFF, 0xFF); // FFFFFF = white
         }
+        #endregion
 
+        #region Properties
+        /// <summary>
+        /// Gets or sets the color for this EGA color index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
         public Color this[int index] {
             get {
                 if (index < 0 || index > 15) {
@@ -46,9 +58,11 @@ namespace WinAGI.Engine {
                 colorList[index] = value;
             }
         }
+        #endregion
 
+        #region Methods
         /// <summary>
-        /// 
+        /// Converts the color value of the specified color 
         /// </summary>
         /// <param name="aColor"></param>
         /// <returns></returns>
@@ -58,7 +72,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Converts the EGAColor for this index to string value.
+        /// Converts the EGAColor for this index to a comma separated
+        /// string of hex values for the four color components.
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
@@ -69,5 +84,6 @@ namespace WinAGI.Engine {
             }
             return ColorText(colorList[index]);
         }
+        #endregion
     }
 }

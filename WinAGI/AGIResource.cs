@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using static WinAGI.Engine.Base;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 using System.Linq;
 using System.Text;
@@ -56,8 +57,9 @@ namespace WinAGI.Engine {
         string[] mErrData = ["", "", "", "", ""];
         #endregion
 
+        #region Constructors
         /// <summary>
-        /// Constructor to create a new resource of specified type. The base resource can 
+        /// Initializes a new resource of specified type. The base resource can 
         /// only be created from within one of the derived types.
         /// </summary>
         /// <param name="ResType"></param>
@@ -71,6 +73,7 @@ namespace WinAGI.Engine {
             V3Compressed = 0;
             // calling resource constructor is responsible for creating default data
         }
+        #endregion
 
         #region Properties
         /// <summary>
@@ -175,7 +178,7 @@ namespace WinAGI.Engine {
         public int V3Compressed { get; internal set; }
 
         /// <summary>
-        /// Gets or sets the ingame status of this resource, i.e. whether it's in a game
+        /// Gets or sets the in-game status of this resource, i.e. whether it's in a game
         /// or a stand alone resource.
         /// </summary>
         public bool InGame { get { return mInGame; } internal set { mInGame = value; } }
@@ -241,7 +244,7 @@ namespace WinAGI.Engine {
         /// When true, indicates resource properties in resource need to be updated
         /// in the game's WAG file. Meaningless if resource is not in a game.
         /// </summary>
-        internal bool PropDirty { get; set; }
+        internal bool PropsDirty { get; set; }
 
         /// <summary>
         /// For resources in a game, IsDirty is true if the data in the resource does not
@@ -269,6 +272,26 @@ namespace WinAGI.Engine {
         /// Gets the derived resource type of this resource.
         /// </summary>
         public AGIResType ResType { get { return mResType; } }
+
+        /// <summary>
+        /// Gets or sets the cursor position in the raw data array. Used for reading and
+        /// writing data to/from the array.
+        /// </summary>
+        public int Pos {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return mlngCurPos;
+            }
+            set {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (value < 0 || value > mData.Length) {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+                mlngCurPos = value;
+                mblnEORes = (mlngCurPos == mData.Length);
+                return;
+            }
+        }
 
         /// <summary>
         /// Returns true if the raw data cursor position is at the end of the resource 
@@ -377,7 +400,6 @@ namespace WinAGI.Engine {
                 }
             }
         }
-
         #endregion
 
         #region Methods
@@ -488,7 +510,7 @@ namespace WinAGI.Engine {
             NewRes.mLoaded = mLoaded;
             NewRes.Data = mData;
             NewRes.mIsDirty = mIsDirty;
-            NewRes.PropDirty = PropDirty;
+            NewRes.PropsDirty = PropsDirty;
             NewRes.mSize = mSize;
             NewRes.mSizeInVol = mSizeInVol;
             NewRes.mblnEORes = mblnEORes;
@@ -513,7 +535,7 @@ namespace WinAGI.Engine {
             // always return success
             mLoaded = true;
             mIsDirty = false;
-            PropDirty = false;
+            PropsDirty = false;
             // clear error info before loading
             mErrLevel = 0;
             mErrData = ["", "", "", "", ""];
@@ -782,7 +804,7 @@ namespace WinAGI.Engine {
             mlngCurPos = 0;
             mblnEORes = false;
             mIsDirty = false;
-            PropDirty = false;
+            PropsDirty = false;
             // update size property
             mSize = (int)fsImport.Length;
             // always return success
@@ -819,26 +841,6 @@ namespace WinAGI.Engine {
                 }
             }
             mResID = tmpID;
-        }
-
-        /// <summary>
-        /// Gets or sets the cursor position in the raw data array. Used for reading and
-        /// writing data to/from the array.
-        /// </summary>
-        public int Pos {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return mlngCurPos;
-            }
-            set {
-                WinAGIException.ThrowIfNotLoaded(this);
-                if (value < 0 || value > mData.Length) {
-                    throw new ArgumentOutOfRangeException(nameof(value));
-                }
-                mlngCurPos = value;
-                mblnEORes = (mlngCurPos == mData.Length);
-                return;
-            }
         }
 
         /// <summary>

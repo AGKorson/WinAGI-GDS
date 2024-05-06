@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 using System.Drawing;
 using System.Globalization;

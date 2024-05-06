@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 
@@ -127,28 +127,27 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Copies sound data from this sound and returns a completely separate
-        /// object reference.
+        /// Creates an exact copy of this Sound resource.
         /// </summary>
-        /// <returns>a clone of this sound</returns>
+        /// <returns>The Sound resource this method creates.</returns>
         public Sound Clone() {
-            Sound CopySound = new();
+            Sound clonesound = new();
             // copy base properties
-            base.CloneTo(CopySound);
+            base.CloneTo(clonesound);
             // copy sound properties
-            CopySound.mKey = mKey;
-            CopySound.mTPQN = mTPQN;
-            CopySound.mTracksSet = mTracksSet;
-            CopySound.mLength = mLength;
-            CopySound.mFormat = mFormat;
+            clonesound.mKey = mKey;
+            clonesound.mTPQN = mTPQN;
+            clonesound.mTracksSet = mTracksSet;
+            clonesound.mLength = mLength;
+            clonesound.mFormat = mFormat;
             // never copy output build status; cloned sound will have to rebuild it
-            CopySound.mOutputSet = false;
+            clonesound.mOutputSet = false;
             // clone the tracks
             // TODO: clonig tracks needs to be checked- it looks wrong right now
             for (int i = 0; i < 4; i++) {
-                CopySound.mTrack[i] = mTrack[i].Clone(this);
+                clonesound.mTrack[i] = mTrack[i].Clone(this);
             }
-            return CopySound;
+            return clonesound;
         }
 
         /// <summary>
@@ -245,7 +244,7 @@ namespace WinAGI.Engine {
                 }
                 if (mKey != value) {
                     mKey = value;
-                    PropDirty = true;
+                    PropsDirty = true;
                 }
             }
         }
@@ -1105,7 +1104,7 @@ namespace WinAGI.Engine {
             mResID = tmpID;
             // reset dirty flags
             mIsDirty = false;
-            PropDirty = false;
+            PropsDirty = false;
             // set tracks and wav/midi data
             FinishLoad();
         }
@@ -1124,7 +1123,7 @@ namespace WinAGI.Engine {
                 }
                 if (mTPQN != value) {
                     mTPQN = value;
-                    PropDirty = true;
+                    PropsDirty = true;
                 }
             }
         }
@@ -1167,7 +1166,7 @@ namespace WinAGI.Engine {
                 // output needs update
                 mOutputSet = false;
             }
-            PropDirty = true;
+            PropsDirty = true;
         }
 
         /// <summary>
@@ -1342,7 +1341,7 @@ namespace WinAGI.Engine {
                 parent.WriteGameSetting(strSection, "Visible1", mTrack[1].Visible);
                 parent.WriteGameSetting(strSection, "Visible2", mTrack[2].Visible);
                 parent.WriteGameSetting(strSection, "Visible3", mTrack[3].Visible);
-                PropDirty = false;
+                PropsDirty = false;
             }
         }
 
@@ -1352,7 +1351,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);
-            if (PropDirty && mInGame) {
+            if (PropsDirty && mInGame) {
                 SaveProps();
             }
             if (mIsDirty) {

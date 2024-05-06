@@ -106,12 +106,6 @@ namespace WinAGI.Editor
         public frmMDIMain() {
             InitializeComponent();
 
-            //attach  AGI game events
-            LoadGameStatus += GameEvents_LoadGameStatus;
-            CompileGameStatus += GameEvents_CompileGameStatus;
-            CompileLogicStatus += GameEvents_CompileLogicStatus;
-            DecodeLogicStatus += GameEvents_DecodeLogicStatus;
-
             //use idle time to update caps/num/ins
             Application.Idle += new System.EventHandler(OnIdle);
 
@@ -128,10 +122,12 @@ namespace WinAGI.Editor
             //picProperties.Height = splResource.Panel2.Height;
             //fsbProperty.Height = splResource.Panel2.Height;
         }
-        private void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e) {
-
+        internal void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e) {
+            // test to see if event arg can pass back a cancel command
+            // e.Cancel = true;
+            // YES! it can!
         }
-        private void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e) {
+        internal void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e) {
             switch (e.LoadInfo.Type) {
             case etInfo:
                 switch (e.LoadInfo.InfoType) {
@@ -199,10 +195,10 @@ namespace WinAGI.Editor
                 //break;
             }
         }
-        private void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e) {
+        internal void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e) {
 
         }
-        private void GameEvents_DecodeLogicStatus(object sender, DecodeLogicEventArgs e) {
+        internal void GameEvents_DecodeLogicStatus(object sender, DecodeLogicEventArgs e) {
             Debug.Print($"decode it: {e.DecodeInfo.Text}");
             bgwOpenGame?.ReportProgress(2, e.DecodeInfo);
             //MDIMain.AddWarning(e.DecodeInfo);
@@ -287,7 +283,7 @@ namespace WinAGI.Editor
             // and only converted to appropriate codepage byte values when compiling
             // OR... do I stick with strategy for logics of converting to codepage
             // when writing to the Logic.SourceText property?
-
+            Debug.Print(CRC32(Encoding.Unicode.GetBytes("The quick brown fox jumps over the lazy dog.")).ToString());
 
             //what is resolution?
             Debug.Print($"DeviceDPI: {this.DeviceDpi}");
@@ -334,7 +330,7 @@ namespace WinAGI.Editor
             // initialize the basic app functionality
             InitializeResMan();
 
-            ProgramDir = CDir(JustPath(Application.ExecutablePath));
+            ProgramDir = FullDir(JustPath(Application.ExecutablePath));
             DefaultResDir = ProgramDir;
             //set browser start dir to program dir
             BrowserStartDir = ProgramDir;
@@ -411,9 +407,8 @@ namespace WinAGI.Editor
             //check for command string
             CheckCmd();
 
-            //was a game loaded when app was last closed
+            // was a game loaded when app was last closed
             blnLastLoad = GameSettings.GetSetting(sMRULIST, "LastLoad", false);
-
 
             //if nothing loaded AND autoreload is set AND something was loaded last time program ended,
             if (EditGame is null && this.ActiveMdiChild is null && Settings.AutoOpen && blnLastLoad) {
@@ -428,6 +423,9 @@ namespace WinAGI.Editor
             if (Settings.SkipPrintWarning) {
                 GameSettings.WriteSetting(sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning);
             }
+
+            //EditGame?.CompileGame(false);
+
         }
         private void btnNewLogic_Click(object sender, EventArgs e) {
             MessageBox.Show("new logic...");
@@ -1114,7 +1112,6 @@ namespace WinAGI.Editor
             Settings.MaximizeLogics = GameSettings.GetSetting(sLOGICS, "MaximizeLogics", DEFAULT_MAXIMIZELOGICS);
             Settings.AutoQuickInfo = GameSettings.GetSetting(sLOGICS, "AutoQuickInfo", DEFAULT_AUTOQUICKINFO);
             Settings.ShowDefTips = GameSettings.GetSetting(sLOGICS, "ShowDefTips", DEFAULT_SHOWDEFTIPS);
-            Settings.UseTxt = GameSettings.GetSetting(sLOGICS, "UseTxt", DEFAULT_USETXT);
             Settings.EFontName = GameSettings.GetSetting(sLOGICS, "EditorFontName", DEFAULT_EFONTNAME);
             i = 0;
             foreach (FontFamily font in System.Drawing.FontFamily.Families) {
@@ -1303,7 +1300,7 @@ namespace WinAGI.Editor
             Settings.ShowVEPrev = GameSettings.GetSetting(sVIEWS, "ShowVEPreview", DEFAULT_SHOWVEPREV);
             Settings.ShowGrid = GameSettings.GetSetting(sVIEWS, "ShowEditGrid", DEFAULT_SHOWGRID);
 
-            //DECOMPILER
+            // DECOMPILER
             // TODO: decompiler settings are global; eventually I should add game properties that
             // allow per-game setting of these properties...
             Compiler.ShowAllMessages = GameSettings.GetSetting(sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
@@ -1311,13 +1308,8 @@ namespace WinAGI.Editor
             Compiler.ElseAsGoto = GameSettings.GetSetting(sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
             Compiler.SpecialSyntax = GameSettings.GetSetting(sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
             Compiler.ReservedAsText = GameSettings.GetSetting(sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
+            Compiler.DefaultSrcExt = GameSettings.GetSetting(sDECOMPILER, "DefaultSrcExt", DEFAULT_DEFSRCEXT);
             Compiler.UseReservedNames = Settings.DefUseResDef;
-            if (Settings.UseTxt) {
-                Compiler.SourceExt = ".txt";
-            }
-            else {
-                Compiler.SourceExt = ".lgc";
-            }
 
             //get property window height
             PropRowCount = GameSettings.GetSetting(sPOSITION, "PropRowCount", 4);

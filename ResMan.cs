@@ -77,17 +77,17 @@ namespace WinAGI.Editor {
         public const bool DEFAULT_MAXIMIZELOGICS = true;
         public const bool DEFAULT_AUTOQUICKINFO = true;
         public const bool DEFAULT_SHOWDEFTIPS = true;
-        public const bool DEFAULT_USETXT = false;
+        public const string DEFAULT_DEFSRCEXT = "lgc";
         public static string DEFAULT_EFONTNAME; //no constants; value will be set in InitializeResMan
         public const int DEFAULT_EFONTSIZE = 14;
         public static string DEFAULT_PFONTNAME; //no constants; value will be set in InitializeResMan
         public const int DEFAULT_PFONTSIZE = 12;
-        public static readonly Color DEFAULT_HNRMCOLOR = Color.Black;                      // black
-        public static readonly Color DEFAULT_HKEYCOLOR = Color.FromArgb(0x7F, 0, 0);       // 0x7F0000
-        public static readonly Color DEFAULT_HIDTCOLOR = Color.FromArgb(0, 0, 0x40);       //     0x40
-        public static readonly Color DEFAULT_HSTRCOLOR = Color.FromArgb(0, 0x50, 0x50);    //   0x5050
-        public static readonly Color DEFAULT_HCMTCOLOR = Color.FromArgb(0, 0x80, 0);       //   0x8000
-        public static readonly Color DEFAULT_HBKGCOLOR = Color.White;                      // white
+        public static readonly Color DEFAULT_HNRMCOLOR = Color.Black;
+        public static readonly Color DEFAULT_HKEYCOLOR = Color.FromArgb(0x7F, 0, 0);
+        public static readonly Color DEFAULT_HIDTCOLOR = Color.FromArgb(0, 0, 0x40);
+        public static readonly Color DEFAULT_HSTRCOLOR = Color.FromArgb(0, 0x50, 0x50);
+        public static readonly Color DEFAULT_HCMTCOLOR = Color.FromArgb(0, 0x80, 0);
+        public static readonly Color DEFAULT_HBKGCOLOR = Color.White;
         public const bool DEFAULT_HNRMBOLD = false;
         public const bool DEFAULT_HKEYBOLD = false;
         public const bool DEFAULT_HIDTBOLD = false;
@@ -531,7 +531,7 @@ namespace WinAGI.Editor {
             public bool MaximizeLogics;
             public bool AutoQuickInfo;
             public bool ShowDefTips;
-            public bool UseTxt;
+            public string DefaultExt;
             public string EFontName;
             public int EFontSize;
             public string PFontName;
@@ -1491,7 +1491,7 @@ namespace WinAGI.Editor {
                     return;
                 }
                 //ensure trailing backslash
-                ThisGameDir = CDir(ThisGameDir);
+                ThisGameDir = FullDir(ThisGameDir);
 
                 //if a game file exists
                 if (File.Exists(ThisGameDir + "*.wag")) {
@@ -1607,6 +1607,12 @@ namespace WinAGI.Editor {
 
             //add wag file to mru, if opened successfully
             if (EditGame is not null) {
+                //attach  AGI game events
+                EditGame.LoadGameStatus += MDIMain.GameEvents_LoadGameStatus;
+                EditGame.CompileGameStatus += MDIMain.GameEvents_CompileGameStatus;
+                EditGame.CompileLogicStatus += MDIMain.GameEvents_CompileLogicStatus;
+                EditGame.DecodeLogicStatus += MDIMain.GameEvents_DecodeLogicStatus;
+
                 AddToMRU(EditGame.GameFile);
             }
             else {
@@ -1800,6 +1806,12 @@ namespace WinAGI.Editor {
             // now close the game
             // TODO: will a dispose function help???
             EditGame.CloseGame();
+            //detach  AGI game events
+            EditGame.LoadGameStatus -= MDIMain.GameEvents_LoadGameStatus;
+            EditGame.CompileGameStatus -= MDIMain.GameEvents_CompileGameStatus;
+            EditGame.CompileLogicStatus -= MDIMain.GameEvents_CompileLogicStatus;
+            EditGame.DecodeLogicStatus -= MDIMain.GameEvents_DecodeLogicStatus;
+
             EditGame = null;
             // restore colors to AGI default when a game closes
             GetDefaultColors();
@@ -2218,7 +2230,7 @@ namespace WinAGI.Editor {
                     strLine = srGlobal.ReadLine();
                     //trim it - also, skip comments
                     string a = "";
-                    strLine = Compiler.StripComments(strLine, ref a, false);
+                    strLine = Compiler.StripComments(strLine, ref a, true);
                     //ignore blanks
                     if (strLine.Length != 0) {
                         //even though new format is to match standard #define format,
@@ -11226,10 +11238,10 @@ namespace WinAGI.Editor {
             switch (ResType) {
             case rtLogic:
                 //if a file with this name already exists
-                if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt)) {
+                if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.SourceExt)) {
                     //import existing, or overwrite it?
                     rtn = MessageBox.Show("There is already a source file with the name '" + EditGame.Logics[ResNum].ID +
-                          Compiler.SourceExt + "' in your source file directory." + Environment.NewLine + Environment.NewLine +
+                          EditGame.SourceExt + "' in your source file directory." + Environment.NewLine + Environment.NewLine +
                           "Do you want to import that file? Choose 'NO' to replace that file with the current logic source.",
                           "Import Existing Source File?", MessageBoxButtons.YesNo);
                 }
@@ -11257,16 +11269,16 @@ namespace WinAGI.Editor {
                     //if there is a file with the new ResID, rename it first
                     try {
                         //delete existing .OLD file (if there is one)
-                        if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt + ".OLD")) {
+                        if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.SourceExt + ".OLD")) {
                             {
-                                File.Delete(EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt + ".OLD");
+                                File.Delete(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.SourceExt + ".OLD");
                             }
                             //rename old file with new ResID as .OLD
-                            File.Move(EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt, EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt + ".OLD");
+                            File.Move(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.SourceExt, EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.SourceExt + ".OLD");
                             //then, if there is a file with the previous ID
                             //save it with the new ID
                             if (File.Exists(OldFileName)) {
-                                File.Move(OldFileName, EditGame.ResDir + EditGame.Logics[ResNum].ID + Compiler.SourceExt);
+                                File.Move(OldFileName, EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.SourceExt);
                             }
                             else {
                                 EditGame.Logics[ResNum].SaveSource();
@@ -13913,5 +13925,373 @@ namespace WinAGI.Editor {
                 return "";
             }
         }
+        static void tmpCommon() {
+            /*
+      Option Explicit
+
+      internal bool IsTokenChar(int intChar, bool Quotes = false)
+        {
+        // returns true if this character is a token character
+        // false if it isn//t;
+        // if Quotes is true, then dbl-quote is considered a token character
+        // if Quotes is false, then dbl-quote is NOT considered a token character
+
+        On Error GoTo ErrHandler
+
+        switch (intChar
+        { case 32
+          //space is ALWAYS not a token
+          IsTokenChar = false
+
+        case 34
+          //dbl quote depends on optional Quotes argument
+          IsTokenChar = Quotes
+
+        case 1 To 33, 38 To 45, 47, 58 To 63, 91 To 94, 96, 123 To 126
+          // !&//()*+,-/:;<=>?[\]^`{|}~ and all control characters
+          //non-token
+          IsTokenChar = false
+        default:    //35, 36, 37, 46, 48 - 57, 64, 65 - 90, 95, 97 - 122
+          //a-z, A-Z, 0-9   @#$%_. and 127+
+          //token
+          IsTokenChar = true
+        } // switch
+      return
+
+      ErrHandler:
+        //Debug.Assert false
+        Resume Next
+      }
+
+
+      internal string StripComments(string strLine, ref string strComment, bool NoTrim = false)
+      {
+        //strips off any comments on the line
+        //if NoTrim is false, the string is also
+        //stripped of any blank space
+
+        //if there is a comment, it is passed back in the strComment argument
+
+        int lngPos
+            int intROLIgnore
+        bool blnDblSlash
+        bool blnInQuotes, blnSlash
+
+        On Error GoTo ErrHandler
+
+        //reset rol ignore
+        intROLIgnore = 0
+
+        //reset comment start + char ptr, and inquotes
+        lngPos = 0
+        blnInQuotes = false
+
+        //assume no comment
+        strComment = ""
+
+        //if this line is not empty,
+        if (strLine.Length != 0) {
+          while ( lngPos < strLine.Length) // Until lngPos >= strLine.Length
+          {
+            //get next character from string
+            lngPos++;
+            //if NOT inside a quotation,
+            if (!blnInQuotes) {
+              //check for comment characters at this position
+              if ((Mid(strLine, lngPos, 2) == "//")) {
+                intROLIgnore = lngPos + 1
+                blnDblSlash = true
+                break;
+              } else if ( (Mid(strLine, lngPos, 1) == "[")) {
+                intROLIgnore = lngPos
+                break;
+              }
+              // slash codes never occur outside quotes
+              blnSlash = false
+              //if this character is a quote mark, it starts a string
+              blnInQuotes = (AscW(Mid(strLine, lngPos)) = 34)
+            } else {
+              //if last character was a slash, ignore this character
+              //because it's part of a slash code
+              if (blnSlash) {
+                //always reset  the slash
+                blnSlash = false
+              } else {
+                //check for slash or quote mark
+                switch (AscW(Mid(strLine, lngPos))
+                { case 34 //quote mark
+                  //a quote marks end of string
+                  blnInQuotes = false
+                case 92 //slash
+                  blnSlash = true
+                } // switch
+              }
+            }
+          } //while
+          //if any part of line should be ignored,
+          if (intROLIgnore > 0) {
+            //save the comment
+            strComment = Trim(Right(strLine, strLine.Length - intROLIgnore))
+            //strip off comment
+            if (blnDblSlash) {
+              strLine = Left(strLine, intROLIgnore - 2)
+            } else {
+              strLine = Left(strLine, intROLIgnore - 1)
+            }
+          }
+        }
+
+        if (!NoTrim) {
+          //return the line, trimmed
+          StripComments = strLine.Trim()
+        } else {
+          //return the string with just the comment removed
+          StripComments = strLine
+        }
+      return
+
+      ErrHandler:
+        //Debug.Assert false
+        Resume Next
+      }
+
+      internal bool IsValidQuote(string strText, int QPos)
+      {
+        //returns true if the quote mark at position QPos is a valid quote mark
+        //by checking for slash codes in front of it
+
+        //if the character at QPos is not a quote mark, then function returns false
+
+        int i
+
+        On Error GoTo ErrHandler
+
+        //assume not inquote at start
+        IsValidQuote = false
+
+        if (Asc(Mid(strText, QPos)) != 34) {
+          return
+        }
+
+        //check for preceding slash marks
+        //toggle the flag until no more
+        //slash marks found
+        do
+        {
+          IsValidQuote = !IsValidQuote
+          QPos = QPos - 1
+          if (QPos <= 0) {
+            break;
+          }
+        } while (strText[QPos] == '\'); // Until Asc(Mid(strText, QPos)) != 92
+
+      return
+
+      ErrHandler:
+        //Debug.Assert false
+        Resume Next
+      */
+        }
+
+        static void tmpStuff2() {
+            /*
+
+          internal bool IsInvObject(int lngStartPos, string strText)
+          {
+            On Error GoTo ErrHandler
+
+            //check for has cmd
+            //check for obj.in.room cmd
+            //check for drop cmd
+            //check for get cmd
+            //check for put cmd
+
+
+
+
+            //*****not implemented yet; always return true
+            IsInvObject = true
+
+          return
+
+          ErrHandler:
+
+          }
+
+
+          internal bool IsVocabWord(int lngStartPos, string strText)
+          {
+            On Error GoTo ErrHandler
+
+            //check for //said// cmd
+            //check for  //word.to.string//
+
+            //get line by backing up until CR, //;// or beginning of string reached
+
+            //then move forward, finding the command
+
+
+            //*****not implemented yet; always return true
+            IsVocabWord = true
+
+
+
+          return
+
+          ErrHandler:
+
+          }
+          internal byte AGIVal(int IntIn)
+          {  
+              switch (IntIn
+              { case Is < 0
+                do
+                {
+                  IntIn = IntIn + 256
+                } while (IntIn < 0); // Until IntIn >= 0
+              case Is > 255
+                do
+                {
+                  IntIn = IntIn - 256
+                } while (IntIn > 255); // Until IntIn <= 255
+              } // switch
+              return (byte)IntIn;
+          }
+
+
+
+          internal int vCint(double InputNum)
+          {  
+            vCint = Int(InputNum) + CInt(InputNum - Int(InputNum) + 1) - 1
+          }
+
+          internal int FindWholeWord(int lngStartPos, string strText, string strFind, _
+                                        bool MatchCase = false, _
+                                        bool RevSearch = false, _
+                                        AGIResType SearchType = rtNone)
+          {                              
+            //will return the character position of first occurence of strFind in strText,
+            //only if it is a whole word
+            //whole word is defined as a word where the character in front of the word is a
+            //separator (or word is at beginning of string) AND character after word is a
+            //separator (or word is at end of string)
+            //
+            //separators are any character EXCEPT:
+            // #, $, %, ., 0-9, @, A-Z, _, a-z
+            //(codes 35 To 37, 46, 48 To 57, 64 To 90, 95, 97 To 122)
+
+            int lngPos
+            bool blnFrontOK
+            StringComparison StringCompare
+
+            On Error GoTo ErrHandler
+
+            //if no search string passed
+            if (strFind.Length == 0) {
+              //return zero
+              FindWholeWord = 0
+              return
+            }
+
+            //set compare method
+            if (MatchCase) {
+              StringCompare = vbBinaryCompare
+            } else {
+              StringCompare = vbTextCompare
+            }
+
+            //set position to start
+            lngPos = lngStartPos
+            do
+            {
+              //if doing a reverse search
+              if (RevSearch) {
+                lngPos = InStrRev(strText, strFind, lngPos, StringCompare)
+              } else {
+                //if lngPos=-1, it means start at end of string
+                //get position of string in strtext
+                lngPos = InStr(lngPos, strText, strFind, StringCompare)
+              }
+
+              //easy check is to see if strFind is even in strText
+              if (lngPos == 0) {
+                FindWholeWord = 0
+                return
+              }
+
+              //check character in front
+              if (lngPos > 1) {
+                switch (AscW(Mid(strText, lngPos - 1))
+                // #, $, %, 0-9, A-Z, _, a-z
+                { case 35 To 37, 48 To 57, 64 To 90, 95, 97 To 122
+                  //word is NOT whole word
+                  blnFrontOK = false
+                default:
+                  blnFrontOK = true
+                } // switch
+              } else {
+                blnFrontOK = true
+              }
+
+              //if front is ok,
+              if (blnFrontOK) {
+                //check character in back
+                if (lngPos + strFind.Length <= strText.Length) {
+                  switch (AscW(Mid(strText, lngPos + strFind.Length))
+                  { case 35 To 37, 46, 48 To 57, 64 To 90, 95, 97 To 122
+                    //word is NOT whole word
+                    //let loop try again at next position in string
+                  default:
+                    //if validation required
+                    switch (SearchType
+                    { case rtWords  //check against vocabword
+                      if (IsVocabWord(lngPos, strText)) {
+                        //word IS a whole word
+                        FindWholeWord = lngPos
+                        return
+                      }
+                    case rtObjects  //validate an inventory object
+                      if (IsInvObject(lngPos, strText)) {
+                        //word IS a whole word
+                        FindWholeWord = lngPos
+                        return
+                      }
+                    default: //no validation
+                      //word IS a whole word
+                      FindWholeWord = lngPos
+                      return
+                    } // switch
+                  } // switch
+                } else {
+                  //word IS a whole word
+                  FindWholeWord = lngPos
+                  return
+                }
+              }
+
+              //entire string not checked yet
+              if (RevSearch) {
+                lngPos = lngPos - 1
+              } else {
+                lngPos++;
+              }
+            } while (lngPos != 0); // Until lngPos = 0
+            //if no position found,
+            FindWholeWord = 0
+          return
+
+          ErrHandler:
+            //Debug.Assert false
+            Resume Next
+          }
+
+
+          internal int vClng(double InputNum)
+          {  
+            vClng = Int(InputNum) + CLng(InputNum - Int(InputNum) + 1) - 1
+          }
+                */
+        }
+
     }
 }

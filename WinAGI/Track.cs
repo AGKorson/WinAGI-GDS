@@ -128,10 +128,10 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns a copy of this track
+        /// Creates an exact copy of this Tracks object.
         /// </summary>
         /// <param name="cloneparent"></param>
-        /// <returns></returns>
+        /// <returns>The Tracks object this method creates.</returns>
         public Track Clone(Sound cloneparent) {
             //
             Track CopyTrack = new(cloneparent) {

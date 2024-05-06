@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 
@@ -94,7 +95,7 @@ namespace WinAGI.Engine {
             Col.Add(ResNum, agResource);
             // force flags so save function will work
             agResource.IsDirty = true;
-            agResource.PropDirty = true;
+            agResource.PropsDirty = true;
             // save new picture to add it to VOL file
             agResource.Save();
             // id list needs to be updated

@@ -1,23 +1,48 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
-using System.Collections;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// A class that represents a collection of cels, usually as part of
+    /// a loop object.
+    /// </summary>
     public class Cels : IEnumerable<Cel> {
-        // local variable to hold array of cels
+        #region Local Members
         internal readonly List<Cel> mCelCol;
         View mParent;
         bool mSetMirror;
+        #endregion
 
+        #region Constructors
+        /// <summary>
+        /// Creates a new, empty Cels collection that is not part of a View or Loop.
+        /// </summary>
+        public Cels() {
+            mCelCol = [];
+        }
+
+        /// <summary>
+        /// Creates a new, empty Cels collection when a new loop is created.
+        /// </summary>
+        /// <param name="parent"></param>
+        internal Cels(View parent) {
+            mCelCol = [];
+            mParent = parent;
+        }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets the cel at the specified location from this collection.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns>The specified cel.</returns>
         public Cel this[int index] {
             get {
-                // validate
                 ArgumentOutOfRangeException.ThrowIfNegative(index);
                 ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, mCelCol.Count);
                 // mirror status is already set; just pass the desired cel
@@ -25,122 +50,127 @@ namespace WinAGI.Engine {
             }
         }
 
+        /// <summary>
+        /// Gets the number of cels in this collection.
+        /// </summary>
         public int Count {
             get {
                 return mCelCol.Count;
             }
         }
 
-        public Cel Add(int Pos, byte CelWidth = 1, byte CelHeight = 1, AGIColorIndex TransColor = AGIColorIndex.agBlack) {
+        /// <summary>
+        /// Gets or sets the parent view for this Cels collection.
+        /// </summary>
+        public View Parent { get { return mParent; } internal set { mParent = value; } }
+
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Adds a new cel to this collection at the specified location with the 
+        /// specified parameters.
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="transcolor"></param>
+        /// <returns>The cel that was added.</returns>
+        public Cel Add(int pos, byte width = 1, byte height = 1, AGIColorIndex transcolor = AGIColorIndex.agBlack) {
             Cel agNewCel;
-            int i;
-            //if too many cels, or invalid pos
-            if (mCelCol.Count == MAX_CELS || Pos < 0) {
-                // error - too many cels
+
+            if (mCelCol.Count == MAX_CELS || pos < 0) {
                 WinAGIException wex = new(LoadResString(552).Replace("ARG1", "")) {
                     HResult = WINAGI_ERR + 552,
                 };
                 throw wex;
             }
-            //if no position is passed,
-            //(or if past end of loops),
-            if (Pos > mCelCol.Count) {
-                //set it to end
-                Pos = mCelCol.Count;
+            if (pos > mCelCol.Count) {
+                pos = mCelCol.Count;
             }
-            //create new cel object
             agNewCel = new Cel(mParent) {
-                mWidth = CelWidth,
-                mHeight = CelHeight,
-                mTransColor = TransColor,
-                mIndex = Pos
+                mWidth = width,
+                mHeight = height,
+                mTransColor = transcolor,
+                mIndex = pos
             };
-            // set data array
             agNewCel.mCelData = new byte[agNewCel.mWidth, agNewCel.mHeight];
-            //set mirror state
+            for (int i = 0; i < agNewCel.mWidth; i++) {
+                for (int j = 0; j < agNewCel.mHeight; j++) {
+                    agNewCel.mCelData[i, j] = (byte)transcolor;
+                }
+            }
             agNewCel.SetMirror(mSetMirror);
-            //if no cels yet
             if (mCelCol.Count == 0) {
-                //just add it
                 mCelCol.Add(agNewCel);
-                //} else if (Pos == 0) {
-                //  //add new loop to front
-                //  mCelCol.Insert(Pos, agNewCel);
             }
             else {
-                //add it after the current loop with that number
-                mCelCol.Insert(Pos, agNewCel);
+                // add it at the insert position
+                mCelCol.Insert(pos, agNewCel);
             }
-            //if there is a parent view
             if (mParent is not null) {
-                //tag as dirty
                 mParent.IsDirty = true;
             }
-            //return the object created
             return agNewCel;
         }
 
+        /// <summary>
+        /// Removes the specified cel from this collection. Not valid if only one
+        /// cel. All Cels objects must include at least one cel.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <exception cref="IndexOutOfRangeException"></exception>
         public void Remove(int index) {
             int i;
-            //if this is last cel
             if (mCelCol.Count == 1) {
-                //can't remove last cel
                 WinAGIException wex = new(LoadResString(612)) {
                     HResult = WINAGI_ERR + 612,
                 };
                 throw wex;
             }
-            //if past end
             if (index < 0 || index >= mCelCol.Count) {
-                //invalid item
                 throw new IndexOutOfRangeException();
             }
-            //remove cel
             mCelCol.RemoveAt(index);
-            //if this was not last cel
             if (index < mCelCol.Count) {
-                //ensure cels after this position have correct index
+                // adjust indices
                 for (i = index; i < mCelCol.Count; i++) {
                     mCelCol[index].Index = (byte)i;
                 }
             }
             if (mParent is not null) {
-                //tag as dirty
                 mParent.IsDirty = true;
             }
         }
 
+        /// <summary>
+        /// This method is used by a Loop object when getting its Cels property. It
+        /// ensures the cels are in the proper configuration before being accessed.
+        /// </summary>
+        /// <param name="NewState"></param>
         internal void SetMirror(bool NewState) {
-            //this method is called just before the cels collection
-            //is referenced by a mirrored loop
-            //it is used to force the celbmp functions to
-            //flip cel bitmaps and to flip cel data
             mSetMirror = NewState;
-            foreach (Cel tmpCel in mCelCol) {
-                tmpCel.SetMirror(NewState);
+            foreach (Cel cel in mCelCol) {
+                cel.SetMirror(NewState);
             }
         }
 
-        public View Parent { get { return mParent; } internal set { mParent = value; } }
-
-        public Cels() {
-            mCelCol = [];
-        }
-
-        internal Cels(View parent) {
-            mCelCol = [];
-            mParent = parent;
-        }
-
+        /// <summary>
+        /// Creates an exact copy of this Cels object.
+        /// </summary>
+        /// <param name="cloneparent"></param>
+        /// <returns>The Cels object this method creates.</returns>
         public Cels Clone(View cloneparent) {
-            Cels CopyCels = new(cloneparent);
+            Cels clonecels = new(cloneparent);
             foreach (Cel tmpCel in mCelCol) {
-                CopyCels.mCelCol.Add(tmpCel.Clone(cloneparent));
+                clonecels.mCelCol.Add(tmpCel.Clone(cloneparent));
             }
-            CopyCels.mSetMirror = mSetMirror;
-            return CopyCels;
+            clonecels.mSetMirror = mSetMirror;
+            return clonecels;
         }
+        #endregion
 
+        #region Enumeration
         CelEnum GetEnumerator() {
             return new CelEnum(mCelCol);
         }
@@ -152,7 +182,11 @@ namespace WinAGI.Engine {
         IEnumerator<Cel> IEnumerable<Cel>.GetEnumerator() {
             return (IEnumerator<Cel>)GetEnumerator();
         }
+        #endregion
     }
+    /// <summary>
+    /// Implements enumeration for the Cels class.
+    /// </summary>
     internal class CelEnum : IEnumerator<Cel> {
         public List<Cel> _cels;
         int position = -1;

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.Compiler;
@@ -17,7 +18,7 @@ namespace WinAGI.Engine {
 
         internal Logics(AGIGame parent) {
             this.parent = parent;
-            mSourceFileExt = Compiler.DefaultSrcExt;
+            mSourceFileExt = DefaultSrcExt;
         }
         public SortedList<byte, Logic> Col { get; private set; } = [];
         public Logic this[int index] {
@@ -62,7 +63,7 @@ namespace WinAGI.Engine {
                 // lower case, max four characters, not null
                 if (value.Length == 0) {
                     // use default
-                    mSourceFileExt = Compiler.DefaultSrcExt;
+                    mSourceFileExt = DefaultSrcExt;
                     return;
                 }
                 // no period
@@ -73,7 +74,9 @@ namespace WinAGI.Engine {
                 if (mSourceFileExt.Any(Path.GetInvalidFileNameChars().Contains)) {
                     throw new ArgumentException("unallowable characters");
                 }
-                mSourceFileExt = value.ToLower();            }
+                mSourceFileExt = value.ToLower();
+                parent.WriteGameSetting("General", "SourceFileExt", mSourceFileExt);
+            }
         }
         
         /// <summary>
@@ -125,7 +128,7 @@ namespace WinAGI.Engine {
             Col.Add(ResNum, agResource);
             // force flags so save function will work
             agResource.IsDirty = true;
-            agResource.PropDirty = true;
+            agResource.PropsDirty = true;
             // save new logic to add it to VOL file
             agResource.Save();
             // id list needs to be updated
@@ -188,8 +191,8 @@ namespace WinAGI.Engine {
                 }
                 // move source file to match new ID
                 try {
-                    File.Delete(parent.agResDir + tmpLogic.ID + agSrcFileExt);
-                    File.Move(parent.agResDir + "Logic" + OldLogic + agSrcFileExt, parent.agResDir + tmpLogic.ID + agSrcFileExt);
+                    File.Delete(parent.agResDir + tmpLogic.ID + parent.agSrcFileExt);
+                    File.Move(parent.agResDir + "Logic" + OldLogic + parent.agSrcFileExt, parent.agResDir + tmpLogic.ID + parent.agSrcFileExt);
                 }
                 catch (Exception e) {
                     WinAGIException wex = new(LoadResString(670)) {
@@ -257,7 +260,7 @@ namespace WinAGI.Engine {
         public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false) {
             if (parent is not null) {
                 if (!parent.GlobalDefines.IsSet) {
-                    parent.GlobalDefines.LoadGlobalDefines();
+                    parent.GlobalDefines.LoadGlobalDefines(parent.agGameDir + "globals.txt");
                 }
                 if (!blnSetIDs) {
                     SetResourceIDs(parent);

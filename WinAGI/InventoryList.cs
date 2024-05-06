@@ -1,13 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections;
-using static WinAGI.Engine.Base;
-using static WinAGI.Common.Base;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using WinAGI.Common;
+using static WinAGI.Common.Base;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// A class that represents the list of inventory items stored in the
+    /// OBJECT file of an AGI game.
+    /// </summary>
     public class InventoryList : IEnumerable<InventoryItem> {
+        #region Local Members
         byte mMaxScreenObjects;
         bool mEncrypted;
         bool mAmigaOBJ;
@@ -25,42 +31,207 @@ namespace WinAGI.Engine {
         // 5 = first object is not '?'
         AGIGame parent = null;
         Encoding mCodePage = Encoding.GetEncoding(437);
-        //other
+        #endregion
+
+        #region Constructors
+        /// <summary>
+        /// Instantiates an inventory item list that is not part of an AGI game.
+        /// </summary>
         public InventoryList() {
             mInGame = false;
             mResFile = "";
             InitInvObj();
         }
+
+        /// <summary>
+        /// Instantiates an inventory item list and attaches it to an AGI game.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="Loaded"></param>
         public InventoryList(AGIGame parent, bool Loaded = false) {
             this.parent = parent;
             mInGame = true;
-            //if loaded property is passed, set loaded flag as well
-            mLoaded = Loaded;
-            //set resourcefile to game default
             mResFile = parent.agGameDir + "OBJECT";
+            mCodePage = parent.agCodePage;
             InitInvObj();
         }
-        private void InitInvObj() {
-            // create the initial Col object
-            mItems = [];
-            InventoryItem tmpItem;
-            mMaxScreenObjects = 16;
-            //add placeholder for item 0
-            tmpItem = new InventoryItem {
-                ItemName = "?",
-                Room = 0
-            };
-            tmpItem.SetParent(this);
-            mItems.Add(tmpItem);
-        }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets or sets the list of items in this list.
+        /// </summary>
         internal List<InventoryItem> mItems { get; private set; }
+
+        /// <summary>
+        /// Gets the specified inventory item from this list.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public InventoryItem this[byte index] { get { return mItems[index]; } }
 
+        /// <summary>
+        /// Gets or sets the index of highest allowable screen object that gets stored
+        /// in the OBJECT file for this list.
+        /// </summary>
+        public byte MaxScreenObjects {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return mMaxScreenObjects;
+            }
+            set {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (value != mMaxScreenObjects) {
+                    mMaxScreenObjects = value;
+                    mIsDirty = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the load status of this inventory items list. The items and other
+        /// properties are not available if the list is not loaded. If not in a game,
+        /// the list is always loaded.
+        /// </summary>
+        public bool Loaded {
+            get {
+                return mLoaded;
+            }
+        }
+
+        /// <summary>
+        /// Gets a a value that indicates if this list's items do not match what is 
+        /// stored its assigned OBJECT file.
+        /// </summary>
+        public bool IsDirty {
+            get {
+                return (mIsDirty || (mWriteProps && mInGame));
+            }
+            internal set {
+                mIsDirty = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the OBJECT file associated with this item list. If in a game, 
+        /// the resfile name is readonly.
+        /// </summary>
+        public string ResFile {
+            get {
+                return mResFile;
+            }
+            set {
+                if (mInGame) {
+                    return;
+                }
+                else {
+                    mResFile = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a text field that can be used for any purpose. The description
+        /// property is stored in the games' WinAGI Game file, but is not used in any other
+        /// way. If not in a game, no use is made of the description property.
+        /// </summary>
+        public string Description {
+            get {
+                return mDescription;
+            }
+            set {
+                // limit description to 1K
+                value = Left(value, 1024);
+                if (value != mDescription) {
+                    mDescription = value;
+                    if (mInGame) {
+                        parent.WriteGameSetting("OBJECT", "Description", mDescription);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the in-game status of this inventory item list, i.e. whether
+        /// it's in a game or a stand alone resource.
+        /// </summary>
+        public bool InGame {
+            get {
+                return mInGame;
+            }
+            internal set {
+                mInGame = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of inventory items in this list, including all
+        /// null ('?') items.
+        /// </summary>
+        public byte Count {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                // although first object is a null item, it still needs
+                // to be counted (as do all other nulls)
+                return (byte)mItems.Count;
+            }
+        }
+
+        /// <summary>
+        /// returns the number of non-null inventory items in this list.
+        /// </summary>
+        public byte InUseCount {
+            get {
+                byte retval = 0;
+                WinAGIException.ThrowIfNotLoaded(this);
+                for (int i = 0; i < mItems.Count; i++) {
+                    if (mItems[i].ItemName != "?") {
+                        retval++;
+                    }
+                }
+                return retval;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value that determines if the data for this list
+        /// are encrypted when saved as an OBJECT file. You should normally
+        /// let WinAGI handle encryption status as it is tied to the
+        /// targeted interpreter version. Changing it could cause probems
+        /// if the interpreter expects one format but finds another.
+        /// </summary>
+        public bool Encrypted {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return mEncrypted;
+            }
+            set {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (mEncrypted != value) {
+                    mEncrypted = value;
+                    mIsDirty = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the error level associated with this inventory item list.
+        /// </summary>
+        public int ErrLevel {
+            get {
+                return mErrLevel;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the character code page to use when converting 
+        /// characters to or from a byte stream.
+        /// </summary>
         public Encoding CodePage {
-            get => parent is null ? mCodePage : parent.agCodePage;
+            get => mCodePage;
             set {
                 if (parent is null) {
-                    // confirm new codepage is supported; ignore if it is not
+                    // confirm new codepage is supported; error if it is not
                     switch (value.CodePage) {
                     case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
                          861 or 862 or 863 or 865 or 866 or 869 or 858:
@@ -77,197 +248,104 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets a value that indicates if this inventory items list will be formatted
+        /// for Amiga AGI game files instead of MSDOS AGI when the list is saved to
+        /// the OBJECT file.  Amiga format uses four bytes per item entry in the offset
+        /// table.
         /// </summary>
-        public byte Count {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                // although first object does not Count as an object
-                // it must be returned as part of the Count
-                // so everything works properly
-                return (byte)mItems.Count;
-            }
-            private set {
-            }
-        }
         public bool AmigaOBJ {
             get {
                 return mAmigaOBJ;
             }
-            set {
-                // for now, we only allow converting FROM Amiga TO DOS
-                //                                         (T)     (F)
-                // if trying to make it Amiga, exit
-                if (value) {
-                    return;
-                }
-                // if aready DOS, exit
-                if (!mAmigaOBJ) {
-                    return;
-                }
-                // set the flag to be NON-Amiga
-                mAmigaOBJ = value;
-                //save the current file as 'OBJECT.amg'
-                string theDir;
-                if (parent is null) {
-                    theDir = JustPath(mResFile);
-                }
-                else {
-                    theDir = parent.agGameDir;
-                }
-                try {
-                    if (File.Exists(theDir + "OBJECT.amg")) {
-                        File.Delete(theDir + "OBJECT.amg");
-                    }
-                    File.Move(parent.agGameDir + "OBJECT", theDir + "OBJECT.amg");
-
-                    //now delete the current file
-                    File.Delete(theDir + "OBJECT");
-                    //mark it as dirty, and save it to create a new file
-                    mIsDirty = true;
-                    Save();
-                }
-                catch (Exception) {
-                    // TODO: need new exception code
-                    throw new Exception("error during Amiga conversion");
-                }
-            }
         }
 
         /// <summary>
-        /// Gets the error level associated with this inventory item list.
+        /// When true, indicates properties for this inventory items list need
+        /// to be updated in the game's WAG file. Meaningless if resource is 
+        /// not in a game.
         /// </summary>
-        public int ErrLevel {
-            get {
-                return mErrLevel;
-            }
+        internal bool PropsDirty { get; set; }
+
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Initializes the inventory list when it is first created.
+        /// </summary>
+        private void InitInvObj() {
+            mItems = [];
+            InventoryItem tmpItem;
+            mMaxScreenObjects = 16;
+            // add placeholder for item 0
+            tmpItem = new InventoryItem(this) {
+                ItemName = "?",
+                Room = 0
+            };
+            mItems.Add(tmpItem);
+            // intial list begins loaded
+            mLoaded = true;
         }
 
         /// <summary>
-        /// 
+        /// Loads inventory items for the game from an OBJECT file. If not
+        /// in a game, LoadFile must be specified.
         /// </summary>
-        public string Description {
-            get {
-                return mDescription;
-            }
-            set {
-                // limit description to 1K
-                value = Left(value, 1024);
-                if (value != mDescription) {
-                    mDescription = value;
-                    if (mInGame) {
-                        parent.WriteProperty("OBJECT", "Description", mDescription);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ExportFile"></param>
-        /// <param name="ResetDirty"></param>
+        /// <param name="LoadFile"></param>
         /// <exception cref="Exception"></exception>
-        public void Export(string ExportFile, bool ResetDirty = true) {
-            //exports the list of inventory objects
-
-            WinAGIException.ThrowIfNotLoaded(this);
-            try {
-                Compile(ExportFile);
+        public void Load(string LoadFile = "") {
+            if (mLoaded) {
+                return;
             }
-            catch (Exception) {
-                //return error condition
-                WinAGIException wex = new(LoadResString(582)) {
-                    HResult = WINAGI_ERR + 582,
+            if (mInGame) {
+                LoadFile = mResFile;
+            }
+            if (LoadFile.Length == 0) {
+                WinAGIException wex = new(LoadResString(599)) {
+                    HResult = WINAGI_ERR + 599
                 };
                 throw wex;
             }
-            //if NOT in a game,
-            if (!mInGame) {
-                if (ResetDirty) {
-                    //clear dirty flag
-                    mIsDirty = false;
-                }
-                //save filename
-                mResFile = ExportFile;
+            // verify file exists
+            if (!File.Exists(LoadFile)) {
+                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 606,
+                };
+                wex.Data["missingfile"] = LoadFile;
+                wex.Data["ID"] = "OBJECT";
+                throw wex;
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool InGame {
-            get {
-                //only used by  setobjects method
-                return mInGame;
+            // check for readonly
+            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = LoadFile;
+                throw wex;
             }
-            internal set {
-                mInGame = value;
+            try {
+                mErrLevel = LoadSierraFile(LoadFile);
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool IsDirty {
-            get {
-                //if resource is dirty, or (prop values need writing AND in game)
-                return (mIsDirty || (mWriteProps && mInGame));
+            catch {
+                throw;
             }
-            set {
-                mIsDirty = value;
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        internal bool WriteProps {
-            get { return mWriteProps; }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool Loaded {
-            get {
-                return mLoaded;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string ResFile {
-            get {
-                return mResFile;
-            }
-            set {
-                // resfile cannot be changed if resource is part of a game
+            finally {
+                // always set loaded flag regardless of error status
+                mLoaded = true;
                 if (mInGame) {
-                    return;
+                    mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "", true);
                 }
                 else {
-                    mResFile = value;
+                    mResFile = LoadFile;
                 }
+                mIsDirty = false;
             }
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="IsDirty"></param>
-        /// <param name="WriteProps"></param>
-        internal void SetFlags(ref bool IsDirty, ref bool WriteProps) {
-            // used when copying a resource?
-            IsDirty = mIsDirty;
-            WriteProps = mWriteProps;
-        }
-
-        /// <summary>
-        /// Loads an OBJECT file in original Sierra format.
+        /// Loads an inventory item list by reading from the OBJECT file.
         /// </summary>
         /// <param name="LoadFile"></param>
-        /// <returns>true if successful, false if it fails</returns>
+        /// <returns>Error level code indicating the status of the loaded list.</returns>
         private int LoadSierraFile(string LoadFile) {
             StringBuilder sbItem;
             string sItem;
@@ -290,20 +368,17 @@ namespace WinAGI.Engine {
                 wex.Data["badfile"] = LoadFile;
                 throw wex;
             }
-            // no major errors; consider it loaded
+            // no major errors, so consider it loaded
             // (even if data problems, it's still considered loaded)
             mLoaded = true;
 
-            //if no data,
             if (fsObj.Length == 0) {
                 fsObj.Dispose();
                 return 1;
             }
-            // read in entire resource
             Array.Resize(ref bytData, (int)fsObj.Length);
             fsObj.Read(bytData);
             fsObj.Dispose();
-            // determine if file is encrypted or clear
             switch (IsEncrypted(bytData[^1], bytData.Length - 1)) {
             case 0:
                 // unencrypted
@@ -348,7 +423,6 @@ namespace WinAGI.Engine {
                 lngNameOffset = (bytData[(intItem + 1) * Dwidth + 1] << 8) + bytData[(intItem + 1) * Dwidth] + Dwidth;
                 bytRoom = bytData[Dwidth + intItem * Dwidth + 2];
                 lngPos = lngNameOffset;
-                // if past end of resource,
                 if (lngPos > bytData.Length) {
                     // error
                     return 4;
@@ -360,7 +434,7 @@ namespace WinAGI.Engine {
                         break;
                     }
                     bytChar[0] = bytData[lngPos];
-                    sbItem.Append(parent.agCodePage.GetString(bytChar));
+                    sbItem.Append(mCodePage.GetString(bytChar));
                     lngPos++;
                 }
                 sItem = sbItem.ToString();
@@ -387,38 +461,208 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Unloads this list if in a game. Inventory item lists that are not part
+        /// of a game are always loaded. 
+        /// </summary>
+        public void Unload() {
+            if (!mLoaded || !mInGame) {
+                return;
+            }
+            Clear();
+            mLoaded = false;
+            mWriteProps = false;
+            mIsDirty = false;
+        }
+
+        /// <summary>
+        /// Saves this inventory item list to file by compiling the items in the
+        /// list in the proper Sierra AGI OBJECT file format. If not in a game, 
+        /// the default filename is used unless one is passed to this method.
+        /// </summary>
+        /// <param name="SaveFile"></param>
+        public void Save(string SaveFile = "") {
+            WinAGIException.ThrowIfNotLoaded(this);
+            if (mInGame) {
+                Compile(mResFile);
+                parent.agLastEdit = DateTime.Now;
+            }
+            else {
+                if (SaveFile.Length == 0) {
+                    SaveFile = mResFile;
+                }
+                // if still no file
+                if (SaveFile.Length == 0) {
+                    WinAGIException wex = new(LoadResString(615)) {
+                        HResult = WINAGI_ERR + 615
+                    };
+                    throw wex;
+                }
+                Compile(SaveFile);
+                mResFile = SaveFile;
+            }
+            mIsDirty = false;
+        }
+
+        /// <summary>
+        /// Exports this inventory item list to a standalone file. If the item list is
+        /// not in a game, exporting to the current OBJECT file is the same as saving.
+        /// </summary>
+        /// <param name="ExportFile"></param>
+        /// <param name="ResetDirty"></param>
+        /// <exception cref="Exception"></exception>
+        public void Export(string ExportFile, bool ResetDirty = true) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            try {
+                Compile(ExportFile);
+            }
+            catch (Exception) {
+                WinAGIException wex = new(LoadResString(582)) {
+                    HResult = WINAGI_ERR + 582,
+                };
+                throw wex;
+            }
+            if (!mInGame) {
+                if (ResetDirty) {
+                    mIsDirty = false;
+                }
+                mResFile = ExportFile;
+            }
+        }
+
+        /// <summary>
+        /// Compiles the object list into a Sierra AGI compatible OBJECT file.
+        /// </summary>
+        /// <param name="CompileFile"></param>
+        void Compile(string CompileFile) {
+            int lngFileSize;    // size of object file
+            int CurrentChar;    // current character in name
+            int lngTextStart;  // start of item names
+            int lngPos;         // position in current item name
+            byte[] bytTemp;
+            string strTempFile = "";
+            int i;
+            int Dwidth;
+
+            if (CompileFile.Length == 0) {
+                WinAGIException wex = new(LoadResString(616)) {
+                    HResult = WINAGI_ERR + 616
+                };
+                throw wex;
+            }
+            if (!mIsDirty && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) {
+                return;
+            }
+            // PC version (most common) has 3 bytes per item in offest table;
+            // amiga version has four bytes per item
+            Dwidth = mAmigaOBJ ? 4 : 3;
+            // calculate base filesize
+            // (offset table size plus header + null obj '?')
+            lngFileSize = (mItems.Count + 1) * Dwidth + 2;
+            // step through all items to determine length of each, and
+            // add it to file length counter
+            foreach (InventoryItem tmpItem in mItems) {
+                if (tmpItem.ItemName != "?") {
+                    // add size of object name to file size
+                    // (include null character at end of string)
+                    lngFileSize += tmpItem.ItemName.Length + 1;
+                }
+            }
+            // initialize byte array to final size of file
+            bytTemp = new byte[lngFileSize];
+            // set offset to start of string data as measured from the beginning
+            // of the index table, NOT including the header (which is just the
+            // total length of index table: dwidth * numitems) 
+            lngTextStart = mItems.Count * Dwidth;
+            bytTemp[0] = (byte)(lngTextStart % 256);
+            bytTemp[1] = (byte)(lngTextStart / 256);
+            // add maxscreenobject value
+            // (first item's index will begin at pos = 3)
+            bytTemp[2] = mMaxScreenObjects;
+            // TODO: need to verify that the header for Amiga files is four 
+            // bytes; if it is four, then a fourth byte is needed...
+
+            // write string for null item (?) at start of text data, after
+            // adjusting position to account for width of header
+            lngPos = lngTextStart + Dwidth;
+            bytTemp[lngPos] = 63;
+            bytTemp[lngPos + 1] = 0;
+            lngPos += 2;
+            // now add all items 
+            for (i = 1; 0 < mItems.Count - 1; i++) {
+                if (mItems[i].ItemName == "?") {
+                    // write offset data to null item
+                    bytTemp[i * Dwidth] = (byte)(lngTextStart % 256);
+                    bytTemp[i * Dwidth + 1] = (byte)(lngTextStart / 256);
+                    bytTemp[i * Dwidth + 2] = mItems[i].Room;
+                }
+                else {
+                    // write offset data for start of this word in its proper
+                    // place in the index table, remember to subtract data
+                    // element width because offset is from end of header,
+                    // not beginning of file; lngPos IS referenced from
+                    // beginning of file
+                    bytTemp[i * Dwidth] = (byte)((lngPos - Dwidth) % 256);
+                    bytTemp[i * Dwidth + 1] = (byte)((lngPos - Dwidth) / 256);
+                    bytTemp[i * Dwidth + 2] = mItems[i].Room;
+                    // write all characters of this object
+                    byte[] tmpItemBytes = mCodePage.GetBytes(mItems[i].ItemName);
+                    for (CurrentChar = 0; CurrentChar < tmpItemBytes.Length; CurrentChar++) {
+                        bytTemp[lngPos++] = tmpItemBytes[CurrentChar];
+                    }
+                    // add null character to end
+                    bytTemp[lngPos++] = 0;
+                }
+            }
+            if (mEncrypted) {
+                for (lngPos = 0; lngPos < bytTemp.Length; i++) {
+                    //encrypt with 'Avis Durgan'
+                    bytTemp[lngPos] ^= bytEncryptKey[lngPos % 11];
+                }
+            }
+            try {
+                // write output to a temp file
+                strTempFile = Path.GetTempFileName();
+                FileStream fsObj = new(strTempFile, FileMode.Open);
+                fsObj.Write(bytTemp, 0, bytTemp.Length);
+                fsObj.Dispose();
+                if (File.Exists(CompileFile)) {
+                    File.Delete(CompileFile);
+                }
+                File.Move(strTempFile, CompileFile);
+            }
+            catch (Exception e) {
+                File.Delete(strTempFile);
+                WinAGIException wex = new(LoadResString(674).Replace(ARG1, e.HResult.ToString())) {
+                    HResult = WINAGI_ERR + 674,
+                };
+                throw wex;
+            }
+        }
+
+        /// <summary>
+        /// Adds a new inventory item to this list, with the specified parameters.
         /// </summary>
         /// <param name="NewItem"></param>
         /// <param name="Room"></param>
-        /// <returns></returns>
+        /// <returns>A reference to the added inventory item.</returns>
         public InventoryItem Add(string NewItem, byte Room) {
-            //adds new item to object list
-            InventoryItem tmpItem;
-
             WinAGIException.ThrowIfNotLoaded(this);
-            //if already have max number of items,
             if (mItems.Count == MAX_ITEMS) {
-                //error
                 WinAGIException wex = new(LoadResString(569)) {
                     HResult = WINAGI_ERR + 569,
                 };
                 throw wex;
             }
-            //add the item
-            tmpItem = new InventoryItem();
-            //set parent first, so duplicate protection works
-            tmpItem.SetParent(this);
+            InventoryItem tmpItem = new InventoryItem(this);
             tmpItem.ItemName = NewItem;
             tmpItem.Room = Room;
             mItems.Add(tmpItem);
-            //set dirty flag
             mIsDirty = true;
             return tmpItem;
         }
 
         /// <summary>
-        /// Removes an item from the inventory list.
+        /// Removes an inventory item from this list.
         /// </summary>
         /// <param name="Index"></param>
         public void Remove(byte Index) {
@@ -447,7 +691,6 @@ namespace WinAGI.Engine {
                                 break;
                             }
                             else {
-                                // set duplicate count
                                 dupCount = 1;
                                 // save dupitem number
                                 dupItem = (byte)i;
@@ -461,9 +704,9 @@ namespace WinAGI.Engine {
                     mItems[dupItem].Unique = true;
                 }
             }
-            //if this is the last item (but not FIRST item)
+            // if this at end of the list (but not FIRST item)
             if (Index == mItems.Count - 1 && mItems.Count > 1) {
-                //remove the item
+                // remove the item
                 mItems.RemoveAt(Index);
             }
             else {
@@ -476,104 +719,86 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Clears this list sets all properties to default values.
         /// </summary>
-        public bool Encrypted {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return mEncrypted;
-            }
-            set {
-                WinAGIException.ThrowIfNotLoaded(this);
-                if (mEncrypted != value) {
-                    mEncrypted = value;
-                    mIsDirty = true;
-                }
-            }
+        public void Clear() {
+            InventoryItem tmpItem;
+
+            WinAGIException.ThrowIfNotLoaded(this);
+            mEncrypted = false;
+            mMaxScreenObjects = 16;
+            mAmigaOBJ = false;
+            mDescription = "";
+            mItems = [];
+            // add the placeholder
+            tmpItem = new InventoryItem(this) {
+                ItemName = "?",
+                Room = 0
+            };
+            mItems.Add(tmpItem);
+            mIsDirty = true;
         }
 
         /// <summary>
-        /// 
+        /// Currently this function is not available, and does nothing.
         /// </summary>
-        public byte MaxScreenObjects {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return mMaxScreenObjects;
-            }
-            set {
-                WinAGIException.ThrowIfNotLoaded(this);
-                if (value != mMaxScreenObjects) {
-                    mMaxScreenObjects = value;
-                    mIsDirty = true;
-                }
-            }
+        public void SetAmigaFormat() {
+            // for now, we only allow converting FROM Amiga TO DOS
+            return;
         }
 
         /// <summary>
-        /// Loads inventory items for the game from an OBJECT file. If not in a game, LoadFile must be specified.
+        /// Changes the format of this inventory list to Amiga, and updates
+        /// the OBJECT file. Amiga format uses four bytes per item entry in
+        /// the offset table.
         /// </summary>
-        /// <param name="LoadFile"></param>
-        /// <exception cref="Exception"></exception>
-        public void Load(string LoadFile = "") {
-            if (mLoaded) {
+        public void SetMSDOSFormat() {
+            // if aready DOS, exit
+            if (!mAmigaOBJ) {
                 return;
             }
-            if (mInGame) {
-                LoadFile = mResFile;
+            // set the flag to be NON-Amiga
+            mAmigaOBJ = false;
+            string theDir;
+            if (parent is null) {
+                theDir = JustPath(mResFile);
             }
-            if (LoadFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(599)) {
-                    HResult = WINAGI_ERR + 599
-                };
-                throw wex;
-            }
-            // verify file exists
-            if (!File.Exists(LoadFile)) {
-                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 606,
-                };
-                wex.Data["missingfile"] = LoadFile;
-                wex.Data["ID"] = "WORDS.TOK";
-                throw wex;
-            }
-            // check for readonly
-            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 700,
-                };
-                wex.Data["badfile"] = LoadFile;
-                throw wex;
+            else {
+                theDir = parent.agGameDir;
             }
             try {
-                mErrLevel = LoadSierraFile(LoadFile);
-            }
-            catch {
-                throw;
-            }
-            finally {
-                // always set loaded flag regardless of error status
-                mLoaded = true;
-                if (mInGame) {
-                    mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "", true);
+                if (File.Exists(theDir + "OBJECT.amg")) {
+                    File.Delete(theDir + "OBJECT.amg");
                 }
-                else {
-                    mResFile = LoadFile;
-                }
-                mIsDirty = false;
+                File.Move(parent.agGameDir + "OBJECT", theDir + "OBJECT.amg");
+                File.Delete(theDir + "OBJECT");
+                // mark it as dirty, and save it to create a new file in
+                // MSDOS format
+                mIsDirty = true;
+                Save();
+            }
+            catch (Exception e) {
+                // TODO: need new exception code
+                WinAGIException wex = new(LoadResString(582)) {
+                    HResult = WINAGI_ERR + 582,
+                };
+                wex.Data["exception"] = e;
+                throw wex;
             }
         }
 
         /// <summary>
-        /// 
+        /// This method checks the OBJECT file data to determine if it is
+        /// encrypted with the string, "Avis Durgan".
         /// </summary>
         /// <param name="bytLast"></param>
         /// <param name="lngEndPos"></param>
-        /// <returns></returns>
-        int IsEncrypted(byte bytLast, int lngEndPos) {
-            // this routine checks the resource to determine if it is
-            // encrypted with the string, "Avis Durgan"
-            // it does this by checking the last byte in the resource. It should ALWAYS
-            // be Chr$(0):
+        /// <returns>0 if cleartext (not encrypted)<br />
+        /// 1 if encrypted<br />
+        /// 2 if invalid</returns>
+        private static int IsEncrypted(byte bytLast, int lngEndPos) {
+            // check the last byte in the OBJECT data stream. It should ALWAYS
+            // be null char ('0'):
             //    if the resource is NOT encrypted,
             //      the last byte will have a Value of 0x00
             //      the function will return a Value of 0
@@ -583,7 +808,7 @@ namespace WinAGI.Engine {
             //      string, dependent on the offset of the last
             //      byte from a multiple of 11 (the length of "Avis Durgan")
             //      the function will return a Value of 1
-            // if the last character doesn't properly decrypt to Chr$(0)
+            // if the last character doesn't properly decrypt to (char)0
             // the function returns an error Value (2)
             if (bytLast == 0) {
                 // return unencrypted
@@ -593,47 +818,8 @@ namespace WinAGI.Engine {
                 // decrypt character
                 bytLast = (byte)(bytLast ^ bytEncryptKey[lngEndPos % 11]);
                 // now, it should be zero
-                if (bytLast == 0) {
-                    return 1;
-                }
-                else {
-                    return 2;
-                }
+                return bytLast == 0 ? 1 : 2;
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="SaveFile"></param>
-        public void Save(string SaveFile = "") {
-            // saves the list of inventory objects
-
-            WinAGIException.ThrowIfNotLoaded(this);
-            //if in a game,
-            if (mInGame) {
-                //compile the file
-                Compile(mResFile);
-                //change date of last edit
-                parent.agLastEdit = DateTime.Now;
-            }
-            else {
-                if (SaveFile.Length == 0) {
-                    SaveFile = mResFile;
-                }
-                // if still no file
-                if (SaveFile.Length == 0) {
-                    WinAGIException wex = new(LoadResString(615)) {
-                        HResult = WINAGI_ERR + 615
-                    };
-                    throw wex;
-                }
-                Compile(SaveFile);
-                // save filename
-                mResFile = SaveFile;
-            }
-            //mark as clean
-            mIsDirty = false;
         }
 
         /// <summary>
@@ -646,161 +832,9 @@ namespace WinAGI.Engine {
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Unload() {
-            //unloads ther resource; same as clear, except file marked as not dirty
-            if (!mLoaded) {
-                return;
-            }
-            Clear();
-            mLoaded = false;
-            mWriteProps = false;
-            mIsDirty = false;
-        }
+        #endregion
 
-        /// <summary>
-        /// Clears all objects and sets default values adds placeholder for item 0.
-        /// </summary>
-        public void Clear() {
-            InventoryItem tmpItem;
-
-            WinAGIException.ThrowIfNotLoaded(this);
-            mEncrypted = false;
-            mMaxScreenObjects = 16;
-            mAmigaOBJ = false;
-            mDescription = "";
-            mItems = [];
-            //add the placeholder
-            tmpItem = new InventoryItem {
-                ItemName = "?",
-                Room = 0
-            };
-            mItems.Add(tmpItem);
-            //but don't set parent; otherwise
-            //circular object reference is created
-            tmpItem.SetParent(this);
-            //set dirty flag
-            mIsDirty = true;
-        }
-
-        /// <summary>
-        /// c\Compiles the object list into a Sierra AGI compatible OBJECT file
-        /// </summary>
-        /// <param name="CompileFile"></param>
-        void Compile(string CompileFile) {
-            int lngFileSize;    //size of object file
-            int CurrentChar;    //current character in name
-            int lngDataOffset;  //start of item names
-            int lngPos;         //position in current item name
-            byte[] bytTemp = [];
-            string strTempFile = "";
-            byte bytLow, bytHigh;
-            int i;
-            int Dwidth;
-
-            if (CompileFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(616)) {
-                    HResult = WINAGI_ERR + 616
-                };
-                throw wex;
-            }
-            //if not dirty AND compilefile=resfile
-            if (!mIsDirty && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) {
-                return;
-            }
-            // PC version (most common) has 3 bytes per item in offest table; amiga version has four bytes per item
-            Dwidth = mAmigaOBJ ? 4 : 3;
-
-            // calculate min filesize
-            // (offset table size plus header + null obj '?')
-            lngFileSize = (mItems.Count + 1) * Dwidth + 2;
-            // step through all items to determine length of each, and add it to file length counter
-            foreach (InventoryItem tmpItem in mItems) {
-                if (tmpItem.ItemName != "?") {
-                    // add size of object name to file size
-                    // (include null character at end of string)
-                    lngFileSize += tmpItem.ItemName.Length + 1;
-                }
-            }
-            // initialize byte array to final size of file
-            Array.Resize(ref bytTemp, lngFileSize);
-            // set offset from index to start of string data
-            lngDataOffset = mItems.Count * Dwidth;
-            bytHigh = (byte)(lngDataOffset / 256);
-            bytLow = (byte)(lngDataOffset % 256);
-            bytTemp[0] = bytLow;
-            bytTemp[1] = bytHigh;
-            bytTemp[2] = mMaxScreenObjects;
-            // increment offset by width (to take into account file header)
-            // this is also pointer to the null item
-            lngDataOffset += Dwidth;
-            // set counter to beginning of data
-            lngPos = lngDataOffset;
-            // write string for null item (?)
-            bytTemp[lngPos] = 63;
-            bytTemp[lngPos + 1] = 0;
-            lngPos += 2;
-            // now step through all items
-            for (i = 1; 0 < mItems.Count - 1; i++) {
-                if (mItems[i].ItemName == "?") {
-                    // write offset data to null item
-                    bytTemp[i * Dwidth] = (byte)(lngDataOffset % 256);
-                    bytTemp[i * Dwidth + 1] = (byte)(lngDataOffset / 256);
-                    // set room number for this object
-                    bytTemp[i * Dwidth + 2] = mItems[i].Room;
-                }
-                else {
-                    // write offset data for start of this word
-                    // subtract data element width because offset is from end of header,
-                    // not beginning of file; lngPos is referenced from position zero)
-                    bytHigh = (byte)((lngPos - Dwidth) / 256);
-                    bytLow = (byte)((lngPos - Dwidth) % 256);
-                    bytTemp[i * Dwidth] = bytLow;
-                    bytTemp[i * Dwidth + 1] = bytHigh;
-                    bytTemp[i * Dwidth + 2] = mItems[i].Room;
-                    // write all characters of this object
-                    for (CurrentChar = 0; CurrentChar < mItems[i].ItemName.Length; CurrentChar++) {
-                        // TODO: make sure extended charcters are working for all codepages
-                        bytTemp[lngPos] = (byte)mItems[i].ItemName[CurrentChar];
-                        lngPos++;
-                    }
-                    //add null character to end
-                    bytTemp[lngPos] = 0;
-                    lngPos++;
-                }
-            }
-            //reduce array to actual size
-            Array.Resize(ref bytTemp, lngPos);
-
-            //if file is to be encrypted
-            if (mEncrypted) {
-                //step through entire file
-                for (lngPos = 0; lngPos < bytTemp.Length; i++) {
-                    //encrypt with 'Avis Durgan'
-                    bytTemp[lngPos] ^= bytEncryptKey[lngPos % 11];
-                }
-            }
-            try {
-                // write output to a temp file
-                strTempFile = Path.GetTempFileName();
-                FileStream fsObj = new(strTempFile, FileMode.Open);
-                fsObj.Write(bytTemp, 0, bytTemp.Length);
-                fsObj.Dispose();
-                if (File.Exists(CompileFile)) {
-                    File.Delete(CompileFile);
-                }
-                File.Move(strTempFile, CompileFile);
-            }
-            catch (Exception e) {
-                File.Delete(strTempFile);
-                WinAGIException wex = new(LoadResString(674).Replace(ARG1, e.HResult.ToString())) {
-                    HResult = WINAGI_ERR + 674,
-                };
-                throw wex;
-            }
-        }
+        #region Enumeration
         ItemEnum GetEnumerator() {
             return new ItemEnum(mItems);
         }
@@ -810,7 +844,12 @@ namespace WinAGI.Engine {
         IEnumerator<InventoryItem> IEnumerable<InventoryItem>.GetEnumerator() {
             return (IEnumerator<InventoryItem>)GetEnumerator();
         }
+        #endregion
     }
+
+    /// <summary>
+    /// Implements enumeration for the InventoryList class.
+    /// </summary>
     internal class ItemEnum : IEnumerator<InventoryItem> {
         public List<InventoryItem> _invitems;
         int position = -1;

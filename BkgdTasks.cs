@@ -9,6 +9,7 @@ using WinAGI.Engine;
 using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
 using static WinAGI.Common.Base;
+using WinAGI.Common;
 using static WinAGI.Engine.AGIResType;
 using System.IO;
 using System.Diagnostics;

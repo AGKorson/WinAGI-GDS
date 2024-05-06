@@ -11,7 +11,6 @@ namespace WinAGI.Engine {
     WinAGI Game Engine
     Copyright (C) 2005 - 2024 Andrew Korson
 
-    // TODO: update license info. use a different model
     This program is free software; you can redistribute it and/or 
     modify it under the terms of the GNU General Public License as
     published by the Free Software Foundation; either version 2 of
@@ -157,6 +156,14 @@ namespace WinAGI.Engine {
         //   atActionCmd, atTestCmd, atObj, atView
     }
 
+    public enum PlatformTypeEnum {
+        None,
+        DosBox,
+        ScummVM,
+        NAGI,
+        Other
+    }
+
     public enum ResDefGroup {
         rgVariable,
         rgFlag,
@@ -270,8 +277,12 @@ namespace WinAGI.Engine {
     }
     #endregion
 
+    /// <summary>
+    /// This is the WinAGI Base class. It sets up the WinAGI engine
+    /// and initializes supporting elements.
+    /// </summary>
     public static partial class Base {
-        #region public members and constants
+        #region Local Members
         public const int WINAGI_ERR = 0x100000;
         public static readonly string[] ResTypeAbbrv = ["LOG", "PIC", "SND", "VIEW"];
         public static readonly string[] ResTypeName = ["Logic", "Picture", "Sound", "View"];
@@ -281,9 +292,7 @@ namespace WinAGI.Engine {
         "2.440", "2.903", "2.911", "2.912", "2.915", "2.917", "2.936",
         "3.002086", "3.002098", "3.002102", "3.002107", "3.002149"
         ];
-        #endregion
 
-        #region local members and constants
         internal const int MAX_RES_SIZE = 65530;
         internal const int MAX_LOOPS = 255;
         internal const int MAX_CELS = 255;
@@ -304,6 +313,9 @@ namespace WinAGI.Engine {
         internal static int defMaxVol0 = MAX_VOLSIZE;
         #endregion
 
+        /// <summary>
+        /// WinAGI Base constructor.
+        /// </summary>
         static Base() {
             // this makes the codepages used in WinAGI available
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -312,7 +324,7 @@ namespace WinAGI.Engine {
             InitWinAGI();
         }
 
-        #region base properties
+        #region Base Properties
         /// <summary>
         /// Gets or sets the default colors that are used to display pictures and views in AGI.
         /// </summary>
@@ -361,6 +373,7 @@ namespace WinAGI.Engine {
 
         #endregion
 
+        #region Base Methods
         /// <summary>
         /// Handles initialization of the WinAGI base class when it is instantiated. 
         /// </summary>
@@ -374,12 +387,12 @@ namespace WinAGI.Engine {
             }
 
             // calling this forces the module to load and initialize
-            CRC32Setup();
             Compiler.AssignReservedDefines();
         }
 
         /// <summary>
-        /// Attempts to extract interpreter version by examining the AGIDATA.OVL file, if present.
+        /// This method attempts to extract interpreter version by examining the 
+        /// AGIDATA.OVL file, if present.
         /// </summary>
         /// <param name="gameDir"></param>
         /// <param name="isV3"></param>
@@ -461,4 +474,5 @@ namespace WinAGI.Engine {
             }
         }
     }
+    #endregion
 }

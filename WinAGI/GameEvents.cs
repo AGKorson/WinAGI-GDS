@@ -1,62 +1,142 @@
 ﻿namespace WinAGI.Engine {
-    public class CompileGameEventArgs(ECStatus status, AGIResType restype, byte num, TWinAGIEventInfo errInfo) {
-        public ECStatus CStatus { get; } = status;
-        public AGIResType ResType { get; } = restype;
-        public byte ResNum { get; } = num;
-        public TWinAGIEventInfo ErrorInfo { get; } = errInfo;
-    }
-
-    public class LoadGameEventArgs(TWinAGIEventInfo loadinfo) {
-        public TWinAGIEventInfo LoadInfo { get; } = loadinfo;
-    }
-
-    public class CompileLogicEventArgs(TWinAGIEventInfo compInfo) {
-        public TWinAGIEventInfo CompInfo { get; } = compInfo;
-    }
-
-    public class DecodeLogicEventArgs(TWinAGIEventInfo decodeInfo) {
-        public TWinAGIEventInfo DecodeInfo { get; } = decodeInfo;
-    }
-
     public partial class AGIGame {
-        // Declare the delegate.
+        #region Classes
+        /// <summary>
+        /// Provides data for the CompileGameSatus event.
+        /// </summary>
+        /// <param name="status"></param>
+        /// <param name="restype"></param>
+        /// <param name="num"></param>
+        /// <param name="errInfo"></param>
+        public class CompileGameEventArgs(ECStatus status, AGIResType restype, byte num, TWinAGIEventInfo errInfo) {
+            public ECStatus CStatus { get; } = status;
+            public AGIResType ResType { get; } = restype;
+            public byte ResNum { get; } = num;
+            public bool Cancel { get; set; } = false;
+            public TWinAGIEventInfo ErrorInfo { get; } = errInfo;
+        }
+
+        /// <summary>
+        /// Provides data for the LoadGameStatus event.
+        /// </summary>
+        /// <param name="loadinfo"></param>
+        public class LoadGameEventArgs(TWinAGIEventInfo loadinfo) {
+            public TWinAGIEventInfo LoadInfo { get; } = loadinfo;
+        }
+
+        /// <summary>
+        /// Provides data for the CompileLogicStatus event.
+        /// </summary>
+        /// <param name="compInfo"></param>
+        public class CompileLogicEventArgs(TWinAGIEventInfo compInfo) {
+            public TWinAGIEventInfo CompInfo { get; } = compInfo;
+        }
+
+        /// <summary>
+        /// Provides data for the DecodeLogicStatus event.
+        /// </summary>
+        /// <param name="decodeInfo"></param>
+        public class DecodeLogicEventArgs(TWinAGIEventInfo decodeInfo) {
+            public TWinAGIEventInfo DecodeInfo { get; } = decodeInfo;
+        }
+        #endregion
+
+        #region Events
+        /// <summary>
+        /// CompileGameStatus event handler delegate.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public delegate void CompileGameEventHandler(object sender, CompileGameEventArgs e);
-        // Declare the event.
-        public static event CompileGameEventHandler CompileGameStatus;
-        // Declare access method to raise the event 
-        internal static void Raise_CompileGameEvent(ECStatus cStatus, AGIResType ResType, byte ResNum, TWinAGIEventInfo CompileInfo) {
+
+        /// <summary>
+        /// This event is raised at various points when a game is compiled to provide
+        /// feedback to the calling program. It also provides the caller an opportunity
+        /// to cancel the compile operation.
+        /// </summary>
+        public event CompileGameEventHandler CompileGameStatus;
+
+        /// <summary>
+        /// Raises te CompileGameStatus event. If user cancels in response, returns
+        /// a value of true.
+        /// </summary>
+        /// <param name="cStatus"></param>
+        /// <param name="ResType"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="CompileInfo"></param>
+        /// <returns></returns>
+        internal bool OnCompileGameStatus(ECStatus cStatus, AGIResType ResType, byte ResNum, TWinAGIEventInfo CompileInfo) {
             // Raise the event in a thread-safe manner using the ?. operator.
-            CompileGameStatus?.Invoke(null, new CompileGameEventArgs(cStatus, ResType, ResNum, CompileInfo));
+            CompileGameEventArgs e = new(cStatus, ResType, ResNum, CompileInfo);
+            this.CompileGameStatus?.Invoke(null, e);
+            return e.Cancel;
         }
 
-        // Declare the delegate.
+        /// <summary>
+        /// LoadGameStatus event handler delegate.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public delegate void LoadGameEventHandler(object sender, LoadGameEventArgs e);
-        // Declare the event.
-        public static event LoadGameEventHandler LoadGameStatus;
-        // Declare access method to raise the event 
-        internal static void Raise_LoadGameEvent(TWinAGIEventInfo LoadInfo) {
+
+        /// <summary>
+        /// This event is raised at various points when a game is loaded to provide
+        /// feedback to the calling program.
+        /// </summary>
+        public event LoadGameEventHandler LoadGameStatus;
+
+        /// <summary>
+        /// Raises the LoadGameStatus event.
+        /// </summary>
+        /// <param name="LoadInfo"></param>
+        internal void OnLoadGameStatus(TWinAGIEventInfo LoadInfo) {
             // Raise the event in a thread-safe manner using the ?. operator.
-            LoadGameStatus?.Invoke(null, new LoadGameEventArgs(LoadInfo));
+            this.LoadGameStatus?.Invoke(null, new LoadGameEventArgs(LoadInfo));
         }
 
-        // Declare the delegate.
+        /// <summary>
+        /// CompileLogicStatus event handler delegate.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public delegate void CompileLogicEventHandler(object sender, CompileLogicEventArgs e);
-        // Declare the event.
-        public static event CompileLogicEventHandler CompileLogicStatus;
-        // Declare access method to raise the event 
-        internal static void Raise_CompileLogicEvent(TWinAGIEventInfo CompInfo) {
+
+        /// <summary>
+        /// This event is raised at various points when a logic resource is 
+        /// compiled to provide feedback to the calling program.
+        /// </summary>
+        public event CompileLogicEventHandler CompileLogicStatus;
+
+        /// <summary>
+        /// Raises the CompileLogicStatus event. 
+        /// </summary>
+        /// <param name="CompInfo"></param>
+        internal void OnCompileLogicStatus(TWinAGIEventInfo CompInfo) {
             // Raise the event in a thread-safe manner using the ?. operator.
             CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(CompInfo));
         }
 
-        // Declare the delegate
+        /// <summary>
+        /// DecodeLogicStatus event handler delegate.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public delegate void DecodeLogicEventHandler(object sender, DecodeLogicEventArgs e);
-        // Declare the event
-        public static event DecodeLogicEventHandler DecodeLogicStatus;
-        // Declare access method to raise the event 
-        internal static void Raise_DecodeLogicEvent(TWinAGIEventInfo DecodeInfo) {
+
+        /// <summary>
+        /// This event is raised at various points when a logic resource is 
+        /// decoded to provide feedback to the calling program.
+        /// </summary>
+        public event DecodeLogicEventHandler DecodeLogicStatus;
+
+        /// <summary>
+        /// Raises the DecodeLogicStatus event. 
+        /// </summary>
+        /// <param name="DecodeInfo"></param>
+        internal void OnDecodeLogicStatus(TWinAGIEventInfo DecodeInfo) {
             // Raise the event in a thread-safe manner using the ?. operator
             DecodeLogicStatus?.Invoke(null, new DecodeLogicEventArgs(DecodeInfo));
         }
+        #endregion
     }
 }
