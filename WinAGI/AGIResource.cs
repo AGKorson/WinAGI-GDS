@@ -188,7 +188,7 @@ namespace WinAGI.Engine {
         /// property is meaningless for resources that are not in a game.
         /// </summary>
         public byte Number {
-            get { if (mInGame) return mResNum; return 0; }//TODO: number is meaningless if not in a game
+            get { if (mInGame) return mResNum; return 0; }
             internal set { mResNum = value; }
         }
 

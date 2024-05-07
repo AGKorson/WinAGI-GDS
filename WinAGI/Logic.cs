@@ -476,7 +476,7 @@ namespace WinAGI.Engine {
             if (Decompile) {
                 if (mErrLevel == 0) {
                     // get source code by decoding the resource, decrypting messages if not v3compressed
-                    mSourceText = DecodeLogic(this, mInGame ? Number : -1);
+                    mSourceText = DecodeLogic(this);
                     if (mErrLevel < 0) {
                         // unable to decompile; force uncompiled state
                         mCRC = 0;
