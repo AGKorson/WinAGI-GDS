@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using WinAGI.Engine;
@@ -298,11 +299,11 @@ namespace WinAGI.Common {
         /// <param name="strDirIn"></param>
         /// <returns></returns>
         public static string FullDir(string strDirIn) {
-            if (strDirIn.Length != 0) {
-                return !strDirIn.EndsWith('\\') ? strDirIn + '\\' : strDirIn;
+            if (strDirIn.Length == 0) {
+                return strDirIn;
             }
             else {
-                return strDirIn;
+                return strDirIn.EndsWith('\\') ? strDirIn : strDirIn + '\\';
             }
         }
 
@@ -338,6 +339,16 @@ namespace WinAGI.Common {
                 }
                 return sReturn;
             }
+        }
+
+        /// <summary>
+        /// Returns true if the specified string value represents a valid file name.
+        /// </summary>
+        /// <param name="checkname"></param>
+        /// <returns></returns>
+        public static bool IsValidFilename(string checkname) {
+            // check for illegal file characters
+            return checkname.IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) == -1;
         }
 
         /// <summary>
@@ -425,8 +436,10 @@ namespace WinAGI.Common {
         /// <param name="strText"></param>
         /// <returns></returns>
         internal static List<string> SplitLines(string strText) {
-            List<string> retval = [.. strText.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n')];
-            return retval;
+            
+//            List<string> retval = [.. strText.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n')];
+//            return retval;
+            return strText.Split(new[] { "\n", "\r", "\r\n" }, StringSplitOptions.None).Cast<string>().ToList();
         }
 
         /// <summary>
