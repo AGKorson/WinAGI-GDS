@@ -696,7 +696,7 @@ namespace WinAGI.Editor
                 if (NewResNum == -1) {
                     // logic header
                     PropRows = 3;
-                    LogicHdrProperties pLgcHdr = new(EditGame.Logics.Count, Compiler.UseReservedNames);
+                    LogicHdrProperties pLgcHdr = new(EditGame.Logics.Count, LogicDecoder.UseReservedNames);
                     propertyGrid1.SelectedObject = pLgcHdr;
                 }
                 else {
@@ -1168,11 +1168,11 @@ namespace WinAGI.Editor
                 Settings.WarnMsgs = 0;
             if (Settings.WarnMsgs > 2)
                 Settings.WarnMsgs = 2;
-            Compiler.ErrorLevel = (LogicErrorLevel)GameSettings.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
-            if (Compiler.ErrorLevel < 0)
-                Compiler.ErrorLevel = LogicErrorLevel.leLow;
-            if ((int)Compiler.ErrorLevel > 2)
-                Compiler.ErrorLevel = LogicErrorLevel.leHigh;
+            LogicCompiler.ErrorLevel = (LogicErrorLevel)GameSettings.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
+            if (LogicCompiler.ErrorLevel < 0)
+                LogicCompiler.ErrorLevel = LogicErrorLevel.leLow;
+            if ((int)LogicCompiler.ErrorLevel > 2)
+                LogicCompiler.ErrorLevel = LogicErrorLevel.leHigh;
             Settings.DefUseResDef = GameSettings.GetSetting(sLOGICS, "DefUseResDef", DEFAULT_DEFUSERESDEF);
             Settings.Snippets = GameSettings.GetSetting(sLOGICS, "Snippets", DEFAULT_SNIPPETS);
             //SYNTAXHIGHLIGHTFORMAT
@@ -1303,13 +1303,13 @@ namespace WinAGI.Editor
             // DECOMPILER
             // TODO: decompiler settings are global; eventually I should add game properties that
             // allow per-game setting of these properties...
-            Compiler.ShowAllMessages = GameSettings.GetSetting(sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
-            Compiler.MsgsByNumber = GameSettings.GetSetting(sDECOMPILER, "MsgsByNum", DEFAULT_MSGSBYNUM);
-            Compiler.ElseAsGoto = GameSettings.GetSetting(sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
-            Compiler.SpecialSyntax = GameSettings.GetSetting(sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
-            Compiler.ReservedAsText = GameSettings.GetSetting(sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
-            Compiler.DefaultSrcExt = GameSettings.GetSetting(sDECOMPILER, "DefaultSrcExt", DEFAULT_DEFSRCEXT);
-            Compiler.UseReservedNames = Settings.DefUseResDef;
+            LogicDecoder.ShowAllMessages = GameSettings.GetSetting(sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
+            LogicDecoder.MsgsByNumber = GameSettings.GetSetting(sDECOMPILER, "MsgsByNum", DEFAULT_MSGSBYNUM);
+            LogicDecoder.ElseAsGoto = GameSettings.GetSetting(sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
+            LogicDecoder.SpecialSyntax = GameSettings.GetSetting(sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
+            LogicDecoder.ReservedAsText = GameSettings.GetSetting(sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
+            LogicDecoder.DefaultSrcExt = GameSettings.GetSetting(sDECOMPILER, "DefaultSrcExt", DEFAULT_DEFSRCEXT);
+            LogicDecoder.UseReservedNames = Settings.DefUseResDef;
 
             //get property window height
             PropRowCount = GameSettings.GetSetting(sPOSITION, "PropRowCount", 4);
@@ -1414,19 +1414,19 @@ namespace WinAGI.Editor
             //error warning settings
             lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn0", 0);
             for (i = 1; i <= 30; i++) {
-                Compiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << i)) == (1 << i));
+                LogicCompiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << i)) == (1 << i));
             }
             lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn1", 0);
             for (i = 31; i <= 60; i++) {
-                Compiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 30))) == 1 << (i - 30));
+                LogicCompiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 30))) == 1 << (i - 30));
             }
             lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn2", 0);
             for (i = 61; i <= 90; i++) {
-                Compiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 60))) == 1 << (i - 60));
+                LogicCompiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 60))) == 1 << (i - 60));
             }
             lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn3", 0);
-            for (i = 91; i < Compiler.WARNCOUNT; i++) {
-                Compiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 90))) == 1 << (i - 90));
+            for (i = 91; i < LogicCompiler.WARNCOUNT; i++) {
+                LogicCompiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 90))) == 1 << (i - 90));
             }
             return true;
         }
@@ -1458,22 +1458,22 @@ namespace WinAGI.Editor
             // for warnings, create a bitfield to mark which are being ignored
             lngCompVal = 0;
             for (i = 1; i <= 30; i++) {
-                lngCompVal |= (Compiler.IgnoreWarning(5000 + i) ? 1 << i : 0);
+                lngCompVal |= (LogicCompiler.IgnoreWarning(5000 + i) ? 1 << i : 0);
             }
             GameSettings.WriteSetting(sLOGICS, "NoCompWarn0", lngCompVal);
             lngCompVal = 0;
             for (i = 1; i <= 30; i++) {
-                lngCompVal |= (Compiler.IgnoreWarning(5030 + i) ? 1 << i : 0);
+                lngCompVal |= (LogicCompiler.IgnoreWarning(5030 + i) ? 1 << i : 0);
             }
             GameSettings.WriteSetting(sLOGICS, "NoCompWarn1", lngCompVal);
             lngCompVal = 0;
             for (i = 1; i <= 30; i++) {
-                lngCompVal |= (Compiler.IgnoreWarning(5060 + i) ? 1 << i : 0);
+                lngCompVal |= (LogicCompiler.IgnoreWarning(5060 + i) ? 1 << i : 0);
             }
             GameSettings.WriteSetting(sLOGICS, "NoCompWarn2", lngCompVal);
             lngCompVal = 0;
-            for (i = 1; i < (Compiler.WARNCOUNT % 30); i++) {
-                lngCompVal |= (Compiler.IgnoreWarning(5090 + i) ? 1 << i : 0);
+            for (i = 1; i < (LogicCompiler.WARNCOUNT % 30); i++) {
+                lngCompVal |= (LogicCompiler.IgnoreWarning(5090 + i) ? 1 << i : 0);
             }
             GameSettings.WriteSetting(sLOGICS, "NoCompWarn3", lngCompVal);
             //save to file

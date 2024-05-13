@@ -328,7 +328,7 @@ namespace WinAGI.Engine {
                             if (tmpGameRes is Logic tmpLog) {
                                 try {
                                     //compile it
-                                    Compiler.CompileLogic(tmpLog);
+                                    LogicCompiler.CompileLogic(tmpLog);
                                 }
                                 catch (Exception e) {
                                     switch (e.HResult - WINAGI_ERR) {

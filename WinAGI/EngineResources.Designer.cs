@@ -1537,6 +1537,15 @@ namespace WinAGI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to adding a cel with a margin that has a width of 2 will crash AGI.
+        /// </summary>
+        internal static string _4165 {
+            get {
+                return ResourceManager.GetString("4165", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This command block contains no commands.
         /// </summary>
         internal static string _5001 {
@@ -2631,6 +2640,42 @@ namespace WinAGI {
         internal static string _5112 {
             get {
                 return ResourceManager.GetString("5112", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;or&apos; block has no test commands.
+        /// </summary>
+        internal static string _5113 {
+            get {
+                return ResourceManager.GetString("5113", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;if&apos; block has no test commands.
+        /// </summary>
+        internal static string _5114 {
+            get {
+                return ResourceManager.GetString("5114", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to cel width less than 3 will not draw control box correctly.
+        /// </summary>
+        internal static string _5115 {
+            get {
+                return ResourceManager.GetString("5115", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commands after a return() command are always ignored by AGI.
+        /// </summary>
+        internal static string _5116 {
+            get {
+                return ResourceManager.GetString("5116", resourceCulture);
             }
         }
         

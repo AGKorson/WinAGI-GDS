@@ -370,7 +370,7 @@ namespace WinAGI.Engine {
                         }
                     }
                     mResID = NewID;
-                    Compiler.blnSetIDs = false;
+                    LogicCompiler.blnSetIDs = false;
                 }
             }
         }

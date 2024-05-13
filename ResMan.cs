@@ -829,8 +829,8 @@ namespace WinAGI.Editor {
                 strDef = strIn.Split(":");
                 if (strDef.Length == 3) {
                     //get the new name, if a valid entry
-                    if (Val(strDef[1]) < Compiler.ResDefByGrp((ResDefGroup)Val(strDef[0])).Length) {
-                        Compiler.SetResDef((int)Val(strDef[0]), (int)Val(strDef[1]), strDef[2]);
+                    if (Val(strDef[1]) < LogicCompiler.ResDefByGrp((ResDefGroup)Val(strDef[0])).Length) {
+                        LogicCompiler.SetResDef((int)Val(strDef[0]), (int)Val(strDef[1]), strDef[2]);
                     }
                 }
             }
@@ -839,7 +839,7 @@ namespace WinAGI.Editor {
             //default value
             //we check AFTER all overrides are made just in case a swap is desired- checking in
             //realtime would not allow a swap
-            if (!Compiler.ValidateResDefs()) {
+            if (!LogicCompiler.ValidateResDefs()) {
                 //if any were changed, re-write the WinAGI.config file
                 SaveResDefOverrides();
             }
@@ -856,7 +856,7 @@ namespace WinAGI.Editor {
             GameSettings.DeleteSection("ResDefOverrides");
             //now step through each type of define value; if name is not the default, then save it
             for (ResDefGroup grp = 0; (int)grp < 10; grp++) {
-                dfTemp = Compiler.ResDefByGrp(grp);
+                dfTemp = LogicCompiler.ResDefByGrp(grp);
                 for (i = 0; i < dfTemp.Length; i++) {
                     if (dfTemp[i].Default != dfTemp[i].Name) {
                         //save it
@@ -1816,7 +1816,7 @@ namespace WinAGI.Editor {
             // restore colors to AGI default when a game closes
             GetDefaultColors();
             // restore default resdef
-            Compiler.UseReservedNames = Settings.DefUseResDef;
+            LogicDecoder.UseReservedNames = Settings.DefUseResDef;
             // update main form caption
             MDIMain.Text = "WinAGI GDS";
             // reset node marker so selection of resources
@@ -1921,8 +1921,8 @@ namespace WinAGI.Editor {
             int pos = 0;
             // first add gloal resdefs
             for (ResDefGroup grp = 0; (int)grp < 9; grp++) {
-                for (int i = 0; i < Compiler.ResDefByGrp(grp).Length; i++) {
-                    RDefLookup[pos] = Compiler.ResDefByGrp(grp)[i];
+                for (int i = 0; i < LogicCompiler.ResDefByGrp(grp).Length; i++) {
+                    RDefLookup[pos] = LogicCompiler.ResDefByGrp(grp)[i];
                     pos++;
                 }
             }
@@ -2230,7 +2230,7 @@ namespace WinAGI.Editor {
                     strLine = srGlobal.ReadLine();
                     //trim it - also, skip comments
                     string a = "";
-                    strLine = Compiler.StripComments(strLine, ref a, true);
+                    strLine = LogicCompiler.StripComments(strLine, ref a, true);
                     //ignore blanks
                     if (strLine.Length != 0) {
                         //even though new format is to match standard #define format,
@@ -12991,13 +12991,13 @@ namespace WinAGI.Editor {
                 strLogic = strLogic.Replace("%h", GameSettings.GetSetting(sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON).ToString());
 
                 //if using reserved names, insert them
-                if (Compiler.UseReservedNames) {
+                if (LogicDecoder.UseReservedNames) {
                     //f5, v0, f2, f4, v9
-                    strLogic = strLogic.Replace("f5", Compiler.ReservedDefines(atFlag)[5].Name);
-                    strLogic = strLogic.Replace("f2", Compiler.ReservedDefines(atFlag)[2].Name);
-                    strLogic = strLogic.Replace("f4", Compiler.ReservedDefines(atFlag)[4].Name);
-                    strLogic = strLogic.Replace("v0", Compiler.ReservedDefines(atVar)[0].Name);
-                    strLogic = strLogic.Replace("v9", Compiler.ReservedDefines(atVar)[9].Name);
+                    strLogic = strLogic.Replace("f5", LogicCompiler.ReservedDefines(atFlag)[5].Name);
+                    strLogic = strLogic.Replace("f2", LogicCompiler.ReservedDefines(atFlag)[2].Name);
+                    strLogic = strLogic.Replace("f4", LogicCompiler.ReservedDefines(atFlag)[4].Name);
+                    strLogic = strLogic.Replace("v0", LogicCompiler.ReservedDefines(atVar)[0].Name);
+                    strLogic = strLogic.Replace("v9", LogicCompiler.ReservedDefines(atVar)[9].Name);
                 }
             }
             catch (Exception) {

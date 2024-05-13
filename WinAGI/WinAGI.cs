@@ -387,7 +387,7 @@ namespace WinAGI.Engine {
             }
 
             // calling this forces the module to load and initialize
-            Compiler.AssignReservedDefines();
+            LogicCompiler.AssignReservedDefines();
         }
 
         /// <summary>

@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using static WinAGI.Common.Base;
-using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.LogicDecoder;
 using static WinAGI.Engine.ArgTypeEnum;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.Commands;
@@ -13,7 +12,11 @@ using static WinAGI.Engine.DefineValueCheck;
 using static WinAGI.Engine.LogicErrorLevel;
 
 namespace WinAGI.Engine {
-    public static partial class Compiler {
+    /// <summary>
+    /// This class contains all the members and methods needed to compile logic 
+    /// source code.
+    /// </summary>
+    public static partial class LogicCompiler {
         // reminder: in VB6 version, the compiler was not case sensitive
         // EXCEPT strings in messages; in this version ALL tokens are
         // case sensitive
@@ -23,19 +26,59 @@ namespace WinAGI.Engine {
             internal byte LabelNum;
             internal int DataLoc;
         }
+
         internal struct LogicLabel {
             internal string Name;
             internal int Loc;
         }
+
+        internal struct CompilerBlockType {
+            internal bool IsIf = false;
+            internal int StartPos = 0;
+            internal int Length = 0;
+            public CompilerBlockType() {
+            }
+        }
+        #endregion
+
+        #region Enums
+        enum DefineType {
+            // define type variable used to manage nature of the define
+            Ignore = -1, // already handled or ignored; don't do anything
+            Default,     // default define statement; anything goes
+            Flag,        // flag only
+            Variable,    // variable only
+            Object,      // object (inv or screen) only
+            View,        // view only
+            TestCmd,     // test command
+            ActionCmd,   // action command
+            Redefine,    // redefining test/action
+        }
         #endregion
 
         #region Members
-        internal static Logic tmpLogRes;
+        /// <summary>
+        /// The parent game attached to the compiler.
+        /// </summary>
         internal static AGIGame compGame;
-        internal static byte[] mbytData;
+        // compiler warnings
+        public const int WARNCOUNT = 107;
+        internal static bool[] agNoCompWarn = new bool[WARNCOUNT];
+        // reserved defines
+        internal static TDefine[] agResVar = new TDefine[27];    // 27: text name of built in variables
+        internal static TDefine[] agResFlag = new TDefine[18];   // 18: text name of built in flags
+        internal static TDefine[] agEdgeCodes = new TDefine[5];  //  5: text of edge codes
+        internal static TDefine[] agEgoDir = new TDefine[9];     //  9: text of ego direction codes
+        internal static TDefine[] agVideoMode = new TDefine[5];  //  5: text of video mode codes
+        internal static TDefine[] agCompType = new TDefine[9];   //  9: computer type codes
+        internal static TDefine[] agResObj = new TDefine[1];     //  1: just ego object (o0)
+        internal static TDefine[] agResStr = new TDefine[1];     //  1: just prompt (s0)  
+        internal static TDefine[] agResColor = new TDefine[16];  // 16: text of color indices
+        internal static bool agSierraSyntax = false;
+
+        internal static Logic tmpLogRes;
         internal const int MAX_BLOCK_DEPTH = 64;
         internal const int MAX_LABELS = 255;
-        internal const bool UseTypeChecking = true;
         internal const string NOT_TOKEN = "!";
         internal const string OR_TOKEN = " || ";
         internal const string AND_TOKEN = "&&";
@@ -80,13 +123,976 @@ namespace WinAGI.Engine {
         internal static string[] strPicID;
         internal static string[] strSndID;
         internal static string[] strViewID;
+
         #endregion
 
         #region Properties
-        // none
+        /// <summary>
+        /// Gets or sets how the compiler responds to errors and unusual conditions
+        /// encountered in logic source code when compiling.
+        /// </summary>
+        public static LogicErrorLevel ErrorLevel { get; set; }
+
         #endregion
 
         #region Methods
+        /// <summary>
+        /// This method initializes all reserved defines used by the logic compiler.
+        /// </summary>
+        public static void AssignReservedDefines() {
+            // predefined variables, flags, and objects
+            // Variables v0 - v26
+            // Flags f0 - f16, f20 [in version 3.102 and above]
+            // object variable, o0, gameversion string, gameabout string
+            //and numberofitems
+            // also various numerical constants
+
+            // variables
+            agResVar[0].Name = "currentRoom";
+            agResVar[0].Value = "v0";
+            agResVar[1].Name = "previousRoom";
+            agResVar[1].Value = "v1";
+            agResVar[2].Name = "edgeEgoHit";
+            agResVar[2].Value = "v2";
+            agResVar[3].Name = "currentScore";
+            agResVar[3].Value = "v3";
+            agResVar[4].Name = "objHitEdge";
+            agResVar[4].Value = "v4";
+            agResVar[5].Name = "edgeObjHit";
+            agResVar[5].Value = "v5";
+            agResVar[6].Name = "egoDir";
+            agResVar[6].Value = "v6";
+            agResVar[7].Name = "maxScore";
+            agResVar[7].Value = "v7";
+            agResVar[8].Name = "memoryLeft";
+            agResVar[8].Value = "v8";
+            agResVar[9].Name = "unknownWordNum";
+            agResVar[9].Value = "v9";
+            agResVar[10].Name = "animationInterval";
+            agResVar[10].Value = "v10";
+            agResVar[11].Name = "elapsedSeconds";
+            agResVar[11].Value = "v11";
+            agResVar[12].Name = "elapsedMinutes";
+            agResVar[12].Value = "v12";
+            agResVar[13].Name = "elapsedHours";
+            agResVar[13].Value = "v13";
+            agResVar[14].Name = "elapsedDays";
+            agResVar[14].Value = "v14";
+            agResVar[15].Name = "dblClickDelay";
+            agResVar[15].Value = "v15";
+            agResVar[16].Name = "currentEgoView";
+            agResVar[16].Value = "v16";
+            agResVar[17].Name = "errorNumber";
+            agResVar[17].Value = "v17";
+            agResVar[18].Name = "errorParameter";
+            agResVar[18].Value = "v18";
+            agResVar[19].Name = "lastChar";
+            agResVar[19].Value = "v19";
+            agResVar[20].Name = "machineType";
+            agResVar[20].Value = "v20";
+            agResVar[21].Name = "printTimeout";
+            agResVar[21].Value = "v21";
+            agResVar[22].Name = "numberOfVoices";
+            agResVar[22].Value = "v22";
+            agResVar[23].Name = "attenuation";
+            agResVar[23].Value = "v23";
+            agResVar[24].Name = "inputLength";
+            agResVar[24].Value = "v24";
+            agResVar[25].Name = "selectedItem";
+            agResVar[25].Value = "v25";
+            agResVar[26].Name = "monitorType";
+            agResVar[26].Value = "v26";
+
+            // flags
+            agResFlag[0].Name = "onWater";
+            agResFlag[0].Value = "f0";
+            agResFlag[1].Name = "egoHidden";
+            agResFlag[1].Value = "f1";
+            agResFlag[2].Name = "haveInput";
+            agResFlag[2].Value = "f2";
+            agResFlag[3].Name = "egoHitSpecial";
+            agResFlag[3].Value = "f3";
+            agResFlag[4].Name = "haveMatch";
+            agResFlag[4].Value = "f4";
+            agResFlag[5].Name = "newRoom";
+            agResFlag[5].Value = "f5";
+            agResFlag[6].Name = "gameRestarted";
+            agResFlag[6].Value = "f6";
+            agResFlag[7].Name = "noScript";
+            agResFlag[7].Value = "f7";
+            agResFlag[8].Name = "enableDblClick";
+            agResFlag[8].Value = "f8";
+            agResFlag[9].Name = "soundOn";
+            agResFlag[9].Value = "f9";
+            agResFlag[10].Name = "enableTrace";
+            agResFlag[10].Value = "f10";
+            agResFlag[11].Name = "hasNoiseChannel";
+            agResFlag[11].Value = "f11";
+            agResFlag[12].Name = "gameRestored";
+            agResFlag[12].Value = "f12";
+            agResFlag[13].Name = "enableItemSelect";
+            agResFlag[13].Value = "f13";
+            agResFlag[14].Name = "enableMenu";
+            agResFlag[14].Value = "f14";
+            agResFlag[15].Name = "leaveWindow";
+            agResFlag[15].Value = "f15";
+            agResFlag[16].Name = "noPromptRestart";
+            agResFlag[16].Value = "f16";
+            agResFlag[17].Name = "forceAutoloop";
+            agResFlag[17].Value = "f20";
+
+            // edge codes
+            agEdgeCodes[0].Name = "NOT_HIT";
+            agEdgeCodes[0].Value = "0";
+            agEdgeCodes[1].Name = "TOP_EDGE";
+            agEdgeCodes[1].Value = "1";
+            agEdgeCodes[2].Name = "RIGHT_EDGE";
+            agEdgeCodes[2].Value = "2";
+            agEdgeCodes[3].Name = "BOTTOM_EDGE";
+            agEdgeCodes[3].Value = "3";
+            agEdgeCodes[4].Name = "LEFT_EDGE";
+            agEdgeCodes[4].Value = "4";
+
+            // object direction
+            agEgoDir[0].Name = "STOPPED";
+            agEgoDir[0].Value = "0";
+            agEgoDir[1].Name = "UP";
+            agEgoDir[1].Value = "1";
+            agEgoDir[2].Name = "UP_RIGHT";
+            agEgoDir[2].Value = "2";
+            agEgoDir[3].Name = "RIGHT";
+            agEgoDir[3].Value = "3";
+            agEgoDir[4].Name = "DOWN_RIGHT";
+            agEgoDir[4].Value = "4";
+            agEgoDir[5].Name = "DOWN";
+            agEgoDir[5].Value = "5";
+            agEgoDir[6].Name = "DOWN_LEFT";
+            agEgoDir[6].Value = "6";
+            agEgoDir[7].Name = "LEFT";
+            agEgoDir[7].Value = "7";
+            agEgoDir[8].Name = "UP_LEFT";
+            agEgoDir[8].Value = "8";
+
+            // video modes
+            agVideoMode[0].Name = "CGA";
+            agVideoMode[0].Value = "0";
+            agVideoMode[1].Name = "RGB";
+            agVideoMode[1].Value = "1";
+            agVideoMode[2].Name = "MONO";
+            agVideoMode[2].Value = "2";
+            agVideoMode[3].Name = "EGA";
+            agVideoMode[3].Value = "3";
+            agVideoMode[4].Name = "VGA";
+            agVideoMode[4].Value = "4";
+
+            // computer types
+            agCompType[0].Name = "PC";
+            agCompType[0].Value = "0";
+            agCompType[1].Name = "PCJR";
+            agCompType[1].Value = "1";
+            agCompType[2].Name = "TANDY";
+            agCompType[2].Value = "2";
+            agCompType[3].Name = "APPLEII";
+            agCompType[3].Value = "3";
+            agCompType[4].Name = "ATARI";
+            agCompType[4].Value = "4";
+            agCompType[5].Name = "AMIGA";
+            agCompType[5].Value = "5";
+            agCompType[6].Name = "MACINTOSH";
+            agCompType[6].Value = "6";
+            agCompType[7].Name = "CORTLAND";
+            agCompType[7].Value = "7";
+            agCompType[8].Name = "PS2";
+            agCompType[8].Value = "8";
+
+            // colors
+            agResColor[0].Name = "BLACK";
+            agResColor[0].Value = "0";
+            agResColor[1].Name = "BLUE";
+            agResColor[1].Value = "1";
+            agResColor[2].Name = "GREEN";
+            agResColor[2].Value = "2";
+            agResColor[3].Name = "CYAN";
+            agResColor[3].Value = "3";
+            agResColor[4].Name = "RED";
+            agResColor[4].Value = "4";
+            agResColor[5].Name = "MAGENTA";
+            agResColor[5].Value = "5";
+            agResColor[6].Name = "BROWN";
+            agResColor[6].Value = "6";
+            agResColor[7].Name = "LT_GRAY";
+            agResColor[7].Value = "7";
+            agResColor[8].Name = "DK_GRAY";
+            agResColor[8].Value = "8";
+            agResColor[9].Name = "LT_BLUE";
+            agResColor[9].Value = "9";
+            agResColor[10].Name = "LT_GREEN";
+            agResColor[10].Value = "10";
+            agResColor[11].Name = "LT_CYAN";
+            agResColor[11].Value = "11";
+            agResColor[12].Name = "LT_RED";
+            agResColor[12].Value = "12";
+            agResColor[13].Name = "LT_MAGENTA";
+            agResColor[13].Value = "13";
+            agResColor[14].Name = "YELLOW";
+            agResColor[14].Value = "14";
+            agResColor[15].Name = "WHITE";
+            agResColor[15].Value = "15";
+
+            // objects
+            agResObj[0].Name = "ego";
+            agResObj[0].Value = "o0";
+
+            // strings
+            agResStr[0].Name = "inputPrompt";
+            agResStr[0].Value = "s0";
+
+            // set types and defaults
+            int i;
+            for (i = 0; i <= 26; i++) {
+                agResVar[i].Type = ArgTypeEnum.atVar;
+                agResVar[i].Default = agResVar[i].Name;
+            }
+            for (i = 0; i <= 17; i++) {
+                agResFlag[i].Type = ArgTypeEnum.atFlag;
+                agResFlag[i].Default = agResFlag[i].Name;
+            }
+            for (i = 0; i <= 4; i++) {
+                agEdgeCodes[i].Type = ArgTypeEnum.atNum;
+                agEdgeCodes[i].Default = agEdgeCodes[i].Name;
+            }
+            for (i = 0; i <= 8; i++) {
+                agEgoDir[i].Type = ArgTypeEnum.atNum;
+                agEgoDir[i].Default = agEgoDir[i].Name;
+            }
+            for (i = 0; i <= 4; i++) {
+                agVideoMode[i].Type = ArgTypeEnum.atNum;
+                agVideoMode[i].Default = agVideoMode[i].Name;
+            }
+            for (i = 0; i <= 8; i++) {
+                agCompType[i].Type = ArgTypeEnum.atNum;
+                agCompType[i].Default = agCompType[i].Name;
+            }
+            for (i = 0; i <= 15; i++) {
+                agResColor[i].Type = ArgTypeEnum.atNum;
+                agResColor[i].Default = agResColor[i].Name;
+            }
+
+            // objects
+            agResObj[0].Type = ArgTypeEnum.atSObj;
+            agResObj[0].Default = agResObj[0].Name;
+            // strings
+            agResStr[0].Type = ArgTypeEnum.atStr;
+            agResStr[0].Default = agResStr[0].Name;
+        }
+
+        /// <summary>
+        /// Returns the single letter argument type prefix for the specified
+        /// argument type ('v', 'f', etc.).
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public static string ArgTypePrefix(byte index) {
+            if (index > 8) {
+                throw new IndexOutOfRangeException("subscript out of range");
+            }
+            return agArgTypPref[index];
+        }
+        
+        /// <summary>
+        /// Returns the name of the specified argument type ("number", "variable", 
+        /// "flag", etc.).
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public static string ArgTypeName(byte index) {
+            if (index > 8) {
+                throw new IndexOutOfRangeException("subscript out of range");
+            }
+            return agArgTypName[index];
+        }
+        
+        /// <summary>
+        /// This method tells the logic compiler to ignore the specified warning
+        /// if the condition is encountered while compiling.
+        /// </summary>
+        /// <param name="WarningNumber"></param>
+        /// <param name="NewVal"></param>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public static void SetIgnoreWarning(int WarningNumber, bool NewVal) {
+            if (WarningNumber < 5001 || WarningNumber > 5000 + WARNCOUNT) {
+                throw new IndexOutOfRangeException("subscript out of range");
+            }
+            agNoCompWarn[WarningNumber - 5000] = NewVal;
+        }
+        
+        /// <summary>
+        /// Gets the value of the specified warning number's ignore status.
+        /// </summary>
+        /// <param name="WarningNumber"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public static bool IgnoreWarning(int WarningNumber) {
+            if (WarningNumber < 5001 || WarningNumber > 5000 + WARNCOUNT) {
+                throw new IndexOutOfRangeException("subscript out of range");
+            }
+            return agNoCompWarn[WarningNumber - 5000];
+        }
+
+        /// <summary>
+        /// Returns the reserved defines that match the specified argument
+        /// type as an array of defines. NOT the same as returning by 'group'
+        /// (which is used for saving changes to reserved define names).
+        /// </summary>
+        /// <param name="ArgType"></param>
+        /// <returns></returns>
+        public static TDefine[] ReservedDefines(ArgTypeEnum ArgType) {
+            TDefine[] tmpDefines = [];
+
+            switch (ArgType) {
+            case atNum:
+                // return all numerical reserved defines
+                tmpDefines = [];
+                tmpDefines = (TDefine[])tmpDefines.Concat(agEdgeCodes);
+                tmpDefines = (TDefine[])tmpDefines.Concat(agEgoDir);
+                tmpDefines = (TDefine[])tmpDefines.Concat(agVideoMode);
+                tmpDefines = (TDefine[])tmpDefines.Concat(agCompType);
+                tmpDefines = (TDefine[])tmpDefines.Concat(agResColor);
+                break;
+            case atVar:
+                // return all variable reserved defines
+                tmpDefines = agResVar;
+                break;
+            case atFlag:
+                // return all flag reserved defines
+                tmpDefines = agResFlag;
+                break;
+            case atMsg:
+                // none
+                tmpDefines = [];
+                break;
+            case atSObj:
+                // one - ego
+                tmpDefines = agResObj;
+                break;
+            case atInvItem:
+                // none
+                tmpDefines = [];
+                break;
+            case atStr:
+                // one - input prompt
+                tmpDefines = agResStr;
+                break;
+            case atWord:
+                // none
+                tmpDefines = [];
+                break;
+            case atCtrl:
+                // none
+                tmpDefines = [];
+                break;
+            case atDefStr:
+                // none
+                tmpDefines = [];
+                break;
+            case atVocWrd:
+                // none
+                tmpDefines = [];
+                break;
+            }
+            return tmpDefines;
+        }
+
+        /// <summary>
+        /// Returns reserved defines by their 'group' instead by by variable type.
+        /// </summary>
+        /// <param name="Group"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public static TDefine[] ResDefByGrp(ResDefGroup Group) {
+            switch (Group) {
+            case ResDefGroup.rgVariable:
+                return agResVar;
+            case ResDefGroup.rgFlag:
+                return agResFlag;
+            case ResDefGroup.rgEdgeCode:
+                return agEdgeCodes;
+            case ResDefGroup.rgObjectDir:
+                return agEgoDir;
+            case ResDefGroup.rgVideoMode:
+                return agVideoMode;
+            case ResDefGroup.rgComputerType:
+                return agCompType;
+            case ResDefGroup.rgColor:
+                return agResColor;
+            case ResDefGroup.rgObject:
+                return agResObj;
+            case ResDefGroup.rgString:
+                return agResStr;
+            default:
+                throw new IndexOutOfRangeException("bad form");
+            }
+        }
+
+        /// <summary>
+        /// This method lets user update a reserved define name. It is up
+        /// to calling procedure to make sure there are no conflicts. If the
+        /// define value doesn't match an actual reserved item, an exception
+        /// is thrown.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="index"></param>
+        /// <param name="newname"></param>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public static void SetResDef(int type, int index, string newname) {
+            // type is a numeric value that maps to the six different types
+            // (catgories) of reserved defines
+            switch (type) {
+            case 1:
+                // variable: value must be 0-26
+                if (index < 0 || index > 27) {
+                    throw new IndexOutOfRangeException(nameof(index));
+                }
+                agResVar[index].Name = newname;
+                break;
+            case 2:
+                // flag: value must be 0-17
+                if (index < 0 || index > 17) {
+                    throw new IndexOutOfRangeException(nameof(index));
+                }
+                agResFlag[index].Name = newname;
+                break;
+            case 3:
+                // edgecode: value must be 0-4
+                if (index < 0 || index > 4) {
+                    throw new IndexOutOfRangeException(nameof(index));
+                }
+                agEdgeCodes[index].Name = newname;
+                break;
+            case 4:
+                // direction: value must be 0-8
+                if (index < 0 || index > 8) {
+                    throw new IndexOutOfRangeException(nameof(index));
+                }
+                agEgoDir[index].Name = newname;
+                break;
+            case 5:
+                // video: value must be 0-4
+                if (index < 0 || index > 4) {
+                    throw new IndexOutOfRangeException(nameof(index));
+                }
+                agVideoMode[index].Name = newname;
+                break;
+            case 6:
+                // computer: value must be 0-8
+                if (index < 0 || index > 8) {
+                    throw new IndexOutOfRangeException(nameof(index));
+                }
+                agCompType[index].Name = newname;
+                break;
+            case 7:
+                // color: value must be 0-15
+                if (index < 0 || index > 15) {
+                    throw new IndexOutOfRangeException(nameof(index));
+                }
+                agResColor[index].Name = newname;
+                break;
+            case 8:
+                // only 0 (ego)
+                if (index != 0) {
+                    throw new IndexOutOfRangeException(nameof(index));
+                }
+                agResObj[index].Name = newname;
+                break;
+            case 9:
+                // only 0 (input prompt)
+                if (index != 0) {
+                    throw new IndexOutOfRangeException(nameof(index));
+                }
+                agResStr[index].Name = newname;
+                break;
+            default:
+                throw new IndexOutOfRangeException(nameof(type));
+            }
+        }
+
+        /// <summary>
+        /// This method checks all reserved defines to confirm they are all valid. Any
+        /// invalid define names are replaced with their defaults.
+        /// </summary>
+        /// <returns>true if all defines are OK, false if one or  more are invalid.</returns>
+        public static bool ValidateResDefs() {
+            // assume OK
+            bool retval = true;
+            int i;
+
+            for (i = 0; i < agResVar.Length; i++) {
+                if (ValidateName(agResVar[i], true) != ncOK) {
+                    agResVar[i].Name = agResVar[i].Default;
+                    retval = false;
+                }
+            }
+            for (i = 0; i < agResFlag.Length; i++) {
+                if (ValidateName(agResFlag[i], true) != ncOK) {
+                    agResFlag[i].Name = agResFlag[i].Default;
+                    retval = false;
+                }
+            }
+            for (i = 0; i < agEdgeCodes.Length; i++) {
+                if (ValidateName(agEdgeCodes[i], true) != ncOK) {
+                    agEdgeCodes[i].Name = agEdgeCodes[i].Default;
+                    retval = false;
+                }
+            }
+            for (i = 0; i < agEgoDir.Length; i++) {
+                if (ValidateName(agEgoDir[i], true) != ncOK) {
+                    agEgoDir[i].Name = agEgoDir[i].Default;
+                    retval = false;
+                }
+            }
+            for (i = 0; i < agVideoMode.Length; i++) {
+                if (ValidateName(agVideoMode[i], true) != ncOK) {
+                    agVideoMode[i].Name = agVideoMode[i].Default;
+                    retval = false;
+                }
+            }
+            for (i = 0; i < agCompType.Length; i++) {
+                if (ValidateName(agCompType[i], true) != ncOK) {
+                    agCompType[i].Name = agCompType[i].Default;
+                    retval = false;
+                }
+            }
+            for (i = 0; i < agResColor.Length; i++) {
+                if (ValidateName(agResColor[i], true) != ncOK) {
+                    agResColor[i].Name = agResColor[i].Default;
+                    retval = false;
+                }
+            }
+            for (i = 0; i < agResObj.Length; i++) {
+                if (ValidateName(agResObj[i], true) != ncOK) {
+                    agResObj[i].Name = agResObj[i].Default;
+                    retval = false;
+                }
+            }
+            for (i = 0; i < agResStr.Length; i++) {
+                if (ValidateName(agResStr[i], true) != ncOK) {
+                    agResStr[i].Name = agResStr[i].Default;
+                    retval = false;
+                }
+            }
+            return retval;
+        }
+
+        /// <summary>
+        /// This method determines if the specified define name is valid or not.
+        /// </summary>
+        /// <param name="TestDef"></param>
+        /// <param name="Reserved">true if testing a reserved define name</param>
+        /// <returns>OK if name is valid, error type if it is not.</returns>
+        internal static DefineNameCheck ValidateName(TDefine TestDef, bool Reserved = false) {
+            int i;
+            TDefine[] tmpDefines;
+
+            // if already at default, just exit
+            if (TestDef.Name == TestDef.Default) {
+                return ncOK;
+            }
+            // if no name,
+            if (TestDef.Name.Length == 0) {
+                return ncEmpty;
+            }
+            // name can't be numeric
+            if (IsNumeric(TestDef.Name)) {
+                return ncNumeric;
+            }
+            // check against regular commands
+            for (i = 0; i < ActionCount; i++) {
+                if (TestDef.Name == ActionCommands[i].Name) {
+                    return ncActionCommand;
+                }
+            }
+            // check against test commands
+            for (i = 0; i < TestCount; i++) {
+                if (TestDef.Name == TestCommands[i].Name) {
+                    return ncTestCommand;
+                }
+            }
+            // check against compiler keywords
+            if (
+                TestDef.Name == "if" || TestDef.Name == "else" || TestDef.Name == "goto") {
+                return ncKeyWord;
+            }
+            // if the name starts with any of these letters
+            // (OK for sierra syntax)
+            if (!agSierraSyntax) {
+                if ("vfmoiswc".Any(TestDef.Name.ToLower().StartsWith)) {
+                    if (IsNumeric(Right(TestDef.Name, TestDef.Name.Length - 1))) {
+                      // can't have a name that's a valid marker
+                        return ncArgMarker;
+                    }
+                }
+            }
+            // check against reserved names if this game is using them,
+            // OR if testing the list of reserved names
+            if (Reserved || UseReservedNames) {
+                // reserved variables
+                tmpDefines = ReservedDefines(atVar);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (TestDef.Name ==tmpDefines[i].Name) {
+                        // if testing a reserved define AND values match, it's OK
+                        // if NOT testing a reserved define OR values DON'T match, it's invalid
+                        if (!Reserved || tmpDefines[i].Value != TestDef.Value) {
+                            return ncReservedVar;
+                        }
+                    }
+                }
+                // reserved flags
+                tmpDefines = ReservedDefines(atFlag);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (TestDef.Name == tmpDefines[i].Name) {
+                        // if testing a reserved define AND values match, it's OK
+                        // if NOT testing a reserved define OR values DON'T match, it's invalid
+                        if (!Reserved || tmpDefines[i].Value != TestDef.Value) {
+                            return ncReservedFlag;
+                        }
+                    }
+                }
+                // reserved numbers
+                tmpDefines = ReservedDefines(atNum);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (TestDef.Name == tmpDefines[i].Name) {
+                        // if testing a reserved define AND values match, it's OK
+                        // if NOT testing a reserved define OR values DON'T match, it's invalid
+                        if (!Reserved || tmpDefines[i].Value != TestDef.Value) {
+                            return ncReservedNum;
+                        }
+                    }
+                }
+                // reserved objects
+                tmpDefines = ReservedDefines(atSObj);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (TestDef.Name == tmpDefines[i].Name) {
+                        // if testing a reserved define AND values match, it's OK
+                        // if NOT testing a reserved define OR values DON'T match, it's invalid
+                        if (!Reserved || tmpDefines[i].Value != TestDef.Value) {
+                            return ncReservedObj;
+                        }
+                    }
+                }
+                // reserved strings
+                tmpDefines = ReservedDefines(atStr);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (TestDef.Name == tmpDefines[i].Name) {
+                        // if testing a reserved define AND values match, it's OK
+                        // if NOT testing a reserved define OR values DON'T match, it's invalid
+                        if (!Reserved || tmpDefines[i].Value != TestDef.Value) {
+                            return ncReservedStr;
+                        }
+                    }
+                }
+            }
+            // check name against improper character list
+            if ((INVALID_DEFNAME_CHARS).Any(TestDef.Name.Contains)) {
+                // bad
+                return ncBadChar;
+            }
+            if (TestDef.Name.Any(ch => ch > 127 || ch < 32)) {
+                // bad
+                return ncBadChar;
+            }
+            // sierra syntax allows '?' 
+            if (("'?").Any(TestDef.Name.Contains)) {
+                if (!agSierraSyntax) {
+                    return ncBadChar;
+                }
+            }
+            // sierra syntax allows / for anything but first char
+            if (("/").Any(TestDef.Name.Contains)) {
+                if (!agSierraSyntax || i == 1) {
+                    return ncBadChar;
+                }
+            }
+            // must be OK!
+            return ncOK;
+        }
+
+        /// <summary>
+        /// This method determines if the specified define name is valid, including a check
+        /// against this game's current global defines.
+        /// </summary>
+        /// <param name="CheckDef"></param>
+        /// <returns>OK if define is valid, error value if not.</returns>
+        internal static DefineNameCheck ValidateNameGlobal(TDefine CheckDef) {
+            int i;
+            DefineNameCheck tmpResult;
+
+            // check name against non-globals first
+            tmpResult = ValidateName(CheckDef);
+            if (tmpResult != ncOK) {
+                return tmpResult;
+            }
+            // check against current globals
+            if (compGame is not null) {
+                for (i = 0; i < compGame.GlobalDefines.Count; i++) {
+                    if (CheckDef.Name == compGame.GlobalDefines[i].Name)
+                        return ncGlobal;
+                }
+            }
+            // check against ingame reserved defines:
+            if (compGame is not null && UseReservedNames) {
+                for (i = 0; i < compGame.agResGameDef.Length; i++) {
+                    if (CheckDef.Name == compGame.agResGameDef[i].Name)
+                        //invobj count is number; rest are msgstrings
+                        return i == 3 ? ncReservedNum : ncReservedMsg;
+                }
+            }
+            // if no error conditions, it's OK
+            return ncOK;
+        }
+
+        /// <summary>
+        /// This method determines if the specified string is a valid define name, including
+        /// a check against global defines.
+        /// </summary>
+        /// <param name="CheckName"></param>
+        /// <returns></returns>
+        internal static DefineNameCheck ValidateDefName(string CheckName) {
+            TDefine CheckDef = new() {
+                Name = CheckName
+            };
+            return ValidateNameGlobal(CheckDef);
+        }
+
+        /// <summary>
+        /// This method determines if the specified define has a valid value. It also
+        /// sets the 
+        /// </summary>
+        /// <param name="TestDefine"></param>
+        /// <returns></returns>
+        internal static DefineValueCheck ValidateDefValue(TDefine TestDefine) {
+            if (TestDefine.Value.Length == 0) {
+                return vcEmpty;
+            }
+            // values must be an AGI argument marker (variable/flag/etc), string, or a number
+
+            // if NOT a number:
+            if (!int.TryParse(TestDefine.Value, out int intVal)) {
+                if ("vfmoiswc".Any(ch => ch == TestDefine.Value[0])) {
+                    string strVal = TestDefine.Value[1..];
+                    if (int.TryParse(strVal, out intVal)) {
+                        if (intVal < 0 || intVal > 255)
+                            return vcOutofBounds;
+                        // check defined globals
+                        for (int i = 0; i < compGame.GlobalDefines.Count; i++) {
+                            if (compGame.GlobalDefines[i].Value == TestDefine.Value)
+                                return vcGlobal;
+                        }
+                        // check if Value is already assigned
+                        switch (TestDefine.Value[0]) {
+                        case 'f':
+                            TestDefine.Type = atFlag;
+                            if (UseReservedNames) {
+                                if (intVal <= 15)
+                                    return vcReserved;
+                                if (intVal == 20) {
+                                    switch (compGame.agIntVersion) {
+                                    case "3.002.098" or "3.002.102" or "3.002.107" or "3.002.149":
+                                        return vcReserved;
+                                    }
+                                }
+                            }
+                            break;
+                        case 'v':
+                            TestDefine.Type = atVar;
+                            if (UseReservedNames) {
+                                if (intVal <= 26)
+                                    return vcReserved;
+                            }
+
+                            break;
+                        case 'm':
+                            TestDefine.Type = atMsg;
+                            break;
+                        case 'o':
+                            TestDefine.Type = atSObj;
+                            if (UseReservedNames) {
+                                // can't be ego
+                                if (intVal == 0)
+                                    return vcReserved;
+                            }
+
+                            break;
+                        case 'i':
+                            TestDefine.Type = atInvItem;
+                            break;
+                        case 's':
+                            TestDefine.Type = atStr;
+                            if (intVal > 23 || (intVal > 11 &&
+                              (compGame.agIntVersion == "2.089" ||
+                              compGame.agIntVersion == "2.272" ||
+                              compGame.agIntVersion == "3.002149"))) {
+                                return vcBadArgNumber;
+                            }
+
+                            break;
+                        case 'w':
+                            // valid from w1 to w10
+                            // applies to fanAGI syntax only;
+                            TestDefine.Type = atWord;
+                            // base is 1 because of how msg formatting
+                            // uses words; compiler will automatically
+                            // convert it to base zero when used - see
+                            // WinAGI help file for more details
+                            if (intVal < 1 || intVal > 10) {
+                                return vcBadArgNumber;
+                            }
+                            break;
+                        case 'c':
+                            // controllers limited to 0-49
+                            TestDefine.Type = atCtrl;
+                            if (intVal > 49) {
+                                return vcBadArgNumber;
+                            }
+                            break;
+                        }
+                        return vcOK;
+                    }
+                }
+                // non-numeric, non-marker and most likely a string
+                if (IsAGIString(TestDefine.Value)) {
+                    TestDefine.Type = atDefStr;
+                    return vcOK;
+                }
+                else {
+                    return vcNotAValue;
+                }
+            }
+            else {
+                // numeric
+                // unsigned byte (0-255) or signed byte (-128 to 127) are OK
+                if (intVal > -128 && intVal < 256) {
+                    TestDefine.Type = atNum;
+                    return vcOK;
+                }
+                else {
+                    return vcOutofBounds;
+                }
+            }
+        }
+
+        /// <summary>
+        /// This method returns true if the specified string begins with a quote, and
+        /// ends with a non-embedded quote.
+        /// </summary>
+        /// <param name="CheckString"></param>
+        /// <returns></returns>
+        public static bool IsAGIString(string CheckString) {
+            if (string.IsNullOrEmpty(CheckString)) {
+                return false;
+            }
+            if (CheckString.Length < 2) {
+                return false;
+            }
+            if (CheckString[0] != '\"') {
+                return false;
+            }
+            if (CheckString[^1] != '\"') {
+                return false;
+            }
+            // validate that ending string is not an embedded (\") quote
+            bool embedded = false;
+            for (int i = 0; i < CheckString.Length; i++) {
+                if (CheckString[i] != '\\') {
+                    break;
+                }
+                embedded = !embedded;
+            }
+            return !embedded;
+        }
+
+        /// <summary>
+        /// This method strips off any comments on the specified line, returning the
+        /// line without comment. If trimline is false, the string is also stripped
+        /// of any blank space. If there is a comment, it is passed back in the
+        /// strComment argument.
+        /// </summary>
+        /// <param name="line"></param>
+        /// <param name="comment"></param>
+        /// <param name="trimline"></param>
+        /// <returns></returns>
+        public static string StripComments(string line, ref string comment, bool trimline = true) {
+            int lngPos = -1;
+            bool blnInQuotes = false;
+            bool blnSlash = false;
+            bool blnDblSlash = false;
+            int intROLIgnore = -1;
+
+            if (line.Length == 0) {
+                return "";
+            }
+
+            // assume no comment
+            string strOut = line;
+            comment = "";
+            while (lngPos < line.Length - 1) {
+                lngPos++;
+                if (!blnInQuotes) {
+                    // check for comment characters at this position
+                    if (Mid(line, lngPos, 2) == "//") {
+                        intROLIgnore = lngPos + 1;
+                        blnDblSlash = true;
+                        break;
+                    }
+                    else if (line.Substring(lngPos, 1) == "[") {
+                        intROLIgnore = lngPos;
+                        break;
+                    }
+                    // slash codes never occur outside quotes
+                    blnSlash = false;
+                    // if this character is a quote mark, it starts a string
+                    blnInQuotes = line.ElementAt(lngPos) == '"';
+                }
+                else {
+                    // if last character was a slash, ignore this character
+                    // because it's part of a slash code
+                    if (blnSlash) {
+                        // always reset  the slash
+                        blnSlash = false;
+                    }
+                    else {
+                        // check for slash or quote mark
+                        switch (line[lngPos]) {
+                        case '"':
+                            // a quote marks end of string
+                            blnInQuotes = false;
+                            break;
+                        case '\\':
+                            blnSlash = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (intROLIgnore >= 0) {
+                // save the comment
+                comment = line[intROLIgnore..].Trim();
+                // strip off the comment
+                if (blnDblSlash) {
+                    strOut = line[..(intROLIgnore - 1)];
+                }
+                else {
+                    strOut = line[..intROLIgnore];
+                }
+            }
+            if (trimline) {
+                // return the line, trimmed
+                strOut = strOut.Trim();
+            }
+            return strOut;
+        }
+
         /// <summary>
         /// This method compiles the sourcetext for the specified logic.
         /// If successful, the method returns an information code of itDone.
@@ -515,7 +1521,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 // lastly, check reserved names if they are being used
-                if (UseReservedNames) {
+                if (LogicDecoder.UseReservedNames) {
                     switch (argtype) {
                     case atNum:
                         for (i = 0; i <= 4; i++) {
@@ -692,7 +1698,7 @@ namespace WinAGI.Engine {
                 }
             }
             // lastly, check reserved names, if they are being used
-            if (UseReservedNames) {
+            if (LogicDecoder.UseReservedNames) {
                 for (int i = 0; i <= 26; i++) {
                     if (strArgIn == agResVar[i].Name) {
                         return i;
@@ -735,12 +1741,12 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// This method extracts an argument number from an argument token. For 
+        /// This method extracts an argument byte code value from an argument token. For 
         /// example, it converts 'v##' into just '##'.
         /// </summary>
         /// <param name="argtoken"></param>
         /// <returns>The argument number if successful. -1 if unsuccessful.</returns>
-        static internal int VariableValue(string argtoken) {
+        internal static int VariableValue(string argtoken) {
             // the token should be of the form #, a#
             // where a is a valid variable prefix (v, f, s, m, w, c)
             // and # is 0-255
@@ -834,7 +1840,7 @@ namespace WinAGI.Engine {
         /// <returns>1 if include file added successfully<br />
         /// 0 if line does not contain an include file<br />
         /// -1 if an error is encountered</returns>
-        static int CheckInclude(string strLineText) {
+        internal static int CheckInclude(string strLineText) {
             List<string> IncludeLines;
             string strIncludeFilename, strIncludeText;
             int intIncludeNum, CurIncludeLine;
@@ -1060,7 +2066,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ArgNum"></param>
         /// <param name="ArgVal"></param>
-        static internal void CheckResVarUse(byte ArgNum, byte ArgVal) {
+        internal static void CheckResVarUse(byte ArgNum, byte ArgVal) {
             if (ErrorLevel == leLow) {
                 return;
             }
@@ -1094,14 +2100,14 @@ namespace WinAGI.Engine {
                     AddWarning(5092, LoadResString(5092).Replace(ARG1, agResVar[ArgNum].Name));
                 }
                 break;
-            case 19: 
+            case 19:
                 // key_pressed value
                 // ok if resetting for key input
                 if (ArgVal > 0) {
                     AddWarning(5017, LoadResString(5017).Replace(ARG1, agResVar[ArgNum].Name));
                 }
                 break;
-            case 23: 
+            case 23:
                 // sound attenuation
                 // restrict to 0-15
                 if (ArgVal > 15) {
@@ -1114,7 +2120,7 @@ namespace WinAGI.Engine {
                     AddWarning(5018, LoadResString(5018).Replace(ARG1, agResVar[24].Name).Replace(ARG2, "39"));
                 }
                 break;
-            default: 
+            default:
                 // all other reserved variables should be read only
                 AddWarning(5017, LoadResString(5017).Replace(ARG1, agResVar[ArgNum].Name));
                 break;
@@ -1126,13 +2132,18 @@ namespace WinAGI.Engine {
         /// currently processing and validates it. The expected argument type
         /// and argument position are used to validate the token.
         /// </summary>
-        /// <param name="ArgType"></param>
+        /// <param name="argtype"></param>
         /// <param name="ArgPos"></param>
-        /// <returns></returns>
-        static internal int GetNextArg(ArgTypeEnum ArgType, int ArgPos) {
+        /// <returns>If successful, the function returns the Value of the argument<br />
+        /// if unsuccessful, the function returns a negative value:<br />
+        ///  -1 = invalid conversion<br />
+        ///  -2 = ')' encountered<br />
+        ///  -3 = ',' encountered
+        /// </returns>
+        internal static int GetNextArg(ArgTypeEnum argtype, int ArgPos) {
             // used when not looking for a number/variable combo)
             bool nullval = false;
-            return GetNextArg(ArgType, ArgPos, ref nullval);
+            return GetNextArg(argtype, ArgPos, ref nullval);
         }
 
         /// <summary>
@@ -1145,13 +2156,13 @@ namespace WinAGI.Engine {
         /// <param name="argtype"></param>
         /// <param name="argpos"></param>
         /// <param name="varOrnum"></param>
-        /// <returns>if successful, the function returns the Value of the argument<br />
+        /// <returns>If successful, the function returns the Value of the argument<br />
         /// if unsuccessful, the function returns a negative value:<br />
         ///  -1 = invalid conversion<br />
         ///  -2 = ')' encountered<br />
         ///  -3 = ',' encountered
         ///</returns>
-        static internal int GetNextArg(ArgTypeEnum argtype, int argpos, ref bool varOrnum) {
+        internal static int GetNextArg(ArgTypeEnum argtype, int argpos, ref bool varOrnum) {
             //  - multline message/string/inv.item/word strings are recombined,
             //    and checked for validity
             //
@@ -1549,7 +2560,7 @@ namespace WinAGI.Engine {
                         else {
                             // strip off starting and ending quotes
                             // (and all words are AGIlower case/case insensitive)
-                            strArg =LowerAGI(strArg);
+                            strArg = LowerAGI(strArg);
                         }
                     }
                     if (compGame.agVocabWords.WordExists(strArg)) {
@@ -1612,7 +2623,7 @@ namespace WinAGI.Engine {
         /// resets all counters, pointers, etc., as well as info needed to support
         /// error locating.
         /// </summary>
-        static internal void IncrementLine() {
+        internal static void IncrementLine() {
             // check for end of input
             if (lngLine == -1) {
                 return;
@@ -1622,7 +2633,6 @@ namespace WinAGI.Engine {
                 // set it to -1 so line 0 is returned
                 lngLine = -1;
             }
-
             do {
                 lngLine++;
                 lngPos = 0;
@@ -1636,7 +2646,7 @@ namespace WinAGI.Engine {
                     // set module
                     int mod = int.Parse(stlInput[lngLine][2..(stlInput[lngLine].IndexOf(':'))]);
                     errInfo.Module = strIncludeFile[mod];
-                    // set errline
+                    // set error line
                     errInfo.Line = stlInput[lngLine][(stlInput[lngLine].IndexOf(':') + 1)..(stlInput[lngLine].IndexOf('#'))];
                     // get the line without include tag
                     strCurrentLine = stlInput[lngLine][(stlInput[lngLine].IndexOf('#') + 1)..];
@@ -1647,42 +2657,43 @@ namespace WinAGI.Engine {
                     // get the next line
                     strCurrentLine = stlInput[lngLine];
                 }
-            // skip over blank lines
+                // skip over blank lines
             } while (strCurrentLine.Length == 0);
         }
 
         /// <summary>
-        /// 
+        /// Gets the next token and compares it to the specified value. The 
+        /// method returns true if the token matches. If it does not match,
+        /// the token is left in the input stream.
         /// </summary>
         /// <param name="tokenval"></param>
         /// <param name="nonewline"></param>
-        /// <returns></returns>
+        /// <returns>true if next token matches the specified value, false if not.</returns>
         internal static bool CheckToken(string tokenval, bool nonewline = false) {
-            // if next token matches tokenval, return true,
-            // otherwise return false
-            string tmpToken = NextToken(nonewline);
-            if (tmpToken == tokenval) {
+            string testToken = NextToken(nonewline);
+            if (testToken == tokenval) {
                 return true;
             }
-            // backup so this token stays in queue
-            lngPos -= tmpToken.Length;
+            // no match; backup so this token stays in the stream
+            lngPos -= testToken.Length;
             return false;
         }
 
         /// <summary>
-        /// 
+        /// Gets the next character and compares it to the specified value. The
+        /// method returns true if the character matches. The next character is 
+        /// returned to the input stream if the character does not match.
         /// </summary>
         /// <param name="charval"></param>
         /// <param name="blnNoNewLine"></param>
         /// <returns></returns>
         internal static bool CheckChar(char charval, bool blnNoNewLine = false) {
-            //if next char is what we want, it advances, otherwise not
             char testChar;
 
             testChar = NextChar(blnNoNewLine);
             if (testChar != charval) {
-                //no match; need to back up
-                //unless nothing was found (meaning end of line or input)
+                // no match; need to back up
+                // unless nothing was found (meaning end of line or input)
                 if (testChar != 0) {
                     lngPos--;
                 }
@@ -1691,23 +2702,21 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets the next token from the source code input stream but does not advance
+        /// the line or position, i.e. the token remains in the input stream.
         /// </summary>
         /// <param name="blnNoNewLine"></param>
         /// <returns></returns>
         internal static string PeekToken(bool blnNoNewLine = false) {
-            int tmpPos, tmpLine, tmpErrLine, tmpInclOffset;
-            string tmpModule, tmpCurLine, peekcmd;
-
-            //save compiler state
-            tmpPos = lngPos;
-            tmpLine = lngLine;
-            tmpInclOffset = lngIncludeOffset;
-            tmpModule = errInfo.Module;
-            tmpCurLine = strCurrentLine;
-            tmpErrLine = int.Parse(errInfo.Line);
-            // get next command
-            peekcmd = NextToken(blnNoNewLine);
+            // save compiler state
+            int tmpPos = lngPos;
+            int tmpLine = lngLine;
+            int tmpInclOffset = lngIncludeOffset;
+            string tmpModule = errInfo.Module;
+            string tmpCurLine = strCurrentLine;
+            int tmpErrLine = int.Parse(errInfo.Line);
+            // get next token
+            string peekcmd = NextToken(blnNoNewLine);
             // restore compiler state
             lngPos = tmpPos;
             lngLine = tmpLine;
@@ -1715,274 +2724,268 @@ namespace WinAGI.Engine {
             errInfo.Module = tmpModule;
             strCurrentLine = tmpCurLine;
             errInfo.Line = tmpErrLine.ToString();
-            // return the peek
+            // return the token
             return peekcmd;
         }
 
         /// <summary>
-        /// 
+        /// Gets the next non-space character from the source code input stream. If 
+        /// the NoNewLine flag is true, the method will not look past the current
+        /// line.
         /// </summary>
         /// <param name="blnNoNewLine"></param>
-        /// <returns></returns>
+        /// <returns>The next character, or a null character if end of input reached.</returns>
         internal static char NextChar(bool blnNoNewLine = false) {
-            //gets the next non-space character (tabs (ascii code H&9, are converted
-            //to a space character, and ignored) from the input stream
+            // If the NoNewLine flag is passed, the function will not look past
+            // current line for next character. If no character on current line,
+            // lngPos is set to end of current line, and an empty string is
+            // returned.
 
-            //if the NoNewLine flag is passed,
-            //the function will not look past current line for next
-            //character; if no character on current line,
-            //lngPos is set to end of current line, and
-            //empty string is returned
-
-            //if already at end of input (lngLine=-1)
+            // if already at end of input (lngLine=-1)
             if (lngLine == -1) {
-                //just exit
                 return (char)0;
             }
-            do {
-                //first, increment position
-                lngPos++;
-                //if past end of this line,
-                if (lngPos > strCurrentLine.Length) {
-                    //if can't get another line,
-                    if (blnNoNewLine) {
-                        //move pointer back
-                        lngPos--;
-                        //return empty char
-                        return (char)0;
-                    }
-                    //get the next line
-                    IncrementLine();
-                    //if at end of input
-                    if (lngLine == -1) {
-                        //exit with no character
-                        return (char)0;
-                    }
-                    //increment pointer(so it points to first character of line)
-                    lngPos++;
+            lngPos++;
+            if (lngPos > strCurrentLine.Length) {
+                if (blnNoNewLine) {
+                    // move pointer back
+                    lngPos--;
+                    // return empty char
+                    return (char)0;
                 }
-                char retval = strCurrentLine[lngPos];
-                //only characters <32 that we need to use are return, and linefeed
-                if (retval != 0) {
-                    if (retval < 32) {
-                        return retval switch {
-                            (char)10 or (char)13 => '\n',
-                            _ => ' ',
-                        };
-                    }
+                IncrementLine();
+                if (lngLine == -1) {
+                    // exit with no character
+                    return (char)0;
                 }
-                return retval;
             }
-            while (true);
+            return strCurrentLine[lngPos];
         }
 
         /// <summary>
-        /// 
+        /// Gets the next token from the source code input stream. Tokens are
+        /// defined as one or more token characters, separated by a token
+        /// separator.  If the NoNewLine flag is true, the method will not
+        /// look past the line.
         /// </summary>
         /// <param name="blnNoNewLine"></param>
-        /// <returns></returns>
-        static internal string NextToken(bool blnNoNewLine = false) {
-            //this function will return the next command, which is comprised
-            //of command elements, and separated by element separators
-            //command elements include:
-            //  characters a-z, A-Z, numbers 0-9, and:  #$%.@_
-            //  (and also, all extended characters [128-255])
-            //  NOTE: inside quotations, ALL characters, including spaces
-            //  are considered command elements
+        /// <returns>The next token, or null string if end of input reached.</returns>
+        internal static string NextToken(bool blnNoNewLine = false) {
+            // token characters include:
+            // characters a-z and A-Z, numbers 0-9, special characters  #$%.@_
+            // and extended characters [128-255]
+            // the double quote '"' is used to mark text strings; text
+            // strings are also considered tokens;  ALL characters,
+            // including all token separators, are considered token
+            // elements when inside quotes
             //
-            //element separators include:
-            //  space, !"&//()*+,-/:;<=>?[\]^`{|}~
+            // element separators include:
+            //  space, !"&'()*+,-/:;<=>?[\]^`{|}~
             //
-            //element separators other than space are normally returned
-            //as a single character command; there are some exceptions
-            //where element separators will include additional characters:
+            // element separators other than space are normally returned
+            // as a single character token; there are some exceptions
+            // where element separators will include additional characters:
             //  !=, &&, *=, ++, +=, --, -=, /=, //, <=, <>, =<, ==, =>, >=, ><, ||
             //
-            //when a command starts with a quote, the command returns
-            //after a closing quote is found, regardless of characters
-            //inbetween the quotes
-            //
-            //if end of input is reached it returns empty string
+            // if end of input is reached, next token is an empty string
 
-            int intChar;
             bool blnInQuotes = false, blnSlash = false;
 
-            //find next non-blank character
+            // find next non-blank character
             string retval = NextChar(blnNoNewLine).ToString();
             //if at end of input,
             if (lngLine == -1) {
-                //return empty string
+                // return empty string
                 return "";
             }
-            //if no character returned
+            // if no character returned
             if (retval == "") {
+                // return empty string
                 return "";
             }
-            //if command is a element separator:
+            // single character separators:
             if ("'(),:;[\\]^`{}~".Any(retval.Contains)) {
-                //return this single character as a command
-                return retval.ToString();
+                return retval;
             }
             // check for other characters using a switch
             switch (retval[0]) {
             case '\'' or '?':
-                //sierra syntax doesn't treat these as a single character command
+                // sierra syntax doesn't treat these as a single character token
                 if (!agSierraSyntax) {
-                    // fanAGI does
-                    return retval.ToString();
+                    // fan AGI does
+                    return retval;
                 }
                 break;
             case '=':
-                //special case; "=", "==", "=<" and "=>" returned as separate commands
-                // (also "=@" for sierra syntax)
-                switch (strCurrentLine[lngPos + 1]) {
-                case '<' or '>':
-                    //increment pointer
-                    lngPos++;
-                    //swap so we get ">=" and "<=" instead of "=>" and "=<"
-                    retval = strCurrentLine[lngPos].ToString() + retval;
-                    break;
-                case '=':
-                    lngPos++;
-                    retval = "==";
-                    break;
-                case '@': // "=@"
-                    if (agSierraSyntax) {
-                        // rindirect
+                // special case; "=", "==", "=<" and "=>" returned as separate
+                // tokens (also "=@" for sierra syntax)
+                if (lngPos + 1 < strCurrentLine.Length) {
+                    switch (strCurrentLine[lngPos + 1]) {
+                    case '<' or '>':
                         lngPos++;
-                        retval = "=@";
+                        // swap so we get ">=" and "<=" instead of "=>" and "=<"
+                        retval = strCurrentLine[lngPos].ToString() + retval;
+                        break;
+                    case '=':
+                        lngPos++;
+                        retval = "==";
+                        break;
+                    case '@':
+                        if (agSierraSyntax) {
+                            lngPos++;
+                            retval = "=@";
+                        }
+                        break;
                     }
-                    break;
                 }
                 return retval;
             case '\"':
-                //special case; quote means start of a string
+                // special case; quote means start of a string
                 blnInQuotes = true;
                 break;
             case '+':
-                //special case; "+", "++" and "+=" returned as separate commands
-                if (strCurrentLine[lngPos + 1] == '+') {
-                    lngPos++;
-                    retval = "++";
-                }
-                else if (strCurrentLine[lngPos + 1] == '=') {
-                    lngPos++;
-                    retval = "+=";
+                // special case; "+", "++" and "+=" returned as separate tokens
+                if (lngPos + 1 < strCurrentLine.Length) {
+                    if (strCurrentLine[lngPos + 1] == '+') {
+                        lngPos++;
+                        retval = "++";
+                    }
+                    else if (strCurrentLine[lngPos + 1] == '=') {
+                        lngPos++;
+                        retval = "+=";
+                    }
                 }
                 return retval;
             case '-':
-                //special case; "-", "--" and "-=" returned as separate commands
-                //also check for negative numbers ("-##")
-                if (strCurrentLine[lngPos + 1] == '-') {
-                    lngPos++;
-                    retval = "--";
-                }
-                else if (strCurrentLine[lngPos + 1] == '=') {
-                    lngPos++;
-                    retval = "-=";
-                }
-                else if ((byte)strCurrentLine[lngPos + 1] >= 48 && (byte)strCurrentLine[lngPos + 1] <= 57) {
-                    //return a negative number
-                    while (lngPos + 1 <= strCurrentLine.Length) {
-                        intChar = (int)strCurrentLine[lngPos + 1];
-                        if (intChar < 48 || intChar > 57) {
-                            //anything other than a digit (0-9)
-                            break;
-                        }
-                        else {
-                            //add the digit
-                            retval += ((char)intChar);
-                            lngPos++;
+                // special case; "-", "--" and "-=" returned as separate tokens
+                // also check for negative numbers ("-##")
+                if (lngPos + 1 < strCurrentLine.Length) {
+                    if (strCurrentLine[lngPos + 1] == '-') {
+                        lngPos++;
+                        retval = "--";
+                    }
+                    else if (strCurrentLine[lngPos + 1] == '=') {
+                        lngPos++;
+                        retval = "-=";
+                    }
+                    else if (strCurrentLine[lngPos + 1] >= 48 && strCurrentLine[lngPos + 1] <= 57) {
+                        // return a negative number
+                        while (lngPos + 1 < strCurrentLine.Length) {
+                            char aChar = strCurrentLine[lngPos + 1];
+                            if (aChar < 48 || aChar > 57) {
+                                // anything other than a digit (0-9)
+                                break;
+                            }
+                            else {
+                                // add the digit
+                                retval += aChar;
+                                lngPos++;
+                            }
                         }
                     }
                 }
                 return retval;
             case '!':
-                //special case; "!" and "!=" returned as separate commands
-                if (strCurrentLine[lngPos + 1] == '=') {
-                    lngPos++;
-                    retval = "!=";
+                // special case; "!" and "!=" returned as separate tokens
+                if (lngPos + 1 < strCurrentLine.Length) {
+                    if (strCurrentLine[lngPos + 1] == '=') {
+                        lngPos++;
+                        retval = "!=";
+                    }
                 }
                 return retval;
             case '<':
-                //special case; "<", "<=" returned as separate commands
-                if (strCurrentLine[lngPos + 1] == '=') {
-                    lngPos++;
-                    retval = "<=";
+                // special case; "<", "<=" returned as separate tokens
+                if (lngPos + 1 < strCurrentLine.Length) {
+                    if (strCurrentLine[lngPos + 1] == '=') {
+                        lngPos++;
+                        retval = "<=";
+                    }
                 }
                 return retval;
             case '>':
-                //special case; ">", ">=" returned as separate commands
-                if (strCurrentLine[lngPos + 1] == '=') {
-                    lngPos++;
-                    retval = ">=";
+                // special case; ">", ">=" returned as separate tokens
+                if (lngPos + 1 < strCurrentLine.Length) {
+                    if (strCurrentLine[lngPos + 1] == '=') {
+                        lngPos++;
+                        retval = ">=";
+                    }
                 }
                 return retval;
             case '*':
-                //special case; "*" and "*=" returned as separate commands;
-                if (strCurrentLine[lngPos + 1] == '=') {
-                    lngPos++;
-                    retval = "*=";
-                }
-                // since block commands are no longer supported, check for them
-                // in order to provide a meaningful error message
-                else if (strCurrentLine[lngPos + 1] == '/') {
-                    lngPos++;
-                    retval = "*/";
+                // special case; "*" and "*=" returned as separate tokens;
+                if (lngPos + 1 < strCurrentLine.Length) {
+                    if (strCurrentLine[lngPos + 1] == '=') {
+                        lngPos++;
+                        retval = "*=";
+                    }
+                    // since block tokens are no longer supported, check for them
+                    // in order to provide a meaningful error message
+                    else if (strCurrentLine[lngPos + 1] == '/') {
+                        lngPos++;
+                        retval = "*/";
+                    }
                 }
                 return retval;
             case '/':
-                //special case; "/" , "//" and "/=" returned as separate commands
-                if (strCurrentLine[lngPos + 1] == '=') {
-                    lngPos++;
-                    retval = "/=";
-                }
-                else if (strCurrentLine[lngPos + 1] == '/') {
-                    lngPos++;
-                    retval = "//";
-                }
-                // since block commands are no longer supported, check for them
-                // in order to provide a meaningful error message
-                else if (strCurrentLine[lngPos + 1] == '*') {
-                    lngPos++;
-                    retval = "/*";
+                // special case; "/" , "//" and "/=" returned as separate tokens
+                if (lngPos + 1 < strCurrentLine.Length) {
+                    if (strCurrentLine[lngPos + 1] == '=') {
+                        lngPos++;
+                        retval = "/=";
+                    }
+                    else if (strCurrentLine[lngPos + 1] == '/') {
+                        lngPos++;
+                        retval = "//";
+                    }
+                    // since block tokens are no longer supported, check for them
+                    // in order to provide a meaningful error message
+                    else if (strCurrentLine[lngPos + 1] == '*') {
+                        lngPos++;
+                        retval = "/*";
+                    }
                 }
                 return retval;
             case '|':
-                //special case; "|" and "||" returned as separate commands
-                if (strCurrentLine[lngPos + 1] == '|') {
-                    lngPos++;
-                    retval = "||";
+                // special case; "|" and "||" returned as separate tokens
+                if (lngPos + 1 < strCurrentLine.Length) {
+                    if (strCurrentLine[lngPos + 1] == '|') {
+                        lngPos++;
+                        retval = "||";
+                    }
                 }
                 return retval;
             case '&':
-                //special case; "&" and "&&" returned as separate commands
-                if (strCurrentLine[lngPos + 1] == '&') {
-                    lngPos++;
-                    retval = "&&";
+                // special case; "&" and "&&" returned as separate tokens
+                if (lngPos + 1 < strCurrentLine.Length) {
+                    if (strCurrentLine[lngPos + 1] == '&') {
+                        lngPos++;
+                        retval = "&&";
+                    }
                 }
                 return retval;
             case '@':
-                // special case; "@=" returned as separate command
+                // special case; "@=" returned as separate token
                 if (agSierraSyntax) {
-                    if (Mid(strCurrentLine, lngPos + 1, 1) == "=") {
-                        lngPos++;
-                        retval = "@=";
-                        return retval;
+                    if (lngPos + 1 < strCurrentLine.Length) {
+                        if (strCurrentLine[lngPos + 1] == '=') {
+                            lngPos++;
+                            retval = "@=";
+                            return retval;
+                        }
                     }
                 }
                 // '@' isn't a single-char token
                 break;
             }
-            //if not a text string,
             if (!blnInQuotes) {
-                //continue adding characters until element separator or EOL is reached
-                while (lngPos < strCurrentLine.Length) {
+                // continue adding characters until element separator or EOL is reached
+                while (lngPos + 1 < strCurrentLine.Length) {
                     char nextChar = strCurrentLine[lngPos + 1];
                     //  space, !"&'() * +,-/:;<=>?[\] ^`{|}~
                     // always marks end of token
                     if (" !\"&'() * +,-/:;<=>?[\\] ^`{|}~".Any(nextChar.ToString().Contains)) {
-                        //end of command text found
+                        // end of token text found
                         break;
                     }
                     else if ("'/?".Any(nextChar.ToString().Contains)) {
@@ -1997,7 +3000,7 @@ namespace WinAGI.Engine {
                         }
                     }
                     else {
-                        //add character
+                        // add character
                         retval += nextChar;
                         lngPos++;
                     }
@@ -2005,30 +3008,26 @@ namespace WinAGI.Engine {
             }
             else {
                 // a text string - 
-                //if past end of line
-                //(which could only happen if a line contains a single double quote on it)
-                if (lngPos + 1 > strCurrentLine.Length) {
-                    //return the single quote
+                // if past end of line (which could only happen if a line contains
+                // a single double quote on it)
+                if (lngPos + 1 >= strCurrentLine.Length) {
+                    // return the single quote
                     return retval;
                 }
-                //add characters until another TRUE quote is found
+                // add characters until another TRUE quote is found
                 do {
-                    //reset pointer to next
                     char nextchar = strCurrentLine[lngPos + 1];
                     //increment position
                     lngPos++;
-                    //if last char was a slash, need to treat this next
-                    //character as special
+                    // if last char was a slash, next char is just added as-is
                     if (blnSlash) {
-                        //next char is just added as-is;
-                        //no checking it
                         //always reset  the slash
                         blnSlash = false;
                     }
                     else {
-                        //regular char; check for slash or quote mark
+                        //check for slash or quote mark
                         if (nextchar == '"') {
-                            //a quote marks end of string
+                            // a quote marks end of string
                             blnInQuotes = false;
                         }
                         else if (nextchar == '\\') {
@@ -2036,7 +3035,6 @@ namespace WinAGI.Engine {
                         }
                     }
                     retval += nextchar;
-                    //if at end of line
                     if (lngPos == strCurrentLine.Length) {
                         //if still in quotes,
                         if (blnInQuotes) {
@@ -2047,31 +3045,28 @@ namespace WinAGI.Engine {
                     }
                 } while (blnInQuotes);
             }
-            // return the command
+            // return the token
             return retval;
         }
 
         /// <summary>
-        /// 
+        /// Checks for an end-of-line marker that matches the current syntax.
         /// </summary>
         internal static void CheckForEOL() {
             // normal syntax requires an eol mark;
             // sierra syntax does not, but it's recommended
             string newLine, oldLine;
 
-            //cache error line, in case error drops down
-            //one or more lines
+            // cache error line, in case error drops down one or more lines
             oldLine = errInfo.Line;
             if (!CheckChar(';')) {
                 // temporarily set to line where error really is
                 newLine = errInfo.Line;
                 errInfo.Line = oldLine;
                 if (agSierraSyntax) {
-                    // warning
                     AddWarning(5111);
                 }
                 else {
-                    // error
                     AddMinorError(4007);
                 }
                 // restore errline
@@ -2080,31 +3075,31 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// This method concatenates strings, i.e. text surrounded by quotes.
+        /// It assumes the input string has just been read into the compiler
+        /// and checks if there are additional elements of this string to add
+        /// to it.
         /// </summary>
         /// <param name="strText"></param>
-        /// <returns></returns>
-        static internal string ConcatArg(string strText) {
-            //this function concatenates strings; it assumes strText
-            //is the string that was just read into the compiler;
-            //it then checks if there are additional elements of
-            //this string to add to it; if so, they are added.
-            //it returns the completed string, with lngPos and lngLine
-            //set accordingly (if there is nothing to concatenate, it
-            //returns original string)
-            //NOTE: input string has already been checked for starting
-            //and ending quotation marks
+        /// <returns>The complete string, with lngPos and lngLine updated
+        /// accordingly. If there is nothing to concatenate, the original
+        /// string is returned.</returns>
+        internal static string ConcatArg(string strText) {
+            // TODO: is this true?? if so, no need for the first two checks 
+            // input string has already been checked for starting and ending
+            // quotation marks
             string strTextContinue;
-            int lngLastPos, lngLastLine, lngLastErr;
+            int lngLastPos, lngLastLine;
             string strLastLine;
             int lngSlashCount, lngQuotesOK;
             string retval;
-            //verify at least two characters
+
+            // verify at least two characters
+            // start/end quotes is true?
             if (strText.Length < 2) {
                 AddMinorError(4081);
                 return "\"\"";
             }
-            //start with input string
             retval = strText;
             //confirm starting string has ending quote
             if (strText[^1] != '\"') {
@@ -2112,107 +3107,90 @@ namespace WinAGI.Engine {
                 retval += "\"";
                 switch (ErrorLevel) {
                 case leHigh:
-                    // error
                     AddMinorError(4080);
                     break;
                 case leMedium:
-                    // set warning
                     AddWarning(5002);
                     break;
                 }
                 // note which line had quotes added, in case it results
-                // in an error caused by a missing end ') ' or whatever
+                // in an error caused by a missing end ')' or whatever
                 // the next required element is
                 lngQuoteAdded = lngLine;
-                // continue- there may be more lines
             }
-            //save current position info
+            // save current position info
             lngLastPos = lngPos;
             lngLastLine = lngLine;
             strLastLine = strCurrentLine;
-            //if at end of last line
             if (lngLastPos == strLastLine.Length) {
-                //get next command
                 strTextContinue = NextToken();
-                //add strings until concatenation is complete
-                while (strTextContinue[0] == QUOTECHAR) {
-                    //if a continuation string is found, we need to reset
-                    //the quote checker
+                // add strings until concatenation is complete
+                while (strTextContinue.Length > 0 && strTextContinue[0] == QUOTECHAR) {
+                    // if a continuation string is found, we need to reset
+                    // the quote checker
                     lngQuotesOK = 0;
-                    // if a single quote (len == 1)
                     if (strTextContinue.Length == 1) {
-                        // treat as end of concatenation; main compiler
-                        // will catch it as a syntax error
+                        // single quote - treat as end of concatenation;
+                        // main compiler will catch it as a syntax error
                         break;
                     }
                     //check for end quote
                     if (strTextContinue[^1] != QUOTECHAR) {
-                        //bad end quote (set end quote marker, overriding error
-                        //that might happen on a previous line)
+                        // bad end quote (set end quote marker, overriding error
+                        // that might happen on a previous line)
                         lngQuotesOK = 2;
                     }
                     else {
-                        //just because it ends in a quote doesn't mean it's good;
-                        //it might be an embedded quote
-                        //(we know we have at least two chars, so we don't need
-                        //to worry about an error with MID function)
-
-                        //check for an odd number of slashes immediately preceding
-                        //this quote
+                        // just because it ends in a quote doesn't mean it's good;
+                        // it might be an embedded quote - check for an odd number
+                        // of slashes immediately preceding this quote
                         lngSlashCount = 0;
                         do {
                             if (retval[^(lngSlashCount + 2)] == '\\') {
-                                // if (Mid(retval, retval.Length - (lngSlashCount + 1), 1) == "\\") {
                                 lngSlashCount++;
                             }
                             else {
                                 break;
                             }
                         } while (retval.Length - (lngSlashCount + 1) >= 0);
-
-                        //if it IS odd, then it's not a valid quote
                         if (lngSlashCount % 2 == 1) {
-                            //it's embedded, and doesn't count
-                            //bad end quote (set end quote marker, overriding error
-                            //that might happen on a previous line)
+                            // it's embedded, and doesn't count - 
+                            // bad end quote (set end quote marker, overriding error
+                            // that might happen on a previous line)
                             lngQuotesOK = 2;
                         }
                     }
-                    //if end quote is missing, deal with it
+                    // if end quote is missing, deal with it
                     if (lngQuotesOK > 0) {
-                        //note which line had quotes added, in case it results
-                        //in an error caused by a missing end ')' or whatever
-                        //the next required element is
+                        // note which line had quotes added, in case it results
+                        // in an error caused by a missing end ')' or whatever
+                        // the next required element is
                         lngQuoteAdded = lngLine;
                         switch (ErrorLevel) {
                         case leHigh:
-                            //error
                             AddMinorError(4080);
                             return "";
                         case leMedium:
-                            //add quote
                             strTextContinue += QUOTECHAR;
-                            //set warning
                             AddWarning(5002);
                             break;
                         case leLow:
-                            //just add quote
                             strTextContinue += QUOTECHAR;
                             break;
                         }
                     }
-                    //strip off ending quote of current msg
+                    // strip off ending quote of current string
                     retval = retval[..^1];
-                    //add strText (without its starting quote)
+                    // add continuation string without its starting quote
                     retval += strTextContinue[1..];
-                    //save current position info
+                    // save current position info
                     lngLastPos = lngPos;
                     lngLastLine = lngLine;
                     strLastLine = strCurrentLine;
-                    //get next command
+                    // get next token
                     strTextContinue = NextToken();
                 }
-                //after end of string found, move back to correct position
+                // after end of string found, move back to correct position
                 lngPos = lngLastPos;
                 lngLine = lngLastLine;
                 errInfo.Line = (lngLastLine + 1).ToString();
@@ -2222,225 +3200,184 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Strips comments from the input text and trims off leading
+        /// and trailing spaces.
         /// </summary>
-        /// <returns></returns>
-        static internal bool RemoveComments() {
-            //this function strips out comments from the input text
-            //and trims off leading and trailing spaces
-            //
+        /// <returns>true if all comments removed without error, otherwise
+        /// false.</returns>
+        internal static bool RemoveComments() {
             // fanAGI syntax:
             //      // - rest of line is ignored (not for Sierra syntax)
             //      [ - rest of line is ignored
             //
-            // Sierra syntax - only square bracket
+            // Sierra syntax - only [ 
             int lngPos;
             bool blnInQuotes = false, blnSlash = false;
             int intROLIgnore;
-            //reset compiler
+
             ResetCompiler();
             do {
-                //reset rol ignore
                 intROLIgnore = 0;
-                //reset comment start + char ptr, and inquotes
                 lngPos = 0;
                 if (!agSierraSyntax) {
                     blnInQuotes = false;
                 }
-                //if this line is not empty,
                 if (strCurrentLine.Length != 0) {
                     while (lngPos < strCurrentLine.Length - 1) {
-                        //get next character from string
-                        lngPos++;
-                        //if NOT inside a quotation,
                         if (!blnInQuotes) {
-                            //check for comment characters at this position
+                            // check for comment characters at this position
                             if ((strCurrentLine[lngPos..(lngPos + 2)] == CMT2_TOKEN && !agSierraSyntax) || strCurrentLine[lngPos] == CMT1_TOKEN[0]) {
                                 intROLIgnore = lngPos;
                                 break;
                             }
                             // slash codes never occur outside quotes
                             blnSlash = false;
-                            //if this character is a quote mark, it starts a string
+                            // if this character is a quote mark, it starts a string
                             blnInQuotes = strCurrentLine[lngPos] == QUOTECHAR;
                         }
                         else {
-                            //if last character was a slash, ignore this character
-                            //because it's part of a slash code
+                            // if last character was a slash, ignore this character
+                            // because it's part of a slash code
                             if (blnSlash) {
-                                //always reset  the slash
+                                // always reset  the slash
                                 blnSlash = false;
                             }
                             else {
-                                //check for slash or quote mark
                                 switch (strCurrentLine[lngPos]) {
                                 case QUOTECHAR:
-                                    //a quote marks end of string
                                     blnInQuotes = false;
                                     break;
                                 case '\\':
-                                    // 92 slash
                                     blnSlash = true;
                                     break;
                                 }
                             }
                         }
+                        lngPos++;
                     }
-
-                    //if any part of line should be ignored,
                     if (intROLIgnore > 0) {
                         strCurrentLine = strCurrentLine[..intROLIgnore];
                     }
                 }
-                // if not sierra syntax, trim it
                 if (!agSierraSyntax) {
                     strCurrentLine = strCurrentLine.Trim();
                 }
-                //replace comment
+                // update the line with comments removed
                 ReplaceLine(lngLine, strCurrentLine);
-                //get next line
                 IncrementLine();
             } while (lngLine != -1);
-            //success
             return true;
         }
 
         /// <summary>
-        /// 
+        /// Replaces the specified line in the input stream with new text, while
+        /// preserving include header information.
         /// </summary>
         /// <param name="LineNum"></param>
         /// <param name="strNewLine"></param>
-        static internal void ReplaceLine(int LineNum, string strNewLine) {
-            //this function replaces the passed line in the input string
-            //with the strNewLine, while preserving include header info
+        internal static void ReplaceLine(int LineNum, string strNewLine) {
             string strInclude;
 
-            //if this is from an include file
             if (Left(stlInput[LineNum], 2) == INCLUDE_MARK) {
-                //need to save include header info so it can
-                //be preserved after comments are removed
                 strInclude = stlInput[LineNum][..stlInput[LineNum].IndexOf('#')];
             }
             else {
                 strInclude = "";
             }
-            //replace the line
+            // replace the line
             stlInput[LineNum] = strInclude + strNewLine;
         }
 
-
         /// <summary>
-        /// 
+        /// Resets the compiler so it points to beginning of input stream.
         /// </summary>
-        static internal void ResetCompiler() {
-            //resets the compiler so it points to beginning of input
-            //also loads first line into strCurrentLine
-
-            //reset include offset, so error trapping
-            //can correctly Count lines
+        internal static void ResetCompiler() {
             lngIncludeOffset = 0;
-            //reset error flag
             blnCriticalError = false;
-            //reset the quotemark error flag
             lngQuoteAdded = -1;
-            //set line pointer to -2 so first call to
-            //IncrementLine gets first line
+            // set line pointer to -2 so first call to IncrementLine gets first line
             lngLine = -2;
-            //get first line
             IncrementLine();
-            //NOTE: don't need to worry about first line;
-            //compiler has already verified the input has at least one line
         }
 
         /// <summary>
-        /// 
+        /// This method scans the entire input stream and extracts all define 
+        /// statements.
         /// </summary>
-        /// <returns></returns>
-        static internal bool ReadDefines() {
-            // for normal syntax, #define is only valid preprocessor
-            // for sierra syntax, all others are allowed:
-            // deftype set so define knows what to accept
-            //  -1 = already handled or ignored; don't do anything
-            //   0 = default define statement; anything goes
-            //   1 = flag only
-            //   2 = variable only
-            //   3 = object (inv or screen) only
-            //   4 = view only
-            //   5 = test command
-            //   6 = action command
-            //   7 = redefining test/action
+        /// <returns>true if defines are extracted without error, otherwise false.</returns>
+        internal static bool ReadDefines() {
+            // for normal syntax, #define and #message are only valid preprocessors
+            // for sierra syntax, valid preprocessors include:
+            //   #define
+            //   #message
+            //   #action
+            //   #test
+            //   #var
+            //   #flag
+            //   #view
+            //   #object
+            //   #tokens
             int i;
             TDefine tdNewDefine = new() { Name = "", Value = "" };
             DefineNameCheck checkName;
             DefineValueCheck checkValue;
-            int lngDefType, lngErrNum;
+            int lngErrNum;
             string strError = "", strToken;
+            DefineType lngDefType;
 
-            //reset Count of defines
-            lngDefineCount = 0;
-            //reset compiler
             ResetCompiler();
-
-            //reset error string
+            lngDefineCount = 0;
             errInfo.Text = "";
-
-            //step through all lines and find preprocesssor values
             do {
-                //check for define statement
                 strToken = NextToken(true);
-                // with Sierra syntax, blank lines will result in a
-                // null token; need to ignore them (by making token a generic string)
-                if (strToken.Length == 0) {
-                    strToken = " ";
-                }
+                // with Sierra syntax, blank lines return a null token
                 // check for preprocessor mark '#' (or '%' in Sierra syntax only)
-                if (strToken[0] == '#' || (strToken[0] == '%' && agSierraSyntax)) {
-                    // strip off the mark
+                if (strToken.Length > 0 && strToken[0] == '#' || (strToken[0] == '%' && agSierraSyntax)) {
                     strToken = strToken[1..];
                     if (agSierraSyntax) {
                         switch (strToken) {
                         case "tokens":
                             // deprecated; just ignore (don't allow different WORDS.TOK file)
-                            lngDefType = -1;
+                            lngDefType = DefineType.Ignore;
                             // clear line so compiler will ignore it
                             ReplaceLine(lngLine, "");
                             break;
                         case "test":
                             // allow renaming/redefining test commands
-                            lngDefType = 5;
+                            lngDefType = DefineType.TestCmd;
                             break;
                         case "action":
-                            lngDefType = 6;
+                            lngDefType = DefineType.ActionCmd;
                             break;
                         case "flag":
                             // same as 'define name f##', but with a number
-                            lngDefType = 1;
+                            lngDefType = DefineType.Flag;
                             break;
                         case "var":
                             // same as 'define name v##, but with a number
-                            lngDefType = 2;
+                            lngDefType = DefineType.Variable;
                             break;
                         case "object":
                             // same as 'define name o##' or 'define name 'i##', but with a number
-                            lngDefType = 3;
+                            lngDefType = DefineType.Object;
                             break;
                         case "define":
-                            lngDefType = 0;
+                            lngDefType = DefineType.Default;
                             break;
                         case "message":
                             // skip - these are handled by ReadMsgs, after defines
-                            lngDefType = -1;
+                            lngDefType = DefineType.Ignore;
                             break;
                         case "view":
                             // same as 'define name ##', but value must be valid view number
-                            lngDefType = 4;
+                            lngDefType = DefineType.View;
                             break;
                         default:
                             // invalid - ignore it; main compiler will catch it
                             // (there are some sierra source files that have
                             // multi-line string assignments that look like
                             // invalid preprocessor)
-                            lngDefType = -1;
+                            lngDefType = DefineType.Ignore;
                             break;
                         }
                     }
@@ -2452,23 +3389,21 @@ namespace WinAGI.Engine {
                             break;
                         case "message":
                             // skip; these are handled in ReadMsgs, afer defines
-                            lngDefType = -1;
+                            lngDefType = DefineType.Ignore;
                             break;
                         default:
                             // invalid preprocessor token; ignore it; main
                             // compiler will handle it
-                            lngDefType = -1;
+                            lngDefType = DefineType.Ignore;
                             break;
                         }
                     }
                     if (lngDefType >= 0) {
-                        // reset type
                         tdNewDefine.Type = atNum;
-                        // get name
                         tdNewDefine.Name = NextToken(true);
                         // for test/action commands, the value may include
                         // args; WinAGI ignores all that; only the number matters
-                        if (lngDefType == 5 || lngDefType == 6) {
+                        if (lngDefType == DefineType.TestCmd || lngDefType == DefineType.ActionCmd) {
                             // goto end of line to get last token
                             tdNewDefine.Value = NextToken(true);
                             do {
@@ -2508,48 +3443,47 @@ namespace WinAGI.Engine {
                             }
                             // set type based on token used
                             switch (lngDefType) {
-                            case 1:
-                                // flag only
+                            case DefineType.Flag:
                                 tdNewDefine.Type = atFlag;
                                 break;
-                            case 2:
+                            case DefineType.Variable:
                                 // variable only
                                 tdNewDefine.Type = atVar;
                                 break;
-                            case 3:
+                            case DefineType.Object:
                                 // generiic obj (sobj or invitem) only
                                 tdNewDefine.Type = atObj;
                                 break;
-                            case 4:
+                            case DefineType.View:
                                 // view only
-                                if (byte.TryParse(tdNewDefine.Value, out _) && compGame.agViews.Exists(byte.Parse(tdNewDefine.Value))) {
-                                    // OK
+                                if (compGame is not null && byte.TryParse(tdNewDefine.Value, out _) && compGame.agViews.Exists(byte.Parse(tdNewDefine.Value))) {
                                     tdNewDefine.Type = atView;
                                 }
                                 else {
                                     // default to number
                                     tdNewDefine.Type = atNum;
-                                    switch (ErrorLevel) {
-                                    case leHigh:
-                                        AddMinorError(6003);
-                                        break;
-                                    case leMedium:
-                                        AddWarning(5110);
-                                        break;
+                                    if (compGame is not null) {
+                                        switch (ErrorLevel) {
+                                        case leHigh:
+                                            AddMinorError(6003);
+                                            break;
+                                        case leMedium:
+                                            AddWarning(5110);
+                                            break;
+                                        }
                                     }
                                 }
                                 break;
-                            case 5:
-                                //rename test command
+                            case DefineType.TestCmd:
+                                // rename test command
                                 if (byte.TryParse(tdNewDefine.Value, out byte tmp) && tmp <= agNumTestCmds) {
                                     agTestCmds[byte.Parse(tdNewDefine.Value)].Name = tdNewDefine.Name;
                                 }
                                 else {
                                     AddMinorError(6004, LoadResString(6004).Replace(ARG1, tdNewDefine.Value));
                                 }
-                                // type is already set
                                 break;
-                            case 6:
+                            case DefineType.ActionCmd:
                                 // rename action command
                                 if (byte.TryParse(tdNewDefine.Value, out tmp) && tmp <= agNumCmds) {
                                     agCmds[byte.Parse(tdNewDefine.Value)].Name = tdNewDefine.Name;
@@ -2557,9 +3491,9 @@ namespace WinAGI.Engine {
                                 else {
                                     AddMinorError(6005, LoadResString(6005).Replace(ARG1, tdNewDefine.Value));
                                 }
-                                // type is already set
                                 break;
-                            case 7:
+                            case DefineType.Redefine:
+                                // TODO: impossible to get here?
                                 // redefine a command - no action needed
                                 break;
                             }
@@ -2589,25 +3523,21 @@ namespace WinAGI.Engine {
                             lngErrNum = 0;
                             switch (checkName) {
                             case ncEmpty:
-                                // no name
                                 lngErrNum = 4070;
                                 strError = LoadResString(4070);
                                 break;
                             case ncNumeric:
-                                // name is numeric
                                 lngErrNum = 4072;
                                 strError = LoadResString(4072);
                                 break;
                             case ncActionCommand:
-                                // name is a command
                                 if (agSierraSyntax) {
                                     // OK if defining a command name with '#define/#action/#test'
                                     switch (lngDefType) {
-                                    case 0:
-                                        // define - mark it as a redfine
-                                        lngDefType = 7;
+                                    case DefineType.Default:
+                                        lngDefType = DefineType.Redefine;
                                         break;
-                                    case 5 or 6:
+                                    case DefineType.TestCmd or DefineType.ActionCmd:
                                         // OK
                                         break;
                                     default:
@@ -2623,15 +3553,14 @@ namespace WinAGI.Engine {
                                 }
                                 break;
                             case ncTestCommand:
-                                // name is test command
                                 if (agSierraSyntax) {
                                     // OK if defining a command name with #test/#action/#define
                                     switch (lngDefType) {
-                                    case 0:
-                                        //mark it as a redefine
-                                        lngDefType = 7;
+                                    case DefineType.Default:
+                                        // mark it as a redefine
+                                        lngDefType = DefineType.Redefine;
                                         break;
-                                    case 5 or 6:
+                                    case DefineType.TestCmd or DefineType.ActionCmd:
                                         // OK
                                         break;
                                     default:
@@ -2641,38 +3570,32 @@ namespace WinAGI.Engine {
                                     }
                                 }
                                 else {
-                                    // not allowed for normal syntax
+                                    // not allowed for fanAGI syntax
                                     lngErrNum = 4022;
                                     strError = LoadResString(4022).Replace(ARG1, tdNewDefine.Name);
                                 }
                                 break;
                             case ncKeyWord:
-                                // name is a compiler keyword
                                 lngErrNum = 4013;
                                 strError = LoadResString(4013).Replace(ARG1, tdNewDefine.Name);
                                 break;
                             case ncArgMarker:
-                                // name is an argument marker
                                 lngErrNum = 4071;
                                 strError = LoadResString(4071);
                                 break;
                             case ncBadChar:
-                                // name contains improper character
                                 lngErrNum = 4067;
                                 strError = LoadResString(4067);
                                 break;
                             case ncGlobal:
-                                // name is already globally defined
                                 lngErrNum = 4019;
                                 strError = LoadResString(4019).Replace(ARG1, tdNewDefine.Name);
                                 break;
                             case ncReservedVar:
-                                // name is a reserved variable name
                                 lngErrNum = 4018;
                                 strError = LoadResString(4018).Replace(ARG1, tdNewDefine.Name);
                                 break;
                             case ncReservedFlag:
-                                // name is reserved flag name
                                 lngErrNum = 4014;
                                 strError = LoadResString(4014).Replace(ARG1, tdNewDefine.Name);
                                 break;
@@ -2682,7 +3605,6 @@ namespace WinAGI.Engine {
                                 strError = LoadResString(4016).Replace(ARG1, tdNewDefine.Name);
                                 break;
                             case ncReservedObj:
-                                // name is reserved object constant
                                 lngErrNum = 4017;
                                 strError = LoadResString(4015).Replace(ARG1, tdNewDefine.Name);
                                 break;
@@ -2692,7 +3614,6 @@ namespace WinAGI.Engine {
                                 strError = LoadResString(4015).Replace(ARG1, tdNewDefine.Name);
                                 break;
                             case ncReservedMsg:
-                                // name is reserved message constant
                                 lngErrNum = 4015;
                                 strError = LoadResString(4015).Replace(ARG1, tdNewDefine.Name);
                                 break;
@@ -2703,7 +3624,8 @@ namespace WinAGI.Engine {
                         }
                         // validate define value
                         lngErrNum = 0;
-                        // type is already set for sierra syntax; value validation sets it for fanAGI
+                        // type is already set for sierra syntax; value validation
+                        // sets it for fanAGI
                         checkValue = ValidateDefValue(tdNewDefine);
                         // value errors 4-6 are only warnings if errorlevel is medium or low
                         switch (ErrorLevel) {
@@ -2721,19 +3643,14 @@ namespace WinAGI.Engine {
                                     tdNewDefine.Value += '\"';
                                 }
                                 AddWarning(5022);
-                                //reset error code
                                 checkValue = vcOK;
                                 break;
                             case vcReserved:
-                                // value is already defined by a reserve name
                                 AddWarning(5032, LoadResString(5032).Replace(ARG1, tdNewDefine.Value));
-                                // reset error code
                                 checkValue = vcOK;
                                 break;
                             case vcGlobal:
-                                // value is already defined by a global name
                                 AddWarning(5031, LoadResString(5031).Replace(ARG1, tdNewDefine.Value));
-                                // reset error code
                                 checkValue = vcOK;
                                 break;
                             }
@@ -2753,22 +3670,19 @@ namespace WinAGI.Engine {
                                         tdNewDefine.Value += '\"';
                                     }
                                 }
-                                // reset return value
                                 checkValue = vcOK;
                                 break;
                             case vcGlobal or vcReserved:
-                                // redefining reserved or global
-                                // reset return value
+                                // redefining reserved or global - OK
                                 checkValue = vcOK;
                                 break;
                             }
                             break;
                         }
-                        // check for errors
+                        // check for remaining errors
                         if (checkValue != vcOK) {
                             switch (checkValue) {
                             case vcEmpty:
-                                // no value
                                 lngErrNum = 4073;
                                 strError = LoadResString(4073);
                                 break;
@@ -2778,9 +3692,6 @@ namespace WinAGI.Engine {
                                 break;
                             case vcBadArgNumber:
                                 // argument value not valid for controller, string, word
-                                // controller - 4136
-                                // string - 4079
-                                // word - 4090
                                 switch (tdNewDefine.Type) {
                                 case atCtrl:
                                     lngErrNum = 4136;
@@ -2802,12 +3713,10 @@ namespace WinAGI.Engine {
                                 strError = LoadResString(4082);
                                 break;
                             case vcReserved:
-                                // value is already defined by a reserve name
                                 lngErrNum = 4041;
                                 strError = LoadResString(4041).Replace(ARG1, tdNewDefine.Value);
                                 break;
                             case vcGlobal:
-                                // value is already defined by a global name
                                 lngErrNum = 4040;
                                 strError = LoadResString(4040).Replace(ARG1, tdNewDefine.Value);
                                 break;
@@ -2821,12 +3730,10 @@ namespace WinAGI.Engine {
                             // numbers must be byte(0-255)
                             if (int.TryParse(tdNewDefine.Value, out int tmp)) {
                                 if (tmp > 256 || tmp < 0) {
-                                    // invalid
                                     AddMinorError(6013);
                                 }
                             }
                             else {
-                                // invalid
                                 AddMinorError(6013);
                             }
                         }
@@ -2862,72 +3769,64 @@ namespace WinAGI.Engine {
                         // save this define
                         Array.Resize(ref tdDefines, lngDefineCount);
                         tdDefines[lngDefineCount - 1] = tdNewDefine;
-                        //increment counter
                         lngDefineCount++;
-                        //now set this line to empty so Compiler doesn"t try to read it
+                        // now set this line to empty so Compiler doesn"t try to read it
                         ReplaceLine(lngLine, "");
                     }
                 }
-                //get next line
                 IncrementLine();
             } while (lngLine != -1);
             return true;
         }
 
         /// <summary>
-        /// 
+        /// Extracts defined messages from the source code data stream.
         /// </summary>
-        /// <returns></returns>
-        static internal bool ReadMsgs() {
-            //note that stripped message lines also strip out the include header string
-            //this doesn't matter since they are only blank lines anyway
-            //only need to include header info if error occurs, and errors never occur on
-            //blank line
-
+        /// <returns>true if messages extracted without errors, otherwise false.</returns>
+        internal static bool ReadMsgs() {
+            // note that stripped message lines also strip out the include header string
+            // this doesn't matter since they are only blank lines anyway only need
+            // to include header info if error occurs, and errors never occur on
+            // blank line
             bool blnDef = false;
             int intMsgNum, lngSlashCount, lngQuotesOK, lngMsgStart;
             string strToken;
 
-            //reset message list to blamk
+            // reset message list
             for (intMsgNum = 0; intMsgNum <= 255; intMsgNum++) {
                 strMsg[intMsgNum] = "";
                 blnMsg[intMsgNum] = false;
                 intMsgWarn[intMsgNum] = 0;
             }
-            //reset compiler
             ResetCompiler();
             do {
-                //get first command on this line
                 strToken = NextToken(true);
-                //if this is the message marker
-                if (strToken == MSG_TOKEN || strToken == "%message") {
-                    if (!agSierraSyntax && strToken == "%message") {
-                        AddMinorError(4061, LoadResString(4061).Replace(ARG1, strToken));
-                    }
-                    //save starting line number (incase this msg uses multiple lines)
+                if (strToken == MSG_TOKEN || agSierraSyntax && strToken == "%message") {
+                    // save starting line number (incase this msg uses multiple lines)
                     lngMsgStart = lngLine;
-                    //get next token as message number (on this line if not Sierra syntax)
+                    // get next token as message number (on this line if not Sierra syntax)
                     strToken = NextToken(!agSierraSyntax);
-                    //this should be a msg number
+                    // this should be a msg number
                     if (!int.TryParse(strToken, out _)) {
-                        //critical error
+                        // critical error because no way to know what number
+                        // this is supposed to be
                         blnCriticalError = true;
                         errInfo.ID = "4077";
                         errInfo.Text = LoadResString(4077);
-                        // TODO: why does this have to be  critical error?
                         return false;
                     }
                     else {
                         // validate msgnum
                         intMsgNum = VariableValue(strToken);
                         if (intMsgNum <= 0) {
-                            //error
+                            // critical error because no way to know what number
+                            // this is supposed to be
+                            blnCriticalError = true;
                             errInfo.ID = "4077";
                             errInfo.Text = LoadResString(4077);
-                            // TODO: why does this have to be a critical error?
                             return false;
                         }
-                        //if msg is already assigned
+                        // msg is already assigned
                         if (blnMsg[intMsgNum]) {
                             errInfo.ID = "4094";
                             errInfo.Text = LoadResString(4094).Replace(ARG1, (intMsgNum).ToString());
@@ -2935,24 +3834,22 @@ namespace WinAGI.Engine {
                             return false;
                         }
                     }
-                    //get next token (should be the message text)
+                    // next token should be the message text
                     strToken = NextToken(false);
                     if (agSierraSyntax) {
                         // in Sierra syntax msgtext can only be a string, with quotes required
                         if (strToken.Length == 0) {
                             // could only happen if at end of logic
-                            blnCriticalError = true;
-                            errInfo.ID = "6006";
-                            errInfo.Text = LoadResString(6006);
-                            return false;
+                            AddMinorError(6006);
+                            // use a placeholder to continue
+                            strToken = "\" \"";
                         }
                         if (strToken[0] != '\"' || strToken[^1] != '\"' || strToken.Length == 2) {
                             AddMinorError(6007);
                         }
-                        //is this a valid string?
                         if (!IsAGIString(strToken)) {
                             // try concatenation
-                            ConcatSierraStr(ref strToken);
+                            strToken = ConcatSierraStr(strToken);
                             if (blnCriticalError) {
                                 errInfo.ID = "6008";
                                 errInfo.Text = LoadResString(6008);
@@ -2962,26 +3859,26 @@ namespace WinAGI.Engine {
                     }
                     else {
                         // fanAGI syntax
-                        //is this a valid string?
                         if (!IsAGIString(strToken)) {
-                            //maybe it's a define
+                            // maybe it's a define
                             if (ConvertArgument(ref strToken, atMsg)) {
-                                //defined strings never get concatenated
+                                // defined strings never get concatenated
                                 blnDef = true;
                             }
                         }
-                        //always reset the 'addquote' flag
-                        //(this is the flag that notes if/where a line had an end quote
-                        //added by the compiler; if this causes problems later in the
-                        //compilation of this command, we can then mark this error
-                        //as the culprit
+                        // always reset the 'addquote' flag (this is the flag that
+                        // notes if/where a line had an end quote added by the
+                        // compiler; if this causes problems later in the
+                        // compilation of this token, we can then mark this error
+                        // as the culprit
                         lngQuoteAdded = -1;
-                        //check msg for quotes (note ending quote has to be checked to make sure it's not
-                        //an embedded quote)
-                        //assume OK until we learn otherwise (0=OK; 1=bad start quote; 2=bad end quote; 3=bad both)
+                        // check msg for quotes (note ending quote has to be checked
+                        // to make sure it's not an embedded quote)
+                        // assume OK until we learn otherwise (0=OK; 1=bad start
+                        // quote; 2=bad end quote; 3=bad both)
                         lngQuotesOK = 0;
                         if (strToken[0] != '"') {
-                            //bad start quote
+                            // bad start quote
                             lngQuotesOK = 1;
                         }
                         else {
@@ -2992,16 +3889,16 @@ namespace WinAGI.Engine {
                                 strToken = "\"\"";
                             }
                         }
-                        //check for end quote
+                        // check for end quote
                         if (strToken[^1] != '"') {
                             //bad end quote
                             lngQuotesOK &= 2;
                         }
                         else {
-                            //just because it ends in a quote doesn't mean it's good;
-                            //it might be an embedded quote
-                            //check for an odd number of slashes immediately preceding
-                            //this quote
+                            // just because it ends in a quote doesn't mean it's good;
+                            // it might be an embedded quote
+                            // check for an odd number of slashes immediately preceding
+                            // this quote
                             lngSlashCount = 0;
                             do {
                                 if (strToken[^(lngSlashCount + 1)] == '\\') {
@@ -3011,17 +3908,25 @@ namespace WinAGI.Engine {
                                     break;
                                 }
                             } while (strToken.Length - (lngSlashCount + 1) >= 0);
-                            //if it IS odd, then it's not a valid quote
+                            // if it is odd, then it's not a valid quote
                             if (lngSlashCount % 2 == 1) {
-                                //it's embedded, and doesn't count
                                 lngQuotesOK &= 2;
                             }
                         }
-                        //if either (or both) quote is missing, deal with it
+                        // if either (or both) quote is missing, deal with it
                         if (lngQuotesOK > 0) {
-                            //note which line had quotes added, in case it results
-                            //in an error caused by a missing end ')' or whatever
-                            //the next required element is
+                            switch (ErrorLevel) {
+                            case leHigh:
+                                errInfo.ID = "4051";
+                                errInfo.Text = LoadResString(4051);
+                                return false;
+                            case leMedium:
+                                AddWarning(5002);
+                                break;
+                            }
+                            // note which line had quotes added, in case it results
+                            // in an error caused by a missing end ')' or whatever
+                            // the next required element is
                             lngQuoteAdded = lngLine;
                             // add missing quotes
                             if ((lngQuotesOK & 1) == 1) {
@@ -3030,25 +3935,15 @@ namespace WinAGI.Engine {
                             if ((lngQuotesOK & 2) == 2) {
                                 strToken += '\"';
                             }
-                            switch (ErrorLevel) {
-                            case leHigh:
-                                errInfo.ID = "4051";
-                                errInfo.Text = LoadResString(4051);
-                                return false;
-                            case leMedium:
-                                //warn if medium
-                                AddWarning(5002);
-                                break;
-                            }
                         }
-                        //concatenate, if necessary
+                        // concatenate, if necessary
                         if (!blnDef) {
                             strToken = ConcatArg(strToken);
                         }
                         // always reset blnDef for next msg
                         blnDef = false;
                     }
-                    //nothing allowed after msg declaration
+                    // nothing allowed after msg declaration
                     if (lngPos != strCurrentLine.Length) {
                         char nextchar = NextChar(true);
                         if (nextchar != 0) {
@@ -3056,6 +3951,8 @@ namespace WinAGI.Engine {
                                 // ';' at end is OK
                                 if (strToken[0] != ';' || NextChar(true) != 0) {
                                     AddMinorError(4099);
+                                    // ignore rest of line
+                                    lngPos = strCurrentLine.Length;
                                 }
                             }
                             else {
@@ -3066,30 +3963,30 @@ namespace WinAGI.Engine {
                             }
                         }
                     }
-
-                    //strip off quotes (we know that the string
-                    //is properly enclosed by quotes because
-                    //ConcatArg function validates they are there
-                    //or adds them if they aren't[or raises an
-                    //error, in which case it doesn't even matter])
+                    // strip off quotes (we know that the string
+                    // is properly enclosed by quotes because
+                    // ConcatArg function validates they are there
+                    // or adds them if they aren't [or raises an
+                    // error, in which case it doesn't even matter])
                     strToken = strToken[1..^1];
-                    //add msg
                     strMsg[intMsgNum] = strToken;
-                    //validate message characters
                     ValidateMsgChars(strToken, intMsgNum);
-                    // mark message as assigned
                     blnMsg[intMsgNum] = true;
                     do {
-                        //set the msg line (and any concatenated lines) to empty so
-                        //compiler doesn't try to read it
+                        // set the msg line (and any concatenated lines) to empty so
+                        // compiler doesn't try to read it
                         ReplaceLine(lngMsgStart, "");
-                        //increment the counter (to get multiple lines, if string is
-                        //concatenated over more than one line)
+                        // increment the counter (to get multiple lines, if string is
+                        // concatenated over more than one line)
                         lngMsgStart++;
-                        //continue until back to current line
+                        // continue until back to current line
                     } while (lngMsgStart <= lngLine);
                 }
-                //get next line
+                else {
+                    if (strToken == "%message" && !agSierraSyntax) {
+                        AddMinorError(4061, LoadResString(4061).Replace(ARG1, strToken));
+                    }
+                }
                 IncrementLine();
             } while (lngLine != -1);
             // done
@@ -3097,12 +3994,12 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Sends the specified warning to the calling program as an event.
         /// </summary>
         /// <param name="WarningNum"></param>
         /// <param name="WarningText"></param>
-        static internal void AddWarning(int WarningNum, string WarningText = "") {
-            //(number, line and module only have meaning for logic warnings
+        internal static void AddWarning(int WarningNum, string WarningText = "") {
+            // (number, line and module only have meaning for logic warnings
             // other warnings generated during a game compile will use
             // same format, but use -- for warning number, line and module)
 
@@ -3110,7 +4007,7 @@ namespace WinAGI.Engine {
             if (WarningText.Length == 0) {
                 WarningText = LoadResString(WarningNum);
             }
-            //only add if not ignoring
+            // only add if not ignoring
             if (!agNoCompWarn[WarningNum - 5000]) {
                 errInfo.Type = EventType.etWarning;
                 errInfo.ID = WarningNum.ToString();
@@ -3122,37 +4019,34 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// This method reads and validates the input for an 'if' command.
         /// </summary>
         /// <returns></returns>
-        static internal bool CompileIf() {
-            //this routine will read and validate a group of test commands
-            //for an 'if' statement and return
-            //it is entered when the compiler encounters an //if// command
-            //the syntax expected for test commands is:
+        internal static bool CompileIf() {
+            // the syntax expected for test tokens is:
+            // 
+            //    if(<test>){
+            // or
+            //    if(<test> && <test> && ... ){
+            // or
+            //    if((<test> || <test> || ... )){
             //
-            //   if(<test>){
-            //or
-            //   if(<test> && <test> && ... ){
-            //or
-            //   if((<test> || <test> || ... )){
+            // or a combination of ORs and ANDs, as long as ORs are always
+            //    in brackets, and ANDs are never in brackets
             //
-            //or a combination of ORs and ANDs, as long as ORs are always
-            //   in brackets, and ANDs are never in brackets
+            //    <test> may be a test token (<tstcmd>(arg1, arg2, ..., argn)
+            //    or a special syntax representation of a test token:
+            //      fn        ==> isset(fn)
+            //      vn == m   ==> equaln(vn,m)
+            //      etc
             //
-            //   <test> may be a test command (<tstcmd>(arg1, arg2, ..., argn)
-            //   or a special syntax representation of a test command:
-            //     fn        ==> isset(fn)
-            //     vn == m   ==> equaln(vn,m)
-            //     etc
+            // valid special comparison expressions are ==, !=, <>, >, =<, <, >=
+            // OR//ed tests must always be enclosed in parenthesis; AND//ed tests
+            // must never be enclosed in parentheses (this ensures the compiled code
+            // will be compatible with the AGI interpreter)
             //
-            //valid special comparison expressions are ==, !=, <>, >, =<, <, >=
-            //OR//ed tests must always be enclosed in parenthesis; AND//ed tests
-            //must never be enclosed in parentheses (this ensures the compiled code
-            //will be compatible with the AGI interpreter)
-            //
-            //(any test command may have the negation operator (!) placed directly in front of it
-
+            // any test token may have the negation operator (!) placed directly
+            // in front of it
             string strTestCmd, strArg;
             byte bytTestCmd;
             byte[] bytArg = new byte[8];
@@ -3160,77 +4054,95 @@ namespace WinAGI.Engine {
             int[] lngWord;
             int intWordCount;
             int i;
-            bool blnOrBlock = false; //command block, not a comment block
+            bool blnOrBlock = false;
             bool blnNeedNextCmd = true;
             int intNumTestCmds = 0;
             int intNumCmdsInBlock = 0;
             bool blnNOT;
-            bool endfound = false;
 
-            //write out starting if byte
+            // 'if' starting bytecode
             tmpLogRes.WriteByte(0xFF);
 
-            //next character should be "("
+            // next character should be "("
             if (!CheckChar('(')) {
                 AddMinorError(4002);
-                return false;
+                // keep going - maybe the missing '(' is the only problem
             }
 
-            //now, step through input, until final ')' is found:
+            // step through input, until final ')' is found:
             do {
-                //get next command
                 strTestCmd = NextToken();
-                //check for end of input,
                 if (lngLine == -1) {
                     // nothing left, return critical error
                     errInfo.ID = "4106";
                     errInfo.Text = LoadResString(4106);
                     return false;
                 }
-                //if awaiting a test command,
                 if (blnNeedNextCmd) {
                     switch (strTestCmd) {
-                    case "(": //open paran
-                              //if already in a block
+                    case "(":
                         if (blnOrBlock) {
                             AddMinorError(4045);
                         }
-                        //write /'or' block start
+                        // add 'or' block starting bytecode
                         tmpLogRes.WriteByte(0xFC);
                         blnOrBlock = true;
                         intNumCmdsInBlock = 0;
                         break;
                     case ")":
-                        //if a test command is expected, ')' always causes error
-                        if (blnOrBlock && intNumCmdsInBlock == 0) {
-                            // TODO: technically not an error; it will compile and run
-                            // but I don't feel like adding another warning
-                            AddMinorError(4044);
-                            // close the block
-                            blnOrBlock = false;
-                            blnNeedNextCmd = false;
+                        if (blnOrBlock) {
+                            if (intNumCmdsInBlock == 0) {
+                                // or block with no commands
+                                switch (ErrorLevel) {
+                                case leHigh or leMedium:
+                                    AddWarning(5113);
+                                    break;
+                                }
+                                // close the block
+                                blnOrBlock = false;
+                                blnNeedNextCmd = false;
+                            }
+                            else if (intNumCmdsInBlock == 1) {
+                                // or block with one command
+                                switch (ErrorLevel) {
+                                case leHigh or leMedium:
+                                    AddWarning(5109);
+                                    break;
+                                }
+                                // close the block
+                                blnOrBlock = false;
+                                blnNeedNextCmd = false;
+                            }
                         }
                         else if (intNumTestCmds == 0) {
-                            // TODO: technically not an error; it will compile and run
-                            // but I don't feel like adding another warning
-                            AddMinorError(4057);
+                            // if block with no commands
+                            switch (ErrorLevel) {
+                            case leHigh:
+                                AddMinorError(4057);
+                                break;
+                            case leMedium:
+                                AddWarning(5114);
+                                break;
+                            }
                             // done with if
-                            break;
+                            tmpLogRes.WriteByte(0xFF);
+                            return true;
                         }
                         else {
+                            // unexpected closer
                             AddMinorError(4056);
-                            // done with if;
-                            break;
+                            // done with if
+                            tmpLogRes.WriteByte(0xFF);
+                            return true;
                         }
                         break;
                     default:
-                        //check for NOT
+                        // check for NOT
                         blnNOT = (strTestCmd == NOT_TOKEN);
                         if (blnNOT) {
                             tmpLogRes.WriteByte(0xFD);
-                            //read in next test command
                             strTestCmd = NextToken();
-                            //check for end of input,
+                            //check for end of input
                             if (lngLine == -1) {
                                 blnCriticalError = true;
                                 errInfo.ID = "4106";
@@ -3239,25 +4151,23 @@ namespace WinAGI.Engine {
                             }
                         }
                         bytTestCmd = CommandNum(true, strTestCmd);
-                        //if command not found,
                         if (bytTestCmd == 255) {
-                            //check for special syntax
-                            if (!CompileSpecialif(strTestCmd, blnNOT)) {
-                                //error; the CompileSpecialIf function
-                                //sets the error codes, - return true to continue
+                            // no command found - check for special syntax
+                            if (!CompileSpecialIf(strTestCmd, blnNOT)) {
+                                // CompileSpecialIf sets the error -
+                                // return true to continue
                                 return true;
                             }
                         }
                         else {
-                            //write the test command code
                             tmpLogRes.WriteByte(bytTestCmd);
-                            //next command should be "("
+                            // next command should be "("
                             if (!CheckChar('(')) {
                                 AddMinorError(4048);
                             }
-                            //check for return.false() command
+                            // check for return.false() token
                             if (bytTestCmd == 0) {
-                                //warn user that it's not compatible with AGI Studio
+                                // warn user that it's not compatible with AGI Studio
                                 switch (ErrorLevel) {
                                 case leHigh or leMedium:
                                     //generate warning
@@ -3265,27 +4175,23 @@ namespace WinAGI.Engine {
                                     break;
                                 }
                             }
-                            //if said command
                             if (bytTestCmd == 0xE) {
-                                // reset word count
+                                // process a said command
                                 intWordCount = 0;
                                 lngWord = [];
-                                // loop to add words
                                 do {
-                                    //get first word arg
                                     lngArg = GetNextArg(atVocWrd, intWordCount);
-                                    //if error
                                     if (lngArg < 0) {
+                                        // not a valid word
                                         switch (lngArg) {
                                         case -1:
                                             AddMinorError(int.Parse(errInfo.ID), errInfo.Text);
                                             break;
                                         default:
-                                            // show error
                                             AddMinorError(4054);
                                             break;
                                         }
-                                        // use placeholder 'anyword'
+                                        // use placeholder number, value doesn't matter
                                         lngArg = 1;
                                     }
                                     // if too many words
@@ -3294,131 +4200,127 @@ namespace WinAGI.Engine {
                                         break;
                                     }
                                     else if (intWordCount < 10) {
-                                        // if 1 to 9 words, ok to add this word number
+                                        // add this word number
                                         // to array of word numbers
                                         Array.Resize(ref lngWord, intWordCount + 1);
                                         lngWord[intWordCount] = lngArg;
                                     }
                                     intWordCount++;
-                                    //get next character
-                                    //(should be a comma, or close parenthesis, if no more words)
+                                    // next character should be a comma, or close parenthesis
                                     strArg = NextChar().ToString();
                                     if (strArg.Length != 0) {
+                                        bool exitDo = false;
                                         switch (strArg[0]) {
                                         case ')':
-                                            //move pointer back one space so
-                                            //the ')' will be found at end of command
+                                            // move pointer back one space so the ')' 
+                                            // will be found at end of command
                                             lngPos--;
-                                            endfound = true;
-                                            break; //exit do
+                                            exitDo = true;
+                                            break;
                                         case ',':
-                                            //expected; continue check for next word argument
+                                            // expected; continue check for next word argument
                                             break;
                                         default:
-                                            //missing comma
+                                            // missing comma or colse parenthesis
                                             AddMinorError(4047, LoadResString(4047).Replace(ARG1, (intWordCount + 1).ToString()));
                                             // assume comma and continue
                                             lngPos -= strArg.Length;
                                             break;
                                         }
+                                        if (exitDo) {
+                                            break;
+                                        }
                                     }
                                     else {
-                                        //this  should normally never happen, since changing the function to allow
-                                        //splitting over multiple lines, unless this is the LAST line of
-                                        //the logic (an EXTREMELY rare edge case)
-                                        //check for added quotes; they are the problem
+                                        // this should normally never happen, since changing the function
+                                        // to allow splitting over multiple lines, unless this is the last
+                                        // line of the logic (an EXTREMELY rare edge case)
+                                        // check for added quotes; they are the problem
                                         if (lngQuoteAdded >= 0) {
-                                            //reset line;
                                             lngLine = lngQuoteAdded;
                                             errInfo.Line = (lngLine - lngIncludeOffset + 1).ToString();
                                         }
                                         errInfo.ID = "4047";
-                                        //use 1-base arg values
                                         errInfo.Text = LoadResString(4047).Replace(ARG1, (intWordCount + 1).ToString());
                                         return false;
                                     }
                                 } while (true);
-                                //reset the quotemark error flag after ')' is found
+                                // reset the quotemark error flag after ')' is found
                                 lngQuoteAdded = -1;
-                                //need to write number of arguments for //said//
-                                //before writing arguments themselves
+                                // add number of arguments
                                 tmpLogRes.WriteByte((byte)intWordCount);
-                                //now add words
+                                // add words
                                 for (i = 0; i < intWordCount; i++) {
-                                    //write word Value
                                     tmpLogRes.WriteWord((ushort)lngWord[i]);
                                 }
                             }
                             else {
-                                //not 'said'; extract arguments for this command
+                                // extract arguments
                                 for (i = 0; i < TestCommands[bytTestCmd].ArgType.Length; i++) {
-                                    //after first argument, verify comma separates arguments
+                                    // after first argument, verify comma separates arguments
                                     if (i > 0) {
                                         if (!CheckChar(',')) {
                                             AddMinorError(4047, LoadResString(4047).Replace(ARG1, (i + 1).ToString()));
                                         }
                                     }
-                                    //reset the quotemark error flag after comma is found
+                                    // reset the quotemark error flag after comma is found
                                     lngQuoteAdded = -1;
                                     lngArg = GetNextArg(TestCommands[bytTestCmd].ArgType[i], i);
-                                    //check for error
                                     if (lngArg >= 0) {
                                         bytArg[i] = (byte)lngArg;
                                     }
                                     else {
                                         if (lngArg == -1) {
+                                            // invalid arg
                                             AddMinorError(int.Parse(errInfo.ID), errInfo.Text);
                                         }
                                         else {
-                                            // if error number is 4054 add cmd name
+                                            // missing arg
                                             AddMinorError(4054, errInfo.Text.Replace(ARG2, agTestCmds[bytTestCmd].Name));
                                         }
                                         // use a placeholder
                                         bytArg[i] = 0;
                                     }
-                                    //write argument
+                                    // add argument
                                     tmpLogRes.WriteByte(bytArg[i]);
                                 }
                             }
-                            //next character should be ")"
+                            // next character should be ")"
                             if (!CheckChar(')')) {
                                 AddMinorError(4160);
                             }
-                            //reset the quotemark error flag
+                            // reset the quotemark error flag
                             lngQuoteAdded = -1;
-                            //validate arguments for this command
                             if (!ValidateIfArgs(bytTestCmd, ref bytArg)) {
-                                //error assigned by called function
+                                // error assigned by called function
                                 return false;
                             }
                         }
-                        //command added
                         intNumTestCmds++;
-                        //if in IF block,
                         if (blnOrBlock) {
                             intNumCmdsInBlock++;
                         }
-                        //toggle off need for test command
                         blnNeedNextCmd = false;
                         break;
                     }
                 }
-                else { //not awaiting a test command
+                else {
+                    // not awaiting a test command
                     switch (strTestCmd) {
                     case NOT_TOKEN:
-                        //invalid
+                        // 'not' token is not allowed 
                         AddMinorError(4097);
                         break;
                     case AND_TOKEN:
-                        //if inside brackets
                         if (blnOrBlock) {
+                            // 'and' not allowed if inside brackets
                             AddMinorError(4037);
                         }
                         blnNeedNextCmd = true;
                         break;
                     case OR_TOKEN:
-                        //if NOT inside brackets
                         if (!blnOrBlock) {
+                            // 'or' not allowed UNLESS inside brackets
                             AddMinorError(4100);
                             // assume a valid test
                             intNumCmdsInBlock++;
@@ -3428,92 +4330,60 @@ namespace WinAGI.Engine {
                         blnNeedNextCmd = true;
                         break;
                     case ")":
-                        //if inside brackets
                         if (blnOrBlock) {
-                            //ensure at least one command in block,
-                            if (intNumCmdsInBlock == 0) {
-                                // TODO: technically, not an error- it will compile and run
-                                // but I don't feel like adding another warning code...
-                                AddMinorError(4044);
-                                return false;
-                            }
-                            else if (intNumCmdsInBlock == 1) {
-                                AddWarning(5109);
-                            }
-                            //close brackets
                             blnOrBlock = false;
                             tmpLogRes.WriteByte(0xFC);
                         }
                         else {
-                            //ensure at least one command in block,
-                            if (intNumTestCmds == 0) {
-                                AddWarning(4057);
-                            }
-                            //end of if block found
+                            // end of if block found
                             tmpLogRes.WriteByte(0xFF);
                             return true;
                         }
                         break;
                     default:
-                        int tmpErr;
-                        if (blnOrBlock) {
-                            tmpErr = 4101;
-                        }
-                        else {
-                            tmpErr = 4038;
-                        }
-                        AddMinorError(tmpErr);
+                        AddMinorError(blnOrBlock ? 4101 : 4038);
                         // assume it was ok
                         blnNeedNextCmd = true;
                         // 'and if it is a close bracket, assume
                         // the 'if' block is now closed
                         if (strTestCmd == "{") {
                             lngPos--;
-                            break;
+                            // write ending if byte
+                            tmpLogRes.WriteByte(0xFF);
+                            return true;
                         }
                         break;
                     }
                 }
-                //never leave loop normally; error, end of input, or successful
-                //compilation of test commands will all exit loop directly
+                // never leave loop normally; error, end of input, or successful
+                // compilation of test commands will all exit loop directly
             } while (true);
         }
 
         /// <summary>
-        /// 
+        /// Concatenates string from multiple lines that are formatted in Sierra syntax.
         /// </summary>
         /// <param name="strText"></param>
-        static void ConcatSierraStr(ref string strText) {
+        static string ConcatSierraStr(string strText) {
             // sierra syntax allows concatenation over multiple lines, with
             // ending quote only at end of last line
-
+            bool blnInQuotes = true, blnSlash = false;
+            char theChar;
+            string retval = strText;
             // strText is first line, without closing quote, and goes to
             // end of current line, so first time through the loop the
             // line will automatically increment
 
-            // add text, including spaces, until valid ending quote found
-
-            bool blnInQuotes = true, blnSlash = false;
-            char theChar;
-
-            //add characters until another TRUE quote is found
+            // add characters until another TRUE quote is found
             do {
-                //if at end of line
                 if (lngPos == strCurrentLine.Length) {
-                    //go to next line
                     IncrementLine();
-                    //don't exceed last line
                     if (lngLine == -1) {
                         blnCriticalError = true;
-                        return;
+                        return retval;
                     }
                 }
-
-                // get the next char in the line
-                theChar = strCurrentLine[lngPos + 1];
-                // increment position
-                lngPos++;
-                // if last char was a slash,
+                theChar = strCurrentLine[lngPos++];
                 if (blnSlash) {
                     // next char is just added as-is; no checking it
                     // always reset  the slash
@@ -3522,45 +4392,63 @@ namespace WinAGI.Engine {
                 else {
                     // regular char; check for slash or quote mark
                     switch (theChar) {
-                    case '\"': //quote mark
-                               // a quote marks end of string
+                    case '\"':
+                        // quote mark - end of string
                         blnInQuotes = false;
                         break;
-                    case '\\': //backslash
+                    case '\\':
                         blnSlash = true;
                         break;
                     }
                 }
-
-                strText += theChar;
+                retval.Append(theChar);
                 if (!blnInQuotes) {
-                    return;
+                    return retval;
                 }
             } while (true);
         }
 
         /// <summary>
-        /// 
+        /// Returns the number of the specified label, or zero if a match
+        /// is not found.
+        /// </summary>
+        /// <param name="LabelName"></param>
+        /// <returns></returns>
+        internal static int LabelNum(string LabelName) {
+            //
+            int i;
+            for (i = 0; i < bytLabelCount; i++) {
+                if (llLabel[i].Name == LabelName) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// This method checks the values passed as arguments to the specified action
+        /// command and adds warnings or errors as needed.
         /// </summary>
         /// <param name="CmdNum"></param>
         /// <param name="ArgVal"></param>
         /// <returns></returns>
-        static internal bool ValidateArgs(int CmdNum, ref byte[] ArgVal) {
-            //check for specific command issues
-            //for commands that can affect variable values, need to check against reserved variables
-            //for commands that can affect flags, need to check against reserved flags
-            //for other commands, check the passed arguments to see if values are appropriate
+        internal static bool ValidateArgs(int CmdNum, ref byte[] ArgVal) {
+            // for commands that can affect variable values, need to check against
+            // reserved variables
+            // for commands that can affect flags, need to check against reserved
+            // flags
+            // for other commands, check the passed arguments to see if values
+            // are appropriate
             bool blnUnload = false, blnWarned = false;
 
-            // check each command
             switch (CmdNum) {
             case 1 or 2 or (>= 4 and <= 8) or 10 or (>= 165 and <= 168):
-                //increment, decrement, assignv, addn, addv, subn, subv
-                //rindirect, mul.n, mul.v, div.n, div.v
-                //check for reserved variables that should never be manipulated
-                //(assume arg Value is zero to avoid tripping other checks)
+                // increment, decrement, assignv, addn, addv, subn, subv
+                // rindirect, mul.n, mul.v, div.n, div.v
+                // check for reserved variables that should never be manipulated
+                // (assume arg Value is zero to avoid tripping other checks)
                 CheckResVarUse(ArgVal[0], 0);
-                //for div.n(vA, B) only, check for divide-by-zero
+                // for div.n(vA, B) only, check for divide-by-zero
                 if (CmdNum == 167) {
                     if (ArgVal[1] == 0) {
                         switch (ErrorLevel) {
@@ -3576,18 +4464,15 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 3:
-                //assignn
-                //check for actual Value being assigned
+                // assignn
                 CheckResVarUse(ArgVal[0], ArgVal[1]);
                 break;
             case >= 12 and <= 14:
-                //set, reset, toggle
-                //check for reserved flags
+                // set, reset, toggle
                 CheckResFlagUse(ArgVal[0]);
                 break;
             case 18:
-                //new.room(A)
-                //validate that this logic exists
+                // new.room(A)
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -3599,17 +4484,17 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //expect no more commands
+                // expect no more commands
                 blnNewRoom = true;
+                // TODO: need similar check after a return() cmd
                 break;
             case 19:
-                //new.room.v
-                //expect no more commands
+                // new.room.v
+                // expect no more commands
                 blnNewRoom = true;
                 break;
             case 20:
-                //load.logics(A)
-                //validate that logic exists
+                // load.logics(A)
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -3623,9 +4508,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 22:
-                //call(A)
-                //calling logic0 is a BAD idea
+                // call(A)
                 if (ArgVal[0] == 0) {
+                    // calling logic0 is a BAD idea
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4118";
@@ -3636,19 +4521,6 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //recursive calling is usually BAD
-                if (ArgVal[0] == bytLogComp) {
-                    switch (ErrorLevel) {
-                    case leHigh:
-                        errInfo.ID = "4117";
-                        errInfo.Text = LoadResString(4117);
-                        return false;
-                    case leMedium:
-                        AddWarning(5089);
-                        break;
-                    }
-                }
-                //validate that logic exists
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -3660,10 +4532,21 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
+                if (ArgVal[0] == bytLogComp) {
+                    // recursive calling is usually BAD
+                    switch (ErrorLevel) {
+                    case leHigh:
+                        errInfo.ID = "4117";
+                        errInfo.Text = LoadResString(4117);
+                        return false;
+                    case leMedium:
+                        AddWarning(5089);
+                        break;
+                    }
+                }
                 break;
             case 30:
-                //load.view(A)
-                //validate that view exists
+                // load.view(A)
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -3677,8 +4560,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 32:
-                //discard.view(A)
-                //validate that view exists
+                // discard.view(A)
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -3692,8 +4574,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 37:
-                //position(oA, X,Y)
-                //check x/y against limits
+                // position(oA, X,Y)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -3707,8 +4588,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 39:
-                //get.posn
-                //neither variable arg should be a reserved Value
+                // get.posn
                 if (ArgVal[1] <= 26 || ArgVal[2] <= 26) {
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
@@ -3718,8 +4598,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 41:
-                //set.view(oA, B)
-                //validate that view exists
+                // set.view(oA, B)
                 if (!compGame.agViews.Exists(ArgVal[1])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -3733,12 +4612,11 @@ namespace WinAGI.Engine {
                 }
                 break;
             case (>= 49 and <= 53) or 97 or 118:
-                //last.cel, current.cel, current.loop,
-                //current.view, number.of.loops, get.room.v
-                //get.num
-                //variable arg is second
-                //variable arg should not be a reserved Value
+                // last.cel, current.cel, current.loop,
+                // current.view, number.of.loops, get.room.v
+                // get.num
                 if (ArgVal[1] <= 26) {
+                    // variable arg is second and should not be a reserved Value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
@@ -3747,9 +4625,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 54:
-                //set.priority(oA, B)
-                //check priority Value
+                // set.priority(oA, B)
                 if (ArgVal[1] > 15) {
+                    // invalid priority Value
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4125";
@@ -3762,10 +4640,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 57:
-                //get.priority
-                //variable is second argument
-                //variable arg should not be a reserved Value
+                // get.priority
                 if (ArgVal[1] <= 26) {
+                    // variable is second argument and should not be a reserved Value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
@@ -3774,18 +4651,16 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 63:
-                //set.horizon(A)
-                //>120 or <16 is unusual
-                //>=167 will cause AGI to freeze/crash
-
-                //validate horizon Value
+                // set.horizon(A)
                 switch (ErrorLevel) {
                 case leHigh:
                     if (ArgVal[0] >= 167) {
+                        // >=167 will cause AGI to freeze/crash
                         errInfo.ID = "4126";
                         errInfo.Text = LoadResString(4126);
                         return false;
                     }
+                    // >120 or <16 is unusual
                     if (ArgVal[0] > 120) {
                         AddWarning(5042);
                     }
@@ -3807,9 +4682,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case >= 64 and <= 66:
-                //object.on.water, object.on.land, object.on.anything
-                //warn if used on ego
+                // object.on.water, object.on.land, object.on.anything
                 if (ArgVal[0] == 0) {
+                    // warn if used on ego
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5082);
@@ -3818,10 +4693,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 69:
-                //distance(oA, oB, vC)
-                //variable is third arg
-                //variable arg should not be a reserved Value
+                // distance(oA, oB, vC)
                 if (ArgVal[2] <= 26) {
+                    // variable is third arg and should not be a reserved Value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
@@ -3830,9 +4704,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 73 or 75:
-                //end.of.loop, reverse.loop
-                //flag arg should not be a reserved Value
+                // end.of.loop, reverse.loop
                 if (ArgVal[1] <= 15) {
+                    // flag arg should not be a reserved Value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
@@ -3841,8 +4715,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 81:
-                //move.obj(oA, X,Y,STEP,fDONE)
-                //validate the target position
+                // move.obj(oA, X,Y,STEP,fDONE)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -3854,16 +4727,16 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //check for ego object
                 if (ArgVal[0] == 0) {
+                    // ego object forces program mode
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5045);
                         break;
                     }
                 }
-                //flag arg should not be a reserved Value
                 if (ArgVal[4] <= 15) {
+                    // flag arg should not be a reserved Value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
@@ -3872,9 +4745,17 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 82:
-                //move.obj.v
-                //flag arg should not be a reserved Value
+                // move.obj.v
+                if (ArgVal[0] == 0) {
+                    // ego object forces program mode
+                    switch (ErrorLevel) {
+                    case leHigh or leMedium:
+                        AddWarning(5045);
+                        break;
+                    }
+                }
                 if (ArgVal[4] <= 15) {
+                    // flag arg should not be a reserved Value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
@@ -3883,8 +4764,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 83:
-                //follow.ego(oA, DISTANCE, fDONE)
-                //validate distance value
+                // follow.ego(oA, DISTANCE, fDONE)
                 if (ArgVal[1] <= 1) {
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
@@ -3892,29 +4772,28 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //check for ego object
                 if (ArgVal[0] == 0) {
+                    // ego can't follow ego
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5027);
                         break;
                     }
                 }
-                //flag arg should not be a reserved Value
                 if (ArgVal[2] <= 15) {
+                    // flag arg should not be a reserved Value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
                 }
-                //check for read only reserved flags
                 CheckResFlagUse(ArgVal[2]);
                 break;
             case 86:
-                //set.dir(oA, vB)
-                //check for ego object
+                // set.dir(oA, vB)
                 if (ArgVal[0] == 0) {
+                    // has no effect on ego object
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5026);
@@ -3923,10 +4802,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 87:
-                //get.dir (oA, vB)
-                //variable is second arg
-                //variable arg should not be a reserved Value
+                // get.dir (oA, vB)
                 if (ArgVal[1] <= 26) {
+                    // variable arg should not be a reserved Value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
@@ -3935,11 +4813,8 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 90:
-                //block(x1,y1,x2,y2)
-                //validate that all are within bounds, and that x1<=x2 and y1<=y2
-                //also check that
+                // block(x1,y1,x2,y2)
                 if (ArgVal[0] > 159 || ArgVal[1] > 167 || ArgVal[2] > 159 || ArgVal[3] > 167) {
-                    //bad number
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4129";
@@ -3951,7 +4826,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 if ((ArgVal[2] - ArgVal[0] < 2) || (ArgVal[3] - ArgVal[1] < 2)) {
-                    //won't work
+                    // invalid arguments
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4129";
@@ -3964,8 +4839,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 98:
-                //load.sound(A)
-                //validate the sound exists
+                // load.sound(A)
                 if (!compGame.agSnds.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -3979,8 +4853,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 99:
-                //sound(A, fB)
-                //validate the sound exists
+                // sound(A, fB)
                 if (!compGame.agSnds.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -3992,20 +4865,18 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //flag arg should not be a reserved Value
                 if (ArgVal[1] <= 15) {
+                    // flag arg should not be a reserved Value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
                 }
-                //check for read only reserved flags
                 CheckResFlagUse(ArgVal[1]);
                 break;
             case 103:
-                //display(ROW,COL,mC)
-                //check row/col against limits
+                // display(ROW, COL, mC)
                 if (ArgVal[0] > 24 || ArgVal[1] > 39) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -4019,9 +4890,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 105:
-                //clear.lines(TOP,BTM,C)
-                //top must be >btm; both must be <=24
+                // clear.lines(TOP, BTM, C)
                 if (ArgVal[0] > 24 || ArgVal[1] > 24 || ArgVal[0] > ArgVal[1]) {
+                    // top must be >btm; both must be <=24
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4132";
@@ -4032,8 +4903,9 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //color value should be 0 or 15 //(but it doesn't hurt to be anything else)
                 if (ArgVal[2] > 0 && ArgVal[2] != 15) {
+                    // color value should be 0 or 15 /(but it doesn't
+                    // hurt to be anything else)
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5100);
@@ -4042,9 +4914,10 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 109:
-                //set.text.attribute(A,B)
-                //should be limited to valid color values (0-15)
+                // set.text.attribute(A,B)
                 if (ArgVal[0] > 15 || ArgVal[1] > 15) {
+                    // color value should be 0 or 15 /(but it doesn't
+                    // hurt to be anything else)
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4133";
@@ -4057,10 +4930,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 110:
-                //shake.screen(A)
-                //shouldn't normally have more than a few shakes; zero is BAD
+                // shake.screen(A)
                 if (ArgVal[0] == 0) {
-                    //error!
+                    // zero is BAD
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         errInfo.ID = "4134";
@@ -4069,9 +4941,8 @@ namespace WinAGI.Engine {
                     }
                 }
                 else if (ArgVal[0] > 15) {
-                    //could be a palette change?
                     if (ArgVal[0] >= 100 && ArgVal[0] <= 109) {
-                        //separate warning
+                        // could be a palette change
                         switch (ErrorLevel) {
                         case leHigh or leMedium:
                             AddWarning(5058);
@@ -4079,7 +4950,7 @@ namespace WinAGI.Engine {
                         }
                     }
                     else {
-                        //warning
+                        // shouldn't normally have more than a few shakes
                         switch (ErrorLevel) {
                         case leHigh or leMedium:
                             AddWarning(5057);
@@ -4089,11 +4960,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 111:
-                //configure.screen(TOP,INPUT,STATUS)
-                //top should be <=3
-                //input and status should not be equal
-                //input and status should be <top or >=top+21
+                // configure.screen(TOP,INPUT,STATUS)
                 if (ArgVal[0] > 3) {
+                    // top should be <=3
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4135";
@@ -4105,6 +4974,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 if (ArgVal[1] > 24 || ArgVal[2] > 24) {
+                    // input or status are invalid
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5099);
@@ -4112,6 +4982,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 if (ArgVal[1] == ArgVal[2]) {
+                    // input and status should not be equal
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5048);
@@ -4119,6 +4990,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 if ((ArgVal[1] >= ArgVal[0] && ArgVal[1] <= ArgVal[0] + 20) || (ArgVal[2] >= ArgVal[0] && ArgVal[2] <= ArgVal[0] + 20)) {
+                    // input and status should be <top or >=top+21
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5049);
@@ -4127,10 +4999,10 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 114:
-                //set.string(sA, mB)
-                //warn user if setting input prompt to unusually long value
+                // set.string(sA, mB)
                 if (ArgVal[0] == 0) {
                     if (strMsg[ArgVal[1]].Length > 10) {
+                        // warn user if setting input prompt to unusually long value
                         switch (ErrorLevel) {
                         case leHigh or leMedium:
                             AddWarning(5096);
@@ -4140,9 +5012,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 115:
-                //get.string(sA, mB, ROW,COL,LEN)
-                //if row>24, both row/col are ignored; if col>39, gets weird; len is limited automatically to <=40
+                // get.string(sA, mB, ROW,COL,LEN)
                 if (ArgVal[2] > 24) {
+                    // if row>24, both row/col are ignored
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5052);
@@ -4150,6 +5022,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 if (ArgVal[3] > 39) {
+                    // if col>39, len is limited automatically to <=40
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4004";
@@ -4161,6 +5034,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 if (ArgVal[4] > 40) {
+                    // invalid len value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5056);
@@ -4169,12 +5043,12 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 121:
-                //set.key(A,B,cC)
-                //controller number limit checked in GetNextArg function
-                //increment controller Count
+                // set.key(A,B,cC)
+                // increment controller Count
                 intCtlCount++;
-                //must be ascii or key code, (Arg0 can be 1 to mean joystick)
                 if (ArgVal[0] > 0 && ArgVal[1] > 0 && ArgVal[0] != 1) {
+                    // A or B must be zero to be valid ascii or keycode
+                    // (A can be 1 to mean joystick)
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4154";
@@ -4185,11 +5059,10 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //check for improper ASCII assignments
+                // check for improper ASCII assignments
                 if (ArgVal[1] == 0) {
                     if (ArgVal[0] == 8 || ArgVal[0] == 13 || ArgVal[0] == 32) {
-                        //ascii codes for bkspace, enter, spacebar
-                        //bad
+                        // ascii codes for bkspace, enter, spacebar
                         switch (ErrorLevel) {
                         case leHigh:
                             errInfo.ID = "4155";
@@ -4201,12 +5074,12 @@ namespace WinAGI.Engine {
                         }
                     }
                 }
-                //check for improper KEYCODE assignments
+                // check for improper KEYCODE assignments
                 if (ArgVal[0] == 0) {
                     if ((ArgVal[1] >= 71 && ArgVal[1] <= 73) ||
                         (ArgVal[1] >= 75 && ArgVal[1] <= 77) ||
                         (ArgVal[1] >= 79 && ArgVal[1] <= 83)) {
-                        //ascii codes - bad
+                        // ascii codes arrow keys can't be assigned to controller
                         switch (ErrorLevel) {
                         case leHigh:
                             errInfo.ID = "4155";
@@ -4220,13 +5093,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 122:
-                //add.to.pic(VIEW,LOOP,CEL,X,Y,PRI,MGN)
-                //VIEW, LOOP + CEL must exist
-                //CEL width must be >=3
-                //x,y must be within limits
-                //PRI must be 0, or >=3 AND <=15
-                //MGN must be 0-3, or >3 (ha ha, or ANY value...)
-                //validate view
+                // add.to.pic(VIEW,LOOP,CEL,X,Y,PRI,MGN)
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -4235,23 +5102,17 @@ namespace WinAGI.Engine {
                         return false;
                     case leMedium:
                         AddWarning(5064);
-                        //dont need to check loops or cels
                         blnWarned = true;
                         break;
                     }
                 }
                 if (!blnWarned) {
-                    //try to load view to test loop + cel
                     try {
                         blnUnload = !compGame.agViews[ArgVal[0]].Loaded;
-                        //if error trying to get loaded status, ignore for now
-                        //it'll show up again when trying to load or access
-                        //loop property and be handled there
                         if (blnUnload) {
                             compGame.agViews[ArgVal[0]].Load();
-                            // ignore any errors/warnings
                         }
-                        //validate loop
+                        // if view is valid, check loop
                         if (ArgVal[1] >= compGame.agViews[ArgVal[0]].Loops.Count) {
                             switch (ErrorLevel) {
                             case leHigh:
@@ -4263,14 +5124,12 @@ namespace WinAGI.Engine {
                                 return false;
                             case leMedium:
                                 AddWarning(5085);
-                                //dont need to check cel
                                 blnWarned = true;
                                 break;
                             }
                         }
-                        //if loop was valid, check cel
+                        // if loop is valid, check cel
                         if (!blnWarned) {
-                            //validate cel
                             if (ArgVal[2] >= compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels.Count) {
                                 switch (ErrorLevel) {
                                 case leHigh:
@@ -4285,18 +5144,36 @@ namespace WinAGI.Engine {
                                     break;
                                 }
                             }
+                            if (compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels[ArgVal[2]].Width < 3 && ArgVal[6] < 4) {
+                                // CEL width must be >=3
+                                switch (ErrorLevel) {
+                                case leHigh:
+                                    if (compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels[ArgVal[2]].Width == 2 && ArgVal[6] < 4) {
+                                        errInfo.ID = "4165";
+                                        errInfo.Text = LoadResString(4165);
+                                        return false;
+                                    }
+                                    else {
+                                        AddWarning(5115);
+                                        break;
+                                    }
+                                case leMedium:
+                                    AddWarning(5115);
+                                    break;
+                                }
+                            }
                         }
                     }
                     catch (Exception) {
-                        //can't load the view; add a warning
+                        // error trying to load add a warning
                         AddWarning(5021, LoadResString(5021).Replace(ARG1, ArgVal[0].ToString()));
                     }
                     if (blnUnload) {
                         compGame.agViews[ArgVal[0]].Unload();
                     }
                 }
-                // x,y must be within limits
                 if (ArgVal[3] > 159 || ArgVal[4] > 167) {
+                    // invalid x or y value
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4141";
@@ -4307,8 +5184,8 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //PRI should be <=15
                 if (ArgVal[5] > 15) {
+                    // invalid priority value
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4142";
@@ -4319,16 +5196,16 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //PRI should be 0 OR >=4 (but doesn't raise an error; only a warning)
                 if (ArgVal[5] < 4 && ArgVal[5] != 0) {
+                    // unusual priority value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5079);
                         break;
                     }
                 }
-                //MGN values >15 will only use lower nibble
                 if (ArgVal[6] > 15) {
+                    // MGN values >15 will only use lower nibble
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5101);
@@ -4337,8 +5214,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 129:
-                //show.obj(VIEW)
-                //validate view
+                // show.obj(VIEW)
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -4352,7 +5228,8 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 127 or 176 or 178:
-                //init.disk, hide.mouse, show.mouse
+                // init.disk, hide.mouse, show.mouse
+                // these commands have no usefulness
                 switch (ErrorLevel) {
                 case leHigh or leMedium:
                     AddWarning(5087, LoadResString(5087).Replace(ARG1, ActionCommands[CmdNum].Name));
@@ -4360,7 +5237,8 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 175 or 179 or 180:
-                //discard.sound, fence.mouse, mouse.posn
+                // discard.sound, fence.mouse, mouse.posn
+                // these commands not valid in MSDOS AGI
                 switch (ErrorLevel) {
                 case leHigh:
                     errInfo.ID = "4152";
@@ -4372,9 +5250,9 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 130:
-                //random(LOWER,UPPER,vRESULT)
-                //lower should be < upper
+                // random(LOWER,UPPER,vRESULT)
                 if (ArgVal[0] > ArgVal[1]) {
+                    // lower should be < upper
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4145";
@@ -4385,16 +5263,16 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //lower=upper means result=lower=upper
                 if (ArgVal[0] == ArgVal[1]) {
+                    // lower=upper means result=lower=upper
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5106);
                         break;
                     }
                 }
-                //if lower=upper+1, means div by 0!
                 if (ArgVal[0] == ArgVal[1] + 1) {
+                    // this causes divide by 0!
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4158";
@@ -4405,8 +5283,8 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //variable arg should not be a reserved Value
                 if (ArgVal[2] <= 26) {
+                    // variable arg should not be a reserved Value
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
@@ -4415,18 +5293,17 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 142:
-                //script.size
-                //raise warning/error if in other than logic0
+                // script.size
                 if (bytLogComp != 0) {
-                    //warn
+                    //warn if in other than logic0
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5039);
                         break;
                     }
                 }
-                //check for absurdly low Value for script size
                 if (ArgVal[0] < 10) {
+                    // absurdly low value for script size
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5009);
@@ -4435,8 +5312,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 147:
-                //reposition.to(oA, B,C)
-                //validate the new position
+                // reposition.to(oA, B,C)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -4450,12 +5326,7 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 150:
-                //trace.info(LOGIC,ROW,HEIGHT)
-                //logic must exist
-                //row + height must be <22
-                //height must be >=2 (but interpreter checks for this error)
-
-                //validate that logic exists
+                // trace.info(LOGIC,ROW,HEIGHT)
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -4467,7 +5338,6 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //validate that height is not too small
                 if (ArgVal[2] < 2) {
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
@@ -4475,7 +5345,6 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //validate size of window
                 if (ArgVal[1] + ArgVal[2] > 23) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -4489,13 +5358,8 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 151 or 152:
-                //Print.at(mA, ROW, COL, MAXWIDTH), print.at.v
-                //row <=22
-                //col >=2
-                //maxwidth <=36
-                //maxwidth=0 defaults to 30
-                //maxwidth=1 crashes AGI
-                //col + maxwidth <=39
+                // print.at(mA, ROW, COL, MAXWIDTH)
+                // print.at.v(vMSG, ROW, COL, MAXWIDTH)
                 if (ArgVal[1] > 22) {
                     switch (ErrorLevel) {
                     case leHigh:
@@ -4516,7 +5380,8 @@ namespace WinAGI.Engine {
                         break;
                     }
                     break;
-                case 1: //maxwidth=1 crashes AGI
+                case 1:
+                    //maxwidth=1 crashes AGI
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4043";
@@ -4528,7 +5393,8 @@ namespace WinAGI.Engine {
                     }
                     break;
                 default:
-                    if (ArgVal[3] > 36) { //maxwidth >36 won't work
+                    if (ArgVal[3] > 36) {
+                        //maxwidth >36 won't work
                         switch (ErrorLevel) {
                         case leHigh:
                             errInfo.ID = "4043";
@@ -4541,8 +5407,8 @@ namespace WinAGI.Engine {
                     }
                     break;
                 }
-                //col>2 and col + maxwidth <=39
                 if (ArgVal[2] < 2 || ArgVal[2] + ArgVal[3] > 39) {
+                    // invalid COL value
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4148";
@@ -4555,35 +5421,32 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 154:
-                //clear.text.rect(R1,C1,R2,C2,COLOR)
-                //if (either row argument is >24,
-                //or either column argument is >39,
-                //or R2 < R1 or C2 < C1,
-                //the results are unpredictable
+                // clear.text.rect(R1,C1,R2,C2,COLOR)
                 if (ArgVal[0] > 24 || ArgVal[1] > 39 ||
                    ArgVal[2] > 24 || ArgVal[3] > 39 ||
                    ArgVal[2] < ArgVal[0] || ArgVal[3] < ArgVal[1]) {
-                    //invalid items
+                    // invalid items
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4150";
                         errInfo.Text = LoadResString(4150);
                         return false;
                     case leMedium:
-                        //if due to pos2 < pos1
                         if (ArgVal[2] < ArgVal[0] || ArgVal[3] < ArgVal[1]) {
+                            // pos2 < pos1
                             AddWarning(5069);
                         }
-                        //if due to variables outside limits
                         if (ArgVal[0] > 24 || ArgVal[1] > 39 ||
                            ArgVal[2] > 24 || ArgVal[3] > 39) {
+                            // variables outside limits
                             AddWarning(5070);
                         }
                         break;
                     }
                 }
-                //color value should be 0 or 15 //(but it doesn't hurt to be anything else)
                 if (ArgVal[4] > 0 && ArgVal[4] != 15) {
+                    // color value should be 0 or 15  (but
+                    // it doesn't hurt to be anything else)
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5100);
@@ -4592,22 +5455,20 @@ namespace WinAGI.Engine {
                 }
                 break;
             case 158:
-                //submit.menu()
-                //should only be called in logic0
-                //raise warning if in other than logic0
+                // submit.menu()
                 if (bytLogComp != 0) {
+                    // should only be called in logic0
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
-                        //set warning
                         AddWarning(5047);
                         break;
                     }
                 }
                 break;
             case 174:
-                //set.pri.base(A)
-                //calling set.pri.base with Value >167 doesn't make sense
+                // set.pri.base(A)
                 if (ArgVal[0] > 167) {
+                    // value >167 doesn't make sense
                     switch (ErrorLevel) {
                     case leHigh or leMedium:
                         AddWarning(5071);
@@ -4616,52 +5477,26 @@ namespace WinAGI.Engine {
                 }
                 break;
             }
-            //success
+            // success
             return true;
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="LabelName"></param>
-        /// <returns></returns>
-        static internal int LabelNum(string LabelName) {
-            //this function will return the number of the label passed
-            //as a string, or zero, if a match is not found
-            int i;
-            //step through all labels,
-            for (i = 0; i < bytLabelCount; i++) {
-                if (llLabel[i].Name == LabelName) {
-                    return i;
-                }
-            }
-            //if not found
-            return -1;
-        }
-
-        /// <summary>
-        /// 
+        /// This method checks the values passed as arguments to the specified test
+        /// command and adds warnings or errors as needed.
         /// </summary>
         /// <param name="CmdNum"></param>
         /// <param name="ArgVal"></param>
         /// <returns></returns>
-        static internal bool ValidateIfArgs(int CmdNum, ref byte[] ArgVal) {
-            //check for specific command issues
+        internal static bool ValidateIfArgs(int CmdNum, ref byte[] ArgVal) {
             switch (CmdNum) {
-            //case 9: //has (iA)
-            //case 10: //obj.in.room(iA, vB)
-            //         //invobj number validated in GetNextArg function
             case 11 or 16 or 17 or 18:
-                //posn(oA, X1, Y1, X2, Y2)
-                //obj.in.box(oA, X1, Y1, X2, Y2)
-                //center.posn(oA, X1, Y1, X2, Y2)
-                //right.posn(oA, X1, Y1, X2, Y2)
-
-                //screenobj number validated in GetNextArg function
-
-                //validate that all are within bounds, and that x1<=x2 and y1<=y2
+                // posn(oA, X1, Y1, X2, Y2)
+                // obj.in.box(oA, X1, Y1, X2, Y2)
+                // center.posn(oA, X1, Y1, X2, Y2)
+                // right.posn(oA, X1, Y1, X2, Y2)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167 || ArgVal[3] > 159 || ArgVal[4] > 167) {
-                    //bad number
+                    // invalid position
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4151";
@@ -4673,7 +5508,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 if ((ArgVal[1] > ArgVal[3]) || (ArgVal[2] > ArgVal[4])) {
-                    //won't work
+                    // start and stop are backwards
                     switch (ErrorLevel) {
                     case leHigh:
                         errInfo.ID = "4151";
@@ -4685,48 +5520,31 @@ namespace WinAGI.Engine {
                     }
                 }
                 break;
-                //case 12: //controller (cA)
-                //         //has controller been assigned?
-                //         //not sure how to check it; calls to controller cmd may
-                //         //occur in logics that are compiled before the logic that sets
-                //         //them up...
-                //    break;
-                //case 14: //said()
-                //         // nothing to check
-                //    break;
-                //case 15: //compare.strings(sA, sB)
-                //         // nothing to check
-                //    break;
             }
-            //success
+            // success
             return true;
         }
 
         /// <summary>
-        /// 
+        /// Checks the specified message text for presence of extended characters.
+        /// Adds a warning event if any are found.
         /// </summary>
         /// <param name="strMsg"></param>
         /// <param name="MsgNum"></param>
-        static internal void ValidateMsgChars(string strMsg, int MsgNum) {
-            // raise warning if non-standard characters in the message string
-
-            //if LOW error detection, nothing to check
+        internal static void ValidateMsgChars(string strMsg, int MsgNum) {
             if (ErrorLevel == leLow) {
                 return;
             }
-            //extended characters
             if (strMsg.Any(ch => ch > 127)) {
                 switch (ErrorLevel) {
                 case leHigh or leMedium:
                     AddWarning(5094);
-                    //need to track warning in case this msg is
-                    //also included in body of logic
+                    // need to track warning in case this msg is
+                    // also included in body of logic
                     intMsgWarn[MsgNum] |= 2;
                     break;
                 }
             }
-            // no other warnings needed
-            return;
         }
 
         /// <summary>
@@ -4736,83 +5554,75 @@ namespace WinAGI.Engine {
         /// zero length messages.
         /// </summary>
         /// <returns></returns>
-        static internal bool WriteMsgs() {
-            //this function will 
-            int lngMsgSecStart;
+        internal static bool WriteMsgs() {
+            int lngMsgSecStart = tmpLogRes.Size;
             int[] lngMsgPos = new int[256];
             int intCharPos;
             byte bytCharVal;
-            byte[] strMessage = [];
+            byte[] bMessage;
             int lngMsg;
-            int lngMsgCount;
+            int lngMsgCount = 256;
             int lngCryptStart;
             int lngMsgLen;
             int i;
             string strHex;
             bool blnSkipChar = false;
-            //calculate start of message section
-            lngMsgSecStart = tmpLogRes.Size;
-            //find last message by counting backwards until a msg is found
-            lngMsgCount = 256;
+
+            // find last message by counting backwards until a msg is found
             do {
                 lngMsgCount--;
             } while (!blnMsg[lngMsgCount] && (lngMsgCount != 0));
-
-            //write msg Count,
+            // write msg count
             tmpLogRes.WriteByte((byte)lngMsgCount);
-            //write place holder for msg end
+            // write place holder for msg end
             tmpLogRes.WriteWord(0);
-            //write place holders for msg pointers
+            // write place holders for msg pointers
             for (i = 0; i < lngMsgCount; i++) {
                 tmpLogRes.WriteWord(0);
             }
-            //begin encryption process
             lngCryptStart = tmpLogRes.Size;
             for (lngMsg = 1; lngMsg <= lngMsgCount; lngMsg++) {
-                //get length
                 lngMsgLen = strMsg[lngMsg].Length;
-                //if msg is used
                 if (blnMsg[lngMsg]) {
-                    //calculate offset to start of this message (adjust by one byte, which
-                    //is the byte that indicates how many msgs there are)
+                    // calculate offset to start of this message (adjust by one byte,
+                    // which is the byte that indicates how many msgs there are)
                     lngMsgPos[lngMsg] = tmpLogRes.Pos - (lngMsgSecStart + 1);
                 }
                 else {
-                    //need to write a null value for offset; (when it gets added after all
-                    //messages are written it gets set to the beginning of message section
-                    // ( a relative offset of zero here)
+                    // for unused messages need to write a null value for offset;
+                    // (when it gets added after all messages are written it gets
+                    // set to the beginning of message section)
                     lngMsgPos[lngMsg] = 0;
                 }
                 if (lngMsgLen > 0) {
                     // convert to byte array based on codepage
-                    strMessage = game.agCodePage.GetBytes(strMsg[lngMsg]);
+                    // TODO: I think the message text is already in correct
+                    // codepage
+                    bMessage = compGame.agCodePage.GetBytes(strMsg[lngMsg]);
                     // step through all characters in this msg
                     intCharPos = 0;
-                    while (intCharPos < strMessage.Length) // Until intCharPos > Len(strMsg(lngMsg))
-                     {                                          //get ascii code for this character
-                        bytCharVal = strMessage[intCharPos];
-                        //check for invalid codes (8,9,10,13)
+                    while (intCharPos < bMessage.Length) {
+                        bytCharVal = bMessage[intCharPos];
                         switch (bytCharVal) {
                         case 8 or 9:
                             // convert these to space (' ') to avoid trouble
                             bytCharVal = 32;
                             break;
-                        //case 10: // OK
                         case 13:
-                            // new line
+                            // convert to new line
                             bytCharVal = 10;
                             break;
-                        case 92: // '\'
-                                 //check next character for special codes
+                        case 92:
+                            // '\'
+                            // check next character for special codes
                             if (intCharPos < lngMsgLen - 1) {
-                                switch (strMessage[intCharPos + 1]) {
+                                switch (bMessage[intCharPos + 1]) {
                                 case 110:
                                     //  '\n' = new line
                                     bytCharVal = 0xA;
                                     intCharPos++;
                                     break;
                                 case 34:
-                                    //dbl quote(")
                                     // '\"' = quote mark
                                     bytCharVal = 0x22;
                                     intCharPos++;
@@ -4823,11 +5633,11 @@ namespace WinAGI.Engine {
                                     intCharPos++;
                                     break;
                                 case 120:
-                                    // '\x'  //look for a hex value
-                                    //make sure at least two more characters
+                                    // '\x' - look for a hex value
+                                    // (make sure at least two more characters)
                                     if (intCharPos < lngMsgLen - 3) {
-                                        //get next 2 chars and hexify them
-                                        strHex = "0x" + strMessage[(intCharPos + 2)..(intCharPos + 4)];
+                                        // get next 2 chars and hexify them
+                                        strHex = "0x" + bMessage[(intCharPos + 2)..(intCharPos + 4)];
                                         //if this hex value >=1 and <256, use it
                                         try {
                                             i = Convert.ToInt32(strHex, 16);
@@ -4843,80 +5653,70 @@ namespace WinAGI.Engine {
                                     }
                                     break;
                                 default:
-                                    //if no special char found, the single slash should be dropped
+                                    // if no special char found, the single slash
+                                    // should be dropped
                                     blnSkipChar = true;
                                     break;
                                 }
                             }
                             else {
-                                //if the '\' is the last char, skip it
+                                // '\' is the last char, skip it
                                 blnSkipChar = true;
                             }
                             break;
                         }
-                        //write the encrypted byte (need to adjust for previous messages, and current position)
+                        // write the encrypted byte (need to adjust for previous messages,
+                        // and current position)
                         if (!blnSkipChar) {
                             tmpLogRes.WriteByte((byte)(bytCharVal ^ bytEncryptKey[(tmpLogRes.Pos - lngCryptStart) % 11]));
                         }
-                        //increment pointer
                         intCharPos++;
-                        //reset skip flag
                         blnSkipChar = false;
                     }
                 }
-                //if msg was used, add trailing zero to terminate message
-                //(if msg was zero length, we still need this terminator)
                 if (blnMsg[lngMsg]) {
+                    // add trailing zero to terminate message (if msg was zero length,
+                    // terminator is still needed)
                     tmpLogRes.WriteByte((byte)(0 ^ bytEncryptKey[(tmpLogRes.Pos - lngCryptStart) % 11]));
                 }
             }
-            //calculate length of msgs, and write it at beginning
-            //of msg section (adjust by one byte, which is the
-            //byte that indicates number of msgs written)
+            // calculate length of msgs, and write it at beginning of msg section
+            // (adjust by one byte, which is the byte that indicates number of
+            // msgs written)
             tmpLogRes.WriteWord((ushort)(tmpLogRes.Pos - (lngMsgSecStart + 1)), lngMsgSecStart + 1);
-            //write msg section start Value at beginning of resource
-            //(correct by two so it gives position relative to byte 7 of
-            //the logic resource header - see procedure 'DecodeLogic' for details)
+            // write msg section start value at beginning of resource (correct by
+            // two so it gives position relative to byte 2 of the logic resource
+            // start
             tmpLogRes.WriteWord((ushort)(lngMsgSecStart - 2), 0);
-            //write all the msg pointers (start with msg1 since msg0
-            // is never allowed)
+            // write all the msg pointers (start with msg1 since msg0 is never allowed)
             for (lngMsg = 1; i <= lngMsgCount; i++) {
                 tmpLogRes.WriteWord((ushort)lngMsgPos[lngMsg], lngMsgSecStart + 1 + lngMsg * 2);
             }
-            //success
+            // success
             return true;
         }
 
         /// <summary>
-        /// 
+        /// Scans the source code to identify all valid labels. This has to be done
+        /// before starting the main compiler to correctly calculate jumps.
         /// </summary>
-        static internal void ReadLabels() {
-            // this function steps through the source code to identify all
-            // valid labels; we need to find them all before starting the
-            // compile so we can correctly set jumps
-            //
+        internal static void ReadLabels() {
             // fanAGI syntax is either 'label:' or ':label', with nothing
             // else in front of or after the label declaration
             // in Sierra syntax, only ':label' is allowed
-            // TODO: improve handling of improper labels; 
-            // when spaces between the ':' and the label, give a more
-            // descriptive error code
             byte i;
             string strLabel;
 
-            //reset counter
             bytLabelCount = 0;
-            //reset compiler to first input line
             ResetCompiler();
             do {
-                //look for label name by searching for colon character
                 if (strCurrentLine.Contains(':')) {
                     strLabel = strCurrentLine;
-                    //check for 'label:' (FanAGI syntax only)
+                    // check for 'label:' (FanAGI syntax only)
                     if (strLabel[^1] == ':' && !agSierraSyntax) {
                         strLabel = strLabel[..^1];
-                        // no spaces allowed between : and label name
                         if (strLabel[0] == ' ') {
+                            // no spaces allowed between ':' and label name
                             // ignore it here; error will be caught in main compiler
                             strLabel = "";
                         }
@@ -4924,14 +5724,14 @@ namespace WinAGI.Engine {
                     // check for ':label'
                     else if (strLabel[0] == ':') {
                         strLabel = strLabel[1..];
-                        // no spaces allowed between label name and :
                         if (strLabel[^1] == ' ') {
+                            // no spaces allowed between label name and :
                             // ignore it here; error will be caught in main compiler
                             strLabel = "";
                         }
                     }
                     else {
-                        //not a label
+                        // not a label
                         strLabel = "";
                     }
                     // Sierra syntax allows optional ';' at end of label
@@ -4952,10 +5752,9 @@ namespace WinAGI.Engine {
                     }
                     if (strLabel.Length != 0) {
                         DefineNameCheck chkLabel = ValidateDefName(strLabel);
-                        // check for error
                         switch (chkLabel) {
                         case ncNumeric:
-                            //numbers are ok for labels
+                            // numbers are ok for labels
                             break;
                         case ncEmpty:
                             AddMinorError(4096);
@@ -4994,7 +5793,7 @@ namespace WinAGI.Engine {
                             AddMinorError(4068);
                             break;
                         }
-                        //check against existing labels
+                        // check against existing labels
                         for (i = 0; i < bytLabelCount; i++) {
                             if (strLabel == llLabel[i].Name) {
                                 errInfo.ID = "4027";
@@ -5002,28 +5801,26 @@ namespace WinAGI.Engine {
                                 break;
                             }
                         }
-                        //increment number of labels, and save
+                        // increment number of labels, and save
                         bytLabelCount++;
                         llLabel[bytLabelCount - 1].Name = strLabel;
                         llLabel[bytLabelCount - 1].Loc = 0;
                     }
                 }
-                //get next line
                 IncrementLine();
             } while (lngLine != -1);
         }
 
         /// <summary>
-        /// 
+        /// This is the main compiler function. It steps through input source
+        /// code one token at a time and converts it to AGI logic byte code.
         /// </summary>
-        /// <returns></returns>
-        static internal bool CompileAGI() {
-            //main compiler function
-            //steps through input one command at a time and converts it
-            //to AGI logic code
-            //Note that we don't need to set blnCriticalError flag here;
-            //an error will cause this function to return a Value of false
-            //which causes the compiler to display error info
+        /// <returns>true if source is successfully compiled, false if any 
+        /// errors are encountered.</returns>
+        internal static bool CompileAGI() {
+            // Note that we don't need to set blnCriticalError flag here;
+            // an error will cause this function to return a value of false
+            // which causes the compiler to display error info
             const int MAXGOTOS = 255;
             string nextToken, prevToken = "", strArg;
             int i, tmpVal, intCmdNum, BlockDepth = 0, intLabelNum;
@@ -5031,67 +5828,76 @@ namespace WinAGI.Engine {
             bool blnLastCmdRtn = false, blnArgsOK;
             byte[] bytArg = new byte[8];
             LogicGoto[] Gotos = new LogicGoto[MAXGOTOS + 1];
-            BlockType[] Block = new BlockType[256];
+            CompilerBlockType[] Block = new CompilerBlockType[256];
 
-            //reset compiler
             ResetCompiler();
-            //get first command
             nextToken = NextToken();
-            //process tokens in the input string list until finished
+            // process tokens from the input string list until finished
             while (lngLine != -1) {
-                //reset last command flag
-                blnLastCmdRtn = false;
-                lngReturnLine = 0;
-                //process the command
+                if (blnNewRoom) {
+                    if (nextToken != "}") {
+                        switch (ErrorLevel) {
+                        case leHigh or leMedium:
+                            AddWarning(5095);
+                            break;
+                        }
+                    }
+                    blnNewRoom = false;
+                }
+                // TODO: need to check for quit too
+                if (blnLastCmdRtn) {
+                    if (nextToken != "}") {
+                        switch (ErrorLevel) {
+                        case leHigh or leMedium:
+                            AddWarning(5116);
+                            break;
+                        }
+                    }
+                    blnLastCmdRtn = false;
+                }
                 switch (nextToken) {
                 case "{":
-                    //can't have a "{" token, unless it follows an 'if' or 'else'
+                    // can't have a '{' token, unless it follows an 'if' or 'else'
                     if (prevToken != "if" && prevToken != "else") {
                         AddMinorError(4008);
                     }
                     break;
                 case "}":
-                    //if last command was a new.room command, then closing block is expected
-                    if (blnNewRoom) {
-                        blnNewRoom = false;
-                    }
-                    //if no block currently open,
                     if (BlockDepth == 0) {
+                        // no block currently open
                         AddMinorError(4010);
                     }
                     else {
-                        //if last position in resource is two bytes from start of block
                         if (tmpLogRes.Size == Block[BlockDepth].StartPos + 2) {
+                            // block is only two bytes long, meaning no commands
                             switch (ErrorLevel) {
                             case leHigh:
                                 AddMinorError(4049);
                                 break;
                             case leMedium:
-                                //set warning
                                 AddWarning(5001);
                                 break;
                             }
                         }
-                        //calculate and write block length
+                        // calculate and write block length
                         Block[BlockDepth].Length = tmpLogRes.Size - Block[BlockDepth].StartPos - 2;
                         tmpLogRes.WriteWord((ushort)Block[BlockDepth].Length, Block[BlockDepth].StartPos);
-                        //remove block from stack
+                        // remove block from stack
                         BlockDepth--;
                     }
                     break;
                 case "if":
-                    //compile the //if// statement
                     if (!CompileIf()) {
+                        // error in 'if' block
                         return false;
                     }
-                    //if block stack exceeded
                     if (BlockDepth >= MAX_BLOCK_DEPTH) {
+                        // block stack exceeded
                         blnCriticalError = true;
                         errInfo.ID = "4110";
                         errInfo.Text = LoadResString(4110).Replace(ARG1, MAX_BLOCK_DEPTH.ToString());
                         return false;
                     }
-                    // add block to stack
                     BlockDepth++;
                     Block[BlockDepth].StartPos = tmpLogRes.Pos;
                     Block[BlockDepth].IsIf = true;
@@ -5100,7 +5906,6 @@ namespace WinAGI.Engine {
                     // next token should be a bracket
                     nextToken = NextToken();
                     if (!CheckChar('{')) {
-                        // error
                         AddMinorError(4053);
                         // if a stray ')' just ignore it
                         if (CheckChar(')')) {
@@ -5110,79 +5915,64 @@ namespace WinAGI.Engine {
                     }
                     break;
                 case "else":
-                    //else can only follow a close bracket
+                    // else can only follow a close bracket
                     if (prevToken != "}") {
                         AddMinorError(4011);
                         // if there is a block, assume there was a '}'
-                        // and remove it (by continuing to next statement)
+                        // and continue
                     }
-                    //if the block closed by that bracket was an 'else'
-                    //(which will be determined by having that block's IsIf flag NOT being set),
                     if (!Block[BlockDepth + 1].IsIf) {
+                        // previous block was an 'else' - can't be followed
+                        // by another 'else'
                         errInfo.ID = "4083";
                         errInfo.Text = LoadResString(4083);
                         return false;
                     }
-                    //adjust blockdepth to the 'if' command
-                    //directly before this 'else'
+                    // adjust blockdepth to match the 'if' block directly before
+                    // this 'else'
                     BlockDepth++;
-                    //adjust previous block length to accomodate the 'else' statement
+                    // adjust the block length to accomodate the 'else' statement
                     Block[BlockDepth].Length += 3;
                     tmpLogRes.WriteWord((ushort)Block[BlockDepth].Length, Block[BlockDepth].StartPos);
-                    // previous 'if' block is now closed; use same block level
-                    // for this 'else' block
+                    // the block is now an 'else' block
                     Block[BlockDepth].IsIf = false;
-                    //write the 'else' code
+                    // write the 'else' bytecode
                     tmpLogRes.WriteByte(0xFE);
                     Block[BlockDepth].StartPos = tmpLogRes.Pos;
-                    // block length filled in later
+                    // placeholder for block length
                     tmpLogRes.WriteWord(0);
-                    //next command better be a bracket
+                    // next token better be a bracket
                     if (!CheckChar('{')) {
-                        //error
                         AddMinorError(4053);
                     }
                     break;
                 case "goto":
-                    //if last command was a new room, warn user
-                    // TODO: fix check for newroom; if set, check very next 
-                    // token; it should be '}' (or return?)
-                    if (blnNewRoom) {
-                        switch (ErrorLevel) {
-                        case leHigh or leMedium:
-                            //set warning
-                            AddWarning(5095);
-                            break;
-                        }
-                        blnNewRoom = false;
-                    }
                     if (!agSierraSyntax) {
-                        //next command should be "("
+                        // next token should be "("
                         if (!CheckChar('(')) {
                             AddMinorError(4001);
                         }
                     }
-                    //get goto argument
                     strArg = NextToken();
-                    //if argument is NOT a valid label
                     if (LabelNum(strArg) == -1) {
+                        // argument is NOT a valid label
                         errInfo.ID = "4074";
                         errInfo.Text = LoadResString(4074).Replace(ARG1, strArg);
-                        //blnCriticalError = false; //why not set error flag?
+                        blnCriticalError = false;
                         return false;
                     }
-                    //if too many gotos
                     if (NumGotos < MAXGOTOS) {
                         //save this goto info on goto stack
                         NumGotos++;
                         Gotos[NumGotos - 1].LabelNum = (byte)LabelNum(strArg);
-                        //write goto command byte
+                        // write goto command byte
                         tmpLogRes.WriteByte(0xFE);
                         Gotos[NumGotos].DataLoc = tmpLogRes.Pos;
-                        //write placeholder for amount of offset
+                        // write placeholder for amount of offset
                         tmpLogRes.WriteWord(0);
                     }
                     else {
+                        // too many gotos
                         AddMinorError(4108, LoadResString(4108).Replace(ARG1, MAXGOTOS.ToString()));
                     }
                     if (agSierraSyntax) {
@@ -5194,105 +5984,150 @@ namespace WinAGI.Engine {
                         }
                     }
                     else {
-                        //next character should be ")"
+                        // next character should be ")"
                         if (NextChar() != ')') {
                             AddMinorError(4003);
                         }
                     }
-                    //verify next command is end of line (;)
+                    // verify command is correct end-of-line marker
                     CheckForEOL();
                     break;
                 case "/*" or "*/":
-                    //since block commands are no longer supported, check for markers in order to provide a
-                    //meaningful error message
+                    //since block tokens are no longer supported, check for markers in
+                    //order to provide a meaningful error message
                     AddMinorError(4052);
                     break;
-                case "++":
-                case "--": //unary operators; need to get a variable next
-                           //write the command code
+                case "++" or "--":
+                    //unary operators
                     if (nextToken == "++") {
                         tmpLogRes.WriteByte(1);
                     }
                     else {
                         tmpLogRes.WriteByte(2);
                     }
-                    //get the variable to update
+                    // get variable
                     strArg = NextToken();
-                    //convert it
                     if (!ConvertArgument(ref strArg, atVar)) {
-                        //error
                         AddMinorError(4046);
                         // use a temp placeholder
                         strArg = "v255";
                     }
-                    //get Value
+                    // convert variable to byte code value
                     intCmdNum = VariableValue(strArg);
                     if (intCmdNum == -1) {
                         AddMinorError(4066, LoadResString(4066).Replace(ARG1, ""));
                         // use a temp placeholder
                         intCmdNum = 0;
                     }
-                    //write the variable value
+                    // write the variable value
                     tmpLogRes.WriteByte((byte)intCmdNum);
-                    //verify next command is end of line ';'
+                    // verify next token is correct end of line marker
                     CheckForEOL();
                     break;
                 case ":":
-                    //alternate label syntax
-                    // next command should be the label
+                    // alternate label syntax - next token should be the label
                     nextToken = NextToken();
                     intLabelNum = LabelNum(nextToken);
-                    //if not a valid label
                     if (intLabelNum == 0) {
-                        // value of zero used as placeholder
-                        // for all label errors
+                        // not a valid label
                         AddMinorError(4076);
                     }
-                    //save position of label
-                    llLabel[intLabelNum].Loc = tmpLogRes.Size;
-                    // trailing ';' should be caught by CheckEOL
-                    ////// Sierra syntax allows trailing ';'
-                    ////if (agSierraSyntax) {
-                    ////    char tmp = NextChar(true);
-                    ////    if (tmp != (char)0 && tmp != ';') {
-                    ////        // invalid tokens on rest of line
-                    ////        //?? why no error?
-                    ////        lngPos--;
-                    ////    }
-                    ////}
+                    else {
+                        // save position of label
+                        llLabel[intLabelNum].Loc = tmpLogRes.Size;
+                    }
+                    // sierra syntax allows optional trailing ';'
+                    if (agSierraSyntax) {
+                        _ = CheckChar(';', true);
+                    }
                     break;
                 default:
-                    //must be a label:, command, or special syntax
-                    //if next character is a colon
-                    if (strCurrentLine[lngPos + 1] == ':') {
-                        //it might be a label
+                    // must be a label:, command, or special syntax
+                    if (strCurrentLine.Length > lngPos + 1 && strCurrentLine[lngPos + 1] == ':') {
                         intLabelNum = LabelNum(nextToken);
-                        //if not a valid label
                         if (intLabelNum == 0) {
+                            // not a valid label
                             AddMinorError(4076);
                         }
-                        //save position of label
-                        llLabel[intLabelNum].Loc = tmpLogRes.Size;
-                        //read in next char to skip past the colon
-                        _ = NextChar();
+                        else {
+                            // save position of label
+                            llLabel[intLabelNum].Loc = tmpLogRes.Size;
+                        }
+                        // skip past the colon
+                        lngPos++;
                     }
                     else {
-                        //if last command was a new room (and not followed by return), warn user
-                        if (blnNewRoom && nextToken != "return") {
-                            switch (ErrorLevel) {
-                            case leHigh or leMedium:
-                                //set warning
-                                AddWarning(5095);
-                                break;
-                            }
-                            blnNewRoom = false;
-                        }
-                        //get  command opcode number
+                        // get  command opcode number
                         intCmdNum = CommandNum(false, nextToken);
-                        //if command not found,
-                        if (intCmdNum == 255) {
-                            //try to parse special syntax
-                            if (CompileSpecial(nextToken)) {
+                        if (intCmdNum != 255) {
+                            // write the command code,
+                            tmpLogRes.WriteByte((byte)intCmdNum);
+                            // next character should be "("
+                            if (!CheckChar('(')) {
+                                AddMinorError(4048);
+                            }
+                            lngQuoteAdded = -1;
+                            // now extract arguments (assume all OK)
+                            blnArgsOK = true;
+                            for (i = 0; i < ActionCommands[intCmdNum].ArgType.Length; i++) {
+                                if (i > 0) {
+                                    if (!CheckChar(',')) {
+                                        // check for added quotes; they are usually the problem
+                                        if (lngQuoteAdded >= 0) {
+                                            errInfo.Line = (lngLine - lngIncludeOffset + 1).ToString();
+                                        }
+                                        // use 1-base arg values (but since referring to
+                                        // previous arg, don't increment arg index)
+                                        AddMinorError(4047, LoadResString(4047).Replace(ARG1, i.ToString()));
+                                    }
+                                }
+                                tmpVal = GetNextArg(ActionCommands[(byte)intCmdNum].ArgType[i], i);
+                                if (tmpVal >= 0) {
+                                    bytArg[i] = (byte)tmpVal;
+                                }
+                                else {
+                                    switch (tmpVal) {
+                                    case -1:
+                                        // -1 => bad arg conversion
+                                        AddMinorError(int.Parse(errInfo.ID), errInfo.Text);
+                                        break;
+                                    default:
+                                        // -3 => ',' found
+                                        // -2 => ')' found
+                                        AddMinorError(4054, errInfo.Text.Replace(ARG2, Commands.agCmds[intCmdNum].Name));
+                                        break;
+                                    }
+                                    // use a placeholder value
+                                    bytArg[i] = 0;
+                                    blnArgsOK = false;
+                                }
+                                // write argument
+                                tmpLogRes.WriteByte(bytArg[i]);
+                            }
+                            if (blnArgsOK) {
+                                //validate arguments for this command
+                                if (!ValidateArgs(intCmdNum, ref bytArg)) {
+                                    return false;
+                                }
+                            }
+                            // next character must be ")"
+                            if (!CheckChar(')')) {
+                                // check for added quotes; they are usually the problem
+                                if (lngQuoteAdded >= 0) {
+                                    errInfo.Line = (lngQuoteAdded - lngIncludeOffset + 1).ToString();
+                                }
+                            }
+                            // check for return command
+                            if (intCmdNum == 0) {
+                                blnLastCmdRtn = true;
+                                if (lngReturnLine == 0) {
+                                    lngReturnLine = int.Parse(errInfo.Line);
+                                }
+                            }
+                        }
+                        else {
+                            // try to parse special syntax
+                            if (!CompileSpecial(nextToken)) {
                                 // unknown command - check for preprocessor symbol
                                 if (nextToken[0] == '#' || nextToken[0] == '%') {
                                     AddMinorError(4061, LoadResString(4061).Replace(ARG1, nextToken));
@@ -5317,87 +6152,16 @@ namespace WinAGI.Engine {
                                         // unknown syntax error
                                         AddMinorError(4084);
                                         // skip to end of line
-                                        lngPos = nextToken.Length;
+                                        lngPos = strCurrentLine.Length;
                                     }
                                 }
                             }
                         }
-                        else {
-                            //write the command code,
-                            tmpLogRes.WriteByte((byte)intCmdNum);
-                            //next character should be "("
-                            if (!CheckChar('(')) {
-                                AddMinorError(4048);
-                            }
-                            //reset the quotemark error flag
-                            lngQuoteAdded = -1;
-                            //now extract arguments (assume all OK)
-                            blnArgsOK = true;
-                            for (i = 0; i < ActionCommands[intCmdNum].ArgType.Length; i++) {
-                                //after first argument, verify comma separates arguments
-                                if (i > 0) {
-                                    if (!CheckChar(',')) {
-                                        //check for added quotes; they are usually the problem
-                                        if (lngQuoteAdded >= 0) {
-                                            //readjust error line;
-                                            errInfo.Line = (lngLine - lngIncludeOffset + 1).ToString();
-                                        }
-                                        // use 1-base arg values (but since referring to
-                                        // previous arg, don't increment arg index)
-                                        AddMinorError(4047, LoadResString(4047).Replace(ARG1, i.ToString()));
-                                    }
-                                }
-                                tmpVal = (byte)GetNextArg(ActionCommands[(byte)intCmdNum].ArgType[i], i);
-                                if (tmpVal >= 0) {
-                                    bytArg[i] = (byte)tmpVal;
-                                }
-                                else {
-                                    switch (tmpVal) {
-                                    case -1:
-                                        // -1 => bad arg conversion
-                                        AddMinorError(int.Parse(errInfo.ID), errInfo.Text);
-                                        break;
-                                    default:
-                                        // -3 => ',' found
-                                        // -2 => ')' found
-                                        AddMinorError(4054, errInfo.Text.Replace(ARG2, Commands.agCmds[intCmdNum].Name));
-                                        break;
-                                    }
-                                    // use a placeholder value
-                                    bytArg[i] = 0;
-                                    blnArgsOK = false;
-                                }
-                                //write argument
-                                tmpLogRes.WriteByte(bytArg[i]);
-                            }
-                            if (blnArgsOK) {
-                                //validate arguments for this command
-                                if (!ValidateArgs(intCmdNum, ref bytArg)) {
-                                    return false;
-                                }
-                            }
-                            // next character must be ")"
-                            if (!CheckChar(')')) {
-                                // check for added quotes; they are the problem
-                                if (lngQuoteAdded >= 0) {
-                                    // reset error line;
-                                    errInfo.Line = (lngQuoteAdded - lngIncludeOffset + 1).ToString();
-                                }
-                            }
-                            if (intCmdNum == 0) {
-                                blnLastCmdRtn = true;
-                                // set line number
-                                if (lngReturnLine == 0) {
-                                    lngReturnLine = int.Parse(errInfo.Line);
-                                }
-                            }
-                        }
-                        //verify next command is end of line (;)
+                        // verify next token is correct end of line marker
                         CheckForEOL();
                     }
                     break;
                 }
-                //get next command
                 prevToken = nextToken;
                 nextToken = NextToken();
             }
@@ -5413,33 +6177,34 @@ namespace WinAGI.Engine {
                 if (!blnLastCmdRtn) {
                     switch (ErrorLevel) {
                     case leHigh:
-                        //error
                         errInfo.ID = "4102";
                         errInfo.Text = LoadResString(4102);
-                        //blnCriticalError = false; //why not set error flag?
+                        blnCriticalError = false;
                         return false;
-                    case leMedium or leLow:
-                        //add the missing return code
+                    case leMedium:
+                        // add the missing return code
                         tmpLogRes.WriteByte(0);
-                        //and a warning
                         AddWarning(5016);
+                        break;
+                    case leLow:
+                        // add the missing return code
+                        tmpLogRes.WriteByte(0);
                         break;
                     }
                 }
             }
-            //check to see if everything was wrapped up properly
+            // check to see if everything was wrapped up properly
             if (BlockDepth > 0) {
                 errInfo.ID = "4009";
                 errInfo.Text = LoadResString(4009);
-                //reset errorline to return cmd
                 errInfo.Line = (lngReturnLine + 1).ToString();
                 return false;
             }
-            //write in goto values
+            // write in goto values
             for (CurGoto = 0; CurGoto <= NumGotos; CurGoto++) {
                 GotoData = llLabel[Gotos[CurGoto].LabelNum].Loc - Gotos[CurGoto].DataLoc - 2;
                 if (GotoData < 0) {
-                    //need to convert it to an unsigned short Value
+                    // need to convert it to an unsigned short Value
                     GotoData = 0x10000 + GotoData;
                 }
                 tmpLogRes.WriteWord((ushort)GotoData, Gotos[CurGoto].DataLoc);
@@ -5448,19 +6213,17 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Returns the index number of the specified message, or creates a new
+        /// message number index if the message is not currently in this logic's
+        /// list of messages.
         /// </summary>
         /// <param name="strMsgIn"></param>
         /// <returns></returns>
-        static internal int MessageNum(string strMsgIn) {
-            // returns the number of the message corresponding to
-            //strMsg, or creates a new msg number if strMsg is not
-            //currently a message
-            //if maximum number of msgs assigned, returns  0
+        internal static int MessageNum(string strMsgIn) {
             int lngMsg;
 
-            //blank msgs normally not allowed
             if (strMsgIn.Length == 0) {
+                // blank messages are not common
                 switch (ErrorLevel) {
                 case leHigh or leMedium:
                     AddWarning(5074);
@@ -5468,9 +6231,7 @@ namespace WinAGI.Engine {
                 }
             }
             for (lngMsg = 1; lngMsg <= 255; lngMsg++) {
-                //if this is the message (case-sensitive search)
                 if (strMsg[lngMsg] == strMsgIn) {
-                    //if null string found for first time, msg-in-use flag will be false
                     if (!blnMsg[lngMsg]) {
                         blnMsg[lngMsg] = true;
                     }
@@ -5481,14 +6242,12 @@ namespace WinAGI.Engine {
                     if ((intMsgWarn[lngMsg] & 2) == 2) {
                         AddWarning(5094);
                     }
-                    //return this Value
                     return lngMsg;
                 }
             }
-            // msg isn't in list yet, find an empty spot
+            // message isn't in list yet, find an empty spot
             for (lngMsg = 1; lngMsg <= 255; lngMsg++) {
                 if (!blnMsg[lngMsg]) {
-                    //this message is available
                     blnMsg[lngMsg] = true;
                     strMsg[lngMsg] = strMsgIn;
                     // validate it check for extended characters
@@ -5496,19 +6255,19 @@ namespace WinAGI.Engine {
                     return lngMsg;
                 }
             }
-            //if no room found, return zero
+            // no room found, return zero
             return 0;
         }
 
         /// <summary>
-        /// 
+        /// Gets the AGI byte code for the specified command.
         /// </summary>
         /// <param name="blnIF"></param>
         /// <param name="strCmdName"></param>
         /// <returns></returns>
-        static internal byte CommandNum(bool blnIF, string strCmdName) {
-            //gets the command numberof a command, based on the text
+        internal static byte CommandNum(bool blnIF, string strCmdName) {
             if (blnIF) {
+                // look for test command
                 for (byte retval = 0; retval < agNumTestCmds; retval++) {
                     if (strCmdName == TestCommands[retval].Name) {
                         return retval;
@@ -5524,26 +6283,25 @@ namespace WinAGI.Engine {
                 }
             }
             else {
+                // look for action command
                 for (byte retval = 0; retval < agNumCmds; retval++) {
                     if (strCmdName == ActionCommands[retval].Name) {
                         return retval;
                     }
                 }
-                //maybe the command is a valid agi command, but
-                //just not supported in this agi version
+                // maybe the command is a valid agi command, but
+                // just not supported in this agi version
                 for (byte retval = agNumCmds; retval < MAX_CMDS; retval++) {
                     if (strCmdName == ActionCommands[retval].Name) {
                         switch (ErrorLevel) {
                         case leHigh:
-                            //error
                             AddMinorError(4065, LoadResString(4065).Replace(ARG1, strCmdName));
                             break;
                         case leMedium:
-                            //add warning
                             AddWarning(5075, LoadResString(5075).Replace(ARG1, strCmdName));
                             break;
                         }
-                        //  //don't worry about command validity; return the extracted command num
+                        // don't worry about command validity; return the extracted command num
                         return retval;
                     }
                 }
@@ -5561,37 +6319,35 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// This method determines if the specified token represents the start
+        /// of a properly formatted special test syntax, and if so, parses it.
         /// </summary>
         /// <param name="strArg1"></param>
         /// <param name="blnNOT"></param>
         /// <returns></returns>
-        static internal bool CompileSpecialif(string strArg1, bool blnNOT) {
-            //this funtion determines if strArg1 is a properly
-            //formatted special test syntax
-            //and writes the appropriate data to the resource
-
-            //(proprerly formatted special IF syntax will be one of following:
-            // v## expr v##
-            // v## expr ##
-            // f##
-            // v##
+        internal static bool CompileSpecialIf(string strArg1, bool blnNOT) {
+            // proprerly formatted special IF syntax will be one of following:
+            //    v## expr v##
+            //    v## expr ##
+            //    f##
+            //    v##
             //
             // where ## is a number from 1-255
             // and expr is //"==", "!=", "<", ">=", "=>", ">", "<=", "=<"
-
-            //none of the possible test commands in special syntax format need to be validated,
-            //so no call to ValidateIfArgs
+            //
+            // none of the possible test commands in special syntax format need to be
+            // validated, so no call to ValidateIfArgs
             string strArg2;
             int intArg1, intArg2;
             bool blnIsVar = true, blnArg2Var, blnAddNOT = false;
             byte bytCmdNum;
-            //check for variable
+
             if (!ConvertArgument(ref strArg1, atVar)) {
+                // first token is not a variable
                 blnIsVar = false;
                 // check for flag argument
-                if (ConvertArgument(ref strArg1, atFlag)) {
-                    // invalid argument
+                if (!ConvertArgument(ref strArg1, atFlag)) {
+                    // first token is not a flag
                     AddMinorError(4039, LoadResString(4039).Replace(ARG1, strArg1));
                     // try to figure out intention
                     strArg2 = PeekToken();
@@ -5613,107 +6369,103 @@ namespace WinAGI.Engine {
                     }
                 }
             }
+            // first token has been evaluated as valid variable or flag
             if (blnIsVar) {
-                //arg 1 is 'v#'
+                // can't have a NOT in front of variable comparisons
+                if (blnNOT) {
+                    AddMinorError(4098);
+                }
+                // arg 1 is 'v#'
                 intArg1 = VariableValue(strArg1);
                 if (intArg1 == -1) {
-                    //invalid number
+                    // invalid number
                     AddMinorError(4086);
+                    // use place holder
+                    intArg1 = 255;
                 }
-                //get comparison expression
+                // next token should be the expression
                 strArg2 = NextToken();
-                //get token code for this expression
                 switch (strArg2) {
                 case EQUAL_TOKEN:
-                    bytCmdNum = 0x01;
+                    bytCmdNum = 0x1;
                     break;
                 case NOTEQUAL_TOKEN:
-                    bytCmdNum = 0x01;
+                    bytCmdNum = 0x1;
                     blnAddNOT = true;
                     break;
                 case ">":
-                    bytCmdNum = 0x05;
+                    bytCmdNum = 0x5;
                     break;
                 case "<=" or "=<":
-                    bytCmdNum = 0x05;
+                    bytCmdNum = 0x5;
                     blnAddNOT = true;
                     break;
                 case "<":
-                    bytCmdNum = 0x03;
+                    bytCmdNum = 0x3;
                     break;
                 case ">=" or "=>":
-                    bytCmdNum = 0x03;
+                    bytCmdNum = 0x3;
                     blnAddNOT = true;
                     break;
                 case ")" or "&&" or "||":
-                    //means we are doing a boolean test of the variable;
-                    //use greatern with zero as arg
-                    tmpLogRes.WriteByte(0x05);
+                    // means we are doing a boolean test of the variable;
+                    // use greatern with zero as arg
+                    tmpLogRes.WriteByte(0x5);
                     tmpLogRes.WriteByte((byte)intArg1);
                     tmpLogRes.WriteByte(0);
-                    //backup the compiler pos so main compiler loop can 
-                    // find the next command
+                    // restore the token to the stream so main compiler
+                    // can handle it
                     lngPos -= strArg2.Length;
                     return true;
                 default:
+                    // unknown expression token
                     AddMinorError(4078);
                     // use placeholder cmd
-                    bytCmdNum = 0x01;
+                    bytCmdNum = 0x1;
                     break;
                 }
-                //before getting second arg, check for NOT symbol in front of a variable
-                //can't have a NOT in front of variable comparisons
-                if (blnNOT) {
-                    AddMinorError(4098);
-                    return false;
-                }
-                //get second argument (numerical or variable)
+                // get second argument (numerical or variable)
                 blnArg2Var = true;
-                //reset the quotemark error flag
                 lngQuoteAdded = -1;
                 intArg2 = GetNextArg(atNum, -1, ref blnArg2Var);
-                //if error
                 if (intArg2 < 0) {
-                    //if an invalid arg value found
+                    // invalid arg value found
                     switch (intArg2) {
                     case -1:
-                        // error 4063; change error message
+                        // generic syntax error; change error message to
+                        // more meaningful value
                         errInfo.Text = errInfo.Text[49..(errInfo.Text.LastIndexOf('\'') - 1)];
                         errInfo.Text = LoadResString(4089).Replace(ARG1, errInfo.Text);
                         break;
                     default:
-                        // change error to 4089
                         errInfo.Text = LoadResString(4089).Replace(ARG1, "");
-                        //skip the next char
+                        // skip the next char and keep processing the line
                         lngPos++;
                         break;
                     }
                     AddMinorError(4089, errInfo.Text);
                 }
-                //if comparing to a variable,
                 if (blnArg2Var) {
                     // use variable version of command
                     bytCmdNum++;
                 }
-                //if adding a 'not'
                 if (blnAddNOT) {
                     tmpLogRes.WriteByte(0xFD);
                 }
-                //write command, and arguments
+                // write command, and arguments
                 tmpLogRes.WriteByte(bytCmdNum);
                 tmpLogRes.WriteByte((byte)intArg1);
                 tmpLogRes.WriteByte((byte)intArg2);
             }
             else {
-                //get flag argument Value
+                // first token is a flag
                 intArg1 = VariableValue(strArg1);
-                //if invalid flag number
                 if (intArg1 == -1) {
-                    //invalid number
+                    // invalid flag number
                     AddMinorError(4002, LoadResString(4066).Replace(ARG1, "1"));
                     return false;
                 }
-                //write isset cmd
+                // write isset cmd
                 tmpLogRes.WriteByte(0x7);
                 tmpLogRes.WriteByte((byte)intArg1);
             }
@@ -5721,21 +6473,33 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// This method determines if the specified token represents the start of
+        /// a properly formatted special assignment syntax, and if so, parses it. 
         /// </summary>
         /// <param name="strArgIn"></param>
         /// <returns></returns>
-        static internal bool CompileSpecial(string strArgIn) {
-            //strArg1 should be a variable in the format of *v##, v##, f## or s##
-            //if it is not, this function will trap it and return an error
-            //the expression after strArg1 should be one of the following:
-            // =, +=, -=, *=, /=, ++, --
+        internal static bool CompileSpecial(string strArgIn) {
+            // properly formatted special assignment syntax will be one of
+            // the following:
+            //     arg1 exprC arg2
+            //     arg1 = arg1 exprA arg2
+            //     arg1 exprU
+            //        
+            // arg1 must be in the format of *v#, v#, f# or s#
+            // exprA must be one of the following assignment tokens:
+            //     +, -, *, /
+            // exprC must be one of the following compound assignment tokens:
+            //     =, +=, -=, *=, /=
             //
-            // in Sierra syntax, @= and =@ are also valid
+            // exprU must be one of the following unary operator tokens:
+            //     ++, --
             //
-            //after determining assignment type, this function will validate additional
-            //arguments as necessary
+            // in Sierra syntax, @= and =@ are also valid for exprC
+            // if arg1 is a flag, only valid exprC is '=', and only valid
+            // arg2 value is 'true' or 'false';
             //
+            // if arg1 is a string, only valid exprC is '=' and only valid
+            // arg2 value is m# (or a literal string)
             string strArg1, strArg2;
             int intArg1 = -1, intArg2 = -1, lngLineType = 0, maxStr;
             int intDir = 0; //0 = no indirection; 1 = left; 2 = right
@@ -5744,29 +6508,24 @@ namespace WinAGI.Engine {
             byte[] bytArgs;
 
             // assume OK until proven otherwise
-
             strArg1 = strArgIn;
-            //if this is normal indirection
             if (strArg1[1] == INDIR_CHAR) {
                 if (agSierraSyntax) {
+                    // not allowed in Sierra syntax
                     AddMinorError(4105);
                 }
                 else {
-                    //left indirection
+                    // left indirection
                     //     *v# = #
                     //     *v# = v#
                     intDir = 1;
-                    //next char can't be a space or newline
-                    switch (strCurrentLine[lngPos + 1]) {
-                    case ' ' or (char)0:
-                        //error
+                    // next char can't be a space or newline
+                    if (lngPos + 1 >= strCurrentLine.Length || strCurrentLine[lngPos + 1]== ' ') {
                         AddMinorError(4105);
-                        break;
                     }
                 }
-                //get next token (should be variable for indirection)
+                // get next token (should be variable for indirection)
                 strArg1 = NextToken();
-                // it must be a variable
                 if (!ConvertArgument(ref strArg1, atVar)) {
                     AddMinorError(4064);
                     // use placeholder
@@ -5813,15 +6572,14 @@ namespace WinAGI.Engine {
                         break;
                     default:
                         // line is totally hosed; skip to end to ignore rest of this line
-                        strCurrentLine = ";";
-                        lngPos = 0;
+                        lngPos = strCurrentLine.Length;
                         return true;
                     }
                 }
             }
             switch (lngLineType) {
             case 1:
-                //string assignment
+                // string assignment
                 //     s# = m#
                 //     s# = "<string>"
 
@@ -5830,11 +6588,10 @@ namespace WinAGI.Engine {
                     AddMinorError(6009);
                     // assume rest of syntax is correct even though not allowed
                 }
-                //get string variable number
                 intArg1 = VariableValue(strArg1);
                 switch (ErrorLevel) {
                 case leHigh or leMedium:
-                    //for version 2.089, 2.272, and 3.002149 only 12 strings
+                    // for version 2.089, 2.272, and 3.002149 only 12 strings
                     maxStr = compGame.agIntVersion switch {
                         "2.089" or "2.272" or "3.002149" => 11,
                         _ => 23,
@@ -5853,13 +6610,11 @@ namespace WinAGI.Engine {
                 }
                 // next token must be "="
                 if (!CheckToken("=")) {
-                    //error
                     AddMinorError(4034);
                     // check for "=="; it's a common error
                     if (!CheckToken("==")) {
                         // line is seriously messed; skip it
-                        strCurrentLine = ";";
-                        lngPos = 0;
+                        lngPos = strCurrentLine.Length;
                         return true;
                     }
                 }
@@ -5871,17 +6626,15 @@ namespace WinAGI.Engine {
                 //get actual second variable
                 // (use argument extractor in case second variable is a literal string)
                 intArg2 = GetNextArg(atMsg, -1);
-                //if error
                 if (intArg2 < 0) {
-                    // add error msg
+                    // error - not a valid message
                     AddMinorError(4058);
                     switch (intArg2) {
                     case -1:
                         // if next token is '(', it means assignment probably just missing
                         if (PeekToken(true) == "(") {
                             // assume rest of line is bad
-                            strCurrentLine = ";";
-                            lngPos = 0;
+                            lngPos = strCurrentLine.Length;
                             return true;
                         }
                         break;
@@ -5893,15 +6646,14 @@ namespace WinAGI.Engine {
                     // use a placeholder
                     intArg2 = 0;
                 }
-                //command is set.string
+                // command is set.string
                 bytCmd = 0x72;
-                //if this is a variable
                 break;
             case 2:
                 //variable assignment or arithmetic operation
-                // (strArg1 is confirmed to be 'v##')
+                // (strArg1 is confirmed to be 'v#')
                 intArg1 = VariableValue(strArg1);
-                //need next command to determine what kind of assignment/operation
+                // need next token to determine what kind of assignment/operation
                 strArg2 = NextToken();
                 // for indirection only '=' is valid
                 if (intDir == 1) {
@@ -5914,7 +6666,6 @@ namespace WinAGI.Engine {
                         AddMinorError(4034);
                         // if end of line is next, just exit
                         if (PeekToken(false) == ";") {
-                            // exit
                             return true;
                         }
                         break;
@@ -5926,7 +6677,7 @@ namespace WinAGI.Engine {
                         // this line is messed up
                         AddMinorError(4034);
                         if (strArg2 == ";") {
-                            lngPos--;
+                            lngPos = 0;
                         }
                         return false;
                     }
@@ -5958,12 +6709,12 @@ namespace WinAGI.Engine {
                         bytCmd = 0xA7;
                         break;
                     case "=":
-                        //right indirection
+                        // right indirection
                         //     v# = *v#;
-                        //assignment
+                        // or assignment
                         //     v# = v#;
                         //     v# = #;
-                        //long arithmetic operation
+                        // or long arithmetic operation
                         //     v# = v# + #; v# = v# + v#;
                         //     v# = v# - #; v# = v# - v#;
                         //     v# = v# * #; v# = v# * v#;
@@ -5982,26 +6733,25 @@ namespace WinAGI.Engine {
                         // v# @= #; v# @= v#;
                         if (agSierraSyntax) {
                             // assume number indirection
-                            bytCmd = 0x0B;
+                            bytCmd = 0xB;
                         }
                         else {
-                            // error
                             AddMinorError(4164);
                             // use 'add.n' as placeholder
-                            bytCmd = 0x05;
+                            bytCmd = 0x5;
                         }
                         break;
                     case "=@":
                         // Sierra syntax only
-                        // v# =@ v3;
+                        // v# =@ v#;
                         if (agSierraSyntax) {
-                            bytCmd = 0x0A;
+                            bytCmd = 0xA;
                         }
                         else {
                             // error
                             AddMinorError(4164);
                             // use 'add.v' as a placeholder
-                            bytCmd = 0x06;
+                            bytCmd = 0x6;
                         }
                         break;
                     default:
@@ -6022,11 +6772,10 @@ namespace WinAGI.Engine {
                 if (agSierraSyntax) {
                     // not allowed in Sierra syntax
                     AddMinorError(6010);
-                    // then continue
+                    // continue anyway
                 }
-                //get flag number
                 intArg1 = VariableValue(strArg1);
-                //next token must be equal sign
+                // next token must be equal sign
                 if (!CheckToken("=")) {
                     AddMinorError(4034);
                     // check for '=='; it's a common error
@@ -6037,19 +6786,17 @@ namespace WinAGI.Engine {
                         }
                     }
                 }
-                //get flag Value
                 strArg2 = NextToken();
                 switch (strArg2) {
                 case "true":
-                    //set this flag
+                    // set this flag
                     bytCmd = 0xC;
                     break;
                 case "false":
-                    //reset this flag
+                    // reset this flag
                     bytCmd = 0xD;
                     break;
                 default:
-                    //error
                     AddMinorError(4034);
                     // if it was ';', back up to use it
                     if (strArg2 == ";") {
@@ -6058,8 +6805,7 @@ namespace WinAGI.Engine {
                     // if next cmd is '(', it means assignment probably just missing
                     if (PeekToken(true) == "(") {
                         // assume rest of line is bad
-                        strCurrentLine = ";";
-                        lngPos = 0;
+                        lngPos = strCurrentLine.Length;
                     }
                     return true;
                 }
@@ -6068,16 +6814,16 @@ namespace WinAGI.Engine {
             // get second argument
             switch (bytCmd) {
             case 0x1 or 0x2 or 0xC or 0xD or 0x72:
-                //skip check for second argument if cmd is known to be a single arg
-                //commands: increment, decrement, reset, set
-                //(set string is also skipped because second arg is already determined)
+                // skip check for second argument if cmd is known to be a single arg
+                // commands: increment, decrement, reset, set
+                // (set string is also skipped because second arg is already determined)
                 break;
             default:
-                //get next argument
                 strArg2 = NextToken();
-                //if it is indirection
                 if (strArg2 == "*") {
+                    // indirection
                     if (agSierraSyntax) {
+                        // this form not allowed in Sierra syntax
                         AddMinorError(4105);
                     }
                     else {
@@ -6087,13 +6833,11 @@ namespace WinAGI.Engine {
                                 AddMinorError(4105);
                             }
                             else {
-                                //set right indirection
+                                // right indirection
                                 intDir = 2;
-                                //next char can't be a space or end of line
-                                switch (strCurrentLine[lngPos + 1]) {
-                                case ' ' or (char)0:
+                                // next char can't be a space or end of line
+                                if (lngPos + 1 >= strCurrentLine.Length || strCurrentLine[lngPos + 1] == ' ') {
                                     AddMinorError(4105);
-                                    break;
                                 }
                             }
                         }
@@ -6113,7 +6857,7 @@ namespace WinAGI.Engine {
                         return true;
                     }
                 }
-                // arg may be v##, or ## (or f##/s## if already an error)
+                // arg2 may be v##, or ## (or f##/s## if already an error)
                 blnArg2Var = true;
                 if (!ConvertArgument(ref strArg2, atNum, ref blnArg2Var)) {
                     // maybe it was an invalid string or flag assignment
@@ -6127,7 +6871,7 @@ namespace WinAGI.Engine {
                             bytCmd = 0x72;
                             intArg1 = 1;
                         }
-                        // check for flag
+                        // check for flag assignment
                         else if (strArg2 == "true" || strArg2 == "false") {
                             lngLineType = 3;
                             // use place holders since error already encountered
@@ -6136,14 +6880,12 @@ namespace WinAGI.Engine {
                         }
                     }
                     else {
-                        // error
                         AddMinorError(4088, LoadResString(4088).Replace(ARG1, strArg2));
                         // use placeholder
                         strArg2 = "0";
                         if (PeekToken(true) == "(") {
                             // assume rest of line is bad
-                            strCurrentLine = ";";
-                            lngPos = 0;
+                            lngPos = strCurrentLine.Length;
                             return true;
                         }
                     }
@@ -6151,11 +6893,10 @@ namespace WinAGI.Engine {
                 // if guessing, type may have changed; only need to continue if
                 // still processing a variable assignment
                 if (lngLineType == 2) {
-                    // if it's a number, check for negative value
                     if (int.TryParse(strArg2, out intArg2)) {
+                        // if it's a number, check for negative value
                         if (intArg2 < 0) {
                             if (intArg2 < -128) {
-                                //error
                                 AddMinorError(4095);
                                 // use a placeholder
                                 intArg2 = 255;
@@ -6177,7 +6918,7 @@ namespace WinAGI.Engine {
                         }
                     }
                     else {
-                        // it's a number or variable; verify it's 0-255
+                        // it's a variable
                         intArg2 = VariableValue(strArg2);
                         if (intArg2 == -1) {
                             AddMinorError(4088);
@@ -6190,7 +6931,6 @@ namespace WinAGI.Engine {
                     if (bytCmd == 0xA) {
                         // rindirect only allowed if arg2 is a variable
                         if (!blnArg2Var) {
-                            // error
                             AddMinorError(6011);
                         }
                         // reset blnArg2Var so follow on check doesn't
@@ -6226,20 +6966,15 @@ namespace WinAGI.Engine {
                 }
                 break;
             }
-
-            //if command is still not known
             if (bytCmd == 0) {
-                //if arg values are the same (already know arg2 is a variable)
-                //and no indirection
+                // command is still not known
                 if ((intArg1 == intArg2) && (intDir == 0)) {
-                    //check for long arithmetic
+                    // arg values are the same (already know arg2 is a variable)
+                    // and no indirection - check for long arithmetic
                     strArg2 = NextToken();
-                    //if end of command is reached
                     if (strArg2 == ";") {
-                        //move pointer back one space so eol
-                        //check in CompileAGI works correctly
-                        lngPos--;
-                        //this is a simple assign (with a variable being assigned to itself!!)
+                        // this is a simple assign (with a variable being assigned
+                        // to itself!!)
                         switch (ErrorLevel) {
                         case leHigh or leMedium:
                             AddWarning(5036);
@@ -6247,9 +6982,12 @@ namespace WinAGI.Engine {
                         }
                         // assign.v
                         bytCmd = 0x3;
+                        // move pointer back one space so eol check in main compiler
+                        // works correctly
+                        lngPos--;
                     }
                     else {
-                        //this may be long arithmetic
+                        // this may be long arithmetic
                         if (agSierraSyntax) {
                             // not allowed in Sierra syntax
                             AddMinorError(6012);
@@ -6269,18 +7007,16 @@ namespace WinAGI.Engine {
                             bytCmd = 0xA7;
                             break;
                         default:
-                            //error
                             AddMinorError(4087);
                             return true;
                         }
-                        //now get actual second argument (number or variable)
+                        // now get actual second argument (number or variable)
                         blnArg2Var = true;
                         intArg2 = GetNextArg(atNum, -1, ref blnArg2Var);
-                        //if error
                         if (intArg2 < 0) {
+                            // change error message
                             switch (intArg2) {
                             case -1:
-                                // error 4063 - change error message
                                 errInfo.Text = LoadResString(4161).Replace(ARG1, errInfo.Text.Substring(55, errInfo.Text.LastIndexOf('\'') - 53));
                                 break;
                             default:
@@ -6294,17 +7030,18 @@ namespace WinAGI.Engine {
                     }
                 }
                 else {
-                    //the second variable argument is different, or indirection
-                    //must be assignment
-                    // v# = v#
-                    // *v# = v#
-                    // v# = *v#
+                    // the second variable argument is different, or indirection
+                    // must be assignment
+                    //     v# = v#
+                    //     *v# = v#
+                    //     v# = *v#
                     switch (intDir) {
-                    case 0:  //assign.v
+                    case 0:
+                        // assign.v
                         bytCmd = 0x4;
                         // special check for improper math
                         // vA = vB + # for example
-                        strArg2 = NextToken();
+                        strArg2 = NextChar().ToString();
                         switch (strArg2) {
                         case "+" or "-" or "*" or "/":
                             // bad math
@@ -6313,20 +7050,22 @@ namespace WinAGI.Engine {
                             strArg2 = NextToken(true);
                             break;
                         default:
-                            // assume ok, put token back on stream
-                            lngPos += strArg2.Length;
+                            // assume ok, put char back on stream
+                            lngPos--;
                             break;
                         }
                         break;
-                    case 1: //lindirect.v
+                    case 1:
+                        // lindirect.v
                         bytCmd = 0x9;
                         break;
-                    case 2:  //rindirect
+                    case 2:
+                        // rindirect
                         bytCmd = 0xA;
                         break;
                     }
-                    //always reset arg2var flag so
-                    //command won't be adjusted later
+                    // always reset arg2var flag so
+                    // command won't be adjusted later
                     blnArg2Var = false;
                 }
             }
@@ -6335,28 +7074,28 @@ namespace WinAGI.Engine {
                 // use variable version of command
                 bytCmd++;
             }
-            //need to validate arguments for this command
+            // need to validate arguments for this command
             switch (bytCmd) {
             case 0x1 or 0x2 or 0xC or 0xD:
-                //single arg commands
+                // single arg commands
                 bytArgs = new byte[1];
                 bytArgs[0] = (byte)intArg1;
                 break;
             default:
-                //two arg commands
+                // two arg commands
                 bytArgs = new byte[2];
                 bytArgs[0] = (byte)intArg1;
                 bytArgs[1] = (byte)intArg2;
                 break;
             }
-            //validate commands before writing
+            // validate commands before writing
             if (!ValidateArgs(bytCmd, ref bytArgs)) {
                 return false;
             }
-            //write command and arg1
+            // write command and arg1
             tmpLogRes.WriteByte(bytCmd);
             tmpLogRes.WriteByte((byte)intArg1);
-            //write second argument for all cmds except 0x1, 0x2, 0xC, 0xD
+            // write second argument for all cmds except 0x1, 0x2, 0xC, 0xD
             switch (bytCmd) {
             case 0x1 or 0x2 or 0xC or 0xD:
                 break;

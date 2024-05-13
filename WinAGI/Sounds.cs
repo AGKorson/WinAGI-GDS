@@ -99,7 +99,7 @@ namespace WinAGI.Engine {
             // save new sound to add it to VOL file
             agResource.Save();
             // id list needs to be updated
-            Compiler.blnSetIDs = false;
+            LogicCompiler.blnSetIDs = false;
             // return the new sound
             return agResource;
         }
@@ -116,7 +116,7 @@ namespace WinAGI.Engine {
                 // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Sound" + Index);
                 // remove ID from compiler list
-                Compiler.blnSetIDs = false;
+                LogicCompiler.blnSetIDs = false;
             }
         }
 
@@ -163,7 +163,7 @@ namespace WinAGI.Engine {
             VOLManager.Base.UpdateDirFile(tmpSound);
             tmpSound.SaveProps();
             // id list needs updating
-            Compiler.blnSetIDs = false;
+            LogicCompiler.blnSetIDs = false;
         }
 
         /// <summary>

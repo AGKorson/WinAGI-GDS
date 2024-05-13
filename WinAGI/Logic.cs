@@ -4,7 +4,7 @@ using System.Text;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
-using static WinAGI.Engine.Compiler;
+using static WinAGI.Engine.LogicCompiler;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -491,7 +491,7 @@ namespace WinAGI.Engine {
             if (Decompile) {
                 if (mErrLevel == 0) {
                     // get source code by decoding the resource raw data
-                    mSourceText = DecodeLogic(this);
+                    mSourceText = LogicDecoder.DecodeLogic(this);
                     if (mErrLevel < 0) {
                         // unable to decompile; force uncompiled state
                         mSourceText = "return();" + NEWLINE;
@@ -551,7 +551,7 @@ namespace WinAGI.Engine {
             }
             // replace tabs with indent spaces
             if (mSourceText.Contains('\t')) {
-                mSourceText = mSourceText.Replace("\t", INDENT);
+                mSourceText = mSourceText.Replace("\t", LogicDecoder.INDENT);
             }
             // calculate source crc
             if (mInGame) {

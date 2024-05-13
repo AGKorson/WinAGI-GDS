@@ -7,7 +7,8 @@ using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.Commands;
-using static WinAGI.Engine.Compiler;
+using static WinAGI.Engine.LogicCompiler;
+using static WinAGI.Engine.LogicDecoder;
 
 namespace WinAGI.Engine {
     /// <summary>

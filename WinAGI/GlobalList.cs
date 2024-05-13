@@ -135,7 +135,7 @@ namespace WinAGI.Engine {
                     break;
                 // strip off comment
                 string s = "";
-                strLine = Compiler.StripComments(strLine, ref s);
+                strLine = LogicCompiler.StripComments(strLine, ref s);
                 if (strLine.Length != 0) {
                     if (strLine[..8] == "#define ") {
                         strLine = strLine[8..];
@@ -144,7 +144,7 @@ namespace WinAGI.Engine {
                             tdNewDefine.Name = strLine[..(i - 1)].Trim();
                             tdNewDefine.Value = strLine[i..].Trim();
                             // validate define name
-                            DefineNameCheck chkName = Compiler.ValidateNameGlobal(tdNewDefine);
+                            DefineNameCheck chkName = LogicCompiler.ValidateNameGlobal(tdNewDefine);
                             switch (chkName) {
                             case ncOK or
                             ncReservedVar or
@@ -153,7 +153,7 @@ namespace WinAGI.Engine {
                             ncReservedObj or
                             ncReservedStr or
                             ncReservedMsg:
-                                DefineValueCheck chkValue = Compiler.ValidateDefValue(tdNewDefine);
+                                DefineValueCheck chkValue = LogicCompiler.ValidateDefValue(tdNewDefine);
                                 switch (chkValue) {
                                 case vcOK or vcReserved or vcGlobal:
                                     gCount++;

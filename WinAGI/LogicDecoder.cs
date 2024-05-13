@@ -7,6 +7,7 @@ using WinAGI.Engine;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.LogicCompiler;
 using static WinAGI.Engine.LogicErrorLevel;
 using static WinAGI.Engine.ArgTypeEnum;
 using static WinAGI.Engine.Commands;
@@ -15,9 +16,13 @@ using static WinAGI.Engine.Base;
 using System.Diagnostics;
 
 namespace WinAGI.Engine {
-    public static partial class Compiler {
+    /// <summary>
+    /// This class contains all the members and methods needed to decode logic 
+    /// resources into readable source code.
+    /// </summary>
+    public static class LogicDecoder {
         #region Structs
-        internal struct BlockType {
+        internal struct DecodeBlockType {
             internal bool IsIf = false;
             internal int StartPos = 0;
             internal int EndPos = 0;
@@ -25,7 +30,7 @@ namespace WinAGI.Engine {
             internal bool IsOutside = false;
             internal int JumpPos = 0;
             internal bool HasQuit = false;
-            public BlockType() {
+            public DecodeBlockType() {
             }
         }
         #endregion
@@ -40,7 +45,8 @@ namespace WinAGI.Engine {
 
         #region Members
         static byte bytBlockDepth;
-        static BlockType[] DecodeBlock = new BlockType[MAX_BLOCK_DEPTH];
+        static DecodeBlockType[] DecodeBlock = new DecodeBlockType[WinAGI.Engine.LogicCompiler.MAX_BLOCK_DEPTH];
+        static int lngPos;
         static int intArgStart;
         static int[] lngLabelPos = [];
         static int lngMsgSecStart;
@@ -51,6 +57,8 @@ namespace WinAGI.Engine {
         static string strError;
         static bool badQuit = false;
         static byte mIndentSize = 4;
+        internal static string agDefSrcExt = ".lgc";
+        internal static AGICodeStyle mCodeStyle = AGICodeStyle.cstDefault;
 
         const int MAX_LINE_LEN = 80;
         internal static int LogicNum;
@@ -98,6 +106,90 @@ namespace WinAGI.Engine {
             get;
             set;
         }
+
+        /// <summary>
+        /// Gets or sets the formatting style that theh decompilier uses. Currently supports
+        /// three formats, Default, Visual Studio, and Modified Visual Studio.
+        /// </summary>
+        public static AGICodeStyle CodeStyle {
+            get { return mCodeStyle; }
+            set {
+                mCodeStyle = value;
+                // tokens need to be reset
+                blnTokensSet = false;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value that determines if decompiled logics displays a list
+        /// of all messages in the logic at the end of the code section.
+        /// </summary>
+        public static bool ShowAllMessages { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if message arguments in decompiled 
+        /// logics are displayed as literal strings or as message argument numbers. 
+        /// </summary>
+        public static bool MsgsByNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if inventory item arguments in 
+        /// decompiled logics are displayed as literal strngs or as inventory item
+        /// argument numbers.
+        /// </summary>
+        public static bool IObjsByNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if vocablulary word arguments in 
+        /// decompiled logics are displayed as literal strngs or as vocabulary word
+        /// argument numbers.
+        /// </summary>
+        public static bool WordsByNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if 'goto' commands that function as 'else'
+        /// statements are displayed as 'else' or as 'goto'.
+        /// </summary>
+        public static bool ElseAsGoto { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default source extension that WinAGI will use when 
+        /// creating decompiled source code files from logics UNLESS overridden
+        /// by this game's SourceExt property.
+        /// </summary>
+        public static string DefaultSrcExt {
+            get {
+                return agDefSrcExt;
+            }
+            set {
+                // must start with a period
+                if (value[0] != 46) {
+                    agDefSrcExt = "." + value;
+                }
+                else {
+                    agDefSrcExt = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value that determines whether this game will decompile logics
+        /// using the AGI community established syntax, or Sierra's original
+        /// syntax.
+        /// </summary>
+        public static bool SpecialSyntax { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if reserved variables and flag are 
+        /// displayed in decompiled logics as define names or as argument numbers.
+        /// </summary>
+        public static bool ReservedAsText { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if reserved variables and flags are 
+        /// considered automatically defined, or if they must be manually defined.
+        /// </summary>
+        public static bool UseReservedNames { get; set; }
         #endregion
 
         #region Methods
@@ -1417,7 +1509,7 @@ namespace WinAGI.Engine {
             for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--) {
                 // in some rare cases, the blocks don't align correctly
                 if (DecodeBlock[CurBlock].EndPos < lngPos) {
-                    AddDecodeWarning("DC14", "Expected block end does not align with calculated block end at position " + lngPos.ToString(), Compiler.stlOutput.Count);
+                    AddDecodeWarning("DC14", "Expected block end does not align with calculated block end at position " + lngPos.ToString(), stlOutput.Count);
                 }
                 if (DecodeBlock[CurBlock].EndPos <= lngPos) {
                     // check for unusual case where an if block ends outside the if block it is nested in
