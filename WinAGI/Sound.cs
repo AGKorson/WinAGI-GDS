@@ -9,7 +9,7 @@ namespace WinAGI.Engine {
     /// A class that represents an AGI Sound resource, with WinAGI extensions.
     /// </summary>
     public class Sound : AGIResource {
-        Track[] mTrack = new Track[4];
+        internal Track[] mTrack = new Track[4];
         bool mTracksSet;
         double mLength;
         int mKey;
@@ -96,10 +96,9 @@ namespace WinAGI.Engine {
                 // byte 0/1, 2/2, 4/5, 6/7 = offset to track data
                 // byte 8/9 are end of track markers
                 mFormat = SoundFormat.sfAGI;
-                mTrack[0] = new Track(this);
-                mTrack[1] = new Track(this);
-                mTrack[2] = new Track(this);
-                mTrack[3] = new Track(this);
+                for (int i = 0; i < 4; i++) {
+                    mTrack[i] = new Track(this);
+                }
                 mTrack[0].Instrument = 80;
                 mTrack[1].Instrument = 80;
                 mTrack[2].Instrument = 80;
@@ -1398,10 +1397,9 @@ namespace WinAGI.Engine {
             // reset length
             mLength = -1;
             // clear tracks
-            mTrack[0] = new Track(this);
-            mTrack[1] = new Track(this);
-            mTrack[2] = new Track(this);
-            mTrack[3] = new Track(this);
+            for (int i = 0; i < 4; i++) { 
+                mTrack[i] = new Track(this);
+            }
             mTracksSet = false;
         }
     }

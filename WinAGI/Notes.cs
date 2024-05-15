@@ -125,10 +125,7 @@ namespace WinAGI.Engine {
         internal Notes Clone(Track cloneTparent) {
             Notes CopyNotes = new(mParent, cloneTparent);
             foreach (Note tmpNote in mCol) {
-                CopyNotes.mCol.Add(new Note(mParent, mTParent) {
-                    mAttenuation = tmpNote.mAttenuation,
-                    mDuration = tmpNote.mDuration,
-                    mFreqDiv = tmpNote.mFreqDiv
+                CopyNotes.mCol.Add(new Note(tmpNote.mFreqDiv, tmpNote.mDuration, tmpNote.mAttenuation, mParent, mTParent) {
                 });
             }
             return CopyNotes;

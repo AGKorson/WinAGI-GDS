@@ -3,38 +3,59 @@ using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// A class that represents a single loop in an AGI View resource.
+    /// </summary>
     public class Loop {
+        #region Members
         internal Cels mCelCol;
         int mMirrorPair;
         internal int mIndex;
         readonly View mParent;
+        #endregion
+
+        #region Constructors
+        /// <summary>
+        /// Creates a new loop for a View that is not in a game, with no cels.
+        /// </summary>
+        public Loop() {
+            mCelCol = [];
+        }
 
         /// <summary>
-        /// 
+        /// Creates a new loop for an in-game View, with no cels.
+        /// </summary>
+        /// <param name="parent"></param>
+        internal Loop(View parent) {
+            mCelCol = new Cels(parent);
+            mParent = parent;
+        }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets the collection of cels in this loop, including flipping the cels
+        /// as necessary if the loop is a mirror.
         /// </summary>
         public Cels Cels {
             get {
-                // set mirror flag
+                // set mirror status
                 mCelCol.SetMirror(mMirrorPair < 0);
-
-                //return the cels collection
                 return mCelCol;
             }
             set {
-                //sets the cels collection
                 int i;
                 mCelCol = value;
-                // if mirrored
                 if (mMirrorPair != 0) {
                     // find mirror pair (sum of mirror pairs is zero)
                     for (i = 0; i < mParent.mLoopCol.Count; i++) {
                         if (mParent.mLoopCol[(byte)i].MirrorPair + mMirrorPair == 0) {
                             // is the cels collection already set to this object?
                             if (mParent.mLoopCol[(byte)i].Cels == value) {
-                                // nothing to do
                                 return;
                             }
-                            // set the mirrored loops cels
+                            // TODO: shouldn't it matter which is primary and which
+                            // is the mirror copy?
                             mParent.mLoopCol[(byte)i].Cels = value;
                             return;
                         }
@@ -42,36 +63,9 @@ namespace WinAGI.Engine {
                 }
             }
         }
-        
+
         /// <summary>
-        /// Copies the source loop into this loop.
-        /// </summary>
-        /// <param name="SourceLoop"></param>
-        public void CopyLoop(Loop SourceLoop) {
-            // if this is a primary mirrored loop
-            if (mMirrorPair > 0) {
-                // call unmirror for the secondary loop
-                // so it will get a correct copy of cels
-                mParent.mLoopCol[MirrorLoop].UnMirror();
-            }
-            else if (mMirrorPair < 0) {
-                // this is a secondary mirrored loop;
-                // only need to reset mirror status
-                // because copy function will create new cel collection
-                mParent.mLoopCol[MirrorLoop].MirrorPair = 0;
-                mMirrorPair = 0;
-            }
-            //now copy source loop cels
-            this.mCelCol = SourceLoop.Cels;
-            // parent, index and mirror status go unchanged
-            //if there is a parent object
-            if (mParent is not null) {
-                mParent.IsDirty = true;
-            }
-        }
-        
-        /// <summary>
-        /// 
+        /// Gets the specified cel from this loop.
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
@@ -80,9 +74,9 @@ namespace WinAGI.Engine {
                 return Cels[index];
             }
         }
-        
+
         /// <summary>
-        /// 
+        /// Gets or sets the index number for this loop.
         /// </summary>
         public int Index {
             get {
@@ -96,10 +90,14 @@ namespace WinAGI.Engine {
                 mIndex = value;
             }
         }
-        
+
         /// <summary>
-        /// 
+        /// Gets a value indicating whether or not this loop is part of a
+        /// mirror pair.
         /// </summary>
+        /// <returns>Positive mirror pair number if this is the original
+        /// loop, negative mirror pair number if this is the mirrored loop
+        /// or zero if loop is not mirrored.</returns>
         public int Mirrored {
             get {
                 // if this loop is part of a mirror pair then it is mirrored
@@ -108,22 +106,19 @@ namespace WinAGI.Engine {
                 return Math.Sign(mMirrorPair);
             }
         }
-        
+
         /// <summary>
-        /// Return the index of the loop that mirrors this loop. If this loop is not 
-        /// a mirror, returns -1.
+        /// Gets the index of the loop that mirrors this loop.
         /// </summary>
+        /// <returns>Index of the matching mirror loop, or -1 if this loop is not a mirror.</returns>
         public int MirrorLoop {
             get {
                 byte i;
 
                 if (mMirrorPair == 0) {
-                    // not mirrored
                     return -1;
                 }
-                // step through all loops in the loop collection
                 for (i = 0; i < mParent.mLoopCol.Count; i++) {
-                    // if mirror pair values equal zero
                     if (mParent.mLoopCol[i].MirrorPair + mMirrorPair == 0) {
                         // this is the loop
                         break;
@@ -134,7 +129,9 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets or sets the mirror pair falue for this loop. Positive numbers indicate
+        /// the original loop. Negative numbers indicate the mirrored loop. Zero indicates
+        /// a non-mirrored loop.
         /// </summary>
         internal int MirrorPair {
             get {
@@ -145,10 +142,39 @@ namespace WinAGI.Engine {
 
             }
         }
-        
+
+        #endregion
+
+        #region Methods
         /// <summary>
-        /// If the this loop is mirrored, the mirror is removed and both loops get
-        /// assigned individual copies of cel data.
+        /// This loop is set to a copy of the specified loop by copying all its data
+        /// elements.
+        /// </summary>
+        /// <param name="SourceLoop"></param>
+        public void SetLoop(Loop SourceLoop) {
+            if (mMirrorPair > 0) {
+                // call unmirror for the secondary loop
+                // so it will get a correct copy of cels
+                mParent.mLoopCol[MirrorLoop].UnMirror();
+            }
+            else if (mMirrorPair < 0) {
+                // this is a secondary mirrored loop;
+                // only need to reset mirror status
+                // because copy function will create new cel collection
+                mParent.mLoopCol[MirrorLoop].MirrorPair = 0;
+                mMirrorPair = 0;
+            }
+            // copy source loop cels
+            this.mCelCol = SourceLoop.Cels.Clone(mParent);
+            if (mParent is not null) {
+                mParent.IsDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// Removes mirror property from this loop. This loop and its mirrored loop
+        /// are assigned separate copies of the loop's cel data. If loop is not mirrored
+        /// no effect.
         /// </summary>
         public void UnMirror() {
             // Unmirroring is handled by the secondary loop; if the loop that calls
@@ -159,9 +185,8 @@ namespace WinAGI.Engine {
             if (mMirrorPair == 0) {
                 return;
             }
-            //if this is the primary loop
             if (mMirrorPair > 0) {
-                //unmirror other loop
+                // unmirror other loop
                 mParent.mLoopCol[MirrorLoop].UnMirror();
                 return;
             }
@@ -173,14 +198,10 @@ namespace WinAGI.Engine {
                 // access cels through parent so mirror status is set properly
                 tmpCels[i].AllCelData = mParent.mLoopCol[mIndex].Cels[i].AllCelData;
             }
-            // set cel collectionto new cel col
             mCelCol = tmpCels;
-            // clear mirror properties
             mParent.mLoopCol[MirrorLoop].MirrorPair = 0;
             mMirrorPair = 0;
-            //if there is a parent object
             if (mParent is not null) {
-                //set dirty flag
                 mParent.IsDirty = true;
             }
         }
@@ -191,29 +212,15 @@ namespace WinAGI.Engine {
         /// <param name="cloneparent"></param>
         /// <returns>The Loop this method creates.</returns>
         public Loop Clone(View cloneparent) {
-            // returns a copy of this loop
             Loop CopyLoop = new(cloneparent) {
+                // TODO: should clone include mirror status? or should the 
+                // cloned loop be an unmirrored copy???
                 mMirrorPair = mMirrorPair,
                 mIndex = mIndex,
                 mCelCol = mCelCol.Clone(cloneparent)
             };
             return CopyLoop;
         }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        public Loop() {
-            mCelCol = [];
-        }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parent"></param>
-        public Loop(View parent) {
-            mCelCol = new Cels(parent);
-            mParent = parent;
-        }
+        #endregion
     }
 }

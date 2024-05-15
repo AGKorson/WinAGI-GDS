@@ -14,14 +14,30 @@ namespace WinAGI.Engine {
     /// A class that holds all the logics in an AGI game.
     /// </summary>
     public class Logics : IEnumerable<Logic> {
+        #region Members
         readonly AGIGame parent;
         internal string mSourceFileExt = "";
+        #endregion
 
+        #region Constructors
         internal Logics(AGIGame parent) {
             this.parent = parent;
             mSourceFileExt = DefaultSrcExt;
         }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets the list of logics in this game.
+        /// </summary>
         public SortedList<byte, Logic> Col { get; private set; } = [];
+
+        /// <summary>
+        /// Gets the logic with the specified index value from this list of logics.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
         public Logic this[int index] {
             get {
                 if (index < 0 || index > 255 || !Exists((byte)index)) {
@@ -32,7 +48,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the number of logics in this AGI game.
+        /// Gets the number of logics in this AGI game.
         /// </summary>
         public byte Count { 
             get { 
@@ -41,7 +57,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the highest index in use in the logics collection.
+        /// Gets the highest index in use in this logics collection.
         /// </summary>
         public byte Max {
             get {
@@ -54,14 +70,13 @@ namespace WinAGI.Engine {
         
         /// <summary>
         /// Gets or sets the default source file extension that will be used for
-        /// source code files in ithis game.
+        /// source code files in this game.
         /// </summary>
         public string SourceFileExt {
             get {
                 return mSourceFileExt;
             }
             set {
-                // lower case, max four characters, not null
                 if (value.Length == 0) {
                     // use default
                     mSourceFileExt = DefaultSrcExt;
@@ -79,7 +94,23 @@ namespace WinAGI.Engine {
                 parent.WriteGameSetting("General", "SourceFileExt", mSourceFileExt);
             }
         }
-        
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Called by the load game methods for the initial loading of
+        /// resources into logics collection.
+        /// </summary>
+        /// <param name="bytResNum"></param>
+        /// <param name="bytVol"></param>
+        /// <param name="lngLoc"></param>
+        internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
+            Logic newResource = new(parent, bytResNum, bytVol, lngLoc);
+            newResource.LoadNoSource();
+            Col.Add(bytResNum, newResource);
+            // leave it loaded, so error level can be addressed by loader
+        }
+
         /// <summary>
         /// Returns true if a logic with number ResNum exists in this game.
         /// </summary>
@@ -90,14 +121,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        /// Removes all logics from the game.
-        /// </summary>
-        internal void Clear() {
-            Col = [];
-        }
-
-        /// <summary>
-        /// Adds a logic to the game. If NewLogic is null a blank logic is
+        /// Adds a logic to this game. If NewLogic is null a blank logic is
         /// added, otherwise the added logic is cloned from NewLogic.
         /// </summary>
         /// <param name="ResNum"></param>
@@ -113,7 +137,6 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            // create new ingame logic
             agResource = new Logic(parent, ResNum, NewLogic);
             if (NewLogic is null) {
                 strID = "Logic" + ResNum;
@@ -132,14 +155,12 @@ namespace WinAGI.Engine {
             agResource.PropsDirty = true;
             // save new logic to add it to VOL file
             agResource.Save();
-            // id list needs to be updated
             blnSetIDs = false;
-            // return the new logic
             return agResource;
         }
 
         /// <summary>
-        /// Removes a logic from the game.
+        /// Removes a logic from this game.
         /// </summary>
         /// <param name="Index"></param>
         public void Remove(byte Index) {
@@ -155,7 +176,14 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Changes the number of a logic in this game.
+        /// Removes all logics from this game.
+        /// </summary>
+        internal void Clear() {
+            Col = [];
+        }
+
+        /// <summary>
+        /// Changes the index number of a logic in this game.
         /// </summary>
         /// <param name="OldLogic"></param>
         /// <param name="NewLogic"></param>
@@ -171,7 +199,7 @@ namespace WinAGI.Engine {
             if (!Col.ContainsKey(OldLogic)) {
                 throw new IndexOutOfRangeException("logic does not exist");
             }
-            //verify new number is not in collection
+            // verify new number is not in collection
             if (Col.ContainsKey(NewLogic)) {
                 WinAGIException wex = new(LoadResString(669)) {
                     HResult = WINAGI_ERR + 669,
@@ -207,25 +235,10 @@ namespace WinAGI.Engine {
             tmpLogic.Number = NewLogic;
             Col.Add(NewLogic, tmpLogic);
             VOLManager.Base.UpdateDirFile(tmpLogic);
-            // id list needs updating
             tmpLogic.SaveProps();
             blnSetIDs = false;
         }
 
-        /// <summary>
-        /// Called by the load game methods for the initial loading of
-        /// resources into logics collection.
-        /// </summary>
-        /// <param name="bytResNum"></param>
-        /// <param name="bytVol"></param>
-        /// <param name="lngLoc"></param>
-        internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
-            Logic newResource = new(parent, bytResNum, bytVol, lngLoc);
-            newResource.LoadNoSource();
-            Col.Add(bytResNum, newResource);
-            // leave it loaded, so error level can be addressed by loader
-        }
-        
         /// <summary>
         /// Sets the CRC for all logics in the collection to indicate they need
         /// to be recompiled.
@@ -239,7 +252,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Sets the CRC for a logic in the collection to indicate it needs
+        /// Sets the CRC for the specified logic in this game to indicate it needs
         /// to be recompiled.
         /// </summary>
         /// <param name="ResNum"></param>
@@ -270,7 +283,9 @@ namespace WinAGI.Engine {
             ConvertArgument(ref ArgIn, ArgType, ref VarOrNum);
             return ArgIn;
         }
+        #endregion
 
+        #region Enumeration
         // Collection enumerator methods
         LogicEnum GetEnumerator() {
             return new LogicEnum(Col);
@@ -281,8 +296,12 @@ namespace WinAGI.Engine {
         IEnumerator<Logic> IEnumerable<Logic>.GetEnumerator() {
             return (IEnumerator<Logic>)GetEnumerator();
         }
+        #endregion
     }
 
+    /// <summary>
+    /// Implements enumeration for the Logics class.
+    /// </summary>
     internal class LogicEnum : IEnumerator<Logic> {
         public SortedList<byte, Logic> _logics;
         int position = -1;
