@@ -22,7 +22,7 @@ namespace WinAGI.Engine {
         // case sensitive
 
         #region Structs
-        internal struct LogicGoto {
+        private struct LogicGoto {
             internal byte LabelNum;
             internal int DataLoc;
         }
@@ -62,7 +62,7 @@ namespace WinAGI.Engine {
         /// </summary>
         internal static AGIGame compGame;
         // compiler warnings
-        public const int WARNCOUNT = 107;
+        public const int WARNCOUNT = 116;
         internal static bool[] agNoCompWarn = new bool[WARNCOUNT];
         // reserved defines
         internal static TDefine[] agResVar = new TDefine[27];    // 27: text name of built in variables
@@ -4098,21 +4098,16 @@ namespace WinAGI.Engine {
                                     AddWarning(5113);
                                     break;
                                 }
-                                // close the block
-                                blnOrBlock = false;
-                                blnNeedNextCmd = false;
                             }
-                            else if (intNumCmdsInBlock == 1) {
-                                // or block with one command
-                                switch (ErrorLevel) {
-                                case leHigh or leMedium:
-                                    AddWarning(5109);
-                                    break;
-                                }
-                                // close the block
-                                blnOrBlock = false;
-                                blnNeedNextCmd = false;
+                            else {
+                                AddMinorError(4056);
+                                // done with if
+                                tmpLogRes.WriteByte(0xFF);
+                                return true;
                             }
+                            // close the block
+                            blnOrBlock = false;
+                            blnNeedNextCmd = false;
                         }
                         else if (intNumTestCmds == 0) {
                             // if block with no commands
@@ -4170,7 +4165,6 @@ namespace WinAGI.Engine {
                                 // warn user that it's not compatible with AGI Studio
                                 switch (ErrorLevel) {
                                 case leHigh or leMedium:
-                                    //generate warning
                                     AddWarning(5081);
                                     break;
                                 }
@@ -4333,6 +4327,14 @@ namespace WinAGI.Engine {
                         if (blnOrBlock) {
                             blnOrBlock = false;
                             tmpLogRes.WriteByte(0xFC);
+                            if (intNumCmdsInBlock == 1) {
+                                // or block with one command
+                                switch (ErrorLevel) {
+                                case leHigh or leMedium:
+                                    AddWarning(5109);
+                                    break;
+                                }
+                            }
                         }
                         else {
                             // end of if block found
@@ -5148,7 +5150,7 @@ namespace WinAGI.Engine {
                                 // CEL width must be >=3
                                 switch (ErrorLevel) {
                                 case leHigh:
-                                    if (compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels[ArgVal[2]].Width == 2 && ArgVal[6] < 4) {
+                                    if (compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels[ArgVal[2]].Width == 2) {
                                         errInfo.ID = "4165";
                                         errInfo.Text = LoadResString(4165);
                                         return false;

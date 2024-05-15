@@ -309,12 +309,7 @@ namespace WinAGI.Engine {
                             intFreq = (short)(16 * (mData[lngResPos + 2] & 0x3F) + (mData[lngResPos + 3] & 0xF));
                             // attenuation
                             bytAttn = ((byte)(mData[lngResPos + 4] & 0xF));
-                            mTrack[i].Notes.Add(intFreq, lngDur, bytAttn).mrawData = 
-                                [mData[lngResPos],
-                                mData[lngResPos + 1],
-                                mData[lngResPos + 2],
-                                mData[lngResPos + 3],
-                                mData[lngResPos + 4]];
+                            mTrack[i].Notes.Add(intFreq, lngDur, bytAttn); 
                             lngTLength += lngDur;
                         }
                         else {
@@ -328,12 +323,7 @@ namespace WinAGI.Engine {
                             bytAttn = (byte)(mData[lngResPos + 4] & 0xF);
                             // if duration>0
                             if (lngDur > 0) {
-                                mTrack[3].Notes.Add(intFreq, lngDur, bytAttn).mrawData =
-                                [mData[lngResPos],
-                                mData[lngResPos + 1],
-                                mData[lngResPos + 2],
-                                mData[lngResPos + 3],
-                                mData[lngResPos + 4]];
+                                mTrack[3].Notes.Add(intFreq, lngDur, bytAttn);
                                 // add to length
                                 lngTLength += lngDur;
                             }

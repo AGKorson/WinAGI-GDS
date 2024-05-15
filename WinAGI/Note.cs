@@ -9,7 +9,7 @@ namespace WinAGI.Engine {
         internal int mFreqDiv;
         internal int mDuration;
         internal byte mAttenuation;
-        internal byte[] mrawData = [0, 0, 0, 0, 0];
+        //internal byte[] mrawData = [0, 0, 0, 0, 0];
         internal Sound mSndParent;
         internal Track mTrkParent;
         #endregion
@@ -113,28 +113,6 @@ namespace WinAGI.Engine {
             }
         }
 
-        /// <summary>
-        ///  Gets the note data for this note as an array of five bytes arranged in
-        ///  the format used by AGI sound resources. If note is not part of a track,
-        ///  the data are configured as if it were track 0.
-        /// </summary>
-        public byte[] rawData {
-            get {
-                // TODO: need to decide how to handle the passing of raw data
-                // it depends on track number - maybe include that as a parameter?
-
-                //// duration
-                //mrawData[0] = (byte)(mDuration >> 8);
-                //mrawData[1] = (byte)(mDuration & 0xff);
-                //int track = mTrkParent is null ? 0 : mTrkParent.mTrack;
-                //// frequency data
-                //mrawData[2] = (byte)(mFreqDiv / 16);
-                //mrawData[3] = (byte)((mFreqDiv % 16) + 128 + 32 * ());
-                //// attenuation
-                //mrawData[4] = (byte)(mAttenuation + (byte)(144 + 32 * (mTrkParent is null ? 0 : mTrkParent.mTrack)));
-                return mrawData;
-            }
-        }
         #endregion
 
         #region Methods

@@ -1588,7 +1588,7 @@
     <value>Invalid sound playback format</value>
   </data>
   <data name="4165" xml:space="preserve">
-    <value>adding a cel with a margin that has a width of 2 will crash AGI</value>
+    <value>Adding a cel with a margin that has a width of 2 will crash AGI</value>
   </data>
   <data name="5113" xml:space="preserve">
     <value>'or' block has no test commands</value>
@@ -1597,7 +1597,7 @@
     <value>'if' block has no test commands</value>
   </data>
   <data name="5115" xml:space="preserve">
-    <value>cel width less than 3 will not draw control box correctly</value>
+    <value>Cel width less than 3 will not draw control box correctly</value>
   </data>
   <data name="5116" xml:space="preserve">
     <value>Commands after a return() command are always ignored by AGI</value>

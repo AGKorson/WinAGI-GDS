@@ -1537,7 +1537,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to adding a cel with a margin that has a width of 2 will crash AGI.
+        ///   Looks up a localized string similar to Adding a cel with a margin that has a width of 2 will crash AGI.
         /// </summary>
         internal static string _4165 {
             get {
@@ -2662,7 +2662,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to cel width less than 3 will not draw control box correctly.
+        ///   Looks up a localized string similar to Cel width less than 3 will not draw control box correctly.
         /// </summary>
         internal static string _5115 {
             get {

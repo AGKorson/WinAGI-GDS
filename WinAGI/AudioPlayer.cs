@@ -373,10 +373,9 @@ namespace WinAGI.Engine {
                         if (voiceSampleCount[voiceNum]-- <= 0) {
                             if (voiceNoteNum[voiceNum] < sound.Track(voiceNum).Notes.Count) {
                                 voiceCurrentNote[voiceNum] = sound.Track(voiceNum).Notes[voiceNoteNum[voiceNum]++];
-                                byte[] psgBytes = voiceCurrentNote[voiceNum].rawData;
-                                psg.Write(psgBytes[3]);
-                                psg.Write(psgBytes[2]);
-                                psg.Write(psgBytes[4]);
+                                psg.Write((byte)((voiceCurrentNote[voiceNum].FreqDivisor % 16) + 128 + 32 * voiceNum));
+                                psg.Write((byte)(voiceCurrentNote[voiceNum].FreqDivisor / 16));
+                                psg.Write((byte)(voiceCurrentNote[voiceNum].Attenuation + (byte)(144 + 32 * voiceNum)));
                                 voiceSampleCount[voiceNum] = voiceCurrentNote[voiceNum].Duration * samplesPerDurationUnit;
                                 voiceDissolveCount[voiceNum] = 0;
                             }
