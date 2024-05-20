@@ -62,7 +62,7 @@ namespace WinAGI.Engine {
         /// </summary>
         internal static AGIGame compGame;
         // compiler warnings
-        public const int WARNCOUNT = 116;
+        public const int WARNCOUNT = 115;
         internal static bool[] agNoCompWarn = new bool[WARNCOUNT];
         // reserved defines
         internal static TDefine[] agResVar = new TDefine[27];    // 27: text name of built in variables
@@ -1131,7 +1131,7 @@ namespace WinAGI.Engine {
             // setup error info
             blnCriticalError = false;
             blnMinorError = false;
-            errInfo.ResType = AGIResType.rtLogic;
+            errInfo.ResType = AGIResType.Logic;
             errInfo.ResNum = SourceLogic.Number;
             errInfo.Line = "--";
             errInfo.Module = SourceLogic.ID;
@@ -1882,12 +1882,12 @@ namespace WinAGI.Engine {
             // check for correct quotes used 
             if (strIncludeFilename[0] != QUOTECHAR || strIncludeFilename[^1] != QUOTECHAR) {
                 switch (ErrorLevel) {
-                case leHigh:
+                case High:
                     blnCriticalError = true;
                     errInfo.ID = "4059";
                     errInfo.Text = LoadResString(4059);
                     return -1;
-                case leMedium or leLow:
+                case Medium or Low:
                     AddWarning(5028, LoadResString(5028).Replace(ARG1, strIncludeFilename));
                     break;
                 }
@@ -2034,7 +2034,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ArgVal"></param>
         internal static void CheckResFlagUse(byte ArgVal) {
-            if (ErrorLevel == leLow) {
+            if (ErrorLevel == Low) {
                 return;
             }
             if (ArgVal == 2 ||
@@ -2067,7 +2067,7 @@ namespace WinAGI.Engine {
         /// <param name="ArgNum"></param>
         /// <param name="ArgVal"></param>
         internal static void CheckResVarUse(byte ArgNum, byte ArgVal) {
-            if (ErrorLevel == leLow) {
+            if (ErrorLevel == Low) {
                 return;
             }
             switch (ArgNum) {
@@ -2215,7 +2215,7 @@ namespace WinAGI.Engine {
                         //convert it to 2s-compliment unsigned value by adding it to 256
                         strArg = (256 + Val(strArg)).ToString();
                         switch (ErrorLevel) {
-                        case leHigh or leMedium:
+                        case High or Medium:
                             AddWarning(5098);
                             break;
                         }
@@ -2237,10 +2237,10 @@ namespace WinAGI.Engine {
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         AddMinorError(4136, LoadResString(4136).Replace(ARG1, (argpos + 1).ToString()));
                         break;
-                    case leMedium or leLow:
+                    case Medium or Low:
                         AddMinorError(4066, LoadResString(4066).Replace(ARG1, (argpos + 1).ToString()));
                         break;
                     }
@@ -2249,10 +2249,10 @@ namespace WinAGI.Engine {
                 else {
                     if (lngArg > 49) {
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             AddMinorError(4136, LoadResString(4136).Replace(ARG1, (argpos + 1).ToString()));
                             break;
-                        case leMedium:
+                        case Medium:
                             AddWarning(5060);
                             break;
                         }
@@ -2267,10 +2267,10 @@ namespace WinAGI.Engine {
                 // check against max screen object Value
                 if (lngArg > compGame.InvObjects.MaxScreenObjects) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         AddMinorError(4119, LoadResString(4119).Replace(ARG1, (compGame.InvObjects.MaxScreenObjects).ToString()));
                         break;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5006, LoadResString(5006).Replace(ARG1, compGame.InvObjects.MaxScreenObjects.ToString()));
                         break;
                     }
@@ -2280,7 +2280,7 @@ namespace WinAGI.Engine {
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         // for version 2.089, 2.272, and 3.002149 only 12 strings
                         switch (compGame.agIntVersion) {
                         case "2.089" or "2.272" or "3.002149":
@@ -2291,7 +2291,7 @@ namespace WinAGI.Engine {
                             break;
                         }
                         break;
-                    case leMedium or leLow:
+                    case Medium or Low:
                         AddMinorError(4066, LoadResString(4066).Replace(ARG1, (argpos + 1).ToString()));
                         break;
                     }
@@ -2300,7 +2300,7 @@ namespace WinAGI.Engine {
                     // if outside expected bounds (strings should be limited to 0-23)
                     if ((lngArg > 23) || (lngArg > 11 && (compGame.agIntVersion == "2.089" || compGame.agIntVersion == "2.272" || compGame.agIntVersion == "3.002149"))) {
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             // for version 2.089, 2.272, and 3.002149 only 12 strings
                             switch (compGame.agIntVersion) {
                             case "2.089" or "2.272" or "3.002149":
@@ -2312,7 +2312,7 @@ namespace WinAGI.Engine {
                                 break;
                             }
                             break;
-                        case leMedium:
+                        case Medium:
                             switch (compGame.agIntVersion) {
                             case "2.089" or "2.272" or "3.002149":
                                 AddWarning(5007, LoadResString(5007).Replace(ARG1, "11"));
@@ -2332,10 +2332,10 @@ namespace WinAGI.Engine {
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         AddMinorError(4090, LoadResString(4090).Replace(ARG1, (argpos + 1).ToString()));
                         break;
-                    case leMedium or leLow:
+                    case Medium or Low:
                         AddMinorError(4066, LoadResString(4066).Replace(ARG1, (argpos + 1).ToString()));
                         break;
                     }
@@ -2343,10 +2343,10 @@ namespace WinAGI.Engine {
                 else {
                     if (lngArg > 9) {
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             AddMinorError(4090, LoadResString(4090).Replace(ARG1, (argpos + 1).ToString()));
                             break;
-                        case leMedium:
+                        case Medium:
                             AddWarning(5008);
                             break;
                         }
@@ -2388,13 +2388,13 @@ namespace WinAGI.Engine {
                 // m0 is not allowed
                 if (lngArg == 0) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         AddMinorError(4107);
                         // make this a null msg
                         blnMsg[lngArg] = true;
                         strMsg[lngArg] = "";
                         return -1;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5091, LoadResString(5091).Replace(ARG1, lngArg.ToString()));
                         // make this a null msg
                         blnMsg[lngArg] = true;
@@ -2405,13 +2405,13 @@ namespace WinAGI.Engine {
                 // verify msg exists
                 if (!blnMsg[lngArg]) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         AddMinorError(4113, LoadResString(4113).Replace(ARG1, lngArg.ToString()));
                         //make this a null msg
                         blnMsg[lngArg] = true;
                         strMsg[lngArg] = "";
                         break;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5090, LoadResString(5090).Replace(ARG1, lngArg.ToString()));
                         //make this a null msg
                         blnMsg[lngArg] = true;
@@ -2465,10 +2465,10 @@ namespace WinAGI.Engine {
                         // text string, it can't be one that is not unique)
                         if (lngArg != -1 && !compGame.InvObjects[(byte)lngArg].Unique) {
                             switch (ErrorLevel) {
-                            case leHigh:
+                            case High:
                                 AddMinorError(4036, LoadResString(4036).Replace(ARG1, (argpos + 1).ToString()));
                                 break;
-                            case leMedium:
+                            case Medium:
                                 AddWarning(5003, LoadResString(5003).Replace(ARG1, (argpos + 1).ToString()));
                                 break;
                             }
@@ -2483,10 +2483,10 @@ namespace WinAGI.Engine {
                 else {
                     if (lngArg >= compGame.InvObjects.Count) {
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             AddMinorError(4112, LoadResString(4112).Replace(ARG1, (argpos + 1).ToString()));
                             break;
-                        case leMedium:
+                        case Medium:
                             AddWarning(5005, LoadResString(5005).Replace(ARG1, (argpos + 1).ToString()));
                             break;
                         }
@@ -2495,11 +2495,11 @@ namespace WinAGI.Engine {
                         // check for question mark
                         if (compGame.InvObjects[(byte)lngArg].ItemName == "?") {
                             switch (ErrorLevel) {
-                            case leHigh:
+                            case High:
                                 errInfo.ID = "4111";
                                 errInfo.Text = LoadResString(4111).Replace(ARG1, (argpos + 1).ToString());
                                 return -1;
-                            case leMedium:
+                            case Medium:
                                 AddWarning(5004);
                                 break;
                             }
@@ -2525,10 +2525,10 @@ namespace WinAGI.Engine {
                         // valldate the group
                         if (!compGame.agVocabWords.GroupExists(lngArg)) {
                             switch (ErrorLevel) {
-                            case leHigh:
+                            case High:
                                 AddMinorError(4114, LoadResString(4114).Replace(ARG1, strArg));
                                 break;
-                            case leMedium:
+                            case Medium:
                                 AddWarning(5019, LoadResString(5019).Replace(ARG1, strArg));
                                 break;
                             }
@@ -2573,7 +2573,7 @@ namespace WinAGI.Engine {
                             lngArg = 0;
                             // add warning
                             switch (ErrorLevel) {
-                            case leHigh or leMedium:
+                            case High or Medium:
                                 AddWarning(5108, LoadResString(5108).Replace(ARG1, strArg));
                                 break;
                             }
@@ -2588,10 +2588,10 @@ namespace WinAGI.Engine {
                         }
                         else {
                             switch (ErrorLevel) {
-                            case leHigh:
+                            case High:
                                 AddMinorError(4114, LoadResString(4114).Replace(ARG1, strArg));
                                 break;
-                            case leMedium:
+                            case Medium:
                                 AddWarning(5019, LoadResString(5019).Replace(ARG1, strArg));
                                 break;
                             }
@@ -2603,11 +2603,11 @@ namespace WinAGI.Engine {
                 // check for group 0
                 if (lngArg == 0) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4035";
                         errInfo.Text = LoadResString(4035).Replace(ARG1, strArg);
                         return -1;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5083, LoadResString(5083).Replace(ARG1, strArg));
                         break;
                     }
@@ -3106,10 +3106,10 @@ namespace WinAGI.Engine {
                 // missing end quote - add it
                 retval += "\"";
                 switch (ErrorLevel) {
-                case leHigh:
+                case High:
                     AddMinorError(4080);
                     break;
-                case leMedium:
+                case Medium:
                     AddWarning(5002);
                     break;
                 }
@@ -3167,14 +3167,14 @@ namespace WinAGI.Engine {
                         // the next required element is
                         lngQuoteAdded = lngLine;
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             AddMinorError(4080);
                             return "";
-                        case leMedium:
+                        case Medium:
                             strTextContinue += QUOTECHAR;
                             AddWarning(5002);
                             break;
-                        case leLow:
+                        case Low:
                             strTextContinue += QUOTECHAR;
                             break;
                         }
@@ -3464,10 +3464,10 @@ namespace WinAGI.Engine {
                                     tdNewDefine.Type = atNum;
                                     if (compGame is not null) {
                                         switch (ErrorLevel) {
-                                        case leHigh:
+                                        case High:
                                             AddMinorError(6003);
                                             break;
-                                        case leMedium:
+                                        case Medium:
                                             AddWarning(5110);
                                             break;
                                         }
@@ -3501,7 +3501,7 @@ namespace WinAGI.Engine {
                         else {
                             // override name errors (8-13) are only warnings if errorlevel is medium or low
                             switch (ErrorLevel) {
-                            case leMedium:
+                            case Medium:
                                 if (checkName == ncGlobal) {
                                     AddWarning(5034, LoadResString(5034).Replace(ARG1, tdNewDefine.Name));
                                     checkName = ncOK;
@@ -3511,7 +3511,7 @@ namespace WinAGI.Engine {
                                     checkName = ncOK;
                                 }
                                 break;
-                            case leLow:
+                            case Low:
                                 if (checkName > ncBadChar) {
                                     checkName = ncOK;
                                 }
@@ -3629,7 +3629,7 @@ namespace WinAGI.Engine {
                         checkValue = ValidateDefValue(tdNewDefine);
                         // value errors 4-6 are only warnings if errorlevel is medium or low
                         switch (ErrorLevel) {
-                        case leMedium:
+                        case Medium:
                             switch (checkValue) {
                             case vcNotAValue:
                                 // string value missing quotes -
@@ -3655,7 +3655,7 @@ namespace WinAGI.Engine {
                                 break;
                             }
                             break;
-                        case leLow:
+                        case Low:
                             switch (checkValue) {
                             case vcNotAValue:
                                 // missing quotes
@@ -3747,10 +3747,10 @@ namespace WinAGI.Engine {
                                     // numeric duplicates are OK
                                     if (!int.TryParse(tdNewDefine.Value, out _)) {
                                         switch (ErrorLevel) {
-                                        case leHigh:
+                                        case High:
                                             AddMinorError(4023, LoadResString(4023).Replace(ARG1, tdDefines[i].Value).Replace(ARG2, tdDefines[i].Name));
                                             break;
-                                        case leMedium:
+                                        case Medium:
                                             AddWarning(5033, LoadResString(5033).Replace(ARG1, tdDefines[i].Value).Replace(ARG2, tdDefines[i].Name));
                                             break;
                                         }
@@ -3916,11 +3916,11 @@ namespace WinAGI.Engine {
                         // if either (or both) quote is missing, deal with it
                         if (lngQuotesOK > 0) {
                             switch (ErrorLevel) {
-                            case leHigh:
+                            case High:
                                 errInfo.ID = "4051";
                                 errInfo.Text = LoadResString(4051);
                                 return false;
-                            case leMedium:
+                            case Medium:
                                 AddWarning(5002);
                                 break;
                             }
@@ -4094,7 +4094,7 @@ namespace WinAGI.Engine {
                             if (intNumCmdsInBlock == 0) {
                                 // or block with no commands
                                 switch (ErrorLevel) {
-                                case leHigh or leMedium:
+                                case High or Medium:
                                     AddWarning(5113);
                                     break;
                                 }
@@ -4112,10 +4112,10 @@ namespace WinAGI.Engine {
                         else if (intNumTestCmds == 0) {
                             // if block with no commands
                             switch (ErrorLevel) {
-                            case leHigh:
+                            case High:
                                 AddMinorError(4057);
                                 break;
-                            case leMedium:
+                            case Medium:
                                 AddWarning(5114);
                                 break;
                             }
@@ -4164,7 +4164,7 @@ namespace WinAGI.Engine {
                             if (bytTestCmd == 0) {
                                 // warn user that it's not compatible with AGI Studio
                                 switch (ErrorLevel) {
-                                case leHigh or leMedium:
+                                case High or Medium:
                                     AddWarning(5081);
                                     break;
                                 }
@@ -4330,7 +4330,7 @@ namespace WinAGI.Engine {
                             if (intNumCmdsInBlock == 1) {
                                 // or block with one command
                                 switch (ErrorLevel) {
-                                case leHigh or leMedium:
+                                case High or Medium:
                                     AddWarning(5109);
                                     break;
                                 }
@@ -4454,11 +4454,11 @@ namespace WinAGI.Engine {
                 if (CmdNum == 167) {
                     if (ArgVal[1] == 0) {
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             errInfo.ID = "4149";
                             errInfo.Text = LoadResString(4149);
                             return false;
-                        case leMedium:
+                        case Medium:
                             AddWarning(5030);
                             break;
                         }
@@ -4477,11 +4477,11 @@ namespace WinAGI.Engine {
                 // new.room(A)
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4120";
                         errInfo.Text = LoadResString(4120);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5053);
                         break;
                     }
@@ -4499,11 +4499,11 @@ namespace WinAGI.Engine {
                 // load.logics(A)
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4121";
                         errInfo.Text = LoadResString(4121).Replace(ARG1, ArgVal[0].ToString());
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5013);
                         break;
                     }
@@ -4514,22 +4514,22 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == 0) {
                     // calling logic0 is a BAD idea
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4118";
                         errInfo.Text = LoadResString(4118);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5010);
                         break;
                     }
                 }
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4156";
                         errInfo.Text = LoadResString(4156).Replace(ARG1, (ArgVal[0]).ToString());
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5076);
                         break;
                     }
@@ -4537,11 +4537,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == bytLogComp) {
                     // recursive calling is usually BAD
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4117";
                         errInfo.Text = LoadResString(4117);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5089);
                         break;
                     }
@@ -4551,11 +4551,11 @@ namespace WinAGI.Engine {
                 // load.view(A)
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4122";
                         errInfo.Text = LoadResString(4122).Replace(ARG1, (ArgVal[0]).ToString());
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5015);
                         break;
                     }
@@ -4565,11 +4565,11 @@ namespace WinAGI.Engine {
                 // discard.view(A)
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4123";
                         errInfo.Text = LoadResString(4123).Replace(ARG1, ArgVal[0].ToString());
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5024);
                         break;
                     }
@@ -4579,11 +4579,11 @@ namespace WinAGI.Engine {
                 // position(oA, X,Y)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4128";
                         errInfo.Text = LoadResString(4128);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5023);
                         break;
                     }
@@ -4593,7 +4593,7 @@ namespace WinAGI.Engine {
                 // get.posn
                 if (ArgVal[1] <= 26 || ArgVal[2] <= 26) {
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -4603,11 +4603,11 @@ namespace WinAGI.Engine {
                 // set.view(oA, B)
                 if (!compGame.agViews.Exists(ArgVal[1])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4124";
                         errInfo.Text = LoadResString(4124).Replace(ARG1, (ArgVal[1]).ToString());
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5037);
                         break;
                     }
@@ -4620,7 +4620,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[1] <= 26) {
                     // variable arg is second and should not be a reserved Value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -4631,11 +4631,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[1] > 15) {
                     // invalid priority Value
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4125";
                         errInfo.Text = LoadResString(4125);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5050);
                         break;
                     }
@@ -4646,7 +4646,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[1] <= 26) {
                     // variable is second argument and should not be a reserved Value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -4655,7 +4655,7 @@ namespace WinAGI.Engine {
             case 63:
                 // set.horizon(A)
                 switch (ErrorLevel) {
-                case leHigh:
+                case High:
                     if (ArgVal[0] >= 167) {
                         // >=167 will cause AGI to freeze/crash
                         errInfo.ID = "4126";
@@ -4670,7 +4670,7 @@ namespace WinAGI.Engine {
                         AddWarning(5041);
                     }
                     break;
-                case leMedium:
+                case Medium:
                     if (ArgVal[0] >= 167) {
                         AddWarning(5043);
                     }
@@ -4688,7 +4688,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == 0) {
                     // warn if used on ego
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5082);
                         break;
                     }
@@ -4699,7 +4699,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[2] <= 26) {
                     // variable is third arg and should not be a reserved Value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -4710,7 +4710,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[1] <= 15) {
                     // flag arg should not be a reserved Value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -4720,11 +4720,11 @@ namespace WinAGI.Engine {
                 // move.obj(oA, X,Y,STEP,fDONE)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4127";
                         errInfo.Text = LoadResString(4127);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5062);
                         break;
                     }
@@ -4732,7 +4732,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == 0) {
                     // ego object forces program mode
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5045);
                         break;
                     }
@@ -4740,7 +4740,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[4] <= 15) {
                     // flag arg should not be a reserved Value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -4751,7 +4751,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == 0) {
                     // ego object forces program mode
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5045);
                         break;
                     }
@@ -4759,7 +4759,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[4] <= 15) {
                     // flag arg should not be a reserved Value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -4769,7 +4769,7 @@ namespace WinAGI.Engine {
                 // follow.ego(oA, DISTANCE, fDONE)
                 if (ArgVal[1] <= 1) {
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5102);
                         break;
                     }
@@ -4777,7 +4777,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == 0) {
                     // ego can't follow ego
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5027);
                         break;
                     }
@@ -4785,7 +4785,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[2] <= 15) {
                     // flag arg should not be a reserved Value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -4797,7 +4797,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == 0) {
                     // has no effect on ego object
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5026);
                         break;
                     }
@@ -4808,7 +4808,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[1] <= 26) {
                     // variable arg should not be a reserved Value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -4818,11 +4818,11 @@ namespace WinAGI.Engine {
                 // block(x1,y1,x2,y2)
                 if (ArgVal[0] > 159 || ArgVal[1] > 167 || ArgVal[2] > 159 || ArgVal[3] > 167) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4129";
                         errInfo.Text = LoadResString(4129);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5020);
                         break;
                     }
@@ -4830,11 +4830,11 @@ namespace WinAGI.Engine {
                 if ((ArgVal[2] - ArgVal[0] < 2) || (ArgVal[3] - ArgVal[1] < 2)) {
                     // invalid arguments
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4129";
                         errInfo.Text = LoadResString(4129);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5051);
                         break;
                     }
@@ -4844,11 +4844,11 @@ namespace WinAGI.Engine {
                 // load.sound(A)
                 if (!compGame.agSnds.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4130";
                         errInfo.Text = LoadResString(4130).Replace(ARG1, ArgVal[0].ToString());
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5014);
                         break;
                     }
@@ -4858,11 +4858,11 @@ namespace WinAGI.Engine {
                 // sound(A, fB)
                 if (!compGame.agSnds.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4137";
                         errInfo.Text = LoadResString(4137).Replace(ARG1, ArgVal[0].ToString());
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5084);
                         break;
                     }
@@ -4870,7 +4870,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[1] <= 15) {
                     // flag arg should not be a reserved Value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -4881,11 +4881,11 @@ namespace WinAGI.Engine {
                 // display(ROW, COL, mC)
                 if (ArgVal[0] > 24 || ArgVal[1] > 39) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4131";
                         errInfo.Text = LoadResString(4131);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5059);
                         break;
                     }
@@ -4896,11 +4896,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] > 24 || ArgVal[1] > 24 || ArgVal[0] > ArgVal[1]) {
                     // top must be >btm; both must be <=24
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4132";
                         errInfo.Text = LoadResString(4132);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5011);
                         break;
                     }
@@ -4909,7 +4909,7 @@ namespace WinAGI.Engine {
                     // color value should be 0 or 15 /(but it doesn't
                     // hurt to be anything else)
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5100);
                         break;
                     }
@@ -4921,11 +4921,11 @@ namespace WinAGI.Engine {
                     // color value should be 0 or 15 /(but it doesn't
                     // hurt to be anything else)
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4133";
                         errInfo.Text = LoadResString(4133);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5029);
                         break;
                     }
@@ -4936,7 +4936,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == 0) {
                     // zero is BAD
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         errInfo.ID = "4134";
                         errInfo.Text = LoadResString(4134);
                         return false;
@@ -4946,7 +4946,7 @@ namespace WinAGI.Engine {
                     if (ArgVal[0] >= 100 && ArgVal[0] <= 109) {
                         // could be a palette change
                         switch (ErrorLevel) {
-                        case leHigh or leMedium:
+                        case High or Medium:
                             AddWarning(5058);
                             break;
                         }
@@ -4954,7 +4954,7 @@ namespace WinAGI.Engine {
                     else {
                         // shouldn't normally have more than a few shakes
                         switch (ErrorLevel) {
-                        case leHigh or leMedium:
+                        case High or Medium:
                             AddWarning(5057);
                             break;
                         }
@@ -4966,11 +4966,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] > 3) {
                     // top should be <=3
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4135";
                         errInfo.Text = LoadResString(4135);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5044);
                         break;
                     }
@@ -4978,7 +4978,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[1] > 24 || ArgVal[2] > 24) {
                     // input or status are invalid
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5099);
                         break;
                     }
@@ -4986,7 +4986,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[1] == ArgVal[2]) {
                     // input and status should not be equal
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5048);
                         break;
                     }
@@ -4994,7 +4994,7 @@ namespace WinAGI.Engine {
                 if ((ArgVal[1] >= ArgVal[0] && ArgVal[1] <= ArgVal[0] + 20) || (ArgVal[2] >= ArgVal[0] && ArgVal[2] <= ArgVal[0] + 20)) {
                     // input and status should be <top or >=top+21
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5049);
                         break;
                     }
@@ -5006,7 +5006,7 @@ namespace WinAGI.Engine {
                     if (strMsg[ArgVal[1]].Length > 10) {
                         // warn user if setting input prompt to unusually long value
                         switch (ErrorLevel) {
-                        case leHigh or leMedium:
+                        case High or Medium:
                             AddWarning(5096);
                             break;
                         }
@@ -5018,7 +5018,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[2] > 24) {
                     // if row>24, both row/col are ignored
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5052);
                         break;
                     }
@@ -5026,11 +5026,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[3] > 39) {
                     // if col>39, len is limited automatically to <=40
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4004";
                         errInfo.Text = LoadResString(4004);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5080);
                         break;
                     }
@@ -5038,7 +5038,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[4] > 40) {
                     // invalid len value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5056);
                         break;
                     }
@@ -5052,11 +5052,11 @@ namespace WinAGI.Engine {
                     // A or B must be zero to be valid ascii or keycode
                     // (A can be 1 to mean joystick)
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4154";
                         errInfo.Text = LoadResString(4154);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5065);
                         break;
                     }
@@ -5066,11 +5066,11 @@ namespace WinAGI.Engine {
                     if (ArgVal[0] == 8 || ArgVal[0] == 13 || ArgVal[0] == 32) {
                         // ascii codes for bkspace, enter, spacebar
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             errInfo.ID = "4155";
                             errInfo.Text = LoadResString(4155);
                             return false;
-                        case leMedium:
+                        case Medium:
                             AddWarning(5066);
                             break;
                         }
@@ -5083,11 +5083,11 @@ namespace WinAGI.Engine {
                         (ArgVal[1] >= 79 && ArgVal[1] <= 83)) {
                         // ascii codes arrow keys can't be assigned to controller
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             errInfo.ID = "4155";
                             errInfo.Text = LoadResString(4155);
                             return false;
-                        case leMedium:
+                        case Medium:
                             AddWarning(5066);
                             break;
                         }
@@ -5098,11 +5098,11 @@ namespace WinAGI.Engine {
                 // add.to.pic(VIEW,LOOP,CEL,X,Y,PRI,MGN)
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4138";
                         errInfo.Text = LoadResString(4138).Replace(ARG1, (ArgVal[0]).ToString());
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5064);
                         blnWarned = true;
                         break;
@@ -5117,14 +5117,14 @@ namespace WinAGI.Engine {
                         // if view is valid, check loop
                         if (ArgVal[1] >= compGame.agViews[ArgVal[0]].Loops.Count) {
                             switch (ErrorLevel) {
-                            case leHigh:
+                            case High:
                                 errInfo.ID = "4139";
                                 errInfo.Text = LoadResString(4139).Replace(ARG1, ArgVal[1].ToString()).Replace(ARG2, ArgVal[0].ToString());
                                 if (blnUnload) {
                                     compGame.agViews[ArgVal[0]].Unload();
                                 }
                                 return false;
-                            case leMedium:
+                            case Medium:
                                 AddWarning(5085);
                                 blnWarned = true;
                                 break;
@@ -5134,14 +5134,14 @@ namespace WinAGI.Engine {
                         if (!blnWarned) {
                             if (ArgVal[2] >= compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels.Count) {
                                 switch (ErrorLevel) {
-                                case leHigh:
+                                case High:
                                     errInfo.ID = "4140";
                                     errInfo.Text = LoadResString(4140).Replace(ARG1, ArgVal[2].ToString()).Replace(ARG2, ArgVal[1].ToString()).Replace(ARG3, ArgVal[0].ToString());
                                     if (blnUnload) {
                                         compGame.agViews[ArgVal[0]].Unload();
                                     }
                                     return false;
-                                case leMedium:
+                                case Medium:
                                     AddWarning(5086);
                                     break;
                                 }
@@ -5149,7 +5149,7 @@ namespace WinAGI.Engine {
                             if (compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels[ArgVal[2]].Width < 3 && ArgVal[6] < 4) {
                                 // CEL width must be >=3
                                 switch (ErrorLevel) {
-                                case leHigh:
+                                case High:
                                     if (compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels[ArgVal[2]].Width == 2) {
                                         errInfo.ID = "4165";
                                         errInfo.Text = LoadResString(4165);
@@ -5159,7 +5159,7 @@ namespace WinAGI.Engine {
                                         AddWarning(5115);
                                         break;
                                     }
-                                case leMedium:
+                                case Medium:
                                     AddWarning(5115);
                                     break;
                                 }
@@ -5177,11 +5177,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[3] > 159 || ArgVal[4] > 167) {
                     // invalid x or y value
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4141";
                         errInfo.Text = LoadResString(4141);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5038);
                         break;
                     }
@@ -5189,11 +5189,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[5] > 15) {
                     // invalid priority value
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4142";
                         errInfo.Text = LoadResString(4142);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5079);
                         break;
                     }
@@ -5201,7 +5201,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[5] < 4 && ArgVal[5] != 0) {
                     // unusual priority value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5079);
                         break;
                     }
@@ -5209,7 +5209,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[6] > 15) {
                     // MGN values >15 will only use lower nibble
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5101);
                         break;
                     }
@@ -5219,11 +5219,11 @@ namespace WinAGI.Engine {
                 // show.obj(VIEW)
                 if (!compGame.agViews.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4144";
                         errInfo.Text = LoadResString(4144).Replace(ARG1, ArgVal[0].ToString());
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5061);
                         break;
                     }
@@ -5233,7 +5233,7 @@ namespace WinAGI.Engine {
                 // init.disk, hide.mouse, show.mouse
                 // these commands have no usefulness
                 switch (ErrorLevel) {
-                case leHigh or leMedium:
+                case High or Medium:
                     AddWarning(5087, LoadResString(5087).Replace(ARG1, ActionCommands[CmdNum].Name));
                     break;
                 }
@@ -5242,11 +5242,11 @@ namespace WinAGI.Engine {
                 // discard.sound, fence.mouse, mouse.posn
                 // these commands not valid in MSDOS AGI
                 switch (ErrorLevel) {
-                case leHigh:
+                case High:
                     errInfo.ID = "4152";
                     errInfo.Text = LoadResString(4152).Replace(ARG1, ActionCommands[CmdNum].Name);
                     return false;
-                case leMedium:
+                case Medium:
                     AddWarning(5088, LoadResString(5088).Replace(ARG1, ActionCommands[CmdNum].Name));
                     break;
                 }
@@ -5256,11 +5256,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] > ArgVal[1]) {
                     // lower should be < upper
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4145";
                         errInfo.Text = LoadResString(4145);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5054);
                         break;
                     }
@@ -5268,7 +5268,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == ArgVal[1]) {
                     // lower=upper means result=lower=upper
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5106);
                         break;
                     }
@@ -5276,11 +5276,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == ArgVal[1] + 1) {
                     // this causes divide by 0!
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4158";
                         errInfo.Text = LoadResString(4158);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5107);
                         break;
                     }
@@ -5288,7 +5288,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[2] <= 26) {
                     // variable arg should not be a reserved Value
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
                         break;
                     }
@@ -5299,7 +5299,7 @@ namespace WinAGI.Engine {
                 if (bytLogComp != 0) {
                     //warn if in other than logic0
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5039);
                         break;
                     }
@@ -5307,7 +5307,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] < 10) {
                     // absurdly low value for script size
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5009);
                         break;
                     }
@@ -5317,11 +5317,11 @@ namespace WinAGI.Engine {
                 // reposition.to(oA, B,C)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4128";
                         errInfo.Text = LoadResString(4128);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5023);
                         break;
                     }
@@ -5331,29 +5331,29 @@ namespace WinAGI.Engine {
                 // trace.info(LOGIC,ROW,HEIGHT)
                 if (!compGame.agLogs.Exists(ArgVal[0])) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4153";
                         errInfo.Text = LoadResString(4153).Replace(ARG1, ArgVal[0].ToString());
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5040);
                         break;
                     }
                 }
                 if (ArgVal[2] < 2) {
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5046);
                         break;
                     }
                 }
                 if (ArgVal[1] + ArgVal[2] > 23) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4146";
                         errInfo.Text = LoadResString(4146);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5063);
                         break;
                     }
@@ -5364,11 +5364,11 @@ namespace WinAGI.Engine {
                 // print.at.v(vMSG, ROW, COL, MAXWIDTH)
                 if (ArgVal[1] > 22) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4147";
                         errInfo.Text = LoadResString(4147);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5067);
                         break;
                     }
@@ -5377,7 +5377,7 @@ namespace WinAGI.Engine {
                 case 0:
                     //maxwidth=0 defaults to 30
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5105);
                         break;
                     }
@@ -5385,11 +5385,11 @@ namespace WinAGI.Engine {
                 case 1:
                     //maxwidth=1 crashes AGI
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4043";
                         errInfo.Text = LoadResString(4043);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5103);
                         break;
                     }
@@ -5398,11 +5398,11 @@ namespace WinAGI.Engine {
                     if (ArgVal[3] > 36) {
                         //maxwidth >36 won't work
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             errInfo.ID = "4043";
                             errInfo.Text = LoadResString(4043);
                             return false;
-                        case leMedium:
+                        case Medium:
                             AddWarning(5104);
                             break;
                         }
@@ -5412,11 +5412,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[2] < 2 || ArgVal[2] + ArgVal[3] > 39) {
                     // invalid COL value
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4148";
                         errInfo.Text = LoadResString(4148);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5068);
                         break;
                     }
@@ -5429,11 +5429,11 @@ namespace WinAGI.Engine {
                    ArgVal[2] < ArgVal[0] || ArgVal[3] < ArgVal[1]) {
                     // invalid items
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4150";
                         errInfo.Text = LoadResString(4150);
                         return false;
-                    case leMedium:
+                    case Medium:
                         if (ArgVal[2] < ArgVal[0] || ArgVal[3] < ArgVal[1]) {
                             // pos2 < pos1
                             AddWarning(5069);
@@ -5450,7 +5450,7 @@ namespace WinAGI.Engine {
                     // color value should be 0 or 15  (but
                     // it doesn't hurt to be anything else)
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5100);
                         break;
                     }
@@ -5461,7 +5461,7 @@ namespace WinAGI.Engine {
                 if (bytLogComp != 0) {
                     // should only be called in logic0
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5047);
                         break;
                     }
@@ -5472,7 +5472,7 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] > 167) {
                     // value >167 doesn't make sense
                     switch (ErrorLevel) {
-                    case leHigh or leMedium:
+                    case High or Medium:
                         AddWarning(5071);
                         break;
                     }
@@ -5500,11 +5500,11 @@ namespace WinAGI.Engine {
                 if (ArgVal[1] > 159 || ArgVal[2] > 167 || ArgVal[3] > 159 || ArgVal[4] > 167) {
                     // invalid position
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4151";
                         errInfo.Text = LoadResString(4151);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5072);
                         break;
                     }
@@ -5512,11 +5512,11 @@ namespace WinAGI.Engine {
                 if ((ArgVal[1] > ArgVal[3]) || (ArgVal[2] > ArgVal[4])) {
                     // start and stop are backwards
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4151";
                         errInfo.Text = LoadResString(4151);
                         return false;
-                    case leMedium:
+                    case Medium:
                         AddWarning(5073);
                         break;
                     }
@@ -5534,12 +5534,12 @@ namespace WinAGI.Engine {
         /// <param name="strMsg"></param>
         /// <param name="MsgNum"></param>
         internal static void ValidateMsgChars(string strMsg, int MsgNum) {
-            if (ErrorLevel == leLow) {
+            if (ErrorLevel == Low) {
                 return;
             }
             if (strMsg.Any(ch => ch > 127)) {
                 switch (ErrorLevel) {
-                case leHigh or leMedium:
+                case High or Medium:
                     AddWarning(5094);
                     // need to track warning in case this msg is
                     // also included in body of logic
@@ -5839,7 +5839,7 @@ namespace WinAGI.Engine {
                 if (blnNewRoom) {
                     if (nextToken != "}") {
                         switch (ErrorLevel) {
-                        case leHigh or leMedium:
+                        case High or Medium:
                             AddWarning(5095);
                             break;
                         }
@@ -5850,8 +5850,8 @@ namespace WinAGI.Engine {
                 if (blnLastCmdRtn) {
                     if (nextToken != "}") {
                         switch (ErrorLevel) {
-                        case leHigh or leMedium:
-                            AddWarning(5116);
+                        case High or Medium:
+                            AddWarning(5097);
                             break;
                         }
                     }
@@ -5873,10 +5873,10 @@ namespace WinAGI.Engine {
                         if (tmpLogRes.Size == Block[BlockDepth].StartPos + 2) {
                             // block is only two bytes long, meaning no commands
                             switch (ErrorLevel) {
-                            case leHigh:
+                            case High:
                                 AddMinorError(4049);
                                 break;
-                            case leMedium:
+                            case Medium:
                                 AddWarning(5001);
                                 break;
                             }
@@ -6178,17 +6178,17 @@ namespace WinAGI.Engine {
             else {
                 if (!blnLastCmdRtn) {
                     switch (ErrorLevel) {
-                    case leHigh:
+                    case High:
                         errInfo.ID = "4102";
                         errInfo.Text = LoadResString(4102);
                         blnCriticalError = false;
                         return false;
-                    case leMedium:
+                    case Medium:
                         // add the missing return code
                         tmpLogRes.WriteByte(0);
                         AddWarning(5016);
                         break;
-                    case leLow:
+                    case Low:
                         // add the missing return code
                         tmpLogRes.WriteByte(0);
                         break;
@@ -6227,7 +6227,7 @@ namespace WinAGI.Engine {
             if (strMsgIn.Length == 0) {
                 // blank messages are not common
                 switch (ErrorLevel) {
-                case leHigh or leMedium:
+                case High or Medium:
                     AddWarning(5074);
                     break;
                 }
@@ -6296,10 +6296,10 @@ namespace WinAGI.Engine {
                 for (byte retval = agNumCmds; retval < MAX_CMDS; retval++) {
                     if (strCmdName == ActionCommands[retval].Name) {
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             AddMinorError(4065, LoadResString(4065).Replace(ARG1, strCmdName));
                             break;
-                        case leMedium:
+                        case Medium:
                             AddWarning(5075, LoadResString(5075).Replace(ARG1, strCmdName));
                             break;
                         }
@@ -6592,7 +6592,7 @@ namespace WinAGI.Engine {
                 }
                 intArg1 = VariableValue(strArg1);
                 switch (ErrorLevel) {
-                case leHigh or leMedium:
+                case High or Medium:
                     // for version 2.089, 2.272, and 3.002149 only 12 strings
                     maxStr = compGame.agIntVersion switch {
                         "2.089" or "2.272" or "3.002149" => 11,
@@ -6600,10 +6600,10 @@ namespace WinAGI.Engine {
                     };
                     if (intArg1 > maxStr) {
                         switch (ErrorLevel) {
-                        case leHigh:
+                        case High:
                             AddMinorError(4079, LoadResString(4079).Replace(ARG1, "1").Replace(ARG2, maxStr.ToString()));
                             break;
-                        case leMedium:
+                        case Medium:
                             AddWarning(5007, LoadResString(5007).Replace(ARG1, maxStr.ToString()));
                             break;
                         }
@@ -6906,7 +6906,7 @@ namespace WinAGI.Engine {
                             // convert to unsigned byte
                             intArg2 = 256 + intArg2;
                             switch (ErrorLevel) {
-                            case leHigh or leMedium:
+                            case High or Medium:
                                 AddWarning(5098);
                                 break;
                             }
@@ -6978,7 +6978,7 @@ namespace WinAGI.Engine {
                         // this is a simple assign (with a variable being assigned
                         // to itself!!)
                         switch (ErrorLevel) {
-                        case leHigh or leMedium:
+                        case High or Medium:
                             AddWarning(5036);
                             break;
                         }

@@ -41,7 +41,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Constructor to create a new AGI sound resource that is not part of an AGI game.
         /// </summary>
-        public Sound() : base(AGIResType.rtSound) {
+        public Sound() : base(AGIResType.Sound) {
             // new sound, not in game
 
             //initialize
@@ -59,7 +59,7 @@ namespace WinAGI.Engine {
         /// <param name="parent"></param>
         /// <param name="ResNum"></param>
         /// <param name="NewSound"></param>
-        internal Sound(AGIGame parent, byte ResNum, Sound NewSound = null) : base(AGIResType.rtSound) {
+        internal Sound(AGIGame parent, byte ResNum, Sound NewSound = null) : base(AGIResType.Sound) {
             InitSound(NewSound);
             base.InitInGame(parent, ResNum);
         }
@@ -71,12 +71,12 @@ namespace WinAGI.Engine {
         /// <param name="ResNum"></param>
         /// <param name="VOL"></param>
         /// <param name="Loc"></param>
-        internal Sound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtSound) {
+        internal Sound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.Sound) {
             // adds this resource to a game, setting its resource 
             // location properties, and reads properties from the wag file
 
             // set up base resource
-            base.InitInGame(parent, AGIResType.rtSound, ResNum, VOL, Loc);
+            base.InitInGame(parent, AGIResType.Sound, ResNum, VOL, Loc);
             //length is undefined until sound is built
             mLength = -1;
         }
@@ -169,7 +169,6 @@ namespace WinAGI.Engine {
                     break;
                 case SoundFormat.sfMIDI:
                     // IIgs MIDI sound
-                    // build the midi data and get length info
                     midiData = BuildIIgsMIDI(this, ref mLength);
                     break;
                 }
@@ -305,26 +304,26 @@ namespace WinAGI.Engine {
                             // TONE channel:
                             // duration
                             lngDur = (mData[lngResPos] + 256 * mData[lngResPos + 1]);
-                            // frequency
-                            intFreq = (short)(16 * (mData[lngResPos + 2] & 0x3F) + (mData[lngResPos + 3] & 0xF));
-                            // attenuation
-                            bytAttn = ((byte)(mData[lngResPos + 4] & 0xF));
-                            mTrack[i].Notes.Add(intFreq, lngDur, bytAttn); 
-                            lngTLength += lngDur;
+                            if (lngDur > 0) {
+                                // frequency
+                                intFreq = (short)(16 * (mData[lngResPos + 2] & 0x3F) + (mData[lngResPos + 3] & 0xF));
+                                // attenuation
+                                bytAttn = ((byte)(mData[lngResPos + 4] & 0xF));
+                                mTrack[i].Notes.Add(intFreq, lngDur, bytAttn); 
+                                lngTLength += lngDur;
+                            }
                         }
                         else {
                             // NOISE channel:
                             // duration
                             lngDur = (mData[lngResPos] + 256 * mData[lngResPos + 1]);
-                            // get freq divisor (first two bits of fourth byte)
-                            // and noise type (3rd bit) as a single number
-                            intFreq = ((short)(mData[lngResPos + 3] & 7));
-                            // attenuation
-                            bytAttn = (byte)(mData[lngResPos + 4] & 0xF);
-                            // if duration>0
                             if (lngDur > 0) {
+                                // get freq divisor (first two bits of fourth byte)
+                                // and noise type (3rd bit) as a single number
+                                intFreq = ((short)(mData[lngResPos + 3] & 7));
+                                // attenuation
+                                bytAttn = (byte)(mData[lngResPos + 4] & 0xF);
                                 mTrack[3].Notes.Add(intFreq, lngDur, bytAttn);
-                                // add to length
                                 lngTLength += lngDur;
                             }
                         }

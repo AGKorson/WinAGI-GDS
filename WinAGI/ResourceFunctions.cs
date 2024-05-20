@@ -7,6 +7,8 @@ using static WinAGI.Engine.AGIGame;
 
 namespace WinAGI.Engine {
     public static partial class Base {
+
+        #region Methods
         /// <summary>
         /// Gets the resources from VOL files, and adds them to the game.
         /// </summary>
@@ -54,11 +56,10 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
                 try {
-                    //open the file, load it into buffer, and close it
-                    using (FileStream fsDIR = new FileStream(strDirFile, FileMode.Open)) {
-                        bytBuffer = new byte[fsDIR.Length];
-                        fsDIR.Read(bytBuffer);
-                    }
+                    // open the file, load it into buffer, and close it
+                    using FileStream fsDIR = new(strDirFile, FileMode.Open);
+                    bytBuffer = new byte[fsDIR.Length];
+                    fsDIR.Read(bytBuffer);
                 }
                 catch (Exception e) {
                     WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
@@ -68,8 +69,8 @@ namespace WinAGI.Engine {
                     wex.Data["dirfile"] = Path.GetFileName(strDirFile);
                     throw wex;
                 }
-                //if not enough bytes to hold at least the 4 dir pointers + 1 resource
                 if (bytBuffer.Length < 11) {
+                    // not enough bytes to hold at least the 4 dir pointers + 1 resource
                     WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 542
                     };
@@ -78,24 +79,23 @@ namespace WinAGI.Engine {
                 }
             }
             // step through all four resource types
-            for (bytResType = 0; bytResType <= AGIResType.rtView; bytResType++) {
-                //if version 3
+            for (bytResType = 0; bytResType <= AGIResType.View; bytResType++) {
                 if (game.agIsVersion3) {
-                    //calculate offset and size of each dir component
+                    // calculate offset and size of dir component
                     switch (bytResType) {
-                    case AGIResType.rtLogic:
+                    case AGIResType.Logic:
                         lngDirOffset = bytBuffer[0] + (bytBuffer[1] << 8);
                         lngDirSize = bytBuffer[2] + (bytBuffer[3] << 8) - lngDirOffset;
                         break;
-                    case AGIResType.rtPicture:
+                    case AGIResType.Picture:
                         lngDirOffset = bytBuffer[2] + (bytBuffer[3] << 8);
                         lngDirSize = bytBuffer[4] + (bytBuffer[5] << 8) - lngDirOffset;
                         break;
-                    case AGIResType.rtView:
+                    case AGIResType.View:
                         lngDirOffset = bytBuffer[4] + (bytBuffer[5] << 8);
                         lngDirSize = bytBuffer[6] + (bytBuffer[7] << 8) - lngDirOffset;
                         break;
-                    case AGIResType.rtSound:
+                    case AGIResType.Sound:
                         lngDirOffset = bytBuffer[6] + (bytBuffer[7] << 8);
                         lngDirSize = bytBuffer.Length - lngDirOffset;
                         break;
@@ -107,7 +107,7 @@ namespace WinAGI.Engine {
                     // no offset for version 2
                     lngDirOffset = 0;
                     strDirFile = game.agGameDir + ResTypeAbbrv[(int)bytResType] + "DIR";
-                    //verify it exists
+                    //verify DIR file exists
                     if (!File.Exists(strDirFile)) {
                         WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
                             HResult = WINAGI_ERR + 524
@@ -124,11 +124,10 @@ namespace WinAGI.Engine {
                         throw wex;
                     }
                     try {
-                        //open the file, load it into buffer, and close it
-                        using (FileStream fsDIR = new FileStream(strDirFile, FileMode.Open)) {
-                            bytBuffer = new byte[fsDIR.Length];
-                            fsDIR.Read(bytBuffer);
-                        }
+                        // open the file, load it into buffer, and close it
+                        using FileStream fsDIR = new FileStream(strDirFile, FileMode.Open);
+                        bytBuffer = new byte[fsDIR.Length];
+                        fsDIR.Read(bytBuffer);
                     }
                     catch (Exception e) {
                         WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
@@ -140,7 +139,7 @@ namespace WinAGI.Engine {
                     }
                     lngDirSize = bytBuffer.Length;
                 }
-                // if invalid dir information, return false
+                // check for invalid dir information
                 if ((lngDirOffset < 0) || (lngDirSize < 0)) {
                     WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 542
@@ -148,8 +147,8 @@ namespace WinAGI.Engine {
                     wex.Data["baddir"] = Path.GetFileName(strDirFile);
                     throw wex;
                 }
-                // if at least one resource,
                 if (lngDirSize >= 3) {
+                    // invalid v3 DIR block
                     if (lngDirOffset + lngDirSize > bytBuffer.Length) {
                         WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
                             HResult = WINAGI_ERR + 542
@@ -163,7 +162,7 @@ namespace WinAGI.Engine {
                     // warning- file might be invalid
                     loadWarnings = true;
                     if (game.agIsVersion3) {
-                        warnInfo.ResType = AGIResType.rtGame;
+                        warnInfo.ResType = AGIResType.Game;
                         warnInfo.ResNum = 0;
                         warnInfo.ID = "DW01";
                         warnInfo.Text = ResTypeAbbrv[(int)bytResType] + " portion of DIR file is larger than expected; it may be corrupted";
@@ -172,7 +171,7 @@ namespace WinAGI.Engine {
                         game.OnLoadGameStatus(warnInfo);
                     }
                     else {
-                        warnInfo.ResType = AGIResType.rtGame;
+                        warnInfo.ResType = AGIResType.Game;
                         warnInfo.ResNum = 0;
                         warnInfo.ID = "DW02";
                         warnInfo.Text = ResTypeAbbrv[(int)bytResType] + "DIR file is larger than expected; it may be corrupted";
@@ -204,15 +203,24 @@ namespace WinAGI.Engine {
                         byte1 = bytBuffer[lngDirOffset + bytResNum * 3];
                         byte2 = bytBuffer[lngDirOffset + bytResNum * 3 + 1];
                         byte3 = bytBuffer[lngDirOffset + bytResNum * 3 + 2];
-                        // ignore any 0xFFFFFF sequences,
-                        if (byte1 != 0xff) {
+                        // ignore invalid entries
+                        bool isvalid;
+                        if (game.agIsVersion3) {
+                            // invalid only if all three bytes are 0xFF
+                            isvalid = (byte1 != 0xFF) || (byte2 != 0xFF) || (byte3 != 0xFF);
+                        }
+                        else {
+                            // invalid if upper nibble of byte1 is 0xF
+                            isvalid = (byte1 & 0xF0) != 0xF0;
+                        }
+                        if (isvalid) {
                             bytVol = (sbyte)(byte1 >> 4);
                             lngLoc = ((byte1 & 0xF) << 16) + (byte2 << 8) + byte3;
                             switch (bytResType) {
-                            case AGIResType.rtLogic:
+                            case AGIResType.Logic:
                                 game.agLogs.InitLoad(bytResNum, bytVol, lngLoc);
                                 if (game.agLogs[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(game, AGIResType.rtLogic, bytResNum, game.agLogs[bytResNum].ErrLevel, game.agLogs[bytResNum].ErrData);
+                                    AddLoadWarning(game, AGIResType.Logic, bytResNum, game.agLogs[bytResNum].ErrLevel, game.agLogs[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -222,10 +230,10 @@ namespace WinAGI.Engine {
                                     // logic source checks come after all resources loaded so leave it loaded
                                 }
                                 break;
-                            case AGIResType.rtPicture:
+                            case AGIResType.Picture:
                                 game.agPics.InitLoad(bytResNum, bytVol, lngLoc);
                                 if (game.agPics[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(game, AGIResType.rtPicture, bytResNum, game.agPics[bytResNum].ErrLevel, game.agPics[bytResNum].ErrData);
+                                    AddLoadWarning(game, AGIResType.Picture, bytResNum, game.agPics[bytResNum].ErrLevel, game.agPics[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -235,10 +243,10 @@ namespace WinAGI.Engine {
                                     game.agPics[bytResNum].Unload();
                                 }
                                 break;
-                            case AGIResType.rtSound:
+                            case AGIResType.Sound:
                                 game.agSnds.InitLoad(bytResNum, bytVol, lngLoc);
                                 if (game.agSnds[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(game, AGIResType.rtSound, bytResNum, game.agSnds[bytResNum].ErrLevel, game.agSnds[bytResNum].ErrData);
+                                    AddLoadWarning(game, AGIResType.Sound, bytResNum, game.agSnds[bytResNum].ErrLevel, game.agSnds[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -248,10 +256,10 @@ namespace WinAGI.Engine {
                                     game.agSnds[bytResNum].Unload();
                                 }
                                 break;
-                            case AGIResType.rtView:
+                            case AGIResType.View:
                                 game.agViews.InitLoad(bytResNum, bytVol, lngLoc);
                                 if (game.agViews[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(game, AGIResType.rtView, bytResNum, game.agViews[bytResNum].ErrLevel, game.agViews[bytResNum].ErrData);
+                                    AddLoadWarning(game, AGIResType.View, bytResNum, game.agViews[bytResNum].ErrLevel, game.agViews[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -287,236 +295,275 @@ namespace WinAGI.Engine {
                 Text = "",
                 Line = "--"
             };
-            // include check for positive warning values
-            if (errlevel > 0) {
-                switch (resType) {
-                case AGIResType.rtLogic:
-                    // none
+
+
+            // check for negative error values
+            if (errlevel < 0) {
+                switch (errlevel) {
+                case -1:
+                    // error 606: Can't load resource: file not found (%1)
+                    warnInfo.ID = "VW03";
+                    warnInfo.Text = $"{resType} {resNum} is in a VOL file ({Path.GetFileName(errdata[0])}) that does not exist";
+                    warnInfo.Module = errdata[1];
+                    game.OnLoadGameStatus(warnInfo);
                     break;
-                case AGIResType.rtPicture:
-                    if (errlevel >= 8) {
+                case -2:
+                    // error 700: file (%1) is readonly
+                    warnInfo.ID = "VW03";
+                    warnInfo.Text = $"{resType} {resNum} is in a VOL file ({Path.GetFileName(errdata[0])}) marked readonly";
+                    warnInfo.Module = errdata[1];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -3:
+                    // error 502: Error %1 occurred while trying to access %2.
+                    warnInfo.ID = "VW01";
+                    warnInfo.Text = $"{resType} {resNum} is invalid due to file access error ({errdata[0]})";
+                    warnInfo.Module = errdata[1];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -4:
+                    // error 505: Invalid resource location (%1) in %2.
+                    warnInfo.ID = "VW02";
+                    warnInfo.Text = $"{resType} {resNum} has an invalid location ({errdata[0]}) in volume file {errdata[2]}";
+                    warnInfo.Module = errdata[3];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -5:
+                    // 506: invalid header
+                    warnInfo.ID = "RW09";
+                    warnInfo.Text = $"{resType} {resNum} has an invalid resource header at location {errdata[0]} in {errdata[2]}";
+                    warnInfo.Module = errdata[3];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -6:
+                    // 704: sourcefile missing
+                    warnInfo.ID = "RW99";
+                    warnInfo.Text = $"Logic {resNum} source file is missing ({errdata[0]})";
+                    warnInfo.Module = errdata[1];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -7:
+                    // 700: sourcefile is readonly
+                    warnInfo.ID = "RW98";
+                    warnInfo.Text = $"Logic {resNum} source file is marked readonly ({errdata[0]})";
+                    warnInfo.Module = errdata[1];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -8:
+                    // 502: Error %1 occurred while trying to access logic source file(%2).
+                    warnInfo.ID = "RW97";
+                    warnInfo.Text = $"Logic {resNum} is invalid due to file access error ({errdata[0]})";
+                    warnInfo.Module = errdata[1];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -9:
+                    // error 688: Error %1 occurred while decompiling message section.
+                    warnInfo.ID = "RW96";
+                    warnInfo.Text = $"Logic {resNum} is invalid due to error in message section ({errdata[0]})";
+                    warnInfo.Module = errdata[1];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -10:
+                    // error 688: Error %1 occurred while decompiling labels.
+                    warnInfo.ID = "RW95";
+                    warnInfo.Text = $"Logic {resNum} is invalid due to error in label search ({errdata[0]})";
+                    warnInfo.Module = errdata[1];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -11:
+                    // error 688: Error %1 occurred while decompiling if block.
+                    warnInfo.ID = "RW94";
+                    warnInfo.Text = $"Logic {resNum} is invalid due to error in if block section ({errdata[0]})";
+                    warnInfo.Module = errdata[1];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -12:
+                    // error 688: Error %1 occurred while decompiling - invalid message.
+                    warnInfo.ID = "RW93";
+                    warnInfo.Text = $"Logic {resNum} is invalid due to invalid message value ({errdata[0]})";
+                    warnInfo.Module = errdata[1];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -13:
+                    // error 598: invalid sound data
+                    warnInfo.ID = "RW92";
+                    warnInfo.Text = $"Invalid sound data format, unable to load tracks";
+                    warnInfo.Module = errdata[0];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -14:
+                    // error 565: sound invalid data error
+                    warnInfo.ID = "RW91";
+                    warnInfo.Text = $"Error encountered in LoadTracks ({errdata[1]})";
+                    warnInfo.Module = errdata[0];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -15:
+                    // error 595: invalid view data
+                    warnInfo.ID = "RW90";
+                    warnInfo.Text = $"Invalid view data, unable to load view";
+                    warnInfo.Module = errdata[0];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -16:
+                    // error 548: invalid loop pointer
+                    warnInfo.ID = "RW89";
+                    warnInfo.Text = $"Invalid loop data pointer detected (loop {errdata[1]})";
+                    warnInfo.Module = errdata[0];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -17:
+                    // error 539: invalid source loop for mirror/invalid mirror loop number
+                    warnInfo.ID = "RW88";
+                    warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} and/or loop {errdata[3]})";
+                    warnInfo.Module = errdata[0];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -18:
+                    // error 550: invalid mirror data, target loop already mirrored
+                    warnInfo.ID = "RW87";
+                    warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[3]} already mirrored)";
+                    warnInfo.Module = errdata[0];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -19:
+                    // 551: invalid mirror data, source already a mirror
+                    warnInfo.ID = "RW86";
+                    warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} already mirrored)";
+                    warnInfo.Module = errdata[0];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                case -20:
+                    // 553: invalid cel data pointer
+                    warnInfo.ID = "RW85";
+                    warnInfo.Text = $"Invalid cel pointer detected (cel {errdata[2]} of loop {errdata[1]})";
+                    warnInfo.Module = errdata[0];
+                    game.OnLoadGameStatus(warnInfo);
+                    break;
+                }
+                return;
+            }
+            switch (resType) {
+            case AGIResType.Logic:
+                // none
+                break;
+            case AGIResType.Picture:
+                if (errlevel > 0) {
+                    if ((errlevel & 1) == 1) {
+                        // missing EOP marker
+                        warnInfo.ID = "RW06";
+                        warnInfo.Text = $"Picture {resNum} is missing its 'end-of-resource' marker and may be corrupt";
+                        warnInfo.Module = errdata[0];
+                        game.OnLoadGameStatus(warnInfo);
+                    }
+                    if ((errlevel & 2) == 2) {
+                        // bad color
+                        warnInfo.ID = "RW25";
+                        warnInfo.Text = $"Picture {resNum} has at least one invalid color assignment - picture may be corrupt";
+                        warnInfo.Module = errdata[0];
+                        game.OnLoadGameStatus(warnInfo);
+                    }
+                    if ((errlevel & 4) == 4) {
+                        // bad cmd
+                        warnInfo.ID = "RW26";
+                        warnInfo.Text = $"Picture {resNum} has at least one invalid command byte - picture may be corrupt";
+                        warnInfo.Module = errdata[0];
+                        game.OnLoadGameStatus(warnInfo);
+                    }
+                    if ((errlevel & 8) == 8) {
+                        // extra data
+                        warnInfo.ID = "RW12";
+                        warnInfo.Text = $"{resType} {resNum} has extra data past the end of resource";
+                        warnInfo.Module = errdata[0];
+                        game.OnLoadGameStatus(warnInfo);
+                    }
+                    if ((errlevel & 16) == 16) {
                         // unhandled error
                         warnInfo.ID = "RW05";
                         warnInfo.Text = $"Unhandled error in Picture {resNum} data- picture may not display correctly ({errlevel})";
                         warnInfo.Module = errdata[0];
                         game.OnLoadGameStatus(warnInfo);
                     }
-                    else {
-                        // missing EOP marker, bad color or bad cmd
-                        warnInfo.ID = "RW06";
-                        warnInfo.Text = $"Data anomalies in Picture {resNum} cannot be decompiled ({errlevel})";
-                        warnInfo.Module = errdata[0];
-                        game.OnLoadGameStatus(warnInfo);
-                    }
-                    break;
-                case AGIResType.rtSound:
-                    warnInfo.ID = "RW07";
-                    warnInfo.Text = $"Sound {resNum} has an invalid track pointer ({errlevel})";
-                    warnInfo.Module = errdata[0];
-                    game.OnLoadGameStatus(warnInfo);
-                    break;
-                case AGIResType.rtView:
-                    warnInfo.ID = "RW08";
-                    warnInfo.Text = $"View {resNum} has an invalid view description pointer";
-                    warnInfo.Module = errdata[0];
-                    game.OnLoadGameStatus(warnInfo);
-                    break;
-                case AGIResType.rtObjects:
-                    switch (errlevel) {
-                    case 1:
-                        warnInfo.ID = "RW20";
-                        warnInfo.Text = "OBJECT file has no items";
-                        warnInfo.Module = "OBJECT";
-                        break;
-                    case 12:
-                        warnInfo.ID = "RW21";
-                        warnInfo.Text = "Unable to decrypt OBJECT file";
-                        warnInfo.Module = "OBJECT";
-                        break;
-                    case 3:
-                        warnInfo.ID = "RW22";
-                        warnInfo.Text = "Unable to parse OBJECT file";
-                        warnInfo.Module = "OBJECT";
-                        break;
-                    case 4:
-                        warnInfo.ID = "RW23";
-                        warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
-                        warnInfo.Module = "OBJECT";
-                        break;
-                    case 5:
-                        warnInfo.ID = "RW24";
-                        warnInfo.Text = "First item is not the null '?' item";
-                        warnInfo.Module = "OBJECT";
-                        break;
-                    }
-                    game.OnLoadGameStatus(warnInfo);
-                    break;
-                case AGIResType.rtWords:
-                    break;
+
                 }
-                return;
-            }
-            // resource errors:
-            switch (errlevel) {
-            case -1: // 606:
-                // Can't load resource: file not found (%1)
-                warnInfo.ID = "VW03";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} is in a VOL file ({Path.GetFileName(errdata[0])}) that does not exist";
-                warnInfo.Module = errdata[1];
-                game.OnLoadGameStatus(warnInfo);
                 break;
-            case -2: // 700:
-                // file (%1) is readonly
-                warnInfo.ID = "VW03";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} is in a VOL file ({Path.GetFileName(errdata[0])}) marked readonly";
-                warnInfo.Module = errdata[1];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -3: // 502:
-                // Error %1 occurred while trying to access %2.
-                warnInfo.ID = "VW01";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} is invalid due to file access error ({errdata[0]})";
-                warnInfo.Module = errdata[1];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -4: // 505:
-                //Invalid resource location (%1) in %2.
-                warnInfo.ID = "VW02";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid location ({errdata[0]}) in volume file {errdata[2]}";
-                warnInfo.Module = errdata[3];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -5: // 506:
-                // invalid header
-                warnInfo.ID = "RW09";
-                warnInfo.Text = $"{ResTypeName[(int)resType]} {resNum} has an invalid resource header at location {errdata[0]} in {errdata[2]}";
-                warnInfo.Module = errdata[3];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -6: // 704:
-                // sourcefile missing
-                // TODO: need new load warning value
-                warnInfo.ID = "RW99";
-                warnInfo.Text = $"Logic {resNum} source file is missing ({errdata[0]})";
-                warnInfo.Module = errdata[1];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -7: // 700:
-                // sourcefile is readonly
-                // TODO: need new load warning value
-                warnInfo.ID = "RW98";
-                warnInfo.Text = $"Logic {resNum} source file is marked readonly ({errdata[0]})";
-                warnInfo.Module = errdata[1];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -8: // 502: 
-                // Error %1 occurred while trying to access logic source file(%2).
-                // TODO: need new load warning value
-                warnInfo.ID = "RW97";
-                warnInfo.Text = $"Logic {resNum} is invalid due to file access error ({errdata[0]})";
-                warnInfo.Module = errdata[1];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -9: // 688: 
-                // Error %1 occurred while decompiling message section.
-                // TODO: need new load warning value
-                warnInfo.ID = "RW96";
-                warnInfo.Text = $"Logic {resNum} is invalid due to error in message section ({errdata[0]})";
-                warnInfo.Module = errdata[1];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -10: // 688: 
-                // Error %1 occurred while decompiling labels.
-                // TODO: need new load warning value
-                warnInfo.ID = "RW95";
-                warnInfo.Text = $"Logic {resNum} is invalid due to error in label search ({errdata[0]})";
-                warnInfo.Module = errdata[1];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -11: // 688: 
-                // Error %1 occurred while decompiling if block.
-                // TODO: need new load warning value
-                warnInfo.ID = "RW94";
-                warnInfo.Text = $"Logic {resNum} is invalid due to error in if block section ({errdata[0]})";
-                warnInfo.Module = errdata[1];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -12: // 688: 
-                // Error %1 occurred while decompiling - invalid message.
-                // TODO: need new load warning value
-                warnInfo.ID = "RW93";
-                warnInfo.Text = $"Logic {resNum} is invalid due to invalid message value ({errdata[0]})";
-                warnInfo.Module = errdata[1];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -13: // 598:
-                // invalid sound data
-                // TODO: need new load warning value
-                warnInfo.ID = "RW92";
-                warnInfo.Text = $"Invalid sound data format, unable to load tracks";
+            case AGIResType.Sound:
+                warnInfo.ID = "RW07";
+                warnInfo.Text = $"Sound {resNum} has an invalid track pointer ({errlevel})";
                 warnInfo.Module = errdata[0];
                 game.OnLoadGameStatus(warnInfo);
                 break;
-            case -14: // 565:
-                // sound invalid data error
-                // TODO: need new load warning value
-                warnInfo.ID = "RW91";
-                warnInfo.Text = $"Error encountered in LoadTracks ({errdata[1]})";
+            case AGIResType.View:
+                warnInfo.ID = "RW08";
+                warnInfo.Text = $"View {resNum} has an invalid view description pointer";
                 warnInfo.Module = errdata[0];
                 game.OnLoadGameStatus(warnInfo);
                 break;
-            case -15: // 595:
-                // invalid view data
-                // TODO: need new load warning value
-                warnInfo.ID = "RW90";
-                warnInfo.Text = $"Invalid view data, unable to load view";
-                warnInfo.Module = errdata[0];
-                game.OnLoadGameStatus(warnInfo);
+            case AGIResType.Objects:
+                warnInfo.Module = "OBJECT";
+                if ((errlevel & 1) == 1) {
+                    warnInfo.ID = "RW20";
+                    warnInfo.Text = "OBJECT file has no items";
+                    game.OnLoadGameStatus(warnInfo);
+                }
+                if ((errlevel & 2) == 2) {
+                    warnInfo.ID = "RW21";
+                    warnInfo.Text = "Unable to decrypt OBJECT file";
+                    game.OnLoadGameStatus(warnInfo);
+                }
+                if ((errlevel & 4) == 4) {
+                    warnInfo.ID = "RW22";
+                    warnInfo.Text = "Invalid OBJECT file header, unable to read item data";
+                    game.OnLoadGameStatus(warnInfo);
+                }
+                if ((errlevel & 8) == 8) {
+                    warnInfo.ID = "RW23";
+                    warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
+                    game.OnLoadGameStatus(warnInfo);
+                }
+                if ((errlevel & 16) == 16) {
+                    warnInfo.ID = "RW24";
+                    warnInfo.Text = "First item is not the null '?' item";
+                    game.OnLoadGameStatus(warnInfo);
+                }
+                if ((errlevel & 32) == 32) {
+                    warnInfo.ID = "RW24";
+                    warnInfo.Text = "File access error, unable to read OBJECT file";
+                    game.OnLoadGameStatus(warnInfo);
+                }
                 break;
-            case -16: // 548:
-                // invalid loop pointer
-                // TODO: need new load warning value
-                warnInfo.ID = "RW89";
-                warnInfo.Text = $"Invalid loop data pointer detected (loop {errdata[1]})";
-                warnInfo.Module = errdata[0];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -17: // 539:
-                // invalid source loop for mirror/invalid mirror loop number
-                // TODO: need new load warning value
-                warnInfo.ID = "RW88";
-                warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} and/or loop {errdata[3]})";
-                warnInfo.Module = errdata[0];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -18: // 550:
-                // invalid mirror data, target loop already mirrored
-                // TODO: need new load warning value
-                warnInfo.ID = "RW87";
-                warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[3]} already mirrored)";
-                warnInfo.Module = errdata[0];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -19: // 551:
-                // invalid mirror data, source already a mirror
-                // TODO: need new load warning value
-                warnInfo.ID = "RW86";
-                warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} already mirrored)";
-                warnInfo.Module = errdata[0];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            case -20: // 553:
-                // invalid cel data pointer
-                // TODO: need new load warning value
-                warnInfo.ID = "RW85";
-                warnInfo.Text = $"Invalid cel pointer detected (cel {errdata[2]} of loop {errdata[1]})";
-                warnInfo.Module = errdata[0];
-                game.OnLoadGameStatus(warnInfo);
-                break;
-            // TODO: remove loadwarnings "RW04",  "RW11" (unhandled load error)
-            default:
-                // should be no others
-                Debug.Assert(false);
+            case AGIResType.Words:
+                warnInfo.Module = "WORDS.TOK";
+                if ((errlevel & 1) == 1) {
+                    warnInfo.ID = "RW27";
+                    warnInfo.Text = "Abnormal index table";
+                    game.OnLoadGameStatus(warnInfo);
+                }
+                if ((errlevel & 2) == 2) {
+                    warnInfo.ID = "RW28";
+                    warnInfo.Text = "Unexpected end of file";
+                    game.OnLoadGameStatus(warnInfo);
+                }
+                if ((errlevel & 4) == 4) {
+                    warnInfo.ID = "RW29";
+                    warnInfo.Text = "Upper case characters detected";
+                    game.OnLoadGameStatus(warnInfo);
+                }
+                if ((errlevel & 8) == 8) {
+                    warnInfo.ID = "RW25";
+                    warnInfo.Text = "Empty WORDS.TOK file";
+                    game.OnLoadGameStatus(warnInfo);
+                }
+                if ((errlevel & 16) == 16) {
+                    warnInfo.ID = "RW26";
+                    warnInfo.Text = "Invalid index table";
+                    game.OnLoadGameStatus(warnInfo);
+                }
+                if ((errlevel & 32) == 32) {
+                    warnInfo.ID = "RW27";
+                    warnInfo.Text = "File access error, unable to read OBJECT file";
+                    game.OnLoadGameStatus(warnInfo);
+                }
                 break;
             }
         }

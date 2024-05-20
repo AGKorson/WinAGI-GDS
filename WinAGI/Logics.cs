@@ -11,7 +11,7 @@ using static WinAGI.Engine.LogicDecoder;
 
 namespace WinAGI.Engine {
     /// <summary>
-    /// A class that holds all the logics in an AGI game.
+    /// A class that holds all the logic resources in an AGI game.
     /// </summary>
     public class Logics : IEnumerable<Logic> {
         #region Members
@@ -20,6 +20,10 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Initializes the logics collection for the specified game.
+        /// </summary>
+        /// <param name="parent"></param>
         internal Logics(AGIGame parent) {
             this.parent = parent;
             mSourceFileExt = DefaultSrcExt;
@@ -48,7 +52,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the number of logics in this AGI game.
+        /// Gets the number of logics in this collection.
         /// </summary>
         public byte Count { 
             get { 
@@ -99,7 +103,7 @@ namespace WinAGI.Engine {
         #region Methods
         /// <summary>
         /// Called by the load game methods for the initial loading of
-        /// resources into logics collection.
+        /// resources into thislogics collection.
         /// </summary>
         /// <param name="bytResNum"></param>
         /// <param name="bytVol"></param>
@@ -112,7 +116,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns true if a logic with number ResNum exists in this game.
+        /// Returns true if a logic with the specified number exists in this game.
         /// </summary>
         /// <param name="ResNum"></param>
         /// <returns></returns>
@@ -160,7 +164,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Removes a logic from this game.
+        /// Removes the specified logic from this game.
         /// </summary>
         /// <param name="Index"></param>
         public void Remove(byte Index) {
@@ -202,7 +206,7 @@ namespace WinAGI.Engine {
             // verify new number is not in collection
             if (Col.ContainsKey(NewLogic)) {
                 WinAGIException wex = new(LoadResString(669)) {
-                    HResult = WINAGI_ERR + 669,
+                    HResult = WINAGI_ERR + 669
                 };
                 throw wex;
             }
@@ -240,18 +244,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Sets the CRC for all logics in the collection to indicate they need
-        /// to be recompiled.
-        /// </summary>
-        public void MarkAllAsDirty() {
-            foreach (Logic tmpLogic in Col.Values) {
-                tmpLogic.CompiledCRC = 0xffffffff;
-                parent.WriteGameSetting("Logic" + tmpLogic.Number, "CompCRC32", "0x00", "Logics");
-            }
-            parent.agGameProps.Save();
-        }
-
-        /// <summary>
         /// Sets the CRC for the specified logic in this game to indicate it needs
         /// to be recompiled.
         /// </summary>
@@ -263,7 +255,19 @@ namespace WinAGI.Engine {
                 return;
             }
         }
-        
+
+        /// <summary>
+        /// Sets the CRC for all logics in the collection to indicate they need
+        /// to be recompiled.
+        /// </summary>
+        public void MarkAllAsDirty() {
+            foreach (Logic tmpLogic in Col.Values) {
+                tmpLogic.CompiledCRC = 0xffffffff;
+                parent.WriteGameSetting("Logic" + tmpLogic.Number, "CompCRC32", "0x00", "Logics");
+            }
+            parent.agGameProps.Save();
+        }
+
         /// <summary>
         /// A tie function to allow access to the LogCompile variable conversion function.
         /// </summary>

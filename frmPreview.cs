@@ -94,7 +94,7 @@ namespace WinAGI.Editor {
                 agSound.Unload();
             }
             // if picture header selected
-            if (ResType == rtPicture && ResNum < 0) {
+            if (ResType == AGIResType.Picture && ResNum < 0) {
                 // show save all pics menu item
                 mnuRSavePicAs.Visible = true;
                 mnuRSep1.Visible = true;
@@ -104,7 +104,7 @@ namespace WinAGI.Editor {
                 UpdateCaption(ResType, (byte)ResNum);
                 //get size, show preview
                 switch (ResType) {
-                case rtLogic:
+                case AGIResType.Logic:
                     if (PreviewLogic((byte)ResNum)) {
                         pnlLogic.Visible = true;
                     }
@@ -113,11 +113,11 @@ namespace WinAGI.Editor {
                         // TODO: need res strings to display resource errors
                         // based on the ErrLevel value
                         using Graphics cg = CreateGraphics();
-                        cg.Clear(BackColor);
-                        cg.DrawString("Invalid logic resource: {errinfo}", Font, new SolidBrush(Color.Black), 0, 0);
+                        cg.Clear(base.BackColor);
+                        cg.DrawString("Invalid logic resource: {errinfo}", base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
-                case rtPicture:
+                case AGIResType.Picture:
                     if (PreviewPic((byte)ResNum)) {
                         pnlPicture.Visible = true;
                         // show pic save as menu item
@@ -129,11 +129,11 @@ namespace WinAGI.Editor {
                         // TODO: need res strings to display resource errors
                         // based on the ErrLevel value
                         using Graphics cg = CreateGraphics();
-                        cg.Clear(BackColor);
-                        cg.DrawString("Invalid picture resource: {errinfo}", Font, new SolidBrush(Color.Black), 0, 0);
+                        cg.Clear(base.BackColor);
+                        cg.DrawString("Invalid picture resource: {errinfo}", base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
-                case rtSound:
+                case AGIResType.Sound:
                     if (PreviewSound((byte)ResNum)) {
                         pnlSound.Visible = true;
                         // hook the sound_complete event
@@ -144,11 +144,11 @@ namespace WinAGI.Editor {
                         // TODO: need res strings to display resource errors
                         // based on the ErrLevel value
                         using Graphics cg = CreateGraphics();
-                        cg.Clear(BackColor);
-                        cg.DrawString("Invalid sound resource: {errinfo}", Font, new SolidBrush(Color.Black), 0, 0);
+                        cg.Clear(base.BackColor);
+                        cg.DrawString("Invalid sound resource: {errinfo}", base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
-                case rtView:
+                case AGIResType.View:
                     if (PreviewView((byte)ResNum)) {
                         pnlView.Visible = true;
                         // show loop export menu item
@@ -160,8 +160,8 @@ namespace WinAGI.Editor {
                         // TODO: need res strings to display resource errors
                         // based on the ErrLevel value
                         using Graphics cg = CreateGraphics();
-                        cg.Clear(BackColor);
-                        cg.DrawString("Invalid view resource: {errinfo}", Font, new SolidBrush(Color.Black), 0, 0);
+                        cg.Clear(base.BackColor);
+                        cg.DrawString("Invalid view resource: {errinfo}", base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 }
@@ -225,7 +225,7 @@ namespace WinAGI.Editor {
             pnlPicture.Visible = false;
             pnlSound.Visible = false;
             pnlView.Visible = false;
-            PrevResType = rtNone;
+            PrevResType = None;
             // default caption
             this.Text = "Preview";
             // disable custom menus
@@ -236,21 +236,21 @@ namespace WinAGI.Editor {
         public void UpdateCaption(AGIResType ResType, byte ResNum) {
             string strID = "";
             // update window caption
-            this.Text = "Preview - " + ResTypeName[(int)ResType] + " " + ResNum;
+            this.Text = "Preview - " + ResType + " " + ResNum;
             // if not showing by number in the prvieww list
             if (!Settings.ShowResNum) {
                 //also include the resource ID
                 switch (ResType) {
-                case rtLogic:
+                case AGIResType.Logic:
                     strID = EditGame.Logics[ResNum].ID;
                     break;
-                case rtPicture:
+                case AGIResType.Picture:
                     strID = EditGame.Pictures[ResNum].ID;
                     break;
-                case rtSound:
+                case AGIResType.Sound:
                     strID = EditGame.Sounds[ResNum].ID;
                     break;
-                case rtView:
+                case AGIResType.View:
                     strID = EditGame.Views[ResNum].ID;
                     break;
                 }
@@ -806,7 +806,7 @@ namespace WinAGI.Editor {
             }
         }
         private void mnuRLoopGIF_Click(object sender, EventArgs e) {
-            if (PrevResType == rtView && agView is not null) {
+            if (PrevResType == AGIResType.View && agView is not null) {
                 //export a loop as a gif
                 //export a picture as bmp or gif
                 ExportLoop(agView.Loops[CurLoop]);
@@ -932,7 +932,7 @@ namespace WinAGI.Editor {
         }
         private void frmPreview_Deactivate(object sender, EventArgs e) {
             //if previewing a sound,
-            if (SelResType == rtSound) {
+            if (SelResType == AGIResType.Sound) {
                 StopSoundPreview();
             }
 
@@ -983,10 +983,10 @@ namespace WinAGI.Editor {
                 switch (KeyCode) {
                 case Keys.Delete:
                     //if a resource is selected
-                    if (SelResType == rtLogic ||
-                          SelResType == rtPicture ||
-                          SelResType == rtSound ||
-                          SelResType == rtView) {
+                    if (SelResType == AGIResType.Logic ||
+                          SelResType == AGIResType.Picture ||
+                          SelResType == AGIResType.Sound ||
+                          SelResType == AGIResType.View) {
                         //call remove from game method
                         MDIMain.RemoveSelectedRes();
                         e.Handled = true;
@@ -1005,7 +1005,7 @@ namespace WinAGI.Editor {
                 // SHIFT + CTRL
                 switch (KeyCode) {
                 case Keys.S: //Shift+Ctrl+S//
-                    if (SelResType == rtPicture) {
+                    if (SelResType == AGIResType.Picture) {
                         //save Image as ...
                         mnuRSavePicAs_Click(null, null);
                     }
@@ -1016,10 +1016,10 @@ namespace WinAGI.Editor {
             else if (!e.Shift && e.Control && !e.Alt) {
                 switch (KeyCode) {
                 case Keys.F: //Ctrl+F (Find)
-                    if (SelResType == rtLogic ||
-                          SelResType == rtPicture ||
-                          SelResType == rtSound ||
-                          SelResType == rtView) {
+                    if (SelResType == AGIResType.Logic ||
+                          SelResType == AGIResType.Picture ||
+                          SelResType == AGIResType.Sound ||
+                          SelResType == AGIResType.View) {
                         //find this resid
                         MDIMain.SearchForID();
                     }
@@ -1457,7 +1457,7 @@ namespace WinAGI.Editor {
 
         public void KeyHandler(KeyPressEventArgs e) {
             switch (SelResType) {
-            case rtPicture:
+            case AGIResType.Picture:
                 switch ((int)e.KeyChar) {
                 case 43: //+//
                          //zoom in
@@ -1473,7 +1473,7 @@ namespace WinAGI.Editor {
                     break;
                 }
                 break;
-            case rtView:
+            case AGIResType.View:
                 switch ((int)e.KeyChar) {
                 case 32: // //
                          //toggle play/pause
@@ -1512,16 +1512,16 @@ namespace WinAGI.Editor {
 
             //set form defaults
             switch (SelResType) {
-            case rtLogic:
+            case AGIResType.Logic:
                 GFindText = EditGame.Logics[(byte)SelResNum].ID;
                 break;
-            case rtPicture:
+            case AGIResType.Picture:
                 GFindText = EditGame.Pictures[(byte)SelResNum].ID;
                 break;
-            case rtSound:
+            case AGIResType.Sound:
                 GFindText = EditGame.Sounds[(byte)SelResNum].ID;
                 break;
-            case rtView:
+            case AGIResType.View:
                 GFindText = EditGame.Views[(byte)SelResNum].ID;
                 break;
             }
@@ -1541,11 +1541,11 @@ namespace WinAGI.Editor {
             string strTopic;
             //show preview window help
             strTopic = "htm\\winagi\\preview.htm";
-            if (SelResType == rtLogic ||
-                SelResType == rtPicture ||
-                SelResType == rtSound ||
-                SelResType == rtView) {
-                strTopic += "#" + ResTypeName[(int)SelResType];
+            if (SelResType == AGIResType.Logic ||
+                SelResType == AGIResType.Picture ||
+                SelResType == AGIResType.Sound ||
+                SelResType == AGIResType.View) {
+                strTopic += "#" + SelResType;
             }
             //show preview window help
             _ = API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, strTopic);

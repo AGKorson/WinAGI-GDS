@@ -57,7 +57,7 @@ namespace WinAGI.Editor
                         ID = i.ToString()
                     };
                     switch (ResType) {
-                    case rtLogic:
+                    case AGIResType.Logic:
                         // if exists, don't add
                         // if grAddLayout AND i == 0, don't add
                         // if grRenumberRoom AND Picture exists, don't add
@@ -67,17 +67,17 @@ namespace WinAGI.Editor
                             lstResNum.Items.Add(tmpItem);
                         }
                         break;
-                    case rtView:
+                    case AGIResType.View:
                         if (!EditGame.Views.Exists((byte)i)) {
                             lstResNum.Items.Add(tmpItem);
                         }
                         break;
-                    case rtPicture:
+                    case AGIResType.Picture:
                         if (!EditGame.Pictures.Exists((byte)i)) {
                             lstResNum.Items.Add(tmpItem);
                         }
                         break;
-                    case rtSound:
+                    case AGIResType.Sound:
                         if (EditGame.Sounds.Exists((byte)i)) {
                             lstResNum.Items.Add(tmpItem);
                         }
@@ -93,7 +93,7 @@ namespace WinAGI.Editor
                         ResNum = (byte)i
                     };
                     switch (ResType) {
-                    case rtLogic:
+                    case AGIResType.Logic:
                         if (EditGame.Logics.Exists((byte)i)) {
                             tmpItem.ID = Settings.ShowResNum
                                 ? ResourceName(EditGame.Logics[i], true)
@@ -102,7 +102,7 @@ namespace WinAGI.Editor
                         }
 
                         break;
-                    case rtPicture:
+                    case AGIResType.Picture:
                         if (EditGame.Pictures.Exists((byte)i)) {
                             tmpItem.ID = Settings.ShowResNum
                                 ? ResourceName(EditGame.Pictures[i], true)
@@ -110,7 +110,7 @@ namespace WinAGI.Editor
                             lstResNum.Items.Add(tmpItem);
                         }
                         break;
-                    case rtSound:
+                    case AGIResType.Sound:
                         if (EditGame.Sounds.Exists((byte)i)) {
                             tmpItem.ID = Settings.ShowResNum
                                 ? ResourceName(EditGame.Sounds[i], true)
@@ -118,7 +118,7 @@ namespace WinAGI.Editor
                             lstResNum.Items.Add(tmpItem);
                         }
                         break;
-                    case rtView:
+                    case AGIResType.View:
                         if (EditGame.Views.Exists((byte)i)) {
                             tmpItem.ID = Settings.ShowResNum
                                 ? ResourceName(EditGame.Views[i], true)

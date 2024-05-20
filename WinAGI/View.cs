@@ -20,7 +20,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Constructor to create a new AGI view resource that is not part of an AGI game.
         /// </summary>
-        public View() : base(AGIResType.rtView) {
+        public View() : base(AGIResType.View) {
             InitView();
             // create default ID
             mResID = "NewView";
@@ -35,7 +35,7 @@ namespace WinAGI.Engine {
         /// <param name="parent"></param>
         /// <param name="ResNum"></param>
         /// <param name="NewView"></param>
-        internal View(AGIGame parent, byte ResNum, View NewView = null) : base(AGIResType.rtView) {
+        internal View(AGIGame parent, byte ResNum, View NewView = null) : base(AGIResType.View) {
             InitView(NewView);
             base.InitInGame(parent, ResNum);
         }
@@ -47,9 +47,9 @@ namespace WinAGI.Engine {
         /// <param name="ResNum"></param>
         /// <param name="VOL"></param>
         /// <param name="Loc"></param>
-        internal View(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtView) {
+        internal View(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.View) {
             // set up base resource
-            base.InitInGame(parent, AGIResType.rtView, ResNum, VOL, Loc);
+            base.InitInGame(parent, AGIResType.View, ResNum, VOL, Loc);
 
             // add empty loop col as placeholder
             mLoopCol = new Loops(this);

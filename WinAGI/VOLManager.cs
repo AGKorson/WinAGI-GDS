@@ -588,16 +588,16 @@ namespace WinAGI.Engine {
                 }
                 // what is current max for this res type?
                 switch (resource.ResType) {
-                case AGIResType.rtLogic:
+                case AGIResType.Logic:
                     intMax = resource.parent.agLogs.Max;
                     break;
-                case AGIResType.rtPicture:
+                case AGIResType.Picture:
                     intMax = resource.parent.agPics.Max;
                     break;
-                case AGIResType.rtSound:
+                case AGIResType.Sound:
                     intMax = resource.parent.agSnds.Max;
                     break;
-                case AGIResType.rtView:
+                case AGIResType.View:
                     intMax = resource.parent.agViews.Max;
                     break;
                 }
@@ -640,19 +640,19 @@ namespace WinAGI.Engine {
                 if (resource.parent.agIsVersion3) {
                     // calculate directory offset
                     switch (resource.ResType) {
-                    case AGIResType.rtLogic:
+                    case AGIResType.Logic:
                         lngDirOffset = 8;
                         lngDirEnd = (bytDIR[3] << 8) + bytDIR[2];
                         break;
-                    case AGIResType.rtPicture:
+                    case AGIResType.Picture:
                         lngDirOffset = (bytDIR[3] << 8) + bytDIR[2];
                         lngDirEnd = (bytDIR[5] << 8) + bytDIR[4];
                         break;
-                    case AGIResType.rtView:
+                    case AGIResType.View:
                         lngDirOffset = (bytDIR[5] << 8) + bytDIR[4];
                         lngDirEnd = (bytDIR[7] << 8) + bytDIR[6];
                         break;
-                    case AGIResType.rtSound:
+                    case AGIResType.Sound:
                         lngDirOffset = (bytDIR[7] << 8) + bytDIR[6];
                         lngDirEnd = bytDIR.Length;
                         break;
@@ -694,7 +694,7 @@ namespace WinAGI.Engine {
                     }
                     else {
                         // if restype is sound, we also can just truncate the file
-                        if (resource.ResType == AGIResType.rtSound) {
+                        if (resource.ResType == AGIResType.Sound) {
                             Array.Resize(ref bytDIR, bytDIR.Length - 3 * (intOldMax - intMax));
                         }
                         else {
@@ -715,14 +715,14 @@ namespace WinAGI.Engine {
                             bytDIR[7] = (byte)(lngDirOffset >> 8);
                             bytDIR[6] = (byte)(lngDirOffset % 0x100);
                             // if resource is a view, we are done
-                            if (resource.ResType != AGIResType.rtView) {
+                            if (resource.ResType != AGIResType.View) {
                                 // move view offset
                                 lngDirOffset = (bytDIR[5] << 8) + bytDIR[4];
                                 lngDirOffset -= 3 * (intOldMax - intMax);
                                 bytDIR[5] = (byte)(lngDirOffset >> 8);
                                 bytDIR[4] = (byte)(lngDirOffset % 0x100);
                                 // if resource is a pic, now we are done
-                                if (resource.ResType != AGIResType.rtPicture) {
+                                if (resource.ResType != AGIResType.Picture) {
                                     // move picture offset
                                     lngDirOffset = (bytDIR[3] << 8) + bytDIR[2];
                                     lngDirOffset -= 3 * (intOldMax - intMax);
@@ -766,7 +766,7 @@ namespace WinAGI.Engine {
                     }
                     else {
                         // if expanding the sound dir, just fill it in with 0xffs
-                        if (resource.ResType == AGIResType.rtSound) {
+                        if (resource.ResType == AGIResType.Sound) {
                             lngStart = lngDirEnd;
                             lngStop = lngDirEnd + 3 * (intMax - intOldMax - 1) - 1;
                             for (i = lngStart; i <= lngStop; i++) {
@@ -802,14 +802,14 @@ namespace WinAGI.Engine {
                             bytDIR[7] = (byte)(lngDirOffset >> 8);
                             bytDIR[6] = (byte)(lngDirOffset % 0x100);
                             // if resource is a view, we are done
-                            if (resource.ResType != AGIResType.rtView) {
+                            if (resource.ResType != AGIResType.View) {
                                 // move view offset
                                 lngDirOffset = (byte)((bytDIR[5] << 8) + bytDIR[4]);
                                 lngDirOffset += 3 * (intMax - intOldMax);
                                 bytDIR[5] = (byte)(lngDirOffset >> 8);
                                 bytDIR[4] = (byte)(lngDirOffset % 0x100);
                                 // if resource is a pic, we are done
-                                if (resource.ResType != AGIResType.rtPicture) {
+                                if (resource.ResType != AGIResType.Picture) {
                                     // move picture offset
                                     lngDirOffset = (byte)((bytDIR[3] << 8) + bytDIR[2]);
                                     lngDirOffset += 3 * (intMax - intOldMax);

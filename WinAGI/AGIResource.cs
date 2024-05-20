@@ -432,13 +432,13 @@ namespace WinAGI.Engine {
             mVolume = VOL;
             mLoc = Loc;
             // ID should be in the propertyfile
-            mResID = parent.agGameProps.GetSetting(ResTypeName[(int)resType] + resNum, "ID", "", true);
+            mResID = parent.agGameProps.GetSetting(resType.ToString() + resNum, "ID", "", true);
             if (ID.Length == 0) {
                 // ID not found; save default ID
-                ID = ResTypeName[(int)resType] + resNum;
-                parent.WriteGameSetting(ID, "ID", ID, ResTypeName[(int)resType]);
+                ID = resType.ToString() + resNum;
+                parent.WriteGameSetting(ID, "ID", ID, resType.ToString());
             }
-            mDescription = parent.agGameProps.GetSetting(ResTypeName[(int)resType] + resNum, "Description", "");
+            mDescription = parent.agGameProps.GetSetting(resType.ToString() + resNum, "Description", "");
         }
 
         /// <summary>
@@ -1113,7 +1113,7 @@ namespace WinAGI.Engine {
             if (mResID.Length > 0) {
                 return mResID;
             }
-            return "blank " + ResTypeName[(int)mResType];
+            return "blank " + mResType.ToString();
         }
 
         /// <summary>
@@ -1127,7 +1127,7 @@ namespace WinAGI.Engine {
             string retval;
             do {
                 intNo++;
-                retval = parent.agResDir + "New" + ResTypeName[(int)ResType] + intNo + ".ag" + ResTypeName[(int)ResType][0];
+                retval = parent.agResDir + "New" + ResType.ToString() + intNo + ".ag" + ResType.ToString().ToLower()[0];
             }
             while (File.Exists(retval));
             return retval;

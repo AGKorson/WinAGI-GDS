@@ -181,7 +181,14 @@ namespace WinAGI.Engine {
         /// 
         /// </summary>
         /// <param name="LoadFile"></param>
-        /// <returns></returns>
+        /// <returns>0 = no errors or warnings<br />
+        /// 1 = abnormal index<br />
+        /// 2 = unexpected end of file<br />
+        /// 4 = upper case character in word<br />
+        /// 8 = no data/empty file<br />
+        /// 16 = invalid index - can't read file<br />
+        /// 32 = file access error, unable to read file
+        /// </returns>
         private int LoadSierraFile(string LoadFile) {
             byte bytHigh, bytLow, bytExt;
             int lngPos, retval = 0;
@@ -194,37 +201,34 @@ namespace WinAGI.Engine {
             byte bytPrevWordCharCount;
             FileStream fsWords;
 
-            try {
-                fsWords = new FileStream(LoadFile, FileMode.Open);
-            }
-            catch (Exception e) {
-                WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, LoadFile)) {
-                    HResult = WINAGI_ERR + 502,
-                };
-                wex.Data["exception"] = e;
-                wex.Data["badfile"] = LoadFile;
-                throw wex;
-            }
             mLoaded = true;
-            // reset word and group columns
             mWordCol = [];
             mGroupCol = [];
+            try {
+                fsWords = new(LoadFile, FileMode.Open);
+            }
+            catch (Exception e) {
+                // file access error
+                return 32;
+            }
             // if no data,
             if (fsWords.Length == 0) {
-                // TODO: why does this need to be disposed? other resources don't do this
+                // be sure to release the stream
                 fsWords.Dispose();
                 return 8;
             }
             // read in entire resource
             Array.Resize(ref bytData, (int)fsWords.Length);
             fsWords.Read(bytData);
+            // done with the stream
+            fsWords.Dispose();
             // start at beginning of words section
             // (words.tok file uses MSLS format for two byte-word data)
             bytHigh = bytData[0];
             bytLow = bytData[1];
             lngPos = (bytHigh << 8) + bytLow;
             if (lngPos != 52) {
-                // words.tok file is corrupt or invalid;
+                // index is corrupt or invalid;
                 // don't assume it's bad just yet - if the target
                 // byte is zero, give it a try
                 if (bytData[lngPos] == 0) {
@@ -232,6 +236,7 @@ namespace WinAGI.Engine {
                     retval = 1;
                 }
                 else {
+                    // unable to read this file
                     return 16;
                 }
             }
@@ -270,10 +275,10 @@ namespace WinAGI.Engine {
                     // endofresource is reached
                 }
                 while ((bytVal[0] < 0x80) && (lngPos < bytData.Length));
-                // if end of file is reached before 0x80,
+                // check for end of file
                 if (lngPos >= bytData.Length) {
                     // invalid words.tok file ending
-                    mErrLevel |= 2;
+                    retval |= 2;
                     break;
                 }
                 // add last character (after stripping off flag)
@@ -282,12 +287,10 @@ namespace WinAGI.Engine {
                 sThisWord = sbThisWord.ToString();
                 // check for ascii upper case (allowed, but not useful)
                 if (sThisWord.Any(ch => (ch >= 65 && ch <= 90))) {
-                    mErrLevel |= 4;
+                    retval |= 4;
                 }
-                sThisWord = sThisWord.ToLower();
-                lngGrpNum = (bytData[lngPos] << 8) + bytData[lngPos + 1];
-                // set pointer to next word
-                lngPos += 2;
+                sThisWord = LowerAGI(sThisWord);
+                lngGrpNum = (bytData[lngPos++] << 8) + bytData[lngPos++];
                 // skip if same as previous word (unlikely, but 
                 // it would cause an exception, if it did happen)
                 if (sThisWord != strPrevWord) {
@@ -300,8 +303,7 @@ namespace WinAGI.Engine {
                     // this word is now the previous word
                     strPrevWord = sThisWord;
                 }
-                bytPrevWordCharCount = bytData[lngPos];
-                lngPos++;
+                bytPrevWordCharCount = bytData[lngPos++];
             }
             return retval;
         }
@@ -877,23 +879,14 @@ namespace WinAGI.Engine {
                 wex.Data["badfile"] = LoadFile;
                 throw wex;
             }
-            try {
-                mErrLevel = LoadSierraFile(LoadFile);
+            mErrLevel = LoadSierraFile(LoadFile);
+            if (mInGame) {
+                mDescription = parent.agGameProps.GetSetting("WORDS.TOK", "Description", "", true);
             }
-            catch {
-                throw;
+            else {
+                mResFile = LoadFile;
             }
-            finally {
-                // always set loaded flag regardless of error status
-                mLoaded = true;
-                if (mInGame) {
-                    mDescription = parent.agGameProps.GetSetting("WORDS.TOK", "Description", "", true);
-                }
-                else {
-                    mResFile = LoadFile;
-                }
-                mIsDirty = false;
-            }
+            mIsDirty = false;
         }
 
         /// <summary>

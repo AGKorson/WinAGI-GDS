@@ -345,7 +345,14 @@ namespace WinAGI.Engine {
         /// Loads an inventory item list by reading from the OBJECT file.
         /// </summary>
         /// <param name="LoadFile"></param>
-        /// <returns>Error level code indicating the status of the loaded list.</returns>
+        /// <returns>0 = no errors or warnings<br />
+        /// 1 = no data/empty file<br />
+        /// 2 = invalid data, unable to decrypt<br />
+        /// 4 = invalid header, unable to read item data<br />
+        /// 8 = invalid item pointer<br />
+        /// 16 = first item is not '?'<br />
+        /// 32 = file access error, unable to read file
+        /// </returns>
         private int LoadSierraFile(string LoadFile) {
             StringBuilder sbItem;
             string sItem;
@@ -356,20 +363,12 @@ namespace WinAGI.Engine {
             int lngDataOffset, lngNameOffset;
             int lngPos, Dwidth;
             FileStream fsObj;
-
             try {
                 fsObj = new(LoadFile, FileMode.Open);
             }
-            catch (Exception e) {
-                WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, LoadFile)) {
-                    HResult = WINAGI_ERR + 502,
-                };
-                wex.Data["exception"] = e;
-                wex.Data["badfile"] = LoadFile;
-                throw wex;
+            catch {
+                return 32;
             }
-            // no major errors, so consider it loaded
-            // (even if data problems, it's still considered loaded)
             mLoaded = true;
 
             if (fsObj.Length == 0) {
@@ -411,8 +410,7 @@ namespace WinAGI.Engine {
             }
             while (Dwidth <= 4);
             if (Dwidth == 5) {
-                // error
-                return 3;
+                return 4;
             }
             mMaxScreenObjects = bytData[2];
             intItem = 0;
@@ -424,8 +422,8 @@ namespace WinAGI.Engine {
                 bytRoom = bytData[Dwidth + intItem * Dwidth + 2];
                 lngPos = lngNameOffset;
                 if (lngPos > bytData.Length) {
-                    // error
-                    return 4;
+                    retval |= 8;
+                    return retval;
                 }
                 // build item name string
                 sbItem = new();
@@ -447,7 +445,7 @@ namespace WinAGI.Engine {
                         // rename first object
                         mItems[0].ItemName = sItem;
                         mItems[0].Room = bytRoom;
-                        retval = 5;
+                        retval |= 16;
                     }
                 }
                 else {

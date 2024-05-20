@@ -2446,7 +2446,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using control characters (code values 0, 8, 9, 10, 13)in message text will result in incorrectly displayed messages.
+        ///   Looks up a localized string similar to Using control characters (code values 8, 10, 13) in message text will result in incorrectly displayed messages.
         /// </summary>
         internal static string _5093 {
             get {
@@ -2482,7 +2482,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Undefined messages with index less than message count should be avoided.
+        ///   Looks up a localized string similar to Commands after a return() command are always ignored by AGI.
         /// </summary>
         internal static string _5097 {
             get {
@@ -2667,15 +2667,6 @@ namespace WinAGI {
         internal static string _5115 {
             get {
                 return ResourceManager.GetString("5115", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Commands after a return() command are always ignored by AGI.
-        /// </summary>
-        internal static string _5116 {
-            get {
-                return ResourceManager.GetString("5116", resourceCulture);
             }
         }
         

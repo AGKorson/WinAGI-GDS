@@ -106,7 +106,7 @@ namespace WinAGI.Editor {
         public const bool DEFAULT_DEFUSERESDEF = true;
         public const bool DEFAULT_SNIPPETS = true;
         public const bool DEFAULT_AUTOWARN = true;
-        public const LogicErrorLevel DEFAULT_ERRORLEVEL = LogicErrorLevel.leMedium;
+        public const LogicErrorLevel DEFAULT_ERRORLEVEL = LogicErrorLevel.Medium;
         // default settings - pictures
         public const int DEFAULT_PICSCALE_EDIT = 2;
         public const int DEFAULT_PICSCALE_PREVIEW = 1;
@@ -11158,10 +11158,10 @@ namespace WinAGI.Editor {
             case 1:
                 //treeview list
                 //if updating tree OR updating a logic
-                if ((UpDateMode & UpdateModeType.umResList) == UpdateModeType.umResList || ResType == rtLogic) {
+                if ((UpDateMode & UpdateModeType.umResList) == UpdateModeType.umResList || ResType == AGIResType.Logic) {
                     //update the node for this resource
                     switch (ResType) {
-                    case rtLogic:
+                    case AGIResType.Logic:
                         HdrNode[0].Nodes["l" + ResNum.ToString()].Text = ResourceName(EditGame.Logics[ResNum], true);
                         //also set compiled status
                         if (!EditGame.Logics[ResNum].Compiled) {
@@ -11171,13 +11171,13 @@ namespace WinAGI.Editor {
                             HdrNode[0].Nodes["l" + ResNum.ToString()].ForeColor = Color.Black;
                         }
                         break;
-                    case rtPicture:
+                    case AGIResType.Picture:
                         HdrNode[1].Nodes["p" + ResNum.ToString()].Text = ResourceName(EditGame.Pictures[ResNum], true);
                         break;
-                    case rtSound:
+                    case AGIResType.Sound:
                         HdrNode[2].Nodes["s" + ResNum.ToString()].Text = ResourceName(EditGame.Sounds[ResNum], true);
                         break;
-                    case rtView:
+                    case AGIResType.View:
                         HdrNode[3].Nodes["v" + ResNum.ToString()].Text = ResourceName(EditGame.Views[ResNum], true);
                         break;
                     }
@@ -11189,22 +11189,22 @@ namespace WinAGI.Editor {
                 if (MDIMain.cmbResType.SelectedIndex - 1 == (int)ResType) {
                     //if updating tree OR updating a logic (because color of
                     //logic text might need updating)
-                    if ((UpDateMode & UpdateModeType.umResList) == UpdateModeType.umResList || ResType == rtLogic) {
+                    if ((UpDateMode & UpdateModeType.umResList) == UpdateModeType.umResList || ResType == AGIResType.Logic) {
                         //update the node for this resource
                         switch (ResType) {
-                        case rtLogic:
+                        case AGIResType.Logic:
                             ListViewItem tmpItem = MDIMain.lstResources.Items["l" + ResNum.ToString()];
                             tmpItem.Text = ResourceName(EditGame.Logics[ResNum], true);
                             //also set compiled status
                             tmpItem.ForeColor = EditGame.Logics[ResNum].Compiled ? Color.Black : Color.Red;
                             break;
-                        case rtPicture:
+                        case AGIResType.Picture:
                             MDIMain.lstResources.Items["p" + ResNum.ToString()].Text = ResourceName(EditGame.Pictures[ResNum], true);
                             break;
-                        case rtSound:
+                        case AGIResType.Sound:
                             MDIMain.lstResources.Items["s" + ResNum.ToString()].Text = ResourceName(EditGame.Sounds[ResNum], true);
                             break;
-                        case rtView:
+                        case AGIResType.View:
                             MDIMain.lstResources.Items["v" + ResNum.ToString()].Text = ResourceName(EditGame.Views[ResNum], true);
                             break;
                         }
@@ -11236,7 +11236,7 @@ namespace WinAGI.Editor {
             DialogResult rtn;
 
             switch (ResType) {
-            case rtLogic:
+            case AGIResType.Logic:
                 //if a file with this name already exists
                 if (File.Exists(EditGame.ResDir + EditGame.Logics[ResNum].ID + EditGame.SourceExt)) {
                     //import existing, or overwrite it?
@@ -11259,9 +11259,9 @@ namespace WinAGI.Editor {
 
                     //now update preview window, if previewing
                     if (Settings.ShowPreview) {
-                        if (SelResType == rtLogic && SelResNum == ResNum) {
+                        if (SelResType == AGIResType.Logic && SelResNum == ResNum) {
                             // TODO: reload? or just update properties??
-                            PreviewWin.LoadPreview(rtLogic, ResNum);
+                            PreviewWin.LoadPreview(AGIResType.Logic, ResNum);
                         }
                     }
                 }
@@ -11295,7 +11295,7 @@ namespace WinAGI.Editor {
                     LayoutEditor.DrawLayout();
                 }
                 break;
-            case rtPicture:
+            case AGIResType.Picture:
                 //if autoexporting
                 if (Settings.AutoExport) {
                     try {
@@ -11322,7 +11322,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 break;
-            case rtSound:
+            case AGIResType.Sound:
                 //if autoexporting
                 if (Settings.AutoExport) {
                     try {
@@ -11348,7 +11348,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 break;
-            case rtView:
+            case AGIResType.View:
                 //if autoexporting
                 if (Settings.AutoExport) {
                     try {
@@ -12084,7 +12084,7 @@ namespace WinAGI.Editor {
             }
             // get logic number, id , description
             frmGetResourceNum GetResNum = new() {
-                ResType = rtLogic
+                ResType = AGIResType.Logic
             };
             if (blnImporting) {
                 GetResNum.WindowFunction = EGetRes.grImport;
@@ -12144,7 +12144,7 @@ namespace WinAGI.Editor {
                             // change this picture//s ID
                             EditGame.Pictures[GetResNum.NewResNum].ID = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
                             // update the resfile, tree and properties
-                            UpdateResFile(rtPicture, GetResNum.NewResNum, strFile);
+                            UpdateResFile(AGIResType.Picture, GetResNum.NewResNum, strFile);
                             // update lookup table
                             IDefLookup[768 + GetResNum.NewResNum].Name = "pic." + Right(GetResNum.txtID.Text, GetResNum.txtID.Text.Length - 3);
                         }
@@ -12230,7 +12230,7 @@ namespace WinAGI.Editor {
 
             // get picture number, id , description
             frmGetResourceNum GetResNum = new() {
-                ResType = rtPicture
+                ResType = AGIResType.Picture
             };
             if (ImportPictureFile.Length == 0) {
                 GetResNum.WindowFunction = EGetRes.grAddNew;
@@ -12351,7 +12351,7 @@ namespace WinAGI.Editor {
             }
             // get picture number, id , description
             frmGetResourceNum GetResNum = new() {
-                ResType = rtSound
+                ResType = AGIResType.Sound
             };
             if (ImportSoundFile.Length == 0) {
                 GetResNum.WindowFunction = EGetRes.grAddNew;
@@ -12461,7 +12461,7 @@ namespace WinAGI.Editor {
             }
             // get picture number, id , description
             frmGetResourceNum GetResNum = new() {
-                ResType = rtView
+                ResType = AGIResType.View
             };
             if (ImportViewFile.Length == 0) {
                 GetResNum.WindowFunction = EGetRes.grAddNew;
@@ -12894,7 +12894,7 @@ namespace WinAGI.Editor {
                 MDIMain.LastNodeName = "";
                 if (MDIMain.tvwResources.SelectedNode == RootNode) {
                     //it's the game node
-                    MDIMain.SelectResource(rtGame, -1);
+                    MDIMain.SelectResource(Game, -1);
                 }
                 else if (MDIMain.tvwResources.SelectedNode.Parent == RootNode) {
                     //it's a resource header
@@ -13840,15 +13840,15 @@ namespace WinAGI.Editor {
             //if using numbers AND resource is ingame,
             if (Settings.ShowResNum && IsInGame) {
                 switch (Settings.ResFormat.NameCase) {
-                case 0: //lower
-                    retval = ResTypeName[(int)ThisResource.ResType].ToLower();
+                case 0:
+                    retval = ThisResource.ResType.ToString().ToLower();
                     break;
-                case 1: //upper
-                    retval = ResTypeName[(int)ThisResource.ResType].ToUpper();
+                case 1:
+                    retval = ThisResource.ResType.ToString().ToUpper();
                     break;
-                case 2: //proper
+                case 2:
                 default:
-                    retval = ResTypeName[(int)ThisResource.ResType];
+                    retval = ThisResource.ResType.ToString();
                     break;
                 }
                 return retval + Settings.ResFormat.Separator + ThisResource.Number.ToString(Settings.ResFormat.NumFormat);

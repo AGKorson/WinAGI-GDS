@@ -507,7 +507,7 @@ namespace WinAGI.Common {
                                     Line = (lngLine + 1).ToString(),
                                     Module = Module,
                                     ResNum = LogicNum,
-                                    ResType = AGIResType.rtLogic,
+                                    ResType = AGIResType.Logic,
                                     Text = strTODO,
                                     Type = EventType.etTODO
                                 };
@@ -553,7 +553,7 @@ namespace WinAGI.Common {
                                 Line = (lngLine + 1).ToString(),
                                 Module = Module,
                                 ResNum = LogicNum,
-                                ResType = AGIResType.rtLogic,
+                                ResType = AGIResType.Logic,
                                 Text = strDCWarn[6..],
                                 Type = EventType.etWarning
                             };

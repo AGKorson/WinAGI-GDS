@@ -10,12 +10,32 @@ namespace WinAGI.Engine {
     /// A class that holds all the picture resources in an AGI game.
     /// </summary>
     public class Pictures : IEnumerable<Picture> {
+        #region Members
         readonly AGIGame parent;
+        #endregion
 
+        #region Constructors
+        /// <summary>
+        /// Initializes the pictures collection for the specified game.
+        /// </summary>
+        /// <param name="parent"></param>
         internal Pictures(AGIGame parent) {
             this.parent = parent;
         }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets the list of pictures in this game.
+        /// </summary>
         public SortedList<byte, Picture> Col { get; private set; } = [];
+
+        /// <summary>
+        /// Gets the picture with the specified index value from this list of pictures.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
         public Picture this[int index] {
             get {
                 if (index < 0 || index > 255 || !Exists((byte)index)) {
@@ -26,7 +46,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the number of pictures in this collection.
+        /// Gets the number of pictures in this collection.
         /// </summary>
         public byte Count {
             get {
@@ -35,7 +55,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the highest index in use in the pictures collection.
+        /// Gets the highest index in use in the pictures collection.
         /// </summary>
         public byte Max {
             get {
@@ -45,9 +65,25 @@ namespace WinAGI.Engine {
                 return max;
             }
         }
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Called by the load game methods for the initial loading of
+        /// resources into this pictures collection.
+        /// </summary>
+        /// <param name="bytResNum"></param>
+        /// <param name="bytVol"></param>
+        /// <param name="lngLoc"></param>
+        internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
+            Picture newResource = new(parent, bytResNum, bytVol, lngLoc);
+            newResource.Load();
+            Col.Add(bytResNum, newResource);
+            // leave it loaded, so error level can be addressed by loader
+        }
 
         /// <summary>
-        /// Returns true if a picture with number ResNum exists in this game.
+        /// Returns true if a picture with the specified number exists in this game.
         /// </summary>
         /// <param name="ResNum"></param>
         /// <returns></returns>
@@ -56,14 +92,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Removes all pictures from this game.
-        /// </summary>
-        public void Clear() {
-            Col = [];
-        }
-
-        /// <summary>
-        /// Adds a picture to the game. If NewPicture is null a blank picture is 
+        /// Adds a picture to this game. If NewPicture is null a blank picture is 
         /// added, otherwise the added picture is cloned from NewPicture.
         /// </summary>
         /// <param name="ResNum"></param>
@@ -79,7 +108,7 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            //create new ingame picture
+            // create new ingame picture
             agResource = new Picture(parent, ResNum, NewPicture);
             if (NewPicture is null) {
                 strID = "Picture" + ResNum;
@@ -98,14 +127,12 @@ namespace WinAGI.Engine {
             agResource.PropsDirty = true;
             // save new picture to add it to VOL file
             agResource.Save();
-            // id list needs to be updated
             LogicCompiler.blnSetIDs = false;
-            // return the new picture
             return agResource;
         }
 
         /// <summary>
-        /// Removes a picture from the game.
+        /// Removes the specified picture from this game.
         /// </summary>
         /// <param name="Index"></param>
         public void Remove(byte Index) {
@@ -121,7 +148,14 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Changes the number of a picture in this game.
+        /// Removes all pictures from this game.
+        /// </summary>
+        public void Clear() {
+            Col = [];
+        }
+
+        /// <summary>
+        /// Changes the index number of a picture in this game.
         /// </summary>
         /// <param name="OldPicture"></param>
         /// <param name="NewPicture"></param>
@@ -149,7 +183,7 @@ namespace WinAGI.Engine {
             parent.agGameProps.DeleteSection("Picture" + OldPicture);
             Col.Remove(OldPicture);
             VOLManager.Base.UpdateDirFile(tmpPic, true);
-            // adjust id if it is default
+            // adjust ID if it is default
             if (tmpPic.ID == "Picture" + OldPicture) {
                 strID = strBaseID = "Picture" + NewPicture;
                 while (NotUniqueID(strID, parent)) {
@@ -162,24 +196,11 @@ namespace WinAGI.Engine {
             Col.Add(NewPicture, tmpPic);
             VOLManager.Base.UpdateDirFile(tmpPic);
             tmpPic.SaveProps();
-            // id list needs updating
             LogicCompiler.blnSetIDs = false;
         }
+        #endregion
 
-        /// <summary>
-        /// Called by the load game methods for the initial loading of
-        /// resources into pictures collection.
-        /// </summary>
-        /// <param name="bytResNum"></param>
-        /// <param name="bytVol"></param>
-        /// <param name="lngLoc"></param>
-        internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
-            Picture newResource = new(parent, bytResNum, bytVol, lngLoc);
-            newResource.Load();
-            Col.Add(bytResNum, newResource);
-            // leave it loaded, so error level can be addressed by loader
-        }
-
+        #region Enumeration
         // Collection enumerator methods
         PictureEnum GetEnumerator() {
             return new PictureEnum(Col);
@@ -190,7 +211,12 @@ namespace WinAGI.Engine {
         IEnumerator<Picture> IEnumerable<Picture>.GetEnumerator() {
             return (IEnumerator<Picture>)GetEnumerator();
         }
+        #endregion
     }
+
+    /// <summary>
+    /// Implements enumeration for the Pictures class
+    /// </summary>
     internal class PictureEnum : IEnumerator<Picture> {
         public SortedList<byte, Picture> _pictures;
         int position = -1;

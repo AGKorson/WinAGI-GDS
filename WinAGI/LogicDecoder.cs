@@ -649,7 +649,7 @@ namespace WinAGI.Engine {
         static void AddDecodeWarning(string WarnID, string WarningText, int LineNum) {
             TWinAGIEventInfo dcWarnInfo = new() {
                 ResNum = bytLogComp,
-                ResType = AGIResType.rtLogic,
+                ResType = AGIResType.Logic,
                 Type = EventType.etWarning,
                 ID = WarnID,
                 Module = "",
@@ -778,7 +778,7 @@ namespace WinAGI.Engine {
                         else {
                             //non-unique - use obj number instead
                             switch (ErrorLevel) {
-                            case leHigh or leMedium:
+                            case High or Medium:
                                 AddDecodeWarning("DC05", "Non-unique inventory item '" + compGame.agInvObj[ArgNum].ItemName + "' at position " + lngPos, stlOutput.Count);
                                 break;
                             }

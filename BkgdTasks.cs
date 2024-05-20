@@ -180,7 +180,7 @@ namespace WinAGI.Editor {
                             //select root
                         MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
                         //update selected resource
-                        MDIMain.SelectResource(rtGame, -1);
+                        MDIMain.SelectResource(Game, -1);
                         //set LastNodeName property
                         MDIMain.LastNodeName = RootNode.Name;
                         break;
@@ -188,7 +188,7 @@ namespace WinAGI.Editor {
                         //select root
                         MDIMain.cmbResType.SelectedIndex = 0;
                         //update selected resource
-                        MDIMain.SelectResource(rtGame, -1);
+                        MDIMain.SelectResource(Game, -1);
                         break;
                     }
                     // show selection in preview, if needed

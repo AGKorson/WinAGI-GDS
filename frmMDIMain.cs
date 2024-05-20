@@ -148,18 +148,18 @@ namespace WinAGI.Editor
                     break;
                 case EInfoType.itResources:
                     switch (e.LoadInfo.ResType) {
-                    case rtLogic:
-                    case rtPicture:
-                    case rtView:
-                    case rtSound:
+                    case AGIResType.Logic:
+                    case AGIResType.Picture:
+                    case AGIResType.View:
+                    case AGIResType.Sound:
                         //ProgressWin.lblProgress.Text = "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum;
-                        bgwOpenGame.ReportProgress(0, "Validating Resources: " + ResTypeName[(int)e.LoadInfo.ResType] + " " + e.LoadInfo.ResNum);
+                        bgwOpenGame.ReportProgress(0, "Validating Resources: " + e.LoadInfo.ResType + " " + e.LoadInfo.ResNum);
                         break;
-                    case rtWords:
+                    case Words:
                         //ProgressWin.lblProgress.Text = "Validating WORDS.TOK file";
                         bgwOpenGame.ReportProgress(0, "Validating WORDS.TOK file ...");
                         break;
-                    case rtObjects:
+                    case Objects:
                         //ProgressWin.lblProgress.Text = "Validating OBJECT file";
                         bgwOpenGame.ReportProgress(0, "Validating OBJECT file ...");
                         break;
@@ -493,7 +493,7 @@ namespace WinAGI.Editor
             ListViewItem tmpItem;
             switch (cmbResType.SelectedIndex) {
             case 0: // game
-                selRes = rtGame;
+                selRes = Game;
                 break;
             case 1:
                 // logics
@@ -503,7 +503,7 @@ namespace WinAGI.Editor
                     //set color based on compiled status;
                     tmpItem.ForeColor = tmpRes.Compiled ? Color.Black : Color.Red;
                 }
-                selRes = rtLogic;
+                selRes = AGIResType.Logic;
                 break;
             case 2:
                 //pictures
@@ -511,7 +511,7 @@ namespace WinAGI.Editor
                     tmpItem = lstResources.Items.Add("p" + tmpRes.Number, ResourceName(tmpRes, true), 0);
                     tmpItem.Tag = tmpRes;
                 }
-                selRes = rtPicture;
+                selRes = AGIResType.Picture;
                 break;
             case 3:
                 //sounds
@@ -519,7 +519,7 @@ namespace WinAGI.Editor
                     tmpItem = lstResources.Items.Add("s" + tmpRes.Number, ResourceName(tmpRes, true), 0);
                     tmpItem.Tag = tmpRes;
                 }
-                selRes = rtSound;
+                selRes = AGIResType.Sound;
                 break;
             case 4:
                 //views
@@ -527,28 +527,28 @@ namespace WinAGI.Editor
                     tmpItem = lstResources.Items.Add("v" + tmpRes.Number, ResourceName(tmpRes, true), 0);
                     tmpItem.Tag = tmpRes;
                 }
-                selRes = rtView;
+                selRes = AGIResType.View;
                 break;
             case 5:
                 //objects
-                selRes = rtObjects;
+                selRes = Objects;
                 break;
             case 6:
                 //words
-                selRes = rtWords;
+                selRes = Words;
                 break;
             }
             SelectResource(selRes, -1, true);
         }
 
         private void lstResources_SelectedIndexChanged(object sender, EventArgs e) {
-            AGIResType NewType = rtGame;
+            AGIResType NewType = Game;
             int NewNum = 0;
 
             switch (cmbResType.SelectedIndex) {
             case 0:
                 // game - root
-                NewType = rtGame;
+                NewType = Game;
                 NewNum = -1;
                 // currently no list items
                 break;
@@ -559,7 +559,7 @@ namespace WinAGI.Editor
                     // just exit
                     return;
                 }
-                NewType = rtLogic;
+                NewType = AGIResType.Logic;
                 AGIResource tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
                 NewNum = tmp.Number;
                 // show id, number, description, compiled status, isroom
@@ -573,7 +573,7 @@ namespace WinAGI.Editor
                     // just exit
                     return;
                 }
-                NewType = rtPicture;
+                NewType = AGIResType.Picture;
                 tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
                 NewNum = tmp.Number;
                 // show id, number, description
@@ -587,7 +587,7 @@ namespace WinAGI.Editor
                     // just exit
                     return;
                 }
-                NewType = rtSound;
+                NewType = AGIResType.Sound;
                 tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
                 NewNum = tmp.Number;
                 // show id, number, description
@@ -601,7 +601,7 @@ namespace WinAGI.Editor
                     // just exit
                     return;
                 }
-                NewType = rtView;
+                NewType = AGIResType.View;
                 tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
                 NewNum = tmp.Number;
                 // show id, number, description
@@ -611,13 +611,13 @@ namespace WinAGI.Editor
             case 5: 
                 // objects
                 // no listitems
-                NewType = rtObjects;
+                NewType = Objects;
                 NewNum = -1;
                 break;
             case 6:
                 // words
                 // no listitems
-                NewType = rtWords;
+                NewType = Words;
                 NewNum = -1;
                 break;
             }
@@ -663,16 +663,16 @@ namespace WinAGI.Editor
             // always unload the current resource, if it's logic/pic/sound/view
             if (SelResNum != -1) {
                 switch (SelResType) {
-                case rtLogic:
+                case AGIResType.Logic:
                     EditGame.Logics[SelResNum].Unload();
                     break;
-                case rtPicture:
+                case AGIResType.Picture:
                     EditGame.Pictures[SelResNum].Unload();
                     break;
-                case rtSound:
+                case AGIResType.Sound:
                     EditGame.Sounds[SelResNum].Unload();
                     break;
-                case rtView:
+                case AGIResType.View:
                     EditGame.Views[SelResNum].Unload();
                     break;
                 }
@@ -682,17 +682,17 @@ namespace WinAGI.Editor
             propertyGrid1.SelectedObject = null;
             // get number of rows to display based on new selection
             switch (NewResType) {
-            case rtNone:
+            case None:
                 // nothing to show
                 PropRows = 0;
                 return;
-            case rtGame:
+            case Game:
                 // show gameid, gameauthor, description,etc
                 PropRows = 10;
                 GameProperties pGame = new(EditGame);
                 propertyGrid1.SelectedObject = pGame;
                 break;
-            case rtLogic:
+            case AGIResType.Logic:
                 if (NewResNum == -1) {
                     // logic header
                     PropRows = 3;
@@ -710,7 +710,7 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pLog;
                 }
                 break;
-            case rtPicture:
+            case AGIResType.Picture:
                 if (NewResNum == -1) {
                     //picture header
                     PictureHdrProperties pPicHdr = new(EditGame.Pictures.Count);
@@ -727,7 +727,7 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pPicture;
                 }
                 break;
-            case rtSound:
+            case AGIResType.Sound:
                 if (NewResNum == -1) {
                     // sound header
                     PropRows = 1;
@@ -743,7 +743,7 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pSound;
                 }
                 break;
-            case rtView:
+            case AGIResType.View:
                 if (NewResNum == -1) {
                     //view header
                     VieweHdrProperties pViewHdr = new(EditGame.Views.Count);
@@ -759,14 +759,14 @@ namespace WinAGI.Editor
                     propertyGrid1.SelectedObject = pView;
                 }
                 break;
-            case rtObjects:
+            case Objects:
                 // OBJECT file is always loaded
                 //show object Count, description, encryption, and Max screen objects
                 PropRows = 4;
                 InvObjProperties pInvObj = new(EditGame.InvObjects);
                 propertyGrid1.SelectedObject = pInvObj;
                 break;
-            case rtWords:
+            case Words:
                 // WORDS.TOK is always loaded
                 //show group Count and word Count and description
                 PropRows = 3;
@@ -804,7 +804,7 @@ namespace WinAGI.Editor
                 //enable back button if at least two in queue
                 cmdBack.Enabled = ResQPtr > 0;
                 //if a logic is selected, and layout editor is active form
-                if (SelResType == rtLogic) {
+                if (SelResType == AGIResType.Logic) {
                     //if syncing the layout editor and the treeview list
                     if (Settings.LESync) {
                         if (ActiveMdiChild is not null) {
@@ -861,7 +861,7 @@ namespace WinAGI.Editor
                 switch (Settings.ResListType) {
                 case 1:
                     // treelist
-                    if (ResType == rtGame) {
+                    if (ResType == Game) {
                         tvwResources.SelectedNode = RootNode;
                     }
                     else {
@@ -873,10 +873,10 @@ namespace WinAGI.Editor
                 case 2:
                     // listbox
                     switch (ResType) {
-                    case rtGame: //root
+                    case Game: //root
                         cmbResType.SelectedIndex = 0;
                         //then force selection change
-                        SelectResource(rtGame, -1);
+                        SelectResource(Game, -1);
                         break;
                     default:
                         //(resnum+1 matches desired listindex)
@@ -893,22 +893,22 @@ namespace WinAGI.Editor
             else {
                 //does the resource still exist?
                 switch (ResType) {
-                case rtLogic:
+                case AGIResType.Logic:
                     if (EditGame.Logics.Exists((byte)ResNum)) {
                         strKey = "l" + ResNum;
                     }
                     break;
-                case rtPicture:
+                case AGIResType.Picture:
                     if (EditGame.Pictures.Exists((byte)ResNum)) {
                         strKey = "p" + ResNum;
                     }
                     break;
-                case rtSound:
+                case AGIResType.Sound:
                     if (EditGame.Sounds.Exists((byte)ResNum)) {
                         strKey = "s" + ResNum;
                     }
                     break;
-                case rtView:
+                case AGIResType.View:
                     if (EditGame.Views.Exists((byte)ResNum)) {
                         strKey = "v" + ResNum;
                     }
@@ -1170,9 +1170,9 @@ namespace WinAGI.Editor
                 Settings.WarnMsgs = 2;
             LogicCompiler.ErrorLevel = (LogicErrorLevel)GameSettings.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
             if (LogicCompiler.ErrorLevel < 0)
-                LogicCompiler.ErrorLevel = LogicErrorLevel.leLow;
+                LogicCompiler.ErrorLevel = LogicErrorLevel.Low;
             if ((int)LogicCompiler.ErrorLevel > 2)
-                LogicCompiler.ErrorLevel = LogicErrorLevel.leHigh;
+                LogicCompiler.ErrorLevel = LogicErrorLevel.High;
             Settings.DefUseResDef = GameSettings.GetSetting(sLOGICS, "DefUseResDef", DEFAULT_DEFUSERESDEF);
             Settings.Snippets = GameSettings.GetSetting(sLOGICS, "Snippets", DEFAULT_SNIPPETS);
             //SYNTAXHIGHLIGHTFORMAT
@@ -1522,7 +1522,7 @@ namespace WinAGI.Editor
             //now select it
             if (e.Node == RootNode) {
                 //it's the game node
-                SelectResource(rtGame, -1);
+                SelectResource(Game, -1);
             }
             else if (e.Node.Parent == RootNode) {
                 //it's a resource header
@@ -2106,16 +2106,16 @@ namespace WinAGI.Editor
         public void SearchForID(FindFormFunction ffValue = FindFormFunction.ffFindLogic) {
             //set search form defaults
             switch (SelResType) {
-            case rtLogic:
+            case AGIResType.Logic:
                 GFindText = EditGame.Logics[(byte)SelResNum].ID;
                 break;
-            case rtPicture:
+            case AGIResType.Picture:
                 GFindText = EditGame.Pictures[(byte)SelResNum].ID;
                 break;
-            case rtSound:
+            case AGIResType.Sound:
                 GFindText = EditGame.Sounds[(byte)SelResNum].ID;
                 break;
-            case rtView:
+            case AGIResType.View:
                 GFindText = EditGame.Views[(byte)SelResNum].ID;
                 break;
             }
@@ -2359,10 +2359,10 @@ namespace WinAGI.Editor
                     AGIResType restype = (AGIResType)(ResQueue[i + NLOffset - 2] >> 16);
                     int resnum = ResQueue[i + NLOffset - 2] & 0xFFFF;
                     switch (restype) {
-                    case rtGame:
+                    case Game:
                         e.Graphics.DrawString(EditGame.GameID, nlFont, bbrush, nlPoint);
                         break;
-                    case rtLogic:
+                    case AGIResType.Logic:
                         if (resnum == 256) {
                             e.Graphics.DrawString("LOGICS", nlFont, bbrush, nlPoint);
                         }
@@ -2370,7 +2370,7 @@ namespace WinAGI.Editor
                             e.Graphics.DrawString(EditGame.Logics[resnum].ID, nlFont, bbrush, nlPoint);
                         }
                         break;
-                    case rtPicture:
+                    case AGIResType.Picture:
                         if (resnum == 256) {
                             e.Graphics.DrawString("PICTURES", nlFont, bbrush, nlPoint);
                         }
@@ -2378,7 +2378,7 @@ namespace WinAGI.Editor
                             e.Graphics.DrawString(EditGame.Pictures[resnum].ID, nlFont, bbrush, nlPoint);
                         }
                         break;
-                    case rtSound:
+                    case AGIResType.Sound:
                         if (resnum == 256) {
                             e.Graphics.DrawString("SOUNDS", nlFont, bbrush, nlPoint);
                         }
@@ -2386,7 +2386,7 @@ namespace WinAGI.Editor
                             e.Graphics.DrawString(EditGame.Sounds[resnum].ID, nlFont, bbrush, nlPoint);
                         }
                         break;
-                    case rtView:
+                    case AGIResType.View:
                         if (resnum == 256) {
                             e.Graphics.DrawString("VIEWS", nlFont, bbrush, nlPoint);
                         }
@@ -2394,10 +2394,10 @@ namespace WinAGI.Editor
                             e.Graphics.DrawString(EditGame.Views[resnum].ID, nlFont, bbrush, nlPoint);
                         }
                         break;
-                    case rtObjects:
+                    case Objects:
                         e.Graphics.DrawString("OBJECTS", nlFont, bbrush, nlPoint);
                         break;
-                    case rtWords:
+                    case Words:
                         e.Graphics.DrawString("WORDS", nlFont, bbrush, nlPoint);
                         break;
                     }
@@ -8731,7 +8731,7 @@ namespace WinAGI.Editor
                 else {
                     //if (Settings.ResListType != oldResListType) {
                     // reset to root, then switch
-                    SelResType = rtGame;
+                    SelResType = Game;
                     SelResNum = -1;
                     BuildResourceTree();
                     ShowResTree();

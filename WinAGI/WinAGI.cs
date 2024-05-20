@@ -3,10 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using static WinAGI.Common.Base;
-namespace WinAGI.Engine {
-    using System.Diagnostics;
-    using System.Drawing;
+using System.Diagnostics;
 
+namespace WinAGI.Engine {
     /***************************************************************
     WinAGI Game Engine
     Copyright (C) 2005 - 2024 Andrew Korson
@@ -29,22 +28,22 @@ namespace WinAGI.Engine {
 
     #region Enums
     public enum AGIResType {
-        rtLogic = 0,
-        rtPicture = 1,
-        rtSound = 2,
-        rtView = 3,
-        rtObjects = 4,
-        rtWords = 5,
-        rtLayout = 6,
-        rtMenu = 7,
-        rtGlobals = 8,
-        rtGame = 9,
-        rtText = 10,
-        rtWarnings = 11,
-        rtTextScreen = 12,
-        rtTODOEntry = 99, //refactor error/warnings functions
-        rtDecompWarn = 100, // add decompile warnings to warning list
-        rtNone = 255
+        Logic = 0,
+        Picture = 1,
+        Sound = 2,
+        View = 3,
+        Objects = 4,
+        Words = 5,
+        Layout = 6,
+        Menu = 7,
+        Globals = 8,
+        Game = 9,
+        Text = 10,
+        Warnings = 11,
+        TextScreen = 12,
+        TODOEntry = 99, //refactor error/warnings functions
+        DecompWarn = 100, // add decompile warnings to warning list
+        None = 255
     };
 
     public enum AGIColorIndex {
@@ -105,12 +104,12 @@ namespace WinAGI.Engine {
     };
 
     public enum LogicErrorLevel {
-        leLow,     // only errors that prevent compilation/decompiliation
+        Low,     // only errors that prevent compilation/decompiliation
                    // are passed; no warnings are given
-        leMedium,  // only errors that prevent compilation/decompilation
+        Medium,  // only errors that prevent compilation/decompilation
                    // are passed; warnings embedded in
                    // source code on compilation
-        leHigh,    // all compile/decompile problems are returned as errors
+        High,    // all compile/decompile problems are returned as errors
     };
 
     public enum ECStatus { 
@@ -285,7 +284,7 @@ namespace WinAGI.Engine {
         #region Local Members
         public const int WINAGI_ERR = 0x100000;
         public static readonly string[] ResTypeAbbrv = ["LOG", "PIC", "SND", "VIEW"];
-        public static readonly string[] ResTypeName = ["Logic", "Picture", "Sound", "View"];
+      //  public static readonly string[] ResTypeName = ["Logic", "Picture", "Sound", "View"];
         public static readonly string[] IntVersions =
         [
         "2.089", "2.272", "2.411", "2.425", "2.426", "2.435", "2.439",

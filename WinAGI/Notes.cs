@@ -3,14 +3,42 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// A class that represents a collection of notes, usually as part 
+    /// of an AGI Sound resource track.
+    /// </summary>
     public class Notes : IEnumerable<Note> {
-        //local variable to hold collection
+        #region Members
         List<Note> mCol = [];
         Sound mParent;
         Track mTParent;
+        #endregion
+
+        #region Constructors
+        /// <summary>
+        /// Creates a new notes collection that is not part of an AGI Sound
+        /// resource.
+        /// </summary>
+        public Notes() {
+            mCol = [];
+        }
 
         /// <summary>
-        /// 
+        /// Creates a new notes collection that is being added to a newly
+        /// created AGI Sound resource.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="tparent"></param>
+        internal Notes(Sound parent, Track tparent) {
+            mCol = [];
+            mParent = parent;
+            mTParent = tparent;
+        }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets the note from this collection at the specified location.
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
@@ -25,7 +53,18 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets the number of notes in this notes collection.
+        /// </summary>
+        public int Count {
+            get {
+                return mCol.Count;
+            }
+        }
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Deletes all notes from this collection.
         /// </summary>
         public void Clear() {
             mCol = [];
@@ -36,13 +75,14 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Adds a new note to this colelction with the specified parameters
+        /// at the specified location.
         /// </summary>
         /// <param name="FreqDivisor"></param>
         /// <param name="Duration"></param>
         /// <param name="Attenuation"></param>
         /// <param name="InsertPos"></param>
-        /// <returns></returns>
+        /// <returns>A reference to the newly added note.</returns>
         public Note Add(int freqdiv, int duration, byte attenuation, int InsertPos = -1) {
             if (freqdiv < 0 || freqdiv > 1023) {
                 throw new ArgumentOutOfRangeException(nameof(freqdiv));
@@ -58,13 +98,12 @@ namespace WinAGI.Engine {
                 mSndParent = mParent,
                 mTrkParent = mTParent
             };
-            // if no position passed (or position is past end)
             if (InsertPos < 0 || InsertPos > mCol.Count - 1) {
-                //add it to end
+                // add it to end
                 mCol.Add(agNewNote);
             }
             else {
-                //add it before insert pos
+                // add it before insert pos
                 mCol.Insert(InsertPos, agNewNote);
             }
             if (mParent is not null) {
@@ -75,16 +114,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public int Count {
-            get {
-                return mCol.Count;
-            }
-        }
-
-        /// <summary>
-        /// 
+        /// Removes the note at the specified location from this collection.
         /// </summary>
         /// <param name="Index"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
@@ -100,24 +130,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public Notes() {
-            mCol = [];
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="tparent"></param>
-        internal Notes(Sound parent, Track tparent) {
-            mCol = [];
-            mParent = parent;
-            mTParent = tparent;
-        }
-
-        /// <summary>
         /// Creates an exact copy of this Notes object.
         /// </summary>
         /// <param name="cloneTparent"></param>
@@ -130,11 +142,9 @@ namespace WinAGI.Engine {
             }
             return CopyNotes;
         }
+        #endregion
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
+        #region Enumeration
         NoteEnum GetEnumerator() {
             return new NoteEnum(mCol);
         }
@@ -145,7 +155,11 @@ namespace WinAGI.Engine {
         IEnumerator<Note> IEnumerable<Note>.GetEnumerator() {
             return (IEnumerator<Note>)GetEnumerator();
         }
+        #endregion
     }
+    /// <summary>
+    /// Implements enumeration for the Notes class.
+    /// </summary>
     internal class NoteEnum : IEnumerator<Note> {
         public List<Note> _notes;
         int position = -1;

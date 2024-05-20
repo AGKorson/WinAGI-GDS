@@ -25,7 +25,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Initializes a new AGI logic resource that is not in a game.
         /// </summary>
-        public Logic() : base(AGIResType.rtLogic) {
+        public Logic() : base(AGIResType.Logic) {
             // not in a game so resource is always loaded
             mLoaded = true;
             InitLogic();
@@ -39,12 +39,9 @@ namespace WinAGI.Engine {
         /// <param name="parent"></param>
         /// <param name="ResNum"></param>
         /// <param name="NewLogic"></param>
-        internal Logic(AGIGame parent, byte ResNum, Logic NewLogic = null) : base(AGIResType.rtLogic) {
-            // initialize
+        internal Logic(AGIGame parent, byte ResNum, Logic NewLogic = null) : base(AGIResType.Logic) {
             InitLogic(NewLogic);
-            // set up base resource
             base.InitInGame(parent, ResNum);
-            //if res is zero
             if (ResNum == 0) {
                 // make sure isroom flag is false
                 mIsRoom = false;
@@ -58,12 +55,12 @@ namespace WinAGI.Engine {
         /// <param name="ResNum"></param>
         /// <param name="VOL"></param>
         /// <param name="Loc"></param>
-        internal Logic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.rtLogic) {
+        internal Logic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.Logic) {
             // adds a logic from dir/vol files, setting its resource 
             // location properties, and reads properties from the wag file
 
             // set up base resource
-            base.InitInGame(parent, AGIResType.rtLogic, ResNum, VOL, Loc);
+            base.InitInGame(parent, AGIResType.Logic, ResNum, VOL, Loc);
             // get rest of properties
             mCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
             mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);

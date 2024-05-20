@@ -9,7 +9,6 @@ namespace WinAGI.Engine {
         internal int mFreqDiv;
         internal int mDuration;
         internal byte mAttenuation;
-        //internal byte[] mrawData = [0, 0, 0, 0, 0];
         internal Sound mSndParent;
         internal Track mTrkParent;
         #endregion

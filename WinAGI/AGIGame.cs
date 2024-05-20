@@ -766,7 +766,7 @@ namespace WinAGI.Engine {
             if (!RebuildOnly) {
                 // full compile - save/copy words.tok and object files first
                 compInfo.Text = "";
-                if (OnCompileGameStatus(ECStatus.csCompWords, AGIResType.rtWords, 0, compInfo)) {
+                if (OnCompileGameStatus(ECStatus.csCompWords, AGIResType.Words, 0, compInfo)) {
                     CompleteCancel();
                     return false;
                 }
@@ -781,7 +781,7 @@ namespace WinAGI.Engine {
                             Module = "",
                             Text = "Error during compilation of WORDS.TOK (" + ex.Message + ")"
                         };
-                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.rtWords, 0, tmpError);
+                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.Words, 0, tmpError);
                         CompleteCancel();
                         return false;
                     }
@@ -807,14 +807,14 @@ namespace WinAGI.Engine {
                             Module = "",
                             Text = "Error while creating WORDS.TOK file (" + ex.Message + ")"
                         };
-                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.rtWords, 0, tmpError);
+                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.Words, 0, tmpError);
                         CompleteCancel();
                         return false;
                     }
                 }
                 // OBJECT file is next
                 compInfo.Text = "";
-                if (OnCompileGameStatus(ECStatus.csCompObjects, AGIResType.rtObjects, 0, compInfo)) {
+                if (OnCompileGameStatus(ECStatus.csCompObjects, AGIResType.Objects, 0, compInfo)) {
                     CompleteCancel();
                     return false;
                 }
@@ -829,7 +829,7 @@ namespace WinAGI.Engine {
                             Module = "",
                             Text = "Error during compilation of OBJECT (" + ex.Message + ")"
                         };
-                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.rtObjects, 0, tmpError);
+                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.Objects, 0, tmpError);
                         CompleteCancel();
                         return false;
                     }
@@ -855,7 +855,7 @@ namespace WinAGI.Engine {
                             Module = "",
                             Text = "Error while creating OBJECT file (" + ex.Message + ")"
                         };
-                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.rtObjects, 0, tmpError);
+                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.Objects, 0, tmpError);
                         CompleteCancel();
                         return false;
                     }
@@ -889,7 +889,7 @@ namespace WinAGI.Engine {
             }
             // add all logic resources
             try {
-                if (!VOLManager.Base.CompileResCol(this, agLogs, AGIResType.rtLogic, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.Base.CompileResCol(this, agLogs, AGIResType.Logic, RebuildOnly, NewIsV3)) {
                     // resource error (or user canceled)
                     CompleteCancel(true);
                     return false;
@@ -901,7 +901,7 @@ namespace WinAGI.Engine {
             }
             // add all picture resources
             try {
-                if (!VOLManager.Base.CompileResCol(this, agPics, AGIResType.rtPicture, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.Base.CompileResCol(this, agPics, AGIResType.Picture, RebuildOnly, NewIsV3)) {
                     // if a resource error (or user canceled) encountered, just exit
                     CompleteCancel(true);
                     return false;
@@ -913,7 +913,7 @@ namespace WinAGI.Engine {
             }
             // add all view resources
             try {
-                if (!VOLManager.Base.CompileResCol(this, agViews, AGIResType.rtView, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.Base.CompileResCol(this, agViews, AGIResType.View, RebuildOnly, NewIsV3)) {
                     // if a resource error (or user canceled) encountered, just exit
                     CompleteCancel(true);
                     return false;
@@ -925,7 +925,7 @@ namespace WinAGI.Engine {
             }
             // add all sound resources
             try {
-                if (!VOLManager.Base.CompileResCol(this, agSnds, AGIResType.rtSound, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.Base.CompileResCol(this, agSnds, AGIResType.Sound, RebuildOnly, NewIsV3)) {
             // if a resource error (or user canceled) encountered, just exit
                 CompleteCancel(true);
                 return false;
@@ -1043,19 +1043,19 @@ namespace WinAGI.Engine {
                 // make separate dir files
                 for (j = 0; j < 4; j++) {
                     switch ((AGIResType)j) {
-                    case AGIResType.rtLogic:
+                    case AGIResType.Logic:
                         volManager.DIRFile = File.Create(NewGameDir + "LOGDIR");
                         tmpMax = agLogs.Max;
                         break;
-                    case AGIResType.rtPicture:
+                    case AGIResType.Picture:
                         volManager.DIRFile = File.Create(NewGameDir + "PICDIR");
                         tmpMax = agPics.Max;
                         break;
-                    case AGIResType.rtSound:
+                    case AGIResType.Sound:
                         volManager.DIRFile = File.Create(NewGameDir + "SNDDIR");
                         tmpMax = agSnds.Max;
                         break;
-                    case AGIResType.rtView:
+                    case AGIResType.View:
                         volManager.DIRFile = File.Create(NewGameDir + "VIEWDIR");
                         tmpMax = agViews.Max;
                         break;
@@ -1414,7 +1414,7 @@ namespace WinAGI.Engine {
                     // note the problem as a warning
                     TWinAGIEventInfo warnInfo = new() {
                         Type = EventType.etWarning,
-                        ResType = AGIResType.rtGame,
+                        ResType = AGIResType.Game,
                         ResNum = 0,
                         ID = "OW01",
                         Module = "",
@@ -1734,7 +1734,7 @@ namespace WinAGI.Engine {
                 catch (Exception) {
                     // if can't create the resources directory
                     // note the problem as a warning
-                    loadInfo.ResType = AGIResType.rtGame;
+                    loadInfo.ResType = AGIResType.Game;
                     loadInfo.Type = EventType.etWarning;
                     loadInfo.ID = "OW01";
                     loadInfo.Text = "Can't create " + agResDir;
@@ -1758,7 +1758,7 @@ namespace WinAGI.Engine {
             }
             catch (Exception e) {
                 // note the problem as a warning
-                loadInfo.ResType = AGIResType.rtGame;
+                loadInfo.ResType = AGIResType.Game;
                 loadInfo.Type = EventType.etWarning;
                 loadInfo.ID = "OW02";
                 loadInfo.Text = $"Error while loading WAG file; some properties not loaded. (Error {e.HResult}: {e.Message})";
@@ -1769,7 +1769,7 @@ namespace WinAGI.Engine {
             // load vocabulary word list
             loadInfo.Type = EventType.etInfo;
             loadInfo.InfoType = EInfoType.itResources;
-            loadInfo.ResType = AGIResType.rtWords;
+            loadInfo.ResType = AGIResType.Words;
             OnLoadGameStatus(loadInfo);
             try {
                 agVocabWords = new WordList(this);
@@ -1778,7 +1778,7 @@ namespace WinAGI.Engine {
             catch (Exception e) {
                 // if there was an error,
                 // note the problem as a warning
-                loadInfo.ResType = AGIResType.rtWords;
+                loadInfo.ResType = AGIResType.Words;
                 loadInfo.Type = EventType.etWarning;
                 loadInfo.ID = "RW01";
                 loadInfo.Text = $"An error occurred while loading WORDS.TOK (Error {e.HResult}: {e.Message}";
@@ -1789,7 +1789,7 @@ namespace WinAGI.Engine {
             }
             if (agVocabWords.ErrLevel != 0) {
                 // note the problem as a warning
-                AddLoadWarning(this, AGIResType.rtWords, 0, agVocabWords.ErrLevel, []);
+                AddLoadWarning(this, AGIResType.Words, 0, agVocabWords.ErrLevel, []);
                 blnWarnings = true;
             }
             // get description, if there is one
@@ -1797,7 +1797,7 @@ namespace WinAGI.Engine {
             // load inventory objects list
             loadInfo.Type = EventType.etInfo;
             loadInfo.InfoType = EInfoType.itResources;
-            loadInfo.ResType = AGIResType.rtObjects;
+            loadInfo.ResType = AGIResType.Objects;
             OnLoadGameStatus(loadInfo);
             try {
                 agInvObj = new InventoryList(this);
@@ -1806,7 +1806,7 @@ namespace WinAGI.Engine {
             catch (Exception e) {
                 // if there was an error,
                 // note the problem as a warning
-                loadInfo.ResType = AGIResType.rtObjects;
+                loadInfo.ResType = AGIResType.Objects;
                 loadInfo.Type = EventType.etWarning;
                 loadInfo.ID = "RW03";
                 loadInfo.Text = $"An error occurred while loading OBJECT:(Error {e.HResult}: {e.Message}";
@@ -1819,7 +1819,7 @@ namespace WinAGI.Engine {
             // check for warnings
             if (agInvObj.ErrLevel != 0) {
                 // note the problem as a warning
-                AddLoadWarning(this, AGIResType.rtObjects, 0, agInvObj.ErrLevel, []);
+                AddLoadWarning(this, AGIResType.Objects, 0, agInvObj.ErrLevel, []);
                 blnWarnings = true;
             }
             // adust commands based on AGI version
@@ -1833,7 +1833,7 @@ namespace WinAGI.Engine {
                 switch (Mode) {
                 case OpenGameMode.File:
                     // opening existing wag file - check CRC
-                    loadInfo.ResType = AGIResType.rtLogic;
+                    loadInfo.ResType = AGIResType.Logic;
                     loadInfo.ResNum = tmpLog.Number;
                     loadInfo.Type = EventType.etInfo;
                     loadInfo.InfoType = EInfoType.itCheckCRC;
@@ -1871,7 +1871,7 @@ namespace WinAGI.Engine {
                     // the resource and the source file have now been checked; display
                     // source error if applicable
                     if (tmpErr != tmpLog.ErrLevel && tmpLog.ErrLevel < 0) {
-                        AddLoadWarning(this, AGIResType.rtLogic, tmpLog.Number, tmpLog.ErrLevel, tmpLog.ErrData);
+                        AddLoadWarning(this, AGIResType.Logic, tmpLog.Number, tmpLog.ErrLevel, tmpLog.ErrData);
                         blnWarnings = true;
                     }
                     break;
@@ -1883,7 +1883,7 @@ namespace WinAGI.Engine {
                     // a blank source file is used instead)
 
                     // decompiling
-                    loadInfo.ResType = AGIResType.rtLogic;
+                    loadInfo.ResType = AGIResType.Logic;
                     loadInfo.ResNum = tmpLog.Number;
                     loadInfo.Type = EventType.etInfo;
                     loadInfo.InfoType = EInfoType.itDecompiling;
@@ -1891,7 +1891,7 @@ namespace WinAGI.Engine {
                     // force decompile
                     tmpLog.LoadSource(true);
                     if (tmpLog.ErrLevel < 0) {
-                        AddLoadWarning(this, AGIResType.rtSound, tmpLog.Number, tmpLog.ErrLevel, tmpLog.ErrData);
+                        AddLoadWarning(this, AGIResType.Logic, tmpLog.Number, tmpLog.ErrLevel, tmpLog.ErrData);
                         blnWarnings = true;
                     }
                     // unload the logic after decompile is done
