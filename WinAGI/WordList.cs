@@ -18,25 +18,29 @@ namespace WinAGI.Engine {
         /// </summary>
         class AGIWordComparer : Comparer<string> {
             public override int Compare(string x, string y) {
-                // words starting with numbers or extended characters always come before
+                if (x is null || x.Length == 0) {
+                    return -1;
+                }
+                if (y is null || y.Length == 0) {
+                    return 1;
+                }
+                // words starting with non-letters or extended characters always come before
                 // characters a-z
-                bool x1 = x[0] > 127 || (x[0] >= 48 && x[0] <= 57);
-                bool y1 = y[0] > 127 || (y[0] >= 48 && y[0] <= 57);
-                // if both are 'regular' or both are 'extended/num'
+                bool xLtr = x[0] >= 'a' && x[0] <= 'z';
+                bool yLtr = y[0] >= 'a' && y[0] <= 'z';
+                // if both are 'letters' or both are 'extended/non-letter'
                 // sort them normally
-                if (x1 == y1) {
+                if (xLtr == yLtr) {
                     int retval = string.CompareOrdinal(x, y);
                     return retval;
                 }
                 else {
-                    // the 'ext/num' always comes first
-                    if (x1) {
-                        return -1;
+                    // extended/non-letter always comes first
+                    if (xLtr) {
+                        return 1;
                     }
                     else {
-                        {
-                            return 1;
-                        }
+                        return -1;
                     }
                 }
             }
@@ -59,8 +63,6 @@ namespace WinAGI.Engine {
         // 4 = upper case detected
         // 8 = empty word file
         // 16 = corrupt index file
-
-        readonly string strErrSource = "WinAGI.AGIWordList";
 
         /// <summary>
         /// Initialize a new WordList, not in a game
@@ -110,6 +112,43 @@ namespace WinAGI.Engine {
             mResFile = this.parent.agGameDir + "WORDS.TOK";
         }
 
+        /// <summary>
+        /// Accesses a word by string or index number.
+        /// </summary>
+        /// <param name="vKeyIndex"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        public AGIWord this[dynamic vKeyIndex] {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                // only allow string or integer number
+                if ((vKeyIndex is int) || (vKeyIndex is byte) || (vKeyIndex is short)) {
+                    if (vKeyIndex < 0 || vKeyIndex > mWordCol.Count - 1) {
+                        throw new IndexOutOfRangeException();
+                    }
+                    return mWordCol.Values[vKeyIndex];
+                }
+                else if (vKeyIndex is string) {
+                    // a string could be a number passed as a string, OR an actual word?
+                    // user has to make sure it's not a number passed as a string...
+                    //retrieve via string key - actual word, which is the key
+                    if (mWordCol.ContainsKey(vKeyIndex)) {
+                        return mWordCol[vKeyIndex];
+                    }
+                    else {
+                        throw new IndexOutOfRangeException();
+                    }
+                }
+                else {
+                    throw new ArgumentException("invalid key/index");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public Encoding CodePage {
             get => parent is null ? mCodePage : parent.agCodePage;
             set {
@@ -129,6 +168,19 @@ namespace WinAGI.Engine {
                 }
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool Loaded {
+            get { return mLoaded; }
+        }
+
+        /// <summary>
+        /// Provides access to current error level of the WordList to
+        /// get feedback on errors in the sound data.
+        /// </summary>
+        public int ErrLevel => mErrLevel;
 
         /// <summary>
         /// FileType = 0 means AGI WORDS.TOK file, 1 means SCUMM SVE format.
@@ -166,16 +218,6 @@ namespace WinAGI.Engine {
         internal AGIWord ItemByIndex(int Index) {
             return mWordCol.Values[Index];
         }
-
-        public bool Loaded {
-            get { return mLoaded; }
-        }
-
-        /// <summary>
-        /// Provides access to current error level of the WordList to
-        /// get feedback on errors in the sound data.
-        /// </summary>
-        public int ErrLevel => mErrLevel;
 
         /// <summary>
         /// 
@@ -345,7 +387,11 @@ namespace WinAGI.Engine {
         /// <summary>
         /// 
         /// </summary>
-        internal bool WriteProps { get { return mWriteProps; } }
+        internal bool WriteProps {
+            get {
+                return mWriteProps;
+            }
+        }
 
         /// <summary>
         /// 
@@ -355,7 +401,6 @@ namespace WinAGI.Engine {
                 return mDescription;
             }
             set {
-                // limit description to 1K
                 value = Left(value, 1024);
                 if (value != mDescription) {
                     mDescription = value;
@@ -401,6 +446,16 @@ namespace WinAGI.Engine {
         /// <summary>
         /// 
         /// </summary>
+        public bool IsDirty {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return (mIsDirty || (mWriteProps && mInGame));
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public void Clear() {
             //clears the word group, and sets up a blank list
             if (!mLoaded) {
@@ -433,50 +488,6 @@ namespace WinAGI.Engine {
             WinAGIException.ThrowIfNotLoaded(this);
             // if this group exists, it returns true
             return mGroupCol.ContainsKey(groupnumber);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool IsDirty {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return (mIsDirty || (mWriteProps && mInGame));
-            }
-        }
-
-        /// <summary>
-        /// Accesses a word by string or index number.
-        /// </summary>
-        /// <param name="vKeyIndex"></param>
-        /// <returns></returns>
-        /// <exception cref="IndexOutOfRangeException"></exception>
-        /// <exception cref="ArgumentException"></exception>
-        public AGIWord this[dynamic vKeyIndex] {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                // only allow string or integer number
-                if ((vKeyIndex is int) || (vKeyIndex is byte) || (vKeyIndex is short)) {
-                    if (vKeyIndex < 0 || vKeyIndex > mWordCol.Count - 1) {
-                        throw new IndexOutOfRangeException();
-                    }
-                    return mWordCol.Values[vKeyIndex];
-                }
-                else if (vKeyIndex is string) {
-                    // a string could be a number passed as a string, OR an actual word?
-                    // user has to make sure it's not a number passed as a string...
-                    //retrieve via string key - actual word, which is the key
-                    if (mWordCol.ContainsKey(vKeyIndex)) {
-                        return mWordCol[vKeyIndex];
-                    }
-                    else {
-                        throw new IndexOutOfRangeException();
-                    }
-                }
-                else {
-                    throw new ArgumentException("invalid key/index");
-                }
-            }
         }
 
         /// <summary>
@@ -938,7 +949,7 @@ namespace WinAGI.Engine {
             mIsDirty = true;
         }
 
-
+        #region Enumeration
         public WGrpEnum GetEnumerator() {
             return new WGrpEnum(mGroupCol);
         }
@@ -948,35 +959,39 @@ namespace WinAGI.Engine {
         IEnumerator<WordGroup> IEnumerable<WordGroup>.GetEnumerator() {
             return (IEnumerator<WordGroup>)GetEnumerator();
         }
-    }
 
-    public class WGrpEnum : IEnumerator<WordGroup> {
-        public SortedList<int, WordGroup> _groups;
-        int position = -1;
-        public WGrpEnum(SortedList<int, WordGroup> list) {
-            _groups = list;
-        }
-        object IEnumerator.Current => Current;
-        public WordGroup Current {
-            get {
-                try {
-                    return _groups.Values[position];
-                }
-                catch (IndexOutOfRangeException) {
+        /// <summary>
+        /// Implements enumeration for the WordList class.
+        /// </summary>
+        public class WGrpEnum : IEnumerator<WordGroup> {
+            public SortedList<int, WordGroup> _groups;
+            int position = -1;
+            public WGrpEnum(SortedList<int, WordGroup> list) {
+                _groups = list;
+            }
+            object IEnumerator.Current => Current;
+            public WordGroup Current {
+                get {
+                    try {
+                        return _groups.Values[position];
+                    }
+                    catch (IndexOutOfRangeException) {
 
-                    throw new InvalidOperationException();
+                        throw new InvalidOperationException();
+                    }
                 }
             }
+            public bool MoveNext() {
+                position++;
+                return (position < _groups.Count);
+            }
+            public void Reset() {
+                position = -1;
+            }
+            public void Dispose() {
+                _groups = null;
+            }
         }
-        public bool MoveNext() {
-            position++;
-            return (position < _groups.Count);
-        }
-        public void Reset() {
-            position = -1;
-        }
-        public void Dispose() {
-            _groups = null;
-        }
+        #endregion
     }
 }

@@ -842,39 +842,39 @@ namespace WinAGI.Engine {
         IEnumerator<InventoryItem> IEnumerable<InventoryItem>.GetEnumerator() {
             return (IEnumerator<InventoryItem>)GetEnumerator();
         }
-        #endregion
-    }
 
-    /// <summary>
-    /// Implements enumeration for the InventoryList class.
-    /// </summary>
-    internal class ItemEnum : IEnumerator<InventoryItem> {
-        public List<InventoryItem> _invitems;
-        int position = -1;
-        public ItemEnum(List<InventoryItem> list) {
-            _invitems = list;
-        }
-        object IEnumerator.Current => Current;
-        public InventoryItem Current {
-            get {
-                try {
-                    return _invitems[position];
-                }
-                catch (IndexOutOfRangeException) {
+        /// <summary>
+        /// Implements enumeration for the InventoryList class.
+        /// </summary>
+        internal class ItemEnum : IEnumerator<InventoryItem> {
+            public List<InventoryItem> _invitems;
+            int position = -1;
+            public ItemEnum(List<InventoryItem> list) {
+                _invitems = list;
+            }
+            object IEnumerator.Current => Current;
+            public InventoryItem Current {
+                get {
+                    try {
+                        return _invitems[position];
+                    }
+                    catch (IndexOutOfRangeException) {
 
-                    throw new InvalidOperationException();
+                        throw new InvalidOperationException();
+                    }
                 }
             }
+            public bool MoveNext() {
+                position++;
+                return (position < _invitems.Count);
+            }
+            public void Reset() {
+                position = -1;
+            }
+            public void Dispose() {
+                _invitems = null;
+            }
         }
-        public bool MoveNext() {
-            position++;
-            return (position < _invitems.Count);
-        }
-        public void Reset() {
-            position = -1;
-        }
-        public void Dispose() {
-            _invitems = null;
-        }
+        #endregion
     }
 }

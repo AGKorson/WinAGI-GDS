@@ -1407,6 +1407,7 @@ namespace WinAGI.Engine {
             // if nothing found, return 0
             return 0;
         }
+        #endregion
     }
 
     /// <summary>

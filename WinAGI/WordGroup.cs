@@ -1,65 +1,49 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using static WinAGI.Common.Base;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// A class that represents a word group in an AGI WORDS.TOK file. All words
+    /// in the group are synonyms that share the same number used by the AGI
+    /// 'said' test command.
+    /// </summary>
     public class WordGroup : IEnumerable<AGIWord> {
+        #region Members
         internal List<string> mWords;
-        //internal System.Collections.Generic.SortedDictionary<string, string> mWordsD;
-        //internal System.Collections.Generic.SortedSet<string> mWordsS;
-
         internal int mGroupNum;
-        // access to word list is by index only
-        public string this[byte index] { get { return mWords[index]; } }
+        #endregion
+
+        #region Constructors
+        /// <summary>
+        /// Creates an empty word group.
+        /// </summary>
         public WordGroup() {
-            //initialze the word collection
             mWords = [];
         }
-        internal void AddWordToGroup(string aWord) {
-            // TODO: need to make sure passed string is byte-code (i.e. converted from
-            // unicode to actual byte values- or do I do that here????
+        #endregion
 
-            //add word to collection of strings
-            //the fact that this word DOES NOT yet exist in this
-            //group has been validated BEFORE this property is called
-            int i;
-            //if this is the first word,
-            if (mWords.Count == 0) {
-                //add it, using itself as key
-                mWords.Add(aWord);
+        #region Properties
+        /// <summary>
+        /// Gets the word in this wordgroup that corresponds to the 
+        /// specified index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public string this[byte index] {
+            get {
+                return mWords[index];
             }
-            else {
-                // TODO: need to add extended char words
-                // and non-lettered words to BEGINNING of list
+        }
 
-                //step through all words
-                for (i = 0; i < mWords.Count; i++) {
-                    //if new word is less than current word
-                    if (String.Compare(aWord, mWords[i], true) < 0) {
-                        //this is where word goes
-                        break;
-                    }
-                }
-                //add it,
-                mWords.Insert(i, aWord);
-            }
-            return;
-        }
-        internal void DeleteWordFromGroup(string aWord) {
-            //delete word from group
-            //the fact that this word exists in this group is
-            //tested BEFORE this function is called
-            mWords.Remove(aWord);
-            return;
-        }
+        /// <summary>
+        /// Gets the group name for this word group. The group name is the first word
+        /// in the group alphabetically.
+        /// </summary>
         public string GroupName {
             get {
-                //return first word in group
                 if (mWords.Count == 0) {
-                    //return empty string
                     return "";
                 }
                 else {
@@ -67,18 +51,95 @@ namespace WinAGI.Engine {
                 }
             }
         }
+
+        /// <summary>
+        /// Gets or sets the group number for this word group.
+        /// </summary>
         public int GroupNum {
             get {
-
                 return mGroupNum;
             }
             internal set {
                 mGroupNum = value;
             }
         }
+
+        /// <summary>
+        /// Gets the number of words in this word group.
+        /// </summary>
         public int WordCount {
-            get { return mWords.Count; }
+            get {
+                return mWords.Count;
+            }
         }
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Adds the specified word to this word group.
+        /// </summary>
+        /// <param name="aWord"></param>
+        internal void AddWordToGroup(string aWord) {
+            if (aWord.Length == 0) {
+                return;
+            }
+            if (mWords.Contains(aWord)) {
+                return;
+            }
+            aWord = LowerAGI(aWord);
+            int i;
+            if (mWords.Count == 0) {
+                mWords.Add(aWord);
+            }
+            else {
+                if (aWord[0] < 97 || aWord[0] > 122) {
+                    // add extended character words and non-lettered words
+                    // to beginning of list before a-z words
+                    for (i = 0; i < mWords.Count; i++) {
+                        if (mWords[i][0] >= 97 && mWords[i][0] <= 122) {
+                            // first a-z word found; insert new word here
+                            break;
+                        }
+                        if (string.Compare(aWord, mWords[i], true) < 0) {
+                            // this is where word goes
+                            break;
+                        }
+                    }
+                }
+                else {
+                    // a-z words get added AFTER extended characters 
+                    // and non-letters
+                    i = 0;
+                    while (i < mWords.Count) {
+                        if (mWords[i][0] >= 97 && mWords[i][0] <= 122) {
+                            break;
+                        }
+                        i++;
+                    }
+                    for (; i < mWords.Count; i++) {
+                        if (string.Compare(aWord, mWords[i], true) < 0) {
+                            // this is where word goes
+                            break;
+                        }
+                    }
+                }
+                // add it,
+                mWords.Insert(i, aWord);
+            }
+            return;
+        }
+
+        /// <summary>
+        /// Deletes the specified word from this word group.
+        /// </summary>
+        /// <param name="aWord"></param>
+        internal void DeleteWordFromGroup(string aWord) {
+            mWords.Remove(aWord);
+            return;
+        }
+        #endregion
+
+        #region Enumeration
         WordEnum GetEnumerator() {
             return new WordEnum(mWords);
         }
@@ -88,6 +149,9 @@ namespace WinAGI.Engine {
         IEnumerator<AGIWord> IEnumerable<AGIWord>.GetEnumerator() {
             return (IEnumerator<AGIWord>)GetEnumerator();
         }
+        /// <summary>
+        /// Implements enumeration for the WordGroup class.
+        /// </summary>
         internal class WordEnum : IEnumerator<string> {
             public List<string> _words;
             int position = -1;
@@ -117,5 +181,6 @@ namespace WinAGI.Engine {
                 _words = null;
             }
         }
+        #endregion
     }
 }

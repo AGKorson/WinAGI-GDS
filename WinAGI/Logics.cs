@@ -290,7 +290,6 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        // Collection enumerator methods
         LogicEnum GetEnumerator() {
             return new LogicEnum(Col);
         }
@@ -300,38 +299,38 @@ namespace WinAGI.Engine {
         IEnumerator<Logic> IEnumerable<Logic>.GetEnumerator() {
             return (IEnumerator<Logic>)GetEnumerator();
         }
-        #endregion
-    }
 
-    /// <summary>
-    /// Implements enumeration for the Logics class.
-    /// </summary>
-    internal class LogicEnum : IEnumerator<Logic> {
-        public SortedList<byte, Logic> _logics;
-        int position = -1;
-        public LogicEnum(SortedList<byte, Logic> list) {
-            _logics = list;
-        }
-        object IEnumerator.Current => Current;
-        public Logic Current {
-            get {
-                try {
-                    return _logics.Values[position];
-                }
-                catch (IndexOutOfRangeException) {
-                    throw new InvalidOperationException();
+        /// <summary>
+        /// Implements enumeration for the Logics class.
+        /// </summary>
+        internal class LogicEnum : IEnumerator<Logic> {
+            public SortedList<byte, Logic> _logics;
+            int position = -1;
+            public LogicEnum(SortedList<byte, Logic> list) {
+                _logics = list;
+            }
+            object IEnumerator.Current => Current;
+            public Logic Current {
+                get {
+                    try {
+                        return _logics.Values[position];
+                    }
+                    catch (IndexOutOfRangeException) {
+                        throw new InvalidOperationException();
+                    }
                 }
             }
+            public bool MoveNext() {
+                position++;
+                return (position < _logics.Count);
+            }
+            public void Reset() {
+                position = -1;
+            }
+            public void Dispose() {
+                _logics = null;
+            }
         }
-        public bool MoveNext() {
-            position++;
-            return (position < _logics.Count);
-        }
-        public void Reset() {
-            position = -1;
-        }
-        public void Dispose() {
-            _logics = null;
-        }
+        #endregion
     }
 }

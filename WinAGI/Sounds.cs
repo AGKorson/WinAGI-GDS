@@ -180,7 +180,7 @@ namespace WinAGI.Engine {
             // leave it loaded, so error level can be addressed by loader
         }
 
-        // Collection enumerator methods
+        #region Enumeration
         SoundEnum GetEnumerator() {
             return new SoundEnum(Col);
         }
@@ -190,34 +190,39 @@ namespace WinAGI.Engine {
         IEnumerator<Sound> IEnumerable<Sound>.GetEnumerator() {
             return (IEnumerator<Sound>)GetEnumerator();
         }
-    }
-    internal class SoundEnum : IEnumerator<Sound> {
-        public SortedList<byte, Sound> _sounds;
-        int position = -1;
-        public SoundEnum(SortedList<byte, Sound> list) {
-            _sounds = list;
-        }
-        object IEnumerator.Current => Current;
-        public Sound Current {
-            get {
-                try {
-                    return _sounds.Values[position];
-                }
-                catch (IndexOutOfRangeException) {
 
-                    throw new InvalidOperationException();
+        /// <summary>
+        /// Implements enumeration for the Sounds class.
+        /// </summary>
+        internal class SoundEnum : IEnumerator<Sound> {
+            public SortedList<byte, Sound> _sounds;
+            int position = -1;
+            public SoundEnum(SortedList<byte, Sound> list) {
+                _sounds = list;
+            }
+            object IEnumerator.Current => Current;
+            public Sound Current {
+                get {
+                    try {
+                        return _sounds.Values[position];
+                    }
+                    catch (IndexOutOfRangeException) {
+
+                        throw new InvalidOperationException();
+                    }
                 }
             }
+            public bool MoveNext() {
+                position++;
+                return (position < _sounds.Count);
+            }
+            public void Reset() {
+                position = -1;
+            }
+            public void Dispose() {
+                _sounds = null;
+            }
         }
-        public bool MoveNext() {
-            position++;
-            return (position < _sounds.Count);
-        }
-        public void Reset() {
-            position = -1;
-        }
-        public void Dispose() {
-            _sounds = null;
-        }
+        #endregion
     }
 }

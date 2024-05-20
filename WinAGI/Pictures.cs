@@ -201,7 +201,6 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        // Collection enumerator methods
         PictureEnum GetEnumerator() {
             return new PictureEnum(Col);
         }
@@ -211,38 +210,38 @@ namespace WinAGI.Engine {
         IEnumerator<Picture> IEnumerable<Picture>.GetEnumerator() {
             return (IEnumerator<Picture>)GetEnumerator();
         }
-        #endregion
-    }
 
-    /// <summary>
-    /// Implements enumeration for the Pictures class
-    /// </summary>
-    internal class PictureEnum : IEnumerator<Picture> {
-        public SortedList<byte, Picture> _pictures;
-        int position = -1;
-        public PictureEnum(SortedList<byte, Picture> list) {
-            _pictures = list;
-        }
-        object IEnumerator.Current => Current;
-        public Picture Current {
-            get {
-                try {
-                    return _pictures.Values[position];
-                }
-                catch (IndexOutOfRangeException) {
-                    throw new InvalidOperationException();
+        /// <summary>
+        /// Implements enumeration for the Pictures class
+        /// </summary>
+        internal class PictureEnum : IEnumerator<Picture> {
+            public SortedList<byte, Picture> _pictures;
+            int position = -1;
+            public PictureEnum(SortedList<byte, Picture> list) {
+                _pictures = list;
+            }
+            object IEnumerator.Current => Current;
+            public Picture Current {
+                get {
+                    try {
+                        return _pictures.Values[position];
+                    }
+                    catch (IndexOutOfRangeException) {
+                        throw new InvalidOperationException();
+                    }
                 }
             }
+            public bool MoveNext() {
+                position++;
+                return (position < _pictures.Count);
+            }
+            public void Reset() {
+                position = -1;
+            }
+            public void Dispose() {
+                _pictures = null;
+            }
         }
-        public bool MoveNext() {
-            position++;
-            return (position < _pictures.Count);
-        }
-        public void Reset() {
-            position = -1;
-        }
-        public void Dispose() {
-            _pictures = null;
-        }
+        #endregion
     }
 }

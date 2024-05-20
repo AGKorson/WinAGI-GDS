@@ -180,7 +180,7 @@ namespace WinAGI.Engine {
             // leave it loaded, so error level can be addressed by loader
         }
 
-        // Collection enumerator methods
+        #region Enumeration
         ViewEnum GetEnumerator() {
             return new ViewEnum(Col);
         }
@@ -190,34 +190,39 @@ namespace WinAGI.Engine {
         IEnumerator<View> IEnumerable<View>.GetEnumerator() {
             return (IEnumerator<View>)GetEnumerator();
         }
-    }
-    internal class ViewEnum : IEnumerator<View> {
-        public SortedList<byte, View> _views;
-        int position = -1;
-        public ViewEnum(SortedList<byte, View> list) {
-            _views = list;
-        }
-        object IEnumerator.Current => Current;
-        public View Current {
-            get {
-                try {
-                    return _views.Values[position];
-                }
-                catch (IndexOutOfRangeException) {
 
-                    throw new InvalidOperationException();
+        /// <summary>
+        /// Implements enumeration for the Views class
+        /// </summary>
+        internal class ViewEnum : IEnumerator<View> {
+            public SortedList<byte, View> _views;
+            int position = -1;
+            public ViewEnum(SortedList<byte, View> list) {
+                _views = list;
+            }
+            object IEnumerator.Current => Current;
+            public View Current {
+                get {
+                    try {
+                        return _views.Values[position];
+                    }
+                    catch (IndexOutOfRangeException) {
+
+                        throw new InvalidOperationException();
+                    }
                 }
             }
+            public bool MoveNext() {
+                position++;
+                return (position < _views.Count);
+            }
+            public void Reset() {
+                position = -1;
+            }
+            public void Dispose() {
+                _views = null;
+            }
         }
-        public bool MoveNext() {
-            position++;
-            return (position < _views.Count);
-        }
-        public void Reset() {
-            position = -1;
-        }
-        public void Dispose() {
-            _views = null;
-        }
+        #endregion
     }
 }

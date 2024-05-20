@@ -182,37 +182,38 @@ namespace WinAGI.Engine {
         IEnumerator<Cel> IEnumerable<Cel>.GetEnumerator() {
             return (IEnumerator<Cel>)GetEnumerator();
         }
-        #endregion
-    }
-    /// <summary>
-    /// Implements enumeration for the Cels class.
-    /// </summary>
-    internal class CelEnum : IEnumerator<Cel> {
-        public List<Cel> _cels;
-        int position = -1;
-        public CelEnum(List<Cel> list) {
-            _cels = list;
-        }
-        object IEnumerator.Current => Current;
-        public Cel Current {
-            get {
-                try {
-                    return _cels[position];
-                }
-                catch (IndexOutOfRangeException) {
-                    throw new InvalidOperationException();
+
+        /// <summary>
+        /// Implements enumeration for the Cels class.
+        /// </summary>
+        internal class CelEnum : IEnumerator<Cel> {
+            public List<Cel> _cels;
+            int position = -1;
+            public CelEnum(List<Cel> list) {
+                _cels = list;
+            }
+            object IEnumerator.Current => Current;
+            public Cel Current {
+                get {
+                    try {
+                        return _cels[position];
+                    }
+                    catch (IndexOutOfRangeException) {
+                        throw new InvalidOperationException();
+                    }
                 }
             }
+            public bool MoveNext() {
+                position++;
+                return (position < _cels.Count);
+            }
+            public void Reset() {
+                position = -1;
+            }
+            public void Dispose() {
+                _cels = null;
+            }
         }
-        public bool MoveNext() {
-            position++;
-            return (position < _cels.Count);
-        }
-        public void Reset() {
-            position = -1;
-        }
-        public void Dispose() {
-            _cels = null;
-        }
+        #endregion
     }
 }

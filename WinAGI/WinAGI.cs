@@ -312,6 +312,7 @@ namespace WinAGI.Engine {
         internal static int defMaxVol0 = MAX_VOLSIZE;
         #endregion
 
+        #region Constructors
         /// <summary>
         /// WinAGI Base constructor.
         /// </summary>
@@ -322,6 +323,7 @@ namespace WinAGI.Engine {
             defaultColorEGA = new();
             InitWinAGI();
         }
+        #endregion
 
         #region Base Properties
         /// <summary>
