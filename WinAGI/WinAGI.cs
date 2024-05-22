@@ -284,14 +284,12 @@ namespace WinAGI.Engine {
         #region Local Members
         public const int WINAGI_ERR = 0x100000;
         public static readonly string[] ResTypeAbbrv = ["LOG", "PIC", "SND", "VIEW"];
-      //  public static readonly string[] ResTypeName = ["Logic", "Picture", "Sound", "View"];
         public static readonly string[] IntVersions =
         [
         "2.089", "2.272", "2.411", "2.425", "2.426", "2.435", "2.439",
         "2.440", "2.903", "2.911", "2.912", "2.915", "2.917", "2.936",
         "3.002086", "3.002098", "3.002102", "3.002107", "3.002149"
         ];
-
         internal const int MAX_RES_SIZE = 65530;
         internal const int MAX_LOOPS = 255;
         internal const int MAX_CELS = 255;
@@ -302,7 +300,6 @@ namespace WinAGI.Engine {
         internal const int MAX_GROUP_NUM = 65535;
         internal const int MAX_WORD_GROUPS = 65535;
         internal const int MAX_VOLSIZE = 1047552; // '= 1024 * 1023
-        internal const string WORD_SEPARATOR = " | ";
         internal const string WINAGI_VERSION = "3.0";
         internal static readonly byte[] bytEncryptKey;
         // member values

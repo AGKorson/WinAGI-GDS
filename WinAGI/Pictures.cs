@@ -38,7 +38,7 @@ namespace WinAGI.Engine {
         /// <exception cref="IndexOutOfRangeException"></exception>
         public Picture this[int index] {
             get {
-                if (index < 0 || index > 255 || !Exists((byte)index)) {
+                if (index < 0 || index > 255 || !Contains((byte)index)) {
                     throw new IndexOutOfRangeException();
                 }
                 return Col[(byte)index];
@@ -87,7 +87,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ResNum"></param>
         /// <returns></returns>
-        public bool Exists(byte ResNum) {
+        public bool Contains(byte ResNum) {
             return Col.ContainsKey(ResNum);
         }
 
@@ -102,7 +102,7 @@ namespace WinAGI.Engine {
             Picture agResource;
             int intNextNum = 0;
             string strID, strBaseID;
-            if (Exists(ResNum)) {
+            if (Contains(ResNum)) {
                 WinAGIException wex = new(LoadResString(602)) {
                     HResult = WINAGI_ERR + 602
                 };

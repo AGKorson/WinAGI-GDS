@@ -894,22 +894,22 @@ namespace WinAGI.Editor
                 //does the resource still exist?
                 switch (ResType) {
                 case AGIResType.Logic:
-                    if (EditGame.Logics.Exists((byte)ResNum)) {
+                    if (EditGame.Logics.Contains((byte)ResNum)) {
                         strKey = "l" + ResNum;
                     }
                     break;
                 case AGIResType.Picture:
-                    if (EditGame.Pictures.Exists((byte)ResNum)) {
+                    if (EditGame.Pictures.Contains((byte)ResNum)) {
                         strKey = "p" + ResNum;
                     }
                     break;
                 case AGIResType.Sound:
-                    if (EditGame.Sounds.Exists((byte)ResNum)) {
+                    if (EditGame.Sounds.Contains((byte)ResNum)) {
                         strKey = "s" + ResNum;
                     }
                     break;
                 case AGIResType.View:
-                    if (EditGame.Views.Exists((byte)ResNum)) {
+                    if (EditGame.Views.Contains((byte)ResNum)) {
                         strKey = "v" + ResNum;
                     }
                     break;

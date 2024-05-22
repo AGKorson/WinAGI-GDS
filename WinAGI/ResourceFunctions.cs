@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
-using static WinAGI.Engine.AGIGame;
 
 namespace WinAGI.Engine {
     public static partial class Base {
@@ -224,7 +222,7 @@ namespace WinAGI.Engine {
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
-                                if (game.agLogs.Exists(bytResNum)) {
+                                if (game.agLogs.Contains(bytResNum)) {
                                     game.agLogs[bytResNum].PropsDirty = false;
                                     game.agLogs[bytResNum].IsDirty = false;
                                     // logic source checks come after all resources loaded so leave it loaded
@@ -237,7 +235,7 @@ namespace WinAGI.Engine {
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
-                                if (game.agPics.Exists(bytResNum)) {
+                                if (game.agPics.Contains(bytResNum)) {
                                     game.agPics[bytResNum].PropsDirty = false;
                                     game.agPics[bytResNum].IsDirty = false;
                                     game.agPics[bytResNum].Unload();
@@ -250,7 +248,7 @@ namespace WinAGI.Engine {
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
-                                if (game.agSnds.Exists(bytResNum)) {
+                                if (game.agSnds.Contains(bytResNum)) {
                                     game.agSnds[bytResNum].PropsDirty = false;
                                     game.agSnds[bytResNum].IsDirty = false;
                                     game.agSnds[bytResNum].Unload();
@@ -263,7 +261,7 @@ namespace WinAGI.Engine {
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
-                                if (game.agViews.Exists(bytResNum)) {
+                                if (game.agViews.Contains(bytResNum)) {
                                     game.agViews[bytResNum].PropsDirty = false;
                                     game.agViews[bytResNum].IsDirty = false;
                                     game.agViews[bytResNum].Unload();
@@ -302,145 +300,126 @@ namespace WinAGI.Engine {
                 switch (errlevel) {
                 case -1:
                     // error 606: Can't load resource: file not found (%1)
-                    warnInfo.ID = "VW03";
+                    warnInfo.ID = "VW01";
                     warnInfo.Text = $"{resType} {resNum} is in a VOL file ({Path.GetFileName(errdata[0])}) that does not exist";
                     warnInfo.Module = errdata[1];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -2:
                     // error 700: file (%1) is readonly
-                    warnInfo.ID = "VW03";
+                    warnInfo.ID = "VW02";
                     warnInfo.Text = $"{resType} {resNum} is in a VOL file ({Path.GetFileName(errdata[0])}) marked readonly";
                     warnInfo.Module = errdata[1];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -3:
                     // error 502: Error %1 occurred while trying to access %2.
-                    warnInfo.ID = "VW01";
+                    warnInfo.ID = "VW03";
                     warnInfo.Text = $"{resType} {resNum} is invalid due to file access error ({errdata[0]})";
                     warnInfo.Module = errdata[1];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -4:
                     // error 505: Invalid resource location (%1) in %2.
-                    warnInfo.ID = "VW02";
+                    warnInfo.ID = "VW04";
                     warnInfo.Text = $"{resType} {resNum} has an invalid location ({errdata[0]}) in volume file {errdata[2]}";
                     warnInfo.Module = errdata[3];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -5:
                     // 506: invalid header
-                    warnInfo.ID = "RW09";
+                    warnInfo.ID = "RW01";
                     warnInfo.Text = $"{resType} {resNum} has an invalid resource header at location {errdata[0]} in {errdata[2]}";
                     warnInfo.Module = errdata[3];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -6:
                     // 704: sourcefile missing
-                    warnInfo.ID = "RW99";
+                    warnInfo.ID = "RW02";
                     warnInfo.Text = $"Logic {resNum} source file is missing ({errdata[0]})";
                     warnInfo.Module = errdata[1];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -7:
                     // 700: sourcefile is readonly
-                    warnInfo.ID = "RW98";
+                    warnInfo.ID = "RW03";
                     warnInfo.Text = $"Logic {resNum} source file is marked readonly ({errdata[0]})";
                     warnInfo.Module = errdata[1];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -8:
                     // 502: Error %1 occurred while trying to access logic source file(%2).
-                    warnInfo.ID = "RW97";
+                    warnInfo.ID = "RW04";
                     warnInfo.Text = $"Logic {resNum} is invalid due to file access error ({errdata[0]})";
                     warnInfo.Module = errdata[1];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -9:
                     // error 688: Error %1 occurred while decompiling message section.
-                    warnInfo.ID = "RW96";
+                    warnInfo.ID = "RW05";
                     warnInfo.Text = $"Logic {resNum} is invalid due to error in message section ({errdata[0]})";
                     warnInfo.Module = errdata[1];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -10:
                     // error 688: Error %1 occurred while decompiling labels.
-                    warnInfo.ID = "RW95";
+                    warnInfo.ID = "RW06";
                     warnInfo.Text = $"Logic {resNum} is invalid due to error in label search ({errdata[0]})";
                     warnInfo.Module = errdata[1];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -11:
                     // error 688: Error %1 occurred while decompiling if block.
-                    warnInfo.ID = "RW94";
+                    warnInfo.ID = "RW07";
                     warnInfo.Text = $"Logic {resNum} is invalid due to error in if block section ({errdata[0]})";
                     warnInfo.Module = errdata[1];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -12:
                     // error 688: Error %1 occurred while decompiling - invalid message.
-                    warnInfo.ID = "RW93";
+                    warnInfo.ID = "RW08";
                     warnInfo.Text = $"Logic {resNum} is invalid due to invalid message value ({errdata[0]})";
                     warnInfo.Module = errdata[1];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -13:
                     // error 598: invalid sound data
-                    warnInfo.ID = "RW92";
+                    warnInfo.ID = "RW09";
                     warnInfo.Text = $"Invalid sound data format, unable to load tracks";
                     warnInfo.Module = errdata[0];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -14:
                     // error 565: sound invalid data error
-                    warnInfo.ID = "RW91";
+                    warnInfo.ID = "RW10";
                     warnInfo.Text = $"Error encountered in LoadTracks ({errdata[1]})";
                     warnInfo.Module = errdata[0];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -15:
                     // error 595: invalid view data
-                    warnInfo.ID = "RW90";
+                    warnInfo.ID = "RW11";
                     warnInfo.Text = $"Invalid view data, unable to load view";
                     warnInfo.Module = errdata[0];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -16:
                     // error 548: invalid loop pointer
-                    warnInfo.ID = "RW89";
+                    warnInfo.ID = "RW12";
                     warnInfo.Text = $"Invalid loop data pointer detected (loop {errdata[1]})";
                     warnInfo.Module = errdata[0];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -17:
                     // error 539: invalid source loop for mirror/invalid mirror loop number
-                    warnInfo.ID = "RW88";
+                    warnInfo.ID = "RW13";
                     warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} and/or loop {errdata[3]})";
                     warnInfo.Module = errdata[0];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -18:
                     // error 550: invalid mirror data, target loop already mirrored
-                    warnInfo.ID = "RW87";
+                    warnInfo.ID = "RW14";
                     warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[3]} already mirrored)";
                     warnInfo.Module = errdata[0];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -19:
                     // 551: invalid mirror data, source already a mirror
-                    warnInfo.ID = "RW86";
+                    warnInfo.ID = "RW15";
                     warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} already mirrored)";
                     warnInfo.Module = errdata[0];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 case -20:
                     // 553: invalid cel data pointer
-                    warnInfo.ID = "RW85";
+                    warnInfo.ID = "RW16";
                     warnInfo.Text = $"Invalid cel pointer detected (cel {errdata[2]} of loop {errdata[1]})";
                     warnInfo.Module = errdata[0];
-                    game.OnLoadGameStatus(warnInfo);
                     break;
                 }
+                game.OnLoadGameStatus(warnInfo);
                 return;
             }
             switch (resType) {
@@ -451,35 +430,35 @@ namespace WinAGI.Engine {
                 if (errlevel > 0) {
                     if ((errlevel & 1) == 1) {
                         // missing EOP marker
-                        warnInfo.ID = "RW06";
+                        warnInfo.ID = "RW17";
                         warnInfo.Text = $"Picture {resNum} is missing its 'end-of-resource' marker and may be corrupt";
                         warnInfo.Module = errdata[0];
                         game.OnLoadGameStatus(warnInfo);
                     }
                     if ((errlevel & 2) == 2) {
                         // bad color
-                        warnInfo.ID = "RW25";
+                        warnInfo.ID = "RW18";
                         warnInfo.Text = $"Picture {resNum} has at least one invalid color assignment - picture may be corrupt";
                         warnInfo.Module = errdata[0];
                         game.OnLoadGameStatus(warnInfo);
                     }
                     if ((errlevel & 4) == 4) {
                         // bad cmd
-                        warnInfo.ID = "RW26";
+                        warnInfo.ID = "RW19";
                         warnInfo.Text = $"Picture {resNum} has at least one invalid command byte - picture may be corrupt";
                         warnInfo.Module = errdata[0];
                         game.OnLoadGameStatus(warnInfo);
                     }
                     if ((errlevel & 8) == 8) {
                         // extra data
-                        warnInfo.ID = "RW12";
+                        warnInfo.ID = "RW20";
                         warnInfo.Text = $"{resType} {resNum} has extra data past the end of resource";
                         warnInfo.Module = errdata[0];
                         game.OnLoadGameStatus(warnInfo);
                     }
                     if ((errlevel & 16) == 16) {
                         // unhandled error
-                        warnInfo.ID = "RW05";
+                        warnInfo.ID = "RW21";
                         warnInfo.Text = $"Unhandled error in Picture {resNum} data- picture may not display correctly ({errlevel})";
                         warnInfo.Module = errdata[0];
                         game.OnLoadGameStatus(warnInfo);
@@ -488,13 +467,13 @@ namespace WinAGI.Engine {
                 }
                 break;
             case AGIResType.Sound:
-                warnInfo.ID = "RW07";
+                warnInfo.ID = "RW22";
                 warnInfo.Text = $"Sound {resNum} has an invalid track pointer ({errlevel})";
                 warnInfo.Module = errdata[0];
                 game.OnLoadGameStatus(warnInfo);
                 break;
             case AGIResType.View:
-                warnInfo.ID = "RW08";
+                warnInfo.ID = "RW23";
                 warnInfo.Text = $"View {resNum} has an invalid view description pointer";
                 warnInfo.Module = errdata[0];
                 game.OnLoadGameStatus(warnInfo);
@@ -502,32 +481,32 @@ namespace WinAGI.Engine {
             case AGIResType.Objects:
                 warnInfo.Module = "OBJECT";
                 if ((errlevel & 1) == 1) {
-                    warnInfo.ID = "RW20";
+                    warnInfo.ID = "RW24";
                     warnInfo.Text = "OBJECT file has no items";
                     game.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 2) == 2) {
-                    warnInfo.ID = "RW21";
+                    warnInfo.ID = "RW25";
                     warnInfo.Text = "Unable to decrypt OBJECT file";
                     game.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 4) == 4) {
-                    warnInfo.ID = "RW22";
+                    warnInfo.ID = "RW26";
                     warnInfo.Text = "Invalid OBJECT file header, unable to read item data";
                     game.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 8) == 8) {
-                    warnInfo.ID = "RW23";
+                    warnInfo.ID = "RW27";
                     warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
                     game.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 16) == 16) {
-                    warnInfo.ID = "RW24";
+                    warnInfo.ID = "RW28";
                     warnInfo.Text = "First item is not the null '?' item";
                     game.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 32) == 32) {
-                    warnInfo.ID = "RW24";
+                    warnInfo.ID = "RW29";
                     warnInfo.Text = "File access error, unable to read OBJECT file";
                     game.OnLoadGameStatus(warnInfo);
                 }
@@ -535,32 +514,32 @@ namespace WinAGI.Engine {
             case AGIResType.Words:
                 warnInfo.Module = "WORDS.TOK";
                 if ((errlevel & 1) == 1) {
-                    warnInfo.ID = "RW27";
+                    warnInfo.ID = "RW30";
                     warnInfo.Text = "Abnormal index table";
                     game.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 2) == 2) {
-                    warnInfo.ID = "RW28";
+                    warnInfo.ID = "RW31";
                     warnInfo.Text = "Unexpected end of file";
                     game.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 4) == 4) {
-                    warnInfo.ID = "RW29";
+                    warnInfo.ID = "RW32";
                     warnInfo.Text = "Upper case characters detected";
                     game.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 8) == 8) {
-                    warnInfo.ID = "RW25";
+                    warnInfo.ID = "RW33";
                     warnInfo.Text = "Empty WORDS.TOK file";
                     game.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 16) == 16) {
-                    warnInfo.ID = "RW26";
+                    warnInfo.ID = "RW34";
                     warnInfo.Text = "Invalid index table";
                     game.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 32) == 32) {
-                    warnInfo.ID = "RW27";
+                    warnInfo.ID = "RW35";
                     warnInfo.Text = "File access error, unable to read OBJECT file";
                     game.OnLoadGameStatus(warnInfo);
                 }
@@ -586,9 +565,9 @@ namespace WinAGI.Engine {
                 bytCurComp = bytOriginalData[intPosIn++];
                 if (blnOffset) {
                     bytBuffer += (byte)(bytCurComp >> 4);
-                    //extract uncompressed byte
+                    // extract uncompressed byte
                     bytCurUncomp = bytBuffer;
-                    //shift buffer back
+                    // shift buffer back
                     bytBuffer = (byte)(bytCurComp << 4);
                 }
                 else {
@@ -599,14 +578,14 @@ namespace WinAGI.Engine {
                 // check if byte sets or restores offset
                 if (((bytCurUncomp == 0xF0) || (bytCurUncomp == 0xF2)) && (intPosIn < bytOriginalData.Length)) {
                     if (blnOffset) {
-                        //write rest of buffer byte
+                        // write rest of buffer byte
                         bytExpandedData[lngTempCurPos++] = (byte)(bytBuffer >> 4);
                         blnOffset = false;
                     }
                     else {
                         bytCurComp = bytOriginalData[intPosIn++];
                         bytExpandedData[lngTempCurPos++] = (byte)(bytCurComp >> 4);
-                        //f ill buffer
+                        // fill buffer
                         bytBuffer = (byte)(bytCurComp << 4);
                         blnOffset = true;
                     }
@@ -719,11 +698,11 @@ namespace WinAGI.Engine {
                 bytChunkColor = (byte)mCelData[0, j];
                 bytChunkLen = 1;
                 blnFirstChunk = true;
-                //step through rest of pixels in this row
+                // step through rest of pixels in this row
                 for (i = 1; i < mWidth; i++) {
-                    bytNextColor = (byte)mCelData[i, j];
+                    bytNextColor = mCelData[i, j];
                     if ((bytNextColor != bytChunkColor) || (bytChunkLen == 0xF)) {
-                        bytTempRLE[lngByteCount++] = (byte)((int)bytChunkColor * 0x10 + bytChunkLen);
+                        bytTempRLE[lngByteCount++] = (byte)(bytChunkColor * 0x10 + bytChunkLen);
                         // if NOT first chunk or NOT transparent
                         if (!blnFirstChunk || (bytChunkColor != (byte)mTransColor)) {
                             // increment lngMirorCount for any chunks
@@ -739,18 +718,18 @@ namespace WinAGI.Engine {
                         bytChunkLen++;
                     }
                 }
-                // if last chunk is NOT transparent
                 if (bytChunkColor != (byte)mTransColor) {
+                    // last chunk is NOT transparent
                     bytTempRLE[lngByteCount++] = (byte)(bytChunkColor * 0x10 + bytChunkLen);
                 }
                 // always Count last chunk for mirror
                 lngMirrorCount++;
-                //add zero to indicate end of row
+                // add zero to indicate end of row
                 bytTempRLE[lngByteCount++] = 0;
                 lngMirrorCount++;
             }
             if (blnMirror) {
-                //add zeros to make room for mirror loop
+                // add zeros to make room for mirror loop
                 while (lngByteCount < lngMirrorCount) {
                     bytTempRLE[lngByteCount] = 0;
                     lngByteCount++;
@@ -887,11 +866,11 @@ namespace WinAGI.Engine {
                         // twelve notes, the frequency doubles, this gives the following
                         // forumula to convert frequency to midinote:
                         //     midinote = log10(f)/log10(2^(1/12)) - X
-                        // sinc emiddle C is 261.6 Hz, this means X = 36.375
+                        // since middle C is 261.6 Hz, this means X = 36.375
                         // however, this offset results in crappy sounding music, likely due
                         // to the way the sounds were originally written (as tones on the PCjr
                         // sound chip which could produce much higher resolution than twelve
-                        // notes per doubling of frequency) combined with the way that VB math
+                        // notes per doubling of frequency) combined with the way that VS math
                         // functions handle rounding/truncation when converting between
                         // long/byte/double - empirically, 36.5 seems to work best (which is
                         // what has been used by most AGI sound tools since the format was
@@ -933,7 +912,7 @@ namespace WinAGI.Engine {
                     sndOut.WriteSndByte(0xFF);
                     sndOut.WriteSndByte(0x2F);
                     sndOut.WriteSndByte(0x0);
-                    //save track end position
+                    // save track end position
                     lngEnd = sndOut.Pos;
                     // set cursor to start of track
                     sndOut.Pos = lngStart;
@@ -973,7 +952,7 @@ namespace WinAGI.Engine {
                     case 1:
                         // white noise - use seashore
                         sndOut.WriteSndByte(122);
-                        //crank up the volume
+                        // crank up the volume
                         sndOut.WriteSndByte(0);
                         sndOut.WriteSndByte((byte)(0xB0 + lngWriteTrack));
                         sndOut.WriteSndByte(7);
@@ -1004,7 +983,8 @@ namespace WinAGI.Engine {
                         //    7  6  5  4  3  2  1  0
                         //
                         //    1  .  .  .  .  .  .  .      Always 1.
-                        //    .  1  1  0  .  .  .  .      Register number in T1 chip (6)
+                        //    .  1  1  .  .  .  .  .      Register number in T1 chip (3)
+                        //    .  .  .  0  .  .  .  .      Data type (0 = frequency)
                         //    .  .  .  .  X  .  .  .      Unused, ignored; can be set to 0 or 1
                         //    .  .  .  .  .  FB .  .      1 for white noise, 0 for periodic
                         //    .  .  .  .  .  . NF0 NF1    2 noise frequency control bits
@@ -1098,7 +1078,7 @@ namespace WinAGI.Engine {
             // Length value gets calculated by counting total number of ticks.
             // Assumption is 60 ticks per second; nothing to indicate that is
             // not correct. All sounds 'sound' right, so we go with it.
-
+            //
             // The raw midi data embedded in the sound seems to play OK when
             // using 'high-end' players (WinAmp as an example) but not in
             // Windows Media Player, or the Windows midi API functions. ; even
@@ -1107,7 +1087,7 @@ namespace WinAGI.Engine {
             // to the presence of the 0xFC commands. It looks like every IIgs
             // sound resource has them; sometimes one 0xFC ends the file, other
             // times there are a series of them that are followed by a set of
-            // 0xDx and 0xBx commands that appear to reset all 16 channels.
+            // 0xD# and 0xB# commands that appear to reset all 16 channels.
             // Eliminating the 0xFC command and everything that follows plays
             // the sound correctly (I think). A common 'null' file in IIgs games
             // is one with just four 0xFC codes, and nothing else.
@@ -1115,7 +1095,7 @@ namespace WinAGI.Engine {
             byte[] midiIn, midiOut;
             int lngTicks = 0, lngTime;
             byte bytIn, bytCmd = 0, bytChannel = 0;
-            //local copy of data -easier to manipulate
+            // local copy of data -easier to manipulate
             midiIn = SoundIn.Data;
 
             // start with size of input data, assuming it all gets used, plus
@@ -1353,32 +1333,21 @@ namespace WinAGI.Engine {
         internal static byte[] BuildIIgsPCM(Sound SoundIn) {
             int lngSize;
             byte[] bData, bOutput;
-            // required format for WAV data file:
-            // Positions      Value           Description
-            //   0 - 3        "RIFF"          Marks the file as a riff (WAV) file.
-            //   4 - 7        <varies>        Size of the overall file
-            //   8 -11        "WAVE"          File Type Header. (should always equals "WAVE")
-            //   12-15        "fmt "          Format chunk marker. Includes trailing space
-            //   16-19        16              Length of format header data as listed above
-            //   20-21        1               Type of format (1 is PCM)
-            //   22-23        1               Number of Channels
-            //   24-27        8000            Sample Rate
-            //   28-31        8000            (Sample Rate * BitsPerSample * Channels) / 8
-            //   32-33        1               (BitsPerSample * Channels) / 8 (1 - 8 bit mono)
-            //   34-35        8               Bits per sample
-            //   36-39        "data"          "data" chunk header. Marks the beginning of the data section.
-            //   40-43        <varies>        Size of the data section.
-            //   44+          data
+            // This method creates just the data stream, not the header. The header is
+            // only needed when creating a WAV file.
 
             bData = SoundIn.Data;
-            // size of sound data is total file size, minus the PCM header 
-            lngSize = bData.Length - 50; // 54;
+            // size of sound data is total resource size, minus the PCM header that
+            // AGI includes in the sound resource (54 bytes) plus four bytes for an
+            // end of stream marker (for a net of -50 bytes).
+            lngSize = bData.Length - 50;
             bOutput = new byte[lngSize];
             // copy data from sound resource
             int pos = 0;
             for (int i = 54; i < bData.Length; i++) {
                 bOutput[pos++] = bData[i];
             }
+            // add four bytes of silence as an end marker
             bOutput[^1] = 127;
             bOutput[^2] = 127;
             bOutput[^3] = 127;
@@ -1414,18 +1383,18 @@ namespace WinAGI.Engine {
     /// A class to provide LZW decompression support for AGI v3 resources.
     /// </summary>
     internal static class AGILZW {
-        // constants used in extracting compressed resources
+        #region Members
         const int TABLE_SIZE = 18041;
         const int START_BITS = 9;
-
-        // variables used in extracting compressed resources
         private static int lngMaxCode;
         private static uint[] intPrefix;
         private static byte[] bytAppend;
         private static int lngBitsInBuffer;
         private static uint lngBitBuffer;
         private static int lngOriginalSize;
+        #endregion
 
+        #region Methods
         /// <summary>
         /// Expands a v3 AGI resource that is compressed using Sierra's custom LZW
         /// implementation.
@@ -1439,11 +1408,10 @@ namespace WinAGI.Engine {
             string strDat;
             char strChar;
             int intCodeSize;
-            byte[] bytTempData;
             intPrefix = new uint[TABLE_SIZE];
             bytAppend = new byte[TABLE_SIZE];
             // set temporary data field
-            bytTempData = new byte[fullsize];
+            byte[] bytTempData = new byte[fullsize];
             // original size is determined by array bounds
             lngOriginalSize = bytOriginalData.Length;
             intPosIn = 0;
@@ -1531,7 +1499,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// LZW Decompression: A method that converts a code value into its original string value.
+        /// A method that converts a code value into its original string value.
         /// </summary>
         /// <param name="intCode"></param>
         /// <returns></returns>
@@ -1552,7 +1520,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// LZW Decompression: This method extracts the next code Value off the input stream.
+        /// This method extracts the next code Value off the input stream.
         /// Since the number of bits per code can vary between 9 and 12, we can't read in
         /// directly from the stream.
         /// </summary>
@@ -1588,9 +1556,9 @@ namespace WinAGI.Engine {
             while ((lngBitsInBuffer <= 24) && (intPosIn < lngOriginalSize)) {
                 lngWord = bytData[intPosIn++];
                 // shift the data to the left by enough bits so the byte being added will not
-                //overwrite the bits currently in the buffer, and add the bits to the buffer
+                // overwrite the bits currently in the buffer, and add the bits to the buffer
                 lngBitBuffer |= (lngWord << lngBitsInBuffer);
-                //increment count of how many bits are currently in the buffer
+                // increment count of how many bits are currently in the buffer
                 lngBitsInBuffer += 8;
             }
             // The input code starts at the lowest bit in the buffer. Since the buffer has
@@ -1606,7 +1574,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// LZW Decompression: This method supports the expansion of compressed resources.
+        /// This method supports the expansion of compressed resources.
         /// It sets the size of codes which the LZW routine uses. The code size starts at
         /// 9 bits, then increases as all code tables are filled. The max code size is 11;
         /// if an attempt is made to set a code size above that, the function does nothing.
@@ -1630,5 +1598,6 @@ namespace WinAGI.Engine {
             }
             return retval;
         }
+        #endregion
     }
 }

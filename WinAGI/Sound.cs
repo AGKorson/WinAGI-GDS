@@ -9,6 +9,7 @@ namespace WinAGI.Engine {
     /// A class that represents an AGI Sound resource, with WinAGI extensions.
     /// </summary>
     public class Sound : AGIResource {
+        #region Members
         internal Track[] mTrack = new Track[4];
         bool mTracksSet;
         double mLength;
@@ -18,7 +19,9 @@ namespace WinAGI.Engine {
         byte[] midiData = [];
         byte[] wavData = [];
         bool mOutputSet;
+        #endregion
 
+        #region Events
         // Sound resources include an event to notify calling programs when playback
         // of a sound is complete.
 
@@ -35,21 +38,19 @@ namespace WinAGI.Engine {
         internal void OnSoundComplete(bool noerror) {
             // Raise the event in a thread-safe manner using the ?. operator.
             SoundComplete?.Invoke(this, new SoundCompleteEventArgs(noerror));
-
         }
+        #endregion
 
+        #region Constructors
         /// <summary>
         /// Constructor to create a new AGI sound resource that is not part of an AGI game.
         /// </summary>
         public Sound() : base(AGIResType.Sound) {
-            // new sound, not in game
-
-            //initialize
-            InitSound();
-            // create a default ID
-            mResID = "NewSound";
-            // if not in a game, resource is always loaded
+            // not in a game so resource is always loaded
             mLoaded = true;
+            InitSound();
+            // use a default ID
+            mResID = "NewSound";
         }
 
         /// <summary>
@@ -72,15 +73,150 @@ namespace WinAGI.Engine {
         /// <param name="VOL"></param>
         /// <param name="Loc"></param>
         internal Sound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.Sound) {
-            // adds this resource to a game, setting its resource 
-            // location properties, and reads properties from the wag file
-
-            // set up base resource
+            InitSound(null);
             base.InitInGame(parent, AGIResType.Sound, ResNum, VOL, Loc);
-            //length is undefined until sound is built
+            // length is undefined until sound is built
             mLength = -1;
         }
+        #endregion
 
+        #region Properties
+        /// <summary>
+        /// Gets the specified track for this sound.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public Track this[int index] {
+            get {
+                if (index < 0 || index > 3) {
+                    throw new IndexOutOfRangeException("invalid track number");
+                }
+                return Track(index);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the key signature to use when displaying notes for this sound.
+        /// </summary>
+        public int Key {
+            get => mKey;
+            set {
+                if (value < -7 || value > 7) {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+                if (mKey != value) {
+                    mKey = value;
+                    PropsDirty = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the sound format for this sound resource. Undefined if sound is not loaded.
+        /// </summary>
+        public SoundFormat SndFormat {
+            //  0 = not loaded
+            //  1 = //standard// agi
+            //  2 = IIgs sampled sound
+            //  3 = IIgs midi
+            get {
+                if (mLoaded) {
+                    return mFormat;
+                }
+                else {
+                    return SoundFormat.sfUndefined;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the length of this sound in seconds.
+        /// </summary>
+        public double Length {
+            get {
+                if (!mLoaded) {
+                    return -1;
+                }
+                if (mLength == -1) {
+                    mLength = GetSoundLength();
+                }
+                return mLength;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the Ticks Per Quarter Note property for this sound.
+        /// </summary>
+        public int TPQN {
+            get {
+                return mTPQN;
+            }
+            set {
+                value = (value / 4) * 4;
+                if (value < 4 || value > 64) {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+                if (mTPQN != value) {
+                    mTPQN = value;
+                    PropsDirty = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the WAV data stream for this sound for playback. Only appliciable for
+        /// PCjr and IIgs PCM sounds.
+        /// </summary>
+        public byte[] WAVData {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfWAV) {
+                    WinAGIException wex = new(LoadResString(705)) {
+                        HResult = WINAGI_ERR + 705,
+                    };
+                    throw wex;
+                }
+                if (!mOutputSet) {
+                    try {
+                        BuildSoundOutput();
+                    }
+                    catch (Exception) {
+                        // pass along errors
+                        throw;
+                    }
+                }
+                return wavData;
+            }
+        }
+
+        /// <summary>
+        /// Gets the MIDI data stream for this sound for playback. Only applicable for
+        /// PCjr and IIgs MIDI sounds.
+        /// </summary>
+        public byte[] MIDIData {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfMIDI) {
+                    WinAGIException wex = new(LoadResString(705)) {
+                        HResult = WINAGI_ERR + 705,
+                    };
+                    throw wex;
+                }
+                if (!mOutputSet) {
+                    try {
+                        BuildSoundOutput();
+                    }
+                    catch (Exception) {
+                        // pass along errors
+                        throw;
+                    }
+                }
+                return midiData;
+            }
+        }
+        #endregion
+
+        #region Methods
         /// <summary>
         /// Initializes a new sound resource when first instantiated. If NewSound is null, 
         /// a blank sound resource is created. If NewSound is not null, it is cloned into
@@ -116,7 +252,7 @@ namespace WinAGI.Engine {
                 mTracksSet = NewSound.mTracksSet;
                 mLength = NewSound.mLength;
                 mFormat = NewSound.mFormat;
-                //never copy output build status; cloned sound will have to rebuild it
+                // never copy output build status; cloned sound will have to rebuild it
                 mOutputSet = false;
                 // clone the tracks
                 for (int i = 0; i < 4; i++) {
@@ -150,7 +286,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// This method creates midi/wav output data stream for a sound resource.
+        /// This method creates midi and wav output data stream for a sound resource.
         /// </summary>
         void BuildSoundOutput() {
             try {
@@ -215,54 +351,6 @@ namespace WinAGI.Engine {
                 break;
             }
             return retval;
-        }
-
-        /// <summary>
-        /// Gets the track for this sound corresponding to index.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public Track this[int index] {
-            get {
-                if (index < 0 || index > 3) {
-                    throw new IndexOutOfRangeException("invalid track number");
-                }
-                return Track(index);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the key signature to use when displaying notes for this sound.
-        /// </summary>
-        public int Key {
-            get => mKey;
-            set {
-                if (value < -7 || value > 7) {
-                    throw new ArgumentOutOfRangeException(nameof(value));
-                }
-                if (mKey != value) {
-                    mKey = value;
-                    PropsDirty = true;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the sound format for this sound resource. Undefined if sound is not loaded.
-        /// </summary>
-        public SoundFormat SndFormat {
-            //  0 = not loaded
-            //  1 = //standard// agi
-            //  2 = IIgs sampled sound
-            //  3 = IIgs midi
-            get {
-                if (mLoaded) {
-                    return mFormat;
-                }
-                else {
-                    return SoundFormat.sfUndefined;
-                }
-            }
         }
 
         /// <summary>
@@ -439,28 +527,12 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        /// Gets the length of this sound in seconds.
-        /// </summary>
-        public double Length {
-            get {
-                if (!mLoaded) {
-                    return -1;
-                }
-                if (mLength == -1) {
-                    mLength = (double)GetSoundLength();
-                }
-                return mLength;
-            }
-        }
-
-        /// <summary>
         /// Plays this sound asynchronsously. The output is determined by mode:<br />
         /// 0 = emulated PCjr soundchip<br />
         /// 1 = MIDI (converted from PCjr sound, or native Apple IIgs MIDI)<br />
         /// 2 = wav (from a native Apple IIgs PCM wav file)
         /// </summary>
         /// <param name="mode"></param>
-        /// <exception cref="Exception"></exception>
         public void PlaySound(SoundFormat mode) {
             WinAGIException.ThrowIfNotLoaded(this);
             switch (mode) {
@@ -546,6 +618,13 @@ namespace WinAGI.Engine {
         public void ExportAsMIDI(string MIDIFile) {
             WinAGIException.ThrowIfNotLoaded(this);
 
+            // only pcjr and IIgs midi can be exported as midi
+            if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfMIDI) {
+                WinAGIException wex = new(LoadResString(705)) {
+                    HResult = WINAGI_ERR + 705,
+                };
+                throw wex;
+            }
             if (!mTracksSet) {
                 try {
                     CompileSound();
@@ -553,13 +632,6 @@ namespace WinAGI.Engine {
                 catch (Exception) {
                     throw;
                 }
-            }
-            // pcjr and IIgs midi can be exported as midi
-            if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfMIDI) {
-                WinAGIException wex = new(LoadResString(705)) {
-                    HResult = WINAGI_ERR + 705,
-                };
-                throw wex;
             }
             try {
                 if (!mOutputSet) {
@@ -584,7 +656,16 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="WAVFile"></param>
         public void ExportAsWAV(string WAVFile) {
+            int lngSize;
+
             WinAGIException.ThrowIfNotLoaded(this);
+            // only pcjr and IIgs pcm can be exported as wav file
+            if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfWAV) {
+                WinAGIException wex = new(LoadResString(705)) {
+                    HResult = WINAGI_ERR + 705,
+                };
+                throw wex;
+            }
             if (!mTracksSet) {
                 try {
                     CompileSound();
@@ -593,13 +674,6 @@ namespace WinAGI.Engine {
                     throw;
                 }
             }
-            // only pcjr and IIgs pcm can be exported as wav file
-            if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfWAV) {
-                WinAGIException wex = new(LoadResString(705)) {
-                    HResult = WINAGI_ERR + 705,
-                };
-                throw wex;
-            } // TODO: different header for pcjr
             try {
                 if (!mOutputSet) {
                     BuildSoundOutput();
@@ -607,9 +681,19 @@ namespace WinAGI.Engine {
                 if (File.Exists(WAVFile)) {
                     File.Delete(WAVFile);
                 }
-                // add header to wave data
+
+                if (mFormat == SoundFormat.sfAGI) {
+                    // get size from the wav stream
+                    lngSize = wavData.Length;
+                }
+                else {
+                    // size of sound data is total file size, minus the PCM header 
+                    lngSize = mData.Length - 54;
+                }
+                byte[] bOutput = new byte[lngSize];
+                bOutput = new byte[44 + lngSize];
                 // required format for WAV data file:
-                // Positions      Value           Description
+                // Position       Value           Description
                 //   0 - 3        "RIFF"          Marks the file as a riff (WAV) file.
                 //   4 - 7        <varies>        Size of the overall file
                 //   8 -11        "WAVE"          File Type Header. (should always equals "WAVE")
@@ -624,14 +708,6 @@ namespace WinAGI.Engine {
                 //   36-39        "data"          "data" chunk header. Marks the beginning of the data section.
                 //   40-43        <varies>        Size of the data section.
                 //   44+          data
-                byte[] bData = mData;
-                // size of sound data is total file size, minus the PCM header 
-                int lngSize = bData.Length - 54;
-                byte[] bOutput = new byte[lngSize];
-                // expand midi data array to hold the sound resource data plus
-                // the WAV file header
-                bOutput = new byte[44 + lngSize];
-                // add header
                 bOutput[0] = 82;
                 bOutput[1] = 73;
                 bOutput[2] = 70;
@@ -672,14 +748,24 @@ namespace WinAGI.Engine {
                 bOutput[37] = 97;
                 bOutput[38] = 116;
                 bOutput[39] = 97;
+                // ????????????why subtract 2???????????????
                 bOutput[40] = (byte)((lngSize - 2) & 0xFF);
                 bOutput[41] = (byte)(((lngSize - 2) >> 8) & 0xFF);
                 bOutput[42] = (byte)(((lngSize - 2) >> 16) & 0xFF);
                 bOutput[43] = (byte)((lngSize - 2) >> 24);
-                // copy data from sound resource
+                // add data
                 int pos = 44;
-                for (int i = 54; i < bData.Length; i++) {
-                    bOutput[pos++] = bData[i];
+                if (mFormat == SoundFormat.sfAGI) {
+                    // copy data from wav stream
+                    for (int i = 0; i < wavData.Length; i++) {
+                        bOutput[pos++] = wavData[i];
+                    }
+                }
+                else {
+                    // copy data from sound resource
+                    for (int i = 54; i < mData.Length; i++) {
+                        bOutput[pos++] = mData[i];
+                    }
                 }
                 FileStream fsSnd = new(WAVFile, FileMode.Open);
                 fsSnd.Write(wavData);
@@ -1098,25 +1184,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets or sets the Ticks Per Quarter Note property for this sound.
-        /// </summary>
-        public int TPQN {
-            get {
-                return mTPQN;
-            }
-            set {
-                value = (value / 4) * 4;
-                if (value < 4 || value > 64) {
-                    throw new ArgumentOutOfRangeException(nameof(value));
-                }
-                if (mTPQN != value) {
-                    mTPQN = value;
-                    PropsDirty = true;
-                }
-            }
-        }
-
-        /// <summary>
         /// Gets the track object corresponding to index. If tracks are not set,
         /// they are rebuilt first.
         /// </summary>
@@ -1125,7 +1192,6 @@ namespace WinAGI.Engine {
         /// <exception cref="IndexOutOfRangeException"></exception>
         public Track Track(int Index) {
             WinAGIException.ThrowIfNotLoaded(this);
-            //validate index
             if (Index < 0 || Index > 3) {
                 throw new IndexOutOfRangeException("Index out of bounds");
             }
@@ -1185,12 +1251,10 @@ namespace WinAGI.Engine {
                 FinishLoad();
                 // get settings
                 mKey = parent.agGameProps.GetSetting("Sound" + mResNum, "Key", 0);
-                //validate it
                 if (mKey < -7 || mKey > 7) {
                     mKey = 0;
                 }
                 mTPQN = parent.agGameProps.GetSetting("Sound" + mResNum, "TPQN", 0);
-                //validate it
                 mTPQN = (mTPQN / 4) * 4;
                 if (mTPQN < 4) {
                     mTPQN = 4;
@@ -1253,58 +1317,6 @@ namespace WinAGI.Engine {
             catch (Exception) {
                 // pass along errors
                 throw;
-            }
-        }
-
-        /// <summary>
-        /// Gets the WAV data stream for this sound for playback. Only appliciable for
-        /// PCjr and IIgs PCM sounds.
-        /// </summary>
-        public byte[] WAVData {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfWAV) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
-                    };
-                    throw wex;
-                }
-                if (!mOutputSet) {
-                    try {
-                        BuildSoundOutput();
-                    }
-                    catch (Exception) {
-                        // pass along errors
-                        throw;
-                    }
-                }
-                return wavData;
-            }
-        }
-
-        /// <summary>
-        /// Gets the MIDI data stream for this sound for playback. Only applicable for
-        /// PCjr and IIgs MIDI sounds.
-        /// </summary>
-        public byte[] MIDIData {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfMIDI) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
-                    };
-                    throw wex;
-                }
-                if (!mOutputSet) {
-                    try {
-                        BuildSoundOutput();
-                    }
-                    catch (Exception) {
-                        // pass along errors
-                        throw;
-                    }
-                }
-                return midiData;
             }
         }
 
@@ -1391,5 +1403,6 @@ namespace WinAGI.Engine {
             }
             mTracksSet = false;
         }
+        #endregion
     }
 }

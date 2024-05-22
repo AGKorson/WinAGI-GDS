@@ -6,7 +6,6 @@ using WinAGI.Common;
 using static WinAGI.Engine.PictureFunctions;
 
 namespace WinAGI.Engine {
-
     /// <summary>
     /// A class that represents an AGI Picture resource, with WinAGI extensions.
     /// </summary>
@@ -141,7 +140,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Internal constructor to initialize a new or cloned picture resource being added to an AGI game.
+        /// Internal constructor to initialize a new or cloned picture resource being added
+        /// to an AGI game.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="ResNum"></param>

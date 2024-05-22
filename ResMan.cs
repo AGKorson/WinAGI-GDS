@@ -1847,7 +1847,7 @@ namespace WinAGI.Editor {
                     if (EditGame.Logics.Count > 0) {
                         for (i = 0; i <= 255; i++) {
                             //if a valid resource
-                            if (EditGame.Logics.Exists((byte)i)) {
+                            if (EditGame.Logics.Contains((byte)i)) {
                                 tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sLOGICS].Nodes.Add("l" + i, ResourceName(EditGame.Logics[(byte)i], true));
                                 tmpNode.Tag = i;
                                 // get compiled status
@@ -1863,7 +1863,7 @@ namespace WinAGI.Editor {
                     if (EditGame.Pictures.Count > 0) {
                         for (i = 0; i <= 255; i++) {
                             //if a valid resource
-                            if (EditGame.Pictures.Exists((byte)i)) {
+                            if (EditGame.Pictures.Contains((byte)i)) {
                                 tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sPICTURES].Nodes.Add("p" + i, ResourceName(EditGame.Pictures[(byte)i], true));
                                 tmpNode.Tag = i;
                                 tmpNode.ForeColor = EditGame.Pictures[(byte)i].ErrLevel >= 0 ? Color.Black : Color.Red;
@@ -1873,7 +1873,7 @@ namespace WinAGI.Editor {
                     if (EditGame.Sounds.Count > 0) {
                         for (i = 0; i <= 255; i++) {
                             //if a valid resource
-                            if (EditGame.Sounds.Exists((byte)i)) {
+                            if (EditGame.Sounds.Contains((byte)i)) {
                                 tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sSOUNDS].Nodes.Add("s" + i, ResourceName(EditGame.Sounds[(byte)i], true));
                                 tmpNode.Tag = i;
                                 tmpNode.ForeColor = EditGame.Sounds[(byte)i].ErrLevel >= 0 ? Color.Black : Color.Red;
@@ -1883,7 +1883,7 @@ namespace WinAGI.Editor {
                     if (EditGame.Views.Count > 0) {
                         for (i = 0; i <= 255; i++) {
                             //if a valid resource
-                            if (EditGame.Views.Exists((byte)i)) {
+                            if (EditGame.Views.Contains((byte)i)) {
                                 tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sVIEWS].Nodes.Add("v" + i, ResourceName(EditGame.Views[(byte)i], true));
                                 tmpNode.Tag = i;
                                 tmpNode.ForeColor = EditGame.Views[(byte)i].ErrLevel >= 0 ? Color.Black : Color.Red;
@@ -2122,7 +2122,7 @@ namespace WinAGI.Editor {
             //logics first
             last = EditGame.Logics.Max;
             for (i = 0; i <= last; i++) {
-                if (EditGame.Logics.Exists((byte)i)) {
+                if (EditGame.Logics.Contains((byte)i)) {
                     tmpDef.Name = EditGame.Logics[(byte)i].ID;
                     tmpDef.Type = atNum;
                     tmpDef.Value = i.ToString();
@@ -2141,7 +2141,7 @@ namespace WinAGI.Editor {
             //views next
             last = EditGame.Views.Max;
             for (i = 0; i <= last; i++) {
-                if (EditGame.Views.Exists((byte)i)) {
+                if (EditGame.Views.Contains((byte)i)) {
                     tmpDef.Name = EditGame.Views[(byte)i].ID;
                     tmpDef.Type = atNum;
                     tmpDef.Value = i.ToString();
@@ -2159,7 +2159,7 @@ namespace WinAGI.Editor {
             //then sounds next
             last = EditGame.Sounds.Max;
             for (i = 0; i <= last; i++) {
-                if (EditGame.Sounds.Exists((byte)i)) {
+                if (EditGame.Sounds.Contains((byte)i)) {
                     tmpDef.Name = EditGame.Sounds[(byte)i].ID;
                     tmpDef.Type = atNum;
                     tmpDef.Value = i.ToString();
@@ -2177,7 +2177,7 @@ namespace WinAGI.Editor {
             //pictures last (least likely to be used in a logic by ID)
             last = EditGame.Pictures.Max;
             for (i = 0; i <= last; i++) {
-                if (EditGame.Pictures.Exists((byte)i)) {
+                if (EditGame.Pictures.Contains((byte)i)) {
                     tmpDef.Name = EditGame.Pictures[(byte)i].ID;
                     tmpDef.Type = atNum;
                     tmpDef.Value = i.ToString();
@@ -12131,7 +12131,7 @@ namespace WinAGI.Editor {
                 //if including picture
                 if (GetResNum.chkIncludePic.Checked) {
                     // if replacing an existing pic
-                    if (EditGame.Pictures.Exists(GetResNum.NewResNum)) {
+                    if (EditGame.Pictures.Contains(GetResNum.NewResNum)) {
                         RemovePicture(GetResNum.NewResNum);
                     }
                     AddNewPicture(GetResNum.NewResNum, null);
@@ -12874,7 +12874,7 @@ namespace WinAGI.Editor {
             //removes a picture from the game, and updates
             //preview and resource windows
             //and deletes resource file from source directory
-            if (!EditGame.Pictures.Exists(PicNum)) {
+            if (!EditGame.Pictures.Contains(PicNum)) {
                 // error
                 WinAGIException wex = new("Invalid Picture number passed to RemovePicture (picture does not exist)") {
                     HResult = WINAGI_ERR + 999,

@@ -402,7 +402,7 @@ namespace WinAGI.Engine {
                                 switch (bytCmd) {
                                 case 18:
                                     // new.room - only arg is a logic
-                                    if (compGame.agLogs.Exists(bytCurData)) {
+                                    if (compGame.agLogs.Contains(bytCurData)) {
                                         strArg = compGame.agLogs[bytCurData].ID;
                                     }
                                     else {
@@ -411,7 +411,7 @@ namespace WinAGI.Engine {
                                     break;
                                 case 20: 
                                     // load.logics - only arg is a logic
-                                    if (compGame.agLogs.Exists(bytCurData)) {
+                                    if (compGame.agLogs.Contains(bytCurData)) {
                                         strArg = compGame.agLogs[bytCurData].ID;
                                     }
                                     else {
@@ -420,7 +420,7 @@ namespace WinAGI.Engine {
                                     break;
                                 case 22:
                                     // call - only arg is a logic
-                                    if (compGame.agLogs.Exists(bytCurData)) {
+                                    if (compGame.agLogs.Contains(bytCurData)) {
                                         strArg = compGame.agLogs[bytCurData].ID;
                                     }
                                     else {
@@ -429,7 +429,7 @@ namespace WinAGI.Engine {
                                     break;
                                 case 30:  
                                     // load.view - only arg is a view
-                                    if (compGame.agViews.Exists(bytCurData)) {
+                                    if (compGame.agViews.Contains(bytCurData)) {
                                         strArg = compGame.agViews[bytCurData].ID;
                                     }
                                     else {
@@ -438,7 +438,7 @@ namespace WinAGI.Engine {
                                     break;
                                 case 32: 
                                     // discard.view - only arg is a view
-                                    if (compGame.agViews.Exists(bytCurData)) {
+                                    if (compGame.agViews.Contains(bytCurData)) {
                                         strArg = compGame.agViews[bytCurData].ID;
                                     }
                                     else {
@@ -448,7 +448,7 @@ namespace WinAGI.Engine {
                                 case 41: 
                                     // set.view - 2nd arg is a view
                                     if (intArg == 1) {
-                                        if (compGame.agViews.Exists(bytCurData)) {
+                                        if (compGame.agViews.Contains(bytCurData)) {
                                             strArg = compGame.agViews[bytCurData].ID;
                                         }
                                         else {
@@ -458,7 +458,7 @@ namespace WinAGI.Engine {
                                     break;
                                 case 98:  
                                     // load.sound - only arg is asound
-                                    if (compGame.agSnds.Exists(bytCurData)) {
+                                    if (compGame.agSnds.Contains(bytCurData)) {
                                         strArg = compGame.agSnds[bytCurData].ID;
                                     }
                                     else {
@@ -468,7 +468,7 @@ namespace WinAGI.Engine {
                                 case 99: 
                                     // sound = 1st arg is a sound
                                     if (intArg == 0) {
-                                        if (compGame.agSnds.Exists(bytCurData)) {
+                                        if (compGame.agSnds.Contains(bytCurData)) {
                                             strArg = compGame.agSnds[bytCurData].ID;
                                         }
                                         else {
@@ -479,7 +479,7 @@ namespace WinAGI.Engine {
                                 case 122:
                                     // add.to.pic - 1st arg is a view
                                     if (intArg == 0) {
-                                        if (compGame.agViews.Exists(bytCurData)) {
+                                        if (compGame.agViews.Contains(bytCurData)) {
                                             strArg = compGame.agViews[bytCurData].ID;
                                         }
                                         else {
@@ -489,7 +489,7 @@ namespace WinAGI.Engine {
                                     break;
                                 case 129: 
                                     // show.obj - only arg is a view
-                                    if (compGame.agViews.Exists(bytCurData)) {
+                                    if (compGame.agViews.Contains(bytCurData)) {
                                         strArg = compGame.agViews[bytCurData].ID;
                                     }
                                     else {
@@ -499,7 +499,7 @@ namespace WinAGI.Engine {
                                 case 150:
                                     // trace.info - 1st arg is a logic
                                     if (intArg == 0) {
-                                        if (compGame.agLogs.Exists(bytCurData)) {
+                                        if (compGame.agLogs.Contains(bytCurData)) {
                                             strArg = compGame.agLogs[bytCurData].ID;
                                         }
                                         else {
@@ -509,7 +509,7 @@ namespace WinAGI.Engine {
                                     break;
                                 case 175:
                                     // discard.sound - only arg is a sound
-                                    if (compGame.agSnds.Exists(bytCurData)) {
+                                    if (compGame.agSnds.Contains(bytCurData)) {
                                         strArg = compGame.agSnds[bytCurData].ID;
                                     }
                                     else {

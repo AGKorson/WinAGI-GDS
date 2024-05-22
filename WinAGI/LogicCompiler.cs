@@ -3456,7 +3456,7 @@ namespace WinAGI.Engine {
                                 break;
                             case DefineType.View:
                                 // view only
-                                if (compGame is not null && byte.TryParse(tdNewDefine.Value, out _) && compGame.agViews.Exists(byte.Parse(tdNewDefine.Value))) {
+                                if (compGame is not null && byte.TryParse(tdNewDefine.Value, out _) && compGame.agViews.Contains(byte.Parse(tdNewDefine.Value))) {
                                     tdNewDefine.Type = atView;
                                 }
                                 else {
@@ -4475,7 +4475,7 @@ namespace WinAGI.Engine {
                 break;
             case 18:
                 // new.room(A)
-                if (!compGame.agLogs.Exists(ArgVal[0])) {
+                if (!compGame.agLogs.Contains(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4120";
@@ -4497,7 +4497,7 @@ namespace WinAGI.Engine {
                 break;
             case 20:
                 // load.logics(A)
-                if (!compGame.agLogs.Exists(ArgVal[0])) {
+                if (!compGame.agLogs.Contains(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4121";
@@ -4523,7 +4523,7 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                if (!compGame.agLogs.Exists(ArgVal[0])) {
+                if (!compGame.agLogs.Contains(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4156";
@@ -4549,7 +4549,7 @@ namespace WinAGI.Engine {
                 break;
             case 30:
                 // load.view(A)
-                if (!compGame.agViews.Exists(ArgVal[0])) {
+                if (!compGame.agViews.Contains(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4122";
@@ -4563,7 +4563,7 @@ namespace WinAGI.Engine {
                 break;
             case 32:
                 // discard.view(A)
-                if (!compGame.agViews.Exists(ArgVal[0])) {
+                if (!compGame.agViews.Contains(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4123";
@@ -4601,7 +4601,7 @@ namespace WinAGI.Engine {
                 break;
             case 41:
                 // set.view(oA, B)
-                if (!compGame.agViews.Exists(ArgVal[1])) {
+                if (!compGame.agViews.Contains(ArgVal[1])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4124";
@@ -4842,7 +4842,7 @@ namespace WinAGI.Engine {
                 break;
             case 98:
                 // load.sound(A)
-                if (!compGame.agSnds.Exists(ArgVal[0])) {
+                if (!compGame.agSnds.Contains(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4130";
@@ -4856,7 +4856,7 @@ namespace WinAGI.Engine {
                 break;
             case 99:
                 // sound(A, fB)
-                if (!compGame.agSnds.Exists(ArgVal[0])) {
+                if (!compGame.agSnds.Contains(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4137";
@@ -5096,7 +5096,7 @@ namespace WinAGI.Engine {
                 break;
             case 122:
                 // add.to.pic(VIEW,LOOP,CEL,X,Y,PRI,MGN)
-                if (!compGame.agViews.Exists(ArgVal[0])) {
+                if (!compGame.agViews.Contains(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4138";
@@ -5217,7 +5217,7 @@ namespace WinAGI.Engine {
                 break;
             case 129:
                 // show.obj(VIEW)
-                if (!compGame.agViews.Exists(ArgVal[0])) {
+                if (!compGame.agViews.Contains(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4144";
@@ -5329,7 +5329,7 @@ namespace WinAGI.Engine {
                 break;
             case 150:
                 // trace.info(LOGIC,ROW,HEIGHT)
-                if (!compGame.agLogs.Exists(ArgVal[0])) {
+                if (!compGame.agLogs.Contains(ArgVal[0])) {
                     switch (ErrorLevel) {
                     case High:
                         errInfo.ID = "4153";

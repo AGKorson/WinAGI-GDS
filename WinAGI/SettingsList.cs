@@ -1,21 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
-using System.Drawing;
-using System.Globalization;
-using System.Diagnostics;
 using static WinAGI.Engine.Base;
-using System.Diagnostics.Eventing.Reader;
-using System.Security.Cryptography;
 
 namespace WinAGI.Engine {
 
     /// <summary>
     /// A class to manage a settings file. It handles opening, adding and deleting sections
     /// and key/value pairs. Sections can be assigned to groups to keep the file organized.
-    /// 
     /// </summary>
     public class SettingsList {
         // elements of a settings list file:
@@ -32,8 +28,11 @@ namespace WinAGI.Engine {
         //                    for multiword strings, or for values that include '#'
         //  if string is multline, use '\n' control code (and use multiline option)
 
+        #region Members
         public List<string> Lines = [];
+        #endregion
 
+        #region Constructors
         /// <summary>
         /// Creates a new settings list. Allowable options for mode are FileMode.Create,
         /// FileMode.OpenOrCreate, or FileMode.Open. If filename is not valid, or if file
@@ -137,9 +136,11 @@ namespace WinAGI.Engine {
         /// be assigned.
         /// </summary>
         public SettingsList() {
-
+            //
         }
+        #endregion
 
+        #region Properties
         /// <summary>
         /// Gets or sets the filename for the settings file.
         /// </summary>
@@ -147,7 +148,9 @@ namespace WinAGI.Engine {
             get;
             set;
         }
+        #endregion
 
+        #region Methods
         /// <summary>
         /// Adds or updates a key/value pair of type string. 
         /// </summary>
@@ -492,7 +495,6 @@ namespace WinAGI.Engine {
                 foreach (string line in Lines) {
                     cfgSR.WriteLine(line);
                 }
-                // dispose it
                 cfgSR.Dispose();
             }
             catch (Exception ex) {
@@ -507,7 +509,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Formats a value so it can be added to the settings list
+        /// Formats a string value so it can be added to the settings list
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -517,7 +519,7 @@ namespace WinAGI.Engine {
                 return "\"\"";
             }
             // if value contains spaces or '#', it must be enclosed in quotes
-            if (retval.IndexOf(' ') >= 0 || retval.IndexOf('#') >= 0) {
+            if (retval.Contains(' ') || retval.Contains('#')) {
                 if (retval[0] != '"') {
                     retval = "\"" + retval;
                 }
@@ -551,7 +553,7 @@ namespace WinAGI.Engine {
             int i;
             int startPos, endPos;
 
-           // find the section we are looking for
+            // find the section we are looking for
             int lngSection = FindSettingSection(Section);
             // if not found,
             if (lngSection < 0) {
@@ -793,7 +795,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Retrieves a value from the list of type double.
+        /// Retrieves a value from the list of type bool.
         /// </summary>
         /// <param name="Section"></param>
         /// <param name="Key"></param>
@@ -905,15 +907,14 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Retrieves the next value from the list, beginning at line Start. If found, Start
-        /// is updated to the next line. 
+        /// Retrieves the next value in the specified section from the list, beginning
+        /// at line Start. If found, Start is updated to the next line. 
         /// </summary>
         /// <param name="Section"></param>
         /// <param name="Key"></param>
         /// <param name="Start"></param>
         /// <returns></returns>
         public string GetNextSetting(ref string Section, ref string Key, ref int Start) {
-
             // this function looks for keys in a wild card section; meaning the next
             // section that begins with the Section value; it allows for multiple sections
             // to share a name, or use counting values, such as those used in earlier
@@ -1036,18 +1037,18 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="Section"></param>
         public void DeleteSection(string Section) {
-            int lngPos, lngSection;
+            int lngSection;
             string strLine;
 
-            // find the section we are looking for (skip 1st line; it's the filename)
+            // find the section we are looking for
             lngSection = FindSettingSection(Section);
-            // if not found,
             if (lngSection == -1) {
                 // nothing to delete
                 return;
             }
-            // step through all lines in this section, deleting until another section or end of list is found
-            do {
+            // step through all lines in this section, deleting until another section
+            // or end of list is found
+            while (lngSection < Lines.Count) {
                 Lines.RemoveAt(lngSection);
                 if (lngSection >= Lines.Count) {
                     return;
@@ -1055,11 +1056,11 @@ namespace WinAGI.Engine {
                 strLine = Lines[lngSection].Replace('\t', ' ').Trim();
                 if (strLine.Length > 0) {
                     if (strLine[0] == '[') {
-                        //nothing to delete
+                        // nothing to delete
                         return;
                     }
                 }
-            } while (true);
+            }
         }
         
         /// <summary>
@@ -1072,7 +1073,7 @@ namespace WinAGI.Engine {
             string strLine;
             int lngSection, lenKey;
 
-            //find the section we are looking for (skip 1st line; it's the filename)
+            //find the section we are looking for
             lngSection = FindSettingSection(Section);
             //if not found,
             if (lngSection <= 0) {
@@ -1111,8 +1112,8 @@ namespace WinAGI.Engine {
         public int FindSettingSection(string Section) {
             int i, lngPos;
             string strLine;
-            // find the section we are looking for (skip 1st line; it's the filename)
-            for (i = 1; i <= Lines.Count - 1; i++) {
+            // find the section we are looking for
+            for (i = 0; i <= Lines.Count - 1; i++) {
                 //skip blanks, and lines starting with a comment
                 strLine = Lines[i].Replace("\t", " ").Trim();
                 if (strLine.Length > 0) {
@@ -1129,7 +1130,7 @@ namespace WinAGI.Engine {
                                 strCheck = Right(strLine, strLine.Length - 1);
                             }
                             if (strCheck.Equals(Section, StringComparison.OrdinalIgnoreCase)) {
-                                //found it
+                                // found it
                                 return i;
                             }
                         }
@@ -1139,5 +1140,6 @@ namespace WinAGI.Engine {
             // not found
             return -1;
         }
+        #endregion
     }
 }
