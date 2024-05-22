@@ -13,39 +13,7 @@ namespace WinAGI.Engine {
     /// Collection of words (agiWord objects).
     /// </summary>
     public class WordList : IEnumerable<WordGroup> {
-        /// <summary>
-        /// 
-        /// </summary>
-        class AGIWordComparer : Comparer<string> {
-            public override int Compare(string x, string y) {
-                if (x is null || x.Length == 0) {
-                    return -1;
-                }
-                if (y is null || y.Length == 0) {
-                    return 1;
-                }
-                // words starting with non-letters or extended characters always come before
-                // characters a-z
-                bool xLtr = x[0] >= 'a' && x[0] <= 'z';
-                bool yLtr = y[0] >= 'a' && y[0] <= 'z';
-                // if both are 'letters' or both are 'extended/non-letter'
-                // sort them normally
-                if (xLtr == yLtr) {
-                    int retval = string.CompareOrdinal(x, y);
-                    return retval;
-                }
-                else {
-                    // extended/non-letter always comes first
-                    if (xLtr) {
-                        return 1;
-                    }
-                    else {
-                        return -1;
-                    }
-                }
-            }
-        }
-
+        #region Members
         SortedList<string, AGIWord> mWordCol;
         SortedList<int, WordGroup> mGroupCol;
         string mResFile = "";
@@ -54,7 +22,6 @@ namespace WinAGI.Engine {
         AGIGame parent;
         Encoding mCodePage = Encoding.GetEncoding(437);
         bool mIsDirty;
-        bool mWriteProps;
         bool mLoaded;
         int mErrLevel = 0;
         // 0 = no errors or warnings
@@ -63,9 +30,11 @@ namespace WinAGI.Engine {
         // 4 = upper case detected
         // 8 = empty word file
         // 16 = corrupt index file
+        #endregion
 
+        #region Constructors
         /// <summary>
-        /// Initialize a new WordList, not in a game
+        /// Instantiates a list of AGI words that are not attached to a game.
         /// </summary>
         public WordList() {
             // initialize the word collection with a custom sort order
@@ -95,8 +64,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// This constructor is only called for a WordList
-        /// that is part of a game.
+        /// Instantiates a list of AGI words and attaches it to an AGI game.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="Loaded"></param>
@@ -111,49 +79,74 @@ namespace WinAGI.Engine {
             // also sets the default name to 'WORDS.TOK'
             mResFile = this.parent.agGameDir + "WORDS.TOK";
         }
+        #endregion
 
+        #region Properties
         /// <summary>
-        /// Accesses a word by string or index number.
+        /// Gets the word object with the specified index from this list.
         /// </summary>
         /// <param name="vKeyIndex"></param>
         /// <returns></returns>
         /// <exception cref="IndexOutOfRangeException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public AGIWord this[dynamic vKeyIndex] {
+        public AGIWord this[int index] {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                // only allow string or integer number
-                if ((vKeyIndex is int) || (vKeyIndex is byte) || (vKeyIndex is short)) {
-                    if (vKeyIndex < 0 || vKeyIndex > mWordCol.Count - 1) {
-                        throw new IndexOutOfRangeException();
-                    }
-                    return mWordCol.Values[vKeyIndex];
+                if (index < 0 || index > mWordCol.Count - 1) {
+                    throw new IndexOutOfRangeException();
                 }
-                else if (vKeyIndex is string) {
-                    // a string could be a number passed as a string, OR an actual word?
-                    // user has to make sure it's not a number passed as a string...
-                    //retrieve via string key - actual word, which is the key
-                    if (mWordCol.ContainsKey(vKeyIndex)) {
-                        return mWordCol[vKeyIndex];
-                    }
-                    else {
-                        throw new IndexOutOfRangeException();
-                    }
+                return mWordCol.Values[index];
+            }
+        }
+
+        /// <summary>
+        /// Gets the word object with the specified key from this list. The
+        /// key is always the word text.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public AGIWord this[string key] {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (mWordCol.TryGetValue(key, out AGIWord value)) {
+                    return value;
                 }
                 else {
-                    throw new ArgumentException("invalid key/index");
+                    throw new ArgumentException("invalid key");
                 }
             }
         }
 
         /// <summary>
-        /// 
+        /// Gets the number of word groups in this word list.
+        /// </summary>
+        public int GroupCount {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return mGroupCol.Count;
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of words in this word list.
+        /// </summary>
+        public int WordCount {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return mWordCol.Count;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the code page to use when displaying extended
+        /// characters in word text.
         /// </summary>
         public Encoding CodePage {
             get => parent is null ? mCodePage : parent.agCodePage;
             set {
                 if (parent is null) {
-                    // confirm new codepage is supported; ignore if it is not
+                    // confirm new codepage is supported
                     switch (value.CodePage) {
                     case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
                          861 or 862 or 863 or 865 or 866 or 869 or 858:
@@ -170,57 +163,139 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets the load status of this word list. The items and other
+        /// properties are not available if the list is not loaded. If not in a game,
+        /// the list is always loaded.
         /// </summary>
         public bool Loaded {
-            get { return mLoaded; }
+            get {
+                return mLoaded;
+            }
         }
 
         /// <summary>
-        /// Provides access to current error level of the WordList to
-        /// get feedback on errors in the sound data.
+        /// Gets the current error level of the WordList.
         /// </summary>
-        public int ErrLevel => mErrLevel;
+        public int ErrLevel {
+            get {
+                return mErrLevel;
+            }
+        }
 
         /// <summary>
-        /// FileType = 0 means AGI WORDS.TOK file, 1 means SCUMM SVE format.
+        /// Gets or sets a text field that can be used for any purpose. The description
+        /// property is stored in the games' WinAGI Game file, but is not used in any other
+        /// way. If not in a game, no use is made of the description property.
         /// </summary>
-        public void Export(string ExportFile, int FileType = 0, bool ResetDirty = true) {
-            WinAGIException.ThrowIfNotLoaded(this);
-            try {
-                if (FileType == 0) {
-                    Compile(ExportFile);
+        public string Description {
+            get {
+                return mDescription;
+            }
+            set {
+                value = Left(value, 1024);
+                if (value != mDescription) {
+                    mDescription = value;
+                    if (mInGame) {
+                        parent.WriteGameSetting("WORDS.TOK", "Description", mDescription);
+                        parent.agLastEdit = DateTime.Now;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the in-game status of this inventory item list, i.e. whether
+        /// it's in a game or a stand alone resource.
+        /// </summary>
+        public bool InGame {
+            get {
+                return mInGame;
+            }
+            internal set {
+                mInGame = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the WORDS.TOK filename associated with this word list. If in a game, 
+        /// the resfile name is readonly.
+        /// </summary>
+        public string ResFile {
+            get {
+                return mResFile;
+            }
+            set {
+                // resfile cannot be changed if resource is part of a game
+                if (mInGame) {
+                    // ignore
+                    return;
                 }
                 else {
-                    CompileSVE(ExportFile);
+                    mResFile = value;
                 }
             }
-            catch {
-                throw;
-            }
-            if (!mInGame) {
-                if (ResetDirty) {
-                    mIsDirty = false;
-                }
-                mResFile = ExportFile;
-            }
-            return;
         }
 
         /// <summary>
-        /// Used by SetWords method to retrieve words one by one.
-        /// NOTE: no error checking is done, because ONLY
-        /// SetWords uses this function, and it ensures
-        /// Index is valid.
+        /// Gets a a value that indicates if this list's words do not match what is 
+        /// stored its assigned WORDS.TOK file.
         /// </summary>
-        /// <param name="Index"></param>
-        /// <returns></returns>
-        internal AGIWord ItemByIndex(int Index) {
-            return mWordCol.Values[Index];
+        public bool IsDirty {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return mIsDirty;
+            }
+        }
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Loads words into this list from a WORDS.TOK file. If not in a game,
+        /// LoadFile must be specified.
+        /// </summary>
+        /// <param name="LoadFile"></param>
+        public void Load(string LoadFile = "") {
+            if (mLoaded) {
+                return;
+            }
+            if (mInGame) {
+                LoadFile = mResFile;
+            }
+            if (LoadFile.Length == 0) {
+                WinAGIException wex = new(LoadResString(599)) {
+                    HResult = WINAGI_ERR + 599
+                };
+                throw wex;
+            }
+            if (!File.Exists(LoadFile)) {
+                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 606,
+                };
+                wex.Data["missingfile"] = LoadFile;
+                wex.Data["ID"] = "WORDS.TOK";
+                throw wex;
+            }
+            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = LoadFile;
+                throw wex;
+            }
+            mErrLevel = LoadSierraFile(LoadFile);
+            if (mInGame) {
+                mDescription = parent.agGameProps.GetSetting("WORDS.TOK", "Description", "", true);
+            }
+            else {
+                mResFile = LoadFile;
+            }
+            mIsDirty = false;
         }
 
         /// <summary>
-        /// 
+        /// Extracts the words and group information from this word list's file.
+        /// Returns an error code specifying whether any warnings or errors were
+        /// encountered when the file is loaded.
         /// </summary>
         /// <param name="LoadFile"></param>
         /// <returns>0 = no errors or warnings<br />
@@ -249,7 +324,7 @@ namespace WinAGI.Engine {
             try {
                 fsWords = new(LoadFile, FileMode.Open);
             }
-            catch (Exception e) {
+            catch {
                 // file access error
                 return 32;
             }
@@ -351,147 +426,23 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Creates an exact copy of this WordList.
+        /// Unloads this word list if in a game. Word lists not in a game
+        /// are always loaded.
         /// </summary>
-        /// <returns>The WordList that this method creates</returns>
-        public WordList Clone(WordList wordlist) {
-            WordList clonelist = new();
-            int lngGrpNum;
-            string strWord;
-            WordGroup tmpGroup;
-            AGIWord tmpWord;
-
-            WinAGIException.ThrowIfNotLoaded(this);
-            foreach (WordGroup group in wordlist) {
-                tmpGroup = new WordGroup();
-                lngGrpNum = group.GroupNum;
-                tmpGroup.GroupNum = lngGrpNum;
-                clonelist.mGroupCol.Add(lngGrpNum, tmpGroup);
-            }
-            foreach (AGIWord word in wordlist.mWordCol.Values) {
-                strWord = word.WordText;
-                lngGrpNum = word.Group;
-                tmpWord.WordText = strWord;
-                tmpWord.Group = lngGrpNum;
-                clonelist.mWordCol.Add(strWord, tmpWord);
-                clonelist.mGroupCol[lngGrpNum].AddWordToGroup(strWord);
-            }
-            clonelist.mDescription = wordlist.Description;
-            clonelist.mIsDirty = wordlist.IsDirty;
-            clonelist.mWriteProps = wordlist.WriteProps;
-            clonelist.mResFile = wordlist.ResFile;
-            clonelist.mLoaded = true;
-            return clonelist;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        internal bool WriteProps {
-            get {
-                return mWriteProps;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string Description {
-            get {
-                return mDescription;
-            }
-            set {
-                value = Left(value, 1024);
-                if (value != mDescription) {
-                    mDescription = value;
-                    if (mInGame) {
-                        parent.WriteGameSetting("WORDS.TOK", "Description", mDescription);
-                        parent.agLastEdit = DateTime.Now;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Only used by SetWord method.
-        /// </summary>
-        internal bool InGame {
-            get {
-                return mInGame;
-            }
-            set {
-                mInGame = value;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string ResFile {
-            get {
-                return mResFile;
-            }
-            set {
-                // resfile cannot be changed if resource is part of a game
-                if (mInGame) {
-                    // ignore
-                    return;
-                }
-                else {
-                    mResFile = value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool IsDirty {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return (mIsDirty || (mWriteProps && mInGame));
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Clear() {
-            //clears the word group, and sets up a blank list
+        public void Unload() {
             if (!mLoaded) {
                 // ignore
                 return;
             }
-            mGroupCol = [];
-            mWordCol = [];
-            mDescription = "";
-            mIsDirty = true;
+            Clear();
+            mLoaded = false;
+            mIsDirty = false;
         }
 
         /// <summary>
-        /// Returns a group by its group number.
-        /// </summary>
-        /// <param name="groupNum"></param>
-        /// <returns></returns>
-        public WordGroup GroupN(int groupNum) {
-            WinAGIException.ThrowIfNotLoaded(this);
-            // return this group by it's number (key value)
-            return mGroupCol[groupNum];
-        }
-
-        /// <summary>
-        /// Returns true if groupnum exists in this wordlist.
-        /// </summary>
-        /// <param name="groupnumber"></param>
-        /// <returns></returns>
-        public bool GroupExists(int groupnumber) {
-            WinAGIException.ThrowIfNotLoaded(this);
-            // if this group exists, it returns true
-            return mGroupCol.ContainsKey(groupnumber);
-        }
-
-        /// <summary>
-        /// 
+        /// Saves this word list to file by compiling the words in the
+        /// list in the proper Sierra AGI WORDS.TOK file format. If not in a game, 
+        /// the default filename is used unless one is passed to this method.
         /// </summary>
         /// <param name="SaveFile"></param>
         public void Save(string SaveFile = "") {
@@ -502,6 +453,13 @@ namespace WinAGI.Engine {
             else {
                 if (SaveFile.Length == 0) {
                     SaveFile = mResFile;
+                }
+                // if still no file
+                if (SaveFile.Length == 0) {
+                    WinAGIException wex = new(LoadResString(615)) {
+                        HResult = WINAGI_ERR + 615
+                    };
+                    throw wex;
                 }
             }
             try {
@@ -517,153 +475,6 @@ namespace WinAGI.Engine {
                 mResFile = SaveFile;
             }
             mIsDirty = false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Unload() {
-            if (!mLoaded) {
-                // ignore
-                return;
-            }
-            Clear();
-            mLoaded = false;
-            mWriteProps = false;
-            mIsDirty = false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public int WordCount {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return mWordCol.Count;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="aWord"></param>
-        /// <returns></returns>
-        public bool WordExists(string aWord) {
-            WinAGIException.ThrowIfNotLoaded(this);
-            return mWordCol.ContainsKey(aWord);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="GroupNumber"></param>
-        public void AddGroup(int GroupNumber) {
-            WordGroup tmpGroup;
-            WinAGIException.ThrowIfNotLoaded(this);
-            ArgumentOutOfRangeException.ThrowIfNegative(GroupNumber);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(GroupNumber, MAX_GROUP_NUM);
-            // see if group already exists
-            if (mGroupCol.ContainsKey(GroupNumber)) {
-                throw new ArgumentException("group already exists");
-            }
-            tmpGroup = new WordGroup {
-                GroupNum = GroupNumber
-            };
-            mGroupCol.Add(GroupNumber, tmpGroup);
-            mIsDirty = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="aWord"></param>
-        /// 
-        void RemoveWord(string aWord) {
-            WinAGIException.ThrowIfNotLoaded(this);
-            if (!mWordCol.TryGetValue(aWord, out AGIWord value)) {
-                throw new ArgumentException("word does not exist");
-            }
-            // delete this word from its assigned group by Group number
-            WordGroup tmpGroup = GroupN(value.Group);
-            tmpGroup.DeleteWordFromGroup(aWord);
-            if (tmpGroup.WordCount == 0) {
-                mGroupCol.Remove(tmpGroup.GroupNum);
-            }
-            mWordCol.Remove(aWord);
-            mIsDirty = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public int GroupCount {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return mGroupCol.Count;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="GroupNumber"></param>
-        public void RemoveGroup(int GroupNumber) {
-            int i;
-            WinAGIException.ThrowIfNotLoaded(this);
-            ArgumentOutOfRangeException.ThrowIfNegative(GroupNumber, nameof(GroupNumber));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(GroupNumber, MAX_GROUP_NUM, nameof(GroupNumber));
-            if (!GroupExists(GroupNumber)) {
-                WinAGIException wex = new(LoadResString(583)) {
-                    HResult = WINAGI_ERR + 583
-                };
-                throw wex;
-            }
-            // step through all words in main list
-            // CAN'T use foreach because we need to delete 
-            // some of the objects
-            for (i = mWordCol.Count - 1; i >= 0; i--) {
-                if (mWordCol.Values[i].Group == GroupNumber) {
-                    mWordCol.RemoveAt(i);
-                }
-            }
-            mGroupCol.Remove(GroupNumber);
-            mIsDirty = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="oldgroupnum"></param>
-        /// <param name="newgroupnum"></param>
-        public void RenumberGroup(int oldgroupnum, int newgroupnum) {
-            int i;
-            WordGroup tmpGroup;
-
-            WinAGIException.ThrowIfNotLoaded(this);
-            ArgumentOutOfRangeException.ThrowIfNegative(oldgroupnum, nameof(oldgroupnum));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(oldgroupnum, MAX_GROUP_NUM, nameof(oldgroupnum));
-            ArgumentOutOfRangeException.ThrowIfNegative(newgroupnum, nameof(newgroupnum));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(newgroupnum, MAX_GROUP_NUM, nameof(newgroupnum));
-            if (!GroupExists(oldgroupnum)) {
-                throw new ArgumentException("oldgroupnum does not exist");
-            }
-            if (GroupExists(newgroupnum)) {
-                throw new ArgumentException("newgroupnum already exists");
-            }
-            tmpGroup = mGroupCol[oldgroupnum];
-            _ = mGroupCol.Remove(oldgroupnum);
-            tmpGroup.GroupNum = newgroupnum;
-            // change group number for all words in the group
-            // CAN'T use forach, because we are adding to the collection
-            for (i = 0; i < mWordCol.Count; i++) {
-                if (mWordCol.Values[i].Group == oldgroupnum) {
-                    AGIWord tmpWord = mWordCol.Values[i];
-                    tmpWord.Group = newgroupnum;
-                }
-            }
-            // then re-add the group
-            mGroupCol.Add(newgroupnum, tmpGroup);
-            mIsDirty = true;
         }
 
         /// <summary>
@@ -809,15 +620,16 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Compiles this wordlist into a file that is compatible with the ScummVM
+        /// Extended Word List file format.
         /// </summary>
         /// <param name="CompileFile"></param>
         void CompileSVE(string CompileFile) {
-            // ScummVM Extended Word List File format
-            //
-            // header (1st line): Unofficial extended format to support ASCII range of 128-255
-            // wordtext & chr(0) & Cstr(groupnum) & newline(CRLF)
-
+            //format is:
+            // header (1st line): "Unofficial extended format to support ASCII range of 128-255"
+            // subsequent lines are words, in alphabetical order
+            // in following format:
+            //      wordtext + chr(0) + groupnum.ToString() + newline(CRLF)
             string strTempFile;
             int i;
 
@@ -856,48 +668,89 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Loads words for the game. If loading from a Sierra game, it extracts words
-        /// from the WORDS.TOK file. If not in a game, LoadFile must be specified
+        /// Exports this word list to the specified file.
         /// </summary>
-        /// <param name="LoadFile"></param>
-        public void Load(string LoadFile = "") {
-            if (mLoaded) {
-                return;
+        public void Export(string ExportFile) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            try {
+                Compile(ExportFile);
             }
-            if (mInGame) {
-                LoadFile = mResFile;
+            catch {
+                throw;
             }
-            if (LoadFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(599)) {
-                    HResult = WINAGI_ERR + 599
-                };
-                throw wex;
+            if (!mInGame) {
+                mIsDirty = false;
+                mResFile = ExportFile;
             }
-            // verify file exists
-            if (!File.Exists(LoadFile)) {
-                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 606,
-                };
-                wex.Data["missingfile"] = LoadFile;
-                wex.Data["ID"] = "WORDS.TOK";
-                throw wex;
+            return;
+        }
+
+        /// <summary>
+        /// Exports this word list in a format compatible with SCUMM SVE.
+        /// </summary>
+        public void ExportSVE(string ExportFile) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            try {
+                CompileSVE(ExportFile);
             }
-            // check for readonly
-            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 700,
-                };
-                wex.Data["badfile"] = LoadFile;
-                throw wex;
+            catch {
+                throw;
             }
-            mErrLevel = LoadSierraFile(LoadFile);
-            if (mInGame) {
-                mDescription = parent.agGameProps.GetSetting("WORDS.TOK", "Description", "", true);
+        }
+
+        /// <summary>
+        /// Creates an exact copy of this WordList.
+        /// </summary>
+        /// <returns>The WordList that this method creates</returns>
+        public WordList Clone(WordList wordlist) {
+            WordList clonelist = new();
+            int lngGrpNum;
+            string strWord;
+            WordGroup tmpGroup;
+            AGIWord tmpWord;
+
+            WinAGIException.ThrowIfNotLoaded(this);
+            foreach (WordGroup group in wordlist) {
+                tmpGroup = new WordGroup();
+                lngGrpNum = group.GroupNum;
+                tmpGroup.GroupNum = lngGrpNum;
+                clonelist.mGroupCol.Add(lngGrpNum, tmpGroup);
             }
-            else {
-                mResFile = LoadFile;
+            foreach (AGIWord word in wordlist.mWordCol.Values) {
+                strWord = word.WordText;
+                lngGrpNum = word.Group;
+                tmpWord.WordText = strWord;
+                tmpWord.Group = lngGrpNum;
+                clonelist.mWordCol.Add(strWord, tmpWord);
+                clonelist.mGroupCol[lngGrpNum].AddWordToGroup(strWord);
             }
-            mIsDirty = false;
+            clonelist.mDescription = wordlist.Description;
+            clonelist.mIsDirty = wordlist.IsDirty;
+            clonelist.mResFile = wordlist.ResFile;
+            clonelist.mLoaded = true;
+            return clonelist;
+        }
+
+        /// <summary>
+        /// Clears this word list and sets all properties to default values.
+        /// </summary>
+        public void Clear() {
+            WinAGIException.ThrowIfNotLoaded(this);
+            mGroupCol = [];
+            mWordCol = [];
+            mDescription = "";
+            mIsDirty = true;
+        }
+
+        /// <summary>
+        /// Returns a group by its group number.
+        /// </summary>
+        /// <param name="groupNum"></param>
+        /// <returns></returns>
+        public WordGroup GroupN(int groupNum) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            // return this group by its number (key value)
+            return mGroupCol[groupNum];
         }
 
         /// <summary>
@@ -910,12 +763,118 @@ namespace WinAGI.Engine {
             if (Index < 0 || Index > mGroupCol.Count - 1) {
                 throw new IndexOutOfRangeException("invalid word group index");
             }
-            //access the group by its index
+            // access the group by its index
             return mGroupCol.Values[Index];
         }
 
         /// <summary>
-        /// 
+        /// Returns true if the specified group number exists in this word list.
+        /// </summary>
+        /// <param name="groupnumber"></param>
+        /// <returns></returns>
+        public bool GroupExists(int groupnumber) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            return mGroupCol.ContainsKey(groupnumber);
+        }
+
+        /// <summary>
+        /// Adds a new word group to this word list. The new group is created 
+        /// with no words - words must be added after the group is created.
+        /// </summary>
+        /// <param name="GroupNumber"></param>
+        public void AddGroup(int GroupNumber) {
+            WordGroup tmpGroup;
+            WinAGIException.ThrowIfNotLoaded(this);
+            ArgumentOutOfRangeException.ThrowIfNegative(GroupNumber);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(GroupNumber, MAX_GROUP_NUM);
+            // see if group already exists
+            if (mGroupCol.ContainsKey(GroupNumber)) {
+                throw new ArgumentException("group already exists");
+            }
+            tmpGroup = new WordGroup {
+                GroupNum = GroupNumber
+            };
+            mGroupCol.Add(GroupNumber, tmpGroup);
+            mIsDirty = true;
+        }
+
+        /// <summary>
+        /// Removes a group and all its words from this word list.
+        /// </summary>
+        /// <param name="GroupNumber"></param>
+        public void RemoveGroup(int GroupNumber) {
+            int i;
+            WinAGIException.ThrowIfNotLoaded(this);
+            ArgumentOutOfRangeException.ThrowIfNegative(GroupNumber, nameof(GroupNumber));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(GroupNumber, MAX_GROUP_NUM, nameof(GroupNumber));
+            if (!GroupExists(GroupNumber)) {
+                WinAGIException wex = new(LoadResString(583)) {
+                    HResult = WINAGI_ERR + 583
+                };
+                throw wex;
+            }
+            // step through all words in main list
+            // CAN'T use foreach because we need to delete 
+            // some of the words
+            for (i = mWordCol.Count - 1; i >= 0; i--) {
+                if (mWordCol.Values[i].Group == GroupNumber) {
+                    mWordCol.RemoveAt(i);
+                }
+            }
+            mGroupCol.Remove(GroupNumber);
+            mIsDirty = true;
+        }
+
+        /// <summary>
+        /// Changes the number of a word group in this word list.
+        /// </summary>
+        /// <param name="oldgroupnum"></param>
+        /// <param name="newgroupnum"></param>
+        public void RenumberGroup(int oldgroupnum, int newgroupnum) {
+            int i;
+            WordGroup tmpGroup;
+
+            WinAGIException.ThrowIfNotLoaded(this);
+            ArgumentOutOfRangeException.ThrowIfNegative(oldgroupnum, nameof(oldgroupnum));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(oldgroupnum, MAX_GROUP_NUM, nameof(oldgroupnum));
+            ArgumentOutOfRangeException.ThrowIfNegative(newgroupnum, nameof(newgroupnum));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(newgroupnum, MAX_GROUP_NUM, nameof(newgroupnum));
+            if (!GroupExists(oldgroupnum)) {
+                throw new ArgumentException("oldgroupnum does not exist");
+            }
+            if (GroupExists(newgroupnum)) {
+                throw new ArgumentException("newgroupnum already exists");
+            }
+            // TODO: seems like this should be much easier in C#...
+            tmpGroup = mGroupCol[oldgroupnum];
+            _ = mGroupCol.Remove(oldgroupnum);
+            tmpGroup.GroupNum = newgroupnum;
+            // change group number for all words in the group
+            // CAN'T use forach, because we are adding to the collection
+            for (i = 0; i < mWordCol.Count; i++) {
+                if (mWordCol.Values[i].Group == oldgroupnum) {
+                    AGIWord tmpWord = mWordCol.Values[i];
+                    tmpWord.Group = newgroupnum;
+                }
+            }
+            // then re-add the group
+            mGroupCol.Add(newgroupnum, tmpGroup);
+            mIsDirty = true;
+        }
+
+        /// <summary>
+        /// Returns true if the specified word exists in this word list.
+        /// </summary>
+        /// <param name="aWord"></param>
+        /// <returns></returns>
+        public bool WordExists(string aWord) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            return mWordCol.ContainsKey(aWord);
+        }
+
+        /// <summary>
+        /// Adds a new word to this word list with the specified group
+        /// number, creating the group if it doesn't already exist.
         /// </summary>
         /// <param name="WordText"></param>
         /// <param name="Group"></param>
@@ -948,6 +907,26 @@ namespace WinAGI.Engine {
             mWordCol.Add(WordText, NewWord);
             mIsDirty = true;
         }
+
+        /// <summary>
+        /// Removes the specified word from this word list.
+        /// </summary>
+        /// <param name="aWord"></param>
+        void RemoveWord(string aWord) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            if (!mWordCol.TryGetValue(aWord, out AGIWord value)) {
+                throw new ArgumentException("word does not exist");
+            }
+            // delete this word from its assigned group by Group number
+            WordGroup tmpGroup = GroupN(value.Group);
+            tmpGroup.DeleteWordFromGroup(aWord);
+            if (tmpGroup.WordCount == 0) {
+                mGroupCol.Remove(tmpGroup.GroupNum);
+            }
+            mWordCol.Remove(aWord);
+            mIsDirty = true;
+        }
+        #endregion
 
         #region Enumeration
         public WGrpEnum GetEnumerator() {
@@ -993,5 +972,41 @@ namespace WinAGI.Engine {
             }
         }
         #endregion
+
+        /// <summary>
+        /// Custom Comparer function that prioritizes words starting
+        /// with non-letters ('a' - 'z') before words that start with
+        /// lettters; within each sub-group, words are sorted by
+        /// standard string comparison.
+        /// </summary>
+        class AGIWordComparer : Comparer<string> {
+            public override int Compare(string x, string y) {
+                if (x is null || x.Length == 0) {
+                    return -1;
+                }
+                if (y is null || y.Length == 0) {
+                    return 1;
+                }
+                // words starting with non-letters or extended characters always come before
+                // characters a-z
+                bool xLtr = x[0] >= 'a' && x[0] <= 'z';
+                bool yLtr = y[0] >= 'a' && y[0] <= 'z';
+                // if both are 'letters' or both are 'extended/non-letter'
+                // sort them normally
+                if (xLtr == yLtr) {
+                    int retval = string.CompareOrdinal(x, y);
+                    return retval;
+                }
+                else {
+                    // extended/non-letter always comes first
+                    if (xLtr) {
+                        return 1;
+                    }
+                    else {
+                        return -1;
+                    }
+                }
+            }
+        }
     }
 }

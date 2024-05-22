@@ -7,15 +7,31 @@ using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
     /// <summary>
-    /// A class that holds all the sounds in an AGI game.
+    /// A class that holds all the sound resources in an AGI game.
     /// </summary>
     public class Sounds : IEnumerable<Sound> {
+        #region Members
         readonly AGIGame parent;
+        #endregion
 
+        #region Constructors
         internal Sounds(AGIGame parent) {
             this.parent = parent;
         }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets the list of sounds in this game.
+        /// </summary>
         public SortedList<byte, Sound> Col { get; private set; } = [];
+
+        /// <summary>
+        /// Gets the sound with the specified index value from this list of sounds.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
         public Sound this[int index] {
             get {
                 if (index < 0 || index > 255 || !Contains((byte)index)) {
@@ -26,7 +42,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the number of sounds in this AGI game.
+        /// Gets the number of sounds in this AGI game.
         /// </summary>
         public byte Count {
             get {
@@ -35,7 +51,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the highest index in use in the sounds collection. 
+        /// Gets the highest index in use in this sounds collection. 
         /// </summary>
         public byte Max {
             get {
@@ -45,127 +61,9 @@ namespace WinAGI.Engine {
                 return max;
             }
         }
+        #endregion
 
-        /// <summary>
-        /// Returns true if a sound with number ResNum exists in this game.
-        /// </summary>
-        /// <param name="ResNum"></param>
-        /// <returns></returns>
-        public bool Contains(byte ResNum) {
-            return Col.ContainsKey(ResNum);
-        }
-
-        /// <summary>
-        /// Removes all sounds from the game.
-        /// </summary>
-        public void Clear() {
-            Col = [];
-        }
-
-        /// <summary>
-        /// Adds a sound to the game. If NewSound is null a blank sound is 
-        /// added, otherwise the added sound is cloned from NewSound.
-        /// </summary>
-        /// <param name="ResNum"></param>
-        /// <param name="NewSound"></param>
-        /// <returns></returns>
-        public Sound Add(byte ResNum, Sound NewSound = null) {
-            Sound agResource;
-            int intNextNum = 0;
-            string strID, strBaseID;
-            if (Contains(ResNum)) {
-                WinAGIException wex = new(LoadResString(602)) {
-                    HResult = WINAGI_ERR + 602
-                };
-                throw wex;
-            }
-            //create new ingame sound
-            agResource = new Sound(parent, ResNum, NewSound);
-            if ((NewSound is null)) {
-                strID = "Sound" + ResNum;
-            }
-            else {
-                strID = agResource.ID;
-            }
-            strBaseID = strID;
-            while (NotUniqueID(strID, parent)) {
-                intNextNum++;
-                strID = strBaseID + "_" + intNextNum;
-            }
-            Col.Add(ResNum, agResource);
-            //force flags so save function will work
-            agResource.IsDirty = true;
-            agResource.PropsDirty = true;
-            // save new sound to add it to VOL file
-            agResource.Save();
-            // id list needs to be updated
-            LogicCompiler.blnSetIDs = false;
-            // return the new sound
-            return agResource;
-        }
-
-        /// <summary>
-        /// Removes a sound from the game.
-        /// </summary>
-        /// <param name="Index"></param>
-        public void Remove(byte Index) {
-            if (Col.TryGetValue(Index, out Sound value)) {
-                // need to clear the directory file first
-                VOLManager.Base.UpdateDirFile(value, true);
-                Col.Remove(Index);
-                // remove all properties from the wag file
-                parent.agGameProps.DeleteSection("Sound" + Index);
-                // remove ID from compiler list
-                LogicCompiler.blnSetIDs = false;
-            }
-        }
-
-        /// <summary>
-        /// Changes the number of a sound in this game.
-        /// </summary>
-        /// <param name="OldSound"></param>
-        /// <param name="NewSound"></param>
-        public void Renumber(byte OldSound, byte NewSound) {
-            Sound tmpSound;
-            int intNextNum = 0;
-            string strID, strBaseID;
-
-            if (OldSound == NewSound) {
-                return;
-            }
-            // verify old number exists
-            if (!Col.ContainsKey(OldSound)) {
-                throw new IndexOutOfRangeException("sound does not exist");
-            }
-            //verify new number is not in collection
-            if (Col.ContainsKey(NewSound)) {
-                WinAGIException wex = new(LoadResString(669)) {
-                    HResult = WINAGI_ERR + 669
-                };
-                throw wex;
-            }
-            tmpSound = Col[OldSound];
-            // remove old sound
-            parent.agGameProps.DeleteSection("Sound" + OldSound);
-            Col.Remove(OldSound);
-            VOLManager.Base.UpdateDirFile(tmpSound, true);
-            // adjust id if it is default
-            if (tmpSound.ID =="Sound" + OldSound) {
-                strID = strBaseID = "Sound" + NewSound;
-                while (NotUniqueID(strID, parent)) {
-                    strID = strBaseID + "_" + intNextNum;
-                    intNextNum++;
-                }
-            }
-            // add it back with new number
-            tmpSound.Number = NewSound;
-            Col.Add(NewSound, tmpSound);
-            VOLManager.Base.UpdateDirFile(tmpSound);
-            tmpSound.SaveProps();
-            // id list needs updating
-            LogicCompiler.blnSetIDs = false;
-        }
-
+        #region Methods
         /// <summary>
         /// Called by the load game methods for the initial loading of
         /// resources into sounds collection.
@@ -179,6 +77,123 @@ namespace WinAGI.Engine {
             Col.Add(bytResNum, newResource);
             // leave it loaded, so error level can be addressed by loader
         }
+
+        /// <summary>
+        /// Returns true if a sound with number the specified number exists in this game.
+        /// </summary>
+        /// <param name="ResNum"></param>
+        /// <returns></returns>
+        public bool Contains(byte ResNum) {
+            return Col.ContainsKey(ResNum);
+        }
+
+        /// <summary>
+        /// Adds a sound to the game. If NewSound is null a blank sound is 
+        /// added, otherwise the added sound is cloned from NewSound.
+        /// </summary>
+        /// <param name="ResNum"></param>
+        /// <param name="NewSound"></param>
+        /// <returns>A reference to the newly added sound.</returns>
+        public Sound Add(byte ResNum, Sound NewSound = null) {
+            Sound agResource;
+            int intNextNum = 0;
+            string strID, strBaseID;
+            if (Contains(ResNum)) {
+                WinAGIException wex = new(LoadResString(602)) {
+                    HResult = WINAGI_ERR + 602
+                };
+                throw wex;
+            }
+            // create new ingame sound
+            agResource = new Sound(parent, ResNum, NewSound);
+            if ((NewSound is null)) {
+                strID = "Sound" + ResNum;
+            }
+            else {
+                strID = agResource.ID;
+            }
+            strBaseID = strID;
+            while (NotUniqueID(strID, parent)) {
+                intNextNum++;
+                strID = strBaseID + "_" + intNextNum;
+            }
+            Col.Add(ResNum, agResource);
+            // force flags so save function will work
+            agResource.IsDirty = true;
+            agResource.PropsDirty = true;
+            // save new sound to add it to VOL file
+            agResource.Save();
+            LogicCompiler.blnSetIDs = false;
+            return agResource;
+        }
+
+        /// <summary>
+        /// Removes the specified sound from this game.
+        /// </summary>
+        /// <param name="Index"></param>
+        public void Remove(byte Index) {
+            if (Col.TryGetValue(Index, out Sound value)) {
+                // need to clear the directory file first
+                VOLManager.UpdateDirFile(value, true);
+                Col.Remove(Index);
+                // remove all properties from the wag file
+                parent.agGameProps.DeleteSection("Sound" + Index);
+                // remove ID from compiler list
+                LogicCompiler.blnSetIDs = false;
+            }
+        }
+
+        /// <summary>
+        /// Removes all sounds from the game. Does not update WAG file.
+        /// </summary>
+        internal void Clear() {
+            Col = [];
+        }
+
+        /// <summary>
+        /// Changes the index number of a sound in this game.
+        /// </summary>
+        /// <param name="OldSound"></param>
+        /// <param name="NewSound"></param>
+        public void Renumber(byte OldSound, byte NewSound) {
+            Sound tmpSound;
+            int intNextNum = 0;
+            string strID, strBaseID;
+
+            if (OldSound == NewSound) {
+                return;
+            }
+            // verify old number exists
+            if (!Col.TryGetValue(OldSound, out tmpSound)) {
+                throw new IndexOutOfRangeException("sound does not exist");
+            }
+            //verify new number is not in collection
+            if (Col.ContainsKey(NewSound)) {
+                WinAGIException wex = new(LoadResString(669)) {
+                    HResult = WINAGI_ERR + 669
+                };
+                throw wex;
+            }
+            // remove old sound
+            parent.agGameProps.DeleteSection("Sound" + OldSound);
+            Col.Remove(OldSound);
+            VOLManager.UpdateDirFile(tmpSound, true);
+            // adjust id if it is default
+            if (tmpSound.ID =="Sound" + OldSound) {
+                strID = strBaseID = "Sound" + NewSound;
+                while (NotUniqueID(strID, parent)) {
+                    strID = strBaseID + "_" + intNextNum;
+                    intNextNum++;
+                }
+            }
+            // add it back with new number
+            tmpSound.Number = NewSound;
+            Col.Add(NewSound, tmpSound);
+            VOLManager.UpdateDirFile(tmpSound);
+            tmpSound.SaveProps();
+            LogicCompiler.blnSetIDs = false;
+        }
+        #endregion
 
         #region Enumeration
         SoundEnum GetEnumerator() {

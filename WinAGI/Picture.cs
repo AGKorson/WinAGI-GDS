@@ -166,7 +166,64 @@ namespace WinAGI.Engine {
 
         #region Properties
         /// <summary>
-        /// 
+        /// Gets a bitmap image of the visual screen.
+        /// </summary>
+        public Bitmap VisualBMP {
+            get {
+                if (!mLoaded) {
+                    return null;
+                }
+                if (!mPicBMPSet) {
+                    BuildBMPs();
+                }
+                return bmpVis;
+            }
+        }
+
+        /// <summary>
+        /// Gets a bitmap image of the priority screen.
+        /// </summary>
+        public Bitmap PriorityBMP {
+            get {
+                if (!mLoaded) {
+                    return null;
+                }
+                if (!mPicBMPSet) {
+                    BuildBMPs();
+                }
+                return bmpPri;
+            }
+        }
+
+        /// <summary>
+        /// Gets the byte array that represents the visual screen in a bitmap. 
+        /// </summary>
+        public byte[] VisData {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (!mPicBMPSet) {
+                    BuildBMPs();
+                }
+                return mVisData;
+            }
+        }
+
+        /// <summary>
+        /// Gets the byte array that respresents the priority screen in a bitmap.
+        /// </summary>
+        public byte[] PriData {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (!mPicBMPSet) {
+                    BuildBMPs();
+                }
+                return mPriData;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the filename of a background image to use when editing the
+        /// picture in the WinAGI Editor.
         /// </summary>
         public string BkgdImgFile {
             get {
@@ -179,7 +236,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets or sets the position information for a background image to use when
+        /// editing the picture in the WinAGI Editor.
         /// </summary>
         public PicBkgdPos BkgdPosition {
             get {
@@ -192,7 +250,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets or sets the background size information for a background image to
+        /// use when editing the picture in the WinAGI Editor.
         /// </summary>
         public PicBkgdSize BkgdSize {
             get {
@@ -205,7 +264,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets or sets transparency setting for a background image when editing
+        /// the picture in the WinAGI Editor.
         /// </summary>
         public int BkgdTrans {
             get {
@@ -218,7 +278,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets or sets a value to indicate if the background image should be visible when
+        /// editing the picture in the WinAGI Editor.
         /// </summary>
         public bool BkgdShow {
             get {
@@ -231,7 +292,9 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets or sets the priority base to use when testing the picture in the
+        /// WinAGI Editor. Only applies if the picture is part of a game with a 
+        /// version of 2.936 or higher.
         /// </summary>
         public byte PriBase {
             get {
@@ -258,33 +321,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public byte[] VisData {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                if (!mPicBMPSet) {
-                    BuildBMPs();
-                }
-                return mVisData;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public byte[] PriData {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                if (!mPicBMPSet) {
-                    BuildBMPs();
-                }
-                return mPriData;
-            }
-        }
-
-        /// <summary>
-        /// 
+        /// Gets the pen color and status, and brush style/size/shape base on the current
+        /// drawing position in the picture.
         /// </summary>
         public PenStatus CurrentToolStatus {
             get {
@@ -294,7 +332,9 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets or sets the stopping position to use when drawing the picture. Used
+        /// by the WinAGI Editor to allow insertion of new drawing commands anywhere
+        /// within the picture.
         /// </summary>
         public int DrawPos {
             get {
@@ -306,7 +346,6 @@ namespace WinAGI.Engine {
                 if (value == mDrawPos) {
                     return;
                 }
-                //validate input
                 if (value < 0) {
                     mDrawPos = -1;
                 }
@@ -321,7 +360,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// 
+        /// Gets or sets a value to indicate if the entire picture should be drawn,
+        /// or if it should only process commands up to the current DrawPos location.
         /// </summary>
         public bool StepDraw {
             get {
@@ -336,7 +376,6 @@ namespace WinAGI.Engine {
                 }
             }
         }
-
         #endregion
 
         #region Methods
@@ -633,36 +672,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns a bitmap image of the visual screen.
-        /// </summary>
-        public Bitmap VisualBMP {
-            get {
-                if (!mLoaded) {
-                    return null;
-                }
-                if (!mPicBMPSet) {
-                    BuildBMPs();
-                }
-                return bmpVis;
-            }
-        }
-
-        /// <summary>
-        /// Returns a bitmap image of the priority screen.
-        /// </summary>
-        public Bitmap PriorityBMP {
-            get {
-                if (!mLoaded) {
-                    return null;
-                }
-                if (!mPicBMPSet) {
-                    BuildBMPs();
-                }
-                return bmpPri;
-            }
-        }
-
-        /// <summary>
         /// Saves properties of this picture to the game's WAG file.
         /// </summary>
         public void SaveProps() {
@@ -768,7 +777,6 @@ namespace WinAGI.Engine {
         /// while unloaded. Only pictures that are in a game can be unloaded.
         /// </summary>
         public override void Unload() {
-            // only ingame resources can be unloaded
             if (!mInGame) {
                 return;
             }

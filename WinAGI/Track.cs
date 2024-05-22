@@ -1,7 +1,11 @@
 ﻿using System;
 
 namespace WinAGI.Engine {
+    /// <summary>
+    /// A class that represents an AGI sound track, containing all notes and track properties.
+    /// </summary>
     public class Track {
+        #region Members
         Notes mNotes;
         bool mMuted;
         byte mInstrument;
@@ -9,7 +13,9 @@ namespace WinAGI.Engine {
         internal Sound mParent;
         bool mLengthDirty;
         double mLength;
+        #endregion
 
+        #region Constructors
         /// <summary>
         /// Initializes a new Track object that is not associated with a game.
         /// </summary>
@@ -31,6 +37,8 @@ namespace WinAGI.Engine {
             mInstrument = 80;
             mParent = parent;
         }
+        #endregion
+
         #region Properties
         /// <summary>
         /// Gets or sets the MIDI instrument value to use when the sound is played as
@@ -73,14 +81,11 @@ namespace WinAGI.Engine {
         /// </summary>
         public double Length {
             get {
-                //returns the length of this track, in seconds
                 int i, lngTickCount = 0;
-                //if length has changed,
                 if (mLengthDirty) {
                     for (i = 0; i <= mNotes.Count - 1; i++) {
                         lngTickCount += mNotes[i].Duration;
                     }
-                    //60 ticks per second
                     mLength = (double)lngTickCount / 60;
                     mLengthDirty = false;
                 }

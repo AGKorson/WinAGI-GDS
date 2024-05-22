@@ -7,15 +7,31 @@ using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
     /// <summary>
-    /// A class that holds all the views in an AGI game.
+    /// A class that holds all the view resources in an AGI game.
     /// </summary>
     public class Views : IEnumerable<View> {
+        #region Members
         readonly AGIGame parent;
+        #endregion
 
+        #region Constructors
         internal Views(AGIGame parent) {
             this.parent = parent;
         }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets the list of views in this game.
+        /// </summary>
         public SortedList<byte, View> Col { get; private set; } = [];
+
+        /// <summary>
+        /// Gets the view with the specified index value from this list of views.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
         public View this[int index] {
             get {
                 if (index < 0 || index > 255 || !Contains((byte)index)) {
@@ -26,7 +42,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the number of sounds in this AGI game.
+        /// Gets the number of sounds in this AGI game.
         /// </summary>
         public byte Count {
             get {
@@ -35,7 +51,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the highest index in use in the views collection.
+        /// Gets the highest index in use in this views collection.
         /// </summary>
         public byte Max {
             get {
@@ -45,9 +61,25 @@ namespace WinAGI.Engine {
                 return max;
             }
         }
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Called by the load game methods for the initial loading of
+        /// resources into views collection.
+        /// </summary>
+        /// <param name="bytResNum"></param>
+        /// <param name="bytVol"></param>
+        /// <param name="lngLoc"></param>
+        internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
+            View newResource = new(parent, bytResNum, bytVol, lngLoc);
+            newResource.Load();
+            Col.Add(bytResNum, newResource);
+            // leave it loaded, so error level can be addressed by loader
+        }
 
         /// <summary>
-        /// Returns true if a picture with number ResNum exists in this game.
+        /// Returns true if a picture with the specified number exists in this game.
         /// </summary>
         /// <param name="ResNum"></param>
         /// <returns></returns>
@@ -56,19 +88,12 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Removes all views from this game.
-        /// </summary>
-        public void Clear() {
-            Col = [];
-        }
-
-        /// <summary>
-        /// Adds a view to the game. If NewView is null a blank view is 
+        /// Adds a view to this game. If NewView is null a blank view is 
         /// added, otherwise the added view is cloned from NewView.
         /// </summary>
         /// <param name="ResNum"></param>
         /// <param name="NewView"></param>
-        /// <returns></returns>
+        /// <returns>A reference to the newly added view.</returns>
         public View Add(byte ResNum, View NewView = null) {
             View agResource;
             int intNextNum = 0;
@@ -93,25 +118,23 @@ namespace WinAGI.Engine {
                 strID = strBaseID + "_" + intNextNum;
             }
             Col.Add(ResNum, agResource);
-            //force flags so save function will work
+            // force flags so save function will work
             agResource.IsDirty = true;
             agResource.PropsDirty = true;
             //save new view to add it to VOL file
             agResource.Save();
-            // id list needs to be updated
             LogicCompiler.blnSetIDs = false;
-            //return the new view
             return agResource;
         }
 
         /// <summary>
-        /// Removes a view from the game.
+        /// Removes the specified view from this game.
         /// </summary>
         /// <param name="Index"></param>
         public void Remove(byte Index) {
             if (Col.TryGetValue(Index, out View value)) {
                 // need to clear the directory file first
-                VOLManager.Base.UpdateDirFile(value, true);
+                VOLManager.UpdateDirFile(value, true);
                 Col.Remove(Index);
                 // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("View" + Index);
@@ -121,7 +144,15 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Changes the number of a view in this game.
+        /// Removes all views from this game. Does not update WAG file.
+        /// </summary>
+        internal void Clear() {
+            Col = [];
+
+        }
+
+        /// <summary>
+        /// Changes the index number of a view in this game.
         /// </summary>
         /// <param name="OldView"></param>
         /// <param name="NewView"></param>
@@ -134,7 +165,7 @@ namespace WinAGI.Engine {
                 return;
             }
             // verify old number exists
-            if (!Col.ContainsKey(OldView)) {
+            if (!Col.TryGetValue(OldView, out tmpView)) {
                 throw new IndexOutOfRangeException("view does not exist");
             }
             //verify new number is not in collection
@@ -144,11 +175,10 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            tmpView = Col[OldView];
             // remove old view
             parent.agGameProps.DeleteSection("View" + OldView);
             Col.Remove(OldView);
-            VOLManager.Base.UpdateDirFile(tmpView, true);
+            VOLManager.UpdateDirFile(tmpView, true);
             // adjust id if it is default
             if (tmpView.ID == "View" + OldView) {
                 strID = strBaseID = "View" + NewView;
@@ -160,25 +190,11 @@ namespace WinAGI.Engine {
             // add it back with new number
             tmpView.Number = NewView;
             Col.Add(NewView, tmpView);
-            VOLManager.Base.UpdateDirFile(tmpView);
+            VOLManager.UpdateDirFile(tmpView);
             tmpView.SaveProps();
-            // id list needs updating
             LogicCompiler.blnSetIDs = false;
         }
-
-        /// <summary>
-        /// Called by the load game methods for the initial loading of
-        /// resources into views collection.
-        /// </summary>
-        /// <param name="bytResNum"></param>
-        /// <param name="bytVol"></param>
-        /// <param name="lngLoc"></param>
-        internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
-            View newResource = new(parent, bytResNum, bytVol, lngLoc);
-            newResource.Load();
-            Col.Add(bytResNum, newResource);
-            // leave it loaded, so error level can be addressed by loader
-        }
+        #endregion
 
         #region Enumeration
         ViewEnum GetEnumerator() {

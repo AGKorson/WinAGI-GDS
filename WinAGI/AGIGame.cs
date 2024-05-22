@@ -680,9 +680,7 @@ namespace WinAGI.Engine {
             agSnds.Clear();
             agViews.Clear();
             agInvObj.Unload();
-            agInvObj.InGame = false;
             agVocabWords.Unload();
-            agVocabWords.InGame = false;
             //restore default AGI colors
             DefaultColors = new();
             //write date of last edit
@@ -889,7 +887,7 @@ namespace WinAGI.Engine {
             }
             // add all logic resources
             try {
-                if (!VOLManager.Base.CompileResCol(this, agLogs, AGIResType.Logic, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.CompileResCol(this, agLogs, AGIResType.Logic, RebuildOnly, NewIsV3)) {
                     // resource error (or user canceled)
                     CompleteCancel(true);
                     return false;
@@ -901,7 +899,7 @@ namespace WinAGI.Engine {
             }
             // add all picture resources
             try {
-                if (!VOLManager.Base.CompileResCol(this, agPics, AGIResType.Picture, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.CompileResCol(this, agPics, AGIResType.Picture, RebuildOnly, NewIsV3)) {
                     // if a resource error (or user canceled) encountered, just exit
                     CompleteCancel(true);
                     return false;
@@ -913,7 +911,7 @@ namespace WinAGI.Engine {
             }
             // add all view resources
             try {
-                if (!VOLManager.Base.CompileResCol(this, agViews, AGIResType.View, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.CompileResCol(this, agViews, AGIResType.View, RebuildOnly, NewIsV3)) {
                     // if a resource error (or user canceled) encountered, just exit
                     CompleteCancel(true);
                     return false;
@@ -925,7 +923,7 @@ namespace WinAGI.Engine {
             }
             // add all sound resources
             try {
-                if (!VOLManager.Base.CompileResCol(this, agSnds, AGIResType.Sound, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.CompileResCol(this, agSnds, AGIResType.Sound, RebuildOnly, NewIsV3)) {
             // if a resource error (or user canceled) encountered, just exit
                 CompleteCancel(true);
                 return false;

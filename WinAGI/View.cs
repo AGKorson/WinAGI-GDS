@@ -9,6 +9,7 @@ namespace WinAGI.Engine {
     /// A class that represents an AGI View resource, with WinAGI extensions.
     /// </summary>
     public class View : AGIResource {
+        #region Members
         /// <summary>
         /// True if the view resource data does not match the current view
         /// loop/cel/description objects.
@@ -16,7 +17,9 @@ namespace WinAGI.Engine {
         bool mViewSet;
         internal Loops mLoopCol;
         string mViewDesc;
+        #endregion
 
+        #region Constructors
         /// <summary>
         /// Constructor to create a new AGI view resource that is not part of an AGI game.
         /// </summary>
@@ -48,13 +51,56 @@ namespace WinAGI.Engine {
         /// <param name="VOL"></param>
         /// <param name="Loc"></param>
         internal View(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.View) {
-            // set up base resource
+            InitView(null);
             base.InitInGame(parent, AGIResType.View, ResNum, VOL, Loc);
+        }
+        #endregion
 
-            // add empty loop col as placeholder
-            mLoopCol = new Loops(this);
+        #region Properties
+        /// <summary>
+        /// Gets the specified loop from this view.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public Loop this[int index] {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (index < 0 || index >= mLoopCol.Count) {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+                return Loops[index];
+            }
         }
 
+        /// <summary>
+        /// Gets the loop collection for this view.
+        /// </summary>
+        public Loops Loops {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return mLoopCol;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the AGI View Description property.
+        /// </summary>
+        public string ViewDescription {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return mViewDesc;
+            }
+            set {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (mViewDesc != value) {
+                    mViewDesc = Left(value, 255);
+                    mViewSet = false;
+                }
+            }
+        }
+        #endregion
+
+        #region Methods
         /// <summary>
         /// Initializes a new view resource when first instantiated. If NewView is null, 
         /// a blank view resource is created. If NewView is not null, it is cloned into
@@ -63,6 +109,7 @@ namespace WinAGI.Engine {
         /// <param name="NewView"></param>
         private void InitView(View NewView = null) {
             if (NewView is null) {
+                // TODO: should this add a one-loop/one-cel/one-pixel view instead?
                 // add empty loop col
                 mLoopCol = new Loops(this);
                 mData = [0x01, 0x01, 0x00, 0x00, 0x00];
@@ -71,6 +118,8 @@ namespace WinAGI.Engine {
                 // byte2 = loop count
                 // byte3 = high byte of viewdesc
                 // byte4 = low byte of viewdesc
+                mViewSet = true;
+                mViewDesc = "";
             }
             else {
                 // copy base properties
@@ -108,12 +157,7 @@ namespace WinAGI.Engine {
             mLoopCol = new Loops(this);
             mLoopCol.Add(0);
             mLoopCol[0].Cels.Add(0);
-            mData = [0x01, 0x01, 0x00, 0x00, 0x00];
-            // byte0 = unknown (always 1 or 2?)
-            // byte1 = unknown (always 1?)
-            // byte2 = loop count
-            // byte3 = high byte of viewdesc
-            // byte4 = low byte of viewdesc
+            mViewSet = false;
             mIsDirty = true;
         }
 
@@ -122,13 +166,14 @@ namespace WinAGI.Engine {
         /// and stores it in this resource's data.
         /// </summary>
         void CompileView() {
-            int[] lngLoopLoc, lngCelLoc;
+            int[] lngLoopOffset, lngCelOffset;
             int i, j;
             byte bytTransCol;
             int k;
             byte[] bytCelData;
             bool blnMirrorAdded;
             mData = [];
+
             // header
             WriteByte(1, 0);
             WriteByte(1);
@@ -136,8 +181,8 @@ namespace WinAGI.Engine {
             WriteByte((byte)mLoopCol.Count);
             // placeholder for description
             WriteWord(0);
-            // initialize loop location array
-            lngLoopLoc = new int[mLoopCol.Count];
+            // initialize loop offset array
+            lngLoopOffset = new int[mLoopCol.Count];
             // place holders for loop positions
             for (i = 0; i < mLoopCol.Count; i++) {
                 WriteWord(0);
@@ -154,27 +199,21 @@ namespace WinAGI.Engine {
                     blnMirrorAdded = false;
                 }
                 if (blnMirrorAdded) {
-                    // loop location is same as mirror
-                    lngLoopLoc[i] = lngLoopLoc[mLoopCol[i].MirrorLoop];
+                    // loop offset is same as mirror
+                    lngLoopOffset[i] = lngLoopOffset[mLoopCol[i].MirrorLoop];
                 }
                 else {
-                    // set loop location
-                    lngLoopLoc[i] = Pos;
-                    // number of cels
+                    lngLoopOffset[i] = Pos;
                     WriteByte((byte)mLoopCol[i].Cels.Count);
-                    //initialize cel loc array
-                    lngCelLoc = new int[mLoopCol[i].Cels.Count];
-                    // placeholders for cel locations
+                    lngCelOffset = new int[mLoopCol[i].Cels.Count];
+                    // placeholders for cel offsets
                     for (j = 0; j < mLoopCol[i].Cels.Count; j++) {
                         WriteWord(0);
                     }
                     // step through all cels to add them
                     for (j = 0; j < mLoopCol[i].Cels.Count; j++) {
-                        //save cel loc
-                        lngCelLoc[j] = Pos - lngLoopLoc[i];
-                        // width
+                        lngCelOffset[j] = Pos - lngLoopOffset[i];
                         WriteByte(mLoopCol[i].Cels[j].Width);
-                        // height
                         WriteByte(mLoopCol[i].Cels[j].Height);
                         if (mLoopCol[i].Mirrored != 0) {
                             // set bit 7 for mirror flag and include loop number
@@ -185,7 +224,6 @@ namespace WinAGI.Engine {
                             // just use transparent color
                             bytTransCol = (byte)mLoopCol[i].Cels[j].TransColor;
                         }
-                        // transcolor
                         WriteByte(bytTransCol);
                         // cel data
                         bytCelData = CompressedCel(mLoopCol[i].Cels[j], (mLoopCol[i].Mirrored != 0));
@@ -193,24 +231,24 @@ namespace WinAGI.Engine {
                             WriteByte(bytCelData[k]);
                         }
                     }
-                    // step through cels and add cel location
+                    // add cel offsets
                     for (j = 0; j < mLoopCol[i].Cels.Count; j++) {
-                        WriteWord((ushort)lngCelLoc[j], lngLoopLoc[i] + 1 + 2 * j);
+                        WriteWord((ushort)lngCelOffset[j], lngLoopOffset[i] + 1 + 2 * j);
                     }
-                    // restore pos to end of resource
+                    // restore pointer to end of resource
                     Pos = mData.Length;
                 }
             }
-            // step through loops again to add loop loc
+            // step through loops again to add loop offsets
             for (i = 0; i < mLoopCol.Count; i++) {
-                WriteWord((ushort)lngLoopLoc[i], 5 + 2 * i);
+                WriteWord((ushort)lngLoopOffset[i], 5 + 2 * i);
             }
             if (mViewDesc.Length > 0) {
-                // view description location
+                // view description offset
                 WriteWord((ushort)mData.Length, 3);
-                //move pointer back to end of resource
+                // move pointer back to end of resource
                 Pos = mData.Length;
-                // view description
+                // add view description
                 byte[] desc;
                 if (parent is null) {
                     desc = Encoding.GetEncoding(437).GetBytes(mViewDesc);
@@ -224,10 +262,10 @@ namespace WinAGI.Engine {
                 // add terminating null char
                 WriteByte(0);
             }
+            mViewSet = true;
             // clear error level
             mErrLevel = 0;
             ErrData = ["", "", "", "", ""];
-            mViewSet = true;
         }
 
         /// <summary>
@@ -237,6 +275,7 @@ namespace WinAGI.Engine {
         /// <param name="StartPos"></param>
         /// <param name="aCel"></param>
         void ExpandCelData(int StartPos, Cel aCel) {
+            ArgumentNullException.ThrowIfNull(aCel);
             byte bytCelY = 0;
             byte bytIn;
             byte bytChunkColor, bytChunkCount;
@@ -323,11 +362,9 @@ namespace WinAGI.Engine {
             int result = 0; // assume no errors
 
             mLoopCol = new Loops(this);
-            // get number of loops
             bytNumLoops = ReadByte(2);
             // get offset to ViewDesc
             lngDescLoc = ReadWord();
-            // if no loops
             if (bytNumLoops == 0) {
                 // error - invalid data
                 ErrData[0] = mResID;
@@ -335,9 +372,8 @@ namespace WinAGI.Engine {
                 mIsDirty = false;
                 return -15;
             }
-            //get loop offset data for each loop
+            // get loop offset data for each loop
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
-                //get offset to start of this loop
                 lngLoopStart[bytLoop] = ReadWord();
                 if ((lngLoopStart[bytLoop] > mSize)) {
                     // invalid loop; let any that are alreay loaded stay loaded
@@ -350,11 +386,11 @@ namespace WinAGI.Engine {
             }
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
                 mLoopCol.Add(bytLoop);
-                //  zero is NEVER mirrored
+                //  loop zero NEVER mirrors another loop (but others can 
+                // mirror it)
                 if (bytLoop > 0) {
                     // for all other loops, check to see if it mirrors an earlier loop
                     for (tmpLoopNo = 0; tmpLoopNo < bytLoop; tmpLoopNo++) {
-                        // if the loops have the same starting position,
                         if (lngLoopStart[bytLoop] == lngLoopStart[tmpLoopNo]) {
                             // confirm valid mirror
                             switch (SetMirror(bytLoop, tmpLoopNo)) {
@@ -370,13 +406,9 @@ namespace WinAGI.Engine {
                         }
                     }
                 }
-                // if loop not mirrored,
                 if (mLoopCol[bytLoop].Mirrored == 0) {
-                    // point to start of this loop
                     Pos = lngLoopStart[bytLoop];
-                    // read number of cels
                     bytNumCels = ReadByte();
-                    // step through all cels in this loop
                     for (bytCel = 0; bytCel < bytNumCels; bytCel++) {
                         // read starting position
                         lngCelStart = (ushort)(ReadWord(lngLoopStart[bytLoop] + 2 * bytCel + 1) + lngLoopStart[bytLoop]);
@@ -389,13 +421,11 @@ namespace WinAGI.Engine {
                             mIsDirty = false;
                             return -20;
                         }
-                        // get height/width
                         bytWidth = ReadByte(lngCelStart);
                         bytHeight = ReadByte();
-                        // get transparency color for this cel
                         bytTransCol = ReadByte();
                         bytTransCol = (byte)(bytTransCol % 0x10);
-                        //add the cel
+                        // add the cel
                         mLoopCol[bytLoop].Cels.Add(bytCel, bytWidth, bytHeight, (AGIColorIndex)bytTransCol);
                         // extract bitmap data from RLE data
                         ExpandCelData(lngCelStart + 3, mLoopCol[bytLoop].Cels[bytCel]);
@@ -404,12 +434,10 @@ namespace WinAGI.Engine {
             }
             mViewDesc = "";
             if (lngDescLoc > 0) {
-                //ensure it can be loaded
                 if (lngDescLoc < mSize - 1) {
                     // set resource pointer to beginning of description string
                     Pos = lngDescLoc;
                     do {
-                        //get character
                         bytInput[0] = ReadByte();
                         //if not zero, and string not yet up to 255 characters,
                         if ((bytInput[0] > 0) && (mViewDesc.Length < 255)) {
@@ -493,7 +521,6 @@ namespace WinAGI.Engine {
         /// while unloaded. Only views that are in a game can be unloaded.
         /// </summary>
         public override void Unload() {
-            // only ingame resources can be unloaded
             if (!mInGame) {
                 return;
             }
@@ -516,7 +543,8 @@ namespace WinAGI.Engine {
         
         /// <summary>
         /// Saves this view resource. If in a game, it updates the DIR and VOL files. 
-        /// If not in a game the view is saved to its resource file specified by FileName.
+        /// If not in a game the view is saved to its resource file specified by the
+        /// FileName property.
         /// </summary>
         public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);
@@ -536,51 +564,9 @@ namespace WinAGI.Engine {
                 }
             }
         }
-        
-        /// <summary>
-        /// Gets the specified loop from this view.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public Loop this[int index] {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                if (index < 0 || index >= mLoopCol.Count) {
-                    throw new ArgumentOutOfRangeException(nameof(index));
-                }
-                return Loops[index];
-            }
-        }
-        
-        /// <summary>
-        /// Gets the loop collection for this view.
-        /// </summary>
-        public Loops Loops {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return mLoopCol;
-            }
-        }
-        
-        /// <summary>
-        /// Gets or sets the AGI View Description property.
-        /// </summary>
-        public string ViewDescription {
-            get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return mViewDesc;
-            }
-            set {
-                WinAGIException.ThrowIfNotLoaded(this);
-                if (mViewDesc != value) {
-                    mViewDesc = Left(value, 255);
-                    mViewSet = false;
-                }
-            }
-        }
 
         /// <summary>
-        /// Sets the  two loops as a mirror pair.
+        /// Sets up a mirror pair between the two specified loops.
         /// </summary>
         /// <param name="TargetLoop"></param>
         /// <param name="SourceLoop"></param>
@@ -601,7 +587,7 @@ namespace WinAGI.Engine {
             if (SourceLoop >= mLoopCol.Count) {
                 return -2;
             }
-            // mirrors must be less than eight
+            // mirror loops must be less than eight
             if (SourceLoop >= 8 || TargetLoop >= 8) {
                 return -3;
             }
@@ -627,5 +613,6 @@ namespace WinAGI.Engine {
             mIsDirty = true;
             return 0;
         }
+        #endregion
     }
 }

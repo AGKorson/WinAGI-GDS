@@ -21,7 +21,6 @@ namespace WinAGI.Engine {
         string mDescription = "";
         bool mInGame;
         bool mIsDirty;
-        bool mWriteProps;
         bool mLoaded;
         int mErrLevel = 0;
         // 1 = empty file
@@ -105,7 +104,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public bool IsDirty {
             get {
-                return (mIsDirty || (mWriteProps && mInGame));
+                return mIsDirty;
             }
             internal set {
                 mIsDirty = value;
@@ -113,7 +112,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets or sets the OBJECT file associated with this item list. If in a game, 
+        /// Gets or sets the OBJECT filename associated with this item list. If in a game, 
         /// the resfile name is readonly.
         /// </summary>
         public string ResFile {
@@ -258,14 +257,6 @@ namespace WinAGI.Engine {
                 return mAmigaOBJ;
             }
         }
-
-        /// <summary>
-        /// When true, indicates properties for this inventory items list need
-        /// to be updated in the game's WAG file. Meaningless if resource is 
-        /// not in a game.
-        /// </summary>
-        internal bool PropsDirty { get; set; }
-
         #endregion
 
         #region Methods
@@ -468,7 +459,6 @@ namespace WinAGI.Engine {
             }
             Clear();
             mLoaded = false;
-            mWriteProps = false;
             mIsDirty = false;
         }
 
@@ -508,7 +498,7 @@ namespace WinAGI.Engine {
         /// <param name="ExportFile"></param>
         /// <param name="ResetDirty"></param>
         /// <exception cref="Exception"></exception>
-        public void Export(string ExportFile, bool ResetDirty = true) {
+        public void Export(string ExportFile) {
             WinAGIException.ThrowIfNotLoaded(this);
             try {
                 Compile(ExportFile);
@@ -520,9 +510,7 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             if (!mInGame) {
-                if (ResetDirty) {
-                    mIsDirty = false;
-                }
+                mIsDirty = false;
                 mResFile = ExportFile;
             }
         }
@@ -717,7 +705,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Clears this list sets all properties to default values.
+        /// Clears this list and sets all properties to default values.
         /// </summary>
         public void Clear() {
             InventoryItem tmpItem;
@@ -829,7 +817,6 @@ namespace WinAGI.Engine {
                 bytData[lngPos] = (byte)(bytData[lngPos] ^ bytEncryptKey[lngPos % 11]);
             }
         }
-
         #endregion
 
         #region Enumeration

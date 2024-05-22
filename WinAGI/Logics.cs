@@ -52,7 +52,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the number of logics in this collection.
+        /// Gets the number of logics in this AGI game.
         /// </summary>
         public byte Count { 
             get { 
@@ -170,7 +170,7 @@ namespace WinAGI.Engine {
         public void Remove(byte Index) {
             if (Col.TryGetValue(Index, out Logic value)) {
                 // need to clear the directory file first
-                VOLManager.Base.UpdateDirFile(value, true);
+                VOLManager.UpdateDirFile(value, true);
                 Col.Remove(Index);
                 // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Logic" + Index);
@@ -180,7 +180,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Removes all logics from this game.
+        /// Removes all logics from this game. Does not update WAG file.
         /// </summary>
         internal void Clear() {
             Col = [];
@@ -200,7 +200,7 @@ namespace WinAGI.Engine {
                 return;
             }
             // verify old number exists
-            if (!Col.ContainsKey(OldLogic)) {
+            if (!Col.TryGetValue(OldLogic, out tmpLogic)) {
                 throw new IndexOutOfRangeException("logic does not exist");
             }
             // verify new number is not in collection
@@ -210,11 +210,10 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            tmpLogic = Col[OldLogic];
             // remove old logic
             parent.agGameProps.DeleteSection("Logic" + OldLogic);
             Col.Remove(OldLogic);
-            VOLManager.Base.UpdateDirFile(tmpLogic, true);
+            VOLManager.UpdateDirFile(tmpLogic, true);
             // adjust ID if it is default
             if (tmpLogic.ID == "Logic" + OldLogic) {
                 strID = strBaseID = "Logic" + NewLogic;
@@ -238,7 +237,7 @@ namespace WinAGI.Engine {
             // add it back with new number
             tmpLogic.Number = NewLogic;
             Col.Add(NewLogic, tmpLogic);
-            VOLManager.Base.UpdateDirFile(tmpLogic);
+            VOLManager.UpdateDirFile(tmpLogic);
             tmpLogic.SaveProps();
             blnSetIDs = false;
         }

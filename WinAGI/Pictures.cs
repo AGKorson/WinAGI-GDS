@@ -46,7 +46,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the number of pictures in this collection.
+        /// Gets the number of pictures in this AGI game.
         /// </summary>
         public byte Count {
             get {
@@ -55,7 +55,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the highest index in use in the pictures collection.
+        /// Gets the highest index in use in this pictures collection.
         /// </summary>
         public byte Max {
             get {
@@ -138,7 +138,7 @@ namespace WinAGI.Engine {
         public void Remove(byte Index) {
             if (Col.TryGetValue(Index, out Picture value)) {
                 // need to clear the directory file first
-                VOLManager.Base.UpdateDirFile(value, true);
+                VOLManager.UpdateDirFile(value, true);
                 Col.Remove(Index);
                 // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Picture" + Index);
@@ -148,9 +148,9 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Removes all pictures from this game.
+        /// Removes all pictures from this game. Does not update WAG file.
         /// </summary>
-        public void Clear() {
+        internal void Clear() {
             Col = [];
         }
 
@@ -168,7 +168,7 @@ namespace WinAGI.Engine {
                 return;
             }
             // verify old number exists
-            if (!Col.ContainsKey(OldPicture)) {
+            if (!Col.TryGetValue(OldPicture, out tmpPic)) {
                 throw new IndexOutOfRangeException("picture does not exist");
             }
             //verify new number is not in collection
@@ -178,11 +178,10 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            tmpPic = Col[OldPicture];
             // remove old picture
             parent.agGameProps.DeleteSection("Picture" + OldPicture);
             Col.Remove(OldPicture);
-            VOLManager.Base.UpdateDirFile(tmpPic, true);
+            VOLManager.UpdateDirFile(tmpPic, true);
             // adjust ID if it is default
             if (tmpPic.ID == "Picture" + OldPicture) {
                 strID = strBaseID = "Picture" + NewPicture;
@@ -194,7 +193,7 @@ namespace WinAGI.Engine {
             // add it back with new number
             tmpPic.Number = NewPicture;
             Col.Add(NewPicture, tmpPic);
-            VOLManager.Base.UpdateDirFile(tmpPic);
+            VOLManager.UpdateDirFile(tmpPic);
             tmpPic.SaveProps();
             LogicCompiler.blnSetIDs = false;
         }

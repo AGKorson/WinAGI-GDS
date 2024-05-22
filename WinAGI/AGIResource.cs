@@ -676,7 +676,7 @@ namespace WinAGI.Engine {
             WinAGIException.ThrowIfNotLoaded(this);
             if (mInGame) {
                 try {
-                    VOLManager.Base.UpdateInVol(this);
+                    VOLManager.UpdateInVol(this);
                     // update saved size
                     mSize = mData.Length;
                     // when saving in WinAGI, resource are never compressed
