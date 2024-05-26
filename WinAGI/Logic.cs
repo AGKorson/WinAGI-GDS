@@ -14,6 +14,7 @@ namespace WinAGI.Engine {
         #region Members
         string mSourceFile = "";
         string mSourceText = "";
+        int mSrcErrLevel = 0;
         uint mCompiledCRC;
         uint mCRC;
         int mCodeSize;
@@ -77,7 +78,7 @@ namespace WinAGI.Engine {
 
         #region Properties
         /// <summary>
-        /// Gets or sets the rsource ID for this logic. The source code file for
+        /// Gets or sets the resource ID for this logic. The source code file for
         /// in-game resources is automatically renamed to match the new ID.
         /// </summary>
         public override string ID {
@@ -156,6 +157,15 @@ namespace WinAGI.Engine {
                     }
                     mSourceFile = value;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets the error level for the source code file.
+        /// </summary>
+        public int SrcErrLevel {
+            get {
+                return mSrcErrLevel;
             }
         }
         
@@ -237,7 +247,6 @@ namespace WinAGI.Engine {
                 }
             }
         }
-
        #endregion
 
         #region Methods
@@ -392,7 +401,6 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ImportFile"></param>
         /// <param name="AsSource"></param>
-        
         public override void Import(string ImportFile) {
             try {
                 base.Import(ImportFile);
@@ -483,15 +491,14 @@ namespace WinAGI.Engine {
                     }
                 }
             }
-
             // if forcing decompile
             if (Decompile) {
                 if (mErrLevel == 0) {
                     // get source code by decoding the resource raw data
+                    // (this also set error level)
                     mSourceText = LogicDecoder.DecodeLogic(this);
-                    if (mErrLevel < 0) {
+                    if (mErrLevel != 0) {
                         // unable to decompile; force uncompiled state
-                        mSourceText = "return();" + NEWLINE;
                         mCRC = 0;
                         mCompiledCRC = 0xffffffff;
                         return;
@@ -509,7 +516,7 @@ namespace WinAGI.Engine {
             else {
                 // verify file exists
                 if (!File.Exists(mSourceText)) {
-                    mErrLevel = -6;
+                    mSrcErrLevel = -1;
                     ErrData[0] = mSourceText;
                     ErrData[1] = mResID;
                     mSourceText = "return();" + NEWLINE;
@@ -520,7 +527,7 @@ namespace WinAGI.Engine {
                 }
                 // check for readonly
                 if ((File.GetAttributes(mSourceText) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                    mErrLevel = -7;
+                    mSrcErrLevel = -2;
                     ErrData[0] = mSourceText;
                     ErrData[1] = mResID;
                     mSourceText = "return();" + NEWLINE;
@@ -536,7 +543,7 @@ namespace WinAGI.Engine {
                     mSourceText = CPToUnicode(File.ReadAllText(mSourceText), parent is not null ? parent.agCodePage : Encoding.GetEncoding(437));
                 }
                 catch (Exception e) {
-                    mErrLevel = -8;
+                    mSrcErrLevel = -3;
                     ErrData[0] = e.Message;
                     ErrData[1] = mResID;
                     mSourceText = "return();" + NEWLINE;
@@ -627,11 +634,8 @@ namespace WinAGI.Engine {
         /// </summary>
         public void Compile() {
             // TODO: why can't nongame logics be compiled? makes no sense...
-            TWinAGIEventInfo tmpInfo = new() {
-                ID = "",
-                Module = "",
-                Text = ""
-            };
+            TWinAGIEventInfo tmpInfo;
+
             WinAGIException.ThrowIfNotLoaded(this);
             if (!mInGame) {
                 WinAGIException wex = new(LoadResString(618)) {
@@ -647,7 +651,7 @@ namespace WinAGI.Engine {
             }
             try {
                 tmpInfo = CompileLogic(this);
-                //set dirty flag (forces save to work correctly)
+                // set dirty flag (forces save to work correctly)
                 mIsDirty = true;
                 base.Save();
             }

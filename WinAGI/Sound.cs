@@ -356,85 +356,93 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Extracts sound data from the resource and builds the sound tracks.
         /// </summary>
-        internal void LoadTracks() {
+        /// <returns>Zero if no errors, otherwise an error code:<br />
+        /// 1 = invalid track offset<br />
+        /// 2 = zero length note<br />
+        /// 4 = missing track end marker<br />
+        /// 8 = no sound data
+        /// </returns>
+        internal int LoadTracks() {
             int i, lngLength = 0, lngTLength;
-            int lngStart, lngEnd, lngResPos, lngDur;
+            int lngStart, lngDur = 0;
             short intFreq;
             byte bytAttn;
 
-            try {
-                // extract note information for each track from resource
-                for (i = 0; i <= 3; i++) {
-                    lngTLength = 0;
-                    // get start and end of this track (stored at beginning of
-                    // resource in LSMS format)
-                    //   track 0 start is byte 0-1, track 1 start is byte 2-3
-                    //   track 2 start is byte 4-5, noise start is byte 6-7
-                    lngStart = mData[i * 2 + 0] + 256 * mData[i * 2 + 1];
-                    if (i < 3) {
-                        // end (last note) is start of next track -7 (5 bytes per
-                        // note in each track, -2 for end of track marker [0xFFFF])
-                        lngEnd = mData[i * 2 + 2] + 256 * mData[i * 2 + 3] - 7;
-                    }
-                    else {
-                        // last track end
-                        lngEnd = mSize - 7;
-                    }
-                    // validate track data location
-                    if (lngStart < 0 || lngEnd < 0 || lngStart > mSize || lngEnd > mSize) {
-                        mErrLevel = -13;
-                        ErrData[0] = mResID;
-                        break;
-                    }
+            // assume no errors
+            int retval = 0;
+            if (Size < 10) {
+                // not enough data to be a sound
+                return 8;
+            }
+            // extract note information for each track from resource
+            for (i = 0; i <= 3; i++) {
+                lngStart = ReadWord(i * 2);
+                lngTLength = 0;
+                // validate track data location
+                if (lngStart > mSize - 1) {
+                    // invalid track offset
+                    retval |= 1;
+                    continue;
+                }
+                else {
                     // step through notes in this track (5 bytes at a time)
-                    for (lngResPos = lngStart; lngResPos <= lngEnd; lngResPos += 5) {
+                    Pos = lngStart;
+                    while (Pos < Size - 1) {
+                        lngDur = ReadWord(Pos);
+                        if (lngDur == 0xFFFF) {
+                            break;
+                        }
                         if (i < 3) {
                             // TONE channel:
                             // duration
-                            lngDur = (mData[lngResPos] + 256 * mData[lngResPos + 1]);
                             if (lngDur > 0) {
-                                // frequency
-                                intFreq = (short)(16 * (mData[lngResPos + 2] & 0x3F) + (mData[lngResPos + 3] & 0xF));
-                                // attenuation
-                                bytAttn = ((byte)(mData[lngResPos + 4] & 0xF));
-                                mTrack[i].Notes.Add(intFreq, lngDur, bytAttn); 
-                                lngTLength += lngDur;
+                                if (Pos + 2 < Size) {
+                                    // frequency
+                                    intFreq = (short)(16 * (mData[Pos] & 0x3F) + (mData[Pos + 1] & 0xF));
+                                    // attenuation
+                                    bytAttn = ((byte)(mData[Pos + 2] & 0xF));
+                                    mTrack[i].Notes.Add(intFreq, lngDur, bytAttn);
+                                    lngTLength += lngDur;
+                                }
+                            }
+                            else {
+                                // zero length note
+                                retval |= 2;
                             }
                         }
                         else {
                             // NOISE channel:
-                            // duration
-                            lngDur = (mData[lngResPos] + 256 * mData[lngResPos + 1]);
                             if (lngDur > 0) {
-                                // get freq divisor (first two bits of fourth byte)
-                                // and noise type (3rd bit) as a single number
-                                intFreq = ((short)(mData[lngResPos + 3] & 7));
-                                // attenuation
-                                bytAttn = (byte)(mData[lngResPos + 4] & 0xF);
-                                mTrack[3].Notes.Add(intFreq, lngDur, bytAttn);
-                                lngTLength += lngDur;
+                                if (Pos + 2 < Size) {
+                                    // get freq divisor (first two bits of second freq byte)
+                                    // and noise type (3rd bit) as a single number
+                                    intFreq = ((short)(mData[Pos + 1] & 7));
+                                    // attenuation
+                                    bytAttn = (byte)(mData[Pos + 2] & 0xF);
+                                    mTrack[3].Notes.Add(intFreq, lngDur, bytAttn);
+                                    lngTLength += lngDur;
+                                }
                             }
                         }
+                        Pos += 3;
                     }
                     // update total sound length
                     if (lngTLength > lngLength) {
                         lngLength = lngTLength;
                     }
+                    // duration should be 0xffff
+                    if (lngDur != 0xFFFF) {
+                        retval |= 4;
+                    }
                 }
-            }
-            catch (Exception e) {
-                // bad sound data
-                mErrLevel = -14;
-                ErrData[0] = mResID;
-                ErrData[1] = e.Message;
             }
             // calculate length in seconds (original playsound DOS app used sound
             // timing of 1/64 sec per tick but correct value is 1/60 sec)
             mLength = (double)lngLength / 60;
-
             // done
             mTracksSet = true;
             mIsDirty = false;
+            return retval;
         }
 
         /// <summary>
@@ -492,6 +500,7 @@ namespace WinAGI.Engine {
             }
             mData = tmpRes.mData;
             mTracksSet = true;
+            mErrLevel = 0;
         }
 
         /// <summary>
@@ -1195,14 +1204,9 @@ namespace WinAGI.Engine {
             if (Index < 0 || Index > 3) {
                 throw new IndexOutOfRangeException("Index out of bounds");
             }
+            // if sound was edited, tracks may not be set
             if (!mTracksSet) {
-                try {
-                    LoadTracks();
-                }
-                catch (Exception) {
-                    // pass along any errors
-                    throw;
-                }
+                mErrLevel = LoadTracks();
             }
             return mTrack[Index];
         }
@@ -1302,12 +1306,11 @@ namespace WinAGI.Engine {
                 break;
             case 8:
                 mFormat = SoundFormat.sfAGI;
-                LoadTracks();
+                mErrLevel = LoadTracks();
                 break;
             default:
                 // bad sound
-                mErrLevel = -13;
-                ErrData[0] = mResID;
+                mErrLevel = 16;
                 ErrClear();
                 break;
             }

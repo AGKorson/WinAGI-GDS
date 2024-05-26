@@ -248,9 +248,8 @@ namespace WinAGI.Engine {
             // resource header)
             lngMsgSecStart = bytData[0] + (bytData[1] << 8) + 2;
             if (!ReadMessages(bytData, lngMsgSecStart, SourceLogic.V3Compressed != 2)) {
-                SourceLogic.ErrLevel = -9;
+                SourceLogic.ErrLevel = 1;
                 SourceLogic.ErrData[0] = strError;
-                SourceLogic.ErrData[1] = SourceLogic.ID;
                 return "return();" + NEWLINE;
             }
 
@@ -275,16 +274,14 @@ namespace WinAGI.Engine {
                     // if more than one, how do I handle this?
                     if (!FindLabels(bytData)) {
                         // use error string set by findlabels
-                        SourceLogic.ErrLevel = -10;
+                        SourceLogic.ErrLevel = 2;
                         SourceLogic.ErrData[0] = strError;
-                        SourceLogic.ErrData[1] = SourceLogic.ID;
                         return "return();" + NEWLINE;
                     }
                 }
                 else {
-                    SourceLogic.ErrLevel = -10;
+                    SourceLogic.ErrLevel = 2;
                     SourceLogic.ErrData[0] = strError;
-                    SourceLogic.ErrData[1] = SourceLogic.ID;
                     return "return();" + NEWLINE;
                 }
             }
@@ -315,9 +312,8 @@ namespace WinAGI.Engine {
                 case 0xFF:
                     // this byte starts an IF statement
                     if (!DecodeIf(bytData, stlOutput)) {
-                        SourceLogic.ErrLevel = -11;
+                        SourceLogic.ErrLevel = 4;
                         SourceLogic.ErrData[0] = strError;
-                        SourceLogic.ErrData[1] = SourceLogic.ID;
                         return "return();" + NEWLINE;
                     }
                     break;

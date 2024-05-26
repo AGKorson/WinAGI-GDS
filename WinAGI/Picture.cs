@@ -759,9 +759,6 @@ namespace WinAGI.Engine {
             mPriData = new byte[26880];
             // build arrays of bitmap data, set error level
             mErrLevel = CompilePicData(ref mVisData, ref mPriData, mData, mStepDraw ? mDrawPos : -1, mDrawPos);
-            if (mErrLevel != 0) {
-                ErrData[0] = mResID;
-            }
             // copy the picture data to the bitmaps
             Marshal.Copy(mVisData, 0, ptrVis, 26880);
             bmpVis.UnlockBits(bmpVisData);

@@ -248,10 +248,9 @@ namespace WinAGI.Engine {
         /// <param name="RebuildOnly"></param>
         /// <param name="NewIsV3"></param>
         /// <returns>true, if no resource errors encountered, otherwise false.</returns>
-        internal static bool CompileResCol(AGIGame game, dynamic tmpResCol, AGIResType ResType, bool RebuildOnly, bool NewIsV3) {
+        internal static bool CompileResCol(AGIGame game, dynamic tmpResCol, AGIResType ResType, bool RebuildOnly) {
             byte CurResNum;
-            string strMsg = "";
-            bool blnWarning = false, blnUnloadRes;
+            bool blnUnloadRes;
 
             foreach (AGIResource tmpGameRes in tmpResCol) {
                 CurResNum = tmpGameRes.Number;
@@ -266,7 +265,7 @@ namespace WinAGI.Engine {
                     Text = ""
                 };
                 // check for cancellation
-                if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csAddResource, ResType, CurResNum, tmpWarn)) {
+                if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn)) {
                     return false;
                 }
                 // use a loop to add resources;
@@ -280,177 +279,112 @@ namespace WinAGI.Engine {
                     if (blnUnloadRes) {
                         // load resource
                         tmpGameRes.Load();
-                        if (tmpGameRes.ErrLevel >= 0) {
-                            // always reset warning flag
-                            blnWarning = false;
-                        }
-                        else {
-                            if (RebuildOnly) {
-                                // note it
-                                tmpWarn.Text = $"Unable to load {tmpGameRes.ID} ({LoadResString(tmpGameRes.ErrLevel)})";
-                                // check for cancellation
-                                if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, ResType, CurResNum, tmpWarn)) {
-                                    // make sure unloaded
-                                    tmpGameRes.Unload();
-                                    // and stop compiling
-                                    return false;
-                                }
-                            }
-                            else {
-                                // deal with the error
-                                switch (tmpGameRes.ErrLevel) {
-                                case 610: // ???what the heck??? why?
-                                    // assume a resource error until determined otherwise
-                                    //strMsg = "Unable to load " + tmpGameRes.ID + " (" + e.Message + ")";
-                                    ////reset warning flag
-                                    //blnWarning = false;
-                                    //switch (ResType) {
-                                    //case AGIResType.rtPicture:
-                                    //case AGIResType.rtView:
-                                    //    //check for invalid view data errors
-                                    //    switch (e.HResult - WINAGI_ERR) {
-                                    //    case 537:
-                                    //    case 548:
-                                    //    case 552:
-                                    //    case 553:
-                                    //    case 513:
-                                    //    case 563:
-                                    //    case 539:
-                                    //    case 540:
-                                    //    case 550:
-                                    //    case 551:
-                                    //        //can add view, but it is invalid
-                                    //        strMsg = "Invalid view data (" + e.Message + ")";
-                                    //        blnWarning = true;
-                                    //        break;
-                                    //    }
-                                    //    break;
-                                    //case AGIResType.rtSound:
-                                    //    //check for invalid sound data errors
-                                    //    if (e.HResult == 598) {
-                                    //        //can add sound, but it is invalid
-                                    //        strMsg = "Invalid sound data (" + e.Message + ")";
-                                    //        blnWarning = true;
-                                    //    }
-                                    //    break;
-                                    //case AGIResType.rtLogic:
-                                    //    //always a resource error
-                                    //    break;
-                                    //}
-                                    //if error (warning not set)
-                                    if (!blnWarning) {
-                                        //note the error
-                                        tmpWarn.Type = EventType.etWarning;
-                                        tmpWarn.Text = strMsg;
-                                        // check for cancellation
-                                        if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, ResType, CurResNum, tmpWarn)) {
-                                            // make sure unloaded
-                                            tmpGameRes.Unload();
-                                            //and stop compiling
-                                            return false;
-                                        }
-                                        //if not canceled, user has already removed bad resource from game
-                                        break;
-                                    }
-                                    break;
-                                }
-                            }
-                            // if not canceled, user has already removed bad resource
-                            break;
-                        }
                     }
-                    // if full compile (not rebuild only)
-                    if (!RebuildOnly) {
-                        //game resource is verified open; check for warnings
-                        //if a warning
-                        if (blnWarning) {
-                            //note the warning
-                            tmpWarn.Type = EventType.etWarning;
-                            tmpWarn.Text = strMsg;
+                    if (tmpGameRes.ErrLevel != 0 || ((tmpGameRes.ResType == AGIResType.Logic) && ((Logic)tmpGameRes).SrcErrLevel != 0)) {
+                        // check for major error (compile automatically fails)
+                        if (tmpGameRes.ErrLevel < 0) {
+                            // error level is less than zero - major error
+                            // -1  resource: file does not exist
+                            // -2  resource: file is readonly
+                            // -3  resource: file access error
+                            // -4  resource: invalid location value in VOL file
+                            // -5  resource: invalid data (missing AGI '0x12-0x34' header)
+                            tmpWarn.Text = $"Unable to load {tmpGameRes.ID}";
+                            tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
+                            _ = tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
+                            // make sure unloaded
+                            tmpGameRes.Unload();
+                            // and stop compiling
+                            return false;
+                        }
+                        // check for minor error (compile fails if user cancels)
+                        if (tmpGameRes.ErrLevel > 0) {
+                            // minor errors/warnings
+                            // ask if compiling, assume ok if rebuilding
+                            // Logics:
+                            //  1 = error when decoding messages
+                            //  2 = error when locating goto labels
+                            //  4 = error when decoding if block
+                            // Pictures:
+                            //  1 = no EOP marker
+                            //  2 = bad vis color data
+                            //  4 = invalid command byte
+                            //  8 = unused data at end of resource
+                            //  16 = other error
+                            // Sounds:
+                            //  1 = invalid track offset
+                            //  2 = zero length note
+                            //  4 = missing track end marker
+                            //  8 = no sound data
+                            // 16 = invalid sound file format
+                            // Views:
+                            //  1 = no loops
+                            //  2 = invalid loop offset
+                            //  4 = invalid mirror loop pair
+                            //  8 = more than two loops share mirror
+                            // 16 = invalid cel offset
+                            // 32 = unexpected end of cel data
+                            // 64 = invalid description offset
+                            tmpWarn.Text = $"Errors and/or anomalies detected in {tmpGameRes.ID}";
+                            tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
                             // check for cancellation
-                            if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csWarning, ResType, CurResNum, tmpWarn)) {
+                            if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csWarning, tmpWarn)) {
                                 // unload if needed
                                 if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                                 // then stop compiling
                                 return false;
                             }
                         }
+                        // for logics, check for source errors (compile automatically fails)
+                        if (tmpGameRes.ResType == AGIResType.Logic && ((Logic)tmpGameRes).SrcErrLevel != 0) {
+                            // -1  logic source: file does not exist
+                            // -2  logic source: file is readonly
+                            // -3  logic source: file access error
+                            tmpWarn.Text = $"Unable to load source code for {tmpGameRes.ID}";
+                            tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
+                            _ = tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
+                            // make sure unloaded
+                            tmpGameRes.Unload();
+                            // and stop compiling
+                            return false;
+                        }
+                    }
+                    // if full compile (not rebuild only)
+                    if (!RebuildOnly) {
                         // for logics, compile the sourcetext
-                        //load actual object
+                        // TODO: will this work? won't tmpLog just be a null object?
                         if (tmpGameRes is Logic tmpLog) {
-                            try {
-                                //compile it
-                                LogicCompiler.CompileLogic(tmpLog);
-                            }
-                            catch (Exception e) {
-                                switch (e.HResult - WINAGI_ERR) {
-                                case 635: //compile error
-                                            //raise compile event
-                                    tmpWarn.Type = EventType.etWarning;
-                                    tmpWarn.Text = e.Message;
-                                    // check for cancellation
-                                    if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csLogicError, ResType, CurResNum, tmpWarn)) {
-                                        // unload if needed
-                                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                                        // then stop compiling
-                                        return false;
-                                    }
-                                    // if user wants to continue, the logic will already have been removed; no other action needed
-                                    break;
-                                default:
-                                    //any other error; note it
-                                    tmpWarn.Type = EventType.etWarning;
-                                    tmpWarn.Text = "Unable to compile Logic (" + e.Message + ")";
-                                    //check for cancellation
-                                    if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, ResType, CurResNum, tmpWarn)) {
-                                        // unload if needed
-                                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                                        // then stop compiling
-                                        return false;
-                                    }
-                                    //if user did not cancel, resource will already have been removed
-                                    break;
-                                }
+                            TWinAGIEventInfo tmpInfo = LogicCompiler.CompileLogic(tmpLog);
+                            if (tmpInfo.Type == EventType.etError) {
+                                // logic compile error - always cancel
+                                _ = tmpGameRes.parent.OnCompileGameStatus(ECStatus.csLogicError, tmpInfo);
+                                // unload if needed
+                                if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                                // then stop compiling
+                                return false;
                             }
                         }
                     }
-
                     try {
-                        // validate vol and loc, updating current VOL if needed
+                        // add it to VOL/DIR files
                         game.volManager.ValidateVolAndLoc(tmpGameRes);
-                    }
-                    catch {
-                        // clean up compiler
-                        tmpGameRes.parent.CompleteCancel(true);
-                        //unload resource, if applicable
-                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                        // pass along error
-                        throw;
-                    }
-                    try {
-                        // add it to vol
                         game.volManager.AddNextRes(tmpGameRes);
                     }
                     catch (Exception e) {
-                        //note it
-                        tmpWarn.Type = EventType.etWarning;
-                        tmpWarn.Text = "Unable to add Logic resource to VOL file (" + e.Message + ")";
-                        //check for cancellation
-                        if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, ResType, CurResNum, tmpWarn)) {
-                            //unload resource, if applicable
-                            if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                            // then stop compiling
-                            return false;
-                        }
-                        // if not canceled, user deleted bad resource
-                        // so exit loop to move to next resource
-                        break;
+                        tmpWarn.Type = EventType.etError;
+                        tmpWarn.Text = "Unable to add resource to VOL file (" + e.Message + ")";
+                        _ = tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
+                        // unload resource, if applicable
+                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                        // then stop compiling
+                        return false;
                     }
-                    // always exit loop
                 }
                 while (false);
                 // done with resource; unload if applicable
-                if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                if (blnUnloadRes && tmpGameRes is not null) {
+                    tmpGameRes.Unload();
+                }
             }
             return true;
         }
@@ -501,7 +435,7 @@ namespace WinAGI.Engine {
                 addInfo.Size = tmpRes.SizeInVOL + lngHeader;
                 resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
             }
-            //step through volumes,
+            // step through volumes,
             for (int i = 0; i <= lngMaxVol; i++) {
                 // start at beginning
                 previousend = 0;
@@ -516,7 +450,6 @@ namespace WinAGI.Engine {
                     }
                     // calculate space between end of one resource and start of next
                     freespace = nextstart - previousend;
-                    //if enough space is found
                     if (freespace >= resource.Size + lngHeader) {
                         // it fits here!
                         resource.Volume = (sbyte)i;

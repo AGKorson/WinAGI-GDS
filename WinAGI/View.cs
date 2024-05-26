@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http.Headers;
 using System.Text;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
@@ -274,8 +275,10 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="StartPos"></param>
         /// <param name="aCel"></param>
-        void ExpandCelData(int StartPos, Cel aCel) {
+        /// <returns>true if data is expanded successfully, otherwise false.</returns>
+        bool ExpandCelData(int StartPos, Cel aCel) {
             ArgumentNullException.ThrowIfNull(aCel);
+            bool retval = true;
             byte bytCelY = 0;
             byte bytIn;
             byte bytChunkColor, bytChunkCount;
@@ -303,7 +306,17 @@ namespace WinAGI.Engine {
                             bytCelX++;
                         }
                     }
+                    if (EORes) {
+                        // check for missing end
+                        retval = false;
+                        break;
+                    }
                 } while (bytIn != 0);
+                // check for unexpected end of data
+                if (!retval) {
+                    // no need to continue
+                    break;
+                }
                 // fill in rest of this line with transparent color, if necessary
                 while (bytCelX < bytWidth) {
                     tmpCelData[bytCelX, bytCelY] = bytTransColor;
@@ -312,6 +325,7 @@ namespace WinAGI.Engine {
                 bytCelY++;
             } while (bytCelY < bytHeight);
             aCel.AllCelData = tmpCelData;
+            return retval;
         }
 
         /// <summary>
@@ -349,7 +363,15 @@ namespace WinAGI.Engine {
         /// This method is used by load function to extract the view loops
         /// and cels from the data stream.
         /// </summary>
-        /// <returns>Zero if no errors, otherwise an error code</returns>
+        /// <returns>Zero if no errors, otherwise an error code:<br />
+        /// 1 = no loops<br />
+        /// 2 = invalid loop offset<br />
+        /// 4 = invalid mirror loop pair<br />
+        /// 8 = more than two loops share mirror<br />
+        /// 16 = invalid cel offset
+        /// 32 = unexpected end of cel data
+        /// 64 = invalid description offset
+        /// </returns>
         internal int LoadLoops() {
             // 
             byte bytNumLoops, bytNumCels;
@@ -359,7 +381,7 @@ namespace WinAGI.Engine {
             byte[] bytInput = new byte[1];
             byte bytWidth, bytHeight;
             byte bytTransCol;
-            int result = 0; // assume no errors
+            int retval = 0; // assume no errors
 
             mLoopCol = new Loops(this);
             bytNumLoops = ReadByte(2);
@@ -370,7 +392,7 @@ namespace WinAGI.Engine {
                 ErrData[0] = mResID;
                 mViewSet = true;
                 mIsDirty = false;
-                return -15;
+                return 1;
             }
             // get loop offset data for each loop
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
@@ -381,7 +403,7 @@ namespace WinAGI.Engine {
                     ErrData[1] = bytLoop.ToString();
                     mViewSet = true;
                     mIsDirty = false;
-                    return -16;
+                    retval |= 2;
                 }
             }
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
@@ -392,43 +414,48 @@ namespace WinAGI.Engine {
                     // for all other loops, check to see if it mirrors an earlier loop
                     for (tmpLoopNo = 0; tmpLoopNo < bytLoop; tmpLoopNo++) {
                         if (lngLoopStart[bytLoop] == lngLoopStart[tmpLoopNo]) {
+                            // cel header will have mirror info
+                            // assume loop is ok until confirmed
                             // confirm valid mirror
                             switch (SetMirror(bytLoop, tmpLoopNo)) {
                             // only valid return values when setting mirrors during
                             // LoadLoops are -3(loop >8) or -6(source already mirrored)
                             case -3:
                                 // invalid mirror loop
-                                return -17;
+                                retval |= 4;
+                                break;
                             case -6:
                                 // source loop already mirrored
-                                return -18;
+                                retval |= 8;
+                                break;
                             }
                         }
                     }
                 }
                 if (mLoopCol[bytLoop].Mirrored == 0) {
-                    Pos = lngLoopStart[bytLoop];
-                    bytNumCels = ReadByte();
-                    for (bytCel = 0; bytCel < bytNumCels; bytCel++) {
-                        // read starting position
-                        lngCelStart = (ushort)(ReadWord(lngLoopStart[bytLoop] + 2 * bytCel + 1) + lngLoopStart[bytLoop]);
-                        if ((lngCelStart > mSize)) {
-                            // keep view data already loaded
-                            ErrData[0] = mResID;
-                            ErrData[1] = bytLoop.ToString();
-                            ErrData[2] = bytCel.ToString();
-                            mViewSet = true;
-                            mIsDirty = false;
-                            return -20;
+                    if (lngLoopStart[bytLoop] < mSize) {
+                        Pos = lngLoopStart[bytLoop];
+                        bytNumCels = ReadByte();
+                        for (bytCel = 0; bytCel < bytNumCels; bytCel++) {
+                            // read starting position
+                            lngCelStart = (ushort)(ReadWord(lngLoopStart[bytLoop] + 2 * bytCel + 1) + lngLoopStart[bytLoop]);
+                            if (lngCelStart < mSize - 3) {
+                                bytWidth = ReadByte(lngCelStart);
+                                bytHeight = ReadByte();
+                                bytTransCol = ReadByte();
+                                bytTransCol = (byte)(bytTransCol % 0x10);
+                                // add the cel
+                                mLoopCol[bytLoop].Cels.Add(bytCel, bytWidth, bytHeight, (AGIColorIndex)bytTransCol);
+                                // extract bitmap data from RLE data
+                                if (!ExpandCelData(lngCelStart + 3, mLoopCol[bytLoop].Cels[bytCel])) {
+                                    retval |= 32;
+                                }
+                            }
+                            else {
+                                // keep view data already loaded
+                                retval |= 16;
+                            }
                         }
-                        bytWidth = ReadByte(lngCelStart);
-                        bytHeight = ReadByte();
-                        bytTransCol = ReadByte();
-                        bytTransCol = (byte)(bytTransCol % 0x10);
-                        // add the cel
-                        mLoopCol[bytLoop].Cels.Add(bytCel, bytWidth, bytHeight, (AGIColorIndex)bytTransCol);
-                        // extract bitmap data from RLE data
-                        ExpandCelData(lngCelStart + 3, mLoopCol[bytLoop].Cels[bytCel]);
                     }
                 }
             }
@@ -454,12 +481,12 @@ namespace WinAGI.Engine {
                 else {
                     // pointer is not valid
                     ErrData[0] = mResID;
-                    result = 1;
+                    retval |= 64;
                 }
             }
             mViewSet = true;
             mIsDirty = false;
-            return result;
+            return retval;
         }
 
         /// <summary>

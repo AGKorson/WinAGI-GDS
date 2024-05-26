@@ -8,10 +8,8 @@
         /// <param name="restype"></param>
         /// <param name="num"></param>
         /// <param name="errInfo"></param>
-        public class CompileGameEventArgs(ECStatus status, AGIResType restype, byte num, TWinAGIEventInfo errInfo) {
+        public class CompileGameEventArgs(ECStatus status, TWinAGIEventInfo errInfo) {
             public ECStatus CStatus { get; } = status;
-            public AGIResType ResType { get; } = restype;
-            public byte ResNum { get; } = num;
             public bool Cancel { get; set; } = false;
             public TWinAGIEventInfo ErrorInfo { get; } = errInfo;
         }
@@ -57,7 +55,7 @@
         public event CompileGameEventHandler CompileGameStatus;
 
         /// <summary>
-        /// Raises te CompileGameStatus event. If user cancels in response, returns
+        /// Raises the CompileGameStatus event. If user cancels in response, returns
         /// a value of true.
         /// </summary>
         /// <param name="cStatus"></param>
@@ -65,9 +63,9 @@
         /// <param name="ResNum"></param>
         /// <param name="CompileInfo"></param>
         /// <returns></returns>
-        internal bool OnCompileGameStatus(ECStatus cStatus, AGIResType ResType, byte ResNum, TWinAGIEventInfo CompileInfo) {
+        internal bool OnCompileGameStatus(ECStatus cStatus, TWinAGIEventInfo CompileInfo) {
             // Raise the event in a thread-safe manner using the ?. operator.
-            CompileGameEventArgs e = new(cStatus, ResType, ResNum, CompileInfo);
+            CompileGameEventArgs e = new(cStatus, CompileInfo);
             this.CompileGameStatus?.Invoke(null, e);
             return e.Cancel;
         }

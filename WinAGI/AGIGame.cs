@@ -764,7 +764,8 @@ namespace WinAGI.Engine {
             if (!RebuildOnly) {
                 // full compile - save/copy words.tok and object files first
                 compInfo.Text = "";
-                if (OnCompileGameStatus(ECStatus.csCompWords, AGIResType.Words, 0, compInfo)) {
+                compInfo.ResType = AGIResType.Words;
+                if (OnCompileGameStatus(ECStatus.csCompWords, compInfo)) {
                     CompleteCancel();
                     return false;
                 }
@@ -777,9 +778,10 @@ namespace WinAGI.Engine {
                             Type = EventType.etError,
                             ID = "",
                             Module = "",
+                            ResType = AGIResType.Words,
                             Text = "Error during compilation of WORDS.TOK (" + ex.Message + ")"
                         };
-                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.Words, 0, tmpError);
+                        _ = OnCompileGameStatus(ECStatus.csResError, tmpError);
                         CompleteCancel();
                         return false;
                     }
@@ -803,16 +805,18 @@ namespace WinAGI.Engine {
                             Type = EventType.etError,
                             ID = "",
                             Module = "",
+                            ResType = AGIResType.Words,
                             Text = "Error while creating WORDS.TOK file (" + ex.Message + ")"
                         };
-                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.Words, 0, tmpError);
+                        _ = OnCompileGameStatus(ECStatus.csResError, tmpError);
                         CompleteCancel();
                         return false;
                     }
                 }
                 // OBJECT file is next
                 compInfo.Text = "";
-                if (OnCompileGameStatus(ECStatus.csCompObjects, AGIResType.Objects, 0, compInfo)) {
+                compInfo.ResType = AGIResType.Objects;
+                if (OnCompileGameStatus(ECStatus.csCompObjects, compInfo)) {
                     CompleteCancel();
                     return false;
                 }
@@ -825,9 +829,10 @@ namespace WinAGI.Engine {
                             Type = EventType.etError,
                             ID = "",
                             Module = "",
+                            ResType = AGIResType.Objects,
                             Text = "Error during compilation of OBJECT (" + ex.Message + ")"
                         };
-                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.Objects, 0, tmpError);
+                        _ = OnCompileGameStatus(ECStatus.csResError, tmpError);
                         CompleteCancel();
                         return false;
                     }
@@ -851,9 +856,10 @@ namespace WinAGI.Engine {
                             Type = EventType.etError,
                             ID = "",
                             Module = "",
+                            ResType = AGIResType.Objects,
                             Text = "Error while creating OBJECT file (" + ex.Message + ")"
                         };
-                        _ = OnCompileGameStatus(ECStatus.csResError, AGIResType.Objects, 0, tmpError);
+                        _ = OnCompileGameStatus(ECStatus.csResError, tmpError);
                         CompleteCancel();
                         return false;
                     }
@@ -887,7 +893,7 @@ namespace WinAGI.Engine {
             }
             // add all logic resources
             try {
-                if (!VOLManager.CompileResCol(this, agLogs, AGIResType.Logic, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.CompileResCol(this, agLogs, AGIResType.Logic, RebuildOnly)) {
                     // resource error (or user canceled)
                     CompleteCancel(true);
                     return false;
@@ -899,7 +905,7 @@ namespace WinAGI.Engine {
             }
             // add all picture resources
             try {
-                if (!VOLManager.CompileResCol(this, agPics, AGIResType.Picture, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.CompileResCol(this, agPics, AGIResType.Picture, RebuildOnly)) {
                     // if a resource error (or user canceled) encountered, just exit
                     CompleteCancel(true);
                     return false;
@@ -911,7 +917,7 @@ namespace WinAGI.Engine {
             }
             // add all view resources
             try {
-                if (!VOLManager.CompileResCol(this, agViews, AGIResType.View, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.CompileResCol(this, agViews, AGIResType.View, RebuildOnly)) {
                     // if a resource error (or user canceled) encountered, just exit
                     CompleteCancel(true);
                     return false;
@@ -923,7 +929,7 @@ namespace WinAGI.Engine {
             }
             // add all sound resources
             try {
-                if (!VOLManager.CompileResCol(this, agSnds, AGIResType.Sound, RebuildOnly, NewIsV3)) {
+                if (!VOLManager.CompileResCol(this, agSnds, AGIResType.Sound, RebuildOnly)) {
             // if a resource error (or user canceled) encountered, just exit
                 CompleteCancel(true);
                 return false;
@@ -1100,7 +1106,8 @@ namespace WinAGI.Engine {
             }
             // update status to indicate complete
             compInfo.Text = "";
-            _ = OnCompileGameStatus(ECStatus.csCompileComplete, 0, 0, compInfo);
+            compInfo.ResType = AGIResType.Game;
+            _ = OnCompileGameStatus(ECStatus.csCompileComplete, compInfo);
             if (blnReplace) {
                 // need to update the vol/loc info for all ingame resources;
                 // this is done here instead of when the resources are compiled because
@@ -2196,11 +2203,12 @@ namespace WinAGI.Engine {
             if (!NoEvent) {
                 TWinAGIEventInfo tmpWarn = new() {
                     Type = EventType.etWarning,
+                    ResType = AGIResType.Game,
                     ID = "",
                     Module = "",
                     Text = ""
                 };
-                _ = OnCompileGameStatus(ECStatus.csCanceled, 0, 0, tmpWarn);
+                _ = OnCompileGameStatus(ECStatus.csCanceled, tmpWarn);
             }
             Compiling = false;
             volManager.Clear();

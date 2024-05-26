@@ -1107,7 +1107,6 @@ namespace WinAGI.Engine {
             //editor rows(lines) start at '1', but the compiler starts at line '0'
             bool blnCompiled;
             List<string> stlSource;
-            int lngCodeSize;
 
             if (!compGame.GlobalDefines.IsSet) {
                 compGame.GlobalDefines.LoadGlobalDefines(compGame.agGameDir + "globals.txt");
@@ -1180,7 +1179,7 @@ namespace WinAGI.Engine {
                 return errInfo;
             }
             // code size equals bytes currently written (before msg secion added)
-            lngCodeSize = tmpLogRes.Size;
+            tmpLogRes.CodeSize = tmpLogRes.Size;
             // add message section
             if (!WriteMsgs()) {
                 tmpLogRes.Unload();
@@ -3085,9 +3084,9 @@ namespace WinAGI.Engine {
         /// accordingly. If there is nothing to concatenate, the original
         /// string is returned.</returns>
         internal static string ConcatArg(string strText) {
-            // TODO: is this true?? if so, no need for the first two checks 
-            // input string has already been checked for starting and ending
-            // quotation marks
+            // TODO: input is a valid string? is this true?? if so, no need
+            // for the first two checks input string has already been checked
+            // for starting and ending quotation marks
             string strTextContinue;
             int lngLastPos, lngLastLine;
             string strLastLine;

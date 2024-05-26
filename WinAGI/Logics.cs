@@ -192,7 +192,6 @@ namespace WinAGI.Engine {
         /// <param name="OldLogic"></param>
         /// <param name="NewLogic"></param>
         public void Renumber(byte OldLogic, byte NewLogic) {
-            Logic tmpLogic;
             int intNextNum = 0;
             string strID, strBaseID;
 
@@ -200,7 +199,7 @@ namespace WinAGI.Engine {
                 return;
             }
             // verify old number exists
-            if (!Col.TryGetValue(OldLogic, out tmpLogic)) {
+            if (!Col.TryGetValue(OldLogic, out Logic tmpLogic)) {
                 throw new IndexOutOfRangeException("logic does not exist");
             }
             // verify new number is not in collection
