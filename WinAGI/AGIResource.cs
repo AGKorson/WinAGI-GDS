@@ -22,7 +22,6 @@ namespace WinAGI.Engine {
         /// Zero means no errors <br />
         /// Greater than zero means minor errors but resource is readable
         /// </summary>
-        protected int mErrLevel = 0; // <0 means unreadable data; 0 means no errors; >0 means minor errors but resource is readable
         protected string mResID;
         protected sbyte mVolume = -1;
         protected int mLoc = -1;
@@ -150,7 +149,7 @@ namespace WinAGI.Engine {
                 //  - SizeInVol - is always -1
 
                 if (mInGame) {
-                    if (mErrLevel < 0) {
+                    if (ErrLevel < 0) {
                         return -1;
                     }
                     else {
@@ -208,7 +207,7 @@ namespace WinAGI.Engine {
         /// Greater than zero = minor errors but resource is readable <br />
         /// (varies for each type of derived resource)
         /// </returns>
-        public int ErrLevel { get => mErrLevel; internal set { } }
+        public int ErrLevel { get; internal set; }
 
         /// <summary>
         /// Gets individualized error data associated with the error level for 
@@ -235,7 +234,6 @@ namespace WinAGI.Engine {
                 }
             }
             internal set {
-                // TODO: validate name?
                 mResFile = value;
             }
         }
@@ -299,7 +297,6 @@ namespace WinAGI.Engine {
         /// </summary>
         public bool EORes {
             get {
-                // TODO: maybe just return false?
                 WinAGIException.ThrowIfNotLoaded(this);
                 return mlngCurPos >= mData.Length;
             }
@@ -433,10 +430,10 @@ namespace WinAGI.Engine {
             mLoc = Loc;
             // ID should be in the propertyfile
             mResID = parent.agGameProps.GetSetting(resType.ToString() + resNum, "ID", "", true);
-            if (ID.Length == 0) {
+            if (mResID.Length == 0) {
                 // ID not found; save default ID
-                ID = resType.ToString() + resNum;
-                parent.WriteGameSetting(ID, "ID", ID, resType.ToString());
+                mResID = resType.ToString() + resNum;
+                parent.WriteGameSetting(mResID, "ID", mResID, resType.ToString());
             }
             mDescription = parent.agGameProps.GetSetting(resType.ToString() + resNum, "Description", "");
         }
@@ -515,7 +512,7 @@ namespace WinAGI.Engine {
             NewRes.mSizeInVol = mSizeInVol;
             NewRes.mblnEORes = mblnEORes;
             NewRes.mlngCurPos = mlngCurPos;
-            NewRes.ErrLevel = mErrLevel;
+            NewRes.ErrLevel = ErrLevel;
             NewRes.ErrData = ErrData;
         }
 
@@ -537,7 +534,7 @@ namespace WinAGI.Engine {
             mIsDirty = false;
             PropsDirty = false;
             // clear error info before loading
-            mErrLevel = 0;
+            ErrLevel = 0;
             mErrData = ["", "", "", "", ""];
 
             if (mInGame) {
@@ -552,13 +549,13 @@ namespace WinAGI.Engine {
                 strLoadResFile = mResFile;
             }
             if (!File.Exists(strLoadResFile)) {
-                mErrLevel = -1;
+                ErrLevel = -1;
                 ErrData[0] = strLoadResFile;
                 ErrData[1] = mResID;
                 return;
             }
             if ((File.GetAttributes(strLoadResFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                mErrLevel = -2;
+                ErrLevel = -2;
                 ErrData[0] = strLoadResFile;
                 return;
             }
@@ -572,7 +569,7 @@ namespace WinAGI.Engine {
             catch (Exception e1) {
                 fsVOL?.Dispose();
                 brVOL?.Dispose();
-                mErrLevel = -3;
+                ErrLevel = -3;
                 ErrData[0] = e1.Message;
                 ErrData[1] = mResID;
                 return;
@@ -581,7 +578,7 @@ namespace WinAGI.Engine {
             if (mLoc > fsVOL.Length) {
                 fsVOL.Dispose();
                 brVOL.Dispose();
-                mErrLevel = -4;
+                ErrLevel = -4;
                 ErrData[0] = mLoc.ToString();
                 ErrData[1] = mVolume.ToString();
                 ErrData[2] = Path.GetFileName(fsVOL.Name);
@@ -596,7 +593,7 @@ namespace WinAGI.Engine {
                 if (bytHigh != 0x12 || bytLow != 0x34) {
                     fsVOL.Dispose();
                     brVOL.Dispose();
-                    mErrLevel = -5;
+                    ErrLevel = -5;
                     ErrData[0] = mLoc.ToString();
                     ErrData[1] = mVolume.ToString();
                     ErrData[2] = Path.GetFileName(fsVOL.Name);
@@ -722,7 +719,7 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             // resources with major errors can't be exported
-            if (mErrLevel < 0) {
+            if (ErrLevel < 0) {
                 WinAGIException wex = new(LoadResString(601)) {
                     HResult = WINAGI_ERR + 601,
                 };
@@ -1079,12 +1076,12 @@ namespace WinAGI.Engine {
         /// </summary>
         private protected void ErrClear() {
             // cache error info
-            int errlevel = mErrLevel;
+            int errlevel = ErrLevel;
             string[] errdata = ErrData;
             // use public clear method
             Clear();
             // restore error info
-            mErrLevel = errlevel;
+            ErrLevel = errlevel;
             ErrData = errdata;
         }
 
@@ -1101,7 +1098,7 @@ namespace WinAGI.Engine {
             mSizeInVol = -1;
             mblnEORes = false;
             mIsDirty = true;
-            mErrLevel = 0;
+            ErrLevel = 0;
             mErrData = ["", "", "", "", ""];
         }
 

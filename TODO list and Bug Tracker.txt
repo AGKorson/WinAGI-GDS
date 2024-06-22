@@ -14,31 +14,11 @@
       PropSplitLoc = szText.Width;
       PropRowHeight = szText.Height + 2;
 
-      changing to game object NOT being static; - need to re-check almost everything; specifically
-       - reserved defines; most are static, and in the Compiler class; game-specific ones need to be  re-coded
-
 
 
 !!! use a linked list for managing the MRU files; much easier than what I'm doing now; when adding new item to
 the list, first check if it already exists; if it does, delete it, otherwise, delete last item on list, then
 add new item to the top of the list - voila!
-
-!!! now that I know how to convert text from raw byte code to codepage 437 (see decode logic), I think I can 
-use that strategy to replace the ExtChar custom functions I wrote! should be easy to create a function
-wrapper around that text - now I wonder if there's a similar conversion available in VB... the API functions
-(MultiByteToWideChar and WideCharToMultiByte) might work, but I haven't been able to figure them out yet
-
-LoadGame exception/error/warning strategy:
-Exceptions are thrown when the game can't be loaded; when that happens, the calling function must
-make sure the game object is nulled; the game object must have a valid game loaded to function correctly
-
-If the game can be loaded (has DIR/VOL files that have resources, not marked readonly, etc) then 
-no exceptions thrown; instead any issues with resources are passed back as error/warning markers that
-the calling function must handle; invalid entries in DIR files, invalid resource data; anomalies in data
-that affects resource extraction, etc.
-
-Warnings are similar to errors, but of lower significance; mostly decompiler warnings, but a few other
-resource related warnings.
 
 
 
@@ -75,7 +55,7 @@ AGIGame           NewGame                   597                   new intver is 
 AGIGame           NewGame                   543                   new intver is invalid minor version
 AGIGame           NewGame                   637                   new game has warnings/errors (*** convert to warninfo return value insteadof throwing error)
 AGIGame           OpenGameDIR               541                   directory does not contain AGI files
-AGIGame           OpenGameDIR               699                   file access error while creating backup (*.OLD) files
+AGIGame           OpenGameDIR               699                   file access error while creating backup (*_OLD) files
 AGIGame           OpenGameDIR               PASS                  pass-through FinishGameLoad
 AGIGame           OpenGameWAG               655                   missing WAG file
 AGIGame           OpenGameWAG               541                   invalid or missing game directory
@@ -415,36 +395,55 @@ RESOURCE ERRORS/WARNINGS:
     -3 = (502) file access error : 0 = errmsg, 1 = resid
     -4 = (505) invalid locator index : 0 = loc; 1 = vol; 2 = filename; 3 = resid
     -5 = (506) invalid resource header : 0 = loc; 1 = vol; 2 = filename; 3 = resid
-    -6 = (704) logic sourcefile missing : 0 = file
-    -7 = (700) logic sourcefile is readonly : 0 = file
-    -8 = (502) logic sourcfile access error
-    -9 = (688) error in decompile messages : 0 = errmsg; 1 = resid
-    -10 = (688) error in decompile labels : 0 = errmsg; 1 = resid
-    -11 = (688) error in decompile if-block : 0 = errmsg; 1 = resid
-    -12 = (688) error in decompile invalid message value : 0 = errmsg
-    -13 = (598) sound invalid format : 0 = resid
-    -14 = (565) sound invalid data : 0 = resid; 1 = errmsg
-    -14 = (595) view invalid - no loops : 0 = resid
-    -15 = (548) view invalid loop pointer : 0 = resid; 1 = loopnum
-    -16 = (539) view set-mirror invalid loop : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
-    -17 = (550) view target loop already mirrored : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
-    -18 = (551) view source loop already a mirror : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
-    -19 = (553) view invalid cel data : 0 = resid; 1 = loop; 2 = cel
 
-    POSITIVE VALUES represent warnings, but resource is usable
+    SrcErrLevel:
+      -1 = no source file
+      -2 = source file is readonly
+      -3 = file access error
+
+POSITIVE VALUES represent warnings, but resource is usable
     LOGICS:
+      1 = error in decompile messages : 0 = errmsg; 1 = resid
+      2 = error in decompile labels : 0 = errmsg; 1 = resid
+      4 = error in decompile if-block : 0 = errmsg; 1 = resid
+
     PICTURES:
-      1/2/4/8 = corrupt data, picture still valid
+      1 = missing EOP marker
+      2 = bad vis color data
+      4 = invalid cmd byte
+      8 = corrupt data, picture still valid
+
     SOUNDS:
+      1 = invalid track offset
+      2 = zero length note
+      4 = missing track end marker
+      8 = no data
+     16 = invalid data : 0 = resid; 1 = errmsg
+
     VIEWS:
-      1 = viewdescription has invalid pointer
+      1 = no loops : 0 = resid
+      2 = invalid loop pointer : 0 = resid; 1 = loopnum
+      4 = invalid mirror loop : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
+      8 = loop mirror error : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
+     16 = invalid cel offset : 0 = resid; 1 = loop; 2 = cel
+     32 = invalid cel data end data
+     64 = view description has invalid pointer
 
     OBJECT:
+      1 = no data/empty file
+      2 = invalid data, unable to decrypt
+      4 = invalid header, unable to read item data
+      8 = invalid item pointer
+     16 = first item is not '?'
+     32 = file access error, unable to read file
+
     WORDS.TOK:
       1 = invalid index (see KQ1 for example)
-      2 = file has invalid ending
+      2 = unexpected end of file
       4 = one or more words contains an upper case character
-
+      8 = no data/empty file
+     16 = invalid index - can't read file
+     32 = file access error, unable to read file
 
 
 ERROR HANDLER info:

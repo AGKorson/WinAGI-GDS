@@ -110,11 +110,21 @@ namespace WinAGI.Editor {
                     }
                     else {
                         pnlLogic.Visible = false;
-                        // TODO: need res strings to display resource errors
-                        // based on the ErrLevel value
                         using Graphics cg = CreateGraphics();
                         cg.Clear(base.BackColor);
-                        cg.DrawString("Invalid logic resource: {errinfo}", base.Font, new SolidBrush(Color.Black), 0, 0);
+                        string errMsg = "";
+                        switch (EditGame.Logics[ResNum].SrcErrLevel) {
+                        case -1:
+                            errMsg = "SOURCE FILE ERROR: Source file is missing.";
+                            break;
+                        case -2:
+                            errMsg = "SOURCE FILE ERROR: Source file is marked readonly.";
+                            break;
+                        case -3:
+                            errMsg = "SOURCE FILE ERROR: File access error.";
+                            break;
+                        }
+                        cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 case AGIResType.Picture:
@@ -126,11 +136,27 @@ namespace WinAGI.Editor {
                     }
                     else {
                         pnlPicture.Visible = false;
-                        // TODO: need res strings to display resource errors
-                        // based on the ErrLevel value
                         using Graphics cg = CreateGraphics();
                         cg.Clear(base.BackColor);
-                        cg.DrawString("Invalid picture resource: {errinfo}", base.Font, new SolidBrush(Color.Black), 0, 0);
+                        string errMsg = "";
+                        switch (EditGame.Pictures[ResNum].ErrLevel) {
+                        case -1:
+                            errMsg = $"PICTURE RESOURCE ERROR: VOL File (VOL.{EditGame.Pictures[ResNum].Volume}) does not exist.";
+                            break;
+                        case -2:
+                            errMsg = $"PICTURE RESOURCE ERROR: VOL File (VOL.{EditGame.Pictures[ResNum].Volume}) is marked readonly.";
+                            break;
+                        case -3:
+                            errMsg = $"PICTURE RESOURCE ERROR: VOL File (VOL.{EditGame.Pictures[ResNum].Volume}) file access error.";
+                            break;
+                        case -4:
+                            errMsg = $"PICTURE RESOURCE ERROR: Invalid Location index ({EditGame.Pictures[ResNum].Loc}) for this resource.";
+                            break;
+                        case -5:
+                            errMsg = "PICTURE RESOURCE ERROR: Invalid resource header.";
+                            break;
+                        }
+                        cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 case AGIResType.Sound:
@@ -141,11 +167,27 @@ namespace WinAGI.Editor {
                     }
                     else {
                         pnlSound.Visible = false;
-                        // TODO: need res strings to display resource errors
-                        // based on the ErrLevel value
                         using Graphics cg = CreateGraphics();
                         cg.Clear(base.BackColor);
-                        cg.DrawString("Invalid sound resource: {errinfo}", base.Font, new SolidBrush(Color.Black), 0, 0);
+                        string errMsg = "";
+                        switch (EditGame.Sounds[ResNum].ErrLevel) {
+                        case -1:
+                            errMsg = $"SOUND RESOURCE ERROR: VOL File (VOL.{EditGame.Sounds[ResNum].Volume}) does not exist.";
+                            break;
+                        case -2:
+                            errMsg = $"SOUND RESOURCE ERROR: VOL File (VOL.{EditGame.Sounds[ResNum].Volume}) is marked readonly.";
+                            break;
+                        case -3:
+                            errMsg = $"SOUND RESOURCE ERROR: VOL File (VOL.{EditGame.Sounds[ResNum].Volume}) file access error.";
+                            break;
+                        case -4:
+                            errMsg = $"SOUND RESOURCE ERROR: Invalid Location index ({EditGame.Sounds[ResNum].Loc}) for this resource.";
+                            break;
+                        case -5:
+                            errMsg = "SOUND RESOURCE ERROR: Invalid resource header.";
+                            break;
+                        }
+                        cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 case AGIResType.View:
@@ -157,11 +199,27 @@ namespace WinAGI.Editor {
                     }
                     else {
                         pnlView.Visible = false;
-                        // TODO: need res strings to display resource errors
-                        // based on the ErrLevel value
                         using Graphics cg = CreateGraphics();
                         cg.Clear(base.BackColor);
-                        cg.DrawString("Invalid view resource: {errinfo}", base.Font, new SolidBrush(Color.Black), 0, 0);
+                        string errMsg = "";
+                        switch (EditGame.Views[ResNum].ErrLevel) {
+                        case -1:
+                            errMsg = $"VIEW RESOURCE ERROR: VOL File (VOL.{EditGame.Views[ResNum].Volume}) does not exist.";
+                            break;
+                        case -2:
+                            errMsg = $"VIEW RESOURCE ERROR: VOL File (VOL. {EditGame.Views[ResNum].Volume}) is marked readonly.";
+                            break;
+                        case -3:
+                            errMsg = $"VIEW RESOURCE ERROR: VOL File (VOL.{EditGame.Views[ResNum].Volume}) file access error.";
+                            break;
+                        case -4:
+                            errMsg = $"VIEW RESOURCE ERROR: Invalid Location index ({EditGame.Views[ResNum].Loc}) for this resource.";
+                            break;
+                        case -5:
+                            errMsg = "VIEW RESOURCE ERROR: Invalid resource header.";
+                            break;
+                        }
+                        cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
                     break;
                 }
@@ -172,9 +230,9 @@ namespace WinAGI.Editor {
             PrevResType = ResType;
         }
         public void ClearPreviewWin() {
-            //if the resource being cleared has recently been deleted
-            //we don't need to unload it, just dereference it
-            //unload view
+            // if the resource being cleared has recently been deleted
+            // we don't need to unload it, just dereference it
+            // unload view
             if (agView is not null) {
                 if (tmrMotion.Enabled) {
                     tmrMotion.Enabled = false;
@@ -221,6 +279,8 @@ namespace WinAGI.Editor {
                 }
                 agLogic = null;
             }
+            using Graphics cg = CreateGraphics();
+            cg.Clear(base.BackColor);
             pnlLogic.Visible = false;
             pnlPicture.Visible = false;
             pnlSound.Visible = false;
@@ -233,6 +293,7 @@ namespace WinAGI.Editor {
             mnuRLoopGIF.Visible = false;
             mnuRSep1.Visible = false;
         }
+
         public void UpdateCaption(AGIResType ResType, byte ResNum) {
             string strID = "";
             // update window caption
@@ -259,16 +320,18 @@ namespace WinAGI.Editor {
             }
         }
         bool PreviewLogic(byte LogNum) {
+
             agLogic = EditGame.Logics[LogNum];
             agLogic.Load();
             // check for errors
-            if (agLogic.ErrLevel < 0) {
-                agLogic.Unload();
+            if (agLogic.SrcErrLevel < 0) {
+                // logics are different - only source error will
+                // cause preview to fail
                 return false;
             }
             // get the source code
             rtfLogPrev.Text = agLogic.SourceText;
-            rtfLogPrev.ScrollToCaret();
+            rtfLogPrev.DoCaretVisible();
             // set background
             rtfLogPrev.BackColor = agLogic.Compiled ? Color.FromArgb(0xE0, 0xFF, 0xE0) : Color.FromArgb(0xFF, 0xE0, 0xe0);
             return true;
@@ -367,9 +430,6 @@ namespace WinAGI.Editor {
             // disable other controls while sound is playing
             SetMIDIControls(false);
             try {
-                // TODO: need error check here; button and playback bar need 
-                // to be reset if sound doesn't play
-
                 switch (agSound.SndFormat) {
                 case SoundFormat.sfAGI:
                     // wav or midi, depending on button option
@@ -386,13 +446,10 @@ namespace WinAGI.Editor {
                 }
             }
             catch (Exception) {
-                //ErrMsgBox "An error occurred during playback: ", "Disabling MIDI playback.", "Play Sound Error"
-                //disable timer
                 tmrSound.Enabled = false;
                 //reset buttons
                 btnStop.Enabled = false;
                 picProgress.Width = 0;
-                //////  Settings.NoMIDI = true
             }
             //save current time
             lngStart = DateTime.Now.Ticks;
@@ -1436,7 +1493,7 @@ namespace WinAGI.Editor {
             //no resource is selected on load
             SelResNum = -1;
 
-            //set font
+            // set font
             rtfLogPrev.Font = new Font(Settings.PFontName, Settings.PFontSize);
             //rtfLogPrev.HighlightSyntax = false;
 

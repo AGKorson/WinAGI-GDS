@@ -110,15 +110,10 @@ namespace WinAGI.Engine {
         /// <param name="NewView"></param>
         private void InitView(View NewView = null) {
             if (NewView is null) {
-                // TODO: should this add a one-loop/one-cel/one-pixel view instead?
-                // add empty loop col
+                // single loop, single cel, one pixel
                 mLoopCol = new Loops(this);
-                mData = [0x01, 0x01, 0x00, 0x00, 0x00];
-                // byte0 = unknown (always 1 or 2?)
-                // byte1 = unknown (always 1?)
-                // byte2 = loop count
-                // byte3 = high byte of viewdesc
-                // byte4 = low byte of viewdesc
+                mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00, 0x01,
+                         0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
                 mViewSet = true;
                 mViewDesc = "";
             }
@@ -143,7 +138,8 @@ namespace WinAGI.Engine {
             CopyView.mViewSet = mViewSet;
             CopyView.mViewDesc = mViewDesc;
             CopyView.mLoopCol = mLoopCol.Clone(this);
-            CopyView.ErrLevel = mErrLevel;
+            CopyView.ErrLevel = ErrLevel;
+            CopyView.ErrData = ErrData;
             return CopyView;
         }
 
@@ -265,7 +261,7 @@ namespace WinAGI.Engine {
             }
             mViewSet = true;
             // clear error level
-            mErrLevel = 0;
+            ErrLevel = 0;
             ErrData = ["", "", "", "", ""];
         }
 
@@ -302,12 +298,11 @@ namespace WinAGI.Engine {
                         bytChunkCount = (byte)(bytIn % 0x10);
                         // add this color for correct number of pixels
                         for (int i = 0; i < bytChunkCount; i++) {
-                            tmpCelData[bytCelX, bytCelY] = bytChunkColor;
-                            bytCelX++;
+                            tmpCelData[bytCelX++, bytCelY] = bytChunkColor;
                         }
                     }
-                    if (EORes) {
-                        // check for missing end
+                    // check for missing end
+                    if (EORes && bytIn != 0) {
                         retval = false;
                         break;
                     }
@@ -319,8 +314,7 @@ namespace WinAGI.Engine {
                 }
                 // fill in rest of this line with transparent color, if necessary
                 while (bytCelX < bytWidth) {
-                    tmpCelData[bytCelX, bytCelY] = bytTransColor;
-                    bytCelX++;
+                    tmpCelData[bytCelX++, bytCelY] = bytTransColor;
                 }
                 bytCelY++;
             } while (bytCelY < bytHeight);
@@ -519,7 +513,7 @@ namespace WinAGI.Engine {
                 // pass along error
                 throw;
             }
-            mErrLevel = LoadLoops();
+            ErrLevel = LoadLoops();
         }
 
         /// <summary>
@@ -532,15 +526,16 @@ namespace WinAGI.Engine {
             }
             // load base resource data
             base.Load();
-            if (mErrLevel < 0) {
+            if (ErrLevel < 0) {
                 // return empty view, with one loop, one cel, one pixel
                 ErrClear();
-                mData = [1, 1, 1, 0, 0, 7, 0, 1, 3, 0, 1, 1, 0, 0];
+                mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00, 0x01,
+                         0x01, 0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
                 mViewSet = true;
                 return;
             }
             // extract loops/cels
-            mErrLevel = LoadLoops();
+            ErrLevel = LoadLoops();
         }
 
         /// <summary>

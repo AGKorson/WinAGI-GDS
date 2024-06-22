@@ -501,18 +501,11 @@ namespace WinAGI.Engine {
             if (!mIsDirty && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) {
                 return;
             }
-            if (mGroupCol.Count == 0) {
-                // TODO: why can't a completely empty list work?
-                WinAGIException wex = new(LoadResString(672).Replace(ARG1, "no word groups to add")) {
-                    HResult = WINAGI_ERR + 672
-                };
-                throw wex;
-            }
             strTempFile = Path.GetTempFileName();
             FileStream fsWords;
             try {
                 fsWords = new FileStream(strTempFile, FileMode.OpenOrCreate);
-                // write letter index
+                // letter index placeholders
                 for (i = 0; i <= 51; i++) {
                     fsWords.WriteByte(0);
                 }
@@ -845,12 +838,10 @@ namespace WinAGI.Engine {
             if (GroupExists(newgroupnum)) {
                 throw new ArgumentException("newgroupnum already exists");
             }
-            // TODO: seems like this should be much easier in C#...
             tmpGroup = mGroupCol[oldgroupnum];
             _ = mGroupCol.Remove(oldgroupnum);
             tmpGroup.GroupNum = newgroupnum;
             // change group number for all words in the group
-            // CAN'T use forach, because we are adding to the collection
             for (i = 0; i < mWordCol.Count; i++) {
                 if (mWordCol.Values[i].Group == oldgroupnum) {
                     AGIWord tmpWord = mWordCol.Values[i];

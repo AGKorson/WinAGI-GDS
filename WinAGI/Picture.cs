@@ -627,7 +627,7 @@ namespace WinAGI.Engine {
                 return;
             }
             base.Load();
-            if (mErrLevel < 0) {
+            if (ErrLevel < 0) {
                 // return a blank picture resource without adjusting error level
                 ErrClear();
                 return;
@@ -758,7 +758,7 @@ namespace WinAGI.Engine {
             mVisData = new byte[26880];
             mPriData = new byte[26880];
             // build arrays of bitmap data, set error level
-            mErrLevel = CompilePicData(ref mVisData, ref mPriData, mData, mStepDraw ? mDrawPos : -1, mDrawPos);
+            ErrLevel = CompilePicData(ref mVisData, ref mPriData, mData, mStepDraw ? mDrawPos : -1, mDrawPos);
             // copy the picture data to the bitmaps
             Marshal.Copy(mVisData, 0, ptrVis, 26880);
             bmpVis.UnlockBits(bmpVisData);

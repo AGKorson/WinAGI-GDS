@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using WinAGI.Engine;
-using WinAGI.Common;
 using static WinAGI.Common.Base;
-using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.ArgTypeEnum;
+using static WinAGI.Engine.Base;
+using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.LogicCompiler;
 using static WinAGI.Engine.LogicErrorLevel;
-using static WinAGI.Engine.ArgTypeEnum;
-using static WinAGI.Engine.Commands;
-
-using static WinAGI.Engine.Base;
-using System.Diagnostics;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -44,6 +39,7 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Members
+        internal static byte bytLogComp;
         static byte bytBlockDepth;
         static DecodeBlockType[] DecodeBlock = new DecodeBlockType[WinAGI.Engine.LogicCompiler.MAX_BLOCK_DEPTH];
         static int lngPos;
@@ -147,12 +143,6 @@ namespace WinAGI.Engine {
         public static bool WordsByNumber { get; set; }
 
         /// <summary>
-        /// Gets or sets a value that determines if 'goto' commands that function as 'else'
-        /// statements are displayed as 'else' or as 'goto'.
-        /// </summary>
-        public static bool ElseAsGoto { get; set; }
-
-        /// <summary>
         /// Gets or sets the default source extension that WinAGI will use when 
         /// creating decompiled source code files from logics UNLESS overridden
         /// by this game's SourceExt property.
@@ -184,12 +174,6 @@ namespace WinAGI.Engine {
         /// displayed in decompiled logics as define names or as argument numbers.
         /// </summary>
         public static bool ReservedAsText { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value that determines if reserved variables and flags are 
-        /// considered automatically defined, or if they must be manually defined.
-        /// </summary>
-        public static bool UseReservedNames { get; set; }
         #endregion
 
         #region Methods
@@ -219,7 +203,6 @@ namespace WinAGI.Engine {
                 bytLogComp = SourceLogic.Number;
             }
             else {
-                // TODO: what number to use if not in a game?
                 bytLogComp = 0;
             }
             byte[] bytData = SourceLogic.Data;
@@ -271,7 +254,8 @@ namespace WinAGI.Engine {
                     strError = "";
                     // try again
                     // TODO: this will only work if a single quit() cmd is in the logic;
-                    // if more than one, how do I handle this?
+                    // this whole approach needs refactoring (why isn't it handled within
+                    // FindLabels? shouldn't have to call it twice...
                     if (!FindLabels(bytData)) {
                         // use error string set by findlabels
                         SourceLogic.ErrLevel = 2;
@@ -328,7 +312,7 @@ namespace WinAGI.Engine {
                         tmpBlockLen -= 0x10000;
                     }
                     // check for an 'else' statement
-                    if ((DecodeBlock[bytBlockDepth].EndPos == lngPos) && (DecodeBlock[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!ElseAsGoto)) {
+                    if ((DecodeBlock[bytBlockDepth].EndPos == lngPos) && (DecodeBlock[bytBlockDepth].IsIf) && (bytBlockDepth > 0)) {
                         // 'else' block is same level as the associated 'if', but 
                         // block type is no longer an 'if'
                         DecodeBlock[bytBlockDepth].IsIf = false;
@@ -652,7 +636,7 @@ namespace WinAGI.Engine {
                 Text = WarningText,
                 Line = LineNum.ToString(),
             };
-            compGame.OnDecodeLogicStatus(dcWarnInfo);
+            AGIGame.OnDecodeLogicStatus(dcWarnInfo);
             if (!blnWarning) {
                 blnWarning = true;
             }
@@ -669,11 +653,7 @@ namespace WinAGI.Engine {
         /// <param name="VarVal"></param>
         /// <returns></returns>
         static string ArgValue(byte ArgNum, ArgTypeEnum ArgType, int VarVal = -1) {
-            //if not showing reserved names (or if not using reserved defines)
-            // AND not a msg (always substitute msgs)
-            // TODO: can probably clean up how to determine if reserved as text
-            // is handled; shouldn't need two properties to do this...
-            if ((!ReservedAsText || !UseReservedNames) && ArgType != atMsg) {
+            if (!ReservedAsText && ArgType != atMsg) {
                 // return simple argument marker
                 return agArgTypPref[(int)ArgType] + ArgNum;
             }
@@ -1262,7 +1242,7 @@ namespace WinAGI.Engine {
                     //  - this block is identified as an IF block
                     //  - this is NOT the main block
                     //  - the flag to set elses as gotos is turned off
-                    if ((DecodeBlock[bytBlockDepth].EndPos == lngPos) && (DecodeBlock[bytBlockDepth].IsIf) && (bytBlockDepth > 0) && (!ElseAsGoto)) {
+                    if ((DecodeBlock[bytBlockDepth].EndPos == lngPos) && (DecodeBlock[bytBlockDepth].IsIf) && (bytBlockDepth > 0)) {
                         // the 'else' block re-uses same level as the 'if'
                         DecodeBlock[bytBlockDepth].IsIf = false;
                         DecodeBlock[bytBlockDepth].IsOutside = false;
@@ -1512,15 +1492,8 @@ namespace WinAGI.Engine {
                     if (DecodeBlock[CurBlock].IsOutside) {
                         // end current block
                         stlOutput.Add(MultStr(INDENT, bytBlockDepth - 1) + D_TKN_ENDIF.Replace(ARG1, INDENT));
-                        if (ElseAsGoto) {
-                            //add an goto to start new block
-                            // TODO: check this - I think it's adding wrong goto tokens
-                            stlOutput.Add(MultStr(INDENT, bytBlockDepth - 1) + D_TKN_GOTO);
-                        }
-                        else {
-                            // append else to end of current block
-                            stlOutput[^1] = stlOutput[^1] + D_TKN_ELSE.Replace(ARG1, NEWLINE + MultStr(INDENT, bytBlockDepth - 1));
-                        }
+                        // append else to end of current block
+                        stlOutput[^1] = stlOutput[^1] + D_TKN_ELSE.Replace(ARG1, NEWLINE + MultStr(INDENT, bytBlockDepth - 1));
                         // then add a goto
                         for (i = 1; i <= bytLabelCount; i++) {
                             if (lngLabelPos[i] == DecodeBlock[CurBlock].JumpPos) {

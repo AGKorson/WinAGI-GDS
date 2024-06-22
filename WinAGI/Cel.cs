@@ -166,7 +166,6 @@ namespace WinAGI.Engine {
                 }
             }
             set {
-                // TODO: what if the target cel is the mirror?
                 if (value.GetUpperBound(0) != mWidth - 1) {
                     WinAGIException wex = new(LoadResString(614)) {
                         HResult = WINAGI_ERR + 614,

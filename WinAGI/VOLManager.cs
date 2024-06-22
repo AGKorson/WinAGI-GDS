@@ -265,122 +265,115 @@ namespace WinAGI.Engine {
                     Text = ""
                 };
                 // check for cancellation
-                if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn)) {
+                if (AGIGame.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn)) {
                     return false;
                 }
-                // use a loop to add resources;
-                // TODO: this doesn't work cuz break only exits first loop
-                // exit loop when an error occurs, or after
-                // resource is successfully added to vol file
-                do {
-                    // set flag to force unload, if resource not currently loaded
-                    blnUnloadRes = !tmpGameRes.Loaded;
-                    // then load resource if necessary
-                    if (blnUnloadRes) {
-                        // load resource
-                        tmpGameRes.Load();
+                // set flag to force unload, if resource not currently loaded
+                blnUnloadRes = !tmpGameRes.Loaded;
+                // then load resource if necessary
+                if (blnUnloadRes) {
+                    // load resource
+                    tmpGameRes.Load();
+                }
+                if (tmpGameRes.ErrLevel != 0 || ((tmpGameRes.ResType == AGIResType.Logic) && ((Logic)tmpGameRes).SrcErrLevel != 0)) {
+                    // check for major error (compile automatically fails)
+                    if (tmpGameRes.ErrLevel < 0) {
+                        // error level is less than zero - major error
+                        // -1  resource: file does not exist
+                        // -2  resource: file is readonly
+                        // -3  resource: file access error
+                        // -4  resource: invalid location value in VOL file
+                        // -5  resource: invalid data (missing AGI '0x12-0x34' header)
+                        tmpWarn.Text = $"Unable to load {tmpGameRes.ID}";
+                        tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
+                        _ = AGIGame.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
+                        // make sure unloaded
+                        tmpGameRes.Unload();
+                        // and stop compiling
+                        return false;
                     }
-                    if (tmpGameRes.ErrLevel != 0 || ((tmpGameRes.ResType == AGIResType.Logic) && ((Logic)tmpGameRes).SrcErrLevel != 0)) {
-                        // check for major error (compile automatically fails)
-                        if (tmpGameRes.ErrLevel < 0) {
-                            // error level is less than zero - major error
-                            // -1  resource: file does not exist
-                            // -2  resource: file is readonly
-                            // -3  resource: file access error
-                            // -4  resource: invalid location value in VOL file
-                            // -5  resource: invalid data (missing AGI '0x12-0x34' header)
-                            tmpWarn.Text = $"Unable to load {tmpGameRes.ID}";
-                            tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
-                            _ = tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
-                            // make sure unloaded
-                            tmpGameRes.Unload();
-                            // and stop compiling
-                            return false;
-                        }
-                        // check for minor error (compile fails if user cancels)
-                        if (tmpGameRes.ErrLevel > 0) {
-                            // minor errors/warnings
-                            // ask if compiling, assume ok if rebuilding
-                            // Logics:
-                            //  1 = error when decoding messages
-                            //  2 = error when locating goto labels
-                            //  4 = error when decoding if block
-                            // Pictures:
-                            //  1 = no EOP marker
-                            //  2 = bad vis color data
-                            //  4 = invalid command byte
-                            //  8 = unused data at end of resource
-                            //  16 = other error
-                            // Sounds:
-                            //  1 = invalid track offset
-                            //  2 = zero length note
-                            //  4 = missing track end marker
-                            //  8 = no sound data
-                            // 16 = invalid sound file format
-                            // Views:
-                            //  1 = no loops
-                            //  2 = invalid loop offset
-                            //  4 = invalid mirror loop pair
-                            //  8 = more than two loops share mirror
-                            // 16 = invalid cel offset
-                            // 32 = unexpected end of cel data
-                            // 64 = invalid description offset
-                            tmpWarn.Text = $"Errors and/or anomalies detected in {tmpGameRes.ID}";
-                            tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
-                            // check for cancellation
-                            if (tmpGameRes.parent.OnCompileGameStatus(ECStatus.csWarning, tmpWarn)) {
-                                // unload if needed
-                                if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                                // then stop compiling
-                                return false;
-                            }
-                        }
-                        // for logics, check for source errors (compile automatically fails)
-                        if (tmpGameRes.ResType == AGIResType.Logic && ((Logic)tmpGameRes).SrcErrLevel != 0) {
-                            // -1  logic source: file does not exist
-                            // -2  logic source: file is readonly
-                            // -3  logic source: file access error
-                            tmpWarn.Text = $"Unable to load source code for {tmpGameRes.ID}";
-                            tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
-                            _ = tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
-                            // make sure unloaded
-                            tmpGameRes.Unload();
-                            // and stop compiling
+                    // check for minor error (compile fails if user cancels)
+                    if (tmpGameRes.ErrLevel > 0) {
+                        // minor errors/warnings
+                        // ask if compiling, assume ok if rebuilding
+                        // Logics:
+                        //  1 = error when decoding messages
+                        //  2 = error when locating goto labels
+                        //  4 = error when decoding if block
+                        // Pictures:
+                        //  1 = no EOP marker
+                        //  2 = bad vis color data
+                        //  4 = invalid command byte
+                        //  8 = unused data at end of resource
+                        //  16 = other error
+                        // Sounds:
+                        //  1 = invalid track offset
+                        //  2 = zero length note
+                        //  4 = missing track end marker
+                        //  8 = no sound data
+                        // 16 = invalid sound file format
+                        // Views:
+                        //  1 = no loops
+                        //  2 = invalid loop offset
+                        //  4 = invalid mirror loop pair
+                        //  8 = more than two loops share mirror
+                        // 16 = invalid cel offset
+                        // 32 = unexpected end of cel data
+                        // 64 = invalid description offset
+                        tmpWarn.Text = $"Errors and/or anomalies detected in {tmpGameRes.ID}";
+                        tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
+                        // check for cancellation
+                        if (AGIGame.OnCompileGameStatus(ECStatus.csWarning, tmpWarn)) {
+                            // unload if needed
+                            if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                            // then stop compiling
                             return false;
                         }
                     }
-                    // if full compile (not rebuild only)
-                    if (!RebuildOnly) {
-                        // for logics, compile the sourcetext
-                        // TODO: will this work? won't tmpLog just be a null object?
-                        if (tmpGameRes is Logic tmpLog) {
-                            TWinAGIEventInfo tmpInfo = LogicCompiler.CompileLogic(tmpLog);
-                            if (tmpInfo.Type == EventType.etError) {
-                                // logic compile error - always cancel
-                                _ = tmpGameRes.parent.OnCompileGameStatus(ECStatus.csLogicError, tmpInfo);
-                                // unload if needed
-                                if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                                // then stop compiling
-                                return false;
-                            }
-                        }
-                    }
-                    try {
-                        // add it to VOL/DIR files
-                        game.volManager.ValidateVolAndLoc(tmpGameRes);
-                        game.volManager.AddNextRes(tmpGameRes);
-                    }
-                    catch (Exception e) {
-                        tmpWarn.Type = EventType.etError;
-                        tmpWarn.Text = "Unable to add resource to VOL file (" + e.Message + ")";
-                        _ = tmpGameRes.parent.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
-                        // unload resource, if applicable
-                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                        // then stop compiling
+                    // for logics, check for source errors (compile automatically fails)
+                    if (tmpGameRes.ResType == AGIResType.Logic && ((Logic)tmpGameRes).SrcErrLevel != 0) {
+                        // -1  logic source: file does not exist
+                        // -2  logic source: file is readonly
+                        // -3  logic source: file access error
+                        tmpWarn.Text = $"Unable to load source code for {tmpGameRes.ID}";
+                        tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
+                        _ = AGIGame.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
+                        // make sure unloaded
+                        tmpGameRes.Unload();
+                        // and stop compiling
                         return false;
                     }
                 }
-                while (false);
+                // if full compile (not rebuild only)
+                if (!RebuildOnly) {
+                    // for logics, compile the sourcetext
+                    // TODO: test- will tmpLog just be a null object?
+                    if (tmpGameRes is Logic tmpLog) {
+                        TWinAGIEventInfo tmpInfo = LogicCompiler.CompileLogic(tmpLog);
+                        if (tmpInfo.Type == EventType.etError) {
+                            // logic compile error - always cancel
+                            _ = AGIGame.OnCompileGameStatus(ECStatus.csLogicError, tmpInfo);
+                            // unload if needed
+                            if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                            // then stop compiling
+                            return false;
+                        }
+                    }
+                }
+                try {
+                    // add it to VOL/DIR files
+                    game.volManager.ValidateVolAndLoc(tmpGameRes);
+                    game.volManager.AddNextRes(tmpGameRes);
+                }
+                catch (Exception e) {
+                    tmpWarn.Type = EventType.etError;
+                    tmpWarn.Text = "Unable to add resource to VOL file (" + e.Message + ")";
+                    _ = AGIGame.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
+                    // unload resource, if applicable
+                    if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                    // then stop compiling
+                    return false;
+                }
                 // done with resource; unload if applicable
                 if (blnUnloadRes && tmpGameRes is not null) {
                     tmpGameRes.Unload();

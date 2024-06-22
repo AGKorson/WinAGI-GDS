@@ -48,7 +48,7 @@ namespace WinAGI.Engine {
 
     #region Classes
     /// <summary>
-    /// A class for writing data stream to be played as a MIDI  or WAV sound.
+    /// A class for writing data stream to be played as a MIDI sound.
     /// </summary>
     internal class SoundData() {
         #region Local Members

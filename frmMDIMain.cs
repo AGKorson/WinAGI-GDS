@@ -23,8 +23,6 @@ using System.IO;
 namespace WinAGI.Editor
 {
     public partial class frmMDIMain : Form {
-        //constants for control/window placement
-        const int MIN_HEIGHT = 361;
         const int MIN_WIDTH = 360;
 
         const int SPLIT_WIDTH = 60; //in twips
@@ -103,6 +101,7 @@ namespace WinAGI.Editor
                 }
             }
         }
+
         public frmMDIMain() {
             InitializeComponent();
 
@@ -191,8 +190,6 @@ namespace WinAGI.Editor
                 // add to warning list
                 bgwOpenGame.ReportProgress(2, e.LoadInfo);
                 break;
-                //MDIMain.AddWarning(e.LoadInfo);
-                //break;
             }
         }
         internal void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e) {
@@ -201,7 +198,6 @@ namespace WinAGI.Editor
         internal void GameEvents_DecodeLogicStatus(object sender, DecodeLogicEventArgs e) {
             Debug.Print($"decode it: {e.DecodeInfo.Text}");
             bgwOpenGame?.ReportProgress(2, e.DecodeInfo);
-            //MDIMain.AddWarning(e.DecodeInfo);
         }
         private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
 
@@ -210,21 +206,8 @@ namespace WinAGI.Editor
 
         }
         private void btnOpenGame_Click(object sender, EventArgs e) {
-            //open a game!
-            OpenDlg.InitialDirectory = Environment.SpecialFolder.Desktop.ToString();
-            OpenDlg.DefaultExt = "wag";
-            OpenDlg.Filter = "WinAGI Game Files (*.wag)|*.wag|All files|*.*";
-            DialogResult result = OpenDlg.ShowDialog(this);
-            if (result == DialogResult.OK) {
-                //let's open it
-                //        this.UseWaitCursor = true;
-                Refresh();
-                OpenWAGFile(OpenDlg.FileName);
-                //        this.UseWaitCursor = false;
-            }
-            else {
-                return;
-            }
+            // open a game!
+            OpenWAGFile();
         }
         private void mnuWCascade_Click(object sender, EventArgs e) {
             LayoutMdi(MdiLayout.Cascade);
@@ -257,33 +240,18 @@ namespace WinAGI.Editor
             // STRATEGY FOR READING/WRITING DATA TO/FROM
             // AGI TEXT RESOURCES:
             //
-            // TO READ:
+            // TO READ from AGI RESOURCE:
             // read in as a byte array; then convert the
             // byte array to current codepage:
             //   strIn = agCodePage.GetString(bIn);
             //
-            // TO WRITE:
+            // TO WRITE to AGI RESOURCE:
             // convert string to byte array, then write
             // the byte array
             //   bOut = agCodePage.GetBytes(strOut);
             //
-            // means can't easily convert to different codepage
-            // on the fly; need to close and then restart the
-            // game
-            //int i;
-            //byte[] charval = new byte[1];
-            //string sTest = "";
-            //for (i = 160; i < 176; i++) {
-            //    charval[0] = (byte)i;
-            //    sTest += Encoding.GetEncoding(850).GetString(charval);
-            //}
-            //byte tmp = (byte)sTest[0];
-            //Debug.Print(sTest);
             // TODO: need converter for v2.3.7 sourcefiles; text now stored as utf8
             // and only converted to appropriate codepage byte values when compiling
-            // OR... do I stick with strategy for logics of converting to codepage
-            // when writing to the Logic.SourceText property?
-            Debug.Print(CRC32(Encoding.Unicode.GetBytes("The quick brown fox jumps over the lazy dog.")).ToString());
 
             //what is resolution?
             Debug.Print($"DeviceDPI: {this.DeviceDpi}");
@@ -335,9 +303,9 @@ namespace WinAGI.Editor
             //set browser start dir to program dir
             BrowserStartDir = ProgramDir;
 
-            //get game settings and set initial window positions
-            //this happens after all the stuff above because
-            //Readsettings affects things that need to be initialized first
+            // get game settings and set initial window positions
+            // this happens after all the stuff above because
+            // Readsettings affects things that need to be initialized first
             if (!ReadSettings()) {
                 //problem with settings
                 MessageBox.Show("Fatal error: Unable to read program settings", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -345,7 +313,7 @@ namespace WinAGI.Editor
                 return;
             }
             frmSplash splash = null;
-            //show splash screen, if applicable
+            // show splash screen, if applicable
             if (Settings.ShowSplashScreen) {
                 Visible = true;
                 Refresh();
@@ -355,7 +323,7 @@ namespace WinAGI.Editor
                 splash.Show(this);
                 splash.Refresh();
             }
-            //enable timer; it starts out as splash screen timer
+            // enable timer; it starts out as splash screen timer
             tmrNavList.Interval = 1750;
             tmrNavList.Enabled = true;
 
@@ -364,17 +332,16 @@ namespace WinAGI.Editor
             PictureEditors = [];
             SoundEditors = [];
 
-            //build the lookup table for reserved defines
+            // build the lookup table for reserved defines
             BuildRDefLookup();
-            //default to an empty globals list
+            // default to an empty globals list
             GDefLookup = [];
             //if using snippets
             if (Settings.Snippets) {
-                //build snippet table
+                // build snippet table
                 BuildSnippets();
             }
-            //get reference to temporary directory
-            //TempFileDir = GetTempFileDir()
+
             WinAGIHelp = ProgramDir + "WinAGI.chm";
             //      mnuHContents.Text = "Contents" + Keys.Tab + "F1";
 
@@ -390,7 +357,7 @@ namespace WinAGI.Editor
             //retrieve user's preferred AGI colors
             GetDefaultColors();
 
-            //let the system catch up
+            // let the system catch up
             Refresh();
 
             //      //establish printer margins (don't need to show error msg if printer isn't available)
@@ -403,6 +370,12 @@ namespace WinAGI.Editor
                 }
                 splash.Close();
             }
+
+            // attach  AGI game events
+            LoadGameStatus += MDIMain.GameEvents_LoadGameStatus;
+            CompileGameStatus += MDIMain.GameEvents_CompileGameStatus;
+            CompileLogicStatus += MDIMain.GameEvents_CompileLogicStatus;
+            DecodeLogicStatus += MDIMain.GameEvents_DecodeLogicStatus;
 
             //check for command string
             CheckCmd();
@@ -696,16 +669,13 @@ namespace WinAGI.Editor
                 if (NewResNum == -1) {
                     // logic header
                     PropRows = 3;
-                    LogicHdrProperties pLgcHdr = new(EditGame.Logics.Count, LogicDecoder.UseReservedNames);
+                    LogicHdrProperties pLgcHdr = new(EditGame.Logics.Count, LogicCompiler.UseReservedNames);
                     propertyGrid1.SelectedObject = pLgcHdr;
                 }
                 else {
                     // always load before selecting
                     EditGame.Logics[NewResNum].Load();
-                    // TODO: mark properties in red if error?
-                    // show logic properties
                     PropRows = 8;
-                    // if compiled state doesn't match correct tree color, fix it now
                     LogicProperties pLog = new(EditGame.Logics[NewResNum]);
                     propertyGrid1.SelectedObject = pLog;
                 }
@@ -720,8 +690,6 @@ namespace WinAGI.Editor
                 else {
                     // always load before selecting
                     EditGame.Pictures[NewResNum].Load();
-                    // ignore error here
-                    // show picture properties
                     PropRows = 6;
                     PictureProperties pPicture = new(EditGame.Pictures[NewResNum]);
                     propertyGrid1.SelectedObject = pPicture;
@@ -737,7 +705,6 @@ namespace WinAGI.Editor
                 else {
                     // always load before selecting
                     EditGame.Sounds[NewResNum].Load();
-                    //show sound properties
                     PropRows = 6;
                     SoundProperties pSound = new(EditGame.Sounds[NewResNum]);
                     propertyGrid1.SelectedObject = pSound;
@@ -753,7 +720,6 @@ namespace WinAGI.Editor
                 else {
                     // always load before selecting
                     EditGame.Views[NewResNum].Load();
-                    // show view properties
                     PropRows = 7;
                     ViewProperties pView = new(EditGame.Views[NewResNum]);
                     propertyGrid1.SelectedObject = pView;
@@ -761,21 +727,19 @@ namespace WinAGI.Editor
                 break;
             case Objects:
                 // OBJECT file is always loaded
-                //show object Count, description, encryption, and Max screen objects
                 PropRows = 4;
                 InvObjProperties pInvObj = new(EditGame.InvObjects);
                 propertyGrid1.SelectedObject = pInvObj;
                 break;
             case Words:
                 // WORDS.TOK is always loaded
-                //show group Count and word Count and description
                 PropRows = 3;
                 WordListProperties pWordList = new(EditGame.WordList);
                 propertyGrid1.SelectedObject = pWordList;
                 break;
             }
             if (Settings.ShowPreview) {
-                //if update is requested
+                // if update is requested
                 if (Settings.ShowPreview && UpdatePreview) {
                     // load the preview item
                     NoPaint = true;
@@ -790,18 +754,10 @@ namespace WinAGI.Editor
             //if resource list is visible,
             if (Settings.ResListType >= 0) {
                 //add selected resource to navigation queue
-                //force update property window
-                if (SelResNum < 0) {
-                    //add headers and non-regular resources by type
-                    AddToQueue(SelResType, 256);
-                }
-                else {
-                    // add regular resourses by type/number
-                    AddToQueue(SelResType, SelResNum);
-                }
-                //always disable forward button
+                AddToQueue(SelResType, SelResNum < 0 ? 256 : SelResNum);
+                // always disable forward button
                 cmdForward.Enabled = false;
-                //enable back button if at least two in queue
+                // enable back button if at least two in queue
                 cmdBack.Enabled = ResQPtr > 0;
                 //if a logic is selected, and layout editor is active form
                 if (SelResType == AGIResType.Logic) {
@@ -981,7 +937,7 @@ namespace WinAGI.Editor
                     // file access error; try renaming it and creating a default list
                     try {
                         // bad file; 
-                        File.Move(ProgramDir + "winagi.config", ProgramDir + "winagi.config.OLD");
+                        File.Move(ProgramDir + "winagi.config", ProgramDir + "winagi_OLD.config");
                         GameSettings = new SettingsList(ProgramDir + "winagi.config", FileMode.Create);
                     }
                     catch {
@@ -1301,15 +1257,14 @@ namespace WinAGI.Editor
             Settings.ShowGrid = GameSettings.GetSetting(sVIEWS, "ShowEditGrid", DEFAULT_SHOWGRID);
 
             // DECOMPILER
-            // TODO: decompiler settings are global; eventually I should add game properties that
-            // allow per-game setting of these properties...
             LogicDecoder.ShowAllMessages = GameSettings.GetSetting(sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
             LogicDecoder.MsgsByNumber = GameSettings.GetSetting(sDECOMPILER, "MsgsByNum", DEFAULT_MSGSBYNUM);
-            LogicDecoder.ElseAsGoto = GameSettings.GetSetting(sDECOMPILER, "ElseAsGoto", DEFAULT_ELSEASGOTO);
             LogicDecoder.SpecialSyntax = GameSettings.GetSetting(sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
             LogicDecoder.ReservedAsText = GameSettings.GetSetting(sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
             LogicDecoder.DefaultSrcExt = GameSettings.GetSetting(sDECOMPILER, "DefaultSrcExt", DEFAULT_DEFSRCEXT);
-            LogicDecoder.UseReservedNames = Settings.DefUseResDef;
+            
+            // COMPILER
+            LogicCompiler.UseReservedNames = Settings.DefUseResDef;
 
             //get property window height
             PropRowCount = GameSettings.GetSetting(sPOSITION, "PropRowCount", 4);
@@ -1983,6 +1938,7 @@ namespace WinAGI.Editor
         }
         private void tvwResources_AfterSelect(object sender, TreeViewEventArgs e) {
             // probably due to navigation - 
+            Debug.Assert(EditGame != null);
 
             //if not changed from previous number
             if (LastNodeName != e.Node.Name) {
@@ -2482,11 +2438,11 @@ namespace WinAGI.Editor
             btnOpenRes.Image = btnOpenView.Image;
         }
         private void mnuGImport_Click(object sender, EventArgs e) {
-            //import a game by directory
+            // import a game by directory
             OpenDIR();
         }
         private void mnuGOpen_Click(object sender, EventArgs e) {
-            //open a game - user will get chance to select wag file in OpenWAGFile()
+            // open a game
             OpenWAGFile();
         }
         public void ClearWarnings() {
@@ -8690,6 +8646,12 @@ namespace WinAGI.Editor
             GameSettings.WriteSetting(sMRULIST, "LastLoad", blnLastLoad);
             //save settings to register
             SaveSettings();
+
+            // detach  AGI game events
+            LoadGameStatus -= MDIMain.GameEvents_LoadGameStatus;
+            CompileGameStatus -= MDIMain.GameEvents_CompileGameStatus;
+            CompileLogicStatus -= MDIMain.GameEvents_CompileLogicStatus;
+            DecodeLogicStatus -= MDIMain.GameEvents_DecodeLogicStatus;
 
             // drop the global reference
             MDIMain = null;

@@ -1,4 +1,6 @@
 ﻿
+using FastColoredTextBoxNS;
+
 namespace WinAGI.Editor {
     partial class frmPreview {
         /// <summary>
@@ -27,7 +29,7 @@ namespace WinAGI.Editor {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPreview));
             pnlLogic = new System.Windows.Forms.Panel();
-            rtfLogPrev = new System.Windows.Forms.RichTextBox();
+            rtfLogPrev = new FastColoredTextBox();
             pnlPicture = new System.Windows.Forms.Panel();
             tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             pnlPicHeader = new System.Windows.Forms.Panel();
@@ -138,16 +140,29 @@ namespace WinAGI.Editor {
             // rtfLogPrev
             // 
             rtfLogPrev.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            rtfLogPrev.DetectUrls = false;
-            rtfLogPrev.Location = new System.Drawing.Point(5, 5);
+            rtfLogPrev.AutoCompleteBracketsList = new char[]
+            {'(', ')', '{', '}', '"', '"'};
+            rtfLogPrev.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
+            rtfLogPrev.AutoScrollMinSize = new System.Drawing.Size(179, 14);
+            rtfLogPrev.BackBrush = null;
+            rtfLogPrev.CharHeight = 14;
+            rtfLogPrev.CharWidth = 8;
+            rtfLogPrev.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
+            rtfLogPrev.Font = new System.Drawing.Font("Courier New", 9.75F);
+            rtfLogPrev.Hotkeys = resources.GetString("fastColoredTextBox1.Hotkeys");
+            rtfLogPrev.IsReplaceMode = false;
+            rtfLogPrev.Location = new System.Drawing.Point(0, 0);
             rtfLogPrev.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             rtfLogPrev.Name = "rtfLogPrev";
+            rtfLogPrev.Paddings = new System.Windows.Forms.Padding(0);
             rtfLogPrev.ReadOnly = true;
-            rtfLogPrev.ShowSelectionMargin = true;
-            rtfLogPrev.Size = new System.Drawing.Size(532, 384);
+            rtfLogPrev.SelectionColor = System.Drawing.Color.FromArgb(60, 0, 0, 255);
+            rtfLogPrev.ServiceColors = (ServiceColors)resources.GetObject("fastColoredTextBox1.ServiceColors");
+            rtfLogPrev.Size = new System.Drawing.Size(537, 389);
             rtfLogPrev.TabIndex = 0;
             rtfLogPrev.Text = "";
             rtfLogPrev.WordWrap = false;
+            rtfLogPrev.Zoom = 100;
             rtfLogPrev.DoubleClick += rtfLogPrev_DoubleClick;
             rtfLogPrev.KeyDown += rtfLogPrev_KeyDown;
             rtfLogPrev.MouseDown += rtfLogPrev_MouseDown;
@@ -936,12 +951,12 @@ namespace WinAGI.Editor {
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(541, 392);
+            Controls.Add(pnlLogic);
             Controls.Add(pnlSound);
             Controls.Add(menuStrip1);
             Controls.Add(statusStrip1);
             Controls.Add(pnlView);
             Controls.Add(pnlPicture);
-            Controls.Add(pnlLogic);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             KeyPreview = true;
             Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
@@ -993,7 +1008,7 @@ namespace WinAGI.Editor {
         #endregion
 
         private System.Windows.Forms.Panel pnlLogic;
-        private System.Windows.Forms.RichTextBox rtfLogPrev;
+        private FastColoredTextBox rtfLogPrev;
         private System.Windows.Forms.Panel pnlPicture;
         private System.Windows.Forms.Panel pnlSound;
         private System.Windows.Forms.Panel pnlView;

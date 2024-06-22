@@ -18,6 +18,7 @@ namespace WinAGI.Engine {
             byte bytResNum;
             AGIResType bytResType;
             string strDirFile = "";
+            string strVolFile;
             byte[] bytBuffer = [];
             byte byte1, byte2, byte3;
             int lngDirOffset = 0;  // offset of this resource's directory in Dir file (for v3)
@@ -32,11 +33,12 @@ namespace WinAGI.Engine {
                 Module = "",
                 Text = "",
             };
-            game.OnLoadGameStatus(warnInfo);
+            AGIGame.OnLoadGameStatus(warnInfo);
             // set up for warnings
             warnInfo.Type = EventType.etWarning;
 
             if (game.agIsVersion3) {
+                // check for DIR file
                 strDirFile = game.agGameDir + game.agGameID + "DIR";
                 if (!File.Exists(strDirFile)) {
                     WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
@@ -45,7 +47,7 @@ namespace WinAGI.Engine {
                     wex.Data["missingfile"] = strDirFile;
                     throw wex;
                 }
-                // check for readonly
+                // check DIR file for readonly
                 if ((File.GetAttributes(strDirFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                     WinAGIException wex = new(LoadResString(700).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 700,
@@ -75,7 +77,29 @@ namespace WinAGI.Engine {
                     wex.Data["baddir"] = Path.GetFileName(strDirFile);
                     throw wex;
                 }
+                strVolFile = game.agGameDir + game.agGameID + "VOL.0";
             }
+            else {
+                // v2 DIR files checked later- now just check for vol.0
+                strVolFile = game.agGameDir + "VOL.0";
+            }
+            // confirm vol.0 exists and is accessible
+            if (!File.Exists(strVolFile)) {
+                WinAGIException wex = new(LoadResString(524).Replace(ARG1, strVolFile)) {
+                    HResult = WINAGI_ERR + 524
+                };
+                wex.Data["missingfile"] = strVolFile;
+                throw wex;
+            }
+            // check for readonly
+            if ((File.GetAttributes(strVolFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                WinAGIException wex = new(LoadResString(700).Replace(ARG1, strVolFile)) {
+                    HResult = WINAGI_ERR + 700,
+                };
+                wex.Data["badfile"] = strVolFile;
+                throw wex;
+            }
+
             // step through all four resource types
             for (bytResType = 0; bytResType <= AGIResType.View; bytResType++) {
                 if (game.agIsVersion3) {
@@ -166,7 +190,7 @@ namespace WinAGI.Engine {
                         warnInfo.Text = ResTypeAbbrv[(int)bytResType] + " portion of DIR file is larger than expected; it may be corrupted";
                         warnInfo.Line = "--";
                         warnInfo.Module = "--";
-                        game.OnLoadGameStatus(warnInfo);
+                        AGIGame.OnLoadGameStatus(warnInfo);
                     }
                     else {
                         warnInfo.ResType = AGIResType.Game;
@@ -175,7 +199,7 @@ namespace WinAGI.Engine {
                         warnInfo.Text = ResTypeAbbrv[(int)bytResType] + "DIR file is larger than expected; it may be corrupted";
                         warnInfo.Line = "--";
                         warnInfo.Module = "--";
-                        game.OnLoadGameStatus(warnInfo);
+                        AGIGame.OnLoadGameStatus(warnInfo);
                     }
                     // assume the max for now
                     intResCount = 256;
@@ -195,7 +219,7 @@ namespace WinAGI.Engine {
                         warnInfo.Text = "";
                         warnInfo.Line = "--";
                         warnInfo.Module = "--";
-                        game.OnLoadGameStatus(warnInfo);
+                        AGIGame.OnLoadGameStatus(warnInfo);
                         warnInfo.Type = EventType.etWarning;
                         // get location data for this resource
                         byte1 = bytBuffer[lngDirOffset + bytResNum * 3];
@@ -419,7 +443,7 @@ namespace WinAGI.Engine {
                     warnInfo.Module = errdata[0];
                     break;
                 }
-                game.OnLoadGameStatus(warnInfo);
+                AGIGame.OnLoadGameStatus(warnInfo);
                 return;
             }
             switch (resType) {
@@ -433,35 +457,35 @@ namespace WinAGI.Engine {
                         warnInfo.ID = "RW17";
                         warnInfo.Text = $"Picture {resNum} is missing its 'end-of-resource' marker and may be corrupt";
                         warnInfo.Module = errdata[0];
-                        game.OnLoadGameStatus(warnInfo);
+                        AGIGame.OnLoadGameStatus(warnInfo);
                     }
                     if ((errlevel & 2) == 2) {
                         // bad color
                         warnInfo.ID = "RW18";
                         warnInfo.Text = $"Picture {resNum} has at least one invalid color assignment - picture may be corrupt";
                         warnInfo.Module = errdata[0];
-                        game.OnLoadGameStatus(warnInfo);
+                        AGIGame.OnLoadGameStatus(warnInfo);
                     }
                     if ((errlevel & 4) == 4) {
                         // bad cmd
                         warnInfo.ID = "RW19";
                         warnInfo.Text = $"Picture {resNum} has at least one invalid command byte - picture may be corrupt";
                         warnInfo.Module = errdata[0];
-                        game.OnLoadGameStatus(warnInfo);
+                        AGIGame.OnLoadGameStatus(warnInfo);
                     }
                     if ((errlevel & 8) == 8) {
                         // extra data
                         warnInfo.ID = "RW20";
                         warnInfo.Text = $"{resType} {resNum} has extra data past the end of resource";
                         warnInfo.Module = errdata[0];
-                        game.OnLoadGameStatus(warnInfo);
+                        AGIGame.OnLoadGameStatus(warnInfo);
                     }
                     if ((errlevel & 16) == 16) {
                         // unhandled error
                         warnInfo.ID = "RW21";
                         warnInfo.Text = $"Unhandled error in Picture {resNum} data- picture may not display correctly ({errlevel})";
                         warnInfo.Module = errdata[0];
-                        game.OnLoadGameStatus(warnInfo);
+                        AGIGame.OnLoadGameStatus(warnInfo);
                     }
 
                 }
@@ -470,45 +494,45 @@ namespace WinAGI.Engine {
                 warnInfo.ID = "RW22";
                 warnInfo.Text = $"Sound {resNum} has an invalid track pointer ({errlevel})";
                 warnInfo.Module = errdata[0];
-                game.OnLoadGameStatus(warnInfo);
+                AGIGame.OnLoadGameStatus(warnInfo);
                 break;
             case AGIResType.View:
                 warnInfo.ID = "RW23";
                 warnInfo.Text = $"View {resNum} has an invalid view description pointer";
                 warnInfo.Module = errdata[0];
-                game.OnLoadGameStatus(warnInfo);
+                AGIGame.OnLoadGameStatus(warnInfo);
                 break;
             case AGIResType.Objects:
                 warnInfo.Module = "OBJECT";
                 if ((errlevel & 1) == 1) {
                     warnInfo.ID = "RW24";
                     warnInfo.Text = "OBJECT file has no items";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 2) == 2) {
                     warnInfo.ID = "RW25";
                     warnInfo.Text = "Unable to decrypt OBJECT file";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 4) == 4) {
                     warnInfo.ID = "RW26";
                     warnInfo.Text = "Invalid OBJECT file header, unable to read item data";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 8) == 8) {
                     warnInfo.ID = "RW27";
                     warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 16) == 16) {
                     warnInfo.ID = "RW28";
                     warnInfo.Text = "First item is not the null '?' item";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 32) == 32) {
                     warnInfo.ID = "RW29";
                     warnInfo.Text = "File access error, unable to read OBJECT file";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 break;
             case AGIResType.Words:
@@ -516,32 +540,32 @@ namespace WinAGI.Engine {
                 if ((errlevel & 1) == 1) {
                     warnInfo.ID = "RW30";
                     warnInfo.Text = "Abnormal index table";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 2) == 2) {
                     warnInfo.ID = "RW31";
                     warnInfo.Text = "Unexpected end of file";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 4) == 4) {
                     warnInfo.ID = "RW32";
                     warnInfo.Text = "Upper case characters detected";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 8) == 8) {
                     warnInfo.ID = "RW33";
                     warnInfo.Text = "Empty WORDS.TOK file";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 16) == 16) {
                     warnInfo.ID = "RW34";
                     warnInfo.Text = "Invalid index table";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 if ((errlevel & 32) == 32) {
                     warnInfo.ID = "RW35";
                     warnInfo.Text = "File access error, unable to read OBJECT file";
-                    game.OnLoadGameStatus(warnInfo);
+                    AGIGame.OnLoadGameStatus(warnInfo);
                 }
                 break;
             }

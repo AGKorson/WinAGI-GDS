@@ -17,16 +17,18 @@ using System.Diagnostics;
 namespace WinAGI.Editor {
     class BkgdTasks {
         internal static BackgroundWorker bgwOpenGame = null;
+        /// <summary>
+        /// This method handles the DoWork event for the background OpenGame object.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public static void OpenGameBkgd(object sender, DoWorkEventArgs e) {
-            bool blnLoaded = false;
             string strError = "";
             bool blnWarnings = false;
             int lngErr;
             LoadGameResults argval = (LoadGameResults)e.Argument;
+            bool blnLoaded;
             try {
-                // load the game/dir
-                // TODO: need to re-do game management; games should ALWAYS be loaded; 
-                // if constructor successfully loads game, it returns
                 // if game can't be loaded, constructor ALWAYS returns error
                 if (argval.Mode == 0) {
                     EditGame = new AGIGame(OpenGameMode.File, argval.Source);
@@ -34,7 +36,7 @@ namespace WinAGI.Editor {
                 else {
                     EditGame = new AGIGame(OpenGameMode.Directory, argval.Source);
                 }
-                // if no errors, means game loaded OK
+                // no errors, means game loaded OK
                 blnLoaded = true;
                 blnWarnings = EditGame.LoadWarnings;
             }
@@ -77,10 +79,15 @@ namespace WinAGI.Editor {
                         strError = ex.Message;
                         break;
                     case 655:
-                        strError = $"Missing game property file ({ex.Data["badwag"]}).";
+                        strError = $"Missing game property file ({ex.Data["badfile"]}).";
                         break;
                     case 665:
-                        strError = $"Invalid WINAGE property file ({ex.Data["badversion"]}).";
+                        if (ex.Data["badversion"].ToString().Length > 0) {
+                            strError = $"Invalid WINAGI version ({ex.Data["badversion"]}).";
+                        }
+                        else {
+                            strError = $"Invalid WINAGI property file ({ex.Data["badfile"]}).";
+                        }
                         break;
                     case 690:
                         //missing gameID in wag file
@@ -96,8 +103,8 @@ namespace WinAGI.Editor {
                         strError = $"Unable to backup existing WAG file - {ex.HResult}: {ex.Message}";
                         break;
                     case 700:
-                        // file / dir(WAG) is readonly
-                        strError = "Game directory and/or WAG File is readonly";
+                        // game file is readonly
+                        strError = $"Game file ({Path.GetFileName((string)ex.Data["badfile"])}) is readonly";
                         break;
                     case 701:
                         //file error accessing WAG
@@ -123,7 +130,6 @@ namespace WinAGI.Editor {
             }
             // if loaded OK, 
             if (blnLoaded) {
-                //ProgressWin.lblProgress.Text = "Game " + (mode == 0 ? "loaded" : "imported") + " successfully, setting up editors";
                 bgwOpenGame.ReportProgress(50, "Game " + (argval.Mode == 0 ? "loaded" : "imported") + " successfully, setting up editors");
                 //set default directory
                 BrowserStartDir = EditGame.GameDir;
@@ -147,6 +153,12 @@ namespace WinAGI.Editor {
             }
             e.Result = argval;
         }
+
+        /// <summary>
+        /// This method handles the ProgressChanged event of the background OpenGame object.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public static void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e) {
             // progress percentage used to identify different types of events
             switch (e.ProgressPercentage) {
@@ -162,65 +174,64 @@ namespace WinAGI.Editor {
                 // Decode warning
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
                 break;
-
-            default:
-                ProgressWin.lblProgress.Text = e.UserState.ToString();
-                if (e.ProgressPercentage == 50) {
-                    MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
-                    //build resource list
-                    BuildResourceTree();
-                    // show it, if needed
-                    if (Settings.ResListType != 0) {
-                        // show resource tree pane
-                        MDIMain.ShowResTree();
-                        //ok up to here
-                    }
-                    switch (Settings.ResListType) {
-                    case 1: //tree
-                            //select root
-                        MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
-                        //update selected resource
-                        MDIMain.SelectResource(Game, -1);
-                        //set LastNodeName property
-                        MDIMain.LastNodeName = RootNode.Name;
-                        break;
-                    case 2:
+            case 50:
+                // game finished loading
+                MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
+                // build resource list
+                BuildResourceTree();
+                // show it, if needed
+                if (Settings.ResListType != 0) {
+                    // show resource tree pane
+                    MDIMain.ShowResTree();
+                    // ok up to here
+                }
+                switch (Settings.ResListType) {
+                case 1: //tree
                         //select root
-                        MDIMain.cmbResType.SelectedIndex = 0;
-                        //update selected resource
-                        MDIMain.SelectResource(Game, -1);
-                        break;
-                    }
-                    // show selection in preview, if needed
-                    if (Settings.ShowPreview) {
-                        PreviewWin.Show();
-                    }
+                    MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
+                    //update selected resource
+                    MDIMain.SelectResource(Game, -1);
+                    //set LastNodeName property
+                    MDIMain.LastNodeName = RootNode.Name;
+                    break;
+                case 2:
+                    // select root
+                    MDIMain.cmbResType.SelectedIndex = 0;
+                    // update selected resource
+                    MDIMain.SelectResource(Game, -1);
+                    break;
+                }
+                // show selection in preview, if needed
+                if (Settings.ShowPreview) {
+                    PreviewWin.Show();
                 }
                 break;
+            default:
+                // all other progress events just update the label text
+                ProgressWin.lblProgress.Text = e.UserState.ToString();
+                break;
             }
-
         }
+
+        /// <summary>
+        /// This method handles the RunWorkerCompleted event of the background OpenGame object.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public static void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
-            //load is over
+            // load is over
             ProgressWin.Close();
 
             // refresh results
             LoadResults = (LoadGameResults)e.Result;
             if (LoadResults.Failed) {
-                //show error message
                 MessageBox.Show(LoadResults.ErrorMsg, "Unable to " + (LoadResults.Mode == 0 ? "Open" : "Import") + " Game", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else {
-                //if warnings
                 if (LoadResults.Warnings) {
-                    //warn about errors
-                    MessageBox.Show("Some errors in resource data were encountered.", "Errors During " + (LoadResults.Mode == 0 ? "Load" : "Import"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Some errors and/or anomalies in resource data were encountered.", "Errors During " + (LoadResults.Mode == 0 ? "Load" : "Import"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }
-
-        internal static BackgroundWorker bgwLoadLogic = null;
-        // TODO: write event handlers to manage logic TODOs and warnings 
-        // when 
     }
 }

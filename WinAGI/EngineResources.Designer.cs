@@ -2671,6 +2671,15 @@ namespace WinAGI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Commands after a quit() command are always ignored by AGI.
+        /// </summary>
+        internal static string _5116 {
+            get {
+                return ResourceManager.GetString("5116", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error %1 occurred while attempting to set game directory.
         /// </summary>
         internal static string _512 {

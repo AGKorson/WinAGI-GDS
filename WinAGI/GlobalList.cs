@@ -56,8 +56,7 @@ namespace WinAGI.Engine {
         /// Gets the change state of this defines list. Returns true if the
         /// list has not been changed.
         /// </summary>
-        public bool IsSet {
-            // TODO: change this to IsDirty
+        public bool IsDirty {
             get {
                 // true if CRC shows file hasn't changed
                 DateTime dtFileMod = File.GetLastWriteTime(parent.agGameDir + "globals.txt");

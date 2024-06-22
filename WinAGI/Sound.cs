@@ -278,7 +278,7 @@ namespace WinAGI.Engine {
             // never copy output build status; cloned sound will have to rebuild it
             clonesound.mOutputSet = false;
             // clone the tracks
-            // TODO: clonig tracks needs to be checked- it looks wrong right now
+            // TODO: cloning tracks needs to be checked- it looks wrong right now
             for (int i = 0; i < 4; i++) {
                 clonesound.mTrack[i] = mTrack[i].Clone(this);
             }
@@ -500,7 +500,7 @@ namespace WinAGI.Engine {
             }
             mData = tmpRes.mData;
             mTracksSet = true;
-            mErrLevel = 0;
+            ErrLevel = 0;
         }
 
         /// <summary>
@@ -1206,7 +1206,7 @@ namespace WinAGI.Engine {
             }
             // if sound was edited, tracks may not be set
             if (!mTracksSet) {
-                mErrLevel = LoadTracks();
+                ErrLevel = LoadTracks();
             }
             return mTrack[Index];
         }
@@ -1237,7 +1237,7 @@ namespace WinAGI.Engine {
             }
             // load base resource
             base.Load();
-            if (mErrLevel < 0) {
+            if (ErrLevel < 0) {
                 ErrClear();
                 // clear the sound to empty set of tracks
                 for (int i = 0; i <= 3; i++) {
@@ -1306,11 +1306,11 @@ namespace WinAGI.Engine {
                 break;
             case 8:
                 mFormat = SoundFormat.sfAGI;
-                mErrLevel = LoadTracks();
+                ErrLevel = LoadTracks();
                 break;
             default:
                 // bad sound
-                mErrLevel = 16;
+                ErrLevel = 16;
                 ErrClear();
                 break;
             }

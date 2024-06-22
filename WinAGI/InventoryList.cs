@@ -564,9 +564,6 @@ namespace WinAGI.Engine {
             // add maxscreenobject value
             // (first item's index will begin at pos = 3)
             bytTemp[2] = mMaxScreenObjects;
-            // TODO: need to verify that the header for Amiga files is four 
-            // bytes; if it is four, then a fourth byte is needed...
-
             // write string for null item (?) at start of text data, after
             // adjusting position to account for width of header
             lngPos = lngTextStart + Dwidth;
@@ -764,7 +761,6 @@ namespace WinAGI.Engine {
                 Save();
             }
             catch (Exception e) {
-                // TODO: need new exception code
                 WinAGIException wex = new(LoadResString(582)) {
                     HResult = WINAGI_ERR + 582,
                 };

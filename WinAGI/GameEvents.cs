@@ -52,7 +52,7 @@
         /// feedback to the calling program. It also provides the caller an opportunity
         /// to cancel the compile operation.
         /// </summary>
-        public event CompileGameEventHandler CompileGameStatus;
+        public static event CompileGameEventHandler CompileGameStatus;
 
         /// <summary>
         /// Raises the CompileGameStatus event. If user cancels in response, returns
@@ -63,10 +63,10 @@
         /// <param name="ResNum"></param>
         /// <param name="CompileInfo"></param>
         /// <returns></returns>
-        internal bool OnCompileGameStatus(ECStatus cStatus, TWinAGIEventInfo CompileInfo) {
+        internal static bool OnCompileGameStatus(ECStatus cStatus, TWinAGIEventInfo CompileInfo) {
             // Raise the event in a thread-safe manner using the ?. operator.
             CompileGameEventArgs e = new(cStatus, CompileInfo);
-            this.CompileGameStatus?.Invoke(null, e);
+            CompileGameStatus?.Invoke(null, e);
             return e.Cancel;
         }
 
@@ -81,15 +81,15 @@
         /// This event is raised at various points when a game is loaded to provide
         /// feedback to the calling program.
         /// </summary>
-        public event LoadGameEventHandler LoadGameStatus;
+        public static event LoadGameEventHandler LoadGameStatus;
 
         /// <summary>
         /// Raises the LoadGameStatus event.
         /// </summary>
         /// <param name="LoadInfo"></param>
-        internal void OnLoadGameStatus(TWinAGIEventInfo LoadInfo) {
+        internal static void OnLoadGameStatus(TWinAGIEventInfo LoadInfo) {
             // Raise the event in a thread-safe manner using the ?. operator.
-            this.LoadGameStatus?.Invoke(null, new LoadGameEventArgs(LoadInfo));
+            LoadGameStatus?.Invoke(null, new LoadGameEventArgs(LoadInfo));
         }
 
         /// <summary>
@@ -103,13 +103,13 @@
         /// This event is raised at various points when a logic resource is 
         /// compiled to provide feedback to the calling program.
         /// </summary>
-        public event CompileLogicEventHandler CompileLogicStatus;
+        public static event CompileLogicEventHandler CompileLogicStatus;
 
         /// <summary>
         /// Raises the CompileLogicStatus event. 
         /// </summary>
         /// <param name="CompInfo"></param>
-        internal void OnCompileLogicStatus(TWinAGIEventInfo CompInfo) {
+        internal static void OnCompileLogicStatus(TWinAGIEventInfo CompInfo) {
             // Raise the event in a thread-safe manner using the ?. operator.
             CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(CompInfo));
         }
@@ -125,13 +125,13 @@
         /// This event is raised at various points when a logic resource is 
         /// decoded to provide feedback to the calling program.
         /// </summary>
-        public event DecodeLogicEventHandler DecodeLogicStatus;
+        public static event DecodeLogicEventHandler DecodeLogicStatus;
 
         /// <summary>
         /// Raises the DecodeLogicStatus event. 
         /// </summary>
         /// <param name="DecodeInfo"></param>
-        internal void OnDecodeLogicStatus(TWinAGIEventInfo DecodeInfo) {
+        internal static void OnDecodeLogicStatus(TWinAGIEventInfo DecodeInfo) {
             // Raise the event in a thread-safe manner using the ?. operator
             DecodeLogicStatus?.Invoke(null, new DecodeLogicEventArgs(DecodeInfo));
         }

@@ -177,11 +177,8 @@ namespace WinAGI.Engine {
                     try {
                         File.Move(agGameDir + agGameID + "DIR", agGameDir + NewID + "DIR");
                         foreach (string strVolFile in Directory.EnumerateFiles(agGameDir, agGameID + "VOL.*")) {
-                            //if an archived (OLD) file, skip it
-                            if (!strVolFile[^4..].Equals(".OLD", StringComparison.OrdinalIgnoreCase)) {
-                                string[] strExtension = strVolFile.Split(".");
-                                File.Move(agGameDir + strVolFile, agGameDir + NewID + "VOL." + strExtension[1]);
-                            }
+                            string[] strExtension = strVolFile.Split(".");
+                            File.Move(agGameDir + strVolFile, agGameDir + NewID + "VOL." + strExtension[1]);
                         }
                     }
                     catch (Exception e) {
@@ -349,8 +346,7 @@ namespace WinAGI.Engine {
                             GameID = Left(GameID, 5);
                         }
                     }
-                    // TODO: if resources are compressed, does this
-                    // decompress them when rebuilding v2?
+                    // TODO: test- confirm v3 files get decompressed before compiling
                     // use compiler to rebuild new vol and dir files
                     // (it is up to calling program to deal with dirty and invalid resources)
                     try {
@@ -792,10 +788,10 @@ namespace WinAGI.Engine {
                         // rename then delete existing file, if it exists
                         if (File.Exists(NewGameDir + "WORDS.TOK")) {
                             // delete the 'old' file if it exists
-                            if (File.Exists(NewGameDir + "WORDS.OLD")) {
-                                File.Delete(NewGameDir + "WORDS.OLD");
+                            if (File.Exists(NewGameDir + "WORDS_OLD.TOK")) {
+                                File.Delete(NewGameDir + "WORDS_OLD.TOK");
                             }
-                            File.Move(NewGameDir + "WORDS.TOK", NewGameDir + "WORDS.OLD");
+                            File.Move(NewGameDir + "WORDS.TOK", NewGameDir + "WORDS_OLD.TOK");
                         }
                         // then copy the current file to new location
                         File.Copy(agVocabWords.ResFile, NewGameDir + "WORDS.TOK");
@@ -843,10 +839,10 @@ namespace WinAGI.Engine {
                         // rename then delete existing file, if it exists
                         if (File.Exists(NewGameDir + "OBJECT")) {
                             // first, delete the 'old' file if it exists
-                            if (File.Exists(NewGameDir + "OBJECT.OLD")) {
-                                File.Delete(NewGameDir + "OBJECT.OLD");
+                            if (File.Exists(NewGameDir + "OBJECT_OLD")) {
+                                File.Delete(NewGameDir + "OBJECT_OLD");
                             }
-                            File.Move(NewGameDir + "OBJECT", NewGameDir + "OBJECT.OLD");
+                            File.Move(NewGameDir + "OBJECT", NewGameDir + "OBJECT_OLD");
                         }
                         // then copy the current file to new location
                         File.Copy(agInvObj.ResFile, NewGameDir + "OBJECT");
@@ -941,46 +937,46 @@ namespace WinAGI.Engine {
             }
             // remove any existing old dirfiles
             if (NewIsV3) {
-                if (File.Exists(NewGameDir + agGameID + "DIR.OLD")) {
-                    File.Delete(NewGameDir + agGameID + "DIR.OLD");
+                if (File.Exists(NewGameDir + agGameID + "DIR_OLD")) {
+                    File.Delete(NewGameDir + agGameID + "DIR_OLD");
                 }
             }
             else {
-                if (File.Exists(NewGameDir + "LOGDIR.OLD")) {
-                    File.Delete(NewGameDir + "LOGDIR.OLD");
+                if (File.Exists(NewGameDir + "LOGDIR_OLD")) {
+                    File.Delete(NewGameDir + "LOGDIR_OLD");
                 }
-                if (File.Exists(NewGameDir + "PICDIR.OLD")) {
-                    File.Delete(NewGameDir + "PICDIR.OLD");
+                if (File.Exists(NewGameDir + "PICDIR_OLD")) {
+                    File.Delete(NewGameDir + "PICDIR_OLD");
                 }
-                if (File.Exists(NewGameDir + "VIEWDIR.OLD")) {
-                    File.Delete(NewGameDir + "VIEWDIR.OLD");
+                if (File.Exists(NewGameDir + "VIEWDIR_OLD")) {
+                    File.Delete(NewGameDir + "VIEWDIR_OLD");
                 }
-                if (File.Exists(NewGameDir + "SNDDIR.OLD")) {
-                    File.Delete(NewGameDir + "SNDDIR.OLD");
+                if (File.Exists(NewGameDir + "SNDDIR_OLD")) {
+                    File.Delete(NewGameDir + "SNDDIR_OLD");
                 }
             }
-            // rename existing dir files as .OLD
+            // rename existing dir files as _OLD
             if (NewIsV3) {
                 if (File.Exists(NewGameDir + agGameID + "DIR")) {
-                    File.Move(NewGameDir + agGameID + "DIR", NewGameDir + agGameID + "DIR.OLD");
+                    File.Move(NewGameDir + agGameID + "DIR", NewGameDir + agGameID + "DIR_OLD");
                     File.Delete(NewGameDir + agGameID + "DIR");
                 }
             }
             else {
                 if (File.Exists(NewGameDir + "LOGDIR")) {
-                    File.Move(NewGameDir + "LOGDIR", NewGameDir + "LOGDIR.OLD");
+                    File.Move(NewGameDir + "LOGDIR", NewGameDir + "LOGDIR_OLD");
                     File.Delete(NewGameDir + "LOGDIR");
                 }
                 if (File.Exists(NewGameDir + "PICDIR")) {
-                    File.Move(NewGameDir + "PICDIR", NewGameDir + "PICDIR.OLD");
+                    File.Move(NewGameDir + "PICDIR", NewGameDir + "PICDIR_OLD");
                     File.Delete(NewGameDir + "PICDIR");
                 }
                 if (File.Exists(NewGameDir + "VIEWDIR")) {
-                    File.Move(NewGameDir + "VIEWDIR", NewGameDir + "VIEWDIR.OLD");
+                    File.Move(NewGameDir + "VIEWDIR", NewGameDir + "VIEWDIR_OLD");
                     File.Delete(NewGameDir + "VIEWDIR");
                 }
                 if (File.Exists(NewGameDir + "SNDDIR")) {
-                    File.Move(NewGameDir + "SNDDIR", NewGameDir + "SNDDIR.OLD");
+                    File.Move(NewGameDir + "SNDDIR", NewGameDir + "SNDDIR_OLD");
                     File.Delete(NewGameDir + "SNDDIR");
                 }
             }
@@ -1077,13 +1073,13 @@ namespace WinAGI.Engine {
             // remove any existing old vol files
             for (i = 0; i < 16; i++) {
                 if (NewIsV3) {
-                    if (File.Exists(NewGameDir + agGameID + "VOL." + i.ToString() + ".OLD")) {
-                        File.Delete(NewGameDir + agGameID + "VOL." + i.ToString() + ".OLD");
+                    if (File.Exists(NewGameDir + agGameID + "VOL_OLD." + i.ToString())) {
+                        File.Delete(NewGameDir + agGameID + "VOL_OLD." + i.ToString());
                     }
                 }
                 else {
-                    if (File.Exists(NewGameDir + "VOL." + i.ToString() + ".OLD")) {
-                        File.Delete(NewGameDir + "VOL." + i.ToString() + ".OLD");
+                    if (File.Exists(NewGameDir + "VOL_OLD." + i.ToString())) {
+                        File.Delete(NewGameDir + "VOL_OLD." + i.ToString());
                     }
                 }
             }
@@ -1091,12 +1087,12 @@ namespace WinAGI.Engine {
             for (i = 0; i < 16; i++) {
                 if (NewIsV3) {
                     if (File.Exists(NewGameDir + agGameID + "VOL." + i.ToString())) {
-                        File.Move(NewGameDir + agGameID + "VOL." + i.ToString(), NewGameDir + agGameID + "VOL." + i.ToString() + ".OLD");
+                        File.Move(NewGameDir + agGameID + "VOL_OLD." + i.ToString(), NewGameDir + agGameID + "VOL." + i.ToString());
                     }
                 }
                 else {
                     if (File.Exists(NewGameDir + "VOL." + i.ToString())) {
-                        File.Move(NewGameDir + "VOL." + i.ToString(), NewGameDir + "VOL." + i.ToString() + ".OLD");
+                        File.Move(NewGameDir + "VOL_OLD." + i.ToString(), NewGameDir + "VOL." + i.ToString());
                     }
                 }
             }
@@ -1267,13 +1263,16 @@ namespace WinAGI.Engine {
                 agResDir = agGameDir + agResDirName + @"\";
                 // rename the resdir (have to do this AFTER load, because loading 
                 // will keep the current resdir that's in the WAG file)
-                // TODO: if strTmplResDir is blank, this won't work, will it????
                 if (!NewResDir.Equals(strTmplResDir, StringComparison.OrdinalIgnoreCase)) {
-                    DirectoryInfo resDir = new(agGameDir + strTmplResDir);
-                    resDir.MoveTo(agGameDir + NewResDir);
-                    // force all logics to update to new resdir
+                    // only move if there is an actual directory
+                    if (strTmplResDir.Length > 0) {
+                        DirectoryInfo resDir = new(agGameDir + strTmplResDir);
+                        resDir.MoveTo(agGameDir + NewResDir);
+                    }
+                    // update all logics to new resdir
                     foreach (Logic tmpLog in Logics) {
-                        tmpLog.ID = tmpLog.ID;
+                        tmpLog.mSourceFile = agResDir + tmpLog.ID + agSrcFileExt;
+                        WriteGameSetting("Logic" + tmpLog.Number, "ID", tmpLog.ID, "Logics");
                     }
                 }
                 // change gameid
@@ -1498,13 +1497,14 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             agGameFile = agGameDir + agGameID + ".wag";
+            string oldFile = agGameDir + agGameID + "_OLD.wag";
             // rename any existing game file (in case user is re-importing)
             try {
                 if (File.Exists(agGameFile)) {
-                    if (File.Exists(agGameFile + ".OLD")) {
-                        File.Delete(agGameFile + ".OLD");
+                    if (File.Exists(oldFile)) {
+                        File.Delete(oldFile);
                     }
-                    File.Move(agGameFile, agGameFile + ".OLD");
+                    File.Move(agGameFile, oldFile);
                 }
             }
             catch (Exception e) {
@@ -1570,7 +1570,7 @@ namespace WinAGI.Engine {
                     WinAGIException wex = new(LoadResString(655).Replace(ARG1, GameWAG)) {
                         HResult = WINAGI_ERR + 655,
                     };
-                    wex.Data["badwag"] = GameWAG;
+                    wex.Data["badfile"] = GameWAG;
                     throw wex;
                 }
                 else {
@@ -1621,10 +1621,11 @@ namespace WinAGI.Engine {
                 else {
                     // clear game variables
                     ClearGameState();
-                    // invalid wag
+                    // invalid wag file, or invalid wag version
                     WinAGIException wex = new(LoadResString(665).Replace(ARG1, GameWAG)) {
                         HResult = WINAGI_ERR + 665,
                     };
+                    wex.Data["badfile"] = GameWAG;
                     wex.Data["badversion"] = strVer;
                     throw wex;
                 }
@@ -2099,7 +2100,7 @@ namespace WinAGI.Engine {
         /// <param name="Value"></param>
         /// <param name="Group"></param>
         internal void WriteGameSetting(string Section, string Key, string Value, string Group = "") {
-            agGameProps.WriteSetting(Section, Key, Value.ToString(), Group);
+            agGameProps.WriteSetting(Section, Key, Value, Group);
             if (!Key.Equals("lastedit", StringComparison.CurrentCultureIgnoreCase) && !Key.Equals("winagiversion", StringComparison.CurrentCultureIgnoreCase) && !Key.Equals("palette", StringComparison.CurrentCultureIgnoreCase)) {
                 agLastEdit = DateTime.Now;
             }
@@ -2176,7 +2177,7 @@ namespace WinAGI.Engine {
             for (int i = 0; i < 16; i++) {
                 AGIColors[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), DefaultColors[i]);
             }
-            agCodePage = Encoding.GetEncoding(agGameProps.GetSetting("General", "CodePage", 437)); // TODO: need to validate codepage
+            agCodePage = Encoding.GetEncoding(agGameProps.GetSetting("General", "CodePage", 437));
             agDescription = agGameProps.GetSetting("General", "Description", "");
             agAuthor = agGameProps.GetSetting("General", "Author", "");
             agGameAbout = agGameProps.GetSetting("General", "About", "").Replace("\n", "\\n");

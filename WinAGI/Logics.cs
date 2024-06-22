@@ -275,7 +275,7 @@ namespace WinAGI.Engine {
         /// <returns></returns>
         public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false) {
             if (parent is not null) {
-                if (!parent.GlobalDefines.IsSet) {
+                if (!parent.GlobalDefines.IsDirty) {
                     parent.GlobalDefines.LoadGlobalDefines(parent.agGameDir + "globals.txt");
                 }
                 if (!blnSetIDs) {

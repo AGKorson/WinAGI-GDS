@@ -62,7 +62,7 @@ namespace WinAGI.Engine {
         /// </summary>
         internal static AGIGame compGame;
         // compiler warnings
-        public const int WARNCOUNT = 115;
+        public const int WARNCOUNT = 116;
         internal static bool[] agNoCompWarn = new bool[WARNCOUNT];
         // reserved defines
         internal static TDefine[] agResVar = new TDefine[27];    // 27: text name of built in variables
@@ -101,7 +101,7 @@ namespace WinAGI.Engine {
             Module = "",
         };
         internal static int intCtlCount;
-        internal static bool blnNewRoom;
+        internal static int endingCmd = 0; // 1 = return, 2 = new.room, 3 = quit
         internal static string INCLUDE_MARK = ((char)31).ToString() + "!";
         internal static string[] strIncludeFile;
         internal static int lngIncludeOffset; // to correct line number due to added include lines
@@ -133,6 +133,11 @@ namespace WinAGI.Engine {
         /// </summary>
         public static LogicErrorLevel ErrorLevel { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value that determines if reserved variables and flags are 
+        /// considered automatically defined, or if they must be manually defined.
+        /// </summary>
+        public static bool UseReservedNames { get; set; }
         #endregion
 
         #region Methods
@@ -1104,11 +1109,11 @@ namespace WinAGI.Engine {
         internal static TWinAGIEventInfo CompileLogic(Logic SourceLogic) {
             // if a major error occurs, nothing is passed in tmpInfo
             // note that when minor errors are returned, line is adjusted because
-            //editor rows(lines) start at '1', but the compiler starts at line '0'
+            // editor rows(lines) start at '1', but the compiler starts at line '0'
             bool blnCompiled;
             List<string> stlSource;
 
-            if (!compGame.GlobalDefines.IsSet) {
+            if (!compGame.GlobalDefines.IsDirty) {
                 compGame.GlobalDefines.LoadGlobalDefines(compGame.agGameDir + "globals.txt");
             }
             if (!blnSetIDs) {
@@ -1520,7 +1525,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 // lastly, check reserved names if they are being used
-                if (LogicDecoder.UseReservedNames) {
+                if (UseReservedNames) {
                     switch (argtype) {
                     case atNum:
                         for (i = 0; i <= 4; i++) {
@@ -1697,7 +1702,7 @@ namespace WinAGI.Engine {
                 }
             }
             // lastly, check reserved names, if they are being used
-            if (LogicDecoder.UseReservedNames) {
+            if (UseReservedNames) {
                 for (int i = 0; i <= 26; i++) {
                     if (strArgIn == agResVar[i].Name) {
                         return i;
@@ -1735,7 +1740,7 @@ namespace WinAGI.Engine {
             errInfo.Text = ErrorText;
             // module and line are updated continuously so they
             // don't need to be refreshed here
-            compGame.OnCompileLogicStatus(errInfo);
+            AGIGame.OnCompileLogicStatus(errInfo);
             blnMinorError = true;
         }
 
@@ -3084,9 +3089,8 @@ namespace WinAGI.Engine {
         /// accordingly. If there is nothing to concatenate, the original
         /// string is returned.</returns>
         internal static string ConcatArg(string strText) {
-            // TODO: input is a valid string? is this true?? if so, no need
-            // for the first two checks input string has already been checked
-            // for starting and ending quotation marks
+            // input is a potential string, the first character has been
+            // confirmed to be a quote mark
             string strTextContinue;
             int lngLastPos, lngLastLine;
             string strLastLine;
@@ -3100,7 +3104,7 @@ namespace WinAGI.Engine {
                 return "\"\"";
             }
             retval = strText;
-            //confirm starting string has ending quote
+            // confirm starting string has ending quote
             if (strText[^1] != '\"') {
                 // missing end quote - add it
                 retval += "\"";
@@ -3384,7 +3388,7 @@ namespace WinAGI.Engine {
                         // in fanAGI syntax, only 'define', 'message' allowed
                         switch (strToken) {
                         case "define":
-                            lngDefType = 0;
+                            lngDefType = DefineType.Default;
                             break;
                         case "message":
                             // skip; these are handled in ReadMsgs, afer defines
@@ -3490,10 +3494,6 @@ namespace WinAGI.Engine {
                                 else {
                                     AddMinorError(6005, LoadResString(6005).Replace(ARG1, tdNewDefine.Value));
                                 }
-                                break;
-                            case DefineType.Redefine:
-                                // TODO: impossible to get here?
-                                // redefine a command - no action needed
                                 break;
                             }
                         }
@@ -3827,10 +3827,7 @@ namespace WinAGI.Engine {
                         }
                         // msg is already assigned
                         if (blnMsg[intMsgNum]) {
-                            errInfo.ID = "4094";
-                            errInfo.Text = LoadResString(4094).Replace(ARG1, (intMsgNum).ToString());
-                            // TODO: why does this have to be a critical error?
-                            return false;
+                            AddMinorError(4094, LoadResString(4094).Replace(ARG1, (intMsgNum).ToString()));
                         }
                     }
                     // next token should be the message text
@@ -4011,7 +4008,7 @@ namespace WinAGI.Engine {
                 errInfo.Type = EventType.etWarning;
                 errInfo.ID = WarningNum.ToString();
                 errInfo.Text = WarningText;
-                compGame.OnCompileLogicStatus(errInfo);
+                AGIGame.OnCompileLogicStatus(errInfo);
                 // restore error as default
                 errInfo.Type = EventType.etError;
             }
@@ -4443,6 +4440,11 @@ namespace WinAGI.Engine {
             bool blnUnload = false, blnWarned = false;
 
             switch (CmdNum) {
+            case 0:
+                // return - expect no more commands
+                endingCmd = 1;
+                break;
+
             case 1 or 2 or (>= 4 and <= 8) or 10 or (>= 165 and <= 168):
                 // increment, decrement, assignv, addn, addv, subn, subv
                 // rindirect, mul.n, mul.v, div.n, div.v
@@ -4486,13 +4488,12 @@ namespace WinAGI.Engine {
                     }
                 }
                 // expect no more commands
-                blnNewRoom = true;
-                // TODO: need similar check after a return() cmd
+                endingCmd = 2;
                 break;
             case 19:
                 // new.room.v
                 // expect no more commands
-                blnNewRoom = true;
+                endingCmd = 2;
                 break;
             case 20:
                 // load.logics(A)
@@ -5293,6 +5294,10 @@ namespace WinAGI.Engine {
                     }
                 }
                 break;
+            case 134:
+                // quit - expect no more commands
+                endingCmd = 3;
+                break;
             case 142:
                 // script.size
                 if (bytLogComp != 0) {
@@ -5597,8 +5602,6 @@ namespace WinAGI.Engine {
                 }
                 if (lngMsgLen > 0) {
                     // convert to byte array based on codepage
-                    // TODO: I think the message text is already in correct
-                    // codepage
                     bMessage = compGame.agCodePage.GetBytes(strMsg[lngMsg]);
                     // step through all characters in this msg
                     intCharPos = 0;
@@ -5835,26 +5838,28 @@ namespace WinAGI.Engine {
             nextToken = NextToken();
             // process tokens from the input string list until finished
             while (lngLine != -1) {
-                if (blnNewRoom) {
+                if (endingCmd > 0) {
                     if (nextToken != "}") {
                         switch (ErrorLevel) {
                         case High or Medium:
-                            AddWarning(5095);
+                            switch (endingCmd) {
+                            case 1:
+                                // return
+                                AddWarning(5097);
+                                break;
+                            case 2:
+                                // new.room
+                                AddWarning(5095);
+                                break;
+                            case 3:
+                                // quit
+                                AddWarning(5116);
+                                break;
+                            }
                             break;
                         }
                     }
-                    blnNewRoom = false;
-                }
-                // TODO: need to check for quit too
-                if (blnLastCmdRtn) {
-                    if (nextToken != "}") {
-                        switch (ErrorLevel) {
-                        case High or Medium:
-                            AddWarning(5097);
-                            break;
-                        }
-                    }
-                    blnLastCmdRtn = false;
+                    endingCmd = 0;
                 }
                 switch (nextToken) {
                 case "{":
@@ -6106,7 +6111,7 @@ namespace WinAGI.Engine {
                                 tmpLogRes.WriteByte(bytArg[i]);
                             }
                             if (blnArgsOK) {
-                                //validate arguments for this command
+                                // validate arguments for this command
                                 if (!ValidateArgs(intCmdNum, ref bytArg)) {
                                     return false;
                                 }

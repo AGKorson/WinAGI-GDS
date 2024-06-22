@@ -1599,4 +1599,7 @@
   <data name="5115" xml:space="preserve">
     <value>Cel width less than 3 will not draw control box correctly</value>
   </data>
+  <data name="5116" xml:space="preserve">
+    <value>Commands after a quit() command are always ignored by AGI</value>
+  </data>
 </root>

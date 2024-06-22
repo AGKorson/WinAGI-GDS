@@ -47,15 +47,13 @@ namespace WinAGI.Engine {
                 int i;
                 mCelCol = value;
                 if (mMirrorPair != 0) {
-                    // find mirror pair (sum of mirror pairs is zero)
+                    // make sure mirror pair references the same cels
                     for (i = 0; i < mParent.mLoopCol.Count; i++) {
                         if (mParent.mLoopCol[(byte)i].MirrorPair + mMirrorPair == 0) {
                             // is the cels collection already set to this object?
                             if (mParent.mLoopCol[(byte)i].Cels == value) {
                                 return;
                             }
-                            // TODO: shouldn't it matter which is primary and which
-                            // is the mirror copy?
                             mParent.mLoopCol[(byte)i].Cels = value;
                             return;
                         }
@@ -211,10 +209,8 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="cloneparent"></param>
         /// <returns>The Loop this method creates.</returns>
-        public Loop Clone(View cloneparent) {
+        internal Loop Clone(View cloneparent) {
             Loop CopyLoop = new(cloneparent) {
-                // TODO: should clone include mirror status? or should the 
-                // cloned loop be an unmirrored copy???
                 mMirrorPair = mMirrorPair,
                 mIndex = mIndex,
                 mCelCol = mCelCol.Clone(cloneparent)

@@ -12,7 +12,7 @@ namespace WinAGI.Engine {
     /// </summary>
     public class Logic : AGIResource {
         #region Members
-        string mSourceFile = "";
+        internal string mSourceFile = "";
         string mSourceText = "";
         int mSrcErrLevel = 0;
         uint mCompiledCRC;
@@ -213,14 +213,10 @@ namespace WinAGI.Engine {
         /// </summary>
         public string SourceText {
             get {
-                // TODO: need to confirm codepage behavior; should
-                // source text be unicode here, or in the game's codepage?
                 return mSourceText;
             }
             set {
-                // TODO: need to confirm the end lines are stripped correctly
-                // convert line endings by splitting and rejoining
-                mSourceText = string.Join(NEWLINE, value.Split(new[] {"\r\n", "\r", "\n" }, StringSplitOptions.None));
+                mSourceText = string.Join(NEWLINE, value.Split(separator, StringSplitOptions.None));
                 // remove excess blank lines, leaving just one
                 int lngLen = mSourceText.Length;
                 if (lngLen > 1) {
@@ -247,7 +243,9 @@ namespace WinAGI.Engine {
                 }
             }
         }
-       #endregion
+
+        private static readonly string[] separator = new[] {"\r\n", "\r", "\n" };
+        #endregion
 
         #region Methods
         /// <summary>
@@ -257,7 +255,7 @@ namespace WinAGI.Engine {
         internal void LoadNoSource() {
             // load the base resource data
             base.Load();
-            if (mErrLevel < 0) {
+            if (ErrLevel < 0) {
                 // return a blank logic resource
                 ErrClear();
             }
@@ -277,7 +275,7 @@ namespace WinAGI.Engine {
                 return;
             }
             base.Load();
-            if (mErrLevel < 0) {
+            if (ErrLevel < 0) {
                 ErrClear();
             }
             mSourceDirty = false;
@@ -285,6 +283,10 @@ namespace WinAGI.Engine {
             mCodeSize = ReadWord(0) + 2;
             // load the sourcetext
             LoadSource();
+            // force uncompilied if error
+            if (ErrLevel < 0) {
+                //
+            }
         }
 
         /// <summary>
@@ -383,8 +385,6 @@ namespace WinAGI.Engine {
         public void ExportSource(string ExportFile) {
             WinAGIException.ThrowIfNotLoaded(this);
             try {
-                // TODO: need to validate codepage behavior; I think 
-                // this has already been converted to proper codepage
                 File.WriteAllText(ExportFile, mSourceText);
             }
             catch (Exception) {
@@ -493,11 +493,11 @@ namespace WinAGI.Engine {
             }
             // if forcing decompile
             if (Decompile) {
-                if (mErrLevel == 0) {
+                if (ErrLevel == 0) {
                     // get source code by decoding the resource raw data
                     // (this also set error level)
                     mSourceText = LogicDecoder.DecodeLogic(this);
-                    if (mErrLevel != 0) {
+                    if (ErrLevel != 0) {
                         // unable to decompile; force uncompiled state
                         mCRC = 0;
                         mCompiledCRC = 0xffffffff;
@@ -515,7 +515,7 @@ namespace WinAGI.Engine {
             }
             else {
                 // verify file exists
-                if (!File.Exists(mSourceText)) {
+                if (!File.Exists(mSourceFile)) {
                     mSrcErrLevel = -1;
                     ErrData[0] = mSourceText;
                     ErrData[1] = mResID;
@@ -526,7 +526,7 @@ namespace WinAGI.Engine {
                     return;
                 }
                 // check for readonly
-                if ((File.GetAttributes(mSourceText) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                if ((File.GetAttributes(mSourceFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                     mSrcErrLevel = -2;
                     ErrData[0] = mSourceText;
                     ErrData[1] = mResID;
@@ -537,10 +537,7 @@ namespace WinAGI.Engine {
                     return;
                 }
                 try {
-                    // TODO: confirm correct codepage behavior; I think this
-                    // is supposed to convert the cp data into unicode
-                    // load sourcecode from file
-                    mSourceText = CPToUnicode(File.ReadAllText(mSourceText), parent is not null ? parent.agCodePage : Encoding.GetEncoding(437));
+                    mSourceText = File.ReadAllText(mSourceFile);
                 }
                 catch (Exception e) {
                     mSrcErrLevel = -3;
@@ -604,12 +601,6 @@ namespace WinAGI.Engine {
                 }
             }
             try {
-                // TODO: need to confirm correct codepage behavior; I think
-                // sourcetext is already in the correct codepage
-
-                // TODO: need to confirm that sourcetext has properly
-                // formatted end of line markers (should be set whenever
-                // text is assigned to mSourceText)
                 File.WriteAllText(SaveFile, mSourceText);
             }
             catch (Exception) {
@@ -633,7 +624,7 @@ namespace WinAGI.Engine {
         /// in a game can be compiled.
         /// </summary>
         public void Compile() {
-            // TODO: why can't nongame logics be compiled? makes no sense...
+            // TODO: currently nongame logics can't be compiled; need to refactor to allow it
             TWinAGIEventInfo tmpInfo;
 
             WinAGIException.ThrowIfNotLoaded(this);
