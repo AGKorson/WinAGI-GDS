@@ -1901,16 +1901,7 @@ namespace WinAGI.Editor {
             // first add gloal resdefs
             for (ResDefGroup grp = 0; (int)grp < 9; grp++) {
                 for (int i = 0; i < LogicCompiler.ResDefByGrp(grp).Length; i++) {
-                    RDefLookup[pos] = LogicCompiler.ResDefByGrp(grp)[i];
-                    pos++;
-                }
-            }
-            // then add game specific resdefs, if a game is loaded
-            //TODO: move these to separate function when a game is loaded
-            if (EditGame is not null) {
-                for (int i = 0; i < 4; i++) {
-                    RDefLookup[pos] = EditGame.ReservedGameDefines[i];
-                    pos++;
+                    RDefLookup[pos++] = LogicCompiler.ResDefByGrp(grp)[i];
                 }
             }
             // then let open logic editors know
@@ -1996,7 +1987,7 @@ namespace WinAGI.Editor {
         public static void OpenMRUGame(int Index) {
             int i;
 
-            //skip if this MRU is blank (probably due to user manually editing
+            //skip if this MRU is blank (probably due to user manually editing)
             //the config file)
             if (strMRU[Index].Length == 0) {
                 // if entry is blank, but there's text on the menu bar, inform user

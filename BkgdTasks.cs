@@ -17,6 +17,8 @@ using System.Diagnostics;
 namespace WinAGI.Editor {
     class BkgdTasks {
         internal static BackgroundWorker bgwOpenGame = null;
+        private static bool updating;
+
         /// <summary>
         /// This method handles the DoWork event for the background OpenGame object.
         /// </summary>
@@ -28,6 +30,8 @@ namespace WinAGI.Editor {
             int lngErr;
             LoadGameResults argval = (LoadGameResults)e.Argument;
             bool blnLoaded;
+
+            updating = false;
             try {
                 // if game can't be loaded, constructor ALWAYS returns error
                 if (argval.Mode == 0) {
@@ -140,11 +144,11 @@ namespace WinAGI.Editor {
                 //build the lookup tables for logic tooltips
                 BuildIDefLookup();
                 BuildGDefLookup();
-                //update the reserved lookup values
-                RDefLookup[90].Value = QUOTECHAR + EditGame.GameVersion + QUOTECHAR;
-                RDefLookup[91].Value = QUOTECHAR + EditGame.GameAbout + QUOTECHAR;
-                RDefLookup[92].Value = QUOTECHAR + EditGame.GameID + QUOTECHAR;
-                RDefLookup[93].Value = (EditGame.InvObjects.Count - 1).ToString();
+                // add game specific resdefs
+                int pos = 91;
+                for (int i = 0; i < 4; i++) {
+                    RDefLookup[pos++] = EditGame.ReservedGameDefines[i];
+                }
                 argval.Warnings = blnWarnings;
             }
             else {
@@ -161,6 +165,7 @@ namespace WinAGI.Editor {
         /// <param name="e"></param>
         public static void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e) {
             // progress percentage used to identify different types of events
+
             switch (e.ProgressPercentage) {
             case 1:
                 // load warning
@@ -173,6 +178,10 @@ namespace WinAGI.Editor {
             case 3:
                 // Decode warning
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
+                break;
+            case 4:
+                // updating WinAGI version
+                updating = true;
                 break;
             case 50:
                 // game finished loading
@@ -200,6 +209,23 @@ namespace WinAGI.Editor {
                     // update selected resource
                     MDIMain.SelectResource(Game, -1);
                     break;
+                }
+                if (updating) {
+                    if (MessageBox.Show("This game was last opened with an older version of WinAGI. If your game uses extended characters, you will need to update your logic source files.\n\nDo you want your source files updated automatically?\n\n(Choose NO if your game does NOT use extended characters.)", "Update WAG File to New Version",MessageBoxButtons.YesNo) == DialogResult.Yes) {
+                        foreach(Logic lgc in EditGame.Logics) {
+                            if (File.Exists(lgc.SourceFile)) {
+                                try {
+                                    byte[] strdat =  File.ReadAllBytes(lgc.SourceFile);
+                                    string srcText = EditGame.CodePage.GetString(strdat);
+                                    // TODO: uncomment this after all testing is done
+                                    //File.WriteAllText(lgc.SourceFile, srcText);
+                                }
+                                catch {
+                                    // ignore exceptions
+                                }
+                            }
+                        }
+                    }
                 }
                 // show selection in preview, if needed
                 if (Settings.ShowPreview) {

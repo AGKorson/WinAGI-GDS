@@ -121,11 +121,13 @@ namespace WinAGI.Editor
             //picProperties.Height = splResource.Panel2.Height;
             //fsbProperty.Height = splResource.Panel2.Height;
         }
+
         internal void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e) {
             // test to see if event arg can pass back a cancel command
             // e.Cancel = true;
             // YES! it can!
         }
+
         internal void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e) {
             switch (e.LoadInfo.Type) {
             case etInfo:
@@ -133,15 +135,17 @@ namespace WinAGI.Editor
                 case EInfoType.itInitialize:
                     break;
                 case EInfoType.itValidating:
+                    // check for WinAGI version update
+                    if (e.LoadInfo.Text.Length > 0) {
+                        bgwOpenGame.ReportProgress(4, "");
+                    }
                     bgwOpenGame.ReportProgress(0, "Validating AGI game files ...");
                     break;
                 case EInfoType.itPropertyFile:
                     if (e.LoadInfo.ResNum == 0) {
-                        //ProgressWin.lblProgress.Text = "Creating game property file ...";
                         bgwOpenGame.ReportProgress(0, "Creating game property file ...");
                     }
                     else {
-                        //ProgressWin.lblProgress.Text = "Loading game property file ...";
                         bgwOpenGame.ReportProgress(0, "Loading game property file ...");
                     }
                     break;
@@ -151,27 +155,22 @@ namespace WinAGI.Editor
                     case AGIResType.Picture:
                     case AGIResType.View:
                     case AGIResType.Sound:
-                        //ProgressWin.lblProgress.Text = "Validating Resources: " + ResTypeName[(int)e.ResType] + " " + e.ResNum;
                         bgwOpenGame.ReportProgress(0, "Validating Resources: " + e.LoadInfo.ResType + " " + e.LoadInfo.ResNum);
                         break;
                     case Words:
-                        //ProgressWin.lblProgress.Text = "Validating WORDS.TOK file";
                         bgwOpenGame.ReportProgress(0, "Validating WORDS.TOK file ...");
                         break;
                     case Objects:
-                        //ProgressWin.lblProgress.Text = "Validating OBJECT file";
                         bgwOpenGame.ReportProgress(0, "Validating OBJECT file ...");
                         break;
                     }
                     break;
                 case EInfoType.itDecompiling:
-                    //ProgressWin.lblProgress.Text = "Validating AGI game files ...";
                     bgwOpenGame.ReportProgress(0, "Validating AGI game files ...");
                     break;
                 case EInfoType.itCheckCRC:
                     break;
                 case EInfoType.itFinalizing:
-                    //ProgressWin.lblProgress.Text = "Configuring WinAGI";
                     bgwOpenGame.ReportProgress(0, "Configuring WinAGI");
                     break;
                 }
@@ -183,8 +182,6 @@ namespace WinAGI.Editor
                 // add to warning list
                 bgwOpenGame.ReportProgress(1, e.LoadInfo);
                 break;
-                //MDIMain.AddWarning(e.LoadInfo);
-                //break;
             case etTODO:
                 bgwOpenGame.ReportProgress(0, $"{e.LoadInfo.ID} TODO: : {e.LoadInfo.Text}");
                 // add to warning list
@@ -250,8 +247,6 @@ namespace WinAGI.Editor
             // the byte array
             //   bOut = agCodePage.GetBytes(strOut);
             //
-            // TODO: need converter for v2.3.7 sourcefiles; text now stored as utf8
-            // and only converted to appropriate codepage byte values when compiling
 
             //what is resolution?
             Debug.Print($"DeviceDPI: {this.DeviceDpi}");

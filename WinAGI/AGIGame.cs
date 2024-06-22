@@ -1614,9 +1614,19 @@ namespace WinAGI.Engine {
             strVer = agGameProps.GetSetting("General", "WinAGIVersion", "");
             if (strVer != WINAGI_VERSION) {
                 if (Left(strVer, 4) == "1.2." || (Left(strVer, 2) == "2.")) {
-                    // any v1.2.x or 2.x is ok, but update
-                    // TODO: after testing, re-enable version updating
-                    //WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION);
+                    // any v1.2.x or 2.x is ok, but user will need to update
+
+                    // let calling function know an upgrade is occurring
+                    TWinAGIEventInfo loadInfo = new() {
+                        Type = EventType.etInfo,
+                        ID = "",
+                        Module = "",
+                        Text = strVer,
+                        InfoType = EInfoType.itValidating
+                    };
+                    OnLoadGameStatus(loadInfo);
+                    // update the WinAGI version
+                    WriteGameSetting("General", "WinAGIVersion", WINAGI_VERSION);
                 }
                 else {
                     // clear game variables
