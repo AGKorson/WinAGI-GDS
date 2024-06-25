@@ -189,21 +189,21 @@ namespace WinAGI.Editor {
                 // build resource list
                 BuildResourceTree();
                 // show it, if needed
-                if (Settings.ResListType != 0) {
+                if (Settings.ResListType != agiSettings.EResListType.None) {
                     // show resource tree pane
                     MDIMain.ShowResTree();
                     // ok up to here
                 }
                 switch (Settings.ResListType) {
-                case 1: //tree
-                        //select root
+                case agiSettings.EResListType.TreeList:
+                    // select root
                     MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
                     //update selected resource
                     MDIMain.SelectResource(Game, -1);
                     //set LastNodeName property
                     MDIMain.LastNodeName = RootNode.Name;
                     break;
-                case 2:
+                case agiSettings.EResListType.ComboList:
                     // select root
                     MDIMain.cmbResType.SelectedIndex = 0;
                     // update selected resource

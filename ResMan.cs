@@ -40,7 +40,6 @@ namespace WinAGI.Editor {
         #region
         // default setting values - global
         public const bool DEFAULT_SHOWSPLASHSCREEN = true;
-        public const bool DEFAULT_SKIPPRINTWARNING = false;
         public const bool DEFAULT_WARNCOMPILE = true;
         public const bool DEFAULT_NOTIFYCOMPSUCCESS = true;
         public const bool DEFAULT_NOTIFYCOMPWARN = true;
@@ -55,7 +54,7 @@ namespace WinAGI.Editor {
         public const bool DEFAULT_SHOWPREVIEW = true;
         public const bool DEFAULT_SHIFTPREVIEW = true;
         public const bool DEFAULT_HIDEPREVIEW = false; //true
-        public const int DEFAULT_RESLISTTYPE = 1; //treeview
+        public const agiSettings.EResListType DEFAULT_RESLISTTYPE = agiSettings.EResListType.TreeList;
         public const bool DEFAULT_AUTOOPEN = true;
         public const bool DEFAULT_OPENNEW = true;
         public const bool DEFAULT_AUTOEXPORT = true;
@@ -491,11 +490,15 @@ namespace WinAGI.Editor {
         public struct agiSettings {
             //general
             public bool ShowSplashScreen;  //if true, the splash screen is shown at startup
-            public bool SkipPrintWarning;  //if true, no warning shown if no printers found at startup
             public bool ShowPreview;  //
             public bool ShiftPreview;  // //brings preview window to front when something selected
             public bool HidePreview;  //
-            public int ResListType;  //0=no tree; 1=treelist; 2=combo/list boxes
+            public EResListType ResListType;  //0=no tree; 1=treelist; 2=combo/list boxes
+            public enum EResListType {
+                None,
+                TreeList,
+                ComboList
+            }
             public bool AutoOpen;  //
             public bool OpenNew;  // opens newly added/imported resources in an editor after being added
             public bool AutoExport;  //
@@ -755,13 +758,6 @@ namespace WinAGI.Editor {
         public static IntPtr HelpParent;
         public static string TempFileDir;
         public static string BrowserStartDir = "";
-        //printer variables
-        public static bool NoPrinter;
-        public static int PMLeft, PMTop;
-        public static int PMRight, PMBottom;
-        public static int PHeight, PWidth;
-        public static int PDPIx, PDPIy;
-        public static bool NoColor;
         //workaround to force selection pt to update
         //after showing find form...
         public static bool FixSel;
@@ -1781,7 +1777,7 @@ namespace WinAGI.Editor {
                 }
             }
             // clear resource list and preview window
-            if (Settings.ResListType != 0) {
+            if (Settings.ResListType != agiSettings.EResListType.None) {
                 MDIMain.HideResTree();
                 MDIMain.ClearResourceList();
             }
@@ -1813,11 +1809,9 @@ namespace WinAGI.Editor {
             TreeNode tmpNode;
 
             switch (Settings.ResListType) {
-            case 0:
-                // no tree
+            case agiSettings.EResListType.None:
                 return;
-            case 1:
-                // treeview list
+            case agiSettings.EResListType.TreeList:
                 if (EditGame.GameID.Length != 0) {
                     //update root
                     MDIMain.tvwResources.Nodes[0].Text = EditGame.GameID;
@@ -1870,8 +1864,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 break;
-            case 2:
-                //combo/list boxes
+            case agiSettings.EResListType.ComboList:
                 //update root
                 MDIMain.cmbResType.Items[0] = EditGame.GameID;
                 //select root
@@ -5906,7 +5899,6 @@ namespace WinAGI.Editor {
 
           //update progress
           ProgressWin.pgbStatus.Value = lngPicPos
-          Debug.Print ProgressWin.pgbStatus.Value; "/"; ProgressWin.pgbStatus.Max
           SafeDoEvents
 
           Loop Until lngPicPos >= GifPic.Size
@@ -6866,74 +6858,6 @@ namespace WinAGI.Editor {
           }
 
           //Debug.Assert false
-          Resume Next
-          }
-
-          public static bool UpdatePrinterCaps(int Orientation, Optional bool Quiet = false)
-
-          int rtn;
-           bool blnError;
-
-          //enable error trapping
-          On Error GoTo ErrHandler
-
-          //set printer flag
-          NoPrinter = (Printers.Count = 0)
-          if (NoPrinter) {
-          Exit Function
-          }
-
-          //send endoc command to reset printer object and get new handle
-          Printer.EndDoc
-
-          //reset orientation
-          Printer.Orientation = Orientation
-
-          //reset printer scale mode so print area is measured in pixels
-          Printer.ScaleMode = vbPixels
-
-          //get printer offset values (in pixels)
-          PMLeft = GetDeviceCaps(Printer.hDC, PHYSICALOFFSETX)
-          PMTop = GetDeviceCaps(Printer.hDC, PHYSICALOFFSETY)
-
-          //get physical page dimensions (in pixels)
-          PMRight = GetDeviceCaps(Printer.hDC, PHYSICALWIDTH)
-          PMBottom = GetDeviceCaps(Printer.hDC, PHYSICALHEIGHT)
-
-          //right margin is page width minus left margin, minus printable width of page
-          PMRight = PMRight - PMLeft - Printer.ScaleWidth
-
-          //bottom margin is page height minus top margin minus printable height of page
-          PMBottom = PMBottom - PMTop - Printer.ScaleHeight
-
-          //determine if printer supports color
-          if (GetDeviceCaps(Printer.hDC, BITSPIXEL) = 1) {
-          //this is a black and white printer
-          NoColor = true
-          } else {
-          NoColor = false
-          }
-
-          PDPIx = 1440 / Printer.TwipsPerPixelX
-          PDPIy = 1440 / Printer.TwipsPerPixelY
-          PWidth = Printer.Width / 1440 * PDPIx
-          PHeight = Printer.Height / 1440 * PDPIy
-
-          UpdatePrinterCaps = true
-          Exit Function
-
-          ErrHandler:
-          //only display an error msg once per call to this function
-          if (!blnError && !Quiet) {
-          //some printers don't allow landscape printing
-          if (Err.Number = 380) {
-            MessageBox.Show("The selected printer does not support the selected orientation." + Environment.NewLine + "Your output may not be formatted correctly.", MessageBoxIcon.Critical + MessageBoxIcon.Information, "Printer Capability Error"
-            Exit Function
-          } else {
-            ErrMsgBox("An error occurred accessing the printer:", "Print features may not work correctly.", "Printer Error"
-          }
-          }
-          blnError = true
           Resume Next
           }
 
@@ -11121,11 +11045,9 @@ namespace WinAGI.Editor {
             }
 
             switch (Settings.ResListType) {
-            case 0:
-                //no tree - do nothing
+            case agiSettings.EResListType.None:
                 break;
-            case 1:
-                //treeview list
+            case agiSettings.EResListType.TreeList:
                 //if updating tree OR updating a logic
                 if ((UpDateMode & UpdateModeType.umResList) == UpdateModeType.umResList || ResType == AGIResType.Logic) {
                     //update the node for this resource
@@ -11152,7 +11074,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 break;
-            case 2:
+            case agiSettings.EResListType.ComboList:
                 //combo/list boxes
                 //only update if current type is listed
                 if (MDIMain.cmbResType.SelectedIndex - 1 == (int)ResType) {
@@ -11187,7 +11109,7 @@ namespace WinAGI.Editor {
             // if the selected item matches the update item
             if (SelResType == ResType && SelResNum == ResNum) {
                 //if updating properties OR updating tree AND tree is visible
-                if (((UpDateMode & UpdateModeType.umProperty) == UpdateModeType.umProperty || (UpDateMode & UpdateModeType.umResList) == UpdateModeType.umProperty) && Settings.ResListType != 0) {
+                if (((UpDateMode & UpdateModeType.umProperty) == UpdateModeType.umProperty || (UpDateMode & UpdateModeType.umResList) == UpdateModeType.umProperty) && Settings.ResListType != agiSettings.EResListType.None) {
                 }
 
                 //if updating preview
@@ -11773,7 +11695,7 @@ namespace WinAGI.Editor {
             }
             //add to resource list
             switch (Settings.ResListType) {
-            case 1:
+            case agiSettings.EResListType.TreeList:
                 TreeNode tmpNode = HdrNode[0];
                 //find place to insert this logic
                 for (lngPos = 0; lngPos < HdrNode[0].Nodes.Count; lngPos++) {
@@ -11787,7 +11709,7 @@ namespace WinAGI.Editor {
                 //load source to set compiled status
                 tmpNode.ForeColor = EditGame.Logics[NewLogicNumber].Compiled ? Color.Black : Color.Red;
                 break;
-            case 2:
+            case agiSettings.EResListType.ComboList:
                 //only update if logics are being listed
                 if (MDIMain.cmbResType.SelectedIndex == 1) {
                     ListViewItem tmpListItem;
@@ -11825,7 +11747,7 @@ namespace WinAGI.Editor {
             EditGame.Pictures.Add((byte)NewPictureNumber, NewPicture);
 
             switch (Settings.ResListType) {
-            case 1:
+            case agiSettings.EResListType.TreeList:
                 //find place to insert this picture
                 for (lngPos = 0; lngPos < HdrNode[1].Nodes.Count; lngPos++) {
                     if ((int)HdrNode[1].Nodes[lngPos].Tag > NewPictureNumber) {
@@ -11835,7 +11757,7 @@ namespace WinAGI.Editor {
                 //add it to tree
                 HdrNode[1].Nodes.Insert(lngPos, "p" + NewPictureNumber, ResourceName(EditGame.Pictures[NewPictureNumber], true)).Tag = NewPictureNumber;
                 break;
-            case 2:
+            case agiSettings.EResListType.ComboList:
                 //only update if pictures are being listed
                 if (MDIMain.cmbResType.SelectedIndex == 2) {
                     //find a place to add it
@@ -11873,7 +11795,7 @@ namespace WinAGI.Editor {
             EditGame.Sounds.Add((byte)NewSoundNumber, NewSound);
 
             switch (Settings.ResListType) {
-            case 1:
+            case agiSettings.EResListType.TreeList:
                 //find place to insert this sound
                 for (lngPos = 0; lngPos < HdrNode[2].Nodes.Count; lngPos++) {
                     if ((int)HdrNode[2].Nodes[lngPos].Tag > NewSoundNumber) {
@@ -11883,7 +11805,7 @@ namespace WinAGI.Editor {
                 //add it to tree
                 HdrNode[2].Nodes.Insert(lngPos, "s" + NewSoundNumber, ResourceName(EditGame.Sounds[NewSoundNumber], true)).Tag = NewSoundNumber;
                 break;
-            case 2:
+            case agiSettings.EResListType.ComboList:
                 //only update if sounds are being updated
                 if (MDIMain.cmbResType.SelectedIndex == 3) {
                     //find a place to add it
@@ -11921,7 +11843,7 @@ namespace WinAGI.Editor {
             EditGame.Views.Add((byte)NewViewNumber, NewView);
 
             switch (Settings.ResListType) {
-            case 1:
+            case agiSettings.EResListType.TreeList:
                 //find place to insert this view
                 for (lngPos = 0; lngPos < HdrNode[3].Nodes.Count; lngPos++) {
                     if ((int)HdrNode[3].Nodes[lngPos].Tag > NewViewNumber) {
@@ -11931,7 +11853,7 @@ namespace WinAGI.Editor {
                 //add it to tree
                 HdrNode[3].Nodes.Insert(lngPos, "v" + NewViewNumber, ResourceName(EditGame.Views[NewViewNumber], true)).Tag = NewViewNumber;
                 break;
-            case 2:
+            case agiSettings.EResListType.ComboList:
                 //only update if views are being displayed
                 if (MDIMain.cmbResType.SelectedIndex == 4) {
                     //find a place to add it
@@ -12838,7 +12760,7 @@ namespace WinAGI.Editor {
             EditGame.Pictures.Remove(PicNum);
 
             switch (Settings.ResListType) {
-            case 1:
+            case agiSettings.EResListType.TreeList:
                 //remove it from resource list
                 MDIMain.tvwResources.Nodes.RemoveAt(MDIMain.tvwResources.Nodes["p" + PicNum.ToString()].Index);
                 //update selection to whatever is now the selected node
@@ -12856,7 +12778,7 @@ namespace WinAGI.Editor {
                     MDIMain.SelectResource((AGIResType)MDIMain.tvwResources.SelectedNode.Parent.Index, (int)MDIMain.tvwResources.SelectedNode.Tag);
                 }
                 break;
-            case 2:
+            case agiSettings.EResListType.ComboList:
                 //only need to remove if pictures are listed
                 if (MDIMain.cmbResType.SelectedIndex == 2) {
                     //remove it
@@ -13553,7 +13475,6 @@ namespace WinAGI.Editor {
              if (!SearchStartDlg) {
                 // select the newly opened logic
                 LogicEditors(lngNextLogWin).Focus()
-                //Debug.Print LogicEditors(lngNextLogWin).Name + " has focus (next editor in collection, begin search)"
               }
             } else {
               // NOT starting or continuing a closed logic search
@@ -13630,7 +13551,6 @@ namespace WinAGI.Editor {
 
             //force the form to activate, in case we need to add a statusbar update
             SafeDoEvents
-            //Debug.Print MDIMain.ActiveForm.Name
           } else {
             //when searching from the dialog, make sure the logic is at top of zorder, but
             //don't need to give it focus

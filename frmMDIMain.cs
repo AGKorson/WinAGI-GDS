@@ -19,6 +19,7 @@ using System.Diagnostics;
 using static WinAGI.Editor.Base;
 using static WinAGI.Editor.BkgdTasks;
 using System.IO;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace WinAGI.Editor
 {
@@ -259,8 +260,7 @@ namespace WinAGI.Editor
             btnImportRes.DefaultItem = btnImportLogic;
 
             //set preview window, status bar and other dialog objects
-            PreviewWin = new frmPreview
-            {
+            PreviewWin = new frmPreview {
                 MdiParent = MDIMain
             };
             MainStatusBar = statusStrip1;
@@ -270,7 +270,7 @@ namespace WinAGI.Editor
             //        WordsClipboard = new WordsUndo();
             FindingForm = new frmFind();
 
-            //hide rsource and warning panels until needed
+            //hide resource and warning panels until needed
             pnlResources.Visible = false;
             pnlWarnings.Visible = false;
             //set property window split location based on longest word
@@ -284,7 +284,7 @@ namespace WinAGI.Editor
             splResource.Panel2MinSize = 3 * PropRowHeight;
             splResource.SplitterDistance = splResource.Height - splResource.Margin.Top - splResource.Margin.Bottom - splResource.SplitterWidth - 7 * PropRowHeight;
             // set grid row height
-            fgWarnings.RowTemplate.Height = szText.Height +2;
+            fgWarnings.RowTemplate.Height = szText.Height + 2;
             //background color for previewing views is set to default
             PrevWinBColor = SystemColors.Control;
             //set selected prop
@@ -355,9 +355,6 @@ namespace WinAGI.Editor
             // let the system catch up
             Refresh();
 
-            //      //establish printer margins (don't need to show error msg if printer isn't available)
-            //      UpdatePrinterCaps(Printer.Orientation, true);
-
             if (Settings.ShowSplashScreen) {
                 //dont close unless ~1.75 seconds passed
                 while (!splashDone) {
@@ -380,19 +377,9 @@ namespace WinAGI.Editor
 
             //if nothing loaded AND autoreload is set AND something was loaded last time program ended,
             if (EditGame is null && this.ActiveMdiChild is null && Settings.AutoOpen && blnLastLoad) {
-                //open mru1
+                // open mru0
                 OpenMRUGame(0);
             }
-            //show the form
-            //if no printers,
-            if (NoPrinter && !Settings.SkipPrintWarning) {
-                //        MsgBoxEx("There are no printers available, so printing functions will be disabled.", vbInformation + vbOKOnly, "WinAGI GDS", , , "Don//t show this warning again.", Settings.SkipPrintWarning
-            }
-            if (Settings.SkipPrintWarning) {
-                GameSettings.WriteSetting(sGENERAL, "SkipPrintWarning", Settings.SkipPrintWarning);
-            }
-
-            //EditGame?.CompileGame(false);
 
         }
         private void btnNewLogic_Click(object sender, EventArgs e) {
@@ -520,7 +507,7 @@ namespace WinAGI.Editor
                 NewNum = -1;
                 // currently no list items
                 break;
-            case 1: 
+            case 1:
                 // logics
                 // if nothing to select
                 if (lstResources.SelectedItems.Count == 0) {
@@ -534,7 +521,7 @@ namespace WinAGI.Editor
                 PropRows = 8;
                 // don't need to adjust context menu; preview window will do that
                 break;
-            case 2: 
+            case 2:
                 // pictures
                 // if nothing to select
                 if (lstResources.SelectedItems.Count == 0) {
@@ -548,7 +535,7 @@ namespace WinAGI.Editor
                 PropRows = 6;
                 // don't need to adjust context menu; preview window will do that
                 break;
-            case 3: 
+            case 3:
                 // sounds
                 // if nothing to select
                 if (lstResources.SelectedItems.Count == 0) {
@@ -562,7 +549,7 @@ namespace WinAGI.Editor
                 PropRows = 6;
                 // don't need to adjust context menu; preview window will do that
                 break;
-            case 4: 
+            case 4:
                 // views
                 // if nothing to select
                 if (lstResources.SelectedItems.Count == 0) {
@@ -576,7 +563,7 @@ namespace WinAGI.Editor
                 PropRows = 7;
                 // don't need to adjust context menu; preview window will do that
                 break;
-            case 5: 
+            case 5:
                 // objects
                 // no listitems
                 NewType = Objects;
@@ -747,7 +734,7 @@ namespace WinAGI.Editor
             SelResNum = NewResNum;
 
             //if resource list is visible,
-            if (Settings.ResListType >= 0) {
+            if (Settings.ResListType != agiSettings.EResListType.None) {
                 //add selected resource to navigation queue
                 AddToQueue(SelResType, SelResNum < 0 ? 256 : SelResNum);
                 // always disable forward button
@@ -779,8 +766,7 @@ namespace WinAGI.Editor
             NewView();
 
             // show editor form
-            frmViewEdit frmNew = new()
-            {
+            frmViewEdit frmNew = new() {
                 MdiParent = this
             };
             frmNew.Show();
@@ -810,7 +796,7 @@ namespace WinAGI.Editor
             if (ResNum == 256) {
                 // header
                 switch (Settings.ResListType) {
-                case 1:
+                case agiSettings.EResListType.TreeList:
                     // treelist
                     if (ResType == Game) {
                         tvwResources.SelectedNode = RootNode;
@@ -821,7 +807,7 @@ namespace WinAGI.Editor
                     // call the node click to finish selection
                     tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
                     break;
-                case 2:
+                case agiSettings.EResListType.ComboList:
                     // listbox
                     switch (ResType) {
                     case Game: //root
@@ -871,13 +857,12 @@ namespace WinAGI.Editor
                     //this resource doesn't exist anymore - probably
                     //deleted; select the header
                     switch (Settings.ResListType) {
-                    case 1:
+                    case agiSettings.EResListType.TreeList:
                         // treelist
                         tvwResources.SelectedNode = HdrNode[(int)ResType];
                         tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
                         break;
-                    case 2:
-                        //listbox
+                    case agiSettings.EResListType.ComboList:
                         //(restype+1 matches desired combobox index)
                         cmbResType.SelectedIndex = (int)(ResType + 1);
                         //reset the listbox
@@ -890,10 +875,10 @@ namespace WinAGI.Editor
                 }
                 //select this resource
                 switch (Settings.ResListType) {
-                case 1:
+                case agiSettings.EResListType.TreeList:
                     tvwResources.SelectedNode = HdrNode[(int)ResType].Nodes[strKey];
                     break;
-                case 2:
+                case agiSettings.EResListType.ComboList:
                     // (restype+1 matches desired combobox index)
                     cmbResType.SelectedIndex = (int)(ResType + 1);
                     // now select the resource
@@ -947,7 +932,6 @@ namespace WinAGI.Editor
             }
             // GENERAL settings
             Settings.ShowSplashScreen = GameSettings.GetSetting(sGENERAL, "ShowSplashScreen", DEFAULT_SHOWSPLASHSCREEN);
-            Settings.SkipPrintWarning = GameSettings.GetSetting(sGENERAL, "SkipPrintWarning", DEFAULT_SKIPPRINTWARNING);
             Settings.WarnCompile = GameSettings.GetSetting(sGENERAL, "WarnCompile", DEFAULT_WARNCOMPILE);
             Settings.NotifyCompSuccess = GameSettings.GetSetting(sGENERAL, "NotifyCompSuccess", DEFAULT_NOTIFYCOMPSUCCESS);
             Settings.NotifyCompWarn = GameSettings.GetSetting(sGENERAL, "NotifyCompWarn", DEFAULT_NOTIFYCOMPWARN);
@@ -963,9 +947,9 @@ namespace WinAGI.Editor
             Settings.ShowPreview = GameSettings.GetSetting(sGENERAL, "ShowPreview", DEFAULT_SHOWPREVIEW);
             Settings.ShiftPreview = GameSettings.GetSetting(sGENERAL, "ShiftPreview", DEFAULT_SHIFTPREVIEW);
             Settings.HidePreview = GameSettings.GetSetting(sGENERAL, "HidePreview", DEFAULT_HIDEPREVIEW);
-            Settings.ResListType = GameSettings.GetSetting(sGENERAL, "ResListType", DEFAULT_RESLISTTYPE);
+            Settings.ResListType = (agiSettings.EResListType)GameSettings.GetSetting(sGENERAL, "ResListType", (int)DEFAULT_RESLISTTYPE);
             //validate treetype
-            if (Settings.ResListType < 0 || Settings.ResListType > 2) {
+            if (Settings.ResListType < 0 || (int)Settings.ResListType > 2) {
                 //use default
                 Settings.ResListType = DEFAULT_RESLISTTYPE;
                 GameSettings.WriteSetting(sGENERAL, "ResListType", Settings.ResListType.ToString(), "");
@@ -1257,7 +1241,7 @@ namespace WinAGI.Editor
             LogicDecoder.SpecialSyntax = GameSettings.GetSetting(sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
             LogicDecoder.ReservedAsText = GameSettings.GetSetting(sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
             LogicDecoder.DefaultSrcExt = GameSettings.GetSetting(sDECOMPILER, "DefaultSrcExt", DEFAULT_DEFSRCEXT);
-            
+
             // COMPILER
             LogicCompiler.UseReservedNames = Settings.DefUseResDef;
 
@@ -1470,12 +1454,12 @@ namespace WinAGI.Editor
             //save current index as last index
             LastNodeName = e.Node.Name;
             //now select it
-            if (e.Node == RootNode) {
-                //it's the game node
+            if (e.Node.Level == 0) {
+                // it's the game node
                 SelectResource(Game, -1);
             }
-            else if (e.Node.Parent == RootNode) {
-                //it's a resource header
+            else if (e.Node.Level == 1) {
+                // it's a resource header
                 SelectResource((AGIResType)e.Node.Index, -1);
             }
             else {
@@ -1506,225 +1490,10 @@ namespace WinAGI.Editor
             //*//    EditResource(SelResType, SelResNum);
         }
         public void HideResTree() {
-            //first hide the resource panel and associated elements
             pnlResources.Visible = false;
             splitResource.Visible = false;
-            ////if the warnings list is still visible, adjust it so it fits correctly
-            //if (picWarnings.Visible) {
-            //  picWarnings.Left = picBottom.Left
-            //  picWarnings.Width = picBottom.Width
-            //  picSplitH.Left = picBottom.Left + 30
-            //  picSplitH.Width = picBottom.Width - 60
-            //}
         }
-        private void picProperties_Paint(object sender, PaintEventArgs e) {
-            //
-            /*      int i;
-                  byte bSelResNum = (byte)SelResNum;
-                  // always expand the clipping region so the entire surface
-                  // gets repainted
-                  Graphics gProp = e.Graphics;
-                  gProp.ResetClip();
 
-                  //if no game loaded, or nothing selected
-                  if ((!EditGame.GameLoaded)) {
-                    //set proprows to zero
-                    PropRows = 0;
-                  }
-                  //
-                  PropRowCount = (int)(gProp.ClipBounds.Height / PropRowHeight) - 1;
-                  if (PropRows > PropRowCount) {
-                    //show scrollbar
-                    picProperties.Width = splResource.Width - fsbProperty.Width;
-                    // note that in .NET, the actual highest value attainable in a
-                    // scrollbar is NOT the Maximum value; it's Maximum - LargeChange + 1!!
-                    // that seems really dumb, but it's what happens... SO, 
-                    //Max(propertysetting) = Max(desired) + LargeChange - 1
-                    fsbProperty.Maximum = PropRows - PropRowCount + fsbProperty.LargeChange - 1;
-                    fsbProperty.Visible = true;
-                    //if current scroll position is too high
-                    if (PropScroll > PropRows - PropRowCount) {
-                      //reset propscroll
-                      PropScroll = 0;
-                      fsbProperty.Value = 0;
-                    }
-                  }
-                  else {
-                    //reset to top and hide scrollbar
-                    PropScroll = 0;
-                    fsbProperty.Value = 0;
-                    fsbProperty.Visible = false;
-                    picProperties.Width = splResource.Width;
-                  }
-                  // create brushes and pens for drawing the various elements
-                  SolidBrush brushProp = new SolidBrush(PropGray);// Color.FromArgb(236, 233, 216));//  SystemColors.ButtonFace);
-                  Pen penProp = new Pen(Color.Black, 1);
-                  Font fontProp = new Font("MS Sans Serif", 8);
-
-                  //draw property header cell
-                  gProp.FillRectangle(brushProp, 1, 1, PropSplitLoc - 1, PropRowHeight - 2);
-                  brushProp.Color = Color.Black;
-                  gProp.DrawString("Property", fontProp, brushProp, 3, 1);
-                  gProp.DrawLine(penProp, 1, PropRowHeight - 1, PropSplitLoc, PropRowHeight - 1);
-                  //reset canselect flag
-                  AllowSelect = false;
-                  //if a property is selected //and picProperty has focus,
-                  if (SelectedProp > 0) {
-                    //if there is an active control
-                    if (MDIMain.ActiveControl == picProperties) {
-                      //allow selection
-                      AllowSelect = true;
-                    }
-                  }
-                  //if something selected
-                  if (PropRows > 0) {
-                    switch (SelResType) {
-                    case rtGame: //  1  //root
-                      DrawProp(gProp, "GameID", EditGame.GameID, 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded);
-                      DrawProp(gProp, "Author", EditGame.GameAuthor, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded);
-                      DrawProp(gProp, "GameDir", EditGame.GameDir, 3, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfDialog);
-                      DrawProp(gProp, "ResDir", EditGame.ResDirName, 4, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded);
-                      DrawProp(gProp, "IntVer", EditGame.InterpreterVersion, 5, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
-                      DrawProp(gProp, "Description", EditGame.GameDescription, 6, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
-                      DrawProp(gProp, "GameVer", EditGame.GameVersion, 7, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
-                      DrawProp(gProp, "GameAbout", EditGame.GameAbout, 8, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
-                      DrawProp(gProp, "LayoutEditor", EditGame.UseLE.ToString(), 9, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
-                      DrawProp(gProp, "LastEdit", EditGame.LastEdit.ToString("G"), 10, AllowSelect, SelectedProp, PropScroll, false);
-                      break;
-                    case rtLogic: // 2 //logic resource header
-                      if (SelResNum == -1) {
-                        DrawProp(gProp, "Count", EditGame.Logics.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-                        DrawProp(gProp, "GlobalDef", "(List)", 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "UseResNames", Compiler.UseReservedNames.ToString(), 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
-                      }
-                      else {
-                        DrawProp(gProp, "Number", EditGame.Logics[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "ID", EditGame.Logics[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "Description", EditGame.Logics[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        if (EditGame.Logics[bSelResNum].Number == 0) {
-                          DrawProp(gProp, "IsRoom", EditGame.Logics[bSelResNum].IsRoom.ToString(), 4, AllowSelect, SelectedProp, PropScroll, false);
-                        }
-                        else {
-                          DrawProp(gProp, "IsRoom", EditGame.Logics[bSelResNum].IsRoom.ToString(), 4, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
-                        }
-                        DrawProp(gProp, "Compiled", EditGame.Logics[bSelResNum].Compiled.ToString(), 5, AllowSelect, SelectedProp, PropScroll, false);
-                        //if compiled state doesn't match correct tree color, fix it now
-                        if (Settings.ResListType == 1) {
-                          tvwResources.SelectedNode.ForeColor = EditGame.Logics[bSelResNum].Compiled ? Color.Black : Color.Red;
-                        }
-                        else {
-                          lstResources.SelectedItems[0].ForeColor = EditGame.Logics[bSelResNum].Compiled ? Color.Black : Color.Red;
-                        }
-                        DrawProp(gProp, "Volume", EditGame.Logics[bSelResNum].Volume >= 0 ? EditGame.Logics[bSelResNum].Volume.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                        DrawProp(gProp, "LOC", EditGame.Logics[bSelResNum].Loc >= 0 ? EditGame.Logics[bSelResNum].Loc.ToString() : "Error", 7, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                        DrawProp(gProp, "Size", EditGame.Logics[bSelResNum].Size > 0 ? EditGame.Logics[bSelResNum].Size.ToString() : "Error", 8, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                      }
-                      break;
-                    case rtPicture: //3 //picture resource header
-                      if (SelResNum == -1) {
-                        DrawProp(gProp, "Count", EditGame.Pictures.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-                      }
-                      else {
-                        DrawProp(gProp, "Number", EditGame.Pictures[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "ID", EditGame.Pictures[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "Description", EditGame.Pictures[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "Volume", EditGame.Pictures[bSelResNum].Volume >= 0 ? EditGame.Pictures[bSelResNum].Volume.ToString() : "Error", 4, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                        DrawProp(gProp, "LOC", EditGame.Pictures[bSelResNum].Loc >= 0 ? EditGame.Pictures[bSelResNum].Loc.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                        DrawProp(gProp, "Size", EditGame.Pictures[bSelResNum].Size > 0 ? EditGame.Pictures[bSelResNum].Size.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                      }
-                      break;
-                    case rtSound: //4 //sound resource header
-                      if (SelResNum == -1) {
-                        DrawProp(gProp, "Count", EditGame.Sounds.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-                      }
-                      else {
-                        DrawProp(gProp, "Number", EditGame.Sounds[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "ID", EditGame.Sounds[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "Description", EditGame.Sounds[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "Volume", EditGame.Sounds[bSelResNum].Volume >= 0 ? EditGame.Sounds[bSelResNum].Volume.ToString() : "Error", 4, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                        DrawProp(gProp, "LOC", EditGame.Sounds[bSelResNum].Loc >= 0 ? EditGame.Sounds[bSelResNum].Loc.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                        DrawProp(gProp, "Size", EditGame.Sounds[bSelResNum].Size > 0 ? EditGame.Sounds[bSelResNum].Size.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                      }
-                      break;
-                    case rtView: //5 //view resource header
-                      if (SelResNum == -1) {
-                        DrawProp(gProp, "Count", EditGame.Views.Count.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-                      }
-                      else {
-                        DrawProp(gProp, "Number", EditGame.Views[bSelResNum].Number.ToString(), 1, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "ID", EditGame.Views[bSelResNum].ID, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        DrawProp(gProp, "Description", EditGame.Views[bSelResNum].Description, 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDialog);
-                        //viewdescription only accessible if view is loaded
-                        bool bLoaded = EditGame.Views[bSelResNum].Loaded;
-                        if (!bLoaded) {
-                          EditGame.Views[bSelResNum].Load();
-                        }
-                        DrawProp(gProp, "View Desc", EditGame.Views[bSelResNum].ViewDescription, 4, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
-                        if (!bLoaded) {
-                          EditGame.Views[bSelResNum].Unload();
-                        }
-                        DrawProp(gProp, "Volume", EditGame.Views[bSelResNum].Volume >= 0 ? EditGame.Views[bSelResNum].Volume.ToString() : "Error", 5, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                        DrawProp(gProp, "LOC", EditGame.Views[bSelResNum].Loc >= 0 ? EditGame.Views[bSelResNum].Loc.ToString() : "Error", 6, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                        DrawProp(gProp, "Size", EditGame.Views[bSelResNum].Size > 0 ? EditGame.Views[bSelResNum].Size.ToString() : "Error", 7, AllowSelect, SelectedProp, PropScroll, false, EButtonFace.bfNone);
-                      }
-                      break;
-                    case rtObjects: // 6  //objects
-                      DrawProp(gProp, "Obj Count", (EditGame.InvObjects.Count - 1).ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-                      DrawProp(gProp, "Description", EditGame.InvObjects.Description, 2, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
-                      DrawProp(gProp, "Encrypted", EditGame.InvObjects.Encrypted.ToString(), 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfDown);
-                      DrawProp(gProp, "Max Obj", EditGame.InvObjects.MaxScreenObjects.ToString(), 4, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded);
-                      break;
-                    case rtWords: //7  //words
-                      DrawProp(gProp, "Group Count", EditGame.WordList.GroupCount.ToString(), 1, AllowSelect, SelectedProp, PropScroll, false);
-                      DrawProp(gProp, "Word Count", EditGame.WordList.WordCount.ToString(), 2, AllowSelect, SelectedProp, PropScroll, false);
-                      DrawProp(gProp, "Description", EditGame.WordList.Description, 3, AllowSelect, SelectedProp, PropScroll, EditGame.GameLoaded, EButtonFace.bfOver);
-                      break;
-                    }
-                  }
-                  //if property edit box or list box is visible,
-                  if (lstProperty.Visible) {
-                    int lngPosY;
-                    switch (lstProperty.Tag) {
-                    case "INTVER":
-                      lngPosY = (4 - PropScroll) * PropRowHeight;
-                      break;
-                    case "OBJENCRYPT":
-                      lngPosY = (3 - PropScroll) * PropRowHeight;
-                      break;
-                    case "ISROOM":
-                      lngPosY = (6 - PropScroll) * PropRowHeight;
-                      break;
-                    case "USERESNAMES":
-                      lngPosY = (3 - PropScroll) * PropRowHeight;
-                      break;
-                    }
-                    ////move it to correct position
-                    //if (lngPosY < picProperties.Height - lstProperty.Height) {
-                    //  lstProperty.Location = new Point(picProperties.Left + PropSplitLoc, picProperties.Top + lngPosY);
-                    //}
-                    //else {
-                    //  lstProperty.Location = new Point(picProperties.Left + PropSplitLoc, picProperties.Top + picProperties.Height - lstProperty.Height);
-                    //}
-                  }
-                  // draw the grid lines
-                  gProp.DrawLine(penProp, PropSplitLoc, 0, PropSplitLoc, PropRowHeight - 1);
-                  //draw Value header cell
-                  brushProp.Color = PropGray;
-                  gProp.FillRectangle(brushProp, PropSplitLoc + 2, 1, picProperties.Width - 2, PropRowHeight - 2);
-                  brushProp.Color = Color.Black;
-                  gProp.DrawString("Value", fontProp, brushProp, PropSplitLoc + 4, 1);
-                  gProp.DrawLine(penProp, PropSplitLoc + 2, PropRowHeight - 1, picProperties.Width - 1, PropRowHeight - 1);
-                  gProp.DrawLine(penProp, picProperties.Width - 1, 0, picProperties.Width - 1, PropRowHeight - 1);
-                  //draw vertical line separating columns
-                  penProp.Color = LtGray;
-                  gProp.DrawLine(penProp, PropSplitLoc, PropRowHeight, PropSplitLoc, picProperties.Height - 1);
-                  gProp.DrawLine(penProp, picProperties.Width - 1, PropRowHeight, picProperties.Width - 1, picProperties.Height - 1);
-                  //draw horizontal lines separating rows
-                  for (i = 2; i <= PropRowCount + 1; i++) {
-                    gProp.DrawLine(penProp, 0, i * PropRowHeight - 1, picProperties.Width - 1, i * PropRowHeight - 1);
-                  }
-            */
-        }
         void CheckCmd() {
             return;
             /*
@@ -2141,13 +1910,19 @@ namespace WinAGI.Editor
             // adds a warning/error/TODO item to the warning grid
             int tmpRow = fgWarnings.Rows.Add(warnInfo.ID,
                          warnInfo.Text,
-                        // To avoid runtime errors during sort, all items in a column must be same 
-                        // object type, that's why resnum and line must be strings
+                         // To avoid runtime errors during sort, all items in a column must be same 
+                         // object type, that's why resnum and line must be strings
                          (int)warnInfo.ResType < 4 ? warnInfo.ResNum.ToString() : "--",
                          warnInfo.Line,
                          warnInfo.Module.Length > 0 ? Path.GetFileName(warnInfo.Module) : "--");
             // save restype in row data tag
             fgWarnings.Rows[tmpRow].Tag = warnInfo.ResType.ToString();
+            fgWarnings.Rows[tmpRow].Cells[0].ToolTipText = "";
+            fgWarnings.Rows[tmpRow].Cells[1].ToolTipText = "";
+            fgWarnings.Rows[tmpRow].Cells[2].ToolTipText = "";
+            fgWarnings.Rows[tmpRow].Cells[3].ToolTipText = "";
+            fgWarnings.Rows[tmpRow].Cells[4].ToolTipText = "";
+
             switch (warnInfo.Type) {
             case etError:
                 // bold, red
@@ -2182,10 +1957,10 @@ namespace WinAGI.Editor
 
             //always set focus to the resource list
             switch (Settings.ResListType) {
-            case 1:
+            case agiSettings.EResListType.TreeList:
                 tvwResources.Focus();
                 break;
-            case 2:
+            case agiSettings.EResListType.ComboList:
                 lstResources.Focus();
                 break;
             }
@@ -2221,10 +1996,10 @@ namespace WinAGI.Editor
 
             //always set focus to the resource list
             switch (Settings.ResListType) {
-            case 1:
+            case agiSettings.EResListType.TreeList:
                 tvwResources.Focus();
                 break;
-            case 2:
+            case agiSettings.EResListType.ComboList:
                 lstResources.Focus();
                 break;
             }
@@ -2295,18 +2070,18 @@ namespace WinAGI.Editor
             e.Graphics.Clear(picNavList.BackColor);
 
             PointF nlPoint = new();
-            //print five lines
+            // display five lines
             for (i = 0; i < 5; i++) {
                 if (i + NLOffset - 2 >= 0 && i + NLOffset - 2 <= ResQueue.Length - 1) {
                     //if this row is highlighted (under cursor and valid)
                     if (i == NLRow) {
                         e.Graphics.FillRectangle(hbrush, 0, (int)((i + 0.035) * NLRowHeight), picNavList.Width, NLRowHeight);
                     }
-                    ////set x and y positions for the printed id
+                    ////set x and y positions
                     nlPoint.X = 1;
                     nlPoint.Y = NLRowHeight * i;
 
-                    //print the id
+                    // add the id
                     AGIResType restype = (AGIResType)(ResQueue[i + NLOffset - 2] >> 16);
                     int resnum = ResQueue[i + NLOffset - 2] & 0xFFFF;
                     switch (restype) {
@@ -2894,86 +2669,6 @@ namespace WinAGI.Editor
         mnuGRun_Click
       }
 
-      public void PrintResources()
-      {
-        Dim i As Long
-
-        On Error GoTo ErrHandler
-
-        //check for an open editor that matches resource being previewed
-        switch (SelResType
-        case rtLogic
-          //if any logic editor matches this resource
-          For i = 1 To LogicEditors.Count
-            if (LogicEditors(i).FormMode = fmLogic) {
-              if (LogicEditors(i).LogicNumber = SelResNum) {
-                //use this form//s method
-                LogicEditors(i).MenuClickPrint
-                return;
-              }
-            }
-          Next i
-
-        case rtPicture
-          //if any Picture editor matches this resource
-          For i = 1 To PictureEditors.Count
-            if (PictureEditors(i).PicNumber = SelResNum) {
-              //use this form//s method
-              PictureEditors(i).MenuClickPrint
-              return;
-            }
-          Next i
-
-        case rtSound
-          //if any Sound editor matches this resource
-          For i = 1 To SoundEditors.Count
-            if (SoundEditors(i).SoundNumber = SelResNum) {
-              //use this form//s method
-              SoundEditors(i).MenuClickPrint
-              return;
-            }
-          Next i
-
-        case rtView
-          //if any View editor matches this resource
-          For i = 1 To ViewEditors.Count
-            if (ViewEditors(i).ViewNumber = SelResNum) {
-              //use this form//s method
-              ViewEditors(i).MenuClickPrint
-              return;
-            }
-          Next i
-
-        case rtWords
-          //if editing words
-          if (WEInUse) {
-            //use word editor
-            WordEditor.MenuClickPrint
-            return;
-          }
-
-        case rtObjects
-          //if editing objects,
-          if (OEInUse) {
-            //use Objects Editor
-            ObjectEditor.MenuClickPrint
-            return;
-          }
-
-        default: //text, game or none
-          //print does not apply
-
-        }
-
-        //if no open editor is found, use the selected item method
-        SelectedItemPrint
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
       public void RDescription()
         //tie function
         mnuRDescription_Click
@@ -3218,108 +2913,6 @@ namespace WinAGI.Editor
 
       ErrHandler:
         //Debug.Assert false
-        Resume Next
-      }
-      public void SelectedItemPrint()
-
-        Dim blnLoaded As Boolean
-
-        On Error GoTo ErrHandler
-
-        switch (SelResType
-        case rtLogic
-          //load logic if necessary
-          blnLoaded = Logics(SelResNum).Loaded
-          if (!blnLoaded) {
-            Logics(SelResNum).Load
-          }
-          //show logic printing form
-          Load frmPrint
-          frmPrint.SetMode rtLogic, Logics(SelResNum), , true
-          KeepFocus = true
-          frmPrint.Show vbModal, Me
-          KeepFocus = false
-
-          //unload logic if necessary
-          if (!blnLoaded) {
-            Logics(SelResNum).Unload
-          }
-
-        case rtPicture
-          //load picture if necessary
-          blnLoaded = Pictures(SelResNum).Loaded
-          if (!blnLoaded) {
-            Pictures(SelResNum).Load
-          }
-          Load frmPrint
-          frmPrint.SetMode rtPicture, Pictures(SelResNum), , true
-          KeepFocus = true
-          frmPrint.Show vbModal, Me
-          KeepFocus = false
-
-          //unload picture if necessary
-          if (!blnLoaded) {
-            Pictures(SelResNum).Unload
-          }
-
-        case rtSound
-          //load sound if necessary
-          blnLoaded = Sounds(SelResNum).Loaded
-          if (!blnLoaded) {
-            Sounds(SelResNum).Load
-          }
-          Load frmPrint
-          frmPrint.SetMode rtSound, Sounds(SelResNum), , true
-          KeepFocus = true
-          frmPrint.Show vbModal, Me
-          KeepFocus = false
-
-          //unload sound if necessary
-          if (!blnLoaded) {
-            Sounds(SelResNum).Unload
-          }
-
-        case rtView
-          //load view if necessary
-          blnLoaded = Views(SelResNum).Loaded
-          if (!blnLoaded) {
-            Views(SelResNum).Load
-          }
-          Load frmPrint
-          frmPrint.SetMode rtView, Views(SelResNum), , true
-          KeepFocus = true
-          frmPrint.Show vbModal, Me
-          KeepFocus = false
-
-          //unload logic if necessary
-          if (!blnLoaded) {
-            Views(SelResNum).Unload
-          }
-
-        case rtObjects
-          Load frmPrint
-          frmPrint.SetMode rtObjects, InvObjects, , true
-          KeepFocus = true
-          frmPrint.Show vbModal, Me
-          KeepFocus = false
-
-        case rtWords
-          //if nothing to print,
-          if (WordList.WordCount = 0) {
-            MessageBox.Show( "There are no words in this word list to print.", vbInformation + vbOKOnly, "Print Word List"
-            return;
-          }
-
-          Load frmPrint
-          frmPrint.SetMode rtWords, WordList, , true
-          KeepFocus = true
-          frmPrint.Show vbModal, Me
-          KeepFocus = false
-
-        }
-      return;
-
-      ErrHandler:
         Resume Next
       }
 
@@ -4619,15 +4212,6 @@ namespace WinAGI.Editor
         if (this.ActiveControl Is this.fgWarnings) {
           DismissWarning(fgWarnings.SelectedRows[0].Index);
         }
-      }
-
-      void mnuCWPrint_Click()
-
-        //print the list
-        Load frmPrint
-        frmPrint.SetMode rtWarnings, null
-        frmPrint.Show vbModal, Me
-
       }
 
       void mnuECustom1_Click()
@@ -8082,37 +7666,6 @@ namespace WinAGI.Editor
         }
       }
 
-      void mnuRPrint_Click()
-
-        Dim i As Long
-
-        On Error GoTo ErrHandler
-
-        //if no form is active
-        if (ActiveForm = null) {
-          //can only mean that Settings.ShowPreview is false,
-          //AND Settings.ResListType is non-zero, AND no editor window are open
-          //use selected item method
-          SelectedItemPrint
-        } else {
-          //if active form is NOT the preview form
-          //if any form other than preview is active
-          if (ActiveForm.Name != "frmPreview") {
-            //use the active form method
-            ActiveForm.MenuClickPrint
-          } else {
-            //use generic print method
-            //to check if resource is open
-            PrintResources
-          }
-        }
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
       public void mnuRRenumber_Click()
 
         Dim i As Long
@@ -8258,9 +7811,6 @@ namespace WinAGI.Editor
         case "run"
           mnuGRun_Click
 
-        case "print"
-          mnuRPrint_Click
-
         case "open_r"
           switch (Val(Button.Tag)
           case 0
@@ -8404,7 +7954,6 @@ namespace WinAGI.Editor
         //detrrmine control being wheeled
         With fgWarnings
           if (.Visible) {
-            //Debug.Print xPos, .Left + .Width
             if (xPos > .Left && xPos < .Left + .Width && yPos > .Top && yPos < .Top + .Height) {
               lngTarget = 1
             }
@@ -8535,11 +8084,7 @@ namespace WinAGI.Editor
             DontQueue = true;
             // list type determines clear actions
             switch (Settings.ResListType) {
-            case 0: 
-                // none
-                break;
-            case 1: 
-                // tree
+            case agiSettings.EResListType.TreeList:
                 if (tvwResources.Nodes.Count > 0) {
                     // always collapse first
                     tvwResources.Nodes[0].Collapse();
@@ -8562,8 +8107,7 @@ namespace WinAGI.Editor
                     HdrNode[i] = RootNode.Nodes[i];
                 }
                 break;
-            case 2: 
-                // combo/list box
+            case agiSettings.EResListType.ComboList:
                 cmbResType.Items[0] = EditGame.GameID;
                 //select top item (game level)
                 cmbResType.SelectedIndex = 0;
@@ -8574,20 +8118,19 @@ namespace WinAGI.Editor
         }
         public void ShowResTree() {
             switch (Settings.ResListType) {
-            case 0: 
+            case agiSettings.EResListType.None:
                 // no tree
                 // shouldn't get here, but
                 return;
 
-            case 1: 
-                // treeview list
+            case agiSettings.EResListType.TreeList:
                 tvwResources.Visible = true;
                 cmbResType.Visible = false;
                 lstResources.Visible = false;
                 // change font to match current preview font
                 tvwResources.Font = new Font(Settings.PFontName, Settings.PFontSize);
                 break;
-            case 2: 
+            case agiSettings.EResListType.ComboList:
                 // combo/list boxes
                 tvwResources.Visible = false;
                 // set combo and listbox height, and set fonts
@@ -8669,30 +8212,29 @@ namespace WinAGI.Editor
         private void mnuTSettings_Click(object sender, EventArgs e) {
             // temp code for dev purposes
             Settings.ResListType++;
-            if (Settings.ResListType == 3) {
-                Settings.ResListType = 0;
+            if (Settings.ResListType == (agiSettings.EResListType)3) {
+                Settings.ResListType = agiSettings.EResListType.None;
             };
             // force refresh of type
             switch (Settings.ResListType) {
-            case 0:
-                // no list
+            case agiSettings.EResListType.None:
                 if (splResource.Visible) {
-                    HideResTree();
+                    MDIMain.HideResTree();
+                }
+                if (Settings.ShowPreview) {
+                    PreviewWin.Visible = false;
                 }
                 break;
-            case 1 or 2:
-                // treelist
-                if (!splResource.Visible) {
-                    ShowResTree();
-                }
-                else {
-                    //if (Settings.ResListType != oldResListType) {
+            default:
+                if (splResource.Visible) {
                     // reset to root, then switch
                     SelResType = Game;
                     SelResNum = -1;
                     BuildResourceTree();
-                    ShowResTree();
-                    //}
+                }
+                ShowResTree();
+                if (Settings.ShowPreview) {
+                    PreviewWin.Visible = true;
                 }
                 break;
             }
@@ -8733,6 +8275,551 @@ namespace WinAGI.Editor
         private void fgWarnings_Sorted(object sender, EventArgs e) {
 
 
+        }
+
+        private void cmsResources_Opening(object sender, CancelEventArgs e) {
+            string resType;
+            byte resNum;
+            // set up context menu
+            switch (Settings.ResListType) {
+            case agiSettings.EResListType.TreeList:
+                switch (tvwResources.SelectedNode.Level) {
+                case 0:
+                    // root - gameID
+                    cmiNew.Enabled = true;
+                    cmiOpen.Enabled = true;
+                    cmiImport.Enabled = true;
+                    cmiSeparator0.Visible = true;
+                    cmiOpenResource.Visible = false;
+                    cmiSaveResource.Visible = true;
+                    cmiSaveResource.Text = "Save Resource";
+                    cmiSaveResource.Enabled = false;
+                    cmiExportResource.Visible = false;
+                    cmiAddRemove.Visible = true;
+                    cmiAddRemove.Text = "Add to Game";
+                    cmiAddRemove.Enabled = false;
+                    cmiRenumber.Visible = true;
+                    cmiRenumber.Enabled = false;
+                    cmiSeparator2.Visible = false;
+                    cmiCompileLogic.Visible = false;
+                    cmiExportPicImage.Visible = false;
+                    cmiExportLoopGIF.Visible = false;
+                    break;
+                case 1:
+                    // resource header/object/words.tok
+                    switch (tvwResources.SelectedNode.Index) {
+                    case 0 or 1 or 2 or 3:
+                        cmiNew.Visible = true;
+                        cmiNew.Enabled = true;
+                        cmiOpen.Visible = true;
+                        cmiOpen.Enabled = true;
+                        cmiImport.Visible = true;
+                        cmiImport.Enabled = true;
+                        cmiSeparator0.Visible = true;
+                        cmiOpenResource.Visible = false;
+                        cmiSaveResource.Visible = true;
+                        cmiSaveResource.Text = "Save Resource";
+                        cmiSaveResource.Enabled = false;
+                        cmiExportResource.Visible = false;
+                        cmiAddRemove.Visible = true;
+                        cmiAddRemove.Text = "Add to Game";
+                        cmiAddRemove.Enabled = false;
+                        cmiRenumber.Visible = true;
+                        cmiRenumber.Text = "Renumber Resource";
+                        cmiRenumber.Enabled = false;
+                        cmiID.Visible = false;
+                        cmiCompileLogic.Visible = false;
+                        if (tvwResources.SelectedNode.Index == (int)AGIResType.Picture) {
+                            cmiSeparator2.Visible = true;
+                            cmiExportPicImage.Visible = true;
+                            cmiExportPicImage.Text = "Export All Picture Images...";
+                            cmiExportPicImage.Enabled = true;
+                        }
+                        else {
+                            cmiSeparator2.Visible = false;
+                            cmiExportPicImage.Visible = false;
+                        }
+                        cmiExportLoopGIF.Visible = false;
+                        break;
+                    case 4:
+                        // OBJECT
+                        cmiNew.Visible = false;
+                        cmiOpen.Visible = false;
+                        cmiImport.Visible = false;
+                        cmiSeparator0.Visible = false;
+                        cmiOpenResource.Text = "Open OBJECT file";
+                        cmiOpenResource.Visible = true;
+                        cmiSaveResource.Visible = true;
+                        cmiSaveResource.Text = "Save OBJECT file";
+                        cmiSaveResource.Enabled = false;
+                        cmiExportResource.Visible = true;
+                        cmiExportResource.Text = "Export OBJECT file";
+                        cmiExportResource.Enabled = true;
+                        cmiAddRemove.Visible = false;
+                        cmiRenumber.Visible = false;
+                        cmiID.Visible = true;
+                        cmiID.Text = "Description...";
+                        cmiID.Enabled = true;
+                        cmiSeparator2.Visible = false;
+                        cmiCompileLogic.Visible = false;
+                        cmiExportPicImage.Visible = false;
+                        cmiExportLoopGIF.Visible = false;
+                        break;
+                    case 5:
+                        // WORDS.TOK
+                        cmiNew.Visible = false;
+                        cmiOpen.Visible = false;
+                        cmiImport.Visible = false;
+                        cmiSeparator0.Visible = false;
+                        cmiOpenResource.Text = "Open WORDS.TOK file";
+                        cmiOpenResource.Visible = true;
+                        cmiSaveResource.Visible = true;
+                        cmiSaveResource.Text = "Save WORDS.TOK file";
+                        cmiSaveResource.Enabled = false;
+                        cmiExportResource.Visible = true;
+                        cmiExportResource.Text = "Export WORDS.TOK file";
+                        cmiExportResource.Enabled = true;
+                        cmiAddRemove.Visible = false;
+                        cmiRenumber.Visible = false;
+                        cmiID.Visible = true;
+                        cmiID.Text = "Description...";
+                        cmiID.Enabled = true;
+                        cmiSeparator2.Visible = false;
+                        cmiCompileLogic.Visible = false;
+                        cmiExportPicImage.Visible = false;
+                        cmiExportLoopGIF.Visible = false;
+                        break;
+                    }
+                    break;
+                case 2:
+                    // resource
+                    resType = ((AGIResType)tvwResources.SelectedNode.Parent.Index).ToString();
+                    resNum = byte.Parse(tvwResources.SelectedNode.Tag.ToString());
+                    cmiNew.Visible = false;
+                    cmiOpen.Visible = false;
+                    cmiImport.Visible = false;
+                    cmiSeparator0.Visible = false;
+                    cmiOpenResource.Visible = true;
+                    cmiOpenResource.Text = "Open " + resType;
+                    cmiOpenResource.Enabled = true;
+                    cmiSaveResource.Visible = true;
+                    cmiSaveResource.Text = "Save " + resType;
+                    cmiSaveResource.Enabled = false;
+                    cmiExportResource.Visible = true;
+                    cmiExportResource.Text = "Export " + resType;
+                    cmiExportResource.Enabled = true;
+                    cmiAddRemove.Visible = true;
+                    cmiAddRemove.Text = "Remove from Game";
+                    cmiAddRemove.Enabled = true;
+                    cmiRenumber.Visible = true;
+                    cmiRenumber.Text = "Renumber " + resType;
+                    cmiRenumber.Enabled = true;
+                    cmiID.Visible = true;
+                    cmiID.Text = "ID/Description...";
+                    cmiID.Enabled = true;
+                    cmiExportPicImage.Visible = false;
+                    cmiExportLoopGIF.Visible = false;
+                    switch (tvwResources.SelectedNode.Parent.Index) {
+                    case 0:
+                        // Logic
+                        if (EditGame.Logics[resNum].Compiled) {
+                            cmiSeparator2.Visible = false;
+                            cmiCompileLogic.Visible = false;
+                        }
+                        else {
+                            cmiSeparator2.Visible = true;
+                            cmiCompileLogic.Visible = true;
+                        }
+                        cmiExportPicImage.Visible = false;
+                        cmiExportLoopGIF.Visible = false;
+                        //// if resource is invalid, override settings
+                        //if (EditGame.Logics[resNum].ErrLevel < 0) {
+                        //    cmiOpenResource.Enabled = false;
+                        //    cmiExportResource.Enabled = false;
+                        //    cmiRenumber.Enabled = false;
+                        //    cmiID.Enabled = false;
+                        //    cmiCustom1.Enabled = false;
+                        //}
+                        break;
+                    case 1:
+                        // Picture
+                        cmiSeparator2.Visible = true;
+                        cmiCompileLogic.Visible = false;
+                        cmiExportPicImage.Visible = true;
+                        cmiExportPicImage.Text = "Save Picture Image As...";
+                        cmiExportPicImage.Enabled = true;
+                        // if resource is invalid, override settings
+                        if (EditGame.Pictures[resNum].ErrLevel < 0) {
+                            cmiOpenResource.Enabled = false;
+                            cmiExportResource.Enabled = false;
+                            cmiRenumber.Enabled = false;
+                            cmiID.Enabled = false;
+                            cmiExportPicImage.Enabled = false;
+                        }
+                        cmiExportLoopGIF.Visible = false;
+                        break;
+                    case 2:
+                        // Sound
+                        cmiSeparator2.Visible = false;
+                        cmiCompileLogic.Visible = false;
+                        cmiExportPicImage.Enabled = false;
+                        cmiExportLoopGIF.Visible = false;
+                        // if resource is invalid, override settings
+                        if (EditGame.Sounds[resNum].ErrLevel < 0) {
+                            cmiOpenResource.Enabled = false;
+                            cmiExportResource.Enabled = false;
+                            cmiRenumber.Enabled = false;
+                            cmiID.Enabled = false;
+                        }
+                        break;
+                    case 3:
+                        // View
+                        cmiSeparator2.Visible = true;
+                        cmiCompileLogic.Visible = false;
+                        cmiExportPicImage.Enabled = false;
+                        cmiExportLoopGIF.Visible = true;
+                        cmiExportLoopGIF.Text = "Export Loop As GIF";
+                        cmiExportLoopGIF.Enabled = true;
+                        // if resource is invalid, override settings
+                        if (EditGame.Views[resNum].ErrLevel < 0) {
+                            cmiOpenResource.Enabled = false;
+                            cmiExportResource.Enabled = false;
+                            cmiRenumber.Enabled = false;
+                            cmiID.Enabled = false;
+                            cmiExportLoopGIF.Enabled = false;
+                        }
+                        break;
+                    }
+                    break;
+                }
+                break;
+            case agiSettings.EResListType.ComboList:
+                // display resource context menu, depending on current resource type
+                switch (cmbResType.SelectedIndex) {
+                case 0:
+                    // nothing to do
+                    e.Cancel = true;
+                    return;
+                case 5:
+                    // OBJECT
+                    cmiNew.Visible = false;
+                    cmiOpen.Visible = false;
+                    cmiImport.Visible = false;
+                    cmiSeparator0.Visible = false;
+                    cmiOpenResource.Text = "Open OBJECT file";
+                    cmiOpenResource.Visible = true;
+                    cmiSaveResource.Visible = true;
+                    cmiSaveResource.Text = "Save OBJECT file";
+                    cmiSaveResource.Enabled = false;
+                    cmiExportResource.Visible = true;
+                    cmiExportResource.Text = "Export OBJECT file";
+                    cmiExportResource.Enabled = true;
+                    cmiAddRemove.Visible = false;
+                    cmiRenumber.Visible = false;
+                    cmiID.Visible = true;
+                    cmiID.Text = "Description...";
+                    cmiID.Enabled = true;
+                    cmiSeparator2.Visible = false;
+                    cmiCompileLogic.Visible = false;
+                    cmiExportPicImage.Visible = false;
+                    cmiExportLoopGIF.Visible = false;
+                    break;
+                case 6:
+                    // WORDS.TOK
+                    cmiNew.Visible = false;
+                    cmiOpen.Visible = false;
+                    cmiImport.Visible = false;
+                    cmiSeparator0.Visible = false;
+                    cmiOpenResource.Text = "Open WORDS.TOK file";
+                    cmiOpenResource.Visible = true;
+                    cmiSaveResource.Visible = true;
+                    cmiSaveResource.Text = "Save WORDS.TOK file";
+                    cmiSaveResource.Enabled = false;
+                    cmiExportResource.Visible = true;
+                    cmiExportResource.Text = "Export WORDS.TOK file";
+                    cmiExportResource.Enabled = true;
+                    cmiAddRemove.Visible = false;
+                    cmiRenumber.Visible = false;
+                    cmiID.Visible = true;
+                    cmiID.Text = "Description...";
+                    cmiID.Enabled = true;
+                    cmiSeparator2.Visible = false;
+                    cmiCompileLogic.Visible = false;
+                    cmiExportPicImage.Visible = false;
+                    cmiExportLoopGIF.Visible = false;
+                    break;
+                default:
+                    // logic/picture/sound/view resource
+                    if (lstResources.SelectedItems.Count != 1) {
+                        e.Cancel = true;
+                        return;
+                    }
+                    resType = ((AGIResType)cmbResType.SelectedIndex - 1).ToString();
+                    resNum = ((AGIResource)lstResources.SelectedItems[0].Tag).Number;
+                    cmiNew.Visible = false;
+                    cmiOpen.Visible = false;
+                    cmiImport.Visible = false;
+                    cmiSeparator0.Visible = false;
+                    cmiOpenResource.Text = "Open " + resType;
+                    cmiOpenResource.Visible = true;
+                    cmiSaveResource.Visible = true;
+                    cmiSaveResource.Text = "Save " + resType;
+                    cmiSaveResource.Enabled = false;
+                    cmiExportResource.Visible = true;
+                    cmiExportResource.Text = "Export " + resType;
+                    cmiExportResource.Enabled = true;
+                    cmiAddRemove.Visible = true;
+                    cmiAddRemove.Text = "Remove from Game";
+                    cmiAddRemove.Enabled = true;
+                    cmiRenumber.Visible = true;
+                    cmiRenumber.Text = "Renumber " + resType;
+                    cmiRenumber.Enabled = true;
+                    cmiID.Visible = true;
+                    cmiID.Text = "ID/Description...";
+                    cmiID.Enabled = true;
+                    switch (cmbResType.SelectedIndex - 1) {
+                    case 0:
+                        // Logic
+                        if (EditGame.Logics[resNum].Compiled) {
+                            cmiSeparator2.Visible = false;
+                            cmiCompileLogic.Visible = false;
+                        }
+                        else {
+                            cmiSeparator2.Visible = true;
+                            cmiCompileLogic.Visible = true;
+                        }
+                        cmiExportPicImage.Visible = false;
+                        cmiExportLoopGIF.Visible = false;
+                        //// if resource is invalid, override settings
+                        //if (EditGame.Logics[resNum].ErrLevel < 0) {
+                        //    cmiOpenResource.Enabled = false;
+                        //    cmiExportResource.Enabled = false;
+                        //    cmiRenumber.Enabled = false;
+                        //    cmiID.Enabled = false;
+                        //    cmiCompileLogic.Enabled = false;
+                        //}
+                        break;
+                    case 1:
+                        // Picture
+                        cmiSeparator2.Visible = true;
+                        cmiCompileLogic.Visible = false;
+                        cmiExportPicImage.Visible = true;
+                        cmiExportPicImage.Text = "Save Picture Image As...";
+                        cmiExportPicImage.Enabled = true;
+                        cmiExportLoopGIF.Visible = false;
+                        // if resource is invalid, override settings
+                        if (EditGame.Pictures[resNum].ErrLevel < 0) {
+                            cmiOpenResource.Enabled = false;
+                            cmiExportResource.Enabled = false;
+                            cmiRenumber.Enabled = false;
+                            cmiID.Enabled = false;
+                            cmiExportPicImage.Enabled = false;
+                        }
+                        break;
+                    case 2:
+                        // Sound
+                        cmiSeparator2.Visible = false;
+                        cmiCompileLogic.Visible = false;
+                        cmiExportPicImage.Enabled = false;
+                        cmiExportLoopGIF.Visible = false;
+                        // if resource is invalid, override settings
+                        if (EditGame.Sounds[resNum].ErrLevel < 0) {
+                            cmiOpenResource.Enabled = false;
+                            cmiExportResource.Enabled = false;
+                            cmiRenumber.Enabled = false;
+                            cmiID.Enabled = false;
+                        }
+                        break;
+                    case 3:
+                        // View
+                        cmiSeparator2.Visible = true;
+                        cmiCompileLogic.Visible = false;
+                        cmiExportPicImage.Enabled = false;
+                        cmiExportLoopGIF.Visible = true;
+                        cmiExportLoopGIF.Text = "Export Loop As GIF";
+                        cmiExportLoopGIF.Enabled = true;
+                        // if resource is invalid, override settings
+                        if (EditGame.Views[resNum].ErrLevel < 0) {
+                            cmiOpenResource.Enabled = false;
+                            cmiExportResource.Enabled = false;
+                            cmiRenumber.Enabled = false;
+                            cmiID.Enabled = false;
+                            cmiExportLoopGIF.Enabled = false;
+                        }
+                        break;
+                    }
+                    break;
+                }
+                break;
+            }
+        }
+
+        private void mnuResources_DropDownOpening(object sender, EventArgs e) {
+            // open
+            // save
+            // export
+            // ----
+            // add/remove
+            // renumber
+            // id/desc
+            // ----
+            // compile logic
+            // export pic image
+            // export loop gif
+
+            // TODO: need to account for resource errors
+
+            // adjust the menu depending on currently selected resource and game state
+            if (EditGame is null) {
+                // no game
+                mnuRImport.Enabled = false;
+                mnuROpenRes.Visible = false;
+                mnuRSave.Visible = true;
+                mnuRSave.Text = "Save Resource";
+                mnuRSave.Enabled = false;
+                mnuRExport.Visible = false;
+                mnuRAddRemove.Visible = true;
+                mnuRAddRemove.Text = "Add to Game";
+                mnuRAddRemove.Enabled = false;
+                mnuRRenumber.Visible = true;
+                mnuRRenumber.Text = "Renumber Resource";
+                mnuRRenumber.Enabled = false;
+                mnuRIDDesc.Visible = false;
+                mnuRSeparator3.Visible = false;
+                mnuRCompileLogic.Visible = false;
+                mnuRSavePicImage.Visible = false;
+                mnuRExportGIF.Visible = false;
+                return;
+            }
+            // if a game is loaded, import is also always available
+            mnuRImport.Enabled = true;
+            // OBJECT
+            if (SelResType == AGIResType.Objects) {
+                mnuROpenRes.Visible = false;
+                mnuRSave.Visible = true;
+                mnuRSave.Text = "Save OBJECT";
+                mnuRSave.Enabled = false;
+                mnuRExport.Visible = true;
+                mnuRExport.Text = "Export OBJECT";
+                mnuRExport.Enabled = true;
+                mnuRAddRemove.Visible = true;
+                mnuRAddRemove.Text = "Add to Game";
+                mnuRAddRemove.Enabled = false;
+                mnuRRenumber.Visible = false;
+                mnuRIDDesc.Visible = true;
+                mnuRIDDesc.Text = "Description...";
+                mnuRIDDesc.Enabled = true;
+                mnuRSeparator3.Visible = false;
+                mnuRCompileLogic.Visible = false;
+                mnuRSavePicImage.Visible = false;
+                mnuRExportGIF.Visible = false;
+                return;
+            }
+            // WORDS.TOK
+            if (SelResType == AGIResType.Words) {
+                mnuROpenRes.Visible = false;
+                mnuRSave.Visible = true;
+                mnuRSave.Text = "Save WORDS.TOK";
+                mnuRSave.Enabled = false;
+                mnuRExport.Visible = true;
+                mnuRExport.Text = "Export WORDS.TOK";
+                mnuRExport.Enabled = true;
+                mnuRAddRemove.Visible = true;
+                mnuRAddRemove.Text = "Add to Game";
+                mnuRAddRemove.Enabled = false;
+                mnuRRenumber.Visible = false;
+                mnuRIDDesc.Visible = true;
+                mnuRIDDesc.Text = "Description...";
+                mnuRIDDesc.Enabled = true;
+                mnuRSeparator3.Visible = false;
+                mnuRCompileLogic.Visible = false;
+                mnuRSavePicImage.Visible = false;
+                mnuRExportGIF.Visible = false;
+                return;
+            }
+            // check for header 
+            if (SelResNum == -1) {
+                mnuROpenRes.Visible = false;
+                mnuRSave.Visible = true;
+                mnuRSave.Text = "Save Resource";
+                mnuRSave.Enabled = false;
+                mnuRExport.Visible = false;
+                mnuRAddRemove.Visible = true;
+                mnuRAddRemove.Text = "Add to Game";
+                mnuRAddRemove.Enabled = false;
+                mnuRRenumber.Visible = true;
+                mnuRRenumber.Text = "Renumber Resource";
+                mnuRRenumber.Enabled = false;
+                mnuRIDDesc.Visible = false;
+                mnuRCompileLogic.Visible = false;
+                if (SelResType == AGIResType.Picture) {
+                    mnuRSeparator3.Visible = true;
+                    mnuRSavePicImage.Visible = true;
+                    mnuRSavePicImage.Text = "Export All Picture Images...";
+                }
+                else {
+                    mnuRSeparator3.Visible = false;
+                    mnuRSavePicImage.Visible = false;
+                }
+                mnuRExportGIF.Visible = false;
+                return;
+            }
+            // must be a logic/picture/sound/view resource
+            mnuROpenRes.Visible = true;
+            mnuROpenRes.Text = "Open " + SelResType.ToString();
+            mnuRSave.Visible = true;
+            mnuRSave.Text = "Save " + SelResType.ToString();
+            mnuRSave.Enabled = false;
+            mnuRExport.Visible = true;
+            mnuRExport.Text = "Export " + SelResType.ToString();
+            mnuRAddRemove.Visible = true;
+            mnuRAddRemove.Text = "Remove from Game";
+            mnuRAddRemove.Enabled = true;
+            mnuRRenumber.Visible = true;
+            mnuRRenumber.Text = "Renumber " + SelResType.ToString();
+            mnuRIDDesc.Visible = true;
+            mnuRIDDesc.Text = "ID/Description...";
+            bool err = false;
+            switch (SelResType) {
+            case AGIResType.Logic:
+                // error lecel doesn't affect logics
+                // err = EditGame.Logics[SelResNum].ErrLevel < 0;
+                mnuRSeparator3.Visible = !EditGame.Logics[SelResNum].Compiled;
+                mnuRCompileLogic.Visible = !EditGame.Logics[SelResNum].Compiled;
+                mnuRCompileLogic.Enabled = true;
+                mnuRSavePicImage.Visible = false;
+                mnuRExportGIF.Visible = false;
+                break;
+            case AGIResType.Picture:
+                err = EditGame.Pictures[SelResNum].ErrLevel < 0;
+                mnuRSeparator3.Visible = true;
+                mnuRCompileLogic.Visible = false;
+                mnuRSavePicImage.Visible = true;
+                mnuRSavePicImage.Enabled = !err;
+                mnuRSavePicImage.Text = "Save Picture Image As...";
+                mnuRExportGIF.Visible = false;
+                break;
+            case AGIResType.Sound:
+                err = EditGame.Sounds[SelResNum].ErrLevel < 0;
+                mnuRSeparator3.Visible = false;
+                mnuRCompileLogic.Visible = false;
+                mnuRSavePicImage.Visible = false;
+                mnuRExportGIF.Visible = false;
+                break;
+            case AGIResType.View:
+                err = EditGame.Views[SelResNum].ErrLevel < 0;
+                mnuRSeparator3.Visible = true;
+                mnuRCompileLogic.Visible = false;
+                mnuRSavePicImage.Visible = false;
+                mnuRExportGIF.Visible = true;
+                mnuRExportGIF.Enabled = !err;
+                break;
+            }
+            // if resource has an error, only add/remove is enabled
+            mnuROpenRes.Enabled = !err;
+            mnuRExport.Enabled = !err;
+            mnuRRenumber.Enabled = !err;
+            mnuRIDDesc.Enabled = !err;
         }
     }
 }

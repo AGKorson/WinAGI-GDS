@@ -95,9 +95,6 @@ namespace WinAGI.Editor {
             }
             // if picture header selected
             if (ResType == AGIResType.Picture && ResNum < 0) {
-                // show save all pics menu item
-                mnuRSavePicAs.Visible = true;
-                mnuRSep1.Visible = true;
             }
             // if one of the four main resource types and not a header
             if ((int)ResType >= 0 && (int)ResType <= 3 && ResNum >= 0) {
@@ -130,9 +127,6 @@ namespace WinAGI.Editor {
                 case AGIResType.Picture:
                     if (PreviewPic((byte)ResNum)) {
                         pnlPicture.Visible = true;
-                        // show pic save as menu item
-                        mnuRSavePicAs.Visible = true;
-                        mnuRSep1.Visible = true;
                     }
                     else {
                         pnlPicture.Visible = false;
@@ -193,9 +187,6 @@ namespace WinAGI.Editor {
                 case AGIResType.View:
                     if (PreviewView((byte)ResNum)) {
                         pnlView.Visible = true;
-                        // show loop export menu item
-                        mnuRLoopGIF.Visible = true;
-                        mnuRSep1.Visible = false;
                     }
                     else {
                         pnlView.Visible = false;
@@ -288,10 +279,6 @@ namespace WinAGI.Editor {
             PrevResType = None;
             // default caption
             this.Text = "Preview";
-            // disable custom menus
-            mnuRSavePicAs.Visible = false;
-            mnuRLoopGIF.Visible = false;
-            mnuRSep1.Visible = false;
         }
 
         public void UpdateCaption(AGIResType ResType, byte ResNum) {
@@ -347,7 +334,6 @@ namespace WinAGI.Editor {
             hsbPic.Width = pnlPicImage.Bounds.Width;
             //vsbPic.Left = pnlPicture.Bounds.Width - vsbPic.Width;
             vsbPic.Height = pnlPicImage.Bounds.Height;
-            //     System.Diagnostics.Debug.Print($"p2 W: {panel2.Width}, H: {panel2.Height}");
             SetPScrollbars();
         }
         private void vsbPic_Scroll(object sender, ScrollEventArgs e) {
@@ -384,12 +370,17 @@ namespace WinAGI.Editor {
                 //delete it
                 agSound = null;
             }
+            SavePreviewPos();
+        }
+
+        private void SavePreviewPos() {
             //save preview window pos
             GameSettings.WriteSetting(sPOSITION, "PreviewTop", Top);
             GameSettings.WriteSetting(sPOSITION, "PreviewLeft", Left);
             GameSettings.WriteSetting(sPOSITION, "PreviewWidth", Width);
             GameSettings.WriteSetting(sPOSITION, "PreviewHeight", Height);
         }
+
         bool PreviewPic(byte PicNum) {
             //get the picture
             agPic = EditGame.Pictures[PicNum];
@@ -602,7 +593,7 @@ namespace WinAGI.Editor {
             case SoundFormat.sfMIDI:
                 optMIDI.Text = "MIDI Sound";
                 optMIDI.Checked = true;
-                optPCjr.Enabled= false;
+                optPCjr.Enabled = false;
                 for (i = 0; i < 3; i++) {
                     cmbInst[i].Enabled = false;
                     cmbInst[i].SelectedIndex = -1;
@@ -1391,8 +1382,6 @@ namespace WinAGI.Editor {
 
         private void frmPreview_Load(object sender, EventArgs e) {
             int i;
-            int sngLeft, sngTop;
-            int sngWidth, sngHeight;
             CalcWidth = MIN_WIDTH;
             CalcHeight = MIN_HEIGHT;
 
@@ -1405,51 +1394,7 @@ namespace WinAGI.Editor {
             hsbView.Minimum = -PW_MARGIN;
             vsbView.Minimum = -PW_MARGIN;
 
-            //get preview window position
-            sngWidth = GameSettings.GetSetting(sPOSITION, "PreviewWidth", (int)(0.4 * MDIMain.Bounds.Width));
-            if (sngWidth <= MIN_WIDTH) {
-                sngWidth = MIN_WIDTH;
-            }
-            else if (sngWidth > 0.75 * Screen.GetWorkingArea(this).Width) {
-                sngWidth = (int)(0.75 * Screen.GetWorkingArea(this).Width);
-            }
-            sngHeight = GameSettings.GetSetting(sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
-            if (sngHeight <= MIN_HEIGHT) {
-                sngHeight = MIN_HEIGHT;
-            }
-            else if (sngHeight > 0.75 * Screen.GetWorkingArea(this).Height) {
-                sngHeight = (int)(0.75 * Screen.GetWorkingArea(this).Height);
-            }
-            sngLeft = GameSettings.GetSetting(sPOSITION, "PreviewLeft", 0);
-            if (sngLeft < 0) {
-                sngLeft = 0;
-            }
-            else {
-                if (Settings.ResListType != 0) {
-                    if (sngLeft > MDIMain.Width - MDIMain.pnlResources.Width - 300) {
-                        sngLeft = MDIMain.Width - MDIMain.pnlResources.Width - 300;
-                    }
-                }
-                else {
-                    if (sngLeft > MDIMain.Width - 300) {
-                        sngLeft = MDIMain.Width - 300;
-                    }
-                }
-            }
-            sngTop = GameSettings.GetSetting(sPOSITION, "PreviewTop", 0);
-            if (sngTop < 0) {
-                sngTop = 0;
-            }
-            else {
-                if (sngTop > MDIMain.Bounds.Height - 300) {
-                    sngTop = MDIMain.Bounds.Height - 300;
-                }
-            }
-            //now move the form
-            this.Bounds = new Rectangle(sngLeft, sngTop, sngWidth, sngHeight);
-
-            ////set flag to skip update of cels + loops during load
-            //blnNoUpdate = true;
+            PositionPreview();
 
             //load instrument listboxes
             for (i = 0; i < 128; i++) {
@@ -1499,6 +1444,55 @@ namespace WinAGI.Editor {
 
             // 
         }
+
+        private void PositionPreview() {
+            int sngLeft, sngTop;
+            int sngWidth, sngHeight;
+
+            // get preview window position
+            sngWidth = GameSettings.GetSetting(sPOSITION, "PreviewWidth", (int)(0.4 * MDIMain.Bounds.Width));
+            if (sngWidth <= MIN_WIDTH) {
+                sngWidth = MIN_WIDTH;
+            }
+            else if (sngWidth > 0.75 * Screen.GetWorkingArea(this).Width) {
+                sngWidth = (int)(0.75 * Screen.GetWorkingArea(this).Width);
+            }
+            sngHeight = GameSettings.GetSetting(sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
+            if (sngHeight <= MIN_HEIGHT) {
+                sngHeight = MIN_HEIGHT;
+            }
+            else if (sngHeight > 0.75 * Screen.GetWorkingArea(this).Height) {
+                sngHeight = (int)(0.75 * Screen.GetWorkingArea(this).Height);
+            }
+            sngLeft = GameSettings.GetSetting(sPOSITION, "PreviewLeft", 0);
+            if (sngLeft < 0) {
+                sngLeft = 0;
+            }
+            else {
+                if (Settings.ResListType != agiSettings.EResListType.None) {
+                    if (sngLeft > MDIMain.Width - MDIMain.pnlResources.Width - 300) {
+                        sngLeft = MDIMain.Width - MDIMain.pnlResources.Width - 300;
+                    }
+                }
+                else {
+                    if (sngLeft > MDIMain.Width - 300) {
+                        sngLeft = MDIMain.Width - 300;
+                    }
+                }
+            }
+            sngTop = GameSettings.GetSetting(sPOSITION, "PreviewTop", 0);
+            if (sngTop < 0) {
+                sngTop = 0;
+            }
+            else {
+                if (sngTop > MDIMain.Bounds.Height - 300) {
+                    sngTop = MDIMain.Bounds.Height - 300;
+                }
+            }
+            //now move the form
+            this.Bounds = new Rectangle(sngLeft, sngTop, sngWidth, sngHeight);
+        }
+
         void DrawTransGrid() {
             int offsetX, offsetY;
             offsetX = (picCel.Left) % 10;
@@ -1707,6 +1701,24 @@ namespace WinAGI.Editor {
 
         private void optMIDI_CheckedChanged(object sender, EventArgs e) {
             SetMIDIControls(true);
+        }
+
+        private void frmPreview_VisibleChanged(object sender, EventArgs e) {
+            // if now visible, need to force position to correct value
+            if (Visible) {
+                PositionPreview();
+            }
+            else {
+                SavePreviewPos();
+            }
+        }
+
+        private void cmiSelectAll_Click(object sender, EventArgs e) {
+            rtfLogPrev.SelectAll();
+        }
+
+        private void cmiCopy_Click(object sender, EventArgs e) {
+            rtfLogPrev.Copy();
         }
     }
 }

@@ -88,15 +88,18 @@
             toolStripSeparator15 = new ToolStripSeparator();
             mnuRIObjects = new ToolStripMenuItem();
             mnuRIWords = new ToolStripMenuItem();
-            toolStripSeparator2 = new ToolStripSeparator();
+            mnuRSeparator1 = new ToolStripSeparator();
+            mnuROpenRes = new ToolStripMenuItem();
             mnuRSave = new ToolStripMenuItem();
             mnuRExport = new ToolStripMenuItem();
-            toolStripSeparator3 = new ToolStripSeparator();
+            mnuRSeparator2 = new ToolStripSeparator();
             mnuRAddRemove = new ToolStripMenuItem();
             mnuRRenumber = new ToolStripMenuItem();
             mnuRIDDesc = new ToolStripMenuItem();
-            toolStripSeparator4 = new ToolStripSeparator();
-            mnuRPrint = new ToolStripMenuItem();
+            mnuRSeparator3 = new ToolStripSeparator();
+            mnuRCompileLogic = new ToolStripMenuItem();
+            mnuRSavePicImage = new ToolStripMenuItem();
+            mnuRExportGIF = new ToolStripMenuItem();
             mnuTools = new ToolStripMenuItem();
             mnuTSettings = new ToolStripMenuItem();
             mnuTSep1 = new ToolStripSeparator();
@@ -131,8 +134,47 @@
             mnuHReference = new ToolStripMenuItem();
             mnuHSep2 = new ToolStripSeparator();
             mnuHAbout = new ToolStripMenuItem();
-            contextMenuStrip1 = new ContextMenuStrip(components);
-            toolStripMenuItem1 = new ToolStripMenuItem();
+            cmsResources = new ContextMenuStrip(components);
+            cmiNew = new ToolStripMenuItem();
+            toolStripMenuItem4 = new ToolStripMenuItem();
+            toolStripMenuItem5 = new ToolStripMenuItem();
+            toolStripMenuItem6 = new ToolStripMenuItem();
+            toolStripMenuItem7 = new ToolStripMenuItem();
+            toolStripSeparator1 = new ToolStripSeparator();
+            toolStripMenuItem8 = new ToolStripMenuItem();
+            toolStripMenuItem9 = new ToolStripMenuItem();
+            toolStripSeparator7 = new ToolStripSeparator();
+            toolStripMenuItem10 = new ToolStripMenuItem();
+            cmiOpen = new ToolStripMenuItem();
+            toolStripMenuItem12 = new ToolStripMenuItem();
+            toolStripMenuItem13 = new ToolStripMenuItem();
+            toolStripMenuItem14 = new ToolStripMenuItem();
+            toolStripMenuItem15 = new ToolStripMenuItem();
+            toolStripSeparator9 = new ToolStripSeparator();
+            toolStripMenuItem16 = new ToolStripMenuItem();
+            toolStripMenuItem17 = new ToolStripMenuItem();
+            toolStripSeparator10 = new ToolStripSeparator();
+            toolStripMenuItem18 = new ToolStripMenuItem();
+            cmiImport = new ToolStripMenuItem();
+            toolStripMenuItem20 = new ToolStripMenuItem();
+            toolStripMenuItem21 = new ToolStripMenuItem();
+            toolStripMenuItem22 = new ToolStripMenuItem();
+            toolStripMenuItem23 = new ToolStripMenuItem();
+            toolStripSeparator11 = new ToolStripSeparator();
+            toolStripMenuItem24 = new ToolStripMenuItem();
+            toolStripMenuItem25 = new ToolStripMenuItem();
+            cmiSeparator0 = new ToolStripSeparator();
+            cmiOpenResource = new ToolStripMenuItem();
+            cmiSaveResource = new ToolStripMenuItem();
+            cmiExportResource = new ToolStripMenuItem();
+            cmiSeparator1 = new ToolStripSeparator();
+            cmiAddRemove = new ToolStripMenuItem();
+            cmiRenumber = new ToolStripMenuItem();
+            cmiID = new ToolStripMenuItem();
+            cmiSeparator2 = new ToolStripSeparator();
+            cmiCompileLogic = new ToolStripMenuItem();
+            cmiExportPicImage = new ToolStripMenuItem();
+            cmiExportLoopGIF = new ToolStripMenuItem();
             btnNewRes = new ToolStripSplitButton();
             btnNewLogic = new ToolStripMenuItem();
             btnNewPicture = new ToolStripMenuItem();
@@ -149,7 +191,6 @@
             btnCloseGame = new ToolStripButton();
             btnRun = new ToolStripButton();
             btnSep1 = new ToolStripSeparator();
-            btnPrint = new ToolStripButton();
             btnOpenRes = new ToolStripSplitButton();
             btnOpenLogic = new ToolStripMenuItem();
             btnOpenPicture = new ToolStripMenuItem();
@@ -186,10 +227,18 @@
             cmdForward = new Button();
             propertyGrid1 = new PropertyGrid();
             picNavList = new PictureBox();
-            lstProperty = new ListBox();
             splitResource = new Splitter();
             pnlWarnings = new Panel();
             fgWarnings = new DataGridView();
+            colWarning = new DataGridViewTextBoxColumn();
+            colDesc = new DataGridViewTextBoxColumn();
+            colResNum = new DataGridViewTextBoxColumn();
+            colLIne = new DataGridViewTextBoxColumn();
+            colModule = new DataGridViewTextBoxColumn();
+            cmsGrid = new ContextMenuStrip(components);
+            cmiDismiss = new ToolStripMenuItem();
+            cmiDismissAll = new ToolStripMenuItem();
+            cmiErrorHelp = new ToolStripMenuItem();
             splitWarning = new Splitter();
             imageList1 = new ImageList(components);
             tmrNavList = new Timer(components);
@@ -197,13 +246,8 @@
             OpenDlg = new OpenFileDialog();
             SaveDlg = new SaveFileDialog();
             imlPropButtons = new ImageList(components);
-            colWarning = new DataGridViewTextBoxColumn();
-            colDesc = new DataGridViewTextBoxColumn();
-            colResNum = new DataGridViewTextBoxColumn();
-            colLIne = new DataGridViewTextBoxColumn();
-            colModule = new DataGridViewTextBoxColumn();
             menuStrip1.SuspendLayout();
-            contextMenuStrip1.SuspendLayout();
+            cmsResources.SuspendLayout();
             statusStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             pnlResources.SuspendLayout();
@@ -214,6 +258,7 @@
             ((System.ComponentModel.ISupportInitialize)picNavList).BeginInit();
             pnlWarnings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)fgWarnings).BeginInit();
+            cmsGrid.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
@@ -394,10 +439,12 @@
             // 
             // mnuResources
             // 
-            mnuResources.DropDownItems.AddRange(new ToolStripItem[] { mnuRNew, mnuROpen, mnuRImport, toolStripSeparator2, mnuRSave, mnuRExport, toolStripSeparator3, mnuRAddRemove, mnuRRenumber, mnuRIDDesc, toolStripSeparator4, mnuRPrint });
+            mnuResources.DropDownItems.AddRange(new ToolStripItem[] { mnuRNew, mnuROpen, mnuRImport, mnuRSeparator1, mnuROpenRes, mnuRSave, mnuRExport, mnuRSeparator2, mnuRAddRemove, mnuRRenumber, mnuRIDDesc, mnuRSeparator3, mnuRCompileLogic, mnuRSavePicImage, mnuRExportGIF });
+            mnuResources.ImageScaling = ToolStripItemImageScaling.None;
             mnuResources.Name = "mnuResources";
             mnuResources.Size = new System.Drawing.Size(72, 20);
             mnuResources.Text = "&Resources";
+            mnuResources.DropDownOpening += mnuResources_DropDownOpening;
             // 
             // mnuRNew
             // 
@@ -477,6 +524,7 @@
             // 
             mnuROpen.DropDownItems.AddRange(new ToolStripItem[] { mnuROLogic, mnuROPicture, mnuROSound, mnuROView, toolStripSeparator13, mnuROObjects, mnuROWords, toolStripSeparator14, mnuROText });
             mnuROpen.Image = (System.Drawing.Image)resources.GetObject("mnuROpen.Image");
+            mnuROpen.ImageScaling = ToolStripItemImageScaling.None;
             mnuROpen.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuROpen.Name = "mnuROpen";
             mnuROpen.ShortcutKeys = Keys.Control | Keys.O;
@@ -609,14 +657,21 @@
             mnuRIWords.Text = "&WORDS.TOK File";
             mnuRIWords.Click += mnuRIWords_Click;
             // 
-            // toolStripSeparator2
+            // mnuRSeparator1
             // 
-            toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new System.Drawing.Size(302, 6);
+            mnuRSeparator1.Name = "mnuRSeparator1";
+            mnuRSeparator1.Size = new System.Drawing.Size(302, 6);
+            // 
+            // mnuROpenRes
+            // 
+            mnuROpenRes.Name = "mnuROpenRes";
+            mnuROpenRes.Size = new System.Drawing.Size(305, 22);
+            mnuROpenRes.Text = "Open Resource";
             // 
             // mnuRSave
             // 
             mnuRSave.Image = (System.Drawing.Image)resources.GetObject("mnuRSave.Image");
+            mnuRSave.ImageScaling = ToolStripItemImageScaling.None;
             mnuRSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuRSave.Name = "mnuRSave";
             mnuRSave.ShortcutKeys = Keys.Control | Keys.S;
@@ -630,10 +685,10 @@
             mnuRExport.Size = new System.Drawing.Size(305, 22);
             mnuRExport.Text = "&Export Resource";
             // 
-            // toolStripSeparator3
+            // mnuRSeparator2
             // 
-            toolStripSeparator3.Name = "toolStripSeparator3";
-            toolStripSeparator3.Size = new System.Drawing.Size(302, 6);
+            mnuRSeparator2.Name = "mnuRSeparator2";
+            mnuRSeparator2.Size = new System.Drawing.Size(302, 6);
             // 
             // mnuRAddRemove
             // 
@@ -653,25 +708,36 @@
             // mnuRIDDesc
             // 
             mnuRIDDesc.Image = (System.Drawing.Image)resources.GetObject("mnuRIDDesc.Image");
+            mnuRIDDesc.ImageScaling = ToolStripItemImageScaling.None;
             mnuRIDDesc.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuRIDDesc.Name = "mnuRIDDesc";
             mnuRIDDesc.ShortcutKeys = Keys.Control | Keys.D;
             mnuRIDDesc.Size = new System.Drawing.Size(305, 22);
             mnuRIDDesc.Text = "I&D/Description ...";
             // 
-            // toolStripSeparator4
+            // mnuRSeparator3
             // 
-            toolStripSeparator4.Name = "toolStripSeparator4";
-            toolStripSeparator4.Size = new System.Drawing.Size(302, 6);
+            mnuRSeparator3.Name = "mnuRSeparator3";
+            mnuRSeparator3.Size = new System.Drawing.Size(302, 6);
             // 
-            // mnuRPrint
+            // mnuRCompileLogic
             // 
-            mnuRPrint.Image = (System.Drawing.Image)resources.GetObject("mnuRPrint.Image");
-            mnuRPrint.ImageTransparentColor = System.Drawing.Color.Magenta;
-            mnuRPrint.Name = "mnuRPrint";
-            mnuRPrint.ShortcutKeys = Keys.Control | Keys.P;
-            mnuRPrint.Size = new System.Drawing.Size(305, 22);
-            mnuRPrint.Text = "&Print";
+            mnuRCompileLogic.Name = "mnuRCompileLogic";
+            mnuRCompileLogic.Size = new System.Drawing.Size(305, 22);
+            mnuRCompileLogic.Text = "Compile This Logic";
+            // 
+            // mnuRSavePicImage
+            // 
+            mnuRSavePicImage.Name = "mnuRSavePicImage";
+            mnuRSavePicImage.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
+            mnuRSavePicImage.Size = new System.Drawing.Size(305, 22);
+            mnuRSavePicImage.Text = "Save Picture Image As...";
+            // 
+            // mnuRExportGIF
+            // 
+            mnuRExportGIF.Name = "mnuRExportGIF";
+            mnuRExportGIF.Size = new System.Drawing.Size(305, 22);
+            mnuRExportGIF.Text = "Export Loop as GIF...";
             // 
             // mnuTools
             // 
@@ -894,18 +960,281 @@
             mnuHAbout.Size = new System.Drawing.Size(238, 22);
             mnuHAbout.Text = "&About WinAGI GDS...";
             // 
-            // contextMenuStrip1
+            // cmsResources
             // 
-            contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { toolStripMenuItem1 });
-            contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new System.Drawing.Size(112, 26);
+            cmsResources.Items.AddRange(new ToolStripItem[] { cmiNew, cmiOpen, cmiImport, cmiSeparator0, cmiOpenResource, cmiSaveResource, cmiExportResource, cmiSeparator1, cmiAddRemove, cmiRenumber, cmiID, cmiSeparator2, cmiCompileLogic, cmiExportPicImage, cmiExportLoopGIF });
+            cmsResources.Name = "contextMenuStrip1";
+            cmsResources.Size = new System.Drawing.Size(306, 286);
+            cmsResources.Opening += cmsResources_Opening;
             // 
-            // toolStripMenuItem1
+            // cmiNew
             // 
-            toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new System.Drawing.Size(111, 22);
-            toolStripMenuItem1.Text = "menu1";
+            cmiNew.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem4, toolStripMenuItem5, toolStripMenuItem6, toolStripMenuItem7, toolStripSeparator1, toolStripMenuItem8, toolStripMenuItem9, toolStripSeparator7, toolStripMenuItem10 });
+            cmiNew.ImageTransparentColor = System.Drawing.Color.Magenta;
+            cmiNew.Name = "cmiNew";
+            cmiNew.Size = new System.Drawing.Size(305, 22);
+            cmiNew.Text = "&New Resource";
+            // 
+            // toolStripMenuItem4
+            // 
+            toolStripMenuItem4.Name = "toolStripMenuItem4";
+            toolStripMenuItem4.ShortcutKeys = Keys.Control | Keys.D1;
+            toolStripMenuItem4.Size = new System.Drawing.Size(200, 22);
+            toolStripMenuItem4.Text = "&Logic";
+            // 
+            // toolStripMenuItem5
+            // 
+            toolStripMenuItem5.Name = "toolStripMenuItem5";
+            toolStripMenuItem5.ShortcutKeys = Keys.Control | Keys.D2;
+            toolStripMenuItem5.Size = new System.Drawing.Size(200, 22);
+            toolStripMenuItem5.Text = "&Picture";
+            // 
+            // toolStripMenuItem6
+            // 
+            toolStripMenuItem6.Name = "toolStripMenuItem6";
+            toolStripMenuItem6.ShortcutKeys = Keys.Control | Keys.D3;
+            toolStripMenuItem6.Size = new System.Drawing.Size(200, 22);
+            toolStripMenuItem6.Text = "&Sound";
+            // 
+            // toolStripMenuItem7
+            // 
+            toolStripMenuItem7.Name = "toolStripMenuItem7";
+            toolStripMenuItem7.ShortcutKeys = Keys.Control | Keys.D4;
+            toolStripMenuItem7.Size = new System.Drawing.Size(200, 22);
+            toolStripMenuItem7.Text = "&View";
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new System.Drawing.Size(197, 6);
+            // 
+            // toolStripMenuItem8
+            // 
+            toolStripMenuItem8.Name = "toolStripMenuItem8";
+            toolStripMenuItem8.ShortcutKeys = Keys.Control | Keys.D5;
+            toolStripMenuItem8.Size = new System.Drawing.Size(200, 22);
+            toolStripMenuItem8.Text = "&OBJECT File";
+            // 
+            // toolStripMenuItem9
+            // 
+            toolStripMenuItem9.Name = "toolStripMenuItem9";
+            toolStripMenuItem9.ShortcutKeys = Keys.Control | Keys.D6;
+            toolStripMenuItem9.Size = new System.Drawing.Size(200, 22);
+            toolStripMenuItem9.Text = "&WORDS.TOK File";
+            // 
+            // toolStripSeparator7
+            // 
+            toolStripSeparator7.Name = "toolStripSeparator7";
+            toolStripSeparator7.Size = new System.Drawing.Size(197, 6);
+            // 
+            // toolStripMenuItem10
+            // 
+            toolStripMenuItem10.Name = "toolStripMenuItem10";
+            toolStripMenuItem10.ShortcutKeys = Keys.Control | Keys.D7;
+            toolStripMenuItem10.Size = new System.Drawing.Size(200, 22);
+            toolStripMenuItem10.Text = "&Text File";
+            // 
+            // cmiOpen
+            // 
+            cmiOpen.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem12, toolStripMenuItem13, toolStripMenuItem14, toolStripMenuItem15, toolStripSeparator9, toolStripMenuItem16, toolStripMenuItem17, toolStripSeparator10, toolStripMenuItem18 });
+            cmiOpen.Image = (System.Drawing.Image)resources.GetObject("cmiOpen.Image");
+            cmiOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
+            cmiOpen.Name = "cmiOpen";
+            cmiOpen.ShortcutKeys = Keys.Control | Keys.O;
+            cmiOpen.Size = new System.Drawing.Size(305, 22);
+            cmiOpen.Text = "&Open Resource";
+            // 
+            // toolStripMenuItem12
+            // 
+            toolStripMenuItem12.Name = "toolStripMenuItem12";
+            toolStripMenuItem12.ShortcutKeys = Keys.Alt | Keys.D1;
+            toolStripMenuItem12.Size = new System.Drawing.Size(196, 22);
+            toolStripMenuItem12.Text = "&Logic";
+            // 
+            // toolStripMenuItem13
+            // 
+            toolStripMenuItem13.Name = "toolStripMenuItem13";
+            toolStripMenuItem13.ShortcutKeys = Keys.Alt | Keys.D2;
+            toolStripMenuItem13.Size = new System.Drawing.Size(196, 22);
+            toolStripMenuItem13.Text = "&Picture";
+            // 
+            // toolStripMenuItem14
+            // 
+            toolStripMenuItem14.Name = "toolStripMenuItem14";
+            toolStripMenuItem14.ShortcutKeys = Keys.Alt | Keys.D3;
+            toolStripMenuItem14.Size = new System.Drawing.Size(196, 22);
+            toolStripMenuItem14.Text = "&Sound";
+            // 
+            // toolStripMenuItem15
+            // 
+            toolStripMenuItem15.Name = "toolStripMenuItem15";
+            toolStripMenuItem15.ShortcutKeys = Keys.Alt | Keys.D4;
+            toolStripMenuItem15.Size = new System.Drawing.Size(196, 22);
+            toolStripMenuItem15.Text = "&View";
+            // 
+            // toolStripSeparator9
+            // 
+            toolStripSeparator9.Name = "toolStripSeparator9";
+            toolStripSeparator9.Size = new System.Drawing.Size(193, 6);
+            // 
+            // toolStripMenuItem16
+            // 
+            toolStripMenuItem16.Name = "toolStripMenuItem16";
+            toolStripMenuItem16.ShortcutKeys = Keys.Alt | Keys.D5;
+            toolStripMenuItem16.Size = new System.Drawing.Size(196, 22);
+            toolStripMenuItem16.Text = "&OBJECT File";
+            // 
+            // toolStripMenuItem17
+            // 
+            toolStripMenuItem17.Name = "toolStripMenuItem17";
+            toolStripMenuItem17.ShortcutKeys = Keys.Alt | Keys.D6;
+            toolStripMenuItem17.Size = new System.Drawing.Size(196, 22);
+            toolStripMenuItem17.Text = "&WORDS.TOK File";
+            // 
+            // toolStripSeparator10
+            // 
+            toolStripSeparator10.Name = "toolStripSeparator10";
+            toolStripSeparator10.Size = new System.Drawing.Size(193, 6);
+            // 
+            // toolStripMenuItem18
+            // 
+            toolStripMenuItem18.Name = "toolStripMenuItem18";
+            toolStripMenuItem18.ShortcutKeys = Keys.Alt | Keys.D7;
+            toolStripMenuItem18.Size = new System.Drawing.Size(196, 22);
+            toolStripMenuItem18.Text = "&Text File";
+            // 
+            // cmiImport
+            // 
+            cmiImport.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem20, toolStripMenuItem21, toolStripMenuItem22, toolStripMenuItem23, toolStripSeparator11, toolStripMenuItem24, toolStripMenuItem25 });
+            cmiImport.Name = "cmiImport";
+            cmiImport.Size = new System.Drawing.Size(305, 22);
+            cmiImport.Text = "&Import Resource";
+            // 
+            // toolStripMenuItem20
+            // 
+            toolStripMenuItem20.Name = "toolStripMenuItem20";
+            toolStripMenuItem20.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D1;
+            toolStripMenuItem20.Size = new System.Drawing.Size(223, 22);
+            toolStripMenuItem20.Text = "&Logic";
+            // 
+            // toolStripMenuItem21
+            // 
+            toolStripMenuItem21.Name = "toolStripMenuItem21";
+            toolStripMenuItem21.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D2;
+            toolStripMenuItem21.Size = new System.Drawing.Size(223, 22);
+            toolStripMenuItem21.Text = "&Picture";
+            // 
+            // toolStripMenuItem22
+            // 
+            toolStripMenuItem22.Name = "toolStripMenuItem22";
+            toolStripMenuItem22.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D3;
+            toolStripMenuItem22.Size = new System.Drawing.Size(223, 22);
+            toolStripMenuItem22.Text = "&Sound";
+            // 
+            // toolStripMenuItem23
+            // 
+            toolStripMenuItem23.Name = "toolStripMenuItem23";
+            toolStripMenuItem23.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D4;
+            toolStripMenuItem23.Size = new System.Drawing.Size(223, 22);
+            toolStripMenuItem23.Text = "&View";
+            // 
+            // toolStripSeparator11
+            // 
+            toolStripSeparator11.Name = "toolStripSeparator11";
+            toolStripSeparator11.Size = new System.Drawing.Size(220, 6);
+            // 
+            // toolStripMenuItem24
+            // 
+            toolStripMenuItem24.Name = "toolStripMenuItem24";
+            toolStripMenuItem24.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D5;
+            toolStripMenuItem24.Size = new System.Drawing.Size(223, 22);
+            toolStripMenuItem24.Text = "&OBJECT File";
+            // 
+            // toolStripMenuItem25
+            // 
+            toolStripMenuItem25.Name = "toolStripMenuItem25";
+            toolStripMenuItem25.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D6;
+            toolStripMenuItem25.Size = new System.Drawing.Size(223, 22);
+            toolStripMenuItem25.Text = "&WORDS.TOK File";
+            // 
+            // cmiSeparator0
+            // 
+            cmiSeparator0.Name = "cmiSeparator0";
+            cmiSeparator0.Size = new System.Drawing.Size(302, 6);
+            // 
+            // cmiOpenResource
+            // 
+            cmiOpenResource.Name = "cmiOpenResource";
+            cmiOpenResource.Size = new System.Drawing.Size(305, 22);
+            cmiOpenResource.Text = "Open Resource";
+            // 
+            // cmiSaveResource
+            // 
+            cmiSaveResource.Image = (System.Drawing.Image)resources.GetObject("cmiSaveResource.Image");
+            cmiSaveResource.ImageTransparentColor = System.Drawing.Color.Magenta;
+            cmiSaveResource.Name = "cmiSaveResource";
+            cmiSaveResource.ShortcutKeys = Keys.Control | Keys.S;
+            cmiSaveResource.Size = new System.Drawing.Size(305, 22);
+            cmiSaveResource.Text = "&Save Resource";
+            // 
+            // cmiExportResource
+            // 
+            cmiExportResource.Name = "cmiExportResource";
+            cmiExportResource.ShortcutKeys = Keys.Control | Keys.E;
+            cmiExportResource.Size = new System.Drawing.Size(305, 22);
+            cmiExportResource.Text = "&Export Resource";
+            // 
+            // cmiSeparator1
+            // 
+            cmiSeparator1.Name = "cmiSeparator1";
+            cmiSeparator1.Size = new System.Drawing.Size(302, 6);
+            // 
+            // cmiAddRemove
+            // 
+            cmiAddRemove.Name = "cmiAddRemove";
+            cmiAddRemove.ShortcutKeys = Keys.Control | Keys.Shift | Keys.A;
+            cmiAddRemove.Size = new System.Drawing.Size(305, 22);
+            cmiAddRemove.Text = "Remove Resource from &Game";
+            // 
+            // cmiRenumber
+            // 
+            cmiRenumber.Name = "cmiRenumber";
+            cmiRenumber.ShortcutKeys = Keys.Alt | Keys.N;
+            cmiRenumber.Size = new System.Drawing.Size(305, 22);
+            cmiRenumber.Text = "&Renumber Resource";
+            // 
+            // cmiID
+            // 
+            cmiID.Image = (System.Drawing.Image)resources.GetObject("cmiID.Image");
+            cmiID.ImageTransparentColor = System.Drawing.Color.Magenta;
+            cmiID.Name = "cmiID";
+            cmiID.ShortcutKeys = Keys.Control | Keys.D;
+            cmiID.Size = new System.Drawing.Size(305, 22);
+            cmiID.Text = "I&D/Description ...";
+            // 
+            // cmiSeparator2
+            // 
+            cmiSeparator2.Name = "cmiSeparator2";
+            cmiSeparator2.Size = new System.Drawing.Size(302, 6);
+            // 
+            // cmiCompileLogic
+            // 
+            cmiCompileLogic.Name = "cmiCompileLogic";
+            cmiCompileLogic.Size = new System.Drawing.Size(305, 22);
+            cmiCompileLogic.Text = "Compile This Logic";
+            // 
+            // cmiExportPicImage
+            // 
+            cmiExportPicImage.Name = "cmiExportPicImage";
+            cmiExportPicImage.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
+            cmiExportPicImage.Size = new System.Drawing.Size(305, 22);
+            cmiExportPicImage.Text = "Export Picture Image As...";
+            // 
+            // cmiExportLoopGIF
+            // 
+            cmiExportLoopGIF.Name = "cmiExportLoopGIF";
+            cmiExportLoopGIF.Size = new System.Drawing.Size(305, 22);
+            cmiExportLoopGIF.Text = "Export Loop As GIF...";
             // 
             // btnNewRes
             // 
@@ -1002,7 +1331,7 @@
             // 
             toolStrip1.AllowItemReorder = true;
             toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
-            toolStrip1.Items.AddRange(new ToolStripItem[] { btnOpenGame, btnCloseGame, btnRun, btnSep1, btnPrint, btnNewRes, btnOpenRes, btnImportRes, btnSep2, btnWords, btnOjects, btnSep3, btnSaveResource, btnAddRemove, btnExportRes, btnSep4, btnLayoutEd, btnMenuEd, btnGlobals, btnSep5, btnHelp });
+            toolStrip1.Items.AddRange(new ToolStripItem[] { btnOpenGame, btnCloseGame, btnRun, btnSep1, btnNewRes, btnOpenRes, btnImportRes, btnSep2, btnWords, btnOjects, btnSep3, btnSaveResource, btnAddRemove, btnExportRes, btnSep4, btnLayoutEd, btnMenuEd, btnGlobals, btnSep5, btnHelp });
             toolStrip1.Location = new System.Drawing.Point(0, 24);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Padding = new Padding(0, 1, 2, 1);
@@ -1048,16 +1377,6 @@
             btnSep1.Margin = new Padding(8, 0, 8, 0);
             btnSep1.Name = "btnSep1";
             btnSep1.Size = new System.Drawing.Size(6, 34);
-            // 
-            // btnPrint
-            // 
-            btnPrint.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnPrint.Image = (System.Drawing.Image)resources.GetObject("btnPrint.Image");
-            btnPrint.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
-            btnPrint.Margin = new Padding(2, 2, 2, 4);
-            btnPrint.Name = "btnPrint";
-            btnPrint.Size = new System.Drawing.Size(28, 28);
-            btnPrint.Text = "&Print";
             // 
             // btnOpenRes
             // 
@@ -1327,6 +1646,7 @@
             // tvwResources
             // 
             tvwResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tvwResources.ContextMenuStrip = cmsResources;
             tvwResources.HideSelection = false;
             tvwResources.Location = new System.Drawing.Point(0, 26);
             tvwResources.Margin = new Padding(2, 1, 2, 1);
@@ -1372,6 +1692,7 @@
             lstResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lstResources.BorderStyle = BorderStyle.FixedSingle;
             lstResources.Columns.AddRange(new ColumnHeader[] { columnHeader1 });
+            lstResources.ContextMenuStrip = cmsResources;
             lstResources.FullRowSelect = true;
             lstResources.HeaderStyle = ColumnHeaderStyle.None;
             lstResources.Location = new System.Drawing.Point(0, 52);
@@ -1442,17 +1763,6 @@
             picNavList.MouseMove += picNavList_MouseMove;
             picNavList.MouseUp += picNavList_MouseUp;
             // 
-            // lstProperty
-            // 
-            lstProperty.FormattingEnabled = true;
-            lstProperty.ItemHeight = 15;
-            lstProperty.Location = new System.Drawing.Point(172, 253);
-            lstProperty.Margin = new Padding(2);
-            lstProperty.Name = "lstProperty";
-            lstProperty.Size = new System.Drawing.Size(98, 4);
-            lstProperty.TabIndex = 26;
-            lstProperty.Visible = false;
-            // 
             // splitResource
             // 
             splitResource.Location = new System.Drawing.Point(157, 60);
@@ -1489,6 +1799,7 @@
             fgWarnings.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             fgWarnings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             fgWarnings.Columns.AddRange(new DataGridViewColumn[] { colWarning, colDesc, colResNum, colLIne, colModule });
+            fgWarnings.ContextMenuStrip = cmsGrid;
             dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
             dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -1510,6 +1821,7 @@
             fgWarnings.RowTemplate.ReadOnly = true;
             fgWarnings.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             fgWarnings.ShowCellErrors = false;
+            fgWarnings.ShowCellToolTips = false;
             fgWarnings.ShowEditingIcon = false;
             fgWarnings.ShowRowErrors = false;
             fgWarnings.Size = new System.Drawing.Size(1123, 86);
@@ -1518,6 +1830,75 @@
             fgWarnings.ColumnHeaderMouseClick += fgWarnings_ColumnHeaderMouseClick;
             fgWarnings.SortCompare += fgWarnings_SortCompare;
             fgWarnings.Sorted += fgWarnings_Sorted;
+            // 
+            // colWarning
+            // 
+            colWarning.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colWarning.FillWeight = 20F;
+            colWarning.HeaderText = "Warning";
+            colWarning.MinimumWidth = 10;
+            colWarning.Name = "colWarning";
+            colWarning.ReadOnly = true;
+            // 
+            // colDesc
+            // 
+            colDesc.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colDesc.FillWeight = 50F;
+            colDesc.HeaderText = "Description";
+            colDesc.MinimumWidth = 10;
+            colDesc.Name = "colDesc";
+            colDesc.ReadOnly = true;
+            // 
+            // colResNum
+            // 
+            colResNum.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colResNum.FillWeight = 10F;
+            colResNum.HeaderText = "Res#";
+            colResNum.MinimumWidth = 10;
+            colResNum.Name = "colResNum";
+            colResNum.ReadOnly = true;
+            // 
+            // colLIne
+            // 
+            colLIne.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colLIne.FillWeight = 10F;
+            colLIne.HeaderText = "Line#";
+            colLIne.MinimumWidth = 10;
+            colLIne.Name = "colLIne";
+            colLIne.ReadOnly = true;
+            // 
+            // colModule
+            // 
+            colModule.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colModule.FillWeight = 20F;
+            colModule.HeaderText = "Module";
+            colModule.MinimumWidth = 10;
+            colModule.Name = "colModule";
+            colModule.ReadOnly = true;
+            // 
+            // cmsGrid
+            // 
+            cmsGrid.Items.AddRange(new ToolStripItem[] { cmiDismiss, cmiDismissAll, cmiErrorHelp });
+            cmsGrid.Name = "cmsGrid";
+            cmsGrid.Size = new System.Drawing.Size(176, 70);
+            // 
+            // cmiDismiss
+            // 
+            cmiDismiss.Name = "cmiDismiss";
+            cmiDismiss.Size = new System.Drawing.Size(175, 22);
+            cmiDismiss.Text = "Dismiss";
+            // 
+            // cmiDismissAll
+            // 
+            cmiDismissAll.Name = "cmiDismissAll";
+            cmiDismissAll.Size = new System.Drawing.Size(175, 22);
+            cmiDismissAll.Text = "Dismiss All";
+            // 
+            // cmiErrorHelp
+            // 
+            cmiErrorHelp.Name = "cmiErrorHelp";
+            cmiErrorHelp.Size = new System.Drawing.Size(175, 22);
+            cmiErrorHelp.Text = "Help with this Error";
             // 
             // splitWarning
             // 
@@ -1583,57 +1964,11 @@
             imlPropButtons.Images.SetKeyName(4, "dropover_d.bmp");
             imlPropButtons.Images.SetKeyName(5, "dropdialog_d.bmp");
             // 
-            // colWarning
-            // 
-            colWarning.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colWarning.FillWeight = 20F;
-            colWarning.HeaderText = "Warning";
-            colWarning.MinimumWidth = 10;
-            colWarning.Name = "colWarning";
-            colWarning.ReadOnly = true;
-            // 
-            // colDesc
-            // 
-            colDesc.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colDesc.FillWeight = 50F;
-            colDesc.HeaderText = "Description";
-            colDesc.MinimumWidth = 10;
-            colDesc.Name = "colDesc";
-            colDesc.ReadOnly = true;
-            // 
-            // colResNum
-            // 
-            colResNum.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colResNum.FillWeight = 10F;
-            colResNum.HeaderText = "Res#";
-            colResNum.MinimumWidth = 10;
-            colResNum.Name = "colResNum";
-            colResNum.ReadOnly = true;
-            // 
-            // colLIne
-            // 
-            colLIne.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colLIne.FillWeight = 10F;
-            colLIne.HeaderText = "Line#";
-            colLIne.MinimumWidth = 10;
-            colLIne.Name = "colLIne";
-            colLIne.ReadOnly = true;
-            // 
-            // colModule
-            // 
-            colModule.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colModule.FillWeight = 20F;
-            colModule.HeaderText = "Module";
-            colModule.MinimumWidth = 10;
-            colModule.Name = "colModule";
-            colModule.ReadOnly = true;
-            // 
             // frmMDIMain
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
             ClientSize = new System.Drawing.Size(1282, 378);
-            Controls.Add(lstProperty);
             Controls.Add(picNavList);
             Controls.Add(splitWarning);
             Controls.Add(pnlWarnings);
@@ -1655,7 +1990,7 @@
             PreviewKeyDown += frmMDIMain_PreviewKeyDown;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
-            contextMenuStrip1.ResumeLayout(false);
+            cmsResources.ResumeLayout(false);
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             toolStrip1.ResumeLayout(false);
@@ -1668,6 +2003,7 @@
             ((System.ComponentModel.ISupportInitialize)picNavList).EndInit();
             pnlWarnings.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)fgWarnings).EndInit();
+            cmsGrid.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1675,20 +2011,19 @@
         #endregion
 
         private MenuStrip menuStrip1;
-        private ContextMenuStrip contextMenuStrip1;
+        private ContextMenuStrip cmsResources;
         private StatusStrip statusStrip1;
         private ToolStrip toolStrip1;
         private ToolStripStatusLabel CapsLockLabel;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem newToolStripMenuItem;
         private ToolStripMenuItem mnuROpen;
-        private ToolStripSeparator toolStripSeparator2;
+        private ToolStripSeparator mnuRSeparator1;
         private ToolStripMenuItem saveToolStripMenuItem;
         private ToolStripMenuItem saveAsToolStripMenuItem;
-        private ToolStripSeparator toolStripSeparator3;
+        private ToolStripSeparator mnuRSeparator2;
         private ToolStripMenuItem printToolStripMenuItem;
         private ToolStripMenuItem mnuR;
-        private ToolStripSeparator toolStripSeparator4;
         private ToolStripMenuItem exitToolStripMenuItem;
         private ToolStripMenuItem editToolStripMenuItem;
         private ToolStripMenuItem toolsToolStripMenuItem;
@@ -1698,7 +2033,6 @@
         private ToolStripMenuItem contentsToolStripMenuItem;
         private ToolStripMenuItem indexToolStripMenuItem;
         private ToolStripMenuItem searchToolStripMenuItem;
-        private ToolStripSeparator toolStripSeparator7;
         private ToolStripMenuItem aboutToolStripMenuItem;
         private ToolStripButton btnOpen;
         private ToolStripButton btnClose;
@@ -1715,11 +2049,8 @@
         private ToolStripMenuItem mnuGImport;
         private ToolStripSeparator mnuGSep1;
         private ToolStripMenuItem mnuGCompile;
-        private ToolStripSeparator toolStripSeparator10;
         private ToolStripMenuItem mnuGRun;
-        private ToolStripSeparator toolStripSeparator11;
         private ToolStripMenuItem mnuGProperties;
-        private ToolStripSeparator toolStripSeparator12;
         private ToolStripMenuItem mnuGExit;
         private ToolStripMenuItem mnuResources;
         private ToolStripMenuItem mnuTools;
@@ -1733,12 +2064,10 @@
         private ToolStripMenuItem mnuWClose;
         public Splitter splitResource;
         public Splitter splitWarning;
-        private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem mnuRNew;
         private ToolStripMenuItem mnuRSave;
         private ToolStripMenuItem mnuRExport;
         private ToolStripMenuItem mnuRIDDesc;
-        private ToolStripMenuItem mnuRPrint;
         private ToolStripMenuItem mnuRNLogic;
         private ToolStripMenuItem mnuRNPicture;
         private ToolStripMenuItem mnuRNSound;
@@ -1796,7 +2125,6 @@
         private ToolStripButton btnCloseGame;
         private ToolStripButton btnRun;
         private ToolStripSeparator btnSep1;
-        private ToolStripButton btnPrint;
         private ToolStripSplitButton btnNewRes;
         private ToolStripSplitButton btnOpenRes;
         private ToolStripMenuItem btnOpenLogic;
@@ -1840,7 +2168,6 @@
         public ToolStripMenuItem mnuGMRU2;
         public ToolStripMenuItem mnuGMRU3;
         public ToolStripMenuItem mnuGame;
-        public ListBox lstProperty;
         public ImageList imlPropButtons;
         public ToolStripMenuItem mnuRAddRemove;
         public ToolStripMenuItem mnuGCompileTo;
@@ -1872,6 +2199,55 @@
         private DataGridViewTextBoxColumn colResNum;
         private DataGridViewTextBoxColumn colLIne;
         private DataGridViewTextBoxColumn colModule;
+        private ToolStripMenuItem cmiNew;
+        private ToolStripMenuItem toolStripMenuItem4;
+        private ToolStripMenuItem toolStripMenuItem5;
+        private ToolStripMenuItem toolStripMenuItem6;
+        private ToolStripMenuItem toolStripMenuItem7;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripMenuItem toolStripMenuItem8;
+        private ToolStripMenuItem toolStripMenuItem9;
+        private ToolStripSeparator toolStripSeparator7;
+        private ToolStripMenuItem toolStripMenuItem10;
+        private ToolStripMenuItem cmiOpen;
+        private ToolStripMenuItem toolStripMenuItem12;
+        private ToolStripMenuItem toolStripMenuItem13;
+        private ToolStripMenuItem toolStripMenuItem14;
+        private ToolStripMenuItem toolStripMenuItem15;
+        private ToolStripSeparator toolStripSeparator9;
+        private ToolStripMenuItem toolStripMenuItem16;
+        private ToolStripMenuItem toolStripMenuItem17;
+        private ToolStripSeparator toolStripSeparator10;
+        private ToolStripMenuItem toolStripMenuItem18;
+        public ToolStripMenuItem cmiImport;
+        private ToolStripMenuItem toolStripMenuItem20;
+        private ToolStripMenuItem toolStripMenuItem21;
+        private ToolStripMenuItem toolStripMenuItem22;
+        private ToolStripMenuItem toolStripMenuItem23;
+        private ToolStripSeparator toolStripSeparator11;
+        private ToolStripMenuItem toolStripMenuItem24;
+        private ToolStripMenuItem toolStripMenuItem25;
+        private ToolStripSeparator cmiSeparator0;
+        private ToolStripMenuItem cmiSaveResource;
+        private ToolStripMenuItem cmiExportResource;
+        private ToolStripSeparator cmiSeparator1;
+        public ToolStripMenuItem cmiAddRemove;
+        public ToolStripMenuItem cmiRenumber;
+        private ToolStripMenuItem cmiID;
+        private ToolStripSeparator cmiSeparator2;
+        private ToolStripMenuItem cmiCompileLogic;
+        private ToolStripMenuItem cmiExportPicImage;
+        private ToolStripMenuItem cmiExportLoopGIF;
+        private ToolStripMenuItem cmiOpenResource;
+        private ToolStripMenuItem mnuROpenRes;
+        private ToolStripSeparator mnuRSeparator3;
+        private ToolStripMenuItem mnuRSavePicImage;
+        private ToolStripMenuItem mnuRExportGIF;
+        private ToolStripMenuItem mnuRCompileLogic;
+        private ContextMenuStrip cmsGrid;
+        private ToolStripMenuItem cmiDismiss;
+        private ToolStripMenuItem cmiDismissAll;
+        private ToolStripMenuItem cmiErrorHelp;
     }
 }
 

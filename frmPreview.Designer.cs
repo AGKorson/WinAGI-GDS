@@ -30,6 +30,9 @@ namespace WinAGI.Editor {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPreview));
             pnlLogic = new System.Windows.Forms.Panel();
             rtfLogPrev = new FastColoredTextBox();
+            cmsLogic = new System.Windows.Forms.ContextMenuStrip(components);
+            cmiSelectAll = new System.Windows.Forms.ToolStripMenuItem();
+            cmiCopy = new System.Windows.Forms.ToolStripMenuItem();
             pnlPicture = new System.Windows.Forms.Panel();
             tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             pnlPicHeader = new System.Windows.Forms.Panel();
@@ -94,14 +97,11 @@ namespace WinAGI.Editor {
             tbbBottom = new System.Windows.Forms.ToolStripMenuItem();
             tmrMotion = new System.Windows.Forms.Timer(components);
             tmrSound = new System.Windows.Forms.Timer(components);
-            menuStrip1 = new System.Windows.Forms.MenuStrip();
-            mnuResource = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRSep1 = new System.Windows.Forms.ToolStripSeparator();
-            mnuRSavePicAs = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRLoopGIF = new System.Windows.Forms.ToolStripMenuItem();
             statusStrip1 = new System.Windows.Forms.StatusStrip();
             tspPreviewText = new System.Windows.Forms.ToolStripStatusLabel();
             pnlLogic.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)rtfLogPrev).BeginInit();
+            cmsLogic.SuspendLayout();
             pnlPicture.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             pnlPicHeader.SuspendLayout();
@@ -122,7 +122,6 @@ namespace WinAGI.Editor {
             ((System.ComponentModel.ISupportInitialize)fraVCorner).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picCel).BeginInit();
             tsViewPrev.SuspendLayout();
-            menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -141,15 +140,22 @@ namespace WinAGI.Editor {
             // 
             rtfLogPrev.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             rtfLogPrev.AutoCompleteBracketsList = new char[]
-            {'(', ')', '{', '}', '"', '"'};
+    {
+    '(',
+    ')',
+    '{',
+    '}',
+    '"',
+    '"'
+    };
             rtfLogPrev.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
-            rtfLogPrev.AutoScrollMinSize = new System.Drawing.Size(179, 14);
+            rtfLogPrev.AutoScrollMinSize = new System.Drawing.Size(27, 14);
             rtfLogPrev.BackBrush = null;
             rtfLogPrev.CharHeight = 14;
             rtfLogPrev.CharWidth = 8;
+            rtfLogPrev.ContextMenuStrip = cmsLogic;
             rtfLogPrev.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
-            rtfLogPrev.Font = new System.Drawing.Font("Courier New", 9.75F);
-            rtfLogPrev.Hotkeys = resources.GetString("fastColoredTextBox1.Hotkeys");
+            rtfLogPrev.Hotkeys = resources.GetString("rtfLogPrev.Hotkeys");
             rtfLogPrev.IsReplaceMode = false;
             rtfLogPrev.Location = new System.Drawing.Point(0, 0);
             rtfLogPrev.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
@@ -157,15 +163,35 @@ namespace WinAGI.Editor {
             rtfLogPrev.Paddings = new System.Windows.Forms.Padding(0);
             rtfLogPrev.ReadOnly = true;
             rtfLogPrev.SelectionColor = System.Drawing.Color.FromArgb(60, 0, 0, 255);
-            rtfLogPrev.ServiceColors = (ServiceColors)resources.GetObject("fastColoredTextBox1.ServiceColors");
+            rtfLogPrev.ServiceColors = (ServiceColors)resources.GetObject("rtfLogPrev.ServiceColors");
             rtfLogPrev.Size = new System.Drawing.Size(537, 389);
             rtfLogPrev.TabIndex = 0;
-            rtfLogPrev.Text = "";
-            rtfLogPrev.WordWrap = false;
             rtfLogPrev.Zoom = 100;
             rtfLogPrev.DoubleClick += rtfLogPrev_DoubleClick;
             rtfLogPrev.KeyDown += rtfLogPrev_KeyDown;
             rtfLogPrev.MouseDown += rtfLogPrev_MouseDown;
+            // 
+            // cmsLogic
+            // 
+            cmsLogic.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { cmiSelectAll, cmiCopy });
+            cmsLogic.Name = "contextMenuStrip1";
+            cmsLogic.Size = new System.Drawing.Size(165, 48);
+            // 
+            // cmiSelectAll
+            // 
+            cmiSelectAll.Name = "cmiSelectAll";
+            cmiSelectAll.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A;
+            cmiSelectAll.Size = new System.Drawing.Size(164, 22);
+            cmiSelectAll.Text = "Select All";
+            cmiSelectAll.Click += cmiSelectAll_Click;
+            // 
+            // cmiCopy
+            // 
+            cmiCopy.Name = "cmiCopy";
+            cmiCopy.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C;
+            cmiCopy.Size = new System.Drawing.Size(164, 22);
+            cmiCopy.Text = "Copy";
+            cmiCopy.Click += cmiCopy_Click;
             // 
             // pnlPicture
             // 
@@ -878,52 +904,6 @@ namespace WinAGI.Editor {
             tmrSound.Interval = 1;
             tmrSound.Tick += Timer1_Tick;
             // 
-            // menuStrip1
-            // 
-            menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuResource });
-            menuStrip1.Location = new System.Drawing.Point(0, 0);
-            menuStrip1.Name = "menuStrip1";
-            menuStrip1.Padding = new System.Windows.Forms.Padding(3, 1, 0, 1);
-            menuStrip1.Size = new System.Drawing.Size(541, 24);
-            menuStrip1.TabIndex = 11;
-            menuStrip1.Text = "menuStrip1";
-            menuStrip1.Visible = false;
-            // 
-            // mnuResource
-            // 
-            mnuResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuRSep1, mnuRSavePicAs, mnuRLoopGIF });
-            mnuResource.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
-            mnuResource.MergeIndex = 1;
-            mnuResource.Name = "mnuResource";
-            mnuResource.Size = new System.Drawing.Size(67, 22);
-            mnuResource.Text = "&Resource";
-            // 
-            // mnuRSep1
-            // 
-            mnuRSep1.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            mnuRSep1.MergeIndex = 10;
-            mnuRSep1.Name = "mnuRSep1";
-            mnuRSep1.Size = new System.Drawing.Size(268, 6);
-            // 
-            // mnuRSavePicAs
-            // 
-            mnuRSavePicAs.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            mnuRSavePicAs.MergeIndex = 11;
-            mnuRSavePicAs.Name = "mnuRSavePicAs";
-            mnuRSavePicAs.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.S;
-            mnuRSavePicAs.Size = new System.Drawing.Size(271, 22);
-            mnuRSavePicAs.Text = "Save Picture Image As...";
-            mnuRSavePicAs.Click += mnuRSavePicAs_Click;
-            // 
-            // mnuRLoopGIF
-            // 
-            mnuRLoopGIF.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            mnuRLoopGIF.MergeIndex = 12;
-            mnuRLoopGIF.Name = "mnuRLoopGIF";
-            mnuRLoopGIF.Size = new System.Drawing.Size(271, 22);
-            mnuRLoopGIF.Text = "Export Loop as GIF";
-            // 
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
@@ -953,10 +933,9 @@ namespace WinAGI.Editor {
             ClientSize = new System.Drawing.Size(541, 392);
             Controls.Add(pnlLogic);
             Controls.Add(pnlSound);
-            Controls.Add(menuStrip1);
-            Controls.Add(statusStrip1);
             Controls.Add(pnlView);
             Controls.Add(pnlPicture);
+            Controls.Add(statusStrip1);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             KeyPreview = true;
             Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
@@ -968,10 +947,13 @@ namespace WinAGI.Editor {
             Deactivate += frmPreview_Deactivate;
             FormClosing += frmPreview_FormClosing;
             Load += frmPreview_Load;
+            VisibleChanged += frmPreview_VisibleChanged;
             KeyDown += frmPreview_KeyDown;
             KeyPress += frmPreview_KeyPress;
             PreviewKeyDown += frmPreview_PreviewKeyDown;
             pnlLogic.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)rtfLogPrev).EndInit();
+            cmsLogic.ResumeLayout(false);
             pnlPicture.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
             pnlPicHeader.ResumeLayout(false);
@@ -997,8 +979,6 @@ namespace WinAGI.Editor {
             ((System.ComponentModel.ISupportInitialize)picCel).EndInit();
             tsViewPrev.ResumeLayout(false);
             tsViewPrev.PerformLayout();
-            menuStrip1.ResumeLayout(false);
-            menuStrip1.PerformLayout();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             ResumeLayout(false);
@@ -1071,14 +1051,12 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.PictureBox fraVCorner;
         private System.Windows.Forms.Panel pnlProgressBar;
         private System.Windows.Forms.PictureBox picProgress;
-        private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem mnuResource;
-        private System.Windows.Forms.ToolStripSeparator mnuRSep1;
-        private System.Windows.Forms.ToolStripMenuItem mnuRSavePicAs;
-        private System.Windows.Forms.ToolStripMenuItem mnuRLoopGIF;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel tspPreviewText;
         private System.Windows.Forms.RadioButton optMIDI;
         private System.Windows.Forms.RadioButton optPCjr;
+        private System.Windows.Forms.ContextMenuStrip cmsLogic;
+        private System.Windows.Forms.ToolStripMenuItem cmiSelectAll;
+        private System.Windows.Forms.ToolStripMenuItem cmiCopy;
     }
 }
