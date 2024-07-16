@@ -1973,4 +1973,17 @@
   <data name="5158" xml:space="preserve">
     <value>str sA, wrd wB</value>
   </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="vsError" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\vsError.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="vsExclamation" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\vsExclamation.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="vsInformation" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\vsInformation.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="vsQuestion" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\vsQuestionI.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

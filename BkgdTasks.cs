@@ -17,14 +17,16 @@ using System.Diagnostics;
 namespace WinAGI.Editor {
     class BkgdTasks {
         internal static BackgroundWorker bgwOpenGame = null;
+        internal static BackgroundWorker bgwCompGame = null;
         private static bool updating;
+        private static bool cancelcomp = false;
 
         /// <summary>
         /// This method handles the DoWork event for the background OpenGame object.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public static void OpenGameBkgd(object sender, DoWorkEventArgs e) {
+        public static void OpenGameDoWork(object sender, DoWorkEventArgs e) {
             string strError = "";
             bool blnWarnings = false;
             int lngErr;
@@ -135,13 +137,11 @@ namespace WinAGI.Editor {
             // if loaded OK, 
             if (blnLoaded) {
                 bgwOpenGame.ReportProgress(50, "Game " + (argval.Mode == 0 ? "loaded" : "imported") + " successfully, setting up editors");
-                //set default directory
+                // set default directory
                 BrowserStartDir = EditGame.GameDir;
-                //store game file name
-                CurGameFile = EditGame.GameFile;
                 //set default text file directory to game source file directory
                 DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
-                //build the lookup tables for logic tooltips
+                // build the lookup tables for logic tooltips
                 BuildIDefLookup();
                 BuildGDefLookup();
                 // add game specific resdefs
@@ -163,7 +163,7 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public static void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e) {
+        public static void OpenGameProgressChanged(object sender, ProgressChangedEventArgs e) {
             // progress percentage used to identify different types of events
 
             switch (e.ProgressPercentage) {
@@ -244,10 +244,9 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public static void bgw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
+        public static void OpenGameWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
             // load is over
             ProgressWin.Close();
-
             // refresh results
             LoadResults = (LoadGameResults)e.Result;
             if (LoadResults.Failed) {
@@ -257,6 +256,157 @@ namespace WinAGI.Editor {
                 if (LoadResults.Warnings) {
                     MessageBox.Show("Some errors and/or anomalies in resource data were encountered.", "Errors During " + (LoadResults.Mode == 0 ? "Load" : "Import"), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+            }
+        }
+
+        /// <summary>
+        /// This method handles the DoWork event for the background CompileGame object.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public static void CompileGameDoWork(object sender, DoWorkEventArgs e) {
+            CompileGameResults argval = (CompileGameResults)e.Argument;
+            cancelcomp = false;
+            try {
+                switch (argval.Mode) {
+                case 0:
+                    // full compile
+                    Debug.Assert(false);
+                    break;
+                case 1:
+                    // normal rebuild
+                    Debug.Assert(false);
+                    break;
+                case 2:
+                    // change version rebuild
+                    EditGame.InterpreterVersion = argval.parm;
+                    break;
+                }
+                // change was ok, unless canceled
+                argval.Failed = cancelcomp;
+                e.Result = argval;
+            }
+            catch (Exception ex) {
+                argval.CompExc = ex;
+                argval.Failed = true;
+                e.Result = argval;
+            }
+        }
+
+        /// <summary>
+        /// This method handles the progress update event for the background CompileGame object.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public static void CompileGameProgressChanged(object sender, ProgressChangedEventArgs e) {
+            TWinAGIEventInfo compInfo = (TWinAGIEventInfo)e.UserState;
+            
+            switch ((ECStatus)e.ProgressPercentage) {
+            case ECStatus.csCompWords:
+                CompStatusWin.lblStatus.Text = "Compiling WORDS.TOK";
+                CompStatusWin.pgbStatus.Value++;
+                break;
+            case ECStatus.csCompObjects:
+                CompStatusWin.lblStatus.Text = "Compiling OBJECT";
+                CompStatusWin.pgbStatus.Value++;
+                break;
+            case ECStatus.csAddResource:
+                // adding a resource
+                CompStatusWin.lblStatus.Text = "Adding resource: " + compInfo.ID;
+                CompStatusWin.pgbStatus.Value++;
+                break;
+            case ECStatus.csDoneAdding:
+                break;
+
+            case ECStatus.csCompileComplete:
+                CompStatusWin.lblStatus.Text = "Creating DIR file entries";
+                break;
+            case ECStatus.csWarning:
+                // warning generated
+                int warnings = CompStatusWin.Warnings;
+                warnings++;
+                warnings.ToString();
+                CompStatusWin.lblWarnings.Text = warnings.ToString();
+                CompStatusWin.Warnings = warnings;
+                MDIMain.AddWarning(compInfo);
+                break;
+            case ECStatus.csResError:
+            case ECStatus.csLogicError:
+                cancelcomp = true;
+                // error encountered
+                int errors = CompStatusWin.Errors;
+                errors++;
+                errors.ToString();
+                CompStatusWin.lblWarnings.Text = errors.ToString();
+                CompStatusWin.Warnings = errors;
+                MDIMain.AddWarning(compInfo);
+                break;
+            case ECStatus.csLogicCompiled:
+                // TODO: add logic compiled check
+                break;
+
+            case ECStatus.csFatalError:
+                cancelcomp = true;
+                break;
+
+            case ECStatus.csCanceled:
+                CompStatusWin.lblStatus.Text = "CANCELING COMPILE...";
+                CompStatusWin.pgbStatus.Value = CompStatusWin.pgbStatus.Maximum;
+                cancelcomp = true;
+                break;
+            }
+        }
+
+        /// <summary>
+        /// This method handles the worker completed event for the background CompileGame object.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public static void CompileGameWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
+            // compile is done
+            CompStatusWin?.Close();
+            //CompStatusWin.Visible = false;
+
+            // refresh results
+            CompGameResults = (CompileGameResults)e.Result;
+            switch (CompGameResults.Mode) {
+            case 0:
+                // full compile
+                Debug.Assert(false);
+                break;
+            case 1:
+                // normal rebuild
+                Debug.Assert(false);
+                break;
+            case 2:
+                // change version rebuild
+                if (!cancelcomp) {
+                    if (CompGameResults.Failed) {
+                        ErrMsgBox(CompGameResults.CompExc, "Error during version change: ", "Original version has been restored.", "Change Interpreter Version");
+                    }
+                    else {
+                        // check for errors and warnings
+                        if (int.Parse(CompStatusWin.lblErrors.Text) + int.Parse(CompStatusWin.lblWarnings.Text) > 0) {
+                            MessageBox.Show("Errors and/or warnings were generated during game rebuild.", "Version Change Rebuild", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            if (int.Parse(CompStatusWin.lblErrors.Text) > 0) {
+                                // reuild resource list if there were errors
+                                BuildResourceTree();
+                            }
+                            if (int.Parse(CompStatusWin.lblWarnings.Text) > 0) {
+                                if (!MDIMain.pnlWarnings.Visible) {
+                                    MDIMain.pnlWarnings.Visible = true;
+                                }
+                            }
+                        }
+                        else {
+                            // everything is ok
+                            MessageBox.Show("Version change and rebuild completed successfully.",
+                            "Change Interpreter Version", MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                        }
+                    }
+                }
+                break;
             }
         }
     }

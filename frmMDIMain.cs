@@ -20,6 +20,7 @@ using static WinAGI.Editor.Base;
 using static WinAGI.Editor.BkgdTasks;
 using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
+using System.Security.Authentication.ExtendedProtection;
 
 namespace WinAGI.Editor
 {
@@ -124,9 +125,14 @@ namespace WinAGI.Editor
         }
 
         internal void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e) {
-            // test to see if event arg can pass back a cancel command
-            // e.Cancel = true;
-            // YES! it can!
+            // check for a cancel
+            if (CompStatusWin.CompCanceled) {
+                CompStatusWin.CompCanceled = false;
+                e.Cancel = true;
+                return;
+            }
+            // pass event to background task
+            bgwCompGame.ReportProgress((int)e.CStatus, e.CompileInfo);
         }
 
         internal void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e) {
@@ -190,9 +196,11 @@ namespace WinAGI.Editor
                 break;
             }
         }
+        
         internal void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e) {
 
         }
+        
         internal void GameEvents_DecodeLogicStatus(object sender, DecodeLogicEventArgs e) {
             Debug.Print($"decode it: {e.DecodeInfo.Text}");
             bgwOpenGame?.ReportProgress(2, e.DecodeInfo);
@@ -225,12 +233,14 @@ namespace WinAGI.Editor
             }
         }
         private void mnuWClose_Click(object sender, EventArgs e) {
-            //only close if window is close-able
-            this.ActiveMdiChild.Close();
+            // only close if window is close-able
+            if (ActiveMdiChild != PreviewWin) {
+                ActiveMdiChild.Close();
+            }
         }
         private void mnuWindow_DropDownOpening(object sender, EventArgs e) {
-            // disable the close item if no windows
-            mnuWClose.Enabled = (this.MdiChildren.Length != 0);
+            // disable the close item if no windows or if active window is preview
+            mnuWClose.Enabled = (this.MdiChildren.Length != 0) && (ActiveMdiChild != PreviewWin);
         }
         private void frmMDIMain_Load(object sender, EventArgs e) {
             bool blnLastLoad;
@@ -340,7 +350,7 @@ namespace WinAGI.Editor
             WinAGIHelp = ProgramDir + "WinAGI.chm";
             //      mnuHContents.Text = "Contents" + Keys.Tab + "F1";
 
-            //initialize resource treelist by using clear method
+            // initialize resource treelist by using clear method
             ClearResourceList();
 
             // set navlist parameters
@@ -356,7 +366,7 @@ namespace WinAGI.Editor
             Refresh();
 
             if (Settings.ShowSplashScreen) {
-                //dont close unless ~1.75 seconds passed
+                // dont close unless ~1.75 seconds passed
                 while (!splashDone) {
                     Application.DoEvents();
                 }
@@ -369,7 +379,7 @@ namespace WinAGI.Editor
             CompileLogicStatus += MDIMain.GameEvents_CompileLogicStatus;
             DecodeLogicStatus += MDIMain.GameEvents_DecodeLogicStatus;
 
-            //check for command string
+            // check for command string
             CheckCmd();
 
             // was a game loaded when app was last closed
@@ -644,14 +654,14 @@ namespace WinAGI.Editor
             case Game:
                 // show gameid, gameauthor, description,etc
                 PropRows = 10;
-                GameProperties pGame = new(EditGame);
+                GameProperties pGame = new();
                 propertyGrid1.SelectedObject = pGame;
                 break;
             case AGIResType.Logic:
                 if (NewResNum == -1) {
                     // logic header
                     PropRows = 3;
-                    LogicHdrProperties pLgcHdr = new(EditGame.Logics.Count, LogicCompiler.UseReservedNames);
+                    LogicHdrProperties pLgcHdr = new();
                     propertyGrid1.SelectedObject = pLgcHdr;
                 }
                 else {
@@ -659,6 +669,16 @@ namespace WinAGI.Editor
                     EditGame.Logics[NewResNum].Load();
                     PropRows = 8;
                     LogicProperties pLog = new(EditGame.Logics[NewResNum]);
+                    // get reference to value field of the ReadOnly attribute for the IsRoom property 
+                    Attribute readOnly = TypeDescriptor.GetProperties(pLog.GetType())["IsRoom"].Attributes[typeof(ReadOnlyAttribute)];
+                    FieldInfo fi = readOnly.GetType().GetRuntimeFields().ToArray()[0];
+                    // IsRoom is ReadOnly for logic0, ReadWrite for all others
+                    if (NewResNum == 0) {
+                        fi?.SetValue(readOnly, true);
+                    }
+                    else {
+                        fi?.SetValue(readOnly, false);
+                    }
                     propertyGrid1.SelectedObject = pLog;
                 }
                 break;
@@ -1463,7 +1483,7 @@ namespace WinAGI.Editor
                 SelectResource((AGIResType)e.Node.Index, -1);
             }
             else {
-                //it's a resource
+                // it's a resource
                 SelectResource((AGIResType)e.Node.Parent.Index, (int)e.Node.Tag);
             }
             //after selection, force preview window to show and
@@ -1703,7 +1723,11 @@ namespace WinAGI.Editor
         private void tvwResources_AfterSelect(object sender, TreeViewEventArgs e) {
             // probably due to navigation - 
             Debug.Assert(EditGame != null);
-
+            // WTF? opening help file causes the form to call this method
+            // when it tries to close-- gdia
+            if (EditGame == null) {
+                return;
+            }
             //if not changed from previous number
             if (LastNodeName != e.Node.Name) {
                 // force it to select by using node-click
@@ -1715,17 +1739,14 @@ namespace WinAGI.Editor
         }
         private void frmMDIMain_KeyDown(object sender, KeyEventArgs e) {
             //      Debug.Print($"Main - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
-            if (this.splResource.ActiveControl == this.propertyGrid1 && this.ActiveControl == this.splResource) {
-                //? cancel it, unless in editing mode
-                // e.SuppressKeyPress = true;
+            if (splResource.ActiveControl == propertyGrid1 && ActiveControl == splResource) {
+                // for some properties, direct editing not allowed
+                //if (propertyGrid1.SelectedGridItem.Label == "GameID") {
+                //    MessageBox.Show("edit gameid");
+                //    e.SuppressKeyPress = true;
+                //}
             }
         }
-        private void propertyGrid1_KeyDown(object sender, KeyEventArgs e) {
-            Debug.Print($"propgrid - KeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
-            //? cancel it, unless in editing mode
-            e.SuppressKeyPress = true;
-        }
-
 
         public void RemoveSelectedRes() {
 
@@ -2215,12 +2236,22 @@ namespace WinAGI.Editor
             // open a game
             OpenWAGFile();
         }
+        /// <summary>
+        /// Clears the entire warnings list of all entries.
+        /// </summary>
         public void ClearWarnings() {
             // clear entire list
             WarningList.Clear();
             // then clear the grid
             fgWarnings.Rows.Clear();
         }
+
+        /// <summary>
+        /// Clears all warnings and errors for the resource specified
+        /// by number and type.
+        /// </summary>
+        /// <param name="ResNum"></param>
+        /// <param name="ResType"></param>
         public void ClearWarnings(byte ResNum, AGIResType ResType) {
             //find the matching lines (by type/number)
             foreach (TWinAGIEventInfo item in WarningList) {
@@ -2241,10 +2272,12 @@ namespace WinAGI.Editor
             cmdForward.Left = splResource.Width / 2;
         }
 
-        private void propertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e) {
-            // what to do if changed?
+        private void propertyGrid1_MouseWheel(object s, MouseEventArgs e) {
+            // scrolling on the IntVersion property should open the dropdownlist
+            if (propertyGrid1.SelectedGridItem.Label == "IntVer") {
+                ((HandledMouseEventArgs)e).Handled = true;
+            }
         }
-
         public void DismissWarning(int row) {
             //remove a row to dismiss the warning
             fgWarnings.Rows.RemoveAt(row);
@@ -8820,6 +8853,30 @@ namespace WinAGI.Editor
             mnuRExport.Enabled = !err;
             mnuRRenumber.Enabled = !err;
             mnuRIDDesc.Enabled = !err;
+        }
+
+        private void mnuHContents_Click(object sender, EventArgs e) {
+            Help.ShowHelp(this, WinAGIHelp, HelpNavigator.TableOfContents);
+        }
+
+        private void mnuHIndex_Click(object sender, EventArgs e) {
+            Help.ShowHelp(this, WinAGIHelp, HelpNavigator.Index);
+        }
+
+        private void mnuHCommands_Click(object sender, EventArgs e) {
+            Help.ShowHelp(this, WinAGIHelp, HelpNavigator.TopicId, "1001");
+        }
+
+        private void mnuHReference_Click(object sender, EventArgs e) {
+            Help.ShowHelp(this, WinAGIHelp, HelpNavigator.TopicId, "1002");
+        }
+
+        private void mnuHAbout_Click(object sender, EventArgs e) {
+            // TODO: update About screen
+            MessageBox.Show(this,"This is WinAGI.", "About WinAGI", MessageBoxButtons.OK,MessageBoxIcon.Information);
+            // TODO: for controls, use the value 'Topic' for 'HelpNavigator' and
+            // set the 'HelpKeyword' field to the topic name (i.e. "htm\winagi\restree.htm#propwindow")
+            // DON'T use the 'HelpString' field
         }
     }
 }

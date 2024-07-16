@@ -26,7 +26,6 @@ namespace WinAGI.Editor {
         const int MIN_HEIGHT = 100;
         const int MIN_WIDTH = 100;
 
-        bool blnNoUpdate;
         int intOffsetX, intOffsetY;
         AGIResType PrevResType;
 
@@ -149,6 +148,9 @@ namespace WinAGI.Editor {
                         case -5:
                             errMsg = "PICTURE RESOURCE ERROR: Invalid resource header.";
                             break;
+                        case -6:
+                            errMsg = "PICTURE RESOURCE ERROR: Resource decompression error.";
+                            break;
                         }
                         cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
@@ -180,6 +182,9 @@ namespace WinAGI.Editor {
                         case -5:
                             errMsg = "SOUND RESOURCE ERROR: Invalid resource header.";
                             break;
+                        case -6:
+                            errMsg = "SOUND RESOURCE ERROR: Resource decompression error.";
+                            break;
                         }
                         cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
@@ -208,6 +213,9 @@ namespace WinAGI.Editor {
                             break;
                         case -5:
                             errMsg = "VIEW RESOURCE ERROR: Invalid resource header.";
+                            break;
+                        case -6:
+                            errMsg = "VIEW RESOURCE ERROR: Resource decompression error.";
                             break;
                         }
                         cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
@@ -278,13 +286,13 @@ namespace WinAGI.Editor {
             pnlView.Visible = false;
             PrevResType = None;
             // default caption
-            this.Text = "Preview";
+            Text = "Preview";
         }
 
         public void UpdateCaption(AGIResType ResType, byte ResNum) {
             string strID = "";
             // update window caption
-            this.Text = "Preview - " + ResType + " " + ResNum;
+            Text = "Preview - " + ResType + " " + ResNum;
             // if not showing by number in the prvieww list
             if (!Settings.ShowResNum) {
                 //also include the resource ID
@@ -307,7 +315,6 @@ namespace WinAGI.Editor {
             }
         }
         bool PreviewLogic(byte LogNum) {
-
             agLogic = EditGame.Logics[LogNum];
             agLogic.Load();
             // check for errors
@@ -731,7 +738,7 @@ namespace WinAGI.Editor {
         }
         private void uCel_Click(object sender, EventArgs e) {
             if (agView[CurLoop].Cels.Count > 1) {
-                //stop motion
+                // stop motion
                 tmrMotion.Enabled = false;
                 // increment cel, wrapping around
                 CurCel = (CurCel == agView[CurLoop].Cels.Count - 1) ? 0 : CurCel + 1;
@@ -837,14 +844,9 @@ namespace WinAGI.Editor {
             //show correct toolbars for alignment
             HAlign.ImageIndex = lngHAlign + 2;
             VAlign.ImageIndex = lngVAlign + 5;
-            ////success-disable updating until
-            ////loop updowns is set
-            //blnNoUpdate = true;
 
-            //CurLoop = 0;
-            //// reenable updates
-            blnNoUpdate = false;
-            //display the first loop (which will display the first cel!)
+            // display the first loop (which will display the first cel)
+            CurLoop = 0;
             DisplayLoop();
             return true;
         }
@@ -880,20 +882,18 @@ namespace WinAGI.Editor {
             }
 
         }
+
         void DisplayLoop() {
             int i, mW, mH;
-            //disable updating while
-            //changing loop and cel controls
-            blnNoUpdate = true;
-            //update loop label
+            // update loop label
             udLoop.Text = $"Loop {CurLoop} / {agView.Loops.Count - 1}";
-            //reset cel
+            // reset cel
             CurCel = 0;
             udCel.Text = "Cel 0 / " + (agView[CurLoop].Cels.Count - 1);
-            //enable play/stop if more than one cel
+            // enable play/stop if more than one cel
             cmdVPlay.Enabled = (agView[CurLoop].Cels.Count > 1);
             cmdVPlay.BackgroundImage = imageList1.Images[8];
-            //determine size of holding pic
+            // determine size of holding pic
             mW = 0;
             mH = 0;
             for (i = 0; i <= agView[CurLoop].Cels.Count - 1; i++) {
@@ -912,20 +912,16 @@ namespace WinAGI.Editor {
             picCel.Left = PW_MARGIN;
             //set scroll bars everytime loop is changed
             SetVScrollbars();
-            //restore updating, and display the first cel in the loop
-            blnNoUpdate = false;
             DisplayCel();
         }
+
         void SetVScrollbars() {
             // determine if scrollbars are necessary
             blnViewHSB = (picCel.Width > (pnlCel.Width - 2 * PW_MARGIN));
-            //int a = panel5.Controls.GetChildIndex(hsbView);
-            //int b = panel5.Controls.GetChildIndex(picCel);
-            //panel5.Controls.SetChildIndex(hsbView, 1);
             blnViewVSB = (picCel.Height > (pnlCel.Height - 2 * PW_MARGIN - (blnViewHSB ? hsbView.Height : 0)));
-            //check horizontal again(incase addition of vert scrollbar forces it to be shown)
+            //check horizontal again(in case addition of vert scrollbar forces it to be shown)
             blnViewHSB = (picCel.Width > (pnlCel.Width - 2 * PW_MARGIN - (blnViewVSB ? vsbView.Width : 0)));
-            //if both are visibile
+            // if both are visibile
             if (blnViewHSB && blnViewVSB) {
                 //move back from corner
                 hsbView.Width = pnlCel.Width - vsbView.Width;
@@ -965,25 +961,20 @@ namespace WinAGI.Editor {
             DontDraw = false;
             return;
         }
+
         private void frmPreview_Activated(object sender, EventArgs e) {
             //if findform is visible,
             if (FindingForm.Visible) {
                 //hide it it
                 FindingForm.Visible = false;
             }
-            //cmbMotion.SelectedIndex = 0;
-            //sldSpeed.Value = 5;
-            //hsbView.Minimum = -PW_MARGIN;
-
-            //no need to adjust statusstrip; the default works for preview form
-
         }
+
         private void frmPreview_Deactivate(object sender, EventArgs e) {
-            //if previewing a sound,
+            // stop sound playback
             if (SelResType == AGIResType.Sound) {
                 StopSoundPreview();
             }
-
             //stop cycling
             if (tmrMotion.Enabled) {
                 //show play

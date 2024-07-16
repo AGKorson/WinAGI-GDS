@@ -26,8 +26,7 @@ namespace WinAGI.Editor
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent()
-        {
+        private void InitializeComponent() {
             txtID = new System.Windows.Forms.TextBox();
             chkRoom = new System.Windows.Forms.CheckBox();
             txtDescription = new System.Windows.Forms.TextBox();
@@ -165,6 +164,7 @@ namespace WinAGI.Editor
             Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             Name = "frmGetResourceNum";
             Text = "frmGetResourceNum";
+            FormClosed += frmGetResourceNum_FormClosed;
             ResumeLayout(false);
             PerformLayout();
         }

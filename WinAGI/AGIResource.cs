@@ -602,8 +602,6 @@ namespace WinAGI.Engine {
                 }
                 // get volume where this resource is stored
                 bytVolNum = brVOL.ReadByte();
-                // determine if this resource is a compressed picture
-                blnIsPicture = ((bytVolNum & 0x80) == 0x80);
                 // get size info
                 bytLow = brVOL.ReadByte();
                 bytHigh = brVOL.ReadByte();
@@ -614,6 +612,8 @@ namespace WinAGI.Engine {
                     bytLow = brVOL.ReadByte();
                     bytHigh = brVOL.ReadByte();
                     diskSize = (bytHigh << 8) + bytLow;
+                    // determine if this resource is a compressed picture
+                    blnIsPicture = ((bytVolNum & 0x80) == 0x80);
                 }
                 else {
                     diskSize = fullSize;
@@ -630,16 +630,42 @@ namespace WinAGI.Engine {
             mData = brVOL.ReadBytes(diskSize);
             fsVOL.Dispose();
             brVOL.Dispose();
-            if (blnIsPicture) {
+            if (blnIsPicture && fullSize != diskSize) {
                 // pictures use this decompression
                 V3Compressed = 1;
-                mData = DecompressPicture(mData, fullSize);
+                try {
+                    mData = DecompressPicture(mData, fullSize);
+                }
+                catch (Exception e) {
+                    fsVOL.Dispose();
+                    brVOL.Dispose();
+                    ErrLevel = -6;
+                    ErrData[0] = mLoc.ToString();
+                    ErrData[1] = mVolume.ToString();
+                    ErrData[2] = Path.GetFileName(fsVOL.Name);
+                    ErrData[3] = mResID;
+                    ErrData[4] = e.Message;
+                    return;
+                }
             }
             else {
                 if (mData.Length != fullSize) {
                     // all other resources use LZW compression
                     V3Compressed = 2;
-                    mData = AGILZW.ExpandV3ResData(mData, fullSize);
+                    try {
+                        mData = AGILZW.ExpandV3ResData(mData, fullSize);
+                    }
+                    catch (Exception e) {
+                        fsVOL.Dispose();
+                        brVOL.Dispose();
+                        ErrLevel = -6;
+                        ErrData[0] = mLoc.ToString();
+                        ErrData[1] = mVolume.ToString();
+                        ErrData[2] = Path.GetFileName(fsVOL.Name);
+                        ErrData[3] = mResID;
+                        ErrData[4] = e.Message;
+                        return;
+                    }
                 }
             }
             // reset resource markers

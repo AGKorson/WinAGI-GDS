@@ -246,6 +246,7 @@
             OpenDlg = new OpenFileDialog();
             SaveDlg = new SaveFileDialog();
             imlPropButtons = new ImageList(components);
+            hlpWinAGI = new HelpProvider();
             menuStrip1.SuspendLayout();
             cmsResources.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -923,12 +924,14 @@
             mnuHContents.ShortcutKeys = Keys.F1;
             mnuHContents.Size = new System.Drawing.Size(238, 22);
             mnuHContents.Text = "&Contents";
+            mnuHContents.Click += mnuHContents_Click;
             // 
             // mnuHIndex
             // 
             mnuHIndex.Name = "mnuHIndex";
             mnuHIndex.Size = new System.Drawing.Size(238, 22);
             mnuHIndex.Text = "&Index";
+            mnuHIndex.Click += mnuHIndex_Click;
             // 
             // mnuHSep1
             // 
@@ -941,6 +944,7 @@
             mnuHCommands.ShortcutKeys = Keys.Alt | Keys.F1;
             mnuHCommands.Size = new System.Drawing.Size(238, 22);
             mnuHCommands.Text = "&Logic Commands Help";
+            mnuHCommands.Click += mnuHCommands_Click;
             // 
             // mnuHReference
             // 
@@ -948,6 +952,7 @@
             mnuHReference.ShortcutKeys = Keys.F11;
             mnuHReference.Size = new System.Drawing.Size(238, 22);
             mnuHReference.Text = "AGI &Reference";
+            mnuHReference.Click += mnuHReference_Click;
             // 
             // mnuHSep2
             // 
@@ -959,6 +964,7 @@
             mnuHAbout.Name = "mnuHAbout";
             mnuHAbout.Size = new System.Drawing.Size(238, 22);
             mnuHAbout.Text = "&About WinAGI GDS...";
+            mnuHAbout.Click += mnuHAbout_Click;
             // 
             // cmsResources
             // 
@@ -1647,6 +1653,9 @@
             // 
             tvwResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tvwResources.ContextMenuStrip = cmsResources;
+            hlpWinAGI.SetHelpKeyword(tvwResources, "htm\\winagi\\restree.htm#restree");
+            hlpWinAGI.SetHelpNavigator(tvwResources, HelpNavigator.Topic);
+            hlpWinAGI.SetHelpString(tvwResources, "");
             tvwResources.HideSelection = false;
             tvwResources.Location = new System.Drawing.Point(0, 26);
             tvwResources.Margin = new Padding(2, 1, 2, 1);
@@ -1666,6 +1675,7 @@
             treeNode7.Name = "Node0";
             treeNode7.Text = "AGIGAME";
             tvwResources.Nodes.AddRange(new TreeNode[] { treeNode7 });
+            hlpWinAGI.SetShowHelp(tvwResources, true);
             tvwResources.Size = new System.Drawing.Size(152, 147);
             tvwResources.TabIndex = 25;
             tvwResources.AfterCollapse += tvwResources_AfterCollapse;
@@ -1746,8 +1756,7 @@
             propertyGrid1.Size = new System.Drawing.Size(156, 124);
             propertyGrid1.TabIndex = 28;
             propertyGrid1.ToolbarVisible = false;
-            propertyGrid1.KeyDown += propertyGrid1_KeyDown;
-            propertyGrid1.PropertyValueChanged += propertyGrid1_PropertyValueChanged;
+            propertyGrid1.MouseWheel += propertyGrid1_MouseWheel;
             // 
             // picNavList
             // 
@@ -1963,6 +1972,10 @@
             imlPropButtons.Images.SetKeyName(3, "dropdown_d.bmp");
             imlPropButtons.Images.SetKeyName(4, "dropover_d.bmp");
             imlPropButtons.Images.SetKeyName(5, "dropdialog_d.bmp");
+            // 
+            // hlpWinAGI
+            // 
+            hlpWinAGI.HelpNamespace = "C:\\Users\\Andy\\OneDrive\\AGI Stuff\\WinAGI GDS Files\\Visual Studio Projects\\WinAGI\\WinAGI GDS\\WinAGI.chm";
             // 
             // frmMDIMain
             // 
@@ -2248,6 +2261,7 @@
         private ToolStripMenuItem cmiDismiss;
         private ToolStripMenuItem cmiDismissAll;
         private ToolStripMenuItem cmiErrorHelp;
+        public HelpProvider hlpWinAGI;
     }
 }
 

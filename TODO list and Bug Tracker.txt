@@ -22,7 +22,7 @@ add new item to the top of the list - voila!
 
 
 
-
+early versions don't support loop mirroring- changing int version needs to deal with that
 
 
 
@@ -395,6 +395,7 @@ RESOURCE ERRORS/WARNINGS:
     -3 = (502) file access error : 0 = errmsg, 1 = resid
     -4 = (505) invalid locator index : 0 = loc; 1 = vol; 2 = filename; 3 = resid
     -5 = (506) invalid resource header : 0 = loc; 1 = vol; 2 = filename; 3 = resid
+    -6 = (###) decompression error
 
     SrcErrLevel:
       -1 = no source file

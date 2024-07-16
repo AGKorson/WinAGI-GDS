@@ -53,6 +53,7 @@ namespace WinAGI.Engine {
             mResFile = parent.agGameDir + "OBJECT";
             mCodePage = parent.agCodePage;
             InitInvObj();
+            mLoaded = Loaded;
         }
         #endregion
 

@@ -5623,5 +5623,45 @@ namespace WinAGI.Editor {
                 return ResourceManager.GetString("5158", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon vsError {
+            get {
+                object obj = ResourceManager.GetObject("vsError", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon vsExclamation {
+            get {
+                object obj = ResourceManager.GetObject("vsExclamation", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon vsInformation {
+            get {
+                object obj = ResourceManager.GetObject("vsInformation", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon vsQuestion {
+            get {
+                object obj = ResourceManager.GetObject("vsQuestion", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
     }
 }

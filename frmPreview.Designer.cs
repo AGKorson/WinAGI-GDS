@@ -155,6 +155,7 @@ namespace WinAGI.Editor {
             rtfLogPrev.CharWidth = 8;
             rtfLogPrev.ContextMenuStrip = cmsLogic;
             rtfLogPrev.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
+            rtfLogPrev.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogPrev.Hotkeys = resources.GetString("rtfLogPrev.Hotkeys");
             rtfLogPrev.IsReplaceMode = false;
             rtfLogPrev.Location = new System.Drawing.Point(0, 0);
@@ -931,6 +932,7 @@ namespace WinAGI.Editor {
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(541, 392);
+            ControlBox = false;
             Controls.Add(pnlLogic);
             Controls.Add(pnlSound);
             Controls.Add(pnlView);
@@ -942,6 +944,7 @@ namespace WinAGI.Editor {
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "frmPreview";
+            ShowInTaskbar = false;
             Text = "Form1";
             Activated += frmPreview_Activated;
             Deactivate += frmPreview_Deactivate;

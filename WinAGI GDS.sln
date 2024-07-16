@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WinAGI GDS", "WinAGI GDS.cs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WinAGI", "WinAGI\WinAGI.csproj", "{2FCB12F5-B974-4548-887F-E120552A751C}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "WinAGI Installer", "..\WinAGI Installer\WinAGI Installer.vdproj", "{81872298-0524-48A6-AE35-1E3761AF1F85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,8 @@ Global
 		{2FCB12F5-B974-4548-887F-E120552A751C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FCB12F5-B974-4548-887F-E120552A751C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FCB12F5-B974-4548-887F-E120552A751C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81872298-0524-48A6-AE35-1E3761AF1F85}.Debug|Any CPU.ActiveCfg = Debug
+		{81872298-0524-48A6-AE35-1E3761AF1F85}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -141,7 +141,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="AddRes"></param>
         /// <param name="replace"></param>
-        internal void AddNextRes(AGIResource AddRes) {
+        internal void AddNextRes(AGIResource AddRes, bool IsV3) {
             byte[] ResHeader;
 
             // the DIR file is not updated; that is done by the
@@ -157,14 +157,14 @@ namespace WinAGI.Engine {
             ResHeader[2] = (byte)Index;
             ResHeader[3] = (byte)(AddRes.Size % 256);
             ResHeader[4] = (byte)(AddRes.Size / 256);
-            if (parent.agIsVersion3) {
+            if (IsV3) {
                 Array.Resize(ref ResHeader, 7);
                 ResHeader[5] = ResHeader[3];
                 ResHeader[6] = ResHeader[4];
             }
             try {
                 fsVOL.Seek(Loc, SeekOrigin.Begin);
-                VOLWriter.Write(ResHeader, 0, parent.agIsVersion3 ? 7 : 5);
+                VOLWriter.Write(ResHeader, 0, IsV3 ? 7 : 5);
                 VOLWriter.Write(AddRes.Data, 0, AddRes.Data.Length);
             }
             catch (Exception e) {
@@ -176,7 +176,7 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             // increment loc pointer
-            Loc += AddRes.Size + (parent.agIsVersion3 ? 7 : 5);
+            Loc += AddRes.Size + (IsV3 ? 7 : 5);
         }
 
         /// <summary>
@@ -186,11 +186,11 @@ namespace WinAGI.Engine {
         /// If not, it closes current VOL file, and opens next one.
         /// </summary>
         /// <param name="resource"></param>
-        internal void ValidateVolAndLoc(AGIResource resource) {
+        internal void ValidateVolAndLoc(AGIResource resource, bool IsV3) {
             // check if resource is too long
             if (Loc + resource.Size > MAX_VOLSIZE || (Index == 0 && (Loc + resource.Size > resource.parent.agMaxVol0))) {
                 //set maxvol count to 4 or 15, depending on version
-                int lngMaxVol = resource.parent.agIsVersion3 ? 15 : 4;
+                int lngMaxVol = IsV3 ? 15 : 4;
 
                 // close current vol file
                 VOLFile.Dispose();
@@ -246,9 +246,9 @@ namespace WinAGI.Engine {
         /// <param name="tmpResCol"></param>
         /// <param name="ResType"></param>
         /// <param name="RebuildOnly"></param>
-        /// <param name="NewIsV3"></param>
+        /// <param name="IsV3"></param>
         /// <returns>true, if no resource errors encountered, otherwise false.</returns>
-        internal static bool CompileResCol(AGIGame game, dynamic tmpResCol, AGIResType ResType, bool RebuildOnly) {
+        internal static bool CompileResCol(AGIGame game, dynamic tmpResCol, AGIResType ResType, bool RebuildOnly, bool IsV3) {
             byte CurResNum;
             bool blnUnloadRes;
 
@@ -260,12 +260,13 @@ namespace WinAGI.Engine {
                     InfoType = EInfoType.itResources,
                     ResType = ResType,
                     ResNum = CurResNum,
-                    ID = "",
+                    ID = tmpGameRes.ID,
                     Module = "",
                     Text = ""
                 };
                 // check for cancellation
                 if (AGIGame.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn)) {
+                    tmpGameRes.parent.CompleteCancel();
                     return false;
                 }
                 // set flag to force unload, if resource not currently loaded
@@ -284,12 +285,14 @@ namespace WinAGI.Engine {
                         // -3  resource: file access error
                         // -4  resource: invalid location value in VOL file
                         // -5  resource: invalid data (missing AGI '0x12-0x34' header)
+                        // -6  resource: failure to expand v3 compressed resource
                         tmpWarn.Text = $"Unable to load {tmpGameRes.ID}";
                         tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
                         _ = AGIGame.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
                         // make sure unloaded
                         tmpGameRes.Unload();
                         // and stop compiling
+                        tmpGameRes.parent.CompleteCancel(true);
                         return false;
                     }
                     // check for minor error (compile fails if user cancels)
@@ -327,6 +330,7 @@ namespace WinAGI.Engine {
                             // unload if needed
                             if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                             // then stop compiling
+                            tmpGameRes.parent.CompleteCancel();
                             return false;
                         }
                     }
@@ -341,6 +345,7 @@ namespace WinAGI.Engine {
                         // make sure unloaded
                         tmpGameRes.Unload();
                         // and stop compiling
+                        tmpGameRes.parent.CompleteCancel(true);
                         return false;
                     }
                 }
@@ -356,14 +361,15 @@ namespace WinAGI.Engine {
                             // unload if needed
                             if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                             // then stop compiling
+                            tmpGameRes.parent.CompleteCancel(true);
                             return false;
                         }
                     }
                 }
                 try {
                     // add it to VOL/DIR files
-                    game.volManager.ValidateVolAndLoc(tmpGameRes);
-                    game.volManager.AddNextRes(tmpGameRes);
+                    game.volManager.ValidateVolAndLoc(tmpGameRes, IsV3);
+                    game.volManager.AddNextRes(tmpGameRes, IsV3);
                 }
                 catch (Exception e) {
                     tmpWarn.Type = EventType.etError;
@@ -372,6 +378,7 @@ namespace WinAGI.Engine {
                     // unload resource, if applicable
                     if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                     // then stop compiling
+                    tmpGameRes.parent.CompleteCancel(true);
                     return false;
                 }
                 // done with resource; unload if applicable

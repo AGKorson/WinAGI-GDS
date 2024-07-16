@@ -52,6 +52,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>EditorResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="frmCompStatus.cs">
+      <SubType>Form</SubType>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

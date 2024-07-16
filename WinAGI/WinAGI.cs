@@ -112,7 +112,7 @@ namespace WinAGI.Engine {
         High,    // all compile/decompile problems are returned as errors
     };
 
-    public enum ECStatus { 
+    public enum ECStatus {
         // used to update editor as components are completed,
         csCompWords,
         csCompObjects,
@@ -123,6 +123,7 @@ namespace WinAGI.Engine {
         csResError,
         csLogicCompiled,
         csLogicError,
+        csFatalError,
         csCanceled
     };
 
@@ -268,11 +269,12 @@ namespace WinAGI.Engine {
         public string Text;                 // info, warning or error msg
         public string Line;                 // line number for comp/decomp errors and warnings
         public string Module;               // module name, if comp error occurs in an #include file
+        public int Data;                    // number field used for various data purposes
     }
 
     public struct CommandStruct {
         public string Name;
-        public ArgTypeEnum[] ArgType; //7
+        public ArgTypeEnum[] ArgType;
     }
     #endregion
 

@@ -1,63 +1,76 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Drawing.Design;
 using System.Windows.Forms;
+using System.Windows.Forms.Design;
 using WinAGI.Engine;
 using static WinAGI.Editor.Base;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Editor {
     // property accessors; used on the main form to display 
     // properties, and allow them to be edited
     public class GameProperties {
-        string _GameID;
-        public GameProperties(AGIGame pGame) {
-            _GameID = pGame.GameID;
-            Author = pGame.GameAuthor;
-            GameDir = pGame.GameDir;
-            ResDir = pGame.ResDirName;
-            IntVer = pGame.InterpreterVersion;
-            Description = pGame.GameDescription;
-            GameVer = pGame.GameVersion;
-            GameAbout = pGame.GameAbout;
-            LayoutEditor = pGame.UseLE;
-            LastEdit = pGame.LastEdit;
-        }
+        //string _GameID;
+        public GameProperties() {}
+
         public string GameID {
             get
             {
-                return _GameID;
-
+                return EditGame.GameID;
             }
             set
             {
                 // validate new id before changing it
+                if (EditGame.GameID == value || value.Length == 0) {
+                    return;
+                }
                 if (value.Length > 5) {
-                    _GameID = value[..5];
+                    value = value[..5];
                 }
-                else {
-                    _GameID = value;
-                }
+                ChangeGameID(value);
             }
         }
         public string Author {
             get => EditGame.GameAuthor;
             set => EditGame.GameAuthor = value;
         }
-        public string GameDir { get; }
+        public string GameDir { 
+            get => EditGame.GameDir; }
         public string ResDir { get; set; }
-        public string IntVer { get; set; }
-        public string Description { get; set; }
-        public string GameVer { get; set; }
-        public string GameAbout { get; set; }
-        public bool LayoutEditor { get; set; }
+
+        [TypeConverter(typeof(IntVerConverter))]
+        public string IntVer { 
+            get => EditGame?.InterpreterVersion;
+            set {
+                // determine if a change was made:
+                if (EditGame.InterpreterVersion != value) {
+                    ChangeIntVersion(value);
+                }
+            }
+        }
+        public string Description { 
+            get => EditGame.GameDescription;
+            set => EditGame.GameDescription = value; }
+        public string GameVer { 
+            get => EditGame.GameVersion;
+            set => EditGame.GameVersion = value; }
+        public string GameAbout { 
+            get => EditGame.GameAbout; 
+            set => EditGame.GameAbout = value; }
+        public bool LayoutEditor { 
+            get => EditGame.UseLE; 
+            set => EditGame.UseLE = value; }
         public DateTime LastEdit { get; }
     }
     public class LogicHdrProperties {
-        public LogicHdrProperties(int count, bool useresnames) {
-            Count = count;
-            GlobalDef = true; // what to do about this one...
-            UseResNames = useresnames;
+        public LogicHdrProperties() {
+            Count = EditGame.Logics.Count;
+            GlobalDef = "(List)";
+            UseResNames = LogicCompiler.UseReservedNames;
         }
         public int Count { get; }
-        public bool GlobalDef { get; set; } // dbl click to edit list?
+        public string GlobalDef { get; set; }
         public bool UseResNames { get; set; }
     }
     public class LogicProperties {
@@ -75,8 +88,9 @@ namespace WinAGI.Editor {
         public int Number { get; set; }
         public string ID { get; set; }
         public string Description { get; set; }
+        [ReadOnlyAttribute(false)]
         public bool IsRoom { get; set; } //readonly if room number is 0
-        public bool Compiled { get; set; }
+        public bool Compiled { get;}
         public int Volume { get; }
         public int LOC { get; }
         public int Size { get; }
@@ -150,10 +164,12 @@ namespace WinAGI.Editor {
             LOC = pView.Loc;
             Size = pView.Size;
         }
+        [Editor(typeof(NumberEditor),
+                 typeof(System.Drawing.Design.UITypeEditor))]
         public int Number { get; set; }
         public string ID { get; set; }
         public string Description { get; set; }
-        public string ViewDesc { get; set; }
+        public string ViewDesc { get; }
         public int Volume { get; }
         public int LOC { get; }
         public int Size { get; }
@@ -179,5 +195,51 @@ namespace WinAGI.Editor {
         public int GroupCount { get; }
         public int WordCount { get; }
         public string Description { get; set; }
+    }
+
+
+    internal class PropIntVersions {
+        internal static string[] _Versions = IntVersions;// ["2.089", "2.272"];
+    }
+
+    public class IntVerConverter : StringConverter {
+        public override bool GetStandardValuesSupported(ITypeDescriptorContext context) {
+            //true means show a combobox
+            return true;
+        }
+
+        public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) {
+            //true will limit to list. false will show the list, 
+            //but allow free-form entry
+            return true;
+        }
+
+        public override System.ComponentModel.TypeConverter.StandardValuesCollection
+               GetStandardValues(ITypeDescriptorContext context) {
+            return new StandardValuesCollection(PropIntVersions._Versions);
+        }
+    }
+
+    public class NumberEditor : UITypeEditor {
+        public override UITypeEditorEditStyle
+               GetEditStyle(ITypeDescriptorContext context) {
+            return UITypeEditorEditStyle.Modal;
+        }
+
+        public override object EditValue(ITypeDescriptorContext context,
+                                IServiceProvider provider, object value) {
+            IWindowsFormsEditorService wfes =
+               provider.GetService(typeof(IWindowsFormsEditorService)) as
+               IWindowsFormsEditorService;
+
+            if (wfes != null) {
+                frmGetResourceNum _frmGetResNum = new frmGetResourceNum();
+                _frmGetResNum._wfes = wfes;
+
+                wfes.ShowDialog(_frmGetResNum);
+                value = 1;
+            }
+            return value;
+        }
     }
 }

@@ -11,7 +11,7 @@
         public class CompileGameEventArgs(ECStatus status, TWinAGIEventInfo errInfo) {
             public ECStatus CStatus { get; } = status;
             public bool Cancel { get; set; } = false;
-            public TWinAGIEventInfo ErrorInfo { get; } = errInfo;
+            public TWinAGIEventInfo CompileInfo { get; } = errInfo;
         }
 
         /// <summary>

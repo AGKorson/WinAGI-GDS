@@ -10,11 +10,13 @@ using System.Windows.Forms;
 
 namespace WinAGI.Editor
 {
-  public partial class frmProgress : Form
-  {
-    public frmProgress()
-    {
-      InitializeComponent();
+    public partial class frmProgress : Form {
+        public frmProgress() {
+            InitializeComponent();
+        }
+
+        private void button1_Click(object sender, EventArgs e) {
+
+        }
     }
-  }
 }

@@ -1,28 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using static WinAGI.Editor.Base;
 using WinAGI.Engine;
-using static WinAGI.Engine.AGIResType;
 using static WinAGI.Editor.Base.EGetRes;
-using EnvDTE;
+using System.Windows.Forms.Design;
 
-namespace WinAGI.Editor
-{
-    public partial class frmGetResourceNum : Form
-    {
+namespace WinAGI.Editor {
+    public partial class frmGetResourceNum : Form {
         public AGIResType ResType;
         public byte NewResNum;
         public byte OldResNum;
         public bool Canceled = true;
         public bool DontImport = false;
         public EGetRes WindowFunction;
+        public IWindowsFormsEditorService _wfes;
 
         class ListItemData {
             public byte ResNum = 0;
@@ -30,12 +21,10 @@ namespace WinAGI.Editor
             public override string ToString() { return ID; }
         }
 
-        public frmGetResourceNum()
-        {
+        public frmGetResourceNum() {
             InitializeComponent();
         }
-        public void FormSetup()
-        {
+        public void FormSetup() {
             int i;
             ListItemData tmpItem;
 
@@ -51,8 +40,7 @@ namespace WinAGI.Editor
                 }
                 // only add  resource numbers that are NOT in use
                 for (i = 0; i < 256; i++) {
-                    tmpItem = new ListItemData
-                    {
+                    tmpItem = new ListItemData {
                         ResNum = (byte)i,
                         ID = i.ToString()
                     };
@@ -88,8 +76,7 @@ namespace WinAGI.Editor
             case grOpen or grTestView or grMenu or grMenuBkgd:
                 // only add resources that are in game
                 for (i = 0; i < 256; i++) {
-                    tmpItem = new()
-                    {
+                    tmpItem = new() {
                         ResNum = (byte)i
                     };
                     switch (ResType) {
@@ -132,14 +119,13 @@ namespace WinAGI.Editor
             case grShowRoom:
                 // displays all logics in game which do NOT have InRoom=true
                 for (i = 1; i < 256; i++) {
-                    tmpItem = new()
-                    {
+                    tmpItem = new() {
                         ResNum = (byte)i
                     };
                     if (EditGame.Logics.Contains((byte)i)) {
                         if (!EditGame.Logics[i].IsRoom) {
-                            tmpItem.ID = Settings.ShowResNum 
-                                ? ResourceName(EditGame.Logics[i], true) 
+                            tmpItem.ID = Settings.ShowResNum
+                                ? ResourceName(EditGame.Logics[i], true)
                                 : i + " - " + EditGame.Logics[i].ID;
                             lstResNum.Items.Add(tmpItem);
                         }
@@ -147,7 +133,7 @@ namespace WinAGI.Editor
                 }
                 // if no rooms added
                 if (lstResNum.Items.Count == 0) {
-                    MessageBox.Show("All logics in the game are currently tagged as rooms and are visible.", "Show Room",MessageBoxButtons.OK,MessageBoxIcon.Information); //vbMsgBoxHelpButton, , WinAGIHelp, "htm\winagi\Managing_Resources.htm#resourceids"
+                    MessageBox.Show("All logics in the game are currently tagged as rooms and are visible.", "Show Room", MessageBoxButtons.OK, MessageBoxIcon.Information); //vbMsgBoxHelpButton, , WinAGIHelp, "htm\winagi\Managing_Resources.htm#resourceids"
                     // close form
                     Close();
                 }
@@ -369,8 +355,7 @@ namespace WinAGI.Editor
             */
         }
 
-        void tmpForm()
-        {
+        void tmpForm() {
             /*
       Option Explicit
 
@@ -593,6 +578,10 @@ namespace WinAGI.Editor
             GameSettings.WriteSetting(sGENERAL, "OpenNew", (chkOpenRes.Checked == true));
             // done
             Close();
+        }
+
+        private void frmGetResourceNum_FormClosed(object sender, FormClosedEventArgs e) {
+           // _wfes.CloseDropDown();
         }
     }
 }

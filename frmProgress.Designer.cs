@@ -20,20 +20,20 @@ namespace WinAGI.Editor
       base.Dispose(disposing);
     }
 
-    #region Windows Form Designer generated code
+        #region Windows Form Designer generated code
 
-    /// <summary>
-    /// Required method for Designer support - do not modify
-    /// the contents of this method with the code editor.
-    /// </summary>
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
     private void InitializeComponent()
     {
       this.lblProgress = new System.Windows.Forms.Label();
       this.pgbStatus = new System.Windows.Forms.ProgressBar();
       this.SuspendLayout();
-      // 
-      // lblProgress
-      // 
+            // 
+            // lblProgress
+            // 
       this.lblProgress.AutoEllipsis = true;
       this.lblProgress.Location = new System.Drawing.Point(20, 14);
       this.lblProgress.Name = "lblProgress";
@@ -41,18 +41,18 @@ namespace WinAGI.Editor
       this.lblProgress.TabIndex = 0;
       this.lblProgress.Text = "progress...";
       this.lblProgress.UseWaitCursor = true;
-      // 
-      // pgbStatus
-      // 
+            // 
+            // pgbStatus
+            // 
       this.pgbStatus.Location = new System.Drawing.Point(23, 89);
       this.pgbStatus.Name = "pgbStatus";
       this.pgbStatus.Size = new System.Drawing.Size(439, 44);
       this.pgbStatus.TabIndex = 1;
       this.pgbStatus.UseWaitCursor = true;
       this.pgbStatus.Value = 50;
-      // 
-      // frmProgress
-      // 
+            // 
+            // frmProgress
+            // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(487, 189);
@@ -69,11 +69,11 @@ namespace WinAGI.Editor
       this.UseWaitCursor = true;
       this.ResumeLayout(false);
 
-    }
+        }
 
-    #endregion
+        #endregion
 
-    public System.Windows.Forms.Label lblProgress;
+        public System.Windows.Forms.Label lblProgress;
     public System.Windows.Forms.ProgressBar pgbStatus;
-  }
+    }
 }
