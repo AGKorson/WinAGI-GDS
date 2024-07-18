@@ -652,7 +652,7 @@ namespace WinAGI.Editor {
         public static CompileGameResults CompGameResults;
         public static AGIResType CurResType;
         public static agiSettings Settings;
-        public static SettingsList GameSettings;
+        public static SettingsList WinAGISettings;
         public static frmPreview PreviewWin;
         public static frmProgress ProgressWin;
         public static frmCompStatus CompStatusWin;
@@ -670,8 +670,8 @@ namespace WinAGI.Editor {
         public static bool Compiling;
         public static string WinAGIHelp;
         public static Color PrevWinBColor; //background color for preview window when showing views
-        public static int ScreenTWIPSX;
-        public static int ScreenTWIPSY;
+        //public static int ScreenTWIPSX;
+        //public static int ScreenTWIPSY;
         //navigation queue
         public static int[] ResQueue;
         public static int ResQPtr = -1;
@@ -820,13 +820,13 @@ namespace WinAGI.Editor {
             int intCount, lngGrp;
             int i;
             //check to see if there are any overrides:
-            intCount = GameSettings.GetSetting("ResDefOverrides", "Count", 0);
+            intCount = WinAGISettings.GetSetting("ResDefOverrides", "Count", 0);
             if (intCount == 0) {
                 return;
             }
             //ok, get the overrides, and apply them
             for (i = 1; i <= intCount; i++) {
-                strIn = GameSettings.GetSetting("ResDefOverrides", "Override" + i, "");
+                strIn = WinAGISettings.GetSetting("ResDefOverrides", "Override" + i, "");
                 //split it to get the def value and def name
                 //(0)=group
                 //(1)=index
@@ -858,7 +858,7 @@ namespace WinAGI.Editor {
             //wants to change case of a define (even though it really doesn't matter; compiler is not case sensitive)
 
             //first, delete any previous overrides
-            GameSettings.DeleteSection("ResDefOverrides");
+            WinAGISettings.DeleteSection("ResDefOverrides");
             //now step through each type of define value; if name is not the default, then save it
             for (ResDefGroup grp = 0; (int)grp < 10; grp++) {
                 dfTemp = LogicCompiler.ResDefByGrp(grp);
@@ -866,12 +866,12 @@ namespace WinAGI.Editor {
                     if (dfTemp[i].Default != dfTemp[i].Name) {
                         //save it
                         intCount++;
-                        GameSettings.WriteSetting("ResDefOverrides", "Override" + intCount, (int)grp + ":" + i + ":" + dfTemp[i].Name);
+                        WinAGISettings.WriteSetting("ResDefOverrides", "Override" + intCount, (int)grp + ":" + i + ":" + dfTemp[i].Name);
                     }
                 }
             }
             //write the count value
-            GameSettings.WriteSetting("ResDefOverrides", "Count", intCount.ToString());
+            WinAGISettings.WriteSetting("ResDefOverrides", "Count", intCount.ToString());
         }
         public static void InitializeResMan() {
             bool blnCourier = false, blnArial = false;
@@ -3480,7 +3480,7 @@ namespace WinAGI.Editor {
                         else if (rtn == DialogResult.No) {
                             Settings.RenameWAG = 1;
                         }
-                        GameSettings.WriteSetting(sGENERAL, "RenameWAG", Settings.RenameWAG);
+                        WinAGISettings.WriteSetting(sGENERAL, "RenameWAG", Settings.RenameWAG);
                     }
                     break;
                 case 1:
@@ -12597,7 +12597,7 @@ public static void UpdateSelection(AGIResType ResType, int ResNum, UpdateModeTyp
 
                 //horizon is a PicTest setting, which should always be retrieved everytime
                 //it is used to make sure it's current
-                strLogic = strLogic.Replace("%h", GameSettings.GetSetting(sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON).ToString());
+                strLogic = strLogic.Replace("%h", WinAGISettings.GetSetting(sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON).ToString());
 
                 //if using reserved names, insert them
                 if (LogicCompiler.UseReservedNames) {
@@ -13433,7 +13433,7 @@ public static void UpdateSelection(AGIResType ResType, int ResNum, UpdateModeTyp
         public static void GetDefaultColors() {
             // reads default custom colors from winagi.confg
             for (int i = 0; i < 16; i++) {
-                DefaultColors[i] = GameSettings.GetSetting(sDEFCOLORS, "DefEGAColor" + i, DefaultColors[i]);
+                DefaultColors[i] = WinAGISettings.GetSetting(sDEFCOLORS, "DefEGAColor" + i, DefaultColors[i]);
             }
 
         }

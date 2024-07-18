@@ -575,7 +575,7 @@ namespace WinAGI.Editor {
                 break;
             }
             // save the current 'opennew' value
-            GameSettings.WriteSetting(sGENERAL, "OpenNew", (chkOpenRes.Checked == true));
+            WinAGISettings.WriteSetting(sGENERAL, "OpenNew", (chkOpenRes.Checked == true));
             // done
             Close();
         }

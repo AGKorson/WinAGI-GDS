@@ -26,15 +26,15 @@
         private void InitializeComponent() {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMDIMain));
-            TreeNode treeNode1 = new TreeNode("Logics");
-            TreeNode treeNode2 = new TreeNode("Pictures");
-            TreeNode treeNode3 = new TreeNode("Sounds");
-            TreeNode treeNode4 = new TreeNode("Views");
-            TreeNode treeNode5 = new TreeNode("Objects");
-            TreeNode treeNode6 = new TreeNode("Words");
-            TreeNode treeNode7 = new TreeNode("AGIGAME", new TreeNode[] { treeNode1, treeNode2, treeNode3, treeNode4, treeNode5, treeNode6 });
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            TreeNode treeNode8 = new TreeNode("Logics");
+            TreeNode treeNode9 = new TreeNode("Pictures");
+            TreeNode treeNode10 = new TreeNode("Sounds");
+            TreeNode treeNode11 = new TreeNode("Views");
+            TreeNode treeNode12 = new TreeNode("Objects");
+            TreeNode treeNode13 = new TreeNode("Words");
+            TreeNode treeNode14 = new TreeNode("AGIGAME", new TreeNode[] { treeNode8, treeNode9, treeNode10, treeNode11, treeNode12, treeNode13 });
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             menuStrip1 = new MenuStrip();
             mnuGame = new ToolStripMenuItem();
             mnuGNew = new ToolStripMenuItem();
@@ -807,42 +807,55 @@
             // 
             mnuTSep2.Name = "mnuTSep2";
             mnuTSep2.Size = new System.Drawing.Size(231, 6);
+            mnuTSep2.Visible = false;
             // 
             // mnuTCustom1
             // 
             mnuTCustom1.Name = "mnuTCustom1";
             mnuTCustom1.Size = new System.Drawing.Size(234, 22);
             mnuTCustom1.Text = "tool1";
+            mnuTCustom1.Visible = false;
+            mnuTCustom1.Click += mnuTCustom_Click;
             // 
             // mnuTCustom2
             // 
             mnuTCustom2.Name = "mnuTCustom2";
             mnuTCustom2.Size = new System.Drawing.Size(234, 22);
             mnuTCustom2.Text = "tool2";
+            mnuTCustom2.Visible = false;
+            mnuTCustom2.Click += mnuTCustom_Click;
             // 
             // mnuTCustom3
             // 
             mnuTCustom3.Name = "mnuTCustom3";
             mnuTCustom3.Size = new System.Drawing.Size(234, 22);
             mnuTCustom3.Text = "tool3";
+            mnuTCustom3.Visible = false;
+            mnuTCustom3.Click += mnuTCustom_Click;
             // 
             // mnuTCustom4
             // 
             mnuTCustom4.Name = "mnuTCustom4";
             mnuTCustom4.Size = new System.Drawing.Size(234, 22);
             mnuTCustom4.Text = "tool4";
+            mnuTCustom4.Visible = false;
+            mnuTCustom4.Click += mnuTCustom_Click;
             // 
             // mnuTCustom5
             // 
             mnuTCustom5.Name = "mnuTCustom5";
             mnuTCustom5.Size = new System.Drawing.Size(234, 22);
             mnuTCustom5.Text = "tool5";
+            mnuTCustom5.Visible = false;
+            mnuTCustom5.Click += mnuTCustom_Click;
             // 
             // mnuTCustom6
             // 
             mnuTCustom6.Name = "mnuTCustom6";
             mnuTCustom6.Size = new System.Drawing.Size(234, 22);
             mnuTCustom6.Text = "tool6";
+            mnuTCustom6.Visible = false;
+            mnuTCustom6.Click += mnuTCustom_Click;
             // 
             // mnuTSep3
             // 
@@ -855,6 +868,7 @@
             mnuTCustomize.ShortcutKeys = Keys.F6;
             mnuTCustomize.Size = new System.Drawing.Size(234, 22);
             mnuTCustomize.Text = "&Customize Tool Menu ...";
+            mnuTCustomize.Click += mnuTCustomize_Click;
             // 
             // mnuWindow
             // 
@@ -1660,21 +1674,21 @@
             tvwResources.Location = new System.Drawing.Point(0, 26);
             tvwResources.Margin = new Padding(2, 1, 2, 1);
             tvwResources.Name = "tvwResources";
-            treeNode1.Name = "logics";
-            treeNode1.Text = "Logics";
-            treeNode2.Name = "pictures";
-            treeNode2.Text = "Pictures";
-            treeNode3.Name = "sounds";
-            treeNode3.Text = "Sounds";
-            treeNode4.Name = "views";
-            treeNode4.Text = "Views";
-            treeNode5.Name = "objects";
-            treeNode5.Text = "Objects";
-            treeNode6.Name = "words";
-            treeNode6.Text = "Words";
-            treeNode7.Name = "Node0";
-            treeNode7.Text = "AGIGAME";
-            tvwResources.Nodes.AddRange(new TreeNode[] { treeNode7 });
+            treeNode8.Name = "logics";
+            treeNode8.Text = "Logics";
+            treeNode9.Name = "pictures";
+            treeNode9.Text = "Pictures";
+            treeNode10.Name = "sounds";
+            treeNode10.Text = "Sounds";
+            treeNode11.Name = "views";
+            treeNode11.Text = "Views";
+            treeNode12.Name = "objects";
+            treeNode12.Text = "Objects";
+            treeNode13.Name = "words";
+            treeNode13.Text = "Words";
+            treeNode14.Name = "Node0";
+            treeNode14.Text = "AGIGAME";
+            tvwResources.Nodes.AddRange(new TreeNode[] { treeNode14 });
             hlpWinAGI.SetShowHelp(tvwResources, true);
             tvwResources.Size = new System.Drawing.Size(152, 147);
             tvwResources.TabIndex = 25;
@@ -1798,25 +1812,25 @@
             fgWarnings.AllowUserToDeleteRows = false;
             fgWarnings.AllowUserToResizeRows = false;
             fgWarnings.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
-            fgWarnings.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
+            fgWarnings.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             fgWarnings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             fgWarnings.Columns.AddRange(new DataGridViewColumn[] { colWarning, colDesc, colResNum, colLIne, colModule });
             fgWarnings.ContextMenuStrip = cmsGrid;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            fgWarnings.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            fgWarnings.DefaultCellStyle = dataGridViewCellStyle4;
             fgWarnings.Dock = DockStyle.Fill;
             fgWarnings.EditMode = DataGridViewEditMode.EditOnEnter;
             fgWarnings.Location = new System.Drawing.Point(0, 0);
@@ -2066,7 +2080,6 @@
         private ToolStripMenuItem mnuGProperties;
         private ToolStripMenuItem mnuGExit;
         private ToolStripMenuItem mnuResources;
-        private ToolStripMenuItem mnuTools;
         private ToolStripMenuItem mnuWindow;
         private ToolStripMenuItem mnuWCascade;
         private ToolStripMenuItem mnuWTileV;
@@ -2117,7 +2130,6 @@
         private ToolStripMenuItem mnuReserved;
         private ToolStripMenuItem mnuTSnippets;
         private ToolStripMenuItem mnuTPalette;
-        private ToolStripSeparator mnuTSep2;
         private ToolStripMenuItem mnuTCustom1;
         private ToolStripMenuItem mnuTCustom2;
         private ToolStripMenuItem mnuTCustom3;
@@ -2262,6 +2274,8 @@
         private ToolStripMenuItem cmiDismissAll;
         private ToolStripMenuItem cmiErrorHelp;
         public HelpProvider hlpWinAGI;
+        internal ToolStripMenuItem mnuTools;
+        internal ToolStripSeparator mnuTSep2;
     }
 }
 

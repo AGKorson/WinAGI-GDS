@@ -382,10 +382,10 @@ namespace WinAGI.Editor {
 
         private void SavePreviewPos() {
             //save preview window pos
-            GameSettings.WriteSetting(sPOSITION, "PreviewTop", Top);
-            GameSettings.WriteSetting(sPOSITION, "PreviewLeft", Left);
-            GameSettings.WriteSetting(sPOSITION, "PreviewWidth", Width);
-            GameSettings.WriteSetting(sPOSITION, "PreviewHeight", Height);
+            WinAGISettings.WriteSetting(sPOSITION, "PreviewTop", Top);
+            WinAGISettings.WriteSetting(sPOSITION, "PreviewLeft", Left);
+            WinAGISettings.WriteSetting(sPOSITION, "PreviewWidth", Width);
+            WinAGISettings.WriteSetting(sPOSITION, "PreviewHeight", Height);
         }
 
         bool PreviewPic(byte PicNum) {
@@ -1441,21 +1441,21 @@ namespace WinAGI.Editor {
             int sngWidth, sngHeight;
 
             // get preview window position
-            sngWidth = GameSettings.GetSetting(sPOSITION, "PreviewWidth", (int)(0.4 * MDIMain.Bounds.Width));
+            sngWidth = WinAGISettings.GetSetting(sPOSITION, "PreviewWidth", (int)(0.4 * MDIMain.Bounds.Width));
             if (sngWidth <= MIN_WIDTH) {
                 sngWidth = MIN_WIDTH;
             }
             else if (sngWidth > 0.75 * Screen.GetWorkingArea(this).Width) {
                 sngWidth = (int)(0.75 * Screen.GetWorkingArea(this).Width);
             }
-            sngHeight = GameSettings.GetSetting(sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
+            sngHeight = WinAGISettings.GetSetting(sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
             if (sngHeight <= MIN_HEIGHT) {
                 sngHeight = MIN_HEIGHT;
             }
             else if (sngHeight > 0.75 * Screen.GetWorkingArea(this).Height) {
                 sngHeight = (int)(0.75 * Screen.GetWorkingArea(this).Height);
             }
-            sngLeft = GameSettings.GetSetting(sPOSITION, "PreviewLeft", 0);
+            sngLeft = WinAGISettings.GetSetting(sPOSITION, "PreviewLeft", 0);
             if (sngLeft < 0) {
                 sngLeft = 0;
             }
@@ -1471,7 +1471,7 @@ namespace WinAGI.Editor {
                     }
                 }
             }
-            sngTop = GameSettings.GetSetting(sPOSITION, "PreviewTop", 0);
+            sngTop = WinAGISettings.GetSetting(sPOSITION, "PreviewTop", 0);
             if (sngTop < 0) {
                 sngTop = 0;
             }

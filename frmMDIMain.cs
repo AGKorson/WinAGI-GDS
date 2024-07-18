@@ -196,11 +196,11 @@ namespace WinAGI.Editor
                 break;
             }
         }
-        
+
         internal void GameEvents_CompileLogicStatus(object sender, CompileLogicEventArgs e) {
 
         }
-        
+
         internal void GameEvents_DecodeLogicStatus(object sender, DecodeLogicEventArgs e) {
             Debug.Print($"decode it: {e.DecodeInfo.Text}");
             bgwOpenGame?.ReportProgress(2, e.DecodeInfo);
@@ -383,7 +383,7 @@ namespace WinAGI.Editor
             CheckCmd();
 
             // was a game loaded when app was last closed
-            blnLastLoad = GameSettings.GetSetting(sMRULIST, "LastLoad", false);
+            blnLastLoad = WinAGISettings.GetSetting(sMRULIST, "LastLoad", false);
 
             //if nothing loaded AND autoreload is set AND something was loaded last time program ended,
             if (EditGame is null && this.ActiveMdiChild is null && Settings.AutoOpen && blnLastLoad) {
@@ -922,7 +922,7 @@ namespace WinAGI.Editor
 
             //open the program settings  file
             try {
-                GameSettings = new SettingsList(ProgramDir + "winagi.config", FileMode.OpenOrCreate);
+                WinAGISettings = new SettingsList(ProgramDir + "winagi.config", FileMode.OpenOrCreate);
             }
             catch (WinAGIException wex) {
                 if (wex.HResult == WINAGI_ERR + 700) {
@@ -938,7 +938,7 @@ namespace WinAGI.Editor
                     try {
                         // bad file; 
                         File.Move(ProgramDir + "winagi.config", ProgramDir + "winagi_OLD.config");
-                        GameSettings = new SettingsList(ProgramDir + "winagi.config", FileMode.Create);
+                        WinAGISettings = new SettingsList(ProgramDir + "winagi.config", FileMode.Create);
                     }
                     catch {
                         // unrecoverable error
@@ -951,39 +951,39 @@ namespace WinAGI.Editor
                 }
             }
             // GENERAL settings
-            Settings.ShowSplashScreen = GameSettings.GetSetting(sGENERAL, "ShowSplashScreen", DEFAULT_SHOWSPLASHSCREEN);
-            Settings.WarnCompile = GameSettings.GetSetting(sGENERAL, "WarnCompile", DEFAULT_WARNCOMPILE);
-            Settings.NotifyCompSuccess = GameSettings.GetSetting(sGENERAL, "NotifyCompSuccess", DEFAULT_NOTIFYCOMPSUCCESS);
-            Settings.NotifyCompWarn = GameSettings.GetSetting(sGENERAL, "NotifyCompWarn", DEFAULT_NOTIFYCOMPWARN);
-            Settings.NotifyCompFail = GameSettings.GetSetting(sGENERAL, "NotifyCompFail", DEFAULT_NOTIFYCOMPFAIL);
-            Settings.WarnDupGName = GameSettings.GetSetting(sGENERAL, "WarnDupGName", DEFAULT_WARNDUPGNAME);
-            Settings.WarnDupGVal = GameSettings.GetSetting(sGENERAL, "WarnDupGVal", DEFAULT_WARNDUPGVAL);
-            Settings.WarnInvalidStrVal = GameSettings.GetSetting(sGENERAL, "WarnInvalidStrVal", DEFAULT_WARNSTRVAL);
-            Settings.WarnInvalidCtlVal = GameSettings.GetSetting(sGENERAL, "WarnInvalidCtlVal", DEFAULT_WARNCTLVAL);
-            Settings.WarnResOvrd = GameSettings.GetSetting(sGENERAL, "WarnResOvrd", DEFAULT_WARNRESOVRD);
-            Settings.WarnDupObj = GameSettings.GetSetting(sGENERAL, "WarnDupObj", DEFAULT_WARNDUPOBJ);
-            Settings.WarnItem0 = GameSettings.GetSetting(sGENERAL, "WarnItem0", DEFAULT_WARNITEM0);
-            Settings.DelBlankG = GameSettings.GetSetting(sGENERAL, "DelBlankG", DEFAULT_DELBLANKG);
-            Settings.ShowPreview = GameSettings.GetSetting(sGENERAL, "ShowPreview", DEFAULT_SHOWPREVIEW);
-            Settings.ShiftPreview = GameSettings.GetSetting(sGENERAL, "ShiftPreview", DEFAULT_SHIFTPREVIEW);
-            Settings.HidePreview = GameSettings.GetSetting(sGENERAL, "HidePreview", DEFAULT_HIDEPREVIEW);
-            Settings.ResListType = (agiSettings.EResListType)GameSettings.GetSetting(sGENERAL, "ResListType", (int)DEFAULT_RESLISTTYPE);
+            Settings.ShowSplashScreen = WinAGISettings.GetSetting(sGENERAL, "ShowSplashScreen", DEFAULT_SHOWSPLASHSCREEN);
+            Settings.WarnCompile = WinAGISettings.GetSetting(sGENERAL, "WarnCompile", DEFAULT_WARNCOMPILE);
+            Settings.NotifyCompSuccess = WinAGISettings.GetSetting(sGENERAL, "NotifyCompSuccess", DEFAULT_NOTIFYCOMPSUCCESS);
+            Settings.NotifyCompWarn = WinAGISettings.GetSetting(sGENERAL, "NotifyCompWarn", DEFAULT_NOTIFYCOMPWARN);
+            Settings.NotifyCompFail = WinAGISettings.GetSetting(sGENERAL, "NotifyCompFail", DEFAULT_NOTIFYCOMPFAIL);
+            Settings.WarnDupGName = WinAGISettings.GetSetting(sGENERAL, "WarnDupGName", DEFAULT_WARNDUPGNAME);
+            Settings.WarnDupGVal = WinAGISettings.GetSetting(sGENERAL, "WarnDupGVal", DEFAULT_WARNDUPGVAL);
+            Settings.WarnInvalidStrVal = WinAGISettings.GetSetting(sGENERAL, "WarnInvalidStrVal", DEFAULT_WARNSTRVAL);
+            Settings.WarnInvalidCtlVal = WinAGISettings.GetSetting(sGENERAL, "WarnInvalidCtlVal", DEFAULT_WARNCTLVAL);
+            Settings.WarnResOvrd = WinAGISettings.GetSetting(sGENERAL, "WarnResOvrd", DEFAULT_WARNRESOVRD);
+            Settings.WarnDupObj = WinAGISettings.GetSetting(sGENERAL, "WarnDupObj", DEFAULT_WARNDUPOBJ);
+            Settings.WarnItem0 = WinAGISettings.GetSetting(sGENERAL, "WarnItem0", DEFAULT_WARNITEM0);
+            Settings.DelBlankG = WinAGISettings.GetSetting(sGENERAL, "DelBlankG", DEFAULT_DELBLANKG);
+            Settings.ShowPreview = WinAGISettings.GetSetting(sGENERAL, "ShowPreview", DEFAULT_SHOWPREVIEW);
+            Settings.ShiftPreview = WinAGISettings.GetSetting(sGENERAL, "ShiftPreview", DEFAULT_SHIFTPREVIEW);
+            Settings.HidePreview = WinAGISettings.GetSetting(sGENERAL, "HidePreview", DEFAULT_HIDEPREVIEW);
+            Settings.ResListType = (agiSettings.EResListType)WinAGISettings.GetSetting(sGENERAL, "ResListType", (int)DEFAULT_RESLISTTYPE);
             //validate treetype
             if (Settings.ResListType < 0 || (int)Settings.ResListType > 2) {
                 //use default
                 Settings.ResListType = DEFAULT_RESLISTTYPE;
-                GameSettings.WriteSetting(sGENERAL, "ResListType", Settings.ResListType.ToString(), "");
+                WinAGISettings.WriteSetting(sGENERAL, "ResListType", Settings.ResListType.ToString(), "");
             }
-            Settings.AutoExport = GameSettings.GetSetting(sGENERAL, "AutoExport", DEFAULT_AUTOEXPORT);
-            Settings.AutoUpdateDefines = GameSettings.GetSetting(sLOGICS, "AutoUpdateDefines", DEFAULT_AUTOUPDATEDEFINES);
-            Settings.AutoUpdateResDefs = GameSettings.GetSetting(sLOGICS, "AutoUpdateResDefs", DEFAULT_AUTOUPDATERESDEFS);
-            Settings.AskExport = GameSettings.GetSetting(sGENERAL, "AskExport", DEFAULT_ASKEXPORT);
-            Settings.AskRemove = GameSettings.GetSetting(sGENERAL, "AskRemove", DEFAULT_ASKREMOVE);
-            Settings.OpenNew = GameSettings.GetSetting(sGENERAL, "OpenNew", DEFAULT_OPENNEW);
-            Settings.RenameDelRes = GameSettings.GetSetting(sGENERAL, "RenameDelRes", DEFAULT_RENAMEDELRES);
-            Settings.AutoWarn = GameSettings.GetSetting(sLOGICS, "AutoWarn", DEFAULT_AUTOWARN);
+            Settings.AutoExport = WinAGISettings.GetSetting(sGENERAL, "AutoExport", DEFAULT_AUTOEXPORT);
+            Settings.AutoUpdateDefines = WinAGISettings.GetSetting(sLOGICS, "AutoUpdateDefines", DEFAULT_AUTOUPDATEDEFINES);
+            Settings.AutoUpdateResDefs = WinAGISettings.GetSetting(sLOGICS, "AutoUpdateResDefs", DEFAULT_AUTOUPDATERESDEFS);
+            Settings.AskExport = WinAGISettings.GetSetting(sGENERAL, "AskExport", DEFAULT_ASKEXPORT);
+            Settings.AskRemove = WinAGISettings.GetSetting(sGENERAL, "AskRemove", DEFAULT_ASKREMOVE);
+            Settings.OpenNew = WinAGISettings.GetSetting(sGENERAL, "OpenNew", DEFAULT_OPENNEW);
+            Settings.RenameDelRes = WinAGISettings.GetSetting(sGENERAL, "RenameDelRes", DEFAULT_RENAMEDELRES);
+            Settings.AutoWarn = WinAGISettings.GetSetting(sLOGICS, "AutoWarn", DEFAULT_AUTOWARN);
             //(DefResDir is not an element of settings; it's a WinAGI property)
-            DefResDir = GameSettings.GetSetting(sGENERAL, "DefResDir", "src").Trim();
+            DefResDir = WinAGISettings.GetSetting(sGENERAL, "DefResDir", "src").Trim();
             //validate directory
             if (DefResDir == "") {
                 DefResDir = "src";
@@ -994,80 +994,80 @@ namespace WinAGI.Editor
             else if (DefResDir.Any(ch => ch > 127 || ch < 32)) {
                 DefResDir = "src";
             }
-            Settings.MaxSO = GameSettings.GetSetting(sGENERAL, "MaxSO", DEFAULT_MAXSO);
+            Settings.MaxSO = WinAGISettings.GetSetting(sGENERAL, "MaxSO", DEFAULT_MAXSO);
             if (Settings.MaxSO > 255)
                 Settings.MaxSO = 255;
             if (Settings.MaxSO < 1)
                 Settings.MaxSO = 1;
             //(maxvolsize is an AGIGame property, not a WinAGI setting)  ? but this is the default value if one is
             //not provided in a game, right?
-            Settings.MaxVol0Size = GameSettings.GetSetting(sGENERAL, "MaxVol0", 1047552);
+            Settings.MaxVol0Size = WinAGISettings.GetSetting(sGENERAL, "MaxVol0", 1047552);
             if (Settings.MaxVol0Size < 32768)
                 Settings.MaxVol0Size = 32768;
             if (Settings.MaxVol0Size > 1047552)
                 Settings.MaxVol0Size = 1047552;
             DefMaxVol0Size = Settings.MaxVol0Size;
             //get help window parent
-            if (!GameSettings.GetSetting(sGENERAL, "DockHelpWindow", true)) {
+            if (!WinAGISettings.GetSetting(sGENERAL, "DockHelpWindow", true)) {
                 //HelpParent = GetDesktopWindow();
                 //if (HelpParent = 0)
                 //HelpParent = this.hWnd;
             }
             //RESFORMAT settings
-            Settings.ShowResNum = GameSettings.GetSetting("ResFormat", "ShowResNum", DEFAULT_SHOWRESNUM);
-            Settings.IncludeResNum = GameSettings.GetSetting("ResFormat", "IncludeResNum", DEFAULT_INCLUDERESNUM);
-            Settings.ResFormat.NameCase = GameSettings.GetSetting("ResFormat", "NameCase", (int)DEFAULT_NAMECASE);
+            Settings.ShowResNum = WinAGISettings.GetSetting("ResFormat", "ShowResNum", DEFAULT_SHOWRESNUM);
+            Settings.IncludeResNum = WinAGISettings.GetSetting("ResFormat", "IncludeResNum", DEFAULT_INCLUDERESNUM);
+            Settings.ResFormat.NameCase = WinAGISettings.GetSetting("ResFormat", "NameCase", (int)DEFAULT_NAMECASE);
             if ((int)Settings.ResFormat.NameCase < 0 || (int)Settings.ResFormat.NameCase > 2) {
                 Settings.ResFormat.NameCase = DEFAULT_NAMECASE;
             }
-            Settings.ResFormat.Separator = Left(GameSettings.GetSetting("ResFormat", "Separator", DEFAULT_SEPARATOR), 1);
-            Settings.ResFormat.NumFormat = GameSettings.GetSetting("ResFormat", "NumFormat", DEFAULT_NUMFORMAT);
+            Settings.ResFormat.Separator = Left(WinAGISettings.GetSetting("ResFormat", "Separator", DEFAULT_SEPARATOR), 1);
+            Settings.ResFormat.NumFormat = WinAGISettings.GetSetting("ResFormat", "NumFormat", DEFAULT_NUMFORMAT);
             //GLOBAL EDITOR
-            Settings.GlobalUndo = GameSettings.GetSetting("Globals", "GlobalUndo", DEFAULT_GLBUNDO);
-            Settings.GEShowComment = GameSettings.GetSetting("Globals", "ShowCommentColumn", DEFAULT_GESHOWCMT);
-            Settings.GENameFrac = GameSettings.GetSetting("Globals", "GENameFrac", 0);
-            Settings.GEValFrac = GameSettings.GetSetting("Globals", "GEValFrac", 0);
+            Settings.GlobalUndo = WinAGISettings.GetSetting("Globals", "GlobalUndo", DEFAULT_GLBUNDO);
+            Settings.GEShowComment = WinAGISettings.GetSetting("Globals", "ShowCommentColumn", DEFAULT_GESHOWCMT);
+            Settings.GENameFrac = WinAGISettings.GetSetting("Globals", "GENameFrac", 0);
+            Settings.GEValFrac = WinAGISettings.GetSetting("Globals", "GEValFrac", 0);
 
             //get overrides of reserved defines, if there are any
             GetResDefOverrides();
 
             //LAYOUT
-            Settings.DefUseLE = GameSettings.GetSetting(sLAYOUT, "DefUseLE", DEFAULT_DEFUSELE);
-            Settings.LEPages = GameSettings.GetSetting(sLAYOUT, "PageBoundaries", DEFAULT_LEPAGES);
-            Settings.LEDelPicToo = GameSettings.GetSetting(sLAYOUT, "DelPicToo", DEFAULT_LEWARNDELETE);
-            Settings.LEShowPics = GameSettings.GetSetting(sLAYOUT, "ShowPics", DEFAULT_LESHOWPICS);
-            Settings.LESync = GameSettings.GetSetting(sLAYOUT, "Sync", DEFAULT_LESYNC);
-            Settings.LEUseGrid = GameSettings.GetSetting(sLAYOUT, "UseGrid", DEFAULT_LEUSEGRID);
-            Settings.LEGrid = GameSettings.GetSetting(sLAYOUT, "GridSize", DEFAULT_LEGRID);
+            Settings.DefUseLE = WinAGISettings.GetSetting(sLAYOUT, "DefUseLE", DEFAULT_DEFUSELE);
+            Settings.LEPages = WinAGISettings.GetSetting(sLAYOUT, "PageBoundaries", DEFAULT_LEPAGES);
+            Settings.LEDelPicToo = WinAGISettings.GetSetting(sLAYOUT, "DelPicToo", DEFAULT_LEWARNDELETE);
+            Settings.LEShowPics = WinAGISettings.GetSetting(sLAYOUT, "ShowPics", DEFAULT_LESHOWPICS);
+            Settings.LESync = WinAGISettings.GetSetting(sLAYOUT, "Sync", DEFAULT_LESYNC);
+            Settings.LEUseGrid = WinAGISettings.GetSetting(sLAYOUT, "UseGrid", DEFAULT_LEUSEGRID);
+            Settings.LEGrid = WinAGISettings.GetSetting(sLAYOUT, "GridSize", DEFAULT_LEGRID);
             Settings.LEGrid = Math.Round(Settings.LEGrid, 2);
             if (Settings.LEGrid > 1)
                 Settings.LEGrid = 1;
             if (Settings.LEGrid < 0.05)
                 Settings.LEGrid = 0.05;
-            Settings.LEZoom = GameSettings.GetSetting(sLAYOUT, "Zoom", DEFAULT_LEZOOM);
+            Settings.LEZoom = WinAGISettings.GetSetting(sLAYOUT, "Zoom", DEFAULT_LEZOOM);
             //get editor colors
-            Settings.LEColors.Room.Edge = GameSettings.GetSetting(sLAYOUT, "RoomEdgeColor", DEFAULT_LEROOM_EDGE);
-            Settings.LEColors.Room.Fill = GameSettings.GetSetting(sLAYOUT, "RoomFillColor", DEFAULT_LEROOM_FILL);
-            Settings.LEColors.TransPt.Edge = GameSettings.GetSetting(sLAYOUT, "TransEdgeColor", DEFAULT_LETRANSPT_EDGE);
-            Settings.LEColors.TransPt.Fill = GameSettings.GetSetting(sLAYOUT, "TransFillColor", DEFAULT_LETRANSPT_FILL);
-            Settings.LEColors.ErrPt.Edge = GameSettings.GetSetting(sLAYOUT, "ErrEdgeColor", DEFAULT_LEERR_EDGE);
-            Settings.LEColors.ErrPt.Fill = GameSettings.GetSetting(sLAYOUT, "ErrFillColor", DEFAULT_LEERR_FILL);
-            Settings.LEColors.Cmt.Edge = GameSettings.GetSetting(sLAYOUT, "CmtEdgeColor", DEFAULT_LECMT_EDGE);
-            Settings.LEColors.Cmt.Fill = GameSettings.GetSetting(sLAYOUT, "CmtFillColor", DEFAULT_LECMT_FILL);
-            Settings.LEColors.Edge = GameSettings.GetSetting(sLAYOUT, "ExitEdgeColor", DEFAULT_LEEXIT_EDGE);
-            Settings.LEColors.Other = GameSettings.GetSetting(sLAYOUT, "ExitOtherColor", DEFAULT_LEEXIT_OTHERS);
+            Settings.LEColors.Room.Edge = WinAGISettings.GetSetting(sLAYOUT, "RoomEdgeColor", DEFAULT_LEROOM_EDGE);
+            Settings.LEColors.Room.Fill = WinAGISettings.GetSetting(sLAYOUT, "RoomFillColor", DEFAULT_LEROOM_FILL);
+            Settings.LEColors.TransPt.Edge = WinAGISettings.GetSetting(sLAYOUT, "TransEdgeColor", DEFAULT_LETRANSPT_EDGE);
+            Settings.LEColors.TransPt.Fill = WinAGISettings.GetSetting(sLAYOUT, "TransFillColor", DEFAULT_LETRANSPT_FILL);
+            Settings.LEColors.ErrPt.Edge = WinAGISettings.GetSetting(sLAYOUT, "ErrEdgeColor", DEFAULT_LEERR_EDGE);
+            Settings.LEColors.ErrPt.Fill = WinAGISettings.GetSetting(sLAYOUT, "ErrFillColor", DEFAULT_LEERR_FILL);
+            Settings.LEColors.Cmt.Edge = WinAGISettings.GetSetting(sLAYOUT, "CmtEdgeColor", DEFAULT_LECMT_EDGE);
+            Settings.LEColors.Cmt.Fill = WinAGISettings.GetSetting(sLAYOUT, "CmtFillColor", DEFAULT_LECMT_FILL);
+            Settings.LEColors.Edge = WinAGISettings.GetSetting(sLAYOUT, "ExitEdgeColor", DEFAULT_LEEXIT_EDGE);
+            Settings.LEColors.Other = WinAGISettings.GetSetting(sLAYOUT, "ExitOtherColor", DEFAULT_LEEXIT_OTHERS);
             //LOGICS
-            Settings.HighlightLogic = GameSettings.GetSetting(sLOGICS, "HighlightLogic", DEFAULT_HILITELOG);
-            Settings.HighlightText = GameSettings.GetSetting(sLOGICS, "HighlightText", DEFAULT_HILITETEXT);
-            Settings.LogicTabWidth = GameSettings.GetSetting(sLOGICS, "TabWidth", DEFAULT_LOGICTABWIDTH);
+            Settings.HighlightLogic = WinAGISettings.GetSetting(sLOGICS, "HighlightLogic", DEFAULT_HILITELOG);
+            Settings.HighlightText = WinAGISettings.GetSetting(sLOGICS, "HighlightText", DEFAULT_HILITETEXT);
+            Settings.LogicTabWidth = WinAGISettings.GetSetting(sLOGICS, "TabWidth", DEFAULT_LOGICTABWIDTH);
             if (Settings.LogicTabWidth < 1)
                 Settings.LogicTabWidth = 1;
             if (Settings.LogicTabWidth > 32)
                 Settings.LogicTabWidth = 32;
-            Settings.MaximizeLogics = GameSettings.GetSetting(sLOGICS, "MaximizeLogics", DEFAULT_MAXIMIZELOGICS);
-            Settings.AutoQuickInfo = GameSettings.GetSetting(sLOGICS, "AutoQuickInfo", DEFAULT_AUTOQUICKINFO);
-            Settings.ShowDefTips = GameSettings.GetSetting(sLOGICS, "ShowDefTips", DEFAULT_SHOWDEFTIPS);
-            Settings.EFontName = GameSettings.GetSetting(sLOGICS, "EditorFontName", DEFAULT_EFONTNAME);
+            Settings.MaximizeLogics = WinAGISettings.GetSetting(sLOGICS, "MaximizeLogics", DEFAULT_MAXIMIZELOGICS);
+            Settings.AutoQuickInfo = WinAGISettings.GetSetting(sLOGICS, "AutoQuickInfo", DEFAULT_AUTOQUICKINFO);
+            Settings.ShowDefTips = WinAGISettings.GetSetting(sLOGICS, "ShowDefTips", DEFAULT_SHOWDEFTIPS);
+            Settings.EFontName = WinAGISettings.GetSetting(sLOGICS, "EditorFontName", DEFAULT_EFONTNAME);
             i = 0;
             foreach (FontFamily font in System.Drawing.FontFamily.Families) {
                 if (font.Name.Equals(Settings.EFontName, StringComparison.OrdinalIgnoreCase)) {
@@ -1079,12 +1079,12 @@ namespace WinAGI.Editor
             // not found?
             if (i == 1)
                 Settings.EFontName = DEFAULT_EFONTNAME;
-            Settings.EFontSize = GameSettings.GetSetting(sLOGICS, "EditorFontSize", DEFAULT_EFONTSIZE);
+            Settings.EFontSize = WinAGISettings.GetSetting(sLOGICS, "EditorFontSize", DEFAULT_EFONTSIZE);
             if (Settings.EFontSize < 8)
                 Settings.EFontSize = 8;
             if (Settings.EFontSize > 24)
                 Settings.EFontSize = 24;
-            Settings.PFontName = GameSettings.GetSetting(sLOGICS, "PreviewFontName", DEFAULT_PFONTNAME);
+            Settings.PFontName = WinAGISettings.GetSetting(sLOGICS, "PreviewFontName", DEFAULT_PFONTNAME);
             i = 0;
             foreach (FontFamily font in System.Drawing.FontFamily.Families) {
                 if (font.Name.Equals(Settings.PFontName, StringComparison.OrdinalIgnoreCase)) {
@@ -1095,76 +1095,76 @@ namespace WinAGI.Editor
             }
             if (i == 1)
                 Settings.PFontName = DEFAULT_PFONTNAME;
-            Settings.PFontSize = GameSettings.GetSetting(sLOGICS, "PreviewFontSize", DEFAULT_PFONTSIZE);
+            Settings.PFontSize = WinAGISettings.GetSetting(sLOGICS, "PreviewFontSize", DEFAULT_PFONTSIZE);
             if (Settings.PFontSize < 6)
                 Settings.PFontSize = 6;
             if (Settings.PFontSize > 36)
                 Settings.PFontSize = 36;
-            Settings.OpenOnErr = GameSettings.GetSetting(sLOGICS, "OpenOnErr", DEFAULT_OPENONERR);
+            Settings.OpenOnErr = WinAGISettings.GetSetting(sLOGICS, "OpenOnErr", DEFAULT_OPENONERR);
             if (Settings.OpenOnErr < 0)
                 Settings.OpenOnErr = 0;
             if (Settings.OpenOnErr > 2)
                 Settings.OpenOnErr = 2;
-            Settings.SaveOnCompile = GameSettings.GetSetting(sLOGICS, "SaveOnComp", DEFAULT_SAVEONCOMP);
+            Settings.SaveOnCompile = WinAGISettings.GetSetting(sLOGICS, "SaveOnComp", DEFAULT_SAVEONCOMP);
             if (Settings.SaveOnCompile < 0)
                 Settings.SaveOnCompile = 0;
             if (Settings.SaveOnCompile > 2)
                 Settings.SaveOnCompile = 2;
-            Settings.CompileOnRun = GameSettings.GetSetting(sLOGICS, "CompOnRun", DEFAULT_COMPONRUN);
+            Settings.CompileOnRun = WinAGISettings.GetSetting(sLOGICS, "CompOnRun", DEFAULT_COMPONRUN);
             if (Settings.CompileOnRun < 0)
                 Settings.CompileOnRun = 0;
             if (Settings.CompileOnRun > 2)
                 Settings.CompileOnRun = 2;
-            Settings.LogicUndo = GameSettings.GetSetting(sLOGICS, "LogicUndo", DEFAULT_LOGICUNDO);
+            Settings.LogicUndo = WinAGISettings.GetSetting(sLOGICS, "LogicUndo", DEFAULT_LOGICUNDO);
             if (Settings.LogicUndo < -1)
                 Settings.LogicUndo = -1;
-            Settings.WarnMsgs = GameSettings.GetSetting(sLOGICS, "WarnMsgs", DEFAULT_WARNMSGS);
+            Settings.WarnMsgs = WinAGISettings.GetSetting(sLOGICS, "WarnMsgs", DEFAULT_WARNMSGS);
             if (Settings.WarnMsgs < 0)
                 Settings.WarnMsgs = 0;
             if (Settings.WarnMsgs > 2)
                 Settings.WarnMsgs = 2;
-            LogicCompiler.ErrorLevel = (LogicErrorLevel)GameSettings.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
+            LogicCompiler.ErrorLevel = (LogicErrorLevel)WinAGISettings.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
             if (LogicCompiler.ErrorLevel < 0)
                 LogicCompiler.ErrorLevel = LogicErrorLevel.Low;
             if ((int)LogicCompiler.ErrorLevel > 2)
                 LogicCompiler.ErrorLevel = LogicErrorLevel.High;
-            Settings.DefUseResDef = GameSettings.GetSetting(sLOGICS, "DefUseResDef", DEFAULT_DEFUSERESDEF);
-            Settings.Snippets = GameSettings.GetSetting(sLOGICS, "Snippets", DEFAULT_SNIPPETS);
+            Settings.DefUseResDef = WinAGISettings.GetSetting(sLOGICS, "DefUseResDef", DEFAULT_DEFUSERESDEF);
+            Settings.Snippets = WinAGISettings.GetSetting(sLOGICS, "Snippets", DEFAULT_SNIPPETS);
             //SYNTAXHIGHLIGHTFORMAT
-            Settings.HColor[0] = GameSettings.GetSetting(sSHFORMAT, "NormalColor", DEFAULT_HNRMCOLOR);
-            Settings.HColor[1] = GameSettings.GetSetting(sSHFORMAT, "KeywordColor", DEFAULT_HKEYCOLOR);
-            Settings.HColor[2] = GameSettings.GetSetting(sSHFORMAT, "IdentifierColor", DEFAULT_HIDTCOLOR);
-            Settings.HColor[3] = GameSettings.GetSetting(sSHFORMAT, "StringColor", DEFAULT_HSTRCOLOR);
-            Settings.HColor[4] = GameSettings.GetSetting(sSHFORMAT, "CommentColor", DEFAULT_HCMTCOLOR);
-            Settings.HColor[5] = GameSettings.GetSetting(sSHFORMAT, "BackColor", DEFAULT_HBKGCOLOR);
-            Settings.HBold[0] = GameSettings.GetSetting(sSHFORMAT, "NormalBold", DEFAULT_HNRMBOLD);
-            Settings.HBold[1] = GameSettings.GetSetting(sSHFORMAT, "KeywordBold", DEFAULT_HKEYBOLD);
-            Settings.HBold[2] = GameSettings.GetSetting(sSHFORMAT, "IdentifierBold", DEFAULT_HIDTBOLD);
-            Settings.HBold[3] = GameSettings.GetSetting(sSHFORMAT, "StringBold", DEFAULT_HSTRBOLD);
-            Settings.HBold[4] = GameSettings.GetSetting(sSHFORMAT, "CommentBold", DEFAULT_HCMTBOLD);
-            Settings.HItalic[0] = GameSettings.GetSetting(sSHFORMAT, "NormalItalic", DEFAULT_HNRMITALIC);
-            Settings.HItalic[1] = GameSettings.GetSetting(sSHFORMAT, "KeywordItalic", DEFAULT_HKEYITALIC);
-            Settings.HItalic[2] = GameSettings.GetSetting(sSHFORMAT, "IdentifierItalic", DEFAULT_HIDTITALIC);
-            Settings.HItalic[3] = GameSettings.GetSetting(sSHFORMAT, "StringItalic", DEFAULT_HSTRITALIC);
-            Settings.HItalic[4] = GameSettings.GetSetting(sSHFORMAT, "CommentItalic", DEFAULT_HCMTITALIC);
+            Settings.HColor[0] = WinAGISettings.GetSetting(sSHFORMAT, "NormalColor", DEFAULT_HNRMCOLOR);
+            Settings.HColor[1] = WinAGISettings.GetSetting(sSHFORMAT, "KeywordColor", DEFAULT_HKEYCOLOR);
+            Settings.HColor[2] = WinAGISettings.GetSetting(sSHFORMAT, "IdentifierColor", DEFAULT_HIDTCOLOR);
+            Settings.HColor[3] = WinAGISettings.GetSetting(sSHFORMAT, "StringColor", DEFAULT_HSTRCOLOR);
+            Settings.HColor[4] = WinAGISettings.GetSetting(sSHFORMAT, "CommentColor", DEFAULT_HCMTCOLOR);
+            Settings.HColor[5] = WinAGISettings.GetSetting(sSHFORMAT, "BackColor", DEFAULT_HBKGCOLOR);
+            Settings.HBold[0] = WinAGISettings.GetSetting(sSHFORMAT, "NormalBold", DEFAULT_HNRMBOLD);
+            Settings.HBold[1] = WinAGISettings.GetSetting(sSHFORMAT, "KeywordBold", DEFAULT_HKEYBOLD);
+            Settings.HBold[2] = WinAGISettings.GetSetting(sSHFORMAT, "IdentifierBold", DEFAULT_HIDTBOLD);
+            Settings.HBold[3] = WinAGISettings.GetSetting(sSHFORMAT, "StringBold", DEFAULT_HSTRBOLD);
+            Settings.HBold[4] = WinAGISettings.GetSetting(sSHFORMAT, "CommentBold", DEFAULT_HCMTBOLD);
+            Settings.HItalic[0] = WinAGISettings.GetSetting(sSHFORMAT, "NormalItalic", DEFAULT_HNRMITALIC);
+            Settings.HItalic[1] = WinAGISettings.GetSetting(sSHFORMAT, "KeywordItalic", DEFAULT_HKEYITALIC);
+            Settings.HItalic[2] = WinAGISettings.GetSetting(sSHFORMAT, "IdentifierItalic", DEFAULT_HIDTITALIC);
+            Settings.HItalic[3] = WinAGISettings.GetSetting(sSHFORMAT, "StringItalic", DEFAULT_HSTRITALIC);
+            Settings.HItalic[4] = WinAGISettings.GetSetting(sSHFORMAT, "CommentItalic", DEFAULT_HCMTITALIC);
 
             //PICTURES
-            Settings.PicScale.Edit = GameSettings.GetSetting(sPICTURES, "EditorScale", DEFAULT_PICSCALE_EDIT);
+            Settings.PicScale.Edit = WinAGISettings.GetSetting(sPICTURES, "EditorScale", DEFAULT_PICSCALE_EDIT);
             if (Settings.PicScale.Edit < 1)
                 Settings.PicScale.Edit = 1;
             if (Settings.PicScale.Edit > 4)
                 Settings.PicScale.Edit = 4;
-            Settings.PicScale.Preview = GameSettings.GetSetting(sPICTURES, "PreviewScale", DEFAULT_PICSCALE_PREVIEW);
+            Settings.PicScale.Preview = WinAGISettings.GetSetting(sPICTURES, "PreviewScale", DEFAULT_PICSCALE_PREVIEW);
             if (Settings.PicScale.Preview < 1)
                 Settings.PicScale.Preview = 1;
             if (Settings.PicScale.Preview > 4)
                 Settings.PicScale.Preview = 4;
-            Settings.PicUndo = GameSettings.GetSetting(sPICTURES, "PicUndo", DEFAULT_PICUNDO);
+            Settings.PicUndo = WinAGISettings.GetSetting(sPICTURES, "PicUndo", DEFAULT_PICUNDO);
             if (Settings.PicUndo < -1)
                 Settings.PicUndo = -1;
-            Settings.ShowBands = GameSettings.GetSetting(sPICTURES, "ShowBands", DEFAULT_SHOWBANDS);
-            Settings.SplitWindow = GameSettings.GetSetting(sPICTURES, "SplitWindow", DEFAULT_SPLITWINDOW);
-            Settings.CursorMode = (EPicCursorMode)GameSettings.GetSetting(sPICTURES, "CursorMode", DEFAULT_CURSORMODE);
+            Settings.ShowBands = WinAGISettings.GetSetting(sPICTURES, "ShowBands", DEFAULT_SHOWBANDS);
+            Settings.SplitWindow = WinAGISettings.GetSetting(sPICTURES, "SplitWindow", DEFAULT_SPLITWINDOW);
+            Settings.CursorMode = (EPicCursorMode)WinAGISettings.GetSetting(sPICTURES, "CursorMode", DEFAULT_CURSORMODE);
 
             //PICTEST
             //these settings get loaded with each picedit form (and the logic template, which uses
@@ -1172,113 +1172,113 @@ namespace WinAGI.Editor
             //retrieve them here
 
             //SOUNDS
-            Settings.ShowKybd = GameSettings.GetSetting(sSOUNDS, "ShowKeyboard", DEFAULT_SHOWKYBD);
-            Settings.ShowNotes = GameSettings.GetSetting(sSOUNDS, "ShowNotes", DEFAULT_SHOWNOTES);
-            Settings.OneTrack = GameSettings.GetSetting(sSOUNDS, "OneTrack", DEFAULT_ONETRACK);
-            Settings.SndUndo = GameSettings.GetSetting(sSOUNDS, "SndUndo", DEFAULT_SNDUNDO);
+            Settings.ShowKybd = WinAGISettings.GetSetting(sSOUNDS, "ShowKeyboard", DEFAULT_SHOWKYBD);
+            Settings.ShowNotes = WinAGISettings.GetSetting(sSOUNDS, "ShowNotes", DEFAULT_SHOWNOTES);
+            Settings.OneTrack = WinAGISettings.GetSetting(sSOUNDS, "OneTrack", DEFAULT_ONETRACK);
+            Settings.SndUndo = WinAGISettings.GetSetting(sSOUNDS, "SndUndo", DEFAULT_SNDUNDO);
             if (Settings.SndUndo < -1)
                 Settings.SndUndo = -1;
-            Settings.SndZoom = GameSettings.GetSetting(sSOUNDS, "Zoom", DEFAULT_SNDZOOM);
+            Settings.SndZoom = WinAGISettings.GetSetting(sSOUNDS, "Zoom", DEFAULT_SNDZOOM);
             if (Settings.SndZoom < 1)
                 Settings.SndZoom = 1;
             if (Settings.SndZoom > 3)
                 Settings.SndZoom = 3;
-            Settings.NoMIDI = GameSettings.GetSetting(sSOUNDS, "NoMIDI", DEFAULT_NOMIDI);
-            i = GameSettings.GetSetting(sSOUNDS, "Instrument0", DEFAULT_DEFINST);
+            Settings.NoMIDI = WinAGISettings.GetSetting(sSOUNDS, "NoMIDI", DEFAULT_NOMIDI);
+            i = WinAGISettings.GetSetting(sSOUNDS, "Instrument0", DEFAULT_DEFINST);
             if (i > 255)
                 i = 255;
             if (i < 0)
                 i = 0;
             Settings.DefInst0 = (byte)i;
-            i = GameSettings.GetSetting(sSOUNDS, "Instrument1", DEFAULT_DEFINST);
+            i = WinAGISettings.GetSetting(sSOUNDS, "Instrument1", DEFAULT_DEFINST);
             if (i > 255)
                 i = 255;
             if (i < 0)
                 i = 0;
             Settings.DefInst1 = (byte)i;
-            i = GameSettings.GetSetting(sSOUNDS, "Instrument2", DEFAULT_DEFINST);
+            i = WinAGISettings.GetSetting(sSOUNDS, "Instrument2", DEFAULT_DEFINST);
             if (i > 255)
                 i = 255;
             if (i < 0)
                 i = 0;
             Settings.DefInst2 = (byte)i;
-            Settings.DefMute0 = GameSettings.GetSetting(sSOUNDS, "Mute0", DEFAULT_DEFMUTE);
-            Settings.DefMute1 = GameSettings.GetSetting(sSOUNDS, "Mute1", DEFAULT_DEFMUTE);
-            Settings.DefMute2 = GameSettings.GetSetting(sSOUNDS, "Mute2", DEFAULT_DEFMUTE);
-            Settings.DefMute3 = GameSettings.GetSetting(sSOUNDS, "Mute3", DEFAULT_DEFMUTE);
+            Settings.DefMute0 = WinAGISettings.GetSetting(sSOUNDS, "Mute0", DEFAULT_DEFMUTE);
+            Settings.DefMute1 = WinAGISettings.GetSetting(sSOUNDS, "Mute1", DEFAULT_DEFMUTE);
+            Settings.DefMute2 = WinAGISettings.GetSetting(sSOUNDS, "Mute2", DEFAULT_DEFMUTE);
+            Settings.DefMute3 = WinAGISettings.GetSetting(sSOUNDS, "Mute3", DEFAULT_DEFMUTE);
 
             //VIEWS
-            Settings.ViewScale.Edit = GameSettings.GetSetting(sVIEWS, "EditorScale", DEFAULT_VIEWSCALE_EDIT);
+            Settings.ViewScale.Edit = WinAGISettings.GetSetting(sVIEWS, "EditorScale", DEFAULT_VIEWSCALE_EDIT);
             if (Settings.ViewScale.Edit < 1)
                 Settings.ViewScale.Edit = 1;
             if (Settings.ViewScale.Edit > 10)
                 Settings.ViewScale.Edit = 10;
-            Settings.ViewScale.Preview = GameSettings.GetSetting(sVIEWS, "PreviewScale", DEFAULT_VIEWSCALE_PREVIEW);
+            Settings.ViewScale.Preview = WinAGISettings.GetSetting(sVIEWS, "PreviewScale", DEFAULT_VIEWSCALE_PREVIEW);
             if (Settings.ViewScale.Preview < 1)
                 Settings.ViewScale.Preview = 1;
             if (Settings.ViewScale.Preview > 10)
                 Settings.ViewScale.Preview = 10;
-            Settings.ViewAlignH = GameSettings.GetSetting(sVIEWS, "AlignH", DEFAULT_VIEWALIGNH);
+            Settings.ViewAlignH = WinAGISettings.GetSetting(sVIEWS, "AlignH", DEFAULT_VIEWALIGNH);
             if (Settings.ViewAlignH < 0)
                 Settings.ViewAlignH = 0;
             if (Settings.ViewAlignH > 2)
                 Settings.ViewAlignH = 2;
-            Settings.ViewAlignV = GameSettings.GetSetting(sVIEWS, "AlignV", DEFAULT_VIEWALIGNV);
+            Settings.ViewAlignV = WinAGISettings.GetSetting(sVIEWS, "AlignV", DEFAULT_VIEWALIGNV);
             if (Settings.ViewAlignV < 0)
                 Settings.ViewAlignV = 0;
             if (Settings.ViewAlignV > 2)
                 Settings.ViewAlignV = 2;
-            Settings.ViewUndo = GameSettings.GetSetting(sVIEWS, "ViewUndo", DEFAULT_VIEWUNDO);
+            Settings.ViewUndo = WinAGISettings.GetSetting(sVIEWS, "ViewUndo", DEFAULT_VIEWUNDO);
             if (Settings.ViewUndo < -1)
                 Settings.ViewUndo = -1;
-            i = GameSettings.GetSetting(sVIEWS, "DefaultCelHeight", DEFAULT_DEFCELH);
+            i = WinAGISettings.GetSetting(sVIEWS, "DefaultCelHeight", DEFAULT_DEFCELH);
             if (i < 1)
                 i = 1;
             if (i > 167)
                 i = 167;
             Settings.DefCelH = (byte)i;
-            i = GameSettings.GetSetting(sVIEWS, "DefaultCelWidth", DEFAULT_DEFCELW);
+            i = WinAGISettings.GetSetting(sVIEWS, "DefaultCelWidth", DEFAULT_DEFCELW);
             if (i < 1) i = 1;
             if (i > 167)
                 i = 160;
             Settings.DefCelW = (byte)i;
-            Settings.DefVColor1 = GameSettings.GetSetting(sVIEWS, "Color1", (int)DEFAULT_DEFVCOLOR1);
+            Settings.DefVColor1 = WinAGISettings.GetSetting(sVIEWS, "Color1", (int)DEFAULT_DEFVCOLOR1);
             if (Settings.DefVColor1 < 0)
                 Settings.DefVColor1 = 0;
             if (Settings.DefVColor1 > 15)
                 Settings.DefVColor1 = 15;
-            Settings.DefVColor2 = GameSettings.GetSetting(sVIEWS, "Color2", (int)DEFAULT_DEFVCOLOR2);
+            Settings.DefVColor2 = WinAGISettings.GetSetting(sVIEWS, "Color2", (int)DEFAULT_DEFVCOLOR2);
             if (Settings.DefVColor2 < 0)
                 Settings.DefVColor2 = 0;
             if (Settings.DefVColor2 > 15)
                 Settings.DefVColor2 = 15;
-            Settings.ShowVEPrev = GameSettings.GetSetting(sVIEWS, "ShowVEPreview", DEFAULT_SHOWVEPREV);
-            Settings.ShowGrid = GameSettings.GetSetting(sVIEWS, "ShowEditGrid", DEFAULT_SHOWGRID);
+            Settings.ShowVEPrev = WinAGISettings.GetSetting(sVIEWS, "ShowVEPreview", DEFAULT_SHOWVEPREV);
+            Settings.ShowGrid = WinAGISettings.GetSetting(sVIEWS, "ShowEditGrid", DEFAULT_SHOWGRID);
 
             // DECOMPILER
-            LogicDecoder.ShowAllMessages = GameSettings.GetSetting(sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
-            LogicDecoder.MsgsByNumber = GameSettings.GetSetting(sDECOMPILER, "MsgsByNum", DEFAULT_MSGSBYNUM);
-            LogicDecoder.SpecialSyntax = GameSettings.GetSetting(sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
-            LogicDecoder.ReservedAsText = GameSettings.GetSetting(sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
-            LogicDecoder.DefaultSrcExt = GameSettings.GetSetting(sDECOMPILER, "DefaultSrcExt", DEFAULT_DEFSRCEXT);
+            LogicDecoder.ShowAllMessages = WinAGISettings.GetSetting(sDECOMPILER, "ShowAllMessages", DEFAULT_SHOWALLMSGS);
+            LogicDecoder.MsgsByNumber = WinAGISettings.GetSetting(sDECOMPILER, "MsgsByNum", DEFAULT_MSGSBYNUM);
+            LogicDecoder.SpecialSyntax = WinAGISettings.GetSetting(sDECOMPILER, "SpecialSyntax", DEFAULT_SPECIALSYNTAX);
+            LogicDecoder.ReservedAsText = WinAGISettings.GetSetting(sDECOMPILER, "ReservedAsText", DEFAULT_SHOWRESVARS);
+            LogicDecoder.DefaultSrcExt = WinAGISettings.GetSetting(sDECOMPILER, "DefaultSrcExt", DEFAULT_DEFSRCEXT);
 
             // COMPILER
             LogicCompiler.UseReservedNames = Settings.DefUseResDef;
 
             //get property window height
-            PropRowCount = GameSettings.GetSetting(sPOSITION, "PropRowCount", 4);
+            PropRowCount = WinAGISettings.GetSetting(sPOSITION, "PropRowCount", 4);
             if (PropRowCount < 3)
                 PropRowCount = MIN_SPLIT_RES;
             if (PropRowCount > 10)
                 PropRowCount = MAX_SPLIT_RES;
 
             //get main window state
-            blnMax = GameSettings.GetSetting(sPOSITION, "WindowMax", false);
+            blnMax = WinAGISettings.GetSetting(sPOSITION, "WindowMax", false);
             //get main window position
-            sngLeft = GameSettings.GetSetting(sPOSITION, "Left", Screen.PrimaryScreen.Bounds.Width * 0.15);
-            sngTop = GameSettings.GetSetting(sPOSITION, "Top", Screen.PrimaryScreen.Bounds.Height * 0.15);
-            sngWidth = GameSettings.GetSetting(sPOSITION, "Width", Screen.PrimaryScreen.Bounds.Width * 0.7);
-            sngHeight = GameSettings.GetSetting(sPOSITION, "Height", Screen.PrimaryScreen.Bounds.Height * 0.7);
+            sngLeft = WinAGISettings.GetSetting(sPOSITION, "Left", Screen.PrimaryScreen.Bounds.Width * 0.15);
+            sngTop = WinAGISettings.GetSetting(sPOSITION, "Top", Screen.PrimaryScreen.Bounds.Height * 0.15);
+            sngWidth = WinAGISettings.GetSetting(sPOSITION, "Width", Screen.PrimaryScreen.Bounds.Width * 0.7);
+            sngHeight = WinAGISettings.GetSetting(sPOSITION, "Height", Screen.PrimaryScreen.Bounds.Height * 0.7);
             // min width
             if (sngWidth < 360) {
                 sngWidth = 360;
@@ -1319,7 +1319,7 @@ namespace WinAGI.Editor
                 WindowState = FormWindowState.Maximized;
             }
             //get resource window width
-            sngProp = GameSettings.GetSetting(sPOSITION, "ResourceWidth", MIN_SPLIT_V * 1.5);
+            sngProp = WinAGISettings.GetSetting(sPOSITION, "ResourceWidth", MIN_SPLIT_V * 1.5);
             if (sngProp < MIN_SPLIT_V) {
                 sngProp = MIN_SPLIT_V;
             }
@@ -1330,9 +1330,9 @@ namespace WinAGI.Editor
             pnlResources.Width = (int)sngProp;
 
             // get mru settings
-            Settings.AutoOpen = GameSettings.GetSetting(sMRULIST, "AutoOpen", DEFAULT_AUTOOPEN);
+            Settings.AutoOpen = WinAGISettings.GetSetting(sMRULIST, "AutoOpen", DEFAULT_AUTOOPEN);
             for (i = 0; i < 4; i++) {
-                strMRU[i] = GameSettings.GetSetting(sMRULIST, "MRUGame" + (i + 1), "");
+                strMRU[i] = WinAGISettings.GetSetting(sMRULIST, "MRUGame" + (i + 1), "");
                 //if one exists
                 if (strMRU[i].Length != 0) {
                     //add it to menu
@@ -1346,39 +1346,35 @@ namespace WinAGI.Editor
                 }
             }
 
-            ////get tools info
-            //blnTools = false;
-            //for (i = 1; i <= 6; i++) {
-            //  strCaption = GameSettings.GetSetting(sTOOLS, "Caption" + CStr(i), "");
-            //  strTool = GameSettings.GetSetting(sTOOLS, "Source" + CStr(i), "");
-            //  //update tools menu
-            //  With MDIMain.mnuTCustom(i)
-            //    if (strCaption.Length > 0 && strTool.Length > 0) {
-            //      MDIMain.mnuTCustom[i].Visible = true;
-            //      MDIMain.mnuTCustom(i).Caption = strCaption
-            //      MDIMain.mnuTCustom(i).Tag = strTool
-            //      blnTools = true;
-            //    } else {
-            //      Settings.Visible = false
-            //    }
-            //}
-            ////if no tools, hide separator
-            //MDIMain.mnuTBar1.Visible = blnTools
+            // get tools info
+            bool blnTools = false;
+            for (i = 1; i <= 6; i++) {
+                string strCaption = WinAGISettings.GetSetting(sTOOLS, "Caption" + i, "");
+                string strTool = WinAGISettings.GetSetting(sTOOLS, "Source" + i, "");
+                // update tools menu
+                if (strCaption.Length > 0 && strTool.Length > 0) {
+                    mnuTools.DropDownItems["mnuTCustom" + i].Visible = true;
+                    mnuTools.DropDownItems["mnuTCustom" + i].Text = strCaption;
+                    mnuTools.DropDownItems["mnuTCustom" + i].Tag = strTool;
+                    blnTools = true;
+                }
+                mnuTSep2.Visible = blnTools;
+            }
 
             //error warning settings
-            lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn0", 0);
+            lngNoCompVal = WinAGISettings.GetSetting(sLOGICS, "NoCompWarn0", 0);
             for (i = 1; i <= 30; i++) {
                 LogicCompiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << i)) == (1 << i));
             }
-            lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn1", 0);
+            lngNoCompVal = WinAGISettings.GetSetting(sLOGICS, "NoCompWarn1", 0);
             for (i = 31; i <= 60; i++) {
                 LogicCompiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 30))) == 1 << (i - 30));
             }
-            lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn2", 0);
+            lngNoCompVal = WinAGISettings.GetSetting(sLOGICS, "NoCompWarn2", 0);
             for (i = 61; i <= 90; i++) {
                 LogicCompiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 60))) == 1 << (i - 60));
             }
-            lngNoCompVal = GameSettings.GetSetting(sLOGICS, "NoCompWarn3", 0);
+            lngNoCompVal = WinAGISettings.GetSetting(sLOGICS, "NoCompWarn3", 0);
             for (i = 91; i < LogicCompiler.WARNCOUNT; i++) {
                 LogicCompiler.SetIgnoreWarning(5000 + i, (lngNoCompVal & (1 << (i - 90))) == 1 << (i - 90));
             }
@@ -1389,49 +1385,49 @@ namespace WinAGI.Editor
             //if main form is maximized
             if (MDIMain.WindowState == FormWindowState.Maximized) {
                 //save Max Value only
-                GameSettings.WriteSetting(sPOSITION, "WindowMax", true);
+                WinAGISettings.WriteSetting(sPOSITION, "WindowMax", true);
             }
             else {
                 //save all window settings
-                GameSettings.WriteSetting(sPOSITION, "Top", MDIMain.Top.ToString());
-                GameSettings.WriteSetting(sPOSITION, "Left", MDIMain.Left.ToString());
-                GameSettings.WriteSetting(sPOSITION, "Width", MDIMain.Width.ToString());
-                GameSettings.WriteSetting(sPOSITION, "Height", MDIMain.Height.ToString());
-                GameSettings.WriteSetting(sPOSITION, "WindowMax", false.ToString());
+                WinAGISettings.WriteSetting(sPOSITION, "Top", MDIMain.Top.ToString());
+                WinAGISettings.WriteSetting(sPOSITION, "Left", MDIMain.Left.ToString());
+                WinAGISettings.WriteSetting(sPOSITION, "Width", MDIMain.Width.ToString());
+                WinAGISettings.WriteSetting(sPOSITION, "Height", MDIMain.Height.ToString());
+                WinAGISettings.WriteSetting(sPOSITION, "WindowMax", false.ToString());
             }
             //save other position settings
-            GameSettings.WriteSetting(sPOSITION, "PropRowCount", PropRowCount);
+            WinAGISettings.WriteSetting(sPOSITION, "PropRowCount", PropRowCount);
             //save mru settings
             for (i = 0; i < 4; i++) {
-                GameSettings.WriteSetting(sMRULIST, "MRUGame" + (i + 1), strMRU[i]);
+                WinAGISettings.WriteSetting(sMRULIST, "MRUGame" + (i + 1), strMRU[i]);
             }
             //save resource pane width
-            GameSettings.WriteSetting(sPOSITION, "ResourceWidth", pnlResources.Width);
+            WinAGISettings.WriteSetting(sPOSITION, "ResourceWidth", pnlResources.Width);
             //save other general settings
-            GameSettings.WriteSetting(sGENERAL, "DockHelpWindow", HelpParent == this.Handle);
+            WinAGISettings.WriteSetting(sGENERAL, "DockHelpWindow", HelpParent == this.Handle);
             // for warnings, create a bitfield to mark which are being ignored
             lngCompVal = 0;
             for (i = 1; i <= 30; i++) {
                 lngCompVal |= (LogicCompiler.IgnoreWarning(5000 + i) ? 1 << i : 0);
             }
-            GameSettings.WriteSetting(sLOGICS, "NoCompWarn0", lngCompVal);
+            WinAGISettings.WriteSetting(sLOGICS, "NoCompWarn0", lngCompVal);
             lngCompVal = 0;
             for (i = 1; i <= 30; i++) {
                 lngCompVal |= (LogicCompiler.IgnoreWarning(5030 + i) ? 1 << i : 0);
             }
-            GameSettings.WriteSetting(sLOGICS, "NoCompWarn1", lngCompVal);
+            WinAGISettings.WriteSetting(sLOGICS, "NoCompWarn1", lngCompVal);
             lngCompVal = 0;
             for (i = 1; i <= 30; i++) {
                 lngCompVal |= (LogicCompiler.IgnoreWarning(5060 + i) ? 1 << i : 0);
             }
-            GameSettings.WriteSetting(sLOGICS, "NoCompWarn2", lngCompVal);
+            WinAGISettings.WriteSetting(sLOGICS, "NoCompWarn2", lngCompVal);
             lngCompVal = 0;
             for (i = 1; i < (LogicCompiler.WARNCOUNT % 30); i++) {
                 lngCompVal |= (LogicCompiler.IgnoreWarning(5090 + i) ? 1 << i : 0);
             }
-            GameSettings.WriteSetting(sLOGICS, "NoCompWarn3", lngCompVal);
+            WinAGISettings.WriteSetting(sLOGICS, "NoCompWarn3", lngCompVal);
             //save to file
-            GameSettings.Save();
+            WinAGISettings.Save();
         }
         private void tvwResources_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e) {
             // select it first
@@ -2273,7 +2269,8 @@ namespace WinAGI.Editor
         }
 
         private void propertyGrid1_MouseWheel(object s, MouseEventArgs e) {
-            // scrolling on the IntVersion property should open the dropdownlist
+            // wheeling on the IntVersion property should open the dropdownlist
+            // but I don't know how to do it, so instead we ignore the mousewheel
             if (propertyGrid1.SelectedGridItem.Label == "IntVer") {
                 ((HandledMouseEventArgs)e).Handled = true;
             }
@@ -4589,109 +4586,6 @@ namespace WinAGI.Editor
 
         // select the //selectall// command
         TBCmd = 4
-      }
-
-
-      void mnuTCustom_Click(Index As Integer)
-
-        Dim rtn As Long
-        Dim strTemp As String
-        Dim intFile As Integer
-        Dim OldPath As String
-        Dim strFile As String, strNewPath As String
-
-        //if a url
-        if (Left$(mnuTCustom(Index).Tag, 4) = "http" && Left$(mnuTCustom(Index).Tag, 4) = "www.") {
-          //open as a url, not a file
-
-          //create a temporary file that is the url
-          strTemp = Path.GetTempFileName()
-
-          //open it
-          intFile = FreeFile()
-          Open strTemp For Output As intFile
-          Print #intFile, "[InternetShortcut]"
-          Print #intFile, "URL=" + mnuTCustom(Index).Tag
-          Close #intFile
-
-          On Error Resume Next
-          Name strTemp As strTemp + ".url"
-          rtn = ShellExecute(this.hWnd, "open", strTemp + ".url", "", "", SW_SHOWNORMAL)
-          Kill strTemp + ".url"
-        } else {
-          //execute the command stored in the tag property
-          On Error Resume Next
-
-          //save the old path, so it can be restored once we//re done
-          OldPath = CurDir$()
-
-          //if a game is open, assume it's the current directory;
-          //otherwise, assume program directory is current directory
-          if (GameLoaded) {
-            ChDrive GameDir
-            ChDir GameDir
-          } else {
-            ChDrive ProgramDir
-            ChDir ProgramDir
-          }
-
-          //does this tool entry include a directory?
-          strNewPath = JustPath(mnuTCustom(Index).Tag, false)
-
-          if (Len(strNewPath) > 0) {
-          //if a path is provided, check for program dir
-            strNewPath = Replace(strNewPath, "%PROGDIR%", ProgramDir)
-            strFile = strNewPath + Path.GetFileName(mnuTCustom(Index).Tag)
-          } else {
-            strFile = mnuTCustom(Index).Tag
-          }
-
-          rtn = ShellExecute(this.hWnd, "open", strFile, "", "", SW_SHOWNORMAL)
-
-          if (rtn <= 32) {
-            //error - display a msg to user
-            switch (rtn
-            //regular WinExec() codes
-            case 2 //#define SE_ERR_FNF              2       // file not found
-              MessageBox.Show( "Sorry, the file was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "File !Found"
-            case 3 //#define SE_ERR_PNF              3       // path not found
-              MessageBox.Show( "Sorry, the path in this file name was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Path !Found"
-            case 5 //#define SE_ERR_ACCESSDENIED     5       // access denied
-              MessageBox.Show( "Sorry, this file could not be accessed." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Access Denied"
-            case 8 //#define SE_ERR_OOM              8       // out of memory
-              MessageBox.Show( "Holy CRAP! You are out of memory!" + vbNewLine + "You might want to free up some memory before trying to open this file/program.", vbInformation + vbOKOnly, "Out of Memory"
-            case 32 //#define SE_ERR_DLLNOTFOUND              32
-              MessageBox.Show( "Sorry, a supporting DLL for this file/program was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DLL !Found"
-            //
-            //error values for ShellExecute() beyond the regular WinExec() codes
-            case 26 //#define SE_ERR_SHARE                    26
-              MessageBox.Show( "Sorry, a share violation occurred." + vbNewLine + "Please address the file share issue, then try again.", vbInformation + vbOKOnly, "Share Violation"
-            case 27 //#define SE_ERR_ASSOCINCOMPLETE          27
-              MessageBox.Show( "Sorry, unable to determine the correct association for this file." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Incomplete Association"
-            case 28 //#define SE_ERR_DDETIMEOUT               28
-              MessageBox.Show( "Sorry, a DDE timeout error occurred." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Timeout Error"
-            case 29 //#define SE_ERR_DDEFAIL                  29
-              MessageBox.Show( "Sorry, DDE failed; unable to open this file/program." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Failure"
-            case 30 //#define SE_ERR_DDEBUSY                  30
-              MessageBox.Show( "Sorry, DDE was not able to open this file/program." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "DDE Busy Error"
-            case 31 //#define SE_ERR_NOASSOC                  31
-              MessageBox.Show( "Sorry, an association was not found." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Association !Found"
-            default:
-              MessageBox.Show( "Sorry, an error occurred when trying to open this tool entry." + vbNewLine + "Please edit your tool information to point to a valid file/program.", vbInformation + vbOKOnly, "Unknown Error"
-            }
-          }
-
-          //restore current directory
-          ChDrive OldPath
-          ChDir OldPath
-        }
-      }
-
-      void mnuTCustomize_Click()
-
-        KeepFocus = true
-        frmTools.Show vbModal, Me
-        KeepFocus = false
       }
 
       void mnuTGlobals_Click()
@@ -8214,7 +8108,7 @@ namespace WinAGI.Editor
                 }
             }
             //write lastload status
-            GameSettings.WriteSetting(sMRULIST, "LastLoad", blnLastLoad);
+            WinAGISettings.WriteSetting(sMRULIST, "LastLoad", blnLastLoad);
             //save settings to register
             SaveSettings();
 
@@ -8873,10 +8767,72 @@ namespace WinAGI.Editor
 
         private void mnuHAbout_Click(object sender, EventArgs e) {
             // TODO: update About screen
-            MessageBox.Show(this,"This is WinAGI.", "About WinAGI", MessageBoxButtons.OK,MessageBoxIcon.Information);
+            MessageBox.Show(this, "This is WinAGI.", "About WinAGI", MessageBoxButtons.OK, MessageBoxIcon.Information);
             // TODO: for controls, use the value 'Topic' for 'HelpNavigator' and
             // set the 'HelpKeyword' field to the topic name (i.e. "htm\winagi\restree.htm#propwindow")
             // DON'T use the 'HelpString' field
+        }
+
+        private void mnuTCustom_Click(object sender, EventArgs e) {
+            ToolStripMenuItem thisTool = (ToolStripMenuItem)sender;
+            string target = thisTool.Tag.ToString();
+
+            // check for a url
+            if ((Left(target, 4) == "http") || (Left(target, 4) == "www.")) {
+                // open as a url, not a file
+                try {
+                    Process.Start(new ProcessStartInfo {
+                        FileName = target,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex) {
+                    ErrMsgBox(ex, "Unable to open this URL.", "Unhandled system error encountered.", "Custom Tool Error");
+                }
+            }
+            else {
+                // save the old path, so it can be restored once we're done
+                string oldpath = Directory.GetCurrentDirectory();
+
+                // if a game is open, assume it's the current directory;
+                // otherwise, assume program directory is current directory
+                if (EditGame != null) {
+                    Directory.SetCurrentDirectory(EditGame.GameDir);
+                }
+                else {
+                    Directory.SetCurrentDirectory(ProgramDir);
+                }
+                // does this tool entry include a directory?
+                string strFile;
+                if (JustPath(target, false).Length > 0) {
+                    // if a path is provided, check for program dir
+                    strFile = target.Replace("%PROGDIR%", ProgramDir[..^1]);
+                }
+                else {
+                    strFile = target;
+                }
+
+                try {
+                    Process.Start(new ProcessStartInfo {
+                        FileName = target,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex) {
+                    ErrMsgBox(ex, "Sorry, an error occurred when trying to open this tool entry.", "Please edit your tool information to point to a valid file/program.", "Custom Tool Error");
+                }
+                // restore current directory
+                Directory.SetCurrentDirectory(oldpath);
+            }
+        }
+
+        private void mnuTCustomize_Click(object sender, EventArgs e) {
+
+            //Form1 frm = new() { };
+            //_ = frm.ShowDialog(this);
+            
+            frmTools ToolsEditor = new() { };
+            _ = ToolsEditor.ShowDialog(this);
         }
     }
 }

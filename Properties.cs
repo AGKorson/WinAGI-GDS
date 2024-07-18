@@ -37,7 +37,11 @@ namespace WinAGI.Editor {
         }
         public string GameDir { 
             get => EditGame.GameDir; }
-        public string ResDir { get; set; }
+        public string ResDir { 
+            get => EditGame.ResDirName;
+            // TODO: resdir change checks
+            set => EditGame.ResDirName = value;
+        }
 
         [TypeConverter(typeof(IntVerConverter))]
         public string IntVer { 
@@ -59,19 +63,25 @@ namespace WinAGI.Editor {
             get => EditGame.GameAbout; 
             set => EditGame.GameAbout = value; }
         public bool LayoutEditor { 
-            get => EditGame.UseLE; 
+            get => EditGame.UseLE;
+            // TODO: layouteditor usage checks
             set => EditGame.UseLE = value; }
-        public DateTime LastEdit { get; }
+        public DateTime LastEdit { 
+            get => EditGame.LastEdit; }
     }
     public class LogicHdrProperties {
         public LogicHdrProperties() {
-            Count = EditGame.Logics.Count;
             GlobalDef = "(List)";
-            UseResNames = LogicCompiler.UseReservedNames;
         }
-        public int Count { get; }
+        public int Count { 
+            get => EditGame.Logics.Count; 
+        }
         public string GlobalDef { get; set; }
-        public bool UseResNames { get; set; }
+        public bool UseResNames { 
+            get => LogicCompiler.UseReservedNames;
+            // TODO: useresnames usage checks
+            set => LogicCompiler.UseReservedNames = value;
+        }
     }
     public class LogicProperties {
         public LogicProperties(Logic pLogic) {
