@@ -26,15 +26,15 @@
         private void InitializeComponent() {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMDIMain));
-            TreeNode treeNode8 = new TreeNode("Logics");
-            TreeNode treeNode9 = new TreeNode("Pictures");
-            TreeNode treeNode10 = new TreeNode("Sounds");
-            TreeNode treeNode11 = new TreeNode("Views");
-            TreeNode treeNode12 = new TreeNode("Objects");
-            TreeNode treeNode13 = new TreeNode("Words");
-            TreeNode treeNode14 = new TreeNode("AGIGAME", new TreeNode[] { treeNode8, treeNode9, treeNode10, treeNode11, treeNode12, treeNode13 });
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            TreeNode treeNode1 = new TreeNode("Logics");
+            TreeNode treeNode2 = new TreeNode("Pictures");
+            TreeNode treeNode3 = new TreeNode("Sounds");
+            TreeNode treeNode4 = new TreeNode("Views");
+            TreeNode treeNode5 = new TreeNode("Objects");
+            TreeNode treeNode6 = new TreeNode("Words");
+            TreeNode treeNode7 = new TreeNode("AGIGAME", new TreeNode[] { treeNode1, treeNode2, treeNode3, treeNode4, treeNode5, treeNode6 });
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             menuStrip1 = new MenuStrip();
             mnuGame = new ToolStripMenuItem();
             mnuGNew = new ToolStripMenuItem();
@@ -211,6 +211,7 @@
             btnSep4 = new ToolStripSeparator();
             btnLayoutEd = new ToolStripButton();
             btnMenuEd = new ToolStripButton();
+            btnTextEd = new ToolStripButton();
             btnGlobals = new ToolStripButton();
             btnSep5 = new ToolStripSeparator();
             btnHelp = new ToolStripButton();
@@ -280,6 +281,7 @@
             mnuGame.Name = "mnuGame";
             mnuGame.Size = new System.Drawing.Size(50, 20);
             mnuGame.Text = "&Game";
+            mnuGame.DropDownOpening += mnuGame_DropDownOpening;
             // 
             // mnuGNew
             // 
@@ -351,6 +353,7 @@
             mnuGRebuild.ShortcutKeys = Keys.Control | Keys.Shift | Keys.R;
             mnuGRebuild.Size = new System.Drawing.Size(261, 22);
             mnuGRebuild.Text = "Rebuild &VOL Files";
+            mnuGRebuild.Click += mnuGRebuild_Click;
             // 
             // mnuGCompileDirty
             // 
@@ -747,6 +750,7 @@
             mnuTools.Name = "mnuTools";
             mnuTools.Size = new System.Drawing.Size(46, 20);
             mnuTools.Text = "&Tools";
+            mnuTools.DropDownOpening += mnuTools_DropDownOpening;
             // 
             // mnuTSettings
             // 
@@ -1351,7 +1355,7 @@
             // 
             toolStrip1.AllowItemReorder = true;
             toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
-            toolStrip1.Items.AddRange(new ToolStripItem[] { btnOpenGame, btnCloseGame, btnRun, btnSep1, btnNewRes, btnOpenRes, btnImportRes, btnSep2, btnWords, btnOjects, btnSep3, btnSaveResource, btnAddRemove, btnExportRes, btnSep4, btnLayoutEd, btnMenuEd, btnGlobals, btnSep5, btnHelp });
+            toolStrip1.Items.AddRange(new ToolStripItem[] { btnOpenGame, btnCloseGame, btnRun, btnSep1, btnNewRes, btnOpenRes, btnImportRes, btnSep2, btnWords, btnOjects, btnSep3, btnSaveResource, btnAddRemove, btnExportRes, btnSep4, btnLayoutEd, btnMenuEd, btnTextEd, btnGlobals, btnSep5, btnHelp });
             toolStrip1.Location = new System.Drawing.Point(0, 24);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Padding = new Padding(0, 1, 2, 1);
@@ -1374,6 +1378,7 @@
             // btnCloseGame
             // 
             btnCloseGame.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnCloseGame.Enabled = false;
             btnCloseGame.Image = (System.Drawing.Image)resources.GetObject("btnCloseGame.Image");
             btnCloseGame.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnCloseGame.Margin = new Padding(2, 2, 2, 4);
@@ -1385,6 +1390,7 @@
             // btnRun
             // 
             btnRun.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnRun.Enabled = false;
             btnRun.Image = (System.Drawing.Image)resources.GetObject("btnRun.Image");
             btnRun.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnRun.Margin = new Padding(2, 2, 2, 4);
@@ -1449,6 +1455,7 @@
             // 
             btnImportRes.DisplayStyle = ToolStripItemDisplayStyle.Image;
             btnImportRes.DropDownItems.AddRange(new ToolStripItem[] { btnImportLogic, btnImportPicture, btnImportSound, btnImportView });
+            btnImportRes.Enabled = false;
             btnImportRes.Image = (System.Drawing.Image)resources.GetObject("btnImportRes.Image");
             btnImportRes.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnImportRes.Margin = new Padding(2, 2, 2, 4);
@@ -1525,6 +1532,7 @@
             // btnSaveResource
             // 
             btnSaveResource.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnSaveResource.Enabled = false;
             btnSaveResource.Image = (System.Drawing.Image)resources.GetObject("btnSaveResource.Image");
             btnSaveResource.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnSaveResource.Margin = new Padding(2, 2, 2, 4);
@@ -1535,6 +1543,7 @@
             // btnAddRemove
             // 
             btnAddRemove.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnAddRemove.Enabled = false;
             btnAddRemove.Image = (System.Drawing.Image)resources.GetObject("btnAddRemove.Image");
             btnAddRemove.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnAddRemove.Margin = new Padding(2, 2, 2, 4);
@@ -1545,6 +1554,7 @@
             // btnExportRes
             // 
             btnExportRes.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnExportRes.Enabled = false;
             btnExportRes.Image = (System.Drawing.Image)resources.GetObject("btnExportRes.Image");
             btnExportRes.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnExportRes.Margin = new Padding(2, 2, 2, 4);
@@ -1561,6 +1571,7 @@
             // btnLayoutEd
             // 
             btnLayoutEd.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnLayoutEd.Enabled = false;
             btnLayoutEd.Image = (System.Drawing.Image)resources.GetObject("btnLayoutEd.Image");
             btnLayoutEd.ImageTransparentColor = System.Drawing.Color.FromArgb(236, 233, 216);
             btnLayoutEd.Margin = new Padding(2, 2, 2, 4);
@@ -1577,6 +1588,15 @@
             btnMenuEd.Name = "btnMenuEd";
             btnMenuEd.Size = new System.Drawing.Size(28, 28);
             btnMenuEd.Text = "Menu Editor";
+            // 
+            // btnTextEd
+            // 
+            btnTextEd.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnTextEd.Image = (System.Drawing.Image)resources.GetObject("btnTextEd.Image");
+            btnTextEd.ImageTransparentColor = System.Drawing.Color.Magenta;
+            btnTextEd.Name = "btnTextEd";
+            btnTextEd.Size = new System.Drawing.Size(28, 31);
+            btnTextEd.Text = "Text Mode Editor";
             // 
             // btnGlobals
             // 
@@ -1674,21 +1694,21 @@
             tvwResources.Location = new System.Drawing.Point(0, 26);
             tvwResources.Margin = new Padding(2, 1, 2, 1);
             tvwResources.Name = "tvwResources";
-            treeNode8.Name = "logics";
-            treeNode8.Text = "Logics";
-            treeNode9.Name = "pictures";
-            treeNode9.Text = "Pictures";
-            treeNode10.Name = "sounds";
-            treeNode10.Text = "Sounds";
-            treeNode11.Name = "views";
-            treeNode11.Text = "Views";
-            treeNode12.Name = "objects";
-            treeNode12.Text = "Objects";
-            treeNode13.Name = "words";
-            treeNode13.Text = "Words";
-            treeNode14.Name = "Node0";
-            treeNode14.Text = "AGIGAME";
-            tvwResources.Nodes.AddRange(new TreeNode[] { treeNode14 });
+            treeNode1.Name = "logics";
+            treeNode1.Text = "Logics";
+            treeNode2.Name = "pictures";
+            treeNode2.Text = "Pictures";
+            treeNode3.Name = "sounds";
+            treeNode3.Text = "Sounds";
+            treeNode4.Name = "views";
+            treeNode4.Text = "Views";
+            treeNode5.Name = "objects";
+            treeNode5.Text = "Objects";
+            treeNode6.Name = "words";
+            treeNode6.Text = "Words";
+            treeNode7.Name = "Node0";
+            treeNode7.Text = "AGIGAME";
+            tvwResources.Nodes.AddRange(new TreeNode[] { treeNode7 });
             hlpWinAGI.SetShowHelp(tvwResources, true);
             tvwResources.Size = new System.Drawing.Size(152, 147);
             tvwResources.TabIndex = 25;
@@ -1812,25 +1832,25 @@
             fgWarnings.AllowUserToDeleteRows = false;
             fgWarnings.AllowUserToResizeRows = false;
             fgWarnings.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
-            fgWarnings.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.False;
+            fgWarnings.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             fgWarnings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             fgWarnings.Columns.AddRange(new DataGridViewColumn[] { colWarning, colDesc, colResNum, colLIne, colModule });
             fgWarnings.ContextMenuStrip = cmsGrid;
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
-            fgWarnings.DefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            fgWarnings.DefaultCellStyle = dataGridViewCellStyle2;
             fgWarnings.Dock = DockStyle.Fill;
             fgWarnings.EditMode = DataGridViewEditMode.EditOnEnter;
             fgWarnings.Location = new System.Drawing.Point(0, 0);
@@ -2040,7 +2060,6 @@
         private MenuStrip menuStrip1;
         private ContextMenuStrip cmsResources;
         private StatusStrip statusStrip1;
-        private ToolStrip toolStrip1;
         private ToolStripStatusLabel CapsLockLabel;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem newToolStripMenuItem;
@@ -2276,6 +2295,8 @@
         public HelpProvider hlpWinAGI;
         internal ToolStripMenuItem mnuTools;
         internal ToolStripSeparator mnuTSep2;
+        internal ToolStrip toolStrip1;
+        private ToolStripButton btnTextEd;
     }
 }
 

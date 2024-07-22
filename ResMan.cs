@@ -1565,7 +1565,6 @@ namespace WinAGI.Editor {
             // mode 0 == open source as a wag file
             // mode 1 == open source as a sierra game directory;
 
-            //if a game is currently open,
             if (EditGame is not null) {
                 //close game, if user allows
                 if (!CloseThisGame()) {
@@ -1610,7 +1609,8 @@ namespace WinAGI.Editor {
                     MDIMain.HideWarningList(true);
                 }
             }
-
+            // refresh main toolbar
+            UpdateToolbar();
             // clear status bar
             MainStatusBar.Items[1].Text = "";
             return !LoadResults.Failed;
@@ -1801,6 +1801,8 @@ namespace WinAGI.Editor {
             LogicCompiler.UseReservedNames = Settings.DefUseResDef;
             // update main form caption
             MDIMain.Text = "WinAGI GDS";
+            // refresh main toolbar
+            UpdateToolbar();
             // reset node marker so selection of resources
             // works correctly first time after another game loaded
             MDIMain.LastNodeName = "";
@@ -1808,6 +1810,17 @@ namespace WinAGI.Editor {
             DefaultResDir = ProgramDir;
             // game is closed
             return true;
+        }
+
+        private static void UpdateToolbar() {
+            // enable/disable buttons based on current game/editor state
+            MDIMain.toolStrip1.Items["btnCloseGame"].Enabled = EditGame != null;
+            MDIMain.toolStrip1.Items["btnRun"].Enabled = EditGame != null;
+            MDIMain.toolStrip1.Items["btnImportRes"].Enabled = EditGame != null;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = EditGame != null;
+            MDIMain.toolStrip1.Items["btnAddRemove"].Enabled = EditGame != null;
+            MDIMain.toolStrip1.Items["btnExportRes"].Enabled = EditGame != null;
+            MDIMain.toolStrip1.Items["btnLayoutEd"].Enabled = EditGame != null;
         }
 
         public static void BuildResourceTree() {
@@ -3459,6 +3472,7 @@ namespace WinAGI.Editor {
             //ok - 
             return 0;
         }
+
         public static void ChangeGameID(string NewID) {
             if (Path.GetFileNameWithoutExtension(EditGame.GameFile) == EditGame.GameID) {
                 // if RenameWAG is in ask mode or yes mode, get user choice
@@ -3532,6 +3546,25 @@ namespace WinAGI.Editor {
             MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
           return;
           }
+
+        public static void ChangeResDir(string NewDir) {
+            // validate the dir
+            char[] charlist = Path.GetInvalidFileNameChars();
+            foreach (char ch in charlist) {
+                if (NewDir.ToCharArray().Contains(ch)) {
+                    MessageBox.Show("The specified path contains invalid characters. No change made.", "Invalid Path", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+            // try renaming the resource dir
+            try {
+                Directory.Move(EditGame.ResDir, EditGame.GameDir + NewDir);
+                EditGame.ResDirName = NewDir;
+            }
+            catch (Exception ex) {
+                ErrMsgBox(ex, "An exception occurred when trying to move the resource directory.", "No change made.", "Unable to change ResDir");
+            }
+        }
 
         public static void RenameMRU(string OldWAGFile, string NewWAGFile) {
             // if NewWAGFile is already in the list,
@@ -7855,7 +7888,7 @@ namespace WinAGI.Editor {
   //renumbering that might be simplified
 
 
-   List<string> stlLayout;
+   StringList stlLayout;
   string strLine, strTempFile;
   int i;
    bool blnRoomVis;
@@ -9909,7 +9942,7 @@ namespace WinAGI.Editor {
   Resume Next
   }
 
-  public static void AssignItems(Control ctl, List<string> strlItems, bool blnNumbers = false)
+  public static void AssignItems(Control ctl, StringList strlItems, bool blnNumbers = false)
   int i
   //ctl must be a list box or combobox
   if (!((TypeOf ctl Is ComboBox) || (TypeOf ctl Is ListBox))) {
@@ -12644,8 +12677,8 @@ public static void UpdateSelection(AGIResType ResType, int ResNum, UpdateModeTyp
                     }
                     break;
                 case Keys.R: //rebuild VOL
-                    if (MDIMain.mnuGRebuild.Enabled) {
-                        //rebuild volfiles only
+                    if (EditGame != null) {
+                        // rebuild volfiles only
                         CompileAGIGame(EditGame.GameDir, true);
                     }
                     break;

@@ -29,7 +29,7 @@ namespace WinAGI.Engine {
         //  if string is multline, use '\n' control code (and use multiline option)
 
         #region Members
-        public List<string> Lines = [];
+        public StringList Lines = [];
         #endregion
 
         #region Constructors

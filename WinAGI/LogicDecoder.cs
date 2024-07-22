@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -40,16 +41,17 @@ namespace WinAGI.Engine {
 
         #region Members
         internal static byte bytLogComp;
+        internal static string moduleID;
         static byte bytBlockDepth;
         static DecodeBlockType[] DecodeBlock = new DecodeBlockType[WinAGI.Engine.LogicCompiler.MAX_BLOCK_DEPTH];
         static int lngPos;
         static int intArgStart;
         static int[] lngLabelPos = [];
         static int lngMsgSecStart;
-        static List<string> stlMsgs;
+        static StringList stlMsgs;
         static bool[] blnMsgUsed = new bool[256];
         static bool[] blnMsgExists = new bool[256];
-        static List<string> stlOutput = [];
+        static StringList stlOutput = [];
         static string strError;
         static bool badQuit = false;
         static byte mIndentSize = 4;
@@ -75,7 +77,7 @@ namespace WinAGI.Engine {
         static string D_TKN_COMMENT;
         static string D_TKN_MESSAGE;
         static bool blnWarning;
-        static List<string> strWarning = [];
+        static StringList strWarning = [];
         #endregion
 
         #region Properties
@@ -205,6 +207,7 @@ namespace WinAGI.Engine {
             else {
                 bytLogComp = 0;
             }
+            moduleID = SourceLogic.ID;
             byte[] bytData = SourceLogic.Data;
             stlOutput = [];
             strError = "";
@@ -279,7 +282,7 @@ namespace WinAGI.Engine {
             do {
                 AddBlockEnds(stlOutput);
                 // check for label at this position
-                if (lngLabelPos[lngNextLabel] == lngPos) {
+                if (bytLabelCount > 0 && lngLabelPos[lngNextLabel] == lngPos) {
                     if (agSierraSyntax) {
                         stlOutput.Add(":label" + lngNextLabel.ToString());
                     }
@@ -349,7 +352,7 @@ namespace WinAGI.Engine {
                                 stlOutput.Add(MultStr(INDENT, bytBlockDepth) + D_TKN_GOTO.Replace(ARG1, "Label" + i) + D_TKN_EOL);
                                 if (blnWarning) {
                                     for (j = 0; j < strWarning.Count; j++) {
-                                        stlOutput.Add(D_TKN_COMMENT + " WARNING: " + strWarning[j]);
+                                        stlOutput.Add(D_TKN_COMMENT + strWarning[j]);
                                     }
                                     blnWarning = false;
                                     strWarning = [];
@@ -594,7 +597,7 @@ namespace WinAGI.Engine {
                     stlOutput.Add(strCurrentLine);
                     if (blnWarning) {
                         for (i = 0; i < strWarning.Count; i++) {
-                            stlOutput.Add(D_TKN_COMMENT + " WARNING: " + strWarning[i]);
+                            stlOutput.Add(D_TKN_COMMENT + strWarning[i]);
                         }
                         // reset warning
                         blnWarning = false;
@@ -632,15 +635,15 @@ namespace WinAGI.Engine {
                 ResType = AGIResType.Logic,
                 Type = EventType.etWarning,
                 ID = WarnID,
-                Module = "",
+                Module = moduleID,
                 Text = WarningText,
-                Line = LineNum.ToString(),
+                Line = (LineNum + 1).ToString(),
             };
             AGIGame.OnDecodeLogicStatus(dcWarnInfo);
             if (!blnWarning) {
                 blnWarning = true;
             }
-            strWarning.Add(WarningText);
+            strWarning.Add("WARNING " + WarnID + ": " + WarningText);
         }
 
         /// <summary>
@@ -925,7 +928,7 @@ namespace WinAGI.Engine {
         /// <param name="bytData"></param>
         /// <param name="stlOut"></param>
         /// <returns></returns>
-        static bool DecodeIf(byte[] bytData, List<string> stlOut) {
+        static bool DecodeIf(byte[] bytData, StringList stlOut) {
             bool blnFirstCmd = true;
             bool blnInOrBlock = false;
             bool blnInNotBlock;
@@ -1080,7 +1083,7 @@ namespace WinAGI.Engine {
                     stlOut.Add(strLine);
                     if (blnWarning) {
                         for (i = 0; i < strWarning.Count; i++) {
-                            stlOut.Add(MultStr(INDENT, bytBlockDepth) + D_TKN_COMMENT + " WARNING: " + strWarning[i]);
+                            stlOut.Add(MultStr(INDENT, bytBlockDepth) + D_TKN_COMMENT + strWarning[i]);
                         }
                         blnWarning = false;
                         strWarning = [];
@@ -1329,7 +1332,7 @@ namespace WinAGI.Engine {
         /// This method adds the message declarations to end of the source code output.
         /// </summary>
         /// <param name="stlOut"></param>
-        static void DisplayMessages(List<string> stlOut) {
+        static void DisplayMessages(StringList stlOut) {
             int lngMsg;
             stlOut.Add(D_TKN_COMMENT + "DECLARED MESSAGES");
             for (lngMsg = 1; lngMsg < stlMsgs.Count; lngMsg++) {
@@ -1479,7 +1482,7 @@ namespace WinAGI.Engine {
         /// This method adds all the block ends that are aligned with the current position.
         /// </summary>
         /// <param name="stlOutput"></param>
-        static void AddBlockEnds(List<string> stlOutput) {
+        static void AddBlockEnds(StringList stlOutput) {
             int CurBlock, i;
 
             for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--) {

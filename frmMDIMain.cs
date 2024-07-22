@@ -240,7 +240,8 @@ namespace WinAGI.Editor
         }
         private void mnuWindow_DropDownOpening(object sender, EventArgs e) {
             // disable the close item if no windows or if active window is preview
-            mnuWClose.Enabled = (this.MdiChildren.Length != 0) && (ActiveMdiChild != PreviewWin);
+            mnuWClose.Enabled = (MdiChildren.Length != 0) && (ActiveMdiChild != PreviewWin) && (ActiveMdiChild != null);
+
         }
         private void frmMDIMain_Load(object sender, EventArgs e) {
             bool blnLastLoad;
@@ -8621,7 +8622,7 @@ namespace WinAGI.Editor
             // if a game is loaded, import is also always available
             mnuRImport.Enabled = true;
             // OBJECT
-            if (SelResType == AGIResType.Objects) {
+            if (SelResType == Objects) {
                 mnuROpenRes.Visible = false;
                 mnuRSave.Visible = true;
                 mnuRSave.Text = "Save OBJECT";
@@ -8643,7 +8644,7 @@ namespace WinAGI.Editor
                 return;
             }
             // WORDS.TOK
-            if (SelResType == AGIResType.Words) {
+            if (SelResType == Words) {
                 mnuROpenRes.Visible = false;
                 mnuRSave.Visible = true;
                 mnuRSave.Text = "Save WORDS.TOK";
@@ -8709,7 +8710,7 @@ namespace WinAGI.Editor
             bool err = false;
             switch (SelResType) {
             case AGIResType.Logic:
-                // error lecel doesn't affect logics
+                // error level doesn't affect logics
                 // err = EditGame.Logics[SelResNum].ErrLevel < 0;
                 mnuRSeparator3.Visible = !EditGame.Logics[SelResNum].Compiled;
                 mnuRCompileLogic.Visible = !EditGame.Logics[SelResNum].Compiled;
@@ -8830,9 +8831,28 @@ namespace WinAGI.Editor
 
             //Form1 frm = new() { };
             //_ = frm.ShowDialog(this);
-            
+
             frmTools ToolsEditor = new() { };
             _ = ToolsEditor.ShowDialog(this);
+        }
+
+        private void mnuGRebuild_Click(object sender, EventArgs e) {
+            CompileAGIGame(EditGame.GameDir, true);
+        }
+
+        private void mnuGame_DropDownOpening(object sender, EventArgs e) {
+            mnuGClose.Enabled = EditGame != null;
+            mnuGCompile.Enabled = EditGame != null;
+            mnuGCompileTo.Enabled = EditGame != null;
+            mnuGRun.Enabled = EditGame != null;
+            mnuGRebuild.Enabled = EditGame != null;
+            mnuGCompileDirty.Enabled = EditGame != null;
+            mnuGProperties.Enabled = EditGame != null;
+            mnuRImport.Enabled = EditGame != null;
+        }
+
+        private void mnuTools_DropDownOpening(object sender, EventArgs e) {
+            mnuTLayout.Enabled = EditGame != null && EditGame.UseLE;
         }
     }
 }

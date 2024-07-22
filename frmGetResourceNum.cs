@@ -581,7 +581,8 @@ namespace WinAGI.Editor {
         }
 
         private void frmGetResourceNum_FormClosed(object sender, FormClosedEventArgs e) {
-           // _wfes.CloseDropDown();
+           //
+           // 
         }
     }
 }

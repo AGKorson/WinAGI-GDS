@@ -430,16 +430,37 @@ namespace WinAGI.Common {
         }
 
         /// <summary>
+        /// An overload version of List string> that detects multiple lines in the 
+        /// Add method.
+        /// </summary>
+        public class StringList : List<string> {
+            public new void Add(string item) {
+                // check for multiple lines in item
+                if (item.Contains('\n') || item.Contains('\r')) {
+                    item = item.Replace("\r\n", "\n");
+                    item = item.Replace('\r', '\n');
+                    // split it
+                    string[] items = item.Split('\n');
+                    foreach (string subitem in items) {
+                        base.Add(subitem);
+                    }
+                }
+                else {
+                    base.Add(item);
+                }
+            }
+        }
+
+
+
+        /// <summary>
         /// Splits a string into an List of lines using all forms of line separators
         /// (CR, CRLF, LF).
         /// </summary>
         /// <param name="strText"></param>
         /// <returns></returns>
         internal static List<string> SplitLines(string strText) {
-            
-//            List<string> retval = [.. strText.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n')];
-//            return retval;
-            return strText.Split(new[] { "\n", "\r", "\r\n" }, StringSplitOptions.None).Cast<string>().ToList();
+            return strText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).Cast<string>().ToList();
         }
 
         /// <summary>

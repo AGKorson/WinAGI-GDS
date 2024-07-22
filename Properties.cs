@@ -8,8 +8,10 @@ using static WinAGI.Editor.Base;
 using static WinAGI.Engine.Base;
 
 namespace WinAGI.Editor {
-    // property accessors; used on the main form to display 
-    // properties, and allow them to be edited
+    /// <summary>
+    /// Property accessors for the AGI Game objrct. Used on the main form to display 
+    /// properties, and allows them to be edited.
+    /// </summary>
     public class GameProperties {
         //string _GameID;
         public GameProperties() {}
@@ -31,16 +33,21 @@ namespace WinAGI.Editor {
                 ChangeGameID(value);
             }
         }
+
         public string Author {
             get => EditGame.GameAuthor;
             set => EditGame.GameAuthor = value;
         }
+        
         public string GameDir { 
             get => EditGame.GameDir; }
+        
         public string ResDir { 
             get => EditGame.ResDirName;
-            // TODO: resdir change checks
-            set => EditGame.ResDirName = value;
+            set {
+                // validate and change resource directory
+                ChangeResDir(value);
+            }
         }
 
         [TypeConverter(typeof(IntVerConverter))]
@@ -209,18 +216,18 @@ namespace WinAGI.Editor {
 
 
     internal class PropIntVersions {
-        internal static string[] _Versions = IntVersions;// ["2.089", "2.272"];
+        internal static string[] _Versions = IntVersions;
     }
 
     public class IntVerConverter : StringConverter {
         public override bool GetStandardValuesSupported(ITypeDescriptorContext context) {
-            //true means show a combobox
+            // true means show a combobox
             return true;
         }
 
         public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) {
-            //true will limit to list. false will show the list, 
-            //but allow free-form entry
+            // true will limit to list. false will show the list, 
+            // but allow free-form entry
             return true;
         }
 
@@ -247,7 +254,7 @@ namespace WinAGI.Editor {
                 _frmGetResNum._wfes = wfes;
 
                 wfes.ShowDialog(_frmGetResNum);
-                value = 1;
+                value = ((frmGetResourceNum)wfes).NewResNum;
             }
             return value;
         }
