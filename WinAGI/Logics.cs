@@ -249,7 +249,7 @@ namespace WinAGI.Engine {
         public void MarkAsDirty(byte ResNum) {
             if (Contains(ResNum)) {
                 Col[ResNum].CompiledCRC = 0xffffffff;
-                parent.WriteGameSetting("Logic" + ResNum.ToString(), "CompCRC32", "0x00", "Logics");
+                parent.WriteGameSetting("Logic" + ResNum.ToString(), "CompCRC32", "0xffffffff", "Logics");
                 return;
             }
         }
@@ -261,7 +261,7 @@ namespace WinAGI.Engine {
         public void MarkAllAsDirty() {
             foreach (Logic tmpLogic in Col.Values) {
                 tmpLogic.CompiledCRC = 0xffffffff;
-                parent.WriteGameSetting("Logic" + tmpLogic.Number, "CompCRC32", "0x00", "Logics");
+                parent.WriteGameSetting("Logic" + tmpLogic.Number, "CompCRC32", "0xffffffff", "Logics");
             }
             parent.agGameProps.Save();
         }

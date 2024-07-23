@@ -23,14 +23,10 @@ namespace WinAGI.Editor {
             }
             set
             {
-                // validate new id before changing it
-                if (EditGame.GameID == value || value.Length == 0) {
-                    return;
-                }
-                if (value.Length > 5) {
-                    value = value[..5];
-                }
                 ChangeGameID(value);
+                // mark any logics that use the gameID token as dirty
+                UpdateReservedToken(EditGame.ReservedGameDefines[0].Name);
+                RDefLookup[91].Value = '"' + EditGame.GameID + '"';
             }
         }
 
@@ -65,14 +61,27 @@ namespace WinAGI.Editor {
             set => EditGame.GameDescription = value; }
         public string GameVer { 
             get => EditGame.GameVersion;
-            set => EditGame.GameVersion = value; }
+            set {
+                EditGame.GameVersion = value;
+                UpdateReservedToken(EditGame.ReservedGameDefines[1].Name);
+                RDefLookup[92].Value = '"' + EditGame.GameVersion + '"';
+            }
+        }
         public string GameAbout { 
-            get => EditGame.GameAbout; 
-            set => EditGame.GameAbout = value; }
+            get => EditGame.GameAbout;
+            set {
+                EditGame.GameAbout = value;
+                UpdateReservedToken(EditGame.ReservedGameDefines[2].Name);
+                RDefLookup[93].Value = '"' + EditGame.GameAbout + '"';
+            }
+        }
         public bool LayoutEditor { 
             get => EditGame.UseLE;
-            // TODO: layouteditor usage checks
-            set => EditGame.UseLE = value; }
+            set {
+                EditGame.UseLE = value;
+                UpdateLEStatus();
+            }
+        }
         public DateTime LastEdit { 
             get => EditGame.LastEdit; }
     }
@@ -254,7 +263,7 @@ namespace WinAGI.Editor {
                 _frmGetResNum._wfes = wfes;
 
                 wfes.ShowDialog(_frmGetResNum);
-                value = ((frmGetResourceNum)wfes).NewResNum;
+                value = _frmGetResNum.NewResNum;
             }
             return value;
         }

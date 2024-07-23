@@ -403,7 +403,7 @@ namespace WinAGI.Engine {
                 if (tmpName.Length == 0) {
                     return;
                 }
-                if (Path.GetInvalidPathChars().Any(tmpName.Contains)) {
+                if (Path.GetInvalidFileNameChars().Any(tmpName.Contains)) {
                     throw new ArgumentOutOfRangeException(nameof(ResDirName), "Invalid property Value");
                 }
                 agResDirName = tmpName;
@@ -1335,7 +1335,7 @@ namespace WinAGI.Engine {
                     }
                     // update all logics to new resdir
                     foreach (Logic tmpLog in Logics) {
-                        tmpLog.mSourceFile = agResDir + tmpLog.ID + agSrcFileExt;
+                        tmpLog.SourceFile = agResDir + tmpLog.ID + agSrcFileExt;
                         WriteGameSetting("Logic" + tmpLog.Number, "ID", tmpLog.ID, "Logics");
                     }
                 }

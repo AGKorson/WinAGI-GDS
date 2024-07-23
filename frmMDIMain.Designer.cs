@@ -2143,7 +2143,6 @@
         private ToolStripSeparator mnuGSep5;
         private ToolStripMenuItem mnuTSettings;
         private ToolStripSeparator mnuTSep1;
-        private ToolStripMenuItem mnuTLayout;
         private ToolStripMenuItem mnuTMenuEditor;
         private ToolStripMenuItem mnuTGlobals;
         private ToolStripMenuItem mnuReserved;
@@ -2297,6 +2296,7 @@
         internal ToolStripSeparator mnuTSep2;
         internal ToolStrip toolStrip1;
         private ToolStripButton btnTextEd;
+        internal ToolStripMenuItem mnuTLayout;
     }
 }
 

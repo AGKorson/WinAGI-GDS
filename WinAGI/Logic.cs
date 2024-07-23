@@ -65,7 +65,7 @@ namespace WinAGI.Engine {
             // get rest of properties
             mCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
             mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
-            mSourceFile = parent.agResDir + mResID + parent.agSrcFileExt;
+            SourceFile = parent.agResDir + mResID + parent.agSrcFileExt;
             if (ResNum == 0) {
                 // logic0 can never be a room
                 mIsRoom = false;
@@ -87,10 +87,10 @@ namespace WinAGI.Engine {
                 base.ID = value;
                 if (mInGame) {
                     try {
-                        File.Move(mSourceFile, parent.agResDir + base.ID + parent.agSrcFileExt);
+                        File.Move(SourceFile, parent.agResDir + base.ID + parent.agSrcFileExt);
                     }
                     finally {
-                        mSourceFile = parent.agResDir + base.ID + parent.agSrcFileExt;
+                        SourceFile = parent.agResDir + base.ID + parent.agSrcFileExt;
                         parent.WriteGameSetting("Logic" + Number, "ID", mResID, "Logics");
                     }
                 }
@@ -147,7 +147,12 @@ namespace WinAGI.Engine {
         /// </summary>
         public string SourceFile {
             get {
-                return mSourceFile;
+                if (mInGame) {
+                    return parent.agResDir + this.ID + parent.SourceExt;
+                }
+                else {
+                    return mSourceFile;
+                }
             }
             set {
                 // ignore if in a game
@@ -329,7 +334,7 @@ namespace WinAGI.Engine {
                 mCRC = NewLogic.mCRC;
                 mSourceText = NewLogic.mSourceText;
                 mSourceDirty = NewLogic.mSourceDirty;
-                mSourceFile = NewLogic.mSourceFile;
+                SourceFile = NewLogic.SourceFile;
             }
         }
 
@@ -348,7 +353,7 @@ namespace WinAGI.Engine {
             CopyLogic.mCRC = mCRC;
             CopyLogic.mSourceText = mSourceText;
             CopyLogic.mSourceDirty = mSourceDirty;
-            CopyLogic.mSourceFile = mSourceFile;
+            CopyLogic.SourceFile = SourceFile;
             return CopyLogic;
         }
 
@@ -427,7 +432,7 @@ namespace WinAGI.Engine {
             }
             if (!mInGame) {
                 // change file name to match the import file
-                mSourceFile = ImportFile;
+                SourceFile = ImportFile;
             }
             LoadSource();
             // set ID to the filename without extension;
@@ -462,17 +467,17 @@ namespace WinAGI.Engine {
             if (mInGame) {
                 // check that file exists; if not, look for alternate filename
                 // formats, and move/rename as needed
-                if (!File.Exists(mSourceFile)) {
+                if (!File.Exists(SourceFile)) {
                     if (File.Exists(parent.agResDir + "logic" + Number + ".txt")) {
-                        File.Move(parent.agResDir + "logic" + Number + ".txt", mSourceFile);
+                        File.Move(parent.agResDir + "logic" + Number + ".txt", SourceFile);
                     }
                     else if (File.Exists(parent.agResDir + mResID + ".txt")) {
-                        File.Move(parent.agResDir + mResID + ".txt", mSourceFile);
+                        File.Move(parent.agResDir + mResID + ".txt", SourceFile);
                     }
                     else {
                         if (agSierraSyntax) {
                             if (File.Exists(parent.agResDir + "RM" + Number + ".cg")) {
-                                File.Move(parent.agResDir + "RM" + Number + ".cg", mSourceFile);
+                                File.Move(parent.agResDir + "RM" + Number + ".cg", SourceFile);
                             }
                             else {
                                 // default file does not exist
@@ -515,7 +520,7 @@ namespace WinAGI.Engine {
             }
             else {
                 // verify file exists
-                if (!File.Exists(mSourceFile)) {
+                if (!File.Exists(SourceFile)) {
                     mSrcErrLevel = -1;
                     ErrData[0] = mSourceText;
                     ErrData[1] = mResID;
@@ -526,7 +531,7 @@ namespace WinAGI.Engine {
                     return;
                 }
                 // check for readonly
-                if ((File.GetAttributes(mSourceFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                if ((File.GetAttributes(SourceFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                     mSrcErrLevel = -2;
                     ErrData[0] = mSourceText;
                     ErrData[1] = mResID;
@@ -537,7 +542,7 @@ namespace WinAGI.Engine {
                     return;
                 }
                 try {
-                    mSourceText = File.ReadAllText(mSourceFile);
+                    mSourceText = File.ReadAllText(SourceFile);
                 }
                 catch (Exception e) {
                     mSrcErrLevel = -3;
@@ -585,13 +590,8 @@ namespace WinAGI.Engine {
         /// <param name="SaveFile"></param>
         public void SaveSource(string SaveFile = "") {
             if (SaveFile.Length == 0) {
-                //if in a game
-                if (mInGame) {
-                    //filename is predfined
-                    SaveFile = SourceFile;
-                }
-                else {
-                    SaveFile = mSourceFile;
+                SaveFile = SourceFile;
+                if (!mInGame) {
                     if (SaveFile.Length == 0) {
                         WinAGIException wex = new(LoadResString(599)) {
                             HResult = WINAGI_ERR + 599

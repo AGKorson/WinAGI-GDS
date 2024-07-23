@@ -10,301 +10,305 @@ using System.Windows.Forms;
 
 namespace WinAGI.Editor
 {
-  public partial class frmLayout : Form
-  {
-    public frmLayout()
-    {
-      InitializeComponent();
-    }
+    public partial class frmLayout : Form {
 
-    internal void SelectRoom(int selResNum)
-    {
-      throw new NotImplementedException();
-    }
-    public void DrawLayout(bool DrawSel = true)
-    {
-      /*
-  Dim rtn As Long
-  Dim i As Long, j As Long
-  Dim lngRoom As Long, LineColor As Long
-  Dim v(2) As POINTAPI, strID As String
-  Dim sngPW As Single, sngPH As Single
-  Dim sngTextH As Single, sngTextW As Single
-  
-  On Error GoTo ErrHandler
-  
-  'if drawing temporarily disabled (due to complex add/update methods)
-  'just exit; eventually, calling functions will be done, will re-enable
-  'drawing and then call this method again
-  
-  If blnDontDraw Then
-    Exit Sub
-  End If
-  
-  'if no print scale,
-  '(meaning form load is not done yet)
-  If PrintScale = 0 Then
-    Exit Sub
-  End If
-  
-#If DEBUGMODE <> 1 Then
-  'disable updating
-  rtn = SendMessage(picDraw.hWnd, WM_SETREDRAW, 0, 0)
-#End If
+        // other variables
+        public bool IsDirty = false;
 
-  With picDraw
-    .Cls
-    
-    'if drawing page boundaries
-    If Settings.LEPages And PrintScale <> 0 Then
-      .DrawWidth = 1
-      .DrawStyle = vbDot
-      .ForeColor = RGB(128, 128, 128)
-      
-      'page width/height
-      sngPW = (Printer.Width / 1440 - 1.5) / PrintScale
-      sngPH = (Printer.Height / 1440 - 1.5) / PrintScale
-      
-      'on startup, or if no objects, could have sngPW and/or sngPH = 0
-      'so need to check before continuing
-      If sngPW > 0 Then
-        'get position of first vertical line that would occur after current offset position
-        i = Int((MinX + OffsetX) / sngPW)
-        'add vertical lines, until past edge of drawing surface
-        Do Until (MinX + OffsetX + i * sngPW) * DSF > .ScaleWidth
-          picDraw.Line ((MinX + OffsetX + i * sngPW) * DSF, 0)-Step(0, .ScaleHeight)
-          i = i + 1
-        Loop
-      End If
-      
-      If sngPH > 0 Then
-      j = Int((MinY + OffsetY) / sngPH) ' + 1
-        'add horizontal lines until past bottom edge of drawing surface
-        Do Until (MinY + OffsetY + j * sngPH) * DSF > .ScaleHeight
-          picDraw.Line (0, (MinY + OffsetY + j * sngPH) * DSF)-Step(.ScaleWidth, 0)
-          j = j + 1
-        Loop
-      End If
-    End If
-    'restore draw properties
-    .DrawWidth = 2
-    .DrawStyle = vbSolid
-    
-    'then add objects
-    For i = 0 To ObjCount - 1
-      Select Case ObjOrder(i).Type
-      Case lsRoom
-        lngRoom = ObjOrder(i).Number
-        
-        'in unlikely event the object is not visible, just skip it
-        If Room(lngRoom).Visible Then
-          'if object is on screen
-          If ObjOnScreen(ObjOrder(i)) Then
-            'draw the box
-            .FillColor = Settings.LEColors.Room.Fill
-            .ForeColor = Settings.LEColors.Room.Edge
-            'room size is RM_SIZE units in object scale converted to pixels
-            picDraw.Line ((Room(lngRoom).Loc.X + OffsetX) * DSF, (Room(lngRoom).Loc.Y + OffsetY) * DSF)-Step(RM_SIZE * DSF, RM_SIZE * DSF), Settings.LEColors.Room.Edge, B
-            'if showing pic for this room, draw the matching vis pic
-            If Room(lngRoom).ShowPic Then
-              DrawRoomPic lngRoom, OffsetX, OffsetY
+        public frmLayout() {
+            InitializeComponent();
+        }
+
+        internal void SelectRoom(int selResNum) {
+            throw new NotImplementedException();
+        }
+        public void DrawLayout(bool DrawSel = true) {
+            /*
+        Dim rtn As Long
+        Dim i As Long, j As Long
+        Dim lngRoom As Long, LineColor As Long
+        Dim v(2) As POINTAPI, strID As String
+        Dim sngPW As Single, sngPH As Single
+        Dim sngTextH As Single, sngTextW As Single
+
+        On Error GoTo ErrHandler
+
+        'if drawing temporarily disabled (due to complex add/update methods)
+        'just exit; eventually, calling functions will be done, will re-enable
+        'drawing and then call this method again
+
+        If blnDontDraw Then
+          Exit Sub
+        End If
+
+        'if no print scale,
+        '(meaning form load is not done yet)
+        If PrintScale = 0 Then
+          Exit Sub
+        End If
+
+      #If DEBUGMODE <> 1 Then
+        'disable updating
+        rtn = SendMessage(picDraw.hWnd, WM_SETREDRAW, 0, 0)
+      #End If
+
+        With picDraw
+          .Cls
+
+          'if drawing page boundaries
+          If Settings.LEPages And PrintScale <> 0 Then
+            .DrawWidth = 1
+            .DrawStyle = vbDot
+            .ForeColor = RGB(128, 128, 128)
+
+            'page width/height
+            sngPW = (Printer.Width / 1440 - 1.5) / PrintScale
+            sngPH = (Printer.Height / 1440 - 1.5) / PrintScale
+
+            'on startup, or if no objects, could have sngPW and/or sngPH = 0
+            'so need to check before continuing
+            If sngPW > 0 Then
+              'get position of first vertical line that would occur after current offset position
+              i = Int((MinX + OffsetX) / sngPW)
+              'add vertical lines, until past edge of drawing surface
+              Do Until (MinX + OffsetX + i * sngPW) * DSF > .ScaleWidth
+                picDraw.Line ((MinX + OffsetX + i * sngPW) * DSF, 0)-Step(0, .ScaleHeight)
+                i = i + 1
+              Loop
             End If
-            
-            strID = ResourceName(Logics(lngRoom), True, True)
-            sngTextW = .TextWidth(strID)
-            sngTextH = .TextHeight(strID)
-            If sngTextW <= RM_SIZE * DSF Then
-              .CurrentX = ((Room(lngRoom).Loc.X + OffsetX) + RM_SIZE / 2) * DSF - sngTextW / 2
-              .CurrentY = ((Room(lngRoom).Loc.Y + OffsetY) + 0.7) * DSF - 3 * sngTextH / 2
-              picDraw.Print strID
-            Else
-              'if logic id is too long, it won't fit in the box; split across two lines
-              'print first line
-              j = 0
-              Do Until sngTextW <= RM_SIZE * DSF
-                strID = Left$(strID, Len(strID) - 1)
-                sngTextW = .TextWidth(strID)
+
+            If sngPH > 0 Then
+            j = Int((MinY + OffsetY) / sngPH) ' + 1
+              'add horizontal lines until past bottom edge of drawing surface
+              Do Until (MinY + OffsetY + j * sngPH) * DSF > .ScaleHeight
+                picDraw.Line (0, (MinY + OffsetY + j * sngPH) * DSF)-Step(.ScaleWidth, 0)
                 j = j + 1
               Loop
-              sngTextH = .TextHeight(strID)
-              .CurrentX = ((Room(lngRoom).Loc.X + OffsetX) + RM_SIZE / 2) * DSF - sngTextW / 2
-              .CurrentY = ((Room(lngRoom).Loc.Y + OffsetY) + 0.7) * DSF - 3 * sngTextH / 2
-              picDraw.Print strID
-              'now print second line (at same x position)
-              .CurrentX = ((Room(lngRoom).Loc.X + OffsetX) + RM_SIZE / 2) * DSF - sngTextW / 2
-              strID = Right(ResourceName(Logics(lngRoom), True, True), j)
-              sngTextW = .TextWidth(strID)
-              Do Until sngTextW <= RM_SIZE * DSF
-                strID = Left$(strID, Len(strID) - 1)
-                sngTextW = .TextWidth(strID)
-              Loop
-              .CurrentY = ((Room(lngRoom).Loc.Y + OffsetY) + 0.7) * DSF - sngTextH / 2
-              picDraw.Print strID
             End If
           End If
-          
-          'draw exits
-          For j = 0 To Exits(lngRoom).Count - 1
-            'skip any deleted exits
-            If Exits(lngRoom)(j).Status <> esDeleted Then
-              'determine color
-              If Exits(lngRoom)(j).Status = esHidden Then
-                'use a dashed, gray line (stupid graphics rules in windows
-                '                         says width has to be 1 to get dashed lines)
-                .DrawStyle = vbDot
-                .DrawWidth = 1
-                LineColor = RGB(160, 160, 160)
-'''  can't get the APIs to work in order to draw a wider dotted line
+          'restore draw properties
+          .DrawWidth = 2
+          .DrawStyle = vbSolid
 
-'''              Dim hPen As Long, lBrush As LOGBRUSH, pStyle As Long
-'''              pStyle = PS_GEOMETRIC Or PS_SOLID Or PS_DOT Or PS_ENDCAP_FLAT Or PS_JOIN_BEVEL
-'''              pStyle = PS_COSMETIC Or PS_DOT ' Or PS_ENDCAP_FLAT Or PS_JOIN_BEVEL
-'''                'PS_DASH
-'''              With lBrush
-'''                .lbStyle = BS_SOLID
-'''                .lbColor = 0
-'''              End With
-'''              hPen = ExtCreatePen(pStyle, 5, lBrush, 0, 0)
-'''              If hPen <> 0 Then
-'''                SelectObject picDraw.hDC, hPen
-'''              End If
-'''
-'''              LineTo picDraw.hDC, 100, 100
-              Else
-                Select Case Exits(lngRoom)(j).Reason
-                Case erOther
-                  LineColor = Settings.LEColors.Other
-                Case Else
-                  LineColor = Settings.LEColors.Edge
-                End Select
-                .DrawStyle = vbNormal
-                .DrawWidth = 2
-              End If
-              .ForeColor = LineColor
-              .FillColor = LineColor
-              
-              'if there is a transfer pt
-              If Exits(lngRoom)(j).Transfer > 0 Then
-              '*'Debug.Assert Exits(lngRoom)(j).Status <> esHidden
-                'is this first leg?
-                If Exits(lngRoom)(j).Leg = 0 Then
-                  'draw first segment
-                  If LineOnScreen(Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, TransPt(Exits(lngRoom)(j).Transfer).SP.X, TransPt(Exits(lngRoom)(j).Transfer).SP.Y) Then
-                    MoveToEx .hDC, (Exits(lngRoom)(j).SPX + OffsetX) * DSF, (Exits(lngRoom)(j).SPY + OffsetY) * DSF, 0
-                    LineTo .hDC, (TransPt(Exits(lngRoom)(j).Transfer).SP.X + OffsetX) * DSF, (TransPt(Exits(lngRoom)(j).Transfer).SP.Y + OffsetY) * DSF
-                    DrawArrow Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, TransPt(Exits(lngRoom)(j).Transfer).SP.X, TransPt(Exits(lngRoom)(j).Transfer).SP.Y, LineColor
+          'then add objects
+          For i = 0 To ObjCount - 1
+            Select Case ObjOrder(i).Type
+            Case lsRoom
+              lngRoom = ObjOrder(i).Number
+
+              'in unlikely event the object is not visible, just skip it
+              If Room(lngRoom).Visible Then
+                'if object is on screen
+                If ObjOnScreen(ObjOrder(i)) Then
+                  'draw the box
+                  .FillColor = Settings.LEColors.Room.Fill
+                  .ForeColor = Settings.LEColors.Room.Edge
+                  'room size is RM_SIZE units in object scale converted to pixels
+                  picDraw.Line ((Room(lngRoom).Loc.X + OffsetX) * DSF, (Room(lngRoom).Loc.Y + OffsetY) * DSF)-Step(RM_SIZE * DSF, RM_SIZE * DSF), Settings.LEColors.Room.Edge, B
+                  'if showing pic for this room, draw the matching vis pic
+                  If Room(lngRoom).ShowPic Then
+                    DrawRoomPic lngRoom, OffsetX, OffsetY
                   End If
-                  'draw second segment
-                  If LineOnScreen(TransPt(Exits(lngRoom)(j).Transfer).EP.X, TransPt(Exits(lngRoom)(j).Transfer).EP.Y, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY) Then
-                    MoveToEx .hDC, (TransPt(Exits(lngRoom)(j).Transfer).EP.X + OffsetX) * DSF, (TransPt(Exits(lngRoom)(j).Transfer).EP.Y + OffsetY) * DSF, 0
-                    LineTo .hDC, (Exits(lngRoom)(j).EPX + OffsetX) * DSF, (Exits(lngRoom)(j).EPY + OffsetY) * DSF
-                    DrawArrow TransPt(Exits(lngRoom)(j).Transfer).EP.X, TransPt(Exits(lngRoom)(j).Transfer).EP.Y, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY, LineColor
-                  End If
-                Else
-                  'just draw the arrows- the lines are alreay drawn
-                  If LineOnScreen(Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, TransPt(Exits(lngRoom)(j).Transfer).EP.X, TransPt(Exits(lngRoom)(j).Transfer).EP.Y) Then
-                    DrawArrow Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, TransPt(Exits(lngRoom)(j).Transfer).EP.X, TransPt(Exits(lngRoom)(j).Transfer).EP.Y, LineColor
-                  End If
-                  If LineOnScreen(TransPt(Exits(lngRoom)(j).Transfer).SP.X, TransPt(Exits(lngRoom)(j).Transfer).SP.Y, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY) Then
-                    DrawArrow TransPt(Exits(lngRoom)(j).Transfer).SP.X, TransPt(Exits(lngRoom)(j).Transfer).SP.Y, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY, LineColor
+
+                  strID = ResourceName(Logics(lngRoom), True, True)
+                  sngTextW = .TextWidth(strID)
+                  sngTextH = .TextHeight(strID)
+                  If sngTextW <= RM_SIZE * DSF Then
+                    .CurrentX = ((Room(lngRoom).Loc.X + OffsetX) + RM_SIZE / 2) * DSF - sngTextW / 2
+                    .CurrentY = ((Room(lngRoom).Loc.Y + OffsetY) + 0.7) * DSF - 3 * sngTextH / 2
+                    picDraw.Print strID
+                  Else
+                    'if logic id is too long, it won't fit in the box; split across two lines
+                    'print first line
+                    j = 0
+                    Do Until sngTextW <= RM_SIZE * DSF
+                      strID = Left$(strID, Len(strID) - 1)
+                      sngTextW = .TextWidth(strID)
+                      j = j + 1
+                    Loop
+                    sngTextH = .TextHeight(strID)
+                    .CurrentX = ((Room(lngRoom).Loc.X + OffsetX) + RM_SIZE / 2) * DSF - sngTextW / 2
+                    .CurrentY = ((Room(lngRoom).Loc.Y + OffsetY) + 0.7) * DSF - 3 * sngTextH / 2
+                    picDraw.Print strID
+                    'now print second line (at same x position)
+                    .CurrentX = ((Room(lngRoom).Loc.X + OffsetX) + RM_SIZE / 2) * DSF - sngTextW / 2
+                    strID = Right(ResourceName(Logics(lngRoom), True, True), j)
+                    sngTextW = .TextWidth(strID)
+                    Do Until sngTextW <= RM_SIZE * DSF
+                      strID = Left$(strID, Len(strID) - 1)
+                      sngTextW = .TextWidth(strID)
+                    Loop
+                    .CurrentY = ((Room(lngRoom).Loc.Y + OffsetY) + 0.7) * DSF - sngTextH / 2
+                    picDraw.Print strID
                   End If
                 End If
-              Else
-                'draw the exit line
-                If LineOnScreen(Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY) Then
-                  MoveToEx .hDC, (Exits(lngRoom)(j).SPX + OffsetX) * DSF, (Exits(lngRoom)(j).SPY + OffsetY) * DSF, 0
-                  LineTo .hDC, (Exits(lngRoom)(j).EPX + OffsetX) * DSF, (Exits(lngRoom)(j).EPY + OffsetY) * DSF
-                  DrawArrow Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY, LineColor
+
+                'draw exits
+                For j = 0 To Exits(lngRoom).Count - 1
+                  'skip any deleted exits
+                  If Exits(lngRoom)(j).Status <> esDeleted Then
+                    'determine color
+                    If Exits(lngRoom)(j).Status = esHidden Then
+                      'use a dashed, gray line (stupid graphics rules in windows
+                      '                         says width has to be 1 to get dashed lines)
+                      .DrawStyle = vbDot
+                      .DrawWidth = 1
+                      LineColor = RGB(160, 160, 160)
+      '''  can't get the APIs to work in order to draw a wider dotted line
+
+      '''              Dim hPen As Long, lBrush As LOGBRUSH, pStyle As Long
+      '''              pStyle = PS_GEOMETRIC Or PS_SOLID Or PS_DOT Or PS_ENDCAP_FLAT Or PS_JOIN_BEVEL
+      '''              pStyle = PS_COSMETIC Or PS_DOT ' Or PS_ENDCAP_FLAT Or PS_JOIN_BEVEL
+      '''                'PS_DASH
+      '''              With lBrush
+      '''                .lbStyle = BS_SOLID
+      '''                .lbColor = 0
+      '''              End With
+      '''              hPen = ExtCreatePen(pStyle, 5, lBrush, 0, 0)
+      '''              If hPen <> 0 Then
+      '''                SelectObject picDraw.hDC, hPen
+      '''              End If
+      '''
+      '''              LineTo picDraw.hDC, 100, 100
+                    Else
+                      Select Case Exits(lngRoom)(j).Reason
+                      Case erOther
+                        LineColor = Settings.LEColors.Other
+                      Case Else
+                        LineColor = Settings.LEColors.Edge
+                      End Select
+                      .DrawStyle = vbNormal
+                      .DrawWidth = 2
+                    End If
+                    .ForeColor = LineColor
+                    .FillColor = LineColor
+
+                    'if there is a transfer pt
+                    If Exits(lngRoom)(j).Transfer > 0 Then
+                    '*'Debug.Assert Exits(lngRoom)(j).Status <> esHidden
+                      'is this first leg?
+                      If Exits(lngRoom)(j).Leg = 0 Then
+                        'draw first segment
+                        If LineOnScreen(Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, TransPt(Exits(lngRoom)(j).Transfer).SP.X, TransPt(Exits(lngRoom)(j).Transfer).SP.Y) Then
+                          MoveToEx .hDC, (Exits(lngRoom)(j).SPX + OffsetX) * DSF, (Exits(lngRoom)(j).SPY + OffsetY) * DSF, 0
+                          LineTo .hDC, (TransPt(Exits(lngRoom)(j).Transfer).SP.X + OffsetX) * DSF, (TransPt(Exits(lngRoom)(j).Transfer).SP.Y + OffsetY) * DSF
+                          DrawArrow Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, TransPt(Exits(lngRoom)(j).Transfer).SP.X, TransPt(Exits(lngRoom)(j).Transfer).SP.Y, LineColor
+                        End If
+                        'draw second segment
+                        If LineOnScreen(TransPt(Exits(lngRoom)(j).Transfer).EP.X, TransPt(Exits(lngRoom)(j).Transfer).EP.Y, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY) Then
+                          MoveToEx .hDC, (TransPt(Exits(lngRoom)(j).Transfer).EP.X + OffsetX) * DSF, (TransPt(Exits(lngRoom)(j).Transfer).EP.Y + OffsetY) * DSF, 0
+                          LineTo .hDC, (Exits(lngRoom)(j).EPX + OffsetX) * DSF, (Exits(lngRoom)(j).EPY + OffsetY) * DSF
+                          DrawArrow TransPt(Exits(lngRoom)(j).Transfer).EP.X, TransPt(Exits(lngRoom)(j).Transfer).EP.Y, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY, LineColor
+                        End If
+                      Else
+                        'just draw the arrows- the lines are alreay drawn
+                        If LineOnScreen(Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, TransPt(Exits(lngRoom)(j).Transfer).EP.X, TransPt(Exits(lngRoom)(j).Transfer).EP.Y) Then
+                          DrawArrow Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, TransPt(Exits(lngRoom)(j).Transfer).EP.X, TransPt(Exits(lngRoom)(j).Transfer).EP.Y, LineColor
+                        End If
+                        If LineOnScreen(TransPt(Exits(lngRoom)(j).Transfer).SP.X, TransPt(Exits(lngRoom)(j).Transfer).SP.Y, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY) Then
+                          DrawArrow TransPt(Exits(lngRoom)(j).Transfer).SP.X, TransPt(Exits(lngRoom)(j).Transfer).SP.Y, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY, LineColor
+                        End If
+                      End If
+                    Else
+                      'draw the exit line
+                      If LineOnScreen(Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY) Then
+                        MoveToEx .hDC, (Exits(lngRoom)(j).SPX + OffsetX) * DSF, (Exits(lngRoom)(j).SPY + OffsetY) * DSF, 0
+                        LineTo .hDC, (Exits(lngRoom)(j).EPX + OffsetX) * DSF, (Exits(lngRoom)(j).EPY + OffsetY) * DSF
+                        DrawArrow Exits(lngRoom)(j).SPX, Exits(lngRoom)(j).SPY, Exits(lngRoom)(j).EPX, Exits(lngRoom)(j).EPY, LineColor
+                      End If
+                    End If
+                  End If
+                Next j
+              End If
+
+            Case lsTransPt
+              If TransPt(ObjOrder(i).Number).Count > 0 Then
+                If ObjOnScreen(ObjOrder(i)) Then
+                  .FillColor = Settings.LEColors.TransPt.Fill
+                  .ForeColor = Settings.LEColors.TransPt.Edge
+                  sngTextH = .TextHeight(CStr(ObjOrder(i).Number))
+                  sngTextW = .TextWidth(CStr(ObjOrder(i).Number))
+                  'draw transfer circles
+                  picDraw.Circle ((TransPt(ObjOrder(i).Number).Loc(0).X + RM_SIZE / 4 + OffsetX) * DSF, (TransPt(ObjOrder(i).Number).Loc(0).Y + RM_SIZE / 4 + OffsetY) * DSF), RM_SIZE / 4 * DSF, Settings.LEColors.TransPt.Edge
+                  .CurrentX = (TransPt(ObjOrder(i).Number).Loc(0).X + RM_SIZE / 4 + OffsetX) * DSF - sngTextW / 2
+                  .CurrentY = (TransPt(ObjOrder(i).Number).Loc(0).Y + RM_SIZE / 4 + OffsetY) * DSF - sngTextH / 2
+                  .FontBold = True
+                  picDraw.Print CStr(ObjOrder(i).Number)
+                  .FontBold = False
+                End If
+                If ObjOnScreen(ObjOrder(i), True) Then
+                  .FillColor = Settings.LEColors.TransPt.Fill
+                  .ForeColor = Settings.LEColors.TransPt.Edge
+                  sngTextH = .TextHeight(CStr(ObjOrder(i).Number))
+                  sngTextW = .TextWidth(CStr(ObjOrder(i).Number))
+                  picDraw.Circle ((TransPt(ObjOrder(i).Number).Loc(1).X + RM_SIZE / 4 + OffsetX) * DSF, (TransPt(ObjOrder(i).Number).Loc(1).Y + RM_SIZE / 4 + OffsetY) * DSF), RM_SIZE / 4 * DSF, Settings.LEColors.TransPt.Edge
+                  .CurrentX = (TransPt(ObjOrder(i).Number).Loc(1).X + RM_SIZE / 4 + OffsetX) * DSF - sngTextW / 2
+                  .CurrentY = (TransPt(ObjOrder(i).Number).Loc(1).Y + RM_SIZE / 4 + OffsetY) * DSF - sngTextH / 2
+                  .FontBold = True
+                  picDraw.Print CStr(ObjOrder(i).Number)
+                  .FontBold = False
                 End If
               End If
-            End If
-          Next j
-        End If
-        
-      Case lsTransPt
-        If TransPt(ObjOrder(i).Number).Count > 0 Then
-          If ObjOnScreen(ObjOrder(i)) Then
-            .FillColor = Settings.LEColors.TransPt.Fill
-            .ForeColor = Settings.LEColors.TransPt.Edge
-            sngTextH = .TextHeight(CStr(ObjOrder(i).Number))
-            sngTextW = .TextWidth(CStr(ObjOrder(i).Number))
-            'draw transfer circles
-            picDraw.Circle ((TransPt(ObjOrder(i).Number).Loc(0).X + RM_SIZE / 4 + OffsetX) * DSF, (TransPt(ObjOrder(i).Number).Loc(0).Y + RM_SIZE / 4 + OffsetY) * DSF), RM_SIZE / 4 * DSF, Settings.LEColors.TransPt.Edge
-            .CurrentX = (TransPt(ObjOrder(i).Number).Loc(0).X + RM_SIZE / 4 + OffsetX) * DSF - sngTextW / 2
-            .CurrentY = (TransPt(ObjOrder(i).Number).Loc(0).Y + RM_SIZE / 4 + OffsetY) * DSF - sngTextH / 2
-            .FontBold = True
-            picDraw.Print CStr(ObjOrder(i).Number)
-            .FontBold = False
-          End If
-          If ObjOnScreen(ObjOrder(i), True) Then
-            .FillColor = Settings.LEColors.TransPt.Fill
-            .ForeColor = Settings.LEColors.TransPt.Edge
-            sngTextH = .TextHeight(CStr(ObjOrder(i).Number))
-            sngTextW = .TextWidth(CStr(ObjOrder(i).Number))
-            picDraw.Circle ((TransPt(ObjOrder(i).Number).Loc(1).X + RM_SIZE / 4 + OffsetX) * DSF, (TransPt(ObjOrder(i).Number).Loc(1).Y + RM_SIZE / 4 + OffsetY) * DSF), RM_SIZE / 4 * DSF, Settings.LEColors.TransPt.Edge
-            .CurrentX = (TransPt(ObjOrder(i).Number).Loc(1).X + RM_SIZE / 4 + OffsetX) * DSF - sngTextW / 2
-            .CurrentY = (TransPt(ObjOrder(i).Number).Loc(1).Y + RM_SIZE / 4 + OffsetY) * DSF - sngTextH / 2
-            .FontBold = True
-            picDraw.Print CStr(ObjOrder(i).Number)
-            .FontBold = False
-          End If
-        End If
-      Case lsErrPt
-        If ErrPt(ObjOrder(i).Number).Visible Then
-          If ObjOnScreen(ObjOrder(i)) Then
-            .FillColor = Settings.LEColors.ErrPt.Fill
-            .ForeColor = Settings.LEColors.ErrPt.Edge
-            'use polygon drawing function
-            v(0).X = (ErrPt(ObjOrder(i).Number).Loc.X + OffsetX) * DSF
-            v(0).Y = (ErrPt(ObjOrder(i).Number).Loc.Y + OffsetY) * DSF
-            v(1).X = (ErrPt(ObjOrder(i).Number).Loc.X + 0.6 + OffsetX) * DSF
-            v(1).Y = (ErrPt(ObjOrder(i).Number).Loc.Y + OffsetY) * DSF
-            v(2).X = (ErrPt(ObjOrder(i).Number).Loc.X + 0.3 + OffsetX) * DSF
-            v(2).Y = (ErrPt(ObjOrder(i).Number).Loc.Y + RM_SIZE / 2 + OffsetY) * DSF
-            
-            rtn = Polygon(.hDC, v(0), 3)
-            .Refresh
-          End If
-        End If
-      Case lsComment
-        If Comment(ObjOrder(i).Number).Visible Then
-          If ObjOnScreen(ObjOrder(i)) Then
-            'draw comment box
-            DrawCmtBox ObjOrder(i).Number
-          End If
-        End If
-      End Select
-    Next i
-    
-    'just in case, make sure drawwidth is reset
-    .DrawWidth = 2
+            Case lsErrPt
+              If ErrPt(ObjOrder(i).Number).Visible Then
+                If ObjOnScreen(ObjOrder(i)) Then
+                  .FillColor = Settings.LEColors.ErrPt.Fill
+                  .ForeColor = Settings.LEColors.ErrPt.Edge
+                  'use polygon drawing function
+                  v(0).X = (ErrPt(ObjOrder(i).Number).Loc.X + OffsetX) * DSF
+                  v(0).Y = (ErrPt(ObjOrder(i).Number).Loc.Y + OffsetY) * DSF
+                  v(1).X = (ErrPt(ObjOrder(i).Number).Loc.X + 0.6 + OffsetX) * DSF
+                  v(1).Y = (ErrPt(ObjOrder(i).Number).Loc.Y + OffsetY) * DSF
+                  v(2).X = (ErrPt(ObjOrder(i).Number).Loc.X + 0.3 + OffsetX) * DSF
+                  v(2).Y = (ErrPt(ObjOrder(i).Number).Loc.Y + RM_SIZE / 2 + OffsetY) * DSF
 
-    If DrawSel Then
-      Select Case Selection.Type
-      Case lsNone
-        'dont select anything
-      Case lsExit
-        'reselect exit
-        SelectExit Selection
-      Case Else
-        'reselect object
-        SelectObj Selection
-      End Select
-    End If
-  
-  #If DEBUGMODE <> 1 Then
-    'reenable updating
-    rtn = SendMessage(picDraw.hWnd, WM_SETREDRAW, 1, 0)
-  #End If
-  
-    .Refresh
-  End With
-Exit Sub
+                  rtn = Polygon(.hDC, v(0), 3)
+                  .Refresh
+                End If
+              End If
+            Case lsComment
+              If Comment(ObjOrder(i).Number).Visible Then
+                If ObjOnScreen(ObjOrder(i)) Then
+                  'draw comment box
+                  DrawCmtBox ObjOrder(i).Number
+                End If
+              End If
+            End Select
+          Next i
 
-ErrHandler:
-  Resume Next
-      */
-    }
+          'just in case, make sure drawwidth is reset
+          .DrawWidth = 2
+
+          If DrawSel Then
+            Select Case Selection.Type
+            Case lsNone
+              'dont select anything
+            Case lsExit
+              'reselect exit
+              SelectExit Selection
+            Case Else
+              'reselect object
+              SelectObj Selection
+            End Select
+          End If
+
+        #If DEBUGMODE <> 1 Then
+          'reenable updating
+          rtn = SendMessage(picDraw.hWnd, WM_SETREDRAW, 1, 0)
+        #End If
+
+          .Refresh
+        End With
+      Exit Sub
+
+      ErrHandler:
+        Resume Next
+            */
+        }
+
+        public void MenuClickSave() {
+            //SaveLayout();
+        }
 
     void tmplayoutform()
     {
@@ -436,7 +440,6 @@ ErrHandler:
   Private PrintScale As Single
   
   'other variables
-  Public IsDirty As Boolean
   Private blnDontDraw As Boolean, blnLoadingLayout As Boolean
   Private AddPicToo As CheckBoxConstants
   Private CodeChange As Boolean
@@ -3789,10 +3792,6 @@ Public Sub MenuClickPrint()
     'always redraw after printing or previewing
     DrawLayout
   End If
-End Sub
-Public Sub MenuClickSave()
-  
-  SaveLayout
 End Sub
 
 Public Sub MenuClickSelectAll()
