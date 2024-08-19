@@ -82,7 +82,7 @@ namespace WinAGI.Editor {
                     switch (ResType) {
                     case AGIResType.Logic:
                         if (EditGame.Logics.Contains((byte)i)) {
-                            tmpItem.ID = Settings.ShowResNum
+                            tmpItem.ID = WinAGISettings.ShowResNum
                                 ? ResourceName(EditGame.Logics[i], true)
                                 : i + " - " + EditGame.Logics[i].ID;
                             lstResNum.Items.Add(tmpItem);
@@ -91,7 +91,7 @@ namespace WinAGI.Editor {
                         break;
                     case AGIResType.Picture:
                         if (EditGame.Pictures.Contains((byte)i)) {
-                            tmpItem.ID = Settings.ShowResNum
+                            tmpItem.ID = WinAGISettings.ShowResNum
                                 ? ResourceName(EditGame.Pictures[i], true)
                                 : i + " - " + EditGame.Pictures[i].ID;
                             lstResNum.Items.Add(tmpItem);
@@ -99,7 +99,7 @@ namespace WinAGI.Editor {
                         break;
                     case AGIResType.Sound:
                         if (EditGame.Sounds.Contains((byte)i)) {
-                            tmpItem.ID = Settings.ShowResNum
+                            tmpItem.ID = WinAGISettings.ShowResNum
                                 ? ResourceName(EditGame.Sounds[i], true)
                                 : i + " - " + EditGame.Sounds[i].ID;
                             lstResNum.Items.Add(tmpItem);
@@ -107,7 +107,7 @@ namespace WinAGI.Editor {
                         break;
                     case AGIResType.View:
                         if (EditGame.Views.Contains((byte)i)) {
-                            tmpItem.ID = Settings.ShowResNum
+                            tmpItem.ID = WinAGISettings.ShowResNum
                                 ? ResourceName(EditGame.Views[i], true)
                                 : i + " - " + EditGame.Views[i].ID;
                             lstResNum.Items.Add(tmpItem);
@@ -124,7 +124,7 @@ namespace WinAGI.Editor {
                     };
                     if (EditGame.Logics.Contains((byte)i)) {
                         if (!EditGame.Logics[i].IsRoom) {
-                            tmpItem.ID = Settings.ShowResNum
+                            tmpItem.ID = WinAGISettings.ShowResNum
                                 ? ResourceName(EditGame.Logics[i], true)
                                 : i + " - " + EditGame.Logics[i].ID;
                             lstResNum.Items.Add(tmpItem);
@@ -575,7 +575,7 @@ namespace WinAGI.Editor {
                 break;
             }
             // save the current 'opennew' value
-            WinAGISettings.WriteSetting(sGENERAL, "OpenNew", (chkOpenRes.Checked == true));
+            WinAGISettingsList.WriteSetting(sGENERAL, "OpenNew", (chkOpenRes.Checked == true));
             // done
             Close();
         }

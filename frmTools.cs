@@ -23,7 +23,7 @@ namespace WinAGI.Editor {
         private void frmTools_Load(object sender, EventArgs e) {
             int i;
             // set font
-            fgTools.Font = new Font(Settings.EFontName, Settings.EFontSize);
+            fgTools.Font = new Font(WinAGISettings.EFontName, WinAGISettings.EFontSize);
 
             //set form height so all rows are visible
             //this.Height = ?;
@@ -31,8 +31,8 @@ namespace WinAGI.Editor {
             for (i = 1; i <= 6; i++) {
                 fgTools.Rows.Add(
                     i.ToString() + ".",
-                    WinAGISettings.GetSetting(sTOOLS, "Caption" + i, ""),
-                    WinAGISettings.GetSetting(sTOOLS, "Source" + i, "")
+                    WinAGISettingsList.GetSetting(sTOOLS, "Caption" + i, ""),
+                    WinAGISettingsList.GetSetting(sTOOLS, "Source" + i, "")
                 );
             }
             // select column 1
@@ -76,8 +76,8 @@ namespace WinAGI.Editor {
                 target = ((string)fgTools[2, i - 1].Value).Trim();
                 if (caption.Length > 0 && target.Length > 0) {
                     // add this item
-                    WinAGISettings.WriteSetting(sTOOLS, "Caption" + lngRow, caption);
-                    WinAGISettings.WriteSetting(sTOOLS, "Source" + lngRow, target);
+                    WinAGISettingsList.WriteSetting(sTOOLS, "Caption" + lngRow, caption);
+                    WinAGISettingsList.WriteSetting(sTOOLS, "Source" + lngRow, target);
                     // update tools menu
                     MDIMain.mnuTools.DropDownItems["mnuTCustom" +lngRow].Visible = true;
                     MDIMain.mnuTools.DropDownItems["mnuTCustom" + lngRow].Text = caption;
@@ -89,8 +89,8 @@ namespace WinAGI.Editor {
 
             // erase any remaining rows
             for (int i = lngRow; i <= 6; i++) {
-                WinAGISettings.WriteSetting(sTOOLS, "Caption" + i, "");
-                WinAGISettings.WriteSetting(sTOOLS, "Source" + i, "");
+                WinAGISettingsList.WriteSetting(sTOOLS, "Caption" + i, "");
+                WinAGISettingsList.WriteSetting(sTOOLS, "Source" + i, "");
                 // hide this tool menu
                 MDIMain.mnuTools.DropDownItems["mnuTCustom" + i].Visible = false;
                 MDIMain.mnuTools.DropDownItems["mnuTCustom" + i].Text = "";

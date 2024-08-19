@@ -515,6 +515,7 @@ namespace WinAGI.Editor {
             public int MaxSO;  //
             public int MaxVol0Size;
             public tResource ResFormat;
+            public long DefCP;
             // compile
             public bool WarnCompile;  //when true, a warning is shown when a logic is closed that isn//t compiled
             public bool NotifyCompSuccess;  //when true, a message is shown after logic is compiled
@@ -650,9 +651,10 @@ namespace WinAGI.Editor {
         public static string DefaultResDir; //this is the location that the file dialog box uses as the initial directory
         public static LoadGameResults LoadResults;
         public static CompileGameResults CompGameResults;
+        public static Encoding SessionCodePage;
         public static AGIResType CurResType;
-        public static agiSettings Settings;
-        public static SettingsList WinAGISettings;
+        public static agiSettings WinAGISettings;
+        public static SettingsList WinAGISettingsList;
         public static frmPreview PreviewWin;
         public static frmProgress ProgressWin;
         public static frmCompStatus CompStatusWin;
@@ -782,6 +784,11 @@ namespace WinAGI.Editor {
         //***************************************************
         // GLOBAL STATIC FUNCTIONS
         //***************************************************
+
+        //static Base() {
+        //
+        //}
+
         public static void AddToQueue(AGIResType ResType, int ResNum) {
             //adds this resource to the navigation queue
             // ResNum is 256 for non-collection types (game, objects, words)
@@ -820,13 +827,13 @@ namespace WinAGI.Editor {
             int intCount, lngGrp;
             int i;
             //check to see if there are any overrides:
-            intCount = WinAGISettings.GetSetting("ResDefOverrides", "Count", 0);
+            intCount = WinAGISettingsList.GetSetting("ResDefOverrides", "Count", 0);
             if (intCount == 0) {
                 return;
             }
             //ok, get the overrides, and apply them
             for (i = 1; i <= intCount; i++) {
-                strIn = WinAGISettings.GetSetting("ResDefOverrides", "Override" + i, "");
+                strIn = WinAGISettingsList.GetSetting("ResDefOverrides", "Override" + i, "");
                 //split it to get the def value and def name
                 //(0)=group
                 //(1)=index
@@ -858,7 +865,7 @@ namespace WinAGI.Editor {
             //wants to change case of a define (even though it really doesn't matter; compiler is not case sensitive)
 
             //first, delete any previous overrides
-            WinAGISettings.DeleteSection("ResDefOverrides");
+            WinAGISettingsList.DeleteSection("ResDefOverrides");
             //now step through each type of define value; if name is not the default, then save it
             for (ResDefGroup grp = 0; (int)grp < 10; grp++) {
                 dfTemp = LogicCompiler.ResDefByGrp(grp);
@@ -866,12 +873,12 @@ namespace WinAGI.Editor {
                     if (dfTemp[i].Default != dfTemp[i].Name) {
                         //save it
                         intCount++;
-                        WinAGISettings.WriteSetting("ResDefOverrides", "Override" + intCount, (int)grp + ":" + i + ":" + dfTemp[i].Name);
+                        WinAGISettingsList.WriteSetting("ResDefOverrides", "Override" + intCount, (int)grp + ":" + i + ":" + dfTemp[i].Name);
                     }
                 }
             }
             //write the count value
-            WinAGISettings.WriteSetting("ResDefOverrides", "Count", intCount.ToString());
+            WinAGISettingsList.WriteSetting("ResDefOverrides", "Count", intCount.ToString());
         }
         public static void InitializeResMan() {
             bool blnCourier = false, blnArial = false;
@@ -909,12 +916,12 @@ namespace WinAGI.Editor {
                 DEFAULT_PFONTNAME = System.Drawing.FontFamily.Families[0].Name;
             }
             DEFAULT_EFONTNAME = DEFAULT_PFONTNAME;
-            Settings.EFontName = DEFAULT_EFONTNAME;
-            Settings.PFontName = DEFAULT_PFONTNAME;
+            WinAGISettings.EFontName = DEFAULT_EFONTNAME;
+            WinAGISettings.PFontName = DEFAULT_PFONTNAME;
             // initialize settings arrays
-            Settings.HBold = new bool[5];
-            Settings.HItalic = new bool[5];
-            Settings.HColor = new Color[6];
+            WinAGISettings.HBold = new bool[5];
+            WinAGISettings.HItalic = new bool[5];
+            WinAGISettings.HColor = new Color[6];
             //default gif options
             VGOptions.Cycle = true;
             VGOptions.Transparency = true;
@@ -1716,7 +1723,7 @@ namespace WinAGI.Editor {
             if (FindingForm.Visible) {
                 FindingForm.Visible = false;
             }
-            if (Settings.ShowPreview) {
+            if (WinAGISettings.ShowPreview) {
                 // clear preview window
                 PreviewWin.ClearPreviewWin();
             }
@@ -1785,11 +1792,11 @@ namespace WinAGI.Editor {
                 }
             }
             // clear resource list and preview window
-            if (Settings.ResListType != agiSettings.EResListType.None) {
+            if (WinAGISettings.ResListType != agiSettings.EResListType.None) {
                 MDIMain.HideResTree();
                 MDIMain.ClearResourceList();
             }
-            if (Settings.ShowPreview) {
+            if (WinAGISettings.ShowPreview) {
                 PreviewWin.Visible = false;
             }
             // now close the game
@@ -1798,7 +1805,7 @@ namespace WinAGI.Editor {
             // restore colors to AGI default when a game closes
             GetDefaultColors();
             // restore default resdef
-            LogicCompiler.UseReservedNames = Settings.DefUseResDef;
+            LogicCompiler.UseReservedNames = WinAGISettings.DefUseResDef;
             // update main form caption
             MDIMain.Text = "WinAGI GDS";
             // refresh main toolbar
@@ -1829,7 +1836,7 @@ namespace WinAGI.Editor {
             int i;
             TreeNode tmpNode;
 
-            switch (Settings.ResListType) {
+            switch (WinAGISettings.ResListType) {
             case agiSettings.EResListType.None:
                 return;
             case agiSettings.EResListType.TreeList:
@@ -1992,7 +1999,7 @@ namespace WinAGI.Editor {
             retval = retval.Replace("%q", QUOTECHAR.ToString());
 
             //tabs
-            retval = retval.Replace("%t", new String(' ', Settings.LogicTabWidth));
+            retval = retval.Replace("%t", new String(' ', WinAGISettings.LogicTabWidth));
 
             //lastly, restore any forced percent signs
             retval = retval.Replace((char)255, '%');
@@ -3481,20 +3488,27 @@ namespace WinAGI.Editor {
             return 0;
         }
 
-        public static void ChangeGameID(string NewID) {
+        public static bool ChangeGameID(string NewID) {
             // validate new id before changing it
             if (EditGame.GameID == NewID || NewID.Length == 0) {
-                return;
+                return false;
             }
             if (NewID.Length > 5) {
                 NewID = NewID[..5];
+            }
+            foreach (char ch in NewID.ToCharArray()) {
+                // alphanumeric only
+                if (ch < 'A' || ch > 'z' || (ch >= 91 && ch <= 96)) {
+                    MessageBox.Show("The specified gameID contains invalid characters. No change made.", "Invalid Game ID", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
+                }
             }
             if (Path.GetFileNameWithoutExtension(EditGame.GameFile) == EditGame.GameID) {
                 // if RenameWAG is in ask mode or yes mode, get user choice
                 DialogResult rtn = DialogResult.Yes;
                 bool dontAsk = false;
 
-                switch (Settings.RenameWAG) {
+                switch (WinAGISettings.RenameWAG) {
                 case 0:
                     //ask for user input
                     rtn = MsgBoxEx.Show(MDIMain, "Do you want to rename your game file to match the new GameID?",
@@ -3504,12 +3518,12 @@ namespace WinAGI.Editor {
                     "Always take this action when changing GameID.", ref dontAsk);
                     if (dontAsk) {
                         if (rtn == DialogResult.Yes) {
-                            Settings.RenameWAG = 2;
+                            WinAGISettings.RenameWAG = 2;
                         }
                         else if (rtn == DialogResult.No) {
-                            Settings.RenameWAG = 1;
+                            WinAGISettings.RenameWAG = 1;
                         }
-                        WinAGISettings.WriteSetting(sGENERAL, "RenameWAG", Settings.RenameWAG);
+                        WinAGISettingsList.WriteSetting(sGENERAL, "RenameWAG", WinAGISettings.RenameWAG);
                     }
                     break;
                 case 1:
@@ -3528,12 +3542,12 @@ namespace WinAGI.Editor {
                             }
                             catch {
                                 MessageBox.Show("Unable to delete existing wag file. GameID is not changed.", "File Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                return;
+                                return false;
                             }
                         }
                         else {
                             // cancel
-                            return;
+                            return false;
                         }
                     }
                     RenameMRU(EditGame.GameFile, EditGame.GameDir + NewID + ".wag");
@@ -3550,7 +3564,7 @@ namespace WinAGI.Editor {
             // lastly change id
             EditGame.GameID = NewID;
             //update resource list
-            switch (Settings.ResListType) {
+            switch (WinAGISettings.ResListType) {
             case agiSettings.EResListType.TreeList:
                 MDIMain.tvwResources.Nodes[0].Text = EditGame.GameID;
                 break;
@@ -3559,7 +3573,7 @@ namespace WinAGI.Editor {
                 break;
             }
             MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
-            return;
+            return true;
         }
 
         public static void ChangeResDir(string NewDir) {
@@ -3683,7 +3697,7 @@ namespace WinAGI.Editor {
             // check if change in version affected ID
             // TODO: shouldn't need this anymore because ID now limited to 5 characters for 
             // all versions
-            switch (Settings.ResListType) {
+            switch (WinAGISettings.ResListType) {
             case agiSettings.EResListType.TreeList:
                 if (MDIMain.tvwResources.Nodes[0].Text != EditGame.GameID) {
                     MDIMain.tvwResources.Nodes[0].Text = EditGame.GameID;
@@ -3740,6 +3754,93 @@ namespace WinAGI.Editor {
             MDIMain.mnuTLayout.Enabled = EditGame.UseLE;
             MDIMain.toolStrip1.Items["btnLayoutEd"].Enabled = EditGame.UseLE;
         }
+
+        public static void OpenGlobals(bool ForceLoad = false) {
+            string strFileName;
+            frmGlobals frmNew;
+
+            // if a game is loaded and NOT forcing...
+            // open editor if not yet in use
+            // or switch to it if it's already open
+            if (EditGame != null && !ForceLoad) {
+                if (GEInUse) {
+                    GlobalsEditor.Activate();
+                    if (GlobalsEditor.WindowState == FormWindowState.Minimized) {
+                        // if minimized, restore it
+                        GlobalsEditor.WindowState = FormWindowState.Normal;
+                    }
+                }
+                else {
+                    MDIMain.UseWaitCursor = true;
+                    // use the game's default globals file
+                    strFileName = EditGame.GameDir + "globals.txt";
+                    // look for global file
+                    if (!File.Exists(strFileName)) {
+                        // look for a defines.txt file in the resource directory
+                        if (File.Exists(EditGame.ResDir + "defines.txt")) {
+                            // copy it to globals.txt
+                            try {
+                                File.Copy(EditGame.ResDir + "defines.txt", strFileName);
+                            }
+                            catch {
+                                //ignore if error (a new file will be created)
+                            }
+                        }
+                    }
+                    //now check again for globals file
+                    if (!File.Exists(strFileName)) {
+                        // create blank file
+                        // TODO: open global file
+                    }
+                    //load it
+                    GlobalsEditor = new frmGlobals(strFileName);
+                    GlobalsEditor.Show();
+                    GlobalsEditor.Activate();
+                    // mark editor as in use
+                    GEInUse = true;
+                    // reset cursor
+                    MDIMain.UseWaitCursor = false;
+                }
+            }
+            else {
+                // either a game is NOT loaded, OR we are forcing a load from file
+                //get a globals file
+                MDIMain.OpenDlg.ShowReadOnly = false;
+                MDIMain.OpenDlg.Title = "Open Global Defines File";
+                MDIMain.OpenDlg.DefaultExt = "txt";
+                MDIMain.OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                MDIMain.OpenDlg.FilterIndex = WinAGISettingsList.GetSetting("Globals", sOPENFILTER, 1);
+                MDIMain.OpenDlg.FileName = "";
+                MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
+                if (MDIMain.OpenDlg.ShowDialog() == DialogResult.Cancel) {
+                    return;
+                }
+                strFileName = MDIMain.OpenDlg.FileName;
+                // save filter
+                WinAGISettingsList.WriteSetting("Globals", sOPENFILTER, MDIMain.OpenDlg.FilterIndex);
+
+                DefaultResDir = JustPath(MDIMain.OpenDlg.FileName);
+                // check if already open
+                foreach (Form tmpForm in MDIMain.MdiChildren) {
+                    if (tmpForm.Name == "frmGlobals") {
+                        frmGlobals tmpGlobal = tmpForm as frmGlobals;
+                        if (tmpGlobal.FileName == strFileName && !tmpGlobal.InGame) {
+                            //just shift focus
+                            tmpForm.Focus();
+                            return;
+                        }
+                    }
+                }
+                // not open yet; create new form
+                // and open this file into it
+                MDIMain.UseWaitCursor = true;
+                frmNew = new(strFileName);
+                frmNew.Activate();
+                MDIMain.UseWaitCursor = false;
+            }
+            return;
+          }
+
         static void tmpResMan() {
             /*
 
@@ -7317,125 +7418,6 @@ End Function
           Exit Function
 
           ErrHandler:
-          Resume Next
-          }
-
-          public static void OpenGlobals(bool ForceLoad = false)
-
-          string strFileName;
-
-          frmGlobals frmNew;
-           Form tmpForm;
-
-          On Error GoTo ErrHandler
-
-          //if a game is loaded and NOT forcing...
-          //   open editor if not yet in use
-          //   or switch to it if it's already open
-          if (GameLoaded && !ForceLoad) {
-          if (GEInUse) {
-            GlobalsEditor.Focus()
-            //if minimized,
-           if (GlobalsEditor.WindowState = vbMinimized) {
-              //restore it
-              GlobalsEditor.WindowState = vbNormal
-            }
-
-          } else {
-            //load it
-
-            MDIMain.UseWaitCursor = true;
-
-            //use the game//s default globals file
-            strFileName = GameDir + "globals.txt"
-            //look for global file
-           if (!File.Exists(strFileName)) {
-              //look for a defines.txt file in the resource directory
-             if (File.Exists(ResDir + "defines.txt")) {
-                //copy it to globals.txt
-                On Error Resume Next
-                FileCopy ResDir + "defines.txt", strFileName
-                On Error GoTo ErrHandler
-              }
-            }
-
-            //now check again for globals file
-           if (!File.Exists(strFileName)) {
-              //create blank file
-              intFile = FreeFile()
-              Open strFileName
-              Close intFile
-            }
-
-            //load it
-            GlobalsEditor = New frmGlobals
-            Load GlobalsEditor
-
-            //set ingame status first, so caption will indicate correctly
-            GlobalsEditor.InGame = true
-            //loading function will handle any errors
-            GlobalsEditor.LoadGlobalDefines strFileName //, false
-            GlobalsEditor.Show
-            //mark editor as in use
-            GEInUse = true
-
-            //reset cursor
-            MDIMain.UseWaitCursor = false;
-          }
-          } else {
-          //either a game is NOT loaded, OR we are forcing a load from file
-          //get a globals file
-            OpenDlg.Flags = cdlOFNHideReadOnly
-            OpenDlg.DialogTitle = "Open Global Defines File"
-            OpenDlg.DefaultExt = "txt"
-            OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*"
-            OpenDlg.FilterIndex = GameSettings.GetSetting("Globals", sOPENFILTER, 1)
-            OpenDlg.FileName = ""
-            OpenDlg.InitDir = DefaultResDir
-
-            OpenDlg.ShowOpen
-
-            strFileName = OpenDlg.FileName
-
-            //save filter
-            WriteSetting GameSettings, "Globals", sOPENFILTER, .FilterIndex
-
-            DefaultResDir = JustPath(OpenDlg.FileName)
-
-          //check if already open
-          foreach (tmpForm In Forms
-           if (tmpForm.Name = "frmGlobals") {
-             if (tmpForm.FileName = strFileName && !tmpForm.InGame) {
-                //just shift focus
-                tmpForm.Focus()
-                return;
-              }
-            }
-          Next
-
-          //not open yet; create new form
-          //and open this file into it
-          MDIMain.UseWaitCursor = true;
-
-          frmNew = New frmGlobals
-
-          //open this file
-          Load frmNew
-          //loading function will handle any errors
-          frmNew.LoadGlobalDefines strFileName
-          frmNew.Show
-
-          MDIMain.UseWaitCursor = false;
-          }
-          return;
-
-          ErrHandler:
-          //if user canceled the dialogbox,
-          if (Err.Number = cdlCancel) {
-          return;
-          }
-
-          //Debug.Assert false
           Resume Next
           }
 
@@ -11256,7 +11238,7 @@ End Function
                 return;
             }
 
-            switch (Settings.ResListType) {
+            switch (WinAGISettings.ResListType) {
             case agiSettings.EResListType.None:
                 break;
             case agiSettings.EResListType.TreeList:
@@ -11321,15 +11303,15 @@ End Function
             // if the selected item matches the update item
             if (SelResType == ResType && SelResNum == ResNum) {
                 //if updating properties OR updating tree AND tree is visible
-                if (((UpDateMode & UpdateModeType.umProperty) == UpdateModeType.umProperty || (UpDateMode & UpdateModeType.umResList) == UpdateModeType.umProperty) && Settings.ResListType != agiSettings.EResListType.None) {
+                if (((UpDateMode & UpdateModeType.umProperty) == UpdateModeType.umProperty || (UpDateMode & UpdateModeType.umResList) == UpdateModeType.umProperty) && WinAGISettings.ResListType != agiSettings.EResListType.None) {
                 }
 
                 //if updating preview
-                if ((UpDateMode & UpdateModeType.umPreview) == UpdateModeType.umPreview && Settings.ShowPreview) {
+                if ((UpDateMode & UpdateModeType.umPreview) == UpdateModeType.umPreview && WinAGISettings.ShowPreview) {
                     //redraw the preview
                     PreviewWin.LoadPreview(ResType, ResNum);
                 }
-                else if (Settings.ShowPreview) {
+                else if (WinAGISettings.ShowPreview) {
                     PreviewWin.UpdateCaption(ResType, (byte)ResNum);
                 }
             }
@@ -11359,7 +11341,7 @@ End Function
                         EditGame.Logics[ResNum].Load();
                     }
                     // now update preview window, if previewing
-                    if (Settings.ShowPreview) {
+                    if (WinAGISettings.ShowPreview) {
                         if (SelResType == AGIResType.Logic && SelResNum == ResNum) {
                             PreviewWin.LoadPreview(AGIResType.Logic, ResNum);
                         }
@@ -11395,7 +11377,7 @@ End Function
                 }
                 break;
             case AGIResType.Picture:
-                if (Settings.AutoExport) {
+                if (WinAGISettings.AutoExport) {
                     try {
                         if (File.Exists(EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp")) {
                             // rename it, (remove existing old file first)
@@ -11418,7 +11400,7 @@ End Function
                 }
                 break;
             case AGIResType.Sound:
-                if (Settings.AutoExport) {
+                if (WinAGISettings.AutoExport) {
                     try {
                         if (File.Exists(EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags")) {
                             // rename it, (remove existing old file first)
@@ -11441,7 +11423,7 @@ End Function
                 }
                 break;
             case AGIResType.View:
-                if (Settings.AutoExport) {
+                if (WinAGISettings.AutoExport) {
                     try {
                         if (File.Exists(EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv")) {
                             // rename it, (remove existing old file first)
@@ -11906,7 +11888,7 @@ End Function
                 UpdateExitInfo(EUReason.euAddRoom, NewLogicNumber, EditGame.Logics[NewLogicNumber]);
             }
             //add to resource list
-            switch (Settings.ResListType) {
+            switch (WinAGISettings.ResListType) {
             case agiSettings.EResListType.TreeList:
                 TreeNode tmpNode = HdrNode[0];
                 //find place to insert this logic
@@ -11958,7 +11940,7 @@ End Function
             //add picture to game collection
             EditGame.Pictures.Add((byte)NewPictureNumber, NewPicture);
 
-            switch (Settings.ResListType) {
+            switch (WinAGISettings.ResListType) {
             case agiSettings.EResListType.TreeList:
                 //find place to insert this picture
                 for (lngPos = 0; lngPos < HdrNode[1].Nodes.Count; lngPos++) {
@@ -12006,7 +11988,7 @@ End Function
             //add sound to game collection
             EditGame.Sounds.Add((byte)NewSoundNumber, NewSound);
 
-            switch (Settings.ResListType) {
+            switch (WinAGISettings.ResListType) {
             case agiSettings.EResListType.TreeList:
                 //find place to insert this sound
                 for (lngPos = 0; lngPos < HdrNode[2].Nodes.Count; lngPos++) {
@@ -12054,7 +12036,7 @@ End Function
             //add view to game collection
             EditGame.Views.Add((byte)NewViewNumber, NewView);
 
-            switch (Settings.ResListType) {
+            switch (WinAGISettings.ResListType) {
             case agiSettings.EResListType.TreeList:
                 //find place to insert this view
                 for (lngPos = 0; lngPos < HdrNode[3].Nodes.Count; lngPos++) {
@@ -12271,7 +12253,7 @@ End Function
                 }
             }
             // save openres value
-            Settings.OpenNew = blnOpen;
+            WinAGISettings.OpenNew = blnOpen;
             // if logic was added to game
             if (blnInGame) {
                 // unload it
@@ -12376,7 +12358,7 @@ End Function
                 }
             }
             // save openres value
-            Settings.OpenNew = blnOpen;
+            WinAGISettings.OpenNew = blnOpen;
             // if added to a game
             if (blnInGame) {
                 // unload it
@@ -12399,13 +12381,13 @@ End Function
             tmpSound = new Sound();
             // set default instrument settings;
             // if a sound is being imported, these may be overridden...
-            tmpSound.Track(0).Instrument = Settings.DefInst0;
-            tmpSound.Track(1).Instrument = Settings.DefInst1;
-            tmpSound.Track(2).Instrument = Settings.DefInst2;
-            tmpSound.Track(0).Muted = Settings.DefMute0;
-            tmpSound.Track(1).Muted = Settings.DefMute1;
-            tmpSound.Track(2).Muted = Settings.DefMute2;
-            tmpSound.Track(3).Muted = Settings.DefMute3;
+            tmpSound.Track(0).Instrument = WinAGISettings.DefInst0;
+            tmpSound.Track(1).Instrument = WinAGISettings.DefInst1;
+            tmpSound.Track(2).Instrument = WinAGISettings.DefInst2;
+            tmpSound.Track(0).Muted = WinAGISettings.DefMute0;
+            tmpSound.Track(1).Muted = WinAGISettings.DefMute1;
+            tmpSound.Track(2).Muted = WinAGISettings.DefMute2;
+            tmpSound.Track(3).Muted = WinAGISettings.DefMute3;
 
             // if an import filename was passed
             if (ImportSoundFile.Length != 0) {
@@ -12496,7 +12478,7 @@ End Function
                 }
             }
             // save openres value
-            Settings.OpenNew = blnOpen;
+            WinAGISettings.OpenNew = blnOpen;
             if (blnInGame) {
                 EditGame.Sounds[tmpSound.Number].Unload();
             }
@@ -12541,8 +12523,8 @@ End Function
                 // for new view, add first cel with default height/width
                 tmpView.Loops.Add(0);
                 tmpView[0].Cels.Add(0);
-                tmpView[0][0].Height = Settings.DefCelH;
-                tmpView[0][0].Width = Settings.DefCelW;
+                tmpView[0][0].Height = WinAGISettings.DefCelH;
+                tmpView[0][0].Width = WinAGISettings.DefCelW;
             }
             // get picture number, id , description
             frmGetResourceNum GetResNum = new() {
@@ -12603,7 +12585,7 @@ End Function
                 }
             }
             // save openres value
-            Settings.OpenNew = blnOpen;
+            WinAGISettings.OpenNew = blnOpen;
             //if added to game
             if (blnInGame) {
                 // unload the game resource
@@ -12971,7 +12953,7 @@ End Function
             //remove it from game
             EditGame.Pictures.Remove(PicNum);
 
-            switch (Settings.ResListType) {
+            switch (WinAGISettings.ResListType) {
             case agiSettings.EResListType.TreeList:
                 //remove it from resource list
                 MDIMain.tvwResources.Nodes.RemoveAt(MDIMain.tvwResources.Nodes["p" + PicNum.ToString()].Index);
@@ -13015,7 +12997,7 @@ End Function
 
             //disposition any existing resource file
             if (File.Exists(strPicFile)) {
-                KillCopyFile(strPicFile, Settings.RenameDelRes);
+                KillCopyFile(strPicFile, WinAGISettings.RenameDelRes);
             }
 
             //update the logic tooltip lookup table
@@ -13065,7 +13047,7 @@ End Function
             try {
                 //substitute correct values for the various place holders
                 //add the tabs
-                strLogic = strLogic.Replace("~", MultStr(" ", Settings.LogicTabWidth));
+                strLogic = strLogic.Replace("~", MultStr(" ", WinAGISettings.LogicTabWidth));
                 //id:
                 strLogic = strLogic.Replace("%id", NewID);
                 //description
@@ -13073,7 +13055,7 @@ End Function
 
                 //horizon is a PicTest setting, which should always be retrieved everytime
                 //it is used to make sure it's current
-                strLogic = strLogic.Replace("%h", WinAGISettings.GetSetting(sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON).ToString());
+                strLogic = strLogic.Replace("%h", WinAGISettingsList.GetSetting(sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON).ToString());
 
                 //if using reserved names, insert them
                 if (LogicCompiler.UseReservedNames) {
@@ -13909,7 +13891,7 @@ End Function
         public static void GetDefaultColors() {
             // reads default custom colors from winagi.confg
             for (int i = 0; i < 16; i++) {
-                DefaultColors[i] = WinAGISettings.GetSetting(sDEFCOLORS, "DefEGAColor" + i, DefaultColors[i]);
+                DefaultColors[i] = WinAGISettingsList.GetSetting(sDEFCOLORS, "DefEGAColor" + i, DefaultColors[i]);
             }
 
         }
@@ -13923,8 +13905,8 @@ End Function
             //the ID is returned regardless of ID/number setting
             string retval = "";
             //if using numbers AND resource is ingame,
-            if (Settings.ShowResNum && IsInGame) {
-                switch (Settings.ResFormat.NameCase) {
+            if (WinAGISettings.ShowResNum && IsInGame) {
+                switch (WinAGISettings.ResFormat.NameCase) {
                 case 0:
                     retval = ThisResource.ResType.ToString().ToLower();
                     break;
@@ -13936,10 +13918,10 @@ End Function
                     retval = ThisResource.ResType.ToString();
                     break;
                 }
-                return retval + Settings.ResFormat.Separator + ThisResource.Number.ToString(Settings.ResFormat.NumFormat);
+                return retval + WinAGISettings.ResFormat.Separator + ThisResource.Number.ToString(WinAGISettings.ResFormat.NumFormat);
             }
             else {
-                if (Settings.IncludeResNum && IsInGame && !NoNumber) {
+                if (WinAGISettings.IncludeResNum && IsInGame && !NoNumber) {
                     retval = ThisResource.Number + " - ";
                 }
                 retval += ThisResource.ID;

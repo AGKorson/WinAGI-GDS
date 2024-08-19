@@ -385,6 +385,7 @@
             mnuGProperties.ShortcutKeys = Keys.F4;
             mnuGProperties.Size = new System.Drawing.Size(261, 22);
             mnuGProperties.Text = "&Properties ...";
+            mnuGProperties.Click += mnuGProperties_Click;
             // 
             // mnuGMRUBar
             // 
@@ -785,6 +786,7 @@
             mnuTGlobals.ShortcutKeys = Keys.Control | Keys.G;
             mnuTGlobals.Size = new System.Drawing.Size(234, 22);
             mnuTGlobals.Text = "&Global Defines ...";
+            mnuTGlobals.Click += mnuTGlobals_Click;
             // 
             // mnuReserved
             // 
@@ -2144,7 +2146,6 @@
         private ToolStripMenuItem mnuTSettings;
         private ToolStripSeparator mnuTSep1;
         private ToolStripMenuItem mnuTMenuEditor;
-        private ToolStripMenuItem mnuTGlobals;
         private ToolStripMenuItem mnuReserved;
         private ToolStripMenuItem mnuTSnippets;
         private ToolStripMenuItem mnuTPalette;
@@ -2297,6 +2298,7 @@
         internal ToolStrip toolStrip1;
         private ToolStripButton btnTextEd;
         internal ToolStripMenuItem mnuTLayout;
+        internal ToolStripMenuItem mnuTGlobals;
     }
 }
 

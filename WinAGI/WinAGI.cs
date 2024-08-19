@@ -316,6 +316,8 @@ namespace WinAGI.Engine {
         /// WinAGI Base constructor.
         /// </summary>
         static Base() {
+
+            // TODO: why aren't these in InitWinAGI?
             // this makes the codepages used in WinAGI available
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             bytEncryptKey = Encoding.GetEncoding(437).GetBytes("Avis Durgan");

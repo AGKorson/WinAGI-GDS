@@ -294,7 +294,7 @@ namespace WinAGI.Editor {
             // update window caption
             Text = "Preview - " + ResType + " " + ResNum;
             // if not showing by number in the prvieww list
-            if (!Settings.ShowResNum) {
+            if (!WinAGISettings.ShowResNum) {
                 //also include the resource ID
                 switch (ResType) {
                 case AGIResType.Logic:
@@ -382,10 +382,10 @@ namespace WinAGI.Editor {
 
         private void SavePreviewPos() {
             //save preview window pos
-            WinAGISettings.WriteSetting(sPOSITION, "PreviewTop", Top);
-            WinAGISettings.WriteSetting(sPOSITION, "PreviewLeft", Left);
-            WinAGISettings.WriteSetting(sPOSITION, "PreviewWidth", Width);
-            WinAGISettings.WriteSetting(sPOSITION, "PreviewHeight", Height);
+            WinAGISettingsList.WriteSetting(sPOSITION, "PreviewTop", Top);
+            WinAGISettingsList.WriteSetting(sPOSITION, "PreviewLeft", Left);
+            WinAGISettingsList.WriteSetting(sPOSITION, "PreviewWidth", Width);
+            WinAGISettingsList.WriteSetting(sPOSITION, "PreviewHeight", Height);
         }
 
         bool PreviewPic(byte PicNum) {
@@ -614,7 +614,7 @@ namespace WinAGI.Editor {
             }
             //set length
             lblLength.Text = "Sound clip length: " + agSound.Length.ToString("0.0") + " seconds";
-            btnPlay.Enabled = !Settings.NoMIDI;
+            btnPlay.Enabled = !WinAGISettings.NoMIDI;
             return true;
         }
         private void cmdReset_Click(object sender, EventArgs e) {
@@ -629,7 +629,7 @@ namespace WinAGI.Editor {
             // need to check if invoke is required- accessing the UI elements
             // is done differently if that's the case
             if (btnPlay.InvokeRequired) {
-                btnPlay.Invoke(new Action(() => { btnPlay.Enabled = !Settings.NoMIDI; }));
+                btnPlay.Invoke(new Action(() => { btnPlay.Enabled = !WinAGISettings.NoMIDI; }));
                 btnStop.Invoke(new Action(() => { btnStop.Enabled = false; }));
                 tmrSound.Enabled = false;
                 picProgress.Invoke(new Action(() => { picProgress.Width = pnlProgressBar.Width; }));
@@ -646,7 +646,7 @@ namespace WinAGI.Editor {
                 picProgress.Invoke(new Action(() => { picProgress.Width = 0; }));
             }
             else {
-                btnPlay.Enabled = !Settings.NoMIDI;
+                btnPlay.Enabled = !WinAGISettings.NoMIDI;
                 btnStop.Enabled = false;
                 tmrSound.Enabled = false;
                 picProgress.Width = pnlProgressBar.Width;
@@ -993,7 +993,7 @@ namespace WinAGI.Editor {
         private void btnStop_Click(object sender, EventArgs e) {
             // stop sounds
             StopSoundPreview();
-            btnPlay.Enabled = !Settings.NoMIDI;
+            btnPlay.Enabled = !WinAGISettings.NoMIDI;
             btnStop.Enabled = false;
             tmrSound.Enabled = false;
             picProgress.Width = pnlProgressBar.Width;
@@ -1310,7 +1310,7 @@ namespace WinAGI.Editor {
             //redisplay length (it may have changed)
             lblLength.Text = "Sound clip length: " + agSound.Length.ToString("0.0") + " seconds";
             //enable play button if at least one track is NOT muted AND midi not disabled AND length>0
-            btnPlay.Enabled = (chkTrack[0].Checked || chkTrack[1].Checked || chkTrack[2].Checked || chkTrack[3].Checked) && !Settings.NoMIDI && (agSound.Length > 0);
+            btnPlay.Enabled = (chkTrack[0].Checked || chkTrack[1].Checked || chkTrack[2].Checked || chkTrack[3].Checked) && !WinAGISettings.NoMIDI && (agSound.Length > 0);
         }
         private void picCel_MouseUp(object sender, MouseEventArgs e) {
             //if dragging
@@ -1394,11 +1394,11 @@ namespace WinAGI.Editor {
                 cmbInst2.Items.Add(InstrumentName(i));
             }
             //get default scale values
-            ViewScale = Settings.ViewScale.Preview;
-            PicScale = Settings.PicScale.Preview;
+            ViewScale = WinAGISettings.ViewScale.Preview;
+            PicScale = WinAGISettings.PicScale.Preview;
             //set default view alignment
-            lngHAlign = Settings.ViewAlignH;
-            lngVAlign = Settings.ViewAlignV;
+            lngHAlign = WinAGISettings.ViewAlignH;
+            lngVAlign = WinAGISettings.ViewAlignV;
             //set view scrollbar values
             hsbView.LargeChange = (int)(pnlCel.Width * LG_SCROLL);
             vsbView.LargeChange = (int)(pnlCel.Height * LG_SCROLL);
@@ -1430,7 +1430,7 @@ namespace WinAGI.Editor {
             SelResNum = -1;
 
             // set font
-            rtfLogPrev.Font = new Font(Settings.PFontName, Settings.PFontSize);
+            rtfLogPrev.Font = new Font(WinAGISettings.PFontName, WinAGISettings.PFontSize);
             //rtfLogPrev.HighlightSyntax = false;
 
             // 
@@ -1441,26 +1441,26 @@ namespace WinAGI.Editor {
             int sngWidth, sngHeight;
 
             // get preview window position
-            sngWidth = WinAGISettings.GetSetting(sPOSITION, "PreviewWidth", (int)(0.4 * MDIMain.Bounds.Width));
+            sngWidth = WinAGISettingsList.GetSetting(sPOSITION, "PreviewWidth", (int)(0.4 * MDIMain.Bounds.Width));
             if (sngWidth <= MIN_WIDTH) {
                 sngWidth = MIN_WIDTH;
             }
             else if (sngWidth > 0.75 * Screen.GetWorkingArea(this).Width) {
                 sngWidth = (int)(0.75 * Screen.GetWorkingArea(this).Width);
             }
-            sngHeight = WinAGISettings.GetSetting(sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
+            sngHeight = WinAGISettingsList.GetSetting(sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
             if (sngHeight <= MIN_HEIGHT) {
                 sngHeight = MIN_HEIGHT;
             }
             else if (sngHeight > 0.75 * Screen.GetWorkingArea(this).Height) {
                 sngHeight = (int)(0.75 * Screen.GetWorkingArea(this).Height);
             }
-            sngLeft = WinAGISettings.GetSetting(sPOSITION, "PreviewLeft", 0);
+            sngLeft = WinAGISettingsList.GetSetting(sPOSITION, "PreviewLeft", 0);
             if (sngLeft < 0) {
                 sngLeft = 0;
             }
             else {
-                if (Settings.ResListType != agiSettings.EResListType.None) {
+                if (WinAGISettings.ResListType != agiSettings.EResListType.None) {
                     if (sngLeft > MDIMain.Width - MDIMain.pnlResources.Width - 300) {
                         sngLeft = MDIMain.Width - MDIMain.pnlResources.Width - 300;
                     }
@@ -1471,7 +1471,7 @@ namespace WinAGI.Editor {
                     }
                 }
             }
-            sngTop = WinAGISettings.GetSetting(sPOSITION, "PreviewTop", 0);
+            sngTop = WinAGISettingsList.GetSetting(sPOSITION, "PreviewTop", 0);
             if (sngTop < 0) {
                 sngTop = 0;
             }

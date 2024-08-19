@@ -189,12 +189,12 @@ namespace WinAGI.Editor {
                 // build resource list
                 BuildResourceTree();
                 // show it, if needed
-                if (Settings.ResListType != agiSettings.EResListType.None) {
+                if (WinAGISettings.ResListType != agiSettings.EResListType.None) {
                     // show resource tree pane
                     MDIMain.ShowResTree();
                     // ok up to here
                 }
-                switch (Settings.ResListType) {
+                switch (WinAGISettings.ResListType) {
                 case agiSettings.EResListType.TreeList:
                     // select root
                     MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
@@ -228,7 +228,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 // show selection in preview, if needed
-                if (Settings.ShowPreview) {
+                if (WinAGISettings.ShowPreview) {
                     PreviewWin.Show();
                 }
                 break;
