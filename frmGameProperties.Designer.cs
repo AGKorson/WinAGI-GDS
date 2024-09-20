@@ -140,9 +140,11 @@
             btnGameDir.Name = "btnGameDir";
             btnGameDir.Size = new System.Drawing.Size(26, 23);
             btnGameDir.TabIndex = 6;
+            btnGameDir.Tag = "#gamedir";
             btnGameDir.Text = "...";
             btnGameDir.UseVisualStyleBackColor = true;
             btnGameDir.Click += btnGameDir_Click;
+            btnGameDir.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // chkUseLE
             // 
@@ -151,9 +153,11 @@
             chkUseLE.Name = "chkUseLE";
             chkUseLE.Size = new System.Drawing.Size(118, 19);
             chkUseLE.TabIndex = 12;
+            chkUseLE.Tag = "#uselayouted";
             chkUseLE.Text = "Use Layout Editor";
             chkUseLE.UseVisualStyleBackColor = true;
             chkUseLE.CheckedChanged += chkUseLE_CheckedChanged;
+            chkUseLE.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // chkUseReserved
             // 
@@ -162,9 +166,11 @@
             chkUseReserved.Name = "chkUseReserved";
             chkUseReserved.Size = new System.Drawing.Size(172, 19);
             chkUseReserved.TabIndex = 11;
+            chkUseReserved.Tag = "#useresnames";
             chkUseReserved.Text = "Use Reserved Define Names";
             chkUseReserved.UseVisualStyleBackColor = true;
             chkUseReserved.CheckedChanged += chkUseReserved_CheckedChanged;
+            chkUseReserved.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // txtSrcExt
             // 
@@ -172,7 +178,9 @@
             txtSrcExt.Name = "txtSrcExt";
             txtSrcExt.Size = new System.Drawing.Size(88, 23);
             txtSrcExt.TabIndex = 10;
+            txtSrcExt.Tag = "#defext";
             txtSrcExt.TextChanged += txtSrcExt_TextChanged;
+            txtSrcExt.HelpRequested += frmGameProperties_HelpRequested;
             txtSrcExt.KeyPress += txtSrcExt_KeyPress;
             txtSrcExt.Leave += txtSrcExt_Leave;
             txtSrcExt.Validating += txtSrcExt_Validating;
@@ -183,7 +191,9 @@
             txtResDir.Name = "txtResDir";
             txtResDir.Size = new System.Drawing.Size(152, 23);
             txtResDir.TabIndex = 8;
+            txtResDir.Tag = "#resdir";
             txtResDir.TextChanged += txtResDir_TextChanged;
+            txtResDir.HelpRequested += frmGameProperties_HelpRequested;
             txtResDir.KeyPress += txtResDir_KeyPress;
             txtResDir.Validating += txtResDir_Validating;
             // 
@@ -211,6 +221,8 @@
             txtGameDir.Name = "txtGameDir";
             txtGameDir.Size = new System.Drawing.Size(352, 23);
             txtGameDir.TabIndex = 5;
+            txtGameDir.Tag = "#gamedir";
+            txtGameDir.HelpRequested += frmGameProperties_HelpRequested;
             txtGameDir.DoubleClick += txtGameDir_DoubleClick;
             // 
             // label3
@@ -229,7 +241,9 @@
             cmbVersion.Name = "cmbVersion";
             cmbVersion.Size = new System.Drawing.Size(151, 23);
             cmbVersion.TabIndex = 3;
+            cmbVersion.Tag = "#intversion";
             cmbVersion.SelectionChangeCommitted += cmbVersion_SelectionChangeCommitted;
+            cmbVersion.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // label2
             // 
@@ -246,7 +260,9 @@
             txtGameID.Name = "txtGameID";
             txtGameID.Size = new System.Drawing.Size(87, 23);
             txtGameID.TabIndex = 1;
+            txtGameID.Tag = "#gameid";
             txtGameID.TextChanged += txtGameID_TextChanged;
+            txtGameID.HelpRequested += frmGameProperties_HelpRequested;
             txtGameID.KeyPress += txtGameID_KeyPress;
             txtGameID.Validating += txtGameID_Validating;
             // 
@@ -285,7 +301,9 @@
             txtGameVersion.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             txtGameVersion.Size = new System.Drawing.Size(352, 50);
             txtGameVersion.TabIndex = 7;
+            txtGameVersion.Tag = "#gameversion";
             txtGameVersion.TextChanged += txtGameVersion_TextChanged;
+            txtGameVersion.HelpRequested += frmGameProperties_HelpRequested;
             txtGameVersion.KeyPress += txtGameVersion_KeyPress;
             // 
             // txtGameAbout
@@ -296,7 +314,9 @@
             txtGameAbout.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             txtGameAbout.Size = new System.Drawing.Size(352, 60);
             txtGameAbout.TabIndex = 5;
+            txtGameAbout.Tag = "#about";
             txtGameAbout.TextChanged += txtGameAbout_TextChanged;
+            txtGameAbout.HelpRequested += frmGameProperties_HelpRequested;
             txtGameAbout.KeyPress += txtGameAbout_KeyPress;
             // 
             // txtGameDescription
@@ -307,7 +327,9 @@
             txtGameDescription.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             txtGameDescription.Size = new System.Drawing.Size(352, 85);
             txtGameDescription.TabIndex = 3;
+            txtGameDescription.Tag = "#description";
             txtGameDescription.TextChanged += txtGameDescription_TextChanged;
+            txtGameDescription.HelpRequested += frmGameProperties_HelpRequested;
             txtGameDescription.KeyPress += txtGameDescription_KeyPress;
             // 
             // txtGameAuthor
@@ -316,7 +338,9 @@
             txtGameAuthor.Name = "txtGameAuthor";
             txtGameAuthor.Size = new System.Drawing.Size(352, 23);
             txtGameAuthor.TabIndex = 1;
+            txtGameAuthor.Tag = "#author";
             txtGameAuthor.TextChanged += txtGameAuthor_TextChanged;
+            txtGameAuthor.HelpRequested += frmGameProperties_HelpRequested;
             txtGameAuthor.KeyPress += txtGameAuthor_KeyPress;
             // 
             // label9
@@ -378,9 +402,11 @@
             btnPlatformFile.Name = "btnPlatformFile";
             btnPlatformFile.Size = new System.Drawing.Size(26, 23);
             btnPlatformFile.TabIndex = 3;
+            btnPlatformFile.Tag = "#executable";
             btnPlatformFile.Text = "...";
             btnPlatformFile.UseVisualStyleBackColor = true;
             btnPlatformFile.Click += btnPlatformFile_Click;
+            btnPlatformFile.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // txtOptions
             // 
@@ -388,7 +414,9 @@
             txtOptions.Name = "txtOptions";
             txtOptions.Size = new System.Drawing.Size(352, 23);
             txtOptions.TabIndex = 5;
+            txtOptions.Tag = "#executable";
             txtOptions.TextChanged += txtOptions_TextChanged;
+            txtOptions.HelpRequested += frmGameProperties_HelpRequested;
             txtOptions.KeyPress += txtOptions_KeyPress;
             // 
             // txtPlatformFile
@@ -397,6 +425,8 @@
             txtPlatformFile.Name = "txtPlatformFile";
             txtPlatformFile.Size = new System.Drawing.Size(357, 23);
             txtPlatformFile.TabIndex = 2;
+            txtPlatformFile.Tag = "#executable";
+            txtPlatformFile.HelpRequested += frmGameProperties_HelpRequested;
             txtPlatformFile.DoubleClick += txtPlatformFile_DoubleClick;
             txtPlatformFile.KeyPress += txtPlatformFile_KeyPress;
             // 
@@ -439,7 +469,9 @@
             txtExec.Name = "txtExec";
             txtExec.Size = new System.Drawing.Size(89, 23);
             txtExec.TabIndex = 3;
+            txtExec.Tag = "#executable";
             txtExec.TextChanged += txtExec_TextChanged;
+            txtExec.HelpRequested += frmGameProperties_HelpRequested;
             txtExec.KeyPress += txtExec_KeyPress;
             // 
             // lblExec
@@ -459,9 +491,11 @@
             optOther.Size = new System.Drawing.Size(55, 19);
             optOther.TabIndex = 6;
             optOther.TabStop = true;
+            optOther.Tag = "#executable";
             optOther.Text = "Other";
             optOther.UseVisualStyleBackColor = true;
             optOther.CheckedChanged += optOther_CheckedChanged;
+            optOther.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // optNAGI
             // 
@@ -471,9 +505,11 @@
             optNAGI.Size = new System.Drawing.Size(53, 19);
             optNAGI.TabIndex = 5;
             optNAGI.TabStop = true;
+            optNAGI.Tag = "#executable";
             optNAGI.Text = "NAGI";
             optNAGI.UseVisualStyleBackColor = true;
             optNAGI.CheckedChanged += optNAGI_CheckedChanged;
+            optNAGI.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // optScummVM
             // 
@@ -483,9 +519,11 @@
             optScummVM.Size = new System.Drawing.Size(84, 19);
             optScummVM.TabIndex = 4;
             optScummVM.TabStop = true;
+            optScummVM.Tag = "#executable";
             optScummVM.Text = "ScummVM";
             optScummVM.UseVisualStyleBackColor = true;
             optScummVM.CheckedChanged += optScummVM_CheckedChanged;
+            optScummVM.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // optDosBox
             // 
@@ -495,9 +533,11 @@
             optDosBox.Size = new System.Drawing.Size(68, 19);
             optDosBox.TabIndex = 1;
             optDosBox.TabStop = true;
+            optDosBox.Tag = "#executable";
             optDosBox.Text = "DOSBox";
             optDosBox.UseVisualStyleBackColor = true;
             optDosBox.CheckedChanged += optDosBox_CheckedChanged;
+            optDosBox.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // tabPage4
             // 
@@ -520,9 +560,11 @@
             chkSierraSyntax.Name = "chkSierraSyntax";
             chkSierraSyntax.Size = new System.Drawing.Size(115, 19);
             chkSierraSyntax.TabIndex = 3;
+            chkSierraSyntax.Tag = "#sierrasrc";
             chkSierraSyntax.Text = "Use Sierra Syntax";
             chkSierraSyntax.UseVisualStyleBackColor = true;
             chkSierraSyntax.Click += chkSierraSyntax_Click;
+            chkSierraSyntax.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // cmbCodePage
             // 
@@ -531,7 +573,9 @@
             cmbCodePage.Name = "cmbCodePage";
             cmbCodePage.Size = new System.Drawing.Size(345, 23);
             cmbCodePage.TabIndex = 1;
+            cmbCodePage.Tag = "#codepage";
             cmbCodePage.SelectionChangeCommitted += cmbCodePage_SelectionChangeCommitted;
+            cmbCodePage.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // lblSierraSyntax
             // 
@@ -558,12 +602,14 @@
             Controls.Add(tabControl1);
             Controls.Add(btnCancel);
             Controls.Add(btnOK);
+            HelpButton = true;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "frmGameProperties";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "frmGameProperties";
             Load += frmGameProperties_Load;
+            VisibleChanged += frmGameProperties_VisibleChanged;
             tabControl1.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
             tabPage1.PerformLayout();

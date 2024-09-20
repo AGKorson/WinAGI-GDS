@@ -339,19 +339,19 @@ namespace WinAGI.Engine {
                 else if (NewID.Length > 64) {
                     NewID = NewID[..64];
                 }
-                if (INVALID_FIRST_CHARS.Any(ch => ch == value[0])) {
-                    value = "_" + value[1..];
+                if (INVALID_FIRST_CHARS.Any(ch => ch == NewID[0])) {
+                    NewID = "_" + NewID[1..];
                 }
-                if (value.Any(INVALID_ID_CHARS.Contains)) {
+                if (NewID.Any(INVALID_ID_CHARS.Contains)) {
                     // replace them with '_'
-                    StringBuilder sb = new(value);
+                    StringBuilder sb = new(NewID);
                     foreach (char c in INVALID_ID_CHARS) {
                         sb.Replace(c, '_');
                     }
-                    value = sb.ToString();
+                    NewID = sb.ToString();
                 }
-                if (value.Any(ch => ch > 127) || value.Any(ch => ch < 32)) {
-                    StringBuilder sb = new(value);
+                if (NewID.Any(ch => ch > 127) || NewID.Any(ch => ch < 32)) {
+                    StringBuilder sb = new(NewID);
                     for (int i = 0; i < sb.Length; i++) {
                         if (sb[i] < 32 || sb[i] > 127) {
                             sb[i] = '_';
@@ -368,6 +368,7 @@ namespace WinAGI.Engine {
                     }
                     mResID = NewID;
                     LogicCompiler.blnSetIDs = false;
+                    parent.WriteGameSetting(mResType.ToString() + Number, "ID", mResID, mResType.ToString() + "s");
                 }
             }
         }
@@ -392,7 +393,7 @@ namespace WinAGI.Engine {
                 if (newDesc != mDescription) {
                     mDescription = newDesc;
                     if (mInGame) {
-                        parent.WriteGameSetting("Logic" + Number, "Description", mDescription, "Logics");
+                        parent.WriteGameSetting(mResType.ToString() + Number, "Description", mDescription, mResType.ToString() + "s");
                     }
                 }
             }
@@ -671,8 +672,9 @@ namespace WinAGI.Engine {
             // reset resource markers
             mlngCurPos = 0;
             mblnEORes = false;
-            // update size property
+            // update size properties
             mSize = fullSize;
+            mSizeInVol = diskSize;
             return;
         }
 

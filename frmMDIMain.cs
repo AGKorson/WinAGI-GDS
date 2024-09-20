@@ -17,7 +17,7 @@ using static WinAGI.Engine.EventType;
 using static WinAGI.Common.Base;
 using System.Diagnostics;
 using static WinAGI.Editor.Base;
-using static WinAGI.Editor.BkgdTasks;
+using static WinAGI.Common.BkgdTasks;
 using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Security.Authentication.ExtendedProtection;
@@ -62,17 +62,8 @@ namespace WinAGI.Editor
         bool ForcePreview;
         int FlashCount;
 
-        //property box variables
-        bool PropDblClick;
-        int SelectedProp;
-        bool EditPropDropdown;
-        int PropGotFocus;
-        int PropRows;
+        //property box height
         int PropRowCount;
-        int PropScroll;
-        int ListItemHeight;
-        bool NoPaint;
-        bool AllowSelect;
         private bool splashDone;
         //tracks status of caps/num/ins
         static bool CapsLock = false;
@@ -166,6 +157,39 @@ namespace WinAGI.Editor
             bgwCompGame.ReportProgress((int)e.CStatus, e.CompileInfo);
         }
 
+        internal void GameEvents_NewGameStatus(object sender, NewGameEventArgs e) {
+            // data field used to determine if event is a newgame vent or a load event
+            // passed when template game is loaded
+            switch (e.NewInfo.Type) {
+            case EventType.etInfo:
+                switch (e.NewInfo.InfoType) {
+                case EInfoType.itInitialize:
+                    bgwNewGame.ReportProgress(51, e.NewInfo.Text);
+                    break;
+                case EInfoType.itResources:
+                    bgwNewGame.ReportProgress(52, e.NewInfo.Text);
+                    break;
+                case EInfoType.itFinalizing:
+                    bgwNewGame.ReportProgress(53, e.NewInfo.Text);
+                    break;
+                case EInfoType.itPropertyFile:
+                    bgwNewGame.ReportProgress(54, "");
+                    break;
+                }
+                break;
+            case etError:
+                break;
+            case etWarning:
+                // add to warning list
+                bgwNewGame.ReportProgress(1, e.NewInfo);
+                break;
+            case etTODO:
+                // add to warning list
+                bgwNewGame.ReportProgress(2, e.NewInfo);
+                break;
+            }
+        }
+
         internal void GameEvents_LoadGameStatus(object sender, LoadGameEventArgs e) {
             switch (e.LoadInfo.Type) {
             case etInfo:
@@ -236,6 +260,7 @@ namespace WinAGI.Editor
             Debug.Print($"decode it: {e.DecodeInfo.Text}");
             bgwOpenGame?.ReportProgress(2, e.DecodeInfo);
         }
+        
         private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
 
         }
@@ -329,8 +354,6 @@ namespace WinAGI.Editor
             fgWarnings.RowTemplate.Height = szText.Height + 2;
             //background color for previewing views is set to default
             PrevWinBColor = SystemColors.Control;
-            //set selected prop
-            SelectedProp = 1;
 
             // initialize the basic app functionality
             InitializeResMan();
@@ -406,6 +429,7 @@ namespace WinAGI.Editor
             }
 
             // attach  AGI game events
+            NewGameStatus += MDIMain.GameEvents_NewGameStatus;
             LoadGameStatus += MDIMain.GameEvents_LoadGameStatus;
             CompileGameStatus += MDIMain.GameEvents_CompileGameStatus;
             CompileLogicStatus += MDIMain.GameEvents_CompileLogicStatus;
@@ -425,7 +449,6 @@ namespace WinAGI.Editor
 
         }
         private void btnNewLogic_Click(object sender, EventArgs e) {
-            MessageBox.Show("new logic...");
             btnNewRes.DefaultItem = btnNewLogic;
             btnNewRes.Image = btnNewLogic.Image;
 
@@ -559,8 +582,7 @@ namespace WinAGI.Editor
                 NewType = AGIResType.Logic;
                 AGIResource tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
                 NewNum = tmp.Number;
-                // show id, number, description, compiled status, isroom
-                PropRows = 8;
+                //// show id, number, description, compiled status, isroom
                 // don't need to adjust context menu; preview window will do that
                 break;
             case 2:
@@ -573,8 +595,7 @@ namespace WinAGI.Editor
                 NewType = AGIResType.Picture;
                 tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
                 NewNum = tmp.Number;
-                // show id, number, description
-                PropRows = 6;
+                //// show id, number, description
                 // don't need to adjust context menu; preview window will do that
                 break;
             case 3:
@@ -587,8 +608,7 @@ namespace WinAGI.Editor
                 NewType = AGIResType.Sound;
                 tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
                 NewNum = tmp.Number;
-                // show id, number, description
-                PropRows = 6;
+                //// show id, number, description
                 // don't need to adjust context menu; preview window will do that
                 break;
             case 4:
@@ -601,8 +621,7 @@ namespace WinAGI.Editor
                 NewType = AGIResType.View;
                 tmp = (AGIResource)(lstResources.SelectedItems[0].Tag);
                 NewNum = tmp.Number;
-                // show id, number, description
-                PropRows = 7;
+                //// show id, number, description
                 // don't need to adjust context menu; preview window will do that
                 break;
             case 5:
@@ -674,32 +693,42 @@ namespace WinAGI.Editor
                     break;
                 }
             }
-            // reset selprop
-            SelectedProp = 0;
+
+
+            //// this does not work as I'd hoped
+            //foreach (Control c in propertyGrid1.Controls) {
+            //    c.MouseDoubleClick -= propertyGrid1_MouseDoubleClick;
+            //}
+
+
             propertyGrid1.SelectedObject = null;
-            // get number of rows to display based on new selection
             switch (NewResType) {
             case None:
-                // nothing to show
-                PropRows = 0;
                 return;
             case Game:
-                // show gameid, gameauthor, description,etc
-                PropRows = 10;
+                //// show gameid, gameauthor, description,etc
                 GameProperties pGame = new();
                 propertyGrid1.SelectedObject = pGame;
+
+                // TODO: this works for dblclicks on the property name but not
+                // on the value; can't find any way to make it work...
+                //// try catching doubleclick events
+                //foreach (Control c in propertyGrid1.Controls) {
+                //    c.MouseDoubleClick += propertyGrid1_MouseDoubleClick;
+                //    //c.Controls[1].MouseDoubleClick += propertyGrid1_MouseDoubleClick;
+                //}
+
+
                 break;
             case AGIResType.Logic:
                 if (NewResNum == -1) {
                     // logic header
-                    PropRows = 3;
                     LogicHdrProperties pLgcHdr = new();
                     propertyGrid1.SelectedObject = pLgcHdr;
                 }
                 else {
                     // always load before selecting
                     EditGame.Logics[NewResNum].Load();
-                    PropRows = 8;
                     LogicProperties pLog = new(EditGame.Logics[NewResNum]);
                     // get reference to value field of the ReadOnly attribute for the IsRoom property 
                     Attribute readOnly = TypeDescriptor.GetProperties(pLog.GetType())["IsRoom"].Attributes[typeof(ReadOnlyAttribute)];
@@ -719,12 +748,10 @@ namespace WinAGI.Editor
                     //picture header
                     PictureHdrProperties pPicHdr = new();
                     propertyGrid1.SelectedObject = pPicHdr;
-                    PropRows = 1;
                 }
                 else {
                     // always load before selecting
                     EditGame.Pictures[NewResNum].Load();
-                    PropRows = 6;
                     PictureProperties pPicture = new(EditGame.Pictures[NewResNum]);
                     propertyGrid1.SelectedObject = pPicture;
                 }
@@ -732,14 +759,12 @@ namespace WinAGI.Editor
             case AGIResType.Sound:
                 if (NewResNum == -1) {
                     // sound header
-                    PropRows = 1;
                     SoundHdrProperties pSndHdr = new();
                     propertyGrid1.SelectedObject = pSndHdr;
                 }
                 else {
                     // always load before selecting
                     EditGame.Sounds[NewResNum].Load();
-                    PropRows = 6;
                     SoundProperties pSound = new(EditGame.Sounds[NewResNum]);
                     propertyGrid1.SelectedObject = pSound;
                 }
@@ -748,26 +773,22 @@ namespace WinAGI.Editor
                 if (NewResNum == -1) {
                     //view header
                     ViewHdrProperties pViewHdr = new();
-                    PropRows = 1;
                     propertyGrid1.SelectedObject = pViewHdr;
                 }
                 else {
                     // always load before selecting
                     EditGame.Views[NewResNum].Load();
-                    PropRows = 7;
                     ViewProperties pView = new(EditGame.Views[NewResNum]);
                     propertyGrid1.SelectedObject = pView;
                 }
                 break;
             case Objects:
                 // OBJECT file is always loaded
-                PropRows = 4;
                 InvObjProperties pInvObj = new(EditGame.InvObjects);
                 propertyGrid1.SelectedObject = pInvObj;
                 break;
             case Words:
                 // WORDS.TOK is always loaded
-                PropRows = 3;
                 WordListProperties pWordList = new(EditGame.WordList);
                 propertyGrid1.SelectedObject = pWordList;
                 break;
@@ -776,7 +797,6 @@ namespace WinAGI.Editor
                 // if update is requested
                 if (WinAGISettings.ShowPreview && UpdatePreview) {
                     // load the preview item
-                    NoPaint = true;
                     PreviewWin.LoadPreview(NewResType, NewResNum);
                 }
             }
@@ -1040,11 +1060,22 @@ namespace WinAGI.Editor
                 WinAGISettings.MaxVol0Size = 1047552;
             DefMaxVol0Size = WinAGISettings.MaxVol0Size;
             //get help window parent
-            if (!WinAGISettingsList.GetSetting(sGENERAL, "DockHelpWindow", true)) {
-                //HelpParent = GetDesktopWindow();
-                //if (HelpParent = 0)
-                //HelpParent = this.hWnd;
+            if (WinAGISettingsList.GetSetting(sGENERAL, "DockHelpWindow", true)) {
+                HelpParent = this;
             }
+            // default codepage for extended characters
+            WinAGISettings.DefCP = WinAGISettingsList.GetSetting(sGENERAL, "DefCP", 437);
+            switch (WinAGISettings.DefCP) {
+            case 437 or 850 or 852 or 855 or 857 or 858 or 860 or 861 or 863 or 869:
+                // OK
+                break;
+            default:
+                // force to default
+                WinAGISettings.DefCP = 437;
+                break;
+            }
+            // use the default as current game codepage
+            SessionCodePage = Encoding.GetEncoding(WinAGISettings.DefCP);
             //RESFORMAT settings
             WinAGISettings.ShowResNum = WinAGISettingsList.GetSetting("ResFormat", "ShowResNum", DEFAULT_SHOWRESNUM);
             WinAGISettings.IncludeResNum = WinAGISettingsList.GetSetting("ResFormat", "IncludeResNum", DEFAULT_INCLUDERESNUM);
@@ -1298,6 +1329,7 @@ namespace WinAGI.Editor
             LogicCompiler.UseReservedNames = WinAGISettings.DefUseResDef;
 
             //get property window height
+            // TODO: add code to adjust size of property control
             PropRowCount = WinAGISettingsList.GetSetting(sPOSITION, "PropRowCount", 4);
             if (PropRowCount < 3)
                 PropRowCount = MIN_SPLIT_RES;
@@ -1436,7 +1468,7 @@ namespace WinAGI.Editor
             //save resource pane width
             WinAGISettingsList.WriteSetting(sPOSITION, "ResourceWidth", pnlResources.Width);
             //save other general settings
-            WinAGISettingsList.WriteSetting(sGENERAL, "DockHelpWindow", HelpParent == this.Handle);
+            //            WinAGISettingsList.WriteSetting(sGENERAL, "DockHelpWindow", HelpParent == this.Handle);
             // for warnings, create a bitfield to mark which are being ignored
             lngCompVal = 0;
             for (i = 1; i <= 30; i++) {
@@ -1463,66 +1495,7 @@ namespace WinAGI.Editor
         }
         private void tvwResources_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e) {
             // select it first
-            tvwResources.SelectedNode = e.Node;
-
-            // show the preview for this node
-            //if previewing
-            if (WinAGISettings.ShowPreview) {
-                if (ActiveMdiChild != PreviewWin && (WinAGISettings.ShiftPreview && ForcePreview)) {
-                    //if previn hidden on lostfocus, need to show it AFTER changing displayed resource
-                    if (PreviewWin.Visible) {
-                        //set form focus to preview
-                        PreviewWin.Activate();
-                        //set control focus to tvwlist
-                        tvwResources.Focus();
-                    }
-                }
-            }
-            //if no active form
-            if (MdiChildren.Length == 0) {
-                //set control focus to treeview
-                tvwResources.Focus();
-            }
-            //if nothing selected
-            if (e.Node is null) {
-                return;
-            }
-            //if not changed from previous number
-            if (LastNodeName == e.Node.Name) {
-                if (!PreviewWin.Visible && WinAGISettings.ShowPreview) {
-                    PreviewWin.Show();
-                    //set form focus to preview
-                    PreviewWin.Activate();
-                    //set control focus to tvwlist
-                    tvwResources.Focus();
-                }
-                //don't need to change anything
-                return;
-            }
-            //save current index as last index
-            LastNodeName = e.Node.Name;
-            //now select it
-            if (e.Node.Level == 0) {
-                // it's the game node
-                SelectResource(Game, -1);
-            }
-            else if (e.Node.Level == 1) {
-                // it's a resource header
-                SelectResource((AGIResType)e.Node.Index, -1);
-            }
-            else {
-                // it's a resource
-                SelectResource((AGIResType)e.Node.Parent.Index, (int)e.Node.Tag);
-            }
-            //after selection, force preview window to show and
-            //move up, if those settings are active
-            if (!PreviewWin.Visible && WinAGISettings.ShowPreview) {
-                PreviewWin.Show();
-                //set form focus to preview
-                PreviewWin.Activate();
-                //set control focus to tvwlist
-                tvwResources.Focus();
-            }
+            //          tvwResources.SelectedNode = e.Node;
         }
         private void tvwResources_AfterCollapse(object sender, TreeViewEventArgs e) {
             //when collapsing, select the collapsed node
@@ -1667,9 +1640,11 @@ namespace WinAGI.Editor
                 LastNodeName = "";
             }
         }
-        internal void mnuRRenumber_Click(object sender, EventArgs e) {
 
+        internal void mnuRRenumber_Click(object sender, EventArgs e) {
+            GetNewNumber(SelResType, (byte)SelResNum);
         }
+
         internal void mnuRILogic_Click(object sender, EventArgs e) {
 
         }
@@ -1756,18 +1731,73 @@ namespace WinAGI.Editor
             if (EditGame == null) {
                 return;
             }
+
+            // show the preview for this node
+            //if previewing
+            if (WinAGISettings.ShowPreview) {
+                if (ActiveMdiChild != PreviewWin && (WinAGISettings.ShiftPreview && ForcePreview)) {
+                    //if previn hidden on lostfocus, need to show it AFTER changing displayed resource
+                    if (PreviewWin.Visible) {
+                        //set form focus to preview
+                        PreviewWin.Activate();
+                        //set control focus to tvwlist
+                        tvwResources.Focus();
+                    }
+                }
+            }
+            //if no active form
+            if (MdiChildren.Length == 0) {
+                //set control focus to treeview
+                tvwResources.Focus();
+            }
+            //if nothing selected
+            if (e.Node is null) {
+                return;
+            }
             //if not changed from previous number
-            if (LastNodeName != e.Node.Name) {
-                // force it to select by using node-click
-                tvwResources_NodeMouseClick(sender, new TreeNodeMouseClickEventArgs(e.Node, MouseButtons.None, 0, 0, 0));
+            if (LastNodeName == e.Node.Name) {
+                if (!PreviewWin.Visible && WinAGISettings.ShowPreview) {
+                    PreviewWin.Show();
+                    //set form focus to preview
+                    PreviewWin.Activate();
+                    //set control focus to tvwlist
+                    tvwResources.Focus();
+                }
+                //don't need to change anything
+                return;
+            }
+            //save current index as last index
+            LastNodeName = e.Node.Name;
+            //now select it
+            if (e.Node.Level == 0) {
+                // it's the game node
+                SelectResource(Game, -1);
+            }
+            else if (e.Node.Level == 1) {
+                // it's a resource header
+                SelectResource((AGIResType)e.Node.Index, -1);
+            }
+            else {
+                // it's a resource
+                SelectResource((AGIResType)e.Node.Parent.Index, (byte)e.Node.Tag);
+            }
+            //after selection, force preview window to show and
+            //move up, if those settings are active
+            if (!PreviewWin.Visible && WinAGISettings.ShowPreview) {
+                PreviewWin.Show();
+                //set form focus to preview
+                PreviewWin.Activate();
+                //set control focus to tvwlist
+                tvwResources.Focus();
             }
         }
         private void frmMDIMain_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e) {
             Debug.Print($"Main - PreviewKeyDown: {e.KeyCode}; KeyData: {e.KeyData}; KeyModifiers: {e.Modifiers}");
         }
+
         private void frmMDIMain_KeyDown(object sender, KeyEventArgs e) {
-            return;
-            if (splResource.ActiveControl == propertyGrid1 && ActiveControl == splResource) {
+            // this is only way I know to catch keypresses in the property grid...
+            if (ActiveControl == splResource && splResource.ActiveControl == propertyGrid1) {
                 // for some properties, direct editing not allowed
                 switch (propertyGrid1.SelectedGridItem.Label) {
                 case "GameID":
@@ -2343,10 +2373,77 @@ namespace WinAGI.Editor
                 strTopic = @"htm\winagi\compilererrors.htm";
             }
             strTopic = strTopic + "#" + strNum;
-
-            //show warning help
-            _ = API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, strTopic);
+            // show warning help
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
         }
+
+        public void SelectedItemDescription(int FirstProp) {
+            // only use for resources that are NOT being edited;
+            // if the resource is being edited, the editor for that
+            // resource handles description, ID and number changes
+            string strID = "", strDesc = "";
+
+            // is there an open editor for this resource?
+            // if so, use that editor's renumber function
+            switch (SelResType) {
+            case AGIResType.Logic:
+                foreach (frmLogicEdit frm in LogicEditors) {
+                    if (frm.LogicNumber == SelResNum) {
+                        frm.MenuClickDescription(1);
+                        return;
+                    }
+                }
+                // no editor found
+                strID = EditGame.Logics[SelResNum].ID;
+                strDesc = EditGame.Logics[SelResNum].Description;
+                break;
+            case AGIResType.Picture:
+                foreach (frmPicEdit frm in PictureEditors) {
+                    if (frm.PicNumber == SelResNum) {
+                        frm.MenuClickDescription(1);
+                        return;
+                    }
+                }
+                // no editor found
+                strID = EditGame.Pictures[SelResNum].ID;
+                strDesc = EditGame.Pictures[SelResNum].Description;
+                break;
+            case AGIResType.Sound:
+                foreach (frmSoundEdit frm in SoundEditors) {
+                    if (frm.SoundNumber == SelResNum) {
+                        frm.MenuClickDescription(1);
+                        return;
+                    }
+                }
+                // no editor found
+                strID = EditGame.Sounds[SelResNum].ID;
+                strDesc = EditGame.Sounds[SelResNum].Description;
+                break;
+            case AGIResType.View:
+                foreach (frmViewEdit frm in ViewEditors) {
+                    if (frm.ViewNumber == SelResNum) {
+                        frm.MenuClickDescription(1);
+                        return;
+                    }
+                }
+                // no editor found
+                strID = EditGame.Views[SelResNum].ID;
+                strDesc = EditGame.Views[SelResNum].Description;
+                break;
+            case AGIResType.Objects:
+                strDesc = EditGame.InvObjects.Description;
+                break;
+            case AGIResType.Words:
+                strDesc = EditGame.WordList.Description;
+                break;
+            }
+            // TODO: does GetNewResID need to return a value, and pass args byref?
+            GetNewResID(SelResType, SelResNum, ref strID, ref strDesc, true, FirstProp);
+            return;
+        }
+
+
+
 
         void tmpFormMain() {
             /*
@@ -2405,260 +2502,6 @@ namespace WinAGI.Editor
         //Debug.Assert false
         Resume Next
       }
-
-
-
-
-      void SelectPropFromList()
-
-        Dim i As Long
-        Dim Reason As EUReason
-
-        On Error GoTo ErrHandler
-
-        //verify property pic box is visible
-        if (!picProperties.Visible) {
-          return;
-        }
-
-        //restore previously selected prop
-        switch (lstProperty.Tag
-        case "INTVER"
-          SelectedProp = 4
-        case "OBJENCRYPT"
-          SelectedProp = 3
-        case "ISROOM"
-          SelectedProp = 6
-        case "USERESNAMES"
-          SelectedProp = 4
-        case "USELE"
-          SelectedProp = 9
-        }
-
-        //save property that was edited
-        switch (lstProperty.Tag
-        case "INTVER"
-          //determine if a change was made:
-          //if there is a change to make
-          if (InterpreterVersion != lstProperty.Text) {
-            //make change to version
-            ChangeIntVersion lstProperty.Text
-            //check if change in version affected ID
-            switch (Settings.ResListType
-            case 1
-              if (tvwResources.Nodes[1).Text != GameID) {
-                tvwResources.Nodes[1).Text = GameID
-              }
-            case 2
-              if (cmbResType.List(0) != GameID) {
-                cmbResType.List(0) = GameID
-              }
-            }
-          }
-
-        case "USERESNAMES"
-          //determine if a change was made
-          if (CBool(lstProperty.SelectedIndex) != LogicSourceSettings.UseReservedNames) {
-            LogicSourceSettings.UseReservedNames = CBool(lstProperty.SelectedIndex)
-          }
-
-        case "USELE"
-          //determine if a change was made
-          if (CBool(lstProperty.SelectedIndex) != UseLE) {
-            UseLE = CBool(lstProperty.SelectedIndex)
-            // update menu, toolbar and close LE if necessary
-            UpdateLEStatus
-          }
-
-        case "OBJENCRYPT"
-          //determine if a change was made
-          if (CBool(lstProperty.SelectedIndex) != InvObjects.Encrypted) {
-            InvObjects.Encrypted = CBool(lstProperty.SelectedIndex)
-            InvObjects.Save
-          }
-
-        case "ISROOM"
-          //determine if a change was made
-          if (CBool(lstProperty.SelectedIndex) != Logics(SelResNum).IsRoom) {
-            WaitCursor
-
-            Logics(SelResNum).IsRoom = CBool(lstProperty.SelectedIndex)
-            Logics(SelResNum).Save
-            if (UseLE) {
-              if (Logics(SelResNum).IsRoom) {
-                Reason = euShowRoom
-              } else {
-                Reason = euRemoveRoom
-              }
-              //update layout editor to show new room status
-              UpdateExitInfo Reason, SelResNum, Logics(SelResNum)
-            }
-
-            //update any open editor
-            For i = 1 To LogicEditors.Count
-              if (LogicEditors(i).LogicNumber = SelResNum) {
-                LogicEditors(i).LogicEdit.IsRoom = Logics(SelResNum).IsRoom
-                Exit For
-              }
-            Next i
-
-            Screen.MousePointer = vbDefault
-          }
-        }
-
-        //hide listbox
-        lstProperty.Visible = false
-
-        //set focus to property window
-        picProperties.Focus()
-
-        //force repaint
-        PaintPropertyWindow
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
-      void SelectPropFromText()
-
-        On Error GoTo ErrHandler
-
-        //restore selected property
-        switch (txtProperty.Tag
-        case "GAMEID"
-          SelectedProp = 1
-        case "GAMEAUTHOR"
-          SelectedProp = 2
-        case "RESDIR"
-          SelectedProp = 4
-        case "GAMEDESC"
-          SelectedProp = 6
-        case "GAMEVER"
-          SelectedProp = 7
-        case "GAMEABOUT"
-          SelectedProp = 8
-        case "WORDSDESC"
-          SelectedProp = 3
-        case "OBJDESC"
-          SelectedProp = 2
-        case "VIEWDESC"
-          SelectedProp = 4
-        case "MAXOBJ"
-          SelectedProp = 4
-        }
-
-        //save property that was edited
-        switch (txtProperty.Tag
-        case "GAMEID"
-          //new game id
-
-          //if new id is valid (not zero-length) AND changed
-          if (LenB(txtProperty.Text) != 0 && GameID != txtProperty.Text) {
-            ChangeGameID txtProperty.Text
-          }
-
-        case "RESDIR"
-          //if changed
-          if (LCase(txtProperty.Text) != LCase(ResDirName)) {
-            ChangeResDir txtProperty.Text
-          }
-
-        case "GAMEAUTHOR"
-          GameAuthor = txtProperty.Text
-
-        case "GAMEDESC"
-          GameDescription = txtProperty.Text
-
-        case "GAMEVER"
-          GameVersion = txtProperty.Text
-
-        case "GAMEABOUT"
-          GameAbout = txtProperty.Text
-
-        case "WORDSDESC"
-          WordList.Description = txtProperty.Text
-          WordList.Save
-
-        case "OBJDESC"
-          InvObjects.Description = txtProperty.Text
-          InvObjects.Save
-
-        case "VIEWDESC"
-          //viewdescription only available if view is loaded
-          With Views(SelResNum)
-            if (!.Loaded) {
-              .Load
-              .ViewDescription = Replace(txtProperty.Text, vbNewLine, vbLf)
-              .Save
-              .Unload
-            } else {
-              .ViewDescription = Replace(txtProperty.Text, vbNewLine, vbLf)
-              .Save
-            }
-          End With
-          //check for an editor with this number
-          Dim tmpFrm As Form
-          foreach (tmpFrm In Forms
-            if (tmpFrm.Name = "frmViewEdit") {
-              if (tmpFrm.ViewNumber = SelResNum && tmpFrm.InGame) {
-                tmpFrm.ViewEdit.ViewDescription = Views(SelResNum).ViewDescription
-                tmpFrm.UpdateViewDesc
-              }
-            }
-          Next
-
-        case "MAXOBJ"
-          //validate Max val
-          if (Val(txtProperty) > 255) {
-            txtProperty.Text = 255
-          } else if ( Val(txtProperty) <= 0) {
-            txtProperty.Text = 1
-          }
-          InvObjects.MaxScreenObjects = (byte)txtProperty.Text)
-          InvObjects.Save
-        }
-
-        //hide textbox
-        txtProperty.Visible = false
-
-        //set focus to property window
-        picProperties.Focus()
-
-        //force repaint
-        PaintPropertyWindow
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
-      public void WLMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
-        Dim NewValue As Long
-        Dim Lstep As Single
-
-        On Error Resume Next
-
-        With fgWarnings
-          Lstep = 4
-
-          if (Rotation > 0) {
-            NewValue = .TopRow - Lstep
-            if (NewValue < 1) {
-              NewValue = 1
-            }
-          } else {
-            NewValue = .TopRow + Lstep
-            if (NewValue > .Rows - 1) {
-              NewValue = .Rows - 1
-            }
-          }
-          .TopRow = NewValue
-        End With
-      }
-
 
       public void IgnoreWarning()
 
@@ -2754,88 +2597,6 @@ namespace WinAGI.Editor
       public void RDescription()
         //tie function
         mnuRDescription_Click
-      }
-
-      void SelectedItemDescription(ByVal FirstProp As Long)
-      {
-        Dim strID As String, strTempD As String
-        Dim frm As Form
-
-        //only use for resources that are NOT being edited;
-        //if the resource is being edited, the editor for that
-        //resource handles description, ID and number changes
-
-        On Error GoTo ErrHandler
-
-        //is there an open editor for this resource?
-        //if so, use that editor//s renumber function
-        switch (SelResType
-        case rtLogic
-          //step through logiceditors
-          foreach (frm In LogicEditors
-            if (frm.LogicNumber = SelResNum) {
-              frm.MenuClickDescription 1
-              return;
-            }
-          Next
-        case rtPicture
-          //step through pictureeditors
-          foreach (frm In PictureEditors
-            if (frm.PicNumber = SelResNum) {
-              frm.MenuClickDescription 1
-              return;
-            }
-          Next
-        case rtSound
-          //step through soundeditors
-          foreach (frm In SoundEditors
-            if (frm.SoundNumber = SelResNum) {
-              frm.MenuClickDescription 1
-              return;
-            }
-          Next
-        case rtView
-          //step through Vieweditors
-          foreach (frm In ViewEditors
-            if (frm.ViewNumber = SelResNum) {
-              frm.MenuClickDescription 1
-              return;
-            }
-          Next
-        }
-
-        //Debug.Assert FirstProp > 0 && FirstProp < 3
-        //set current values
-        switch (SelResType
-        case rtObjects
-          strTempD = InvObjects.Description
-
-        case rtWords
-          strTempD = WordList.Description
-
-        case rtLogic
-          strID = Logics(SelResNum).ID
-          strTempD = Logics(SelResNum).Description
-
-        case rtPicture
-          strID = Pictures(SelResNum).ID
-          strTempD = Pictures(SelResNum).Description
-
-        case rtSound
-          strID = Sounds(SelResNum).ID
-          strTempD = Sounds(SelResNum).Description
-
-        case rtView
-          strID = Views(SelResNum).ID
-          strTempD = Views(SelResNum).Description
-        }
-
-        GetNewResID SelResType, SelResNum, strID, strTempD, true, FirstProp
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
       }
 
       public void SelectedItemExport()
@@ -2978,10 +2739,10 @@ namespace WinAGI.Editor
           //if ID changed because of renumbering
           if (Logics(SelResNum).ID != strOldID) {
             //if old default file exists
-            if (File.Exists(ResDir + strOldID + LogicSourceSettings.SourceExt)) {
+            if (File.Exists(ResDir + strOldID + EditGame.SourceExt)) {
               On Error Resume Next
               //rename it
-              Name ResDir + strOldID + LogicSourceSettings.SourceExt As ResDir + Logics(SelResNum).ID + LogicSourceSettings.SourceExt
+              Name ResDir + strOldID + EditGame.SourceExt As ResDir + Logics(SelResNum).ID + EditGame.SourceExt
             }
           }
 
@@ -4496,7 +4257,7 @@ namespace WinAGI.Editor
           }
 
           //resdefine names
-          LogicSourceSettings.UseReservedNames = (.chkUseReserved.Value = vbChecked)
+          LogicCompiler.UseReservedNames = (.chkUseReserved.Value = vbChecked)
 
           //layout editor
           UseLE = (.chkUseLE.Value = vbChecked)
@@ -4807,409 +4568,6 @@ namespace WinAGI.Editor
         MDIMain.Arrange vbArrangeIcons
 
       }
-
-      void mnuWTileH_Click()
-
-        //tile horizontal
-        MDIMain.Arrange vbTileHorizontal
-      }
-
-      void mnuWTileV_Click()
-
-        //tile vertically
-        MDIMain.Arrange vbTileVertical
-      }
-
-      void picProperties_GotFocus()
-
-        //if nothing selected, exit
-        if (SelResType = rtNone) {
-          return;
-        }
-
-        //if clicked or tabbed to get here,
-        //and nothing is selected yet,
-        //select the first property
-        if (SelectedProp = 0) {
-          //Debug.Assert PropRowCount > 0
-          SelectedProp = 1
-        }
-        PaintPropertyWindow
-
-        //if not using preview window then focus
-        //events must be tracked
-        if (!Settings.ShowPreview) {
-          //if mdi form already has focus
-          //don't do anything else
-          if (MDIHasFocus) {
-            return;
-          }
-          //force focus marker to true
-          MDIHasFocus = true
-
-          //set menus based on currently selected item
-
-          switch (SelResType
-          case rtGame  //root
-            AdjustMenus rtGame, true, false, false
-
-          case 2 To 5 //resource header
-            AdjustMenus rtNone, true, false, false
-
-          case rtLogic, rtPicture, rtSound, rtView  //logic, picture, sound, view
-            if (SelResNum = -1) {
-              AdjustMenus rtNone, true, false, false
-            } else {
-              AdjustMenus SelResType, true, false, false
-            }
-
-          case rtObjects  //objects
-            AdjustMenus rtObjects, true, false, false
-
-          case rtWords  //words
-            AdjustMenus rtWords, true, false, false
-          }
-        }
-      }
-
-      void picProperties_KeyPress(KeyAscii As Integer)
-
-        On Error GoTo ErrHandler
-
-        if (PreviewWin.Visible) {
-          PreviewWin.KeyHandler KeyAscii
-        }
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
-      void picProperties_LostFocus()
-
-        //if not using the preview window, then
-        //focus events must be tracked
-
-        if (!Settings.ShowPreview) {
-          MDIHasFocus = false
-
-          //make sure something is active
-          if (ActiveControl = null) {
-            return;
-          }
-
-          //if active control is still picProperties
-          //then an open form must have been clicked
-          if (ActiveControl.Name = "picProperties") {
-            if (!ActiveForm = null) {
-              //reset menus for active form
-              ActiveForm.Activate
-            }
-          } else {
-            //if focus is staying on the form
-            if (ActiveControl.Name = "tvwResources" && _
-               ActiveControl.Name = "picSplitRes" && _
-               ActiveControl.Name = "picSplitV" && _
-               ActiveControl.Name = "cmbResType" && _
-               ActiveControl.Name = "lstResources") {
-              //force focus marker back to true
-              MDIHasFocus = true
-            }
-          }
-
-
-        }
-
-        //if not overriding repaint
-        if (!NoPaint) {
-          PaintPropertyWindow
-        }
-        NoPaint = false
-      }
-
-      void picSplitH_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-        //begin split operation
-        picSplitHIcon.Width = picSplitH.Width
-        picSplitHIcon.Move picSplitH.Left, picSplitH.Top
-        picSplitHIcon.Visible = true
-
-        //save offset
-        SplitHOffset = picSplitH.Top - Y
-      }
-
-
-      void picSplitH_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-        Dim Pos As Single
-
-        //if splitting
-        if (picSplitHIcon.Visible) {
-          Pos = Y + SplitHOffset
-          //limit movement- split pos determines size of panel BELOW split
-          //need to do some math...
-          if (picBottom.Top + picBottom.Height - Pos < MIN_SPLIT_H) {
-            Pos = picBottom.Top + picBottom.Height - MIN_SPLIT_H
-          }
-
-          if (picBottom.Top + picBottom.Height - Pos > MAX_SPLIT_H) {
-            Pos = picBottom.Top + picBottom.Height - MAX_SPLIT_H
-          }
-
-          //also need to limit movement upwards so there is a minimum amount of space available
-          if (Pos < 3000) {
-            Pos = 3000
-          }
-
-          //move splitter icon and splitter form
-          picSplitHIcon.Top = Pos
-        }
-      }
-
-
-      void picSplitH_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-        Dim Pos As Single
-        //if splitting
-        if (picSplitHIcon.Visible) {
-          //stop splitting
-          picSplitHIcon.Visible = false
-
-          Pos = Y + SplitHOffset
-          //limit movement- split pos determines size of panel BELOW split
-          //need to do some math...
-          if (picBottom.Top + picBottom.Height - Pos < MIN_SPLIT_H) {
-            Pos = picBottom.Top + picBottom.Height - MIN_SPLIT_H
-          }
-
-          if (picBottom.Top + picBottom.Height - Pos > MAX_SPLIT_H) {
-            Pos = picBottom.Top + picBottom.Height - MAX_SPLIT_H
-          }
-
-          //also need to limit movement upwards so there is a minimum amount of space available
-          if (Pos < 3000) {
-            Pos = 3000
-          }
-
-          //redraw!
-          UpdateSplitH Pos
-
-          //if focus came from MDI
-          if (MDIHasFocus) {
-            //force focus back to mdi (use resource list)
-            switch (Settings.ResListType
-            case 1
-              tvwResources.Focus();
-            case 2
-              lstResources.Focus();
-            }
-          } else {
-            //force focus back to active form, if there is one
-            if (!ActiveForm = null) {
-              ActiveForm.Focus();
-            }
-          }
-        }
-      }
-
-
-      void picSplitH_Paint()
-
-        //draw a line across bottom row of pixels to act as a border for the grid
-
-        //sometimes the splitter isn//t exactly on the right spot after resizing; can
-        //the paint method find and fix that?
-
-      }
-
-      void picSplitRes_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-        //begin split operation
-        picSplitResIcon.Width = picSplitRes.Width
-        picSplitResIcon.Move picSplitRes.Left, picSplitRes.Top
-        picSplitResIcon.Visible = true
-
-        //save offset
-        SplitResOffset = picSplitRes.Top - Y
-      }
-
-
-      void picSplitRes_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-        Dim tmpHeight As Long
-
-        //if splitting
-        if (picSplitResIcon.Visible) {
-          tmpHeight = (picResources.ScaleHeight - (Y + SplitResOffset) - SPLIT_HEIGHT) / PropRowHeight - 1
-          //limit movement
-          if (tmpHeight < MIN_SPLIT_RES) {
-            tmpHeight = MIN_SPLIT_RES
-          } else if ( tmpHeight > MAX_SPLIT_RES) {
-            tmpHeight = MAX_SPLIT_RES
-          }
-
-          //move splitter icon and splitter form (adjust by one to account for header)
-          picSplitResIcon.Top = picResources.ScaleHeight - ((tmpHeight + 1) * PropRowHeight) - SPLIT_HEIGHT
-        }
-      }
-
-
-      void picSplitRes_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-        Dim tmpHeight As Long
-
-        //if splitting
-        if (picSplitResIcon.Visible) {
-          //stop splitting
-          picSplitResIcon.Visible = false
-
-          tmpHeight = (picResources.ScaleHeight - (Y + SplitResOffset) - SPLIT_HEIGHT) / PropRowHeight - 1
-          //limit movement
-          if (tmpHeight < MIN_SPLIT_RES) {
-            tmpHeight = MIN_SPLIT_RES
-          } else if ( tmpHeight > MAX_SPLIT_RES) {
-            tmpHeight = MAX_SPLIT_RES
-          }
-
-          //save rowcount
-          PropRowCount = tmpHeight
-
-          //redraw (adjust by one to account for header)
-          UpdateSplitRes picResources.ScaleHeight - ((tmpHeight + 1) * PropRowHeight) - SPLIT_HEIGHT
-          PaintPropertyWindow
-
-          //if focus came from MDI
-          if (MDIHasFocus) {
-            //force focus back to mdi (use resource list)
-            switch (Settings.ResListType
-            case 1
-              tvwResources.Focus();
-            case 2
-              lstResources.Focus();
-            }
-          } else {
-            //force focus back to active form, if there is one
-            if (!ActiveForm = null) {
-              ActiveForm.Focus();
-            }
-          }
-        }
-      }
-
-
-      void picSplitV_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-        //begin split operation
-        picSplitVIcon.Height = picSplitV.Height
-        picSplitVIcon.Move picSplitV.Left, picSplitV.Top
-        picSplitVIcon.Visible = true
-
-        //save offset
-        SplitVOffset = picSplitV.Left - X
-      }
-
-
-      void picSplitV_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-        Dim Pos As Single
-
-        //if splitting
-        if (picSplitVIcon.Visible) {
-          Pos = X + SplitVOffset
-          //limit movement
-          if (Pos < MIN_SPLIT_V) {
-            Pos = MIN_SPLIT_V
-          } else if ( Pos > MAX_SPLIT_V) {
-            Pos = MAX_SPLIT_V
-          }
-
-          //move splitter icon and splitter form
-          picSplitVIcon.Left = Pos
-        }
-      }
-
-
-      void picSplitV_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-        Dim Pos As Single
-
-        //if splitting
-        if (picSplitVIcon.Visible) {
-
-          //stop splitting
-          picSplitVIcon.Visible = false
-
-          Pos = X + SplitVOffset
-          //limit movement
-          if (Pos < MIN_SPLIT_V) {
-            Pos = MIN_SPLIT_V
-          } else if ( Pos > MAX_SPLIT_V) {
-            Pos = MAX_SPLIT_V
-          }
-
-          //redraw! (don't adjust for splitpos; it's builtin to the splitting process)
-          UpdateSplitV Pos
-
-          PaintPropertyWindow
-
-          //if focus came from MDI
-          if (MDIHasFocus) {
-            //force focus back to mdi (use resource list)
-            switch (Settings.ResListType
-            case 1
-              tvwResources.Focus();
-            case 2
-              lstResources.Focus();
-            }
-          } else {
-            //force focus back to active form, if there is one
-            if (!ActiveForm = null) {
-              ActiveForm.Focus();
-            }
-          }
-        }
-      }
-
-      void picWarnings_Paint()
-
-        //draw that darn line?
-        picWarnings.Line (0, 30)-Step(picWarnings.Width, 0), Color.Black
-
-      }
-
-      void picWarnings_Resize()
-
-        On Error GoTo ErrHandler
-
-        Dim lngVarW As Long
-
-        if (!MDIMain.Visible) {
-          return;
-        }
-
-        With fgWarnings
-          .Width = picWarnings.ScaleWidth
-          .Height = picWarnings.ScaleHeight - picSplitH.Height
-          .ColWidth(0) = 0  //path for module, if there is one
-          .ColWidth(1) = 360 //left border column, fixed
-          .ColWidth(2) = 1080 //warning/error number
-          lngVarW = .Width - (4560 + 360 + 270)
-          if (lngVarW < 360) {
-            lngVarW = 360
-          }
-          .ColWidth(3) = lngVarW // description
-          .ColWidth(4) = 600 //res num
-          .ColWidth(5) = 720 //line #
-          .ColWidth(6) = 2160 //module
-        End With
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
 
       void StatusBar1_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
@@ -5699,751 +5057,6 @@ namespace WinAGI.Editor
         Resume Next
       }
 
-      void picProperties_DblClick()
-
-        //set dblclick mode (to allow properties to be toggled)
-        PropDblClick = true
-
-        //call mouse down again
-        picProperties_MouseDown 0, 0, mPX, mPY
-      }
-
-      void picProperties_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-        Dim tmpProp As Long
-        Dim rtn As Long, blnDblClick As Boolean
-        Dim strNewDir As String
-        Dim Reason As EUReason
-        Dim i As Long
-
-        On Error GoTo ErrHandler
-
-        //local copy of dblclick mode
-        blnDblClick = PropDblClick
-        //clear global dblclick mode
-        PropDblClick = false
-
-        //save position in case of double click
-        mPX = X
-        mPY = Y
-
-        //if not in a game
-        if (!GameLoaded) {
-          return;
-        }
-
-        //override repaint
-        NoPaint = true
-
-        if (Settings.ShowPreview) {
-          if (!ActiveForm Is PreviewWin && Settings.ShiftPreview) {
-            //now set form focus to preview
-            if (!PreviewWin.Visible) {
-              PreviewWin.Show
-            }
-            PreviewWin.Focus();
-            //set control focus to picproperties
-            picProperties.Focus();
-          }
-        }
-
-        //force control focus to picProperties
-        picProperties.Focus();
-
-        tmpProp = Y \ PropRowHeight
-
-        //verify not out of bounds
-        if (tmpProp > PropRowCount) {
-          tmpProp = PropRowCount
-        }
-        if (tmpProp < 0) {
-          tmpProp = 0
-        }
-
-        //if not clicking on header
-        if (tmpProp > 0) {
-          tmpProp = tmpProp + PropScroll
-        }
-
-        //if past limit for selected item
-        switch (SelResType
-        case rtGame //root - 10 props
-          if (tmpProp > 10) {
-            return;
-          }
-
-        case rtLogic
-          if (SelResNum = -1) {
-            //logic header 4 props
-            if (tmpProp > 4) {
-              return;
-            }
-          } else {
-            //logic resource
-            //4 editable properties; 4 read-only
-            if (tmpProp > 8) {
-              return;
-            }
-          }
-
-        case rtPicture, rtSound
-          if (SelResNum = -1) {
-            //other resource headers - 1 property
-            if (tmpProp > 1) {
-              return;
-            }
-          } else {
-            //picture and sound
-            //3 editable properties, 3 read-only
-            if (tmpProp > 6) {
-              return;
-            }
-          }
-
-        case rtView
-          if (SelResNum = -1) {
-            //other resource headers - 1 property
-            if (tmpProp > 1) {
-              return;
-            }
-          } else {
-            //view
-            //4 editable properties, 3 read-only
-            if (tmpProp > 7) {
-              return;
-            }
-          }
-
-        case rtObjects
-          //OBJECT - 4 props
-          if (tmpProp > 4) {
-            return;
-          }
-
-        case rtWords
-          //WORDS.TOK - 3 props;
-          if (tmpProp > 3) {
-            return;
-          }
-        }
-
-        //if property selected was clicked
-        if (tmpProp = SelectedProp) {
-          //check which property
-          switch (SelResType
-          case rtGame //root
-            switch (SelectedProp
-            case 1  //gameid
-              //display textbox
-              DisplayPropertyEditBox PropSplitLoc + 3, PropRowHeight + 1, picProperties.Width - PropSplitLoc - 4, PropRowHeight - 2, "GAMEID", 0
-            case 2  //gameauthor
-              //display textbox
-              DisplayPropertyEditBox PropSplitLoc + 3, (2 - PropScroll) * PropRowHeight + 1, picProperties.Width - PropSplitLoc - 4, PropRowHeight - 2, "GAMEAUTHOR", 0
-
-            case 3  //gamedir
-              //game dir is now read only
-
-            case 4  //resdir
-              //display textbox
-              DisplayPropertyEditBox PropSplitLoc + 3, (4 - PropScroll) * PropRowHeight + 1, picProperties.Width - PropSplitLoc - 4, PropRowHeight - 2, "RESDIR", 0
-
-            case 5  //int version
-              if ((X > picProperties.Width - 17) && blnDblClick) {
-                //copy pressed dropdown picture
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (5 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
-                //display list box
-                DisplayPropertyListBox PropSplitLoc, (5 - PropScroll) * PropRowHeight, picProperties.Width - PropSplitLoc - 17, ListItemHeight * 4, "INTVER"
-              }
-
-            case 6  //Description
-              //if button clicked
-              if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
-                //copy pressed dropover picture
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (6 - PropScroll) * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
-                //display edit box
-                DisplayPropertyEditBox picProperties.Width, 0, 2 * picProperties.Width, picProperties.Height, "GAMEDESC", 1
-                rtn = BringWindowToTop(txtProperty.hWnd)
-              }
-
-            case 7  //game version
-              //if button clicked
-              if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
-                //copy pressed dropover picture
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (7 - PropScroll) * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
-                //display edit box
-                DisplayPropertyEditBox picProperties.Width, 0, 2 * picProperties.Width, picProperties.Height, "GAMEVER", 1
-                rtn = BringWindowToTop(txtProperty.hWnd)
-              }
-
-            case 8  //game about
-              //if button clicked
-              if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
-                //copy pressed dropover picture
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (8 - PropScroll) * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
-                //display edit box
-                DisplayPropertyEditBox picProperties.Width, 0, 2 * picProperties.Width, picProperties.Height, "GAMEABOUT", 1
-                rtn = BringWindowToTop(txtProperty.hWnd)
-              }
-
-            case 9  //use Layout Editor
-              //if dblclicking AND on actual property
-              if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
-                //toggle useresdef
-                UseLE = !UseLE
-                PaintPropertyWindow
-                //update toolbar buttons and close LE if needed
-                UpdateLEStatus
-
-              //if button is clicked
-              } else if ( X > picProperties.Width - 17) {
-                //copy pressed dropdown picture
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (9 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
-                //show list box offering choice of true or false
-                DisplayPropertyListBox PropSplitLoc, (9 - PropScroll) * PropRowHeight, picProperties.Width - PropSplitLoc - 17, ListItemHeight * 2, "USELE"
-              }
-
-            case 10  //last edit date
-              //read only
-
-            }
-
-          case rtLogic
-            if (SelResNum = -1) {
-              // logic header
-              switch (SelectedProp
-              case 2  //globals
-                //if button is clicked
-                if ((X > picProperties.Width - 17) && blnDblClick) {
-                  //copy pressed dropdialog picture
-                  rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (2 - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
-                  //display edit globals dialog
-                  //by invoking menu bar item
-                  mnuTGlobals_Click
-                }
-
-              case 3  //use reserved defines
-                //if dblclicking AND on actual property
-                if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
-                  //toggle useresdef
-                  LogicSourceSettings.UseReservedNames = !LogicSourceSettings.UseReservedNames
-                  PaintPropertyWindow
-                //if button is clicked
-                } else if ( X > picProperties.Width - 17) {
-                  //copy pressed dropdown picture
-                  rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (3 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
-                  //show list box offering choice of true or false
-                  DisplayPropertyListBox PropSplitLoc, (3 - PropScroll) * PropRowHeight, picProperties.Width - PropSplitLoc - 17, ListItemHeight * 2, "USERESNAMES"
-                }
-
-              }
-            } else {
-              //logic resource
-              //if selected prop is 1,2,3
-              switch (SelectedProp
-              case 1, 2, 3
-                //if button is clicked or doubleclicking
-                if (X > picProperties.Width - 17 && blnDblClick) {
-                  //copy pressed dropdialog picture
-                  rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
-                  if (SelectedProp = 1) {
-                    //use selected item method
-                    SelectedItemRenumber
-                  } else {
-                    //use selected item method (remember to adjust selprop by 1)
-                    SelectedItemDescription SelectedProp - 1
-                  }
-                  //reset dropdialog button
-                  rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 0, 0, SRCCOPY)
-                }
-
-              case 4  //isroom (used to be 6)
-                //if dblclicking AND on actual property
-                if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
-                  //toggle isroom
-                  if (SelResNum != 0) {
-                    Logics(SelResNum).IsRoom = !Logics(SelResNum).IsRoom
-                    if (UseLE) {
-                      if (Logics(SelResNum).IsRoom) {
-                        Reason = euShowRoom
-                      } else {
-                        Reason = euRemoveRoom
-                      }
-                      //update layout editor and data file to show new room status
-                      UpdateExitInfo Reason, SelResNum, Logics(SelResNum)
-                    }
-                    PaintPropertyWindow
-
-                    //update the logic editor if it's open
-                    For i = 1 To LogicEditors.Count
-                      if (LogicEditors(i).LogicNumber = SelResNum) {
-                        LogicEditors(i).LogicEdit.IsRoom = Logics(SelResNum).IsRoom
-                        Exit For
-                      }
-                    Next i
-                  }
-
-                //if button is clicked
-                } else if ( X > picProperties.Width - 17) {
-                  if (SelResNum != 0) {
-                    //copy pressed dropdown picture
-                    rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (4 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
-                    //display list box
-                    DisplayPropertyListBox PropSplitLoc, (4 - PropScroll) * PropRowHeight, picProperties.Width - PropSplitLoc - 17, ListItemHeight * 2, "ISROOM"
-                  }
-                }
-              }
-            }
-
-          case rtPicture
-            //header is readonly
-            if (SelResNum >= 0) {
-              //pictures, sounds
-              //if button is clicked or doubleclicking
-              if (X > picProperties.Width - 17 && blnDblClick) {
-                //copy pressed dropdialog picture
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
-
-                //if number
-                if (SelectedProp = 1) {
-                  //use selected item method
-                  SelectedItemRenumber
-                } else {
-                  //use selected item method (remember to adjust selprop by 1)
-                  SelectedItemDescription SelectedProp - 1
-                }
-                //reset dropdialog button
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (tmpProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 0, 0, SRCCOPY)
-              }
-            }
-
-          case rtSound
-            //header is readonly
-            if (SelResNum >= 0) {
-              //pictures, sounds
-              //if button is clicked or doubleclicking
-              if (X > picProperties.Width - 17 && blnDblClick) {
-                //copy pressed dropdialog picture
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
-
-                //if number
-                if (SelectedProp = 1) {
-                  //use selected item method
-                  SelectedItemRenumber
-                } else {
-                  //use selected item method (remember to adjust selprop by 1)
-                  SelectedItemDescription SelectedProp - 1
-                }
-                //reset dropdialog button
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (tmpProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 0, 0, SRCCOPY)
-              }
-            }
-
-          case rtView
-            //header is readonly
-            if (SelResNum >= 0) {
-              //views
-              //if button is clicked or doubleclicking
-              if (X > picProperties.Width - 17 && blnDblClick) {
-                switch (SelectedProp
-                case 1  //number
-                  //copy pressed dropdialog picture
-                  rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
-                  //use selected item method
-                  SelectedItemRenumber
-                  //reset dropdialog button
-                  rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (tmpProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 0, 0, SRCCOPY)
-
-                case 2, 3 //id/desc
-                  //copy pressed dropdialog picture
-                  rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 18, 0, SRCCOPY)
-                  //use selected item method (remember to adjust selprop by 1)
-                  SelectedItemDescription SelectedProp - 1
-                 //reset dropdialog button
-                  rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (tmpProp - PropScroll) * PropRowHeight, 17, 17, DropDlgDC, 0, 0, SRCCOPY)
-
-                case 4  //view desc
-                  //if text box is visible, don't do anything
-                  if (!txtProperty.Visible) {
-                    //copy pressed dropdover picture
-                    rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (SelectedProp - PropScroll) * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
-                    //display edit box
-                    DisplayPropertyEditBox picProperties.Width, 0, 2 * picProperties.Width, picProperties.Height, "VIEWDESC", 1
-                  }
-                }
-              }
-            }
-
-          case rtObjects
-            switch (SelectedProp
-            case 2 // description
-              //if button clicked
-              if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
-                //copy pressed dropover picture
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, SelectedProp * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
-                //display edit box
-                DisplayPropertyEditBox picProperties.Width, 0, 2 * picProperties.Width, picProperties.Height, "OBJDESC", 1
-              }
-            case 3  //encryption
-              //if dblclicking AND on actual property
-              if (blnDblClick && X > PropSplitLoc && X < picProperties.Width - 17) {
-                //toggle encryption
-                InvObjects.Encrypted = !InvObjects.Encrypted
-                InvObjects.Save
-                PaintPropertyWindow
-                //if the editor is open,
-                if (!ObjectEditor = null) {
-                  //set its encryption status to match
-                  ObjectEditor.ObjectsEdit.Encrypted = InvObjects.Encrypted
-                }
-
-              //if button is clicked
-              } else if ( X > picProperties.Width - 17) {
-                //copy pressed dropdown picture
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (3 - PropScroll) * PropRowHeight, 17, 17, DropDownDC, 18, 0, SRCCOPY)
-                //display list box
-                DisplayPropertyListBox PropSplitLoc, (3 - PropScroll) * PropRowHeight, picProperties.Width - PropSplitLoc - 17, ListItemHeight * 2, "OBJENCRYPT"
-              }
-
-            case 4  //Max screen objects
-              DisplayPropertyEditBox PropSplitLoc + 3, (4 - PropScroll) * PropRowHeight + 1, picProperties.Width - PropSplitLoc - 4, PropRowHeight - 2, "MAXOBJ", 0
-            }
-
-          case rtWords
-            switch (SelectedProp
-            case 3 //description
-              //if button clicked
-              if (((X > picProperties.Width - 17) && blnDblClick) && !txtProperty.Visible) {
-                //copy pressed dropover picture
-                rtn = BitBlt(picProperties.hDC, picProperties.Width - 17, (2 - PropScroll) * PropRowHeight, 17, 17, DropOverDC, 18, 0, SRCCOPY)
-                //display edit box
-                DisplayPropertyEditBox picProperties.Width, 0, 2 * picProperties.Width, picProperties.Height, "WORDSDESC", 1
-              }
-            }
-          }
-
-        //if not the same as current prop
-        } else {
-          //if changed
-          if (tmpProp != SelectedProp && tmpProp != 0) {
-            SelectedProp = tmpProp
-            PaintPropertyWindow
-          }
-        }
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
-      void DisplayPropertyEditBox(ByVal posX As Long, ByVal posY As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal strProp As String, ByVal lngBorderStyle As Long)
-        //moves the edit box to appropriate position
-        //preloads it with appropriate prop Value
-
-        //convert pixels to twips, since mdiform scale is always twips
-
-        //for style, 0 = no border, 1 = border
-
-        //set border
-        txtProperty.BorderStyle = lngBorderStyle
-
-        txtProperty.Move picResources.Left + (picProperties.Left + posX) * ScreenTWIPSX, picResources.Top + (picProperties.Top + posY) * ScreenTWIPSY
-
-        txtProperty.Width = nWidth * ScreenTWIPSX
-        txtProperty.Height = nHeight * ScreenTWIPSY
-
-        switch (strProp
-        case "GAMEID"
-          txtProperty.Text = GameID
-        case "GAMEDESC"
-          txtProperty.Text = GameDescription
-        case "GAMEAUTHOR"
-          txtProperty.Text = GameAuthor
-        case "WORDSDESC"
-          txtProperty.Text = WordList.Description
-        case "OBJDESC"
-          txtProperty.Text = InvObjects.Description
-        case "GAMEVER"
-          txtProperty.Text = GameVersion
-        case "GAMEABOUT"
-          txtProperty.Text = GameAbout
-        case "RESDIR"
-          txtProperty.Text = ResDirName
-        case "VIEWDESC"
-          if (!Views(SelResNum).Loaded) {
-            Views(SelResNum).Load
-            txtProperty.Text = Replace(Views(SelResNum).ViewDescription, vbLf, vbNewLine)
-            Views(SelResNum).Unload
-          } else {
-            txtProperty.Text = Replace(Views(SelResNum).ViewDescription, vbLf, vbNewLine)
-          }
-
-        case "MAXOBJ"
-          txtProperty.Text = InvObjects.MaxScreenObjects
-        }
-
-        //pass property to textbox tag
-        txtProperty.Tag = strProp
-
-        //show text
-        txtProperty.ZOrder
-        txtProperty.Visible = true
-        //select it
-        txtProperty.Focus();
-        //move cursor to end
-        txtProperty.SelStart = Len(txtProperty.Text)
-      }
-
-
-      void DisplayPropertyListBox(ByVal posX As Long, ByVal posY As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal strProp As String)
-        //moves the list box to appropriate position
-        //preloads it with appropriate prop Value
-
-        Dim strVersions(15) As String
-        Dim i As Long
-
-        On Error GoTo ErrHandler
-
-        //set height/width
-        lstProperty.Width = nWidth
-        lstProperty.Height = nHeight + 2 //+2 to account for border
-
-        //if there is room
-        if (posY < picProperties.Height - lstProperty.Height) {
-          lstProperty.Move picProperties.Left + posX, picProperties.Top + posY
-        } else {
-          lstProperty.Move picProperties.Left + posX, picProperties.Top + picProperties.Height - lstProperty.Height
-        }
-
-        //clear the list box
-        lstProperty.Clear
-
-        switch (strProp
-        case "INTVER"
-          //load versions
-          strVersions(0) = "2.089"
-          strVersions(1) = "2.272"
-          strVersions(2) = "2.411"
-          strVersions(3) = "2.425"
-          strVersions(4) = "2.426"
-          strVersions(5) = "2.435"
-          strVersions(6) = "2.439"
-          strVersions(7) = "2.440"
-          strVersions(8) = "2.915"
-          strVersions(9) = "2.917"
-          strVersions(10) = "2.936"
-          strVersions(11) = "3.002086"
-          strVersions(12) = "3.002098"
-          strVersions(13) = "3.002102"
-          strVersions(14) = "3.002107"
-          strVersions(15) = "3.002149"
-          With lstProperty
-            For i = 0 To UBound(strVersions)
-              .AddItem strVersions(i)
-            Next i
-          End With
-
-          //check versions
-          For i = 0 To lstProperty.ListCount - 1
-            if (lstProperty.List(i) = InterpreterVersion) {
-              lstProperty.SelectedIndex = i
-              Exit For
-            }
-          Next i
-
-        case "OBJENCRYPT"
-          //load choices
-          lstProperty.AddItem "false"
-          lstProperty.AddItem "true"
-
-          //select entry matching current Value
-          if (InvObjects.Encrypted) {
-            lstProperty.SelectedIndex = 1
-          } else {
-            lstProperty.SelectedIndex = 0
-          }
-
-        case "ISROOM"
-          //load choices
-          lstProperty.AddItem "false"
-          lstProperty.AddItem "true"
-
-          //select entry matching current Value
-          if (Logics(SelResNum).IsRoom) {
-            lstProperty.SelectedIndex = 1
-          } else {
-            lstProperty.SelectedIndex = 0
-          }
-
-        case "USERESNAMES"
-          //load choices
-          lstProperty.AddItem "false"
-          lstProperty.AddItem "true"
-
-          //select entry matching current Value
-          if (LogicSourceSettings.UseReservedNames) {
-            lstProperty.SelectedIndex = 1
-          } else {
-            lstProperty.SelectedIndex = 0
-          }
-
-        case "USELE"
-          //load choices
-          lstProperty.AddItem "false"
-          lstProperty.AddItem "true"
-
-          //select entry matching current value
-          if (UseLE) {
-            lstProperty.SelectedIndex = 1
-          } else {
-            lstProperty.SelectedIndex = 0
-          }
-
-        }
-
-        //pass property to tag
-        lstProperty.Tag = strProp
-
-        //show list box
-        lstProperty.Visible = true
-        //set top index to the selected Value
-        lstProperty.TopIndex = lstProperty.SelectedIndex
-        //select it
-        lstProperty.Focus();
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
-
-      void picProperties_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        //cache the Y Value
-        mPY = Y
-      }
-
-      void picProperties_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-      //  PaintPropertyWindow
-      }
-
-
-      void MDIForm_Resize()
-
-        On Error GoTo ErrHandler
-
-        //resize resource and warning windows to match left/bottom panels
-
-        //use separate variables for managing minimum width/height
-        if (ScaleWidth < MIN_WIDTH) {
-          CalcWidth = MIN_WIDTH
-        } else {
-          CalcWidth = ScaleWidth
-        }
-        if (ScaleHeight < MIN_HEIGHT) {
-          CalcHeight = MIN_HEIGHT
-        } else {
-          CalcHeight = ScaleHeight
-        }
-
-        //don't resize unless form is NOT minimized, and not resized too small
-        if (this.WindowState != vbMinimized && this.Visible) {
-          //resize horizontally
-          if (picWarnings.Visible && ScaleWidth > MIN_WIDTH) {
-            picWarnings.Width = this.Width - WLOffsetW - picResources.Width + 60
-            picSplitH.Width = picWarnings.Width - 60
-          }
-          //resize vertically
-          if (picResources.Visible) {
-            if (this.Height - WLOffsetH + 60 + picWarnings.Height > 100) {
-              picResources.Height = this.Height - WLOffsetH + 60 + picWarnings.Height
-            }
-            picSplitV.Height = picResources.Height
-          }
-          if (picWarnings.Visible) {
-            picWarnings.Top = this.Height - WLOffsetH + this.Toolbar1.Height + 60
-            picSplitH.Top = picWarnings.Top
-          }
-        }
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
-
-      void MDIForm_Unload(Cancel As Integer)
-
-        Dim frm As Form
-        Dim rtn As Long
-
-        On Error GoTo ErrHandler
-
-        if (GameLoaded) {
-          CloseGame
-        }
-
-        //ensure all forms are unloaded
-        foreach (frm In Forms
-          if (frm.Name != "MDIMain") {
-            Unload frm
-          }
-        Next
-
-        //ensure all global objects are set to nothing
-        ClipViewLoop = null
-        ClipViewCel = null
-        LogicEditors = null
-        ViewEditors = null
-        PictureEditors = null
-        SoundEditors = null
-        LayoutEditor = null
-        ObjectEditor = null
-        WordEditor = null
-        GlobalsEditor = null
-        PreviewWin = null
-        NotePictures = null
-        SoundClipboard = null
-        MainStatusBar = null
-        OpenDlg = null
-        SaveDlg = null
-        ViewClipboard = null
-        WordsClipboard = null
-        FindingForm = null
-        SearchForm = null
-
-        //reset parent for controls that were moved to the form
-        rtn = SetParent(picResources.hWnd, picLeft.hWnd)
-        rtn = SetParent(picWarnings.hWnd, picBottom.hWnd)
-        rtn = SetParent(txtProperty.hWnd, picResources.hWnd)
-        rtn = SetParent(picSplitVIcon.hWnd, picResources.hWnd)
-        rtn = SetParent(picSplitV.hWnd, picResources.hWnd)
-        rtn = SetParent(picSplitH.hWnd, picWarnings.hWnd)
-        rtn = SetParent(picSplitHIcon.hWnd, picWarnings.hWnd)
-
-
-
-        //release gdi plus object
-        EndGDIPlus
-
-        On Error Resume Next
-      #if (DEBUGMODE != 1) {
-        //release subclass hook to propwindow
-        SetWindowLong picProperties.hWnd, GWL_WNDPROC, PrevPropWndProc
-        //release subclass hook to flexgrid
-        SetWindowLong fgWarnings.hWnd, GWL_WNDPROC, PrevFGWndProc
-      #}
-        //ensure temporary files are deleted
-        Kill TempFileDir + "AGI*.tmp"
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
       void mnuEClear_Click()
 
         On Error Resume Next
@@ -6529,120 +5142,6 @@ namespace WinAGI.Editor
       }
 
       void mnuRDescription_Click()
-
-        Dim i As Long
-
-        On Error GoTo ErrHandler
-
-        //if no form is active
-        if (ActiveForm = null) {
-          //can only mean that Settings.ShowPreview is false,
-          //AND Settings.ResListType is non-zero, AND no editor window are open
-          //use selected item method (remember to adjust selprop by 1)
-          i = SelectedProp - 1
-          // validate; (if nothing selected, default to first property)
-          if (i < 1 && i > 3) {
-            i = 1
-          }
-          SelectedItemDescription i
-        } else {
-          //if active form is NOT the preview form
-          //if any form other than preview is active
-          if (ActiveForm.Name != "frmPreview") {
-            //use the active form method (always default to editing ID when selected via menu)
-            ActiveForm.MenuClickDescription 1
-          } else {
-
-            //check for an open editor that matches resource being previewed
-            switch (SelResType
-            case rtLogic
-              //if any logic editor matches this resource
-              For i = 1 To LogicEditors.Count
-                if (LogicEditors(i).FormMode = fmLogic) {
-                  if (LogicEditors(i).LogicNumber = SelResNum) {
-                    //use this form//s method
-                    LogicEditors(i).MenuClickDescription SelectedProp
-                    return;
-                  }
-                }
-              Next i
-
-            case rtPicture
-              //if any Picture editor matches this resource
-              For i = 1 To PictureEditors.Count
-                if (PictureEditors(i).PicNumber = SelResNum) {
-                  //use this form//s method
-                  PictureEditors(i).MenuClickDescription SelectedProp
-                  return;
-                }
-              Next i
-
-            case rtSound
-              //if any Sound editor matches this resource
-              For i = 1 To SoundEditors.Count
-                if (SoundEditors(i).SoundNumber = SelResNum) {
-                  //use this form//s method
-                  SoundEditors(i).MenuClickDescription SelectedProp
-                  return;
-                }
-              Next i
-
-            case rtView
-              //if any View editor matches this resource
-              For i = 1 To ViewEditors.Count
-                if (ViewEditors(i).ViewNumber = SelResNum) {
-                  //use this form//s method
-                  ViewEditors(i).MenuClickDescription SelectedProp
-                  return;
-                }
-              Next i
-
-            case rtWords
-              //if using editor
-              if (WEInUse) {
-                //use word editor
-                WordEditor.MenuClickDescription 2 //only desc can be edited for words.tok
-                return;
-              }
-
-            case rtObjects
-              //if using editor
-              if (OEInUse) {
-                //use Objects Editor
-                ObjectEditor.MenuClickDescription 2 //only desc can be edited for words.tok
-                return;
-              }
-
-            default: //text, game or none
-              //export does not apply
-
-            }
-
-            //if no open editor is found, use the selected item method
-            switch (SelResType
-            case rtObjects, rtWords
-              //always select description
-              SelectedItemDescription 2
-            case rtLogic, rtPicture, rtSound, rtView
-              //if id or desc selected, use it, otherwise default to id
-              if (SelectedProp = 2 && SelectedProp = 3) {
-                //(remember to adjust selprop by 1)
-                SelectedItemDescription SelectedProp - 1
-              } else {
-                SelectedItemDescription 1
-              }
-            default:
-              //shouldnt get here?
-              //Debug.Assert false
-            }
-          }
-        }
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
 
       void mnuGRebuild_Click()
 
@@ -7735,24 +6234,6 @@ namespace WinAGI.Editor
          hWndHelp = HtmlHelp(HelpParent, WinAGIHelp, HH_DISPLAY_TOC, 0)
       }
 
-      void mnuGNewBlank_Click()
-
-        //create new blank game
-        NewAGIGame false
-      }
-
-      void mnuGNTemplate_Click()
-
-        //create new game using template
-        NewAGIGame true
-      }
-
-
-
-
-
-
-
       void mnuWiClose_Click()
 
         //make sure this is not preview window
@@ -7845,59 +6326,6 @@ namespace WinAGI.Editor
         //Debug.Assert false
         Err.Clear
         Resume Next
-      }
-      public void PropMouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
-
-        On Error Resume Next
-
-        //validate cursor is over window
-        if (xPos < 0 && yPos < 0 && xPos >= picProperties.Width && yPos >= picProperties.Height) {
-          return;
-        }
-
-        //if property window doesn't have focus,
-        //make it so
-        if (!MDIMain.ActiveControl Is picProperties) {
-          picProperties.Focus();
-        }
-
-        //if nothing selected
-        if (SelectedProp = 0) {
-          //select first item
-          SelectedProp = 1
-          PaintPropertyWindow
-          return;
-        }
-
-        //can the prop window scroll?
-        if (Rotation > 0) {
-          //same as up arrow
-          //decrement selected prop
-          if (SelectedProp > 1) {
-            SelectedProp = SelectedProp - 1
-            //adjust scroll if necessary
-            if (SelectedProp - PropScroll = 0) {
-              //scroll up
-              fsbProperty.Value = fsbProperty.Value - 1
-            }
-            //repaint property window
-            PaintPropertyWindow
-          }
-
-        } else {
-          //same as down arrow
-          //increment selected prop
-          if (SelectedProp < PropRows) {
-            SelectedProp = SelectedProp + 1
-            //adjust scroll if necessary
-            if (SelectedProp - PropScroll = PropRowCount + 1) {
-              //scroll up
-              fsbProperty.Value = fsbProperty.Value + 1
-            }
-            //repaint property window
-            PaintPropertyWindow
-          }
-        }
       }
       public void MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
 
@@ -8151,6 +6579,7 @@ namespace WinAGI.Editor
             SaveSettings();
 
             // detach  AGI game events
+            NewGameStatus -= MDIMain.GameEvents_NewGameStatus;
             LoadGameStatus -= MDIMain.GameEvents_LoadGameStatus;
             CompileGameStatus -= MDIMain.GameEvents_CompileGameStatus;
             CompileLogicStatus -= MDIMain.GameEvents_CompileLogicStatus;
@@ -8359,7 +6788,7 @@ namespace WinAGI.Editor
                 case 2:
                     // resource
                     resType = ((AGIResType)tvwResources.SelectedNode.Parent.Index).ToString();
-                    resNum = byte.Parse(tvwResources.SelectedNode.Tag.ToString());
+                    resNum = (byte)tvwResources.SelectedNode.Tag;
                     cmiNew.Visible = false;
                     cmiOpen.Visible = false;
                     cmiImport.Visible = false;
@@ -8788,19 +7217,19 @@ namespace WinAGI.Editor
         }
 
         private void mnuHContents_Click(object sender, EventArgs e) {
-            Help.ShowHelp(this, WinAGIHelp, HelpNavigator.TableOfContents);
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.TableOfContents);
         }
 
         private void mnuHIndex_Click(object sender, EventArgs e) {
-            Help.ShowHelp(this, WinAGIHelp, HelpNavigator.Index);
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Index);
         }
 
         private void mnuHCommands_Click(object sender, EventArgs e) {
-            Help.ShowHelp(this, WinAGIHelp, HelpNavigator.TopicId, "1001");
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.TopicId, "1001");
         }
 
         private void mnuHReference_Click(object sender, EventArgs e) {
-            Help.ShowHelp(this, WinAGIHelp, HelpNavigator.TopicId, "1002");
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.TopicId, "1002");
         }
 
         private void mnuHAbout_Click(object sender, EventArgs e) {
@@ -8896,15 +7325,27 @@ namespace WinAGI.Editor
             ShowProperties();
         }
 
-        public void ShowProperties(bool EnableOK = false, int StartTab = 1) {
+        public void ShowProperties() {
+            ShowProperties(false, 0, "");
+        }
+        public void ShowProperties(bool EnableOK, int StartTab) {
+            ShowProperties(EnableOK, StartTab, "");
+        }
+        public void ShowProperties(bool EnableOK, int StartTab, string StartProp) {
             // show properties form
             frmGameProperties propForm = new(GameSettingFunction.gsEdit);
             propForm.btnOK.Enabled = EnableOK;
             // check for valid starting tab
-            if (StartTab > 1 && StartTab < 5) {
+            if (StartTab > 0 && StartTab < 4) {
                 propForm.tabControl1.SelectTab(StartTab);
             }
+            // check for starting control
+            if (StartProp.Length > 0) {
+                // TODO: !!!!!!!!!!!!it no work!!!!!!!!!!!!
 
+                // assume caller passes a property that is on the start page
+                propForm.StartProp = StartProp;
+            }
             if (propForm.ShowDialog(MDIMain) == DialogResult.Cancel) {
                 // exit withoutsaving anything
                 propForm.Dispose();
@@ -9001,6 +7442,24 @@ namespace WinAGI.Editor
             RDefLookup[92].Value = '\"' + EditGame.GameID + '\"';
 
             propForm.Dispose();
+        }
+
+        private void cmiRenumber_Click(object sender, EventArgs e) {
+            GetNewNumber(SelResType, (byte)SelResNum);
+        }
+
+        private void propertyGrid1_MouseDoubleClick(object sender, MouseEventArgs e) {
+            MessageBox.Show("dbl-click: ");
+        }
+
+        private void mnuGNewTemplate_Click(object sender, EventArgs e) {
+            //create new game using template
+            NewAGIGame(true);
+        }
+
+        private void mnuGNewBlank_Click(object sender, EventArgs e) {
+            //create new blank game
+            NewAGIGame(false);
         }
     }
 }

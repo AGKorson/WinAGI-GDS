@@ -415,35 +415,45 @@ namespace WinAGI.Engine {
                 lngMaxVol = 4;
             }
             // build array of all resources, sorted by VOL order
+            // skpping the target resource if it's not yet added
+            // (i.e. if its VOL/Loc values are -1)
             foreach (Logic tmpRes in resource.parent.agLogs.Col.Values) {
-                addInfo.Loc = tmpRes.Loc;
-                addInfo.Size = tmpRes.SizeInVOL + lngHeader;
-                resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
+                if (tmpRes.Loc >= 0) {
+                    addInfo.Loc = tmpRes.Loc;
+                    addInfo.Size = tmpRes.SizeInVOL + lngHeader;
+                    resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
+                }
             }
             foreach (Picture tmpRes in resource.parent.agPics.Col.Values) {
-                addInfo.Loc = tmpRes.Loc;
-                addInfo.Size = tmpRes.SizeInVOL + lngHeader;
-                resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
+                if (tmpRes.Loc >= 0) {
+                    addInfo.Loc = tmpRes.Loc;
+                    addInfo.Size = tmpRes.SizeInVOL + lngHeader;
+                    resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
+                }
             }
             foreach (Sound tmpRes in resource.parent.agSnds.Col.Values) {
-                addInfo.Loc = tmpRes.Loc;
-                addInfo.Size = tmpRes.SizeInVOL + lngHeader;
-                resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
+                if (tmpRes.Loc >= 0) {
+                    addInfo.Loc = tmpRes.Loc;
+                    addInfo.Size = tmpRes.SizeInVOL + lngHeader;
+                    resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
+                }
             }
             foreach (View tmpRes in resource.parent.agViews.Col.Values) {
-                addInfo.Loc = tmpRes.Loc;
-                addInfo.Size = tmpRes.SizeInVOL + lngHeader;
-                resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
+                if (tmpRes.Loc >= 0) {
+                    addInfo.Loc = tmpRes.Loc;
+                    addInfo.Size = tmpRes.SizeInVOL + lngHeader;
+                    resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
+                }
             }
             // step through volumes,
             for (int i = 0; i <= lngMaxVol; i++) {
                 // start at beginning
                 previousend = 0;
                 // check for space between resources
-                for (j = 0; j < resInfo[i].Count; j++) {
+                for (j = 0; j <= resInfo[i].Count; j++) {
                     //if this is not the end of the list
-                    if (j < resInfo[i].Count - 1) {
-                        nextstart = resInfo[i][j].Loc;
+                    if (j < resInfo[i].Count) {
+                        nextstart = resInfo[i].Values[j].Loc;
                     }
                     else {
                         nextstart = i == 0 ? resource.parent.agMaxVol0 : MAX_VOLSIZE;
@@ -458,7 +468,7 @@ namespace WinAGI.Engine {
                     }
                     // not enough room;
                     // adjust start to end of current resource
-                    previousend = nextstart + resInfo[i][j].Size;
+                    previousend = resInfo[i].Values[j].Loc + resInfo[i].Values[j].Size;
                 }
             }
             // if no room in any VOL file, raise an error
@@ -511,11 +521,14 @@ namespace WinAGI.Engine {
             BinaryWriter bwVOL = null;
             try {
                 // save the resource into the vol file
-                fsVOL = new FileStream(AddRes.parent.agGameDir + strID + "VOL." + AddRes.Volume.ToString(), FileMode.Open);
+                fsVOL = new FileStream(AddRes.parent.agGameDir + strID + "VOL." + AddRes.Volume.ToString(),
+                    FileMode.OpenOrCreate);
                 fsVOL.Seek(AddRes.Loc, SeekOrigin.Begin);
                 bwVOL = new BinaryWriter(fsVOL);
                 bwVOL.Write(ResHeader, 0, AddRes.parent.agIsVersion3 ? 7 : 5);
                 bwVOL.Write(AddRes.Data, 0, AddRes.Data.Length);
+                fsVOL?.Dispose();
+                bwVOL?.Dispose();
             }
             catch (Exception e) {
                 fsVOL?.Dispose();
@@ -554,7 +567,7 @@ namespace WinAGI.Engine {
             // the ResType enumeration is in this order:
             //      LOGIC, PICTURE, SOUND, VIEW
             string strDirFile;
-            byte[] bytDIR, DirByte = new byte[2];
+            byte[] bytDIR, DirByte = new byte[3];
             int intMax = 0, intOldMax;
             int lngDirOffset = 0, lngDirEnd = 0, i, lngStart, lngStop;
             FileStream fsDIR;
@@ -611,6 +624,7 @@ namespace WinAGI.Engine {
                 using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
                     bytDIR = new byte[fsDIR.Length];
                     fsDIR.Read(bytDIR, 0, (int)fsDIR.Length);
+                    fsDIR.Dispose();
                 }
             }
             catch (Exception e) {
@@ -658,7 +672,8 @@ namespace WinAGI.Engine {
                 try {
                     using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
                         _ = fsDIR.Seek(lngDirOffset, SeekOrigin.Begin);
-                        fsDIR.Write(bytDIR);
+                        fsDIR.Write(DirByte);
+                        fsDIR.Dispose();
                     }
                     return;
                 }
@@ -723,6 +738,7 @@ namespace WinAGI.Engine {
                     // now create the new file
                     using (fsDIR = new FileStream(strDirFile, FileMode.OpenOrCreate)) {
                         fsDIR.Write(bytDIR, 0, bytDIR.Length);
+                        fsDIR.Dispose();
                     }
                 }
                 catch (Exception e) {
@@ -745,9 +761,9 @@ namespace WinAGI.Engine {
                         bytDIR[i] = 0xFF;
                     }
                     // add updated dir data to end
-                    bytDIR[lngStop + 1] = DirByte[0];
-                    bytDIR[lngStop + 2] = DirByte[1];
-                    bytDIR[lngStop + 3] = DirByte[2];
+                    bytDIR[++lngStop] = DirByte[0];
+                    bytDIR[++lngStop] = DirByte[1];
+                    bytDIR[++lngStop] = DirByte[2];
                 }
                 else {
                     // if expanding the sound dir, just fill it in with 0xffs
@@ -758,27 +774,27 @@ namespace WinAGI.Engine {
                             bytDIR[i] = 0xFF;
                         }
                         // add data to end
-                        bytDIR[lngStop + 1] = DirByte[0];
-                        bytDIR[lngStop + 2] = DirByte[1];
-                        bytDIR[lngStop + 3] = DirByte[2];
+                        bytDIR[++lngStop] = DirByte[0];
+                        bytDIR[++lngStop] = DirByte[1];
+                        bytDIR[++lngStop] = DirByte[2];
                     }
                     else {
                         // move data to make room for inserted resource
                         lngStop = bytDIR.Length - 1;
                         lngStart = lngDirEnd + 3 * (intMax - intOldMax);
-                        for (i = lngStop; i > lngStart; i--) {
+                        for (i = lngStop; i >= lngStart; i--) {
                             bytDIR[i] = bytDIR[i - 3 * (intMax - intOldMax)];
                         }
                         // insert ffs, up to insert location
                         lngStop = lngStart - 4;
-                        lngStart = lngStop - 3 * (intMax - intOldMax - 1);
+                        lngStart = lngDirEnd; // lngStop - 3 * (intMax - intOldMax - 1) + 1;
                         for (i = lngStart; i <= lngStop; i++) {
                             bytDIR[i] = 0xFF;
                         }
                         // add updated dir data to end
-                        bytDIR[lngStop + 1] = DirByte[0];
-                        bytDIR[lngStop + 2] = DirByte[1];
-                        bytDIR[lngStop + 3] = DirByte[2];
+                        bytDIR[++lngStop] = DirByte[0];
+                        bytDIR[++lngStop] = DirByte[1];
+                        bytDIR[++lngStop] = DirByte[2];
                         // then adjust the offsets:
                         // move snddir offset first
                         lngDirOffset = (bytDIR[7] << 8) + bytDIR[6];
@@ -788,14 +804,14 @@ namespace WinAGI.Engine {
                         // if resource is a view, we are done
                         if (resource.ResType != AGIResType.View) {
                             // move view offset
-                            lngDirOffset = (byte)((bytDIR[5] << 8) + bytDIR[4]);
+                            lngDirOffset = ((bytDIR[5] << 8) + bytDIR[4]);
                             lngDirOffset += 3 * (intMax - intOldMax);
                             bytDIR[5] = (byte)(lngDirOffset >> 8);
                             bytDIR[4] = (byte)(lngDirOffset % 0x100);
                             // if resource is a pic, we are done
                             if (resource.ResType != AGIResType.Picture) {
                                 // move picture offset
-                                lngDirOffset = (byte)((bytDIR[3] << 8) + bytDIR[2]);
+                                lngDirOffset = ((bytDIR[3] << 8) + bytDIR[2]);
                                 lngDirOffset += 3 * (intMax - intOldMax);
                                 bytDIR[3] = (byte)(lngDirOffset >> 8);
                                 bytDIR[2] = (byte)(lngDirOffset % 0x100);
@@ -807,6 +823,7 @@ namespace WinAGI.Engine {
                 try {
                     using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
                         fsDIR.Write(bytDIR, 0, bytDIR.Length);
+                        fsDIR.Dispose();
                     }
                 }
                 catch (Exception e) {

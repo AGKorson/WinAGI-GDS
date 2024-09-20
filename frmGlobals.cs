@@ -2042,7 +2042,7 @@ Public Function ValidateName(NewDefName As String) As Long
     End If
   Next i
   
-  If LogicSourceSettings.UseReservedNames Then
+  If LogicCompiler.UseReservedNames Then
     'check against reserved names
     tmpDefines = LogicSourceSettings.ReservedDefines(atVar)
     For i = 0 To UBound(tmpDefines)
@@ -2193,7 +2193,7 @@ Private Function ValidateValue(ByVal NewDefValue As String) As Long
         End If
         
         'if using reserved words
-        If LogicSourceSettings.UseReservedNames Then
+        If LogicCompiler.UseReservedNames Then
           'if Value is a variable
           If Asc(LCase$(NewDefValue)) = 118 Then
             'if already defined as a reserved variable

@@ -15,6 +15,14 @@
         }
 
         /// <summary>
+        /// Provides data for the NewGameStatus event.
+        /// </summary>
+        /// <param name="newinfo"></param>
+        public class NewGameEventArgs(TWinAGIEventInfo newinfo) {
+            public TWinAGIEventInfo NewInfo { get; } = newinfo;
+        }
+
+        /// <summary>
         /// Provides data for the LoadGameStatus event.
         /// </summary>
         /// <param name="loadinfo"></param>
@@ -68,6 +76,28 @@
             CompileGameEventArgs e = new(cStatus, CompileInfo);
             CompileGameStatus?.Invoke(null, e);
             return e.Cancel;
+        }
+
+        /// <summary>
+        /// NewGameStatus event handler delegate.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public delegate void NewGameEventHandler(object sender, NewGameEventArgs e);
+
+        /// <summary>
+        /// This event is raised at various points when a game is being created to provide
+        /// feedback to the calling program.
+        /// </summary>
+        public static event NewGameEventHandler NewGameStatus;
+
+        /// <summary>
+        /// Raises the NewGameStatus event.
+        /// </summary>
+        /// <param name="NewInfo"></param>
+        internal static void OnNewGameStatus(TWinAGIEventInfo NewInfo) {
+            // Raise the event in a thread-safe manner using the ?. operator.
+            NewGameStatus?.Invoke(null, new NewGameEventArgs(NewInfo));
         }
 
         /// <summary>

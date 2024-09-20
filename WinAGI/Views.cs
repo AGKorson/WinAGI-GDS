@@ -180,12 +180,13 @@ namespace WinAGI.Engine {
             Col.Remove(OldView);
             VOLManager.UpdateDirFile(tmpView, true);
             // adjust id if it is default
-            if (tmpView.ID == "View" + OldView) {
-                strID = strBaseID = "View" + NewView;
+            if (tmpView.ID.ToLower() == "view" + OldView) {
+                strID = strBaseID = tmpView.ID[..4] + NewView;
                 while (NotUniqueID(strID, parent)) {
                     strID = strBaseID + "_" + intNextNum;
                     intNextNum++;
                 }
+                tmpView.ID = strID;
             }
             // add it back with new number
             tmpView.Number = NewView;

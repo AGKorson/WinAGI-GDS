@@ -207,6 +207,7 @@ namespace WinAGI.Engine {
     public enum OpenGameMode {
         File,
         Directory,
+        New,
     }
 
     public enum EventType {
@@ -216,7 +217,8 @@ namespace WinAGI.Engine {
         etTODO
     }
 
-    public enum EInfoType { //used to update editor during a game load
+    public enum EInfoType {
+        //used to update editor during a game load
         itInitialize,
         itValidating,     //add check for dirty source code
         itPropertyFile,
@@ -302,7 +304,7 @@ namespace WinAGI.Engine {
         internal const int MAX_GROUP_NUM = 65535;
         internal const int MAX_WORD_GROUPS = 65535;
         internal const int MAX_VOLSIZE = 1047552; // '= 1024 * 1023
-        internal const string WINAGI_VERSION = "3.0";
+        public const string WINAGI_VERSION = "3.0";
         internal static readonly byte[] bytEncryptKey;
         // member values
         internal static EGAColors defaultColorEGA = new();

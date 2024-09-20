@@ -179,12 +179,13 @@ namespace WinAGI.Engine {
             Col.Remove(OldSound);
             VOLManager.UpdateDirFile(tmpSound, true);
             // adjust id if it is default
-            if (tmpSound.ID =="Sound" + OldSound) {
-                strID = strBaseID = "Sound" + NewSound;
+            if (tmpSound.ID.ToLower() == "sound" + OldSound) {
+                strID = strBaseID = tmpSound.ID[..5] + NewSound;
                 while (NotUniqueID(strID, parent)) {
                     strID = strBaseID + "_" + intNextNum;
                     intNextNum++;
                 }
+                tmpSound.ID = strID;
             }
             // add it back with new number
             tmpSound.Number = NewSound;

@@ -112,8 +112,8 @@ namespace WinAGI.Engine {
         internal static int lngPos;
         internal static string strCurrentLine;
         internal static string[] strMsg = new string[256];
-        internal static bool[] blnMsg = new bool[255];
-        internal static int[] intMsgWarn = new int[255]; //to track warnings found during msgread function
+        internal static bool[] blnMsg = new bool[256];
+        internal static int[] intMsgWarn = new int[256]; //to track warnings found during msgread function
         internal static LogicLabel[] llLabel = new LogicLabel[MAX_LABELS];
         internal static byte bytLabelCount;
         internal static TDefine[] tdDefines;
@@ -1140,8 +1140,6 @@ namespace WinAGI.Engine {
             errInfo.Line = "--";
             errInfo.Module = SourceLogic.ID;
             intCtlCount = 0;
-            // reset the combined input list
-            stlInput = [];
             intFileCount = 0;
             // add includes
             if (!AddIncludes(stlSource)) {
@@ -1806,7 +1804,7 @@ namespace WinAGI.Engine {
                     // get next line, minus tabs and spaces
                     strLineText = stlLogicText[lngLine].Replace('\t', ' ').TrimStart();
                 }
-                if (strLineText[..2] == INCLUDE_MARK) {
+                if (Left(strLineText, 2) == INCLUDE_MARK) {
                     // check for any instances of the marker, since these will
                     // interfere with include line handling ! SHOULD NEVER
                     // HAPPEN, but just in case
@@ -1830,7 +1828,6 @@ namespace WinAGI.Engine {
                 default: // -1 = error
                     return false;
                 }
-                lngLine++;
             }
             // success
             return true;
@@ -1849,8 +1846,7 @@ namespace WinAGI.Engine {
             string strIncludeFilename, strIncludeText;
             int intIncludeNum, CurIncludeLine;
             int retval, i;
-
-            if (strLineText[..8] != "#include" && (strLineText[..8] != "%include" || !agSierraSyntax)) {
+            if (Left(strLineText, 8) != "#include" && (Left(strLineText, 8) != "%include" || !agSierraSyntax)) {
                 // not an include line
                 return 0;
             }
@@ -2639,7 +2635,7 @@ namespace WinAGI.Engine {
             }
             do {
                 lngLine++;
-                lngPos = 0;
+                lngPos = -1;
                 if (lngLine >= stlInput.Count) {
                     lngLine = -1;
                     return;
@@ -2750,7 +2746,7 @@ namespace WinAGI.Engine {
                 return (char)0;
             }
             lngPos++;
-            if (lngPos > strCurrentLine.Length) {
+            if (lngPos >= strCurrentLine.Length) {
                 if (blnNoNewLine) {
                     // move pointer back
                     lngPos--;
@@ -3220,16 +3216,17 @@ namespace WinAGI.Engine {
 
             ResetCompiler();
             do {
-                intROLIgnore = 0;
+                intROLIgnore = -1;
                 lngPos = 0;
                 if (!agSierraSyntax) {
+                    //??? TODO: why only non-Sierra syntax?
                     blnInQuotes = false;
                 }
                 if (strCurrentLine.Length != 0) {
                     while (lngPos < strCurrentLine.Length - 1) {
                         if (!blnInQuotes) {
                             // check for comment characters at this position
-                            if ((strCurrentLine[lngPos..(lngPos + 2)] == CMT2_TOKEN && !agSierraSyntax) || strCurrentLine[lngPos] == CMT1_TOKEN[0]) {
+                            if ((Mid(strCurrentLine, lngPos, 2) == CMT2_TOKEN && !agSierraSyntax) || strCurrentLine[lngPos] == CMT1_TOKEN[0]) {
                                 intROLIgnore = lngPos;
                                 break;
                             }
@@ -3258,7 +3255,7 @@ namespace WinAGI.Engine {
                         }
                         lngPos++;
                     }
-                    if (intROLIgnore > 0) {
+                    if (intROLIgnore >= 0) {
                         strCurrentLine = strCurrentLine[..intROLIgnore];
                     }
                 }
@@ -6207,7 +6204,7 @@ namespace WinAGI.Engine {
                 return false;
             }
             // write in goto values
-            for (CurGoto = 0; CurGoto <= NumGotos; CurGoto++) {
+            for (CurGoto = 0; CurGoto < NumGotos; CurGoto++) {
                 GotoData = llLabel[Gotos[CurGoto].LabelNum].Loc - Gotos[CurGoto].DataLoc - 2;
                 if (GotoData < 0) {
                     // need to convert it to an unsigned short Value

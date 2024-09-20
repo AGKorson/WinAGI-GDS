@@ -13,6 +13,7 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmViewEdit : Form {
+        public int ViewNumber;
         readonly double zoom = 4;
         Engine.View thisView;
         private int CurLoop = 0;
@@ -186,6 +187,36 @@ namespace WinAGI.Editor {
               Set ViewEdit = Nothing
                   */
         }
+
+        public void MenuClickDescription(int FirstProp) {
+            /*
+        'change description and ID
+        Dim strID As String, strDescription As String
+
+        On Error GoTo ErrHandler
+
+        If FirstProp<> 1 And FirstProp <> 2 Then
+          FirstProp = 1
+        End If
+
+        strID = ViewEdit.ID
+        strDescription = ViewEdit.Description
+
+        If GetNewResID(rtView, ViewNumber, strID, strDescription, InGame, FirstProp) Then
+          'save changes
+          UpdateID strID, strDescription
+        End If
+
+        'force menus to update
+        AdjustMenus rtView, InGame, True, IsDirty
+        'if a loop is selected, enable gif export
+        frmMDIMain.mnuRCustom1.Enabled = (ViewMode = vmLoop)
+        SetEditMenu
+      Exit Sub
+*/
+
+        }
+
         void tmpviewform() {
             /*
       Option Explicit
@@ -968,37 +999,6 @@ namespace WinAGI.Editor {
         Resume Next
       End Sub
 
-      Public Sub MenuClickDescription(ByVal FirstProp As Long)
-
-        'change description and ID
-        Dim strID As String, strDescription As String
-
-        On Error GoTo ErrHandler
-
-        If FirstProp <> 1 And FirstProp <> 2 Then
-          FirstProp = 1
-        End If
-
-        strID = ViewEdit.ID
-        strDescription = ViewEdit.Description
-
-        If GetNewResID(rtView, ViewNumber, strID, strDescription, InGame, FirstProp) Then
-          'save changes
-          UpdateID strID, strDescription
-        End If
-
-        'force menus to update
-        AdjustMenus rtView, InGame, True, IsDirty
-        'if a loop is selected, enable gif export
-        frmMDIMain.mnuRCustom1.Enabled = (ViewMode = vmLoop)
-        SetEditMenu
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-
-      End Sub
       Public Sub MenuClickInsert()
 
         Dim InsertPos As Byte

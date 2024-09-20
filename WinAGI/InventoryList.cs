@@ -527,7 +527,6 @@ namespace WinAGI.Engine {
             int lngPos;         // position in current item name
             byte[] bytTemp;
             string strTempFile = "";
-            int i;
             int Dwidth;
 
             if (CompileFile.Length == 0) {
@@ -572,12 +571,12 @@ namespace WinAGI.Engine {
             bytTemp[lngPos + 1] = 0;
             lngPos += 2;
             // now add all items 
-            for (i = 1; 0 < mItems.Count - 1; i++) {
+            for (int i = 0; i < mItems.Count; i++) {
                 if (mItems[i].ItemName == "?") {
                     // write offset data to null item
-                    bytTemp[i * Dwidth] = (byte)(lngTextStart % 256);
-                    bytTemp[i * Dwidth + 1] = (byte)(lngTextStart / 256);
-                    bytTemp[i * Dwidth + 2] = mItems[i].Room;
+                    bytTemp[3 + i * Dwidth] = (byte)(lngTextStart % 256);
+                    bytTemp[3 + i * Dwidth + 1] = (byte)(lngTextStart / 256);
+                    bytTemp[3 + i * Dwidth + 2] = mItems[i].Room;
                 }
                 else {
                     // write offset data for start of this word in its proper
@@ -598,7 +597,7 @@ namespace WinAGI.Engine {
                 }
             }
             if (mEncrypted) {
-                for (lngPos = 0; lngPos < bytTemp.Length; i++) {
+                for (lngPos = 0; lngPos < bytTemp.Length; lngPos++) {
                     //encrypt with 'Avis Durgan'
                     bytTemp[lngPos] ^= bytEncryptKey[lngPos % 11];
                 }

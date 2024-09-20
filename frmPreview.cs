@@ -1589,8 +1589,8 @@ namespace WinAGI.Editor {
                 SelResType == AGIResType.View) {
                 strTopic += "#" + SelResType;
             }
-            //show preview window help
-            _ = API.HtmlHelpS(HelpParent, WinAGIHelp, API.HH_DISPLAY_TOPIC, strTopic);
+            // show preview window help
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
         }
         void pnlSound_DoubleClick(object sender, EventArgs e) {
             //open sound for editing, if standard agi

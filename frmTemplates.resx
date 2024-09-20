@@ -117,16 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="lblSierraSyntax.Text" xml:space="preserve">
-    <value>WinAGI supports the original syntax used by Sierra's 'CG.EXE' compiler. Select this option to configure this game's logic source files to use that syntax.
-
-This feature is provided for backward compatibility with original source code from Sierra's development teams. Don't enable this unless you are importing original Sierra source code or plan on coding in that syntax.</value>
-  </data>
-  <data name="lblCodePage.Text" xml:space="preserve">
-    <value>Altering the code page is only necessary if you intend to release your game in MSDOS or DOSBox with extended character support for keyboards and languages other than English. 
-
-Extended characters are not normally supported in AGI when run in MSDOS or in DOSBox; it requires use of advanced coding techniques. 
-
-If you don't intend to use extended characters, or don't need to support other languages then you should not modify the codepage.</value>
-  </data>
+  <metadata name="txtVersion.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="txtDescription.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
 </root>

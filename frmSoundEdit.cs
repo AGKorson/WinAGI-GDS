@@ -15,6 +15,7 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmSoundEdit : Form {
+        public int SoundNumber;
         internal bool InGame;
 
         public frmSoundEdit() {
@@ -135,6 +136,33 @@ namespace WinAGI.Editor {
         Set SoundEdit = Nothing
       */
         }
+
+        public void MenuClickDescription(int FirstProp) {
+            /*
+                    'change description and ID
+                    Dim strID As String, strDescription As String
+
+                    On Error GoTo ErrHandler
+
+                    If FirstProp<> 1 And FirstProp <> 2 Then
+                      FirstProp = 1
+                    End If
+
+                    strID = SoundEdit.ID
+                    strDescription = SoundEdit.Description
+
+                    If GetNewResID(rtSound, SoundNumber, strID, strDescription, InGame, FirstProp) Then
+                      'save changes
+                      UpdateID strID, strDescription
+                    End If
+                  Exit Sub
+
+                  ErrHandler:
+                    '*'Debug.Assert False
+                    Resume Next
+            */
+        }
+
         void tmpsoundform() {
             /*
       Option Explicit
@@ -4795,32 +4823,6 @@ namespace WinAGI.Editor {
         End If
       End Sub
 
-
-      Public Sub MenuClickDescription(ByVal FirstProp As Long)
-
-        'change description and ID
-        Dim strID As String, strDescription As String
-
-        On Error GoTo ErrHandler
-
-        If FirstProp <> 1 And FirstProp <> 2 Then
-          FirstProp = 1
-        End If
-
-        strID = SoundEdit.ID
-        strDescription = SoundEdit.Description
-
-        If GetNewResID(rtSound, SoundNumber, strID, strDescription, InGame, FirstProp) Then
-          'save changes
-          UpdateID strID, strDescription
-        End If
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-
-      End Sub
 
       Public Sub MenuClickInsert()
 

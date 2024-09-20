@@ -263,6 +263,37 @@ ErrHandler:
   Set PicEdit = Nothing
 */
     }
+        public void MenuClickDescription(int FirstProp) {
+            /*
+              'change description and ID
+              Dim strID As String, strDescription As String
+
+
+              On Error GoTo ErrHandler
+
+              If FirstProp<> 1 And FirstProp <> 2 Then
+                FirstProp = 1
+              End If
+
+
+              strID = PicEdit.ID
+              strDescription = PicEdit.Description
+
+
+              If GetNewResID(rtPicture, PicNumber, strID, strDescription, InGame, FirstProp) Then
+                'save changes
+                UpdateID strID, strDescription
+              End If
+
+              'force menu update
+              AdjustMenus rtPicture, InGame, True, IsDirty
+            Exit Sub
+
+            ErrHandler:
+              '*'Debug.Assert False
+              Resume Next
+            */
+        }
 
     void tmpPicForm()
     {
@@ -5145,34 +5176,6 @@ Public Sub MenuClickDelete()
       End If
     End Select
   End If
-End Sub
-
-Public Sub MenuClickDescription(ByVal FirstProp As Long)
-
-  'change description and ID
-  Dim strID As String, strDescription As String
-  
-  On Error GoTo ErrHandler
-
-  If FirstProp <> 1 And FirstProp <> 2 Then
-    FirstProp = 1
-  End If
-  
-  strID = PicEdit.ID
-  strDescription = PicEdit.Description
-  
-  If GetNewResID(rtPicture, PicNumber, strID, strDescription, InGame, FirstProp) Then
-    'save changes
-    UpdateID strID, strDescription
-  End If
-    
-  'force menu update
-  AdjustMenus rtPicture, InGame, True, IsDirty
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
 End Sub
 
 Public Sub MenuClickOpen()

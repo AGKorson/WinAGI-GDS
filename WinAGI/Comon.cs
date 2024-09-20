@@ -16,7 +16,7 @@ namespace WinAGI.Common {
     /// A class to provide access to Windows APIs needed to suppport 
     /// features in WinAGI that are not natively available in C#.
     /// </summary>
-    public static class API {
+    public class API {
 
         // APIs for MIDI sound handling
         [DllImport("Winmm.dll", SetLastError = true)]
@@ -26,33 +26,8 @@ namespace WinAGI.Common {
 
         [DllImport("Winmm.dll", SetLastError = true)]
         public static extern int mciGetErrorString(int errNum, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn);
-
-
-        // APIs for Help functions
-        [DllImport("hhctrl.ocx")]
-        public static extern int HtmlHelpS(IntPtr hwndCaller, string pszFile, int uCommand, string dwData);
-
-        [DllImport("hhctrl.ocx")]
-        public static extern int HtmlHelp(IntPtr hwndCaller, string pszFile, int uCommand, int dwData);
-
-        public const int HH_DISPLAY_TOPIC = 0x0;
-        public const int HH_DISPLAY_INDEX = 0x2;
-        public const int HH_DISPLAY_SEARCH = 0x3;
-        public const int HH_DISPLAY_TOC = 0x1;
-        public const int HH_SET_WIN_TYPE = 0x4;
-        public const int HH_GET_WIN_TYPE = 0x5;
-        public const int HH_GET_WIN_HANDLE = 0x6;
-        // Display string resource ID or text in a popupwin.
-        public const int HH_DISPLAY_TEXT_POPUP = 0xE;
-        // Display mapped numeric Value in dwdata
-        public const int HH_HELP_CONTEXT = 0xF;
-        // Text pop-up help, similar to WinHelp's HELP_CONTEXTMENU
-        public const int HH_TP_HELP_CONTEXTMENU = 0x10;
-        // Text pop-up help, similar to WinHelp's HELP_WM_HELP
-        public const int HH_TP_HELP_WM_HELP = 0x11;
-
     }
-    
+
     /// <summary>
     /// Represents all WinAGI specific errors that occur while running the WinAGI Engine or
     /// WinAGI Editor.
@@ -127,8 +102,7 @@ namespace WinAGI.Common {
             //NOT OK  .!"   &'()*+,- /          :;<=>?                           [\]^ `                          {|}~x
             //    OK     #$%        . 0123456789      @ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz    
             INVALID_ID_CHARS = " !\"&'()*+,-/:;<=>?[\\]^`{|}~".ToCharArray();
-            INVALID_FIRST_CHARS = (INVALID_ID_CHARS.ToString() + "#$%.0123456789@").ToCharArray();
-
+            INVALID_FIRST_CHARS = [.. INVALID_ID_CHARS, .. "#$%.0123456789@".ToCharArray()];
             // invalid Define Name characters: these, plus control chars and extended chars
             //        3       4         5         6         7         8         9         0         1         2
             //        234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
@@ -251,6 +225,9 @@ namespace WinAGI.Common {
         /// <param name="length"></param>
         /// <returns></returns>
         public static string Mid(string strIn, int pos, int length) {
+            if (pos > strIn.Length || length <= 0) {
+                return "";
+            }
             if (pos + length > strIn.Length)
                 return strIn[pos..];
             return strIn.Substring(pos, length);

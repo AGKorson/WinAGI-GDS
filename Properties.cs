@@ -61,11 +61,11 @@ namespace WinAGI.Editor {
             }
         }
 
-        [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+        [ReadOnly(true)]
+        [Editor(typeof(AGIPropertyEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Description {
             get => EditGame.GameDescription;
-            set => EditGame.GameDescription = value;
+            set { }
         }
 
         //[Editor(typeof(AGIPropertyEditor),
@@ -130,14 +130,13 @@ namespace WinAGI.Editor {
             pLogic = logic;
         }
 
-        [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
-        public int Number {
-            get {
-                return pLogic.Number;
-            }
+        [Editor(typeof(AGIPropertyEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public byte Number {
+            get => pLogic.Number;
             set {
-                MessageBox.Show("new number: " + value.ToString());
+                if (value != pLogic.Number) {
+                    RenumberResource(AGIResType.Logic, pLogic.Number, value);
+                }
             }
         }
 
@@ -145,33 +144,45 @@ namespace WinAGI.Editor {
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
         public string ID {
-            get {
-                return pLogic.ID;
-            } 
-            set {
-                MessageBox.Show("new ID: " + value.ToString());
-            }
+            get => pLogic.ID;
+            set { }
         }
 
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
         public string Description {
-            get {
-                return pLogic.Description;
-            }
-            set {
-                MessageBox.Show("new Description: " + value.ToString());
-            }
+            get => pLogic.Description;
+            set { }
         }
 
         [ReadOnlyAttribute(false)]
         public bool IsRoom {
-            //readonly if room number is 0
             get {
                 return pLogic.IsRoom; 
-            } 
+            }
             set {
-                MessageBox.Show("new IsRoom: " + value.ToString());
+                if (value != pLogic.IsRoom) {
+                    pLogic.IsRoom = value;
+                    pLogic.SaveProps();
+                    if (EditGame.UseLE) {
+                        EUReason reason;
+                        if (pLogic.IsRoom) {
+                            reason = EUReason.euShowRoom;
+                        }
+                        else {
+                            reason = EUReason.euRemoveRoom;
+                        }
+                        // update layout editor to show new room status
+                        UpdateExitInfo(reason, SelResNum, pLogic);
+                    }
+                }
+                // update editor
+                foreach (frmLogicEdit frm in LogicEditors) {
+                    if (frm.LogicNumber == SelResNum) {
+                        frm.ThisLogic.IsRoom = value;
+                        break;
+                    }
+                }
             }
         } 
 
@@ -207,14 +218,13 @@ namespace WinAGI.Editor {
             pPicture = picture;
         }
 
-        [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
-        public int Number {
-            get {
-                return pPicture.Number;
-            }
+        [Editor(typeof(AGIPropertyEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public byte Number {
+            get => pPicture.Number;
             set {
-                MessageBox.Show("new number: " + value.ToString());
+               if (value != pPicture.Number) {
+                    RenumberResource(AGIResType.Picture, pPicture.Number, value);
+                }
             }
         }
 
@@ -222,23 +232,15 @@ namespace WinAGI.Editor {
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
         public string ID {
-            get {
-                return pPicture.ID;
-            }
-            set {
-                MessageBox.Show("new ID: " + value.ToString());
-            }
+            get => pPicture.ID;
+            set { }
         }
 
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
         public string Description {
-            get {
-                return pPicture.Description;
-            }
-            set {
-                MessageBox.Show("new Description: " + value.ToString());
-            }
+            get => pPicture.Description;
+            set { }
         }
 
         public int Volume {
@@ -267,35 +269,27 @@ namespace WinAGI.Editor {
 
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
-        public int Number {
-            get {
-                return pSound.Number;
-            }
+        public byte Number {
+            get => pSound.Number;
             set {
-                MessageBox.Show("new number: " + value.ToString());
+                if (value != pSound.Number) {
+                    RenumberResource(AGIResType.Sound, pSound.Number, value);
+                }
             }
         }
 
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
         public string ID {
-            get {
-                return pSound.ID;
-            }
-            set {
-                MessageBox.Show("new ID: " + value.ToString());
-            }
+            get => pSound.ID;
+            set { }
         }
 
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
         public string Description {
-            get {
-                return pSound.Description;
-            }
-            set {
-                MessageBox.Show("new Description: " + value.ToString());
-            }
+            get => pSound.Description;
+            set { }
         }
 
         public int Volume {
@@ -324,12 +318,12 @@ namespace WinAGI.Editor {
 
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
-        public int Number {
-            get {
-                return pView.Number;
-            }
+        public byte Number {
+            get => pView.Number;
             set {
-                MessageBox.Show("new number: " + value.ToString());
+                if (value != pView.Number) {
+                    RenumberResource(AGIResType.View, pView.Number, value);
+                }
             }
         }
 
@@ -337,23 +331,15 @@ namespace WinAGI.Editor {
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
         public string ID {
-            get {
-                return pView.ID;
-            }
-            set {
-                MessageBox.Show("new ID: " + value.ToString());
-            }
+            get => pView.ID;
+            set { }
         }
 
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
         public string Description {
-            get {
-                return pView.Description;
-            }
-            set {
-                MessageBox.Show("new Description: " + value.ToString());
-            }
+            get => pView.Description;
+            set { }
         }
 
         public string ViewDesc {
@@ -384,8 +370,8 @@ namespace WinAGI.Editor {
         [Editor(typeof(AGIPropertyEditor),
                 typeof(System.Drawing.Design.UITypeEditor))]
         public string Description { get; set; }
-        public bool Encrypted { get; set; }
-        public int MaxScreenObj { get; set; }
+        public bool Encrypted { get; }
+        public int MaxScreenObj { get; }
     }
     
     public class WordListProperties {
@@ -429,34 +415,107 @@ namespace WinAGI.Editor {
 
         public override object EditValue(ITypeDescriptorContext context,
                                 IServiceProvider provider, object value) {
+            AGIResType restype = 0;
+            byte resnum = 0;
+            AGIResource thisres = null;
+            frmGetResourceNum _frmGetResNum;
+
             switch (context.PropertyDescriptor.Name) {
             case "Number":
-                //IWindowsFormsEditorService wfes =
-                //   provider.GetService(typeof(IWindowsFormsEditorService)) as
-                //   IWindowsFormsEditorService;
-
-                //if (wfes != null) {
-                //    frmGetResourceNum _frmGetResNum = new frmGetResourceNum();
-                //    _frmGetResNum._wfes = wfes;
-
-                //    wfes.ShowDialog(_frmGetResNum);
-                //    value = _frmGetResNum.NewResNum;
-                //}
-                // note: value has to change to fire the property set method!
-                value = 1;
-                return value;
-            case "ID":
-                MessageBox.Show("ID: " + SelResType.ToString() + " " + SelResNum);
-                value = "newid";
-                return value;
-            case "Description":
-                if (SelResType == AGIResType.Game) {
-                    MessageBox.Show("open game properties window");
+                bool isroom = false;
+                switch (context.Instance.ToString()) {
+                case "WinAGI.Editor.LogicProperties":
+                    restype = AGIResType.Logic;
+                    resnum = ((LogicProperties)context.Instance).Number;
+                    isroom = ((LogicProperties)context.Instance).IsRoom;
+                    break;
+                case "WinAGI.Editor.PictureProperties":
+                    restype = AGIResType.Picture;
+                    resnum = ((PictureProperties)context.Instance).Number;
+                    break;
+                case "WinAGI.Editor.SoundProperties":
+                    restype = AGIResType.Sound;
+                    resnum = ((SoundProperties)context.Instance).Number;
+                    break;
+                case "WinAGI.Editor.ViewProperties":
+                    restype = AGIResType.View;
+                    resnum = ((ViewProperties)context.Instance).Number;
+                    break;
+                }
+                _frmGetResNum = new(isroom ? EGetRes.grRenumberRoom : EGetRes.grRenumber, restype, resnum);
+                if (_frmGetResNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                    value = _frmGetResNum.NewResNum;
                 }
                 else {
-                    MessageBox.Show("Description: " + SelResType.ToString() + " " + SelResNum);
+                    value = (byte)SelResNum;
                 }
-                return value;
+                // need to unbox the value object before converting to byte
+                return (byte)value;
+            case "ID":
+                switch (context.Instance.ToString()) {
+                case "WinAGI.Editor.LogicProperties":
+                    restype = AGIResType.Logic;
+                    resnum = ((LogicProperties)context.Instance).Number;
+                    thisres = EditGame.Logics[resnum];
+                    break;
+                case "WinAGI.Editor.PictureProperties":
+                    restype = AGIResType.Picture;
+                    resnum = ((PictureProperties)context.Instance).Number;
+                    thisres = EditGame.Pictures[resnum];
+                    break;
+                case "WinAGI.Editor.SoundProperties":
+                    restype = AGIResType.Sound;
+                    resnum = ((SoundProperties)context.Instance).Number;
+                    thisres = EditGame.Sounds[resnum];
+                    break;
+                case "WinAGI.Editor.ViewProperties":
+                    restype = AGIResType.View;
+                    resnum = ((ViewProperties)context.Instance).Number;
+                    thisres = EditGame.Views[resnum];
+                    break;
+                }
+                MDIMain.SelectedItemDescription(1);
+                return thisres.ID;
+            case "Description":
+                switch (context.Instance.ToString()) {
+                case "WinAGI.Editor.GameProperties":
+                    MDIMain.ShowProperties(false, 1, nameof(frmGameProperties.txtGameDescription));
+                    return EditGame.GameDescription;
+
+                case "WinAGI.Editor.LogicProperties":
+                    restype = AGIResType.Logic;
+                    resnum = ((LogicProperties)context.Instance).Number;
+                    thisres = EditGame.Logics[resnum];
+                    break;
+                case "WinAGI.Editor.PictureProperties":
+                    restype = AGIResType.Picture;
+                    resnum = ((PictureProperties)context.Instance).Number;
+                    thisres = EditGame.Pictures[resnum];
+                    break;
+                case "WinAGI.Editor.SoundProperties":
+                    restype = AGIResType.Sound;
+                    resnum = ((SoundProperties)context.Instance).Number;
+                    thisres = EditGame.Sounds[resnum];
+                    break;
+                case "WinAGI.Editor.ViewProperties":
+                    restype = AGIResType.View;
+                    resnum = ((ViewProperties)context.Instance).Number;
+                    thisres = EditGame.Views[resnum];
+                    break;
+                case "WinAGI.Editor.InvObjProperties":
+                    break;
+                case "WinAGI.Editor.WordListProperties":
+                    break;
+                }
+                MDIMain.SelectedItemDescription(1);
+                switch (context.Instance.ToString()) {
+                case "WinAGI.Editor.InvObjProperties":
+                    return EditGame.InvObjects.Description;
+                case "WinAGI.Editor.WordListProperties":
+                    return EditGame.WordList.Description;
+                default:
+                    return thisres.Description;
+                }
             case "GlobalDef":
                 // same as clicking globals menu item
                 OpenGlobals(GEInUse);

@@ -13,6 +13,7 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmLogicEdit : Form {
+        public int LogicNumber;
         public Logic ThisLogic = new() { };
         internal ELogicFormMode FormMode;
         internal bool InGame;
@@ -97,6 +98,37 @@ namespace WinAGI.Editor {
               Set LogicEdit = Nothing
             */
         }
+        public void MenuClickDescription(int FirstProp) {
+            /*
+        Dim strID As String, strDescription As String
+
+        On Error GoTo ErrHandler
+
+        If FirstProp<> 1 And FirstProp <> 2 Then
+          FirstProp = 1
+        End If
+
+        strID = LogicEdit.ID
+        strDescription = LogicEdit.Description
+
+        'use the id/description change method
+        If GetNewResID(rtLogic, LogicNumber, strID, strDescription, InGame, FirstProp) Then
+          'save changes to logicedit
+          UpdateID strID, strDescription
+        End If
+
+        'if layout editor is in use, update it too
+
+        'force menu update
+        AdjustMenus rtLogic, InGame, True, rtfLogic.Dirty
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+            */
+        }
+
 
         void tmpLogEd() {
             /*
@@ -395,7 +427,7 @@ namespace WinAGI.Editor {
         End Select
 
         'lastly, check for reserved defines option (if not looking for a resourceID)
-        If LogicSourceSettings.UseReservedNames And ArgType < alLogic Then
+        If LogicCompiler.UseReservedNames And ArgType < alLogic Then
           Max = 94
           If Max > 0 Then
             'add em
@@ -1080,36 +1112,6 @@ namespace WinAGI.Editor {
         SendMessage Me.rtfLogic.hWnd, WM_KEYUP, &H2E, &H1
       End Sub
 
-      Public Sub MenuClickDescription(ByVal FirstProp As Long)
-
-        Dim strID As String, strDescription As String
-
-        On Error GoTo ErrHandler
-
-        If FirstProp <> 1 And FirstProp <> 2 Then
-          FirstProp = 1
-        End If
-
-        strID = LogicEdit.ID
-        strDescription = LogicEdit.Description
-
-        'use the id/description change method
-        If GetNewResID(rtLogic, LogicNumber, strID, strDescription, InGame, FirstProp) Then
-          'save changes to logicedit
-          UpdateID strID, strDescription
-        End If
-
-        'if layout editor is in use, update it too
-
-        'force menu update
-        AdjustMenus rtLogic, InGame, True, rtfLogic.Dirty
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
       Public Sub MenuClickFind(Optional ByVal ffValue As FindFormFunction = ffFindLogic)
 
         Dim strToken As String
@@ -1461,7 +1463,7 @@ namespace WinAGI.Editor {
             'MUST make sure logic sourcefile is set to correct Value
             'BEFORE calling exporting; this is because LogicEdit is NOT
             'in a game; it only mimics the ingame resource
-            LogicEdit.SourceFile = ResDir & LogicEdit.ID & LogicSourceSettings.SourceExt
+            LogicEdit.SourceFile = ResDir & LogicEdit.ID & EditGame.SourceExt
 
             'get a filename for the export
             strExportName = NewSourceName(LogicEdit, InGame)
@@ -1549,7 +1551,7 @@ namespace WinAGI.Editor {
             'MUST make sure logic sourcefile is set to correct Value
             'BEFORE calling exporting; this is because LogicEdit is NOT
             'in a game; it only mimics the ingame resource
-            LogicEdit.SourceFile = ResDir & LogicEdit.ID & LogicSourceSettings.SourceExt
+            LogicEdit.SourceFile = ResDir & LogicEdit.ID & EditGame.SourceExt
 
             'get a filename for the export
             strExportName = NewSourceName(LogicEdit, InGame)
@@ -1682,9 +1684,9 @@ namespace WinAGI.Editor {
           'if ID changed because of renumbering
           If LogicEdit.ID <> strOldID Then
             'if old default file exists
-            If FileExists(ResDir & strOldID & LogicSourceSettings.SourceExt) Then
+            If FileExists(ResDir & strOldID & EditGame.SourceExt) Then
               'rename it
-              Name ResDir & strOldID & LogicSourceSettings.SourceExt As ResDir & Logics(NewResNum).ID & LogicSourceSettings.SourceExt
+              Name ResDir & strOldID & EditGame.SourceExt As ResDir & Logics(NewResNum).ID & EditGame.SourceExt
             End If
           End If
 

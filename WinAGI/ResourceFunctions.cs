@@ -14,7 +14,7 @@ namespace WinAGI.Engine {
         /// <returns> false if resources loaded with no warnings or errors<br />
         /// true if one or more recoverable errors occur during load<br />
         /// throws an exception if critical error enountered that prevents game from loading</returns>
-        internal static bool ExtractResources(AGIGame game) {
+        internal static bool ExtractResources(AGIGame game, OpenGameMode mode) {
             byte bytResNum;
             AGIResType bytResType;
             string strDirFile = "";
@@ -33,7 +33,7 @@ namespace WinAGI.Engine {
                 Module = "",
                 Text = "",
             };
-            AGIGame.OnLoadGameStatus(warnInfo);
+            game.LoadEventStatus(mode, warnInfo);
             // set up for warnings
             warnInfo.Type = EventType.etWarning;
 
@@ -190,7 +190,7 @@ namespace WinAGI.Engine {
                         warnInfo.Text = ResTypeAbbrv[(int)bytResType] + " portion of DIR file is larger than expected; it may be corrupted";
                         warnInfo.Line = "--";
                         warnInfo.Module = "--";
-                        AGIGame.OnLoadGameStatus(warnInfo);
+                        game.LoadEventStatus(mode, warnInfo);
                     }
                     else {
                         warnInfo.ResType = AGIResType.Game;
@@ -199,7 +199,7 @@ namespace WinAGI.Engine {
                         warnInfo.Text = ResTypeAbbrv[(int)bytResType] + "DIR file is larger than expected; it may be corrupted";
                         warnInfo.Line = "--";
                         warnInfo.Module = "--";
-                        AGIGame.OnLoadGameStatus(warnInfo);
+                        game.LoadEventStatus(mode, warnInfo);
                     }
                     // assume the max for now
                     intResCount = 256;
@@ -219,7 +219,7 @@ namespace WinAGI.Engine {
                         warnInfo.Text = "";
                         warnInfo.Line = "--";
                         warnInfo.Module = "--";
-                        AGIGame.OnLoadGameStatus(warnInfo);
+                        game.LoadEventStatus(mode, warnInfo);
                         warnInfo.Type = EventType.etWarning;
                         // get location data for this resource
                         byte1 = bytBuffer[lngDirOffset + bytResNum * 3];
@@ -242,7 +242,7 @@ namespace WinAGI.Engine {
                             case AGIResType.Logic:
                                 game.agLogs.InitLoad(bytResNum, bytVol, lngLoc);
                                 if (game.agLogs[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(game, AGIResType.Logic, bytResNum, game.agLogs[bytResNum].ErrLevel, game.agLogs[bytResNum].ErrData);
+                                    AddLoadWarning(mode, game, AGIResType.Logic, bytResNum, game.agLogs[bytResNum].ErrLevel, game.agLogs[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -255,7 +255,7 @@ namespace WinAGI.Engine {
                             case AGIResType.Picture:
                                 game.agPics.InitLoad(bytResNum, bytVol, lngLoc);
                                 if (game.agPics[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(game, AGIResType.Picture, bytResNum, game.agPics[bytResNum].ErrLevel, game.agPics[bytResNum].ErrData);
+                                    AddLoadWarning(mode, game, AGIResType.Picture, bytResNum, game.agPics[bytResNum].ErrLevel, game.agPics[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -268,7 +268,7 @@ namespace WinAGI.Engine {
                             case AGIResType.Sound:
                                 game.agSnds.InitLoad(bytResNum, bytVol, lngLoc);
                                 if (game.agSnds[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(game, AGIResType.Sound, bytResNum, game.agSnds[bytResNum].ErrLevel, game.agSnds[bytResNum].ErrData);
+                                    AddLoadWarning(mode, game, AGIResType.Sound, bytResNum, game.agSnds[bytResNum].ErrLevel, game.agSnds[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -281,7 +281,7 @@ namespace WinAGI.Engine {
                             case AGIResType.View:
                                 game.agViews.InitLoad(bytResNum, bytVol, lngLoc);
                                 if (game.agViews[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(game, AGIResType.View, bytResNum, game.agViews[bytResNum].ErrLevel, game.agViews[bytResNum].ErrData);
+                                    AddLoadWarning(mode, game, AGIResType.View, bytResNum, game.agViews[bytResNum].ErrLevel, game.agViews[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -307,7 +307,7 @@ namespace WinAGI.Engine {
         /// <param name="resNum"></param>
         /// <param name="errlevel"></param>
         /// <param name="errdata"></param>
-        internal static void AddLoadWarning(AGIGame game, AGIResType resType, byte resNum, int errlevel, string[] errdata) {
+        internal static void AddLoadWarning(OpenGameMode mode, AGIGame game, AGIResType resType, byte resNum, int errlevel, string[] errdata) {
             TWinAGIEventInfo warnInfo = new() {
                 Type = EventType.etWarning,
                 ResType = resType,
@@ -443,7 +443,7 @@ namespace WinAGI.Engine {
                     warnInfo.Module = errdata[0];
                     break;
                 }
-                AGIGame.OnLoadGameStatus(warnInfo);
+                game.LoadEventStatus(mode, warnInfo);
                 return;
             }
             switch (resType) {
@@ -457,35 +457,35 @@ namespace WinAGI.Engine {
                         warnInfo.ID = "RW17";
                         warnInfo.Text = $"Picture {resNum} is missing its 'end-of-resource' marker and may be corrupt";
                         warnInfo.Module = errdata[0];
-                        AGIGame.OnLoadGameStatus(warnInfo);
+                        game.LoadEventStatus(mode, warnInfo);
                     }
                     if ((errlevel & 2) == 2) {
                         // bad color
                         warnInfo.ID = "RW18";
                         warnInfo.Text = $"Picture {resNum} has at least one invalid color assignment - picture may be corrupt";
                         warnInfo.Module = errdata[0];
-                        AGIGame.OnLoadGameStatus(warnInfo);
+                        game.LoadEventStatus(mode, warnInfo);
                     }
                     if ((errlevel & 4) == 4) {
                         // bad cmd
                         warnInfo.ID = "RW19";
                         warnInfo.Text = $"Picture {resNum} has at least one invalid command byte - picture may be corrupt";
                         warnInfo.Module = errdata[0];
-                        AGIGame.OnLoadGameStatus(warnInfo);
+                        game.LoadEventStatus(mode, warnInfo);
                     }
                     if ((errlevel & 8) == 8) {
                         // extra data
                         warnInfo.ID = "RW20";
                         warnInfo.Text = $"{resType} {resNum} has extra data past the end of resource";
                         warnInfo.Module = errdata[0];
-                        AGIGame.OnLoadGameStatus(warnInfo);
+                        game.LoadEventStatus(mode, warnInfo);
                     }
                     if ((errlevel & 16) == 16) {
                         // unhandled error
                         warnInfo.ID = "RW21";
                         warnInfo.Text = $"Unhandled error in Picture {resNum} data- picture may not display correctly ({errlevel})";
                         warnInfo.Module = errdata[0];
-                        AGIGame.OnLoadGameStatus(warnInfo);
+                        game.LoadEventStatus(mode, warnInfo);
                     }
 
                 }
@@ -494,45 +494,45 @@ namespace WinAGI.Engine {
                 warnInfo.ID = "RW22";
                 warnInfo.Text = $"Sound {resNum} has an invalid track pointer ({errlevel})";
                 warnInfo.Module = errdata[0];
-                AGIGame.OnLoadGameStatus(warnInfo);
+                game.LoadEventStatus(mode, warnInfo);
                 break;
             case AGIResType.View:
                 warnInfo.ID = "RW23";
                 warnInfo.Text = $"View {resNum} has an invalid view description pointer";
                 warnInfo.Module = errdata[0];
-                AGIGame.OnLoadGameStatus(warnInfo);
+                game.LoadEventStatus(mode, warnInfo);
                 break;
             case AGIResType.Objects:
                 warnInfo.Module = "OBJECT";
                 if ((errlevel & 1) == 1) {
                     warnInfo.ID = "RW24";
                     warnInfo.Text = "OBJECT file has no items";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 if ((errlevel & 2) == 2) {
                     warnInfo.ID = "RW25";
                     warnInfo.Text = "Unable to decrypt OBJECT file";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 if ((errlevel & 4) == 4) {
                     warnInfo.ID = "RW26";
                     warnInfo.Text = "Invalid OBJECT file header, unable to read item data";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 if ((errlevel & 8) == 8) {
                     warnInfo.ID = "RW27";
                     warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 if ((errlevel & 16) == 16) {
                     warnInfo.ID = "RW28";
                     warnInfo.Text = "First item is not the null '?' item";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 if ((errlevel & 32) == 32) {
                     warnInfo.ID = "RW29";
                     warnInfo.Text = "File access error, unable to read OBJECT file";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 break;
             case AGIResType.Words:
@@ -540,32 +540,32 @@ namespace WinAGI.Engine {
                 if ((errlevel & 1) == 1) {
                     warnInfo.ID = "RW30";
                     warnInfo.Text = "Abnormal index table";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 if ((errlevel & 2) == 2) {
                     warnInfo.ID = "RW31";
                     warnInfo.Text = "Unexpected end of file";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 if ((errlevel & 4) == 4) {
                     warnInfo.ID = "RW32";
                     warnInfo.Text = "Upper case characters detected";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 if ((errlevel & 8) == 8) {
                     warnInfo.ID = "RW33";
                     warnInfo.Text = "Empty WORDS.TOK file";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 if ((errlevel & 16) == 16) {
                     warnInfo.ID = "RW34";
                     warnInfo.Text = "Invalid index table";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 if ((errlevel & 32) == 32) {
                     warnInfo.ID = "RW35";
                     warnInfo.Text = "File access error, unable to read OBJECT file";
-                    AGIGame.OnLoadGameStatus(warnInfo);
+                    game.LoadEventStatus(mode, warnInfo);
                 }
                 break;
             }

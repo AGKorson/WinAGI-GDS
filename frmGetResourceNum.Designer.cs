@@ -33,137 +33,190 @@ namespace WinAGI.Editor
             chkIncludePic = new System.Windows.Forms.CheckBox();
             chkOpenRes = new System.Windows.Forms.CheckBox();
             lstResNum = new System.Windows.Forms.ListBox();
-            label1 = new System.Windows.Forms.Label();
-            label2 = new System.Windows.Forms.Label();
-            label3 = new System.Windows.Forms.Label();
+            lblID = new System.Windows.Forms.Label();
+            lblDescription = new System.Windows.Forms.Label();
+            Label1 = new System.Windows.Forms.Label();
             btnOK = new System.Windows.Forms.Button();
-            btnOpen = new System.Windows.Forms.Button();
+            btnDont = new System.Windows.Forms.Button();
+            Label2 = new System.Windows.Forms.Label();
+            lblCurrent = new System.Windows.Forms.Label();
+            btnCancel = new System.Windows.Forms.Button();
             SuspendLayout();
             // 
             // txtID
             // 
-            txtID.Location = new System.Drawing.Point(250, 40);
+            txtID.Location = new System.Drawing.Point(241, 24);
             txtID.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             txtID.Name = "txtID";
-            txtID.Size = new System.Drawing.Size(68, 23);
+            txtID.Size = new System.Drawing.Size(216, 23);
             txtID.TabIndex = 0;
+            txtID.WordWrap = false;
             // 
             // chkRoom
             // 
             chkRoom.AutoSize = true;
-            chkRoom.Location = new System.Drawing.Point(250, 158);
+            chkRoom.Location = new System.Drawing.Point(257, 157);
             chkRoom.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             chkRoom.Name = "chkRoom";
-            chkRoom.Size = new System.Drawing.Size(55, 19);
+            chkRoom.Size = new System.Drawing.Size(182, 19);
             chkRoom.TabIndex = 1;
-            chkRoom.Text = "room";
+            chkRoom.Text = "Include Room Template Code";
             chkRoom.UseVisualStyleBackColor = true;
+            chkRoom.Visible = false;
             // 
             // txtDescription
             // 
-            txtDescription.Location = new System.Drawing.Point(250, 83);
+            txtDescription.Location = new System.Drawing.Point(241, 63);
             txtDescription.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            txtDescription.Multiline = true;
             txtDescription.Name = "txtDescription";
-            txtDescription.Size = new System.Drawing.Size(99, 23);
+            txtDescription.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            txtDescription.Size = new System.Drawing.Size(216, 72);
             txtDescription.TabIndex = 2;
             // 
             // chkIncludePic
             // 
             chkIncludePic.AutoSize = true;
-            chkIncludePic.Location = new System.Drawing.Point(250, 182);
+            chkIncludePic.Location = new System.Drawing.Point(257, 137);
             chkIncludePic.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             chkIncludePic.Name = "chkIncludePic";
-            chkIncludePic.Size = new System.Drawing.Size(105, 19);
+            chkIncludePic.Size = new System.Drawing.Size(154, 19);
             chkIncludePic.TabIndex = 3;
-            chkIncludePic.Text = "include picture";
+            chkIncludePic.Text = "Create Matching Picture";
             chkIncludePic.UseVisualStyleBackColor = true;
+            chkIncludePic.Visible = false;
             // 
             // chkOpenRes
             // 
             chkOpenRes.AutoSize = true;
-            chkOpenRes.Location = new System.Drawing.Point(11, 141);
+            chkOpenRes.Location = new System.Drawing.Point(12, 157);
             chkOpenRes.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             chkOpenRes.Name = "chkOpenRes";
-            chkOpenRes.Size = new System.Drawing.Size(71, 19);
+            chkOpenRes.Size = new System.Drawing.Size(186, 19);
             chkOpenRes.TabIndex = 4;
-            chkOpenRes.Text = "open res";
+            chkOpenRes.Text = "Open new resource for editing";
             chkOpenRes.UseVisualStyleBackColor = true;
+            chkOpenRes.Visible = false;
             // 
             // lstResNum
             // 
             lstResNum.FormattingEnabled = true;
             lstResNum.ItemHeight = 15;
-            lstResNum.Location = new System.Drawing.Point(12, 40);
+            lstResNum.Location = new System.Drawing.Point(12, 73);
             lstResNum.Name = "lstResNum";
-            lstResNum.Size = new System.Drawing.Size(120, 94);
+            lstResNum.Size = new System.Drawing.Size(205, 79);
             lstResNum.TabIndex = 5;
+            lstResNum.SelectedIndexChanged += lstResNum_SelectedIndexChanged;
             // 
-            // label1
+            // lblID
             // 
-            label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(250, 24);
-            label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(69, 15);
-            label1.TabIndex = 6;
-            label1.Text = "Resource ID";
+            lblID.AutoSize = true;
+            lblID.Location = new System.Drawing.Point(241, 8);
+            lblID.Name = "lblID";
+            lblID.Size = new System.Drawing.Size(72, 15);
+            lblID.TabIndex = 6;
+            lblID.Text = "Resource ID:";
             // 
-            // label2
+            // lblDescription
             // 
-            label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(250, 67);
-            label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(67, 15);
-            label2.TabIndex = 7;
-            label2.Text = "Description";
+            lblDescription.AutoSize = true;
+            lblDescription.Location = new System.Drawing.Point(241, 47);
+            lblDescription.Name = "lblDescription";
+            lblDescription.Size = new System.Drawing.Size(70, 15);
+            lblDescription.TabIndex = 7;
+            lblDescription.Text = "Description:";
             // 
-            // label3
+            // Label1
             // 
-            label3.AutoSize = true;
-            label3.Location = new System.Drawing.Point(12, 24);
-            label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(102, 15);
-            label3.TabIndex = 8;
-            label3.Text = "Resource Number";
+            Label1.AutoSize = true;
+            Label1.Location = new System.Drawing.Point(11, 55);
+            Label1.Name = "Label1";
+            Label1.Size = new System.Drawing.Size(179, 15);
+            Label1.TabIndex = 8;
+            Label1.Text = "Select a view for testing pictures:";
             // 
             // btnOK
             // 
             btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            btnOK.Location = new System.Drawing.Point(11, 179);
+            btnOK.Enabled = false;
+            btnOK.Location = new System.Drawing.Point(11, 180);
             btnOK.Name = "btnOK";
-            btnOK.Size = new System.Drawing.Size(75, 23);
+            btnOK.Size = new System.Drawing.Size(75, 25);
             btnOK.TabIndex = 9;
             btnOK.Text = "&OK";
             btnOK.UseVisualStyleBackColor = true;
             btnOK.Click += btnOK_Click;
             // 
-            // btnOpen
+            // btnDont
             // 
-            btnOpen.Location = new System.Drawing.Point(92, 179);
-            btnOpen.Name = "btnOpen";
-            btnOpen.Size = new System.Drawing.Size(134, 23);
-            btnOpen.TabIndex = 10;
-            btnOpen.Text = "Open Don't Import";
-            btnOpen.UseVisualStyleBackColor = true;
+            btnDont.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
+            btnDont.Location = new System.Drawing.Point(92, 180);
+            btnDont.Margin = new System.Windows.Forms.Padding(0);
+            btnDont.Name = "btnDont";
+            btnDont.Size = new System.Drawing.Size(125, 25);
+            btnDont.TabIndex = 10;
+            btnDont.Text = "Open Don't Import";
+            btnDont.UseVisualStyleBackColor = true;
+            btnDont.Visible = false;
+            // 
+            // Label2
+            // 
+            Label2.Font = new System.Drawing.Font("Segoe UI", 10.125F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 0);
+            Label2.Location = new System.Drawing.Point(37, 7);
+            Label2.Name = "Label2";
+            Label2.Size = new System.Drawing.Size(161, 15);
+            Label2.TabIndex = 11;
+            Label2.Text = "Current Resource:";
+            Label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // lblCurrent
+            // 
+            lblCurrent.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
+            lblCurrent.Location = new System.Drawing.Point(74, 24);
+            lblCurrent.Name = "lblCurrent";
+            lblCurrent.Size = new System.Drawing.Size(73, 23);
+            lblCurrent.TabIndex = 12;
+            lblCurrent.Text = "1";
+            lblCurrent.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // btnCancel
+            // 
+            btnCancel.Location = new System.Drawing.Point(142, 180);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new System.Drawing.Size(75, 25);
+            btnCancel.TabIndex = 13;
+            btnCancel.Text = "Cancel";
+            btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.Click += btnCancel_Click;
             // 
             // frmGetResourceNum
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(431, 211);
-            Controls.Add(btnOpen);
+            ClientSize = new System.Drawing.Size(468, 218);
+            Controls.Add(btnCancel);
+            Controls.Add(lblCurrent);
+            Controls.Add(Label2);
+            Controls.Add(btnDont);
             Controls.Add(btnOK);
-            Controls.Add(label3);
-            Controls.Add(label2);
-            Controls.Add(label1);
+            Controls.Add(Label1);
+            Controls.Add(lblDescription);
+            Controls.Add(lblID);
             Controls.Add(lstResNum);
             Controls.Add(chkOpenRes);
             Controls.Add(chkIncludePic);
             Controls.Add(txtDescription);
             Controls.Add(chkRoom);
             Controls.Add(txtID);
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            MaximizeBox = false;
+            MinimizeBox = false;
             Name = "frmGetResourceNum";
-            Text = "frmGetResourceNum";
+            ShowInTaskbar = false;
+            SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            Text = "Add View";
             FormClosed += frmGetResourceNum_FormClosed;
             ResumeLayout(false);
             PerformLayout();
@@ -177,10 +230,13 @@ namespace WinAGI.Editor
     public System.Windows.Forms.CheckBox chkIncludePic;
     public System.Windows.Forms.CheckBox chkOpenRes;
         private System.Windows.Forms.ListBox lstResNum;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label lblID;
+        private System.Windows.Forms.Label lblDescription;
+        private System.Windows.Forms.Label Label1;
         private System.Windows.Forms.Button btnOK;
-        private System.Windows.Forms.Button btnOpen;
+        private System.Windows.Forms.Button btnDont;
+        private System.Windows.Forms.Label Label2;
+        private System.Windows.Forms.Label lblCurrent;
+        private System.Windows.Forms.Button btnCancel;
     }
 }

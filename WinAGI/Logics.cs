@@ -153,12 +153,14 @@ namespace WinAGI.Engine {
                 intNextNum++;
                 strID = strBaseID + "_" + intNextNum;
             }
+            agResource.ID = strID;
             Col.Add(ResNum, agResource);
             // force flags so save function will work
             agResource.IsDirty = true;
             agResource.PropsDirty = true;
-            // save new logic to add it to VOL file
-            agResource.Save();
+            // add it to VOL file using base save method
+            // (because Logic.Save only saves the source for ingame resource)
+            ((AGIResource)agResource).Save();
             blnSetIDs = false;
             return agResource;
         }
@@ -214,16 +216,17 @@ namespace WinAGI.Engine {
             Col.Remove(OldLogic);
             VOLManager.UpdateDirFile(tmpLogic, true);
             // adjust ID if it is default
-            if (tmpLogic.ID == "Logic" + OldLogic) {
-                strID = strBaseID = "Logic" + NewLogic;
+            if (tmpLogic.ID.ToLower() == "logic" + OldLogic) {
+                strID = strBaseID = tmpLogic.ID[..5] + NewLogic;
                 while (NotUniqueID(strID, parent)) {
                     strID = strBaseID + "_" + intNextNum;
                     intNextNum++;
                 }
                 // move source file to match new ID
                 try {
-                    File.Delete(parent.agResDir + tmpLogic.ID + parent.agSrcFileExt);
-                    File.Move(parent.agResDir + "Logic" + OldLogic + parent.agSrcFileExt, parent.agResDir + tmpLogic.ID + parent.agSrcFileExt);
+                    // get rid of existing file with same name as new logic
+                    File.Delete(parent.agResDir + strID + parent.agSrcFileExt);
+                    File.Move(parent.agResDir + tmpLogic.ID + parent.agSrcFileExt, parent.agResDir + strID + parent.agSrcFileExt);
                 }
                 catch (Exception e) {
                     WinAGIException wex = new(LoadResString(670)) {
@@ -232,6 +235,7 @@ namespace WinAGI.Engine {
                     wex.Data["exception"] = e;
                     throw wex;
                 }
+                tmpLogic.ID = strID;
             }
             // add it back with new number
             tmpLogic.Number = NewLogic;

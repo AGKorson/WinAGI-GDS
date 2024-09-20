@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using static WinAGI.Editor.Base;
 using WinAGI.Engine;
+using static WinAGI.Engine.AGIResType;
 using static WinAGI.Editor.Base.EGetRes;
 using System.Windows.Forms.Design;
 
@@ -10,10 +11,9 @@ namespace WinAGI.Editor {
         public AGIResType ResType;
         public byte NewResNum;
         public byte OldResNum;
-        public bool Canceled = true;
+ //       public bool Canceled = true;
         public bool DontImport = false;
         public EGetRes WindowFunction;
-        public IWindowsFormsEditorService _wfes;
 
         class ListItemData {
             public byte ResNum = 0;
@@ -21,18 +21,35 @@ namespace WinAGI.Editor {
             public override string ToString() { return ID; }
         }
 
-        public frmGetResourceNum() {
+        public frmGetResourceNum(EGetRes function, AGIResType restype) {
             InitializeComponent();
+            ResType = restype;
+            OldResNum = 0;
+            FormSetup(function);
         }
-        public void FormSetup() {
+
+
+        public frmGetResourceNum(EGetRes function, AGIResType restype, byte resnum) {
+            InitializeComponent();
+            ResType = restype;
+            OldResNum = resnum;
+            FormSetup(function);
+        }
+
+        public void FormSetup(EGetRes function) {
             int i;
             ListItemData tmpItem;
-
+            WindowFunction = function;
             //clear the listbox
             lstResNum.Items.Clear();
 
             switch (WindowFunction) {
-            case grAddNew or grAddInGame or grRenumber or grAddLayout or grImport:
+            case grAddNew:
+            case grAddInGame:
+            case grRenumber:
+            case grRenumberRoom:
+            case grAddLayout:
+            case grImport:
                 // if adding rooms in layout, always SUGGEST include pic
                 if (WindowFunction == grAddLayout) {
                     chkIncludePic.Checked = true;
@@ -66,7 +83,7 @@ namespace WinAGI.Editor {
                         }
                         break;
                     case AGIResType.Sound:
-                        if (EditGame.Sounds.Contains((byte)i)) {
+                        if (!EditGame.Sounds.Contains((byte)i)) {
                             lstResNum.Items.Add(tmpItem);
                         }
                         break;
@@ -133,7 +150,7 @@ namespace WinAGI.Editor {
                 }
                 // if no rooms added
                 if (lstResNum.Items.Count == 0) {
-                    MessageBox.Show("All logics in the game are currently tagged as rooms and are visible.", "Show Room", MessageBoxButtons.OK, MessageBoxIcon.Information); //vbMsgBoxHelpButton, , WinAGIHelp, "htm\winagi\Managing_Resources.htm#resourceids"
+                    MessageBox.Show(MDIMain, "All logics in the game are currently tagged as rooms and are visible.", "Show Room", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, 0, WinAGIHelp, "htm\\winagi\\Managing_Resources.htm#resourceids");
                     // close form
                     Close();
                 }
@@ -146,213 +163,219 @@ namespace WinAGI.Editor {
         }
 
         private void AdjustControls() {
-            /*
 
-            'shows/hides form controls and adjusts
-            'form height and control positions based on window function
+            // shows/hides form controls and adjusts
+            // form height and control positions based on window function
 
-            'defaults when form is initially loaded:
-            ' size wide (6645)
-            'Label2/lblCurrent are visible
-            'Label1 and lstResNum in lower position (825/1065/1425)
-            'chkRoom, chkPic, chkOpenRes are not visible
-            'cmdDont is not visible
-            'cmdCancel is visible at left position, with caption of 'cancel' (1620)
-            'form caption needs to be set!
-            'list caption (Label1) needs to be set!
-            'cmdOK disabled
+            // defaults when form is initially loaded:
+            //    size wide (6645)
+            //    Label2/lblCurrent are visible
+            //    Label1 and lstResNum in lower position (825/1065/1425)
+            //    chkRoom, chkPic, chkOpenRes are not visible
+            //    cmdDont is not visible
+            //    cmdCancel is visible at left position, with caption of 'cancel' (1620)
+            //    form caption needs to be set!
+            //    list caption (Label1) needs to be set!
+            //    cmdOK disabled
 
-            Dim i As Long
-
-            Select Case WindowFunction
-            Case grAddNew
-              Me.Caption = "Add New " & ResTypeName(ResType)
-              lblCurrent.Visible = False
-              Label2.Visible = False
-              Label1.Top = 120
-              Label1.Caption = "Select a number for this new " & ResTypeName(ResType) & ":"
-              lstResNum.Top = 360
-              lstResNum.Height = 2130
-              cmdDont.Visible = True
-              cmdDont.Caption = "New Not in Game"
-              cmdCancel.Left = 3270
-              If ResType = rtLogic Then
-                With chkIncludePic
-                  .Value = vbChecked
-                  .Visible = True
-                  .Top = 2100
-                  .Enabled = False
-                End With
-                With chkRoom
-                  .Value = vbChecked
-                  .Visible = True
-                  .Enabled = True
-                  .Top = 2340
-                  .Caption = "Include Room Template Code"
-                End With
-                txtDescription.Height = 1050
-              Else
-                chkIncludePic.Visible = False
-                chkRoom.Visible = False
-              End If
-
-              chkOpenRes.Visible = True
-              chkOpenRes.Value = (Settings.OpenNew And vbChecked)
-
-              'nothing is selected
-              lstResNum.ListIndex = -1
-
-            Case grAddInGame
-              Me.Caption = "Add " & ResTypeName(ResType)
-              lblCurrent.Visible = False
-              Label2.Visible = False
-              Label1.Top = 120
-              Label1.Caption = "Select a number for this " & ResTypeName(ResType) & ":"
-              lstResNum.Top = 360
-              lstResNum.Height = 2130
-              cmdDont.Visible = False
-
-              'nothing is selected
-              lstResNum.ListIndex = -1
-
-            Case grRenumber
-              Me.Width = 3090
-              Select Case ResType
-              Case rtLogic
-                Me.Caption = ResourceName(Logics(OldResNum), True, True)
-              Case rtPicture
-                Me.Caption = ResourceName(Pictures(OldResNum), True, True)
-              Case rtSound
-                Me.Caption = ResourceName(Sounds(OldResNum), True, True)
-              Case rtView
-                Me.Caption = ResourceName(Views(OldResNum), True, True)
-              End Select
-              lblCurrent.Caption = CStr(OldResNum)
-              Label1.Caption = "Select a new number for this " & ResTypeName(ResType) & ":"
-
-              'nothing is selected
-              lstResNum.ListIndex = -1
-
-           Case grOpen
-              Me.Width = 3090
-              Me.Caption = "Open " & ResTypeName(ResType)
-              lblCurrent.Visible = False
-              Label2.Visible = False
-              Label1.Top = 120
-              Label1.Caption = "Select the " & ResTypeName(ResType) & " to open:"
-              lstResNum.Top = 360
-              lstResNum.Height = 2130
-
-              'nothing is selected
-              lstResNum.ListIndex = -1
-
-            Case grTestView
-              Me.Width = 3090
-              Me.Caption = "Select Test View"
-              lblCurrent.Caption = CStr(OldResNum)
-              Label1.Caption = "Select a view for testing pictures:"
-
-              'select current test view, if there is one
-              lstResNum.ListIndex = -1
-              For i = 0 To lstResNum.ListCount - 1
-                If lstResNum.ItemData(i) = OldResNum Then
-                  lstResNum.ListIndex = i
-                  Exit For
-                End If
-              Next i
-
-            Case grAddLayout
-              Me.Caption = "Add New Room"
-              lblCurrent.Visible = False
-              Label2.Visible = False
-              Label1.Top = 120
-              Label1.Caption = "Select a number for this new room:"
-              lstResNum.Top = 360
-              lstResNum.Height = 2130
-              chkIncludePic.Visible = True
-              chkIncludePic.Value = vbChecked
-              chkRoom.Visible = True
-              chkRoom.Value = vbChecked
-              chkRoom.Enabled = False
-
-              'nothing is selected
-              lstResNum.ListIndex = -1
-
-            Case grShowRoom
-              Me.Width = 3090
-              Me.Caption = "Show Room"
-              lblCurrent.Visible = False
-              Label2.Visible = False
-              Label1.Top = 120
-              Label1.Caption = "Select a room to show:"
-              lstResNum.Top = 360
-              lstResNum.Height = 2130
-
-              'nothing is selected
-              lstResNum.ListIndex = -1
-
-            Case grMenu
-              Me.Width = 3090
-              Me.Caption = "Extract Menu"
-              lblCurrent.Visible = False
-              Label2.Visible = False
-              Label1.Top = 120
-              Label1.Caption = "Select the logic with the game's menu:"
-              lstResNum.Top = 360
-              lstResNum.Height = 2130
-
-              'nothing is selected
-              lstResNum.ListIndex = -1
-
-            Case grImport
-              Me.Caption = "Import " & ResTypeName(ResType)
-              lblCurrent.Visible = False
-              Label2.Visible = False
-              Label1.Top = 120
-              Label1.Caption = "Select a number for this imported " & ResTypeName(ResType) & ":"
-              lstResNum.Top = 360
-              lstResNum.Height = 2130
-              cmdDont.Visible = True
-              cmdCancel.Left = 3270
-              If ResType = rtLogic Then
-                With chkIncludePic
-                  .Visible = False
-                End With
-                With chkRoom
-                  .Value = vbChecked
-                  .Visible = True
-                  .Enabled = False
-                  .Top = 2340
-                  .Caption = "Import as a Room"
-                End With
-                txtDescription.Height = 1050
-              Else
-                chkIncludePic.Visible = False
-                chkRoom.Visible = False
-              End If
-
-              chkOpenRes.Visible = True
-              chkOpenRes.Value = (Settings.OpenNew And vbChecked)
-
-              'nothing is selected
-              lstResNum.ListIndex = -1
-
-            Case grMenuBkgd
-              Me.Width = 3090
-              Caption = "Menu Background"
-              lblCurrent.Caption = CStr(OldResNum)
-              Label1.Caption = "Select picture to use as background:"
-              'select the current pic
-              lstResNum.ListIndex = -1
-              For i = 0 To lstResNum.ListCount - 1
-                If lstResNum.ItemData(i) = OldResNum Then
-                  lstResNum.ListIndex = i
-                  Exit For
-                End If
-              Next i
-
-            End Select
-            */
+            switch (WindowFunction) {
+            case grAddNew:
+                Text = "Add New " + ResType.ToString();
+                lblCurrent.Visible = false;
+                Label2.Visible = false;
+                Label1.Top = 8;
+                Label1.Text = "Select a number for this new " + ResType.ToString() + ":";
+                lstResNum.Top = 24;
+                lstResNum.Height = 135;
+                btnDont.Visible = true;
+                btnDont.Text = "New Not in Game";
+                btnCancel.Left = 382;
+                if (ResType == AGIResType.Logic) {
+                    chkIncludePic.Checked = true;
+                    chkIncludePic.Visible = true;
+                    chkIncludePic.Enabled = false;
+                    chkRoom.Checked = true;
+                    chkRoom.Visible = true;
+                    chkRoom.Enabled = true;
+                    chkRoom.Text = "Include Room Template Code";
+                }
+                else {
+                    chkIncludePic.Visible = false;
+                    chkRoom.Visible = false;
+                }
+                chkOpenRes.Visible = true;
+                chkOpenRes.Checked = WinAGISettings.OpenNew;
+                // nothing is selected
+                lstResNum.SelectedIndex = -1;
+                break;
+            case grRenumber:
+                Width = 244;
+                Text = "Renumber ";
+                switch (ResType) {
+                case AGIResType.Logic:
+                    Text += ResourceName(EditGame.Logics[OldResNum], true, true);
+                    break;
+                case AGIResType.Picture:
+                    Text += ResourceName(EditGame.Pictures[OldResNum], true, true);
+                    break;
+                case AGIResType.Sound:
+                    Text += ResourceName(EditGame.Sounds[OldResNum], true, true);
+                    break;
+                case AGIResType.View:
+                    Text += ResourceName(EditGame.Views[OldResNum], true, true);
+                    break;
+                }
+                lblCurrent.Text = OldResNum.ToString();
+                Label1.Text = "Select a new number for this " + ResType.ToString() + ":";
+                lstResNum.Height = 105;
+                // nothing is selected
+                lstResNum.SelectedIndex = -1;
+                break;
+            case grOpen:
+                Width = 244;
+                Text = "Open " + ResType.ToString();
+                lblCurrent.Visible = false;
+                Label2.Visible = false;
+                Label1.Top = 8;
+                Label1.Text = "Select the " + ResType.ToString() + " to open:";
+                lstResNum.Top = 24;
+                lstResNum.Height = 150;
+                // nothing is selected
+                lstResNum.SelectedIndex = -1;
+                break;
+            case grTestView:
+                Width = 244;
+                Text = "Select Test View";
+                lblCurrent.Visible = false;
+                Label2.Visible = false;
+                Label1.Top = 8;
+                Label1.Text = "Select a view for testing pictures:";
+                lstResNum.Top = 24;
+                lstResNum.Height = 150;
+                // select current test view, if there is one
+                lstResNum.SelectedIndex = -1;
+                for (int i = 0; i < lstResNum.Items.Count; i++) {
+                    if (((ListItemData)lstResNum.Items[i]).ResNum == OldResNum) {
+                        lstResNum.SelectedIndex = i;
+                        break;
+                    }
+                }
+                break;
+            case grAddLayout:
+                Text = "Add New Room";
+                lblCurrent.Visible = false;
+                Label2.Visible = false;
+                Label1.Top = 8;
+                Label1.Text = "Select a number for this new room:";
+                lstResNum.Top = 24;
+                lstResNum.Height = 150;
+                chkIncludePic.Visible = true;
+                chkIncludePic.Checked = true;
+                chkRoom.Visible = true;
+                chkRoom.Checked = true;
+                chkRoom.Enabled = false;
+                // nothing is selected
+                lstResNum.SelectedIndex = -1;
+                break;
+            case grShowRoom:
+                Width = 244;
+                Text = "Show Room";
+                lblCurrent.Visible = false;
+                Label2.Visible = false;
+                Label1.Top = 8;
+                Label1.Text = "Select a room to show:";
+                lstResNum.Top = 24;
+                lstResNum.Height = 150;
+                // nothing is selected
+                lstResNum.SelectedIndex = -1;
+                break;
+            case grMenu:
+                Width = 244;
+                Text = "Extract Menu";
+                lblCurrent.Visible = false;
+                Label2.Visible = false;
+                Label1.Top = 8;
+                Label1.Text = "Select the logic with the game's menu:";
+                lstResNum.Top = 24;
+                lstResNum.Height = 150;
+                // nothing is selected
+                lstResNum.SelectedIndex = -1;
+                break;
+            case grImport:
+                Text = "Import " + ResType.ToString();
+                lblCurrent.Visible = false;
+                Label2.Visible = false;
+                Label1.Top = 8;
+                Label1.Text = "Select a number for this imported " + ResType.ToString() + ":";
+                lstResNum.Top = 24;
+                lstResNum.Height = 135;
+                btnDont.Visible = true;
+                btnCancel.Left = 382;
+                if (ResType == AGIResType.Logic) {
+                    chkIncludePic.Visible = false;
+                    chkRoom.Checked = true;
+                    chkRoom.Visible = true;
+                    chkRoom.Enabled = false;
+                    chkRoom.Top = 156;
+                    chkRoom.Text = "Import as a Room";
+                    txtDescription.Height = 70;
+                }
+                else {
+                    chkIncludePic.Visible = false;
+                    chkRoom.Visible = false;
+                }
+                chkOpenRes.Visible = true;
+                chkOpenRes.Checked = WinAGISettings.OpenNew;
+                // nothing is selected
+                lstResNum.SelectedIndex = -1;
+                break;
+            case grMenuBkgd:
+                Width = 244;
+                Text = "Menu Background";
+                lblCurrent.Text = OldResNum.ToString();
+                lblCurrent.Visible = false;
+                Label2.Visible = false;
+                Label1.Top = 8;
+                Label1.Text = "Select picture to use as background:";
+                lstResNum.Top = 24;
+                lstResNum.Height = 150;
+                // select the current pic
+                lstResNum.SelectedIndex = -1;
+                for (int i = 0; i < lstResNum.Items.Count; i++) {
+                    if (((ListItemData)lstResNum.Items[i]).ResNum == OldResNum) {
+                        lstResNum.SelectedIndex = i;
+                        break;
+                    }
+                }
+                break;
+            case grAddInGame:
+                Text = "Add " + ResType.ToString();
+                lblCurrent.Visible = false;
+                Label2.Visible = false;
+                Label1.Top = 8;
+                Label1.Text = "Select a number for this " + ResType.ToString() + ":";
+                lstResNum.Top = 32;
+                lstResNum.Height = 135;
+                btnDont.Visible = false;
+                btnCancel.Left = 382;
+                // nothing is selected
+                lstResNum.SelectedIndex = -1;
+                break;
+            case grRenumberRoom:
+                Width = 244;
+                Text = "Renumber " + ResourceName(EditGame.Logics[OldResNum], true, true);
+                lblCurrent.Text = OldResNum.ToString();
+                Label1.Text = "New number for this Room:";
+                chkIncludePic.Left = 8;
+                chkIncludePic.Top = 161;
+                chkIncludePic.Visible = true;
+                chkIncludePic.Checked = true;
+                chkIncludePic.Text = "Also renumber room picture";
+                lstResNum.Height = 90;
+                // nothing is selected
+                lstResNum.SelectedIndex = -1;
+                break;
+            }
         }
 
         void tmpForm() {
@@ -508,7 +531,7 @@ namespace WinAGI.Editor {
             case grRenumber or grRenumberRoom:
                 if (OldResNum == NewResNum) {
                     // same as canceling
-                    Canceled = true;
+                    DialogResult = DialogResult.Cancel;
                     Close();
                 }
                 break;
@@ -559,30 +582,35 @@ namespace WinAGI.Editor {
                     // error - show msgbox
                     MessageBox.Show(strErrMsg, "Invalid Resource ID", MessageBoxButtons.OK, MessageBoxIcon.Information); // vbMsgBoxHelpButton, WinAGIHelp, "htm\winagi\Managing Resources.htm#resourceids"
                     // send user back to the form to try again
-                    // txtID.SelStart = 0
-                    // txtID.SelLength = Len(txtID.Text)
-                    // txtID.SetFocus
+                    txtID.Select();
                     return;
                 }
                 else {
                     // OK to exit
-                    Canceled = false;
+                    DialogResult = DialogResult.Cancel;
                 }
                 break;
             default:
                 // ok to close form
-                Canceled = false;
+                DialogResult = DialogResult.Cancel;
                 break;
             }
-            // save the current 'opennew' value
-            WinAGISettingsList.WriteSetting(sGENERAL, "OpenNew", (chkOpenRes.Checked == true));
             // done
             Close();
         }
 
         private void frmGetResourceNum_FormClosed(object sender, FormClosedEventArgs e) {
-           //
-           // 
+            // save the current 'opennew' value
+            WinAGISettingsList.WriteSetting(sGENERAL, "OpenNew", (chkOpenRes.Checked == true));
+        }
+
+        private void lstResNum_SelectedIndexChanged(object sender, EventArgs e) {
+            btnOK.Enabled = lstResNum.SelectedIndex != -1;
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e) {
+            DialogResult = DialogResult.Cancel;
+            Close();
         }
     }
 }

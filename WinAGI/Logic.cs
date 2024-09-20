@@ -84,14 +84,14 @@ namespace WinAGI.Engine {
         public override string ID {
             get => base.ID;
             set {
+                // save old to be able to rename the source file
+                string oldID = base.ID;
                 base.ID = value;
-                if (mInGame) {
+                if (mInGame && oldID != null && oldID.Length > 0) {
                     try {
-                        File.Move(SourceFile, parent.agResDir + base.ID + parent.agSrcFileExt);
+                        File.Move(parent.agResDir + oldID + parent.agSrcFileExt, parent.agResDir + base.ID + parent.agSrcFileExt);
                     }
-                    finally {
-                        SourceFile = parent.agResDir + base.ID + parent.agSrcFileExt;
-                        parent.WriteGameSetting("Logic" + Number, "ID", mResID, "Logics");
+                    catch {
                     }
                 }
             }
@@ -310,15 +310,15 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Initializes a new logic resource when first instantiated. If NewLogic is null, 
         /// a blank logic resource is created. If NewLogic is not null, it is cloned into
-        /// the new picture.
+        /// the new logic.
         /// </summary>
         /// <param name="NewLogic"></param>
         private void InitLogic(Logic NewLogic = null) {
             if (NewLogic is null) {
                 // set default resource data by clearing
+                mLoaded = true;
                 Clear();
-                // set default source
-                mSourceText = "return();" + NEWLINE;
+                mLoaded = false;
                 // to avoid having compile property read true if both values are 0,
                 // set compiledCRC to -1 on initialization
                 CompiledCRC = 0xffffffff;
@@ -649,6 +649,7 @@ namespace WinAGI.Engine {
             catch (Exception) {
                 // force uncompiled state
                 mCompiledCRC = 0xffffffff;
+                // TODO: should this be 'parent' instead of 'compGame'?
                 compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
                 // pass it along
                 throw;
@@ -657,6 +658,7 @@ namespace WinAGI.Engine {
             if (tmpInfo.Type == EventType.etError) {
                 // force uncompiled state
                 mCompiledCRC = 0xffffffff;
+                // TODO: should this be 'parent' instead of 'compGame'?
                 compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
             }
         }

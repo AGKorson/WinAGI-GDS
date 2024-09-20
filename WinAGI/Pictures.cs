@@ -183,12 +183,13 @@ namespace WinAGI.Engine {
             Col.Remove(OldPicture);
             VOLManager.UpdateDirFile(tmpPic, true);
             // adjust ID if it is default
-            if (tmpPic.ID == "Picture" + OldPicture) {
-                strID = strBaseID = "Picture" + NewPicture;
+            if (tmpPic.ID.ToLower() == "picture" + OldPicture) {
+                strID = strBaseID = tmpPic.ID[..7] + NewPicture;
                 while (NotUniqueID(strID, parent)) {
                     strID = strBaseID + "_" + intNextNum;
                     intNextNum++;
                 }
+                tmpPic.ID = strID;
             }
             // add it back with new number
             tmpPic.Number = NewPicture;

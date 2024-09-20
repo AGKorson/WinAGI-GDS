@@ -167,6 +167,23 @@ namespace WinAGI.Engine {
 
             // format the string before writing it
             string strCheck = Value is null ? "\"\"" : FormatValue(Value.ToString());
+            // need at least one line...
+            if (Lines.Count == 0) {
+                // just add the line and exit
+                Lines.Add("#");
+                Lines.Add("");
+                if (Group.Length > 0) {
+                    Lines.Add("[::BEGIN " + Group + "::]");
+                }
+                Lines.Add("[" + Section + "]");
+                Lines.Add("   " + Key + " = " + strCheck);
+                if (Group.Length > 0) {
+                    Lines.Add("[::END " + Group + "::]");
+                }
+                Lines.Add("");
+                //  done
+                return;
+            }
             // if a group is provided, we add new items inside the group;
             // existing items will be left where they are
             int lngGrpStart = -1;
@@ -338,7 +355,7 @@ namespace WinAGI.Engine {
                     }
                     // if not already found, look for key
                     if (!blnFound) {
-                        if (strLine.StartsWith(Key, StringComparison.OrdinalIgnoreCase) && (Mid(strLine, Key.Length + 1, 1) == " " || Mid(strLine, Key.Length + 1, 1) == "=")) {
+                        if (strLine.StartsWith(Key, StringComparison.OrdinalIgnoreCase) && (Mid(strLine, Key.Length, 1) == " " || Mid(strLine, Key.Length, 1) == "=")) {
                             // remove key
                             strLine = strLine[Key.Length..].Trim();
                             if (strLine.Length > 0) {
@@ -820,7 +837,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Retrieves a value from the list of type Color.
+        /// Retrieves a value from the list of type Color. Preferred format is '0xrr, 0xgg, 0xbb'
         /// </summary>
         /// <param name="Section"></param>
         /// <param name="Key"></param>

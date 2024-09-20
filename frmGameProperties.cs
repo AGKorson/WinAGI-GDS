@@ -11,14 +11,15 @@ using WinAGI.Engine;
 using static WinAGI.Editor.Base;
 using static WinAGI.Common.Base;
 using System.IO;
+using System.Diagnostics;
 
 namespace WinAGI.Editor {
     public partial class frmGameProperties : Form {
-        private GameSettingFunction WindowFunction;
-        public string NewPlatformFile;
+        public string NewPlatformFile = "";
         public Encoding NewCodePage;
         public string DisplayDir;
         public bool UseSierraSyntax;
+        public string StartProp = "";
 
         public frmGameProperties(GameSettingFunction mode) {
             InitializeComponent();
@@ -69,12 +70,6 @@ namespace WinAGI.Editor {
 
         private void SetForm(GameSettingFunction mode) {
             switch (mode) {
-            case GameSettingFunction.gsEdit:
-                break;
-            case GameSettingFunction.gsNew:
-                break;
-            }
-            switch (WindowFunction) {
             case GameSettingFunction.gsEdit:
                 // get values from open game
                 txtGameAuthor.Text = EditGame.GameAuthor;
@@ -171,6 +166,7 @@ namespace WinAGI.Editor {
                         break;
                     }
                 }
+                NewCodePage = EditGame.CodePage;
 
                 // sierra syntax option
                 if (EditGame.SierraSyntax) {
@@ -201,10 +197,37 @@ namespace WinAGI.Editor {
                 chkUseReserved.Checked = WinAGISettings.DefUseResDef;
                 // layout editor
                 chkUseLE.Checked = WinAGISettings.DefUseLE;
-
+                // platform- check for autofill platform property
+                if (WinAGISettings.AutoFill) {
+                    switch (WinAGISettings.PlatformType) {
+                    case 1:
+                        // DOSBox
+                        optDosBox.Checked = true;
+                        txtExec.Text = WinAGISettings.DOSExec;
+                        break;
+                    case 2:
+                        // ScummVM
+                        optScummVM.Checked = true;
+                        break;
+                    case 3:
+                        // NAGI
+                        optNAGI.Checked = true;
+                        break;
+                    case 4:
+                        // Other
+                        optOther.Checked = true;
+                        break;
+                    }
+                    txtPlatformFile.Text = WinAGISettings.PlatformFile;
+                    txtOptions.Text = WinAGISettings.PlatformOpts;
+                }
+                //else {
+                //    //defaults are ok
+                //    NewPlatformFile = "";
+                //}
                 // code page starts at default
                 for (int i = 0; i < cmbCodePage.Items.Count; i++) {
-                    if ((int)cmbCodePage.Items[i] == WinAGISettings.DefCP) {
+                    if (int.Parse(((string)cmbCodePage.Items[i])[..3]) == WinAGISettings.DefCP) {
                         cmbCodePage.SelectedIndex = i;
                         break;
                     }
@@ -216,13 +239,11 @@ namespace WinAGI.Editor {
                 Text = "New Game Properties";
                 break;
             }
-
             // disable OK until a change is made
             btnOK.Enabled = false;
         }
 
         private void frmGameProperties_Load(object sender, EventArgs e) {
-
         }
 
         private void chkSierraSyntax_Click(object sender, EventArgs e) {
@@ -647,6 +668,26 @@ namespace WinAGI.Editor {
             txtSrcExt.Text = exttext;
         }
 
+        private void frmGameProperties_VisibleChanged(object sender, EventArgs e) {
+            if (Visible) {
+                if (StartProp.Length > 0) {
+                    try {
+                        tabControl1.SelectedTab.Controls[StartProp].Select();
+                    }
+                    catch (Exception ex) {
+                        // ignore errors
+                        Debug.Assert(false);
+                    }
+                }
+            }
+        }
+
+        private void frmGameProperties_HelpRequested(object sender, HelpEventArgs hlpevent) {
+            string strTopic = @"htm\winagi\Properties.htm" + (string)((Control)sender).Tag;
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
+            hlpevent.Handled = true;
+        }
+
         /*
 Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
 // TODO: add help 
@@ -655,29 +696,29 @@ Dim strTopic As String
 'check for help key
 If Shift = 0 And KeyCode = vbKeyF1 Then
 'help with game properties
-strTopic = "htm\winagi\Properties.htm"
+strTopic = 
 
 Select Case ActiveControl.Name
 Case "cmbVersion"
-strTopic = strTopic & "#intversion"
+  strTopic = strTopic & "#intversion"
 Case "picGameDir", "txtGameDir"
-strTopic = strTopic & "#gamedir"
+  strTopic = strTopic & "#gamedir"
 Case "picPlatformFile", "txtPlatformFile", "txtExec", "txtOptions", "optOther", "optDosBox", "optScummVM", "optNAGI"
-strTopic = strTopic & "#executable"
+  strTopic = strTopic & "#executable"
 Case "txtGameAbout"
-strTopic = strTopic & "#about"
+  strTopic = strTopic & "#about"
 Case "txtGameAuthor"
-strTopic = strTopic & "#author"
+  strTopic = strTopic & "#author"
 Case "txtGameDescription"
-strTopic = strTopic & "#description"
+  strTopic = strTopic & "#description"
 Case "txtGameID"
-strTopic = strTopic & "#gameid"
+  strTopic = strTopic & "#gameid"
 Case "txtGameVersion"
-strTopic = strTopic & "#gameversion"
+  strTopic = strTopic & "#gameversion"
 Case "txtResDir"
-strTopic = strTopic & "#resdir"
+  strTopic = strTopic & "#resdir"
 Case "cmbCodePage"
-strTopic = strTopic & "#codepage"
+  strTopic = strTopic & "#codepage"
 End Select
 
 HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, strTopic
