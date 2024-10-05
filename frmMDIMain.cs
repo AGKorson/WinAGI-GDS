@@ -135,15 +135,6 @@ namespace WinAGI.Editor
             // save pointer to main form
             MDIMain = this;
 
-            // set resource list and property controls to default location
-            //tvwResources.Width = splResource.Panel1.Width;
-            //tvwResources.Height = splResource.Panel1.Height - cmdBack.Height;
-            cmbResType.Width = splResource.Panel1.Width;
-            lstResources.Width = splResource.Panel1.Width;
-            lstResources.Height = splResource.Panel1.Height - cmdBack.Height - cmbResType.Height;
-            //picProperties.Width = splResource.Panel2.Width;
-            //picProperties.Height = splResource.Panel2.Height;
-            //fsbProperty.Height = splResource.Panel2.Height;
         }
 
         internal void GameEvents_CompileGameStatus(object sender, CompileGameEventArgs e) {
@@ -178,10 +169,13 @@ namespace WinAGI.Editor
                 }
                 break;
             case etError:
-                break;
-            case etWarning:
-                // add to warning list
                 bgwNewGame.ReportProgress(1, e.NewInfo);
+                break;
+            case etResWarning:
+                bgwNewGame.ReportProgress(1, e.NewInfo);
+                break;
+            case etDecompWarning:
+                bgwNewGame.ReportProgress(3, e.NewInfo);
                 break;
             case etTODO:
                 // add to warning list
@@ -238,8 +232,21 @@ namespace WinAGI.Editor
                 }
                 break;
             case etError:
+                bgwOpenGame.ReportProgress(0, $"Load Error: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
+                // add to error list
+                bgwOpenGame.ReportProgress(1, e.LoadInfo);
                 break;
-            case etWarning:
+            case etResWarning:
+                bgwOpenGame.ReportProgress(0, $"Load Warning: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
+                // add to warning list
+                bgwOpenGame.ReportProgress(1, e.LoadInfo);
+                break;
+            case etCompWarning:
+                bgwOpenGame.ReportProgress(0, $"Load Warning: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
+                // add to warning list
+                bgwOpenGame.ReportProgress(1, e.LoadInfo);
+                break;
+            case etDecompWarning:
                 bgwOpenGame.ReportProgress(0, $"Load Warning: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
                 // add to warning list
                 bgwOpenGame.ReportProgress(1, e.LoadInfo);
@@ -260,45 +267,47 @@ namespace WinAGI.Editor
             Debug.Print($"decode it: {e.DecodeInfo.Text}");
             bgwOpenGame?.ReportProgress(2, e.DecodeInfo);
         }
-        
-        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
 
-        }
-        private void toolStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e) {
-
-        }
         private void btnOpenGame_Click(object sender, EventArgs e) {
             // open a game!
             OpenWAGFile();
         }
+
         private void mnuWCascade_Click(object sender, EventArgs e) {
             LayoutMdi(MdiLayout.Cascade);
         }
+
         private void mnuWArrange_Click(object sender, EventArgs e) {
             LayoutMdi(MdiLayout.ArrangeIcons);
         }
+
         private void mnuWTileH_Click(object sender, EventArgs e) {
             LayoutMdi(MdiLayout.TileHorizontal);
         }
+
         private void mnuWTileV_Click(object sender, EventArgs e) {
             LayoutMdi(MdiLayout.TileVertical);
         }
+
         private void mnuWMinimize_Click(object sender, EventArgs e) {
             foreach (Form childForm in MdiChildren) {
                 childForm.WindowState = FormWindowState.Minimized;
             }
         }
+
         private void mnuWClose_Click(object sender, EventArgs e) {
             // only close if window is close-able
             if (ActiveMdiChild != PreviewWin) {
                 ActiveMdiChild.Close();
             }
         }
+
         private void mnuWindow_DropDownOpening(object sender, EventArgs e) {
             // disable the close item if no windows or if active window is preview
             mnuWClose.Enabled = (MdiChildren.Length != 0) && (ActiveMdiChild != PreviewWin) && (ActiveMdiChild != null);
 
         }
+
         private void frmMDIMain_Load(object sender, EventArgs e) {
             bool blnLastLoad;
 
@@ -326,6 +335,12 @@ namespace WinAGI.Editor
             btnOpenRes.DefaultItem = btnOpenLogic;
             btnImportRes.DefaultItem = btnImportLogic;
 
+            // set up context menus for the resource tree/listbox
+            tvwResources.ContextMenuStrip = new();
+            lstResources.ContextMenuStrip = new();
+            tvwResources.ContextMenuStrip.Opening += mnuResources_DropDownOpening;
+            lstResources.ContextMenuStrip.Opening += mnuResources_DropDownOpening;
+
             //set preview window, status bar and other dialog objects
             PreviewWin = new frmPreview {
                 MdiParent = MDIMain
@@ -337,22 +352,20 @@ namespace WinAGI.Editor
             //        WordsClipboard = new WordsUndo();
             FindingForm = new frmFind();
 
-            //hide resource and warning panels until needed
+            // hide resource and warning panels until needed
             pnlResources.Visible = false;
             pnlWarnings.Visible = false;
-            //set property window split location based on longest word
+            ////set property window split location based on longest word
             Size szText = TextRenderer.MeasureText(" Use Res Names ", propertyGrid1.Font);
-            PropSplitLoc = szText.Width;
             // set height based on text (assume padding of four? pixels above/below)
             PropRowHeight = szText.Height + 7;
             MAX_PROPGRID_HEIGHT = 11 * PropRowHeight;
-            ////set initial position of property panel
-            splResource.SplitterIncrement = PropRowHeight;
+            // set initial position of property panel
             splResource.Panel2MinSize = 3 * PropRowHeight;
             splResource.SplitterDistance = splResource.Height - splResource.Margin.Top - splResource.Margin.Bottom - splResource.SplitterWidth - 7 * PropRowHeight;
             // set grid row height
             fgWarnings.RowTemplate.Height = szText.Height + 2;
-            //background color for previewing views is set to default
+            // background color for previewing views is set to default
             PrevWinBColor = SystemColors.Control;
 
             // initialize the basic app functionality
@@ -387,6 +400,16 @@ namespace WinAGI.Editor
             tmrNavList.Interval = 1750;
             tmrNavList.Enabled = true;
 
+            // move resource menu items to appropriate context menu
+            switch (WinAGISettings.ResListType) {
+            case agiSettings.EResListType.TreeList:
+                tvwResources.ContextMenuStrip.Items.AddRange([mnuRNew, mnuROpen, mnuRImport, mnuRSeparator1, mnuROpenRes, mnuRSave, mnuRExport, mnuRSeparator2, mnuRAddRemove, mnuRRenumber, mnuRIDDesc, mnuRSeparator3, mnuRCompileLogic, mnuRSavePicImage, mnuRExportGIF]);
+                break;
+            case agiSettings.EResListType.ComboList:
+                lstResources.ContextMenuStrip.Items.AddRange([mnuRNew, mnuROpen, mnuRImport, mnuRSeparator1, mnuROpenRes, mnuRSave, mnuRExport, mnuRSeparator2, mnuRAddRemove, mnuRRenumber, mnuRIDDesc, mnuRSeparator3, mnuRCompileLogic, mnuRSavePicImage, mnuRExportGIF]);
+                break;
+            }
+
             LogicEditors = [];
             ViewEditors = [];
             PictureEditors = [];
@@ -414,7 +437,7 @@ namespace WinAGI.Editor
             NLRowHeight = szText.Height + 2;
             picNavList.Height = NLRowHeight * 5;
             picNavList.Top = (cmdBack.Top + cmdBack.Height / 2) - picNavList.Height / 2;
-            //retrieve user's preferred AGI colors
+            // retrieve user's preferred AGI colors
             GetDefaultColors();
 
             // let the system catch up
@@ -468,7 +491,7 @@ namespace WinAGI.Editor
             NewPicture();
         }
         private void btnOjects_Click(object sender, EventArgs e) {
-            //let's test object list
+            // let's test object list
         }
         private void btnWords_Click(object sender, EventArgs e) {
             // now let's test words
@@ -686,7 +709,7 @@ namespace WinAGI.Editor
                     EditGame.Pictures[SelResNum].Unload();
                     break;
                 case AGIResType.Sound:
-                    EditGame.Sounds[SelResNum].Unload();
+                    EditGame.Sounds[SelResNum]?.Unload();
                     break;
                 case AGIResType.View:
                     EditGame.Views[SelResNum].Unload();
@@ -1019,7 +1042,7 @@ namespace WinAGI.Editor
             WinAGISettings.ShowPreview = WinAGISettingsList.GetSetting(sGENERAL, "ShowPreview", DEFAULT_SHOWPREVIEW);
             WinAGISettings.ShiftPreview = WinAGISettingsList.GetSetting(sGENERAL, "ShiftPreview", DEFAULT_SHIFTPREVIEW);
             WinAGISettings.HidePreview = WinAGISettingsList.GetSetting(sGENERAL, "HidePreview", DEFAULT_HIDEPREVIEW);
-            WinAGISettings.ResListType = (agiSettings.EResListType)WinAGISettingsList.GetSetting(sGENERAL, "ResListType", (int)DEFAULT_RESLISTTYPE);
+            WinAGISettings.ResListType = (agiSettings.EResListType)WinAGISettingsList.GetSetting(sGENERAL, "ResListType", (int)DEFAULT_RESLISTTYPE, typeof(agiSettings.EResListType));
             //validate treetype
             if (WinAGISettings.ResListType < 0 || (int)WinAGISettings.ResListType > 2) {
                 //use default
@@ -1088,8 +1111,8 @@ namespace WinAGI.Editor
             //GLOBAL EDITOR
             WinAGISettings.GlobalUndo = WinAGISettingsList.GetSetting("Globals", "GlobalUndo", DEFAULT_GLBUNDO);
             WinAGISettings.GEShowComment = WinAGISettingsList.GetSetting("Globals", "ShowCommentColumn", DEFAULT_GESHOWCMT);
-            WinAGISettings.GENameFrac = WinAGISettingsList.GetSetting("Globals", "GENameFrac", 0);
-            WinAGISettings.GEValFrac = WinAGISettingsList.GetSetting("Globals", "GEValFrac", 0);
+            WinAGISettings.GENameFrac = WinAGISettingsList.GetSetting("Globals", "GENameFrac", (double)0);
+            WinAGISettings.GEValFrac = WinAGISettingsList.GetSetting("Globals", "GEValFrac", (double)0);
 
             //get overrides of reserved defines, if there are any
             GetResDefOverrides();
@@ -1186,7 +1209,7 @@ namespace WinAGI.Editor
                 WinAGISettings.WarnMsgs = 0;
             if (WinAGISettings.WarnMsgs > 2)
                 WinAGISettings.WarnMsgs = 2;
-            LogicCompiler.ErrorLevel = (LogicErrorLevel)WinAGISettingsList.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL);
+            LogicCompiler.ErrorLevel = (LogicErrorLevel)WinAGISettingsList.GetSetting(sLOGICS, "ErrorLevel", (int)DEFAULT_ERRORLEVEL, typeof(LogicErrorLevel));
             if (LogicCompiler.ErrorLevel < 0)
                 LogicCompiler.ErrorLevel = LogicErrorLevel.Low;
             if ((int)LogicCompiler.ErrorLevel > 2)
@@ -1227,7 +1250,7 @@ namespace WinAGI.Editor
                 WinAGISettings.PicUndo = -1;
             WinAGISettings.ShowBands = WinAGISettingsList.GetSetting(sPICTURES, "ShowBands", DEFAULT_SHOWBANDS);
             WinAGISettings.SplitWindow = WinAGISettingsList.GetSetting(sPICTURES, "SplitWindow", DEFAULT_SPLITWINDOW);
-            WinAGISettings.CursorMode = (EPicCursorMode)WinAGISettingsList.GetSetting(sPICTURES, "CursorMode", DEFAULT_CURSORMODE);
+            WinAGISettings.CursorMode = (EPicCursorMode)WinAGISettingsList.GetSetting(sPICTURES, "CursorMode", DEFAULT_CURSORMODE, typeof(EPicCursorMode));
 
             //PICTEST
             //these settings get loaded with each picedit form (and the logic template, which uses
@@ -1689,7 +1712,7 @@ namespace WinAGI.Editor
 
         }
         internal void mnuROLogic_Click(object sender, EventArgs e) {
-            EditGame.Logics[SelResNum].SaveSource();
+            // ;
         }
         internal void mnuROObjects_Click(object sender, EventArgs e) {
 
@@ -1780,6 +1803,16 @@ namespace WinAGI.Editor
             else {
                 // it's a resource
                 SelectResource((AGIResType)e.Node.Parent.Index, (byte)e.Node.Tag);
+                // logics only - it's possible for the source to be edited
+                // outside WinAGI, so always check compiled status
+                if ((AGIResType)e.Node.Parent.Index == AGIResType.Logic) {
+                    if (EditGame.Logics[(byte)e.Node.Tag].Compiled) {
+                        e.Node.ForeColor = Color.Black;
+                    }
+                    else {
+                        e.Node.ForeColor = Color.Red;
+                    }
+                }
             }
             //after selection, force preview window to show and
             //move up, if those settings are active
@@ -1827,101 +1860,157 @@ namespace WinAGI.Editor
         }
 
         public void RemoveSelectedRes() {
+            // removing a preview resource -
+            // depending on selected type, look for an open editor first
+            // if found, use that editor's function; if not found use the
+            // default function
 
-            /*
-        //removes a resource from the game
+            //editor that matches resource being previewed
+            switch (SelResType) {
+            case AGIResType.Logic:
+                //if any logic editor matches this resource
+                foreach (frmLogicEdit frm in LogicEditors) {
+                    if (frm.FormMode == ELogicFormMode.fmLogic) {
+                        if (frm.LogicNumber == SelResNum) {
+                            //use this form's method
+                            frm.MenuClickInGame();
+                            return;
+                        }
+                    }
+                }
+                break;
+            case AGIResType.Picture:
+                //if any Picture editor matches this resource
+                foreach (frmPicEdit frm in PictureEditors) {
+                    if (frm.PicNumber == SelResNum) {
+                        //use this form's method
+                        // TODO: frm.MenuClickInGame();
+                        return;
+                    }
+                }
+                break;
+            case AGIResType.Sound:
+                //if any Sound editor matches this resource
+                foreach (frmSoundEdit frm in SoundEditors) {
+                    if (frm.SoundNumber == SelResNum) {
+                        //use this form's method
+                        // TODO: frm.MenuClickInGame();
+                        return;
+                    }
+                }
+                break;
+            case AGIResType.View:
+                //if any View editor matches this resource
+                foreach (frmViewEdit frm in ViewEditors) {
+                    if (frm.ViewNumber == SelResNum) {
+                        //use this form's method
+                        // TODO: frm.MenuClickInGame();
+                        return;
+                    }
+                }
+                break;
+            default:
+                //words, objects, game or none
+                //InGame does not apply
+                return;
+            }
+            // no open editor; remove it using default process
+            DialogResult rtn;
+            bool blnDontAsk = false, haserror = false;
+            string strID = "";
 
-        Dim rtn As VbMsgBoxResult
-        Dim blnDontAsk As Boolean
-        Dim strID As String
-
-        switch (SelResType
-        case rtLogic
-          strID = Logics(SelResNum).ID
-
-        case rtPicture
-          strID = Pictures(SelResNum).ID
-
-        case rtSound
-          strID = Sounds(SelResNum).ID
-
-        case rtView
-          strID = Views(SelResNum).ID
-
-        default:
-          //Debug.Assert false
-          return;
+            switch (SelResType) {
+            case AGIResType.Logic:
+                strID = EditGame.Logics[SelResNum].ID;
+                haserror = EditGame.Logics[SelResNum].ErrLevel < 0;
+                break;
+            case AGIResType.Picture:
+                strID = EditGame.Pictures[SelResNum].ID;
+                haserror = EditGame.Pictures[SelResNum].ErrLevel < 0;
+                break;
+            case AGIResType.Sound:
+                strID = EditGame.Sounds[SelResNum].ID;
+                haserror = EditGame.Sounds[SelResNum].ErrLevel < 0;
+                break;
+            case AGIResType.View:
+                strID = EditGame.Views[SelResNum].ID;
+                haserror = EditGame.Views[SelResNum].ErrLevel < 0;
+                break;
+            default:
+                Debug.Assert(false);
+                return;
+            }
+            // ask if resource should be exported first
+            // (only if resource has no critical errors)
+            if (WinAGISettings.AskExport && !haserror) {
+                rtn = MsgBoxEx.Show(MDIMain,
+                    "Do you want to export '" + strID + "' before removing it from your game?",
+                    "Export " + SelResType.ToString() + " Before Removal",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question,
+                    "Don't ask this question again", ref blnDontAsk);
+                WinAGISettings.AskExport = !blnDontAsk;
+                if (!WinAGISettings.AskExport) {
+                    // if now hiding, update settings file
+                    WinAGISettingsList.WriteSetting(sGENERAL, "AskExport", WinAGISettings.AskExport);
+                }
+            }
+            else {
+                // dont ask; assume no
+                rtn = DialogResult.No;
+            }
+            switch (rtn) {
+            case DialogResult.Cancel:
+                return;
+            case DialogResult.Yes:
+                // export it
+                // TODO: SelectedItemExport();
+                break;
+            case DialogResult.No:
+                //nothing to do
+                break;
+            }
+            // confirm removal
+            if (WinAGISettings.AskRemove) {
+                blnDontAsk = false;
+                rtn = MsgBoxEx.Show(MDIMain,
+                    "Removing '" + strID + "' from your game.\n\nSelect OK to proceed, or Cancel to keep it in game.",
+                    "Remove " + SelResType.ToString() + " From Game",
+                    MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Question,
+                    "Don't ask this question again", ref blnDontAsk);
+                WinAGISettings.AskRemove = !blnDontAsk;
+                // if now hiding, update settings file
+                if (!WinAGISettings.AskRemove) {
+                    WinAGISettingsList.WriteSetting(sGENERAL, "AskRemove", WinAGISettings.AskRemove);
+                }
+            }
+            else {
+                //assume OK
+                rtn = DialogResult.OK;
+            }
+            if (rtn == DialogResult.Cancel) {
+                return;
+            }
+            // clear warnings for this resource
+            ClearWarnings(0, (byte)SelResNum, SelResType);
+            // now remove it
+            switch (SelResType) {
+            case AGIResType.Logic:
+                RemoveLogic((byte)SelResNum);
+                break;
+            case AGIResType.Picture:
+                RemovePicture((byte)SelResNum);
+                break;
+            case AGIResType.View:
+                RemoveView((byte)SelResNum);
+                break;
+            case AGIResType.Sound:
+                RemoveSound((byte)SelResNum);
+                break;
+            }
         }
 
-        //ask if resource should be exported first
-        if (Settings.AskExport) {
-          rtn = MsgBoxEx("Do you want to export //" + strID + "// before" + vbNewLine + "removing it from your game?", _
-                              vbQuestion + vbYesNoCancel, "Export " + ResTypeName(SelResType) + " Before Removal", , , _
-                              "Don//t ask this question again", blnDontAsk)
-
-          //save the setting
-          Settings.AskExport = !blnDontAsk
-          //if now hiding, update settings file
-          if (!Settings.AskExport) {
-            GameSettings.WriteSetting(sGENERAL, "AskExport", Settings.AskExport
-          }
-        } else {
-          //dont ask; assume no
-          rtn = vbNo
-        }
-
-        //if canceled,
-        switch (rtn
-        case vbCancel
-          return;
-        case vbYes
-          //export it
-          SelectedItemExport
-        case vbNo
-          //nothing to do
-        }
-
-        //confirm removal
-        if (Settings.AskRemove) {
-          rtn = MsgBoxEx("Removing //" + strID + "// from your game." + vbCrLf + vbCrLf + "Select OK to proceed, or Cancel to keep it in game.", _
-                          vbQuestion + vbOKCancel, "Remove " + ResTypeName(SelResType) + " From Game", , , _
-                          "Don//t ask this question again", blnDontAsk)
-
-          //save the setting
-          Settings.AskRemove = !blnDontAsk
-          //if now hiding, update settings file
-          if (!Settings.AskRemove) {
-            GameSettings.WriteSetting(sGENERAL, "AskRemove", Settings.AskRemove
-          }
-        } else {
-          //assume OK
-          rtn = vbOK
-        }
-
-        //if canceled,
-        if (rtn = vbCancel) {
-          return;
-        }
-
-        //now remove the resource
-        switch (SelResType
-        case rtView
-          //remove the view
-          RemoveView SelResNum
-
-        case rtLogic
-          //remove the logic
-          RemoveLogic SelResNum
-
-        case rtPicture
-          //remove the picture
-          RemovePicture SelResNum
-
-        case rtSound
-          //remove the sound
-          RemoveSound SelResNum
-        */
-        }
         public void SearchForID(FindFormFunction ffValue = FindFormFunction.ffFindLogic) {
             //set search form defaults
             switch (SelResType) {
@@ -1959,21 +2048,18 @@ namespace WinAGI.Editor
 
             //////  FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
         }
+
         public void AddWarning(TWinAGIEventInfo warnInfo) {
-            switch (warnInfo.Type) {
-            case etInfo:
-                WarningList.Add(warnInfo);
-                break;
-            case etError:
-                break;
-            case etWarning:
-                WarningList.Add(warnInfo);
-                break;
-            case etTODO:
-                WarningList.Add(warnInfo);
-                break;
-            }
-            // if grid is visible, add the last item
+            // four types of warnings/errors
+            // - resource errors: ErrLevel > 0
+            // - resource warnings: ErrLevel < 0
+            // - logic source errors/warning:  
+            // - TODO entries
+
+            Debug.Assert(warnInfo.Type != etInfo);
+
+            WarningList.Add(warnInfo);
+            // if grid is visible, add the item
             if (MDIMain.pnlWarnings.Visible) {
                 AddWarningToGrid(warnInfo);
             }
@@ -1982,6 +2068,7 @@ namespace WinAGI.Editor
                 ShowWarningList();
             }
         }
+
         public void HideWarningList(bool clearlist = false) {
             if (clearlist) {
                 ClearWarnings();
@@ -2007,6 +2094,10 @@ namespace WinAGI.Editor
         }
         public void AddWarningToGrid(TWinAGIEventInfo warnInfo, bool showit = true) {
             // adds a warning/error/TODO item to the warning grid
+            if (warnInfo.ID == "4001") {
+                //ignore?
+                return;
+            }
             int tmpRow = fgWarnings.Rows.Add(warnInfo.ID,
                          warnInfo.Text,
                          // To avoid runtime errors during sort, all items in a column must be same 
@@ -2015,7 +2106,9 @@ namespace WinAGI.Editor
                          warnInfo.Line,
                          warnInfo.Module.Length > 0 ? Path.GetFileName(warnInfo.Module) : "--");
             // save restype in row data tag
-            fgWarnings.Rows[tmpRow].Tag = warnInfo.ResType.ToString();
+            fgWarnings.Rows[tmpRow].Tag = warnInfo.ResType;
+            // save type in cell[0] tag
+            fgWarnings.Rows[tmpRow].Cells[0].Tag = warnInfo.Type;
             fgWarnings.Rows[tmpRow].Cells[0].ToolTipText = "";
             fgWarnings.Rows[tmpRow].Cells[1].ToolTipText = "";
             fgWarnings.Rows[tmpRow].Cells[2].ToolTipText = "";
@@ -2032,7 +2125,9 @@ namespace WinAGI.Editor
                 // bold, italic
                 fgWarnings.Rows[tmpRow].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold | FontStyle.Italic);
                 break;
-            case etWarning:
+            case etResWarning:
+            case etCompWarning:
+            case etDecompWarning:
                 break;
             }
             // always make it visible
@@ -2314,11 +2409,12 @@ namespace WinAGI.Editor
             // open a game
             OpenWAGFile();
         }
+
         /// <summary>
-        /// Clears the entire warnings list of all entries.
+        /// Clears entire warning/error panel. If mode is 1, TODOs and
+        /// decomp warnings are left in place.
         /// </summary>
         public void ClearWarnings() {
-            // clear entire list
             WarningList.Clear();
             // then clear the grid
             fgWarnings.Rows.Clear();
@@ -2326,23 +2422,46 @@ namespace WinAGI.Editor
 
         /// <summary>
         /// Clears all warnings and errors for the resource specified
-        /// by number and type.
+        /// by number and type. If mode is 1, TODOs and decomp warnings
+        /// are left in place.
         /// </summary>
         /// <param name="ResNum"></param>
         /// <param name="ResType"></param>
-        public void ClearWarnings(byte ResNum, AGIResType ResType) {
+        public void ClearWarnings(int mode, byte ResNum, AGIResType ResType) {
+            // TODO: need to redo warninglist to use its own datatype
+
             //find the matching lines (by type/number)
-            foreach (TWinAGIEventInfo item in WarningList) {
-                if (item.ResNum == ResNum && item.ResType == ResType) {
-                    WarningList.Remove(item);
+            for (int i = WarningList.Count - 1; i >= 0; i--) {
+                if (WarningList[i].ResNum == ResNum && WarningList[i].ResType == ResType) {
+                    if (mode == 1) {
+                        if (ResType == AGIResType.Logic &&
+                           (WarningList[i].Type == EventType.etTODO || WarningList[i].Type == etDecompWarning)) {
+                            continue;
+                        }
+                    }
+                    WarningList.RemoveAt(i);
                 }
-            };
+            }
+
             for (int i = fgWarnings.Rows.Count - 1; i >= 0; i--) {
-                if ((byte)fgWarnings.Rows[i].Cells[4].Value == ResNum && (AGIResType)fgWarnings.Rows[i].Tag == ResType) {
+                string resnum;
+                if (ResType <= AGIResType.View) {
+                    resnum = ResNum.ToString();
+                }
+                else {
+                    resnum = "--";
+                }
+                if (fgWarnings.Rows[i].Cells[2].Value == resnum && (AGIResType)fgWarnings.Rows[i].Tag == ResType) {
+                    if (mode == 1) {
+                        if (ResType == AGIResType.Logic && ((EventType)fgWarnings.Rows[i].Cells[0].Tag == etTODO || (EventType)fgWarnings.Rows[i].Cells[0].Tag == etDecompWarning)) {
+                            continue;
+                        }
+                    }
                     fgWarnings.Rows.RemoveAt(i);
                 }
             }
         }
+
         private void splResource_Panel1_Resize(object sender, EventArgs e) {
             // resize the navigation buttons
             cmdBack.Width = splResource.Width / 2;
@@ -2438,6 +2557,7 @@ namespace WinAGI.Editor
                 break;
             }
             // TODO: does GetNewResID need to return a value, and pass args byref?
+            // I don't think so but...
             GetNewResID(SelResType, SelResNum, ref strID, ref strDesc, true, FirstProp);
             return;
         }
@@ -2554,25 +2674,25 @@ namespace WinAGI.Editor
           //same as clicking on game properties
           mnuGProperties_Click
 
-        case rtLogic
+        case AGIResType.Logic
           //resource header has no action
           if (ResNum >= 0) {
             OpenLogic ResNum
           }
 
-        case rtPicture
+        case AGIResType.Picture
            //resource header has no action
           if (ResNum >= 0) {
             OpenPicture ResNum
           }
 
-        case rtSound
+        case AGIResType.Sound
           //resource header has no action
           if (ResNum >= 0) {
             OpenSound ResNum
           }
 
-        case rtView
+        case AGIResType.View
           //resource header has no action
           if (ResNum >= 0) {
             OpenView ResNum
@@ -2615,7 +2735,7 @@ namespace WinAGI.Editor
           //export all?
           ExportAll
 
-        case rtLogic
+        case AGIResType.Logic
           //first, do source
           if (MessageBox.Show(("Do you want to export the source code for this logic?", vbQuestion + vbYesNo, "Export Logic") = vbYes) {
             //get a filename for the export
@@ -2633,13 +2753,13 @@ namespace WinAGI.Editor
             ExportLogic Logics(SelResNum).Number
           }
 
-        case rtPicture
+        case AGIResType.Picture
           ExportPicture Pictures(SelResNum), true
 
-        case rtSound
+        case AGIResType.Sound
           ExportSound Sounds(SelResNum), true
 
-        case rtView
+        case AGIResType.View
           ExportView Views(SelResNum), true
 
         case rtObjects
@@ -2675,7 +2795,7 @@ namespace WinAGI.Editor
         //is there an open editor for this resource?
         //if so, use that editor//s renumber function
         switch (SelResType
-        case rtLogic
+        case AGIResType.Logic
           //step through logiceditors
           foreach (frm In LogicEditors
             if (frm.LogicNumber = SelResNum) {
@@ -2683,7 +2803,7 @@ namespace WinAGI.Editor
               return;
             }
           Next
-        case rtPicture
+        case AGIResType.Picture
           //step through pictureeditors
           foreach (frm In PictureEditors
             if (frm.PicNumber = SelResNum) {
@@ -2691,7 +2811,7 @@ namespace WinAGI.Editor
               return;
             }
           Next
-        case rtSound
+        case AGIResType.Sound
           //step through soundeditors
           foreach (frm In SoundEditors
             if (frm.SoundNumber = SelResNum) {
@@ -2699,7 +2819,7 @@ namespace WinAGI.Editor
               return;
             }
           Next
-        case rtView
+        case AGIResType.View
           //step through Vieweditors
           foreach (frm In ViewEditors
             if (frm.ViewNumber = SelResNum) {
@@ -2712,7 +2832,7 @@ namespace WinAGI.Editor
         //Debug.Assert SelResNum >= 0 && SelResNum <= 255
 
         //if logic,
-        if (SelResType = rtLogic) {
+        if (SelResType = AGIResType.Logic) {
           //save id
           strOldID = Logics(SelResNum).ID
         }
@@ -2735,7 +2855,7 @@ namespace WinAGI.Editor
         LastNodeName = "";
 
         //if a logic was renumbered
-        if (SelResType = rtLogic) {
+        if (SelResType = AGIResType.Logic) {
           //if ID changed because of renumbering
           if (Logics(SelResNum).ID != strOldID) {
             //if old default file exists
@@ -2914,15 +3034,15 @@ namespace WinAGI.Editor
 
           case csAddResource
             switch (ResType
-            case rtLogic
+            case AGIResType.Logic
               .lblStatus.Caption = "Adding " + ResourceName(Logics(ResNum), true, true)
               SetLogicCompiledStatus ResNum, true
 
-            case rtPicture
+            case AGIResType.Picture
               .lblStatus.Caption = "Adding " + ResourceName(Pictures(ResNum), true, true)
-            case rtSound
+            case AGIResType.Sound
               .lblStatus.Caption = "Adding " + ResourceName(Sounds(ResNum), true, true)
-            case rtView
+            case AGIResType.View
               .lblStatus.Caption = "Adding " + ResourceName(Views(ResNum), true, true)
             }
 
@@ -2950,11 +3070,11 @@ namespace WinAGI.Editor
             .lblStatus.Caption = "Resource warning"
             //need to increment warning counter
             .lblWarnings.Caption = .lblWarnings.Caption + 1
-            if (ResType = rtLogic) {
+            if (ResType = AGIResType.Logic) {
               //need to parse out the warnings
               strWarnings = Split(ErrString, "|")
               For i = 0 To UBound(strWarnings)
-                AddWarning strWarnings(i), rtLogic, ResNum
+                AddWarning strWarnings(i), AGIResType.Logic, ResNum
               Next i
             } else {
               AddWarning ErrString, ResType, ResNum
@@ -2965,13 +3085,13 @@ namespace WinAGI.Editor
             //need to increment error counter, and store this error
             .lblErrors.Caption = .lblErrors.Caption + 1
             switch (ResType
-            case rtLogic
+            case AGIResType.Logic
               strID = ResourceName(Logics(ResNum), true, true)
-            case rtPicture
+            case AGIResType.Picture
               strID = ResourceName(Pictures(ResNum), true, true)
-            case rtSound
+            case AGIResType.Sound
               strID = ResourceName(Sounds(ResNum), true, true)
-            case rtView
+            case AGIResType.View
               strID = ResourceName(Views(ResNum), true, true)
             }
 
@@ -3103,7 +3223,7 @@ namespace WinAGI.Editor
 
           case lsResources
             switch (ResType
-            case rtLogic, rtPicture, rtView, rtSound
+            case AGIResType.Logic, AGIResType.Picture, AGIResType.View, AGIResType.Sound
               .lblProgress.Caption = "Validating Resources: " + ResTypeName(ResType) + " " + ResNum
 
             case rtWords
@@ -3136,7 +3256,7 @@ namespace WinAGI.Editor
 
         //(it's up to compiling function to manage clearing the list
         //prior to compiling a new logic
-        AddWarning Warning, rtLogic, CLng(LogNum)
+        AddWarning Warning, AGIResType.Logic, CLng(LogNum)
 
         //if part of a full game compile, the status form is visible
 
@@ -3196,7 +3316,7 @@ namespace WinAGI.Editor
             //set column width
             lstResources.ColumnHeaders(1).Width = 1.2 * lngWidth
 
-            NewType = rtLogic
+            NewType = AGIResType.Logic
             NewNum = -1
 
           case 2 //pictures
@@ -3216,7 +3336,7 @@ namespace WinAGI.Editor
             //set column width
             lstResources.ColumnHeaders(1).Width = 1.2 * lngWidth
 
-            NewType = rtPicture
+            NewType = AGIResType.Picture
             NewNum = -1
 
           case 3 //sounds
@@ -3236,7 +3356,7 @@ namespace WinAGI.Editor
             //set column width
             lstResources.ColumnHeaders(1).Width = 1.2 * lngWidth
 
-            NewType = rtSound
+            NewType = AGIResType.Sound
             NewNum = -1
 
           case 4 //views
@@ -3256,7 +3376,7 @@ namespace WinAGI.Editor
             //set column width
             lstResources.ColumnHeaders(1).Width = 1.2 * lngWidth
 
-            NewType = rtView
+            NewType = AGIResType.View
             NewNum = -1
 
           case 5 //objects
@@ -3302,12 +3422,12 @@ namespace WinAGI.Editor
 
           //only update menu if no editor is open; if there
           //is an editor open, it will own menus
-          if (ActiveForm = null) {
+          if (ActiveMdiChild = null) {
             switch (SelResType
             case rtGame, rtNone
               AdjustMenus rtGame, true, false, false
 
-            case rtLogic, rtPicture, rtSound, rtView
+            case AGIResType.Logic, AGIResType.Picture, AGIResType.Sound, AGIResType.View
               if (SelResNum = -1) {
                 //resource header
                 AdjustMenus rtNone, true, false, false
@@ -3394,9 +3514,9 @@ namespace WinAGI.Editor
             //if active control is still resource list
             //then an open form may have been clicked
             if (ActiveControl.Name = "lstResources" && !KeepFocus) {
-              if (!ActiveForm = null) {
+              if (!ActiveMdiChild = null) {
                 //reset menus for active form
-                ActiveForm.Activate
+                ActiveMdiChild.Activate
               }
             } else {
               //if focus is staying on the form
@@ -3476,7 +3596,7 @@ namespace WinAGI.Editor
           rtRes = .RowData(lngRow)
 
           //if a logic or text,
-          if (rtRes = rtLogic && rtRes = rtText) {
+          if (rtRes = AGIResType.Logic && rtRes = rtText) {
             strErrMsg = .TextMatrix(.Row, 3)
             lngLogicNo = CLng(.TextMatrix(.Row, 4))
             lngErrLine = CLng(.TextMatrix(.Row, 5))
@@ -3592,7 +3712,7 @@ namespace WinAGI.Editor
             rtRes = .RowData(lngRow)
 
             //can only ignore/dismiss compiler warnings (restype has to be a logic/text)
-            if (rtRes = rtLogic && rtRes = rtText) {
+            if (rtRes = AGIResType.Logic && rtRes = rtText) {
               if (Val(.TextMatrix(.Row, 2)) < 5000) {
                 mnuCWIgnore.Visible = false
                 mnuCWHelp.Caption = "Help with this Error"
@@ -3765,12 +3885,12 @@ namespace WinAGI.Editor
 
           //only update menu if no editor is open; if there
           //is an editor open, it will own menus
-          if (ActiveForm = null) {
+          if (ActiveMdiChild = null) {
             switch (SelResType
             case rtGame, rtNone
               AdjustMenus rtGame, true, false, false
 
-            case rtLogic, rtPicture, rtSound, rtView
+            case AGIResType.Logic, AGIResType.Picture, AGIResType.Sound, AGIResType.View
               if (SelResNum = -1) {
                 //resource header
                 AdjustMenus rtNone, true, false, false
@@ -3823,7 +3943,7 @@ namespace WinAGI.Editor
           case Keys.Delete
             //if a resource is selected
             switch (SelResType
-            case rtLogic, rtPicture, rtSound, rtView
+            case AGIResType.Logic, AGIResType.Picture, AGIResType.Sound, AGIResType.View
               //call remove from game method
               RemoveSelectedRes
               KeyCode = 0
@@ -3846,7 +3966,7 @@ namespace WinAGI.Editor
         } else if ( Shift = vbShiftMask + vbCtrlMask) {
           //Shift+Ctrl//
           if (Settings.ShowPreview) {
-            if (SelResType = rtPicture && KeyCode = Keys.S) {
+            if (SelResType = AGIResType.Picture && KeyCode = Keys.S) {
               //save Image as ...
               frmPreview.MenuClickCustom1
             }
@@ -3855,7 +3975,7 @@ namespace WinAGI.Editor
           switch (KeyCode
           case Keys.F //Ctrl+F (Find)
             switch (SelResType
-            case rtLogic, rtPicture, rtSound, rtView
+            case AGIResType.Logic, AGIResType.Picture, AGIResType.Sound, AGIResType.View
               //find this resid
               SearchForID
             }
@@ -3909,9 +4029,9 @@ namespace WinAGI.Editor
             //if active control is still resource list
             //then an open form may have been clicked
             if (ActiveControl.Name = "lstResources" && !KeepFocus) {
-              if (!ActiveForm = null) {
+              if (!ActiveMdiChild = null) {
                 //reset menus for active form
-                ActiveForm.Activate
+                ActiveMdiChild.Activate
               }
             } else {
               //if focus is staying on the form
@@ -4061,13 +4181,13 @@ namespace WinAGI.Editor
 
         On Error Resume Next
 
-        ActiveForm.MenuClickECustom1
+        ActiveMdiChild.MenuClickECustom1
       }
       void mnuECustom2_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickECustom2
+        ActiveMdiChild.MenuClickECustom2
       }
 
 
@@ -4075,7 +4195,7 @@ namespace WinAGI.Editor
 
         On Error Resume Next
 
-        ActiveForm.MenuClickECustom3
+        ActiveMdiChild.MenuClickECustom3
       }
 
       void mnuEdit_Click()
@@ -4090,7 +4210,7 @@ namespace WinAGI.Editor
 
       //////  On Error GoTo ErrHandler
       //////
-      //////  this.ActiveForm.SetEditMenu
+      //////  this.ActiveMdiChild.SetEditMenu
       //////return;
       //////
       //////ErrHandler:
@@ -4102,14 +4222,14 @@ namespace WinAGI.Editor
 
         On Error Resume Next
 
-        ActiveForm.MenuClickRedo
+        ActiveMdiChild.MenuClickRedo
       }
 
       void mnuEReplace_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickReplace
+        ActiveMdiChild.MenuClickReplace
       }
 
 
@@ -4335,7 +4455,7 @@ namespace WinAGI.Editor
 
         On Error Resume Next
 
-        if (ActiveForm Is PreviewWin) {
+        if (ActiveMdiChild Is PreviewWin) {
           PreviewWin.rtfLogPrev.Selection.Range.Copy
           ReDim GlobalsClipboard(0)
         } else {
@@ -4529,9 +4649,9 @@ namespace WinAGI.Editor
         SnipMode = 1
         frmSnippets.Show vbModal, MDIMain
         //if active form is an editor
-        if (MDIMain.ActiveForm.Name = "frmLogicEdit" && MDIMain.ActiveForm.Name = "frmTextEdit") {
+        if (MDIMain.ActiveMdiChild.Name = "frmLogicEdit" && MDIMain.ActiveMdiChild.Name = "frmTextEdit") {
           //force focus to edit control
-          MDIMain.ActiveForm.rtfLogic.Focus();
+          MDIMain.ActiveMdiChild.rtfLogic.Focus();
         }
       return;
 
@@ -4583,11 +4703,11 @@ namespace WinAGI.Editor
         On Error GoTo ErrHandler
 
         //if no active form
-        if (ActiveForm = null) {
+        if (ActiveMdiChild = null) {
           return;
         }
 
-        switch (ActiveForm.Name
+        switch (ActiveMdiChild.Name
         case "frmPreview"
         case "frmLogicEdit"
           if (Panel.Key = "Status") {
@@ -4608,17 +4728,17 @@ namespace WinAGI.Editor
           case "Scale"
             if (StatusMouseBtn = vbRightButton) {
               //if not at min
-              if (ActiveForm.ScaleFactor > 1) {
-                ActiveForm.ScaleFactor = ActiveForm.ScaleFactor - 1
+              if (ActiveMdiChild.ScaleFactor > 1) {
+                ActiveMdiChild.ScaleFactor = ActiveMdiChild.ScaleFactor - 1
               }
             } else {
               //if not at Max
-              if (ActiveForm.ScaleFactor < 4) {
-                ActiveForm.ScaleFactor = ActiveForm.ScaleFactor + 1
+              if (ActiveMdiChild.ScaleFactor < 4) {
+                ActiveMdiChild.ScaleFactor = ActiveMdiChild.ScaleFactor + 1
               }
             }
             //redraw pictures
-            ActiveForm.ResizePictures
+            ActiveMdiChild.ResizePictures
           case "Anchor"
             With MDIMain
               .mnuLPCopy.Enabled = true
@@ -4640,9 +4760,9 @@ namespace WinAGI.Editor
           switch (Panel.Key
           case "Scale"
             if (StatusMouseBtn = vbRightButton) {
-              ActiveForm.ZoomScale -1
+              ActiveMdiChild.ZoomScale -1
             } else {
-              ActiveForm.ZoomScale 1
+              ActiveMdiChild.ZoomScale 1
             }
           }
 
@@ -4651,10 +4771,10 @@ namespace WinAGI.Editor
           case "Scale"
             if (StatusMouseBtn = vbRightButton) {
               //zoom in
-              ActiveForm.ZoomCel 0
+              ActiveMdiChild.ZoomCel 0
             } else {
               //zoom out
-              ActiveForm.ZoomCel 1
+              ActiveMdiChild.ZoomCel 1
             }
           }
 
@@ -4663,7 +4783,7 @@ namespace WinAGI.Editor
           switch (Panel.Key
           case "Encrypt"
             //toggle encryption
-            ActiveForm.MenuClickCustom3
+            ActiveMdiChild.MenuClickCustom3
           }
 
         case "frmWordsEdit"
@@ -4671,9 +4791,9 @@ namespace WinAGI.Editor
           switch (Panel.Key
           case "Scale"
             if (StatusMouseBtn = vbRightButton) {
-              ActiveForm.ChangeScale 1
+              ActiveMdiChild.ChangeScale 1
             } else {
-              ActiveForm.ChangeScale -1
+              ActiveMdiChild.ChangeScale -1
             }
           }
         }
@@ -4785,7 +4905,7 @@ namespace WinAGI.Editor
 
           //only update menu if no editor is open; if there
           //is an editor open, it will own menus
-          if (ActiveForm = null) {
+          if (ActiveMdiChild = null) {
             //if no node selected, select first node
             if (tvwResources.SelectedItem = null) {
               tvwResources.SelectedItem = tvwResources.Nodes[1)
@@ -4795,7 +4915,7 @@ namespace WinAGI.Editor
             case rtGame
               AdjustMenus rtGame, true, false, false
 
-            case rtLogic, rtPicture, rtSound, rtView
+            case AGIResType.Logic, AGIResType.Picture, AGIResType.Sound, AGIResType.View
               if (SelResNum = -1) {
                 AdjustMenus rtNone, true, false, false
               } else {
@@ -4845,7 +4965,7 @@ namespace WinAGI.Editor
           case Keys.Delete
             //if a resource is selected
             switch (SelResType
-            case rtLogic, rtPicture, rtSound, rtView
+            case AGIResType.Logic, AGIResType.Picture, AGIResType.Sound, AGIResType.View
               //call remove from game method
               RemoveSelectedRes
               KeyCode = 0
@@ -4868,7 +4988,7 @@ namespace WinAGI.Editor
         } else if ( Shift = vbShiftMask + vbCtrlMask) {
           //Shift+Ctrl//
           if (Settings.ShowPreview) {
-            if (SelResType = rtPicture && KeyCode = Keys.S) {
+            if (SelResType = AGIResType.Picture && KeyCode = Keys.S) {
               //save Image as ...
               frmPreview.MenuClickCustom1
             }
@@ -4877,7 +4997,7 @@ namespace WinAGI.Editor
           switch (KeyCode
           case Keys.F //Ctrl+F (Find)
             switch (SelResType
-            case rtLogic, rtPicture, rtSound, rtView
+            case AGIResType.Logic, AGIResType.Picture, AGIResType.Sound, AGIResType.View
               //find this resid
               SearchForID
             }
@@ -4931,9 +5051,9 @@ namespace WinAGI.Editor
             //if active control is still tvwResources
             //then an open form may have been clicked
             if (ActiveControl.Name = "tvwResources" && !KeepFocus) {
-              if (!ActiveForm = null) {
+              if (!ActiveMdiChild = null) {
                 //reset menus for active form
-                ActiveForm.Activate
+                ActiveMdiChild.Activate
               }
             } else {
               //if focus is staying on the form
@@ -5061,21 +5181,21 @@ namespace WinAGI.Editor
 
         On Error Resume Next
 
-        ActiveForm.MenuClickClear
+        ActiveMdiChild.MenuClickClear
       }
 
       void mnuECopy_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickCopy
+        ActiveMdiChild.MenuClickCopy
       }
 
       void mnuECut_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickCut
+        ActiveMdiChild.MenuClickCut
       }
 
 
@@ -5083,42 +5203,42 @@ namespace WinAGI.Editor
 
         On Error Resume Next
 
-        ActiveForm.MenuClickDelete
+        ActiveMdiChild.MenuClickDelete
       }
 
       void mnuEFind_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickFind
+        ActiveMdiChild.MenuClickFind
       }
 
       void mnuEFindAgain_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickFindAgain
+        ActiveMdiChild.MenuClickFindAgain
       }
 
       void mnuEInsert_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickInsert
+        ActiveMdiChild.MenuClickInsert
       }
 
       void mnuEPaste_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickPaste
+        ActiveMdiChild.MenuClickPaste
       }
 
       void mnuESelectAll_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickSelectAll
+        ActiveMdiChild.MenuClickSelectAll
       }
 
       void mnuEUndo_Click()
@@ -5126,7 +5246,7 @@ namespace WinAGI.Editor
 
         On Error Resume Next
 
-        ActiveForm.MenuClickUndo
+        ActiveMdiChild.MenuClickUndo
       }
 
       void mnuGCompile_Click()
@@ -5149,132 +5269,18 @@ namespace WinAGI.Editor
         CompileAGIGame GameDir, true
       }
 
-      void mnuGRun_Click()
-
-        Dim rtn As Long, strParams As String
-        Dim strErrTitle As String, strErrMsg As String, strErrType As String
-
-        On Error GoTo ErrHandler
-
-        //first check for missing platform
-        if (PlatformType = 0) {
-          //notify user and show property dialog
-          MsgBoxEx "You need to select a platform on which to run your game first.", vbOKOnly + vbInformation + vbMsgBoxHelpButton, "No Platform Selected", WinAGIHelp, "htm\winagi\Properties.htm#platform"
-          mnuGProperties_Click
-          //if still no platform
-          if (PlatformType = 0) {
-            //just exit
-            return;
-          }
-        }
-
-        //load selected platform
-        switch (PlatformType
-        case 1 //DosBox
-          //verify target exists?
-          if (Len(Dir(GameDir + DosExec)) = 0) {
-            MsgBoxEx "The DOS executable file //" + DosExec + "// is missing from the" + vbNewLine + "game directory. Aborting DosBox session.", vbCritical + vbOKOnly + vbMsgBoxHelpButton, "Missing DOS Executable File", WinAGIHelp, "htm\winagi\Properties.htm#platform"
-            return;
-          }
-          //dosbox parameters: dosbox gamedir+agi.exe -noautoexec
-          // (need -noautoexec option as mandatory setting to avoid virtual C-drive assignment issues)
-          strParams = Chr$(34) + GameDir + DosExec + Chr$(34) + " -noautoexec " + PlatformOpts
-
-        case 2 //ScummVM
-          //scummvm parameters: --path=gamedir agi
-          strParams = "--path=""" + JustPath(GameDir, true) + """ agi " + PlatformOpts
-
-        case 3 //NAGI
-          //no parameters for nagi; just run the program
-          strParams = ""
-
-        case 4 //other
-          //run with whatever is in Platform and PlatformOpts
-          strParams = PlatformOpts
-
-        }
-
-        //check if any logics are dirty;
-        if (CheckLogics()) {
-          //run the program if check is OK
-          rtn = ShellExecute(this.hWnd, "open", Platform, strParams, JustPath(Platform, true), SW_SHOWNORMAL)
-          if (rtn <= 32) {
-
-            switch (rtn
-            //regular WinExec() codes
-            case 2 //#define SE_ERR_FNF              2       // file not found
-              strErrType = "(File !Found)"
-            case 3 //#define SE_ERR_PNF              3       // path not found
-              strErrType = "(Path !Found)"
-            case 5 //#define SE_ERR_ACCESSDENIED     5       // access denied
-              strErrType = "(Access Denied)"
-            case 8 //#define SE_ERR_OOM              8       // out of memory
-              strErrType = "(Out of Memory)"
-            case 32 //#define SE_ERR_DLLNOTFOUND              32
-              strErrType = "(DLL !Found)"
-            //
-            //error values for ShellExecute() beyond the regular WinExec() codes
-            case 26 //#define SE_ERR_SHARE                    26
-              strErrType = "(Share Violation)"
-            case 27 //#define SE_ERR_ASSOCINCOMPLETE          27
-              strErrType = "(Incomplete Association)"
-            case 28 //#define SE_ERR_DDETIMEOUT               28
-              strErrType = "(DDE Timeout Error)"
-            case 29 //#define SE_ERR_DDEFAIL                  29
-              strErrType = "(DDE Failure)"
-            case 30 //#define SE_ERR_DDEBUSY                  30
-              strErrType = "(DDE Busy Error)"
-            case 31 //#define SE_ERR_NOASSOC                  31
-              strErrType = "(Association !Found)"
-            default:
-              strErrType = "(Unknown Error)"
-            }
-
-            //message also depends on platform type
-            switch (PlatformType
-            case 1 //DosBox
-              strErrTitle = "DosBox Error"
-              strErrMsg = "DosBox"
-
-            case 2 //ScummVM
-              strErrTitle = "ScummVM Error"
-              strErrMsg = "ScummVM"
-
-            case 3 //NAGI
-              strErrTitle = "NAGI Error"
-              strErrMsg = "NAGI"
-
-            case 4 //other
-              strErrTitle = "Run AGI Game Error"
-              strErrMsg = "this program"
-            }
-
-            strErrMsg = "Unable to run " + strErrMsg + " " + strErrType + ". Make sure you" + vbNewLine + _
-                        "have selected the correct executable file, and that any parameters" + vbNewLine + _
-                        "you included are correct."
-
-            MsgBoxEx strErrMsg, vbOKOnly + vbCritical + vbMsgBoxHelpButton, strErrTitle, WinAGIHelp, "htm\winagi\Properties.htm#platform"
-          }
-        }
-      return;
-
-      ErrHandler:
-        //Debug.Assert false
-        Resume Next
-      }
-
       void mnuRCustom1_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickCustom1
+        ActiveMdiChild.MenuClickCustom1
       }
 
       void mnuRCustom2_Click()
 
         On Error Resume Next
 
-        ActiveForm.MenuClickCustom2
+        ActiveMdiChild.MenuClickCustom2
       }
 
 
@@ -5282,7 +5288,7 @@ namespace WinAGI.Editor
 
         On Error Resume Next
 
-        ActiveForm.MenuClickCustom3
+        ActiveMdiChild.MenuClickCustom3
       }
 
 
@@ -5293,20 +5299,20 @@ namespace WinAGI.Editor
         On Error GoTo ErrHandler
 
         //if no form is active
-        if (ActiveForm = null) {
+        if (ActiveMdiChild = null) {
           //can only mean that Settings.ShowPreview is false,
           //AND Settings.ResListType is non-zero, AND no editor window are open
           //use selected item method
           SelectedItemExport
         } else {
           //if active form is preview window OR the mdi form is active
-          if (ActiveForm.Name != "frmPreview") {
+          if (ActiveMdiChild.Name != "frmPreview") {
             //use the active form method
-            ActiveForm.MenuClickExport
+            ActiveMdiChild.MenuClickExport
           } else {
             //check for an open editor that matches resource being previewed
             switch (SelResType
-            case rtLogic
+            case AGIResType.Logic
               //if any logic editor matches this resource
               For i = 1 To LogicEditors.Count
                 if (LogicEditors(i).FormMode = fmLogic) {
@@ -5318,7 +5324,7 @@ namespace WinAGI.Editor
                 }
               Next i
 
-            case rtPicture
+            case AGIResType.Picture
               //if any Picture editor matches this resource
               For i = 1 To PictureEditors.Count
                 if (PictureEditors(i).PicNumber = SelResNum) {
@@ -5328,7 +5334,7 @@ namespace WinAGI.Editor
                 }
               Next i
 
-            case rtSound
+            case AGIResType.Sound
               //if any Sound editor matches this resource
               For i = 1 To SoundEditors.Count
                 if (SoundEditors(i).SoundNumber = SelResNum) {
@@ -5338,7 +5344,7 @@ namespace WinAGI.Editor
                 }
               Next i
 
-            case rtView
+            case AGIResType.View
               //if any View editor matches this resource
               For i = 1 To ViewEditors.Count
                 if (ViewEditors(i).ViewNumber = SelResNum) {
@@ -5401,14 +5407,14 @@ namespace WinAGI.Editor
           DefaultResDir = JustPath(.FileName)
         End With
 
-        if (!ActiveForm = null) {
+        if (!ActiveMdiChild = null) {
           //if a logic editor is currently open AND it is in a game
-          if (ActiveForm.Name = "frmLogicEdit") {
-            if (ActiveForm.InGame) {
+          if (ActiveMdiChild.Name = "frmLogicEdit") {
+            if (ActiveMdiChild.InGame) {
               //ask user if this is supposed to replace the existing logic
               if (MessageBox.Show(("Do you want to replace the logic you are currently editing?", vbYesNo, "Import Logic") = vbYes) {
                 //use the active form//s import function
-                ActiveForm.MenuClickImport
+                ActiveMdiChild.MenuClickImport
                 return;
               }
             }
@@ -5494,7 +5500,7 @@ namespace WinAGI.Editor
 
               //active form is now the Objects Editor
               OEInUse = true
-              ObjectEditor = ActiveForm
+              ObjectEditor = ActiveMdiChild
 
               //set ingame status for this object
               ObjectEditor.InGame = true
@@ -5554,14 +5560,14 @@ namespace WinAGI.Editor
           DefaultResDir = JustPath(.FileName)
         End With
 
-        if (!ActiveForm = null) {
+        if (!ActiveMdiChild = null) {
           //if a picture editor is currently open AND it is in a game
-          if (ActiveForm.Name = "frmPictureEdit") {
-            if (ActiveForm.InGame) {
+          if (ActiveMdiChild.Name = "frmPictureEdit") {
+            if (ActiveMdiChild.InGame) {
               //ask user if this is supposed to replace existing picture
               if (MessageBox.Show(("Do you want to replace the picture you are currently editing?", vbYesNo, "Import Picture") = vbYes) {
                 //use the active form//s import function
-                ActiveForm.MenuClickImport
+                ActiveMdiChild.MenuClickImport
                 return;
               }
             }
@@ -5601,14 +5607,14 @@ namespace WinAGI.Editor
           DefaultResDir = JustPath(.FileName)
         End With
 
-        if (!ActiveForm = null) {
+        if (!ActiveMdiChild = null) {
           //if a sound editor is currently open AND it is in a game
-          if (ActiveForm.Name = "frmSoundEdit") {
-            if (ActiveForm.InGame) {
+          if (ActiveMdiChild.Name = "frmSoundEdit") {
+            if (ActiveMdiChild.InGame) {
               //ask user if this is supposed to replace existing sound
               if (MessageBox.Show(("Do you want to replace the sound you are currently editing?", vbYesNo, "Import Sound") = vbYes) {
                 //use the active form//s import function
-                ActiveForm.MenuClickImport
+                ActiveMdiChild.MenuClickImport
                 return;
               }
             }
@@ -5647,14 +5653,14 @@ namespace WinAGI.Editor
           DefaultResDir = JustPath(.FileName)
         End With
 
-        if (!ActiveForm = null) {
+        if (!ActiveMdiChild = null) {
           //if a view editor is currently open AND it is in a game
-          if (ActiveForm.Name = "frmViewEdit") {
-            if (ActiveForm.InGame) {
+          if (ActiveMdiChild.Name = "frmViewEdit") {
+            if (ActiveMdiChild.InGame) {
               //ask user if this is supposed to replace existing view
               if (MessageBox.Show(("Do you want to replace the view you are currently editing?", vbYesNo, "Import View") = vbYes) {
                 //use the active form//s import function
-                ActiveForm.MenuClickImport
+                ActiveMdiChild.MenuClickImport
                 return;
               }
             }
@@ -5735,7 +5741,7 @@ namespace WinAGI.Editor
 
               //active form is now the word editor
               WEInUse = true
-              WordEditor = ActiveForm
+              WordEditor = ActiveMdiChild
 
               //set ingame status for this word
               WordEditor.InGame = true
@@ -5827,7 +5833,7 @@ namespace WinAGI.Editor
 
             //active form is now the word editor
             OEInUse = true
-            ObjectEditor = ActiveForm
+            ObjectEditor = ActiveMdiChild
 
             //set ingame status for this word
             ObjectEditor.InGame = true
@@ -5916,7 +5922,7 @@ namespace WinAGI.Editor
 
             //active form is now the word editor
             WEInUse = true
-            WordEditor = ActiveForm
+            WordEditor = ActiveMdiChild
 
             //set ingame status for this word
             WordEditor.InGame = true
@@ -5953,7 +5959,7 @@ namespace WinAGI.Editor
         if (GameLoaded) {
           With frmGetResourceNum
             .WindowFunction = grOpen
-            .ResType = rtLogic
+            .ResType = AGIResType.Logic
             //setup before loading so ghosts don't show up
             .FormSetup
             //show the form
@@ -5995,7 +6001,7 @@ namespace WinAGI.Editor
         if (GameLoaded) {
           With frmGetResourceNum
             .WindowFunction = grOpen
-            .ResType = rtPicture
+            .ResType = AGIResType.Picture
             //setup before loading so ghosts don't show up
             .FormSetup
             //show the form
@@ -6024,7 +6030,7 @@ namespace WinAGI.Editor
         if (GameLoaded) {
           With frmGetResourceNum
             .WindowFunction = grOpen
-            .ResType = rtSound
+            .ResType = AGIResType.Sound
             //setup before loading so ghosts don't show up
             .FormSetup
             //show the form
@@ -6095,7 +6101,7 @@ namespace WinAGI.Editor
         if (GameLoaded) {
           With frmGetResourceNum
             .WindowFunction = grOpen
-            .ResType = rtView
+            .ResType = AGIResType.View
             //setup before loading so ghosts don't show up
             .FormSetup
             //show the form
@@ -6137,7 +6143,7 @@ namespace WinAGI.Editor
         On Error GoTo ErrHandler
 
         //if no form is active
-        if (ActiveForm = null) {
+        if (ActiveMdiChild = null) {
           //can only mean that Settings.ShowPreview is false,
           //AND Settings.ResListType is non-zero, AND no editor window are open
           //use selected item method
@@ -6145,14 +6151,14 @@ namespace WinAGI.Editor
         } else {
           //if active form is NOT the preview form
           //if any form other than preview is active
-          if (ActiveForm.Name != "frmPreview") {
+          if (ActiveMdiChild.Name != "frmPreview") {
             //use the active form method
-            ActiveForm.MenuClickRenumber
+            ActiveMdiChild.MenuClickRenumber
           } else {
         //Debug.Assert SelResNum >= 0 && SelResNum <= 255
             //check for an open editor that matches resource being previewed
             switch (SelResType
-            case rtLogic
+            case AGIResType.Logic
               //if any logic editor matches this resource
               For i = 1 To LogicEditors.Count
                 //verify the editor is a logic editor, not a text editor
@@ -6165,7 +6171,7 @@ namespace WinAGI.Editor
                 }
               Next i
 
-            case rtPicture
+            case AGIResType.Picture
               //if any Picture editor matches this resource
               For i = 1 To PictureEditors.Count
                 if (PictureEditors(i).PicNumber = SelResNum && PictureEditors(i).InGame) {
@@ -6175,7 +6181,7 @@ namespace WinAGI.Editor
                 }
               Next i
 
-            case rtSound
+            case AGIResType.Sound
               //if any Sound editor matches this resource
               For i = 1 To SoundEditors.Count
                 if (SoundEditors(i).SoundNumber = SelResNum && SoundEditors(i).InGame) {
@@ -6185,7 +6191,7 @@ namespace WinAGI.Editor
                 }
               Next i
 
-            case rtView
+            case AGIResType.View
               //if any View editor matches this resource
               For i = 1 To ViewEditors.Count
                 if (ViewEditors(i).ViewNumber = SelResNum && ViewEditors(i).InGame) {
@@ -6214,7 +6220,7 @@ namespace WinAGI.Editor
 
         On Error Resume Next
 
-        ActiveForm.MenuClickSave
+        ActiveMdiChild.MenuClickSave
       }
 
       void mnuHAbout_Click()
@@ -6237,8 +6243,8 @@ namespace WinAGI.Editor
       void mnuWiClose_Click()
 
         //make sure this is not preview window
-        if (MDIMain.ActiveForm.Name != "frmPreview") {
-          Unload ActiveForm
+        if (MDIMain.ActiveMdiChild.Name != "frmPreview") {
+          Unload ActiveMdiChild
         }
       }
 
@@ -6307,9 +6313,9 @@ namespace WinAGI.Editor
 
         case "help"
           //if a form is active
-          if (!ActiveForm = null) {
+          if (!ActiveMdiChild = null) {
             On Error Resume Next
-            ActiveForm.MenuClickHelp
+            ActiveMdiChild.MenuClickHelp
             if (Err.Number != 0) {
             //Debug.Assert false
               mnuHContents_Click
@@ -6585,6 +6591,9 @@ namespace WinAGI.Editor
             CompileLogicStatus -= MDIMain.GameEvents_CompileLogicStatus;
             DecodeLogicStatus -= MDIMain.GameEvents_DecodeLogicStatus;
 
+            tvwResources.ContextMenuStrip.Opening -= mnuResources_DropDownOpening;
+            lstResources.ContextMenuStrip.Opening -= mnuResources_DropDownOpening;
+
             // drop the global reference
             MDIMain = null;
         }
@@ -6605,32 +6614,46 @@ namespace WinAGI.Editor
 
         private void mnuTSettings_Click(object sender, EventArgs e) {
             // temp code for dev purposes
+
+
             WinAGISettings.ResListType++;
+            // move resource menu items to appropriate context menu
+            switch (WinAGISettings.ResListType) {
+            case agiSettings.EResListType.TreeList:
+                tvwResources.ContextMenuStrip.Items.AddRange([mnuRNew, mnuROpen, mnuRImport, mnuRSeparator1, mnuROpenRes, mnuRSave, mnuRExport, mnuRSeparator2, mnuRAddRemove, mnuRRenumber, mnuRIDDesc, mnuRSeparator3, mnuRCompileLogic, mnuRSavePicImage, mnuRExportGIF]);
+                break;
+            case agiSettings.EResListType.ComboList:
+                lstResources.ContextMenuStrip.Items.AddRange([mnuRNew, mnuROpen, mnuRImport, mnuRSeparator1, mnuROpenRes, mnuRSave, mnuRExport, mnuRSeparator2, mnuRAddRemove, mnuRRenumber, mnuRIDDesc, mnuRSeparator3, mnuRCompileLogic, mnuRSavePicImage, mnuRExportGIF]);
+                break;
+            }
+
             if (WinAGISettings.ResListType == (agiSettings.EResListType)3) {
                 WinAGISettings.ResListType = agiSettings.EResListType.None;
             };
-            // force refresh of type
-            switch (WinAGISettings.ResListType) {
-            case agiSettings.EResListType.None:
-                if (splResource.Visible) {
-                    MDIMain.HideResTree();
+            if (EditGame != null) {
+                // force refresh of type
+                switch (WinAGISettings.ResListType) {
+                case agiSettings.EResListType.None:
+                    if (splResource.Visible) {
+                        MDIMain.HideResTree();
+                    }
+                    if (WinAGISettings.ShowPreview) {
+                        PreviewWin.Visible = false;
+                    }
+                    break;
+                default:
+                    if (splResource.Visible) {
+                        // reset to root, then switch
+                        SelResType = Game;
+                        SelResNum = -1;
+                        BuildResourceTree();
+                    }
+                    ShowResTree();
+                    if (WinAGISettings.ShowPreview) {
+                        PreviewWin.Visible = true;
+                    }
+                    break;
                 }
-                if (WinAGISettings.ShowPreview) {
-                    PreviewWin.Visible = false;
-                }
-                break;
-            default:
-                if (splResource.Visible) {
-                    // reset to root, then switch
-                    SelResType = Game;
-                    SelResNum = -1;
-                    BuildResourceTree();
-                }
-                ShowResTree();
-                if (WinAGISettings.ShowPreview) {
-                    PreviewWin.Visible = true;
-                }
-                break;
             }
         }
 
@@ -6671,10 +6694,33 @@ namespace WinAGI.Editor
 
         }
 
+        /*
         private void cmsResources_Opening(object sender, CancelEventArgs e) {
+            // TODO: need to account for resource errors
             string resType;
             byte resNum;
             // set up context menu
+            if (EditGame == null) {
+                cmiImport.Enabled = false;
+                cmiOpenRes.Visible = false;
+                cmiSave.Visible = true;
+                cmiSave.Text = "Save Resource";
+                cmiSave.Enabled = false;
+                cmiExport.Visible = false;
+                cmiAddRemove.Visible = true;
+                cmiAddRemove.Text = "Add to Game";
+                cmiAddRemove.Enabled = false;
+                cmiRenumber.Visible = true;
+                cmiRenumber.Text = "Renumber Resource";
+                cmiRenumber.Enabled = false;
+                cmiIDDesc.Visible = false;
+                cmiSeparator3.Visible = false;
+                cmiCompileLogic.Visible = false;
+                cmiSavePicImage.Visible = false;
+                cmiExportGIF.Visible = false;
+                return;
+            }
+
             switch (WinAGISettings.ResListType) {
             case agiSettings.EResListType.TreeList:
                 switch (tvwResources.SelectedNode.Level) {
@@ -6683,21 +6729,21 @@ namespace WinAGI.Editor
                     cmiNew.Enabled = true;
                     cmiOpen.Enabled = true;
                     cmiImport.Enabled = true;
-                    cmiSeparator0.Visible = true;
-                    cmiOpenResource.Visible = false;
-                    cmiSaveResource.Visible = true;
-                    cmiSaveResource.Text = "Save Resource";
-                    cmiSaveResource.Enabled = false;
-                    cmiExportResource.Visible = false;
+                    cmiSeparator1.Visible = true;
+                    cmiOpenRes.Visible = false;
+                    cmiSave.Visible = true;
+                    cmiSave.Text = "Save Resource";
+                    cmiSave.Enabled = false;
+                    cmiExport.Visible = false;
                     cmiAddRemove.Visible = true;
                     cmiAddRemove.Text = "Add to Game";
                     cmiAddRemove.Enabled = false;
                     cmiRenumber.Visible = true;
                     cmiRenumber.Enabled = false;
-                    cmiSeparator2.Visible = false;
+                    cmiSeparator3.Visible = false;
                     cmiCompileLogic.Visible = false;
-                    cmiExportPicImage.Visible = false;
-                    cmiExportLoopGIF.Visible = false;
+                    cmiSavePicImage.Visible = false;
+                    cmiExportGIF.Visible = false;
                     break;
                 case 1:
                     // resource header/object/words.tok
@@ -6709,79 +6755,79 @@ namespace WinAGI.Editor
                         cmiOpen.Enabled = true;
                         cmiImport.Visible = true;
                         cmiImport.Enabled = true;
-                        cmiSeparator0.Visible = true;
-                        cmiOpenResource.Visible = false;
-                        cmiSaveResource.Visible = true;
-                        cmiSaveResource.Text = "Save Resource";
-                        cmiSaveResource.Enabled = false;
-                        cmiExportResource.Visible = false;
+                        cmiSeparator1.Visible = true;
+                        cmiOpenRes.Visible = false;
+                        cmiSave.Visible = true;
+                        cmiSave.Text = "Save Resource";
+                        cmiSave.Enabled = false;
+                        cmiExport.Visible = false;
                         cmiAddRemove.Visible = true;
                         cmiAddRemove.Text = "Add to Game";
                         cmiAddRemove.Enabled = false;
                         cmiRenumber.Visible = true;
                         cmiRenumber.Text = "Renumber Resource";
                         cmiRenumber.Enabled = false;
-                        cmiID.Visible = false;
+                        cmiIDDesc.Visible = false;
                         cmiCompileLogic.Visible = false;
                         if (tvwResources.SelectedNode.Index == (int)AGIResType.Picture) {
-                            cmiSeparator2.Visible = true;
-                            cmiExportPicImage.Visible = true;
-                            cmiExportPicImage.Text = "Export All Picture Images...";
-                            cmiExportPicImage.Enabled = true;
+                            cmiSeparator3.Visible = true;
+                            cmiSavePicImage.Visible = true;
+                            cmiSavePicImage.Text = "Export All Picture Images...";
+                            cmiSavePicImage.Enabled = true;
                         }
                         else {
-                            cmiSeparator2.Visible = false;
-                            cmiExportPicImage.Visible = false;
+                            cmiSeparator3.Visible = false;
+                            cmiSavePicImage.Visible = false;
                         }
-                        cmiExportLoopGIF.Visible = false;
+                        cmiExportGIF.Visible = false;
                         break;
                     case 4:
                         // OBJECT
                         cmiNew.Visible = false;
                         cmiOpen.Visible = false;
                         cmiImport.Visible = false;
-                        cmiSeparator0.Visible = false;
-                        cmiOpenResource.Text = "Open OBJECT file";
-                        cmiOpenResource.Visible = true;
-                        cmiSaveResource.Visible = true;
-                        cmiSaveResource.Text = "Save OBJECT file";
-                        cmiSaveResource.Enabled = false;
-                        cmiExportResource.Visible = true;
-                        cmiExportResource.Text = "Export OBJECT file";
-                        cmiExportResource.Enabled = true;
+                        cmiSeparator1.Visible = false;
+                        cmiOpenRes.Text = "Open OBJECT file";
+                        cmiOpenRes.Visible = true;
+                        cmiSave.Visible = true;
+                        cmiSave.Text = "Save OBJECT file";
+                        cmiSave.Enabled = false;
+                        cmiExport.Visible = true;
+                        cmiExport.Text = "Export OBJECT file";
+                        cmiExport.Enabled = true;
                         cmiAddRemove.Visible = false;
                         cmiRenumber.Visible = false;
-                        cmiID.Visible = true;
-                        cmiID.Text = "Description...";
-                        cmiID.Enabled = true;
-                        cmiSeparator2.Visible = false;
+                        cmiIDDesc.Visible = true;
+                        cmiIDDesc.Text = "Description...";
+                        cmiIDDesc.Enabled = true;
+                        cmiSeparator3.Visible = false;
                         cmiCompileLogic.Visible = false;
-                        cmiExportPicImage.Visible = false;
-                        cmiExportLoopGIF.Visible = false;
+                        cmiSavePicImage.Visible = false;
+                        cmiExportGIF.Visible = false;
                         break;
                     case 5:
                         // WORDS.TOK
                         cmiNew.Visible = false;
                         cmiOpen.Visible = false;
                         cmiImport.Visible = false;
-                        cmiSeparator0.Visible = false;
-                        cmiOpenResource.Text = "Open WORDS.TOK file";
-                        cmiOpenResource.Visible = true;
-                        cmiSaveResource.Visible = true;
-                        cmiSaveResource.Text = "Save WORDS.TOK file";
-                        cmiSaveResource.Enabled = false;
-                        cmiExportResource.Visible = true;
-                        cmiExportResource.Text = "Export WORDS.TOK file";
-                        cmiExportResource.Enabled = true;
+                        cmiSeparator1.Visible = false;
+                        cmiOpenRes.Text = "Open WORDS.TOK file";
+                        cmiOpenRes.Visible = true;
+                        cmiSave.Visible = true;
+                        cmiSave.Text = "Save WORDS.TOK file";
+                        cmiSave.Enabled = false;
+                        cmiExport.Visible = true;
+                        cmiExport.Text = "Export WORDS.TOK file";
+                        cmiExport.Enabled = true;
                         cmiAddRemove.Visible = false;
                         cmiRenumber.Visible = false;
-                        cmiID.Visible = true;
-                        cmiID.Text = "Description...";
-                        cmiID.Enabled = true;
-                        cmiSeparator2.Visible = false;
+                        cmiIDDesc.Visible = true;
+                        cmiIDDesc.Text = "Description...";
+                        cmiIDDesc.Enabled = true;
+                        cmiSeparator3.Visible = false;
                         cmiCompileLogic.Visible = false;
-                        cmiExportPicImage.Visible = false;
-                        cmiExportLoopGIF.Visible = false;
+                        cmiSavePicImage.Visible = false;
+                        cmiExportGIF.Visible = false;
                         break;
                     }
                     break;
@@ -6792,40 +6838,40 @@ namespace WinAGI.Editor
                     cmiNew.Visible = false;
                     cmiOpen.Visible = false;
                     cmiImport.Visible = false;
-                    cmiSeparator0.Visible = false;
-                    cmiOpenResource.Visible = true;
-                    cmiOpenResource.Text = "Open " + resType;
-                    cmiOpenResource.Enabled = true;
-                    cmiSaveResource.Visible = true;
-                    cmiSaveResource.Text = "Save " + resType;
-                    cmiSaveResource.Enabled = false;
-                    cmiExportResource.Visible = true;
-                    cmiExportResource.Text = "Export " + resType;
-                    cmiExportResource.Enabled = true;
+                    cmiSeparator1.Visible = false;
+                    cmiOpenRes.Visible = true;
+                    cmiOpenRes.Text = "Open " + resType;
+                    cmiOpenRes.Enabled = true;
+                    cmiSave.Visible = true;
+                    cmiSave.Text = "Save " + resType;
+                    cmiSave.Enabled = false;
+                    cmiExport.Visible = true;
+                    cmiExport.Text = "Export " + resType;
+                    cmiExport.Enabled = true;
                     cmiAddRemove.Visible = true;
                     cmiAddRemove.Text = "Remove from Game";
                     cmiAddRemove.Enabled = true;
                     cmiRenumber.Visible = true;
                     cmiRenumber.Text = "Renumber " + resType;
                     cmiRenumber.Enabled = true;
-                    cmiID.Visible = true;
-                    cmiID.Text = "ID/Description...";
-                    cmiID.Enabled = true;
-                    cmiExportPicImage.Visible = false;
-                    cmiExportLoopGIF.Visible = false;
+                    cmiIDDesc.Visible = true;
+                    cmiIDDesc.Text = "ID/Description...";
+                    cmiIDDesc.Enabled = true;
+                    cmiSavePicImage.Visible = false;
+                    cmiExportGIF.Visible = false;
                     switch (tvwResources.SelectedNode.Parent.Index) {
                     case 0:
                         // Logic
                         if (EditGame.Logics[resNum].Compiled) {
-                            cmiSeparator2.Visible = false;
+                            cmiSeparator3.Visible = false;
                             cmiCompileLogic.Visible = false;
                         }
                         else {
-                            cmiSeparator2.Visible = true;
+                            cmiSeparator3.Visible = true;
                             cmiCompileLogic.Visible = true;
                         }
-                        cmiExportPicImage.Visible = false;
-                        cmiExportLoopGIF.Visible = false;
+                        cmiSavePicImage.Visible = false;
+                        cmiExportGIF.Visible = false;
                         //// if resource is invalid, override settings
                         //if (EditGame.Logics[resNum].ErrLevel < 0) {
                         //    cmiOpenResource.Enabled = false;
@@ -6837,50 +6883,50 @@ namespace WinAGI.Editor
                         break;
                     case 1:
                         // Picture
-                        cmiSeparator2.Visible = true;
+                        cmiSeparator3.Visible = true;
                         cmiCompileLogic.Visible = false;
-                        cmiExportPicImage.Visible = true;
-                        cmiExportPicImage.Text = "Save Picture Image As...";
-                        cmiExportPicImage.Enabled = true;
+                        cmiSavePicImage.Visible = true;
+                        cmiSavePicImage.Text = "Save Picture Image As...";
+                        cmiSavePicImage.Enabled = true;
                         // if resource is invalid, override settings
                         if (EditGame.Pictures[resNum].ErrLevel < 0) {
-                            cmiOpenResource.Enabled = false;
-                            cmiExportResource.Enabled = false;
+                            cmiOpenRes.Enabled = false;
+                            cmiExport.Enabled = false;
                             cmiRenumber.Enabled = false;
-                            cmiID.Enabled = false;
-                            cmiExportPicImage.Enabled = false;
+                            cmiIDDesc.Enabled = false;
+                            cmiSavePicImage.Enabled = false;
                         }
-                        cmiExportLoopGIF.Visible = false;
+                        cmiExportGIF.Visible = false;
                         break;
                     case 2:
                         // Sound
-                        cmiSeparator2.Visible = false;
+                        cmiSeparator3.Visible = false;
                         cmiCompileLogic.Visible = false;
-                        cmiExportPicImage.Enabled = false;
-                        cmiExportLoopGIF.Visible = false;
+                        cmiSavePicImage.Enabled = false;
+                        cmiExportGIF.Visible = false;
                         // if resource is invalid, override settings
                         if (EditGame.Sounds[resNum].ErrLevel < 0) {
-                            cmiOpenResource.Enabled = false;
-                            cmiExportResource.Enabled = false;
+                            cmiOpenRes.Enabled = false;
+                            cmiExport.Enabled = false;
                             cmiRenumber.Enabled = false;
-                            cmiID.Enabled = false;
+                            cmiIDDesc.Enabled = false;
                         }
                         break;
                     case 3:
                         // View
-                        cmiSeparator2.Visible = true;
+                        cmiSeparator3.Visible = true;
                         cmiCompileLogic.Visible = false;
-                        cmiExportPicImage.Enabled = false;
-                        cmiExportLoopGIF.Visible = true;
-                        cmiExportLoopGIF.Text = "Export Loop As GIF";
-                        cmiExportLoopGIF.Enabled = true;
+                        cmiSavePicImage.Enabled = false;
+                        cmiExportGIF.Visible = true;
+                        cmiExportGIF.Text = "Export Loop As GIF";
+                        cmiExportGIF.Enabled = true;
                         // if resource is invalid, override settings
                         if (EditGame.Views[resNum].ErrLevel < 0) {
-                            cmiOpenResource.Enabled = false;
-                            cmiExportResource.Enabled = false;
+                            cmiOpenRes.Enabled = false;
+                            cmiExport.Enabled = false;
                             cmiRenumber.Enabled = false;
-                            cmiID.Enabled = false;
-                            cmiExportLoopGIF.Enabled = false;
+                            cmiIDDesc.Enabled = false;
+                            cmiExportGIF.Enabled = false;
                         }
                         break;
                     }
@@ -6899,48 +6945,48 @@ namespace WinAGI.Editor
                     cmiNew.Visible = false;
                     cmiOpen.Visible = false;
                     cmiImport.Visible = false;
-                    cmiSeparator0.Visible = false;
-                    cmiOpenResource.Text = "Open OBJECT file";
-                    cmiOpenResource.Visible = true;
-                    cmiSaveResource.Visible = true;
-                    cmiSaveResource.Text = "Save OBJECT file";
-                    cmiSaveResource.Enabled = false;
-                    cmiExportResource.Visible = true;
-                    cmiExportResource.Text = "Export OBJECT file";
-                    cmiExportResource.Enabled = true;
+                    cmiSeparator1.Visible = false;
+                    cmiOpenRes.Text = "Open OBJECT file";
+                    cmiOpenRes.Visible = true;
+                    cmiSave.Visible = true;
+                    cmiSave.Text = "Save OBJECT file";
+                    cmiSave.Enabled = false;
+                    cmiExport.Visible = true;
+                    cmiExport.Text = "Export OBJECT file";
+                    cmiExport.Enabled = true;
                     cmiAddRemove.Visible = false;
                     cmiRenumber.Visible = false;
-                    cmiID.Visible = true;
-                    cmiID.Text = "Description...";
-                    cmiID.Enabled = true;
-                    cmiSeparator2.Visible = false;
+                    cmiIDDesc.Visible = true;
+                    cmiIDDesc.Text = "Description...";
+                    cmiIDDesc.Enabled = true;
+                    cmiSeparator3.Visible = false;
                     cmiCompileLogic.Visible = false;
-                    cmiExportPicImage.Visible = false;
-                    cmiExportLoopGIF.Visible = false;
+                    cmiSavePicImage.Visible = false;
+                    cmiExportGIF.Visible = false;
                     break;
                 case 6:
                     // WORDS.TOK
                     cmiNew.Visible = false;
                     cmiOpen.Visible = false;
                     cmiImport.Visible = false;
-                    cmiSeparator0.Visible = false;
-                    cmiOpenResource.Text = "Open WORDS.TOK file";
-                    cmiOpenResource.Visible = true;
-                    cmiSaveResource.Visible = true;
-                    cmiSaveResource.Text = "Save WORDS.TOK file";
-                    cmiSaveResource.Enabled = false;
-                    cmiExportResource.Visible = true;
-                    cmiExportResource.Text = "Export WORDS.TOK file";
-                    cmiExportResource.Enabled = true;
+                    cmiSeparator1.Visible = false;
+                    cmiOpenRes.Text = "Open WORDS.TOK file";
+                    cmiOpenRes.Visible = true;
+                    cmiSave.Visible = true;
+                    cmiSave.Text = "Save WORDS.TOK file";
+                    cmiSave.Enabled = false;
+                    cmiExport.Visible = true;
+                    cmiExport.Text = "Export WORDS.TOK file";
+                    cmiExport.Enabled = true;
                     cmiAddRemove.Visible = false;
                     cmiRenumber.Visible = false;
-                    cmiID.Visible = true;
-                    cmiID.Text = "Description...";
-                    cmiID.Enabled = true;
-                    cmiSeparator2.Visible = false;
+                    cmiIDDesc.Visible = true;
+                    cmiIDDesc.Text = "Description...";
+                    cmiIDDesc.Enabled = true;
+                    cmiSeparator3.Visible = false;
                     cmiCompileLogic.Visible = false;
-                    cmiExportPicImage.Visible = false;
-                    cmiExportLoopGIF.Visible = false;
+                    cmiSavePicImage.Visible = false;
+                    cmiExportGIF.Visible = false;
                     break;
                 default:
                     // logic/picture/sound/view resource
@@ -6953,37 +6999,37 @@ namespace WinAGI.Editor
                     cmiNew.Visible = false;
                     cmiOpen.Visible = false;
                     cmiImport.Visible = false;
-                    cmiSeparator0.Visible = false;
-                    cmiOpenResource.Text = "Open " + resType;
-                    cmiOpenResource.Visible = true;
-                    cmiSaveResource.Visible = true;
-                    cmiSaveResource.Text = "Save " + resType;
-                    cmiSaveResource.Enabled = false;
-                    cmiExportResource.Visible = true;
-                    cmiExportResource.Text = "Export " + resType;
-                    cmiExportResource.Enabled = true;
+                    cmiSeparator1.Visible = false;
+                    cmiOpenRes.Text = "Open " + resType;
+                    cmiOpenRes.Visible = true;
+                    cmiSave.Visible = true;
+                    cmiSave.Text = "Save " + resType;
+                    cmiSave.Enabled = false;
+                    cmiExport.Visible = true;
+                    cmiExport.Text = "Export " + resType;
+                    cmiExport.Enabled = true;
                     cmiAddRemove.Visible = true;
                     cmiAddRemove.Text = "Remove from Game";
                     cmiAddRemove.Enabled = true;
                     cmiRenumber.Visible = true;
                     cmiRenumber.Text = "Renumber " + resType;
                     cmiRenumber.Enabled = true;
-                    cmiID.Visible = true;
-                    cmiID.Text = "ID/Description...";
-                    cmiID.Enabled = true;
+                    cmiIDDesc.Visible = true;
+                    cmiIDDesc.Text = "ID/Description...";
+                    cmiIDDesc.Enabled = true;
                     switch (cmbResType.SelectedIndex - 1) {
                     case 0:
                         // Logic
                         if (EditGame.Logics[resNum].Compiled) {
-                            cmiSeparator2.Visible = false;
+                            cmiSeparator3.Visible = false;
                             cmiCompileLogic.Visible = false;
                         }
                         else {
-                            cmiSeparator2.Visible = true;
+                            cmiSeparator3.Visible = true;
                             cmiCompileLogic.Visible = true;
                         }
-                        cmiExportPicImage.Visible = false;
-                        cmiExportLoopGIF.Visible = false;
+                        cmiSavePicImage.Visible = false;
+                        cmiExportGIF.Visible = false;
                         //// if resource is invalid, override settings
                         //if (EditGame.Logics[resNum].ErrLevel < 0) {
                         //    cmiOpenResource.Enabled = false;
@@ -6995,50 +7041,50 @@ namespace WinAGI.Editor
                         break;
                     case 1:
                         // Picture
-                        cmiSeparator2.Visible = true;
+                        cmiSeparator3.Visible = true;
                         cmiCompileLogic.Visible = false;
-                        cmiExportPicImage.Visible = true;
-                        cmiExportPicImage.Text = "Save Picture Image As...";
-                        cmiExportPicImage.Enabled = true;
-                        cmiExportLoopGIF.Visible = false;
+                        cmiSavePicImage.Visible = true;
+                        cmiSavePicImage.Text = "Save Picture Image As...";
+                        cmiSavePicImage.Enabled = true;
+                        cmiExportGIF.Visible = false;
                         // if resource is invalid, override settings
                         if (EditGame.Pictures[resNum].ErrLevel < 0) {
-                            cmiOpenResource.Enabled = false;
-                            cmiExportResource.Enabled = false;
+                            cmiOpenRes.Enabled = false;
+                            cmiExport.Enabled = false;
                             cmiRenumber.Enabled = false;
-                            cmiID.Enabled = false;
-                            cmiExportPicImage.Enabled = false;
+                            cmiIDDesc.Enabled = false;
+                            cmiSavePicImage.Enabled = false;
                         }
                         break;
                     case 2:
                         // Sound
-                        cmiSeparator2.Visible = false;
+                        cmiSeparator3.Visible = false;
                         cmiCompileLogic.Visible = false;
-                        cmiExportPicImage.Enabled = false;
-                        cmiExportLoopGIF.Visible = false;
+                        cmiSavePicImage.Enabled = false;
+                        cmiExportGIF.Visible = false;
                         // if resource is invalid, override settings
                         if (EditGame.Sounds[resNum].ErrLevel < 0) {
-                            cmiOpenResource.Enabled = false;
-                            cmiExportResource.Enabled = false;
+                            cmiOpenRes.Enabled = false;
+                            cmiExport.Enabled = false;
                             cmiRenumber.Enabled = false;
-                            cmiID.Enabled = false;
+                            cmiIDDesc.Enabled = false;
                         }
                         break;
                     case 3:
                         // View
-                        cmiSeparator2.Visible = true;
+                        cmiSeparator3.Visible = true;
                         cmiCompileLogic.Visible = false;
-                        cmiExportPicImage.Enabled = false;
-                        cmiExportLoopGIF.Visible = true;
-                        cmiExportLoopGIF.Text = "Export Loop As GIF";
-                        cmiExportLoopGIF.Enabled = true;
+                        cmiSavePicImage.Enabled = false;
+                        cmiExportGIF.Visible = true;
+                        cmiExportGIF.Text = "Export Loop As GIF";
+                        cmiExportGIF.Enabled = true;
                         // if resource is invalid, override settings
                         if (EditGame.Views[resNum].ErrLevel < 0) {
-                            cmiOpenResource.Enabled = false;
-                            cmiExportResource.Enabled = false;
+                            cmiOpenRes.Enabled = false;
+                            cmiExport.Enabled = false;
                             cmiRenumber.Enabled = false;
-                            cmiID.Enabled = false;
-                            cmiExportLoopGIF.Enabled = false;
+                            cmiIDDesc.Enabled = false;
+                            cmiExportGIF.Enabled = false;
                         }
                         break;
                     }
@@ -7047,6 +7093,7 @@ namespace WinAGI.Editor
                 break;
             }
         }
+        */
 
         private void mnuResources_DropDownOpening(object sender, EventArgs e) {
             // open
@@ -7060,7 +7107,9 @@ namespace WinAGI.Editor
             // compile logic
             // export pic image
             // export loop gif
-
+            if (sender.ToString() == "&Resources") {
+                mnuResources.DropDownItems.AddRange([mnuRNew, mnuROpen, mnuRImport, mnuRSeparator1, mnuROpenRes, mnuRSave, mnuRExport, mnuRSeparator2, mnuRAddRemove, mnuRRenumber, mnuRIDDesc, mnuRSeparator3, mnuRCompileLogic, mnuRSavePicImage, mnuRExportGIF]);
+            }
             // TODO: need to account for resource errors
 
             // adjust the menu depending on currently selected resource and game state
@@ -7298,10 +7347,6 @@ namespace WinAGI.Editor
             _ = ToolsEditor.ShowDialog(this);
         }
 
-        private void mnuGRebuild_Click(object sender, EventArgs e) {
-            CompileAGIGame(EditGame.GameDir, true);
-        }
-
         private void mnuGame_DropDownOpening(object sender, EventArgs e) {
             mnuGClose.Enabled = EditGame != null;
             mnuGCompile.Enabled = EditGame != null;
@@ -7326,24 +7371,19 @@ namespace WinAGI.Editor
         }
 
         public void ShowProperties() {
-            ShowProperties(false, 0, "");
+            ShowProperties(false, "General", "");
         }
-        public void ShowProperties(bool EnableOK, int StartTab) {
-            ShowProperties(EnableOK, StartTab, "");
-        }
-        public void ShowProperties(bool EnableOK, int StartTab, string StartProp) {
+
+        public void ShowProperties(bool EnableOK, string StartTab = "", string StartProp = "") {
             // show properties form
             frmGameProperties propForm = new(GameSettingFunction.gsEdit);
             propForm.btnOK.Enabled = EnableOK;
             // check for valid starting tab
-            if (StartTab > 0 && StartTab < 4) {
-                propForm.tabControl1.SelectTab(StartTab);
+            if (StartTab.Length > 0) {
+                propForm.StartTab = StartTab;
             }
             // check for starting control
             if (StartProp.Length > 0) {
-                // TODO: !!!!!!!!!!!!it no work!!!!!!!!!!!!
-
-                // assume caller passes a property that is on the start page
                 propForm.StartProp = StartProp;
             }
             if (propForm.ShowDialog(MDIMain) == DialogResult.Cancel) {
@@ -7351,7 +7391,6 @@ namespace WinAGI.Editor
                 propForm.Dispose();
                 return;
             }
-
             EditGame.GameAuthor = propForm.txtGameAuthor.Text;
             EditGame.GameDescription = propForm.txtGameDescription.Text;
             EditGame.GameAbout = propForm.txtGameAbout.Text;
@@ -7370,8 +7409,7 @@ namespace WinAGI.Editor
                 else if (propForm.optNAGI.Checked) {
                     EditGame.PlatformType = PlatformTypeEnum.NAGI;
                 }
-                else
-                        if (propForm.optOther.Checked) {
+                else if (propForm.optOther.Checked) {
                     EditGame.PlatformType = PlatformTypeEnum.Other;
                 }
             }
@@ -7444,22 +7482,177 @@ namespace WinAGI.Editor
             propForm.Dispose();
         }
 
-        private void cmiRenumber_Click(object sender, EventArgs e) {
-            GetNewNumber(SelResType, (byte)SelResNum);
-        }
-
-        private void propertyGrid1_MouseDoubleClick(object sender, MouseEventArgs e) {
-            MessageBox.Show("dbl-click: ");
-        }
-
         private void mnuGNewTemplate_Click(object sender, EventArgs e) {
-            //create new game using template
+            // create new game using template
             NewAGIGame(true);
         }
 
         private void mnuGNewBlank_Click(object sender, EventArgs e) {
-            //create new blank game
+            // create new blank game
             NewAGIGame(false);
+        }
+
+        private void mnuGCompile_Click(object sender, EventArgs e) {
+            CompileAGIGame(EditGame.GameDir);
+        }
+
+        private void mnuGCompileTo_Click(object sender, EventArgs e) {
+            CompileAGIGame();
+        }
+
+        private void mnuGCompileDirty_Click(object sender, EventArgs e) {
+            CompileDirtyLogics();
+        }
+
+        private void mnuGRebuild_Click(object sender, EventArgs e) {
+            CompileAGIGame(EditGame.GameDir, true);
+        }
+
+        private void mnuRAddRemove_Click(object sender, EventArgs e) {
+            RemoveSelectedRes();
+        }
+
+        private void mnuRIDDesc_Click(object sender, EventArgs e) {
+            SelectedItemDescription(1);
+        }
+
+        private void mnuResources_DropDownClosed(object sender, EventArgs e) {
+            // move the menu items to appropriate context menu
+            switch (WinAGISettings.ResListType) {
+            case agiSettings.EResListType.TreeList:
+                tvwResources.ContextMenuStrip.Items.AddRange([mnuRNew, mnuROpen, mnuRImport, mnuRSeparator1, mnuROpenRes, mnuRSave, mnuRExport, mnuRSeparator2, mnuRAddRemove, mnuRRenumber, mnuRIDDesc, mnuRSeparator3, mnuRCompileLogic, mnuRSavePicImage, mnuRExportGIF]);
+                break;
+            case agiSettings.EResListType.ComboList:
+                lstResources.ContextMenuStrip.Items.AddRange([mnuRNew, mnuROpen, mnuRImport, mnuRSeparator1, mnuROpenRes, mnuRSave, mnuRExport, mnuRSeparator2, mnuRAddRemove, mnuRRenumber, mnuRIDDesc, mnuRSeparator3, mnuRCompileLogic, mnuRSavePicImage, mnuRExportGIF]);
+                break;
+            }
+        }
+
+        private void tvwResources_MouseDown(object sender, MouseEventArgs e) {
+            // force selection to change BEFORE context menu is shown
+            if (e.Button == MouseButtons.Right) {
+                TreeNode node = tvwResources.GetNodeAt(e.X, e.Y);
+                if (node != null) {
+                    tvwResources.SelectedNode = node;
+                }
+            }
+        }
+
+        private void mnuGRun_Click(object sender, EventArgs e) {
+            int rtn;
+            string strParams = "";
+            string strErrTitle = "", strErrMsg = "", strErrType = "";
+            bool failed = false;
+
+            // first check for missing platform
+            if (EditGame.PlatformType == 0) {
+                // notify user and show property dialog
+                MessageBox.Show(MDIMain,
+                    "You need to select a platform on which to run your game first.",
+                    "No Platform Selected",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information,
+                    0, 0,
+                    WinAGIHelp,
+                    "htm\\winagi\\Properties.htm#platform");
+                ShowProperties(false, "Platform");
+                // if still no platform
+                if (EditGame.PlatformType == 0) {
+                    // just exit
+                    return;
+                }
+            }
+            switch (EditGame.PlatformType) {
+            case PlatformTypeEnum.DosBox:
+                // DosBox - verify target exists
+                if (!File.Exists(EditGame.GameDir + EditGame.DOSExec)) {
+                    MessageBox.Show(MDIMain,
+                        "The DOS executable file '" + EditGame.DOSExec + "' is missing from the " +
+                        "game directory. Aborting DosBox session.",
+                        "Missing DOS Executable File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error,
+                        0, 0,
+                        WinAGIHelp,
+                        "htm\\winagi\\Properties.htm#platform");
+                    return;
+                }
+                // dosbox parameters: gamedir+agi.exe -noautoexec
+                //  (need -noautoexec option as mandatory setting to avoid virtual C-drive assignment issues)
+                strParams = '"' + EditGame.GameDir + EditGame.DOSExec + '"' + " -noautoexec " + EditGame.PlatformOpts;
+                break;
+            case PlatformTypeEnum.ScummVM:
+                // scummvm parameters: --p gamedir --auto-detect
+                strParams = "-p \"" + Path.GetDirectoryName(EditGame.GameDir) + "\" --auto-detect " + EditGame.PlatformOpts;
+                break;
+            case PlatformTypeEnum.NAGI:
+                // no parameters for nagi; just run the program
+                break;
+            case PlatformTypeEnum.Other:
+                // run with whatever is in Platform and PlatformOpts
+                strParams = EditGame.PlatformOpts;
+                break;
+            }
+            if (CheckLogics()) {
+                // run the program if check is OK
+                Process runagi = new Process();
+                ProcessStartInfo runparams = new();
+                runparams.FileName = EditGame.Platform;
+                runparams.Arguments = strParams;
+                runparams.ErrorDialog = true;
+                runparams.ErrorDialogParentHandle = this.Handle;
+                //runparams.UseShellExecute = true;
+                runparams.WindowStyle = ProcessWindowStyle.Normal;
+                runparams.WorkingDirectory = EditGame.GameDir;
+                runagi.StartInfo = runparams;
+                try {
+                    failed = !runagi.Start();
+                    runagi.Dispose();
+                    if (failed) {
+                        strErrType = "(process failed to run)";
+                    }
+                }
+                catch (Exception ex) {
+                    failed = true;
+                    strErrType = "(" + ex.Message + ")";
+                }
+
+                if (failed) {
+                    switch (EditGame.PlatformType) {
+                    case PlatformTypeEnum.DosBox:
+                        strErrTitle = "DosBox Error";
+                        strErrMsg = "DosBox ";
+                        break;
+                    case PlatformTypeEnum.ScummVM:
+                        strErrTitle = "ScummVM Error";
+                        strErrMsg = "ScummVM ";
+                        break;
+                    case PlatformTypeEnum.NAGI:
+                        strErrTitle = "NAGI Error";
+                        strErrMsg = "NAGI ";
+                        break;
+                    case PlatformTypeEnum.Other:
+                        strErrTitle = "Run AGI Game Error";
+                        strErrMsg = "this program ";
+                        break;
+                    }
+                    strErrMsg = "Unable to run " + strErrTitle + strErrType + ". Make sure you " +
+                                "have selected the correct executable file, and that any parameters " +
+                                "you included are correct.";
+                    MessageBox.Show(MDIMain,
+                        strErrMsg,
+                        strErrTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Exclamation,
+                        0, 0,
+                        WinAGIHelp,
+                        "htm\\winagi\\Properties.htm#platform");
+                }
+            }
+        }
+
+        private void btnSaveResource_Click(object sender, EventArgs e) {
+
         }
     }
 }

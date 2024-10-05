@@ -16,6 +16,7 @@ using static WinAGI.Editor.Base;
 namespace WinAGI.Editor {
     public partial class frmSoundEdit : Form {
         public int SoundNumber;
+        public Sound EditSound;
         internal bool InGame;
 
         public frmSoundEdit() {
@@ -59,7 +60,7 @@ namespace WinAGI.Editor {
 
         }
 
-        public bool EditSound(Sound ThisSound) {
+        public bool LoadSound(Sound ThisSound) {
             return true;
             /*
         Dim i As Long
@@ -151,7 +152,7 @@ namespace WinAGI.Editor {
                     strID = SoundEdit.ID
                     strDescription = SoundEdit.Description
 
-                    If GetNewResID(rtSound, SoundNumber, strID, strDescription, InGame, FirstProp) Then
+                    If GetNewResID(AGIResType.Sound, SoundNumber, strID, strDescription, InGame, FirstProp) Then
                       'save changes
                       UpdateID strID, strDescription
                     End If
@@ -3023,8 +3024,8 @@ namespace WinAGI.Editor {
           Exit Sub
         End If
 
-        If MainStatusBar.Tag <> CStr(rtSound) Then
-          AdjustMenus rtSound, InGame, True, IsDirty
+        If MainStatusBar.Tag <> CStr(AGIResType.Sound) Then
+          AdjustMenus AGIResType.Sound, InGame, True, IsDirty
         End If
         'update statusbar
         MainStatusBar.Panels("Scale").Text = "Scale: " & CStr(StaffScale)
@@ -3108,7 +3109,7 @@ namespace WinAGI.Editor {
           Exit Sub
         End If
 
-        '*'Debug.Assert frmMDIMain.ActiveForm Is Me
+        '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
 
         'local copy of key
         intKey = KeyAscii
@@ -3347,7 +3348,7 @@ namespace WinAGI.Editor {
 
       Private Sub picDuration_DblClick()
 
-        '*'Debug.Assert frmMDIMain.ActiveForm Is Me
+        '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
         'if double-clicking on volume icon
         If mX >= 12 And mX <= 22 And mY < 18 Then
           'toggle mute
@@ -3369,7 +3370,7 @@ namespace WinAGI.Editor {
       Private Sub picDuration_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
 
         'check for change in volume control
-        '*'Debug.Assert frmMDIMain.ActiveForm Is Me
+        '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
 
         'if above volume control edge
         If Y < 18 And Not blnMute Then
@@ -3658,7 +3659,7 @@ namespace WinAGI.Editor {
         On Error GoTo ErrHandler
 
         ' this should never happen, but just in case
-        If Not frmMDIMain.ActiveForm Is Me Then
+        If Not frmMDIMain.ActiveMdiChild Is Me Then
           Exit Sub
         End If
 
@@ -4833,9 +4834,12 @@ namespace WinAGI.Editor {
         'implemented by frmMDIMain
 
       End Sub
+*/
+        }
 
-      Public Sub MenuClickSave()
-        'save this resource
+        public void MenuClickSave() {
+            /*
+            'save this resource
 
         Dim rtn As VbMsgBoxResult
         Dim i As Long
@@ -4869,7 +4873,7 @@ namespace WinAGI.Editor {
           End If
 
           'update preview and properties
-          UpdateSelection rtSound, SoundNumber, umPreview Or umProperty
+          UpdateSelection AGIResType.Sound, SoundNumber, umPreview Or umProperty
 
           'if autoexporting,
           If Settings.AutoExport Then
@@ -4916,14 +4920,11 @@ namespace WinAGI.Editor {
         '*'Debug.Assert False
         Resume Next
       End Sub
-      Public Sub MenuClickPrint()
+            */
+        }
 
-        'show sound printing form
-        Load frmPrint
-        frmPrint.SetMode rtSound, SoundEdit, , InGame
-        frmPrint.Show vbModal, frmMDIMain
-      End Sub
-
+        void sndfrmcode() {
+            /*
       Public Sub MenuClickExport()
 
         Dim strFileName As String
@@ -5110,7 +5111,7 @@ namespace WinAGI.Editor {
 
           'show add resource form
           With frmGetResourceNum
-            .ResType = rtSound
+            .ResType = AGIResType.Sound
             .WindowFunction = grAddInGame
             'setup before loading so ghosts don't show up
             .FormSetup
@@ -5166,7 +5167,7 @@ namespace WinAGI.Editor {
         End If
 
         'get new number
-        NewResNum = RenumberResource(SoundNumber, rtSound)
+        NewResNum = RenumberResource(SoundNumber, AGIResType.Sound)
 
         'if changed,
         If NewResNum <> SoundNumber Then
@@ -5592,7 +5593,7 @@ namespace WinAGI.Editor {
           Form_Resize
         End If
 
-        AdjustMenus rtSound, InGame, True, IsDirty
+        AdjustMenus AGIResType.Sound, InGame, True, IsDirty
         SetEditMenu
 
         'if findform is visible,
@@ -5894,7 +5895,7 @@ namespace WinAGI.Editor {
           'reset edit menu first
           SetEditMenu
           'make sure this form is the active form
-          If Not (frmMDIMain.ActiveForm Is Me) Then
+          If Not (frmMDIMain.ActiveMdiChild Is Me) Then
             'set focus before showing the menu
             Me.SetFocus
           End If
@@ -6104,7 +6105,7 @@ namespace WinAGI.Editor {
           End If
 
           'make sure this form is the active form
-          If Not (frmMDIMain.ActiveForm Is Me) Then
+          If Not (frmMDIMain.ActiveMdiChild Is Me) Then
             'set focus before showing the menu
             Me.SetFocus
           End If
@@ -6167,7 +6168,7 @@ namespace WinAGI.Editor {
         Dim sngTime As Single
 
         'if not active form,
-        If Not frmMDIMain.ActiveForm Is Me Then
+        If Not frmMDIMain.ActiveMdiChild Is Me Then
           Exit Sub
         End If
 
@@ -6238,8 +6239,8 @@ namespace WinAGI.Editor {
           sngTime = 0
         End If
 
-        If MainStatusBar.Tag <> CStr(rtSound) Then
-          AdjustMenus rtSound, InGame, True, IsDirty
+        If MainStatusBar.Tag <> CStr(AGIResType.Sound) Then
+          AdjustMenus AGIResType.Sound, InGame, True, IsDirty
         End If
         MainStatusBar.Panels("Time").Text = "Pos: " & format$(sngTime, "0.00") & " sec"
       End Sub

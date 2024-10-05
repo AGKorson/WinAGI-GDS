@@ -633,7 +633,7 @@ namespace WinAGI.Engine {
             TWinAGIEventInfo dcWarnInfo = new() {
                 ResNum = bytLogComp,
                 ResType = AGIResType.Logic,
-                Type = EventType.etWarning,
+                Type = EventType.etDecompWarning,
                 ID = WarnID,
                 Module = moduleID,
                 Text = WarningText,

@@ -373,15 +373,15 @@ End Sub
 Sub Form_Activate()
 
   'if coming from a logic editor
-  If frmMDIMain.ActiveForm.Name = "frmLogicEdit" Or frmMDIMain.ActiveForm.Name = "frmTextEdit" Then
-    If Len(frmMDIMain.ActiveForm.rtfLogic.Selection.Range.Text) > 0 Then
+  If frmMDIMain.ActiveMdiChild.Name = "frmLogicEdit" Or frmMDIMain.ActiveMdiChild.Name = "frmTextEdit" Then
+    If Len(frmMDIMain.ActiveMdiChild.rtfLogic.Selection.Range.Text) > 0 Then
     
       'if mode is allow create(SnipMode = 0)
       If SnipMode = 0 Then
         'add a new snippet
         cmdAdd_Click
         'add this value
-        rtfSnipValue.Text = frmMDIMain.ActiveForm.rtfLogic.Selection.Range.Text
+        rtfSnipValue.Text = frmMDIMain.ActiveMdiChild.rtfLogic.Selection.Range.Text
         'select the text in name field
         txtSnipName.SelStart = 0
         txtSnipName.SelLength = Len(txtSnipName.Text)

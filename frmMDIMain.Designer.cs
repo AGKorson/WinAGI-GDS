@@ -134,47 +134,6 @@
             mnuHReference = new ToolStripMenuItem();
             mnuHSep2 = new ToolStripSeparator();
             mnuHAbout = new ToolStripMenuItem();
-            cmsResources = new ContextMenuStrip(components);
-            cmiNew = new ToolStripMenuItem();
-            toolStripMenuItem4 = new ToolStripMenuItem();
-            toolStripMenuItem5 = new ToolStripMenuItem();
-            toolStripMenuItem6 = new ToolStripMenuItem();
-            toolStripMenuItem7 = new ToolStripMenuItem();
-            toolStripSeparator1 = new ToolStripSeparator();
-            toolStripMenuItem8 = new ToolStripMenuItem();
-            toolStripMenuItem9 = new ToolStripMenuItem();
-            toolStripSeparator7 = new ToolStripSeparator();
-            toolStripMenuItem10 = new ToolStripMenuItem();
-            cmiOpen = new ToolStripMenuItem();
-            toolStripMenuItem12 = new ToolStripMenuItem();
-            toolStripMenuItem13 = new ToolStripMenuItem();
-            toolStripMenuItem14 = new ToolStripMenuItem();
-            toolStripMenuItem15 = new ToolStripMenuItem();
-            toolStripSeparator9 = new ToolStripSeparator();
-            toolStripMenuItem16 = new ToolStripMenuItem();
-            toolStripMenuItem17 = new ToolStripMenuItem();
-            toolStripSeparator10 = new ToolStripSeparator();
-            toolStripMenuItem18 = new ToolStripMenuItem();
-            cmiImport = new ToolStripMenuItem();
-            toolStripMenuItem20 = new ToolStripMenuItem();
-            toolStripMenuItem21 = new ToolStripMenuItem();
-            toolStripMenuItem22 = new ToolStripMenuItem();
-            toolStripMenuItem23 = new ToolStripMenuItem();
-            toolStripSeparator11 = new ToolStripSeparator();
-            toolStripMenuItem24 = new ToolStripMenuItem();
-            toolStripMenuItem25 = new ToolStripMenuItem();
-            cmiSeparator0 = new ToolStripSeparator();
-            cmiOpenResource = new ToolStripMenuItem();
-            cmiSaveResource = new ToolStripMenuItem();
-            cmiExportResource = new ToolStripMenuItem();
-            cmiSeparator1 = new ToolStripSeparator();
-            cmiAddRemove = new ToolStripMenuItem();
-            cmiRenumber = new ToolStripMenuItem();
-            cmiID = new ToolStripMenuItem();
-            cmiSeparator2 = new ToolStripSeparator();
-            cmiCompileLogic = new ToolStripMenuItem();
-            cmiExportPicImage = new ToolStripMenuItem();
-            cmiExportLoopGIF = new ToolStripMenuItem();
             btnNewRes = new ToolStripSplitButton();
             btnNewLogic = new ToolStripMenuItem();
             btnNewPicture = new ToolStripMenuItem();
@@ -227,6 +186,10 @@
             cmdBack = new Button();
             cmdForward = new Button();
             propertyGrid1 = new PropertyGrid();
+            cmsGrid = new ContextMenuStrip(components);
+            cmiDismiss = new ToolStripMenuItem();
+            cmiDismissAll = new ToolStripMenuItem();
+            cmiErrorHelp = new ToolStripMenuItem();
             picNavList = new PictureBox();
             splitResource = new Splitter();
             pnlWarnings = new Panel();
@@ -236,10 +199,6 @@
             colResNum = new DataGridViewTextBoxColumn();
             colLIne = new DataGridViewTextBoxColumn();
             colModule = new DataGridViewTextBoxColumn();
-            cmsGrid = new ContextMenuStrip(components);
-            cmiDismiss = new ToolStripMenuItem();
-            cmiDismissAll = new ToolStripMenuItem();
-            cmiErrorHelp = new ToolStripMenuItem();
             splitWarning = new Splitter();
             imageList1 = new ImageList(components);
             tmrNavList = new Timer(components);
@@ -249,7 +208,6 @@
             imlPropButtons = new ImageList(components);
             hlpWinAGI = new HelpProvider();
             menuStrip1.SuspendLayout();
-            cmsResources.SuspendLayout();
             statusStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             pnlResources.SuspendLayout();
@@ -257,10 +215,10 @@
             splResource.Panel1.SuspendLayout();
             splResource.Panel2.SuspendLayout();
             splResource.SuspendLayout();
+            cmsGrid.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picNavList).BeginInit();
             pnlWarnings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)fgWarnings).BeginInit();
-            cmsGrid.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
@@ -273,7 +231,6 @@
             menuStrip1.Size = new System.Drawing.Size(1282, 24);
             menuStrip1.TabIndex = 0;
             menuStrip1.Text = "menuStrip1";
-            menuStrip1.ItemClicked += menuStrip1_ItemClicked;
             // 
             // mnuGame
             // 
@@ -341,6 +298,7 @@
             mnuGCompile.ShortcutKeys = Keys.Control | Keys.B;
             mnuGCompile.Size = new System.Drawing.Size(261, 22);
             mnuGCompile.Text = "&Compile Game";
+            mnuGCompile.Click += mnuGCompile_Click;
             // 
             // mnuGCompileTo
             // 
@@ -348,6 +306,7 @@
             mnuGCompileTo.ShortcutKeys = Keys.Control | Keys.Shift | Keys.B;
             mnuGCompileTo.Size = new System.Drawing.Size(261, 22);
             mnuGCompileTo.Text = "Compile &To ...";
+            mnuGCompileTo.Click += mnuGCompileTo_Click;
             // 
             // mnuGRebuild
             // 
@@ -363,6 +322,7 @@
             mnuGCompileDirty.ShortcutKeys = Keys.Control | Keys.Shift | Keys.D;
             mnuGCompileDirty.Size = new System.Drawing.Size(261, 22);
             mnuGCompileDirty.Text = "Complile &Dirty Logics";
+            mnuGCompileDirty.Click += mnuGCompileDirty_Click;
             // 
             // mnuGSep2
             // 
@@ -375,6 +335,7 @@
             mnuGRun.ShortcutKeys = Keys.Control | Keys.R;
             mnuGRun.Size = new System.Drawing.Size(261, 22);
             mnuGRun.Text = "&Run";
+            mnuGRun.Click += mnuGRun_Click;
             // 
             // mnuGSep3
             // 
@@ -451,6 +412,7 @@
             mnuResources.Name = "mnuResources";
             mnuResources.Size = new System.Drawing.Size(72, 20);
             mnuResources.Text = "&Resources";
+            mnuResources.DropDownClosed += mnuResources_DropDownClosed;
             mnuResources.DropDownOpening += mnuResources_DropDownOpening;
             // 
             // mnuRNew
@@ -703,6 +665,7 @@
             mnuRAddRemove.ShortcutKeys = Keys.Control | Keys.Shift | Keys.A;
             mnuRAddRemove.Size = new System.Drawing.Size(305, 22);
             mnuRAddRemove.Text = "Remove Resource from &Game";
+            mnuRAddRemove.Click += mnuRAddRemove_Click;
             // 
             // mnuRRenumber
             // 
@@ -721,6 +684,7 @@
             mnuRIDDesc.ShortcutKeys = Keys.Control | Keys.D;
             mnuRIDDesc.Size = new System.Drawing.Size(305, 22);
             mnuRIDDesc.Text = "I&D/Description ...";
+            mnuRIDDesc.Click += mnuRIDDesc_Click;
             // 
             // mnuRSeparator3
             // 
@@ -988,283 +952,6 @@
             mnuHAbout.Text = "&About WinAGI GDS...";
             mnuHAbout.Click += mnuHAbout_Click;
             // 
-            // cmsResources
-            // 
-            cmsResources.Items.AddRange(new ToolStripItem[] { cmiNew, cmiOpen, cmiImport, cmiSeparator0, cmiOpenResource, cmiSaveResource, cmiExportResource, cmiSeparator1, cmiAddRemove, cmiRenumber, cmiID, cmiSeparator2, cmiCompileLogic, cmiExportPicImage, cmiExportLoopGIF });
-            cmsResources.Name = "contextMenuStrip1";
-            cmsResources.Size = new System.Drawing.Size(306, 286);
-            cmsResources.Opening += cmsResources_Opening;
-            // 
-            // cmiNew
-            // 
-            cmiNew.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem4, toolStripMenuItem5, toolStripMenuItem6, toolStripMenuItem7, toolStripSeparator1, toolStripMenuItem8, toolStripMenuItem9, toolStripSeparator7, toolStripMenuItem10 });
-            cmiNew.ImageTransparentColor = System.Drawing.Color.Magenta;
-            cmiNew.Name = "cmiNew";
-            cmiNew.Size = new System.Drawing.Size(305, 22);
-            cmiNew.Text = "&New Resource";
-            // 
-            // toolStripMenuItem4
-            // 
-            toolStripMenuItem4.Name = "toolStripMenuItem4";
-            toolStripMenuItem4.ShortcutKeys = Keys.Control | Keys.D1;
-            toolStripMenuItem4.Size = new System.Drawing.Size(200, 22);
-            toolStripMenuItem4.Text = "&Logic";
-            // 
-            // toolStripMenuItem5
-            // 
-            toolStripMenuItem5.Name = "toolStripMenuItem5";
-            toolStripMenuItem5.ShortcutKeys = Keys.Control | Keys.D2;
-            toolStripMenuItem5.Size = new System.Drawing.Size(200, 22);
-            toolStripMenuItem5.Text = "&Picture";
-            // 
-            // toolStripMenuItem6
-            // 
-            toolStripMenuItem6.Name = "toolStripMenuItem6";
-            toolStripMenuItem6.ShortcutKeys = Keys.Control | Keys.D3;
-            toolStripMenuItem6.Size = new System.Drawing.Size(200, 22);
-            toolStripMenuItem6.Text = "&Sound";
-            // 
-            // toolStripMenuItem7
-            // 
-            toolStripMenuItem7.Name = "toolStripMenuItem7";
-            toolStripMenuItem7.ShortcutKeys = Keys.Control | Keys.D4;
-            toolStripMenuItem7.Size = new System.Drawing.Size(200, 22);
-            toolStripMenuItem7.Text = "&View";
-            // 
-            // toolStripSeparator1
-            // 
-            toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new System.Drawing.Size(197, 6);
-            // 
-            // toolStripMenuItem8
-            // 
-            toolStripMenuItem8.Name = "toolStripMenuItem8";
-            toolStripMenuItem8.ShortcutKeys = Keys.Control | Keys.D5;
-            toolStripMenuItem8.Size = new System.Drawing.Size(200, 22);
-            toolStripMenuItem8.Text = "&OBJECT File";
-            // 
-            // toolStripMenuItem9
-            // 
-            toolStripMenuItem9.Name = "toolStripMenuItem9";
-            toolStripMenuItem9.ShortcutKeys = Keys.Control | Keys.D6;
-            toolStripMenuItem9.Size = new System.Drawing.Size(200, 22);
-            toolStripMenuItem9.Text = "&WORDS.TOK File";
-            // 
-            // toolStripSeparator7
-            // 
-            toolStripSeparator7.Name = "toolStripSeparator7";
-            toolStripSeparator7.Size = new System.Drawing.Size(197, 6);
-            // 
-            // toolStripMenuItem10
-            // 
-            toolStripMenuItem10.Name = "toolStripMenuItem10";
-            toolStripMenuItem10.ShortcutKeys = Keys.Control | Keys.D7;
-            toolStripMenuItem10.Size = new System.Drawing.Size(200, 22);
-            toolStripMenuItem10.Text = "&Text File";
-            // 
-            // cmiOpen
-            // 
-            cmiOpen.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem12, toolStripMenuItem13, toolStripMenuItem14, toolStripMenuItem15, toolStripSeparator9, toolStripMenuItem16, toolStripMenuItem17, toolStripSeparator10, toolStripMenuItem18 });
-            cmiOpen.Image = (System.Drawing.Image)resources.GetObject("cmiOpen.Image");
-            cmiOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
-            cmiOpen.Name = "cmiOpen";
-            cmiOpen.ShortcutKeys = Keys.Control | Keys.O;
-            cmiOpen.Size = new System.Drawing.Size(305, 22);
-            cmiOpen.Text = "&Open Resource";
-            // 
-            // toolStripMenuItem12
-            // 
-            toolStripMenuItem12.Name = "toolStripMenuItem12";
-            toolStripMenuItem12.ShortcutKeys = Keys.Alt | Keys.D1;
-            toolStripMenuItem12.Size = new System.Drawing.Size(196, 22);
-            toolStripMenuItem12.Text = "&Logic";
-            // 
-            // toolStripMenuItem13
-            // 
-            toolStripMenuItem13.Name = "toolStripMenuItem13";
-            toolStripMenuItem13.ShortcutKeys = Keys.Alt | Keys.D2;
-            toolStripMenuItem13.Size = new System.Drawing.Size(196, 22);
-            toolStripMenuItem13.Text = "&Picture";
-            // 
-            // toolStripMenuItem14
-            // 
-            toolStripMenuItem14.Name = "toolStripMenuItem14";
-            toolStripMenuItem14.ShortcutKeys = Keys.Alt | Keys.D3;
-            toolStripMenuItem14.Size = new System.Drawing.Size(196, 22);
-            toolStripMenuItem14.Text = "&Sound";
-            // 
-            // toolStripMenuItem15
-            // 
-            toolStripMenuItem15.Name = "toolStripMenuItem15";
-            toolStripMenuItem15.ShortcutKeys = Keys.Alt | Keys.D4;
-            toolStripMenuItem15.Size = new System.Drawing.Size(196, 22);
-            toolStripMenuItem15.Text = "&View";
-            // 
-            // toolStripSeparator9
-            // 
-            toolStripSeparator9.Name = "toolStripSeparator9";
-            toolStripSeparator9.Size = new System.Drawing.Size(193, 6);
-            // 
-            // toolStripMenuItem16
-            // 
-            toolStripMenuItem16.Name = "toolStripMenuItem16";
-            toolStripMenuItem16.ShortcutKeys = Keys.Alt | Keys.D5;
-            toolStripMenuItem16.Size = new System.Drawing.Size(196, 22);
-            toolStripMenuItem16.Text = "&OBJECT File";
-            // 
-            // toolStripMenuItem17
-            // 
-            toolStripMenuItem17.Name = "toolStripMenuItem17";
-            toolStripMenuItem17.ShortcutKeys = Keys.Alt | Keys.D6;
-            toolStripMenuItem17.Size = new System.Drawing.Size(196, 22);
-            toolStripMenuItem17.Text = "&WORDS.TOK File";
-            // 
-            // toolStripSeparator10
-            // 
-            toolStripSeparator10.Name = "toolStripSeparator10";
-            toolStripSeparator10.Size = new System.Drawing.Size(193, 6);
-            // 
-            // toolStripMenuItem18
-            // 
-            toolStripMenuItem18.Name = "toolStripMenuItem18";
-            toolStripMenuItem18.ShortcutKeys = Keys.Alt | Keys.D7;
-            toolStripMenuItem18.Size = new System.Drawing.Size(196, 22);
-            toolStripMenuItem18.Text = "&Text File";
-            // 
-            // cmiImport
-            // 
-            cmiImport.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem20, toolStripMenuItem21, toolStripMenuItem22, toolStripMenuItem23, toolStripSeparator11, toolStripMenuItem24, toolStripMenuItem25 });
-            cmiImport.Name = "cmiImport";
-            cmiImport.Size = new System.Drawing.Size(305, 22);
-            cmiImport.Text = "&Import Resource";
-            // 
-            // toolStripMenuItem20
-            // 
-            toolStripMenuItem20.Name = "toolStripMenuItem20";
-            toolStripMenuItem20.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D1;
-            toolStripMenuItem20.Size = new System.Drawing.Size(223, 22);
-            toolStripMenuItem20.Text = "&Logic";
-            // 
-            // toolStripMenuItem21
-            // 
-            toolStripMenuItem21.Name = "toolStripMenuItem21";
-            toolStripMenuItem21.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D2;
-            toolStripMenuItem21.Size = new System.Drawing.Size(223, 22);
-            toolStripMenuItem21.Text = "&Picture";
-            // 
-            // toolStripMenuItem22
-            // 
-            toolStripMenuItem22.Name = "toolStripMenuItem22";
-            toolStripMenuItem22.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D3;
-            toolStripMenuItem22.Size = new System.Drawing.Size(223, 22);
-            toolStripMenuItem22.Text = "&Sound";
-            // 
-            // toolStripMenuItem23
-            // 
-            toolStripMenuItem23.Name = "toolStripMenuItem23";
-            toolStripMenuItem23.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D4;
-            toolStripMenuItem23.Size = new System.Drawing.Size(223, 22);
-            toolStripMenuItem23.Text = "&View";
-            // 
-            // toolStripSeparator11
-            // 
-            toolStripSeparator11.Name = "toolStripSeparator11";
-            toolStripSeparator11.Size = new System.Drawing.Size(220, 6);
-            // 
-            // toolStripMenuItem24
-            // 
-            toolStripMenuItem24.Name = "toolStripMenuItem24";
-            toolStripMenuItem24.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D5;
-            toolStripMenuItem24.Size = new System.Drawing.Size(223, 22);
-            toolStripMenuItem24.Text = "&OBJECT File";
-            // 
-            // toolStripMenuItem25
-            // 
-            toolStripMenuItem25.Name = "toolStripMenuItem25";
-            toolStripMenuItem25.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D6;
-            toolStripMenuItem25.Size = new System.Drawing.Size(223, 22);
-            toolStripMenuItem25.Text = "&WORDS.TOK File";
-            // 
-            // cmiSeparator0
-            // 
-            cmiSeparator0.Name = "cmiSeparator0";
-            cmiSeparator0.Size = new System.Drawing.Size(302, 6);
-            // 
-            // cmiOpenResource
-            // 
-            cmiOpenResource.Name = "cmiOpenResource";
-            cmiOpenResource.Size = new System.Drawing.Size(305, 22);
-            cmiOpenResource.Text = "Open Resource";
-            // 
-            // cmiSaveResource
-            // 
-            cmiSaveResource.Image = (System.Drawing.Image)resources.GetObject("cmiSaveResource.Image");
-            cmiSaveResource.ImageTransparentColor = System.Drawing.Color.Magenta;
-            cmiSaveResource.Name = "cmiSaveResource";
-            cmiSaveResource.ShortcutKeys = Keys.Control | Keys.S;
-            cmiSaveResource.Size = new System.Drawing.Size(305, 22);
-            cmiSaveResource.Text = "&Save Resource";
-            // 
-            // cmiExportResource
-            // 
-            cmiExportResource.Name = "cmiExportResource";
-            cmiExportResource.ShortcutKeys = Keys.Control | Keys.E;
-            cmiExportResource.Size = new System.Drawing.Size(305, 22);
-            cmiExportResource.Text = "&Export Resource";
-            // 
-            // cmiSeparator1
-            // 
-            cmiSeparator1.Name = "cmiSeparator1";
-            cmiSeparator1.Size = new System.Drawing.Size(302, 6);
-            // 
-            // cmiAddRemove
-            // 
-            cmiAddRemove.Name = "cmiAddRemove";
-            cmiAddRemove.ShortcutKeys = Keys.Control | Keys.Shift | Keys.A;
-            cmiAddRemove.Size = new System.Drawing.Size(305, 22);
-            cmiAddRemove.Text = "Remove Resource from &Game";
-            // 
-            // cmiRenumber
-            // 
-            cmiRenumber.Name = "cmiRenumber";
-            cmiRenumber.ShortcutKeys = Keys.Alt | Keys.N;
-            cmiRenumber.Size = new System.Drawing.Size(305, 22);
-            cmiRenumber.Text = "&Renumber Resource";
-            cmiRenumber.Click += cmiRenumber_Click;
-            // 
-            // cmiID
-            // 
-            cmiID.Image = (System.Drawing.Image)resources.GetObject("cmiID.Image");
-            cmiID.ImageTransparentColor = System.Drawing.Color.Magenta;
-            cmiID.Name = "cmiID";
-            cmiID.ShortcutKeys = Keys.Control | Keys.D;
-            cmiID.Size = new System.Drawing.Size(305, 22);
-            cmiID.Text = "I&D/Description ...";
-            // 
-            // cmiSeparator2
-            // 
-            cmiSeparator2.Name = "cmiSeparator2";
-            cmiSeparator2.Size = new System.Drawing.Size(302, 6);
-            // 
-            // cmiCompileLogic
-            // 
-            cmiCompileLogic.Name = "cmiCompileLogic";
-            cmiCompileLogic.Size = new System.Drawing.Size(305, 22);
-            cmiCompileLogic.Text = "Compile This Logic";
-            // 
-            // cmiExportPicImage
-            // 
-            cmiExportPicImage.Name = "cmiExportPicImage";
-            cmiExportPicImage.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
-            cmiExportPicImage.Size = new System.Drawing.Size(305, 22);
-            cmiExportPicImage.Text = "Export Picture Image As...";
-            // 
-            // cmiExportLoopGIF
-            // 
-            cmiExportLoopGIF.Name = "cmiExportLoopGIF";
-            cmiExportLoopGIF.Size = new System.Drawing.Size(305, 22);
-            cmiExportLoopGIF.Text = "Export Loop As GIF...";
-            // 
             // btnNewRes
             // 
             btnNewRes.DisplayStyle = ToolStripItemDisplayStyle.Image;
@@ -1367,7 +1054,6 @@
             toolStrip1.Size = new System.Drawing.Size(1282, 36);
             toolStrip1.TabIndex = 3;
             toolStrip1.Text = "toolStrip1";
-            toolStrip1.ItemClicked += toolStrip1_ItemClicked;
             // 
             // btnOpenGame
             // 
@@ -1402,6 +1088,7 @@
             btnRun.Name = "btnRun";
             btnRun.Size = new System.Drawing.Size(28, 28);
             btnRun.Text = "&Run";
+            btnRun.Click += mnuGRun_Click;
             // 
             // btnSep1
             // 
@@ -1544,6 +1231,7 @@
             btnSaveResource.Name = "btnSaveResource";
             btnSaveResource.Size = new System.Drawing.Size(28, 28);
             btnSaveResource.Text = "Save Resource";
+            btnSaveResource.Click += btnSaveResource_Click;
             // 
             // btnAddRemove
             // 
@@ -1691,7 +1379,6 @@
             // tvwResources
             // 
             tvwResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tvwResources.ContextMenuStrip = cmsResources;
             hlpWinAGI.SetHelpKeyword(tvwResources, "htm\\winagi\\restree.htm#restree");
             hlpWinAGI.SetHelpNavigator(tvwResources, HelpNavigator.Topic);
             hlpWinAGI.SetHelpString(tvwResources, "");
@@ -1715,12 +1402,13 @@
             treeNode14.Text = "AGIGAME";
             tvwResources.Nodes.AddRange(new TreeNode[] { treeNode14 });
             hlpWinAGI.SetShowHelp(tvwResources, true);
-            tvwResources.Size = new System.Drawing.Size(152, 147);
+            tvwResources.Size = new System.Drawing.Size(157, 118);
             tvwResources.TabIndex = 25;
             tvwResources.AfterCollapse += tvwResources_AfterCollapse;
             tvwResources.AfterSelect += tvwResources_AfterSelect;
             tvwResources.NodeMouseClick += tvwResources_NodeMouseClick;
             tvwResources.NodeMouseDoubleClick += tvwResources_NodeMouseDoubleClick;
+            tvwResources.MouseDown += tvwResources_MouseDown;
             // 
             // cmbResType
             // 
@@ -1741,7 +1429,6 @@
             lstResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lstResources.BorderStyle = BorderStyle.FixedSingle;
             lstResources.Columns.AddRange(new ColumnHeader[] { columnHeader1 });
-            lstResources.ContextMenuStrip = cmsResources;
             lstResources.FullRowSelect = true;
             lstResources.HeaderStyle = ColumnHeaderStyle.None;
             lstResources.Location = new System.Drawing.Point(0, 52);
@@ -1749,7 +1436,7 @@
             lstResources.MultiSelect = false;
             lstResources.Name = "lstResources";
             lstResources.ShowGroups = false;
-            lstResources.Size = new System.Drawing.Size(150, 89);
+            lstResources.Size = new System.Drawing.Size(157, 86);
             lstResources.TabIndex = 27;
             lstResources.UseCompatibleStateImageBehavior = false;
             lstResources.View = View.Details;
@@ -1788,14 +1475,38 @@
             propertyGrid1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             propertyGrid1.CommandsVisibleIfAvailable = false;
             propertyGrid1.HelpVisible = false;
-            propertyGrid1.Location = new System.Drawing.Point(0, 0);
+            propertyGrid1.Location = new System.Drawing.Point(0, 2);
             propertyGrid1.Margin = new Padding(2);
             propertyGrid1.Name = "propertyGrid1";
             propertyGrid1.PropertySort = PropertySort.NoSort;
-            propertyGrid1.Size = new System.Drawing.Size(156, 124);
+            propertyGrid1.Size = new System.Drawing.Size(156, 144);
             propertyGrid1.TabIndex = 28;
             propertyGrid1.ToolbarVisible = false;
             propertyGrid1.MouseWheel += propertyGrid1_MouseWheel;
+            // 
+            // cmsGrid
+            // 
+            cmsGrid.Items.AddRange(new ToolStripItem[] { cmiDismiss, cmiDismissAll, cmiErrorHelp });
+            cmsGrid.Name = "cmsGrid";
+            cmsGrid.Size = new System.Drawing.Size(176, 70);
+            // 
+            // cmiDismiss
+            // 
+            cmiDismiss.Name = "cmiDismiss";
+            cmiDismiss.Size = new System.Drawing.Size(175, 22);
+            cmiDismiss.Text = "Dismiss";
+            // 
+            // cmiDismissAll
+            // 
+            cmiDismissAll.Name = "cmiDismissAll";
+            cmiDismissAll.Size = new System.Drawing.Size(175, 22);
+            cmiDismissAll.Text = "Dismiss All";
+            // 
+            // cmiErrorHelp
+            // 
+            cmiErrorHelp.Name = "cmiErrorHelp";
+            cmiErrorHelp.Size = new System.Drawing.Size(175, 22);
+            cmiErrorHelp.Text = "Help with this Error";
             // 
             // picNavList
             // 
@@ -1924,30 +1635,6 @@
             colModule.Name = "colModule";
             colModule.ReadOnly = true;
             // 
-            // cmsGrid
-            // 
-            cmsGrid.Items.AddRange(new ToolStripItem[] { cmiDismiss, cmiDismissAll, cmiErrorHelp });
-            cmsGrid.Name = "cmsGrid";
-            cmsGrid.Size = new System.Drawing.Size(176, 70);
-            // 
-            // cmiDismiss
-            // 
-            cmiDismiss.Name = "cmiDismiss";
-            cmiDismiss.Size = new System.Drawing.Size(175, 22);
-            cmiDismiss.Text = "Dismiss";
-            // 
-            // cmiDismissAll
-            // 
-            cmiDismissAll.Name = "cmiDismissAll";
-            cmiDismissAll.Size = new System.Drawing.Size(175, 22);
-            cmiDismissAll.Text = "Dismiss All";
-            // 
-            // cmiErrorHelp
-            // 
-            cmiErrorHelp.Name = "cmiErrorHelp";
-            cmiErrorHelp.Size = new System.Drawing.Size(175, 22);
-            cmiErrorHelp.Text = "Help with this Error";
-            // 
             // splitWarning
             // 
             splitWarning.Dock = DockStyle.Bottom;
@@ -2042,7 +1729,6 @@
             PreviewKeyDown += frmMDIMain_PreviewKeyDown;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
-            cmsResources.ResumeLayout(false);
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             toolStrip1.ResumeLayout(false);
@@ -2052,10 +1738,10 @@
             splResource.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splResource).EndInit();
             splResource.ResumeLayout(false);
+            cmsGrid.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)picNavList).EndInit();
             pnlWarnings.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)fgWarnings).EndInit();
-            cmsGrid.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -2063,8 +1749,6 @@
         #endregion
 
         private MenuStrip menuStrip1;
-        private ContextMenuStrip cmsResources;
-        private StatusStrip statusStrip1;
         private ToolStripStatusLabel CapsLockLabel;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem newToolStripMenuItem;
@@ -2246,46 +1930,6 @@
         private DataGridViewTextBoxColumn colResNum;
         private DataGridViewTextBoxColumn colLIne;
         private DataGridViewTextBoxColumn colModule;
-        private ToolStripMenuItem cmiNew;
-        private ToolStripMenuItem toolStripMenuItem4;
-        private ToolStripMenuItem toolStripMenuItem5;
-        private ToolStripMenuItem toolStripMenuItem6;
-        private ToolStripMenuItem toolStripMenuItem7;
-        private ToolStripSeparator toolStripSeparator1;
-        private ToolStripMenuItem toolStripMenuItem8;
-        private ToolStripMenuItem toolStripMenuItem9;
-        private ToolStripSeparator toolStripSeparator7;
-        private ToolStripMenuItem toolStripMenuItem10;
-        private ToolStripMenuItem cmiOpen;
-        private ToolStripMenuItem toolStripMenuItem12;
-        private ToolStripMenuItem toolStripMenuItem13;
-        private ToolStripMenuItem toolStripMenuItem14;
-        private ToolStripMenuItem toolStripMenuItem15;
-        private ToolStripSeparator toolStripSeparator9;
-        private ToolStripMenuItem toolStripMenuItem16;
-        private ToolStripMenuItem toolStripMenuItem17;
-        private ToolStripSeparator toolStripSeparator10;
-        private ToolStripMenuItem toolStripMenuItem18;
-        public ToolStripMenuItem cmiImport;
-        private ToolStripMenuItem toolStripMenuItem20;
-        private ToolStripMenuItem toolStripMenuItem21;
-        private ToolStripMenuItem toolStripMenuItem22;
-        private ToolStripMenuItem toolStripMenuItem23;
-        private ToolStripSeparator toolStripSeparator11;
-        private ToolStripMenuItem toolStripMenuItem24;
-        private ToolStripMenuItem toolStripMenuItem25;
-        private ToolStripSeparator cmiSeparator0;
-        private ToolStripMenuItem cmiSaveResource;
-        private ToolStripMenuItem cmiExportResource;
-        private ToolStripSeparator cmiSeparator1;
-        public ToolStripMenuItem cmiAddRemove;
-        public ToolStripMenuItem cmiRenumber;
-        private ToolStripMenuItem cmiID;
-        private ToolStripSeparator cmiSeparator2;
-        private ToolStripMenuItem cmiCompileLogic;
-        private ToolStripMenuItem cmiExportPicImage;
-        private ToolStripMenuItem cmiExportLoopGIF;
-        private ToolStripMenuItem cmiOpenResource;
         private ToolStripMenuItem mnuROpenRes;
         private ToolStripSeparator mnuRSeparator3;
         private ToolStripMenuItem mnuRSavePicImage;
@@ -2302,6 +1946,7 @@
         private ToolStripButton btnTextEd;
         internal ToolStripMenuItem mnuTLayout;
         internal ToolStripMenuItem mnuTGlobals;
+        public StatusStrip statusStrip1;
     }
 }
 

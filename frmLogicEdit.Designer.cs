@@ -26,276 +26,277 @@
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent()
-        {
-      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmLogicEdit));
-      this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-      this.mnuLResource = new System.Windows.Forms.ToolStripMenuItem();
-      this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-      this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
-      this.mnuEdit = new System.Windows.Forms.ToolStripMenuItem();
-      this.mnuECut = new System.Windows.Forms.ToolStripMenuItem();
-      this.mnuECopy = new System.Windows.Forms.ToolStripMenuItem();
-      this.mnuEPaste = new System.Windows.Forms.ToolStripMenuItem();
-      this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-      this.btnCut = new System.Windows.Forms.ToolStripButton();
-      this.btnCopy = new System.Windows.Forms.ToolStripButton();
-      this.btnPaste = new System.Windows.Forms.ToolStripButton();
-      this.btnDelete = new System.Windows.Forms.ToolStripButton();
-      this.btnSep1 = new System.Windows.Forms.ToolStripSeparator();
-      this.btnUndo = new System.Windows.Forms.ToolStripButton();
-      this.btnRedo = new System.Windows.Forms.ToolStripButton();
-      this.btnFind = new System.Windows.Forms.ToolStripButton();
-      this.btnSep2 = new System.Windows.Forms.ToolStripSeparator();
-      this.btnComment = new System.Windows.Forms.ToolStripButton();
-      this.btnUncomment = new System.Windows.Forms.ToolStripButton();
-      this.btnSep3 = new System.Windows.Forms.ToolStripSeparator();
-      this.btnCompile = new System.Windows.Forms.ToolStripButton();
-      this.btnMsgClean = new System.Windows.Forms.ToolStripButton();
-      this.rtfLogic = new System.Windows.Forms.RichTextBox();
-      this.menuStrip1.SuspendLayout();
-      this.toolStrip1.SuspendLayout();
-      this.SuspendLayout();
-      // 
-      // menuStrip1
-      // 
-      this.menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-      this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuLResource,
-            this.mnuEdit});
-      this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-      this.menuStrip1.Name = "menuStrip1";
-      this.menuStrip1.Padding = new System.Windows.Forms.Padding(3, 1, 0, 1);
-      this.menuStrip1.Size = new System.Drawing.Size(431, 19);
-      this.menuStrip1.TabIndex = 0;
-      this.menuStrip1.Text = "menuStrip1";
-      this.menuStrip1.Visible = false;
-      // 
-      // mnuLResource
-      // 
-      this.mnuLResource.DoubleClickEnabled = true;
-      this.mnuLResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem1,
-            this.toolStripMenuItem2});
-      this.mnuLResource.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
-      this.mnuLResource.MergeIndex = 1;
-      this.mnuLResource.Name = "mnuLResource";
-      this.mnuLResource.Size = new System.Drawing.Size(72, 17);
-      this.mnuLResource.Text = "Resources";
-      // 
-      // toolStripMenuItem1
-      // 
-      this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-      this.toolStripMenuItem1.Size = new System.Drawing.Size(124, 22);
-      this.toolStripMenuItem1.Text = "logic res1";
-      // 
-      // toolStripMenuItem2
-      // 
-      this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-      this.toolStripMenuItem2.Size = new System.Drawing.Size(124, 22);
-      this.toolStripMenuItem2.Text = "logic res2";
-      // 
-      // mnuEdit
-      // 
-      this.mnuEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuECut,
-            this.mnuECopy,
-            this.mnuEPaste});
-      this.mnuEdit.MergeAction = System.Windows.Forms.MergeAction.Insert;
-      this.mnuEdit.MergeIndex = 2;
-      this.mnuEdit.Name = "mnuEdit";
-      this.mnuEdit.Size = new System.Drawing.Size(48, 17);
-      this.mnuEdit.Text = "Edit L";
-      // 
-      // mnuECut
-      // 
-      this.mnuECut.Name = "mnuECut";
-      this.mnuECut.Size = new System.Drawing.Size(108, 22);
-      this.mnuECut.Text = "Cut l";
-      // 
-      // mnuECopy
-      // 
-      this.mnuECopy.Name = "mnuECopy";
-      this.mnuECopy.Size = new System.Drawing.Size(108, 22);
-      this.mnuECopy.Text = "Copy l";
-      // 
-      // mnuEPaste
-      // 
-      this.mnuEPaste.Name = "mnuEPaste";
-      this.mnuEPaste.Size = new System.Drawing.Size(108, 22);
-      this.mnuEPaste.Text = "Paste l";
-      // 
-      // toolStrip1
-      // 
-      this.toolStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-      this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.btnCut,
-            this.btnCopy,
-            this.btnPaste,
-            this.btnDelete,
-            this.btnSep1,
-            this.btnUndo,
-            this.btnRedo,
-            this.btnFind,
-            this.btnSep2,
-            this.btnComment,
-            this.btnUncomment,
-            this.btnSep3,
-            this.btnCompile,
-            this.btnMsgClean});
-      this.toolStrip1.Location = new System.Drawing.Point(0, 0);
-      this.toolStrip1.Name = "toolStrip1";
-      this.toolStrip1.Size = new System.Drawing.Size(548, 39);
-      this.toolStrip1.TabIndex = 1;
-      this.toolStrip1.Text = "toolStrip1";
-      // 
-      // btnCut
-      // 
-      this.btnCut.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnCut.Image = ((System.Drawing.Image)(resources.GetObject("btnCut.Image")));
-      this.btnCut.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnCut.Name = "btnCut";
-      this.btnCut.Size = new System.Drawing.Size(36, 36);
-      this.btnCut.Text = "Cut";
-      // 
-      // btnCopy
-      // 
-      this.btnCopy.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnCopy.Image = ((System.Drawing.Image)(resources.GetObject("btnCopy.Image")));
-      this.btnCopy.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnCopy.Name = "btnCopy";
-      this.btnCopy.Size = new System.Drawing.Size(36, 36);
-      this.btnCopy.Text = "Copy";
-      // 
-      // btnPaste
-      // 
-      this.btnPaste.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnPaste.Image = ((System.Drawing.Image)(resources.GetObject("btnPaste.Image")));
-      this.btnPaste.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnPaste.Name = "btnPaste";
-      this.btnPaste.Size = new System.Drawing.Size(36, 36);
-      this.btnPaste.Text = "Paste";
-      // 
-      // btnDelete
-      // 
-      this.btnDelete.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnDelete.Image = ((System.Drawing.Image)(resources.GetObject("btnDelete.Image")));
-      this.btnDelete.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnDelete.Name = "btnDelete";
-      this.btnDelete.Size = new System.Drawing.Size(36, 36);
-      this.btnDelete.Text = "Delete";
-      // 
-      // btnSep1
-      // 
-      this.btnSep1.Name = "btnSep1";
-      this.btnSep1.Size = new System.Drawing.Size(6, 39);
-      // 
-      // btnUndo
-      // 
-      this.btnUndo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnUndo.Image = ((System.Drawing.Image)(resources.GetObject("btnUndo.Image")));
-      this.btnUndo.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnUndo.Name = "btnUndo";
-      this.btnUndo.Size = new System.Drawing.Size(36, 36);
-      this.btnUndo.Text = "Undo";
-      // 
-      // btnRedo
-      // 
-      this.btnRedo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnRedo.Image = ((System.Drawing.Image)(resources.GetObject("btnRedo.Image")));
-      this.btnRedo.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnRedo.Name = "btnRedo";
-      this.btnRedo.Size = new System.Drawing.Size(36, 36);
-      this.btnRedo.Text = "Redo";
-      // 
-      // btnFind
-      // 
-      this.btnFind.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnFind.Image = ((System.Drawing.Image)(resources.GetObject("btnFind.Image")));
-      this.btnFind.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnFind.Name = "btnFind";
-      this.btnFind.Size = new System.Drawing.Size(36, 36);
-      this.btnFind.Text = "Find";
-      // 
-      // btnSep2
-      // 
-      this.btnSep2.Name = "btnSep2";
-      this.btnSep2.Size = new System.Drawing.Size(6, 39);
-      // 
-      // btnComment
-      // 
-      this.btnComment.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnComment.Image = ((System.Drawing.Image)(resources.GetObject("btnComment.Image")));
-      this.btnComment.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnComment.Name = "btnComment";
-      this.btnComment.Size = new System.Drawing.Size(36, 36);
-      this.btnComment.Text = "Comment";
-      // 
-      // btnUncomment
-      // 
-      this.btnUncomment.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnUncomment.Image = ((System.Drawing.Image)(resources.GetObject("btnUncomment.Image")));
-      this.btnUncomment.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnUncomment.Name = "btnUncomment";
-      this.btnUncomment.Size = new System.Drawing.Size(36, 36);
-      this.btnUncomment.Text = "Uncomment";
-      // 
-      // btnSep3
-      // 
-      this.btnSep3.Name = "btnSep3";
-      this.btnSep3.Size = new System.Drawing.Size(6, 39);
-      // 
-      // btnCompile
-      // 
-      this.btnCompile.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnCompile.Image = ((System.Drawing.Image)(resources.GetObject("btnCompile.Image")));
-      this.btnCompile.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnCompile.Name = "btnCompile";
-      this.btnCompile.Size = new System.Drawing.Size(36, 36);
-      this.btnCompile.Text = "Compile";
-      // 
-      // btnMsgClean
-      // 
-      this.btnMsgClean.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-      this.btnMsgClean.Image = ((System.Drawing.Image)(resources.GetObject("btnMsgClean.Image")));
-      this.btnMsgClean.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
-      this.btnMsgClean.Name = "btnMsgClean";
-      this.btnMsgClean.Size = new System.Drawing.Size(36, 36);
-      this.btnMsgClean.Text = "Message Cleanup";
-      // 
-      // rtfLogic
-      // 
-      this.rtfLogic.DetectUrls = false;
-      this.rtfLogic.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.rtfLogic.HideSelection = false;
-      this.rtfLogic.Location = new System.Drawing.Point(0, 39);
-      this.rtfLogic.Margin = new System.Windows.Forms.Padding(0);
-      this.rtfLogic.Name = "rtfLogic";
-      this.rtfLogic.ShowSelectionMargin = true;
-      this.rtfLogic.Size = new System.Drawing.Size(548, 341);
-      this.rtfLogic.TabIndex = 2;
-      this.rtfLogic.Text = "";
-      this.rtfLogic.WordWrap = false;
-      // 
-      // frmLogicEdit
-      // 
-      this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-      this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(548, 380);
-      this.Controls.Add(this.rtfLogic);
-      this.Controls.Add(this.toolStrip1);
-      this.Controls.Add(this.menuStrip1);
-      this.MainMenuStrip = this.menuStrip1;
-      this.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
-      this.Name = "frmLogicEdit";
-      this.Text = "Form1";
-      this.menuStrip1.ResumeLayout(false);
-      this.menuStrip1.PerformLayout();
-      this.toolStrip1.ResumeLayout(false);
-      this.toolStrip1.PerformLayout();
-      this.ResumeLayout(false);
-      this.PerformLayout();
-
+        private void InitializeComponent() {
+            components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmLogicEdit));
+            menuStrip1 = new System.Windows.Forms.MenuStrip();
+            mnuLResource = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEdit = new System.Windows.Forms.ToolStripMenuItem();
+            mnuECut = new System.Windows.Forms.ToolStripMenuItem();
+            mnuECopy = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEPaste = new System.Windows.Forms.ToolStripMenuItem();
+            toolStrip1 = new System.Windows.Forms.ToolStrip();
+            btnCut = new System.Windows.Forms.ToolStripButton();
+            btnCopy = new System.Windows.Forms.ToolStripButton();
+            btnPaste = new System.Windows.Forms.ToolStripButton();
+            btnDelete = new System.Windows.Forms.ToolStripButton();
+            btnSep1 = new System.Windows.Forms.ToolStripSeparator();
+            btnUndo = new System.Windows.Forms.ToolStripButton();
+            btnRedo = new System.Windows.Forms.ToolStripButton();
+            btnFind = new System.Windows.Forms.ToolStripButton();
+            btnSep2 = new System.Windows.Forms.ToolStripSeparator();
+            btnComment = new System.Windows.Forms.ToolStripButton();
+            btnUncomment = new System.Windows.Forms.ToolStripButton();
+            btnSep3 = new System.Windows.Forms.ToolStripSeparator();
+            btnCompile = new System.Windows.Forms.ToolStripButton();
+            btnMsgClean = new System.Windows.Forms.ToolStripButton();
+            rtfLogic = new FastColoredTextBoxNS.FastColoredTextBox();
+            menuStrip1.SuspendLayout();
+            toolStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)rtfLogic).BeginInit();
+            SuspendLayout();
+            // 
+            // menuStrip1
+            // 
+            menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
+            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuLResource, mnuEdit });
+            menuStrip1.Location = new System.Drawing.Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Padding = new System.Windows.Forms.Padding(3, 1, 0, 1);
+            menuStrip1.Size = new System.Drawing.Size(431, 19);
+            menuStrip1.TabIndex = 0;
+            menuStrip1.Text = "menuStrip1";
+            menuStrip1.Visible = false;
+            // 
+            // mnuLResource
+            // 
+            mnuLResource.DoubleClickEnabled = true;
+            mnuLResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { toolStripMenuItem1, toolStripMenuItem2 });
+            mnuLResource.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
+            mnuLResource.MergeIndex = 1;
+            mnuLResource.Name = "mnuLResource";
+            mnuLResource.Size = new System.Drawing.Size(72, 17);
+            mnuLResource.Text = "Resources";
+            // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new System.Drawing.Size(124, 22);
+            toolStripMenuItem1.Text = "logic res1";
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new System.Drawing.Size(124, 22);
+            toolStripMenuItem2.Text = "logic res2";
+            // 
+            // mnuEdit
+            // 
+            mnuEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuECut, mnuECopy, mnuEPaste });
+            mnuEdit.MergeAction = System.Windows.Forms.MergeAction.Insert;
+            mnuEdit.MergeIndex = 2;
+            mnuEdit.Name = "mnuEdit";
+            mnuEdit.Size = new System.Drawing.Size(48, 17);
+            mnuEdit.Text = "Edit L";
+            // 
+            // mnuECut
+            // 
+            mnuECut.Name = "mnuECut";
+            mnuECut.Size = new System.Drawing.Size(108, 22);
+            mnuECut.Text = "Cut l";
+            // 
+            // mnuECopy
+            // 
+            mnuECopy.Name = "mnuECopy";
+            mnuECopy.Size = new System.Drawing.Size(108, 22);
+            mnuECopy.Text = "Copy l";
+            // 
+            // mnuEPaste
+            // 
+            mnuEPaste.Name = "mnuEPaste";
+            mnuEPaste.Size = new System.Drawing.Size(108, 22);
+            mnuEPaste.Text = "Paste l";
+            // 
+            // toolStrip1
+            // 
+            toolStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
+            toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { btnCut, btnCopy, btnPaste, btnDelete, btnSep1, btnUndo, btnRedo, btnFind, btnSep2, btnComment, btnUncomment, btnSep3, btnCompile, btnMsgClean });
+            toolStrip1.Location = new System.Drawing.Point(0, 0);
+            toolStrip1.Name = "toolStrip1";
+            toolStrip1.Size = new System.Drawing.Size(548, 39);
+            toolStrip1.TabIndex = 1;
+            toolStrip1.Text = "toolStrip1";
+            // 
+            // btnCut
+            // 
+            btnCut.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnCut.Image = (System.Drawing.Image)resources.GetObject("btnCut.Image");
+            btnCut.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnCut.Name = "btnCut";
+            btnCut.Size = new System.Drawing.Size(36, 36);
+            btnCut.Text = "Cut";
+            // 
+            // btnCopy
+            // 
+            btnCopy.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnCopy.Image = (System.Drawing.Image)resources.GetObject("btnCopy.Image");
+            btnCopy.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnCopy.Name = "btnCopy";
+            btnCopy.Size = new System.Drawing.Size(36, 36);
+            btnCopy.Text = "Copy";
+            // 
+            // btnPaste
+            // 
+            btnPaste.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnPaste.Image = (System.Drawing.Image)resources.GetObject("btnPaste.Image");
+            btnPaste.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnPaste.Name = "btnPaste";
+            btnPaste.Size = new System.Drawing.Size(36, 36);
+            btnPaste.Text = "Paste";
+            // 
+            // btnDelete
+            // 
+            btnDelete.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnDelete.Image = (System.Drawing.Image)resources.GetObject("btnDelete.Image");
+            btnDelete.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnDelete.Name = "btnDelete";
+            btnDelete.Size = new System.Drawing.Size(36, 36);
+            btnDelete.Text = "Delete";
+            // 
+            // btnSep1
+            // 
+            btnSep1.Name = "btnSep1";
+            btnSep1.Size = new System.Drawing.Size(6, 39);
+            // 
+            // btnUndo
+            // 
+            btnUndo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnUndo.Image = (System.Drawing.Image)resources.GetObject("btnUndo.Image");
+            btnUndo.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnUndo.Name = "btnUndo";
+            btnUndo.Size = new System.Drawing.Size(36, 36);
+            btnUndo.Text = "Undo";
+            // 
+            // btnRedo
+            // 
+            btnRedo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnRedo.Image = (System.Drawing.Image)resources.GetObject("btnRedo.Image");
+            btnRedo.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnRedo.Name = "btnRedo";
+            btnRedo.Size = new System.Drawing.Size(36, 36);
+            btnRedo.Text = "Redo";
+            // 
+            // btnFind
+            // 
+            btnFind.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnFind.Image = (System.Drawing.Image)resources.GetObject("btnFind.Image");
+            btnFind.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnFind.Name = "btnFind";
+            btnFind.Size = new System.Drawing.Size(36, 36);
+            btnFind.Text = "Find";
+            // 
+            // btnSep2
+            // 
+            btnSep2.Name = "btnSep2";
+            btnSep2.Size = new System.Drawing.Size(6, 39);
+            // 
+            // btnComment
+            // 
+            btnComment.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnComment.Image = (System.Drawing.Image)resources.GetObject("btnComment.Image");
+            btnComment.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnComment.Name = "btnComment";
+            btnComment.Size = new System.Drawing.Size(36, 36);
+            btnComment.Text = "Comment";
+            // 
+            // btnUncomment
+            // 
+            btnUncomment.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnUncomment.Image = (System.Drawing.Image)resources.GetObject("btnUncomment.Image");
+            btnUncomment.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnUncomment.Name = "btnUncomment";
+            btnUncomment.Size = new System.Drawing.Size(36, 36);
+            btnUncomment.Text = "Uncomment";
+            // 
+            // btnSep3
+            // 
+            btnSep3.Name = "btnSep3";
+            btnSep3.Size = new System.Drawing.Size(6, 39);
+            // 
+            // btnCompile
+            // 
+            btnCompile.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnCompile.Image = (System.Drawing.Image)resources.GetObject("btnCompile.Image");
+            btnCompile.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnCompile.Name = "btnCompile";
+            btnCompile.Size = new System.Drawing.Size(36, 36);
+            btnCompile.Text = "Compile";
+            // 
+            // btnMsgClean
+            // 
+            btnMsgClean.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnMsgClean.Image = (System.Drawing.Image)resources.GetObject("btnMsgClean.Image");
+            btnMsgClean.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
+            btnMsgClean.Name = "btnMsgClean";
+            btnMsgClean.Size = new System.Drawing.Size(36, 36);
+            btnMsgClean.Text = "Message Cleanup";
+            // 
+            // rtfLogic
+            // 
+            rtfLogic.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            rtfLogic.AutoCompleteBracketsList = new char[]
+    {
+    '(',
+    ')',
+    '{',
+    '}',
+    '[',
+    ']',
+    '"',
+    '"',
+    '\'',
+    '\''
+    };
+            rtfLogic.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
+            rtfLogic.AutoScrollMinSize = new System.Drawing.Size(99, 14);
+            rtfLogic.BackBrush = null;
+            rtfLogic.CharHeight = 14;
+            rtfLogic.CharWidth = 8;
+            rtfLogic.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
+            rtfLogic.Font = new System.Drawing.Font("Courier New", 9.75F);
+            rtfLogic.Hotkeys = resources.GetString("rtfLogic.Hotkeys");
+            rtfLogic.IsReplaceMode = false;
+            rtfLogic.Location = new System.Drawing.Point(0, 42);
+            rtfLogic.Name = "rtfLogic";
+            rtfLogic.Paddings = new System.Windows.Forms.Padding(0);
+            rtfLogic.SelectionColor = System.Drawing.Color.FromArgb(60, 0, 0, 255);
+            rtfLogic.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("rtfLogic.ServiceColors");
+            rtfLogic.Size = new System.Drawing.Size(548, 337);
+            rtfLogic.TabIndex = 2;
+            rtfLogic.Text = "return();";
+            rtfLogic.Zoom = 100;
+            // 
+            // frmLogicEdit
+            // 
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(548, 380);
+            Controls.Add(rtfLogic);
+            Controls.Add(toolStrip1);
+            Controls.Add(menuStrip1);
+            MainMenuStrip = menuStrip1;
+            Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            Name = "frmLogicEdit";
+            Text = "Form1";
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
+            toolStrip1.ResumeLayout(false);
+            toolStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)rtfLogic).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -324,6 +325,6 @@
         private System.Windows.Forms.ToolStripSeparator btnSep3;
         private System.Windows.Forms.ToolStripButton btnCompile;
         private System.Windows.Forms.ToolStripButton btnMsgClean;
-        public System.Windows.Forms.RichTextBox rtfLogic;
+        internal FastColoredTextBoxNS.FastColoredTextBox rtfLogic;
     }
 }

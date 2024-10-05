@@ -14,255 +14,243 @@ using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Editor.Base;
 
-namespace WinAGI.Editor
-{
-  public partial class frmPicEdit : Form
-  {
-    Bitmap thisBMP;
-    float zoom;
-    bool picMode = false;
+namespace WinAGI.Editor {
+    public partial class frmPicEdit : Form {
+        Bitmap thisBMP;
+        float zoom;
+        bool picMode = false;
 
-    public int PicNumber;
-    public Picture PicEdit;
-    public bool InGame;
-    public bool IsDirty;
-    public EPicCursorMode CursorMode;
+        public int PicNumber;
+        public Picture EditPicture;
+        public bool InGame;
+        public bool IsDirty;
+        public EPicCursorMode CursorMode;
 
-    public frmPicEdit()
-    {
-      InitializeComponent();
-    }
+        public frmPicEdit() {
+            InitializeComponent();
+        }
 
-    private void frmPicEdit_Load(object sender, EventArgs e)
-    {
-      //load combobox with AGI color indices
-      cmbTransCol.Items.Add(AGIColorIndex.agBlack);
-      cmbTransCol.Items.Add(AGIColorIndex.agBlue);
-      cmbTransCol.Items.Add(AGIColorIndex.agGreen);
-      cmbTransCol.Items.Add(AGIColorIndex.agCyan);
-      cmbTransCol.Items.Add(AGIColorIndex.agRed);
-      cmbTransCol.Items.Add(AGIColorIndex.agMagenta);
-      cmbTransCol.Items.Add(AGIColorIndex.agBrown);
-      cmbTransCol.Items.Add(AGIColorIndex.agLtGray);
-      cmbTransCol.Items.Add(AGIColorIndex.agDkGray);
-      cmbTransCol.Items.Add(AGIColorIndex.agLtBlue);
-      cmbTransCol.Items.Add(AGIColorIndex.agLtGreen);
-      cmbTransCol.Items.Add(AGIColorIndex.agLtCyan);
-      cmbTransCol.Items.Add(AGIColorIndex.agLtRed);
-      cmbTransCol.Items.Add(AGIColorIndex.agLtMagenta);
-      cmbTransCol.Items.Add(AGIColorIndex.agYellow);
-      cmbTransCol.Items.Add(AGIColorIndex.agWhite);
-      cmbTransCol.Items.Add("None");
-      cmbTransCol.SelectedIndex = 16;
+        private void frmPicEdit_Load(object sender, EventArgs e) {
+            //load combobox with AGI color indices
+            cmbTransCol.Items.Add(AGIColorIndex.agBlack);
+            cmbTransCol.Items.Add(AGIColorIndex.agBlue);
+            cmbTransCol.Items.Add(AGIColorIndex.agGreen);
+            cmbTransCol.Items.Add(AGIColorIndex.agCyan);
+            cmbTransCol.Items.Add(AGIColorIndex.agRed);
+            cmbTransCol.Items.Add(AGIColorIndex.agMagenta);
+            cmbTransCol.Items.Add(AGIColorIndex.agBrown);
+            cmbTransCol.Items.Add(AGIColorIndex.agLtGray);
+            cmbTransCol.Items.Add(AGIColorIndex.agDkGray);
+            cmbTransCol.Items.Add(AGIColorIndex.agLtBlue);
+            cmbTransCol.Items.Add(AGIColorIndex.agLtGreen);
+            cmbTransCol.Items.Add(AGIColorIndex.agLtCyan);
+            cmbTransCol.Items.Add(AGIColorIndex.agLtRed);
+            cmbTransCol.Items.Add(AGIColorIndex.agLtMagenta);
+            cmbTransCol.Items.Add(AGIColorIndex.agYellow);
+            cmbTransCol.Items.Add(AGIColorIndex.agWhite);
+            cmbTransCol.Items.Add("None");
+            cmbTransCol.SelectedIndex = 16;
 
-      // load the picture
-      EditGame.Pictures[1].Load();
-      thisBMP = EditGame.Pictures[1].VisualBMP;
-      // show it with NO transparency
-      ShowAGIBitmap(picVisual, thisBMP);
-    }
+            // load the picture
+            EditGame.Pictures[1].Load();
+            thisBMP = EditGame.Pictures[1].VisualBMP;
+            // show it with NO transparency
+            ShowAGIBitmap(picVisual, thisBMP);
+        }
 
-    private void trackBar1_Scroll(object sender, EventArgs e)
-    {
+        private void trackBar1_Scroll(object sender, EventArgs e) {
 
-      //resize our picture on the fly
+            //resize our picture on the fly
 
-      // convert trackbar value to a zoom factor
-      zoom = (float)(trackBar1.Value / 2f + 1);
+            // convert trackbar value to a zoom factor
+            zoom = (float)(trackBar1.Value / 2f + 1);
 
-      // first, create new image in the picture box that is desired size
-      //picVisual.Size = new Size((int)(320 * zoom), (int)(168 * zoom));
-      picVisual.Width = (int)(320 * zoom);
-      picVisual.Height = (int)(168 * zoom);
+            // first, create new image in the picture box that is desired size
+            //picVisual.Size = new Size((int)(320 * zoom), (int)(168 * zoom));
+            picVisual.Width = (int)(320 * zoom);
+            picVisual.Height = (int)(168 * zoom);
 
-      showPic();
-    }
-    private void picVisual_Click(object sender, EventArgs e)
-    {
-      //swap visual/priority
-      picMode = !picMode;
-      showPic();
-    }
-    void showPic()
-    {
-      if (picMode)
-      {
-        thisBMP = (Bitmap)EditGame.Pictures[1].PriorityBMP.Clone();
-      }
-      else
-      {
-        thisBMP = (Bitmap)EditGame.Pictures[1].VisualBMP.Clone();
-      }
-      if (cmbTransCol.SelectedIndex < 16)
-      {
-        thisBMP.MakeTransparent(EditGame.AGIColors[cmbTransCol.SelectedIndex]);
-      }
-      ShowAGIBitmap(picVisual, thisBMP, zoom);
+            showPic();
+        }
+        private void picVisual_Click(object sender, EventArgs e) {
+            //swap visual/priority
+            picMode = !picMode;
+            showPic();
+        }
+        void showPic() {
+            if (picMode) {
+                thisBMP = (Bitmap)EditGame.Pictures[1].PriorityBMP.Clone();
+            }
+            else {
+                thisBMP = (Bitmap)EditGame.Pictures[1].VisualBMP.Clone();
+            }
+            if (cmbTransCol.SelectedIndex < 16) {
+                thisBMP.MakeTransparent(EditGame.AGIColors[cmbTransCol.SelectedIndex]);
+            }
+            ShowAGIBitmap(picVisual, thisBMP, zoom);
 
-    }
-    private void cmbTransCol_SelectionChangeCommitted(object sender, EventArgs e)
-    {
-      //redraw, with the selected transparent image
-      showPic();
-    }
-    public bool EditPicture(Picture ThisPicture)
-    {
-      return true;
-      /*
-  Dim strTemp() As String, strMsg As String
-  
-  On Error GoTo ErrHandler
-  
-  'set ingame flag based on picture passed
-  InGame = ThisPicture.Resource.InGame
-  
-  'set number if this picture is in a game
-  If InGame Then
-    PicNumber = ThisPicture.Number
-  Else
-    'use a number that can never match
-    'when searches for open pictures are made
-    PicNumber = 256
-  End If
-  
-  'create new picture object
-  Set PicEdit = New AGIPicture
-  
-  'copy the passed picture to the editor picture
-  PicEdit.SetPicture ThisPicture
-  'get build error level (since entire picture is
-  'loaded during SetPicture function)
-  BMPBuildErr = PicEdit.BMPErrLevel
-  
-  'set caption and dirty flag
-  If Not InGame And PicEdit.ID = "NewPicture" Then
-    PicCount = PicCount + 1
-    PicEdit.ID = "NewPicture" & CStr(PicCount)
-    IsDirty = True
-  Else
-    IsDirty = PicEdit.IsDirty
-  End If
-  
-  'NOTE- this will actually load the form; for now
-  'we don't want any graphics stuff to run, so
-  'the load method has to ignore things for now
-  Caption = sPICED & ResourceName(PicEdit, InGame, True)
-  
-  If IsDirty Then
-    MarkAsDirty
-  Else
-    frmMDIMain.mnuRSave.Enabled = False
-    frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-  End If
-  
-  'populate cmd list with commands
-  If Not LoadCmdList() Then
-    'error- stop the form loading process
-    MsgBox "This picture has corrupt or invalid data. Unable to open it for editing.", vbCritical + vbOKOnly, "Picture Data Error"
-    PicEdit.Unload
-    Set PicEdit = Nothing
-    Exit Function
-  End If
-  
-  'enable stepdrawing
-  PicEdit.StepDraw = True
-  
-  'enable editing
-  PicMode = pmEdit
-  Toolbar1.Buttons("edit").Value = tbrPressed
+        }
+        private void cmbTransCol_SelectionChangeCommitted(object sender, EventArgs e) {
+            //redraw, with the selected transparent image
+            showPic();
+        }
+        public bool LoadPicture(Picture ThisPicture) {
+            return true;
+            /*
+        Dim strTemp() As String, strMsg As String
 
-  'check for a saved background image
-  If Len(PicEdit.BkgdImgFile) <> 0 Then
-    'try loading the background image
-    On Error Resume Next
-    Set BkgdImage = LoadPicture(PicEdit.BkgdImgFile)
-    If Err.Number = 0 And Not (Me.BkgdImage Is Nothing) Then
-      'get rest of parameters
-      BkgdTrans = PicEdit.BkgdTrans
-      strTemp = Split(PicEdit.BkgdSize, "|")
-      tgtW = strTemp(0)
-      tgtH = strTemp(1)
-      srcW = strTemp(2)
-      srcH = strTemp(3)
-      strTemp = Split(PicEdit.BkgdPosition, "|")
-      tgtX = strTemp(0)
-      tgtY = strTemp(1)
-      srcX = strTemp(2)
-      srcY = strTemp(3)
-      'validate a few things...
-      If srcW <= 0 Or srcH <= 0 Then
-        'reset
-        srcW = MetsToPix(BkgdImage.Width)
-        srcH = MetsToPix(BkgdImage.Height)
-      End If
-      If tgtW <= 0 Or tgtH <= 0 Then
-        'reset
-        tgtW = 320
-        tgtH = 168
-      End If
-      If PicEdit.BkgdShow Then
-        Toolbar1.Buttons("bkgd").Value = tbrPressed
-      End If
-    Else
-      'if error is file not found, let user know
-      If Err.Number = 76 Then
-        strMsg = "Background file not found. "
-      Else
-        strMsg = "Error loading background image."
-      End If
-      Err.Clear
-      ' inform user
-      MsgBox strMsg & vbCrLf & vbCrLf & "The 'BkgdImg' property for this picture will be cleared.", vbInformation + vbOKOnly, "Picture Background Image Error"
-      
-      ' clear picedit background properties
-      With PicEdit
-        .BkgdImgFile = ""
-        .BkgdPosition = ""
-        .BkgdShow = False
-        .BkgdSize = ""
-        .BkgdTrans = 0
-      End With
-      
-      ' clear ingame resource background properties
-      With Pictures(PicNumber)
-        .BkgdImgFile = ""
-        .BkgdPosition = ""
-        .BkgdShow = False
-        .BkgdSize = ""
-        .BkgdTrans = 0
-      End With
-      
-      ' update the game wag file
-      WriteProperty "Picture" & CStr(PicNumber), "BkgdImg", "", "Pictures"
-      WriteProperty "Picture" & CStr(PicNumber), "BkgdPosn", ""
-      WriteProperty "Picture" & CStr(PicNumber), "BkgdShow", ""
-      WriteProperty "Picture" & CStr(PicNumber), "BkgdSize", ""
-      ' force file to save after last property is changed
-      WriteProperty "Picture" & CStr(PicNumber), "BkgdTrans", "", "", True
-      
-      'make sure image is nothing
-      Set BkgdImage = Nothing
-      'force background off
-      PicEdit.BkgdShow = False
-    End If
-  End If
-  
-  'now we actually draw the picture; calls to DrawPicture
-  'during the setup in above code don't do anything since
-  'the pics aren't enabled yet; so we end with a final
-  'call to DrawPicture and Force them to be redrawn
-  DrawPicture True
-  
-  'return true
-  EditPicture = True
-Exit Function
+        On Error GoTo ErrHandler
 
-ErrHandler:
-  ErrMsgBox "Error while opening picture: ", "Unable to open picture for editing.", "Edit Picture Error"
-  PicEdit.Unload
-  Set PicEdit = Nothing
-*/
-    }
+        'set ingame flag based on picture passed
+        InGame = ThisPicture.Resource.InGame
+
+        'set number if this picture is in a game
+        If InGame Then
+          PicNumber = ThisPicture.Number
+        Else
+          'use a number that can never match
+          'when searches for open pictures are made
+          PicNumber = 256
+        End If
+
+        'create new picture object
+        Set PicEdit = New AGIPicture
+
+        'copy the passed picture to the editor picture
+        PicEdit.SetPicture ThisPicture
+        'get build error level (since entire picture is
+        'loaded during SetPicture function)
+        BMPBuildErr = PicEdit.BMPErrLevel
+
+        'set caption and dirty flag
+        If Not InGame And PicEdit.ID = "NewPicture" Then
+          PicCount = PicCount + 1
+          PicEdit.ID = "NewPicture" & CStr(PicCount)
+          IsDirty = True
+        Else
+          IsDirty = PicEdit.IsDirty
+        End If
+
+        'NOTE- this will actually load the form; for now
+        'we don't want any graphics stuff to run, so
+        'the load method has to ignore things for now
+        Caption = sPICED & ResourceName(PicEdit, InGame, True)
+
+        If IsDirty Then
+          MarkAsDirty
+        Else
+          frmMDIMain.mnuRSave.Enabled = False
+          frmMDIMain.Toolbar1.Buttons("save").Enabled = False
+        End If
+
+        'populate cmd list with commands
+        If Not LoadCmdList() Then
+          'error- stop the form loading process
+          MsgBox "This picture has corrupt or invalid data. Unable to open it for editing.", vbCritical + vbOKOnly, "Picture Data Error"
+          PicEdit.Unload
+          Set PicEdit = Nothing
+          Exit Function
+        End If
+
+        'enable stepdrawing
+        PicEdit.StepDraw = True
+
+        'enable editing
+        PicMode = pmEdit
+        Toolbar1.Buttons("edit").Value = tbrPressed
+
+        'check for a saved background image
+        If Len(PicEdit.BkgdImgFile) <> 0 Then
+          'try loading the background image
+          On Error Resume Next
+          Set BkgdImage = LoadPicture(PicEdit.BkgdImgFile)
+          If Err.Number = 0 And Not (Me.BkgdImage Is Nothing) Then
+            'get rest of parameters
+            BkgdTrans = PicEdit.BkgdTrans
+            strTemp = Split(PicEdit.BkgdSize, "|")
+            tgtW = strTemp(0)
+            tgtH = strTemp(1)
+            srcW = strTemp(2)
+            srcH = strTemp(3)
+            strTemp = Split(PicEdit.BkgdPosition, "|")
+            tgtX = strTemp(0)
+            tgtY = strTemp(1)
+            srcX = strTemp(2)
+            srcY = strTemp(3)
+            'validate a few things...
+            If srcW <= 0 Or srcH <= 0 Then
+              'reset
+              srcW = MetsToPix(BkgdImage.Width)
+              srcH = MetsToPix(BkgdImage.Height)
+            End If
+            If tgtW <= 0 Or tgtH <= 0 Then
+              'reset
+              tgtW = 320
+              tgtH = 168
+            End If
+            If PicEdit.BkgdShow Then
+              Toolbar1.Buttons("bkgd").Value = tbrPressed
+            End If
+          Else
+            'if error is file not found, let user know
+            If Err.Number = 76 Then
+              strMsg = "Background file not found. "
+            Else
+              strMsg = "Error loading background image."
+            End If
+            Err.Clear
+            ' inform user
+            MsgBox strMsg & vbCrLf & vbCrLf & "The 'BkgdImg' property for this picture will be cleared.", vbInformation + vbOKOnly, "Picture Background Image Error"
+
+            ' clear picedit background properties
+            With PicEdit
+              .BkgdImgFile = ""
+              .BkgdPosition = ""
+              .BkgdShow = False
+              .BkgdSize = ""
+              .BkgdTrans = 0
+            End With
+
+            ' clear ingame resource background properties
+            With Pictures(PicNumber)
+              .BkgdImgFile = ""
+              .BkgdPosition = ""
+              .BkgdShow = False
+              .BkgdSize = ""
+              .BkgdTrans = 0
+            End With
+
+            ' update the game wag file
+            WriteProperty "Picture" & CStr(PicNumber), "BkgdImg", "", "Pictures"
+            WriteProperty "Picture" & CStr(PicNumber), "BkgdPosn", ""
+            WriteProperty "Picture" & CStr(PicNumber), "BkgdShow", ""
+            WriteProperty "Picture" & CStr(PicNumber), "BkgdSize", ""
+            ' force file to save after last property is changed
+            WriteProperty "Picture" & CStr(PicNumber), "BkgdTrans", "", "", True
+
+            'make sure image is nothing
+            Set BkgdImage = Nothing
+            'force background off
+            PicEdit.BkgdShow = False
+          End If
+        End If
+
+        'now we actually draw the picture; calls to DrawPicture
+        'during the setup in above code don't do anything since
+        'the pics aren't enabled yet; so we end with a final
+        'call to DrawPicture and Force them to be redrawn
+        DrawPicture True
+
+        'return true
+        EditPicture = True
+      Exit Function
+
+      ErrHandler:
+        ErrMsgBox "Error while opening picture: ", "Unable to open picture for editing.", "Edit Picture Error"
+        PicEdit.Unload
+        Set PicEdit = Nothing
+      */
+        }
         public void MenuClickDescription(int FirstProp) {
             /*
               'change description and ID
@@ -280,13 +268,13 @@ ErrHandler:
               strDescription = PicEdit.Description
 
 
-              If GetNewResID(rtPicture, PicNumber, strID, strDescription, InGame, FirstProp) Then
+              If GetNewResID(AGIResType.Picture, PicNumber, strID, strDescription, InGame, FirstProp) Then
                 'save changes
                 UpdateID strID, strDescription
               End If
 
               'force menu update
-              AdjustMenus rtPicture, InGame, True, IsDirty
+              AdjustMenus AGIResType.Picture, InGame, True, IsDirty
             Exit Sub
 
             ErrHandler:
@@ -295,4895 +283,4896 @@ ErrHandler:
             */
         }
 
-    void tmpPicForm()
-    {
-      /*
+        void tmpPicForm() {
+            /*
 
-'three main picture controls used for managing vis and pri images:
-' picVisual/picPriority
-'      the control that holds the scaled image; this
-'      is where the image is displayed and what user
-'      interacts with directly
-'
-' picVisDraw/picPriDraw
-'      this is the image on which the picture is drawn
-'      unscaled; after drawing is complete, this image
-'      is 'blitted' onto the main drawing control; it's
-'      not visible to the user
-'
-' picVisSurface/picPriSurface
-'      container that holds the image control; it's
-'      the 'viewport' within which the scroll bars
-'      move the main image control to show portion
-'      of the image if too large to fit in the window
-'
+      'three main picture controls used for managing vis and pri images:
+      ' picVisual/picPriority
+      '      the control that holds the scaled image; this
+      '      is where the image is displayed and what user
+      '      interacts with directly
+      '
+      ' picVisDraw/picPriDraw
+      '      this is the image on which the picture is drawn
+      '      unscaled; after drawing is complete, this image
+      '      is 'blitted' onto the main drawing control; it's
+      '      not visible to the user
+      '
+      ' picVisSurface/picPriSurface
+      '      container that holds the image control; it's
+      '      the 'viewport' within which the scroll bars
+      '      move the main image control to show portion
+      '      of the image if too large to fit in the window
+      '
 
-Private PicMode As EPicMode
-Private UndoCol As Collection
-Private NoSelect As Boolean
+      Private PicMode As EPicMode
+      Private UndoCol As Collection
+      Private NoSelect As Boolean
 
-'variables to support tool selection/manipulation/use
-Private SelectedCmd As Long 'must be the last cmd if multiples selected so the picdraw feature works correctly
-Private OnPoint As Boolean
-Private Anchor As PT, Delta As PT
-Private CoordPT() As PT
-Private CurPt As PT
-Private SelStart As PT, SelSize As PT
-Private CurrentPen As PenStatus
-Private SelectedPen As PenStatus
-Private CurCmdIsLine As Boolean
-Private SelectedTool As TPicToolTypeEnum  'used to indicate what tool is currently selected
-Private PicDrawMode As TPicDrawOpEnum   'used to indicate what current drawing op is happening (determines what mouse ops mean)
-Private EditCmd As DrawFunction
-Private EditCoordNum As Long
-Private ArcPt(120) As PT
-Private Segments As Long
-Private CurCursor As EPicCur
-Private VCColor As Long  'color of 'x's in 'x' cursor mode for visual
-Private PCColor As Long  'color of 'x's in 'x' cursor mode for priority
-Private gInsertBefore As Boolean 'to manage insertion of new commands
-Private CodeClick As Boolean  'used to tell difference between lstCommand clicks
-                              'called in code vs. those by actual clicks
-Private Activating As Boolean
+      'variables to support tool selection/manipulation/use
+      Private SelectedCmd As Long 'must be the last cmd if multiples selected so the picdraw feature works correctly
+      Private OnPoint As Boolean
+      Private Anchor As PT, Delta As PT
+      Private CoordPT() As PT
+      Private CurPt As PT
+      Private SelStart As PT, SelSize As PT
+      Private CurrentPen As PenStatus
+      Private SelectedPen As PenStatus
+      Private CurCmdIsLine As Boolean
+      Private SelectedTool As TPicToolTypeEnum  'used to indicate what tool is currently selected
+      Private PicDrawMode As TPicDrawOpEnum   'used to indicate what current drawing op is happening (determines what mouse ops mean)
+      Private EditCmd As DrawFunction
+      Private EditCoordNum As Long
+      Private ArcPt(120) As PT
+      Private Segments As Long
+      Private CurCursor As EPicCur
+      Private VCColor As Long  'color of 'x's in 'x' cursor mode for visual
+      Private PCColor As Long  'color of 'x's in 'x' cursor mode for priority
+      Private gInsertBefore As Boolean 'to manage insertion of new commands
+      Private CodeClick As Boolean  'used to tell difference between lstCommand clicks
+                                    'called in code vs. those by actual clicks
+      Private Activating As Boolean
 
-'variables to support graphics/display
-Public BkgdImage As IPicture, BkgdTrans As Byte
-Public tgtX As Single, tgtY As Single, tgtW As Single, tgtH As Single
-Public srcX As Single, srcY As Single, srcW As Single, srcH As Single
+      'variables to support graphics/display
+      Public BkgdImage As IPicture, BkgdTrans As Byte
+      Public tgtX As Single, tgtY As Single, tgtW As Single, tgtH As Single
+      Public srcX As Single, srcY As Single, srcW As Single, srcH As Single
 
-Private MonoMask As VBitmap
-Private BadBitmap As Boolean
-Private BMPBuildErr As Long
+      Private MonoMask As VBitmap
+      Private BadBitmap As Boolean
+      Private BMPBuildErr As Long
 
-Public ShowBands As Boolean, OldPri As Long
-Private ShowSteps As Boolean
-Public ScaleFactor As Long
-Private blnWheel As Boolean
-Private HFraction As Single, VFraction As Single
+      Public ShowBands As Boolean, OldPri As Long
+      Private ShowSteps As Boolean
+      Public ScaleFactor As Long
+      Private blnWheel As Boolean
+      Private HFraction As Single, VFraction As Single
 
-Private blnDragging As Boolean, blnInPri As Boolean
-Private sngOffsetX As Single, sngOffsetY As Long
+      Private blnDragging As Boolean, blnInPri As Boolean
+      Private sngOffsetX As Single, sngOffsetY As Long
 
-Private SplitOffset As Long
-Private Const SPLIT_HEIGHT = 4  'in pixels
-Private Const SPLIT_WIDTH = 4  'in pixels
-Private Const MIN_SPLIT_V = 100 'in pixels
-Private Const MAX_SPLIT_V = 225 'in pixels
+      Private SplitOffset As Long
+      Private Const SPLIT_HEIGHT = 4  'in pixels
+      Private Const SPLIT_WIDTH = 4  'in pixels
+      Private Const MIN_SPLIT_V = 100 'in pixels
+      Private Const MAX_SPLIT_V = 225 'in pixels
 
-Private CalcWidth As Long, CalcHeight As Long
-Private Const MIN_HEIGHT = 361
-Private Const MIN_WIDTH = 200
+      Private CalcWidth As Long, CalcHeight As Long
+      Private Const MIN_HEIGHT = 361
+      Private Const MIN_WIDTH = 200
 
-Private SplitRatio As Single, Squished As Boolean
-Private OneWindow As Long '0=both; 1=vis only; 2=pri only
-Private PrevState As Long
+      Private SplitRatio As Single, Squished As Boolean
+      Private OneWindow As Long '0=both; 1=vis only; 2=pri only
+      Private PrevState As Long
 
-'variables to support testing
-Private TestView As AGIView
-Private TestViewNum As Long, TestViewFile As String
-Private CurTestLoop As Byte, CurTestCel As Byte
-Private CurTestLoopCount As Byte
+      'variables to support testing
+      Private TestView As AGIView
+      Private TestViewNum As Long, TestViewFile As String
+      Private CurTestLoop As Byte, CurTestCel As Byte
+      Private CurTestLoopCount As Byte
 
-Private TestDir As ObjDirection
-Private TestCelData() As AGIColors
-Private CelHeight As Byte, CelWidth As Byte
-Private CelTrans As AGIColors
-Private StopReason As Long
-Private OldCel As PT
-Private StatusSrc As Boolean
-Private TestSettings As TPicTest
+      Private TestDir As ObjDirection
+      Private TestCelData() As AGIColors
+      Private CelHeight As Byte, CelWidth As Byte
+      Private CelTrans As AGIColors
+      Private StopReason As Long
+      Private OldCel As PT
+      Private StatusSrc As Boolean
+      Private TestSettings As TPicTest
 
-Private SBPic As Long
+      Private SBPic As Long
 
-'constants and Type declarations
-Private Const PE_MARGIN As Long = 5
+      'constants and Type declarations
+      Private Const PE_MARGIN As Long = 5
 
-Private Sub AddCoordToList(ByVal bytX As Byte, ByVal bytY As Byte, ByVal CmdPos As Long, Optional ByVal Prefix As String = "", Optional ByVal InsertPos As Long = -1)
+      Private Sub AddCoordToList(ByVal bytX As Byte, ByVal bytY As Byte, ByVal CmdPos As Long, Optional ByVal Prefix As String = "", Optional ByVal InsertPos As Long = -1)
 
-  On Error GoTo ErrHandler
-  
-  With lstCoords
-  
-    'add to listbox (normally at end, but if a position is passed, insert it there
-    If InsertPos = -1 Then
-      .AddItem Prefix & CoordText(bytX, bytY)
-    Else
-      .AddItem Prefix & CoordText(bytX, bytY), InsertPos
-    End If
-    .ItemData(.NewIndex) = CmdPos
-    
-    'add to coord list (make sure there is room)
-    '(always add to end - order doesn't matter)
-    If .ListCount - 1 > UBound(CoordPT) Then
-      ReDim Preserve CoordPT(UBound(CoordPT) + 100)
-    End If
-    CoordPT(.ListCount - 1).X = bytX
-    CoordPT(.ListCount - 1).Y = bytY
-  End With
-  
-Exit Sub
+        On Error GoTo ErrHandler
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+        With lstCoords
 
-Private Sub ClearCoordList()
-
-  'clear lstCoord, clear and reset coordpt list
-  
-  lstCoords.Clear
-  ReDim CoordPT(100)
-  
-  'always set CurPt to impossible value so clicking any coord will reselect correctly
-  CurPt.X = 255
-  CurPt.Y = 255
-End Sub
-
-
-Private Function ConfigureBackground() As Boolean
-
-  'shows background configuration form (which will automatically show
-  'the loadimage dialog if no Image loaded yet)
-  
-  On Error GoTo ErrHandler
-  
-  Set frmConfigureBkgd.PicEditForm = Me
-  'initialize the form (will get a bkgd Image if there isn't one yet)
-  frmConfigureBkgd.InitForm
-  
-  'if no bkgd Image (i.e. user canceled), just exit
-  If frmConfigureBkgd.Canceled Then
-    Unload frmConfigureBkgd
-    ConfigureBackground = False
-    Exit Function
-  End If
-  
-  'now set canceled flag (it's the default)
-  frmConfigureBkgd.Canceled = True
-  
-  'show the form
-  frmConfigureBkgd.Show vbModal, frmMDIMain
-  
-  'do something with it...
-  If Not frmConfigureBkgd.Canceled Then
-    'copy bkgd Image and filename
-    Set BkgdImage = frmConfigureBkgd.BkgdImage
-    
-    'save the bkgd parameters
-    With frmConfigureBkgd
-      'local values used in draw functions
-      tgtX = .tgtX
-      tgtY = .tgtY
-      tgtW = .tgtW
-      tgtH = .tgtH
-      srcX = .srcX
-      srcY = .srcY
-      srcW = .srcW
-      srcH = .srcH
-      BkgdTrans = .BkgdTrans
-      ' now update the picture resource properties
-      PicEdit.BkgdImgFile = .BkgdImgFile
-      PicEdit.BkgdTrans = CLng(BkgdTrans)
-      PicEdit.BkgdSize = tgtW & "|" & tgtH & "|" & srcW & "|" & srcH
-      PicEdit.BkgdPosition = tgtX & "|" & tgtY & "|" & srcX & "|" & srcY
-    End With
-
-    'if in game
-    If InGame Then
-      'copy properties back to actual picture resource
-      With Pictures(PicEdit.Number)
-        .BkgdImgFile = PicEdit.BkgdImgFile
-        .BkgdPosition = PicEdit.BkgdPosition
-        .BkgdShow = PicEdit.BkgdShow
-        .BkgdSize = PicEdit.BkgdSize
-        .BkgdTrans = PicEdit.BkgdTrans
-        ' save it (this will only write the properties
-        ' since the real picture is not being edited
-        ' in this piceditor)
-        .Save
-      End With
-    End If
-    
-    'return true
-    ConfigureBackground = True
-  Else
-    'return false
-    ConfigureBackground = False
-  End If
-  
-  'unload the form
-  Unload frmConfigureBkgd
-Exit Function
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Function
-
-Private Sub ExportPicAsGif()
-
-  'export a loop as a gif
-  
-  Dim blnCanceled As Boolean, rtn As Long
-  Dim PGOptions As GifOptions
-  
-  On Error GoTo ErrHandler
-  
-  'show options form
-  Load frmViewGifOptions
-  With frmViewGifOptions
-    'set up form to export this picture
-    .InitForm 1, PicEdit
-    .Show vbModal, frmMDIMain
-    blnCanceled = .Canceled
-    
-    'if not canceled, get a filename
-    If Not blnCanceled Then
-    
-      'set up commondialog
-      With MainSaveDlg
-        .DialogTitle = "Export Picture GIF"
-        .DefaultExt = "gif"
-        .Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*"
-        .Flags = cdlOFNHideReadOnly Or cdlOFNPathMustExist Or cdlOFNExplorer
-        .FilterIndex = 1
-        .FullName = ""
-        .hWndOwner = frmMDIMain.hWnd
-      End With
-      
-      Do
-        On Error Resume Next
-        MainSaveDlg.ShowSaveAs
-        'if canceled,
-        If Err.Number = cdlCancel Then
-          'cancel the export
-          blnCanceled = True
-          Exit Do
-        End If
-        
-        'if file exists,
-        If FileExists(MainSaveDlg.FullName) Then
-          'verify replacement
-          rtn = MsgBox(MainSaveDlg.FileName & " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
-          
-          If rtn = vbYes Then
-            Exit Do
-          ElseIf rtn = vbCancel Then
-            blnCanceled = True
-            Exit Do
+          'add to listbox (normally at end, but if a position is passed, insert it there
+          If InsertPos = -1 Then
+            .AddItem Prefix & CoordText(bytX, bytY)
+          Else
+            .AddItem Prefix & CoordText(bytX, bytY), InsertPos
           End If
+          .ItemData(.NewIndex) = CmdPos
+
+          'add to coord list (make sure there is room)
+          '(always add to end - order doesn't matter)
+          If .ListCount - 1 > UBound(CoordPT) Then
+            ReDim Preserve CoordPT(UBound(CoordPT) + 100)
+          End If
+          CoordPT(.ListCount - 1).X = bytX
+          CoordPT(.ListCount - 1).Y = bytY
+        End With
+
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub ClearCoordList()
+
+        'clear lstCoord, clear and reset coordpt list
+
+        lstCoords.Clear
+        ReDim CoordPT(100)
+
+        'always set CurPt to impossible value so clicking any coord will reselect correctly
+        CurPt.X = 255
+        CurPt.Y = 255
+      End Sub
+
+
+      Private Function ConfigureBackground() As Boolean
+
+        'shows background configuration form (which will automatically show
+        'the loadimage dialog if no Image loaded yet)
+
+        On Error GoTo ErrHandler
+
+        Set frmConfigureBkgd.PicEditForm = Me
+        'initialize the form (will get a bkgd Image if there isn't one yet)
+        frmConfigureBkgd.InitForm
+
+        'if no bkgd Image (i.e. user canceled), just exit
+        If frmConfigureBkgd.Canceled Then
+          Unload frmConfigureBkgd
+          ConfigureBackground = False
+          Exit Function
+        End If
+
+        'now set canceled flag (it's the default)
+        frmConfigureBkgd.Canceled = True
+
+        'show the form
+        frmConfigureBkgd.Show vbModal, frmMDIMain
+
+        'do something with it...
+        If Not frmConfigureBkgd.Canceled Then
+          'copy bkgd Image and filename
+          Set BkgdImage = frmConfigureBkgd.BkgdImage
+
+          'save the bkgd parameters
+          With frmConfigureBkgd
+            'local values used in draw functions
+            tgtX = .tgtX
+            tgtY = .tgtY
+            tgtW = .tgtW
+            tgtH = .tgtH
+            srcX = .srcX
+            srcY = .srcY
+            srcW = .srcW
+            srcH = .srcH
+            BkgdTrans = .BkgdTrans
+            ' now update the picture resource properties
+            PicEdit.BkgdImgFile = .BkgdImgFile
+            PicEdit.BkgdTrans = CLng(BkgdTrans)
+            PicEdit.BkgdSize = tgtW & "|" & tgtH & "|" & srcW & "|" & srcH
+            PicEdit.BkgdPosition = tgtX & "|" & tgtY & "|" & srcX & "|" & srcY
+          End With
+
+          'if in game
+          If InGame Then
+            'copy properties back to actual picture resource
+            With Pictures(PicEdit.Number)
+              .BkgdImgFile = PicEdit.BkgdImgFile
+              .BkgdPosition = PicEdit.BkgdPosition
+              .BkgdShow = PicEdit.BkgdShow
+              .BkgdSize = PicEdit.BkgdSize
+              .BkgdTrans = PicEdit.BkgdTrans
+              ' save it (this will only write the properties
+              ' since the real picture is not being edited
+              ' in this piceditor)
+              .Save
+            End With
+          End If
+
+          'return true
+          ConfigureBackground = True
         Else
-          Exit Do
+          'return false
+          ConfigureBackground = False
         End If
-      Loop While True
-      On Error GoTo ErrHandler
-    End If
-    
-    'if NOT canceled after getting filename, then export!
-    If Not blnCanceled Then
-      'show progress form
-      Load frmProgress
-      With frmProgress
-        .Caption = "Exporting Picture as GIF"
-        .lblProgress = "Depending in size of picture, this may take awhile. Please wait..."
-        .pgbStatus.Max = PicEdit.Resource.Size
-        .pgbStatus.Value = 0
-        .pgbStatus.Visible = True
-        .Show
-        .Refresh
-      End With
-      
-      'show wait cursor
-      WaitCursor
-      
-      PGOptions.Cycle = (.chkLoop.Value = vbChecked)
-      PGOptions.Delay = Val(.txtDelay.Text)
-      PGOptions.Zoom = Val(.txtZoom.Text)
-      
-      'set options
-      MakePicGif PicEdit, PGOptions, MainSaveDlg.FullName
-      
-      'all done!
-      Unload frmProgress
-      MsgBox "Success!", vbInformation + vbOKOnly, "Export Picture as GIF"
-      
-      Screen.MousePointer = vbDefault
-    End If
-    
-    'done with the options form
-    Unload frmViewGifOptions
-    
-  End With
-Exit Sub
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+        'unload the form
+        Unload frmConfigureBkgd
+      Exit Function
 
-Private Sub GetZoomCenter()
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Function
 
-  'only called by zoom feature if a scrollwheel event
-  'occurs
-  
-  Dim rtn As Long
-  Dim mPos As POINTAPI
-  
-  'get the cursor position and figure out if it's over picVisual or picPriority
-  rtn = GetCursorPos(mPos)
-  rtn = WindowFromPoint(mPos.X, mPos.Y)
-  
-  'if it's NOT over one of those two, then set fraction values to 1/2
-  Select Case rtn
-  Case picVisual.hWnd
-    'convert to client coordinates
-    rtn = ScreenToClient(rtn, mPos)
-    
-    'correct for scroll position
-    If hsbVis.Visible Then
-      mPos.X = mPos.X - hsbVis.Value
-    End If
-    'and return fraction of visSurface
-    HFraction = mPos.X / picVisSurface.Width
-    
-    'correct for scroll position
-    If vsbVis.Visible Then
-      mPos.Y = mPos.Y - vsbVis.Value
-      VFraction = mPos.Y / picVisSurface.Height
-    End If
-    'and return fraction of visSurface
-    VFraction = mPos.Y / picVisSurface.Height
-  
-  Case picPriority.hWnd
-    'convert to client coordinates
-    rtn = ScreenToClient(rtn, mPos)
-    
-    'correct for scroll position
-    If hsbPri.Visible Then
-      mPos.X = mPos.X - hsbPri.Value
-    End If
-    'and return fraction of priSurface
-    HFraction = mPos.X / picPriSurface.Width
-    
-    If vsbPri.Visible Then
-      'correct for any scroll values
-      mPos.Y = mPos.Y - vsbPri.Value
-    End If
-    'and return fraction of priSurface
-    VFraction = mPos.Y / picPriSurface.Height
-    
-  Case Else
-    HFraction = 0.5
-    VFraction = 0.5
-  End Select
-  
-End Sub
+      Private Sub ExportPicAsGif()
 
-Private Sub HighlightCoords()
+        'export a loop as a gif
 
-  Dim i As Long, lngCount As Long
-  Dim tmpPT As PT, LineType As DrawFunction
-  Dim cOfX As Single, cOfY As Single, cSzX As Single, cSzY As Single
-  
-  On Error GoTo ErrHandler
-  
-  'if using original highlight mode OR if not in edit mode, just exit
-  If CursorMode = pcmWinAGI Or SelectedTool <> ttEdit Then
-    Exit Sub
-  End If
-  
-  cOfX = 1.5 / ScaleFactor ^ 0.5
-  cOfY = cOfX * 2 '3 / ScaleFactor ^ 0.5
-  cSzX = cOfX * 2 '3 / ScaleFactor ^ 0.5
-  cSzY = cOfY * 2 '6 / ScaleFactor ^ 0.5
-  
-  'if any coords are in the list highlight them
-  
-  'lines need all coords highlighted; plots and fills need only highlight up to selected coord
-  'get Type of line command
-  LineType = PicEdit.Resource.Data(lstCommands.ItemData(SelectedCmd))
-  If lstCoords.ListIndex >= 0 And (LineType = dfFill Or LineType = dfPlotPen) Then
-    lngCount = lstCoords.ListIndex
-  Else
-    lngCount = lstCoords.ListCount - 1
-  End If
-  
-  'is this selected coord?
-  If lstCoords.ListIndex <> -1 Then
-    tmpPT = ExtractCoordinates(lstCoords.Text)
-  Else
-    'set X to invalid value so it'll never match
-    tmpPT.X = 255
-  End If
-      
-  If lngCount >= 0 Then
-    For i = 0 To lngCount
-      If CoordPT(i).X = tmpPT.X And CoordPT(i).Y = tmpPT.Y Then
-        'draw a box
-        If SelectedPen.VisColor < agNone Then
-          picVisual.Line ((CoordPT(i).X + 0.5 - cOfX / 2) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 + cOfY / 2) * ScaleFactor)-Step((cSzX + 0.15) / 2 * ScaleFactor * 2, (-cSzY - 0.3) / 2 * ScaleFactor), VCColor, B
+        Dim blnCanceled As Boolean, rtn As Long
+        Dim PGOptions As GifOptions
+
+        On Error GoTo ErrHandler
+
+        'show options form
+        Load frmViewGifOptions
+        With frmViewGifOptions
+          'set up form to export this picture
+          .InitForm 1, PicEdit
+          .Show vbModal, frmMDIMain
+          blnCanceled = .Canceled
+
+          'if not canceled, get a filename
+          If Not blnCanceled Then
+
+            'set up commondialog
+            With MainSaveDlg
+              .DialogTitle = "Export Picture GIF"
+              .DefaultExt = "gif"
+              .Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*"
+              .Flags = cdlOFNHideReadOnly Or cdlOFNPathMustExist Or cdlOFNExplorer
+              .FilterIndex = 1
+              .FullName = ""
+              .hWndOwner = frmMDIMain.hWnd
+            End With
+
+            Do
+              On Error Resume Next
+              MainSaveDlg.ShowSaveAs
+              'if canceled,
+              If Err.Number = cdlCancel Then
+                'cancel the export
+                blnCanceled = True
+                Exit Do
+              End If
+
+              'if file exists,
+              If FileExists(MainSaveDlg.FullName) Then
+                'verify replacement
+                rtn = MsgBox(MainSaveDlg.FileName & " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
+
+                If rtn = vbYes Then
+                  Exit Do
+                ElseIf rtn = vbCancel Then
+                  blnCanceled = True
+                  Exit Do
+                End If
+              Else
+                Exit Do
+              End If
+            Loop While True
+            On Error GoTo ErrHandler
+          End If
+
+          'if NOT canceled after getting filename, then export!
+          If Not blnCanceled Then
+            'show progress form
+            Load frmProgress
+            With frmProgress
+              .Caption = "Exporting Picture as GIF"
+              .lblProgress = "Depending in size of picture, this may take awhile. Please wait..."
+              .pgbStatus.Max = PicEdit.Resource.Size
+              .pgbStatus.Value = 0
+              .pgbStatus.Visible = True
+              .Show
+              .Refresh
+            End With
+
+            'show wait cursor
+            WaitCursor
+
+            PGOptions.Cycle = (.chkLoop.Value = vbChecked)
+            PGOptions.Delay = Val(.txtDelay.Text)
+            PGOptions.Zoom = Val(.txtZoom.Text)
+
+            'set options
+            MakePicGif PicEdit, PGOptions, MainSaveDlg.FullName
+
+            'all done!
+            Unload frmProgress
+            MsgBox "Success!", vbInformation + vbOKOnly, "Export Picture as GIF"
+
+            Screen.MousePointer = vbDefault
+          End If
+
+          'done with the options form
+          Unload frmViewGifOptions
+
+        End With
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub GetZoomCenter()
+
+        'only called by zoom feature if a scrollwheel event
+        'occurs
+
+        Dim rtn As Long
+        Dim mPos As POINTAPI
+
+        'get the cursor position and figure out if it's over picVisual or picPriority
+        rtn = GetCursorPos(mPos)
+        rtn = WindowFromPoint(mPos.X, mPos.Y)
+
+        'if it's NOT over one of those two, then set fraction values to 1/2
+        Select Case rtn
+        Case picVisual.hWnd
+          'convert to client coordinates
+          rtn = ScreenToClient(rtn, mPos)
+
+          'correct for scroll position
+          If hsbVis.Visible Then
+            mPos.X = mPos.X - hsbVis.Value
+          End If
+          'and return fraction of visSurface
+          HFraction = mPos.X / picVisSurface.Width
+
+          'correct for scroll position
+          If vsbVis.Visible Then
+            mPos.Y = mPos.Y - vsbVis.Value
+            VFraction = mPos.Y / picVisSurface.Height
+          End If
+          'and return fraction of visSurface
+          VFraction = mPos.Y / picVisSurface.Height
+
+        Case picPriority.hWnd
+          'convert to client coordinates
+          rtn = ScreenToClient(rtn, mPos)
+
+          'correct for scroll position
+          If hsbPri.Visible Then
+            mPos.X = mPos.X - hsbPri.Value
+          End If
+          'and return fraction of priSurface
+          HFraction = mPos.X / picPriSurface.Width
+
+          If vsbPri.Visible Then
+            'correct for any scroll values
+            mPos.Y = mPos.Y - vsbPri.Value
+          End If
+          'and return fraction of priSurface
+          VFraction = mPos.Y / picPriSurface.Height
+
+        Case Else
+          HFraction = 0.5
+          VFraction = 0.5
+        End Select
+
+      End Sub
+
+      Private Sub HighlightCoords()
+
+        Dim i As Long, lngCount As Long
+        Dim tmpPT As PT, LineType As DrawFunction
+        Dim cOfX As Single, cOfY As Single, cSzX As Single, cSzY As Single
+
+        On Error GoTo ErrHandler
+
+        'if using original highlight mode OR if not in edit mode, just exit
+        If CursorMode = pcmWinAGI Or SelectedTool <> ttEdit Then
+          Exit Sub
         End If
-        If SelectedPen.PriColor < agNone Then
-          picPriority.Line ((CoordPT(i).X + 0.5 - cOfX / 2) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 + cOfY / 2) * ScaleFactor)-Step((cSzX + 0.15) / 2 * ScaleFactor * 2, (-cSzY - 0.3) / 2 * ScaleFactor), VCColor, B
+
+        cOfX = 1.5 / ScaleFactor ^ 0.5
+        cOfY = cOfX * 2 '3 / ScaleFactor ^ 0.5
+        cSzX = cOfX * 2 '3 / ScaleFactor ^ 0.5
+        cSzY = cOfY * 2 '6 / ScaleFactor ^ 0.5
+
+        'if any coords are in the list highlight them
+
+        'lines need all coords highlighted; plots and fills need only highlight up to selected coord
+        'get Type of line command
+        LineType = PicEdit.Resource.Data(lstCommands.ItemData(SelectedCmd))
+        If lstCoords.ListIndex >= 0 And (LineType = dfFill Or LineType = dfPlotPen) Then
+          lngCount = lstCoords.ListIndex
+        Else
+          lngCount = lstCoords.ListCount - 1
         End If
-      Else
-        'highlight this coord with an X
-        If SelectedPen.VisColor < agNone Then
-          picVisual.Line ((CoordPT(i).X + 0.5 - cOfX) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 + cOfY) * ScaleFactor)-Step((cSzX + 0.15) * ScaleFactor * 2, (-cSzY - 0.3) * ScaleFactor), VCColor
-          picVisual.Line ((CoordPT(i).X + 0.5 - cOfX) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 - cOfY) * ScaleFactor)-Step((cSzX + 0.15) * ScaleFactor * 2, (cSzY + 0.3) * ScaleFactor), VCColor
+
+        'is this selected coord?
+        If lstCoords.ListIndex <> -1 Then
+          tmpPT = ExtractCoordinates(lstCoords.Text)
+        Else
+          'set X to invalid value so it'll never match
+          tmpPT.X = 255
         End If
-        If SelectedPen.PriColor < agNone Then
-          picPriority.Line ((CoordPT(i).X + 0.5 - cOfX) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 + cOfY) * ScaleFactor)-Step((cSzX + 0.15) * ScaleFactor * 2, (-cSzY - 0.3) * ScaleFactor), PCColor
-          picPriority.Line ((CoordPT(i).X + 0.5 - cOfX) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 - cOfY) * ScaleFactor)-Step((cSzX + 0.15) * ScaleFactor * 2, (cSzY + 0.3) * ScaleFactor), PCColor
-        End If
-      End If
-    Next i
-  End If
-  
-Exit Sub
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Public Sub MenuClickInsert()
-
-On Error GoTo ErrHandler
-
-  'insert coord without starting a move action
-  InsertCoordinate False
-
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-
-End Sub
-
-Public Sub MenuClickReplace()
-
-  'toggle test view mode
-  
-  On Error GoTo ErrHandler
-  
-  'if currently in test mode
-  If PicMode = pmTest Then
-    'switch back to edit
-    SetMode pmEdit
-  Else
-    'if no test view,
-    If TestView Is Nothing Then
-      'get one
-      GetTestView
-    
-      'if still no test view
-      If TestView Is Nothing Then
-        'just exit
-        Exit Sub
-      End If
-    End If
-    
-    'switch to test mode
-    SetMode pmTest
-  End If
-
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-
-End Sub
-
-Public Sub MenuClickHelp()
-  
-  On Error GoTo ErrHandler
-  
-  'help
-  HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Picture_Editor.htm"
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-Public Sub Activate()
-  'bridge method to call the form's Activate event method
-  Form_Activate
-End Sub
-
-Private Sub BuildCoordList(ByVal ListPos As Long)
-
-  'build coord list, based on selected cmd
-  
-  Dim bytCmd As Byte
-  Dim bytData() As Byte
-  Dim lngPos As Long, lngNode As Long
-  Dim bytX As Byte, bytY As Byte
-  Dim xdisp As Long, ydisp As Long
-  Dim blnRelX As Boolean, PatternNum As Byte
-  Dim strBrush As String, blnSplat As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  'clear coords list
-  ClearCoordList
-  
-  'if more than one selected item
-  If lstCommands.SelCount > 1 Then
-    Exit Sub
-  End If
-  
-  'if end selected or nothing selected,
-  If SelectedCmd = lstCommands.ListCount - 1 Or lstCommands.ListIndex = -1 Then
-    Exit Sub
-  End If
-  
-  'get data (for better speed)
-  bytData = PicEdit.Resource.AllData
-  
-  'set starting pos for the selected cmd
-  lngPos = lstCommands.ItemData(ListPos)
-  
-  'get command Type
-  bytCmd = bytData(lngPos)
-  
-  'add command based on Type
-  Select Case bytCmd
-  Case &HF0, &HF1, &HF2, &HF3, &H9 'pen functions; no coords.
-    
-  Case &HF4, &HF5 'Draw an X or Y corner.
-    'set initial direction
-    blnRelX = (bytCmd = &HF5)
-    'get coordinates
-    lngPos = lngPos + 1
-    bytX = bytData(lngPos)
-    If bytX >= &HF0 Then
-      Exit Sub
-    End If
-    lngPos = lngPos + 1
-    bytY = bytData(lngPos)
-    If bytX >= &HF0 Then
-      Exit Sub
-    End If
-    
-    'add start (adjust by 1 so first byte of coordinate is stored as position)
-    AddCoordToList bytX, bytY, lngPos - 1
-
-    'get next byte as potential command
-    lngPos = lngPos + 1
-    bytCmd = bytData(lngPos)
-    
-    Do Until bytCmd >= &HF0
-      If blnRelX Then
-        bytX = bytCmd
-      Else
-        bytY = bytCmd
-      End If
-      blnRelX = Not blnRelX
-      
-      'add coordinate node, and set position
-      AddCoordToList bytX, bytY, lngPos
-      
-      'get next coordinate or command
-      lngPos = lngPos + 1
-      bytCmd = bytData(lngPos)
-    Loop
-   
-  Case &HF6 'Absolute line (long lines).
-    'get coordinates
-    lngPos = lngPos + 1
-    bytX = bytData(lngPos)
-    If bytX >= &HF0 Then
-      Exit Sub
-    End If
-    lngPos = lngPos + 1
-    bytY = bytData(lngPos)
-    If bytY >= &HF0 Then
-      Exit Sub
-    End If
-    
-    'add start (adjust by 1 so first byte of coordinate is stored as position)
-    AddCoordToList bytX, bytY, lngPos - 1
-    
-    'get next byte as potential command
-    lngPos = lngPos + 1
-    bytCmd = bytData(lngPos)
-    
-    Do Until bytCmd >= &HF0
-      bytX = bytCmd
-      lngPos = lngPos + 1
-      bytY = bytData(lngPos)
-      
-      'add coordinate node, and set position
-      AddCoordToList bytX, bytY, lngPos - 1
-      
-      'read in next command
-      lngPos = lngPos + 1
-      bytCmd = bytData(lngPos)
-    Loop
-    
-  Case &HF7 'Relative line (short lines).
-     'get coordinates
-    lngPos = lngPos + 1
-    bytX = bytData(lngPos)
-    If bytX >= &HF0 Then
-      Exit Sub
-    End If
-    lngPos = lngPos + 1
-    bytY = bytData(lngPos)
-    If bytY >= &HF0 Then
-      Exit Sub
-    End If
-    
-    'add start (adjust by 1 so first byte of coordinate is stored as position)
-    AddCoordToList bytX, bytY, lngPos - 1
-    
-    'get next byte as potential command
-    lngPos = lngPos + 1
-    bytCmd = bytData(lngPos)
-    
-    Do Until bytCmd >= &HF0
-      'if horizontal negative bit set
-      If (bytCmd And &H80) Then
-        xdisp = -((bytCmd And &H70) / &H10)
-      Else
-        xdisp = ((bytCmd And &H70) / &H10)
-      End If
-      'if vertical negative bit is set
-      If (bytCmd And &H8) Then
-        ydisp = -(bytCmd And &H7)
-      Else
-        ydisp = (bytCmd And &H7)
-      End If
-      bytX = bytX + xdisp
-      bytY = bytY + ydisp
-      
-      'add coordinate node, and set position
-      AddCoordToList bytX, bytY, lngPos
-      
-      'read in next command
-      lngPos = lngPos + 1
-      bytCmd = bytData(lngPos)
-    Loop
-   
- Case &HF8 'Fill.
-    'get next byte as potential command
-    lngPos = lngPos + 1
-    bytCmd = bytData(lngPos)
-    
-    Do Until bytCmd >= &HF0
-      'get coordinates
-      bytX = bytCmd
-      lngPos = lngPos + 1
-      bytY = bytData(lngPos)
-      
-      'add coord
-      AddCoordToList bytX, bytY, lngPos - 1
-      
-      'read in next command
-      lngPos = lngPos + 1
-      bytCmd = bytData(lngPos)
-    Loop
-    
-  Case &HFA 'Plot with pen.
-    'get next byte as potential command
-    lngPos = lngPos + 1
-    bytCmd = bytData(lngPos)
-    Do Until bytCmd >= &HF0
-      'if brush is splatter
-      If CurrentPen.PlotStyle Then
-        PatternNum = CLng(bytCmd \ 2)
-''        If PatternNum > 119 Then
-''        'this is never possible! bytCmd will ALWAYS be <240, so bytCmd\2 will never be >119
-''          'treat as pattern number 1
-''          PatternNum = 1
-''        End If
-        'strBrush = "[Pattern " & CStr(PatternNum) & "] "
-        strBrush = CStr(PatternNum) & " -- "
-        'get next byte
-        lngPos = lngPos + 1
-        bytCmd = bytData(lngPos)
-        'set offset to 2 (to account for pattern number and x coord)
-        xdisp = 2
-      Else
-        strBrush = vbNullString
-        'set offset to 1 (to account for x coord)
-        xdisp = 1
-      End If
-
-      'get coordinates
-      bytX = bytCmd
-      lngPos = lngPos + 1
-      bytY = bytData(lngPos)
-      'add coord
-      AddCoordToList bytX, bytY, lngPos - xdisp, strBrush
-      
-      'read in next command
-      lngPos = lngPos + 1
-      bytCmd = bytData(lngPos)
-    Loop
-  End Select
-  
-  'highlight the coords, if in edit mode
-  If PicMode = pmEdit Then
-    HighlightCoords
-  End If
-Exit Sub
-
-ErrHandler:
-  'if it's due to being past end of resource, just ignore it
-  If lngPos > UBound(bytData) Then
-    Err.Clear
-    If PicMode = pmEdit Then
-      HighlightCoords
-    End If
-    Exit Sub
-  End If
-  
-  'error- let calling method deal with it
-  '*'Debug.Assert False
-  'by returning false
-End Sub
-
-Private Sub ComparePoints(CmpStart As PT, CmpEnd As PT, ByVal bytX As Byte, ByVal bytY As Byte)
-
-  'adjusts cmpstart and cmpend based on bytx and byty values
-  If bytX < CmpStart.X Then
-    CmpStart.X = bytX
-  End If
-  If bytY < CmpStart.Y Then
-    CmpStart.Y = bytY
-  End If
-  If bytX > CmpEnd.X Then
-    CmpEnd.X = bytX
-  End If
-  If bytY > CmpEnd.Y Then
-    CmpEnd.Y = bytY
-  End If
-End Sub
-
-Private Sub FlipCmds(ByVal FlipCmd As Long, ByVal Count As Long, ByVal Axis As Long, Optional ByVal DontUndo As Boolean = False)
-
-  'flips the selected commands
-  'axis=0 means horizontal flip
-  'axis=1 means vertical flip
-  
-  Dim i As Long, bytDelta As Byte, lngPos As Long
-  Dim NextUndo As PictureUndo, bytData() As Byte
-  Dim blnX As Boolean, lngOldPos As Long
-  Dim bytX As Byte, bytY As Byte
-  Dim tmpStyle As EPlotStyle
-  
-  On Error GoTo ErrHandler
-  
-  'select the cmds ???why isn't this already done????
-  GetSelectionBounds SelectedCmd, Count, True
-  
-  'bounding rectangle should always be defined
-  '*'Debug.Assert SelSize.X <> 0 Or SelSize.Y <> 0
-  
-  'get current pen status for first command
-  tmpStyle = GetPenStyle(lstCommands.ItemData(SelectedCmd - Count + 1))
-  
-  'local copy of data (for speed)
-  bytData = PicEdit.Resource.AllData
-  
-  'if horizontal flip:
-  If Axis = 0 Then
-    'step through each cmd
-    For i = Count To 1 Step -1
-      lngPos = lstCommands.ItemData(FlipCmd - i + 1)
-      
-      'each cmd handles flip differently
-      Select Case bytData(lngPos)
-      Case dfRelLine
-        'increment position marker
-        lngPos = lngPos + 1
-        
-        'when flipping relative lines horizontally, need to flip the actual order
-        'of coordinates; this ensures that we avoid situations where the flipped
-        'line creates data bytes that the interpreter might confuse as commands
-        '(remember that the delta x offset is the four highest bits of the data
-        'byte; bit 7 is set if the delta is negative; bits 6-5-4 determine Value;
-        'if the delta amount is -7, this means the data byte will be >=&HF0; this
-        'is read by the interpreter as a new cmd; not as a delt of -7; so for
-        'rel lines, the delta x Value is limited to -6; when flipping, we can't just
-        'flip the first coord, then change the direction of the x-delta values;
-        'there may be some +7 delta values that will result in errors when converted
-        'to -7 delta x values
-        
-        'solution is to build the command backwards; start with the LAST point in
-        'the command; then build the line backwards to finish the swap
-        
-        'if at least one valid coordinate
-        If bytData(lngPos) < &HF0 Then
-          'determine ending point
-          bytX = bytData(lngPos)
-          bytY = bytData(lngPos + 1)
-          
-          'set pointer to next delta Value
-          lngPos = lngPos + 2
-          
-          Do Until bytData(lngPos) >= &HF0
-            'add deltax
-            If bytData(lngPos) And &H80 Then
-              bytX = bytX - (CLng(bytData(lngPos)) And &H70) / &H10
+        If lngCount >= 0 Then
+          For i = 0 To lngCount
+            If CoordPT(i).X = tmpPT.X And CoordPT(i).Y = tmpPT.Y Then
+              'draw a box
+              If SelectedPen.VisColor < agNone Then
+                picVisual.Line ((CoordPT(i).X + 0.5 - cOfX / 2) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 + cOfY / 2) * ScaleFactor)-Step((cSzX + 0.15) / 2 * ScaleFactor * 2, (-cSzY - 0.3) / 2 * ScaleFactor), VCColor, B
+              End If
+              If SelectedPen.PriColor < agNone Then
+                picPriority.Line ((CoordPT(i).X + 0.5 - cOfX / 2) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 + cOfY / 2) * ScaleFactor)-Step((cSzX + 0.15) / 2 * ScaleFactor * 2, (-cSzY - 0.3) / 2 * ScaleFactor), VCColor, B
+              End If
             Else
-              bytX = bytX + (CLng(bytData(lngPos)) And &H70) / &H10
-            End If
-            
-            'add deltay
-            If bytData(lngPos) And &H8 Then
-              bytY = bytY - (CLng(bytData(lngPos)) And &H7)
-            Else
-              bytY = bytY + (CLng(bytData(lngPos)) And &H7)
-            End If
-            
-              
-            'get next delta Value
-            lngPos = lngPos + 1
-          Loop
-          
-          'flip the x Value of the end point (which will now be the start point)
-          bytX = 2 * CLng(SelStart.X) + SelSize.X - bytX - 1
-          
-          'save ending point position (remember to back up one unit)
-          lngOldPos = lngPos - 1
-          'restore original pointer (remember to skip cmd valus so pos points
-          'to the first coordinate pair)
-          lngPos = lstCommands.ItemData(FlipCmd - i + 1) + 1
-          'store this point
-          bytData(lngPos) = bytX
-          bytData(lngPos + 1) = bytY
-          'now move pointer to first delta Value
-          lngPos = lngPos + 2
-          
-          'now rebuild cmds, starting with last command, and going backwards
-          'because the cmds are being built in reverse, the delta x and delta y
-          'values should be inverted (+ to - and - to +), BUT because cmd is being
-          'flipped,  we only invert the y direction, resulting in the x
-          'direction being flipped properly
-          
-          '(also, because cmds have to be re-built backwards, we access the delta
-          'values from the picedit object when reconstructing the delta values)
-          
-          Do
-            'copy the delta Value from picdata to bytdata
-            bytData(lngPos) = PicEdit.Resource.Data(lngOldPos)
-            'if the delta y Value is currently negative
-            If (bytData(lngPos) And &H8) Then
-              'clear the bit to make the direction positive
-              bytData(lngPos) = bytData(lngPos) And &HF7
-            
-            'if the delta y Value is currently positive (or mayber zero?)
-            Else
-              'if the delta Value is not zero
-              If bytData(lngPos) And &H7 Then
-                'set the bit
-                bytData(lngPos) = bytData(lngPos) Or &H8
+              'highlight this coord with an X
+              If SelectedPen.VisColor < agNone Then
+                picVisual.Line ((CoordPT(i).X + 0.5 - cOfX) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 + cOfY) * ScaleFactor)-Step((cSzX + 0.15) * ScaleFactor * 2, (-cSzY - 0.3) * ScaleFactor), VCColor
+                picVisual.Line ((CoordPT(i).X + 0.5 - cOfX) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 - cOfY) * ScaleFactor)-Step((cSzX + 0.15) * ScaleFactor * 2, (cSzY + 0.3) * ScaleFactor), VCColor
+              End If
+              If SelectedPen.PriColor < agNone Then
+                picPriority.Line ((CoordPT(i).X + 0.5 - cOfX) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 + cOfY) * ScaleFactor)-Step((cSzX + 0.15) * ScaleFactor * 2, (-cSzY - 0.3) * ScaleFactor), PCColor
+                picPriority.Line ((CoordPT(i).X + 0.5 - cOfX) * ScaleFactor * 2, (CoordPT(i).Y + 0.5 - cOfY) * ScaleFactor)-Step((cSzX + 0.15) * ScaleFactor * 2, (cSzY + 0.3) * ScaleFactor), PCColor
               End If
             End If
-            
-            'get next delta Value
-            lngPos = lngPos + 1
-            lngOldPos = lngOldPos - 1
-          Loop Until bytData(lngPos) >= &HF0
+          Next i
         End If
-        
-      Case dfAbsLine, dfFill
-        'each pair of coordinates are adjusted for flip
-        lngPos = lngPos + 1
-        Do Until bytData(lngPos) >= &HF0
-          If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then
-            bytData(lngPos) = 2 * CLng(SelStart.X) + SelSize.X - bytData(lngPos) - 1
-          Else
-            'end found
-            Exit Do
-          End If
-          'get next cmd pair
-          lngPos = lngPos + 2
-        Loop
-        
-      Case dfPlotPen
-        'each pair of coordinates are adjusted for flip
-        lngPos = lngPos + 1
-        
-        Do Until bytData(lngPos) >= &HF0
-          'if pen is splatter
-          If tmpStyle = psSplatter Then
-            'skip first byte; its the splatter Value
-            lngPos = lngPos + 1
-          End If
-        
-          If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then
-            bytData(lngPos) = 2 * CLng(SelStart.X) + SelSize.X - bytData(lngPos) - 1
-          Else
-            'end found
-            Exit Do
-          End If
-          
-          'get next cmd pair
-          lngPos = lngPos + 2
-        Loop
-        
-      Case dfXCorner, dfYCorner
-        'if this is a 'x' corner, then next coord is a 'x' Value
-        '(make sure to check this BEFORE incrementing lngPos)
-        blnX = (bytData(lngPos) = dfXCorner)
-          
-        'move pointer to first coordinate pair
-        lngPos = lngPos + 1
-        
-        'if a valid coordinatee
-        If bytData(lngPos) < &HF0 Then
-          'flip first coordinate
-          bytData(lngPos) = 2 * CLng(SelStart.X) + SelSize.X - bytData(lngPos) - 1
-          
-          'move pointer to next coordinate point
-          lngPos = lngPos + 2
-          
-          Do Until bytData(lngPos) >= &HF0
-            'if this is a 'x' point
-            If blnX Then
-              'flip it
-              bytData(lngPos) = 2 * CLng(SelStart.X) + SelSize.X - bytData(lngPos) - 1
-            End If
-            
-            'toggle next coord Type
-            blnX = Not blnX
-            'increment pointer
-            lngPos = lngPos + 1
-          Loop
-        End If
-      Case dfChangePen
-        tmpStyle = (bytData(lngPos + 1) And &H20) / &H20
-      End Select
-    Next i
-  
-  Else
-    'step through each cmd
-    For i = 1 To Count
-      lngPos = lstCommands.ItemData(FlipCmd - i + 1)
-      
-      'each cmd handles flip differently
-      Select Case bytData(lngPos)
-      Case dfRelLine
-        'when flipping the y axis, we don't need to worry about
-        'the swap causing errors in the delta values; all we need
-        'to do is just swap the first coordinate, and then change the
-        'y direction of all delta values
-        
-        'increment position marker
-        lngPos = lngPos + 1
-        
-        If bytData(lngPos) < &HF0 Then
-          'flip the y Value of starting point
-          bytData(lngPos + 1) = 2 * CLng(SelStart.Y) + SelSize.Y - bytData(lngPos + 1) - 1
-          'increment lngpos  (by two so first relative pt data byte is selected)
-          lngPos = lngPos + 2
-        End If
-        
-        Do Until bytData(lngPos) >= &HF0
-          'toggle direction bit for y displacement
-          
-          'if the delta y Value is currently negative
-          If (bytData(lngPos) And &H8) Then
-            'clear the bit to make the direction positive
-            bytData(lngPos) = bytData(lngPos) And &HF7
-          
-          'if the delta y Value is currently positive (or mayber zero?)
-          Else
-            'if the delta Value is not zero
-            If bytData(lngPos) And &H7 Then
-              'set the bit
-              bytData(lngPos) = bytData(lngPos) Or &H8
+
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Public Sub MenuClickInsert()
+
+      On Error GoTo ErrHandler
+
+        'insert coord without starting a move action
+        InsertCoordinate False
+
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+
+      End Sub
+
+      Public Sub MenuClickReplace()
+
+        'toggle test view mode
+
+        On Error GoTo ErrHandler
+
+        'if currently in test mode
+        If PicMode = pmTest Then
+          'switch back to edit
+          SetMode pmEdit
+        Else
+          'if no test view,
+          If TestView Is Nothing Then
+            'get one
+            GetTestView
+
+            'if still no test view
+            If TestView Is Nothing Then
+              'just exit
+              Exit Sub
             End If
           End If
-          
-          'neyt byte
+
+          'switch to test mode
+          SetMode pmTest
+        End If
+
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+
+      End Sub
+
+      Public Sub MenuClickHelp()
+
+        On Error GoTo ErrHandler
+
+        'help
+        HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Picture_Editor.htm"
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+      Public Sub Activate()
+        'bridge method to call the form's Activate event method
+        Form_Activate
+      End Sub
+
+      Private Sub BuildCoordList(ByVal ListPos As Long)
+
+        'build coord list, based on selected cmd
+
+        Dim bytCmd As Byte
+        Dim bytData() As Byte
+        Dim lngPos As Long, lngNode As Long
+        Dim bytX As Byte, bytY As Byte
+        Dim xdisp As Long, ydisp As Long
+        Dim blnRelX As Boolean, PatternNum As Byte
+        Dim strBrush As String, blnSplat As Boolean
+
+        On Error GoTo ErrHandler
+
+        'clear coords list
+        ClearCoordList
+
+        'if more than one selected item
+        If lstCommands.SelCount > 1 Then
+          Exit Sub
+        End If
+
+        'if end selected or nothing selected,
+        If SelectedCmd = lstCommands.ListCount - 1 Or lstCommands.ListIndex = -1 Then
+          Exit Sub
+        End If
+
+        'get data (for better speed)
+        bytData = PicEdit.Resource.AllData
+
+        'set starting pos for the selected cmd
+        lngPos = lstCommands.ItemData(ListPos)
+
+        'get command Type
+        bytCmd = bytData(lngPos)
+
+        'add command based on Type
+        Select Case bytCmd
+        Case &HF0, &HF1, &HF2, &HF3, &H9 'pen functions; no coords.
+
+        Case &HF4, &HF5 'Draw an X or Y corner.
+          'set initial direction
+          blnRelX = (bytCmd = &HF5)
+          'get coordinates
           lngPos = lngPos + 1
-        Loop
-        
-      Case dfAbsLine, dfFill
-        'each pair of coordinates are adjusted for flip
-        lngPos = lngPos + 1
-        Do Until bytData(lngPos) >= &HF0
-          If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then
-            bytData(lngPos + 1) = 2 * CLng(SelStart.Y) + SelSize.Y - bytData(lngPos + 1) - 1
-          Else
-            'end found
-            Exit Do
+          bytX = bytData(lngPos)
+          If bytX >= &HF0 Then
+            Exit Sub
           End If
-          'get neyt cmd pair
-          lngPos = lngPos + 2
-        Loop
-        
-      Case dfPlotPen
-        'each pair of coordinates are adjusted for flip
-        lngPos = lngPos + 1
-        
-        Do Until bytData(lngPos) >= &HF0
-          'if pen is splatter
-          If tmpStyle = psSplatter Then
-            'skip first byte; its the splatter Value
-            lngPos = lngPos + 1
+          lngPos = lngPos + 1
+          bytY = bytData(lngPos)
+          If bytX >= &HF0 Then
+            Exit Sub
           End If
-        
-          If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then
-            bytData(lngPos + 1) = 2 * CLng(SelStart.Y) + SelSize.Y - bytData(lngPos + 1) - 1
-          Else
-            'end found
-            Exit Do
-          End If
-          
-          'get next cmd pair
-          lngPos = lngPos + 2
-        Loop
-        
-      Case dfYCorner, dfXCorner
-        'if this is a 'y' corner, then next coord is a 'y' Value
-        '(make sure to check this BEFORE incrementing lngPos)
-        blnX = bytData(lngPos) = dfXCorner
-          
-        'move pointer to first coordinate pair
-        lngPos = lngPos + 1
-        
-        'if a valid coordinatee
-        If bytData(lngPos) < &HF0 Then
-          'flip first coordinate
-          bytData(lngPos + 1) = 2 * CLng(SelStart.Y) + SelSize.Y - bytData(lngPos + 1) - 1
-          
-          'move pointer to next coordinate point
-          lngPos = lngPos + 2
-          
-          Do Until bytData(lngPos) >= &HF0
-            'if this is a 'y' point
-            If Not blnX Then
-              'flip it
-              bytData(lngPos) = 2 * CLng(SelStart.Y) + SelSize.Y - bytData(lngPos) - 1
+
+          'add start (adjust by 1 so first byte of coordinate is stored as position)
+          AddCoordToList bytX, bytY, lngPos - 1
+
+          'get next byte as potential command
+          lngPos = lngPos + 1
+          bytCmd = bytData(lngPos)
+
+          Do Until bytCmd >= &HF0
+            If blnRelX Then
+              bytX = bytCmd
+            Else
+              bytY = bytCmd
             End If
-            
-            'toggle next coord Type
-            blnX = Not blnX
-            'increment pointer
+            blnRelX = Not blnRelX
+
+            'add coordinate node, and set position
+            AddCoordToList bytX, bytY, lngPos
+
+            'get next coordinate or command
             lngPos = lngPos + 1
+            bytCmd = bytData(lngPos)
           Loop
-        End If
-        
-      Case dfChangePen
-        tmpStyle = (bytData(lngPos + 1) And &H20) / &H20
-      End Select
-    Next i
-  End If
-  
-  'copy data back to resource
-  PicEdit.Resource.SetData bytData
-    
-  'if not skipping undo
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      If Axis = 0 Then
-        .UDAction = udpFlipH
-      Else
-        .UDAction = udpFlipV
-      End If
-      .UDCmdIndex = FlipCmd
-      .UDCoordIndex = Count
-    End With
-    AddUndo NextUndo
-  End If
-Exit Sub
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+        Case &HF6 'Absolute line (long lines).
+          'get coordinates
+          lngPos = lngPos + 1
+          bytX = bytData(lngPos)
+          If bytX >= &HF0 Then
+            Exit Sub
+          End If
+          lngPos = lngPos + 1
+          bytY = bytData(lngPos)
+          If bytY >= &HF0 Then
+            Exit Sub
+          End If
 
-Private Function GetPenStyle(ByVal lngPos As Long) As EPlotStyle
-  
-  'determines pen status for a given position
-  
-  Dim bytData() As Byte, i As Long
-  
-  On Error GoTo ErrHandler
-  
-  'default is solid
-  GetPenStyle = psSolid
-  
-  'local copy of data for speed
-  bytData = PicEdit.Resource.AllData
-  
-  For i = 0 To lngPos
-    If bytData(i) = dfChangePen Then
-      'set new pen status
-      GetPenStyle = (bytData(i + 1) And &H20) / &H20
-    End If
-  Next i
-Exit Function
+          'add start (adjust by 1 so first byte of coordinate is stored as position)
+          AddCoordToList bytX, bytY, lngPos - 1
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Function
+          'get next byte as potential command
+          lngPos = lngPos + 1
+          bytCmd = bytData(lngPos)
 
-Private Sub GetSelectionBounds(ByVal SelCmd As Long, ByVal SelCount As Long, Optional ByVal ShowBox As Boolean = False)
-
-  'determines the starting (upper left corner) and the
-  'size of selected cmds, and sets selection box to match
-  'optionally draws a selection box around the commands
-  
-  Dim i As Long, lngPos As Long
-  Dim tmpPlotStyle As EPlotStyle
-  Dim bytX As Byte, bytY As Byte
-  Dim xdisp As Long, ydisp As Long
-  Dim blnRelX As Boolean, blnSplat As Boolean
-  Dim bytData() As Byte
-  Dim SelEnd As PT
-  
-  On Error GoTo ErrHandler
-  
-  'set start to lower right (to force it to update)
-  SelStart.X = 159
-  SelStart.Y = 167
-  'set end to upper left (to force it to update)
-  SelEnd.X = 0
-  SelEnd.Y = 0
-  
-  'now go through each cmd; check it for coordinates
-  'if coordinates are found, step through them to
-  'determine if any coords expand the selected area
-  
-  'NOTE: for plots, need to be aware of pen status
-  'so coordinate values get extracted correctly
-  tmpPlotStyle = GetPenStyle(lstCommands.ItemData(SelCmd - SelCount + 1))
-  
-  'work with data locally (improves speed)
-  bytData = PicEdit.Resource.AllData
-  
-  For i = SelCount - 1 To 0 Step -1
-    'set starting pos for this cmd
-    lngPos = lstCommands.ItemData(SelCmd - i)
-    'parse coords based on cmdtype
-    Select Case bytData(lngPos)
-    'Case dfEnableVis, dfDisableVis, dfEnablePri, dfDisablePri
-      'ignore cmds that have no coordinates
-    Case dfChangePen
-      'need to check for change in plot style
-      tmpPlotStyle = (bytData(lngPos + 1) And &H20) / &H20
-      
-    Case dfYCorner, dfXCorner
-      'set initial direction
-      blnRelX = (bytData(lngPos) = &HF5)
-      
-      Do
-        'get coordinates
-        lngPos = lngPos + 1
-        bytX = bytData(lngPos)
-        If bytX >= &HF0 Then
-          Exit Do
-        End If
-        lngPos = lngPos + 1
-        bytY = bytData(lngPos)
-        If bytX >= &HF0 Then
-          Exit Do
-        End If
-        
-        'compare to start/end
-        ComparePoints SelStart, SelEnd, bytX, bytY
-        
-        'get next byte as potential command
-        lngPos = lngPos + 1
-        
-        Do Until bytData(lngPos) >= &HF0
-          If blnRelX Then
-            bytX = bytData(lngPos)
-          Else
+          Do Until bytCmd >= &HF0
+            bytX = bytCmd
+            lngPos = lngPos + 1
             bytY = bytData(lngPos)
-          End If
-          blnRelX = Not blnRelX
-          
-          'compare to start/end
-          ComparePoints SelStart, SelEnd, bytX, bytY
-          
-          'get next coordinate or command
+
+            'add coordinate node, and set position
+            AddCoordToList bytX, bytY, lngPos - 1
+
+            'read in next command
+            lngPos = lngPos + 1
+            bytCmd = bytData(lngPos)
+          Loop
+
+        Case &HF7 'Relative line (short lines).
+           'get coordinates
           lngPos = lngPos + 1
+          bytX = bytData(lngPos)
+          If bytX >= &HF0 Then
+            Exit Sub
+          End If
+          lngPos = lngPos + 1
+          bytY = bytData(lngPos)
+          If bytY >= &HF0 Then
+            Exit Sub
+          End If
+
+          'add start (adjust by 1 so first byte of coordinate is stored as position)
+          AddCoordToList bytX, bytY, lngPos - 1
+
+          'get next byte as potential command
+          lngPos = lngPos + 1
+          bytCmd = bytData(lngPos)
+
+          Do Until bytCmd >= &HF0
+            'if horizontal negative bit set
+            If (bytCmd And &H80) Then
+              xdisp = -((bytCmd And &H70) / &H10)
+            Else
+              xdisp = ((bytCmd And &H70) / &H10)
+            End If
+            'if vertical negative bit is set
+            If (bytCmd And &H8) Then
+              ydisp = -(bytCmd And &H7)
+            Else
+              ydisp = (bytCmd And &H7)
+            End If
+            bytX = bytX + xdisp
+            bytY = bytY + ydisp
+
+            'add coordinate node, and set position
+            AddCoordToList bytX, bytY, lngPos
+
+            'read in next command
+            lngPos = lngPos + 1
+            bytCmd = bytData(lngPos)
+          Loop
+
+       Case &HF8 'Fill.
+          'get next byte as potential command
+          lngPos = lngPos + 1
+          bytCmd = bytData(lngPos)
+
+          Do Until bytCmd >= &HF0
+            'get coordinates
+            bytX = bytCmd
+            lngPos = lngPos + 1
+            bytY = bytData(lngPos)
+
+            'add coord
+            AddCoordToList bytX, bytY, lngPos - 1
+
+            'read in next command
+            lngPos = lngPos + 1
+            bytCmd = bytData(lngPos)
+          Loop
+
+        Case &HFA 'Plot with pen.
+          'get next byte as potential command
+          lngPos = lngPos + 1
+          bytCmd = bytData(lngPos)
+          Do Until bytCmd >= &HF0
+            'if brush is splatter
+            If CurrentPen.PlotStyle Then
+              PatternNum = CLng(bytCmd \ 2)
+      ''        If PatternNum > 119 Then
+      ''        'this is never possible! bytCmd will ALWAYS be <240, so bytCmd\2 will never be >119
+      ''          'treat as pattern number 1
+      ''          PatternNum = 1
+      ''        End If
+              'strBrush = "[Pattern " & CStr(PatternNum) & "] "
+              strBrush = CStr(PatternNum) & " -- "
+              'get next byte
+              lngPos = lngPos + 1
+              bytCmd = bytData(lngPos)
+              'set offset to 2 (to account for pattern number and x coord)
+              xdisp = 2
+            Else
+              strBrush = vbNullString
+              'set offset to 1 (to account for x coord)
+              xdisp = 1
+            End If
+
+            'get coordinates
+            bytX = bytCmd
+            lngPos = lngPos + 1
+            bytY = bytData(lngPos)
+            'add coord
+            AddCoordToList bytX, bytY, lngPos - xdisp, strBrush
+
+            'read in next command
+            lngPos = lngPos + 1
+            bytCmd = bytData(lngPos)
+          Loop
+        End Select
+
+        'highlight the coords, if in edit mode
+        If PicMode = pmEdit Then
+          HighlightCoords
+        End If
+      Exit Sub
+
+      ErrHandler:
+        'if it's due to being past end of resource, just ignore it
+        If lngPos > UBound(bytData) Then
+          Err.Clear
+          If PicMode = pmEdit Then
+            HighlightCoords
+          End If
+          Exit Sub
+        End If
+
+        'error- let calling method deal with it
+        '*'Debug.Assert False
+        'by returning false
+      End Sub
+
+      Private Sub ComparePoints(CmpStart As PT, CmpEnd As PT, ByVal bytX As Byte, ByVal bytY As Byte)
+
+        'adjusts cmpstart and cmpend based on bytx and byty values
+        If bytX < CmpStart.X Then
+          CmpStart.X = bytX
+        End If
+        If bytY < CmpStart.Y Then
+          CmpStart.Y = bytY
+        End If
+        If bytX > CmpEnd.X Then
+          CmpEnd.X = bytX
+        End If
+        If bytY > CmpEnd.Y Then
+          CmpEnd.Y = bytY
+        End If
+      End Sub
+
+      Private Sub FlipCmds(ByVal FlipCmd As Long, ByVal Count As Long, ByVal Axis As Long, Optional ByVal DontUndo As Boolean = False)
+
+        'flips the selected commands
+        'axis=0 means horizontal flip
+        'axis=1 means vertical flip
+
+        Dim i As Long, bytDelta As Byte, lngPos As Long
+        Dim NextUndo As PictureUndo, bytData() As Byte
+        Dim blnX As Boolean, lngOldPos As Long
+        Dim bytX As Byte, bytY As Byte
+        Dim tmpStyle As EPlotStyle
+
+        On Error GoTo ErrHandler
+
+        'select the cmds ???why isn't this already done????
+        GetSelectionBounds SelectedCmd, Count, True
+
+        'bounding rectangle should always be defined
+        '*'Debug.Assert SelSize.X <> 0 Or SelSize.Y <> 0
+
+        'get current pen status for first command
+        tmpStyle = GetPenStyle(lstCommands.ItemData(SelectedCmd - Count + 1))
+
+        'local copy of data (for speed)
+        bytData = PicEdit.Resource.AllData
+
+        'if horizontal flip:
+        If Axis = 0 Then
+          'step through each cmd
+          For i = Count To 1 Step -1
+            lngPos = lstCommands.ItemData(FlipCmd - i + 1)
+
+            'each cmd handles flip differently
+            Select Case bytData(lngPos)
+            Case dfRelLine
+              'increment position marker
+              lngPos = lngPos + 1
+
+              'when flipping relative lines horizontally, need to flip the actual order
+              'of coordinates; this ensures that we avoid situations where the flipped
+              'line creates data bytes that the interpreter might confuse as commands
+              '(remember that the delta x offset is the four highest bits of the data
+              'byte; bit 7 is set if the delta is negative; bits 6-5-4 determine Value;
+              'if the delta amount is -7, this means the data byte will be >=&HF0; this
+              'is read by the interpreter as a new cmd; not as a delt of -7; so for
+              'rel lines, the delta x Value is limited to -6; when flipping, we can't just
+              'flip the first coord, then change the direction of the x-delta values;
+              'there may be some +7 delta values that will result in errors when converted
+              'to -7 delta x values
+
+              'solution is to build the command backwards; start with the LAST point in
+              'the command; then build the line backwards to finish the swap
+
+              'if at least one valid coordinate
+              If bytData(lngPos) < &HF0 Then
+                'determine ending point
+                bytX = bytData(lngPos)
+                bytY = bytData(lngPos + 1)
+
+                'set pointer to next delta Value
+                lngPos = lngPos + 2
+
+                Do Until bytData(lngPos) >= &HF0
+                  'add deltax
+                  If bytData(lngPos) And &H80 Then
+                    bytX = bytX - (CLng(bytData(lngPos)) And &H70) / &H10
+                  Else
+                    bytX = bytX + (CLng(bytData(lngPos)) And &H70) / &H10
+                  End If
+
+                  'add deltay
+                  If bytData(lngPos) And &H8 Then
+                    bytY = bytY - (CLng(bytData(lngPos)) And &H7)
+                  Else
+                    bytY = bytY + (CLng(bytData(lngPos)) And &H7)
+                  End If
+
+
+                  'get next delta Value
+                  lngPos = lngPos + 1
+                Loop
+
+                'flip the x Value of the end point (which will now be the start point)
+                bytX = 2 * CLng(SelStart.X) + SelSize.X - bytX - 1
+
+                'save ending point position (remember to back up one unit)
+                lngOldPos = lngPos - 1
+                'restore original pointer (remember to skip cmd valus so pos points
+                'to the first coordinate pair)
+                lngPos = lstCommands.ItemData(FlipCmd - i + 1) + 1
+                'store this point
+                bytData(lngPos) = bytX
+                bytData(lngPos + 1) = bytY
+                'now move pointer to first delta Value
+                lngPos = lngPos + 2
+
+                'now rebuild cmds, starting with last command, and going backwards
+                'because the cmds are being built in reverse, the delta x and delta y
+                'values should be inverted (+ to - and - to +), BUT because cmd is being
+                'flipped,  we only invert the y direction, resulting in the x
+                'direction being flipped properly
+
+                '(also, because cmds have to be re-built backwards, we access the delta
+                'values from the picedit object when reconstructing the delta values)
+
+                Do
+                  'copy the delta Value from picdata to bytdata
+                  bytData(lngPos) = PicEdit.Resource.Data(lngOldPos)
+                  'if the delta y Value is currently negative
+                  If (bytData(lngPos) And &H8) Then
+                    'clear the bit to make the direction positive
+                    bytData(lngPos) = bytData(lngPos) And &HF7
+
+                  'if the delta y Value is currently positive (or mayber zero?)
+                  Else
+                    'if the delta Value is not zero
+                    If bytData(lngPos) And &H7 Then
+                      'set the bit
+                      bytData(lngPos) = bytData(lngPos) Or &H8
+                    End If
+                  End If
+
+                  'get next delta Value
+                  lngPos = lngPos + 1
+                  lngOldPos = lngOldPos - 1
+                Loop Until bytData(lngPos) >= &HF0
+              End If
+
+            Case dfAbsLine, dfFill
+              'each pair of coordinates are adjusted for flip
+              lngPos = lngPos + 1
+              Do Until bytData(lngPos) >= &HF0
+                If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then
+                  bytData(lngPos) = 2 * CLng(SelStart.X) + SelSize.X - bytData(lngPos) - 1
+                Else
+                  'end found
+                  Exit Do
+                End If
+                'get next cmd pair
+                lngPos = lngPos + 2
+              Loop
+
+            Case dfPlotPen
+              'each pair of coordinates are adjusted for flip
+              lngPos = lngPos + 1
+
+              Do Until bytData(lngPos) >= &HF0
+                'if pen is splatter
+                If tmpStyle = psSplatter Then
+                  'skip first byte; its the splatter Value
+                  lngPos = lngPos + 1
+                End If
+
+                If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then
+                  bytData(lngPos) = 2 * CLng(SelStart.X) + SelSize.X - bytData(lngPos) - 1
+                Else
+                  'end found
+                  Exit Do
+                End If
+
+                'get next cmd pair
+                lngPos = lngPos + 2
+              Loop
+
+            Case dfXCorner, dfYCorner
+              'if this is a 'x' corner, then next coord is a 'x' Value
+              '(make sure to check this BEFORE incrementing lngPos)
+              blnX = (bytData(lngPos) = dfXCorner)
+
+              'move pointer to first coordinate pair
+              lngPos = lngPos + 1
+
+              'if a valid coordinatee
+              If bytData(lngPos) < &HF0 Then
+                'flip first coordinate
+                bytData(lngPos) = 2 * CLng(SelStart.X) + SelSize.X - bytData(lngPos) - 1
+
+                'move pointer to next coordinate point
+                lngPos = lngPos + 2
+
+                Do Until bytData(lngPos) >= &HF0
+                  'if this is a 'x' point
+                  If blnX Then
+                    'flip it
+                    bytData(lngPos) = 2 * CLng(SelStart.X) + SelSize.X - bytData(lngPos) - 1
+                  End If
+
+                  'toggle next coord Type
+                  blnX = Not blnX
+                  'increment pointer
+                  lngPos = lngPos + 1
+                Loop
+              End If
+            Case dfChangePen
+              tmpStyle = (bytData(lngPos + 1) And &H20) / &H20
+            End Select
+          Next i
+
+        Else
+          'step through each cmd
+          For i = 1 To Count
+            lngPos = lstCommands.ItemData(FlipCmd - i + 1)
+
+            'each cmd handles flip differently
+            Select Case bytData(lngPos)
+            Case dfRelLine
+              'when flipping the y axis, we don't need to worry about
+              'the swap causing errors in the delta values; all we need
+              'to do is just swap the first coordinate, and then change the
+              'y direction of all delta values
+
+              'increment position marker
+              lngPos = lngPos + 1
+
+              If bytData(lngPos) < &HF0 Then
+                'flip the y Value of starting point
+                bytData(lngPos + 1) = 2 * CLng(SelStart.Y) + SelSize.Y - bytData(lngPos + 1) - 1
+                'increment lngpos  (by two so first relative pt data byte is selected)
+                lngPos = lngPos + 2
+              End If
+
+              Do Until bytData(lngPos) >= &HF0
+                'toggle direction bit for y displacement
+
+                'if the delta y Value is currently negative
+                If (bytData(lngPos) And &H8) Then
+                  'clear the bit to make the direction positive
+                  bytData(lngPos) = bytData(lngPos) And &HF7
+
+                'if the delta y Value is currently positive (or mayber zero?)
+                Else
+                  'if the delta Value is not zero
+                  If bytData(lngPos) And &H7 Then
+                    'set the bit
+                    bytData(lngPos) = bytData(lngPos) Or &H8
+                  End If
+                End If
+
+                'neyt byte
+                lngPos = lngPos + 1
+              Loop
+
+            Case dfAbsLine, dfFill
+              'each pair of coordinates are adjusted for flip
+              lngPos = lngPos + 1
+              Do Until bytData(lngPos) >= &HF0
+                If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then
+                  bytData(lngPos + 1) = 2 * CLng(SelStart.Y) + SelSize.Y - bytData(lngPos + 1) - 1
+                Else
+                  'end found
+                  Exit Do
+                End If
+                'get neyt cmd pair
+                lngPos = lngPos + 2
+              Loop
+
+            Case dfPlotPen
+              'each pair of coordinates are adjusted for flip
+              lngPos = lngPos + 1
+
+              Do Until bytData(lngPos) >= &HF0
+                'if pen is splatter
+                If tmpStyle = psSplatter Then
+                  'skip first byte; its the splatter Value
+                  lngPos = lngPos + 1
+                End If
+
+                If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then
+                  bytData(lngPos + 1) = 2 * CLng(SelStart.Y) + SelSize.Y - bytData(lngPos + 1) - 1
+                Else
+                  'end found
+                  Exit Do
+                End If
+
+                'get next cmd pair
+                lngPos = lngPos + 2
+              Loop
+
+            Case dfYCorner, dfXCorner
+              'if this is a 'y' corner, then next coord is a 'y' Value
+              '(make sure to check this BEFORE incrementing lngPos)
+              blnX = bytData(lngPos) = dfXCorner
+
+              'move pointer to first coordinate pair
+              lngPos = lngPos + 1
+
+              'if a valid coordinatee
+              If bytData(lngPos) < &HF0 Then
+                'flip first coordinate
+                bytData(lngPos + 1) = 2 * CLng(SelStart.Y) + SelSize.Y - bytData(lngPos + 1) - 1
+
+                'move pointer to next coordinate point
+                lngPos = lngPos + 2
+
+                Do Until bytData(lngPos) >= &HF0
+                  'if this is a 'y' point
+                  If Not blnX Then
+                    'flip it
+                    bytData(lngPos) = 2 * CLng(SelStart.Y) + SelSize.Y - bytData(lngPos) - 1
+                  End If
+
+                  'toggle next coord Type
+                  blnX = Not blnX
+                  'increment pointer
+                  lngPos = lngPos + 1
+                Loop
+              End If
+
+            Case dfChangePen
+              tmpStyle = (bytData(lngPos + 1) And &H20) / &H20
+            End Select
+          Next i
+        End If
+
+        'copy data back to resource
+        PicEdit.Resource.SetData bytData
+
+        'if not skipping undo
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            If Axis = 0 Then
+              .UDAction = udpFlipH
+            Else
+              .UDAction = udpFlipV
+            End If
+            .UDCmdIndex = FlipCmd
+            .UDCoordIndex = Count
+          End With
+          AddUndo NextUndo
+        End If
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Function GetPenStyle(ByVal lngPos As Long) As EPlotStyle
+
+        'determines pen status for a given position
+
+        Dim bytData() As Byte, i As Long
+
+        On Error GoTo ErrHandler
+
+        'default is solid
+        GetPenStyle = psSolid
+
+        'local copy of data for speed
+        bytData = PicEdit.Resource.AllData
+
+        For i = 0 To lngPos
+          If bytData(i) = dfChangePen Then
+            'set new pen status
+            GetPenStyle = (bytData(i + 1) And &H20) / &H20
+          End If
+        Next i
+      Exit Function
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Function
+
+      Private Sub GetSelectionBounds(ByVal SelCmd As Long, ByVal SelCount As Long, Optional ByVal ShowBox As Boolean = False)
+
+        'determines the starting (upper left corner) and the
+        'size of selected cmds, and sets selection box to match
+        'optionally draws a selection box around the commands
+
+        Dim i As Long, lngPos As Long
+        Dim tmpPlotStyle As EPlotStyle
+        Dim bytX As Byte, bytY As Byte
+        Dim xdisp As Long, ydisp As Long
+        Dim blnRelX As Boolean, blnSplat As Boolean
+        Dim bytData() As Byte
+        Dim SelEnd As PT
+
+        On Error GoTo ErrHandler
+
+        'set start to lower right (to force it to update)
+        SelStart.X = 159
+        SelStart.Y = 167
+        'set end to upper left (to force it to update)
+        SelEnd.X = 0
+        SelEnd.Y = 0
+
+        'now go through each cmd; check it for coordinates
+        'if coordinates are found, step through them to
+        'determine if any coords expand the selected area
+
+        'NOTE: for plots, need to be aware of pen status
+        'so coordinate values get extracted correctly
+        tmpPlotStyle = GetPenStyle(lstCommands.ItemData(SelCmd - SelCount + 1))
+
+        'work with data locally (improves speed)
+        bytData = PicEdit.Resource.AllData
+
+        For i = SelCount - 1 To 0 Step -1
+          'set starting pos for this cmd
+          lngPos = lstCommands.ItemData(SelCmd - i)
+          'parse coords based on cmdtype
+          Select Case bytData(lngPos)
+          'Case dfEnableVis, dfDisableVis, dfEnablePri, dfDisablePri
+            'ignore cmds that have no coordinates
+          Case dfChangePen
+            'need to check for change in plot style
+            tmpPlotStyle = (bytData(lngPos + 1) And &H20) / &H20
+
+          Case dfYCorner, dfXCorner
+            'set initial direction
+            blnRelX = (bytData(lngPos) = &HF5)
+
+            Do
+              'get coordinates
+              lngPos = lngPos + 1
+              bytX = bytData(lngPos)
+              If bytX >= &HF0 Then
+                Exit Do
+              End If
+              lngPos = lngPos + 1
+              bytY = bytData(lngPos)
+              If bytX >= &HF0 Then
+                Exit Do
+              End If
+
+              'compare to start/end
+              ComparePoints SelStart, SelEnd, bytX, bytY
+
+              'get next byte as potential command
+              lngPos = lngPos + 1
+
+              Do Until bytData(lngPos) >= &HF0
+                If blnRelX Then
+                  bytX = bytData(lngPos)
+                Else
+                  bytY = bytData(lngPos)
+                End If
+                blnRelX = Not blnRelX
+
+                'compare to start/end
+                ComparePoints SelStart, SelEnd, bytX, bytY
+
+                'get next coordinate or command
+                lngPos = lngPos + 1
+              Loop
+            Loop Until bytData(lngPos) >= &HF0
+
+          Case dfAbsLine, dfFill
+            'get next byte as potential command
+            lngPos = lngPos + 1
+
+            Do Until bytData(lngPos) >= &HF0
+              'get coordinates
+              bytX = bytData(lngPos)
+              lngPos = lngPos + 1
+              bytY = bytData(lngPos)
+
+              'compare to start/end
+              ComparePoints SelStart, SelEnd, bytX, bytY
+
+              'read in next command
+              lngPos = lngPos + 1
+            Loop
+
+          Case dfRelLine
+            Do
+              'get coordinates
+              lngPos = lngPos + 1
+              bytX = bytData(lngPos)
+              If bytX >= &HF0 Then
+                Exit Sub
+              End If
+              lngPos = lngPos + 1
+              bytY = bytData(lngPos)
+              If bytY >= &HF0 Then
+                Exit Sub
+              End If
+
+              'compare to start/end
+              ComparePoints SelStart, SelEnd, bytX, bytY
+
+              'get next byte as potential command
+              lngPos = lngPos + 1
+              bytData(lngPos) = bytData(lngPos)
+
+              Do Until bytData(lngPos) >= &HF0
+                'if horizontal negative bit set
+                If (bytData(lngPos) And &H80) Then
+                  xdisp = -((bytData(lngPos) And &H70) / &H10)
+                Else
+                  xdisp = ((bytData(lngPos) And &H70) / &H10)
+                End If
+                'if vertical negative bit is set
+                If (bytData(lngPos) And &H8) Then
+                  ydisp = -(bytData(lngPos) And &H7)
+                Else
+                  ydisp = (bytData(lngPos) And &H7)
+                End If
+                bytX = bytX + xdisp
+                bytY = bytY + ydisp
+
+                'compare to start/end
+                ComparePoints SelStart, SelEnd, bytX, bytY
+
+                'read in next command
+                lngPos = lngPos + 1
+              Loop
+            Loop Until bytData(lngPos) >= &HF0
+
+          Case dfPlotPen
+            'get next byte as potential command
+            lngPos = lngPos + 1
+
+            Do Until bytData(lngPos) >= &HF0
+              'if brush is splatter
+              If tmpPlotStyle Then
+                'get next byte
+                lngPos = lngPos + 1
+              End If
+
+              'get coordinates
+              bytX = bytData(lngPos)
+              lngPos = lngPos + 1
+              bytY = bytData(lngPos)
+
+              'compare to start/end
+              ComparePoints SelStart, SelEnd, bytX, bytY
+
+              'read in next command
+              lngPos = lngPos + 1
+            Loop
+          End Select
+        Next i
+
+        'if no cmds found that have coordinates
+        '(can determine this by checking if start is greater than end)
+        If SelStart.X > SelEnd.X Then
+          SelSize.X = 0
+          SelSize.Y = 0
+        Else
+          'convert end values into height/width
+          SelSize.X = SelEnd.X - SelStart.X + 1
+          SelSize.Y = SelEnd.Y - SelStart.Y + 1
+        End If
+
+        'if optionally drawing selection box around the commands,
+        If ShowBox Then
+          ShowCmdSelection
+        End If
+
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub GetTestView()
+
+        'get a test view to use in test mode
+
+        On Error GoTo ErrHandler
+
+        'if game is loaded
+        If GameLoaded Then
+          'use the get resource form
+          With frmGetResourceNum
+            .WindowFunction = grTestView
+            .ResType = AGIResType.View
+            .OldResNum = TestViewNum
+            'setup before loading so ghosts don't show up
+            .FormSetup
+            'show the form
+            .Show vbModal, frmMDIMain
+
+            'if canceled, unload and exit
+            If .Canceled Then
+              Unload frmGetResourceNum
+              Exit Sub
+            End If
+
+            'set testview id
+            TestViewNum = .NewResNum
+          End With
+          Unload frmGetResourceNum
+
+        Else
+          'get test view from file
+          With MainDialog
+            .DialogTitle = "Choose Test View"
+            .Filter = "AGI View Resource (*.agv)|*.agv|All files (*.*)|*.*"
+            .FilterIndex = GameSettings.GetSetting(sVIEWS, sOPENFILTER, 1)
+            .DefaultExt = vbNullString
+            .FileName = vbNullString
+            .InitDir = DefaultResDir
+
+            On Error Resume Next
+            .ShowOpen
+            If Err.Number = cdlCancel Then
+              'exit
+              Exit Sub
+            End If
+
+            On Error GoTo ErrHandler
+            TestViewFile = .FileName
+
+            WriteSetting GameSettings, sVIEWS, sOPENFILTER, .FilterIndex
+            DefaultResDir = JustPath(.FileName)
+          End With
+        End If
+
+        'reload testview
+        LoadTestView
+
+        'if in motion
+        If TestDir <> odStopped Then
+          'stop motion
+          TestDir = odStopped
+          tmrTest.Enabled = TestSettings.CycleAtRest
+        End If
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Public Sub MenuClickCustom2()
+
+        'toggles background Image
+        ToggleBkgd Not PicEdit.BkgdShow
+      End Sub
+      Public Sub MenuClickSelectAll()
+
+        'selects all commands if in edit mode,
+        'or select entire picture if in edit-select mode
+
+        Dim i As Long
+
+        On Error GoTo ErrHandler
+
+        'in test mode, this should be disabled, but...
+        If PicMode = pmTest Then
+          Exit Sub
+        End If
+
+        'if editselect tool is chosen, change selection to cover entire area
+        Select Case SelectedTool
+        Case ttSelectArea
+          SelStart.X = 0
+          SelStart.Y = 0
+          SelSize.X = 160
+          SelSize.Y = 168
+          'now show the selection
+          ShowCmdSelection
+
+        'Case ttSetPen
+          'not used
+        Case ttLine, ttRelLine, ttCorner
+          'not sure what I should do if this is case?
+          '*'Debug.Assert False
+        Case ttPlot, ttFill
+          'not sure what I should do if this is case?
+          '*'Debug.Assert False
+        Case ttRectangle, ttTrapezoid, ttEllipse
+          'not sure what I should do if this is case?
+          '*'Debug.Assert False
+        Case ttEdit
+          'if nothing to select
+          If lstCommands.ListCount = 1 Then
+            Exit Sub
+          End If
+
+          'disable painting
+          SendMessage lstCommands.hWnd, WM_SETREDRAW, 0, 0
+
+          'select all cmds in the cmd list (except 'END' place holder)
+          SelectedCmd = lstCommands.ListCount - 2
+
+          For i = lstCommands.ListCount - 2 To 0 Step -1
+            NoSelect = True
+            lstCommands.Selected(i) = True
+          Next i
+          NoSelect = False
+
+          'reenable painting
+          SendMessage lstCommands.hWnd, WM_SETREDRAW, 1, 0
+
+          'force update
+          DrawPicture
+
+          'if more than one cmd (account for END placeholder)
+          If lstCommands.ListCount > 2 Then
+            'get bounds, and select the cmds
+            GetSelectionBounds lstCommands.ListCount - 2, lstCommands.ListCount - 1, True
+          End If
+        End Select
+      Exit Sub
+
+      ErrHandler:
+
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+      Private Sub MoveCmds(ByVal MoveCmd As Long, ByVal Count As Long, ByVal DeltaX As Long, ByVal DeltaY As Long, Optional ByVal DontUndo As Boolean = False)
+
+        Dim NextUndo As PictureUndo
+        Dim i As Long, bytData() As Byte
+        Dim lngPos As Long, bytCmd As Byte
+        Dim blnX As Boolean
+        Dim CurPen As EPlotStyle, FirstCmd As Long
+
+        On Error GoTo ErrHandler
+
+        'if more than one command selected, MoveCmd is the LAST command in the group of selected commands!
+        FirstCmd = MoveCmd - Count + 1
+
+        'if no delta
+        If DeltaX = 0 And DeltaY = 0 Then
+          Exit Sub
+        End If
+
+        'local copy of data (for speed)
+        bytData = PicEdit.Resource.AllData
+
+        'we need to know the pen style in case a plot command is being moved
+        'and make sure we get FIRST command, not the last one
+        CurPen = GetPenStyle(lstCommands.ItemData(MoveCmd - Count + 1))
+
+        'step through each cmd
+        For i = 1 To Count
+          lngPos = lstCommands.ItemData(FirstCmd + i - 1)
+
+          'each cmd handles move differently
+          Select Case bytData(lngPos)
+          Case dfRelLine
+            'only first pt needs to be changed
+            If bytData(lngPos + 1) < &HF0 And bytData(lngPos + 2) < &HF0 Then
+              bytData(lngPos + 1) = bytData(lngPos + 1) + DeltaX
+              bytData(lngPos + 2) = bytData(lngPos + 2) + DeltaY
+            End If
+
+          Case dfAbsLine, dfFill
+            'each pair of coordinates are adjusted for offset
+            lngPos = lngPos + 1
+            Do Until bytData(lngPos) >= &HF0
+              If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then
+                bytData(lngPos) = bytData(lngPos) + DeltaX
+                bytData(lngPos + 1) = bytData(lngPos + 1) + DeltaY
+              Else
+                'end found
+                Exit Do
+              End If
+              'get next cmd pair
+              lngPos = lngPos + 2
+            Loop
+
+          Case dfChangePen
+            'need to make sure we keep up with any plot style changes
+              'get pen size and style
+              lngPos = lngPos + 1
+
+              If (bytData(lngPos) And &H20) / &H20 = 0 Then
+                'solid
+                CurPen = psSolid
+              Else
+                CurPen = psSplatter
+              End If
+
+              'get next command
+              lngPos = lngPos + 1
+              bytCmd = bytData(lngPos)
+
+          Case dfPlotPen
+            'each group of coordinates are adjusted for offset
+            lngPos = lngPos + 1
+            Do Until bytData(lngPos) >= &HF0
+              'if splattering, skip the splatter code
+              If CurPen = psSplatter Then
+                lngPos = lngPos + 1
+              End If
+
+              If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then '? didn't we already check that in the 'do' statement?
+                bytData(lngPos) = bytData(lngPos) + DeltaX
+                bytData(lngPos + 1) = bytData(lngPos + 1) + DeltaY
+              Else
+                'end found
+                Exit Do
+              End If
+              'get next cmd pair
+              lngPos = lngPos + 2
+            Loop
+
+
+
+          Case dfXCorner, dfYCorner
+            'if this is a 'x' corner, then next coord is a 'x' Value
+            '(make sure to check this BEFORE incrementing lngPos)
+            blnX = bytData(lngPos) = dfXCorner
+
+            'move pointer to first coordinate pair
+            lngPos = lngPos + 1
+
+            'if a valid coordinatee
+            If bytData(lngPos) < &HF0 Then
+              'move first coordinate
+              bytData(lngPos) = bytData(lngPos) + DeltaX
+              bytData(lngPos + 1) = bytData(lngPos + 1) + DeltaY
+
+              'move pointer to next coordinate point
+              lngPos = lngPos + 2
+
+              Do Until bytData(lngPos) >= &HF0
+                'if this is a 'x' point
+                If blnX Then
+                  'add delta x
+                  bytData(lngPos) = bytData(lngPos) + DeltaX
+                Else
+                  'add delta y
+                  bytData(lngPos) = bytData(lngPos) + DeltaY
+                End If
+                'toggle next coord Type
+                blnX = Not blnX
+                'increment pointer
+                lngPos = lngPos + 1
+              Loop
+            End If
+          End Select
+        Next i
+
+        'copy data back to resource
+        PicEdit.Resource.SetData bytData
+
+        'add undo (if necessary)
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            .UDAction = udpMoveCmds
+            .UDCmdIndex = MoveCmd
+            .UDCoordIndex = Count
+            .UDText = CStr(-1 * DeltaX) & "|" & CStr(-1 * DeltaY)
+          End With
+          AddUndo NextUndo
+        End If
+
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+      Private Function RelLineCoord(ByVal CoordPos As Long) As PT
+
+        'returns the relative line coordinate for the relative line
+        'at CoordPos
+
+        Dim bytData() As Byte, bytCmd As Byte
+        Dim lngPos As Long, tmpPT As PT
+        Dim bytX As Byte, bytY As Byte
+        Dim xdisp As Long, ydisp As Long
+
+        On Error GoTo ErrHandler
+
+        'get data (for better speed)
+        bytData = PicEdit.Resource.AllData
+
+        'find start by stepping backwards until relline cmd is found
+        lngPos = CoordPos
+        Do Until bytData(lngPos - 1) = dfRelLine
+          lngPos = lngPos - 1
         Loop
-      Loop Until bytData(lngPos) >= &HF0
-     
-    Case dfAbsLine, dfFill
-      'get next byte as potential command
-      lngPos = lngPos + 1
-      
-      Do Until bytData(lngPos) >= &HF0
+
         'get coordinates
         bytX = bytData(lngPos)
         lngPos = lngPos + 1
         bytY = bytData(lngPos)
-        
-        'compare to start/end
-        ComparePoints SelStart, SelEnd, bytX, bytY
-        
-        'read in next command
-        lngPos = lngPos + 1
-      Loop
-      
-    Case dfRelLine
-      Do
-        'get coordinates
-        lngPos = lngPos + 1
-        bytX = bytData(lngPos)
-        If bytX >= &HF0 Then
-          Exit Sub
-        End If
-        lngPos = lngPos + 1
-        bytY = bytData(lngPos)
-        If bytY >= &HF0 Then
-          Exit Sub
-        End If
-        
-        'compare to start/end
-        ComparePoints SelStart, SelEnd, bytX, bytY
-        
+
         'get next byte as potential command
         lngPos = lngPos + 1
-        bytData(lngPos) = bytData(lngPos)
-        
-        Do Until bytData(lngPos) >= &HF0
+        bytCmd = bytData(lngPos)
+
+        Do Until lngPos > CoordPos
           'if horizontal negative bit set
-          If (bytData(lngPos) And &H80) Then
-            xdisp = -((bytData(lngPos) And &H70) / &H10)
+          If (bytCmd And &H80) Then
+            xdisp = -((bytCmd And &H70) / &H10)
           Else
-            xdisp = ((bytData(lngPos) And &H70) / &H10)
+            xdisp = ((bytCmd And &H70) / &H10)
           End If
           'if vertical negative bit is set
-          If (bytData(lngPos) And &H8) Then
-            ydisp = -(bytData(lngPos) And &H7)
+          If (bytCmd And &H8) Then
+            ydisp = -(bytCmd And &H7)
           Else
-            ydisp = (bytData(lngPos) And &H7)
+            ydisp = (bytCmd And &H7)
           End If
           bytX = bytX + xdisp
           bytY = bytY + ydisp
-          
-          'compare to start/end
-          ComparePoints SelStart, SelEnd, bytX, bytY
-          
+
           'read in next command
           lngPos = lngPos + 1
+          bytCmd = bytData(lngPos)
         Loop
-      Loop Until bytData(lngPos) >= &HF0
-   
-    Case dfPlotPen
-      'get next byte as potential command
-      lngPos = lngPos + 1
-      
-      Do Until bytData(lngPos) >= &HF0
-        'if brush is splatter
-        If tmpPlotStyle Then
-          'get next byte
-          lngPos = lngPos + 1
-        End If
-        
-        'get coordinates
-        bytX = bytData(lngPos)
-        lngPos = lngPos + 1
-        bytY = bytData(lngPos)
-        
-        'compare to start/end
-        ComparePoints SelStart, SelEnd, bytX, bytY
-        
-        'read in next command
-        lngPos = lngPos + 1
-      Loop
-    End Select
-  Next i
-  
-  'if no cmds found that have coordinates
-  '(can determine this by checking if start is greater than end)
-  If SelStart.X > SelEnd.X Then
-    SelSize.X = 0
-    SelSize.Y = 0
-  Else
-    'convert end values into height/width
-    SelSize.X = SelEnd.X - SelStart.X + 1
-    SelSize.Y = SelEnd.Y - SelStart.Y + 1
-  End If
-  
-  'if optionally drawing selection box around the commands,
-  If ShowBox Then
-    ShowCmdSelection
-  End If
 
-Exit Sub
+        'return this point
+        tmpPT.X = bytX
+        tmpPT.Y = bytY
+        RelLineCoord = tmpPT
+      Exit Function
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Function
 
-Private Sub GetTestView()
-  
-  'get a test view to use in test mode
-  
-  On Error GoTo ErrHandler
-  
-  'if game is loaded
-  If GameLoaded Then
-    'use the get resource form
-    With frmGetResourceNum
-      .WindowFunction = grTestView
-      .ResType = rtView
-      .OldResNum = TestViewNum
-      'setup before loading so ghosts don't show up
-      .FormSetup
-      'show the form
-      .Show vbModal, frmMDIMain
-    
-      'if canceled, unload and exit
-      If .Canceled Then
-        Unload frmGetResourceNum
-        Exit Sub
-      End If
-    
-      'set testview id
-      TestViewNum = .NewResNum
-    End With
-    Unload frmGetResourceNum
-    
-  Else
-    'get test view from file
-    With MainDialog
-      .DialogTitle = "Choose Test View"
-      .Filter = "AGI View Resource (*.agv)|*.agv|All files (*.*)|*.*"
-      .FilterIndex = GameSettings.GetSetting(sVIEWS, sOPENFILTER, 1)
-      .DefaultExt = vbNullString
-      .FileName = vbNullString
-      .InitDir = DefaultResDir
-      
-      On Error Resume Next
-      .ShowOpen
-      If Err.Number = cdlCancel Then
-        'exit
-        Exit Sub
-      End If
-      
-      On Error GoTo ErrHandler
-      TestViewFile = .FileName
-      
-      WriteSetting GameSettings, sVIEWS, sOPENFILTER, .FilterIndex
-      DefaultResDir = JustPath(.FileName)
-    End With
-  End If
-  
-  'reload testview
-  LoadTestView
-  
-  'if in motion
-  If TestDir <> odStopped Then
-    'stop motion
-    TestDir = odStopped
-    tmrTest.Enabled = TestSettings.CycleAtRest
-  End If
-Exit Sub
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+      Private Function GetVerticalStatus(ByVal CmdPos As Long) As Boolean
+        'will detrmine if a step line is currently drawing vertical
 
-Public Sub MenuClickCustom2()
+        Dim bytData() As Byte
+        Dim lngPos As Long, bytCmd As Byte
 
-  'toggles background Image
-  ToggleBkgd Not PicEdit.BkgdShow
-End Sub
-Public Sub MenuClickSelectAll()
+        On Error GoTo ErrHandler
 
-  'selects all commands if in edit mode,
-  'or select entire picture if in edit-select mode
-  
-  Dim i As Long
-  
-  On Error GoTo ErrHandler
-  
-  'in test mode, this should be disabled, but...
-  If PicMode = pmTest Then
-    Exit Sub
-  End If
-  
-  'if editselect tool is chosen, change selection to cover entire area
-  Select Case SelectedTool
-  Case ttSelectArea
-    SelStart.X = 0
-    SelStart.Y = 0
-    SelSize.X = 160
-    SelSize.Y = 168
-    'now show the selection
-    ShowCmdSelection
-    
-  'Case ttSetPen
-    'not used
-  Case ttLine, ttRelLine, ttCorner
-    'not sure what I should do if this is case?
-    '*'Debug.Assert False
-  Case ttPlot, ttFill
-    'not sure what I should do if this is case?
-    '*'Debug.Assert False
-  Case ttRectangle, ttTrapezoid, ttEllipse
-    'not sure what I should do if this is case?
-    '*'Debug.Assert False
-  Case ttEdit
-    'if nothing to select
-    If lstCommands.ListCount = 1 Then
-      Exit Sub
-    End If
-    
-    'disable painting
-    SendMessage lstCommands.hWnd, WM_SETREDRAW, 0, 0
-    
-    'select all cmds in the cmd list (except 'END' place holder)
-    SelectedCmd = lstCommands.ListCount - 2
-    
-    For i = lstCommands.ListCount - 2 To 0 Step -1
-      NoSelect = True
-      lstCommands.Selected(i) = True
-    Next i
-    NoSelect = False
-    
-    'reenable painting
-    SendMessage lstCommands.hWnd, WM_SETREDRAW, 1, 0
-    
-    'force update
-    DrawPicture
-  
-    'if more than one cmd (account for END placeholder)
-    If lstCommands.ListCount > 2 Then
-      'get bounds, and select the cmds
-      GetSelectionBounds lstCommands.ListCount - 2, lstCommands.ListCount - 1, True
-    End If
-  End Select
-Exit Sub
+        'get data (for better speed)
+        bytData = PicEdit.Resource.AllData
 
-ErrHandler:
+        'set starting pos for the selected cmd
+        lngPos = CmdPos
 
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-Private Sub MoveCmds(ByVal MoveCmd As Long, ByVal Count As Long, ByVal DeltaX As Long, ByVal DeltaY As Long, Optional ByVal DontUndo As Boolean = False)
-
-  Dim NextUndo As PictureUndo
-  Dim i As Long, bytData() As Byte
-  Dim lngPos As Long, bytCmd As Byte
-  Dim blnX As Boolean
-  Dim CurPen As EPlotStyle, FirstCmd As Long
-  
-  On Error GoTo ErrHandler
-  
-  'if more than one command selected, MoveCmd is the LAST command in the group of selected commands!
-  FirstCmd = MoveCmd - Count + 1
-  
-  'if no delta
-  If DeltaX = 0 And DeltaY = 0 Then
-    Exit Sub
-  End If
-  
-  'local copy of data (for speed)
-  bytData = PicEdit.Resource.AllData
-  
-  'we need to know the pen style in case a plot command is being moved
-  'and make sure we get FIRST command, not the last one
-  CurPen = GetPenStyle(lstCommands.ItemData(MoveCmd - Count + 1))
-  
-  'step through each cmd
-  For i = 1 To Count
-    lngPos = lstCommands.ItemData(FirstCmd + i - 1)
-    
-    'each cmd handles move differently
-    Select Case bytData(lngPos)
-    Case dfRelLine
-      'only first pt needs to be changed
-      If bytData(lngPos + 1) < &HF0 And bytData(lngPos + 2) < &HF0 Then
-        bytData(lngPos + 1) = bytData(lngPos + 1) + DeltaX
-        bytData(lngPos + 2) = bytData(lngPos + 2) + DeltaY
-      End If
-      
-    Case dfAbsLine, dfFill
-      'each pair of coordinates are adjusted for offset
-      lngPos = lngPos + 1
-      Do Until bytData(lngPos) >= &HF0
-        If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then
-          bytData(lngPos) = bytData(lngPos) + DeltaX
-          bytData(lngPos + 1) = bytData(lngPos + 1) + DeltaY
-        Else
-          'end found
-          Exit Do
-        End If
-        'get next cmd pair
-        lngPos = lngPos + 2
-      Loop
-      
-    Case dfChangePen
-      'need to make sure we keep up with any plot style changes
-        'get pen size and style
-        lngPos = lngPos + 1
-        
-        If (bytData(lngPos) And &H20) / &H20 = 0 Then
-          'solid
-          CurPen = psSolid
-        Else
-          CurPen = psSplatter
-        End If
-  
-        'get next command
-        lngPos = lngPos + 1
+        'get command Type
         bytCmd = bytData(lngPos)
-        
-    Case dfPlotPen
-      'each group of coordinates are adjusted for offset
-      lngPos = lngPos + 1
-      Do Until bytData(lngPos) >= &HF0
-        'if splattering, skip the splatter code
-        If CurPen = psSplatter Then
-          lngPos = lngPos + 1
+
+        If bytCmd = &HF4 Then
+          GetVerticalStatus = True
         End If
-        
-        If bytData(lngPos) < &HF0 And bytData(lngPos + 1) < &HF0 Then '? didn't we already check that in the 'do' statement?
-          bytData(lngPos) = bytData(lngPos) + DeltaX
-          bytData(lngPos + 1) = bytData(lngPos + 1) + DeltaY
-        Else
-          'end found
-          Exit Do
-        End If
-        'get next cmd pair
-        lngPos = lngPos + 2
-      Loop
-      
-      
-      
-    Case dfXCorner, dfYCorner
-      'if this is a 'x' corner, then next coord is a 'x' Value
-      '(make sure to check this BEFORE incrementing lngPos)
-      blnX = bytData(lngPos) = dfXCorner
-        
-      'move pointer to first coordinate pair
-      lngPos = lngPos + 1
-      
-      'if a valid coordinatee
-      If bytData(lngPos) < &HF0 Then
-        'move first coordinate
-        bytData(lngPos) = bytData(lngPos) + DeltaX
-        bytData(lngPos + 1) = bytData(lngPos + 1) + DeltaY
-        
-        'move pointer to next coordinate point
-        lngPos = lngPos + 2
-        
-        Do Until bytData(lngPos) >= &HF0
-          'if this is a 'x' point
-          If blnX Then
-            'add delta x
-            bytData(lngPos) = bytData(lngPos) + DeltaX
-          Else
-            'add delta y
-            bytData(lngPos) = bytData(lngPos) + DeltaY
-          End If
-          'toggle next coord Type
-          blnX = Not blnX
-          'increment pointer
+
+        'flop vert status for first point
+        GetVerticalStatus = Not GetVerticalStatus
+
+        'skip first coordinates
+        lngPos = lngPos + 3
+
+        'get next byte as potential command
+        bytCmd = bytData(lngPos)
+
+        Do Until bytCmd >= &HF0
+
+          'flop vert status for each point
+          GetVerticalStatus = Not GetVerticalStatus
+
+          'get next coordinate or command
           lngPos = lngPos + 1
+          bytCmd = bytData(lngPos)
         Loop
-      End If
-    End Select
-  Next i
-  
-  'copy data back to resource
-  PicEdit.Resource.SetData bytData
-  
-  'add undo (if necessary)
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      .UDAction = udpMoveCmds
-      .UDCmdIndex = MoveCmd
-      .UDCoordIndex = Count
-      .UDText = CStr(-1 * DeltaX) & "|" & CStr(-1 * DeltaY)
-    End With
-    AddUndo NextUndo
-  End If
-  
-Exit Sub
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-Private Function RelLineCoord(ByVal CoordPos As Long) As PT
+      Exit Function
 
-  'returns the relative line coordinate for the relative line
-  'at CoordPos
-  
-  Dim bytData() As Byte, bytCmd As Byte
-  Dim lngPos As Long, tmpPT As PT
-  Dim bytX As Byte, bytY As Byte
-  Dim xdisp As Long, ydisp As Long
-  
-  On Error GoTo ErrHandler
-  
-  'get data (for better speed)
-  bytData = PicEdit.Resource.AllData
-  
-  'find start by stepping backwards until relline cmd is found
-  lngPos = CoordPos
-  Do Until bytData(lngPos - 1) = dfRelLine
-    lngPos = lngPos - 1
-  Loop
-  
-  'get coordinates
-  bytX = bytData(lngPos)
-  lngPos = lngPos + 1
-  bytY = bytData(lngPos)
-  
-  'get next byte as potential command
-  lngPos = lngPos + 1
-  bytCmd = bytData(lngPos)
-  
-  Do Until lngPos > CoordPos
-    'if horizontal negative bit set
-    If (bytCmd And &H80) Then
-      xdisp = -((bytCmd And &H70) / &H10)
-    Else
-      xdisp = ((bytCmd And &H70) / &H10)
-    End If
-    'if vertical negative bit is set
-    If (bytCmd And &H8) Then
-      ydisp = -(bytCmd And &H7)
-    Else
-      ydisp = (bytCmd And &H7)
-    End If
-    bytX = bytX + xdisp
-    bytY = bytY + ydisp
-    
-    'read in next command
-    lngPos = lngPos + 1
-    bytCmd = bytData(lngPos)
-  Loop
-  
-  'return this point
-  tmpPT.X = bytX
-  tmpPT.Y = bytY
-  RelLineCoord = tmpPT
-Exit Function
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Function
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Function
+      Public Function MatchPoints(ByVal ListPos As Long) As Boolean
 
+        'returns true if coord data for previous command's last coord equals this commands first coord
 
-Private Function GetVerticalStatus(ByVal CmdPos As Long) As Boolean
-  'will detrmine if a step line is currently drawing vertical
-  
-  Dim bytData() As Byte
-  Dim lngPos As Long, bytCmd As Byte
-  
-  On Error GoTo ErrHandler
-  
-  'get data (for better speed)
-  bytData = PicEdit.Resource.AllData
-  
-  'set starting pos for the selected cmd
-  lngPos = CmdPos
-  
-  'get command Type
-  bytCmd = bytData(lngPos)
-  
-  If bytCmd = &HF4 Then
-    GetVerticalStatus = True
-  End If
-  
-  'flop vert status for first point
-  GetVerticalStatus = Not GetVerticalStatus
+        Dim bytCmd As Byte
+        Dim bytData() As Byte
+        Dim lngPos As Long, tmpCoord As PT
+        Dim bytX As Byte, bytY As Byte
+        Dim xdisp As Long, ydisp As Long
+        Dim blnRelX As Boolean
 
-  'skip first coordinates
-  lngPos = lngPos + 3
-  
-  'get next byte as potential command
-  bytCmd = bytData(lngPos)
-    
-  Do Until bytCmd >= &HF0
-    
-    'flop vert status for each point
-    GetVerticalStatus = Not GetVerticalStatus
-    
-    'get next coordinate or command
-    lngPos = lngPos + 1
-    bytCmd = bytData(lngPos)
-  Loop
-   
-Exit Function
+        On Error GoTo ErrHandler
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Function
+        '*'Debug.Assert ListPos > 0
 
-Public Function MatchPoints(ByVal ListPos As Long) As Boolean
-
-  'returns true if coord data for previous command's last coord equals this commands first coord
-  
-  Dim bytCmd As Byte
-  Dim bytData() As Byte
-  Dim lngPos As Long, tmpCoord As PT
-  Dim bytX As Byte, bytY As Byte
-  Dim xdisp As Long, ydisp As Long
-  Dim blnRelX As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  '*'Debug.Assert ListPos > 0
-  
-  'if no coord for this command
-  If LenB(lstCoords.List(0)) = 0 Then
-    MatchPoints = False
-    Exit Function
-  End If
-  
-  'get data (for better speed)
-  bytData = PicEdit.Resource.AllData
-  
-  'set starting pos for the previous cmd
-  lngPos = lstCommands.ItemData(ListPos - 1)
-  
-  'get command Type
-  bytCmd = bytData(lngPos)
-  '*'Debug.Assert bytCmd >= &HF4 And bytCmd <= &HF7
-  
-  'add command based on Type
-  Select Case bytCmd
-  Case &HF4, &HF5 'Draw an X or Y corner.
-    'set initial direction
-    blnRelX = (bytCmd = &HF5)
-    'get coordinates
-    lngPos = lngPos + 1
-    bytX = bytData(lngPos)
-    lngPos = lngPos + 1
-    bytY = bytData(lngPos)
-    
-    'get next byte as potential command
-    lngPos = lngPos + 1
-    bytCmd = bytData(lngPos)
-    
-    Do Until bytCmd >= &HF0
-      If blnRelX Then
-        bytX = bytCmd
-      Else
-        bytY = bytCmd
-      End If
-      blnRelX = Not blnRelX
-      
-      'get next coordinate or command
-      lngPos = lngPos + 1
-      bytCmd = bytData(lngPos)
-    Loop
-   
-  Case &HF6 'Absolute line (long lines).
-    'get coordinates
-    lngPos = lngPos + 1
-    bytX = bytData(lngPos)
-    lngPos = lngPos + 1
-    bytY = bytData(lngPos)
-    
-    'get next byte as potential command
-    lngPos = lngPos + 1
-    bytCmd = bytData(lngPos)
-    
-    Do Until bytCmd >= &HF0
-      bytX = bytCmd
-      lngPos = lngPos + 1
-      bytY = bytData(lngPos)
-      
-      'read in next command
-      lngPos = lngPos + 1
-      bytCmd = bytData(lngPos)
-    Loop
-    
-  Case &HF7 'Relative line (short lines).
-     'get coordinates
-    lngPos = lngPos + 1
-    bytX = bytData(lngPos)
-    lngPos = lngPos + 1
-    bytY = bytData(lngPos)
-    
-    'get next byte as potential command
-    lngPos = lngPos + 1
-    bytCmd = bytData(lngPos)
-    
-    Do Until bytCmd >= &HF0
-      'if horizontal negative bit set
-      If (bytCmd And &H80) Then
-        xdisp = -((bytCmd And &H70) / &H10)
-      Else
-        xdisp = ((bytCmd And &H70) / &H10)
-      End If
-      'if vertical negative bit is set
-      If (bytCmd And &H8) Then
-        ydisp = -(bytCmd And &H7)
-      Else
-        ydisp = (bytCmd And &H7)
-      End If
-      bytX = bytX + xdisp
-      bytY = bytY + ydisp
-      
-      'read in next command
-      lngPos = lngPos + 1
-      bytCmd = bytData(lngPos)
-    Loop
-   
-  End Select
-  
-  'bytx and byty are now set to last coord of previous cmd
-  
-  'extract coords from this cmd's first node text
-  tmpCoord = ExtractCoordinates(lstCoords.List(0))
-  
-  MatchPoints = (tmpCoord.X = bytX And tmpCoord.Y = bytY)
-Exit Function
-
-ErrHandler:
-  '*'Debug.Assert False
-  'error- let calling method deal with it
-  'by returning false
-End Function
-
-Public Sub MenuClickFind()
-
-  'toggles the priority bands on and off
-  
-  Dim rtn As Long
-  
-  On Error GoTo ErrHandler
-  
-  'toggle showband flag
-  ShowBands = Not ShowBands
-  
-  'use Force flag so both images
-  'get updated whether currently visible
-  'or not
-  If PicMode = pmEdit Then
-    'redraw
-    DrawPicture True
-  Else
-    'redraw cel
-    DrawPicture True, True, OldCel.X, OldCel.Y
-  End If
-    
-  'reset caption
-  With frmMDIMain.mnuEFind
-    If ShowBands Then
-      .Caption = "Hide Priority Bands" & vbTab & "Alt+P"
-    Else
-      .Caption = "Show Priority Bands" & vbTab & "Alt+P"
-    End If
-  End With
-    
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-Public Sub MenuClickFindAgain()
-
-  'allow user to set the priority base,if v2.936 or above
-  'OR if not in a game!
-  
-  Dim lngNewBase As String, lngOldBase As Long
-  Dim NextUndo As PictureUndo
-  
-  lngOldBase = PicEdit.PriBase
-  lngNewBase = lngOldBase
-  Do
-    lngNewBase = InputBox("Enter new priority base value: ", "Set Priority Base", lngNewBase, frmMDIMain.Left + (frmMDIMain.Width - 4500) / 2, frmMDIMain.Top + (frmMDIMain.Height - 2100) / 2)
-    
-    'if canceled, it will be empty string
-    If lngNewBase = vbNullString Then
-      Exit Sub
-    End If
-    
-    'validate
-    If Not IsNumeric(lngNewBase) Then
-      'invalid
-      MsgBoxEx "You must enter a value between 0 and 158", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Invalid Base Value", WinAGIHelp, "htm\winagi\Picture_Editor.htm#pribands"
-    ElseIf lngNewBase < 0 Or lngNewBase > 158 Then
-      'invalid
-      MsgBoxEx "You must enter a value between 0 and 158", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Invalid Base Value", WinAGIHelp, "htm\winagi\Picture_Editor.htm#pribands"
-    Else
-      'OK!
-      Exit Do
-    End If
-  Loop While True
-  
-  'set new pri base
-  PicEdit.PriBase = lngNewBase
-  DrawPicture True
-  
-  'add undo!
-  If Settings.PicUndo <> 0 Then
-    'create undo object
-    Set NextUndo = New PictureUndo
-    NextUndo.UDAction = udpSetPriBase
-    'use cmdIndex for old base
-    NextUndo.UDCmdIndex = lngOldBase
-    'add the undo object without setting edit menu
-    UndoCol.Add NextUndo
-  End If
-  
-  MarkAsDirty
-  
-End Sub
-
-Public Sub MenuClickRedo()
-
-  'when showing full visual or full priority,
-  'this menu item swaps between the two
-  
-  Dim sngSplit As Single
-  
-  On Error GoTo ErrHandler
-  
-  ' if currently showing visual
-  If OneWindow = 1 Then
-    'switch to priority
-    OneWindow = 2
-    sngSplit = 0
-  ElseIf OneWindow = 2 Then
-    'otherwise switch to visual
-    OneWindow = 1
-    sngSplit = picPalette.Top - picSplitH.Height
-  End If
-  
-  'update and redraw to affect change
-  UpdatePanels sngSplit, lstCommands.Left + lstCommands.Width
-  DrawPicture
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub AddPatternData(tmpIndex As Long, bytPatDat() As Byte, Optional ByVal DontUndo As Boolean = False)
-
-  'add pattern bytes to tmpIndex command coordinates
-  'if skipping undo, pattern values will be
-  'passed in bytPatDat; if not skipping undo
-  'generate random pattern data
-
-  Dim i As Long, lngNewPos As Long
-  Dim bytPattern As Byte
-  Dim NextUndo As PictureUndo
-  
-  On Error GoTo ErrHandler
-  
-  'set insertpos so first iteration will add
-  'pattern data in front of first coord x Value
-  lngNewPos = lstCommands.ItemData(tmpIndex) - 2
-  
-  Do
-    'if skipping undo
-    If DontUndo Then
-      'if first byte of array is 255,
-      If bytPatDat(0) = &HFF Then
-        'need to provide the random bytes for this set of coordinates
-        bytPattern = 2 * CByte(Int(Rnd * 119))
-      Else
-        'get pattern from array
-        bytPattern = bytPatDat(i)
-      End If
-    Else
-      'get random pattern
-      bytPattern = 2 * CByte(Int(Rnd * 119))
-    End If
-    
-    'adjust pos (include offset
-    lngNewPos = lngNewPos + 3
-    
-    'add it to resource
-    PicEdit.Resource.InsertData bytPattern, lngNewPos
-    
-    'increment byte insertion counter
-    i = i + 1
-  Loop Until PicEdit.Resource.Data(lngNewPos + 3) >= &HF0
-  
-  'adjust positions (i equals number of bytes added)
-  UpdatePosValues tmpIndex + 1, i
-  
-  'if not skipping undo
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    'save undo info
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      .UDAction = udpAddPlotPattern
-      .UDPicPos = lstCommands.ItemData(tmpIndex)
-      .UDCmdIndex = tmpIndex
-    End With
-    'add the undo object without setting edit menu
-    UndoCol.Add NextUndo
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub BeginDraw(ByVal CurrentTool As TPicToolTypeEnum, PicPt As PT)
-  'initiates draw operation based on selected tool
-  
-  Dim bytData() As Byte
-  Dim bytPattern As Byte
-  
-  On Error GoTo ErrHandler
-  
-  'begin drawing using selected tool
-  Select Case CurrentTool
-  Case ttLine
-    'set anchor
-    Anchor = PicPt
-    'set data to draw command and first point
-    ReDim bytData(2)
-    bytData(0) = dfAbsLine
-    bytData(1) = PicPt.X
-    bytData(2) = PicPt.Y
-    'insert command
-    InsertCommand bytData(), SelectedCmd, "Abs Line", gInsertBefore
-    'select this cmd
-    SelectCmd lstCommands.NewIndex, False
-    'now set mode (do it AFTER selecting command otherwise
-    'draw mode will get canceled)
-    PicDrawMode = doLine
-    'and select first coordinate
-    NoSelect = True
-    lstCoords.ListIndex = 0
-    
-  Case ttRelLine
-    'insert rel line cmd
-    
-    'set anchor
-    Anchor = PicPt
-    'set data to draw command and first point
-    ReDim bytData(2)
-    bytData(0) = dfRelLine
-    bytData(1) = PicPt.X
-    bytData(2) = PicPt.Y
-    'insert command
-    InsertCommand bytData(), SelectedCmd, "Rel Line", gInsertBefore
-    'select this cmd
-    SelectCmd lstCommands.NewIndex, False
-    'now set mode (do it AFTER selecting command otherwise
-    'draw mode will get canceled)
-    PicDrawMode = doLine
-    'and select first coordinate
-    NoSelect = True
-    lstCoords.ListIndex = 0
-    
-  Case ttCorner
-    'set anchor
-    Anchor = PicPt
-    'set data to draw command and first point
-    ReDim bytData(2)
-    'assume xcorner
-    bytData(0) = dfXCorner
-    bytData(1) = PicPt.X
-    bytData(2) = PicPt.Y
-    'insert command
-    InsertCommand bytData(), SelectedCmd, "X Corner", gInsertBefore
-    SelectCmd lstCommands.NewIndex, False
-    'now set mode (do it AFTER selecting command otherwise
-    'draw mode will get canceled)
-    PicDrawMode = doLine
-    'and select first coordinate
-    NoSelect = True
-    lstCoords.ListIndex = 0
-  
-  End Select
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub ChangeColor(ByVal CmdIndex As Long, ByVal NewColor As AGIColors, Optional ByVal DontUndo As Boolean = False)
-  
-  'changes the color for this command
-  Dim NextUndo As PictureUndo
-  Dim OldColor As AGIColors
-  Dim bytData() As Byte
-  Dim lngPos As Long
-  
-  On Error GoTo ErrHandler
-  
-  ReDim bytData(0)
-  
-  'get position of command
-  lngPos = lstCommands.ItemData(CmdIndex)
-  
-  'get color of current command
-  If Right$(lstCommands.List(CmdIndex), 3) = "Off" Then
-    OldColor = agNone
-  Else
-    OldColor = PicEdit.Resource.Data(lngPos + 1)
-  End If
-  
-  'it is possible that a change request is made
-  'even though colors are the same
-  If OldColor = NewColor Then
-    'just exit
-    Exit Sub
-  End If
-  
-  'if not skipping undo
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      .UDAction = udpChangeColor
-      .UDPicPos = lngPos
-      .UDCmdIndex = CmdIndex
-      bytData(0) = OldColor
-      .UDData = bytData()
-    End With
-    AddUndo NextUndo
-  End If
-  
-  'if old color is none
-  If OldColor = agNone Then
-    'change command to enable by subtracting one
-    PicEdit.Resource.Data(lngPos) = PicEdit.Resource.Data(lngPos) - 1
-    'insert color
-    PicEdit.Resource.InsertData CByte(NewColor), CLng(lngPos) + 1
-    'update all following commands
-    UpdatePosValues CmdIndex + 1, 1
-    
-    'build command text
-    lstCommands.List(CmdIndex) = Left$(lstCommands.List(CmdIndex), 5) & LoadResString(COLORNAME + NewColor)
-    
-  ElseIf NewColor = agNone Then
-    'change command to disable by adding one
-    PicEdit.Resource.Data(lngPos) = PicEdit.Resource.Data(lngPos) + 1
-    'delete color byte
-    PicEdit.Resource.RemoveData lngPos + 1
-    'update all following commands
-    UpdatePosValues CmdIndex + 1, -1
-    'build command text
-    lstCommands.List(CmdIndex) = Left$(lstCommands.List(CmdIndex), 5) & "Off"
-  Else
-    'change color byte
-    PicEdit.Resource.Data(lngPos + 1) = NewColor
-    'build command text
-    lstCommands.List(CmdIndex) = Left$(lstCommands.List(CmdIndex), 5) & LoadResString(COLORNAME + NewColor)
-  End If
-  
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Public Sub ChangeDir(ByVal KeyCode As Integer)
-  
-  'should ONLY be called when in test mode
-  '*'Debug.Assert PicMode = pmTest
-  
-  'takes a keycode as the input, and changes direction if appropriate
-  Select Case KeyCode
-  Case vbKeyUp, vbKeyNumpad8
-    'if view is on picture
-    '(OldCel.X will not be -1)
-    If OldCel.X <> -1 Then
-      'if direction is currently up
-      If TestDir = odUp Then
-        'stop movement
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-      Else
-        'set direction to up
-        TestDir = odUp
-        'set loop to 3, if there are four AND loop is not 3 AND in auto
-        If TestView.Loops.Count >= 4 And CurTestLoop <> 3 And (TestSettings.TestLoop = -1) Then
-          CurTestLoop = 3
-          CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-          CurTestCel = 0
-          TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
+        'if no coord for this command
+        If LenB(lstCoords.List(0)) = 0 Then
+          MatchPoints = False
+          Exit Function
         End If
-        'enable timer
-        tmrTest.Enabled = True
-      End If
-    End If
-    
-  Case vbKeyPageUp, vbKeyNumpad9
-    'if view is on picture
-    '(OldCel.X will not be -1)
-    If OldCel.X <> -1 Then
-      'if direction is currently UpRight
-      If TestDir = odUpRight Then
-        'stop movement
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-      Else
-        'set direction to upright
-        TestDir = odUpRight
-        'set loop to 0, if not already 0 AND in auto
-        If CurTestLoop <> 0 And (TestSettings.TestLoop = -1) Then
-          CurTestLoop = 0
-          CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-          CurTestCel = 0
-          TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-        End If
-        'enable timer
-        tmrTest.Enabled = True
-      End If
-    End If
-    
-  Case vbKeyRight, vbKeyNumpad6
-    'if view is on picture
-    '(OldCel.X will not be -1)
-    If OldCel.X <> -1 Then
-      'if direction is currently Right
-      If TestDir = odRight Then
-        'stop movement
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-      Else
-        'set direction to right
-        TestDir = odRight
-        'set loop to 0, if not already 0 AND in auto
-        If CurTestLoop <> 0 And (TestSettings.TestLoop = -1) Then
-          CurTestLoop = 0
-          CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-          CurTestCel = 0
-          TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-        End If
-        'enable timer
-        tmrTest.Enabled = True
-      End If
-    End If
-    
-  Case vbKeyPageDown, vbKeyNumpad3
-    'if view is on picture
-    '(OldCel.X will not be -1)
-    If OldCel.X <> -1 Then
-      'if direction is currently DownRight
-      If TestDir = odDownRight Then
-        'stop movement
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-      Else
-        'set direction to downright
-        TestDir = odDownRight
-        'set loop to 0, if not already 0 AND in auto
-        If CurTestLoop <> 0 And (TestSettings.TestLoop = -1) Then
-          CurTestLoop = 0
-          CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-          CurTestCel = 0
-          TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-        End If
-        'enable timer
-        tmrTest.Enabled = True
-      End If
-    End If
-    
-  Case vbKeyDown, vbKeyNumpad2
-    'if view is on picture
-    '(OldCel.X will not be -1)
-    If OldCel.X <> -1 Then
-      'if direction is currently down
-      If TestDir = odDown Then
-        'stop movement
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-      Else
-        'set direction to down
-        TestDir = odDown
-        'set loop to 2, if there are four AND loop is not 2 AND in auto
-        If TestView.Loops.Count >= 4 And CurTestLoop <> 2 And (TestSettings.TestLoop = -1) Then
-          CurTestLoop = 2
-          CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-          CurTestCel = 0
-          TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-        End If
-        'enable timer
-        tmrTest.Enabled = True
-      End If
-    End If
-    
-  Case vbKeyEnd, vbKeyNumpad1
-    'if view is on picture
-    '(OldCel.X will not be -1)
-    If OldCel.X <> -1 Then
-      'if direction is currently DownLeft
-      If TestDir = odDownLeft Then
-        'stop movement
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-      Else
-        'set direction to downLeft
-        TestDir = odDownLeft
-        'set loop to 1, if  at least 2 loops, and not already 1 AND in auto
-        If (TestView.Loops.Count >= 2) And (CurTestLoop <> 1) And (TestSettings.TestLoop = -1) Then
-          CurTestLoop = 1
-          CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-          CurTestCel = 0
-          TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-        End If
-        'enable timer
-        tmrTest.Enabled = True
-      End If
-    End If
-    
-  Case vbKeyLeft, vbKeyNumpad4
-    'if view is on picture
-    '(OldCel.X will not be -1)
-    If OldCel.X <> -1 Then
-      'if direction is currently Left
-      If TestDir = odLeft Then
-        'stop movement
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-      Else
-        'set direction to Left
-        TestDir = odLeft
-        'set loop to 1, if  at least 2 loops, and not already 1 AND in auto
-        If (TestView.Loops.Count >= 2) And (CurTestLoop <> 1) And (TestSettings.TestLoop = -1) Then
-          CurTestLoop = 1
-          CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-          CurTestCel = 0
-          TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-        End If
-        'enable timer
-        tmrTest.Enabled = True
-      End If
-    End If
-    
-  Case vbKeyHome, vbKeyNumpad7
-    'if view is on picture
-    '(OldCel.X will not be -1)
-    If OldCel.X <> -1 Then
-      'if direction is currently UpLeft
-      If TestDir = odUpLeft Then
-        'stop movement
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-      Else
-        'set direction to UpLeft
-        TestDir = odUpLeft
-        'set loop to 1, if  at least 2 loops, and not already 1 AND in auto
-        If (TestView.Loops.Count >= 2) And (CurTestLoop <> 1) And (TestSettings.TestLoop = -1) Then
-          CurTestLoop = 1
-          CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-          CurTestCel = 0
-          TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-        End If
-        'enable timer
-        tmrTest.Enabled = True
-      End If
-    End If
-    
-  Case vbKeyNumpad5
-    'always stop
-    TestDir = 0
-    tmrTest.Enabled = TestSettings.CycleAtRest
-    
-  End Select
-End Sub
 
+        'get data (for better speed)
+        bytData = PicEdit.Resource.AllData
 
-Private Sub DeleteCommand(DelIndex As Long, Optional ByVal DontUndo As Boolean = False)
+        'set starting pos for the previous cmd
+        lngPos = lstCommands.ItemData(ListPos - 1)
 
-  'delete an entire command
-    
-  Dim DelCount As Long
-  Dim DelPos As Long
-  Dim i As Long
-  Dim NextUndo As PictureUndo
-  Dim bytUndoData() As Byte
-  
-  On Error GoTo ErrHandler
-  
-  'get starting position
-  DelPos = lstCommands.ItemData(DelIndex)
-  
-  'calculate bytes to delete
-  DelCount = lstCommands.ItemData(DelIndex + 1) - DelPos
-  
-  'if not skipping undo
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    'create new undo object
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      .UDAction = udpDelCmd
-      .UDPicPos = DelPos
-      .UDCmdIndex = DelIndex
-      .UDCmd = lstCommands.List(DelIndex)
-    
-      ReDim bytUndoData(DelCount - 1)
-      For i = 0 To (DelCount - 1)
-        bytUndoData(i) = PicEdit.Resource.Data(DelPos + i)
-      Next i
-      .UDData = bytUndoData
-      .UDCoordIndex = 1
-    End With
-    'add to undo
-    AddUndo NextUndo
-  End If
-  
-  'remove from resource
-  PicEdit.Resource.RemoveData DelPos, DelCount
-  
-  'adjust position values to account for deleted data
-  UpdatePosValues DelIndex, -DelCount
-  
-  'remove from cmd list
-  lstCommands.RemoveItem DelIndex
-  
-  'select cmd at delindex position
-  SelectCmd DelIndex, DontUndo
-Exit Sub
+        'get command Type
+        bytCmd = bytData(lngPos)
+        '*'Debug.Assert bytCmd >= &HF4 And bytCmd <= &HF7
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-Private Sub AddUndo(NextUndo As PictureUndo)
+        'add command based on Type
+        Select Case bytCmd
+        Case &HF4, &HF5 'Draw an X or Y corner.
+          'set initial direction
+          blnRelX = (bytCmd = &HF5)
+          'get coordinates
+          lngPos = lngPos + 1
+          bytX = bytData(lngPos)
+          lngPos = lngPos + 1
+          bytY = bytData(lngPos)
 
-  If Not IsDirty Then
-    MarkAsDirty
-  End If
-  
-  'remove old undo items until there is room for this one
-  'to be added
-  If Settings.PicUndo > 0 Then
-    Do While UndoCol.Count >= Settings.PicUndo
-      UndoCol.Remove 1
-    Loop
-  End If
-  
-  'adds the next undo object
-  UndoCol.Add NextUndo
-  
-  'set undo menu
-  frmMDIMain.mnuEUndo.Enabled = True
-  frmMDIMain.mnuEUndo.Caption = "&Undo " & LoadResString(PICUNDOTEXT + NextUndo.UDAction) & NextUndo.UDCmd & vbTab & "Ctrl+Z"
-End Sub
+          'get next byte as potential command
+          lngPos = lngPos + 1
+          bytCmd = bytData(lngPos)
 
-
-
-Private Sub MarkAsDirty()
-
-  If Not IsDirty Then
-    IsDirty = True
-  
-    'enable menu and toolbar button
-    frmMDIMain.mnuRSave.Enabled = True
-    frmMDIMain.Toolbar1.Buttons("save").Enabled = True
-  
-    '*'Debug.Assert Asc(Caption) <> 42
-    'mark caption
-    Caption = sDM & Caption
-  End If
-End Sub
-
-Public Sub DeleteCoordinate(ByVal DelCoord As Long, Optional ByVal DontUndo As Boolean = False)
-
-  Dim DelCount As Long
-  Dim DelPos As Long
-  Dim i As Long, j As Long, tmpPT As PT
-  Dim NextUndo As PictureUndo
-  Dim bytUndoData() As Byte
-  
-  'if this is last item
-  If lstCoords.ListCount = 1 Then
-    'send focus to cmd list
-    lstCommands.SetFocus
-    'use command delete
-    DeleteCommand SelectedCmd
-    'stop coordinate flashing
-    tmrSelect.Enabled = False
-  Exit Sub
-  Else
-    'remove the coordinates at this position
-    DelPos = lstCoords.ItemData(DelCoord)
-    
-    'if deleting a plot point in splatter mode
-    If InStr(1, lstCoords.List(DelCoord), "-") <> 0 Then
-      DelCount = 3
-    'if deleting a relative line, or a step line
-    ElseIf lstCommands.Text = "Rel Line" Or lstCommands.Text = "X Corner" Or lstCommands.Text = "Y Corner" Then
-      DelCount = 1
-    Else
-      DelCount = 2
-    End If
-    
-    'if not skipping undo
-    If Not DontUndo And Settings.PicUndo <> 0 Then
-      'create new undo object
-      Set NextUndo = New PictureUndo
-      With NextUndo
-        .UDAction = udpDelCoord
-        .UDPicPos = DelPos
-        .UDCmdIndex = SelectedCmd
-        If DelCoord = lstCoords.ListCount - 1 Then
-          'if deleting last coordinate, use -1 as coordpos
-          'so it can get added back to end of list
-          .UDCoordIndex = -1
-        Else
-          .UDCoordIndex = DelCoord
-        End If
-        .UDText = lstCoords.List(DelCoord)
-        ReDim bytUndoData(DelCount - 1)
-        For i = 0 To DelCount - 1
-          bytUndoData(i) = PicEdit.Resource.Data(DelPos + i)
-        Next i
-        .UDData = bytUndoData
-      End With
-      'add to undo
-      AddUndo NextUndo
-    End If
-    
-    'remove from resource
-    PicEdit.Resource.RemoveData DelPos, DelCount
-    
-    'adjust position values to account for deleted data
-    UpdatePosValues SelectedCmd + 1, -DelCount
-    
-    'update position values for coords
-    For i = DelCoord + 1 To lstCoords.ListCount - 1
-      lstCoords.ItemData(i) = lstCoords.ItemData(i) - DelCount
-    Next i
-    
-    'remove from coord list
-    tmpPT = ExtractCoordinates(lstCoords.List(DelCoord))
-    For i = 0 To lstCoords.ListCount - 1
-      If tmpPT.X = CoordPT(i).X And tmpPT.Y = CoordPT(i).Y Then
-        'move rest down one
-        For j = i To lstCoords.ListCount - 2
-          CoordPT(j) = CoordPT(j + 1)
-        Next j
-        Exit For
-      End If
-    Next i
-    
-    'remove from listbox
-    lstCoords.RemoveItem DelCoord
-    
-  End If
-  
-  'redraw by selecting next coord
-  If DelCoord = lstCoords.ListCount Then
-    DelCoord = DelCoord - 1
-  End If
-  NoSelect = True
-  lstCoords.ListIndex = DelCoord
-End Sub
-
-
-Public Sub MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
-  
-  On Error GoTo ErrHandler
-  
-  If Not frmMDIMain.ActiveForm Is Me Then
-    Exit Sub
-  End If
-  
-  ' if mousekeys are active, just exit
-  If MouseKeys <> 0 Then
-    Exit Sub
-  End If
-  
-  ' if not over the picture surface (or it's not visible)
-  With picVisSurface
-    If xPos <= .Left Or xPos >= .Left + .Width Or yPos <= .Top Or yPos >= .Top + .Height Or Not .Visible Then
-      'try the priority picture surface
-      With picPriSurface
-        If xPos <= .Left Or xPos >= .Left + .Width Or yPos <= .Top Or yPos >= .Top + .Height Or Not .Visible Then
-          'not over any picture; don't do anything
-          Exit Sub
-        End If
-      End With
-    End If
-  End With
-  
-  'set flag to zoom function knows its a wheel based scroll
-  '(and we don't use the mouse values of xPos and yPos
-  'because we need to know which control is under the cursor;
-  'it's actually easier to do that with API calls than
-  'trying to derive it from this function's pos values)
-  blnWheel = True
-  
-  If Sgn(Rotation) = 1 Then
-    Toolbar1_ButtonClick Toolbar1.Buttons("zoomin")  '8
-  ElseIf Sgn(Rotation) = -1 Then
-    Toolbar1_ButtonClick Toolbar1.Buttons("zoomout") '9
-  End If
-  
-  'always reset the wheel scroll flag
-  blnWheel = False
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub DelPatternData(tmpIndex As Long, Optional ByVal DontUndo As Boolean = False)
-  'remove pattern bytes
-
-  Dim i As Long, lngNewPos As Long
-  Dim bytPatDat() As Byte, bytPattern As Byte
-  Dim strPatSplit() As String
-  Dim NextUndo As PictureUndo
-  
-  On Error GoTo ErrHandler
-  
-  'if not skipping undo
-  If Not DontUndo Then
-    'reset random generator by using timer
-    Randomize Timer
-    
-    'create array to hold patterns for undo in 25 byte segments
-    ReDim bytPatDat(24)
-  End If
-  
-  'set start pos so first iteration will select pattern byte for first coord
-  lngNewPos = lstCommands.ItemData(tmpIndex) + 1
-    
-  Do
-    'if not skipping undo
-    If Not DontUndo Then
-      bytPattern = PicEdit.Resource.Data(lngNewPos)
-      
-      If i > UBound(bytPatDat) Then
-        ReDim Preserve bytPatDat(UBound(bytPatDat) + 25)
-      End If
-      
-      'save to array
-      bytPatDat(i) = bytPattern
-    End If
-    
-    'remove from picture resource
-    PicEdit.Resource.RemoveData lngNewPos
-    
-    'adjust pos
-    lngNewPos = lngNewPos + 2
-    
-    'increment offset
-    i = i + 1
-  Loop Until PicEdit.Resource.Data(lngNewPos) >= &HF0
-  
-  'remove any extra bytes in pattern array
-  If Not DontUndo Then
-    ReDim Preserve bytPatDat(i - 1)
-  End If
-  
-  'adjust positions of follow on commands (i now equals number of bytes removed)
-  UpdatePosValues tmpIndex + 1, -i
-  
-  'if not skipping undo
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    'save undo info
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      .UDAction = udpDelPlotPattern
-      .UDPicPos = lstCommands.ItemData(tmpIndex)
-      .UDCmdIndex = tmpIndex
-      .UDData = bytPatDat
-    End With
-    'add the undo object without setting edit menu
-    UndoCol.Add NextUndo
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Public Sub DrawPicture(Optional ByVal Force As Boolean = False, Optional ByVal DrawCel As Boolean = False, Optional ByVal CelX As Long = -1, Optional ByVal CelY As Long = -1)
-  
-  'draws the pictures, including background,  and priority bands, if necessary
-  'the complicated part is determining how much of the drawing to include,
-  'which depends on which cmd is selected, whether moving or editing the command
-  'and what Type of command it is
-  
-  'force needed to draw the images on form load; when this function is called
-  'the pics all have Visible properties of False; so Force makes sure they get drawn
-  'anyway
-  
-  Dim rtn As Long, i As Long, j As Long
-  Dim DrawPos As Long
-
-  Dim blnVis As Boolean, blnPri As Boolean
-
-  On Error GoTo ErrHandler
-
-  '(use surface vis property to determine if we need to draw pics
-  blnVis = picVisSurface.Visible Or Force
-  blnPri = picPriSurface.Visible Or Force
-
-  'and if neither is being drawn (or forced, there is nothing to do here)
-  If Not blnVis And Not blnPri Then
-    Exit Sub
-  End If
-  
-  'if selected item in list is a command (no coord selected)
-  If lstCoords.ListIndex = -1 Then
-    'if not the last cmd
-    If SelectedCmd <> lstCommands.ListCount - 1 Then
-      'draw pos is pos of next command
-      PicEdit.DrawPos = lstCommands.ItemData(SelectedCmd + 1)
-    Else
-      'position is end of resource
-      PicEdit.DrawPos = -1
-    End If
-  Else  'a specific coordinate is selected
-    'if moving a cmd
-    If PicDrawMode = doMoveCmds Then
-      'draw pos is pos of next command (include the command(s) being moved)
-      PicEdit.DrawPos = lstCommands.ItemData(SelectedCmd + 1)
-    Else
-      'where to set draw pos depends on which command is selected,
-      'and which coordinate is chosen
-
-      'if a plot or fill comd
-      Select Case lstCommands.List(SelectedCmd)
-      Case "Fill", "Plot"
-        'add one to position, so the coordinate is included
-        PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) + 1
-      Case "Rel Line"
-        If lstCoords.ListIndex = 0 Then
-          PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) - 1
-        Else
-          PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex)
-        End If
-      Case "X Corner", "Y Corner"
-        If lstCoords.ListIndex = 0 Then
-          PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) - 1
-        Else
-          'if moving a coordinate,
-          If PicDrawMode = doMovePt Then
-            'if editing second coord,
-            If lstCoords.ListIndex = 1 Then
-              'back up three so first line is not drawn
-              PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) - 3
+          Do Until bytCmd >= &HF0
+            If blnRelX Then
+              bytX = bytCmd
             Else
-              'back up one so line in front of edit line is not drawn
-              PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) - 1
+              bytY = bytCmd
+            End If
+            blnRelX = Not blnRelX
+
+            'get next coordinate or command
+            lngPos = lngPos + 1
+            bytCmd = bytData(lngPos)
+          Loop
+
+        Case &HF6 'Absolute line (long lines).
+          'get coordinates
+          lngPos = lngPos + 1
+          bytX = bytData(lngPos)
+          lngPos = lngPos + 1
+          bytY = bytData(lngPos)
+
+          'get next byte as potential command
+          lngPos = lngPos + 1
+          bytCmd = bytData(lngPos)
+
+          Do Until bytCmd >= &HF0
+            bytX = bytCmd
+            lngPos = lngPos + 1
+            bytY = bytData(lngPos)
+
+            'read in next command
+            lngPos = lngPos + 1
+            bytCmd = bytData(lngPos)
+          Loop
+
+        Case &HF7 'Relative line (short lines).
+           'get coordinates
+          lngPos = lngPos + 1
+          bytX = bytData(lngPos)
+          lngPos = lngPos + 1
+          bytY = bytData(lngPos)
+
+          'get next byte as potential command
+          lngPos = lngPos + 1
+          bytCmd = bytData(lngPos)
+
+          Do Until bytCmd >= &HF0
+            'if horizontal negative bit set
+            If (bytCmd And &H80) Then
+              xdisp = -((bytCmd And &H70) / &H10)
+            Else
+              xdisp = ((bytCmd And &H70) / &H10)
+            End If
+            'if vertical negative bit is set
+            If (bytCmd And &H8) Then
+              ydisp = -(bytCmd And &H7)
+            Else
+              ydisp = (bytCmd And &H7)
+            End If
+            bytX = bytX + xdisp
+            bytY = bytY + ydisp
+
+            'read in next command
+            lngPos = lngPos + 1
+            bytCmd = bytData(lngPos)
+          Loop
+
+        End Select
+
+        'bytx and byty are now set to last coord of previous cmd
+
+        'extract coords from this cmd's first node text
+        tmpCoord = ExtractCoordinates(lstCoords.List(0))
+
+        MatchPoints = (tmpCoord.X = bytX And tmpCoord.Y = bytY)
+      Exit Function
+
+      ErrHandler:
+        '*'Debug.Assert False
+        'error- let calling method deal with it
+        'by returning false
+      End Function
+
+      Public Sub MenuClickFind()
+
+        'toggles the priority bands on and off
+
+        Dim rtn As Long
+
+        On Error GoTo ErrHandler
+
+        'toggle showband flag
+        ShowBands = Not ShowBands
+
+        'use Force flag so both images
+        'get updated whether currently visible
+        'or not
+        If PicMode = pmEdit Then
+          'redraw
+          DrawPicture True
+        Else
+          'redraw cel
+          DrawPicture True, True, OldCel.X, OldCel.Y
+        End If
+
+        'reset caption
+        With frmMDIMain.mnuEFind
+          If ShowBands Then
+            .Caption = "Hide Priority Bands" & vbTab & "Alt+P"
+          Else
+            .Caption = "Show Priority Bands" & vbTab & "Alt+P"
+          End If
+        End With
+
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+      Public Sub MenuClickFindAgain()
+
+        'allow user to set the priority base,if v2.936 or above
+        'OR if not in a game!
+
+        Dim lngNewBase As String, lngOldBase As Long
+        Dim NextUndo As PictureUndo
+
+        lngOldBase = PicEdit.PriBase
+        lngNewBase = lngOldBase
+        Do
+          lngNewBase = InputBox("Enter new priority base value: ", "Set Priority Base", lngNewBase, frmMDIMain.Left + (frmMDIMain.Width - 4500) / 2, frmMDIMain.Top + (frmMDIMain.Height - 2100) / 2)
+
+          'if canceled, it will be empty string
+          If lngNewBase = vbNullString Then
+            Exit Sub
+          End If
+
+          'validate
+          If Not IsNumeric(lngNewBase) Then
+            'invalid
+            MsgBoxEx "You must enter a value between 0 and 158", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Invalid Base Value", WinAGIHelp, "htm\winagi\Picture_Editor.htm#pribands"
+          ElseIf lngNewBase < 0 Or lngNewBase > 158 Then
+            'invalid
+            MsgBoxEx "You must enter a value between 0 and 158", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Invalid Base Value", WinAGIHelp, "htm\winagi\Picture_Editor.htm#pribands"
+          Else
+            'OK!
+            Exit Do
+          End If
+        Loop While True
+
+        'set new pri base
+        PicEdit.PriBase = lngNewBase
+        DrawPicture True
+
+        'add undo!
+        If Settings.PicUndo <> 0 Then
+          'create undo object
+          Set NextUndo = New PictureUndo
+          NextUndo.UDAction = udpSetPriBase
+          'use cmdIndex for old base
+          NextUndo.UDCmdIndex = lngOldBase
+          'add the undo object without setting edit menu
+          UndoCol.Add NextUndo
+        End If
+
+        MarkAsDirty
+
+      End Sub
+
+      Public Sub MenuClickRedo()
+
+        'when showing full visual or full priority,
+        'this menu item swaps between the two
+
+        Dim sngSplit As Single
+
+        On Error GoTo ErrHandler
+
+        ' if currently showing visual
+        If OneWindow = 1 Then
+          'switch to priority
+          OneWindow = 2
+          sngSplit = 0
+        ElseIf OneWindow = 2 Then
+          'otherwise switch to visual
+          OneWindow = 1
+          sngSplit = picPalette.Top - picSplitH.Height
+        End If
+
+        'update and redraw to affect change
+        UpdatePanels sngSplit, lstCommands.Left + lstCommands.Width
+        DrawPicture
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub AddPatternData(tmpIndex As Long, bytPatDat() As Byte, Optional ByVal DontUndo As Boolean = False)
+
+        'add pattern bytes to tmpIndex command coordinates
+        'if skipping undo, pattern values will be
+        'passed in bytPatDat; if not skipping undo
+        'generate random pattern data
+
+        Dim i As Long, lngNewPos As Long
+        Dim bytPattern As Byte
+        Dim NextUndo As PictureUndo
+
+        On Error GoTo ErrHandler
+
+        'set insertpos so first iteration will add
+        'pattern data in front of first coord x Value
+        lngNewPos = lstCommands.ItemData(tmpIndex) - 2
+
+        Do
+          'if skipping undo
+          If DontUndo Then
+            'if first byte of array is 255,
+            If bytPatDat(0) = &HFF Then
+              'need to provide the random bytes for this set of coordinates
+              bytPattern = 2 * CByte(Int(Rnd * 119))
+            Else
+              'get pattern from array
+              bytPattern = bytPatDat(i)
             End If
           Else
-            PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex)
+            'get random pattern
+            bytPattern = 2 * CByte(Int(Rnd * 119))
+          End If
+
+          'adjust pos (include offset
+          lngNewPos = lngNewPos + 3
+
+          'add it to resource
+          PicEdit.Resource.InsertData bytPattern, lngNewPos
+
+          'increment byte insertion counter
+          i = i + 1
+        Loop Until PicEdit.Resource.Data(lngNewPos + 3) >= &HF0
+
+        'adjust positions (i equals number of bytes added)
+        UpdatePosValues tmpIndex + 1, i
+
+        'if not skipping undo
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          'save undo info
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            .UDAction = udpAddPlotPattern
+            .UDPicPos = lstCommands.ItemData(tmpIndex)
+            .UDCmdIndex = tmpIndex
+          End With
+          'add the undo object without setting edit menu
+          UndoCol.Add NextUndo
+        End If
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub BeginDraw(ByVal CurrentTool As TPicToolTypeEnum, PicPt As PT)
+        'initiates draw operation based on selected tool
+
+        Dim bytData() As Byte
+        Dim bytPattern As Byte
+
+        On Error GoTo ErrHandler
+
+        'begin drawing using selected tool
+        Select Case CurrentTool
+        Case ttLine
+          'set anchor
+          Anchor = PicPt
+          'set data to draw command and first point
+          ReDim bytData(2)
+          bytData(0) = dfAbsLine
+          bytData(1) = PicPt.X
+          bytData(2) = PicPt.Y
+          'insert command
+          InsertCommand bytData(), SelectedCmd, "Abs Line", gInsertBefore
+          'select this cmd
+          SelectCmd lstCommands.NewIndex, False
+          'now set mode (do it AFTER selecting command otherwise
+          'draw mode will get canceled)
+          PicDrawMode = doLine
+          'and select first coordinate
+          NoSelect = True
+          lstCoords.ListIndex = 0
+
+        Case ttRelLine
+          'insert rel line cmd
+
+          'set anchor
+          Anchor = PicPt
+          'set data to draw command and first point
+          ReDim bytData(2)
+          bytData(0) = dfRelLine
+          bytData(1) = PicPt.X
+          bytData(2) = PicPt.Y
+          'insert command
+          InsertCommand bytData(), SelectedCmd, "Rel Line", gInsertBefore
+          'select this cmd
+          SelectCmd lstCommands.NewIndex, False
+          'now set mode (do it AFTER selecting command otherwise
+          'draw mode will get canceled)
+          PicDrawMode = doLine
+          'and select first coordinate
+          NoSelect = True
+          lstCoords.ListIndex = 0
+
+        Case ttCorner
+          'set anchor
+          Anchor = PicPt
+          'set data to draw command and first point
+          ReDim bytData(2)
+          'assume xcorner
+          bytData(0) = dfXCorner
+          bytData(1) = PicPt.X
+          bytData(2) = PicPt.Y
+          'insert command
+          InsertCommand bytData(), SelectedCmd, "X Corner", gInsertBefore
+          SelectCmd lstCommands.NewIndex, False
+          'now set mode (do it AFTER selecting command otherwise
+          'draw mode will get canceled)
+          PicDrawMode = doLine
+          'and select first coordinate
+          NoSelect = True
+          lstCoords.ListIndex = 0
+
+        End Select
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub ChangeColor(ByVal CmdIndex As Long, ByVal NewColor As AGIColors, Optional ByVal DontUndo As Boolean = False)
+
+        'changes the color for this command
+        Dim NextUndo As PictureUndo
+        Dim OldColor As AGIColors
+        Dim bytData() As Byte
+        Dim lngPos As Long
+
+        On Error GoTo ErrHandler
+
+        ReDim bytData(0)
+
+        'get position of command
+        lngPos = lstCommands.ItemData(CmdIndex)
+
+        'get color of current command
+        If Right$(lstCommands.List(CmdIndex), 3) = "Off" Then
+          OldColor = agNone
+        Else
+          OldColor = PicEdit.Resource.Data(lngPos + 1)
+        End If
+
+        'it is possible that a change request is made
+        'even though colors are the same
+        If OldColor = NewColor Then
+          'just exit
+          Exit Sub
+        End If
+
+        'if not skipping undo
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            .UDAction = udpChangeColor
+            .UDPicPos = lngPos
+            .UDCmdIndex = CmdIndex
+            bytData(0) = OldColor
+            .UDData = bytData()
+          End With
+          AddUndo NextUndo
+        End If
+
+        'if old color is none
+        If OldColor = agNone Then
+          'change command to enable by subtracting one
+          PicEdit.Resource.Data(lngPos) = PicEdit.Resource.Data(lngPos) - 1
+          'insert color
+          PicEdit.Resource.InsertData CByte(NewColor), CLng(lngPos) + 1
+          'update all following commands
+          UpdatePosValues CmdIndex + 1, 1
+
+          'build command text
+          lstCommands.List(CmdIndex) = Left$(lstCommands.List(CmdIndex), 5) & LoadResString(COLORNAME + NewColor)
+
+        ElseIf NewColor = agNone Then
+          'change command to disable by adding one
+          PicEdit.Resource.Data(lngPos) = PicEdit.Resource.Data(lngPos) + 1
+          'delete color byte
+          PicEdit.Resource.RemoveData lngPos + 1
+          'update all following commands
+          UpdatePosValues CmdIndex + 1, -1
+          'build command text
+          lstCommands.List(CmdIndex) = Left$(lstCommands.List(CmdIndex), 5) & "Off"
+        Else
+          'change color byte
+          PicEdit.Resource.Data(lngPos + 1) = NewColor
+          'build command text
+          lstCommands.List(CmdIndex) = Left$(lstCommands.List(CmdIndex), 5) & LoadResString(COLORNAME + NewColor)
+        End If
+
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Public Sub ChangeDir(ByVal KeyCode As Integer)
+
+        'should ONLY be called when in test mode
+        '*'Debug.Assert PicMode = pmTest
+
+        'takes a keycode as the input, and changes direction if appropriate
+        Select Case KeyCode
+        Case vbKeyUp, vbKeyNumpad8
+          'if view is on picture
+          '(OldCel.X will not be -1)
+          If OldCel.X <> -1 Then
+            'if direction is currently up
+            If TestDir = odUp Then
+              'stop movement
+              TestDir = odStopped
+              tmrTest.Enabled = TestSettings.CycleAtRest
+            Else
+              'set direction to up
+              TestDir = odUp
+              'set loop to 3, if there are four AND loop is not 3 AND in auto
+              If TestView.Loops.Count >= 4 And CurTestLoop <> 3 And (TestSettings.TestLoop = -1) Then
+                CurTestLoop = 3
+                CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
+                CurTestCel = 0
+                TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
+              End If
+              'enable timer
+              tmrTest.Enabled = True
+            End If
+          End If
+
+        Case vbKeyPageUp, vbKeyNumpad9
+          'if view is on picture
+          '(OldCel.X will not be -1)
+          If OldCel.X <> -1 Then
+            'if direction is currently UpRight
+            If TestDir = odUpRight Then
+              'stop movement
+              TestDir = odStopped
+              tmrTest.Enabled = TestSettings.CycleAtRest
+            Else
+              'set direction to upright
+              TestDir = odUpRight
+              'set loop to 0, if not already 0 AND in auto
+              If CurTestLoop <> 0 And (TestSettings.TestLoop = -1) Then
+                CurTestLoop = 0
+                CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
+                CurTestCel = 0
+                TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
+              End If
+              'enable timer
+              tmrTest.Enabled = True
+            End If
+          End If
+
+        Case vbKeyRight, vbKeyNumpad6
+          'if view is on picture
+          '(OldCel.X will not be -1)
+          If OldCel.X <> -1 Then
+            'if direction is currently Right
+            If TestDir = odRight Then
+              'stop movement
+              TestDir = odStopped
+              tmrTest.Enabled = TestSettings.CycleAtRest
+            Else
+              'set direction to right
+              TestDir = odRight
+              'set loop to 0, if not already 0 AND in auto
+              If CurTestLoop <> 0 And (TestSettings.TestLoop = -1) Then
+                CurTestLoop = 0
+                CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
+                CurTestCel = 0
+                TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
+              End If
+              'enable timer
+              tmrTest.Enabled = True
+            End If
+          End If
+
+        Case vbKeyPageDown, vbKeyNumpad3
+          'if view is on picture
+          '(OldCel.X will not be -1)
+          If OldCel.X <> -1 Then
+            'if direction is currently DownRight
+            If TestDir = odDownRight Then
+              'stop movement
+              TestDir = odStopped
+              tmrTest.Enabled = TestSettings.CycleAtRest
+            Else
+              'set direction to downright
+              TestDir = odDownRight
+              'set loop to 0, if not already 0 AND in auto
+              If CurTestLoop <> 0 And (TestSettings.TestLoop = -1) Then
+                CurTestLoop = 0
+                CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
+                CurTestCel = 0
+                TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
+              End If
+              'enable timer
+              tmrTest.Enabled = True
+            End If
+          End If
+
+        Case vbKeyDown, vbKeyNumpad2
+          'if view is on picture
+          '(OldCel.X will not be -1)
+          If OldCel.X <> -1 Then
+            'if direction is currently down
+            If TestDir = odDown Then
+              'stop movement
+              TestDir = odStopped
+              tmrTest.Enabled = TestSettings.CycleAtRest
+            Else
+              'set direction to down
+              TestDir = odDown
+              'set loop to 2, if there are four AND loop is not 2 AND in auto
+              If TestView.Loops.Count >= 4 And CurTestLoop <> 2 And (TestSettings.TestLoop = -1) Then
+                CurTestLoop = 2
+                CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
+                CurTestCel = 0
+                TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
+              End If
+              'enable timer
+              tmrTest.Enabled = True
+            End If
+          End If
+
+        Case vbKeyEnd, vbKeyNumpad1
+          'if view is on picture
+          '(OldCel.X will not be -1)
+          If OldCel.X <> -1 Then
+            'if direction is currently DownLeft
+            If TestDir = odDownLeft Then
+              'stop movement
+              TestDir = odStopped
+              tmrTest.Enabled = TestSettings.CycleAtRest
+            Else
+              'set direction to downLeft
+              TestDir = odDownLeft
+              'set loop to 1, if  at least 2 loops, and not already 1 AND in auto
+              If (TestView.Loops.Count >= 2) And (CurTestLoop <> 1) And (TestSettings.TestLoop = -1) Then
+                CurTestLoop = 1
+                CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
+                CurTestCel = 0
+                TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
+              End If
+              'enable timer
+              tmrTest.Enabled = True
+            End If
+          End If
+
+        Case vbKeyLeft, vbKeyNumpad4
+          'if view is on picture
+          '(OldCel.X will not be -1)
+          If OldCel.X <> -1 Then
+            'if direction is currently Left
+            If TestDir = odLeft Then
+              'stop movement
+              TestDir = odStopped
+              tmrTest.Enabled = TestSettings.CycleAtRest
+            Else
+              'set direction to Left
+              TestDir = odLeft
+              'set loop to 1, if  at least 2 loops, and not already 1 AND in auto
+              If (TestView.Loops.Count >= 2) And (CurTestLoop <> 1) And (TestSettings.TestLoop = -1) Then
+                CurTestLoop = 1
+                CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
+                CurTestCel = 0
+                TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
+              End If
+              'enable timer
+              tmrTest.Enabled = True
+            End If
+          End If
+
+        Case vbKeyHome, vbKeyNumpad7
+          'if view is on picture
+          '(OldCel.X will not be -1)
+          If OldCel.X <> -1 Then
+            'if direction is currently UpLeft
+            If TestDir = odUpLeft Then
+              'stop movement
+              TestDir = odStopped
+              tmrTest.Enabled = TestSettings.CycleAtRest
+            Else
+              'set direction to UpLeft
+              TestDir = odUpLeft
+              'set loop to 1, if  at least 2 loops, and not already 1 AND in auto
+              If (TestView.Loops.Count >= 2) And (CurTestLoop <> 1) And (TestSettings.TestLoop = -1) Then
+                CurTestLoop = 1
+                CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
+                CurTestCel = 0
+                TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
+              End If
+              'enable timer
+              tmrTest.Enabled = True
+            End If
+          End If
+
+        Case vbKeyNumpad5
+          'always stop
+          TestDir = 0
+          tmrTest.Enabled = TestSettings.CycleAtRest
+
+        End Select
+      End Sub
+
+
+      Private Sub DeleteCommand(DelIndex As Long, Optional ByVal DontUndo As Boolean = False)
+
+        'delete an entire command
+
+        Dim DelCount As Long
+        Dim DelPos As Long
+        Dim i As Long
+        Dim NextUndo As PictureUndo
+        Dim bytUndoData() As Byte
+
+        On Error GoTo ErrHandler
+
+        'get starting position
+        DelPos = lstCommands.ItemData(DelIndex)
+
+        'calculate bytes to delete
+        DelCount = lstCommands.ItemData(DelIndex + 1) - DelPos
+
+        'if not skipping undo
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          'create new undo object
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            .UDAction = udpDelCmd
+            .UDPicPos = DelPos
+            .UDCmdIndex = DelIndex
+            .UDCmd = lstCommands.List(DelIndex)
+
+            ReDim bytUndoData(DelCount - 1)
+            For i = 0 To (DelCount - 1)
+              bytUndoData(i) = PicEdit.Resource.Data(DelPos + i)
+            Next i
+            .UDData = bytUndoData
+            .UDCoordIndex = 1
+          End With
+          'add to undo
+          AddUndo NextUndo
+        End If
+
+        'remove from resource
+        PicEdit.Resource.RemoveData DelPos, DelCount
+
+        'adjust position values to account for deleted data
+        UpdatePosValues DelIndex, -DelCount
+
+        'remove from cmd list
+        lstCommands.RemoveItem DelIndex
+
+        'select cmd at delindex position
+        SelectCmd DelIndex, DontUndo
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+      Private Sub AddUndo(NextUndo As PictureUndo)
+
+        If Not IsDirty Then
+          MarkAsDirty
+        End If
+
+        'remove old undo items until there is room for this one
+        'to be added
+        If Settings.PicUndo > 0 Then
+          Do While UndoCol.Count >= Settings.PicUndo
+            UndoCol.Remove 1
+          Loop
+        End If
+
+        'adds the next undo object
+        UndoCol.Add NextUndo
+
+        'set undo menu
+        frmMDIMain.mnuEUndo.Enabled = True
+        frmMDIMain.mnuEUndo.Caption = "&Undo " & LoadResString(PICUNDOTEXT + NextUndo.UDAction) & NextUndo.UDCmd & vbTab & "Ctrl+Z"
+      End Sub
+
+
+
+      Private Sub MarkAsDirty()
+
+        If Not IsDirty Then
+          IsDirty = True
+
+          'enable menu and toolbar button
+          frmMDIMain.mnuRSave.Enabled = True
+          frmMDIMain.Toolbar1.Buttons("save").Enabled = True
+
+          '*'Debug.Assert Asc(Caption) <> 42
+          'mark caption
+          Caption = sDM & Caption
+        End If
+      End Sub
+
+      Public Sub DeleteCoordinate(ByVal DelCoord As Long, Optional ByVal DontUndo As Boolean = False)
+
+        Dim DelCount As Long
+        Dim DelPos As Long
+        Dim i As Long, j As Long, tmpPT As PT
+        Dim NextUndo As PictureUndo
+        Dim bytUndoData() As Byte
+
+        'if this is last item
+        If lstCoords.ListCount = 1 Then
+          'send focus to cmd list
+          lstCommands.SetFocus
+          'use command delete
+          DeleteCommand SelectedCmd
+          'stop coordinate flashing
+          tmrSelect.Enabled = False
+        Exit Sub
+        Else
+          'remove the coordinates at this position
+          DelPos = lstCoords.ItemData(DelCoord)
+
+          'if deleting a plot point in splatter mode
+          If InStr(1, lstCoords.List(DelCoord), "-") <> 0 Then
+            DelCount = 3
+          'if deleting a relative line, or a step line
+          ElseIf lstCommands.Text = "Rel Line" Or lstCommands.Text = "X Corner" Or lstCommands.Text = "Y Corner" Then
+            DelCount = 1
+          Else
+            DelCount = 2
+          End If
+
+          'if not skipping undo
+          If Not DontUndo And Settings.PicUndo <> 0 Then
+            'create new undo object
+            Set NextUndo = New PictureUndo
+            With NextUndo
+              .UDAction = udpDelCoord
+              .UDPicPos = DelPos
+              .UDCmdIndex = SelectedCmd
+              If DelCoord = lstCoords.ListCount - 1 Then
+                'if deleting last coordinate, use -1 as coordpos
+                'so it can get added back to end of list
+                .UDCoordIndex = -1
+              Else
+                .UDCoordIndex = DelCoord
+              End If
+              .UDText = lstCoords.List(DelCoord)
+              ReDim bytUndoData(DelCount - 1)
+              For i = 0 To DelCount - 1
+                bytUndoData(i) = PicEdit.Resource.Data(DelPos + i)
+              Next i
+              .UDData = bytUndoData
+            End With
+            'add to undo
+            AddUndo NextUndo
+          End If
+
+          'remove from resource
+          PicEdit.Resource.RemoveData DelPos, DelCount
+
+          'adjust position values to account for deleted data
+          UpdatePosValues SelectedCmd + 1, -DelCount
+
+          'update position values for coords
+          For i = DelCoord + 1 To lstCoords.ListCount - 1
+            lstCoords.ItemData(i) = lstCoords.ItemData(i) - DelCount
+          Next i
+
+          'remove from coord list
+          tmpPT = ExtractCoordinates(lstCoords.List(DelCoord))
+          For i = 0 To lstCoords.ListCount - 1
+            If tmpPT.X = CoordPT(i).X And tmpPT.Y = CoordPT(i).Y Then
+              'move rest down one
+              For j = i To lstCoords.ListCount - 2
+                CoordPT(j) = CoordPT(j + 1)
+              Next j
+              Exit For
+            End If
+          Next i
+
+          'remove from listbox
+          lstCoords.RemoveItem DelCoord
+
+        End If
+
+        'redraw by selecting next coord
+        If DelCoord = lstCoords.ListCount Then
+          DelCoord = DelCoord - 1
+        End If
+        NoSelect = True
+        lstCoords.ListIndex = DelCoord
+      End Sub
+
+
+      Public Sub MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
+
+        On Error GoTo ErrHandler
+
+        If Not frmMDIMain.ActiveMdiChild Is Me Then
+          Exit Sub
+        End If
+
+        ' if mousekeys are active, just exit
+        If MouseKeys <> 0 Then
+          Exit Sub
+        End If
+
+        ' if not over the picture surface (or it's not visible)
+        With picVisSurface
+          If xPos <= .Left Or xPos >= .Left + .Width Or yPos <= .Top Or yPos >= .Top + .Height Or Not .Visible Then
+            'try the priority picture surface
+            With picPriSurface
+              If xPos <= .Left Or xPos >= .Left + .Width Or yPos <= .Top Or yPos >= .Top + .Height Or Not .Visible Then
+                'not over any picture; don't do anything
+                Exit Sub
+              End If
+            End With
+          End If
+        End With
+
+        'set flag to zoom function knows its a wheel based scroll
+        '(and we don't use the mouse values of xPos and yPos
+        'because we need to know which control is under the cursor;
+        'it's actually easier to do that with API calls than
+        'trying to derive it from this function's pos values)
+        blnWheel = True
+
+        If Sgn(Rotation) = 1 Then
+          Toolbar1_ButtonClick Toolbar1.Buttons("zoomin")  '8
+        ElseIf Sgn(Rotation) = -1 Then
+          Toolbar1_ButtonClick Toolbar1.Buttons("zoomout") '9
+        End If
+
+        'always reset the wheel scroll flag
+        blnWheel = False
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub DelPatternData(tmpIndex As Long, Optional ByVal DontUndo As Boolean = False)
+        'remove pattern bytes
+
+        Dim i As Long, lngNewPos As Long
+        Dim bytPatDat() As Byte, bytPattern As Byte
+        Dim strPatSplit() As String
+        Dim NextUndo As PictureUndo
+
+        On Error GoTo ErrHandler
+
+        'if not skipping undo
+        If Not DontUndo Then
+          'reset random generator by using timer
+          Randomize Timer
+
+          'create array to hold patterns for undo in 25 byte segments
+          ReDim bytPatDat(24)
+        End If
+
+        'set start pos so first iteration will select pattern byte for first coord
+        lngNewPos = lstCommands.ItemData(tmpIndex) + 1
+
+        Do
+          'if not skipping undo
+          If Not DontUndo Then
+            bytPattern = PicEdit.Resource.Data(lngNewPos)
+
+            If i > UBound(bytPatDat) Then
+              ReDim Preserve bytPatDat(UBound(bytPatDat) + 25)
+            End If
+
+            'save to array
+            bytPatDat(i) = bytPattern
+          End If
+
+          'remove from picture resource
+          PicEdit.Resource.RemoveData lngNewPos
+
+          'adjust pos
+          lngNewPos = lngNewPos + 2
+
+          'increment offset
+          i = i + 1
+        Loop Until PicEdit.Resource.Data(lngNewPos) >= &HF0
+
+        'remove any extra bytes in pattern array
+        If Not DontUndo Then
+          ReDim Preserve bytPatDat(i - 1)
+        End If
+
+        'adjust positions of follow on commands (i now equals number of bytes removed)
+        UpdatePosValues tmpIndex + 1, -i
+
+        'if not skipping undo
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          'save undo info
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            .UDAction = udpDelPlotPattern
+            .UDPicPos = lstCommands.ItemData(tmpIndex)
+            .UDCmdIndex = tmpIndex
+            .UDData = bytPatDat
+          End With
+          'add the undo object without setting edit menu
+          UndoCol.Add NextUndo
+        End If
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Public Sub DrawPicture(Optional ByVal Force As Boolean = False, Optional ByVal DrawCel As Boolean = False, Optional ByVal CelX As Long = -1, Optional ByVal CelY As Long = -1)
+
+        'draws the pictures, including background,  and priority bands, if necessary
+        'the complicated part is determining how much of the drawing to include,
+        'which depends on which cmd is selected, whether moving or editing the command
+        'and what Type of command it is
+
+        'force needed to draw the images on form load; when this function is called
+        'the pics all have Visible properties of False; so Force makes sure they get drawn
+        'anyway
+
+        Dim rtn As Long, i As Long, j As Long
+        Dim DrawPos As Long
+
+        Dim blnVis As Boolean, blnPri As Boolean
+
+        On Error GoTo ErrHandler
+
+        '(use surface vis property to determine if we need to draw pics
+        blnVis = picVisSurface.Visible Or Force
+        blnPri = picPriSurface.Visible Or Force
+
+        'and if neither is being drawn (or forced, there is nothing to do here)
+        If Not blnVis And Not blnPri Then
+          Exit Sub
+        End If
+
+        'if selected item in list is a command (no coord selected)
+        If lstCoords.ListIndex = -1 Then
+          'if not the last cmd
+          If SelectedCmd <> lstCommands.ListCount - 1 Then
+            'draw pos is pos of next command
+            PicEdit.DrawPos = lstCommands.ItemData(SelectedCmd + 1)
+          Else
+            'position is end of resource
+            PicEdit.DrawPos = -1
+          End If
+        Else  'a specific coordinate is selected
+          'if moving a cmd
+          If PicDrawMode = doMoveCmds Then
+            'draw pos is pos of next command (include the command(s) being moved)
+            PicEdit.DrawPos = lstCommands.ItemData(SelectedCmd + 1)
+          Else
+            'where to set draw pos depends on which command is selected,
+            'and which coordinate is chosen
+
+            'if a plot or fill comd
+            Select Case lstCommands.List(SelectedCmd)
+            Case "Fill", "Plot"
+              'add one to position, so the coordinate is included
+              PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) + 1
+            Case "Rel Line"
+              If lstCoords.ListIndex = 0 Then
+                PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) - 1
+              Else
+                PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex)
+              End If
+            Case "X Corner", "Y Corner"
+              If lstCoords.ListIndex = 0 Then
+                PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) - 1
+              Else
+                'if moving a coordinate,
+                If PicDrawMode = doMovePt Then
+                  'if editing second coord,
+                  If lstCoords.ListIndex = 1 Then
+                    'back up three so first line is not drawn
+                    PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) - 3
+                  Else
+                    'back up one so line in front of edit line is not drawn
+                    PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) - 1
+                  End If
+                Else
+                  PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex)
+                End If
+              End If
+            Case Else
+              'draw up to current command
+              PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) - 1
+            End Select
           End If
         End If
-      Case Else
-        'draw up to current command
-        PicEdit.DrawPos = lstCoords.ItemData(lstCoords.ListIndex) - 1
-      End Select
-    End If
-  End If
 
-  'now that DrawPos is set, we can draw the picture on the screen
+        'now that DrawPos is set, we can draw the picture on the screen
 
-'''  for some reason, this does not work when the selection box is displayed...
-'''  uncomment this (and corresponding reset msgs below) to see.
-'''  'disable redraw to reduce flicker
-'''  SendMessage picVisual.hWnd, WM_SETREDRAW, 0, 0
-'''  SendMessage picPriority.hWnd, WM_SETREDRAW, 0, 0
+      '''  for some reason, this does not work when the selection box is displayed...
+      '''  uncomment this (and corresponding reset msgs below) to see.
+      '''  'disable redraw to reduce flicker
+      '''  SendMessage picVisual.hWnd, WM_SETREDRAW, 0, 0
+      '''  SendMessage picPriority.hWnd, WM_SETREDRAW, 0, 0
 
-  'if no background, and not adding a cel, just copy images directly from picedit:
-  If Not PicEdit.BkgdShow And Not DrawCel Then
-    If blnVis Then
-      rtn = StretchBlt(picVisual.hDC, 0&, 0&, picVisual.Width, picVisual.Height, PicEdit.VisualBMP, 0&, 0&, 160&, 168&, SRCCOPY)
-    End If
-    If blnPri Then
-      rtn = StretchBlt(picPriority.hDC, 0&, 0&, picPriority.Width, picPriority.Height, PicEdit.PriorityBMP, 0&, 0&, 160&, 168&, SRCCOPY)
-    End If
-  Else
-    If blnVis Then
-      'copy visual picture so cel can be added and/or bkgd shown
-      rtn = BitBlt(picVisDraw.hDC, 0&, 0&, 160&, 168&, PicEdit.VisualBMP, 0&, 0&, SRCCOPY)
-    End If
-    If blnPri Then
-      'copy priority picture so cel can be added
-      rtn = BitBlt(picPriDraw.hDC, 0&, 0&, 160&, 168&, PicEdit.PriorityBMP, 0&, 0&, SRCCOPY)
-    End If
-
-    'if drawing a cel, then do it....
-    If DrawCel Then
-      '*'Debug.Assert CelX >= 0 And CelX < 256 And CelY >= 0 And CelY < 256
-      AddCelToPic CByte(CelX), CByte(CelY)
-    End If
-
-    'draw vis picture...
-    If blnVis Then
-      'if showing background;
-      If PicEdit.BkgdShow Then
-        picVisual.Cls
-        
-        'first, draw the background on visual
-        '(remember that IPicture objects are upside-down DIBs, so we need to flip BkgdImage vertically-
-        BkgdImage.Render picVisual.hDC, tgtX * picVisual.Width / 320, tgtY * picVisual.Height / 168, tgtW * picVisual.Width / 320, tgtH * picVisual.Height / 168, PixToMets(srcX), BkgdImage.Height - PixToMets(srcY, True), PixToMets(srcW), -PixToMets(srcH, True), 0&
-
-        'transblit the visual pic
-        If BkgdTrans = 0 Then
-          rtn = TransparentBlt(picVisual.hDC, 0&, 0&, CLng(picVisual.Width), CLng(picVisual.Height), picVisDraw.hDC, 0&, 0&, 160, 168, vbWhite)
+        'if no background, and not adding a cel, just copy images directly from picedit:
+        If Not PicEdit.BkgdShow And Not DrawCel Then
+          If blnVis Then
+            rtn = StretchBlt(picVisual.hDC, 0&, 0&, picVisual.Width, picVisual.Height, PicEdit.VisualBMP, 0&, 0&, 160&, 168&, SRCCOPY)
+          End If
+          If blnPri Then
+            rtn = StretchBlt(picPriority.hDC, 0&, 0&, picPriority.Width, picPriority.Height, PicEdit.PriorityBMP, 0&, 0&, 160&, 168&, SRCCOPY)
+          End If
         Else
-          rtn = AlphaBlend(picVisual.hDC, 0&, 0&, CLng(picVisual.Width), CLng(picVisual.Height), picVisDraw.hDC, 0&, 0&, 160, 168, CLng(BkgdTrans * &H10000))
-        End If
-'        'copy visual into monochrome Image to create background mask
-'        rtn = BitBlt(MonoMask.hDC, 0&, 0&, 160&, 168&, picVisDraw.hDC, 0&, 0&, SRCCOPY)
-'
-'        'mask out the background
-'        rtn = StretchBlt(picVisual.hDC, 0&, 0&, picVisual.Width, picVisual.Height, MonoMask.hDC, 0&, 0&, 160&, 168&, SRCAND)
-'
-'        'invert into monochrome Image to create foreground mask
-'        rtn = BitBlt(MonoMask.hDC, 0&, 0&, 160&, 168&, MonoMask.hDC, 0&, 0&, NOTSRCCOPY)
-'
-'        'mask out the foreground
-'        rtn = BitBlt(picVisDraw.hDC, 0&, 0&, 160, 168, MonoMask.hDC, 0&, 0&, SRCAND)
-'
-'        'combine foreground and background
-'        rtn = StretchBlt(picVisual.hDC, 0&, 0&, picVisual.Width, picVisual.Height, picVisDraw.hDC, 0&, 0&, 160, 168, SRCPAINT)
-      Else
-        'get Image from vis copy
-        rtn = StretchBlt(picVisual.hDC, 0&, 0&, 320 * ScaleFactor, 168 * ScaleFactor, picVisDraw.hDC, 0&, 0&, 160&, 168&, SRCCOPY)
-      End If
-    End If
+          If blnVis Then
+            'copy visual picture so cel can be added and/or bkgd shown
+            rtn = BitBlt(picVisDraw.hDC, 0&, 0&, 160&, 168&, PicEdit.VisualBMP, 0&, 0&, SRCCOPY)
+          End If
+          If blnPri Then
+            'copy priority picture so cel can be added
+            rtn = BitBlt(picPriDraw.hDC, 0&, 0&, 160&, 168&, PicEdit.PriorityBMP, 0&, 0&, SRCCOPY)
+          End If
 
-    'show priority Image
-    If blnPri Then
-      rtn = StretchBlt(picPriority.hDC, 0&, 0&, 320 * ScaleFactor, 168 * ScaleFactor, picPriDraw.hDC, 0&, 0&, 160&, 168&, SRCCOPY)
-    End If
-  End If
-  
-  'if showing bands
-  If ShowBands Then
-    'draw bands in matching priority color one pixel high
-    For rtn = 5 To 14
-        picVisual.Line (0, (Ceiling((rtn - 5) / 10 * (168 - PicEdit.PriBase)) + PicEdit.PriBase) * ScaleFactor - 1)-Step(picVisual.Width, 0), EGAColor(rtn), BF
-        picPriority.Line (0, (Ceiling((rtn - 5) / 10 * (168 - PicEdit.PriBase)) + PicEdit.PriBase) * ScaleFactor - 1)-Step(picPriority.Width, 0), EGAColor(rtn), BF
-    Next rtn
-  End If
-  
-  'refresh the picture boxes
-  picVisual.Refresh
-  picPriority.Refresh
-  
-'''  'reenable updating
-'''  SendMessage picVisual.hWnd, WM_SETREDRAW, 1, 0
-'''  SendMessage picPriority.hWnd, WM_SETREDRAW, 1, 0
-Exit Sub
+          'if drawing a cel, then do it....
+          If DrawCel Then
+            '*'Debug.Assert CelX >= 0 And CelX < 256 And CelY >= 0 And CelY < 256
+            AddCelToPic CByte(CelX), CByte(CelY)
+          End If
 
-ErrHandler:
-  'check for the bleeping error that won't create bitmaps
-  If Err.Number - vbObjectError = 610 And Not BadBitmap Then
-    MsgBox "I'm very sorry, but there is a bug in the CreateDIBSection API call that" & vbNewLine & _
-                "occasionally fails without returning an error code. I have not been able" & vbNewLine & _
-                "to track down what is going on with this yet. The only way to clear this" & vbNewLine & _
-                "save your work in progress, close WinAGI GDS, and try again.", vbInformation + vbOKOnly, "Picture Edit Error"
-    BadBitmap = True
-    Err.Clear
-    Exit Sub
-  Else
-    '*'Debug.Assert False
-    Resume Next
-  End If
-End Sub
-Private Sub DrawTempLine(ByVal Editing As Boolean, NewX As Byte, NewY As Byte)
-  'this command draws the line defined by current command
-  'it is used to draw temporary lines when point by point editing
-  'is desired
-  
-  'if Editing is false, no change to current list of coordinates is needed
-  
-  'this routine will validate whether NewX and/or NewY is valid based on line command
-  'being edited
-  
-  Dim i As Long
-  Dim CoordCount As Long
-  Dim LineType As DrawFunction
-  Dim CornerLine As Boolean, XFirst As Boolean
-  Dim StartPt As PT, EndPT As PT, tmpPT As PT
-  
-  On Error GoTo ErrHandler
-  
-  'get coord Count
-  CoordCount = lstCoords.ListCount
-  
-  'if no coordinates,
-  If CoordCount = 0 Then
-    Exit Sub
-  'if only one coordinate
-  ElseIf CoordCount = 1 Then
-    'if editing this coord
-    If Editing Then
-      'draw new coordinate point
-      DrawLine NewX, NewY, NewX, NewY
-    Else
-      'get coordinate
-      StartPt = ExtractCoordinates(lstCoords.Text)
-      DrawLine StartPt.X, StartPt.Y, StartPt.X, StartPt.Y
-    End If
-    Exit Sub
-  End If
-  
-  'get Type of line command
-  LineType = PicEdit.Resource.Data(lstCommands.ItemData(SelectedCmd))
-  
-  'if not editing,
-  If Not Editing Then
-    'draw all lines normally
-    If EditCoordNum = 0 Then
-      'start at beginning
-      StartPt = ExtractCoordinates(lstCoords.List(0))
-    Else
-      'start at endpoint
-      StartPt = ExtractCoordinates(lstCoords.List(EditCoordNum - 1))
-    End If
-    
-    'get starting point
-    For i = EditCoordNum To CoordCount - 1
-      'if editing first pt, skip first iteration
-      If i = 0 Then
-        i = i + 1
-      End If
-      
-      'get reference to next coord
-      EndPT = ExtractCoordinates(lstCoords.List(i))
-      'draw the line
-      DrawLine StartPt.X, StartPt.Y, EndPT.X, EndPT.Y
-      'set end point as new start point
-      StartPt = EndPT
-    Next i
-  Else
-    'if an x or Y corner is being edited
-    If (LineType = dfXCorner) Or (LineType = dfYCorner) Then
-      'enable corner editing
-      CornerLine = True
-      'determine if x or Y is changed first (at EditCoordNum - 1)
-      XFirst = (Int(EditCoordNum / 2) <> EditCoordNum / 2)
-      'if command is Ycorner,
-      If LineType = dfYCorner Then
-        'invert xfirst
-        XFirst = Not XFirst
-      End If
-      
-      'if edit coord is first point
-      If EditCoordNum = 1 Then
-        StartPt = ExtractCoordinates(lstCoords.List(0))
-        If XFirst Then
-          StartPt.Y = NewY
-        Else
-          StartPt.X = NewX
+          'draw vis picture...
+          If blnVis Then
+            'if showing background;
+            If PicEdit.BkgdShow Then
+              picVisual.Cls
+
+              'first, draw the background on visual
+              '(remember that IPicture objects are upside-down DIBs, so we need to flip BkgdImage vertically-
+              BkgdImage.Render picVisual.hDC, tgtX * picVisual.Width / 320, tgtY * picVisual.Height / 168, tgtW * picVisual.Width / 320, tgtH * picVisual.Height / 168, PixToMets(srcX), BkgdImage.Height - PixToMets(srcY, True), PixToMets(srcW), -PixToMets(srcH, True), 0&
+
+              'transblit the visual pic
+              If BkgdTrans = 0 Then
+                rtn = TransparentBlt(picVisual.hDC, 0&, 0&, CLng(picVisual.Width), CLng(picVisual.Height), picVisDraw.hDC, 0&, 0&, 160, 168, vbWhite)
+              Else
+                rtn = AlphaBlend(picVisual.hDC, 0&, 0&, CLng(picVisual.Width), CLng(picVisual.Height), picVisDraw.hDC, 0&, 0&, 160, 168, CLng(BkgdTrans * &H10000))
+              End If
+      '        'copy visual into monochrome Image to create background mask
+      '        rtn = BitBlt(MonoMask.hDC, 0&, 0&, 160&, 168&, picVisDraw.hDC, 0&, 0&, SRCCOPY)
+      '
+      '        'mask out the background
+      '        rtn = StretchBlt(picVisual.hDC, 0&, 0&, picVisual.Width, picVisual.Height, MonoMask.hDC, 0&, 0&, 160&, 168&, SRCAND)
+      '
+      '        'invert into monochrome Image to create foreground mask
+      '        rtn = BitBlt(MonoMask.hDC, 0&, 0&, 160&, 168&, MonoMask.hDC, 0&, 0&, NOTSRCCOPY)
+      '
+      '        'mask out the foreground
+      '        rtn = BitBlt(picVisDraw.hDC, 0&, 0&, 160, 168, MonoMask.hDC, 0&, 0&, SRCAND)
+      '
+      '        'combine foreground and background
+      '        rtn = StretchBlt(picVisual.hDC, 0&, 0&, picVisual.Width, picVisual.Height, picVisDraw.hDC, 0&, 0&, 160, 168, SRCPAINT)
+            Else
+              'get Image from vis copy
+              rtn = StretchBlt(picVisual.hDC, 0&, 0&, 320 * ScaleFactor, 168 * ScaleFactor, picVisDraw.hDC, 0&, 0&, 160&, 168&, SRCCOPY)
+            End If
+          End If
+
+          'show priority Image
+          If blnPri Then
+            rtn = StretchBlt(picPriority.hDC, 0&, 0&, 320 * ScaleFactor, 168 * ScaleFactor, picPriDraw.hDC, 0&, 0&, 160&, 168&, SRCCOPY)
+          End If
         End If
-        
-        EndPT.X = NewX
-        EndPT.Y = NewY
-        
-        DrawLine EndPT.X, EndPT.Y, StartPt.X, StartPt.Y
-      ElseIf EditCoordNum <> 0 Then
-        'need to draw existing line in front of editcoord to newpooint
-        StartPt = ExtractCoordinates(lstCoords.List(EditCoordNum - 2))
-        EndPT = StartPt
-        If XFirst Then
-          EndPT.Y = NewY
-        Else
-          EndPT.X = NewX
+
+        'if showing bands
+        If ShowBands Then
+          'draw bands in matching priority color one pixel high
+          For rtn = 5 To 14
+              picVisual.Line (0, (Ceiling((rtn - 5) / 10 * (168 - PicEdit.PriBase)) + PicEdit.PriBase) * ScaleFactor - 1)-Step(picVisual.Width, 0), EGAColor(rtn), BF
+              picPriority.Line (0, (Ceiling((rtn - 5) / 10 * (168 - PicEdit.PriBase)) + PicEdit.PriBase) * ScaleFactor - 1)-Step(picPriority.Width, 0), EGAColor(rtn), BF
+          Next rtn
         End If
-        
-        DrawLine StartPt.X, StartPt.Y, EndPT.X, EndPT.Y
-        StartPt = EndPT
-      End If
-      
-    Else
-      'no corner editing
-      CornerLine = False
-      
-      'if not first coordinate
-      If EditCoordNum <> 0 Then
-        'extract starting x and Y from coord just in front of edited coord
-        StartPt = ExtractCoordinates(lstCoords.List(EditCoordNum - 1))
-      End If
-    End If
-    
-    'now draw line
-        
-    'step through rest of coordinates
-    For i = EditCoordNum To lstCoords.ListCount - 1
-      'get next point
-      EndPT = ExtractCoordinates(lstCoords.List(i))
-      
-      'if this coord is the edited one
-      If i = EditCoordNum Then
-        Select Case LineType
+
+        'refresh the picture boxes
+        picVisual.Refresh
+        picPriority.Refresh
+
+      '''  'reenable updating
+      '''  SendMessage picVisual.hWnd, WM_SETREDRAW, 1, 0
+      '''  SendMessage picPriority.hWnd, WM_SETREDRAW, 1, 0
+      Exit Sub
+
+      ErrHandler:
+        'check for the bleeping error that won't create bitmaps
+        If Err.Number - vbObjectError = 610 And Not BadBitmap Then
+          MsgBox "I'm very sorry, but there is a bug in the CreateDIBSection API call that" & vbNewLine & _
+                      "occasionally fails without returning an error code. I have not been able" & vbNewLine & _
+                      "to track down what is going on with this yet. The only way to clear this" & vbNewLine & _
+                      "save your work in progress, close WinAGI GDS, and try again.", vbInformation + vbOKOnly, "Picture Edit Error"
+          BadBitmap = True
+          Err.Clear
+          Exit Sub
+        Else
+          '*'Debug.Assert False
+          Resume Next
+        End If
+      End Sub
+      Private Sub DrawTempLine(ByVal Editing As Boolean, NewX As Byte, NewY As Byte)
+        'this command draws the line defined by current command
+        'it is used to draw temporary lines when point by point editing
+        'is desired
+
+        'if Editing is false, no change to current list of coordinates is needed
+
+        'this routine will validate whether NewX and/or NewY is valid based on line command
+        'being edited
+
+        Dim i As Long
+        Dim CoordCount As Long
+        Dim LineType As DrawFunction
+        Dim CornerLine As Boolean, XFirst As Boolean
+        Dim StartPt As PT, EndPT As PT, tmpPT As PT
+
+        On Error GoTo ErrHandler
+
+        'get coord Count
+        CoordCount = lstCoords.ListCount
+
+        'if no coordinates,
+        If CoordCount = 0 Then
+          Exit Sub
+        'if only one coordinate
+        ElseIf CoordCount = 1 Then
+          'if editing this coord
+          If Editing Then
+            'draw new coordinate point
+            DrawLine NewX, NewY, NewX, NewY
+          Else
+            'get coordinate
+            StartPt = ExtractCoordinates(lstCoords.Text)
+            DrawLine StartPt.X, StartPt.Y, StartPt.X, StartPt.Y
+          End If
+          Exit Sub
+        End If
+
+        'get Type of line command
+        LineType = PicEdit.Resource.Data(lstCommands.ItemData(SelectedCmd))
+
+        'if not editing,
+        If Not Editing Then
+          'draw all lines normally
+          If EditCoordNum = 0 Then
+            'start at beginning
+            StartPt = ExtractCoordinates(lstCoords.List(0))
+          Else
+            'start at endpoint
+            StartPt = ExtractCoordinates(lstCoords.List(EditCoordNum - 1))
+          End If
+
+          'get starting point
+          For i = EditCoordNum To CoordCount - 1
+            'if editing first pt, skip first iteration
+            If i = 0 Then
+              i = i + 1
+            End If
+
+            'get reference to next coord
+            EndPT = ExtractCoordinates(lstCoords.List(i))
+            'draw the line
+            DrawLine StartPt.X, StartPt.Y, EndPT.X, EndPT.Y
+            'set end point as new start point
+            StartPt = EndPT
+          Next i
+        Else
+          'if an x or Y corner is being edited
+          If (LineType = dfXCorner) Or (LineType = dfYCorner) Then
+            'enable corner editing
+            CornerLine = True
+            'determine if x or Y is changed first (at EditCoordNum - 1)
+            XFirst = (Int(EditCoordNum / 2) <> EditCoordNum / 2)
+            'if command is Ycorner,
+            If LineType = dfYCorner Then
+              'invert xfirst
+              XFirst = Not XFirst
+            End If
+
+            'if edit coord is first point
+            If EditCoordNum = 1 Then
+              StartPt = ExtractCoordinates(lstCoords.List(0))
+              If XFirst Then
+                StartPt.Y = NewY
+              Else
+                StartPt.X = NewX
+              End If
+
+              EndPT.X = NewX
+              EndPT.Y = NewY
+
+              DrawLine EndPT.X, EndPT.Y, StartPt.X, StartPt.Y
+            ElseIf EditCoordNum <> 0 Then
+              'need to draw existing line in front of editcoord to newpooint
+              StartPt = ExtractCoordinates(lstCoords.List(EditCoordNum - 2))
+              EndPT = StartPt
+              If XFirst Then
+                EndPT.Y = NewY
+              Else
+                EndPT.X = NewX
+              End If
+
+              DrawLine StartPt.X, StartPt.Y, EndPT.X, EndPT.Y
+              StartPt = EndPT
+            End If
+
+          Else
+            'no corner editing
+            CornerLine = False
+
+            'if not first coordinate
+            If EditCoordNum <> 0 Then
+              'extract starting x and Y from coord just in front of edited coord
+              StartPt = ExtractCoordinates(lstCoords.List(EditCoordNum - 1))
+            End If
+          End If
+
+          'now draw line
+
+          'step through rest of coordinates
+          For i = EditCoordNum To lstCoords.ListCount - 1
+            'get next point
+            EndPT = ExtractCoordinates(lstCoords.List(i))
+
+            'if this coord is the edited one
+            If i = EditCoordNum Then
+              Select Case LineType
+              Case dfRelLine
+                'need to validate x and Y first
+                'if not first point
+                If i > 0 Then
+                  'validate x and Y against next pt
+                  '(note that delta x is limited to -6 to avoid
+                  'values above &HF0, which would mistakenly be interpreted
+                  'as a new command)
+                  If NewX > StartPt.X + 7 Then
+                    NewX = StartPt.X + 7
+                  ElseIf NewX < StartPt.X - 6 Then
+                    NewX = StartPt.X - 6
+                  End If
+                  If NewY > StartPt.Y + 7 Then
+                    NewY = StartPt.Y + 7
+                  ElseIf NewY < StartPt.Y - 7 Then
+                    NewY = StartPt.Y - 7
+                  End If
+                End If
+                'if not last point
+                If i < CoordCount - 1 Then
+                  'validate against next point
+                  'note that delta x is limited to -6 (swapped because we are
+                  'comparing against NEXT vs. PREVIOUS coordinate)
+                  'for same reason as given above
+                  tmpPT = ExtractCoordinates(lstCoords.List(i + 1))
+                  If NewX > tmpPT.X + 6 Then
+                    NewX = tmpPT.X + 6
+                  ElseIf NewX < tmpPT.X - 7 Then
+                    NewX = tmpPT.X - 7
+                  End If
+                  If NewY > tmpPT.Y + 7 Then
+                    NewY = tmpPT.Y + 7
+                  ElseIf NewY < tmpPT.Y - 7 Then
+                    NewY = tmpPT.Y - 7
+                  End If
+                End If
+              Case dfXCorner, dfYCorner
+                If i = 0 Then
+                  'set start equal to endpt
+                  StartPt.X = NewX
+                  StartPt.Y = NewY
+                End If
+
+              End Select
+
+              'use new x and Y
+              EndPT.X = NewX
+              EndPT.Y = NewY
+
+              If i = 0 Then
+                'start pt= endpt
+                StartPt = EndPT
+              End If
+
+            'if editing corner
+            ElseIf CornerLine Then
+              'if this coord is directly in front of edited one
+              If i = EditCoordNum - 2 Then
+                'if xfirst
+                If XFirst Then
+                  EndPT.X = NewX
+                Else
+                  EndPT.Y = NewY
+                End If
+              'if this coord is directly after edited one
+              ElseIf i = EditCoordNum + 1 Then
+                'if xfirst
+                If XFirst Then
+                  EndPT.X = NewX
+                Else
+                  EndPT.Y = NewY
+                End If
+              End If
+            End If
+
+            'draw the line
+            DrawLine StartPt.X, StartPt.Y, EndPT.X, EndPT.Y
+            'set end point as new start point
+            StartPt = EndPT
+          Next i
+        End If
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub EndEditCoord(ByVal CmdType As DrawFunction, ByVal CoordNum As Long, PicPt As PT, ByVal lngPos As Long, strCoord As String, Optional ByVal DontUndo As Boolean = False)
+
+        Dim lngPosOffset As Long
+        Dim strPattern As String
+        Dim NextUndo As PictureUndo
+        Dim tmpPT As PT, tmpPrevPT As PT, tmpNextPT As PT
+        Dim bytData() As Byte
+
+        On Error GoTo ErrHandler
+
+        'save old pt if undoing
+        If Not DontUndo And Settings.PicUndo Then
+          'use data section to hold old coord values
+          ReDim bytData(1)
+          tmpPT = ExtractCoordinates(strCoord)
+          bytData(0) = tmpPT.X
+          bytData(1) = tmpPT.Y
+          'if no change,
+          If tmpPT.X = PicPt.X And tmpPT.Y = PicPt.Y Then
+            'reset drawing mode, but no update is necessary
+            PicDrawMode = doNone
+            Exit Sub
+          End If
+        End If
+
+        'validate for Type of node being edited
+        Select Case CmdType
+        Case dfAbsLine, dfFill, dfPlotPen
+          'if this node includes a pattern command,
+          If InStr(1, strCoord, "-") <> 0 Then
+            'adjust resource pos by 1
+            lngPosOffset = 1
+            strPattern = Left$(strCoord, InStr(1, strCoord, "(") - 1)
+          End If
+          'update resource data
+          PicEdit.Resource.Data(lngPos + lngPosOffset) = PicPt.X
+          PicEdit.Resource.Data(lngPos + lngPosOffset + 1) = PicPt.Y
+
         Case dfRelLine
-          'need to validate x and Y first
+          'get point being edited
+          tmpPT = RelLineCoord(lngPos)
+
+          'validate x and Y:
+
           'if not first point
-          If i > 0 Then
-            'validate x and Y against next pt
+          If CoordNum > 0 Then
+            'validate against previous point
+            tmpPrevPT = RelLineCoord(lngPos - 1)
+            'validate x and Y against previous pt
             '(note that delta x is limited to -6 to avoid
             'values above &HF0, which would mistakenly be interpreted
             'as a new command)
-            If NewX > StartPt.X + 7 Then
-              NewX = StartPt.X + 7
-            ElseIf NewX < StartPt.X - 6 Then
-              NewX = StartPt.X - 6
+            If PicPt.X > tmpPrevPT.X + 7 Then
+              PicPt.X = tmpPrevPT.X + 7
+            ElseIf PicPt.X < tmpPrevPT.X - 6 Then
+              PicPt.X = tmpPrevPT.X - 6
             End If
-            If NewY > StartPt.Y + 7 Then
-              NewY = StartPt.Y + 7
-            ElseIf NewY < StartPt.Y - 7 Then
-              NewY = StartPt.Y - 7
+            If PicPt.Y > tmpPrevPT.Y + 7 Then
+              PicPt.Y = tmpPrevPT.Y + 7
+            ElseIf PicPt.Y < tmpPrevPT.Y - 7 Then
+              PicPt.Y = tmpPrevPT.Y - 7
             End If
           End If
-          'if not last point
-          If i < CoordCount - 1 Then
+
+          'if not last point (next pt is not a new cmd)
+          If PicEdit.Resource.Data(lngPos + IIf(CoordNum = 0, 2, 1)) < &HF0 Then
             'validate against next point
-            'note that delta x is limited to -6 (swapped because we are
+            'note that delta x is limited to +6 (swapped because we are
             'comparing against NEXT vs. PREVIOUS coordinate)
             'for same reason as given above
-            tmpPT = ExtractCoordinates(lstCoords.List(i + 1))
-            If NewX > tmpPT.X + 6 Then
-              NewX = tmpPT.X + 6
-            ElseIf NewX < tmpPT.X - 7 Then
-              NewX = tmpPT.X - 7
+            tmpNextPT = RelLineCoord(lngPos + IIf(CoordNum = 0, 2, 1))
+            If PicPt.X > tmpNextPT.X + 6 Then
+              PicPt.X = tmpNextPT.X + 6
+            ElseIf PicPt.X < tmpNextPT.X - 7 Then
+              PicPt.X = tmpNextPT.X - 7
             End If
-            If NewY > tmpPT.Y + 7 Then
-              NewY = tmpPT.Y + 7
-            ElseIf NewY < tmpPT.Y - 7 Then
-              NewY = tmpPT.Y - 7
+            If PicPt.Y > tmpNextPT.Y + 7 Then
+              PicPt.Y = tmpNextPT.Y + 7
+            ElseIf PicPt.Y < tmpNextPT.Y - 7 Then
+              PicPt.Y = tmpNextPT.Y - 7
             End If
           End If
-        Case dfXCorner, dfYCorner
-          If i = 0 Then
-            'set start equal to endpt
-            StartPt.X = NewX
-            StartPt.Y = NewY
+
+          'if first coordinate
+          If CoordNum = 0 Then
+            'recalculate delta to second point
+            If PicEdit.Resource.Data(lngPos + 2) < &HF0 Then
+              PicEdit.Resource.Data(lngPos + 2) = Abs(CLng(tmpNextPT.X) - PicPt.X) * 16 + IIf(Sgn(CLng(tmpNextPT.X) - PicPt.X) = -1, 128, 0) + Abs(CLng(tmpNextPT.Y) - PicPt.Y) + IIf(Sgn(CLng(tmpNextPT.Y) - PicPt.Y) = -1, 8, 0)
+            End If
+            'update data
+            PicEdit.Resource.Data(lngPos) = PicPt.X
+            PicEdit.Resource.Data(lngPos + 1) = PicPt.Y
+          Else
+            'if not last point
+            If PicEdit.Resource.Data(lngPos + 1) < &HF0 Then
+              'calculate new relative change in x and Y between next pt and this point
+              PicEdit.Resource.Data(lngPos + 1) = Abs(CLng(tmpNextPT.X) - PicPt.X) * 16 + IIf(Sgn(CLng(tmpNextPT.X) - PicPt.X) = -1, 128, 0) + Abs(CLng(tmpNextPT.Y) - PicPt.Y) + IIf(Sgn(CLng(tmpNextPT.Y) - PicPt.Y) = -1, 8, 0)
+            End If
+
+            'calculate new relative change in x and Y between previous pt and this point
+            PicEdit.Resource.Data(lngPos) = Abs(CLng(PicPt.X) - tmpPrevPT.X) * 16 + IIf(Sgn(CLng(PicPt.X) - tmpPrevPT.X) = -1, 128, 0) + Abs(CLng(PicPt.Y) - tmpPrevPT.Y) + IIf(Sgn(CLng(PicPt.Y) - tmpPrevPT.Y) = -1, 8, 0)
           End If
-          
+
+        Case dfXCorner
+          'if editing first point,
+          If CoordNum = 0 Then
+            'update resource data
+            PicEdit.Resource.Data(lngPos) = PicPt.X
+            PicEdit.Resource.Data(lngPos + 1) = PicPt.Y
+          Else
+            'if odd
+            If (Int(CoordNum / 2) <> CoordNum / 2) Then
+              'x Value is at lngPos; Y Value is at lngPos-1
+              PicEdit.Resource.Data(lngPos) = PicPt.X
+              PicEdit.Resource.Data(lngPos - 1) = PicPt.Y
+            Else
+              'x Value is at lngPos-1, Y Value is at lngPos
+              PicEdit.Resource.Data(lngPos - 1) = PicPt.X
+              PicEdit.Resource.Data(lngPos) = PicPt.Y
+            End If
+          End If
+
+        Case dfYCorner
+          'if editing first point,
+          If CoordNum = 0 Then
+            'update resource data
+            PicEdit.Resource.Data(lngPos) = PicPt.X
+            PicEdit.Resource.Data(lngPos + 1) = PicPt.Y
+          Else
+            'if even
+            If ((Int(CoordNum / 2) = CoordNum / 2)) Then
+              'x Value is lngpos, Y Value is at lngpos-1
+              PicEdit.Resource.Data(lngPos) = PicPt.X
+              PicEdit.Resource.Data(lngPos - 1) = PicPt.Y
+            Else
+              'special check for Y lines; for the second coord, the x Value is actaully
+              'two bytes in front of the edited coord (since cmd gives first coord
+              'as two bytes, then shifts to single byte per coord; Y Value is at lngpos
+              If CoordNum = 1 Then
+                'x Value is at lngPos-2
+                PicEdit.Resource.Data(lngPos - 2) = PicPt.X
+              Else
+                'x Value is at lngPos-1
+                PicEdit.Resource.Data(lngPos - 1) = PicPt.X
+              End If
+              PicEdit.Resource.Data(lngPos) = PicPt.Y
+            End If
+          End If
         End Select
-        
-        'use new x and Y
-        EndPT.X = NewX
-        EndPT.Y = NewY
-        
-        If i = 0 Then
-          'start pt= endpt
-          StartPt = EndPT
-        End If
-        
-      'if editing corner
-      ElseIf CornerLine Then
-        'if this coord is directly in front of edited one
-        If i = EditCoordNum - 2 Then
-          'if xfirst
-          If XFirst Then
-            EndPT.X = NewX
-          Else
-            EndPT.Y = NewY
-          End If
-        'if this coord is directly after edited one
-        ElseIf i = EditCoordNum + 1 Then
-          'if xfirst
-          If XFirst Then
-            EndPT.X = NewX
-          Else
-            EndPT.Y = NewY
-          End If
-        End If
-      End If
-        
-      'draw the line
-      DrawLine StartPt.X, StartPt.Y, EndPT.X, EndPT.Y
-      'set end point as new start point
-      StartPt = EndPT
-    Next i
-  End If
-Exit Sub
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          'create undo object
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            .UDAction = udpEditCoord
+            .UDText = CStr(CmdType)
+            .UDCoordIndex = CoordNum
+            .UDCmdIndex = SelectedCmd
+            .UDPicPos = lngPos
+            .UDData = bytData()
+          End With
+          AddUndo NextUndo
+        End If
 
-Private Sub EndEditCoord(ByVal CmdType As DrawFunction, ByVal CoordNum As Long, PicPt As PT, ByVal lngPos As Long, strCoord As String, Optional ByVal DontUndo As Boolean = False)
-  
-  Dim lngPosOffset As Long
-  Dim strPattern As String
-  Dim NextUndo As PictureUndo
-  Dim tmpPT As PT, tmpPrevPT As PT, tmpNextPT As PT
-  Dim bytData() As Byte
-  
-  On Error GoTo ErrHandler
-  
-  'save old pt if undoing
-  If Not DontUndo And Settings.PicUndo Then
-    'use data section to hold old coord values
-    ReDim bytData(1)
-    tmpPT = ExtractCoordinates(strCoord)
-    bytData(0) = tmpPT.X
-    bytData(1) = tmpPT.Y
-    'if no change,
-    If tmpPT.X = PicPt.X And tmpPT.Y = PicPt.Y Then
-      'reset drawing mode, but no update is necessary
-      PicDrawMode = doNone
+        'reset edit mode
+        PicDrawMode = doNone
+
+        'begin highlighting selected coord again
+        tmrSelect.Enabled = True
+        If CursorMode = pcmWinAGI Then
+          'save area under cursor
+          BitBlt Me.hDC, 0, 0, 6 * ScaleFactor, 3 * ScaleFactor, picVisual.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, SRCCOPY
+          BitBlt Me.hDC, 0, 12, 6 * ScaleFactor, 3 * ScaleFactor, picPriority.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, SRCCOPY
+        End If
       Exit Sub
-    End If
-  End If
-  
-  'validate for Type of node being edited
-  Select Case CmdType
-  Case dfAbsLine, dfFill, dfPlotPen
-    'if this node includes a pattern command,
-    If InStr(1, strCoord, "-") <> 0 Then
-      'adjust resource pos by 1
-      lngPosOffset = 1
-      strPattern = Left$(strCoord, InStr(1, strCoord, "(") - 1)
-    End If
-    'update resource data
-    PicEdit.Resource.Data(lngPos + lngPosOffset) = PicPt.X
-    PicEdit.Resource.Data(lngPos + lngPosOffset + 1) = PicPt.Y
-    
-  Case dfRelLine
-    'get point being edited
-    tmpPT = RelLineCoord(lngPos)
-    
-    'validate x and Y:
-    
-    'if not first point
-    If CoordNum > 0 Then
-      'validate against previous point
-      tmpPrevPT = RelLineCoord(lngPos - 1)
-      'validate x and Y against previous pt
-      '(note that delta x is limited to -6 to avoid
-      'values above &HF0, which would mistakenly be interpreted
-      'as a new command)
-      If PicPt.X > tmpPrevPT.X + 7 Then
-        PicPt.X = tmpPrevPT.X + 7
-      ElseIf PicPt.X < tmpPrevPT.X - 6 Then
-        PicPt.X = tmpPrevPT.X - 6
-      End If
-      If PicPt.Y > tmpPrevPT.Y + 7 Then
-        PicPt.Y = tmpPrevPT.Y + 7
-      ElseIf PicPt.Y < tmpPrevPT.Y - 7 Then
-        PicPt.Y = tmpPrevPT.Y - 7
-      End If
-    End If
-    
-    'if not last point (next pt is not a new cmd)
-    If PicEdit.Resource.Data(lngPos + IIf(CoordNum = 0, 2, 1)) < &HF0 Then
-      'validate against next point
-      'note that delta x is limited to +6 (swapped because we are
-      'comparing against NEXT vs. PREVIOUS coordinate)
-      'for same reason as given above
-      tmpNextPT = RelLineCoord(lngPos + IIf(CoordNum = 0, 2, 1))
-      If PicPt.X > tmpNextPT.X + 6 Then
-        PicPt.X = tmpNextPT.X + 6
-      ElseIf PicPt.X < tmpNextPT.X - 7 Then
-        PicPt.X = tmpNextPT.X - 7
-      End If
-      If PicPt.Y > tmpNextPT.Y + 7 Then
-        PicPt.Y = tmpNextPT.Y + 7
-      ElseIf PicPt.Y < tmpNextPT.Y - 7 Then
-        PicPt.Y = tmpNextPT.Y - 7
-      End If
-    End If
-    
-    'if first coordinate
-    If CoordNum = 0 Then
-      'recalculate delta to second point
-      If PicEdit.Resource.Data(lngPos + 2) < &HF0 Then
-        PicEdit.Resource.Data(lngPos + 2) = Abs(CLng(tmpNextPT.X) - PicPt.X) * 16 + IIf(Sgn(CLng(tmpNextPT.X) - PicPt.X) = -1, 128, 0) + Abs(CLng(tmpNextPT.Y) - PicPt.Y) + IIf(Sgn(CLng(tmpNextPT.Y) - PicPt.Y) = -1, 8, 0)
-      End If
-      'update data
-      PicEdit.Resource.Data(lngPos) = PicPt.X
-      PicEdit.Resource.Data(lngPos + 1) = PicPt.Y
-    Else
-      'if not last point
-      If PicEdit.Resource.Data(lngPos + 1) < &HF0 Then
-        'calculate new relative change in x and Y between next pt and this point
-        PicEdit.Resource.Data(lngPos + 1) = Abs(CLng(tmpNextPT.X) - PicPt.X) * 16 + IIf(Sgn(CLng(tmpNextPT.X) - PicPt.X) = -1, 128, 0) + Abs(CLng(tmpNextPT.Y) - PicPt.Y) + IIf(Sgn(CLng(tmpNextPT.Y) - PicPt.Y) = -1, 8, 0)
-      End If
-      
-      'calculate new relative change in x and Y between previous pt and this point
-      PicEdit.Resource.Data(lngPos) = Abs(CLng(PicPt.X) - tmpPrevPT.X) * 16 + IIf(Sgn(CLng(PicPt.X) - tmpPrevPT.X) = -1, 128, 0) + Abs(CLng(PicPt.Y) - tmpPrevPT.Y) + IIf(Sgn(CLng(PicPt.Y) - tmpPrevPT.Y) = -1, 8, 0)
-    End If
-    
-  Case dfXCorner
-    'if editing first point,
-    If CoordNum = 0 Then
-      'update resource data
-      PicEdit.Resource.Data(lngPos) = PicPt.X
-      PicEdit.Resource.Data(lngPos + 1) = PicPt.Y
-    Else
-      'if odd
-      If (Int(CoordNum / 2) <> CoordNum / 2) Then
-        'x Value is at lngPos; Y Value is at lngPos-1
-        PicEdit.Resource.Data(lngPos) = PicPt.X
-        PicEdit.Resource.Data(lngPos - 1) = PicPt.Y
-      Else
-        'x Value is at lngPos-1, Y Value is at lngPos
-        PicEdit.Resource.Data(lngPos - 1) = PicPt.X
-        PicEdit.Resource.Data(lngPos) = PicPt.Y
-      End If
-    End If
-    
-  Case dfYCorner
-    'if editing first point,
-    If CoordNum = 0 Then
-      'update resource data
-      PicEdit.Resource.Data(lngPos) = PicPt.X
-      PicEdit.Resource.Data(lngPos + 1) = PicPt.Y
-    Else
-      'if even
-      If ((Int(CoordNum / 2) = CoordNum / 2)) Then
-        'x Value is lngpos, Y Value is at lngpos-1
-        PicEdit.Resource.Data(lngPos) = PicPt.X
-        PicEdit.Resource.Data(lngPos - 1) = PicPt.Y
-      Else
-        'special check for Y lines; for the second coord, the x Value is actaully
-        'two bytes in front of the edited coord (since cmd gives first coord
-        'as two bytes, then shifts to single byte per coord; Y Value is at lngpos
-        If CoordNum = 1 Then
-          'x Value is at lngPos-2
-          PicEdit.Resource.Data(lngPos - 2) = PicPt.X
-        Else
-          'x Value is at lngPos-1
-          PicEdit.Resource.Data(lngPos - 1) = PicPt.X
-        End If
-        PicEdit.Resource.Data(lngPos) = PicPt.Y
-      End If
-    End If
-  End Select
-  
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    'create undo object
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      .UDAction = udpEditCoord
-      .UDText = CStr(CmdType)
-      .UDCoordIndex = CoordNum
-      .UDCmdIndex = SelectedCmd
-      .UDPicPos = lngPos
-      .UDData = bytData()
-    End With
-    AddUndo NextUndo
-  End If
-  
-  'reset edit mode
-  PicDrawMode = doNone
-  
-  'begin highlighting selected coord again
-  tmrSelect.Enabled = True
-  If CursorMode = pcmWinAGI Then
-    'save area under cursor
-    BitBlt Me.hDC, 0, 0, 6 * ScaleFactor, 3 * ScaleFactor, picVisual.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, SRCCOPY
-    BitBlt Me.hDC, 0, 12, 6 * ScaleFactor, 3 * ScaleFactor, picPriority.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, SRCCOPY
-  End If
-Exit Sub
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
 
-Private Sub InsertCoordinate(ByVal BeginMove As Boolean)
-  
-  'inserts a new coord, then begins editing it
-  
-  Dim tmpPT As PT
-  Dim bytData() As Byte, bytPattern As Byte
-  
-  On Error GoTo ErrHandler
-  
-  'get edit cmd
-  EditCmd = PicEdit.Resource.Data(CLng(lstCommands.ItemData(SelectedCmd)))
-  
-  'get current point
-  tmpPT = ExtractCoordinates(lstCoords.Text)
-  
-  'add a new coordinate after this coordinate
-  Select Case EditCmd
-  Case dfAbsLine, dfFill
-    'store new abs coord point
-    ReDim bytData(1)
-    bytData(0) = tmpPT.X
-    bytData(1) = tmpPT.Y
-    
-    'insert coordinate immediately after selected coordinate
-    AddCoordToPic bytData, lstCoords.ListIndex, tmpPT.X, tmpPT.Y
-    'don't need to redraw, since picture doesn't change when coord is added
-  
-  Case dfPlotPen
-    'depends on pen- if splatter, we need an extra data element
-    If CurrentPen.PlotStyle = psSolid Then
-      'store new abs coord point
-      ReDim bytData(1)
-      bytData(0) = tmpPT.X
-      bytData(1) = tmpPT.Y
-      
-      'insert coordinate immediately after selected coordinate
-      AddCoordToPic bytData, lstCoords.ListIndex, tmpPT.X, tmpPT.Y
-      'don't need to redraw, since picture doesn't change when coord is added
-    Else
-      'need three
-      'store new abs coord point
-      ReDim bytData(2)
-      Randomize Now()
-      bytPattern = 1 + CByte(Int(Rnd * 119))
-      bytData(0) = 2 * bytPattern
-      bytData(1) = tmpPT.X
-      bytData(2) = tmpPT.Y
-      'insert coordinate immediately after selected coordinate
-      AddCoordToPic bytData, lstCoords.ListIndex, tmpPT.X, tmpPT.Y, CStr(bytPattern) & " -- "
-      'don't need to redraw, since picture doesn't change when coord is added
-    End If
-    
-  Case dfRelLine
-    'insert single command with Value of zero
-    ReDim bytData(0)
-    bytData(0) = 0
-    'insert coordinate immediately after selected coordinate
-    AddCoordToPic bytData, lstCoords.ListIndex, tmpPT.X, tmpPT.Y
-    'don't need to redraw, since picture doesn't change when coord is added
-   
-  Case dfXCorner
-    'can only add to end
-    If lstCoords.ListIndex = lstCoords.ListCount - 1 Then
-      ReDim bytData(0)
-      'if this current end pt an odd numbered coord
-      If EditCoordNum / 2 <> Int(EditCoordNum / 2) Then
-        'adding a new Y
-        bytData(0) = tmpPT.Y
-      Else
-        'adding a new x
-        bytData(0) = tmpPT.X
-      End If
-      'insert coordinate to end
-      AddCoordToPic bytData, -1, tmpPT.X, tmpPT.Y
-      'don't need to redraw, since picture doesn't change when coord is added
-    End If
-    
-  Case dfYCorner
-    'can only add to end
-    If lstCoords.ListIndex = lstCoords.ListCount - 1 Then
-      ReDim bytData(0)
-      'if current end pt is an even numbered coord
-      If EditCoordNum / 2 = Int(EditCoordNum / 2) Then
-        'adding a new Y
-        bytData(0) = tmpPT.Y
-      Else
-        'adding a new x
-        bytData(0) = tmpPT.X
-      End If
-      'insert coordinate at end
-      AddCoordToPic bytData, -1, tmpPT.X, tmpPT.Y
-      'don't need to redraw, since picture doesn't change when coord is added
-    End If
-  End Select
-  
-  If BeginMove Then
-    'now begin moving
-    PicDrawMode = doMovePt
-    
-    'turn off cursor flasher
-    tmrSelect.Enabled = False
-  End If
-  
-Exit Sub
+      Private Sub InsertCoordinate(ByVal BeginMove As Boolean)
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
+        'inserts a new coord, then begins editing it
 
-End Sub
+        Dim tmpPT As PT
+        Dim bytData() As Byte, bytPattern As Byte
 
-Private Sub EndDraw(PicPt As PT)
-  'finish drawing command
-  'for lines and shapes, add the correct commands to complete the draw;
-  'for other draw commands, add another point
-  
-  Dim bytData() As Byte
-  Dim i As Long, lngInsertPos As Long
-  
-  On Error GoTo ErrHandler
-  
-  '*'Debug.Assert CurrentPen.PlotShape = SelectedPen.PlotShape
-  '*'Debug.Assert CurrentPen.PlotSize = SelectedPen.PlotSize
-  '*'Debug.Assert CurrentPen.PlotStyle = SelectedPen.PlotStyle
-  '*'Debug.Assert CurrentPen.PriColor = SelectedPen.PriColor
-  '*'Debug.Assert CurrentPen.VisColor = SelectedPen.VisColor
-  
-  'if cursor hasn't moved, just exit
-  If Anchor.X = PicPt.X And Anchor.Y = PicPt.Y Then
-    Exit Sub
-  End If
-  
-  Select Case PicDrawMode
-  Case doLine
-    'depending on line Type, need to complete the current line segment
-    '(note that we don't end the draw mode; this let's us continue adding more
-    'line segments to this command)
-    Select Case SelectedTool
-    Case ttLine
-      'set data to add this point
-      ReDim bytData(1)
-      bytData(0) = PicPt.X
-      bytData(1) = PicPt.Y
-      
-    Case ttRelLine
-      'validate x and y
-      '(note that delta x is limited to -6 to avoid
-      'values above &HF0, which would mistakenly be interpreted
-      'as a new command)
-      If PicPt.X < Anchor.X - 6 Then
-        PicPt.X = Anchor.X - 6
-      ElseIf PicPt.X > Anchor.X + 7 Then
-        PicPt.X = Anchor.X + 7
-      End If
-      If PicPt.Y < Anchor.Y - 7 Then
-        PicPt.Y = Anchor.Y - 7
-      ElseIf PicPt.Y > Anchor.Y + 7 Then
-        PicPt.Y = Anchor.Y + 7
-      End If
-      
-      'calculate delta to this point
-      ReDim bytData(0)
-      bytData(0) = Abs(CLng(PicPt.X) - Anchor.X) * 16 + IIf(Sgn(CLng(PicPt.X) - Anchor.X) = -1, 128, 0) + Abs(CLng(PicPt.Y) - Anchor.Y) + IIf(Sgn(CLng(PicPt.Y) - Anchor.Y) = -1, 8, 0)
-      
-      ''*'Debug.Assert EditCoordNum = lstCoords.ListCount - 1
-      
-    Case ttCorner
-      'draw next line coordinate
-      ReDim bytData(0)
-     'get insert pos
-     lngInsertPos = lstCommands.ItemData(SelectedCmd)
-     
-      'if drawing second point
-      If lstCoords.ListCount = 1 Then
-        'if mostly vertical
-        If Abs(CLng(PicPt.X) - Anchor.X) < Abs(CLng(PicPt.Y) - Anchor.Y) Then
-          'command should be Y corner
-          If Asc(lstCommands.Text) <> 89 Then
-            lstCommands.List(SelectedCmd) = "Y Corner"
-            PicEdit.Resource.Data(lngInsertPos) = dfYCorner
+        On Error GoTo ErrHandler
+
+        'get edit cmd
+        EditCmd = PicEdit.Resource.Data(CLng(lstCommands.ItemData(SelectedCmd)))
+
+        'get current point
+        tmpPT = ExtractCoordinates(lstCoords.Text)
+
+        'add a new coordinate after this coordinate
+        Select Case EditCmd
+        Case dfAbsLine, dfFill
+          'store new abs coord point
+          ReDim bytData(1)
+          bytData(0) = tmpPT.X
+          bytData(1) = tmpPT.Y
+
+          'insert coordinate immediately after selected coordinate
+          AddCoordToPic bytData, lstCoords.ListIndex, tmpPT.X, tmpPT.Y
+          'don't need to redraw, since picture doesn't change when coord is added
+
+        Case dfPlotPen
+          'depends on pen- if splatter, we need an extra data element
+          If CurrentPen.PlotStyle = psSolid Then
+            'store new abs coord point
+            ReDim bytData(1)
+            bytData(0) = tmpPT.X
+            bytData(1) = tmpPT.Y
+
+            'insert coordinate immediately after selected coordinate
+            AddCoordToPic bytData, lstCoords.ListIndex, tmpPT.X, tmpPT.Y
+            'don't need to redraw, since picture doesn't change when coord is added
+          Else
+            'need three
+            'store new abs coord point
+            ReDim bytData(2)
+            Randomize Now()
+            bytPattern = 1 + CByte(Int(Rnd * 119))
+            bytData(0) = 2 * bytPattern
+            bytData(1) = tmpPT.X
+            bytData(2) = tmpPT.Y
+            'insert coordinate immediately after selected coordinate
+            AddCoordToPic bytData, lstCoords.ListIndex, tmpPT.X, tmpPT.Y, CStr(bytPattern) & " -- "
+            'don't need to redraw, since picture doesn't change when coord is added
           End If
-          'limit change to vertical direction only
-          PicPt.X = Anchor.X
-          bytData(0) = PicPt.Y
-        Else
-          'command should be X corner
-          If Asc(lstCommands.Text) = 89 Then
-            lstCommands.List(SelectedCmd) = "X Corner"
-            PicEdit.Resource.Data(lngInsertPos) = dfXCorner
+
+        Case dfRelLine
+          'insert single command with Value of zero
+          ReDim bytData(0)
+          bytData(0) = 0
+          'insert coordinate immediately after selected coordinate
+          AddCoordToPic bytData, lstCoords.ListIndex, tmpPT.X, tmpPT.Y
+          'don't need to redraw, since picture doesn't change when coord is added
+
+        Case dfXCorner
+          'can only add to end
+          If lstCoords.ListIndex = lstCoords.ListCount - 1 Then
+            ReDim bytData(0)
+            'if this current end pt an odd numbered coord
+            If EditCoordNum / 2 <> Int(EditCoordNum / 2) Then
+              'adding a new Y
+              bytData(0) = tmpPT.Y
+            Else
+              'adding a new x
+              bytData(0) = tmpPT.X
+            End If
+            'insert coordinate to end
+            AddCoordToPic bytData, -1, tmpPT.X, tmpPT.Y
+            'don't need to redraw, since picture doesn't change when coord is added
           End If
-          'limit change to horizontal direction only
-          PicPt.Y = Anchor.Y
-          bytData(0) = PicPt.X
+
+        Case dfYCorner
+          'can only add to end
+          If lstCoords.ListIndex = lstCoords.ListCount - 1 Then
+            ReDim bytData(0)
+            'if current end pt is an even numbered coord
+            If EditCoordNum / 2 = Int(EditCoordNum / 2) Then
+              'adding a new Y
+              bytData(0) = tmpPT.Y
+            Else
+              'adding a new x
+              bytData(0) = tmpPT.X
+            End If
+            'insert coordinate at end
+            AddCoordToPic bytData, -1, tmpPT.X, tmpPT.Y
+            'don't need to redraw, since picture doesn't change when coord is added
+          End If
+        End Select
+
+        If BeginMove Then
+          'now begin moving
+          PicDrawMode = doMovePt
+
+          'turn off cursor flasher
+          tmrSelect.Enabled = False
         End If
-      Else
-        'determine which direction to allow movement
-        If (Asc(lstCommands.Text) = 88 And (Int(lstCoords.ListCount / 2) = lstCoords.ListCount / 2)) Or _
-           (Asc(lstCommands.Text) = 89 And (Int(lstCoords.ListCount / 2) <> lstCoords.ListCount / 2)) Then
-          'limit change to vertical direction
-          PicPt.X = Anchor.X
-          bytData(0) = PicPt.Y
-        Else
-          'limit change to horizontal direction
-          PicPt.Y = Anchor.Y
-          bytData(0) = PicPt.X
-        End If
-      End If
-     
-    End Select
-    'if cursor hasn't moved, just exit
-    If Anchor.X = PicPt.X And Anchor.Y = PicPt.Y Then
+
       Exit Sub
-    End If
-    
-    'set anchor to new point
-    Anchor = PicPt
-    'insert coordinate
-    AddCoordToPic bytData(), -1, PicPt.X, PicPt.Y
-  
-  Case doShape
-    'depending on shape Type, add appropriate commands to add the
-    'selected element
-    '(note that when shapes are completed, we go back to 'none' as the draw mode
-    'each shape is drawn as a separate action)
-    
-    Select Case SelectedTool
-    Case ttRectangle
-      'finish drawing box
-      ReDim bytData(6)
-      bytData(0) = dfXCorner
-      bytData(1) = Anchor.X
-      bytData(2) = Anchor.Y
-      bytData(3) = PicPt.X
-      bytData(4) = PicPt.Y
-      bytData(5) = Anchor.X
-      bytData(6) = Anchor.Y
-      
-      'add command
-      InsertCommand bytData, SelectedCmd, "X Corner", gInsertBefore
-      
-      'select this command
-      SelectCmd lstCommands.NewIndex
-      
-      'adjust last undo text
-      UndoCol(UndoCol.Count).UDAction = udpRectangle
-      UndoCol(UndoCol.Count).UDCmd = vbNullString
-      
-    Case ttTrapezoid
-      'finish drawing trapezoid
-      ReDim bytData(10)
-      bytData(0) = dfAbsLine
-      bytData(1) = Anchor.X
-      bytData(2) = Anchor.Y
-      bytData(3) = 159 - Anchor.X
-      bytData(4) = Anchor.Y
-      'ensure sloping side is on same side of picture
-      If (Anchor.X < 80 And PicPt.X < 80) Or (Anchor.X >= 80 And PicPt.X >= 80) Then
-        bytData(5) = 159 - PicPt.X
-        bytData(6) = PicPt.Y
-        bytData(7) = PicPt.X
-        bytData(8) = PicPt.Y
-      Else
-        bytData(5) = PicPt.X
-        bytData(6) = PicPt.Y
-        bytData(7) = 159 - PicPt.X
-        bytData(8) = PicPt.Y
-      End If
-      bytData(9) = Anchor.X
-      bytData(10) = Anchor.Y
-      
-      'add command
-      InsertCommand bytData, SelectedCmd, "Abs Line", gInsertBefore
-      'ensure it is selected
-      SelectCmd lstCommands.NewIndex
-      
-      'adjust last undo text
-      UndoCol(UndoCol.Count).UDAction = udpTrapezoid
-      UndoCol(UndoCol.Count).UDCmd = vbNullString
-      
-    Case ttEllipse
-      'finish drawing ellipse
-      
-      'if both height and width are one pixel
-      If ((CLng(Anchor.X) - PicPt.X) = 0) And ((CLng(Anchor.Y) - PicPt.Y) = 0) Then
-        'draw just a single pixel
-        ReDim bytData(2)
-        bytData(0) = dfXCorner
-        bytData(1) = Anchor.X
-        bytData(2) = Anchor.Y
-        'insert the command
-        InsertCommand bytData, SelectedCmd, "X Corner", gInsertBefore
-        'then select it
-        SelectCmd lstCommands.NewIndex
-        
-      'if height is one pixel,
-      ElseIf (CLng(Anchor.Y) - PicPt.Y = 0) Then
-        'just draw a horizontal line
-        ReDim bytData(3)
-        bytData(0) = dfXCorner
-        bytData(1) = Anchor.X
-        bytData(2) = Anchor.Y
-        bytData(3) = PicPt.X
-        'add command
-        InsertCommand bytData, SelectedCmd, "X Corner", gInsertBefore
-        SelectCmd lstCommands.NewIndex
-        
-      'if width is one pixel,
-      ElseIf (CLng(Anchor.X) - PicPt.X = 0) Then
-        'just draw a vertical line
-        ReDim bytData(3)
-        bytData(0) = dfYCorner
-        bytData(1) = Anchor.X
-        bytData(2) = Anchor.Y
-        bytData(3) = PicPt.Y
-        'add command
-        InsertCommand bytData, SelectedCmd, "Y Corner", gInsertBefore
-        'and select it
-        SelectCmd lstCommands.NewIndex
-        
-      Else
-        'ensure we are in a upperleft-lower right configuration
-        If Anchor.X > PicPt.X Then
-          i = Anchor.X
-          Anchor.X = PicPt.X
-          PicPt.X = i
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+
+      End Sub
+
+      Private Sub EndDraw(PicPt As PT)
+        'finish drawing command
+        'for lines and shapes, add the correct commands to complete the draw;
+        'for other draw commands, add another point
+
+        Dim bytData() As Byte
+        Dim i As Long, lngInsertPos As Long
+
+        On Error GoTo ErrHandler
+
+        '*'Debug.Assert CurrentPen.PlotShape = SelectedPen.PlotShape
+        '*'Debug.Assert CurrentPen.PlotSize = SelectedPen.PlotSize
+        '*'Debug.Assert CurrentPen.PlotStyle = SelectedPen.PlotStyle
+        '*'Debug.Assert CurrentPen.PriColor = SelectedPen.PriColor
+        '*'Debug.Assert CurrentPen.VisColor = SelectedPen.VisColor
+
+        'if cursor hasn't moved, just exit
+        If Anchor.X = PicPt.X And Anchor.Y = PicPt.Y Then
+          Exit Sub
         End If
-        If Anchor.Y > PicPt.Y Then
-          i = Anchor.Y
-          Anchor.Y = PicPt.Y
-          PicPt.Y = i
-        End If
-          
-        'call drawellipse to update arc segment data
-        DrawCircle Anchor.X, Anchor.Y, PicPt.X, PicPt.Y
-        ReDim bytData((Segments + 1) * 2)
-        bytData(0) = dfAbsLine
-        
-        'now draw the arc segments:
-        
-        'add first arc
-        For i = 0 To Segments
-          bytData(i * 2 + 1) = Anchor.X + ArcPt(0).X - ArcPt(i).X
-          bytData(i * 2 + 2) = Anchor.Y + ArcPt(Segments).Y - ArcPt(i).Y
-        Next i
-        InsertCommand bytData, SelectedCmd, "Abs Line", gInsertBefore
-        
-        'add second arc (skip undo)
-        For i = 0 To Segments
-          bytData(2 * i + 1) = PicPt.X - ArcPt(0).X + ArcPt(i).X
-          bytData(2 * i + 2) = Anchor.Y + ArcPt(Segments).Y - ArcPt(i).Y
-        Next i
-        InsertCommand bytData, SelectedCmd, "Abs Line", False, True
-        
-        'add third arc (skip undo)
-        For i = 0 To Segments
-          bytData(2 * i + 1) = PicPt.X - ArcPt(0).X + ArcPt(i).X
-          bytData(2 * i + 2) = PicPt.Y - ArcPt(Segments).Y + ArcPt(i).Y
-        Next i
-        InsertCommand bytData, SelectedCmd + 1, "Abs Line", False, True
-        
-        'add fourth arc (skip undo)
-        For i = 0 To Segments
-          bytData(2 * i + 1) = Anchor.X + ArcPt(0).X - ArcPt(i).X
-          bytData(2 * i + 2) = PicPt.Y - ArcPt(Segments).Y + ArcPt(i).Y
-        Next i
-        InsertCommand bytData, SelectedCmd + 2, "Abs Line", False, True
-        
-        'select the last command added
-        SelectCmd SelectedCmd + 4
-        
-        'adjust last undo text
-        UndoCol(UndoCol.Count).UDAction = udpEllipse
-        UndoCol(UndoCol.Count).UDCmd = vbNullString
-      End If
-    End Select
-    
-    'end draw mode
-    StopDrawing
-  End Select
-Exit Sub
 
-ErrHandler:
-  Resume Next
-End Sub
+        Select Case PicDrawMode
+        Case doLine
+          'depending on line Type, need to complete the current line segment
+          '(note that we don't end the draw mode; this let's us continue adding more
+          'line segments to this command)
+          Select Case SelectedTool
+          Case ttLine
+            'set data to add this point
+            ReDim bytData(1)
+            bytData(0) = PicPt.X
+            bytData(1) = PicPt.Y
 
+          Case ttRelLine
+            'validate x and y
+            '(note that delta x is limited to -6 to avoid
+            'values above &HF0, which would mistakenly be interpreted
+            'as a new command)
+            If PicPt.X < Anchor.X - 6 Then
+              PicPt.X = Anchor.X - 6
+            ElseIf PicPt.X > Anchor.X + 7 Then
+              PicPt.X = Anchor.X + 7
+            End If
+            If PicPt.Y < Anchor.Y - 7 Then
+              PicPt.Y = Anchor.Y - 7
+            ElseIf PicPt.Y > Anchor.Y + 7 Then
+              PicPt.Y = Anchor.Y + 7
+            End If
 
-Public Sub AddCoordToPic(NewData() As Byte, ByVal CoordPos As Long, ByVal bytX As Byte, ByVal bytY As Byte, Optional ByVal Prefix As String = "", Optional ByVal DontUndo As Boolean = False)
+            'calculate delta to this point
+            ReDim bytData(0)
+            bytData(0) = Abs(CLng(PicPt.X) - Anchor.X) * 16 + IIf(Sgn(CLng(PicPt.X) - Anchor.X) = -1, 128, 0) + Abs(CLng(PicPt.Y) - Anchor.Y) + IIf(Sgn(CLng(PicPt.Y) - Anchor.Y) = -1, 8, 0)
 
-  'inserts coordinate data into PicEdit
-  
-  Dim NextUndo As PictureUndo
-  Dim lngInsertPos As Long, lngSize As Long
-  Dim bytData() As Byte, lngCount As Long
-  Dim i As Long
-  
-  On Error GoTo ErrHandler
-  
-  'copy data to local array
-  bytData = NewData
-  lngCount = UBound(bytData) + 1
-  
-  'if no coord yet
-  If lstCoords.ListCount = 0 Then
-    'get insert pos from the cmd
-    lngInsertPos = lstCommands.ItemData(SelectedCmd)
-    '*'Debug.Assert CoordPos = -1
-  Else
-    If CoordPos = -1 Then
-      lngInsertPos = lstCommands.ItemData(SelectedCmd + 1)
-      CoordPos = lstCoords.ListCount
-    Else
-      '*'Debug.Assert CoordPos <= lstCoords.ListCount - 1
-      'get insert pos from coord list
-      lngInsertPos = lstCoords.ItemData(CoordPos)
-    End If
-  End If
-  
-  'if not skipping undo
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    'create new undo object
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      .UDAction = udpAddCoord
-      .UDPicPos = lngInsertPos
-      .UDCmdIndex = SelectedCmd
-      .UDCoordIndex = CoordPos
-      .UDText = Prefix & CoordText(bytX, bytY)
-    End With
-    'add to undo
-    AddUndo NextUndo
-  End If
-  
-  'insert data
-  PicEdit.Resource.InsertData bytData, lngInsertPos
-  
-  'insert coord text
-  AddCoordToList bytX, bytY, lngInsertPos, Prefix, CoordPos
-  lstCoords.Refresh
+            ''*'Debug.Assert EditCoordNum = lstCoords.ListCount - 1
 
-  EditCoordNum = lstCoords.ListIndex
-  
-  'update position values for rest of coord list
-  For i = CoordPos + 1 To lstCoords.ListCount - 1
-    lstCoords.ItemData(i) = lstCoords.ItemData(i) + UBound(bytData()) + 1
-  Next i
-  
-  'update position values in rest of cmd list
-  UpdatePosValues SelectedCmd + 1, UBound(bytData()) + 1
-Exit Sub
+          Case ttCorner
+            'draw next line coordinate
+            ReDim bytData(0)
+           'get insert pos
+           lngInsertPos = lstCommands.ItemData(SelectedCmd)
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+            'if drawing second point
+            If lstCoords.ListCount = 1 Then
+              'if mostly vertical
+              If Abs(CLng(PicPt.X) - Anchor.X) < Abs(CLng(PicPt.Y) - Anchor.Y) Then
+                'command should be Y corner
+                If Asc(lstCommands.Text) <> 89 Then
+                  lstCommands.List(SelectedCmd) = "Y Corner"
+                  PicEdit.Resource.Data(lngInsertPos) = dfYCorner
+                End If
+                'limit change to vertical direction only
+                PicPt.X = Anchor.X
+                bytData(0) = PicPt.Y
+              Else
+                'command should be X corner
+                If Asc(lstCommands.Text) = 89 Then
+                  lstCommands.List(SelectedCmd) = "X Corner"
+                  PicEdit.Resource.Data(lngInsertPos) = dfXCorner
+                End If
+                'limit change to horizontal direction only
+                PicPt.Y = Anchor.Y
+                bytData(0) = PicPt.X
+              End If
+            Else
+              'determine which direction to allow movement
+              If (Asc(lstCommands.Text) = 88 And (Int(lstCoords.ListCount / 2) = lstCoords.ListCount / 2)) Or _
+                 (Asc(lstCommands.Text) = 89 And (Int(lstCoords.ListCount / 2) <> lstCoords.ListCount / 2)) Then
+                'limit change to vertical direction
+                PicPt.X = Anchor.X
+                bytData(0) = PicPt.Y
+              Else
+                'limit change to horizontal direction
+                PicPt.Y = Anchor.Y
+                bytData(0) = PicPt.X
+              End If
+            End If
 
-Private Sub JoinCommands(SecondCmdIndex As Long, Optional ByVal DontUndo As Boolean = False)
-  'joins two commands that are adjacent, where
-  'first coord of SecondCmdIndex is same point as end of previous command
-  'or if both cmds are plots or fills
-  
-  Dim NextUndo As PictureUndo
-  Dim CmdType As DrawFunction, FirstCmdIndex As Long
-  Dim lngPos As Long, lngIndex As Long
-  Dim lngCount As Long
-  Dim IsVertical As Boolean  'false = horizontal, true = vertical
-  
-  'get position of command
-  lngPos = lstCommands.ItemData(SecondCmdIndex)
-  'get first cmd index
-  FirstCmdIndex = SecondCmdIndex - 1
-  
-  'get command Type
-  CmdType = PicEdit.Resource.Data(lngPos)
-  
-  'if not skipping undo
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      .UDAction = udpJoinCmds
-      'if cmd requires one byte per coord pair
-      'need to move picpos marker back one
-      Select Case CmdType
-      Case dfXCorner, dfYCorner, dfRelLine
-        'position of the split coord is back one
-        .UDPicPos = lstCommands.ItemData(SecondCmdIndex) - 1
-      Case Else
-        .UDPicPos = lstCommands.ItemData(SecondCmdIndex)
-      End Select
-      
-      'set cmdindex to first cmd
-      .UDCmdIndex = FirstCmdIndex
-      'set coord index to Count of firstcmd
-    End With
-    AddUndo NextUndo
-  End If
-  
-  Select Case CmdType
-  Case dfFill, dfPlotPen
-    'just delete the command
-    lngCount = 1
-  Case dfXCorner, dfYCorner
-    'get orientation of last line of first cmd
-    IsVertical = GetVerticalStatus(lstCommands.ItemData(FirstCmdIndex))
-    
-    'if orientation of last line of first cmd
-    'is same as first line of this cmd
-    If ((CmdType = dfXCorner) And Not IsVertical) Or _
-       ((CmdType = dfYCorner) And IsVertical) Then
-      'delete last coordinate from previous cmd AND command and first coordinate
-      lngPos = lngPos - 1
-      lngCount = 4
-      
-    Else
-      'delete command and first coordinate
-      lngCount = 3
-    End If
-    
-  Case Else
-    'delete command and first coordinate
-    lngCount = 3
-  End Select
-  
-  'delete the data
-  PicEdit.Resource.RemoveData lngPos, lngCount
-  'remove the second cmd
-  lstCommands.RemoveItem SecondCmdIndex
-  
-  'update follow on cmds
-  UpdatePosValues SecondCmdIndex, -lngCount
-  
-  'update
-  SelectCmd FirstCmdIndex, False
-End Sub
+          End Select
+          'if cursor hasn't moved, just exit
+          If Anchor.X = PicPt.X And Anchor.Y = PicPt.Y Then
+            Exit Sub
+          End If
 
-Public Sub MenuClickClear()
-  'clears the picture
-  
-  Dim i As Long
-  
-  'verify
-  If MsgBox("This will reset the picture, deleting all commands. This action cannot be undone. Do you want to continue?", vbQuestion + vbYesNo, "Clear Picture") = vbNo Then
-    Exit Sub
-  End If
-  
-  'clear drawing surfaces
-  picVisual.Cls
-  picPriority.Cls
-  
-  'clear picture
-  PicEdit.Clear
-  
-  'redraw tree
-  LoadCmdList
-  
-  'select the end
-  SelectCmd 0, False
-  
-  'reset pen
-  SelectedPen.PriColor = agNone
-  SelectedPen.VisColor = agNone
-  SelectedPen.PlotShape = psCircle
-  SelectedPen.PlotSize = 0
-  SelectedPen.PlotStyle = psSolid
-  CurrentPen = SelectedPen
-  
-  'refresh palette
-  picPalette.Refresh
-  
-  'clear the undo buffer
-  If UndoCol.Count > 0 Then
-    For i = UndoCol.Count To 1 Step -1
-      UndoCol.Remove i
-    Next i
-    SetEditMenu
-  End If
-End Sub
+          'set anchor to new point
+          Anchor = PicPt
+          'insert coordinate
+          AddCoordToPic bytData(), -1, PicPt.X, PicPt.Y
 
-Private Sub ReadjustPlotCoordinates(StartIndex As Long, NewPlotStyle As EPlotStyle, Optional ByVal DontUndo As Boolean = False, Optional ByVal StopIndex As Long = -1)
-  'starting at command in list at StartIndex, step through all
-  'commands until another setplotpen command or end is reached;
-  'any plot commands identified during search are checked to
-  'see if they match format of desired plot pen style (solid or
-  'splatter); if they don't match, they are adjusted (by adding
-  'or removing the pattern byte)
-  
-  'if stopindex is passed, only cmds from StartIndex to StopIndex
-  'are checked; if stopindex is not passed, all cmds to end of
-  'cmd list are checked
-   
-  Dim i As Long
-  Dim bytTemp() As Byte
-  Dim j As Long
-  
-  On Error GoTo ErrHandler
-  
-  If StopIndex = -1 Then
-    StopIndex = lstCommands.ListCount - 1
-  End If
-  
-  i = StartIndex
-  Do
-    'check for plot command or change plot pen command
-    Select Case Left$(lstCommands.List(i), 4)
-    Case "Plot"
-      'if style is splatter
-      If NewPlotStyle = psSplatter Then
-        'if skipping the undo feature
-        If DontUndo Then
-          'need to set tmp byte array so addpatterndata method
-          'will know to create the random bytes for this set of coordinates
-          ReDim bytTemp(0)
-          bytTemp(0) = &HFF
-        End If
-        
-        'add pattern bytes (use a temp array as place holder for byte array argument)
-        AddPatternData i, bytTemp, DontUndo
-        
-      'if style is solid,
-      Else
-        'delete pattern bytes
-        DelPatternData i, DontUndo
-      End If
-      
-    Case "Set " 'set pen'
-      'can exit here because this pen command
-      'ensures future plot commands are correct
-      Exit Do
-    End Select
-    'get next cmd
-    i = i + 1
-  Loop Until i > StopIndex
-Exit Sub
+        Case doShape
+          'depending on shape Type, add appropriate commands to add the
+          'selected element
+          '(note that when shapes are completed, we go back to 'none' as the draw mode
+          'each shape is drawn as a separate action)
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+          Select Case SelectedTool
+          Case ttRectangle
+            'finish drawing box
+            ReDim bytData(6)
+            bytData(0) = dfXCorner
+            bytData(1) = Anchor.X
+            bytData(2) = Anchor.Y
+            bytData(3) = PicPt.X
+            bytData(4) = PicPt.Y
+            bytData(5) = Anchor.X
+            bytData(6) = Anchor.Y
 
-Private Sub SelectCmd(ByVal CmdPos As Long, Optional ByVal DontSelect As Boolean = True)
-  
-  'ensures cmd list is cleared, and selects the desired cmd
-  
-  Dim i As Long
-  
-  On Error GoTo ErrHandler
-  
-  'disable painting of listbox until all done
-  SendMessage lstCommands.hWnd, WM_SETREDRAW, 0, 0
-  
-  'disable updating in listbox while de-selecting
-  NoSelect = True
-  If lstCommands.SelCount > 0 Then
-    For i = 0 To lstCommands.ListCount - 1
-      If lstCommands.Selected(i) Then
-        lstCommands.Selected(i) = False
-        If lstCommands.SelCount = 0 Then
-          Exit For
-        End If
-      End If
-    Next i
-  End If
-  'also set lstCommands.ListIndex to -1;
-  'we need to do this to make sure that when
-  'we select the CmdPos entry in the command list
-  'that it forces an update of the coord list
-  i = lstCommands.TopIndex
-  lstCommands.ListIndex = -1
-  lstCommands.TopIndex = i
-  'allow/disallow updating in listbox click event
-  NoSelect = DontSelect
-  
-  'select desired cmd
-  CodeClick = True
-  lstCommands.ListIndex = CmdPos
-  SelectedCmd = CmdPos
-  CodeClick = True
-  'we need to also set noselect to true here;
-  'otherwise, if the .Selected(CmdPos) value is false
-  'we will get a second trip through lstCommands_Click
-  NoSelect = True
-  lstCommands.Selected(CmdPos) = True
-  
-  'restore updating
-  NoSelect = False
-  
-  'restore painting of listbox
-  SendMessage lstCommands.hWnd, WM_SETREDRAW, 1, 0
-  
-  If ActiveControl Is lstCoords Then
-    lstCommands.SetFocus
-  End If
-Exit Sub
+            'add command
+            InsertCommand bytData, SelectedCmd, "X Corner", gInsertBefore
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+            'select this command
+            SelectCmd lstCommands.NewIndex
 
-Private Sub SetCursors(ByVal NewCursor As EPicCur)
+            'adjust last undo text
+            UndoCol(UndoCol.Count).UDAction = udpRectangle
+            UndoCol(UndoCol.Count).UDCmd = vbNullString
 
-  'sets picVis and picPri cursors
-  
-  'if already correct cursor, just exit (avoids flickering)
-  If CurCursor = NewCursor Then
-    Exit Sub
-  End If
-  
-  'save cursor Value
-  CurCursor = NewCursor
-  
-  'now change cursor to correct Value
-  Select Case NewCursor
-  Case pcEdit
-    picVisual.MousePointer = vbCustom
-    picPriority.MousePointer = vbCustom
-    picVisual.MouseIcon = LoadResPicture("EPC_EDIT", vbResCursor)
-    picPriority.MouseIcon = LoadResPicture("EPC_EDIT", vbResCursor)
-    
-  Case pcCross
-    picVisual.MousePointer = vbCrosshair
-    picPriority.MousePointer = vbCrosshair
-    
-  Case pcMove
-    picVisual.MousePointer = vbCustom
-    picPriority.MousePointer = vbCustom
-    picVisual.MouseIcon = LoadResPicture("EPC_MOVECMD", vbResCursor)
-    picPriority.MouseIcon = LoadResPicture("EPC_MOVECMD", vbResCursor)
-    
-  Case pcDefault
-    picVisual.MousePointer = vbDefault
-    picPriority.MousePointer = vbDefault
-  
-  Case pcNO
-    picVisual.MousePointer = vbCustom
-    picPriority.MousePointer = vbCustom
-    picVisual.MouseIcon = LoadResPicture("EPC_NA", vbResCursor)
-    picPriority.MouseIcon = LoadResPicture("EPC_NA", vbResCursor)
-  
-  Case pcPaint
-    picVisual.MousePointer = vbCustom
-    picPriority.MousePointer = vbCustom
-    picVisual.MouseIcon = LoadResPicture("EPC_PAINT", vbResCursor)
-    picPriority.MouseIcon = LoadResPicture("EPC_PAINT", vbResCursor)
+          Case ttTrapezoid
+            'finish drawing trapezoid
+            ReDim bytData(10)
+            bytData(0) = dfAbsLine
+            bytData(1) = Anchor.X
+            bytData(2) = Anchor.Y
+            bytData(3) = 159 - Anchor.X
+            bytData(4) = Anchor.Y
+            'ensure sloping side is on same side of picture
+            If (Anchor.X < 80 And PicPt.X < 80) Or (Anchor.X >= 80 And PicPt.X >= 80) Then
+              bytData(5) = 159 - PicPt.X
+              bytData(6) = PicPt.Y
+              bytData(7) = PicPt.X
+              bytData(8) = PicPt.Y
+            Else
+              bytData(5) = PicPt.X
+              bytData(6) = PicPt.Y
+              bytData(7) = 159 - PicPt.X
+              bytData(8) = PicPt.Y
+            End If
+            bytData(9) = Anchor.X
+            bytData(10) = Anchor.Y
 
-  Case pcBrush
-    picVisual.MousePointer = vbCustom
-    picPriority.MousePointer = vbCustom
-    picVisual.MouseIcon = LoadResPicture("EPC_BRUSH", vbResCursor)
-    picPriority.MouseIcon = LoadResPicture("EPC_BRUSH", vbResCursor)
-  
-  Case pcSelect
-    picVisual.MousePointer = vbCustom
-    picPriority.MousePointer = vbCustom
-    picVisual.MouseIcon = LoadResPicture("EPC_SELECT", vbResCursor)
-    picPriority.MouseIcon = LoadResPicture("EPC_SELECT", vbResCursor)
+            'add command
+            InsertCommand bytData, SelectedCmd, "Abs Line", gInsertBefore
+            'ensure it is selected
+            SelectCmd lstCommands.NewIndex
 
-  Case pcEditSel
-    picVisual.MousePointer = vbCustom
-    picPriority.MousePointer = vbCustom
-    picVisual.MouseIcon = LoadResPicture("EPC_EDITSEL", vbResCursor)
-    picPriority.MouseIcon = LoadResPicture("EPC_EDITSEL", vbResCursor)
-    
-  End Select
-  
-End Sub
+            'adjust last undo text
+            UndoCol(UndoCol.Count).UDAction = udpTrapezoid
+            UndoCol(UndoCol.Count).UDCmd = vbNullString
 
-Private Sub ShowCmdSelection()
-  
-  'positions and displays a flashing selection outline around the current selection box
-  
-  On Error GoTo ErrHandler
-  
-  'if selection is more than a single pixel
-  If SelSize.X > 0 And SelSize.Y > 0 Then
-    'position the shapes around the selection area
-    shpVis.Move SelStart.X * ScaleFactor * 2 - 1, SelStart.Y * ScaleFactor - 1, SelSize.X * ScaleFactor * 2 + 2, SelSize.Y * ScaleFactor + 2
-    'check if off edge
-    If shpVis.Left = -1 Then
-      shpVis.Left = 0
-      shpVis.Width = shpVis.Width - 1
-    End If
-    If shpVis.Top = -1 Then
-      shpVis.Top = 0
-      shpVis.Height = shpVis.Height - 1
-    End If
-    If SelStart.X + SelSize.X = 160 Then
-      shpVis.Width = shpVis.Width - 1
-    End If
-    If SelStart.Y + SelSize.Y = 168 Then
-      shpVis.Height = shpVis.Height - 1
-    End If
-        
-    'move priority screen shape to match visual screen
-    shpPri.Move shpVis.Left, shpVis.Top, shpVis.Width, shpVis.Height
-    'timer is used to create 'flashing' of line types
-    tmrSelect.Enabled = True
-    shpVis.Visible = True
-    shpPri.Visible = True
-    
-    'force tool to select if drawing something
-    '(if  tool is selectArea, let it be)
-    If SelectedTool <> ttEdit And SelectedTool <> ttSelectArea Then
-      'select it
-      SelectedTool = ttEdit
-      Toolbar1.Buttons("select").Value = tbrPressed
-    End If
-    
-  Else
-    'hide the shapes; the selected cmds dont include cooordinates
-    tmrSelect.Enabled = False
-    shpVis.Visible = False
-    shpPri.Visible = False
-  End If
-  
-  'if tool is select edit, update menu if necessary
-  If SelectedTool = ttSelectArea Then
-    'enable copy command if selection is >0
-    frmMDIMain.mnuECopy.Enabled = (SelSize.X > 0 And SelSize.Y > 0)
-  End If
-Exit Sub
+          Case ttEllipse
+            'finish drawing ellipse
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+            'if both height and width are one pixel
+            If ((CLng(Anchor.X) - PicPt.X) = 0) And ((CLng(Anchor.Y) - PicPt.Y) = 0) Then
+              'draw just a single pixel
+              ReDim bytData(2)
+              bytData(0) = dfXCorner
+              bytData(1) = Anchor.X
+              bytData(2) = Anchor.Y
+              'insert the command
+              InsertCommand bytData, SelectedCmd, "X Corner", gInsertBefore
+              'then select it
+              SelectCmd lstCommands.NewIndex
 
-Private Sub SplitCommand(CoordIndex As Long, Optional ByVal DontUndo As Boolean = False)
-  'splits a command into two separate commands of the same Type
-  
-  Dim NextUndo As PictureUndo
-  Dim CmdType As DrawFunction
-  Dim lngPos As Long, lngCmdIndex As Long
-  Dim lngCount As Long
-  Dim IsVertical As Boolean  'false = horizontal, true = vertical
-  Dim tmpPT As PT
-  Dim bytData(1) As Byte
-  Dim i As Long
-  
-  On Error GoTo ErrHandler
-  
-  'get cmd index
-  lngCmdIndex = SelectedCmd
-  
-  'get coordinate values
-  tmpPT = ExtractCoordinates(lstCoords.List(CoordIndex))
-  
-  'get command Type
-  CmdType = PicEdit.Resource.Data(lstCommands.ItemData(lngCmdIndex))
-  
-  'get insert pos
-  
-  'if a fill or plot,
-  If CmdType = dfFill Or CmdType = dfPlotPen Then
-    lngPos = lstCoords.ItemData(CoordIndex)
-  Else
-    'insertion point is NEXT coord
-    lngPos = lstCoords.ItemData(CoordIndex + 1)
-  End If
-  
-  'insert a new command in resource and listbox
-  PicEdit.Resource.InsertData CByte(CmdType), lngPos
-  lstCommands.AddItem LoadResString(DRAWFUNCTIONTEXT + CmdType - &HF0), lngCmdIndex + 1
-  lstCommands.ItemData(lngCmdIndex + 1) = lngPos
-  
-  'take command specific actions
-  Select Case CmdType
-  Case dfXCorner, dfYCorner
-    'get orientation of line being split
-    IsVertical = (Int(CoordIndex / 2) <> (CoordIndex / 2))
-    'if cmd is a yCorner
-    If CmdType = dfYCorner Then
-      'flip it
-      IsVertical = Not IsVertical
-    End If
-    
-    'if splitting a vertical line,
-    If IsVertical Then
-      'if inserted byte is not a Ycorner
-      If CmdType <> dfYCorner Then
-        'change inserted cmd to YCorner
-        PicEdit.Resource.Data(lngPos) = dfYCorner
-        lstCommands.List(lngCmdIndex + 1) = LoadResString(DRAWFUNCTIONTEXT + dfYCorner - &HF0)
-      End If
-    Else
-      'if inserted byte is not a Xcorner
-      If CmdType <> dfXCorner Then
-        'change inserted cmd to XCorner
-        PicEdit.Resource.Data(lngPos) = dfXCorner
-        lstCommands.List(lngCmdIndex + 1) = LoadResString(DRAWFUNCTIONTEXT + dfXCorner - &HF0)
-      End If
-    End If
-    
-    'insert starting point in resource
-    bytData(0) = tmpPT.X
-    bytData(1) = tmpPT.Y
-    PicEdit.Resource.InsertData bytData(), lngPos + 1
-    
-    'three bytes inserted
-    lngCount = 3
-  
-  Case dfAbsLine, dfRelLine
-    'insert starting point into new cmd
-    bytData(0) = tmpPT.X
-    bytData(1) = tmpPT.Y
-    PicEdit.Resource.InsertData bytData(), lngPos + 1
-    
-    'three bytes inserted
-    lngCount = 3
-    
-  Case dfFill, dfPlotPen
-    'only one byte inserted
-    lngCount = 1
-    
-  End Select
-  
-  'update positions for cmds AFTER the new cmd
-  UpdatePosValues lngCmdIndex + 2, lngCount
-  
-  'select the newly added command
-  SelectCmd lngCmdIndex + 1, False
-  
-  'if not skipping undo
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      .UDAction = udpSplitCmd
-      .UDPicPos = lngPos
-      .UDCmdIndex = lngCmdIndex + 1
-    End With
-    AddUndo NextUndo
-  End If
-Exit Sub
+            'if height is one pixel,
+            ElseIf (CLng(Anchor.Y) - PicPt.Y = 0) Then
+              'just draw a horizontal line
+              ReDim bytData(3)
+              bytData(0) = dfXCorner
+              bytData(1) = Anchor.X
+              bytData(2) = Anchor.Y
+              bytData(3) = PicPt.X
+              'add command
+              InsertCommand bytData, SelectedCmd, "X Corner", gInsertBefore
+              SelectCmd lstCommands.NewIndex
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-Private Sub StartDrag(ByVal InPri As Boolean, ByVal X As Single, ByVal Y As Single)
-  
-  Dim rtn As Long
-  
-  'if in priority window,
-  If InPri Then
-    'if either scrollbar is visible,
-    If Me.hsbPri.Visible Or vsbPri.Visible Then
-      'set dragpic mode
-      blnDragging = True
-      
-      'set pointer to custom (special case - don't use cursor function
-      picPriority.MousePointer = vbCustom
-      picPriority.MouseIcon = LoadResPicture("EPC_MOVE", vbResCursor)
-      CurCursor = pcMove
-      
-      rtn = SetCapture(picPriSurface.hWnd)
-      'save x and Y offsets
-      sngOffsetX = X
-      sngOffsetY = Y
-    End If
-  Else
-    'if either scrollbar is visible,
-    If Me.hsbVis.Visible Or vsbVis.Visible Then
-      'set dragpic mode
-      blnDragging = True
-      
-      'set pointer to custom
-      picVisual.MousePointer = vbCustom
-      picVisual.MouseIcon = LoadResPicture("EPC_MOVE", vbResCursor)
-      CurCursor = pcMove
-      
-      rtn = SetCapture(picVisSurface.hWnd)
-      'save x and Y offsets
-      sngOffsetX = X
-      sngOffsetY = Y
-    End If
-  End If
-End Sub
+            'if width is one pixel,
+            ElseIf (CLng(Anchor.X) - PicPt.X = 0) Then
+              'just draw a vertical line
+              ReDim bytData(3)
+              bytData(0) = dfYCorner
+              bytData(1) = Anchor.X
+              bytData(2) = Anchor.Y
+              bytData(3) = PicPt.Y
+              'add command
+              InsertCommand bytData, SelectedCmd, "Y Corner", gInsertBefore
+              'and select it
+              SelectCmd lstCommands.NewIndex
 
-Private Sub StopDrawing()
+            Else
+              'ensure we are in a upperleft-lower right configuration
+              If Anchor.X > PicPt.X Then
+                i = Anchor.X
+                Anchor.X = PicPt.X
+                PicPt.X = i
+              End If
+              If Anchor.Y > PicPt.Y Then
+                i = Anchor.Y
+                Anchor.Y = PicPt.Y
+                PicPt.Y = i
+              End If
 
-  'cancels a drawing action without adding a command or coordinate
-  
-  'reset draw mode
-  PicDrawMode = doNone
-  'if on a coordinate
-  If lstCoords.ListIndex <> -1 Then
-    'select entire cmd
-    lstCoords.ListIndex = -1
-    'set curpt to impossible value so it will have to be reset when coords are selected
-    CurPt.X = 255
-    CurPt.Y = 255
-  End If
-  
-  'force redraw
-  CodeClick = True
-  lstCommands_Click
-End Sub
-Private Sub ToggleBkgd(ByVal NewVal As Boolean, Optional ByVal ShowConfig As Boolean = False)
+              'call drawellipse to update arc segment data
+              DrawCircle Anchor.X, Anchor.Y, PicPt.X, PicPt.Y
+              ReDim bytData((Segments + 1) * 2)
+              bytData(0) = dfAbsLine
 
-  'sets background Image display to match newval
-  'loads a background if one is needed
-  
-  Dim OldVal As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  'note curent value
-  OldVal = PicEdit.BkgdShow
-  
-  PicEdit.BkgdShow = NewVal
+              'now draw the arc segments:
 
-  'if showing background AND there is not a picture (OR if forcing re-configure)
-  If (PicEdit.BkgdShow And (BkgdImage Is Nothing)) Or ShowConfig Then
-    'use configure screen, which will load a background
-    If Not ConfigureBackground() Then
-      'if user cancels, and still no background, force flag to false
-      If (BkgdImage Is Nothing) Then
-        PicEdit.BkgdShow = False
-'''      Else
-'''        'there is a bkgd, but no change made
-      End If
-    End If
-  End If
-  
-  'set button status, and set value for stored image in picresource
-  If PicEdit.BkgdShow Then
-    Toolbar1.Buttons("bkgd").Value = tbrPressed
-  Else
-    Toolbar1.Buttons("bkgd").Value = tbrUnpressed
-  End If
-  
-  'update menu caption
-  With frmMDIMain
-    'toggle bkgd visible only if a bkgd Image is loaded
-    .mnuRCustom2.Visible = Not (BkgdImage Is Nothing)
-    If .mnuRCustom2.Visible Then
-      .mnuRCustom2.Enabled = True
-      If PicEdit.BkgdShow And .mnuRCustom2.Visible Then
-        .mnuRCustom2.Caption = "Hide Background" & vbTab & "Alt+B"
-      Else
-        .mnuRCustom2.Caption = "Show Background" & vbTab & "Alt+B"
-      End If
-    End If
-    ' allow removal if an image is loaded
-    .mnuRCustom3.Visible = .mnuRCustom2.Visible
-    If .mnuRCustom3.Visible Then
-      .mnuRCustom3.Enabled = True
-      .mnuRCustom3.Caption = "Remove Background Image" & vbTab & "Shift+Alt+B"
-    End If
-  End With
-  
-  'if current command has coordinates, do more than just redraw picture
-  If lstCoords.ListCount > 0 Then
-    If lstCoords.ListIndex <> -1 Then
-      'use coordinate click method if a coordinate is currently selected
-      lstCoords_Click
-    Else
-      'use command click method if no coordinates selected
-      CodeClick = True
-      lstCommands_Click
-    End If
-  Else
-    'if selected command doesn't have any coordinates
-    'redrawing is sufficient to set correct state of editor
-    DrawPicture
-  End If
-    
-Exit Sub
+              'add first arc
+              For i = 0 To Segments
+                bytData(i * 2 + 1) = Anchor.X + ArcPt(0).X - ArcPt(i).X
+                bytData(i * 2 + 2) = Anchor.Y + ArcPt(Segments).Y - ArcPt(i).Y
+              Next i
+              InsertCommand bytData, SelectedCmd, "Abs Line", gInsertBefore
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+              'add second arc (skip undo)
+              For i = 0 To Segments
+                bytData(2 * i + 1) = PicPt.X - ArcPt(0).X + ArcPt(i).X
+                bytData(2 * i + 2) = Anchor.Y + ArcPt(Segments).Y - ArcPt(i).Y
+              Next i
+              InsertCommand bytData, SelectedCmd, "Abs Line", False, True
 
-Public Sub UpdateID(ByVal NewID As String, NewDescription As String)
+              'add third arc (skip undo)
+              For i = 0 To Segments
+                bytData(2 * i + 1) = PicPt.X - ArcPt(0).X + ArcPt(i).X
+                bytData(2 * i + 2) = PicPt.Y - ArcPt(Segments).Y + ArcPt(i).Y
+              Next i
+              InsertCommand bytData, SelectedCmd + 1, "Abs Line", False, True
 
-  On Error GoTo ErrHandler
-  
-  If PicEdit.Description <> NewDescription Then
-    'change the PicEdit object's description
-    PicEdit.Description = NewDescription
-  End If
-  
-  If PicEdit.ID <> NewID Then
-    'change the PicEdit object's ID and caption
-    PicEdit.ID = NewID
-    'if picedit is dirty
-    If Asc(Caption) = 42 Then
-      Caption = sDM & sPICED & ResourceName(PicEdit, InGame, True)
-    Else
-      Caption = sPICED & ResourceName(PicEdit, InGame, True)
-    End If
-  End If
-Exit Sub
+              'add fourth arc (skip undo)
+              For i = 0 To Segments
+                bytData(2 * i + 1) = Anchor.X + ArcPt(0).X - ArcPt(i).X
+                bytData(2 * i + 2) = PicPt.Y - ArcPt(Segments).Y + ArcPt(i).Y
+              Next i
+              InsertCommand bytData, SelectedCmd + 2, "Abs Line", False, True
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+              'select the last command added
+              SelectCmd SelectedCmd + 4
 
-Private Sub UpdatePosValues(ByVal CmdPos As Long, ByVal PosOffset As Long)
-  'updates the command list so itemdata values have correct position Value
-  'cmdpos is the index of first command that needs to be adjusted
-  
-  Dim i As Long
-  
-  
-  
-  'need to increment position info for all commands after the insert point
-  
-  For i = CmdPos To lstCommands.ListCount - 1
-    lstCommands.ItemData(i) = lstCommands.ItemData(i) + PosOffset
-  Next i
-End Sub
+              'adjust last undo text
+              UndoCol(UndoCol.Count).UDAction = udpEllipse
+              UndoCol(UndoCol.Count).UDCmd = vbNullString
+            End If
+          End Select
+
+          'end draw mode
+          StopDrawing
+        End Select
+      Exit Sub
+
+      ErrHandler:
+        Resume Next
+      End Sub
 
 
-Private Sub InsertCommand(NewData() As Byte, ByVal CmdPos As Long, ByVal CmdText As String, ByVal InsertBefore As Boolean, Optional ByVal DontUndo As Boolean = False)
-  'inserts NewData into PicEdit and CmdText into cmd list at CmdPos
-  
-  Dim NextUndo As PictureUndo
-  Dim bytData() As Byte
-  Dim lngInsertPos As Long
-  Dim lngRelation As Long
-  
-  On Error GoTo ErrHandler
-  
-  'whenever a command is inserted, set the flag so any additional
-  'inserts will occur AFTER the currently selected command
-  gInsertBefore = False
-  
-  'copy data to local array
-  bytData = NewData
-  
-  'if at end, force insertbefore to true
-  If CmdPos = lstCommands.ListCount - 1 Then
-    InsertBefore = True
-  End If
-   
-  If Not InsertBefore Then
-    'insert at next cmd location
-    CmdPos = CmdPos + 1
-  End If
-  lngInsertPos = lstCommands.ItemData(CmdPos)
-  
-  'if not skipping undo
-  If Not DontUndo And Settings.PicUndo <> 0 Then
-    'create new undo object
-    Set NextUndo = New PictureUndo
-    With NextUndo
-      .UDAction = udpAddCmd
-      .UDPicPos = lngInsertPos
-      .UDCmdIndex = CmdPos
-      .UDCmd = CmdText
-    End With
-    'add to undo
-    AddUndo NextUndo
-  End If
-  
-  'insert data
-  PicEdit.Resource.InsertData bytData(), lngInsertPos
-  
-  'insert into cmd list
-  lstCommands.AddItem CmdText, CmdPos
-  
-  'set position Value
-  lstCommands.ItemData(CmdPos) = lngInsertPos
-  
-  'update position values in rest of tree
-  UpdatePosValues CmdPos + 1, UBound(bytData()) + 1
-Exit Sub
+      Public Sub AddCoordToPic(NewData() As Byte, ByVal CoordPos As Long, ByVal bytX As Byte, ByVal bytY As Byte, Optional ByVal Prefix As String = "", Optional ByVal DontUndo As Boolean = False)
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+        'inserts coordinate data into PicEdit
 
-Private Sub LoadTestView()
-  
-  Dim rtn As Long
-  
-  On Error GoTo ErrHandler
-  
-  'if a test view is currently loaded,
-  If Not (TestView Is Nothing) Then
-    'unload it and release it
-    TestView.Unload
-    Set TestView = Nothing
-  End If
-  
-  Set TestView = New AGIView
-  On Error Resume Next
-  'if in a game
-  If GameLoaded Then
-    'copy from game
-    If Not Views(TestViewNum).Loaded Then
-      Views(TestViewNum).Load
-      TestView.SetView Views(TestViewNum)
-      Views(TestViewNum).Unload
-    Else
-      TestView.SetView Views(TestViewNum)
-    End If
-  Else
-    'load from file
-    TestView.Import TestViewFile
-  End If
-  
-  'if error
-  If Err.Number <> 0 Then
-    ErrMsgBox "Unable to load view resource due to error:", "Test view not set.", "Test View Error"
-    Set TestView = Nothing
-    Exit Sub
-  End If
-  On Error GoTo ErrHandler
-  
-  'reset loop and cel and direction, and motion
-  CurTestLoop = 0
-  CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-  CurTestCel = 0
-  TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-  TestDir = 0
-  'set cel height/width/transcolor
-  CelWidth = TestView.Loops(CurTestLoop).Cels(CurTestCel).Width
-  CelHeight = TestView.Loops(CurTestLoop).Cels(CurTestCel).Height
-  CelTrans = TestView.Loops(CurTestLoop).Cels(CurTestCel).TransColor
-  
-  'if already in test mode (and we're changing
-  'the view being used)
-  If PicMode = pmTest Then
-    'redraw picture to clear old testview
-    DrawPicture
-  End If
-Exit Sub
+        Dim NextUndo As PictureUndo
+        Dim lngInsertPos As Long, lngSize As Long
+        Dim bytData() As Byte, lngCount As Long
+        Dim i As Long
 
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
+        On Error GoTo ErrHandler
 
-Private Function LoadCmdList(Optional ByVal NoUpdate As Boolean = False) As Boolean
-  'loads the picture info into the command list
-  'assumes there are no errors, since
-  'a picture must successfully load before this routine is called
-  
-  Dim bytCmd As Byte
-  Dim bytData() As Byte, lngEnd As Long
-  Dim lngPos As Long
-  Dim bytX As Byte, bytY As Byte
-  Dim xdisp As Long, ydisp As Long
-  Dim blnRelX As Boolean, PatternNum As Byte
-  Dim strBrush As String, blnSplat As Boolean
-  Dim blnErrors As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  'get data (for better speed)
-  bytData = PicEdit.Resource.AllData
-  lngEnd = UBound(bytData)
-  lngPos = 0
-  
-  With lstCommands
-    'clear the tree
-    .Clear
-  
-    'get first command
-    bytCmd = bytData(lngPos)
-    
-    Do
-      'add correct node to the list
-      Select Case bytCmd
-      Case &HFF ' end of file
-        'add 'end'
-        .AddItem LoadResString(DRAWFUNCTIONTEXT + 11)
-        .ItemData(.ListCount - 1) = lngPos
-        Exit Do
-      
-      Case &HF0 To &HFA
-        'add command node
-        .AddItem LoadResString(DRAWFUNCTIONTEXT + bytCmd - &HF0)
-        
-      Case Else ' < &HF0 or > &HFA ' an invalid command
-        'invalid command  - note it
-        .AddItem "ERR: (&H" & Hex2(bytCmd) & ")"
-        blnErrors = True
-      End Select
-      
-      'store position for this command
-      .ItemData(.ListCount - 1) = lngPos
-      
-      'add command parameters
-      Select Case bytCmd
-      Case &HF0 'Change color and enable visual draw.
-        lngPos = lngPos + 1
-        If lngPos > lngEnd Then
-          'error - no color value and end of picture
-          'data found; probably bad picture resource data
-          .List(.ListCount - 1) = "Vis: ERR --no data--"
-          blnErrors = True
-          Exit Do
-        End If
-        
-        'get color
-        bytCmd = bytData(lngPos)
-        'RARE, but check for color out of bounds
-        If bytCmd > 15 Then
-          .List(.ListCount - 1) = "Vis: " & "ERR(0x" & Hex(bytCmd) & ")"
-          blnErrors = True
+        'copy data to local array
+        bytData = NewData
+        lngCount = UBound(bytData) + 1
+
+        'if no coord yet
+        If lstCoords.ListCount = 0 Then
+          'get insert pos from the cmd
+          lngInsertPos = lstCommands.ItemData(SelectedCmd)
+          '*'Debug.Assert CoordPos = -1
         Else
-          .List(.ListCount - 1) = "Vis: " & LoadResString(COLORNAME + bytCmd)
+          If CoordPos = -1 Then
+            lngInsertPos = lstCommands.ItemData(SelectedCmd + 1)
+            CoordPos = lstCoords.ListCount
+          Else
+            '*'Debug.Assert CoordPos <= lstCoords.ListCount - 1
+            'get insert pos from coord list
+            lngInsertPos = lstCoords.ItemData(CoordPos)
+          End If
         End If
-        
-        'move pointer
-        lngPos = lngPos + 1
-        If lngPos > lngEnd Then
-          'end of picture data found
-          Exit Do
+
+        'if not skipping undo
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          'create new undo object
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            .UDAction = udpAddCoord
+            .UDPicPos = lngInsertPos
+            .UDCmdIndex = SelectedCmd
+            .UDCoordIndex = CoordPos
+            .UDText = Prefix & CoordText(bytX, bytY)
+          End With
+          'add to undo
+          AddUndo NextUndo
         End If
-        'get next command
-        bytCmd = bytData(lngPos)
-        
-      Case &HF2  'Change color and enable priority draw.
-        lngPos = lngPos + 1
-        If lngPos > lngEnd Then
-          'error - no color value and end of picture
-          'data found; probably bad picture resource data
-          .List(.ListCount - 1) = "Pri: ERR --no data--"
-          blnErrors = True
-          Exit Do
+
+        'insert data
+        PicEdit.Resource.InsertData bytData, lngInsertPos
+
+        'insert coord text
+        AddCoordToList bytX, bytY, lngInsertPos, Prefix, CoordPos
+        lstCoords.Refresh
+
+        EditCoordNum = lstCoords.ListIndex
+
+        'update position values for rest of coord list
+        For i = CoordPos + 1 To lstCoords.ListCount - 1
+          lstCoords.ItemData(i) = lstCoords.ItemData(i) + UBound(bytData()) + 1
+        Next i
+
+        'update position values in rest of cmd list
+        UpdatePosValues SelectedCmd + 1, UBound(bytData()) + 1
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub JoinCommands(SecondCmdIndex As Long, Optional ByVal DontUndo As Boolean = False)
+        'joins two commands that are adjacent, where
+        'first coord of SecondCmdIndex is same point as end of previous command
+        'or if both cmds are plots or fills
+
+        Dim NextUndo As PictureUndo
+        Dim CmdType As DrawFunction, FirstCmdIndex As Long
+        Dim lngPos As Long, lngIndex As Long
+        Dim lngCount As Long
+        Dim IsVertical As Boolean  'false = horizontal, true = vertical
+
+        'get position of command
+        lngPos = lstCommands.ItemData(SecondCmdIndex)
+        'get first cmd index
+        FirstCmdIndex = SecondCmdIndex - 1
+
+        'get command Type
+        CmdType = PicEdit.Resource.Data(lngPos)
+
+        'if not skipping undo
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            .UDAction = udpJoinCmds
+            'if cmd requires one byte per coord pair
+            'need to move picpos marker back one
+            Select Case CmdType
+            Case dfXCorner, dfYCorner, dfRelLine
+              'position of the split coord is back one
+              .UDPicPos = lstCommands.ItemData(SecondCmdIndex) - 1
+            Case Else
+              .UDPicPos = lstCommands.ItemData(SecondCmdIndex)
+            End Select
+
+            'set cmdindex to first cmd
+            .UDCmdIndex = FirstCmdIndex
+            'set coord index to Count of firstcmd
+          End With
+          AddUndo NextUndo
         End If
-        
-        'get color
-        bytCmd = bytData(lngPos)
-        'RARE, but check for color out of bounds
-        If bytCmd > 15 Then
-          .List(.ListCount - 1) = "Pri: " & "ERR(0x" & Hex(bytCmd) & ")"
-          blnErrors = True
-        Else
-          .List(.ListCount - 1) = "Pri: " & LoadResString(COLORNAME + bytCmd)
+
+        Select Case CmdType
+        Case dfFill, dfPlotPen
+          'just delete the command
+          lngCount = 1
+        Case dfXCorner, dfYCorner
+          'get orientation of last line of first cmd
+          IsVertical = GetVerticalStatus(lstCommands.ItemData(FirstCmdIndex))
+
+          'if orientation of last line of first cmd
+          'is same as first line of this cmd
+          If ((CmdType = dfXCorner) And Not IsVertical) Or _
+             ((CmdType = dfYCorner) And IsVertical) Then
+            'delete last coordinate from previous cmd AND command and first coordinate
+            lngPos = lngPos - 1
+            lngCount = 4
+
+          Else
+            'delete command and first coordinate
+            lngCount = 3
+          End If
+
+        Case Else
+          'delete command and first coordinate
+          lngCount = 3
+        End Select
+
+        'delete the data
+        PicEdit.Resource.RemoveData lngPos, lngCount
+        'remove the second cmd
+        lstCommands.RemoveItem SecondCmdIndex
+
+        'update follow on cmds
+        UpdatePosValues SecondCmdIndex, -lngCount
+
+        'update
+        SelectCmd FirstCmdIndex, False
+      End Sub
+
+      Public Sub MenuClickClear()
+        'clears the picture
+
+        Dim i As Long
+
+        'verify
+        If MsgBox("This will reset the picture, deleting all commands. This action cannot be undone. Do you want to continue?", vbQuestion + vbYesNo, "Clear Picture") = vbNo Then
+          Exit Sub
         End If
-        
-        'move pointer
-        lngPos = lngPos + 1
-        If lngPos > lngEnd Then
-          'end of picture data found
-          Exit Do
+
+        'clear drawing surfaces
+        picVisual.Cls
+        picPriority.Cls
+
+        'clear picture
+        PicEdit.Clear
+
+        'redraw tree
+        LoadCmdList
+
+        'select the end
+        SelectCmd 0, False
+
+        'reset pen
+        SelectedPen.PriColor = agNone
+        SelectedPen.VisColor = agNone
+        SelectedPen.PlotShape = psCircle
+        SelectedPen.PlotSize = 0
+        SelectedPen.PlotStyle = psSolid
+        CurrentPen = SelectedPen
+
+        'refresh palette
+        picPalette.Refresh
+
+        'clear the undo buffer
+        If UndoCol.Count > 0 Then
+          For i = UndoCol.Count To 1 Step -1
+            UndoCol.Remove i
+          Next i
+          SetEditMenu
         End If
-        'get next command
-        bytCmd = bytData(lngPos)
-        
-      Case &HF1, &HF3 'Disable draw.
-        'move pointer
-        lngPos = lngPos + 1
-        If lngPos > lngEnd Then
-          'end of picture data found
-          Exit Do
+      End Sub
+
+      Private Sub ReadjustPlotCoordinates(StartIndex As Long, NewPlotStyle As EPlotStyle, Optional ByVal DontUndo As Boolean = False, Optional ByVal StopIndex As Long = -1)
+        'starting at command in list at StartIndex, step through all
+        'commands until another setplotpen command or end is reached;
+        'any plot commands identified during search are checked to
+        'see if they match format of desired plot pen style (solid or
+        'splatter); if they don't match, they are adjusted (by adding
+        'or removing the pattern byte)
+
+        'if stopindex is passed, only cmds from StartIndex to StopIndex
+        'are checked; if stopindex is not passed, all cmds to end of
+        'cmd list are checked
+
+        Dim i As Long
+        Dim bytTemp() As Byte
+        Dim j As Long
+
+        On Error GoTo ErrHandler
+
+        If StopIndex = -1 Then
+          StopIndex = lstCommands.ListCount - 1
         End If
-        'get next command
-        bytCmd = bytData(lngPos)
-        
-      Case &HF4, &HF5, &HF6, &HF7, &HF8, &HFA
+
+        i = StartIndex
         Do
-          'read in data until another command is found or unti
-          'end is reached (which is not ideal)
-          lngPos = lngPos + 1
-          If lngPos > lngEnd Then
-            Exit Do
-          End If
-          bytCmd = bytData(lngPos)
-        Loop Until bytCmd >= &HF0
-        
-      Case &HF9 'Change pen size and style.
-        'get pen size and style
-        lngPos = lngPos + 1
-        If lngPos > lngEnd Then
-          'end of picture data found
-          .List(.ListCount - 1) = "Set Pen:  ERR --no data--"
-          Exit Do
-        End If
-        bytX = bytData(lngPos)
-        If (bytX And &H20) / &H20 = 0 Then
-          strBrush = "Solid "
-          blnSplat = False
-        Else
-          strBrush = "Splatter "
-          blnSplat = True
-        End If
-        If (bytX And &H10) / &H10 = 0 Then
-          strBrush = strBrush & "Circle "
-        Else
-          strBrush = strBrush & "Rectangle "
-        End If
-        strBrush = strBrush & CStr(bytX And &H7)
-  
-        .List(.ListCount - 1) = "Set Pen: " & strBrush
-        'get next command
-        lngPos = lngPos + 1
-        If lngPos > lngEnd Then
-          'end of picture data found
-          Exit Do
-        End If
-        bytCmd = bytData(lngPos)
-        
-      Case Else
-        'it's an invalid (ignored command)
-        'get next command
-        lngPos = lngPos + 1
-        If lngPos > lngEnd Then
-          'end of picture data found
-          Exit Do
-        End If
-        bytCmd = bytData(lngPos)
-      End Select
-    Loop Until lngPos > lngEnd
-  End With
-  
-  'if end cmd not found, need to add it (and let user know)
-  If bytCmd <> &HFF Then
-    'add missing end
-    PicEdit.Resource.InsertData &HFF
-    'add 'end' node to list
-    lstCommands.AddItem LoadResString(DRAWFUNCTIONTEXT + 11)
-    lstCommands.ItemData(lstCommands.ListCount - 1) = lngPos
-    'mark as dirty
-    MarkAsDirty
-    'restore cursor
-    Screen.MousePointer = vbDefault
-    MsgBoxEx "Picture is missing end-of-resource marker; marker has been added and picture" & vbNewLine & "loaded, but picture data may be corrupt.", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Missing End Command in Picture", WinAGIHelp, "htm\agi\pictures.htm#ff"
-  End If
-  
-  'if any bad commands or colors encountered
-  If blnErrors Then
-    'restore cursor
-    Screen.MousePointer = vbDefault
-    MsgBoxEx "One or more invalid commands and/or colors encountered; they are marked with 'ERR'." & vbNewLine & "This picture data may be corrupt.", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Anomaly Found in Load Picture", WinAGIHelp, "htm\winagi\Picture_Editor.htm#picerrors"
-  End If
-  
-  'select end cmd, and update listbox
-  SelectCmd lstCommands.ListCount - 1, NoUpdate
-  LoadCmdList = True
-  
-Exit Function
+          'check for plot command or change plot pen command
+          Select Case Left$(lstCommands.List(i), 4)
+          Case "Plot"
+            'if style is splatter
+            If NewPlotStyle = psSplatter Then
+              'if skipping the undo feature
+              If DontUndo Then
+                'need to set tmp byte array so addpatterndata method
+                'will know to create the random bytes for this set of coordinates
+                ReDim bytTemp(0)
+                bytTemp(0) = &HFF
+              End If
 
-ErrHandler:
-  '*'Debug.Assert False
-  'some other error- let calling method deal with it
-  LoadCmdList = True
-End Function
+              'add pattern bytes (use a temp array as place holder for byte array argument)
+              AddPatternData i, bytTemp, DontUndo
 
-Public Sub MenuClickDelete()
-  'delete a coordinate or command
-  
-  Dim NewStyle As EPlotStyle, lngStartPos As Long
-  Dim i As Long, NextUndo As PictureUndo
-  Dim bytData() As Byte, blnSetPen As Boolean
-  Dim lngCount As Long
-  
-  'if on the root,
-  If lstCommands.ListIndex = -1 Then
-    'exit sub
-    Exit Sub
-  End If
-  
-  'if on a command, (i.e. no coord is selected)
-  If lstCoords.ListIndex = -1 Then
-    '(can't delete END)
-    '*'Debug.Assert lstCommands.ListIndex <> lstCommands.ListCount - 1
-    
-    'if more than one cmd selected
-    If lstCommands.SelCount > 1 Then
-      'check for 'set pen' cmd
-      For i = 0 To lstCommands.SelCount - 1
-        If Left$(lstCommands.List(SelectedCmd - i), 3) = "Set" Then
-          blnSetPen = True
-          Exit For
-        End If
-      Next i
-      
-      If blnSetPen Then
-        'determine new pen style to apply from this point
-        'start at first cmd above the top selected cmd
-        i = SelectedCmd - lstCommands.SelCount
-        Do Until i < 0
-          'if this command is a set command
-          If Left$(lstCommands.List(i), 3) = "Set" Then
-            'get pen status
-            NewStyle = IIf(InStr(lstCommands.List(i), "Solid"), psSolid, psSplatter)
+            'if style is solid,
+            Else
+              'delete pattern bytes
+              DelPatternData i, DontUndo
+            End If
+
+          Case "Set " 'set pen'
+            'can exit here because this pen command
+            'ensures future plot commands are correct
             Exit Do
-          End If
-          'get previous cmd
-          i = i - 1
-        Loop
-        If NewStyle <> CurrentPen.PlotStyle Then
-          'adjust plot pattern starting with next command after the one being deleted
-          '(this must be done BEFORE the resource is modified, otherwise the undo
-          'feature won't work correctly)
-          ReadjustPlotCoordinates SelectedCmd + 1, NewStyle
+          End Select
+          'get next cmd
+          i = i + 1
+        Loop Until i > StopIndex
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub SelectCmd(ByVal CmdPos As Long, Optional ByVal DontSelect As Boolean = True)
+
+        'ensures cmd list is cleared, and selects the desired cmd
+
+        Dim i As Long
+
+        On Error GoTo ErrHandler
+
+        'disable painting of listbox until all done
+        SendMessage lstCommands.hWnd, WM_SETREDRAW, 0, 0
+
+        'disable updating in listbox while de-selecting
+        NoSelect = True
+        If lstCommands.SelCount > 0 Then
+          For i = 0 To lstCommands.ListCount - 1
+            If lstCommands.Selected(i) Then
+              lstCommands.Selected(i) = False
+              If lstCommands.SelCount = 0 Then
+                Exit For
+              End If
+            End If
+          Next i
         End If
-      End If
-      
-      'save position of first command that is selected
-      lngStartPos = lstCommands.ItemData(SelectedCmd - lstCommands.SelCount + 1)
-      
-      If Settings.PicUndo <> 0 Then
-        'create undo object
-        Set NextUndo = New PictureUndo
-        NextUndo.UDAction = udpDelCmd
-        'save position of first command that is selected
-        NextUndo.UDPicPos = lngStartPos
-        'save cmd location and Count of commands
-        NextUndo.UDCmdIndex = SelectedCmd
-        NextUndo.UDCoordIndex = lstCommands.SelCount
-        NextUndo.UDCmd = "Command"
-        'copy data from picedit to undo array
-        lngCount = lstCommands.ItemData(SelectedCmd + 1) - NextUndo.UDPicPos
-        ReDim bytData(lngCount - 1)
-        For i = 0 To lngCount - 1
-          bytData(i) = PicEdit.Resource.Data(i + NextUndo.UDPicPos)
+        'also set lstCommands.ListIndex to -1;
+        'we need to do this to make sure that when
+        'we select the CmdPos entry in the command list
+        'that it forces an update of the coord list
+        i = lstCommands.TopIndex
+        lstCommands.ListIndex = -1
+        lstCommands.TopIndex = i
+        'allow/disallow updating in listbox click event
+        NoSelect = DontSelect
+
+        'select desired cmd
+        CodeClick = True
+        lstCommands.ListIndex = CmdPos
+        SelectedCmd = CmdPos
+        CodeClick = True
+        'we need to also set noselect to true here;
+        'otherwise, if the .Selected(CmdPos) value is false
+        'we will get a second trip through lstCommands_Click
+        NoSelect = True
+        lstCommands.Selected(CmdPos) = True
+
+        'restore updating
+        NoSelect = False
+
+        'restore painting of listbox
+        SendMessage lstCommands.hWnd, WM_SETREDRAW, 1, 0
+
+        If ActiveControl Is lstCoords Then
+          lstCommands.SetFocus
+        End If
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub SetCursors(ByVal NewCursor As EPicCur)
+
+        'sets picVis and picPri cursors
+
+        'if already correct cursor, just exit (avoids flickering)
+        If CurCursor = NewCursor Then
+          Exit Sub
+        End If
+
+        'save cursor Value
+        CurCursor = NewCursor
+
+        'now change cursor to correct Value
+        Select Case NewCursor
+        Case pcEdit
+          picVisual.MousePointer = vbCustom
+          picPriority.MousePointer = vbCustom
+          picVisual.MouseIcon = LoadResPicture("EPC_EDIT", vbResCursor)
+          picPriority.MouseIcon = LoadResPicture("EPC_EDIT", vbResCursor)
+
+        Case pcCross
+          picVisual.MousePointer = vbCrosshair
+          picPriority.MousePointer = vbCrosshair
+
+        Case pcMove
+          picVisual.MousePointer = vbCustom
+          picPriority.MousePointer = vbCustom
+          picVisual.MouseIcon = LoadResPicture("EPC_MOVECMD", vbResCursor)
+          picPriority.MouseIcon = LoadResPicture("EPC_MOVECMD", vbResCursor)
+
+        Case pcDefault
+          picVisual.MousePointer = vbDefault
+          picPriority.MousePointer = vbDefault
+
+        Case pcNO
+          picVisual.MousePointer = vbCustom
+          picPriority.MousePointer = vbCustom
+          picVisual.MouseIcon = LoadResPicture("EPC_NA", vbResCursor)
+          picPriority.MouseIcon = LoadResPicture("EPC_NA", vbResCursor)
+
+        Case pcPaint
+          picVisual.MousePointer = vbCustom
+          picPriority.MousePointer = vbCustom
+          picVisual.MouseIcon = LoadResPicture("EPC_PAINT", vbResCursor)
+          picPriority.MouseIcon = LoadResPicture("EPC_PAINT", vbResCursor)
+
+        Case pcBrush
+          picVisual.MousePointer = vbCustom
+          picPriority.MousePointer = vbCustom
+          picVisual.MouseIcon = LoadResPicture("EPC_BRUSH", vbResCursor)
+          picPriority.MouseIcon = LoadResPicture("EPC_BRUSH", vbResCursor)
+
+        Case pcSelect
+          picVisual.MousePointer = vbCustom
+          picPriority.MousePointer = vbCustom
+          picVisual.MouseIcon = LoadResPicture("EPC_SELECT", vbResCursor)
+          picPriority.MouseIcon = LoadResPicture("EPC_SELECT", vbResCursor)
+
+        Case pcEditSel
+          picVisual.MousePointer = vbCustom
+          picPriority.MousePointer = vbCustom
+          picVisual.MouseIcon = LoadResPicture("EPC_EDITSEL", vbResCursor)
+          picPriority.MouseIcon = LoadResPicture("EPC_EDITSEL", vbResCursor)
+
+        End Select
+
+      End Sub
+
+      Private Sub ShowCmdSelection()
+
+        'positions and displays a flashing selection outline around the current selection box
+
+        On Error GoTo ErrHandler
+
+        'if selection is more than a single pixel
+        If SelSize.X > 0 And SelSize.Y > 0 Then
+          'position the shapes around the selection area
+          shpVis.Move SelStart.X * ScaleFactor * 2 - 1, SelStart.Y * ScaleFactor - 1, SelSize.X * ScaleFactor * 2 + 2, SelSize.Y * ScaleFactor + 2
+          'check if off edge
+          If shpVis.Left = -1 Then
+            shpVis.Left = 0
+            shpVis.Width = shpVis.Width - 1
+          End If
+          If shpVis.Top = -1 Then
+            shpVis.Top = 0
+            shpVis.Height = shpVis.Height - 1
+          End If
+          If SelStart.X + SelSize.X = 160 Then
+            shpVis.Width = shpVis.Width - 1
+          End If
+          If SelStart.Y + SelSize.Y = 168 Then
+            shpVis.Height = shpVis.Height - 1
+          End If
+
+          'move priority screen shape to match visual screen
+          shpPri.Move shpVis.Left, shpVis.Top, shpVis.Width, shpVis.Height
+          'timer is used to create 'flashing' of line types
+          tmrSelect.Enabled = True
+          shpVis.Visible = True
+          shpPri.Visible = True
+
+          'force tool to select if drawing something
+          '(if  tool is selectArea, let it be)
+          If SelectedTool <> ttEdit And SelectedTool <> ttSelectArea Then
+            'select it
+            SelectedTool = ttEdit
+            Toolbar1.Buttons("select").Value = tbrPressed
+          End If
+
+        Else
+          'hide the shapes; the selected cmds dont include cooordinates
+          tmrSelect.Enabled = False
+          shpVis.Visible = False
+          shpPri.Visible = False
+        End If
+
+        'if tool is select edit, update menu if necessary
+        If SelectedTool = ttSelectArea Then
+          'enable copy command if selection is >0
+          frmMDIMain.mnuECopy.Enabled = (SelSize.X > 0 And SelSize.Y > 0)
+        End If
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub SplitCommand(CoordIndex As Long, Optional ByVal DontUndo As Boolean = False)
+        'splits a command into two separate commands of the same Type
+
+        Dim NextUndo As PictureUndo
+        Dim CmdType As DrawFunction
+        Dim lngPos As Long, lngCmdIndex As Long
+        Dim lngCount As Long
+        Dim IsVertical As Boolean  'false = horizontal, true = vertical
+        Dim tmpPT As PT
+        Dim bytData(1) As Byte
+        Dim i As Long
+
+        On Error GoTo ErrHandler
+
+        'get cmd index
+        lngCmdIndex = SelectedCmd
+
+        'get coordinate values
+        tmpPT = ExtractCoordinates(lstCoords.List(CoordIndex))
+
+        'get command Type
+        CmdType = PicEdit.Resource.Data(lstCommands.ItemData(lngCmdIndex))
+
+        'get insert pos
+
+        'if a fill or plot,
+        If CmdType = dfFill Or CmdType = dfPlotPen Then
+          lngPos = lstCoords.ItemData(CoordIndex)
+        Else
+          'insertion point is NEXT coord
+          lngPos = lstCoords.ItemData(CoordIndex + 1)
+        End If
+
+        'insert a new command in resource and listbox
+        PicEdit.Resource.InsertData CByte(CmdType), lngPos
+        lstCommands.AddItem LoadResString(DRAWFUNCTIONTEXT + CmdType - &HF0), lngCmdIndex + 1
+        lstCommands.ItemData(lngCmdIndex + 1) = lngPos
+
+        'take command specific actions
+        Select Case CmdType
+        Case dfXCorner, dfYCorner
+          'get orientation of line being split
+          IsVertical = (Int(CoordIndex / 2) <> (CoordIndex / 2))
+          'if cmd is a yCorner
+          If CmdType = dfYCorner Then
+            'flip it
+            IsVertical = Not IsVertical
+          End If
+
+          'if splitting a vertical line,
+          If IsVertical Then
+            'if inserted byte is not a Ycorner
+            If CmdType <> dfYCorner Then
+              'change inserted cmd to YCorner
+              PicEdit.Resource.Data(lngPos) = dfYCorner
+              lstCommands.List(lngCmdIndex + 1) = LoadResString(DRAWFUNCTIONTEXT + dfYCorner - &HF0)
+            End If
+          Else
+            'if inserted byte is not a Xcorner
+            If CmdType <> dfXCorner Then
+              'change inserted cmd to XCorner
+              PicEdit.Resource.Data(lngPos) = dfXCorner
+              lstCommands.List(lngCmdIndex + 1) = LoadResString(DRAWFUNCTIONTEXT + dfXCorner - &HF0)
+            End If
+          End If
+
+          'insert starting point in resource
+          bytData(0) = tmpPT.X
+          bytData(1) = tmpPT.Y
+          PicEdit.Resource.InsertData bytData(), lngPos + 1
+
+          'three bytes inserted
+          lngCount = 3
+
+        Case dfAbsLine, dfRelLine
+          'insert starting point into new cmd
+          bytData(0) = tmpPT.X
+          bytData(1) = tmpPT.Y
+          PicEdit.Resource.InsertData bytData(), lngPos + 1
+
+          'three bytes inserted
+          lngCount = 3
+
+        Case dfFill, dfPlotPen
+          'only one byte inserted
+          lngCount = 1
+
+        End Select
+
+        'update positions for cmds AFTER the new cmd
+        UpdatePosValues lngCmdIndex + 2, lngCount
+
+        'select the newly added command
+        SelectCmd lngCmdIndex + 1, False
+
+        'if not skipping undo
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            .UDAction = udpSplitCmd
+            .UDPicPos = lngPos
+            .UDCmdIndex = lngCmdIndex + 1
+          End With
+          AddUndo NextUndo
+        End If
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+      Private Sub StartDrag(ByVal InPri As Boolean, ByVal X As Single, ByVal Y As Single)
+
+        Dim rtn As Long
+
+        'if in priority window,
+        If InPri Then
+          'if either scrollbar is visible,
+          If Me.hsbPri.Visible Or vsbPri.Visible Then
+            'set dragpic mode
+            blnDragging = True
+
+            'set pointer to custom (special case - don't use cursor function
+            picPriority.MousePointer = vbCustom
+            picPriority.MouseIcon = LoadResPicture("EPC_MOVE", vbResCursor)
+            CurCursor = pcMove
+
+            rtn = SetCapture(picPriSurface.hWnd)
+            'save x and Y offsets
+            sngOffsetX = X
+            sngOffsetY = Y
+          End If
+        Else
+          'if either scrollbar is visible,
+          If Me.hsbVis.Visible Or vsbVis.Visible Then
+            'set dragpic mode
+            blnDragging = True
+
+            'set pointer to custom
+            picVisual.MousePointer = vbCustom
+            picVisual.MouseIcon = LoadResPicture("EPC_MOVE", vbResCursor)
+            CurCursor = pcMove
+
+            rtn = SetCapture(picVisSurface.hWnd)
+            'save x and Y offsets
+            sngOffsetX = X
+            sngOffsetY = Y
+          End If
+        End If
+      End Sub
+
+      Private Sub StopDrawing()
+
+        'cancels a drawing action without adding a command or coordinate
+
+        'reset draw mode
+        PicDrawMode = doNone
+        'if on a coordinate
+        If lstCoords.ListIndex <> -1 Then
+          'select entire cmd
+          lstCoords.ListIndex = -1
+          'set curpt to impossible value so it will have to be reset when coords are selected
+          CurPt.X = 255
+          CurPt.Y = 255
+        End If
+
+        'force redraw
+        CodeClick = True
+        lstCommands_Click
+      End Sub
+      Private Sub ToggleBkgd(ByVal NewVal As Boolean, Optional ByVal ShowConfig As Boolean = False)
+
+        'sets background Image display to match newval
+        'loads a background if one is needed
+
+        Dim OldVal As Boolean
+
+        On Error GoTo ErrHandler
+
+        'note curent value
+        OldVal = PicEdit.BkgdShow
+
+        PicEdit.BkgdShow = NewVal
+
+        'if showing background AND there is not a picture (OR if forcing re-configure)
+        If (PicEdit.BkgdShow And (BkgdImage Is Nothing)) Or ShowConfig Then
+          'use configure screen, which will load a background
+          If Not ConfigureBackground() Then
+            'if user cancels, and still no background, force flag to false
+            If (BkgdImage Is Nothing) Then
+              PicEdit.BkgdShow = False
+      '''      Else
+      '''        'there is a bkgd, but no change made
+            End If
+          End If
+        End If
+
+        'set button status, and set value for stored image in picresource
+        If PicEdit.BkgdShow Then
+          Toolbar1.Buttons("bkgd").Value = tbrPressed
+        Else
+          Toolbar1.Buttons("bkgd").Value = tbrUnpressed
+        End If
+
+        'update menu caption
+        With frmMDIMain
+          'toggle bkgd visible only if a bkgd Image is loaded
+          .mnuRCustom2.Visible = Not (BkgdImage Is Nothing)
+          If .mnuRCustom2.Visible Then
+            .mnuRCustom2.Enabled = True
+            If PicEdit.BkgdShow And .mnuRCustom2.Visible Then
+              .mnuRCustom2.Caption = "Hide Background" & vbTab & "Alt+B"
+            Else
+              .mnuRCustom2.Caption = "Show Background" & vbTab & "Alt+B"
+            End If
+          End If
+          ' allow removal if an image is loaded
+          .mnuRCustom3.Visible = .mnuRCustom2.Visible
+          If .mnuRCustom3.Visible Then
+            .mnuRCustom3.Enabled = True
+            .mnuRCustom3.Caption = "Remove Background Image" & vbTab & "Shift+Alt+B"
+          End If
+        End With
+
+        'if current command has coordinates, do more than just redraw picture
+        If lstCoords.ListCount > 0 Then
+          If lstCoords.ListIndex <> -1 Then
+            'use coordinate click method if a coordinate is currently selected
+            lstCoords_Click
+          Else
+            'use command click method if no coordinates selected
+            CodeClick = True
+            lstCommands_Click
+          End If
+        Else
+          'if selected command doesn't have any coordinates
+          'redrawing is sufficient to set correct state of editor
+          DrawPicture
+        End If
+
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Public Sub UpdateID(ByVal NewID As String, NewDescription As String)
+
+        On Error GoTo ErrHandler
+
+        If PicEdit.Description <> NewDescription Then
+          'change the PicEdit object's description
+          PicEdit.Description = NewDescription
+        End If
+
+        If PicEdit.ID <> NewID Then
+          'change the PicEdit object's ID and caption
+          PicEdit.ID = NewID
+          'if picedit is dirty
+          If Asc(Caption) = 42 Then
+            Caption = sDM & sPICED & ResourceName(PicEdit, InGame, True)
+          Else
+            Caption = sPICED & ResourceName(PicEdit, InGame, True)
+          End If
+        End If
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub UpdatePosValues(ByVal CmdPos As Long, ByVal PosOffset As Long)
+        'updates the command list so itemdata values have correct position Value
+        'cmdpos is the index of first command that needs to be adjusted
+
+        Dim i As Long
+
+
+
+        'need to increment position info for all commands after the insert point
+
+        For i = CmdPos To lstCommands.ListCount - 1
+          lstCommands.ItemData(i) = lstCommands.ItemData(i) + PosOffset
         Next i
-        NextUndo.UDData = bytData
-        'add to undo
-        AddUndo NextUndo
-      End If
-      
-      'delete data from array
-'''      PicEdit.Resource.RemoveData NextUndo.UDPicPos, lstCommands.ItemData(SelectedCmd + 1) - NextUndo.UDPicPos
-      PicEdit.Resource.RemoveData lngStartPos, lstCommands.ItemData(SelectedCmd + 1) - lngStartPos
-      
-      'delete the command box entries
-      For i = SelectedCmd To SelectedCmd - lstCommands.SelCount + 1 Step -1
-        lstCommands.RemoveItem i
-      Next i
-      
-      'update remaining items (i+1 points to the cmd where updating needs to start)
-      UpdatePosValues i + 1, -lngCount
-      
-      'select the cmd that is just after the deleted items
-      SelectCmd i + 1, False
-      
-    Else
-      'if command being deleted is a 'set pen' command
-      If Left$(lstCommands.Text, 3) = "Set" Then
-        'determine new pen style to apply from this point
-        i = SelectedCmd - 1
-        Do Until i < 0
-          'if this command is a set command
-          If Left$(lstCommands.List(i), 3) = "Set" Then
-            'get pen status
-            NewStyle = IIf(InStr(lstCommands.List(i), "Solid"), psSolid, psSplatter)
-            Exit Do
+      End Sub
+
+
+      Private Sub InsertCommand(NewData() As Byte, ByVal CmdPos As Long, ByVal CmdText As String, ByVal InsertBefore As Boolean, Optional ByVal DontUndo As Boolean = False)
+        'inserts NewData into PicEdit and CmdText into cmd list at CmdPos
+
+        Dim NextUndo As PictureUndo
+        Dim bytData() As Byte
+        Dim lngInsertPos As Long
+        Dim lngRelation As Long
+
+        On Error GoTo ErrHandler
+
+        'whenever a command is inserted, set the flag so any additional
+        'inserts will occur AFTER the currently selected command
+        gInsertBefore = False
+
+        'copy data to local array
+        bytData = NewData
+
+        'if at end, force insertbefore to true
+        If CmdPos = lstCommands.ListCount - 1 Then
+          InsertBefore = True
+        End If
+
+        If Not InsertBefore Then
+          'insert at next cmd location
+          CmdPos = CmdPos + 1
+        End If
+        lngInsertPos = lstCommands.ItemData(CmdPos)
+
+        'if not skipping undo
+        If Not DontUndo And Settings.PicUndo <> 0 Then
+          'create new undo object
+          Set NextUndo = New PictureUndo
+          With NextUndo
+            .UDAction = udpAddCmd
+            .UDPicPos = lngInsertPos
+            .UDCmdIndex = CmdPos
+            .UDCmd = CmdText
+          End With
+          'add to undo
+          AddUndo NextUndo
+        End If
+
+        'insert data
+        PicEdit.Resource.InsertData bytData(), lngInsertPos
+
+        'insert into cmd list
+        lstCommands.AddItem CmdText, CmdPos
+
+        'set position Value
+        lstCommands.ItemData(CmdPos) = lngInsertPos
+
+        'update position values in rest of tree
+        UpdatePosValues CmdPos + 1, UBound(bytData()) + 1
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Sub LoadTestView()
+
+        Dim rtn As Long
+
+        On Error GoTo ErrHandler
+
+        'if a test view is currently loaded,
+        If Not (TestView Is Nothing) Then
+          'unload it and release it
+          TestView.Unload
+          Set TestView = Nothing
+        End If
+
+        Set TestView = New AGIView
+        On Error Resume Next
+        'if in a game
+        If GameLoaded Then
+          'copy from game
+          If Not Views(TestViewNum).Loaded Then
+            Views(TestViewNum).Load
+            TestView.SetView Views(TestViewNum)
+            Views(TestViewNum).Unload
+          Else
+            TestView.SetView Views(TestViewNum)
           End If
-          'get previous cmd
-          i = i - 1
-        Loop
-        If NewStyle <> CurrentPen.PlotStyle Then
-          'adjust plot pattern starting with next command after the one being deleted
-          ReadjustPlotCoordinates SelectedCmd + 1, NewStyle
+        Else
+          'load from file
+          TestView.Import TestViewFile
         End If
-      End If
-      
-      'delete command
-      DeleteCommand SelectedCmd
-    End If
-  Else
-    'fill, plot and absolute lines allow deleting of individual coordinates
-    'only last coordinate of other commands can be deleted
-    Select Case lstCommands.Text
-    Case "Abs Line", "Fill", "Plot"
-      DeleteCoordinate lstCoords.ListIndex
-      If lstCoords.ListCount <> 0 Then
-        lstCoords_Click
-      End If
-      
-    Case Else
-      If lstCoords.ListIndex = lstCoords.ListCount - 1 Then
-        DeleteCoordinate lstCoords.ListIndex
-        If lstCoords.ListCount <> 0 Then
-          lstCoords_Click
+
+        'if error
+        If Err.Number <> 0 Then
+          ErrMsgBox "Unable to load view resource due to error:", "Test view not set.", "Test View Error"
+          Set TestView = Nothing
+          Exit Sub
         End If
-      End If
-    End Select
-  End If
-End Sub
+        On Error GoTo ErrHandler
 
-Public Sub MenuClickOpen()
-  'implemented by frmMDIMain
-  
-End Sub
+        'reset loop and cel and direction, and motion
+        CurTestLoop = 0
+        CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
+        CurTestCel = 0
+        TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
+        TestDir = 0
+        'set cel height/width/transcolor
+        CelWidth = TestView.Loops(CurTestLoop).Cels(CurTestCel).Width
+        CelHeight = TestView.Loops(CurTestLoop).Cels(CurTestCel).Height
+        CelTrans = TestView.Loops(CurTestLoop).Cels(CurTestCel).TransColor
 
-Public Sub MenuClickSave()
+        'if already in test mode (and we're changing
+        'the view being used)
+        If PicMode = pmTest Then
+          'redraw picture to clear old testview
+          DrawPicture
+        End If
+      Exit Sub
+
+      ErrHandler:
+        '*'Debug.Assert False
+        Resume Next
+      End Sub
+
+      Private Function LoadCmdList(Optional ByVal NoUpdate As Boolean = False) As Boolean
+        'loads the picture info into the command list
+        'assumes there are no errors, since
+        'a picture must successfully load before this routine is called
+
+        Dim bytCmd As Byte
+        Dim bytData() As Byte, lngEnd As Long
+        Dim lngPos As Long
+        Dim bytX As Byte, bytY As Byte
+        Dim xdisp As Long, ydisp As Long
+        Dim blnRelX As Boolean, PatternNum As Byte
+        Dim strBrush As String, blnSplat As Boolean
+        Dim blnErrors As Boolean
+
+        On Error GoTo ErrHandler
+
+        'get data (for better speed)
+        bytData = PicEdit.Resource.AllData
+        lngEnd = UBound(bytData)
+        lngPos = 0
+
+        With lstCommands
+          'clear the tree
+          .Clear
+
+          'get first command
+          bytCmd = bytData(lngPos)
+
+          Do
+            'add correct node to the list
+            Select Case bytCmd
+            Case &HFF ' end of file
+              'add 'end'
+              .AddItem LoadResString(DRAWFUNCTIONTEXT + 11)
+              .ItemData(.ListCount - 1) = lngPos
+              Exit Do
+
+            Case &HF0 To &HFA
+              'add command node
+              .AddItem LoadResString(DRAWFUNCTIONTEXT + bytCmd - &HF0)
+
+            Case Else ' < &HF0 or > &HFA ' an invalid command
+              'invalid command  - note it
+              .AddItem "ERR: (&H" & Hex2(bytCmd) & ")"
+              blnErrors = True
+            End Select
+
+            'store position for this command
+            .ItemData(.ListCount - 1) = lngPos
+
+            'add command parameters
+            Select Case bytCmd
+            Case &HF0 'Change color and enable visual draw.
+              lngPos = lngPos + 1
+              If lngPos > lngEnd Then
+                'error - no color value and end of picture
+                'data found; probably bad picture resource data
+                .List(.ListCount - 1) = "Vis: ERR --no data--"
+                blnErrors = True
+                Exit Do
+              End If
+
+              'get color
+              bytCmd = bytData(lngPos)
+              'RARE, but check for color out of bounds
+              If bytCmd > 15 Then
+                .List(.ListCount - 1) = "Vis: " & "ERR(0x" & Hex(bytCmd) & ")"
+                blnErrors = True
+              Else
+                .List(.ListCount - 1) = "Vis: " & LoadResString(COLORNAME + bytCmd)
+              End If
+
+              'move pointer
+              lngPos = lngPos + 1
+              If lngPos > lngEnd Then
+                'end of picture data found
+                Exit Do
+              End If
+              'get next command
+              bytCmd = bytData(lngPos)
+
+            Case &HF2  'Change color and enable priority draw.
+              lngPos = lngPos + 1
+              If lngPos > lngEnd Then
+                'error - no color value and end of picture
+                'data found; probably bad picture resource data
+                .List(.ListCount - 1) = "Pri: ERR --no data--"
+                blnErrors = True
+                Exit Do
+              End If
+
+              'get color
+              bytCmd = bytData(lngPos)
+              'RARE, but check for color out of bounds
+              If bytCmd > 15 Then
+                .List(.ListCount - 1) = "Pri: " & "ERR(0x" & Hex(bytCmd) & ")"
+                blnErrors = True
+              Else
+                .List(.ListCount - 1) = "Pri: " & LoadResString(COLORNAME + bytCmd)
+              End If
+
+              'move pointer
+              lngPos = lngPos + 1
+              If lngPos > lngEnd Then
+                'end of picture data found
+                Exit Do
+              End If
+              'get next command
+              bytCmd = bytData(lngPos)
+
+            Case &HF1, &HF3 'Disable draw.
+              'move pointer
+              lngPos = lngPos + 1
+              If lngPos > lngEnd Then
+                'end of picture data found
+                Exit Do
+              End If
+              'get next command
+              bytCmd = bytData(lngPos)
+
+            Case &HF4, &HF5, &HF6, &HF7, &HF8, &HFA
+              Do
+                'read in data until another command is found or unti
+                'end is reached (which is not ideal)
+                lngPos = lngPos + 1
+                If lngPos > lngEnd Then
+                  Exit Do
+                End If
+                bytCmd = bytData(lngPos)
+              Loop Until bytCmd >= &HF0
+
+            Case &HF9 'Change pen size and style.
+              'get pen size and style
+              lngPos = lngPos + 1
+              If lngPos > lngEnd Then
+                'end of picture data found
+                .List(.ListCount - 1) = "Set Pen:  ERR --no data--"
+                Exit Do
+              End If
+              bytX = bytData(lngPos)
+              If (bytX And &H20) / &H20 = 0 Then
+                strBrush = "Solid "
+                blnSplat = False
+              Else
+                strBrush = "Splatter "
+                blnSplat = True
+              End If
+              If (bytX And &H10) / &H10 = 0 Then
+                strBrush = strBrush & "Circle "
+              Else
+                strBrush = strBrush & "Rectangle "
+              End If
+              strBrush = strBrush & CStr(bytX And &H7)
+
+              .List(.ListCount - 1) = "Set Pen: " & strBrush
+              'get next command
+              lngPos = lngPos + 1
+              If lngPos > lngEnd Then
+                'end of picture data found
+                Exit Do
+              End If
+              bytCmd = bytData(lngPos)
+
+            Case Else
+              'it's an invalid (ignored command)
+              'get next command
+              lngPos = lngPos + 1
+              If lngPos > lngEnd Then
+                'end of picture data found
+                Exit Do
+              End If
+              bytCmd = bytData(lngPos)
+            End Select
+          Loop Until lngPos > lngEnd
+        End With
+
+        'if end cmd not found, need to add it (and let user know)
+        If bytCmd <> &HFF Then
+          'add missing end
+          PicEdit.Resource.InsertData &HFF
+          'add 'end' node to list
+          lstCommands.AddItem LoadResString(DRAWFUNCTIONTEXT + 11)
+          lstCommands.ItemData(lstCommands.ListCount - 1) = lngPos
+          'mark as dirty
+          MarkAsDirty
+          'restore cursor
+          Screen.MousePointer = vbDefault
+          MsgBoxEx "Picture is missing end-of-resource marker; marker has been added and picture" & vbNewLine & "loaded, but picture data may be corrupt.", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Missing End Command in Picture", WinAGIHelp, "htm\agi\pictures.htm#ff"
+        End If
+
+        'if any bad commands or colors encountered
+        If blnErrors Then
+          'restore cursor
+          Screen.MousePointer = vbDefault
+          MsgBoxEx "One or more invalid commands and/or colors encountered; they are marked with 'ERR'." & vbNewLine & "This picture data may be corrupt.", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Anomaly Found in Load Picture", WinAGIHelp, "htm\winagi\Picture_Editor.htm#picerrors"
+        End If
+
+        'select end cmd, and update listbox
+        SelectCmd lstCommands.ListCount - 1, NoUpdate
+        LoadCmdList = True
+
+      Exit Function
+
+      ErrHandler:
+        '*'Debug.Assert False
+        'some other error- let calling method deal with it
+        LoadCmdList = True
+      End Function
+
+      Public Sub MenuClickDelete()
+        'delete a coordinate or command
+
+        Dim NewStyle As EPlotStyle, lngStartPos As Long
+        Dim i As Long, NextUndo As PictureUndo
+        Dim bytData() As Byte, blnSetPen As Boolean
+        Dim lngCount As Long
+
+        'if on the root,
+        If lstCommands.ListIndex = -1 Then
+          'exit sub
+          Exit Sub
+        End If
+
+        'if on a command, (i.e. no coord is selected)
+        If lstCoords.ListIndex = -1 Then
+          '(can't delete END)
+          '*'Debug.Assert lstCommands.ListIndex <> lstCommands.ListCount - 1
+
+          'if more than one cmd selected
+          If lstCommands.SelCount > 1 Then
+            'check for 'set pen' cmd
+            For i = 0 To lstCommands.SelCount - 1
+              If Left$(lstCommands.List(SelectedCmd - i), 3) = "Set" Then
+                blnSetPen = True
+                Exit For
+              End If
+            Next i
+
+            If blnSetPen Then
+              'determine new pen style to apply from this point
+              'start at first cmd above the top selected cmd
+              i = SelectedCmd - lstCommands.SelCount
+              Do Until i < 0
+                'if this command is a set command
+                If Left$(lstCommands.List(i), 3) = "Set" Then
+                  'get pen status
+                  NewStyle = IIf(InStr(lstCommands.List(i), "Solid"), psSolid, psSplatter)
+                  Exit Do
+                End If
+                'get previous cmd
+                i = i - 1
+              Loop
+              If NewStyle <> CurrentPen.PlotStyle Then
+                'adjust plot pattern starting with next command after the one being deleted
+                '(this must be done BEFORE the resource is modified, otherwise the undo
+                'feature won't work correctly)
+                ReadjustPlotCoordinates SelectedCmd + 1, NewStyle
+              End If
+            End If
+
+            'save position of first command that is selected
+            lngStartPos = lstCommands.ItemData(SelectedCmd - lstCommands.SelCount + 1)
+
+            If Settings.PicUndo <> 0 Then
+              'create undo object
+              Set NextUndo = New PictureUndo
+              NextUndo.UDAction = udpDelCmd
+              'save position of first command that is selected
+              NextUndo.UDPicPos = lngStartPos
+              'save cmd location and Count of commands
+              NextUndo.UDCmdIndex = SelectedCmd
+              NextUndo.UDCoordIndex = lstCommands.SelCount
+              NextUndo.UDCmd = "Command"
+              'copy data from picedit to undo array
+              lngCount = lstCommands.ItemData(SelectedCmd + 1) - NextUndo.UDPicPos
+              ReDim bytData(lngCount - 1)
+              For i = 0 To lngCount - 1
+                bytData(i) = PicEdit.Resource.Data(i + NextUndo.UDPicPos)
+              Next i
+              NextUndo.UDData = bytData
+              'add to undo
+              AddUndo NextUndo
+            End If
+
+            'delete data from array
+      '''      PicEdit.Resource.RemoveData NextUndo.UDPicPos, lstCommands.ItemData(SelectedCmd + 1) - NextUndo.UDPicPos
+            PicEdit.Resource.RemoveData lngStartPos, lstCommands.ItemData(SelectedCmd + 1) - lngStartPos
+
+            'delete the command box entries
+            For i = SelectedCmd To SelectedCmd - lstCommands.SelCount + 1 Step -1
+              lstCommands.RemoveItem i
+            Next i
+
+            'update remaining items (i+1 points to the cmd where updating needs to start)
+            UpdatePosValues i + 1, -lngCount
+
+            'select the cmd that is just after the deleted items
+            SelectCmd i + 1, False
+
+          Else
+            'if command being deleted is a 'set pen' command
+            If Left$(lstCommands.Text, 3) = "Set" Then
+              'determine new pen style to apply from this point
+              i = SelectedCmd - 1
+              Do Until i < 0
+                'if this command is a set command
+                If Left$(lstCommands.List(i), 3) = "Set" Then
+                  'get pen status
+                  NewStyle = IIf(InStr(lstCommands.List(i), "Solid"), psSolid, psSplatter)
+                  Exit Do
+                End If
+                'get previous cmd
+                i = i - 1
+              Loop
+              If NewStyle <> CurrentPen.PlotStyle Then
+                'adjust plot pattern starting with next command after the one being deleted
+                ReadjustPlotCoordinates SelectedCmd + 1, NewStyle
+              End If
+            End If
+
+            'delete command
+            DeleteCommand SelectedCmd
+          End If
+        Else
+          'fill, plot and absolute lines allow deleting of individual coordinates
+          'only last coordinate of other commands can be deleted
+          Select Case lstCommands.Text
+          Case "Abs Line", "Fill", "Plot"
+            DeleteCoordinate lstCoords.ListIndex
+            If lstCoords.ListCount <> 0 Then
+              lstCoords_Click
+            End If
+
+          Case Else
+            If lstCoords.ListIndex = lstCoords.ListCount - 1 Then
+              DeleteCoordinate lstCoords.ListIndex
+              If lstCoords.ListCount <> 0 Then
+                lstCoords_Click
+              End If
+            End If
+          End Select
+        End If
+      End Sub
+
+      Public Sub MenuClickOpen()
+        'implemented by frmMDIMain
+
+      End Sub
+            */
+        }
+        public void MenuClickSave() {
+            /*
   'save this picture
   
   Dim rtn As VbMsgBoxResult
@@ -5214,7 +5203,7 @@ Public Sub MenuClickSave()
     End If
     
     'update preview
-    UpdateSelection rtPicture, PicNumber, umPreview
+    UpdateSelection AGIResType.Picture, PicNumber, umPreview
   
     'if autoexporting,
     If Settings.AutoExport Then
@@ -5257,12 +5246,16 @@ ErrHandler:
   '*'Debug.Assert False
   Resume Next
 End Sub
+*/
+        }
 
+        public void picfrmcode() {
+            /*
 Public Sub MenuClickPrint()
 
   'show picture printing form
   Load frmPrint
-  frmPrint.SetMode rtPicture, PicEdit, , InGame
+  frmPrint.SetMode AGIResType.Picture, PicEdit, , InGame
   frmPrint.Show vbModal, frmMDIMain
 End Sub
 
@@ -5461,7 +5454,7 @@ Public Sub MenuClickInGame()
     
     'show add resource form
     With frmGetResourceNum
-      .ResType = rtPicture
+      .ResType = AGIResType.Picture
       .WindowFunction = grAddInGame
       'setup before loading so ghosts don't show up
       .FormSetup
@@ -5519,7 +5512,7 @@ Public Sub MenuClickRenumber()
   End If
   
   'get new number
-  NewResNum = RenumberResource(PicNumber, rtPicture)
+  NewResNum = RenumberResource(PicNumber, AGIResType.Picture)
   
   'if changed
   If NewResNum <> PicNumber Then
@@ -6188,7 +6181,7 @@ Private Sub UpdateStatusBar()
   On Error GoTo ErrHandler
   
   ' if this form is not active, just exit
-  If Not frmMDIMain.ActiveForm Is Me Then
+  If Not frmMDIMain.ActiveMdiChild Is Me Then
     Exit Sub
   End If
     
@@ -6248,7 +6241,7 @@ ErrHandler:
   If Err.Number = 35601 And Not blnErrFix Then
     'force update and retry
     blnErrFix = True
-    AdjustMenus rtPicture, InGame, True, IsDirty
+    AdjustMenus AGIResType.Picture, InGame, True, IsDirty
     Resume
   End If
 End Sub
@@ -6559,7 +6552,7 @@ Private Sub UpdatePanels(ByVal SplitLocH As Single, ByVal SplitLocV As Single)
   On Error GoTo ErrHandler
   
   'if minimized, OR not the active form,
-  If (Me.WindowState = vbMinimized) Or (Not frmMDIMain.ActiveForm Is Me) And Me.Visible Then
+  If (Me.WindowState = vbMinimized) Or (Not frmMDIMain.ActiveMdiChild Is Me) And Me.Visible Then
     'just exit
     Exit Sub
   End If
@@ -6833,7 +6826,7 @@ Private Sub Form_Activate()
   End If
   
   'show picture menus, and enable editing
-  AdjustMenus rtPicture, InGame, True, IsDirty
+  AdjustMenus AGIResType.Picture, InGame, True, IsDirty
   
   'set edit menu
   SetEditMenu
@@ -7474,7 +7467,7 @@ Private Sub lstCommands_MouseDown(Button As Integer, Shift As Integer, X As Sing
     'reset edit menu first
     SetEditMenu
     'make sure this form is the active form
-    If Not (frmMDIMain.ActiveForm Is Me) Then
+    If Not (frmMDIMain.ActiveMdiChild Is Me) Then
       'set focus before showing the menu
       Me.SetFocus
     End If
@@ -7903,7 +7896,7 @@ Private Sub lstCoords_MouseDown(Button As Integer, Shift As Integer, X As Single
     'reset edit menu first
     SetEditMenu
     'make sure this form is the active form
-    If Not (frmMDIMain.ActiveForm Is Me) Then
+    If Not (frmMDIMain.ActiveMdiChild Is Me) Then
       'set focus before showing the menu
       Me.SetFocus
     End If
@@ -7936,7 +7929,7 @@ Private Sub picPriSurface_MouseMove(Button As Integer, Shift As Integer, X As Si
   Dim tmpX As Single, tmpY As Single
   
   'if not active form
-  If Not frmMDIMain.ActiveForm Is Me Then
+  If Not frmMDIMain.ActiveMdiChild Is Me Then
     Exit Sub
   End If
   
@@ -8021,7 +8014,7 @@ Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y A
     'reset edit menu first
     SetEditMenu
     'make sure this form is the active form
-    If Not (frmMDIMain.ActiveForm Is Me) Then
+    If Not (frmMDIMain.ActiveMdiChild Is Me) Then
       'set focus before showing the menu
       Me.SetFocus
     End If
@@ -9627,7 +9620,7 @@ Private Sub picPriSurface_MouseDown(Button As Integer, Shift As Integer, X As Si
     'reset edit menu first
     SetEditMenu
     'make sure this form is the active form
-    If Not (frmMDIMain.ActiveForm Is Me) Then
+    If Not (frmMDIMain.ActiveMdiChild Is Me) Then
       'set focus before showing the menu
       Me.SetFocus
     End If
@@ -9814,7 +9807,7 @@ Private Sub picVisSurface_MouseDown(Button As Integer, Shift As Integer, X As Si
     'reset edit menu first
     SetEditMenu
     'make sure this form is the active form
-    If Not (frmMDIMain.ActiveForm Is Me) Then
+    If Not (frmMDIMain.ActiveMdiChild Is Me) Then
       'set focus before showing the menu
       Me.SetFocus
     End If
@@ -9838,7 +9831,7 @@ Private Sub picVisSurface_MouseMove(Button As Integer, Shift As Integer, X As Si
   Dim tmpX As Single, tmpY As Single
   
   'if not active form
-  If Not frmMDIMain.ActiveForm Is Me Then
+  If Not frmMDIMain.ActiveMdiChild Is Me Then
     Exit Sub
   End If
   
@@ -9928,7 +9921,7 @@ Private Sub picVisual_MouseDown(Button As Integer, Shift As Integer, X As Single
       'reset edit menu first
       SetEditMenu
       'make sure this form is the active form
-      If Not (frmMDIMain.ActiveForm Is Me) Then
+      If Not (frmMDIMain.ActiveMdiChild Is Me) Then
         'set focus before showing the menu
         Me.SetFocus
       End If
@@ -10190,8 +10183,8 @@ Private Sub picVisual_MouseDown(Button As Integer, Shift As Integer, X As Single
       ShowCmdSelection
       ' verify status bar is correctly set
       With MainStatusBar
-        If .Tag <> CStr(rtPicture) Then
-          AdjustMenus rtPicture, Me.InGame, True, Me.IsDirty
+        If .Tag <> CStr(AGIResType.Picture) Then
+          AdjustMenus AGIResType.Picture, Me.InGame, True, Me.IsDirty
         End If
         .Panels("Anchor").Visible = False
         .Panels("Block").Visible = False
@@ -10231,7 +10224,7 @@ Private Sub picVisual_MouseMove(Button As Integer, Shift As Integer, X As Single
   On Error GoTo ErrHandler
 
   'if this form is not active
-  If Not frmMDIMain.ActiveForm Is Me Then
+  If Not frmMDIMain.ActiveMdiChild Is Me Then
     Exit Sub
   End If
   
@@ -10537,11 +10530,11 @@ Private Sub picVisual_MouseMove(Button As Integer, Shift As Integer, X As Single
   'in some cases, the main form's status bar and menus
   'can get out of synch- so we test for that, and resynch
   'if necessary
-  If MainStatusBar.Tag <> CStr(rtPicture) Then
-    AdjustMenus rtPicture, InGame, True, IsDirty
+  If MainStatusBar.Tag <> CStr(AGIResType.Picture) Then
+    AdjustMenus AGIResType.Picture, InGame, True, IsDirty
   End If
 
-  '*'Debug.Assert frmMDIMain.ActiveForm Is Me
+  '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
 
   'when moving mouse, we always need to reset the status bar
   With MainStatusBar
@@ -10874,10 +10867,10 @@ Private Sub AddCelToPic(ByVal NewX As Byte, ByVal NewY As Byte)
   'if status bar is showing object info
   If StatusSrc And PicMode = pmTest Then
     ' update status bar ONLY if this editor is active
-    If frmMDIMain.ActiveForm Is Me Then
+    If frmMDIMain.ActiveMdiChild Is Me Then
       With MainStatusBar
-        If .Tag <> CStr(rtPicture) Then
-          AdjustMenus rtPicture, InGame, True, IsDirty
+        If .Tag <> CStr(AGIResType.Picture) Then
+          AdjustMenus AGIResType.Picture, InGame, True, IsDirty
         End If
         'use test object position
         .Panels("CurX").Text = "vX: " & CStr(OldCel.X)
@@ -11218,7 +11211,7 @@ Private Sub tmrTest_Timer()
   Else
     'if testdir is anything but stopped, clear the panel
     If TestDir <> odStopped Then
-      If frmMDIMain.ActiveForm Is Me Then
+      If frmMDIMain.ActiveMdiChild Is Me Then
         MainStatusBar.Panels("Tool").Text = vbNullString
       End If
     End If
@@ -11598,10 +11591,10 @@ Private Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
     
   End Select
   
-  '*'Debug.Assert MainStatusBar.Tag = rtPicture
-  If MainStatusBar.Tag <> rtPicture Then
+  '*'Debug.Assert MainStatusBar.Tag = AGIResType.Picture
+  If MainStatusBar.Tag <> AGIResType.Picture Then
     'show picture menus, and enable editing
-    AdjustMenus rtPicture, InGame, True, IsDirty
+    AdjustMenus AGIResType.Picture, InGame, True, IsDirty
   End If
   
   'show/hide anchor and block status panels
@@ -11770,6 +11763,6 @@ End Sub
 
 
       */
+        }
     }
-  } 
 }

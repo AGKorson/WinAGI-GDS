@@ -19,6 +19,7 @@ namespace WinAGI.Editor {
         public Encoding NewCodePage;
         public string DisplayDir;
         public bool UseSierraSyntax;
+        public string StartTab = "";
         public string StartProp = "";
 
         public frmGameProperties(GameSettingFunction mode) {
@@ -288,6 +289,24 @@ namespace WinAGI.Editor {
             }
             this.DialogResult = DialogResult.OK;
             this.Hide();
+        }
+
+        private void optNone_CheckedChanged(object sender, EventArgs e) {
+            if (optNone.Checked) {
+                // clear all platform properties
+                lblPlatformFile.Enabled = false;
+                btnPlatformFile.Enabled = false;
+                txtPlatformFile.Enabled = false;
+                txtPlatformFile.Text = "";
+                lblOptions.Enabled = false;
+                lblOptions.Text = "";
+                lblExec.Enabled = false;
+                txtExec.Enabled = false;
+                txtExec.Text = "";
+                NewPlatformFile = "";
+                // enable ok if an ID and directory have been chosen
+                btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            }
         }
 
         private void optDosBox_CheckedChanged(object sender, EventArgs e) {
@@ -670,11 +689,20 @@ namespace WinAGI.Editor {
 
         private void frmGameProperties_VisibleChanged(object sender, EventArgs e) {
             if (Visible) {
+                if (StartTab.Length > 0) {
+                    try {
+                        tabControl1.SelectedTab = tabControl1.TabPages[StartTab];
+                    }
+                    catch {
+                        // ignore errors
+                        Debug.Assert(false);
+                    }
+                }
                 if (StartProp.Length > 0) {
                     try {
                         tabControl1.SelectedTab.Controls[StartProp].Select();
                     }
-                    catch (Exception ex) {
+                    catch {
                         // ignore errors
                         Debug.Assert(false);
                     }
@@ -686,6 +714,15 @@ namespace WinAGI.Editor {
             string strTopic = @"htm\winagi\Properties.htm" + (string)((Control)sender).Tag;
             Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
             hlpevent.Handled = true;
+        }
+
+        private void txtPlatformFile_TextChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtPlatformFile_Validating(object sender, CancelEventArgs e) {
+            NewPlatformFile = txtPlatformFile.Text;
         }
 
         /*

@@ -73,6 +73,7 @@
             cmdHelp.TabIndex = 4;
             cmdHelp.Text = "Help";
             cmdHelp.UseVisualStyleBackColor = true;
+            cmdHelp.Visible = false;
             cmdHelp.Click += cmdHelp_Click;
             // 
             // Check1

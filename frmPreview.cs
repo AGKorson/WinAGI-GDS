@@ -1006,20 +1006,10 @@ namespace WinAGI.Editor {
         }
 
         private void frmPreview_KeyDown(object sender, KeyEventArgs e) {
-            Keys KeyCode = e.KeyCode;
-
-            //check for global shortcut keys
-            CheckShortcuts(e);
-
-            // if handled as a shortcut, exit
-            if (e.Handled) {
-                return;
-            }
-
             // check keys based on SHIFT/CTRL/ALT status:
             if (!e.Shift && !e.Control && !e.Alt) {
                 //none (no SHIFT, CTRL, ALT)
-                switch (KeyCode) {
+                switch (e.KeyCode) {
                 case Keys.Delete:
                     //if a resource is selected
                     if (SelResType == AGIResType.Logic ||
@@ -1042,7 +1032,7 @@ namespace WinAGI.Editor {
             }
             else if (e.Shift && e.Control & !e.Alt) {
                 // SHIFT + CTRL
-                switch (KeyCode) {
+                switch (e.KeyCode) {
                 case Keys.S: //Shift+Ctrl+S//
                     if (SelResType == AGIResType.Picture) {
                         //save Image as ...
@@ -1053,7 +1043,7 @@ namespace WinAGI.Editor {
                 }
             }
             else if (!e.Shift && e.Control && !e.Alt) {
-                switch (KeyCode) {
+                switch (e.KeyCode) {
                 case Keys.F: //Ctrl+F (Find)
                     if (SelResType == AGIResType.Logic ||
                           SelResType == AGIResType.Picture ||

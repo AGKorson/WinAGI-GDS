@@ -1,4 +1,18 @@
-﻿namespace WinAGI.Engine {
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using static WinAGI.Common.Base;
+using static WinAGI.Engine.LogicDecoder;
+using static WinAGI.Engine.ArgTypeEnum;
+using static WinAGI.Engine.Base;
+using static WinAGI.Engine.Commands;
+using static WinAGI.Engine.DefineNameCheck;
+using static WinAGI.Engine.DefineValueCheck;
+using static WinAGI.Engine.LogicErrorLevel;
+using System.Diagnostics;
+
+namespace WinAGI.Engine {
     public partial class AGIGame {
         #region Classes
         /// <summary>
@@ -71,11 +85,20 @@
         /// <param name="ResNum"></param>
         /// <param name="CompileInfo"></param>
         /// <returns></returns>
-        internal static bool OnCompileGameStatus(ECStatus cStatus, TWinAGIEventInfo CompileInfo) {
+        internal static void OnCompileGameStatus(ECStatus cStatus, TWinAGIEventInfo CompileInfo, ref bool Cancel) {
             // Raise the event in a thread-safe manner using the ?. operator.
             CompileGameEventArgs e = new(cStatus, CompileInfo);
             CompileGameStatus?.Invoke(null, e);
-            return e.Cancel;
+            // check for cancel
+            if (e.Cancel) {
+                Cancel = true;
+            }
+        }
+
+        internal static void OnCompileGameStatus(ECStatus cStatus, TWinAGIEventInfo CompileInfo) {
+            // use a throwaway for cancel check
+            bool _ = false;
+            OnCompileGameStatus(cStatus, CompileInfo, ref _);
         }
 
         /// <summary>
@@ -139,11 +162,34 @@
         /// Raises the CompileLogicStatus event. 
         /// </summary>
         /// <param name="CompInfo"></param>
-        internal static void OnCompileLogicStatus(TWinAGIEventInfo CompInfo) {
-            // Raise the event in a thread-safe manner using the ?. operator.
-            CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(CompInfo));
+        internal static bool OnCompileLogicStatus(TWinAGIEventInfo CompInfo) {
+            ECStatus stat;
+            if (CompInfo.Type == EventType.etError) {
+                stat = ECStatus.csLogicError;
+            }
+            else {
+                stat = ECStatus.csWarning;
+            }
+            if (LogicCompiler.compGame is null || !LogicCompiler.compGame.Compiling) {
+                // not compiling a game, must be compiling a single logic
+                // Raise the event in a thread-safe manner using the ?. operator.
+                // TODO: do I need a status parameter here (like gamecompile)?
+                CompileLogicStatus?.Invoke(null, new CompileLogicEventArgs(CompInfo));
+                return true;
+            }
+            // if compiling a game, use that event
+            else {
+                // Raise the event in a thread-safe manner using the ?. operator.
+
+                CompileGameEventArgs e = new(stat, CompInfo);
+                CompileGameStatus?.Invoke(null, e);
+                return e.Cancel;
+            }
         }
 
+        internal static bool OnCompileLogicStatus() {
+            return true;
+        }
         /// <summary>
         /// DecodeLogicStatus event handler delegate.
         /// </summary>

@@ -3531,7 +3531,7 @@ namespace WinAGI.Editor
           Logics(Selection.Number).Save
 
           'update selection
-          UpdateSelection rtLogic, Selection.Number, umProperty
+          UpdateSelection AGIResType.Logic, Selection.Number, umProperty
 
           'if there is a layout file,
           If FileExists(GameDir & GameID & ".wal") Then
@@ -4590,7 +4590,7 @@ namespace WinAGI.Editor
           OpenLogic ErrPt(Selection.Number).FromRoom
 
           'find and highlight the errpt exit
-          With frmMDIMain.ActiveForm.rtfLogic.Selection.Range
+          With frmMDIMain.ActiveMdiChild.rtfLogic.Selection.Range
             .FindText "##" & ErrPt(tmpSel.Number).ExitID & "##"
             .StartOf reLine, True
             .EndOf reLine, True
@@ -4603,7 +4603,7 @@ namespace WinAGI.Editor
           'if editing an exit
           If tmpSel.Type = lsExit Then
             'then find and highlight this exit
-            With frmMDIMain.ActiveForm.rtfLogic
+            With frmMDIMain.ActiveMdiChild.rtfLogic
               On Error Resume Next
               .Range.FindTextRange("##" & tmpSel.ExitID & "##").SelectRange
               .Selection.Range.StartOf reLine, True
@@ -7860,8 +7860,8 @@ namespace WinAGI.Editor
         FileCopy strFileName, GameDir & GameID & ".wal"
 
         'if a logic is being previewed, update selection, in case the logic is changed
-        If SelResType = rtLogic Then
-          UpdateSelection rtLogic, SelResNum, umPreview
+        If SelResType = AGIResType.Logic Then
+          UpdateSelection AGIResType.Logic, SelResNum, umPreview
         End If
 
         'reset dirty flag
@@ -7979,7 +7979,7 @@ namespace WinAGI.Editor
         'use resource number form
         With frmGetResourceNum
           .WindowFunction = grShowRoom
-          .ResType = rtLogic
+          .ResType = AGIResType.Logic
           'setup before loading so ghosts don't show up
           .FormSetup
           If .lstResNum.ListCount > 0 Then
@@ -8006,7 +8006,7 @@ namespace WinAGI.Editor
             DrawLayout True
 
             'update selection
-            UpdateSelection rtLogic, .NewResNum, umProperty
+            UpdateSelection AGIResType.Logic, .NewResNum, umProperty
           End If
         End With
 
@@ -8932,7 +8932,7 @@ namespace WinAGI.Editor
         strDescription = Logics(Selection.Number).Description
 
         'use the id/description change method
-        If GetNewResID(rtLogic, Selection.Number, strID, strDescription, True, 1) Then
+        If GetNewResID(AGIResType.Logic, Selection.Number, strID, strDescription, True, 1) Then
           'redraw layout to reflect changes
           DrawLayout
 
@@ -8942,7 +8942,7 @@ namespace WinAGI.Editor
           'if a matching logic editor is open, it needs to be updated too
           If LogicEditors.Count > 0 Then
             For Each tmpForm In LogicEditors
-              If tmpForm.LogicEdit.Number = Selection.Number Then
+              If tmpForm.EditLogic.Number = Selection.Number Then
                 tmpForm.UpdateID strID, strDescription
                 Exit For
               End If
@@ -9368,7 +9368,7 @@ namespace WinAGI.Editor
           End If
 
           'make sure this form is the active form
-          If Not (frmMDIMain.ActiveForm Is Me) Then
+          If Not (frmMDIMain.ActiveMdiChild Is Me) Then
             'set focus before showing the menu
             Me.SetFocus
           End If
@@ -9887,7 +9887,7 @@ namespace WinAGI.Editor
             'add a new room here
             With frmGetResourceNum
               .WindowFunction = grAddLayout
-              .ResType = rtLogic
+              .ResType = AGIResType.Logic
               '
               .chkIncludePic.Value = AddPicToo
               'setup before loading so ghosts don't show up
@@ -10016,7 +10016,7 @@ namespace WinAGI.Editor
 
 
         'if not active form
-        If Not (frmMDIMain.ActiveForm Is Me) Then
+        If Not (frmMDIMain.ActiveMdiChild Is Me) Then
           Exit Sub
         End If
 

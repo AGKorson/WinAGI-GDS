@@ -434,7 +434,7 @@ namespace WinAGI.Engine {
             if (mResID.Length == 0) {
                 // ID not found; save default ID
                 mResID = resType.ToString() + resNum;
-                parent.WriteGameSetting(mResID, "ID", mResID, resType.ToString());
+                parent.WriteGameSetting(mResID, "ID", mResID, resType.ToString() + "s");
             }
             mDescription = parent.agGameProps.GetSetting(resType.ToString() + resNum, "Description", "");
         }
@@ -757,7 +757,8 @@ namespace WinAGI.Engine {
             FileStream fsExport = null;
             try {
                 // open file for output
-                fsExport = new FileStream(ExportFile, FileMode.Open);
+                //TODO: if existing file is larger than new file, what happens?
+                fsExport = new FileStream(ExportFile, FileMode.OpenOrCreate);
                 // write data
                 fsExport.Write(mData, 0, mData.Length);
             }

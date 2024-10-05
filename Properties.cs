@@ -179,7 +179,7 @@ namespace WinAGI.Editor {
                 // update editor
                 foreach (frmLogicEdit frm in LogicEditors) {
                     if (frm.LogicNumber == SelResNum) {
-                        frm.ThisLogic.IsRoom = value;
+                        frm.EditLogic.IsRoom = value;
                         break;
                     }
                 }
@@ -479,7 +479,7 @@ namespace WinAGI.Editor {
             case "Description":
                 switch (context.Instance.ToString()) {
                 case "WinAGI.Editor.GameProperties":
-                    MDIMain.ShowProperties(false, 1, nameof(frmGameProperties.txtGameDescription));
+                    MDIMain.ShowProperties(false, "Version", nameof(frmGameProperties.txtGameDescription));
                     return EditGame.GameDescription;
 
                 case "WinAGI.Editor.LogicProperties":

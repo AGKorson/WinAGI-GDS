@@ -15,7 +15,7 @@ namespace WinAGI.Editor {
     public partial class frmViewEdit : Form {
         public int ViewNumber;
         readonly double zoom = 4;
-        Engine.View thisView;
+        public Engine.View EditView;
         private int CurLoop = 0;
         private int CurCel = 0;
         internal bool InGame;
@@ -26,19 +26,19 @@ namespace WinAGI.Editor {
 
         private void cmbView_SelectionChangeCommitted(object sender, EventArgs e) {
             // unload current view, and load selected view
-            thisView?.Unload();
+            EditView?.Unload();
 
-            thisView = (Engine.View)cmbView.SelectedItem;
-            thisView.Load();
-            if (thisView.ErrLevel < 0) {
+            EditView = (Engine.View)cmbView.SelectedItem;
+            EditView.Load();
+            if (EditView.ErrLevel < 0) {
                 //ignore error
-                thisView.Unload();
-                thisView = null;
+                EditView.Unload();
+                EditView = null;
             }
             //clear loop list
             cmbLoop.Items.Clear();
             //add loops to the loop box
-            foreach (Loop tmpLoop in thisView.Loops) {
+            foreach (Loop tmpLoop in EditView.Loops) {
                 cmbLoop.Items.Add($"Loop {tmpLoop.Index}");
             }
             //select first loop
@@ -48,8 +48,8 @@ namespace WinAGI.Editor {
         private void checkBox1_CheckedChanged(object sender, EventArgs e) {
             // redraw 
             // set transparency
-            thisView[CurLoop][CurCel].Transparency = chkTrans.Checked;
-            ShowAGIBitmap(picCel, thisView[CurLoop][CurCel].CelBMP, zoom);
+            EditView[CurLoop][CurCel].Transparency = chkTrans.Checked;
+            ShowAGIBitmap(picCel, EditView[CurLoop][CurCel].CelBMP, zoom);
         }
 
         private void frmViewEdit_Load(object sender, EventArgs e) {
@@ -65,7 +65,7 @@ namespace WinAGI.Editor {
             // clear cel list
             cmbCel.Items.Clear();
             // add all cels
-            foreach (Cel tmpCel in thisView[CurLoop].Cels) {
+            foreach (Cel tmpCel in EditView[CurLoop].Cels) {
                 cmbCel.Items.Add($"Cel {tmpCel.Index}");
             }
             // select first cel
@@ -79,21 +79,21 @@ namespace WinAGI.Editor {
             picCel.CreateGraphics().Clear(BackColor);
             picCel.Refresh();
             // set transparency
-            thisView[CurLoop][CurCel].Transparency = chkTrans.Checked;
+            EditView[CurLoop][CurCel].Transparency = chkTrans.Checked;
             // show the cel
-            ShowAGIBitmap(picCel, thisView[CurLoop][CurCel].CelBMP, zoom);
+            ShowAGIBitmap(picCel, EditView[CurLoop][CurCel].CelBMP, zoom);
         }
 
         private void timer1_Tick(object sender, EventArgs e) {
             // cycle the cel
             CurCel++;
-            if (CurCel >= thisView[CurLoop].Cels.Count) {
+            if (CurCel >= EditView[CurLoop].Cels.Count) {
                 CurCel = 0;
                 // show the cel
             }
             // set transparency
-            thisView[CurLoop][CurCel].Transparency = chkTrans.Checked;
-            ShowAGIBitmap(picCel, thisView[CurLoop][CurCel].CelBMP, zoom);
+            EditView[CurLoop][CurCel].Transparency = chkTrans.Checked;
+            ShowAGIBitmap(picCel, EditView[CurLoop][CurCel].CelBMP, zoom);
         }
 
         private void button1_Click(object sender, EventArgs e) {
@@ -110,10 +110,10 @@ namespace WinAGI.Editor {
 
         private void frmViewEdit_FormClosing(object sender, FormClosingEventArgs e) {
             // make sure view is unloaded
-            thisView?.Unload();
+            EditView?.Unload();
         }
 
-        public bool EditView(Engine.View ThisView) {
+        public bool LoadView(Engine.View ThisView) {
             return true;
             /*
               On Error GoTo ErrHandler
@@ -202,13 +202,13 @@ namespace WinAGI.Editor {
         strID = ViewEdit.ID
         strDescription = ViewEdit.Description
 
-        If GetNewResID(rtView, ViewNumber, strID, strDescription, InGame, FirstProp) Then
+        If GetNewResID(AGIResType.View, ViewNumber, strID, strDescription, InGame, FirstProp) Then
           'save changes
           UpdateID strID, strDescription
         End If
 
         'force menus to update
-        AdjustMenus rtView, InGame, True, IsDirty
+        AdjustMenus AGIResType.View, InGame, True, IsDirty
         'if a loop is selected, enable gif export
         frmMDIMain.mnuRCustom1.Enabled = (ViewMode = vmLoop)
         SetEditMenu
@@ -438,7 +438,7 @@ namespace WinAGI.Editor {
 
         Dim lngMode As Long
 
-        If Not frmMDIMain.ActiveForm Is Me Then
+        If Not frmMDIMain.ActiveMdiChild Is Me Then
           Exit Sub
         End If
 
@@ -1040,8 +1040,11 @@ namespace WinAGI.Editor {
         'implemented by frmMDIMain
 
       End Sub
+            */
+        }
 
-      Public Sub MenuClickSave()
+        public void MenuClickSave() {
+            /*
         'save this resource
 
         Dim rtn As VbMsgBoxResult
@@ -1054,7 +1057,7 @@ namespace WinAGI.Editor {
           'show wait cursor
           WaitCursor
 
-          If SelResType = rtView Then
+          If SelResType = AGIResType.View Then
             If SelResNum <> ViewNumber Then
               '*'Debug.Assert Views(ViewNumber).Loaded = False
             End If
@@ -1070,9 +1073,9 @@ namespace WinAGI.Editor {
           'copy back to edit sound
           ViewEdit.SetView Views(ViewNumber)
           'if this view is selected,
-          If SelResType = rtView And SelResNum = ViewNumber Then
+          If SelResType = AGIResType.View And SelResNum = ViewNumber Then
             'update preview and properties
-            UpdateSelection rtView, ViewNumber, umPreview Or umProperty
+            UpdateSelection AGIResType.View, ViewNumber, umPreview Or umProperty
           Else
             'setview copies loaded status to ingame view resource; need to unload it
             Views(ViewNumber).Unload
@@ -1119,15 +1122,11 @@ namespace WinAGI.Editor {
         '*'Debug.Assert False
         Resume Next
       End Sub
+            */
+        }
 
-      Public Sub MenuClickPrint()
-
-        'show view printing form
-        Load frmPrint
-        frmPrint.SetMode rtView, ViewEdit, , InGame
-        frmPrint.Show vbModal, frmMDIMain
-      End Sub
-
+        void viewfrmcode() {
+            /*
       Public Sub MenuClickExport()
 
         If ExportView(ViewEdit, InGame) Then
@@ -1305,7 +1304,7 @@ namespace WinAGI.Editor {
 
           'show add resource form
           With frmGetResourceNum
-            .ResType = rtView
+            .ResType = AGIResType.View
             .WindowFunction = grAddInGame
             'setup before loading so ghosts don't show up
             .FormSetup
@@ -1367,7 +1366,7 @@ namespace WinAGI.Editor {
         End If
 
         'get new number
-        NewResNum = RenumberResource(ViewNumber, rtView)
+        NewResNum = RenumberResource(ViewNumber, AGIResType.View)
 
         'if changed
         If NewResNum <> ViewNumber Then
@@ -4510,7 +4509,7 @@ namespace WinAGI.Editor {
           ScaleFactor = ScaleFactor + 1
         End If
 
-        '*'Debug.Assert frmMDIMain.ActiveForm Is Me
+        '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
         'update statusbar display
         MainStatusBar.Panels("Scale").Text = "Scale: " & CStr(ScaleFactor)
 
@@ -4619,7 +4618,7 @@ namespace WinAGI.Editor {
 
         blnInGame = InGame
 
-        AdjustMenus rtView, blnInGame, True, IsDirty
+        AdjustMenus AGIResType.View, blnInGame, True, IsDirty
        'force update of statusbar
         MainStatusBar.Panels("Scale").Text = "Scale: " & CStr(ScaleFactor)
         MainStatusBar.Panels("Tool") = LoadResString(VIEWTOOLTYPETEXT + SelectedTool)
@@ -4652,7 +4651,7 @@ namespace WinAGI.Editor {
         On Error GoTo ErrHandler
 
         blnInGame = InGame
-        AdjustMenus rtView, blnInGame, True, IsDirty
+        AdjustMenus AGIResType.View, blnInGame, True, IsDirty
         SetEditMenu
 
       Exit Sub
@@ -4875,7 +4874,7 @@ namespace WinAGI.Editor {
           'adjustments that are made in the form_activate event
           SafeDoEvents
           'make sure this form is the active form
-          If Not (frmMDIMain.ActiveForm Is Me) Then
+          If Not (frmMDIMain.ActiveMdiChild Is Me) Then
             'set focus before showing the menu
             Me.SetFocus
           End If
@@ -5611,7 +5610,7 @@ namespace WinAGI.Editor {
           'refresh edit menu first
           SetEditMenu
           'make sure this form is the active form
-          If Not (frmMDIMain.ActiveForm Is Me) Then
+          If Not (frmMDIMain.ActiveMdiChild Is Me) Then
             'set focus before showing the menu
             Me.SetFocus
           End If
@@ -5636,7 +5635,7 @@ namespace WinAGI.Editor {
         Dim tmpX As Single, tmpY As Single
 
         'if not active form
-        If Not frmMDIMain.ActiveForm Is Me Then
+        If Not frmMDIMain.ActiveMdiChild Is Me Then
           Exit Sub
         End If
 
@@ -5820,7 +5819,7 @@ namespace WinAGI.Editor {
             'reset current operation
             CurrentOperation = opNone
             'make sure this form is the active form
-            If Not (frmMDIMain.ActiveForm Is Me) Then
+            If Not (frmMDIMain.ActiveMdiChild Is Me) Then
               'set focus before showing the menu
               Me.SetFocus
             End If
@@ -5943,7 +5942,7 @@ namespace WinAGI.Editor {
         On Error GoTo ErrHandler:
 
         'if not active form
-        If Not frmMDIMain.ActiveForm Is Me Then
+        If Not frmMDIMain.ActiveMdiChild Is Me Then
           Exit Sub
         End If
 
@@ -5989,7 +5988,7 @@ namespace WinAGI.Editor {
         OldX = ViewX
         OldY = ViewY
 
-        '*'Debug.Assert frmMDIMain.ActiveForm Is Me
+        '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
         'update cursor position
         MainStatusBar.Panels("CurX").Text = "X: " & CStr(ViewX)
         MainStatusBar.Panels("CurY").Text = "Y: " & CStr(ViewY)
@@ -6617,7 +6616,7 @@ namespace WinAGI.Editor {
           picCel.MouseIcon = LoadResPicture("EVC_ERASE" & CStr(ScaleFactor), vbResCursor)
         End Select
 
-        '*'Debug.Assert frmMDIMain.ActiveForm Is Me
+        '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
         MainStatusBar.Panels("Tool") = LoadResString(VIEWTOOLTYPETEXT + SelectedTool)
 
         'if tool is not select
@@ -6698,7 +6697,7 @@ namespace WinAGI.Editor {
             'reset edit menu first
             SetEditMenu
             'make sure this form is the active form
-            If Not (frmMDIMain.ActiveForm Is Me) Then
+            If Not (frmMDIMain.ActiveMdiChild Is Me) Then
               'set focus before showing the menu
               Me.SetFocus
             End If
@@ -6866,7 +6865,7 @@ namespace WinAGI.Editor {
           'reset edit menu first
           SetEditMenu
           'make sure this form is the active form
-          If Not (frmMDIMain.ActiveForm Is Me) Then
+          If Not (frmMDIMain.ActiveMdiChild Is Me) Then
             'set focus before showing the menu
             Me.SetFocus
           End If
@@ -7356,7 +7355,7 @@ namespace WinAGI.Editor {
         On Error GoTo ErrHandler
 
         'if not active form
-        If Not frmMDIMain.ActiveForm Is Me Then
+        If Not frmMDIMain.ActiveMdiChild Is Me Then
           Exit Sub
         End If
 

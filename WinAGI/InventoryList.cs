@@ -338,12 +338,12 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="LoadFile"></param>
         /// <returns>0 = no errors or warnings<br />
+        /// -21 = invalid data, unable to decrypt<br />
+        /// -22 = invalid header, unable to read item data<br />
+        /// -23 = file access error, unable to read file
         /// 1 = no data/empty file<br />
-        /// 2 = invalid data, unable to decrypt<br />
-        /// 4 = invalid header, unable to read item data<br />
-        /// 8 = invalid item pointer<br />
-        /// 16 = first item is not '?'<br />
-        /// 32 = file access error, unable to read file
+        /// 2 = invalid item pointer<br />
+        /// 4 = first item is not '?'<br />
         /// </returns>
         private int LoadSierraFile(string LoadFile) {
             StringBuilder sbItem;
@@ -359,7 +359,7 @@ namespace WinAGI.Engine {
                 fsObj = new(LoadFile, FileMode.Open);
             }
             catch {
-                return 32;
+                return -3;
             }
             mLoaded = true;
 
@@ -382,7 +382,7 @@ namespace WinAGI.Engine {
                 break;
             case 2: 
                 // error in object file
-                return 2;
+                return -1;
             }
             // MSDOS files always have data element widths of 3 bytes;
             // Amigas have four; need to make sure correct value is used
@@ -402,7 +402,7 @@ namespace WinAGI.Engine {
             }
             while (Dwidth <= 4);
             if (Dwidth == 5) {
-                return 4;
+                return -2;
             }
             mMaxScreenObjects = bytData[2];
             intItem = 0;
@@ -414,8 +414,10 @@ namespace WinAGI.Engine {
                 bytRoom = bytData[Dwidth + intItem * Dwidth + 2];
                 lngPos = lngNameOffset;
                 if (lngPos > bytData.Length) {
-                    retval |= 8;
-                    return retval;
+                    retval |= 2;
+                    intItem++;
+                    continue;
+                    //return retval;
                 }
                 // build item name string
                 sbItem = new();
@@ -431,13 +433,13 @@ namespace WinAGI.Engine {
                 // first item IS USUALLY a '?'  , but NOT always
                 // (See MH2 for example!!!!)
                 if (intItem == 0) {
-                    // don't add first item; it is already added
+                    // don't add first item if it's a '?'; it is already added
                     // but it might not be a '?'
                     if (sItem != "?") {
                         // rename first object
                         mItems[0].ItemName = sItem;
                         mItems[0].Room = bytRoom;
-                        retval |= 16;
+                        retval |= 4;
                     }
                 }
                 else {
@@ -608,13 +610,10 @@ namespace WinAGI.Engine {
                 FileStream fsObj = new(strTempFile, FileMode.Open);
                 fsObj.Write(bytTemp, 0, bytTemp.Length);
                 fsObj.Dispose();
-                if (File.Exists(CompileFile)) {
-                    File.Delete(CompileFile);
-                }
-                File.Move(strTempFile, CompileFile);
+                File.Move(strTempFile, CompileFile, true);
             }
             catch (Exception e) {
-                File.Delete(strTempFile);
+                SafeFileDelete(strTempFile);
                 WinAGIException wex = new(LoadResString(674).Replace(ARG1, e.HResult.ToString())) {
                     HResult = WINAGI_ERR + 674,
                 };
@@ -749,12 +748,9 @@ namespace WinAGI.Engine {
             else {
                 theDir = parent.agGameDir;
             }
+            SafeFileDelete(theDir + "OBJECT.amg");
             try {
-                if (File.Exists(theDir + "OBJECT.amg")) {
-                    File.Delete(theDir + "OBJECT.amg");
-                }
-                File.Move(parent.agGameDir + "OBJECT", theDir + "OBJECT.amg");
-                File.Delete(theDir + "OBJECT");
+                File.Move(parent.agGameDir + "OBJECT", theDir + "OBJECT.amg", true);
                 // mark it as dirty, and save it to create a new file in
                 // MSDOS format
                 mIsDirty = true;

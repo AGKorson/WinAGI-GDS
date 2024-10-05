@@ -303,8 +303,8 @@ namespace WinAGI.Engine {
         /// 2 = unexpected end of file<br />
         /// 4 = upper case character in word<br />
         /// 8 = no data/empty file<br />
-        /// 16 = invalid index - can't read file<br />
-        /// 32 = file access error, unable to read file
+        /// -24 = invalid index - can't read file<br />
+        /// -25 = file access error, unable to read file
         /// </returns>
         private int LoadSierraFile(string LoadFile) {
             byte bytHigh, bytLow, bytExt;
@@ -326,7 +326,7 @@ namespace WinAGI.Engine {
             }
             catch {
                 // file access error
-                return 32;
+                return -25;
             }
             // if no data,
             if (fsWords.Length == 0) {
@@ -354,7 +354,7 @@ namespace WinAGI.Engine {
                 }
                 else {
                     // unable to read this file
-                    return 16;
+                    return -24;
                 }
             }
             // for first word, there is no previous word
@@ -600,7 +600,7 @@ namespace WinAGI.Engine {
                 }
                 fsWords.Dispose();
                 // copy tempfile to CompileFile
-                File.Move(strTempFile, CompileFile, true);
+                SafeFileMove(strTempFile, CompileFile, true);
             }
             catch (Exception e) {
                 WinAGIException wex = new(LoadResString(672).Replace(ARG1, e.HResult.ToString()) + ": " + e.Message) {
@@ -648,7 +648,7 @@ namespace WinAGI.Engine {
                     swWords.WriteLine(this[i].WordText + (char)0 + this[i].Group);
                 }
                 swWords.Close();
-                File.Move(strTempFile, CompileFile, true);
+                SafeFileMove(strTempFile, CompileFile, true);
             }
             catch (Exception e) {
                 WinAGIException wex = new(LoadResString(672).Replace(ARG1, e.HResult.ToString()) + ": " + e.Message) {

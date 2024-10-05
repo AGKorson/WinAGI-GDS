@@ -669,6 +669,14 @@ namespace WinAGI.Engine {
             return sReturn;
         }
 
+        public int GetSetting(string Section, string Key, int Default) {
+            return GetSetting(Section, Key, Default, false, false, null);
+        }
+
+        public int GetSetting(string Section, string Key, int Default, Type enumType) {
+            return GetSetting(Section, Key, Default, false, false, enumType);
+        }
+
         /// <summary>
         /// Retrieves a value from the list of type int.
         /// </summary>
@@ -678,7 +686,7 @@ namespace WinAGI.Engine {
         /// <param name="hex"></param>
         /// <param name="DontAdd"></param>
         /// <returns></returns>
-        public int GetSetting(string Section, string Key, int Default = 0, bool hex = false, bool DontAdd = false) {
+        public int GetSetting(string Section, string Key, int Default, bool hex, bool DontAdd, Type enumType) {
             // get the setting value; if it converts to int value, use it;
             // if any kind of error, return the default value
             string strValue = GetSetting(Section, Key, hex ? "0x" + Default.ToString("x8") : Default.ToString(), DontAdd);
@@ -704,13 +712,19 @@ namespace WinAGI.Engine {
                     return Default;
                 }
             }
-            else {
-                if (int.TryParse(strValue, out int iResult)) {
-                    return iResult;
+            else if (int.TryParse(strValue, out int iResult)) {
+                return iResult;
+            }
+            else if (enumType != null) {
+                try {
+                    return (int)Enum.Parse(enumType, strValue, true);
                 }
-                else {
+                catch {
                     return Default;
                 }
+            }
+            else {
+                return Default;
             }
         }
 
@@ -837,7 +851,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Retrieves a value from the list of type Color. Preferred format is '0xrr, 0xgg, 0xbb'
+        /// Retrieves a value from the list of type Color. Preferred format is
+        /// '0xrr, 0xgg, 0xbb'
         /// </summary>
         /// <param name="Section"></param>
         /// <param name="Key"></param>
@@ -845,7 +860,7 @@ namespace WinAGI.Engine {
         /// <param name="DontAdd"></param>
         /// <returns></returns>
         public Color GetSetting(string Section, string Key, Color Default, bool DontAdd = false) {
-            // get the setting value; if it converts to long value, use it;
+            // get the setting value; if it converts to color value, use it;
             // if any kind of error, return the default value
             string strValue = GetSetting(Section, Key, "", DontAdd);
             if (strValue.Length == 0) {
@@ -876,13 +891,24 @@ namespace WinAGI.Engine {
             else {
                 Color retColor = Default;
                 if (Left(strValue, 2).Equals("0x", StringComparison.OrdinalIgnoreCase) || Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
-                    try {
-                        // convert hex integer color value; assume it is '0xaarrggbb' or '&Haarrggbb';
-                        // we can't just convert it to a number and then translate it;
-                        // the translator expects colors to be in '0xaabbggrr' format
-                        // also, we ignore the alpha; all colors are returned with only
-                        // rgb components set; the alpha channel is always left to default
+                    // convert hex integer color value; assume it is '0xaarrggbb' or '&Haabbggrr';
+                    // **************************************************************
+                    // * in VB colors are four byte:                                *
+                    // *         xxbbggrr                                           *
+                    // * colors in VB versions of WinAGI are stored as '&Haabbggrr' *
+                    // **************************************************************
 
+                    // the translator expects colors to be in '0xaabbggrr' format so
+                    // we can't just translate because the '0x' version is reversed
+                    // from the &H version...
+                    // also, we ignore the alpha; all colors are returned with only
+                    // rgb components set; the alpha channel is always left to default
+                    try {
+                        bool flipit = false;
+                        if (Left(strValue, 2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
+                            strValue = "0x" + strValue[2..];
+                            flipit = true;
+                        }
                         // assign to int number
                         int iColor = Convert.ToInt32(strValue, 16);
                         // parse it into rgb components
@@ -890,7 +916,12 @@ namespace WinAGI.Engine {
                         b = iColor % 0x100;
                         g = (iColor >> 8) % 0x100;
                         r = (iColor >> 16) % 0x100;
-                        retColor = Color.FromArgb(r, g, b);
+                        if (flipit) {
+                            retColor = Color.FromArgb(b, g, r);
+                        }
+                        else {
+                            retColor = Color.FromArgb(r, g, b);
+                        }
                     }
                     catch (Exception) {
                         // keep default

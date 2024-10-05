@@ -383,25 +383,6 @@ namespace WinAGI.Editor {
       Option Explicit
 
 
-        tmpView As AGIView, tmpLogic As AGILogic
-        tmpSound As AGISound, tmpPicture As AGIPicture
-        tmpCol As Collection
-        tmpRes As Object
-
-
-      public Sub Activate()
-        'bridge method to call the form's Activate event method
-        Form_Activate
-      End Sub
-
-      Private Sub cmdCancel_Click()
-
-        'user canceled
-        Canceled = True
-
-        Me.Hide
-      End Sub
-
       Private Sub cmdDont_Click()
 
         'not canceled, but not importing
@@ -417,107 +398,6 @@ namespace WinAGI.Editor {
          WriteSetting GameSettings, sGENERAL, "OpenNew", (chkOpenRes.Value = vbChecked)
 
         Me.Hide
-      End Sub
-
-      Private Sub Form_Activate()
-
-      '''  'set focus to resnum list
-      '''  lstResNum.SetFocus
-      End Sub
-
-      Private Sub Form_Deactivate()
-
-        'make sure all objects are de-referenced, otherwise
-        'form will not unload! it'll just sit there and fester
-
-        'and when the load event is called, it doesn't load,
-        'it just references the festering version with all
-        'it's crapped up settings and things...
-
-
-        Set tmpView = Nothing
-        Set tmpLogic = Nothing
-        Set tmpSound = Nothing
-        Set tmpPicture = Nothing
-        Set tmpCol = Nothing
-        Set tmpRes = Nothing
-      End Sub
-
-
-      Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
-
-        'check for help key
-        If Shift = 0 And KeyCode = vbKeyF1 Then
-          HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Managing Resources.htm#resnum"
-          KeyCode = 0
-        End If
-      End Sub
-
-
-      Private Sub lstResNum_Click()
-
-        'enable ok button
-        cmdOK.Enabled = True
-
-        'if adding or importing a new resource
-        Select Case WindowFunction
-        Case grAddLayout, grAddNew, grAddInGame, grImport
-      '  If (WindowFunction = grAddLayout Or WindowFunction = grAddNew Or WindowFunction = grImport) Then
-          'if format is restype and resnum (i.e., "Logic0") OR is blank
-          If LenB(txtID.Text) = 0 Or (Left$(txtID.Text, Len(ResTypeName(ResType))) = ResTypeName(ResType)) Then
-            'update id box
-            txtID.Text = ResTypeName(ResType) & lstResNum.Text
-          End If
-
-          'if adding a room (logic, with matching pic) check for existing pic
-          If WindowFunction = grAddLayout Or ((WindowFunction = grAddNew Or WindowFunction = grImport) And ResType = rtLogic) Then
-
-            'if this pic number exists,
-            If Pictures.Exists(CByte(lstResNum.Text)) Then
-              'change checkbox text
-              Me.chkIncludePic.Caption = "Replace existing Picture"
-            Else
-              chkIncludePic.Caption = "Create matching Picture"
-            End If
-          End If
-
-          'never allow adding pic for room 0!
-          If lstResNum.Text = "0" Then
-            chkIncludePic.Enabled = False
-            chkIncludePic.Value = vbUnchecked
-            chkRoom.Enabled = False
-            chkRoom.Value = vbUnchecked
-          Else
-            chkIncludePic.Enabled = True
-            chkRoom.Enabled = (WindowFunction <> grAddLayout)
-          End If
-        End Select
-      End Sub
-
-      Private Sub lstResNum_DblClick()
-        'same as clicking OK
-        cmdOK_Click
-
-      End Sub
-
-      Private Sub txtID_Change()
-
-        'enable ok only if id is Not null AND a valid number is selected
-        cmdOK.Enabled = LenB(txtID.Text) <> 0 And lstResNum.ListIndex <> -1
-      End Sub
-
-
-      Private Sub txtID_KeyPress(KeyAscii As Integer)
-
-        'some characters not allowed:
-
-      'NOT OK  x!"   &'()*+,- /          :;<=>?                           [\]^ `                          {|}~x
-      '    OK     #$%        . 0123456789      @ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz    
-
-        Select Case KeyAscii
-        Case 32 To 34, 38 To 45, 47, 58 To 63, 91 To 94, 96, Is >= 123
-          KeyAscii = 0
-        End Select
       End Sub
             */
         }

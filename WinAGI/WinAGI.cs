@@ -121,7 +121,6 @@ namespace WinAGI.Engine {
         csCompileComplete,
         csWarning,
         csResError,
-        csLogicCompiled,
         csLogicError,
         csFatalError,
         csCanceled
@@ -150,7 +149,8 @@ namespace WinAGI.Engine {
         atActionCmd = 11,   // action command synonym
         atTestCmd = 12,     // test command synonym
         atObj = 13,         // dual object type for Sierra syntax
-        atView = 14         // view type is number, only in Sierra syntax
+        atView = 14,        // view type is number, only in Sierra syntax
+        atNone = 15,        // used when a non-valid value is needed
         // if using Sierra syntax, only valid types are:
         //   atNum, atVar, atFlag, atDefStr[msg only], atVocWrd,
         //   atActionCmd, atTestCmd, atObj, atView
@@ -213,21 +213,33 @@ namespace WinAGI.Engine {
     public enum EventType {
         etInfo,
         etError,
-        etWarning,
+        etResWarning,
+        etCompWarning,
+        etDecompWarning,
         etTODO
     }
 
     public enum EInfoType {
-        //used to update editor during a game load
+        //used to update editor during a game load or compile
         itInitialize,
         itValidating,     //add check for dirty source code
         itPropertyFile,
+        itClearWarnings,
         itResources,
+        itCheckLogic,
+        itCompiling,      // compiling a logic during game compilation
+        itCompiled,       // logic is successfully compiled
         itDecompiling,    // decompiling logics during an import
         itCheckCRC,       // checking CRCs during load
         itFinalizing,
         itDone            // pass-back value indicating all is well
     };
+
+    public enum CompStatus {
+        OK,
+        Canceled,
+        Error,
+    }
 
     #endregion
 
@@ -384,7 +396,7 @@ namespace WinAGI.Engine {
         private static void InitWinAGI() {
             // TEMP CHECK - verify the string resource file is still working correctly
             try {
-                Debug.Print(LoadResString(505));
+                Debug.Assert(LoadResString(505) == "Invalid resource location (%1) in %2.");
             }
             catch (Exception e) {
                 Debug.Assert(false);

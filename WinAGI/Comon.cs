@@ -457,6 +457,28 @@ namespace WinAGI.Common {
             }
         }
 
+        public static void SafeFileDelete(string path) {
+            try {
+                File.Delete(path);
+            }
+            catch {
+                // ignore errors
+            }
+        }
+
+        public static void SafeFileMove(string oldpath, string newpath, bool overwrite) {
+            // caller should confirm oldpath exists, but check again just in case
+            if (!File.Exists(oldpath)) {
+                return;
+            }
+            try {
+                File.Move(oldpath, newpath, overwrite);
+            }
+            catch {
+                // ignore errors
+            }
+        }
+
         /// <summary>
         /// This method extracts 'TODO' entries from the specified logic and returns them
         /// in a list of WinAGI event info objects.
@@ -553,7 +575,7 @@ namespace WinAGI.Common {
                                 ResNum = LogicNum,
                                 ResType = AGIResType.Logic,
                                 Text = strDCWarn[6..],
-                                Type = EventType.etWarning
+                                Type = EventType.etDecompWarning
                             };
                             retval.Add(tmpInfo);
                         }

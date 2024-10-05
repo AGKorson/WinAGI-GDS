@@ -41,8 +41,8 @@ namespace WinAGI.Engine {
         /// <param name="ResNum"></param>
         /// <param name="NewLogic"></param>
         internal Logic(AGIGame parent, byte ResNum, Logic NewLogic = null) : base(AGIResType.Logic) {
-            InitLogic(NewLogic);
             base.InitInGame(parent, ResNum);
+            InitLogic(NewLogic);
             if (ResNum == 0) {
                 // make sure isroom flag is false
                 mIsRoom = false;
@@ -88,11 +88,7 @@ namespace WinAGI.Engine {
                 string oldID = base.ID;
                 base.ID = value;
                 if (mInGame && oldID != null && oldID.Length > 0) {
-                    try {
-                        File.Move(parent.agResDir + oldID + parent.agSrcFileExt, parent.agResDir + base.ID + parent.agSrcFileExt);
-                    }
-                    catch {
-                    }
+                    SafeFileMove(parent.agResDir + oldID + parent.agSrcFileExt, parent.agResDir + base.ID + parent.agSrcFileExt, true);
                 }
             }
         }
@@ -208,6 +204,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public bool Compiled {
             get {
+                // TODO: should SrcErrLevel be included?
                 return mInGame && mCRC == mCompiledCRC;
             }
         }
@@ -316,9 +313,7 @@ namespace WinAGI.Engine {
         private void InitLogic(Logic NewLogic = null) {
             if (NewLogic is null) {
                 // set default resource data by clearing
-                mLoaded = true;
                 Clear();
-                mLoaded = false;
                 // to avoid having compile property read true if both values are 0,
                 // set compiledCRC to -1 on initialization
                 CompiledCRC = 0xffffffff;
@@ -571,7 +566,7 @@ namespace WinAGI.Engine {
                 if (Decompile) {
                     SaveSource();
                     mCompiledCRC = tmpCRC;
-                    parent.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
+                    parent.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"), "Logics");
                 }
             }
             else {
@@ -641,25 +636,25 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             try {
-                tmpInfo = CompileLogic(this);
-                // set dirty flag (forces save to work correctly)
-                mIsDirty = true;
-                base.Save();
+                if (CompileLogic(this)) {
+                    // set dirty flag (forces save to work correctly)
+                    mIsDirty = true;
+                    base.Save();
+                }
+                else {
+                    // force uncompiled state
+                    mCompiledCRC = 0xffffffff;
+                    // TODO: should this be 'parent' instead of 'compGame'?
+                    compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"), "Logics");
+                }
             }
             catch (Exception) {
                 // force uncompiled state
                 mCompiledCRC = 0xffffffff;
                 // TODO: should this be 'parent' instead of 'compGame'?
-                compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
+                compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"), "Logics");
                 // pass it along
                 throw;
-            }
-            // if check for compiler error (ignore warnings)
-            if (tmpInfo.Type == EventType.etError) {
-                // force uncompiled state
-                mCompiledCRC = 0xffffffff;
-                // TODO: should this be 'parent' instead of 'compGame'?
-                compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
             }
         }
 

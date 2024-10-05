@@ -27,7 +27,7 @@
             btnOK = new System.Windows.Forms.Button();
             btnCancel = new System.Windows.Forms.Button();
             tabControl1 = new System.Windows.Forms.TabControl();
-            tabPage1 = new System.Windows.Forms.TabPage();
+            General = new System.Windows.Forms.TabPage();
             btnGameDir = new System.Windows.Forms.Button();
             chkUseLE = new System.Windows.Forms.CheckBox();
             chkUseReserved = new System.Windows.Forms.CheckBox();
@@ -41,7 +41,7 @@
             label2 = new System.Windows.Forms.Label();
             txtGameID = new System.Windows.Forms.TextBox();
             label1 = new System.Windows.Forms.Label();
-            tabPage2 = new System.Windows.Forms.TabPage();
+            Version = new System.Windows.Forms.TabPage();
             txtGameVersion = new System.Windows.Forms.TextBox();
             txtGameAbout = new System.Windows.Forms.TextBox();
             txtGameDescription = new System.Windows.Forms.TextBox();
@@ -50,30 +50,31 @@
             label8 = new System.Windows.Forms.Label();
             label7 = new System.Windows.Forms.Label();
             label6 = new System.Windows.Forms.Label();
-            tabPage3 = new System.Windows.Forms.TabPage();
+            Platform = new System.Windows.Forms.TabPage();
             btnPlatformFile = new System.Windows.Forms.Button();
             txtOptions = new System.Windows.Forms.TextBox();
             txtPlatformFile = new System.Windows.Forms.TextBox();
             lblOptions = new System.Windows.Forms.Label();
             lblPlatformFile = new System.Windows.Forms.Label();
             groupBox1 = new System.Windows.Forms.GroupBox();
+            optNone = new System.Windows.Forms.RadioButton();
             txtExec = new System.Windows.Forms.TextBox();
             lblExec = new System.Windows.Forms.Label();
             optOther = new System.Windows.Forms.RadioButton();
             optNAGI = new System.Windows.Forms.RadioButton();
             optScummVM = new System.Windows.Forms.RadioButton();
             optDosBox = new System.Windows.Forms.RadioButton();
-            tabPage4 = new System.Windows.Forms.TabPage();
+            Advanced = new System.Windows.Forms.TabPage();
             chkSierraSyntax = new System.Windows.Forms.CheckBox();
             cmbCodePage = new System.Windows.Forms.ComboBox();
             lblSierraSyntax = new System.Windows.Forms.Label();
             lblCodePage = new System.Windows.Forms.Label();
             tabControl1.SuspendLayout();
-            tabPage1.SuspendLayout();
-            tabPage2.SuspendLayout();
-            tabPage3.SuspendLayout();
+            General.SuspendLayout();
+            Version.SuspendLayout();
+            Platform.SuspendLayout();
             groupBox1.SuspendLayout();
-            tabPage4.SuspendLayout();
+            Advanced.SuspendLayout();
             SuspendLayout();
             // 
             // btnOK
@@ -100,38 +101,38 @@
             // tabControl1
             // 
             tabControl1.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            tabControl1.Controls.Add(tabPage1);
-            tabControl1.Controls.Add(tabPage2);
-            tabControl1.Controls.Add(tabPage3);
-            tabControl1.Controls.Add(tabPage4);
+            tabControl1.Controls.Add(General);
+            tabControl1.Controls.Add(Version);
+            tabControl1.Controls.Add(Platform);
+            tabControl1.Controls.Add(Advanced);
             tabControl1.Location = new System.Drawing.Point(4, 4);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
             tabControl1.Size = new System.Drawing.Size(398, 372);
             tabControl1.TabIndex = 0;
             // 
-            // tabPage1
+            // General
             // 
-            tabPage1.Controls.Add(btnGameDir);
-            tabPage1.Controls.Add(chkUseLE);
-            tabPage1.Controls.Add(chkUseReserved);
-            tabPage1.Controls.Add(txtSrcExt);
-            tabPage1.Controls.Add(txtResDir);
-            tabPage1.Controls.Add(label5);
-            tabPage1.Controls.Add(label4);
-            tabPage1.Controls.Add(txtGameDir);
-            tabPage1.Controls.Add(label3);
-            tabPage1.Controls.Add(cmbVersion);
-            tabPage1.Controls.Add(label2);
-            tabPage1.Controls.Add(txtGameID);
-            tabPage1.Controls.Add(label1);
-            tabPage1.Location = new System.Drawing.Point(4, 24);
-            tabPage1.Name = "tabPage1";
-            tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            tabPage1.Size = new System.Drawing.Size(390, 344);
-            tabPage1.TabIndex = 0;
-            tabPage1.Text = "General";
-            tabPage1.UseVisualStyleBackColor = true;
+            General.Controls.Add(btnGameDir);
+            General.Controls.Add(chkUseLE);
+            General.Controls.Add(chkUseReserved);
+            General.Controls.Add(txtSrcExt);
+            General.Controls.Add(txtResDir);
+            General.Controls.Add(label5);
+            General.Controls.Add(label4);
+            General.Controls.Add(txtGameDir);
+            General.Controls.Add(label3);
+            General.Controls.Add(cmbVersion);
+            General.Controls.Add(label2);
+            General.Controls.Add(txtGameID);
+            General.Controls.Add(label1);
+            General.Location = new System.Drawing.Point(4, 24);
+            General.Name = "General";
+            General.Padding = new System.Windows.Forms.Padding(3);
+            General.Size = new System.Drawing.Size(390, 344);
+            General.TabIndex = 0;
+            General.Text = "General";
+            General.UseVisualStyleBackColor = true;
             // 
             // btnGameDir
             // 
@@ -275,23 +276,23 @@
             label1.TabIndex = 0;
             label1.Text = "GameID:";
             // 
-            // tabPage2
+            // Version
             // 
-            tabPage2.Controls.Add(txtGameVersion);
-            tabPage2.Controls.Add(txtGameAbout);
-            tabPage2.Controls.Add(txtGameDescription);
-            tabPage2.Controls.Add(txtGameAuthor);
-            tabPage2.Controls.Add(label9);
-            tabPage2.Controls.Add(label8);
-            tabPage2.Controls.Add(label7);
-            tabPage2.Controls.Add(label6);
-            tabPage2.Location = new System.Drawing.Point(4, 24);
-            tabPage2.Name = "tabPage2";
-            tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            tabPage2.Size = new System.Drawing.Size(390, 344);
-            tabPage2.TabIndex = 1;
-            tabPage2.Text = "Version";
-            tabPage2.UseVisualStyleBackColor = true;
+            Version.Controls.Add(txtGameVersion);
+            Version.Controls.Add(txtGameAbout);
+            Version.Controls.Add(txtGameDescription);
+            Version.Controls.Add(txtGameAuthor);
+            Version.Controls.Add(label9);
+            Version.Controls.Add(label8);
+            Version.Controls.Add(label7);
+            Version.Controls.Add(label6);
+            Version.Location = new System.Drawing.Point(4, 24);
+            Version.Name = "Version";
+            Version.Padding = new System.Windows.Forms.Padding(3);
+            Version.Size = new System.Drawing.Size(390, 344);
+            Version.TabIndex = 1;
+            Version.Text = "Version";
+            Version.UseVisualStyleBackColor = true;
             // 
             // txtGameVersion
             // 
@@ -379,26 +380,26 @@
             label6.TabIndex = 0;
             label6.Text = "Author";
             // 
-            // tabPage3
+            // Platform
             // 
-            tabPage3.Controls.Add(btnPlatformFile);
-            tabPage3.Controls.Add(txtOptions);
-            tabPage3.Controls.Add(txtPlatformFile);
-            tabPage3.Controls.Add(lblOptions);
-            tabPage3.Controls.Add(lblPlatformFile);
-            tabPage3.Controls.Add(groupBox1);
-            tabPage3.Location = new System.Drawing.Point(4, 24);
-            tabPage3.Name = "tabPage3";
-            tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            tabPage3.Size = new System.Drawing.Size(390, 344);
-            tabPage3.TabIndex = 2;
-            tabPage3.Text = "Platform";
-            tabPage3.UseVisualStyleBackColor = true;
+            Platform.Controls.Add(btnPlatformFile);
+            Platform.Controls.Add(txtOptions);
+            Platform.Controls.Add(txtPlatformFile);
+            Platform.Controls.Add(lblOptions);
+            Platform.Controls.Add(lblPlatformFile);
+            Platform.Controls.Add(groupBox1);
+            Platform.Location = new System.Drawing.Point(4, 24);
+            Platform.Name = "Platform";
+            Platform.Padding = new System.Windows.Forms.Padding(3);
+            Platform.Size = new System.Drawing.Size(390, 344);
+            Platform.TabIndex = 2;
+            Platform.Text = "Platform";
+            Platform.UseVisualStyleBackColor = true;
             // 
             // btnPlatformFile
             // 
             btnPlatformFile.Enabled = false;
-            btnPlatformFile.Location = new System.Drawing.Point(345, 229);
+            btnPlatformFile.Location = new System.Drawing.Point(345, 241);
             btnPlatformFile.Name = "btnPlatformFile";
             btnPlatformFile.Size = new System.Drawing.Size(26, 23);
             btnPlatformFile.TabIndex = 3;
@@ -410,7 +411,8 @@
             // 
             // txtOptions
             // 
-            txtOptions.Location = new System.Drawing.Point(19, 291);
+            txtOptions.Enabled = false;
+            txtOptions.Location = new System.Drawing.Point(19, 303);
             txtOptions.Name = "txtOptions";
             txtOptions.Size = new System.Drawing.Size(352, 23);
             txtOptions.TabIndex = 5;
@@ -421,19 +423,22 @@
             // 
             // txtPlatformFile
             // 
-            txtPlatformFile.Location = new System.Drawing.Point(14, 229);
+            txtPlatformFile.Enabled = false;
+            txtPlatformFile.Location = new System.Drawing.Point(14, 241);
             txtPlatformFile.Name = "txtPlatformFile";
             txtPlatformFile.Size = new System.Drawing.Size(357, 23);
             txtPlatformFile.TabIndex = 2;
             txtPlatformFile.Tag = "#executable";
+            txtPlatformFile.TextChanged += txtPlatformFile_TextChanged;
             txtPlatformFile.HelpRequested += frmGameProperties_HelpRequested;
             txtPlatformFile.DoubleClick += txtPlatformFile_DoubleClick;
             txtPlatformFile.KeyPress += txtPlatformFile_KeyPress;
+            txtPlatformFile.Validating += txtPlatformFile_Validating;
             // 
             // lblOptions
             // 
             lblOptions.AutoSize = true;
-            lblOptions.Location = new System.Drawing.Point(19, 273);
+            lblOptions.Location = new System.Drawing.Point(19, 285);
             lblOptions.Name = "lblOptions";
             lblOptions.Size = new System.Drawing.Size(187, 15);
             lblOptions.TabIndex = 4;
@@ -442,7 +447,7 @@
             // lblPlatformFile
             // 
             lblPlatformFile.AutoSize = true;
-            lblPlatformFile.Location = new System.Drawing.Point(19, 211);
+            lblPlatformFile.Location = new System.Drawing.Point(19, 223);
             lblPlatformFile.Name = "lblPlatformFile";
             lblPlatformFile.Size = new System.Drawing.Size(113, 15);
             lblPlatformFile.TabIndex = 1;
@@ -450,6 +455,7 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(optNone);
             groupBox1.Controls.Add(txtExec);
             groupBox1.Controls.Add(lblExec);
             groupBox1.Controls.Add(optOther);
@@ -458,14 +464,27 @@
             groupBox1.Controls.Add(optDosBox);
             groupBox1.Location = new System.Drawing.Point(19, 17);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new System.Drawing.Size(352, 170);
+            groupBox1.Size = new System.Drawing.Size(352, 190);
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "Platform";
             // 
+            // optNone
+            // 
+            optNone.AutoSize = true;
+            optNone.Location = new System.Drawing.Point(16, 20);
+            optNone.Name = "optNone";
+            optNone.Size = new System.Drawing.Size(54, 19);
+            optNone.TabIndex = 0;
+            optNone.TabStop = true;
+            optNone.Tag = "#executable";
+            optNone.Text = "None";
+            optNone.UseVisualStyleBackColor = true;
+            optNone.CheckedChanged += optNone_CheckedChanged;
+            // 
             // txtExec
             // 
-            txtExec.Location = new System.Drawing.Point(129, 43);
+            txtExec.Location = new System.Drawing.Point(129, 71);
             txtExec.Name = "txtExec";
             txtExec.Size = new System.Drawing.Size(89, 23);
             txtExec.TabIndex = 3;
@@ -477,7 +496,7 @@
             // lblExec
             // 
             lblExec.AutoSize = true;
-            lblExec.Location = new System.Drawing.Point(34, 45);
+            lblExec.Location = new System.Drawing.Point(34, 73);
             lblExec.Name = "lblExec";
             lblExec.Size = new System.Drawing.Size(90, 15);
             lblExec.TabIndex = 2;
@@ -486,7 +505,7 @@
             // optOther
             // 
             optOther.AutoSize = true;
-            optOther.Location = new System.Drawing.Point(16, 132);
+            optOther.Location = new System.Drawing.Point(16, 160);
             optOther.Name = "optOther";
             optOther.Size = new System.Drawing.Size(55, 19);
             optOther.TabIndex = 6;
@@ -500,7 +519,7 @@
             // optNAGI
             // 
             optNAGI.AutoSize = true;
-            optNAGI.Location = new System.Drawing.Point(16, 103);
+            optNAGI.Location = new System.Drawing.Point(16, 131);
             optNAGI.Name = "optNAGI";
             optNAGI.Size = new System.Drawing.Size(53, 19);
             optNAGI.TabIndex = 5;
@@ -514,7 +533,7 @@
             // optScummVM
             // 
             optScummVM.AutoSize = true;
-            optScummVM.Location = new System.Drawing.Point(16, 74);
+            optScummVM.Location = new System.Drawing.Point(16, 102);
             optScummVM.Name = "optScummVM";
             optScummVM.Size = new System.Drawing.Size(84, 19);
             optScummVM.TabIndex = 4;
@@ -528,7 +547,7 @@
             // optDosBox
             // 
             optDosBox.AutoSize = true;
-            optDosBox.Location = new System.Drawing.Point(16, 21);
+            optDosBox.Location = new System.Drawing.Point(16, 49);
             optDosBox.Name = "optDosBox";
             optDosBox.Size = new System.Drawing.Size(68, 19);
             optDosBox.TabIndex = 1;
@@ -539,19 +558,19 @@
             optDosBox.CheckedChanged += optDosBox_CheckedChanged;
             optDosBox.HelpRequested += frmGameProperties_HelpRequested;
             // 
-            // tabPage4
+            // Advanced
             // 
-            tabPage4.Controls.Add(chkSierraSyntax);
-            tabPage4.Controls.Add(cmbCodePage);
-            tabPage4.Controls.Add(lblSierraSyntax);
-            tabPage4.Controls.Add(lblCodePage);
-            tabPage4.Location = new System.Drawing.Point(4, 24);
-            tabPage4.Name = "tabPage4";
-            tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            tabPage4.Size = new System.Drawing.Size(390, 344);
-            tabPage4.TabIndex = 3;
-            tabPage4.Text = "Advanced";
-            tabPage4.UseVisualStyleBackColor = true;
+            Advanced.Controls.Add(chkSierraSyntax);
+            Advanced.Controls.Add(cmbCodePage);
+            Advanced.Controls.Add(lblSierraSyntax);
+            Advanced.Controls.Add(lblCodePage);
+            Advanced.Location = new System.Drawing.Point(4, 24);
+            Advanced.Name = "Advanced";
+            Advanced.Padding = new System.Windows.Forms.Padding(3);
+            Advanced.Size = new System.Drawing.Size(390, 344);
+            Advanced.TabIndex = 3;
+            Advanced.Text = "Advanced";
+            Advanced.UseVisualStyleBackColor = true;
             // 
             // chkSierraSyntax
             // 
@@ -611,25 +630,25 @@
             Load += frmGameProperties_Load;
             VisibleChanged += frmGameProperties_VisibleChanged;
             tabControl1.ResumeLayout(false);
-            tabPage1.ResumeLayout(false);
-            tabPage1.PerformLayout();
-            tabPage2.ResumeLayout(false);
-            tabPage2.PerformLayout();
-            tabPage3.ResumeLayout(false);
-            tabPage3.PerformLayout();
+            General.ResumeLayout(false);
+            General.PerformLayout();
+            Version.ResumeLayout(false);
+            Version.PerformLayout();
+            Platform.ResumeLayout(false);
+            Platform.PerformLayout();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
-            tabPage4.ResumeLayout(false);
-            tabPage4.PerformLayout();
+            Advanced.ResumeLayout(false);
+            Advanced.PerformLayout();
             ResumeLayout(false);
         }
 
         #endregion
         private System.Windows.Forms.Button btnCancel;
-        private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.TabPage General;
+        private System.Windows.Forms.TabPage Version;
+        private System.Windows.Forms.TabPage Platform;
+        private System.Windows.Forms.TabPage Advanced;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label5;
@@ -671,5 +690,6 @@
         internal System.Windows.Forms.Button btnGameDir;
         internal System.Windows.Forms.Button btnOK;
         internal System.Windows.Forms.TabControl tabControl1;
+        internal System.Windows.Forms.RadioButton optNone;
     }
 }

@@ -95,7 +95,7 @@ namespace WinAGI.Engine {
                     throw new ArgumentException("unallowable characters");
                 }
                 mSourceFileExt = value.ToLower();
-                parent.WriteGameSetting("General", "SourceFileExt", mSourceFileExt);
+                parent.WriteGameSetting("General", "SourceFileExt", mSourceFileExt, "Logics");
             }
         }
         #endregion
@@ -215,26 +215,24 @@ namespace WinAGI.Engine {
             parent.agGameProps.DeleteSection("Logic" + OldLogic);
             Col.Remove(OldLogic);
             VOLManager.UpdateDirFile(tmpLogic, true);
-            // adjust ID if it is default
+            // adjust ID if it is default (will automatically rename source file)
             if (tmpLogic.ID.ToLower() == "logic" + OldLogic) {
                 strID = strBaseID = tmpLogic.ID[..5] + NewLogic;
                 while (NotUniqueID(strID, parent)) {
                     strID = strBaseID + "_" + intNextNum;
                     intNextNum++;
                 }
-                // move source file to match new ID
-                try {
-                    // get rid of existing file with same name as new logic
-                    File.Delete(parent.agResDir + strID + parent.agSrcFileExt);
-                    File.Move(parent.agResDir + tmpLogic.ID + parent.agSrcFileExt, parent.agResDir + strID + parent.agSrcFileExt);
-                }
-                catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(670)) {
-                        HResult = WINAGI_ERR + 670,
-                    };
-                    wex.Data["exception"] = e;
-                    throw wex;
-                }
+                //// move source file to match new ID
+                //try {
+                //    File.Move(parent.agResDir + tmpLogic.ID + parent.agSrcFileExt, parent.agResDir + strID + parent.agSrcFileExt, true);
+                //}
+                //catch (Exception e) {
+                //    WinAGIException wex = new(LoadResString(670)) {
+                //        HResult = WINAGI_ERR + 670,
+                //    };
+                //    wex.Data["exception"] = e;
+                //    throw wex;
+                //}
                 tmpLogic.ID = strID;
             }
             // add it back with new number

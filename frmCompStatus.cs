@@ -12,27 +12,27 @@ using static WinAGI.Editor.Base;
 namespace WinAGI.Editor
 {
     public partial class frmCompStatus : Form {
-        int WindowFunction;
+        CompileMode WindowFunction;
         internal bool CompCanceled = false;
         internal int Warnings = 0;
         internal int Errors = 0;
 
-        public frmCompStatus(int mode) {
+        public frmCompStatus(CompileMode mode) {
             InitializeComponent();
             switch (mode) {
-            case 0:
+            case CompileMode.Full:
                 // full compile
                 Text = "Compile Game";
                 lblStatus.Text = "Compiling game...";
                 pgbStatus.Maximum = 3 + EditGame.Logics.Count + EditGame.Pictures.Count + EditGame.Views.Count + EditGame.Sounds.Count;
                 break;
-            case 1:
+            case CompileMode.RebuildOnly:
                 // rebuild vol only
                 Text = "Rebuild VOL Files";
                 lblStatus.Text = "Rebuilding VOL files...";
                 pgbStatus.Maximum = 1 + EditGame.Logics.Count + EditGame.Pictures.Count + EditGame.Views.Count + EditGame.Sounds.Count;
                 break;
-            case 2:
+            case CompileMode.DirtyLogics:
                 // dirty logics only
                 Text = "Compile Dirty Logics";
                 lblStatus.Text = "Compiling Logics";

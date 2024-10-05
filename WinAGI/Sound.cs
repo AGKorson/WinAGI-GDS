@@ -646,9 +646,7 @@ namespace WinAGI.Engine {
                 if (!mOutputSet) {
                     BuildSoundOutput();
                 }
-                if (File.Exists(MIDIFile)) {
-                    File.Delete(MIDIFile);
-                }
+                SafeFileDelete(MIDIFile);
                 FileStream fsSnd = new(MIDIFile, FileMode.Open);
                 fsSnd.Write(midiPlayer.mMIDIData);
                 fsSnd.Dispose();
@@ -687,10 +685,7 @@ namespace WinAGI.Engine {
                 if (!mOutputSet) {
                     BuildSoundOutput();
                 }
-                if (File.Exists(WAVFile)) {
-                    File.Delete(WAVFile);
-                }
-
+                SafeFileDelete(WAVFile);
                 if (mFormat == SoundFormat.sfAGI) {
                     // get size from the wav stream
                     lngSize = wavData.Length;
@@ -811,9 +806,7 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             try {
-                if (File.Exists(ExportFile)) {
-                    File.Delete(ExportFile);
-                }
+                SafeFileDelete(ExportFile);
                 // creat script file
                 FileStream fsSnd = new(ExportFile, FileMode.Open);
                 StreamWriter swSnd = new(fsSnd);

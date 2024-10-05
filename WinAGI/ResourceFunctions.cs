@@ -1,7 +1,10 @@
 ﻿using System;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.IO;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
+using static WinAGI.Engine.AGIGame;
 
 namespace WinAGI.Engine {
     public static partial class Base {
@@ -35,7 +38,7 @@ namespace WinAGI.Engine {
             };
             game.LoadEventStatus(mode, warnInfo);
             // set up for warnings
-            warnInfo.Type = EventType.etWarning;
+            warnInfo.Type = EventType.etResWarning;
 
             if (game.agIsVersion3) {
                 // check for DIR file
@@ -220,7 +223,7 @@ namespace WinAGI.Engine {
                         warnInfo.Line = "--";
                         warnInfo.Module = "--";
                         game.LoadEventStatus(mode, warnInfo);
-                        warnInfo.Type = EventType.etWarning;
+                        warnInfo.Type = EventType.etResWarning;
                         // get location data for this resource
                         byte1 = bytBuffer[lngDirOffset + bytResNum * 3];
                         byte2 = bytBuffer[lngDirOffset + bytResNum * 3 + 1];
@@ -308,8 +311,33 @@ namespace WinAGI.Engine {
         /// <param name="errlevel"></param>
         /// <param name="errdata"></param>
         internal static void AddLoadWarning(OpenGameMode mode, AGIGame game, AGIResType resType, byte resNum, int errlevel, string[] errdata) {
+            if (errlevel != 0) {
+                List<TWinAGIEventInfo> errCol = ErrorByNum(resType, resNum, errlevel, errdata);
+                foreach (TWinAGIEventInfo warning in errCol) {
+                    game.LoadEventStatus(mode, warning);
+                }
+            }
+        }
+
+        internal static void AddCompileWarning(AGIResType resType, byte resNum, int errlevel, string[] errdata) {
+            if (errlevel != 0) {
+                List<TWinAGIEventInfo> errCol = ErrorByNum(resType, resNum, errlevel, errdata);
+                foreach (TWinAGIEventInfo warning in errCol) {
+                    ECStatus errstat;
+                    if (warning.Type == EventType.etError) {
+                        errstat = ECStatus.csResError;
+                    }
+                    else {
+                        errstat = ECStatus.csWarning;
+                    }
+                    OnCompileGameStatus(errstat, warning);
+                }
+            }
+        }
+
+        private static List<TWinAGIEventInfo> ErrorByNum(AGIResType resType, byte resNum, int errlevel, string[] errdata) {
+            List<TWinAGIEventInfo> retval = new();
             TWinAGIEventInfo warnInfo = new() {
-                Type = EventType.etWarning,
                 ResType = resType,
                 ResNum = resNum,
                 ID = "",
@@ -318,256 +346,268 @@ namespace WinAGI.Engine {
                 Line = "--"
             };
 
-
-            // check for negative error values
             if (errlevel < 0) {
+                warnInfo.Type = EventType.etError;
                 switch (errlevel) {
                 case -1:
                     // error 606: Can't load resource: file not found (%1)
-                    warnInfo.ID = "VW01";
+                    warnInfo.ID = "VE01";
                     warnInfo.Text = $"{resType} {resNum} is in a VOL file ({Path.GetFileName(errdata[0])}) that does not exist";
                     warnInfo.Module = errdata[1];
                     break;
                 case -2:
                     // error 700: file (%1) is readonly
-                    warnInfo.ID = "VW02";
+                    warnInfo.ID = "VE02";
                     warnInfo.Text = $"{resType} {resNum} is in a VOL file ({Path.GetFileName(errdata[0])}) marked readonly";
                     warnInfo.Module = errdata[1];
                     break;
                 case -3:
                     // error 502: Error %1 occurred while trying to access %2.
-                    warnInfo.ID = "VW03";
+                    warnInfo.ID = "VE03";
                     warnInfo.Text = $"{resType} {resNum} is invalid due to file access error ({errdata[0]})";
                     warnInfo.Module = errdata[1];
                     break;
                 case -4:
                     // error 505: Invalid resource location (%1) in %2.
-                    warnInfo.ID = "VW04";
+                    warnInfo.ID = "VE04";
                     warnInfo.Text = $"{resType} {resNum} has an invalid location ({errdata[0]}) in volume file {errdata[2]}";
                     warnInfo.Module = errdata[3];
                     break;
                 case -5:
                     // 506: invalid header
-                    warnInfo.ID = "RW01";
+                    warnInfo.ID = "RE01";
                     warnInfo.Text = $"{resType} {resNum} has an invalid resource header at location {errdata[0]} in {errdata[2]}";
                     warnInfo.Module = errdata[3];
                     break;
                 case -6:
                     // 704: sourcefile missing
-                    warnInfo.ID = "RW02";
+                    warnInfo.ID = "RE02";
                     warnInfo.Text = $"Logic {resNum} source file is missing ({errdata[0]})";
                     warnInfo.Module = errdata[1];
                     break;
                 case -7:
                     // 700: sourcefile is readonly
-                    warnInfo.ID = "RW03";
+                    warnInfo.ID = "RE03";
                     warnInfo.Text = $"Logic {resNum} source file is marked readonly ({errdata[0]})";
                     warnInfo.Module = errdata[1];
                     break;
                 case -8:
                     // 502: Error %1 occurred while trying to access logic source file(%2).
-                    warnInfo.ID = "RW04";
+                    warnInfo.ID = "RE04";
                     warnInfo.Text = $"Logic {resNum} is invalid due to file access error ({errdata[0]})";
                     warnInfo.Module = errdata[1];
                     break;
                 case -9:
                     // error 688: Error %1 occurred while decompiling message section.
-                    warnInfo.ID = "RW05";
+                    warnInfo.ID = "RE05";
                     warnInfo.Text = $"Logic {resNum} is invalid due to error in message section ({errdata[0]})";
                     warnInfo.Module = errdata[1];
                     break;
                 case -10:
                     // error 688: Error %1 occurred while decompiling labels.
-                    warnInfo.ID = "RW06";
+                    warnInfo.ID = "RE06";
                     warnInfo.Text = $"Logic {resNum} is invalid due to error in label search ({errdata[0]})";
                     warnInfo.Module = errdata[1];
                     break;
                 case -11:
                     // error 688: Error %1 occurred while decompiling if block.
-                    warnInfo.ID = "RW07";
+                    warnInfo.ID = "RE07";
                     warnInfo.Text = $"Logic {resNum} is invalid due to error in if block section ({errdata[0]})";
                     warnInfo.Module = errdata[1];
                     break;
                 case -12:
                     // error 688: Error %1 occurred while decompiling - invalid message.
-                    warnInfo.ID = "RW08";
+                    warnInfo.ID = "RE08";
                     warnInfo.Text = $"Logic {resNum} is invalid due to invalid message value ({errdata[0]})";
                     warnInfo.Module = errdata[1];
                     break;
                 case -13:
                     // error 598: invalid sound data
-                    warnInfo.ID = "RW09";
+                    warnInfo.ID = "RE09";
                     warnInfo.Text = $"Invalid sound data format, unable to load tracks";
                     warnInfo.Module = errdata[0];
                     break;
                 case -14:
                     // error 565: sound invalid data error
-                    warnInfo.ID = "RW10";
+                    warnInfo.ID = "RE10";
                     warnInfo.Text = $"Error encountered in LoadTracks ({errdata[1]})";
                     warnInfo.Module = errdata[0];
                     break;
                 case -15:
                     // error 595: invalid view data
-                    warnInfo.ID = "RW11";
+                    warnInfo.ID = "RE11";
                     warnInfo.Text = $"Invalid view data, unable to load view";
                     warnInfo.Module = errdata[0];
                     break;
                 case -16:
                     // error 548: invalid loop pointer
-                    warnInfo.ID = "RW12";
+                    warnInfo.ID = "RE12";
                     warnInfo.Text = $"Invalid loop data pointer detected (loop {errdata[1]})";
                     warnInfo.Module = errdata[0];
                     break;
                 case -17:
                     // error 539: invalid source loop for mirror/invalid mirror loop number
-                    warnInfo.ID = "RW13";
+                    warnInfo.ID = "RE13";
                     warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} and/or loop {errdata[3]})";
                     warnInfo.Module = errdata[0];
                     break;
                 case -18:
                     // error 550: invalid mirror data, target loop already mirrored
-                    warnInfo.ID = "RW14";
+                    warnInfo.ID = "RE14";
                     warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[3]} already mirrored)";
                     warnInfo.Module = errdata[0];
                     break;
                 case -19:
                     // 551: invalid mirror data, source already a mirror
-                    warnInfo.ID = "RW15";
+                    warnInfo.ID = "RE15";
                     warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} already mirrored)";
                     warnInfo.Module = errdata[0];
                     break;
                 case -20:
                     // 553: invalid cel data pointer
-                    warnInfo.ID = "RW16";
+                    warnInfo.ID = "RE16";
                     warnInfo.Text = $"Invalid cel pointer detected (cel {errdata[2]} of loop {errdata[1]})";
                     warnInfo.Module = errdata[0];
                     break;
+                case -21:
+                    warnInfo.Type = EventType.etError;
+                    warnInfo.ID = "RE17";
+                    warnInfo.Text = "Unable to decrypt OBJECT file";
+                    retval.Add(warnInfo);
+                    break;
+                case -22:
+                    warnInfo.Type = EventType.etError;
+                    warnInfo.ID = "RE18";
+                    warnInfo.Text = "Invalid OBJECT file header, unable to read item data";
+                    retval.Add(warnInfo);
+                    break;
+                case -23:
+                    warnInfo.Type = EventType.etError;
+                    warnInfo.ID = "RE19";
+                    warnInfo.Text = "File access error, unable to read OBJECT file";
+                    retval.Add(warnInfo);
+                    break;
+                case -24:
+                    warnInfo.Type = EventType.etError;
+                    warnInfo.ID = "RE20";
+                    warnInfo.Text = "Invalid index table";
+                    retval.Add(warnInfo);
+                    break;
+                case -25:
+                    warnInfo.Type = EventType.etError;
+                    warnInfo.ID = "RE21";
+                    warnInfo.Text = "File access error, unable to read OBJECT file";
+                    retval.Add(warnInfo);
+                    break;
                 }
-                game.LoadEventStatus(mode, warnInfo);
-                return;
+                retval.Add(warnInfo);
+                return retval;
             }
-            switch (resType) {
-            case AGIResType.Logic:
-                // none
-                break;
-            case AGIResType.Picture:
-                if (errlevel > 0) {
+            else {
+                warnInfo.Type = EventType.etResWarning;
+                switch (resType) {
+                case AGIResType.Logic:
+                    // none- will never occur...
+                    break;
+                case AGIResType.Picture:
                     if ((errlevel & 1) == 1) {
                         // missing EOP marker
-                        warnInfo.ID = "RW17";
+                        warnInfo.ID = "RW01";
                         warnInfo.Text = $"Picture {resNum} is missing its 'end-of-resource' marker and may be corrupt";
                         warnInfo.Module = errdata[0];
-                        game.LoadEventStatus(mode, warnInfo);
+                        retval.Add(warnInfo);
                     }
                     if ((errlevel & 2) == 2) {
                         // bad color
-                        warnInfo.ID = "RW18";
+                        warnInfo.ID = "RW02";
                         warnInfo.Text = $"Picture {resNum} has at least one invalid color assignment - picture may be corrupt";
                         warnInfo.Module = errdata[0];
-                        game.LoadEventStatus(mode, warnInfo);
+                        retval.Add(warnInfo);
                     }
                     if ((errlevel & 4) == 4) {
                         // bad cmd
-                        warnInfo.ID = "RW19";
+                        warnInfo.ID = "RW03";
                         warnInfo.Text = $"Picture {resNum} has at least one invalid command byte - picture may be corrupt";
                         warnInfo.Module = errdata[0];
-                        game.LoadEventStatus(mode, warnInfo);
+                        retval.Add(warnInfo);
                     }
                     if ((errlevel & 8) == 8) {
                         // extra data
-                        warnInfo.ID = "RW20";
+                        warnInfo.ID = "RW04";
                         warnInfo.Text = $"{resType} {resNum} has extra data past the end of resource";
                         warnInfo.Module = errdata[0];
-                        game.LoadEventStatus(mode, warnInfo);
+                        retval.Add(warnInfo);
                     }
                     if ((errlevel & 16) == 16) {
                         // unhandled error
-                        warnInfo.ID = "RW21";
+                        warnInfo.ID = "RW05";
                         warnInfo.Text = $"Unhandled error in Picture {resNum} data- picture may not display correctly ({errlevel})";
                         warnInfo.Module = errdata[0];
-                        game.LoadEventStatus(mode, warnInfo);
+                        retval.Add(warnInfo);
                     }
-
+                    break;
+                case AGIResType.Sound:
+                    warnInfo.ID = "RW06";
+                    warnInfo.Text = $"Sound {resNum} has an invalid track pointer ({errlevel})";
+                    warnInfo.Module = errdata[0];
+                    retval.Add(warnInfo);
+                    break;
+                case AGIResType.View:
+                    warnInfo.ID = "RW07";
+                    warnInfo.Text = $"View {resNum} has an invalid view description pointer";
+                    warnInfo.Module = errdata[0];
+                    retval.Add(warnInfo);
+                    break;
+                case AGIResType.Objects:
+                    warnInfo.Module = "OBJECT";
+                    if ((errlevel & 1) == 1) {
+                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.ID = "RW08";
+                        warnInfo.Text = "OBJECT file has no items";
+                        retval.Add(warnInfo);
+                    }
+                    if ((errlevel & 2) == 2) {
+                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.ID = "RW09";
+                        warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
+                        retval.Add(warnInfo);
+                    }
+                    if ((errlevel & 4) == 4) {
+                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.ID = "RW10";
+                        warnInfo.Text = "First item is not the null '?' item";
+                        retval.Add(warnInfo);
+                    }
+                    break;
+                case AGIResType.Words:
+                    warnInfo.Module = "WORDS.TOK";
+                    if ((errlevel & 1) == 1) {
+                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.ID = "RW11";
+                        warnInfo.Text = "Abnormal index table";
+                        retval.Add(warnInfo);
+                    }
+                    if ((errlevel & 2) == 2) {
+                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.ID = "RW12";
+                        warnInfo.Text = "Unexpected end of file";
+                        retval.Add(warnInfo);
+                    }
+                    if ((errlevel & 4) == 4) {
+                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.ID = "RW13";
+                        warnInfo.Text = "Upper case characters detected";
+                        retval.Add(warnInfo);
+                    }
+                    if ((errlevel & 8) == 8) {
+                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.ID = "RW14";
+                        warnInfo.Text = "Empty WORDS.TOK file";
+                        retval.Add(warnInfo);
+                    }
+                    break;
                 }
-                break;
-            case AGIResType.Sound:
-                warnInfo.ID = "RW22";
-                warnInfo.Text = $"Sound {resNum} has an invalid track pointer ({errlevel})";
-                warnInfo.Module = errdata[0];
-                game.LoadEventStatus(mode, warnInfo);
-                break;
-            case AGIResType.View:
-                warnInfo.ID = "RW23";
-                warnInfo.Text = $"View {resNum} has an invalid view description pointer";
-                warnInfo.Module = errdata[0];
-                game.LoadEventStatus(mode, warnInfo);
-                break;
-            case AGIResType.Objects:
-                warnInfo.Module = "OBJECT";
-                if ((errlevel & 1) == 1) {
-                    warnInfo.ID = "RW24";
-                    warnInfo.Text = "OBJECT file has no items";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                if ((errlevel & 2) == 2) {
-                    warnInfo.ID = "RW25";
-                    warnInfo.Text = "Unable to decrypt OBJECT file";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                if ((errlevel & 4) == 4) {
-                    warnInfo.ID = "RW26";
-                    warnInfo.Text = "Invalid OBJECT file header, unable to read item data";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                if ((errlevel & 8) == 8) {
-                    warnInfo.ID = "RW27";
-                    warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                if ((errlevel & 16) == 16) {
-                    warnInfo.ID = "RW28";
-                    warnInfo.Text = "First item is not the null '?' item";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                if ((errlevel & 32) == 32) {
-                    warnInfo.ID = "RW29";
-                    warnInfo.Text = "File access error, unable to read OBJECT file";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                break;
-            case AGIResType.Words:
-                warnInfo.Module = "WORDS.TOK";
-                if ((errlevel & 1) == 1) {
-                    warnInfo.ID = "RW30";
-                    warnInfo.Text = "Abnormal index table";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                if ((errlevel & 2) == 2) {
-                    warnInfo.ID = "RW31";
-                    warnInfo.Text = "Unexpected end of file";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                if ((errlevel & 4) == 4) {
-                    warnInfo.ID = "RW32";
-                    warnInfo.Text = "Upper case characters detected";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                if ((errlevel & 8) == 8) {
-                    warnInfo.ID = "RW33";
-                    warnInfo.Text = "Empty WORDS.TOK file";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                if ((errlevel & 16) == 16) {
-                    warnInfo.ID = "RW34";
-                    warnInfo.Text = "Invalid index table";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                if ((errlevel & 32) == 32) {
-                    warnInfo.ID = "RW35";
-                    warnInfo.Text = "File access error, unable to read OBJECT file";
-                    game.LoadEventStatus(mode, warnInfo);
-                }
-                break;
+                return retval;
             }
         }
 

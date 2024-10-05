@@ -7,15 +7,17 @@ using WinAGI.Engine;
 using static WinAGI.Engine.AGIResType;
 using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
+using static WinAGI.Common.Base;
 
 namespace WinAGI.Common {
 
     public class BkgdTasks {
+        internal static BackgroundWorker bgwCompGame = null;
         internal static BackgroundWorker bgwNewGame = null;
         internal static BackgroundWorker bgwOpenGame = null;
-        internal static BackgroundWorker bgwCompGame = null;
         private static bool updating;
-        private static bool cancelcomp = false;
+        private static CompileMode mode = CompileMode.Full;
+        private static bool replace = true;
 
         public static void NewGameDoWork(object sender, DoWorkEventArgs e) {
             string strError = "";
@@ -56,7 +58,7 @@ namespace WinAGI.Common {
             // progress percentage used to identify event types
             switch (e.ProgressPercentage) {
             case 1:
-                // load warning
+                // load warning/error
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
                 break;
             case 2:
@@ -152,7 +154,7 @@ namespace WinAGI.Common {
                     MessageBox.Show(
                         MDIMain,
                         "Some errors and/or anomalies in resource data were encountered in the template.",
-                        "Template Game Anomalies", 
+                        "Template Game Anomalies",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
@@ -189,7 +191,7 @@ namespace WinAGI.Common {
                 EditGame = null;
                 blnLoaded = false;
                 lngErr = ex.HResult;
-                bgwOpenGame.ReportProgress(0, "Error encountered, game not loaded");
+                ProgressWin.lblProgress.Text = "Error encountered, game not loaded";
                 if ((lngErr & WINAGI_ERR) == WINAGI_ERR) {
                     switch (lngErr - WINAGI_ERR) {
                     case 501:
@@ -304,7 +306,7 @@ namespace WinAGI.Common {
 
             switch (e.ProgressPercentage) {
             case 1:
-                // load warning
+                // load error/warning
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
                 break;
             case 2:
@@ -342,11 +344,11 @@ namespace WinAGI.Common {
                     break;
                 }
                 if (updating) {
-                    if (MessageBox.Show("This game was last opened with an older version of WinAGI. If your game uses extended characters, you will need to update your logic source files.\n\nDo you want your source files updated automatically?\n\n(Choose NO if your game does NOT use extended characters.)", "Update WAG File to New Version",MessageBoxButtons.YesNo) == DialogResult.Yes) {
-                        foreach(Logic lgc in EditGame.Logics) {
+                    if (MessageBox.Show("This game was last opened with an older version of WinAGI. If your game uses extended characters, you will need to update your logic source files.\n\nDo you want your source files updated automatically?\n\n(Choose NO if your game does NOT use extended characters.)", "Update WAG File to New Version", MessageBoxButtons.YesNo) == DialogResult.Yes) {
+                        foreach (Logic lgc in EditGame.Logics) {
                             if (File.Exists(lgc.SourceFile)) {
                                 try {
-                                    byte[] strdat =  File.ReadAllBytes(lgc.SourceFile);
+                                    byte[] strdat = File.ReadAllBytes(lgc.SourceFile);
                                     string srcText = EditGame.CodePage.GetString(strdat);
                                     // TODO: uncomment this after all testing is done
                                     //File.WriteAllText(lgc.SourceFile, srcText);
@@ -384,15 +386,15 @@ namespace WinAGI.Common {
             if (LoadResults.Failed) {
                 MessageBox.Show(
                     MDIMain,
-                    LoadResults.ErrorMsg, 
-                    "Unable to " + (LoadResults.Mode == 0 ? "Open" : "Import") + " Game", 
+                    LoadResults.ErrorMsg,
+                    "Unable to " + (LoadResults.Mode == 0 ? "Open" : "Import") + " Game",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else {
                 if (LoadResults.Warnings) {
                     MessageBox.Show(
                         MDIMain,
-                        "Some errors and/or anomalies in resource data were encountered.", 
+                        "Some errors and/or anomalies in resource data were encountered.",
                         "Anomalies Detected During " + (LoadResults.Mode == 0 ? "Load" : "Import"),
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -406,29 +408,37 @@ namespace WinAGI.Common {
         /// <param name="e"></param>
         public static void CompileGameDoWork(object sender, DoWorkEventArgs e) {
             CompileGameResults argval = (CompileGameResults)e.Argument;
-            cancelcomp = false;
+            CompStatus results = CompStatus.OK;
+            mode = argval.Mode;
             try {
                 switch (argval.Mode) {
-                case 0:
+                case CompileMode.Full:
                     // full compile
-                    Debug.Assert(false);
+                    replace = argval.parm.Length == 0 || EditGame.GameDir.Equals(argval.parm, StringComparison.OrdinalIgnoreCase);
+                    results = EditGame.CompileGame(false, argval.parm);
                     break;
-                case 1:
+                case CompileMode.RebuildOnly:
                     // normal rebuild
-                    Debug.Assert(false);
+                    replace = true;
+                    results = EditGame.CompileGame(true);
                     break;
-                case 2:
+                case CompileMode.DirtyLogics:
+                    replace = true;
+                    results = EditGame.CompileDirtyLogics();
+                    break;
+                case CompileMode.ChangeVersion:
                     // change version rebuild
+                    replace = true;
                     EditGame.InterpreterVersion = argval.parm;
                     break;
                 }
-                // change was ok, unless canceled
-                argval.Failed = cancelcomp;
+                // pass back results status
+                argval.Status = results;
                 e.Result = argval;
             }
             catch (Exception ex) {
+                argval.Status = CompStatus.Error;
                 argval.CompExc = ex;
-                argval.Failed = true;
                 e.Result = argval;
             }
         }
@@ -443,17 +453,43 @@ namespace WinAGI.Common {
             
             switch ((ECStatus)e.ProgressPercentage) {
             case ECStatus.csCompWords:
-                CompStatusWin.lblStatus.Text = "Compiling WORDS.TOK";
-                CompStatusWin.pgbStatus.Value++;
+                switch (compInfo.InfoType) {
+                case EInfoType.itResources:
+                    CompStatusWin.lblStatus.Text = "Compiling WORDS.TOK";
+                    CompStatusWin.pgbStatus.Value++;
+                    break;
+                case EInfoType.itClearWarnings:
+                    MDIMain.ClearWarnings(1, compInfo.ResNum, compInfo.ResType);
+                    break;
+                }
                 break;
             case ECStatus.csCompObjects:
                 CompStatusWin.lblStatus.Text = "Compiling OBJECT";
                 CompStatusWin.pgbStatus.Value++;
                 break;
             case ECStatus.csAddResource:
-                // adding a resource
-                CompStatusWin.lblStatus.Text = "Adding resource: " + compInfo.ID;
-                CompStatusWin.pgbStatus.Value++;
+                switch (compInfo.InfoType) {
+                case EInfoType.itClearWarnings:
+                    // clear warnings and errors for this resource
+                    MDIMain.ClearWarnings(1, compInfo.ResNum, compInfo.ResType);
+                    break;
+                case EInfoType.itCheckLogic:
+                    CompStatusWin.lblStatus.Text = "Checking logic: " + compInfo.ID;
+                    CompStatusWin.pgbStatus.Value++;
+                    break;
+                case EInfoType.itCompiling:
+                    // compiling a logic a resource
+                    CompStatusWin.lblStatus.Text = "Compiling logic: " + compInfo.ID;
+                    break;
+                case EInfoType.itCompiled:
+                    RefreshTree(compInfo.ResType, compInfo.ResNum);
+                    break;
+                case EInfoType.itResources:
+                    // adding a resource
+                    CompStatusWin.lblStatus.Text = "Adding resource: " + compInfo.ID;
+                    CompStatusWin.pgbStatus.Value++;
+                    break;
+                }
                 break;
             case ECStatus.csDoneAdding:
                 break;
@@ -472,7 +508,6 @@ namespace WinAGI.Common {
                 break;
             case ECStatus.csResError:
             case ECStatus.csLogicError:
-                cancelcomp = true;
                 // error encountered
                 int errors = CompStatusWin.Errors;
                 errors++;
@@ -481,18 +516,11 @@ namespace WinAGI.Common {
                 CompStatusWin.Warnings = errors;
                 MDIMain.AddWarning(compInfo);
                 break;
-            case ECStatus.csLogicCompiled:
-                // TODO: add logic compiled check
-                break;
-
             case ECStatus.csFatalError:
-                cancelcomp = true;
                 break;
-
             case ECStatus.csCanceled:
                 CompStatusWin.lblStatus.Text = "CANCELING COMPILE...";
                 CompStatusWin.pgbStatus.Value = CompStatusWin.pgbStatus.Maximum;
-                cancelcomp = true;
                 break;
             }
         }
@@ -505,45 +533,148 @@ namespace WinAGI.Common {
         public static void CompileGameWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
             // compile is done
             CompStatusWin?.Close();
-            //CompStatusWin.Visible = false;
+            CompStatusWin?.Dispose();
 
             // refresh results
             CompGameResults = (CompileGameResults)e.Result;
             switch (CompGameResults.Mode) {
-            case 0:
-                // full compile
-                Debug.Assert(false);
-                break;
-            case 1:
-                // normal rebuild
-                Debug.Assert(false);
-                break;
-            case 2:
-                // change version rebuild
-                if (!cancelcomp) {
-                    if (CompGameResults.Failed) {
-                        ErrMsgBox(CompGameResults.CompExc, "Error during version change: ", "Original version has been restored.", "Change Interpreter Version");
+            case CompileMode.Full:
+            case CompileMode.RebuildOnly:
+                switch (CompGameResults.Status) {
+                case CompStatus.OK:
+                    //everything is ok
+                    MDIMain.UseWaitCursor = false;
+                    if (CompGameResults.Warnings) {
+                        if (!MDIMain.pnlWarnings.Visible) {
+                            MDIMain.pnlWarnings.Visible = true;
+                        }
+                        //msgbox to user
+                        MessageBox.Show(MDIMain,
+                            "Warnings were generated during game" + (CompGameResults.Mode == CompileMode.RebuildOnly ? "rebuild." : "compile."),
+                            CompGameResults.Mode == CompileMode.RebuildOnly ? "Rebuild VOL Files" : "Compile Game",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
                     }
                     else {
-                        // check for errors and warnings
-                        if (int.Parse(CompStatusWin.lblErrors.Text) + int.Parse(CompStatusWin.lblWarnings.Text) > 0) {
-                            MessageBox.Show("Errors and/or warnings were generated during game rebuild.", "Version Change Rebuild", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            if (int.Parse(CompStatusWin.lblErrors.Text) > 0) {
-                                // reuild resource list if there were errors
-                                BuildResourceTree();
-                            }
-                            if (int.Parse(CompStatusWin.lblWarnings.Text) > 0) {
-                                if (!MDIMain.pnlWarnings.Visible) {
-                                    MDIMain.pnlWarnings.Visible = true;
-                                }
-                            }
-                        }
-                        else {
-                            // everything is ok
-                            MessageBox.Show("Version change and rebuild completed successfully.",
-                            "Change Interpreter Version", MessageBoxButtons.OK,
+                        MDIMain.UseWaitCursor = false;
+                        MessageBox.Show(MDIMain,
+                            (CompGameResults.Mode == CompileMode.RebuildOnly ? "Rebuild" : "Compile") + " completed successfully.",
+                            CompGameResults.Mode == CompileMode.RebuildOnly ? "Rebuild VOL Files" : "Compile Game",
+                            MessageBoxButtons.OK,
                             MessageBoxIcon.Information);
+                    }
+                    break;
+                case CompStatus.Error:
+                case CompStatus.Canceled:
+                    // need to only restore words/object if
+                    // compile was to another directory
+                    if (CompGameResults.parm != EditGame.GameDir) {
+                        // file ops in try blocks
+                        // delete any new files
+                        SafeFileDelete(CompGameResults.parm + "WORDS.TOK");
+                        SafeFileDelete(CompGameResults.parm + "OBJECT");
+                        // restore old files if they exist
+                        if (File.Exists(CompGameResults.parm + "WORDS_OLD.TOK")) {
+                            SafeFileMove(CompGameResults.parm + "WORDS_OLD.TOK", CompGameResults.parm + "WORDS.TOK", true);
+
                         }
+                        if (File.Exists(CompGameResults.parm + "OBJECT_OLD")) {
+                            SafeFileMove(CompGameResults.parm + "OBJECT_OLD", CompGameResults.parm + "OBJECT", true);
+                        }
+                    }
+                    // clean up any leftover vol/dir files
+                    if (EditGame.InterpreterVersion[0] == '3') {
+                        SafeFileDelete(CompGameResults.parm + EditGame.GameID + "DIR.NEW");
+                    }
+                    else {
+                        SafeFileDelete(CompGameResults.parm + "LOGDIR.NEW");
+                        SafeFileDelete(CompGameResults.parm + "PICDIR.NEW");
+                        SafeFileDelete(CompGameResults.parm + "SNDDIR.NEW");
+                        SafeFileDelete(CompGameResults.parm + "VIEWDIR.NEW");
+                    }
+                    foreach (string file in Directory.GetFiles(CompGameResults.parm, "NEW_VOL.*")) {
+                        SafeFileDelete(file);
+                    }
+                    MDIMain.UseWaitCursor = false;
+                    string strTemp = "";
+                    if (CompGameResults.Status == CompStatus.Error) {
+                        // rebuild resource list
+                        BuildResourceTree();
+                        strTemp = "An error occurred while building game files. Original files have " +
+                            "been restored, but you should check all files to make sure nothing " +
+                            "was lost or corrupted.";
+                    }
+                    else {
+                        // cancelled
+                        strTemp = (CompGameResults.Mode == CompileMode.RebuildOnly ? "Rebuild" : "Compile") + " canceled. No changes made to game files.";
+                    }
+                    MessageBox.Show(MDIMain,
+                        strTemp,
+                        CompGameResults.Mode == CompileMode.RebuildOnly ? "Rebuild VOL Files" : "Compile Game",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    break;
+                }
+                break;
+            case CompileMode.DirtyLogics:
+                switch (CompGameResults.Status) {
+                case CompStatus.OK:
+                    //everything is ok
+                    MDIMain.UseWaitCursor = false;
+                    MessageBox.Show(MDIMain,
+                        "All logics compiled successfully.",
+                        "Compile Logics",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    break;
+                case CompStatus.Error:
+                    MessageBox.Show(MDIMain,
+                        "One or more errors occurred while compiling logics. Not all logics have " +
+                        "been compiled.",
+                        "Compile Logics",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    break;
+                case CompStatus.Canceled:
+                        // cancelled
+                    MessageBox.Show(MDIMain,
+                        "Logic compile action canceled. Not all logics were compiled.",
+                        "Compile Logics",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    break;
+                }
+                break;
+            case CompileMode.ChangeVersion:
+                // change version rebuild
+                if (CompGameResults.Status != CompStatus.OK) {
+                    ErrMsgBox(CompGameResults.CompExc, "Error during version change: ", "Original version has been restored.", "Change Interpreter Version");
+                }
+                else {
+                    // TODO: need better way to check for errors and warnings
+                    // (add count values to the results object?)
+                    // check for errors and warnings
+                    if (int.Parse(CompStatusWin.lblErrors.Text) + int.Parse(CompStatusWin.lblWarnings.Text) > 0) {
+                        MessageBox.Show(MDIMain,
+                            "Errors and/or warnings were generated during game rebuild.",
+                            "Version Change Rebuild",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                        if (int.Parse(CompStatusWin.lblErrors.Text) > 0) {
+                            // reuild resource list if there were errors
+                            BuildResourceTree();
+                        }
+                        if (int.Parse(CompStatusWin.lblWarnings.Text) > 0) {
+                            if (!MDIMain.pnlWarnings.Visible) {
+                                MDIMain.pnlWarnings.Visible = true;
+                            }
+                        }
+                    }
+                    else {
+                        // everything is ok
+                        MessageBox.Show("Version change and rebuild completed successfully.",
+                        "Change Interpreter Version", MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     }
                 }
                 break;
